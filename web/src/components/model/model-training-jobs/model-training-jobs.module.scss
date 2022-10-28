@@ -1,0 +1,16 @@
+@import '~shared/helpers/styles';
+
+.container {
+  flex: 1;
+}
+
+.content {
+  flex: 1;
+  width: 500px;
+  margin: 20px 0;
+  padding: 0 20px 20px 20px;
+  background-color: $white;
+}
+.search-input{
+  margin-bottom: 10px;
+}

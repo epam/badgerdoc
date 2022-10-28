@@ -1,0 +1,53 @@
+@import '~shared/helpers/styles';
+
+.sidebar-wrapper {
+    @extend .flex-cell;
+    position: relative;
+    align-items: stretch;
+}
+
+.sidebar-panel-wrapper {
+    @extend .flex-col;
+    width: 315px;
+    background-color: white;
+    transition: margin-left 0.2s ease;
+}
+
+.sidebar-panel-opened {
+    margin-left: 0;
+}
+
+.sidebar-panel-closed {
+    margin-left: -315px;
+}
+.panel {
+    border-radius: 0;
+}
+.icon {
+    width: 56px;
+    height: 48px;
+    border-radius: 8px 0 0 8px;
+    background-color: white;
+    position: absolute;
+    top: 8px;
+    left: 0;
+    z-index: 10;
+    display: flex;
+    text-align: center;
+    justify-content: center;
+    transition: left 0.2s ease, transform 0.2s ease;
+}
+
+.close-icon {
+    left: calc(315px - 56px);
+    transform: rotate(0deg);
+}
+
+.open-icon {
+    transform: rotate(180deg);
+    left: 0;
+}
+.annotators,
+.text {
+    padding: 0px 23px 0px 23px;
+}

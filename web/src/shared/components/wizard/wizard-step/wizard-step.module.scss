@@ -1,0 +1,36 @@
+@import '~shared/helpers/styles';
+@import '@epam/assets/scss/loveship-colors.scss';
+
+.circle {
+    margin-top: 1px;
+    width: 24px;
+    height: 24px;
+    border-radius: 100%;
+    background-color: $light-blue;
+    color: $btn-blue;
+    text-align: center;
+    font-size: 12px;
+    font-weight: bold;
+    border: 2px solid $btn-blue;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.gray {
+    background-color: $night50;
+    border: 1px solid $night500;
+    color: $night500;
+}
+.step-name {
+    margin-left: 4px;
+    font-size: small;
+}
+
+.done {
+    fill: $btn-blue;
+    width: 24px;
+    height: 24px;
+}
+.step {
+    align-items: center;
+}

@@ -1,0 +1,25 @@
+import { useMemo, useRef } from 'react';
+import { useLazyDataSource } from '@epam/uui';
+import { Filter, PagedResponse, PagingCache } from 'api/typings';
+import { createPagingCachedLoader } from 'shared/helpers/create-paging-cached-loader';
+
+export const useEntity = <TItem, TId>(
+    fetcher: (...args: Array<any>) => Promise<PagedResponse<TItem>>,
+    filters?: Filter<keyof TItem>[]
+) => {
+    const cache = useRef<PagingCache<TItem>>({
+        page: -1,
+        search: '',
+        cache: []
+    });
+
+    const api = createPagingCachedLoader<TItem, TId>(
+        cache,
+        async (pageNumber, pageSize, keyword) =>
+            await fetcher(pageNumber, pageSize, keyword, filters)
+    );
+
+    const dataSource = useLazyDataSource({ api }, []);
+
+    return useMemo(() => ({ dataSource, cache }), []);
+};

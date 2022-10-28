@@ -1,0 +1,51 @@
+@import '~shared/helpers/styles';
+
+.sidebar {
+    @extend .flex-col;
+    @extend .flex-cell;
+    height: 100%;
+    padding: 0 24px 24px 24px;
+    overflow: auto;
+}
+
+.sidebar-title {
+    padding: 28px 0 21px 0;
+    margin: 0;
+    font-weight: 600;
+    font-size: 24px;
+}
+
+.search {
+    margin-top: 10px;
+}
+
+.facet {
+    margin-top: 10px;
+}
+
+.facet:first-child {
+    margin-top: 0;
+}
+
+.facet-name {
+    margin: 0;
+    font-weight: 600;
+    font-size: 18px;
+}
+
+.facet-item {
+    margin-top: 16px;
+    display: flex;
+}
+
+.facet-id {
+    margin-left: 12px;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 18px;
+}
+
+.show-more {
+    width: 70px;
+    margin: 7px 0 0 30px;
+}

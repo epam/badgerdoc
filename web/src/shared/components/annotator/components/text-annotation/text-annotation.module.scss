@@ -1,0 +1,53 @@
+.text-annotation {
+    position: absolute;
+
+    &-label {
+        &-no_label {
+            display: none;
+        }
+        &-start {
+            font-size: small;
+            opacity: 0;
+            position: absolute;
+            padding: 0 5px;
+            box-sizing: border-box;
+            gap: 5px;
+            display: flex;
+            align-items: center;
+            user-select: none;
+            left: -8px;
+            color: white;
+            bottom: 100%;
+        }
+        &-middle {
+            font-size: small;
+            opacity: 0;
+
+            position: absolute;
+            padding: 0 5px;
+            box-sizing: border-box;
+            gap: 5px;
+            display: flex;
+            align-items: center;
+            user-select: none;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            bottom: 100%;
+        }
+        &-end {
+            font-size: small;
+            opacity: 0;
+            position: absolute;
+            padding: 0 5px;
+            box-sizing: border-box;
+            gap: 5px;
+            display: flex;
+            align-items: center;
+            user-select: none;
+            right: 0px;
+            color: white;
+            bottom: 100%;
+        }
+    }
+}

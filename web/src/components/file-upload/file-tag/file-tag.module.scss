@@ -1,0 +1,58 @@
+@import '@epam/assets/scss/promo/colors.scss';
+
+.file-tag {
+    margin: 8px 7px;
+    border-radius: 0 !important;
+    background: white !important;
+    border-color: $gray40 !important;
+    height: auto !important;
+    padding: 9px !important;
+    min-height: 48px !important;
+    *:not(:first-child) {
+        text-align: start;
+        justify-content: start !important;
+        align-items: flex-start !important;
+    }
+   
+
+    &-text {
+        padding: 0;
+        &:last-child {
+            text-transform: uppercase;
+            text-align: start;
+            color: $gray60;
+        }
+    }
+    svg {
+        fill: $gray60;
+    }
+
+    :global(.-clickable) svg {
+        fill: $gray60 !important;
+        width: 18px;
+        height: 18px;
+        margin-right: -5px;
+        margin-top: -5px;
+    }
+
+    &--green {
+        svg {
+            fill: #217345;
+        }
+    }
+
+    &--orange {
+        svg {
+            fill: #E47C13;
+        }
+    }
+
+    &--red {
+        svg {
+            fill: #FA0A00;
+        }
+    }
+}
+.uui-icon{
+    justify-content: start !important;
+}

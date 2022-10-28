@@ -1,0 +1,71 @@
+@import '~shared/helpers/styles/colors-helper';
+
+$popupWidth: 45%;
+
+.container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: $bg-color;
+    opacity: 0.8;
+    z-index: 1;
+}
+
+.popup {
+    padding: 33px 36px 22px 25px;
+    position: fixed;
+    z-index: 2;
+    top: 15%;
+    left: 25%;
+    right: 25%;
+    background-color: white;
+    border: 0;
+    min-height: 50%;
+
+    .search {
+        border-radius: unset;
+        margin-bottom: 8px;
+    }
+
+    .input {
+        border-radius: unset;
+        width: 106px;
+    }
+
+    .dataset {
+        width: 50%;
+        margin-right: 34px;
+        border: 0;
+    }
+
+    .pipeline {
+        border-left: 1px solid $light-grey;
+        padding-left: 20px;
+        width: 45%;
+    }
+
+    .list {
+        width: 100%;
+        border: 1px solid $light-grey;
+        min-height: 68px;
+    }
+
+    .list:first-child {
+        min-height: 160px;
+    }
+
+    .button {
+        margin-top: 56px;
+        background-color: $btn-blue;
+        border-radius: unset;
+        height: 36px;
+        float: right;
+    }
+
+    .close {
+        position: sticky;
+        float: right;
+    }
+}

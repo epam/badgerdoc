@@ -1,0 +1,16 @@
+@import '~shared/helpers/styles/colors-helper';
+
+.container {
+    flex: 1 1;
+    margin: 0 24px 24px;
+    .search {
+        width: 290px;
+        height: 36px !important;
+        border-radius: unset;
+    }
+}
+
+.title {
+    margin-top: 22px;
+    margin-bottom: 12px;
+}

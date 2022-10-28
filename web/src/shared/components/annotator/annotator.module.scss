@@ -1,0 +1,16 @@
+.container {
+    position: relative;
+    padding: 0;
+    border-bottom: 1px solid gray;
+}
+
+.pano {
+    inset: 0;
+    z-index: 10;
+}
+
+.selection {
+    position: absolute;
+    z-index: 9;
+    border: 2px solid green;
+}

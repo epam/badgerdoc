@@ -1,0 +1,11 @@
+@import '~shared/helpers/styles';
+
+.tabs {
+    *[role='tab'] {
+        flex-grow: 1;
+    }
+}
+
+.add {
+    width: fit-content;
+}

@@ -1,0 +1,21 @@
+@import '~shared/helpers/styles';
+
+.sidebar {
+    @extend .flex-col;
+    @extend .flex-cell;
+    height: 100%;
+}
+
+.sidepanel-footer {
+    @extend .flex;
+    @extend .justify-between;
+}
+
+.search-input {
+    width: 280px;
+    margin: 18px 10px 10px 18px;
+}
+
+.virtual-list {
+    overflow: hidden;
+}

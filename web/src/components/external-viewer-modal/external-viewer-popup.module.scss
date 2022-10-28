@@ -1,0 +1,39 @@
+.rnd-popup{
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: 100;
+    background: white;
+    margin: 0 auto;
+    min-width: fit-content;
+    box-shadow: 0 0 20px 0 rgba(gray, .5);
+}
+.rnd-content{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    flex: 1;
+}
+.rnd-button{
+    background-color: #8c0;
+    border-color: #8c0;
+}
+.rnd-panel{
+    height: 100%;
+}
+
+.rnd-wrapper{
+    position: fixed;
+    z-index: 100;
+    top: 50%;
+    left: 50%;
+}
+button{
+    height: 2rem;
+    width: 2rem;
+}
+.draggable{
+    cursor: move;
+    box-shadow: 0 .2rem 0 0 gray;
+}

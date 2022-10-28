@@ -1,0 +1,59 @@
+@import 'shared/helpers/styles';
+@import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro&display=swap');
+@import '@epam/assets/scss/promo/colors.scss';
+
+* {
+    box-sizing: border-box;
+    font-family: 'Source Sans Pro', sans-serif;
+    font-style: normal;
+    line-height: 1.5;
+}
+
+html,
+body {
+    height: 100%;
+    color: $gray80;
+}
+
+body {
+    margin: 0;
+
+    > div {
+        height: 100%;
+    }
+}
+
+main {
+    @extend .flex;
+    @extend .flex-cell;
+    overflow: hidden;
+    background: $bg-color;
+    position: relative;
+}
+
+footer {
+    height: 30px;
+    background: $bg-color;
+}
+
+h1,
+h2,
+h3 {
+    font-weight: 600;
+    font-family: 'Sans Regular', sans-serif;
+}
+
+h4 {
+    // in theory it should be somewhere in library
+    font-style: normal;
+    font-weight: 600;
+    font-size: 18px;
+    line-height: 24px;
+    margin: 0;
+}
+
+.app {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}

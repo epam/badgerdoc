@@ -1,0 +1,19 @@
+@import '@epam/assets/scss/promo/colors.scss';
+
+.form-wrapper {
+    padding: 24px;
+    box-shadow: 0 1px 3px 0 #1D1E261A, 0 3px 6px 0 #1D1E261A;
+    background: #fff;
+    min-height: 0;
+    overflow-y: auto;
+    width: 100%;
+}
+
+.form-group {
+    margin-bottom: 24px;
+    width: 430px;
+
+    &:last-child {
+        margin-bottom: 0;
+    }
+}

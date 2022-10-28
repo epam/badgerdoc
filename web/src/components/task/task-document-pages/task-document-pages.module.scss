@@ -1,0 +1,23 @@
+@import '~shared/helpers/styles';
+
+.container {
+    overflow: hidden;
+}
+
+.page {
+    position: relative;
+    margin-left: 20px;
+}
+
+.validation {
+    position: absolute;
+    left: -20px;
+    width: 20px;
+    height: 100%;
+}
+.validColor {
+    background: $valid;
+}
+.invalidColor {
+    background: $invalid;
+}

@@ -1,0 +1,47 @@
+@import '~shared/helpers/styles';
+
+.pdf-container {
+    display: grid;
+    grid-template-columns: 2.5rem 1fr;
+    height: 100%;
+    gap: 0.5rem;
+}
+
+.pdf-parent {
+    overflow: auto;
+}
+
+.page-scale {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 15px;
+
+    &__button-group {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+
+    &__item {
+        width: 36px;
+        height: 36px;
+        border: solid 1px $btn-border;
+        background-color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+
+        &--active {
+            background-color: #474a5a;
+            svg {
+                fill: white;
+            }
+        }
+    }
+}
+.document-wrapper {
+    position: relative;
+}

@@ -1,0 +1,30 @@
+.job-page-main-content {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    min-height: 100%;
+
+    font-family: Source Sans Pro;
+    font-style: normal;
+}
+.job-page-sidebar-content {
+    display: flex;
+    flex-direction: column;
+    padding: 18px 0 24px 0;
+
+    background: white;
+    border: 2px solid #e8e8e8;
+    box-sizing: border-box;
+    h2 {
+        margin-bottom: 5px;
+    }
+    > div {
+        width: 313px;
+    }
+}
+.job-page-table-content {
+    display: flex;
+    flex-direction: column;
+    margin: 0.8em 24px 24px 24px;
+    width: 100%;
+}

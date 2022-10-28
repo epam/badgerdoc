@@ -1,0 +1,34 @@
+@import '@epam/assets/scss/promo/colors.scss';
+
+.upload-form {
+    overflow-y: hidden;
+    padding: 0;
+    display: flex;
+    height: 350px;
+    
+    &__header {
+        padding: 0;
+        margin-bottom: 12px;
+    }
+
+    &__drop-zone__text {
+        &__button {
+            color: $blue;
+            display: inline;
+            padding: 0;
+            border-width: 0 !important;
+
+            &:hover, &:focus {
+                color: $blue !important;
+                background: none !important;
+                border-color: transparent !important;
+                box-shadow: none !important;
+            }
+            
+            & :first-child {
+                display: inline;
+                padding: 0;
+            }
+        }
+    }
+}

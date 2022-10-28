@@ -1,0 +1,10 @@
+.button {
+    padding: 7px 10px;
+    flex-grow: 1;
+    border-radius: 0 !important;
+
+    & :nth-child(2) {
+        flex: none;
+        font-size: medium;
+    }
+}

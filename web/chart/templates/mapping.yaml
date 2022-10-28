@@ -1,0 +1,18 @@
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: badgerdoc-ui
+  namespace: {{ .Release.Namespace }}
+spec:
+  host: {{ .Release.Namespace }}.gcov.ru
+  connect_timeout_ms: 30000
+  idle_timeout_ms: 50000
+  prefix: /
+  service: badgerdoc-ui:80
+  timeout_ms: 30000
+  keepalive:
+    interval: 10
+    probes: 9
+    time: 100
+  allow_upgrade:
+  - websocket

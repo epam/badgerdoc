@@ -1,0 +1,12 @@
+.content {
+    overflow: hidden;
+    width: 100vw;
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 1rem;
+    padding: 1rem 1rem 1rem 0.5rem;
+}
+
+.title {
+    padding: 22px 24px 8px 75px;
+}

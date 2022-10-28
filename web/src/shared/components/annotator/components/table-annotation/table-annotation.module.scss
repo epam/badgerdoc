@@ -1,0 +1,79 @@
+.gutter {
+  position: absolute;
+}
+
+.gutter-vertical {
+  position: absolute;
+  &:hover {
+    cursor: col-resize;
+  }
+}
+
+.gutter-horizontal {
+  position: absolute;
+  &:hover {
+    cursor: row-resize;
+  }
+}
+
+.movebox {
+  position: absolute;
+  top:50%;
+  left: 50%;
+  background: black;
+  width: 10px;
+  height: 10px;
+  transform: translate(-50%, -50%);
+}
+
+.tableAnnotation {
+  position: absolute;
+
+  &-label {
+    position: absolute;
+    right: -2px;
+    top: -17px;
+    color: white;
+    font-size: small;
+    padding: 0 5px;
+    box-sizing: border-box;
+    gap: 5px;
+    display: flex;
+    align-items: center;
+    user-select: none;
+  }
+}
+
+.resizer {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: white;
+  border: 3px solid;
+  position: absolute;
+}
+
+.top-left {
+  left: -5px;
+  top: -5px;
+  cursor: nwse-resize;
+}
+
+.top-right {
+  right: -5px;
+  top: -5px;
+  cursor: nesw-resize;
+}
+
+.bottom-left {
+  left: -5px;
+  bottom: -5px;
+  cursor: nesw-resize;
+}
+
+.bottom-right {
+  right: -5px;
+  bottom: -5px;
+  cursor: nwse-resize;
+}
+
