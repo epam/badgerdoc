@@ -1,0 +1,164 @@
+apiVersion: apps/v1
+kind: Deployment
+spec:
+  replicas: 1
+  template:
+    metadata:
+      annotations:
+        consul.hashicorp.com/connect-inject: "false"
+        sidecar.istio.io/inject: "false"
+      labels:
+        service: ambassador
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  service: ambassador
+              topologyKey: kubernetes.io/hostname
+            weight: 100
+      containers:
+      - name: ambassador
+        image: 818863528939.dkr.ecr.eu-central-1.amazonaws.com/badgerdoc/aes:1.14.2
+        env:
+        - name: AMBASSADOR_URL
+          value: https://ambassador.ambassador.svc.cluster.local
+        - name: POLL_EVERY_SECS
+          value: "60"
+        - name: AMBASSADOR_INTERNAL_URL
+          value: https://127.0.0.1:8443
+        - name: AMBASSADOR_SINGLE_NAMESPACE
+        - name: AMBASSADOR_ENVOY_BASE_ID
+          value: "1"
+        resources:
+          limits:
+            cpu: "1"
+            memory: 600Mi
+          requests:
+            cpu: 200m
+            memory: 300Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /tmp/ambassador-pod-info
+          name: ambassador-pod-info
+          readOnly: true
+        - mountPath: /.config/ambassador
+          name: ambassador-edge-stack-secrets
+          readOnly: true
+        - mountPath: /etc/istio-certs/
+          name: istio-certs
+
+      - name: istio-proxy
+        image: 818863528939.dkr.ecr.eu-central-1.amazonaws.com/badgerdoc/istio-proxyv2:1.11.4
+        imagePullPolicy: IfNotPresent
+        args:
+        - proxy
+        - sidecar
+        - --domain
+        - $(POD_NAMESPACE).svc.cluster.local
+        - --serviceCluster
+        - istio-proxy-ambassador
+        - --discoveryAddress
+        - istio-pilot.istio-system.svc:15012
+        - --connectTimeout
+        - 10s
+        - --statusPort
+        - "15020"
+        - --trust-domain=cluster.local
+        - --controlPlaneBootstrap=false
+        env:
+        - name: OUTPUT_CERTS
+          value: /etc/istio-certs
+        - name: JWT_POLICY
+          value: third-party-jwt
+        - name: PILOT_CERT_PROVIDER
+          value: istiod
+        - name: CA_ADDR
+          value: istiod.istio-system.svc:15012
+        - name: ISTIO_META_MESH_ID
+          value: cluster.local
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+        - name: INSTANCE_IP
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: status.podIP
+        - name: SERVICE_ACCOUNT
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: spec.serviceAccountName
+        - name: HOST_IP
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: status.hostIP
+        - name: ISTIO_META_POD_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+        - name: ISTIO_META_CONFIG_NAMESPACE
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+        - name: ISTIO_META_CLUSTER_ID
+          value: Kubernetes
+        readinessProbe:
+          failureThreshold: 30
+          httpGet:
+            path: /healthz/ready
+            port: 15020
+            scheme: HTTP
+          initialDelaySeconds: 1
+          periodSeconds: 2
+          successThreshold: 1
+          timeoutSeconds: 1
+        resources: {}
+        securityContext:
+          runAsUser: 0
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /var/run/secrets/istio
+          name: istiod-ca-cert
+        - mountPath: /etc/istio/proxy
+          name: istio-envoy
+        - mountPath: /etc/istio-certs/
+          name: istio-certs
+        - mountPath: /var/run/secrets/tokens
+          name: istio-token
+      volumes:
+      - emptyDir:
+          medium: Memory
+        name: istio-certs
+      - configMap:
+          defaultMode: 420
+          name: istio-ca-root-cert
+        name: istiod-ca-cert
+      - emptyDir:
+          medium: Memory
+        name: istio-envoy
+      - name: istio-token
+        projected:
+          defaultMode: 420
+          sources:
+          - serviceAccountToken:
+              audience: istio-ca
+              expirationSeconds: 43200
+              path: istio-token

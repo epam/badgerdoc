@@ -1,0 +1,96 @@
+prometheus:
+  ingress:
+    enabled: false
+  #replicas: 2
+  serviceAccount:
+    create: true
+    name: prometheus-server
+    annotations:
+  prometheusSpec:
+    remoteWrite:
+      - url: http://victoria-metrics-single-server:8428/api/v1/write
+    retention: 1d
+    retentionSize: 1GB
+
+
+alertmanager:
+  serviceAccount:
+    create: true
+    name: prometheus-alertmanager
+    annotations: {}
+
+#ref:https://github.com/grafana/helm-charts/blob/main/charts/grafana/values.yaml  
+grafana:
+  image:
+    repository: grafana/grafana
+    tag: 8.3.3
+  replicas: 1
+  ingress:
+    enabled: false
+  persistence:
+    enabled: true
+    type: pvc
+    storageClassName: "ebs-sc"
+    accessModes:
+    - ReadWriteOnce
+    size: 10Gi
+    finalizers:
+    - kubernetes.io/pvc-protection
+  resources:
+    limits:
+      cpu: 2
+      memory: 2G
+    requests:
+      cpu: 100m
+      memory: 2G
+  adminPassword: grafana
+  defaultDashboardsTimezone: utc+3
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+      # - name: Cloudwatch
+      #   type: cloudwatch
+      #   jsonData:
+      #     authType: credentials
+      #     defaultRegion: us-east-1
+      - name: VictoriaMetrics
+        type: prometheus
+        url: "http://victoria-metrics-single-server:8428"
+        access: proxy
+        isDefault: true
+      - name: Prometheus AlertManager
+        type: camptocamp-prometheus-alertmanager-datasource
+        url: "http://kps-kube-prometheus-stack-alertmanager"
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+      - name: 'default'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/default
+  dashboards:
+    default:
+      # custom-dashboard:
+      #   file: dashboards/custom-dashboard.json
+      # ambassador:
+      #   file: dashboards/ambassador_dashboard.json
+      keycloak:
+        gnetId: 10441
+        revision: 1
+        datasource: VictoriaMetrics
+  serverDashboardConfigmaps:
+    - ambassador-dashboard
+        
+  plugins:
+  - camptocamp-prometheus-alertmanager-datasource
+  - grafana-piechart-panel # for keycloak dashboard
+
+  # TODO:
+  # 1. monitoring 503, 404, etc. errors
+  # 2. cloudwatch monitoring

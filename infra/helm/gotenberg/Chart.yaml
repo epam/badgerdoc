@@ -1,0 +1,3 @@
+name: gotenberg
+version: 7.4.3
+description: Gotenberg is a Docker-powered stateless API for converting HTML, Markdown and Office documents to PDF

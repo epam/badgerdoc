@@ -1,0 +1,21 @@
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  annotations:
+    meta.helm.sh/release-name: assets
+    meta.helm.sh/release-namespace: dev1
+  creationTimestamp: "2021-11-24T13:51:36Z"
+  generation: 1
+  labels:
+    app.kubernetes.io/managed-by: Helm
+  name: assets-internal
+  namespace: dev1
+  resourceVersion: "6279910"
+  uid: ded0b1a5-e742-435a-94d4-0980cf299692
+spec:
+  connect_timeout_ms: 2000
+  host: ambassador
+  idle_timeout_ms: 50000
+  prefix: /api/v1/assets
+  service: assets
+  timeout_ms: 4000

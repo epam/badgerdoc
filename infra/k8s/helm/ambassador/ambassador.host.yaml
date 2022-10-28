@@ -1,0 +1,18 @@
+apiVersion: getambassador.io/v2
+kind: Host
+metadata:
+  name: ambassador
+  namespace: ambassador
+spec:
+  acmeProvider:
+    authority: none
+  ambassador_id:
+    - default
+  hostname: '*'
+  requestPolicy:
+    insecure:
+      action: Route
+  selector:
+    matchLabels:
+      hostname: wildcard
+  tlsSecret: {}

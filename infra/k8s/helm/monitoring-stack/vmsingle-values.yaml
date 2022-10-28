@@ -1,0 +1,84 @@
+# ref: https://github.com/VictoriaMetrics/helm-charts/tree/master/charts/victoria-metrics-single
+
+rbac:
+  create: true
+  pspEnabled: true
+  namespaced: false
+
+serviceAccount:
+  create: true
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+server:
+  enabled: true
+  name: server
+  priorityClassName: ""
+  fullnameOverride: victoria-metrics-single-server
+  retentionPeriod: 1
+  extraArgs:
+    search.minStalenessInterval: 2m
+  persistentVolume:
+    enabled: true
+    accessModes:
+      - ReadWriteOnce
+    storageClass: "ebs-sc"
+
+    mountPath: /storage
+    subPath: ""
+    size: 10Gi
+  replicaCount: 2
+
+  podManagementPolicy: OrderedReady
+
+  resources:
+    limits:
+      cpu: 1
+      memory: 2Gi
+    requests:
+      cpu: 1
+      memory: 2Gi
+
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: http
+    initialDelaySeconds: 5
+    periodSeconds: 15
+    timeoutSeconds: 5
+
+  livenessProbe:
+    tcpSocket:
+      port: http
+    initialDelaySeconds: 5
+    periodSeconds: 15
+    timeoutSeconds: 5
+
+  ingress:
+    enabled: false
+
+  service:
+    servicePort: 8428
+    type: ClusterIP
+
+  statefulSet:
+    enabled: true
+    podManagementPolicy: OrderedReady
+    service:
+      servicePort: 8428
+
+  terminationGracePeriodSeconds: 60
+  
+  serviceMonitor:
+    enabled: false
+
+  # tolerations:
+  #   - key: "node-role"
+  #     operator: "Equal"
+  #     value: "system"
+  #     effect: "NoExecute"
+  
+  # nodeSelector:
+  #   Type: cluster

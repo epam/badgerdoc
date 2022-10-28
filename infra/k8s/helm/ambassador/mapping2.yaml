@@ -1,0 +1,15 @@
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: badgerdoc-ui
+  namespace: default
+spec:
+  host: {env}.{base_fqdn}
+  prefix: /ui/
+  service: badgerdoc-ui
+  connect_timeout_ms: 2000
+  idle_timeout_ms: 50000
+  timeout_ms: 4000
+
+

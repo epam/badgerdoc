@@ -1,0 +1,12 @@
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: grafana
+  namespace: monitoring
+spec:
+  host: dev2.badgerdoc.com
+  connect_timeout_ms: 30000
+  idle_timeout_ms: 50000
+  prefix: /grafana/
+  service: http://loki-stack-grafana:80
+  timeout_ms: 30000

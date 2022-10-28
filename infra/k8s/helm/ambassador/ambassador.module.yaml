@@ -1,0 +1,10 @@
+apiVersion: getambassador.io/v2
+kind: Module
+metadata:
+  name: ambassador
+  namespace: ambassador
+spec:
+  config:
+    xff_num_trusted_hops: 2
+    use_remote_address: true
+    x_forwarded_proto_redirect: true
