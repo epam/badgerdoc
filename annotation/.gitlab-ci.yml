@@ -1,0 +1,43 @@
+image: python:3.8
+
+services:
+  - postgres:13.4
+
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  POSTGRES_DB: annotation
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: postgres
+
+cache:
+  paths:
+    - .cache/pip
+
+stages:
+    - code_style_check
+    - unit_tests
+
+before_script:
+  - pip install poetry
+  - poetry config virtualenvs.create false
+  - poetry install
+
+check_sort:
+  stage: code_style_check
+  script:
+    - make sort
+
+check_lint:
+  stage: code_style_check
+  script:
+    - make lint
+
+check_format:
+  stage: code_style_check
+  script:
+    - make format
+
+check_tests:
+ stage: unit_tests
+ script:
+   - make test

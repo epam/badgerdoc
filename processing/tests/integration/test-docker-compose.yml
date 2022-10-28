@@ -1,0 +1,30 @@
+version: '3.4'
+services:
+  minio:
+    image: minio/minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    env_file:
+      - .env
+    command: server --console-address ":9001" /export
+
+  processing:
+    build:
+      context: ../../
+      target:
+        build
+    env_file:
+      - .env
+    ports:
+      - "8080:8080"
+
+  preprocessing:
+    build:
+      context: ../../../easy-ocr
+      target:
+        build
+    env_file:
+      - .env
+    ports:
+      - "65432:8000"

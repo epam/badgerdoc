@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    deployment.kubernetes.io/revision: "1"
+  labels:
+    app: jobs
+  name: jobs
+  namespace: {{ .Release.Namespace }}
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: jobs
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"
+      creationTimestamp: null
+      labels:
+        app: jobs
+    spec:
+      containers:
+      - image: 818863528939.dkr.ecr.eu-central-1.amazonaws.com/badgerdoc/jobs:{{ .Values.image.tag }}
+        imagePullPolicy: IfNotPresent
+        name: jobs
+        resources:
+          requests:
+            memory: "200Mi"
+            cpu: "200m"
+          limits:
+            memory: "2000Mi"
+            cpu: "500m"
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        env:
+        - name: POSTGRESQL_JOBMANAGER_DATABASE_URI
+          valueFrom:
+            secretKeyRef:
+              name: jobs
+              key: POSTGRESQL_JOBMANAGER_DATABASE_URI
+        - name: PIPELINES_URI
+          value: "pipelines"
+        - name: ASSETS_URI
+          value: "assets"
+        - name: ANNOTATION_MICROSERVICE_URI
+          value: "annotation"
+        {{- if eq .Release.Namespace "dev1" }}
+        - name: KEYCLOAK_HOST
+          valueFrom:
+            secretKeyRef:
+              name: users
+              key: KEYCLOAK_DIRECT_ENDPOINT_DEV1
+        {{- end }}
+        {{- if eq .Release.Namespace "dev2" }}
+        - name: KEYCLOAK_HOST
+          valueFrom:
+            secretKeyRef:
+              name: users
+              key: KEYCLOAK_DIRECT_ENDPOINT_DEV2
+        {{- end }}
+        command: ["/bin/sh"]
+        args: ["-c", "alembic upgrade head && uvicorn jobs.main:app --host 0.0.0.0 --port 8123 --root-path /api/v1/jobs"]
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30

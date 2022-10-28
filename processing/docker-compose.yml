@@ -1,0 +1,48 @@
+version: '3.9'
+
+networks:
+  post:
+    driver: bridge
+
+services:
+  minio:
+    image: 'bitnami/minio:latest'
+    ports:
+      - '9000:9000'
+    env_file:
+      - .env
+    networks:
+      - post
+
+  processing:
+    build:
+      context: .
+      target:
+        build
+    image: 'processing:v1.1'
+    env_file:
+      - .env
+    environment:
+      - DB_HOST=db
+      - KEYCLOAK_HOST=http://dev1.badgerdoc.com
+    volumes:
+      - "./:/volume/"  # for debugging
+    ports:
+      - "8080:8080"
+    networks:
+      - post
+    depends_on:
+      - db
+      - minio
+    restart: on-failure
+
+  db:
+    image: postgres:13
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=processing
+    networks:
+      - post

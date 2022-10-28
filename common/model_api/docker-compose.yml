@@ -1,0 +1,32 @@
+version: '3.8'
+services:
+  minio:
+    image: minio/minio
+    networks:
+      - overlay
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    env_file:
+      - example.env
+    command: server --console-address ":9001" /export
+
+  model_api:
+    build:
+      context: .
+      target:
+        example
+    image: 'model_api:example'
+    env_file:
+      - example.env
+    volumes:
+      - "./:/volume/"
+    networks:
+      - overlay
+    ports:
+      - "8000:8000"
+    depends_on:
+      - minio
+
+networks:
+  overlay: {}

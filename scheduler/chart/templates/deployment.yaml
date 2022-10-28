@@ -1,0 +1,79 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    deployment.kubernetes.io/revision: "1"
+  labels:
+    app: scheduler
+  name: scheduler
+  namespace: {{ .Release.Namespace }}
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: scheduler
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"
+      creationTimestamp: null
+      labels:
+        app: scheduler
+    spec:
+      containers:
+      - image: 818863528939.dkr.ecr.eu-central-1.amazonaws.com/badgerdoc/scheduler:{{ .Values.image.tag }}
+        imagePullPolicy: IfNotPresent
+        name: scheduler
+        resources:
+          requests:
+            memory: "200Mi"
+            cpu: "200m"
+          limits:
+            memory: "2000Mi"
+            cpu: "1000m"
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        env:
+        - name: DB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: pipelines
+              key: DB_USERNAME
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: pipelines
+              key: DB_PASSWORD
+        - name: DB_NAME
+          value: "scheduler"
+        - name: DB_HOST
+          value: "postgres-postgresql"
+        {{- if eq .Release.Namespace "dev1" }}
+        - name: KEYCLOAK_URI
+          valueFrom:
+            secretKeyRef:
+              name: users
+              key: KEYCLOAK_DIRECT_ENDPOINT_DEV1
+        {{- end }}
+        {{- if eq .Release.Namespace "dev2" }}
+        - name: KEYCLOAK_URI
+          valueFrom:
+            secretKeyRef:
+              name: users
+              key: KEYCLOAK_DIRECT_ENDPOINT_DEV2
+        {{- end }}
+        command: ["/bin/sh"]
+        args: ["-c", "alembic upgrade head && uvicorn scheduler.app:app --host 0.0.0.0 --port 8080 --root-path /api/v1/scheduler"]
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
