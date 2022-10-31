@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Union
 
 import jwt
 
@@ -7,7 +7,10 @@ SECRET = "some_secret_key"
 
 
 def create_access_token(
-    data: Dict[str, Any], secret: str, expires_delta: Optional[int] = None
+    data: Dict[str, Any],
+    secret: Union[str, bytes],
+    expires_delta: Optional[int] = None,
+    algorithm: str = "HS256",
 ) -> Any:
     to_encode = data.copy()
     if expires_delta:
@@ -15,17 +18,18 @@ def create_access_token(
     else:
         expire = datetime.utcnow() + timedelta(minutes=15)
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, secret, algorithm="HS256")
+    encoded_jwt = jwt.encode(to_encode, secret, algorithm=algorithm)
     return encoded_jwt
 
 
 access_token = create_access_token(
     data={
-        "user_id": 901,
-        "roles": ["admin", "ml engineer", "devops"],
-        "tenant": "merck",
+        "sub": "901",
+        "realm_access": {"roles": ["role-annotator"]},
+        "tenants": ["merck", "epam"],
     },
     secret=SECRET,
     expires_delta=15,
+    algorithm="HS256",
 )
 print(access_token)

@@ -14,14 +14,14 @@ def get_long_description(path: str) -> str:
 
 
 setup(
-    name="tenants",
-    version="0.1.0",
+    name="tenant_dependency",
+    version="0.1.3",
     description="Package for validating and parsing jwt via FastAPI dependency",
     long_description=get_long_description("README.md"),
     author="Roman Kuzianov",
     author_email="Roman_Kuzianov@epam.com",
-    packages=["tenants"],
-    package_dir={"tenants": "src"},
+    packages=["tenant_dependency"],
+    package_dir={"tenant_dependency": "src"},
     install_requires=get_requirements("requirements.txt"),
     extras_require={"dev": get_requirements("requirements-dev.txt")},
 )

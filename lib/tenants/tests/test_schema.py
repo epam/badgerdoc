@@ -2,39 +2,43 @@ import pytest
 
 
 from pydantic import ValidationError
-from src.schema import TenantData
+from src.schema import TenantData, SupportedAlgorithms
 
 
 @pytest.mark.parametrize(
-    ("user_id", "roles", "tenant", "expected_result"),
+    ("token", "user_id", "roles", "tenants", "expected_result"),
     [
         (
-            901,
+            "token",
+            "901",
             ["admin", "ml engineer", "devops"],
-            "merck",
+            ["merck"],
             {
-                "user_id": 901,
-                "tenant": "merck",
+                "token": "token",
+                "user_id": "901",
                 "roles": ["admin", "ml engineer", "devops"],
+                "tenants": ["merck"],
             },
         ),
         (
-            0,
-            ["guest"],
-            "merck",
-            {"user_id": 0, "tenant": "merck", "roles": ["guest"]},
-        ),
-        (
-            0,
-            ["some"],
-            "some",
-            {"user_id": 0, "tenant": "some", "roles": ["some"]},
+            "token",
+            "901",
+            ["admin"],
+            ["merck"],
+            {
+                "token": "token",
+                "user_id": "901",
+                "roles": ["admin"],
+                "tenants": ["merck"],
+            },
         ),
     ],
 )
-def test_tenant_data_positive(user_id, roles, tenant, expected_result):
+def test_tenant_data_positive(token, user_id, roles, tenants, expected_result):
     assert (
-        TenantData(user_id=user_id, tenant=tenant, roles=roles).dict()
+        TenantData(
+            token=token, user_id=user_id, roles=roles, tenants=tenants
+        ).dict()
         == expected_result
     )
 
@@ -46,3 +50,10 @@ def tenant_data_negative():
         TenantData(user_id=1, tenant=None, roles=["admin"])
     with pytest.raises(ValidationError):
         TenantData(user_id=1, tenant="merck", roles=[])
+
+
+def test_enum_members():
+    assert SupportedAlgorithms.members() == [
+        SupportedAlgorithms.HS256,
+        SupportedAlgorithms.RS256,
+    ]
