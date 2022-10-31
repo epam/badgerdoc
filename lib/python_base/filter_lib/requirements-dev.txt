@@ -1,6 +1,0 @@
-pytest
-pytest-cov
-black
-isort
-pylint
-mypy==0.910

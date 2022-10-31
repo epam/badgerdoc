@@ -1,4 +1,4 @@
-from src.pagination import (
+from ..src.pagination import (
     paginate,
     PaginationParams,
     make_pagination,

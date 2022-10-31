@@ -15,7 +15,7 @@ def get_long_description(path: str) -> str:
 
 setup(
     name="filter_lib",
-    version="0.1.1",
+    version="0.1.4",
     description="Package for filtering and sorting sqlalchemy entities",
     long_description=get_long_description("README.md"),
     author="Roman Kuzianov",

@@ -1,5 +1,5 @@
 from .conftest import User, Address
-from src.schema_generator import (
+from ..src.schema_generator import (
     create_filter_model,
     Page,
     PaginationOut,
@@ -11,17 +11,16 @@ def test_search_class_creating():
     assert UserFilter.schema()["definitions"]["users_User"]["enum"] == [
         "id",
         "name",
-        "address",
         "email",
+        "addresses.id",
+        "addresses.location",
+        "addresses.owner",
     ]
 
     AddressFilter = create_filter_model(Address, exclude=["location"])
     assert AddressFilter.schema()["definitions"]["addresses_Address"][
         "enum"
-    ] == [
-        "id",
-        "owner",
-    ]
+    ] == ["id", "owner", "user.id", "user.name", "user.email"]
 
 
 def test_page_schema():

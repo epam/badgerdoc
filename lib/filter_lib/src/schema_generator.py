@@ -1,7 +1,7 @@
 import enum
 from typing import Any, Generic, List, Optional, Sequence, Type, TypeVar
 
-from pydantic import BaseModel, Field, root_validator
+from pydantic import BaseModel, Field, root_validator, validator
 from pydantic.generics import GenericModel
 from sqlalchemy.ext.declarative import DeclarativeMeta
 
@@ -33,6 +33,7 @@ class _FilterOperations(str, enum.Enum):
     ANY = "any"
     NOT_ANY = "not_any"
     MATCH = "match"
+    DISTINCT = "distinct"
 
 
 class _FilterPagesize(enum.IntEnum):
@@ -85,6 +86,54 @@ class PaginationOut(Pagination):
 class Page(GenericModel, Generic[TypeC], BaseModel):
     pagination: PaginationOut
     data: Sequence[TypeC]
+
+    @validator("data")
+    def custom_validator(  # pylint: disable=no-self-argument
+        cls, v: Any
+    ) -> Any:
+        """Custom validator applied to data in case of using 'distinct'
+        statement and getting result as 'sqlalchemy.util._collections.result'
+        but not as model class object
+        --------------------------
+        Consider this table User:
+
+        id | first_name | last_name
+        1  | Adam       | Jensen
+        2  | Sam        | Fisher
+        3  | Marcus     | Fenix
+        4  | Sam        | Serious
+
+        with 'SELECT DISTINCT first_name FROM user'
+        (DISTINCT with one column) we'll get list of tuples:
+        [('Adam',), ('Sam',), ('Marcus')],
+        but we convert it into just list of elements:
+        [('Adam',), ('Sam',), ('Marcus')] -> ['Adam', 'Sam', 'Marcus']
+
+
+        with 'SELECT DISTINCT id, first_name FROM user'
+        (DISTINCT with two columns) we'll get list of tuples:
+        [(1, 'Adam',), (2, 'Sam',), (3, 'Marcus'), (4, 'Sam')],
+        and we convert it to dicts for readability purposes:
+        [(1, 'Adam',), (2, 'Sam',), (3, 'Marcus'), (4, 'Sam')] ->
+        [
+            { "id": 1, "name": "Adam"},
+            { "id": 2, "name": "Sam"},
+            { "id": 3, "name": "Marcus"},
+            { "id": 4, "name": "Sam"},
+        ]
+        """
+
+        if v and isinstance(v[0], tuple):
+            data_element = v[0]
+
+            if len(data_element) == 1:
+                data_itself = [x[0] for x in v]
+            elif len(data_element) > 1:
+                data_itself = [x._asdict() for x in v]
+
+            v = data_itself
+
+        return v
 
 
 def create_filter_model(

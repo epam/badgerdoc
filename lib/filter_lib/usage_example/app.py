@@ -1,18 +1,16 @@
-from typing import Set
+from typing import Optional, Set
 
+from db_example import Address, User, get_db
 from fastapi import Depends, FastAPI
-from pydantic import BaseModel
-from sqlalchemy.orm import Session
-
-from filter_lib import (
+from filter_lib import (  # type: ignore
     Page,
     create_filter_model,
     form_query,
     map_request_to_filter,
     paginate,
 )
-
-from .db_example import User, get_db
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
 
 app = FastAPI()
 
@@ -23,10 +21,19 @@ class UserCreate(BaseModel):
     nickname: str
 
 
-class UserOut(BaseModel):
-    nickname: str
-    name: str
-    fullname: str
+class UserOut(UserCreate):
+    id: int
+
+    class Config:
+        orm_mode = True
+
+
+class AddressCreate(BaseModel):
+    email_address: str
+    user_id: Optional[int] = None
+
+
+class AddressOut(AddressCreate):
     id: int
 
     class Config:
@@ -34,6 +41,7 @@ class UserOut(BaseModel):
 
 
 UserFilterModel = create_filter_model(User)
+AddressFilterModel = create_filter_model(Address)
 
 
 @app.post("/users", tags=["users"])
@@ -54,5 +62,29 @@ def search_users(
 ) -> Page[UserOut]:
     query = session.query(User)
     filter_args = map_request_to_filter(request.dict(), "User")  # type: ignore
+    query, pagination = form_query(filter_args, query)
+    return paginate([x for x in query], pagination)
+
+
+@app.post("/addresses", tags=["addresses"])
+def create_new_address(
+    request: AddressCreate, session: Session = Depends(get_db)
+) -> Set[str]:
+    new_address = Address(
+        email_address=request.email_address, user_id=request.user_id
+    )
+    session.add(new_address)
+    session.commit()
+    return {"New address created"}
+
+
+@app.post(
+    "/addresses/search", tags=["addresses"], response_model=Page[AddressOut]
+)
+def search_address(
+    request: AddressFilterModel, session: Session = Depends(get_db)  # type: ignore
+) -> Page[UserOut]:
+    query = session.query(Address)
+    filter_args = map_request_to_filter(request.dict(), "Address")  # type: ignore
     query, pagination = form_query(filter_args, query)
     return paginate([x for x in query], pagination)

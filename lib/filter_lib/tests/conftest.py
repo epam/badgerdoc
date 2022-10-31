@@ -2,8 +2,7 @@ import pytest
 
 import sqlalchemy as sa
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-
+from sqlalchemy.orm import sessionmaker, relationship
 
 Base = declarative_base()
 
@@ -13,10 +12,8 @@ class User(Base):
 
     id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
     name = sa.Column(sa.String)
-    address = sa.Column(
-        sa.Integer, sa.ForeignKey("addresses.id", use_alter=True)
-    )
     email = sa.Column(sa.String)
+    addresses = relationship("Address", back_populates="user")
 
 
 class Address(Base):
@@ -25,6 +22,7 @@ class Address(Base):
     id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
     location = sa.Column(sa.String)
     owner = sa.Column(sa.Integer, sa.ForeignKey("users.id", use_alter=True))
+    user = relationship("User", back_populates="addresses")
 
 
 @pytest.fixture(scope="function")
