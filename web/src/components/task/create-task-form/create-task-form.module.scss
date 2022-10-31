@@ -1,0 +1,27 @@
+.date-picker-label {
+    flex: 0.7;
+}
+
+.date-picker {
+    padding: 8px 11px;
+    color: #474A59;
+    font: 14px/18px "Sans Regular", Arial, sans-serif;
+    min-width: 0;
+    border: 0;
+    outline: none;
+    background: none;
+    min-height: 36px;
+    border-width: 1px;
+    background-color: #FFFFFF;
+    border-color: #CED0DB;
+    border-style: solid;
+    border-radius: 3px;
+
+    &:placeholder-shown {
+        text-overflow: ellipsis;
+    }
+
+    &-invalid {
+        border-color: #FA4B4B;
+    }
+}

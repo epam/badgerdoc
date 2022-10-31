@@ -1,0 +1,43 @@
+[tool.poetry]
+name = "search"
+version = "0.1.0"
+description = "Search microservice for Badgerdoc project"
+authors = ["Badgerdoc Search team"]
+
+[tool.poetry.dependencies]
+python = "^3.8.0"
+fastapi = "^0.68.0"
+uvicorn = "^0.15.0"
+python-dotenv = "^0.19.0"
+boto3 = "^1.18.46"
+PyYAML = "^5.4.1"
+cryptography = "36.0.1"
+aiokafka = "^0.7.2"
+kafka-python = "^2.0.2"
+elasticsearch = {version = "7.13.4", extras = ["async"]}
+aiocache = "^0.11.1"
+
+[tool.poetry.dev-dependencies]
+black = "^21.7b0"
+flake8 = "^3.9.2"
+pre-commit = "^2.14.0"
+commitizen = "^2.18.0"
+pytest = "^6.2.4"
+isort = "^5.9.3"
+pytest-cov = "^3.0.0"
+pytest-asyncio = "^0.18.1"
+moto = "^3.0.3"
+responses = "^0.18.0"
+
+[tool.commitizen]
+name = "cz_conventional_commits"
+version = "0.1.0"
+tag_format = "$version"
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

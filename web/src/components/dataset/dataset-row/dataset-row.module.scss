@@ -1,0 +1,17 @@
+@import '~shared/helpers/styles';
+@import '@epam/assets/scss/loveship-colors.scss';
+
+.row {
+    cursor: pointer;
+    &:hover {
+        background: $hover-blue;
+    }
+}
+.selected {
+    background: $light-blue;
+    cursor: pointer;
+    .text {
+        color: $blue-text;
+        font-weight: 900;
+    }
+}

@@ -1,0 +1,36 @@
+@import '../../helpers/styles';
+
+.status-tag {
+    flex: 0 0 auto;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+
+    &--oversize {
+        width: 12px;
+        height: 12px;
+    }
+
+    &--success {
+        background-color: $success;
+    }
+
+    &--failed {
+        background-color: $error;
+    }
+
+    &--progress {
+        background-color: $btn-blue;
+    }
+
+    &--pending {
+        background-color: $darker-gray;
+    }
+
+    &--default {
+        background-color: transparent;
+    }
+}
+.text {
+    margin-left: 5px;
+}

@@ -1,0 +1,20 @@
+@import '~shared/helpers/styles';
+
+.container {
+  margin: 0 24px;
+  margin-top: 22px;
+  .uui-button-box {
+    flex-grow: 1;
+  }
+}
+
+.content {
+  background: white;
+  padding: 24px;
+}
+
+.tabs {
+  *[role='tab'] {
+    flex-grow: 1;
+  }
+}

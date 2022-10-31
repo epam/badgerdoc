@@ -1,0 +1,43 @@
+[tool.poetry]
+name = "models"
+version = "0.1.3"
+description = "backend for models ui"
+authors = []
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+uvicorn = "^0.14.0"
+fastapi = "^0.68.0"
+PyJWT = "^2.3.0"
+kubernetes = "^19.15.0"
+SQLAlchemy = "1.3.23"
+psycopg2-binary = "2.9.2"
+alembic = "^1.7.6"
+python-dotenv = "^0.19.2"
+boto3 = "^1.21.23"
+paramiko = "^2.10.3"
+python-multipart = "^0.0.5"
+
+
+[tool.poetry.dev-dependencies]
+black = "^22.3b0"
+isort = "5.9.1"
+mypy = "0.910"
+pylint = "2.8.1"
+pytest = "6.2.5"
+pytest-cov = "3.0.0"
+moto = "^3.1.1"
+types-paramiko = "^2.8.19"
+flake8 = "^4.0.1"
+commitizen = "^2.27.0"
+types-requests = "^2.27.25"
+
+[tool.isort]
+profile = "black"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]

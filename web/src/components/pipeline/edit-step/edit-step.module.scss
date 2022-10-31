@@ -1,0 +1,30 @@
+@import '@epam/assets/scss/loveship-colors.scss';
+@import '~shared/helpers/styles';
+
+.rightButton {
+    position: absolute;
+    z-index: 10;
+    cursor: pointer;
+}
+
+.rightButton:hover {
+    opacity: 1;
+}
+
+.contextVertical {
+    width: 250px;
+    position: absolute;
+    top: -20px;
+    left: 30px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    background-color: $night100;
+    padding: 0 10px 10px;
+    border: 1px solid lightgray;
+    border-radius: 3px;
+}
+.button {
+    margin-top: 15px;
+    cursor: pointer;
+}

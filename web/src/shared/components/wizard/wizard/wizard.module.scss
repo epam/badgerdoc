@@ -1,0 +1,103 @@
+@import '@epam/assets/scss/loveship-colors.scss';
+@import '~shared/helpers/styles';
+
+$back-link-width: 150px;
+$content-width: 800px;
+
+a {
+    color: $sky;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.wrapper {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.header {
+    background-color: $night200;
+    padding: 20px 8px;
+    display: flex;
+}
+
+.content {
+    background: #f6f6f6;
+    min-height: 0;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    &__body {
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        width: 800px;
+        margin: 0 auto;
+        margin-top: 1rem;
+        padding-bottom: 5px;
+    }
+    &__wrapper {
+        display: flex;
+        flex-direction: column;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    &__editor {
+        display: flex;
+        background-color: white;
+        height: fit-content;
+        width: 100%;
+        margin: 0 auto;
+        padding: 0.625rem;
+        margin-top: 1rem;
+    }
+
+    &__footer {
+        display: flex;
+        justify-content: flex-end;
+        padding: 11px 0 16px;
+        gap: 15px;
+        width: 800px;
+        margin: 0 auto;
+    }
+}
+
+.back-link-wrapper {
+    width: $back-link-width;
+}
+
+.back-icon {
+    fill: $sky;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    &:hover {
+        fill: $btn-blue;
+    }
+}
+
+.steps-wrapper {
+    flex-grow: 1;
+    margin-right: $back-link-width;
+    display: flex;
+}
+
+.divider {
+    margin: 0 18px;
+    width: 60px;
+    height: 2px;
+    background-color: $border-gray;
+}
+
+.button {
+    margin-left: 8px;
+    cursor: pointer;
+}
+
+.buttons {
+    width: $content-width;
+    margin: 0 auto 16px;
+    display: flex;
+    justify-content: flex-end;
+}

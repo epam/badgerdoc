@@ -1,0 +1,22 @@
+@import '/src/shared/helpers/styles/colors-helper.scss';
+.selection-mode {
+    &-wrapper {
+        padding: 10px;
+        width: 100%;
+        border-top: 1px solid $border-gray;
+    }
+    &-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 7px;
+        label {
+            margin-left: 0 !important;
+        }
+
+    }
+    &-title {
+        color: $darker-gray;
+        font-size: 12px;
+    }
+}

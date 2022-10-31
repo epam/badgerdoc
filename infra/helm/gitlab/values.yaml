@@ -1,0 +1,33 @@
+image: gitlab/gitlab-runner:alpine-v14.3.0
+
+imagePullPolicy: IfNotPresent
+
+replicas: 1
+
+revisionHistoryLimit: 10
+
+gitlabUrl: https://git.epam.com/
+
+runnerRegistrationToken: "oGWvF9MxUQF2m1phq_r-"
+
+unregisterRunners: true
+
+terminationGracePeriodSeconds: 3600
+
+concurrent: 10
+
+checkInterval: 30
+rbac:
+  create: false
+  serviceAccountName: gitlab-runner
+
+securityContext:
+  runAsUser: 100
+  runAsGroup: 65533
+  fsGroup: 65533
+
+runners:
+  tags: "kluster-runner"
+  runUntagged: false
+  locked: false
+

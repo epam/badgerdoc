@@ -1,0 +1,67 @@
+@import '~shared/helpers/styles/colors-helper';
+
+$popupWidth: 45%;
+
+.container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: $bg-color;
+  opacity: 0.8;
+  z-index: 1;
+}
+
+.popup {
+  padding: 33px 36px 22px 25px;
+  position: fixed;
+  z-index: 2;
+  top: 15%;
+  left: 25%;
+  right: 25%;
+  background-color: white;
+  border: 0;
+  min-height: 50%;
+  box-shadow: 0 0 10px -4px black;
+
+  .divider {
+    margin: 0 0 10px -25px;
+    width: calc(100% + 61px);
+    height: 2px;
+    background-color: $border-gray;
+  }
+
+  .title {
+    width: 90%;
+    margin-right: 34px;
+    border: 0;
+    h3 {
+      margin: 10px;
+    }
+  }
+
+  .argument {
+    border-bottom: $border-gray 1px solid;
+    padding-bottom: 8px;
+    margin: 10px 0;
+
+    &:last-child {
+      border-bottom: none;
+    }
+    .name {
+      font-weight: 600;
+      width: 35%;
+    }
+
+    .type {
+      width: 55%;
+    }
+  }
+
+  .close {
+    position: sticky;
+    float: right;
+  }
+}
+

@@ -1,0 +1,48 @@
+[tool.poetry]
+name = "model_api"
+version = "0.5.3"
+description = ""
+authors = ["Your Name <you@example.com>"]
+packages = [{include = "model_api"}]
+
+
+[tool.poetry.dependencies]
+python = "3.8.10"
+minio = "^7.1.1"
+pdfplumber = "0.5.28"
+fastapi = "^0.70.0"
+uvicorn = "^0.15.0"
+
+[tool.poetry.dev-dependencies]
+mypy = "0.910"
+pytest = "^6.2.5"
+isort = "5.10.1"
+black = "22.3.0"
+pre-commit = "^2.15.0"
+pylint = "2.11.1"
+
+[tool.black]
+line_length = "79"
+
+[tool.isort]
+profile = "black"
+
+[tool.pylint.settings]
+errors-only = "True"
+disable = "E0401,E0611"
+max-line-length = "79"
+
+[tool.mypy]
+ignore_missing_imports = true
+scripts_are_modules = true
+allow_untyped_decorators = true
+strict = true
+no_strict_optional = true
+
+[[tool.mypy.overrides]]
+module = ["tests.*"]
+ignore_errors = true
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

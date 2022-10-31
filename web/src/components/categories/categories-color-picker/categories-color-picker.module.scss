@@ -1,0 +1,21 @@
+@import "../../../pallete";
+.activate-checkbox-parent {
+  margin: 10px 0;
+}
+
+.color-picker-panel {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  &_box {
+    margin-left: 5px;
+    width: 36px;
+    height: 36px;
+    border: 1px solid $border_default;
+  }
+
+  &_button {
+    flex-grow: 2;
+  }
+}

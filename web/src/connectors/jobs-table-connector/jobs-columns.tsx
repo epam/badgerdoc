@@ -1,0 +1,67 @@
+import { FlexRow, Text } from '@epam/loveship';
+import React from 'react';
+import { Job } from 'api/typings/jobs';
+import { Status } from 'shared/components/status';
+import { DataColumnProps } from '@epam/uui';
+
+import { mapStatusForJobs } from '../../shared/helpers/map-statuses';
+
+export const jobColumns: DataColumnProps<Job>[] = [
+    {
+        key: 'name',
+        caption: 'job name',
+        render: (job: Job) => <Text fontSize="14">{job.name}</Text>,
+        isSortable: true,
+        grow: 3,
+        shrink: 2
+    },
+    {
+        key: 'type',
+        caption: 'Job Type',
+        grow: 1,
+        shrink: 1,
+        isSortable: true,
+        render: (job: Job) => <Text fontSize="14">{job.type.replace('Job', '')}</Text>
+    },
+    {
+        key: 'status',
+        caption: 'status',
+        render: (job: Job) => (
+            <FlexRow cx="align-baseline">
+                {job.status && (
+                    <Status
+                        statusTitle={mapStatusForJobs(job.status, job.mode).title}
+                        color={mapStatusForJobs(job.status, job.mode).color}
+                    />
+                )}
+            </FlexRow>
+        ),
+        isSortable: true,
+        grow: 1,
+        shrink: 1
+    },
+    {
+        key: 'deadline',
+        caption: 'deadline',
+        render: (job: Job) => (
+            <Text fontSize="14">
+                {job.deadline ? new Date(job.deadline).toLocaleDateString() : ''}
+            </Text>
+        ),
+        grow: 1,
+        shrink: 1,
+        isSortable: true
+    },
+    {
+        key: 'creation_datetime',
+        caption: 'Created Date',
+        render: (job: Job) => (
+            <Text fontSize="14">
+                {job.creation_datetime ? new Date(job.creation_datetime).toLocaleDateString() : ''}
+            </Text>
+        ),
+        grow: 1,
+        shrink: 1,
+        isSortable: true
+    }
+];

@@ -1,0 +1,108 @@
+.card-item {
+    position: relative;
+    padding-top: 16px;
+    height: 239px;
+    flex: 0 0 32.3%;
+    margin-bottom: 1rem;
+    background-color: #fff;
+    box-shadow: 0 3px 6px rgba(29, 30, 38, 0.1), 0 1px 3px rgba(29, 30, 38, 0.1);
+    border: 1px solid transparent;
+
+    &:hover {
+        border: 1px solid #008ace;
+        cursor: pointer;
+    }
+
+    @media screen and (max-width: 1410px) {
+        flex-basis: 48.5%;
+    }
+}
+
+.card-item-padding {
+    padding-left: 24px;
+    padding-right: 24px;
+}
+
+.card-item-main {
+    width: 100%;
+}
+
+.header-container {
+    display: flex;
+    justify-content: space-between;
+}
+
+.card-item-title {
+    width: 80%;
+    height: 2.5em;
+    font-family: 'Source Sans Pro', serif;
+    font-style: normal;
+    font-weight: 600;
+    font-size: 16px;
+    color: #303240;
+    word-break: break-all;
+    padding-bottom: 8px;
+}
+
+.jobs-container {
+    display: flex;
+    justify-content: space-between;
+}
+
+.jobs-text {
+    font-family: 'Source Sans Pro', serif;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 24px;
+    color: #6c6f80;
+    cursor: pointer;
+}
+
+.list {
+    padding: 12px;
+    min-width: 160px;
+    box-shadow: 0 3px 6px rgba(29, 30, 38, 0.1), 0 1px 3px rgba(29, 30, 38, 0.1);
+    background-color: #fff;
+}
+
+.list-item {
+    display: flex;
+    align-items: center;
+    padding-top: 14px;
+    color: #303240;
+}
+
+.list-item:hover {
+    display: flex;
+    align-items: center;
+    padding-top: 14px;
+    color: #008ACE;
+}
+
+.jobs-list-item-text {
+    padding-left: 8px;
+    font-size: 12px;
+    font-weight: 400;
+}
+
+.action-list-item-text {
+    width: 100%;
+    font-weight: 400;
+    font-size: 14px;
+    color: #be3316;
+    cursor: pointer;
+}
+
+.list-item:first-child {
+    padding-top: 0;
+}
+
+.image-container {
+    margin-top: 8px;
+    height: 149px;
+    width: 100%;
+    background-repeat: no-repeat !important;
+    background-position: center top !important;
+    background-size: 100% auto !important;
+}

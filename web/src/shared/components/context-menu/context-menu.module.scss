@@ -1,0 +1,30 @@
+@import '../../helpers/styles';
+
+.context-menu {
+    position: fixed;
+    background-color: white;
+    z-index: 20;
+    font-size: small;
+    border: 1px solid $light-grey;
+    min-width: 100px;
+}
+.item {
+    cursor: pointer;
+    padding: 4px 10px;
+    display: flex;
+    align-items: center;
+
+    &:hover {
+        background: rgba($color: $light-grey, $alpha: 0.3);
+    }
+
+    &__name {
+        flex-grow: 1;
+    }
+
+    &__shortcut {
+        margin-left: 10px;
+        color: #aaa;
+        font-size: 12px;
+    }
+}

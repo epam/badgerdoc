@@ -1,0 +1,25 @@
+networks:
+  app-network:
+    driver: bridge
+
+services:
+  minio:
+    image: 'bitnami/minio:latest'
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    networks:
+      - app-network
+
+  web:
+    build:
+      context: .
+      target: build
+    env_file:
+      - src/.env
+    depends_on:
+      - minio
+    ports:
+      - '8080:8080'
+    networks:
+      - app-network

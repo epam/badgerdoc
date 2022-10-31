@@ -1,0 +1,11 @@
+@import '@epam/assets/scss/loveship-colors.scss';
+@import '~shared/helpers/styles';
+.pipeline-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    background-color: $white;
+    overflow: auto;
+    min-height: 18rem;
+    padding: .5rem;
+}

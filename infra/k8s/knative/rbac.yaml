@@ -1,0 +1,53 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: dev2
+  name: model-deploy-role
+rules:
+- apiGroups: ["serving.knative.dev"]
+  resources: ["services"]
+  verbs: ["*"]
+- apiGroups: ["getambassador.io"]
+  resources: ["mappings"]
+  verbs: ["*"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: model-deploy-rb
+  namespace: dev2
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: dev2
+roleRef:
+  kind: Role
+  name: model-deploy-role
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: dev1
+  name: model-deploy-role
+rules:
+- apiGroups: ["serving.knative.dev"]
+  resources: ["services"]
+  verbs: ["*"]
+- apiGroups: ["getambassador.io"]
+  resources: ["mappings"]
+  verbs: ["*"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: model-deploy-rb
+  namespace: dev1
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: dev1
+roleRef:
+  kind: Role
+  name: model-deploy-role
+  apiGroup: rbac.authorization.k8s.io

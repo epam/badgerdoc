@@ -1,0 +1,33 @@
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: assets
+  namespace: {{ .Release.Namespace }}
+spec:
+  host: {{ .Release.Namespace }}.badgerdoc.com
+  connect_timeout_ms: 30000
+  idle_timeout_ms: 50000
+  prefix: /api/v1/assets/
+  service: assets
+  timeout_ms: 30000
+  keepalive:
+    interval: 10
+    probes: 9
+    time: 100
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: assets-internal
+  namespace: {{ .Release.Namespace }}
+spec:
+  host: ambassador
+  connect_timeout_ms: 30000
+  idle_timeout_ms: 50000
+  prefix: /api/v1/assets/
+  service: assets
+  timeout_ms: 30000
+  keepalive:
+    interval: 10
+    probes: 9
+    time: 100

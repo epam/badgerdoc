@@ -1,0 +1,7 @@
+.dataset-picker {
+    min-width: 200px;
+    flex-basis: 15rem;
+    & > h4 {
+        margin-bottom: 12px;
+    }
+}

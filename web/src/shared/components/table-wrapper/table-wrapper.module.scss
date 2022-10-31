@@ -1,0 +1,23 @@
+.pages-controls {
+    margin-top: 12px;
+}
+
+.pages-container-margin {
+    margin-top: 12px;
+}
+
+.page-size-selector {
+    padding-left: 27px;
+    & > :nth-child(2) {
+        width: 52px;
+    }
+}
+
+.search-input {
+    width: 290px;
+}
+
+.container {
+    overflow: auto;
+    height: calc(100% - 36px);
+}

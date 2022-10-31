@@ -1,0 +1,85 @@
+#TODO: remove unnecessary settigns and adapt for kube-prometheus-stack
+
+serviceAccount:
+  create: true
+
+rbac:
+  create: true
+  pspEnabled: true
+  namespaced: false
+
+server:
+  name: server
+  enabled: true
+  image:
+    repository: victoriametrics/vmalert
+    pullPolicy: IfNotPresent
+  fullnameOverride: vmalert-server
+
+  extraArgs:
+    envflag.enable: "true"
+    envflag.prefix: VM_
+    loggerLevel: INFO
+    loggerFormat: json
+    loggerOutput: stdout
+
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+
+  replicaCount: 2
+  datasource:
+    # look at the service name
+    url: "http://prometheus-server"
+
+  tolerations:
+    - key: "node-role"
+      operator: "Equal"
+      value: "system"
+      effect: "NoExecute"
+
+  remote:
+    write:
+      url: ""
+    read:
+      url: ""
+
+  notifier:
+    alertmanager:
+      url: "http://prometheus-alertmanager"
+
+  service:
+    servicePort: 8880
+    type: ClusterIP
+
+  ingress:
+    enabled: false
+
+  alertmanager:
+    enabled: false
+
+  resources:
+    limits:
+      cpu: 1
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 1Gi
+
+  config:
+    alerts:
+      groups: 
+        - name: KafkaAlerts
+          rules:
+          - alert: KafkaHealthCheckAlert
+            expr: sum(up{job="general_kafka"}) < 7
+            for: 2m
+            labels:
+              severity: critical
+              env: _ENV_
+            annotations:
+                summary: "Current number of Kafka instances is {{ $value }}"
+        - name: HealthCheck
+          interval: 15s
+          concurrency: 5
+          rules:

@@ -1,0 +1,27 @@
+@import '~shared/helpers/styles';
+
+.container {
+    padding-top: 20px;
+}
+
+.tabs {
+    width: 100%;
+    margin: 0 auto;
+    text-transform: uppercase;
+    padding: 0 1px;
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+
+    *[role='tablist'], *[role='tab'] {
+        flex-grow: 1;
+    }
+}
+
+p:first-child {
+    margin-top: 0;
+}
+
+p:last-child {
+    margin-bottom: 0;
+}

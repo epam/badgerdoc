@@ -1,0 +1,35 @@
+[tool.poetry]
+name = "annotation"
+version = "0.1.0"
+description = "Annotation microservice for Badgerdoc project"
+authors = ["Badgerdoc-search team"]
+
+[tool.poetry.dependencies]
+python = "^3.8.0"
+fastapi = "^0.68.0"
+uvicorn = "^0.15.0"
+SQLAlchemy = "1.3.23"
+psycopg2-binary = "^2.9.1"
+alembic = "^1.6.5"
+python-dotenv = "^0.19.0"
+PyYAML = "^5.4.1"
+boto3 = "^1.18.46"
+requests = "^2.26.0"
+cryptography = "36.0.1"
+cachetools = "^5.0.0"
+kafka-python = "^2.0.2"
+
+[tool.poetry.dev-dependencies]
+pre-commit = "^2.14.0"
+commitizen = "^2.18.0"
+black = "^21.7b0"
+flake8 = "^3.9.2"
+pytest = "^6.2.4"
+isort = "^5.9.3"
+responses = "^0.14.0"
+moto = {extras = ["s3"], version = "^2.2.8"}
+pytest-cov = "^3.0.0"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"

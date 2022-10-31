@@ -1,0 +1,67 @@
+[tool.poetry]
+name = "processing"
+version = "0.1.0"
+description = ""
+authors = ["user <user@email.com>"]
+
+[tool.poetry.dependencies]
+python = "3.8.10"
+fastapi = "^0.75.1"
+uvicorn = "^0.17.6"
+numpy = "^1.22.3"
+minio = "^7.1.6"
+aiohttp = "^3.8.1"
+pydantic = { extras = ["dotenv"], version = "^1.8.2" }
+async-cache = "^1.1.1"
+requests = "^2.27.1"
+types-requests = "^2.27.16"
+cryptography = "36.0.1"
+SQLAlchemy = "1.3.23"
+psycopg2-binary = "^2.9.3"
+alembic = "^1.7.7"
+
+
+[tool.poetry.dev-dependencies]
+pytest = "^6.2.5"
+mypy = "0.910"
+isort = "5.9.1"
+pylint = "2.8.1"
+pytest-cov = "3.0.0"
+pytest-docker-compose = "^3.2.1"
+responses = "^0.20.0"
+black = "^22.3.0"
+
+
+
+[tool.black]
+line_length = "79"
+
+[tool.isort]
+profile = "black"
+line_length = "79"
+
+[tool.pylint.settings]
+errors-only = "True"
+disable = "E0401,E0611"
+max-line-length = "79"
+
+[tool.mypy]
+ignore_missing_imports = true
+scripts_are_modules = true
+allow_untyped_decorators = true
+strict = true
+implicit_reexport = true
+
+[[tool.mypy.overrides]]
+module = ["tests.*", "*.box_util"]
+ignore_errors = true
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+markers = [
+    "integration: marks tests as integration (deselect with '-m \"not integration\"')",
+    "serial",
+]

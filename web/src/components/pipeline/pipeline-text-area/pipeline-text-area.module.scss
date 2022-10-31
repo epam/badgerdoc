@@ -1,0 +1,92 @@
+.text-area {
+    &-readonly {
+        position: relative;
+        display: flex;
+        width: 100%;
+        word-break: break-word;
+        max-height: 63px;
+        padding: 0.5rem;
+        padding-right: 1rem;
+        &__expanded {
+            overflow: auto;
+            max-height: 220px;
+        }
+    }
+    &-more {
+        display: inline-flex;
+        white-space: pre;
+        height: unset;
+        padding-left: 0.5ch;
+        background-color: white;
+        color: #008ace;
+        cursor: pointer;
+        border: none;
+        outline: none;
+        &::before {
+            position: absolute;
+            content: '';
+            width: 1ch;
+            height: 100%;
+            left: -1ch;
+            background-image: linear-gradient(90deg, transparent 20%, white 100%);
+        }
+        &:focus {
+            outline: none;
+            border: none;
+        }
+    }
+    &-wrapper {
+        position: relative;
+        &:first-child {
+            flex: 1.5;
+        }
+        &:last-child {
+            flex: 2.5;
+            margin-left: 1.5rem;
+        }
+    }
+    &-close {
+        position: absolute;
+        cursor: pointer;
+        right: 0;
+        top: 0.625rem;
+        fill: #6c6f80;
+        align-self: flex-end;
+        display: none;
+        &__open {
+            display: block;
+        }
+    }
+}
+.text-area__wrapper {
+    position: relative;
+    width: 100%;
+    &_extend {
+        textarea {
+            max-height: 15rem !important;
+            overflow-y: scroll !important;
+        }
+    }
+}
+textarea {
+    max-height: 3rem !important;
+    padding: 8px !important;
+    padding-right: 1rem !important;
+    overflow-y: hidden !important;
+    text-overflow: ellipsis;
+    line-height: 21px;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    &:focus {
+        outline: none;
+    }
+}
+* {
+    font-family: Source Sans Pro;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 18px;
+    letter-spacing: 0em;
+    text-align: left;
+}

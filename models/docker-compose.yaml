@@ -1,0 +1,46 @@
+version: '3.4'
+
+networks:
+  app-tier:
+    driver: bridge
+
+services:
+  minio:
+    image: 'bitnami/minio:latest'
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    env_file:
+      - src/.env
+    networks:
+      - app-tier
+
+  db:
+    image: postgres:13
+    ports:
+      - 5432:5432
+    env_file:
+      - src/.env
+    networks:
+      - app-tier
+
+  web:
+    build:
+      context: .
+      target: build
+    env_file:
+      - src/.env
+    volumes:
+      - .:/working
+    ports:
+      - "8080:8080"
+    depends_on:
+      - minio
+      - db
+    networks:
+      - app-tier
+    restart: on-failure
+    cap_add:
+      - SYS_ADMIN
+    devices:
+      - "/dev/fuse"

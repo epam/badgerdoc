@@ -1,0 +1,25 @@
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: processing
+  namespace: {{ .Release.Namespace }}
+spec:
+  host: {{ .Release.Namespace }}.badgerdoc.com
+  connect_timeout_ms: 30000
+  idle_timeout_ms: 50000
+  prefix: /api/v1/processing/
+  service: processing
+  timeout_ms: 30000
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: processing-internal
+  namespace: {{ .Release.Namespace }}
+spec:
+  host: ambassador
+  connect_timeout_ms: 30000
+  idle_timeout_ms: 50000
+  prefix: /api/v1/processing/
+  service: processing
+  timeout_ms: 30000

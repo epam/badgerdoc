@@ -1,0 +1,40 @@
+@import '@epam/assets/scss/loveship-colors.scss';
+@import '~shared/helpers/styles';
+
+.sidebarHeaderWrapper {
+    margin-bottom: 10px;
+    border-radius: 0;
+    padding: 0px 23px 0px 23px;
+}
+h2,
+.headerText {
+    margin: 0;
+    font-size: 20px;
+}
+.jobStatusWrapper {
+    display: flex;
+    align-items: center;
+    justify-content: start;
+    margin-bottom: 18px;
+    gap: 10px;
+}
+
+.progressBarText {
+    font-size: smaller;
+    line-height: 12px;
+    margin-top: 0;
+    margin-bottom: 8px;
+}
+.root {
+    width: 100%;
+    position: relative;
+    height: 10px;
+    background: $light-grey;
+}
+
+.bar {
+    z-index: 33;
+    height: 10px;
+    background-color: $sky;
+    transition: width 0.5s ease-in-out;
+}

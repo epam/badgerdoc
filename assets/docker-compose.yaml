@@ -1,0 +1,43 @@
+version: '3.9'
+
+services:
+  minio:
+    image: 'bitnami/minio:latest'
+    ports:
+      - '9000:9000'
+    env_file:
+      - .env
+
+  db:
+    image: postgres:13
+    ports:
+      - "5432"
+    env_file:
+      - .env
+
+  gotenberg:
+    image: gotenberg/gotenberg:7
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+
+  web:
+    build:
+      context: .
+      target: build
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgresql+psycopg2://admin:admin@db:5432/file_management
+      - KEYCLOAK_URI=http://dev1.badgerdoc.com
+    command: bash -c "alembic upgrade afa33cc83d57 && alembic upgrade fe5926249504 && alembic upgrade 0f6c859c1d1c && alembic upgrade head && uvicorn src.main:app --host 0.0.0.0 --port 8080 --reload"
+    volumes:
+      - .:/opt/dataset_manager/
+    ports:
+      - "8080:8080"
+    depends_on:
+      - minio
+      - db
+      - gotenberg
+    restart: on-failure

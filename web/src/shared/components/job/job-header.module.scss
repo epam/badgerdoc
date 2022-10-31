@@ -1,0 +1,32 @@
+@import '~shared/helpers/styles/flex-helper';
+
+.container {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    margin: 22px 0 24px 0;
+
+    h2 {
+        margin-top: 0;
+    }
+}
+
+.container {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    margin-top: 0;
+}
+.jobNameBlock {
+    height: 36px;
+}
+.jobNameText {
+    font-size: 14px;
+    line-height: 24px;
+    color: #6c6f80;
+    margin: 0;
+}
+.jobsLink {
+    font-size: 24px;
+    line-height: 24px;
+}

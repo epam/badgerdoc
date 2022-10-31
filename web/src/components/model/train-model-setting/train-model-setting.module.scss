@@ -1,0 +1,13 @@
+@import '~shared/helpers/styles';
+
+.container {
+display: flex;
+}
+
+.content {
+    flex: 1;
+    width: 500px;
+    margin-top: 20px;
+    padding: 0 20px 20px 20px;
+    background-color: $white;
+}

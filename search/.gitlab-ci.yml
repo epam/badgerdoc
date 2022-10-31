@@ -1,0 +1,42 @@
+image: python:3.8
+
+services:
+  - name: docker.elastic.co/elasticsearch/elasticsearch:7.13.2
+    alias: elasticsearch
+    command: [ "bin/elasticsearch", "-Expack.security.enabled=false", "-Ediscovery.type=single-node" ]
+
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+
+cache:
+  paths:
+    - .cache/pip
+
+stages:
+  - static_analysis
+  - unit_tests
+
+before_script:
+  - pip install poetry
+  - poetry config virtualenvs.create false
+  - poetry install
+
+check_sort:
+  stage: static_analysis
+  script:
+    - make sort
+
+check_lint:
+  stage: static_analysis
+  script:
+    - make lint
+
+check_format:
+  stage: static_analysis
+  script:
+    - make format
+
+check_tests:
+  stage: unit_tests
+  script:
+    - make test

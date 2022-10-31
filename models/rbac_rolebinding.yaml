@@ -1,0 +1,13 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: model-deploy-rb
+  namespace: dev2
+subjects:
+- kind: ServiceAccount
+  name: model-deployer
+  namespace: dev2
+roleRef:
+  kind: Role
+  name: model-deploy-role
+  apiGroup: rbac.authorization.k8s.io

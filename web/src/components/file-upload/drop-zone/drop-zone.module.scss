@@ -1,0 +1,35 @@
+@import '@epam/assets/scss/promo/colors.scss';
+
+.drop-zone-wrapper {
+    flex-basis: 400px;
+    flex-direction: column;
+}
+
+.drop-zone {
+    border: 2px dashed $gray40;
+    border-radius: 0;
+    padding: 20px;
+    flex: 1 1 400px;
+    min-height: 200px;
+    align-items: center !important;
+    justify-content: center !important;
+    svg {
+        fill: $gray40;
+    }
+    &--hover {
+        border: 2px dashed $blue;
+        background: $blue-lightest;
+
+        * {
+            pointer-events: none;
+        }
+
+        svg {
+            fill: $blue;
+        }
+    }
+}
+
+.section {
+    overflow: auto;
+}

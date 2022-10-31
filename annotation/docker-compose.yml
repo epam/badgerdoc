@@ -1,0 +1,38 @@
+version: "3.9"
+
+services:
+  postgres-postgresql:
+    image: postgres:13.4
+    container_name: postgres
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    ports:
+      - ${POSTGRES_PORT}:${POSTGRES_PORT}
+    restart: always
+    networks:
+      - badgerdoc-annotation
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  annotation:
+    working_dir: /opt/annotation/application
+    image: annotation
+    container_name: annotation
+    ports:
+      - ${APP_PORT}:${APP_PORT}
+    networks:
+      - badgerdoc-annotation
+    depends_on:
+      postgres-postgresql:
+        condition: service_healthy
+    volumes:
+      - ./:/opt/annotation/application
+
+networks:
+  badgerdoc-annotation:
+    driver: bridge

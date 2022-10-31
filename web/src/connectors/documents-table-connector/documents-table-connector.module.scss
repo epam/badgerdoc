@@ -1,0 +1,25 @@
+.card-container {
+    overflow: auto;
+    display: flex;
+    flex-wrap: wrap;
+    flex: 1;
+    justify-content: space-between;
+}
+
+.divider {
+    border-left: 1px solid #c6c6c6;
+    height: 100%;
+}
+.container {
+    width: 100%;
+}
+.wrapper {
+    flex-shrink: 1;
+    min-height: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+.cards {
+    flex: 1;
+}

@@ -1,0 +1,20 @@
+[tool.black]
+line-length = 79
+
+[tool.isort]
+profile = "black"
+line_length = 79
+
+[tool.mypy]
+plugins = "pydantic.mypy"
+ignore_missing_imports = "True"
+scripts_are_modules = "True"
+allow_untyped_decorators = "True"
+strict = "True"
+no_strict_optional = "True"
+disallow_untyped_calls = "False"
+
+[tool.pylint.basic]
+max-line-length=79
+errors-only = "True"
+disable = ["E0401", "E0611"]
