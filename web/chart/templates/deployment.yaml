@@ -28,7 +28,7 @@ spec:
         app: badgerdoc-ui
     spec:
       containers:
-      - image: 818863528939.dkr.ecr.eu-central-1.amazonaws.com/badgerdoc/badgerdoc_ui:{{ .Values.image.tag }}
+      - image: {{ .Values.image.registry }}/badgerdoc_ui:{{ .Values.image.tag }}
         imagePullPolicy: IfNotPresent
         name: badgerdoc-ui
         resources: {}

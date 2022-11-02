@@ -234,6 +234,52 @@ docker push "${YOUR_DOCKER_REGISTRY}/badgerdoc/annotation:0.1.5-${SOME_HASH}"
 helm upgrade -n app -i --set image.tag=0.1.5-${SOME_HASH} --version 0.1.5-${SOME_HASH}  annotation  annotation/chart/ 
 ```
 
-### How to build images
+### How to build all images
 
-docker build --target build -t ${image_name} . --build-arg "base_image=mylocal/python_base:0.1.7"
+```shell
+cd infra/docker/python_base
+export REGISTRY="badgerdoc"
+export image_name="${REGISTRY}/python_base:0.1.7"
+make build
+cd
+
+SERVICES="assets \
+jobs \
+pipelines \
+search \
+annotation \
+processing \
+models \
+users \
+convert \
+scheduler"
+
+apphostname="app.example.com"
+
+for svc in $SERVICES; do \
+cd ${svc}; \
+version=$(cat ${svc}/version.txt)
+sha=$(git rev-parse --short HEAD)
+tag="${version}-${sha}"
+image="${REGISTRY}/${svc}:${version}-${sha}"
+docker build --target build -t "${image}" . --build-arg "base_image=${image_name}"; \
+# docker push "${image}" && helm upgrade -n app -i --set image.registry=${YOUR_REGISTRY},app.hostname=${apphostname},image.tag=${tag} --version ${tag}  ${service}  ${service}/chart/
+cd ..; done
+
+```
+
+How to build UI
+
+```shell
+export REGISTRY="badgerdoc"
+version=$(cat ./version.txt)
+sha=$(git rev-parse --short HEAD)
+tag="${version}-${sha}"
+image="${REGISTRY}/${svc}:${version}-${sha}"
+DOCKERFILE="./web/deploy/web.Dockerfile"
+
+cp -r .git ./web/
+docker build -t ${image} --no-cache=true --pull --file $DOCKERFILE ./web
+# docker push "${image}" && helm upgrade -n app -i --set image.registry=${YOUR_REGISTRY},image.tag=${version} badgerdoc-ui-dev chart/.
+rm -rf ./web/.git
+```

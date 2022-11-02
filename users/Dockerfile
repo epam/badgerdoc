@@ -1,4 +1,4 @@
-ARG base_image=artifactory.epam.com:6144/badgerdodc/python_base:0.1.7
+ARG base_image=artifactory.epam.com:6144/badgerdoc/python_base:0.1.7
 FROM ${base_image} as build
 
 WORKDIR /opt/users_filter

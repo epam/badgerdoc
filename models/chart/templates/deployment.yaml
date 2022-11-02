@@ -28,7 +28,7 @@ spec:
         app: models
     spec:
       containers:
-      - image: 818863528939.dkr.ecr.eu-central-1.amazonaws.com/badgerdoc/models:{{ .Values.image.tag }}
+      - image: {{ .Values.image.registry }}/models:{{ .Values.image.tag }}
         imagePullPolicy: IfNotPresent
         name: models
         resources:
