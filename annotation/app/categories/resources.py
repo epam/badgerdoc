@@ -123,12 +123,12 @@ def search_categories(
         random_ids = get_random_category_ids(db, task_response, 5)
 
         task_response = insert_mock_categories(db, task_response, random_ids)
-        return task_response
     except BadFilterFormat as error:
         raise HTTPException(
             status_code=400,
             detail=f"{error}",
         )
+    return task_response
 
 
 @router.put(
