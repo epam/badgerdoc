@@ -106,7 +106,7 @@ def get_child_categories(
 @router.post(
     "/search",
     status_code=status.HTTP_200_OK,
-    response_model=Page[Any],
+    response_model=Page[Any],  # type: ignore
     summary="Search categories.",
 )
 def search_categories(
@@ -123,13 +123,12 @@ def search_categories(
         random_ids = get_random_category_ids(db, task_response, 5)
 
         task_response = insert_mock_categories(db, task_response, random_ids)
+        return task_response
     except BadFilterFormat as error:
         raise HTTPException(
             status_code=400,
             detail=f"{error}",
         )
-    else:
-        return task_response
 
 
 @router.put(
