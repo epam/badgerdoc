@@ -1,0 +1,13 @@
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: bagerdoc-keycloack
+  namespace: app
+spec:
+  connect_timeout_ms: 2000
+  host: app.badgerdoc.com
+  idle_timeout_ms: 50000
+  prefix: /auth
+  rewrite: ""
+  service: bagerdoc-keycloack
+  timeout_ms: 4000

@@ -1,4 +1,5 @@
-FROM artifactory.epam.com:6144/badgerdoc/python_base:0.1.4 AS base
+ARG base_image=artifactory.epam.com:6144/badgerdodc/python_base:0.1.4
+FROM ${base_image} as base
 
 RUN apt-get update \
    && apt-get install --yes software-properties-common libmagickwand-dev \
