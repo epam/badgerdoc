@@ -26,6 +26,8 @@ from .services import (
     delete_category_db,
     fetch_category_db,
     filter_category_db,
+    get_random_category_ids,
+    insert_mock_categories,
     recursive_subcategory_search,
     update_category_db,
 )
@@ -104,7 +106,7 @@ def get_child_categories(
 @router.post(
     "/search",
     status_code=status.HTTP_200_OK,
-    response_model=Page[Any],  # type: ignore
+    response_model=Page[Any],
     summary="Search categories.",
 )
 def search_categories(
@@ -118,12 +120,16 @@ def search_categories(
     """
     try:
         task_response = filter_category_db(db, request, x_current_tenant)
-        return task_response
+        random_ids = get_random_category_ids(db, task_response, 5)
+
+        task_response = insert_mock_categories(db, task_response, random_ids)
     except BadFilterFormat as error:
         raise HTTPException(
             status_code=400,
             detail=f"{error}",
         )
+    else:
+        return task_response
 
 
 @router.put(

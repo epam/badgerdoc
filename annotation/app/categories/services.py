@@ -6,6 +6,7 @@ from filter_lib import Page, form_query, map_request_to_filter, paginate
 from sqlalchemy import and_, null, or_
 from sqlalchemy.event import listens_for
 from sqlalchemy.orm import Session
+from sqlalchemy.sql.expression import func
 
 from app.errors import (
     CheckFieldError,
@@ -210,3 +211,35 @@ def delete_category_db(db: Session, category_id: str, tenant: str) -> None:
         raise CheckFieldError("Cannot delete default category.")
     db.delete(category)
     db.commit()
+
+
+def get_random_category_ids(
+    db: Session, task_response: paginate, count: int
+) -> List[str]:
+    random_ids = [
+        item.id
+        for item in db.query(Category.id).order_by(func.random()).limit(count)
+    ]
+    return random_ids
+
+
+def insert_mock_categories(
+    db: Session, task_response: paginate, random_ids: List[str]
+) -> paginate:
+
+    random_categories = db.query(Category).filter(Category.id.in_(random_ids))
+
+    categories_db = (
+        CategoryORMSchema.from_orm(category) for category in random_categories
+    )
+    mock_items = [
+        CategoryResponseSchema.parse_obj(category_db.dict())
+        for category_db in categories_db
+    ]
+    for entity in task_response.data:
+        if not entity.parent:
+            entity.children = mock_items
+        else:
+            entity.parents = mock_items
+
+    return task_response
