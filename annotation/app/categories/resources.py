@@ -106,14 +106,14 @@ def get_child_categories(
 @router.post(
     "/search",
     status_code=status.HTTP_200_OK,
-    response_model=Page[Any],  # type: ignore
+    response_model=Page[List[CategoryResponseSchema]],
     summary="Search categories.",
 )
 def search_categories(
     request: CategoryFilter,
     db: Session = Depends(get_db),
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
-) -> Page[Any]:
+) -> Page[List[CategoryResponseSchema]]:
     """
     Searches and returns categories data according to search request parameters
     filters. Supports pagination and ordering.
