@@ -79,8 +79,6 @@ def fetch_category(
     random_ids = get_random_category_ids(db, count=5)
     category_response = CategoryResponseSchema.parse_obj(category)
     category_response = modify_single_category(db, category_response, random_ids)
-
-    b = 4
     return category_response
 
 
