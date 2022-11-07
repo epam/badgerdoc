@@ -489,7 +489,7 @@ def get_users_for_job(
         for user in users
     ]
 
-
+# Get categories for job_id, each entity requires children/parents
 @router.get(
     "/{job_id}/categories",
     status_code=status.HTTP_200_OK,

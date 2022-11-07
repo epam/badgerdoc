@@ -213,9 +213,7 @@ def delete_category_db(db: Session, category_id: str, tenant: str) -> None:
     db.commit()
 
 
-def get_random_category_ids(
-    db: Session, task_response: paginate, count: int
-) -> List[str]:
+def get_random_category_ids(db: Session, count: int) -> List[str]:
     random_ids = [
         item.id
         for item in db.query(Category.id).order_by(func.random()).limit(count)
@@ -243,3 +241,24 @@ def insert_mock_categories(
             entity.parents = mock_items
 
     return task_response
+
+
+def modify_single_category(
+    db: Session, category_response: CategoryResponseSchema, random_ids: List[str]
+) -> CategoryResponseSchema:
+
+    random_categories = db.query(Category).filter(Category.id.in_(random_ids))
+
+    categories_db = (
+        CategoryORMSchema.from_orm(category) for category in random_categories
+    )
+    mock_items = [
+        CategoryResponseSchema.parse_obj(category_db.dict())
+        for category_db in categories_db
+    ]
+    if not category_response.parent:
+            category_response.children = mock_items
+    else:
+        category_response.parents = mock_items
+
+    return category_response
