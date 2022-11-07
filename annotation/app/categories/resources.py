@@ -106,7 +106,7 @@ def get_child_categories(
 @router.post(
     "/search",
     status_code=status.HTTP_200_OK,
-    response_model=Page[List[CategoryResponseSchema]],
+    response_model=Page[CategoryResponseSchema],
     summary="Search categories.",
 )
 def search_categories(

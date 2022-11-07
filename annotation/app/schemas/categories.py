@@ -44,8 +44,8 @@ class CategoryORMSchema(CategoryInputSchema):
 
 class CategoryResponseSchema(CategoryInputSchema):
     # To be removed
-    parents: Optional[List[dict]] = Field()
-    children: Optional[List[dict]] = Field()
+    parents: Optional[List[dict]] = Field(default=[])
+    children: Optional[List[dict]] = Field(default=[])
 
     class Config:
         allow_population_by_field_name = True

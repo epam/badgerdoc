@@ -7,6 +7,7 @@ from pydantic import ValidationError
 from sqlalchemy import and_, desc, not_
 from sqlalchemy.orm import Session, query
 from sqlalchemy.orm.attributes import InstrumentedAttribute
+from sqlalchemy.sql.expression import func
 
 from app.categories import fetch_bunch_categories_db
 from app.database import Base
@@ -534,3 +535,33 @@ def update_jobs_names(db: Session, jobs_names: Dict):
     for key, value in jobs_names.items():
         db.query(Job).filter(Job.job_id == key).update({Job.name: value})
     db.commit()
+
+
+def get_random_category_ids(db: Session, count: int) -> List[str]:
+    random_ids = [
+        item.id
+        for item in db.query(Category.id).order_by(func.random()).limit(count)
+    ]
+    return random_ids
+
+
+def insert_mock_categories(
+    db: Session, task_response: paginate, random_ids: List[str]
+) -> paginate:
+
+    random_categories = db.query(Category).filter(Category.id.in_(random_ids))
+
+    categories_db = (
+        CategoryORMSchema.from_orm(category) for category in random_categories
+    )
+    mock_items = [
+        CategoryResponseSchema.parse_obj(category_db.dict())
+        for category_db in categories_db
+    ]
+    for entity in task_response.data:
+        if not entity.parent:
+            entity.children = mock_items
+        else:
+            entity.parents = mock_items
+
+    return task_response
