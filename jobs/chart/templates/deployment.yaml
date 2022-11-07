@@ -28,7 +28,7 @@ spec:
         app: jobs
     spec:
       containers:
-      - image: 818863528939.dkr.ecr.eu-central-1.amazonaws.com/badgerdoc/jobs:{{ .Values.image.tag }}
+      - image: {{ .Values.image.registry }}/jobs:{{ .Values.image.tag }}
         imagePullPolicy: IfNotPresent
         name: jobs
         resources:
@@ -52,20 +52,11 @@ spec:
           value: "assets"
         - name: ANNOTATION_MICROSERVICE_URI
           value: "annotation"
-        {{- if eq .Release.Namespace "dev1" }}
         - name: KEYCLOAK_HOST
           valueFrom:
             secretKeyRef:
               name: users
               key: KEYCLOAK_DIRECT_ENDPOINT_DEV1
-        {{- end }}
-        {{- if eq .Release.Namespace "dev2" }}
-        - name: KEYCLOAK_HOST
-          valueFrom:
-            secretKeyRef:
-              name: users
-              key: KEYCLOAK_DIRECT_ENDPOINT_DEV2
-        {{- end }}
         command: ["/bin/sh"]
         args: ["-c", "alembic upgrade head && uvicorn jobs.main:app --host 0.0.0.0 --port 8123 --root-path /api/v1/jobs"]
       dnsPolicy: ClusterFirst

@@ -28,7 +28,7 @@ spec:
         app: processing
     spec:
       containers:
-      - image: 818863528939.dkr.ecr.eu-central-1.amazonaws.com/badgerdoc/processing:{{ .Values.image.tag }}
+      - image: {{ .Values.image.registry }}/processing:{{ .Values.image.tag }}
         imagePullPolicy: IfNotPresent
         name: processing
         resources:
