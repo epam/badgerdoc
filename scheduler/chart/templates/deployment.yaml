@@ -29,7 +29,7 @@ spec:
         app: scheduler
     spec:
       containers:
-      - image: 818863528939.dkr.ecr.eu-central-1.amazonaws.com/badgerdoc/scheduler:{{ .Values.image.tag }}
+      - image: {{ .Values.image.registry }}/scheduler:{{ .Values.image.tag }}
         imagePullPolicy: IfNotPresent
         name: scheduler
         resources:
@@ -56,20 +56,11 @@ spec:
           value: "scheduler"
         - name: DB_HOST
           value: "postgres-postgresql"
-        {{- if eq .Release.Namespace "dev1" }}
         - name: KEYCLOAK_URI
           valueFrom:
             secretKeyRef:
               name: users
               key: KEYCLOAK_DIRECT_ENDPOINT_DEV1
-        {{- end }}
-        {{- if eq .Release.Namespace "dev2" }}
-        - name: KEYCLOAK_URI
-          valueFrom:
-            secretKeyRef:
-              name: users
-              key: KEYCLOAK_DIRECT_ENDPOINT_DEV2
-        {{- end }}
         command: ["/bin/sh"]
         args: ["-c", "alembic upgrade head && uvicorn scheduler.app:app --host 0.0.0.0 --port 8080 --root-path /api/v1/scheduler"]
       dnsPolicy: ClusterFirst

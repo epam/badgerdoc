@@ -1,5 +1,11 @@
 service:
   type: NodePort
   ports:
-    - {"name": "http","port": 8080,"targetPort": 8080}
-    - {"name": "https","port": 443,"targetPort": 8443, nodePort: ${ambassador_nodeport}}
+    - name: http
+      port: 80
+      targetPort: 8080
+      nodePort: 30080
+    - name: https
+      port: 443
+      targetPort: 8443
+      nodePort: 30443
