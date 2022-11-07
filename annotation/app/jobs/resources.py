@@ -61,6 +61,8 @@ from .services import (
     find_users,
     get_job,
     get_jobs_by_files,
+    get_random_category_ids,
+    insert_mock_categories,
     update_inner_job_status,
     update_job_categories,
     update_job_files,
@@ -487,7 +489,7 @@ def get_users_for_job(
         for user in users
     ]
 
-
+# Get categories for job_id, each entity requires children/parents
 @router.get(
     "/{job_id}/categories",
     status_code=status.HTTP_200_OK,
@@ -517,7 +519,12 @@ def fetch_job_categories(
             )
         )
     )
-    return filter_job_categories(categories_query, page_size, page_num)
+    task_response = filter_job_categories(categories_query, page_size, page_num)
+
+    # Insert_mock_categories
+    random_ids = get_random_category_ids(db, 5)
+    task_response = insert_mock_categories(db, task_response, random_ids)
+    return task_response
 
 
 @router.get(

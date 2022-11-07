@@ -26,6 +26,9 @@ from .services import (
     delete_category_db,
     fetch_category_db,
     filter_category_db,
+    get_random_category_ids,
+    insert_mock_categories,
+    modify_single_category,
     recursive_subcategory_search,
     update_category_db,
 )
@@ -55,7 +58,7 @@ def save_category(
     category = CategoryORMSchema.from_orm(category_db).dict()
     return CategoryResponseSchema.parse_obj(category)
 
-
+# Get by category id, requires children/parents
 @router.get(
     "/{category_id}",
     status_code=status.HTTP_200_OK,
@@ -72,7 +75,11 @@ def fetch_category(
 ) -> CategoryResponseSchema:
     category_db = fetch_category_db(db, category_id, x_current_tenant)
     category = CategoryORMSchema.from_orm(category_db).dict()
-    return CategoryResponseSchema.parse_obj(category)
+
+    random_ids = get_random_category_ids(db, count=5)
+    category_response = CategoryResponseSchema.parse_obj(category)
+    category_response = modify_single_category(db, category_response, random_ids)
+    return category_response
 
 
 @router.get(
@@ -100,30 +107,33 @@ def get_child_categories(
     ]
     return response
 
-
+# Search with params, return paginate obj, each entity requires children/parents
 @router.post(
     "/search",
     status_code=status.HTTP_200_OK,
-    response_model=Page[Any],  # type: ignore
+    response_model=Page[CategoryResponseSchema],
     summary="Search categories.",
 )
 def search_categories(
     request: CategoryFilter,
     db: Session = Depends(get_db),
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
-) -> Page[Any]:
+) -> Page[List[CategoryResponseSchema]]:
     """
     Searches and returns categories data according to search request parameters
     filters. Supports pagination and ordering.
     """
     try:
         task_response = filter_category_db(db, request, x_current_tenant)
-        return task_response
+        random_ids = get_random_category_ids(db, 5)
+
+        task_response = insert_mock_categories(db, task_response, random_ids)
     except BadFilterFormat as error:
         raise HTTPException(
             status_code=400,
             detail=f"{error}",
         )
+    return task_response
 
 
 @router.put(
