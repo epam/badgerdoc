@@ -257,7 +257,7 @@ def modify_single_category(
         for category_db in categories_db
     ]
     if not category_response.parent:
-            category_response.children = mock_items
+        category_response.children = mock_items
     else:
         category_response.parents = mock_items
 
