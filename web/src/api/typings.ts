@@ -2,6 +2,7 @@ import { UseMutationResult, UseQueryOptions, UseQueryResult } from 'react-query'
 import { UseInfiniteQueryResult } from 'react-query/types/react/types';
 import { ModelStatus } from 'api/typings/models';
 import { Task } from './typings/tasks';
+import React from 'react';
 
 export type Credentials = {
     username: string;
@@ -197,17 +198,29 @@ export type Basement = {
 export const categoryTypes = ['box', 'link', 'segmentation'] as const;
 export type CategoryType = typeof categoryTypes[number];
 export type Category = {
-    id: number;
+    id: string;
     name: string;
     metadata?: {
         color: string;
     };
-    parent?: string;
+    parent?: string | null;
     is_link?: boolean;
     hotkey?: string;
     data_attributes?: Array<CategoryDataAttribute>;
     type?: CategoryType;
+    parents?: Category[] | null;
+    children?: string[] | null;
 };
+
+export interface CategoryNode {
+    title: string;
+    key: string;
+    isLeaf: boolean;
+    children: CategoryNode[];
+    category: Category;
+    hotKey?: string;
+    style?: React.CSSProperties;
+}
 
 export type Link = {
     category_id: string;
@@ -227,7 +240,7 @@ export type CreateCategory = {
 };
 
 export type UpdateCategory = {
-    id: number;
+    id: string;
     name: string;
     metadata: {
         color: string;

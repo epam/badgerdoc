@@ -1,0 +1,100 @@
+@import '~shared/helpers/styles';
+
+.categories {
+    padding-top: 10px;
+    flex: 1;
+    min-height: 100px;
+}
+
+.category {
+    cursor: pointer;
+    & > * {
+        color: inherit;
+    }
+    &:hover {
+        background: rgba($color: $light-grey, $alpha: 0.3);
+    }
+}
+
+.multiswitch {
+    & > div {
+        flex-direction: row;
+        padding: 10px;
+        & > div {
+            width: 49%;
+        }
+    }
+}
+
+.tableParams {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 10px;
+    span {
+        align-self: flex-end;
+        font-weight: bold;
+        font-size: small;
+    }
+    & > div {
+        width: 45%;
+    }
+}
+
+.mergeButton {
+    padding: 10px;
+}
+
+.validation {
+    width: 145px;
+    margin-bottom: 10px;
+}
+.categoriesAndLinks {
+    flex: 1;
+    &__wrapper {
+        padding: 1rem;
+    }
+}
+.hotkey {
+    width: 24px;
+    height: 24px;
+    text-align: center;
+    margin-right: 5px;
+    margin-left: 15px;
+}
+
+.hot-key-container {
+    margin-right: 6px;
+    padding: 1px 4px;
+    border: 1px solid $btn-blue;
+    color: $btn-blue;
+}
+.hot-key-container-disabled {
+    margin-right: 6px;
+    padding: 1px 4px;
+    border: 1px solid $night500;
+    color: $night500;
+}
+
+.active {
+    background: rgba($color: $light-blue, $alpha: 0.3);
+}
+
+.metadata-item {
+    font-size: 14px;
+    display: grid;
+    grid-template-columns: 2fr 3fr;
+    gap: 28px;
+    overflow: hidden;
+    align-items: center;
+    margin-bottom: 8px;
+
+    &__name {
+        color: #6c6f80;
+    }
+}
+
+.search {
+    width: 294px;
+    margin: 0 auto;
+}

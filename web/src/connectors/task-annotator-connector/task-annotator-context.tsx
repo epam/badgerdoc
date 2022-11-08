@@ -58,6 +58,7 @@ import { PageSize } from '../../shared/components/document-pages/document-pages'
 type ContextValue = {
     task?: Task;
     categories?: Category[];
+    categoriesLoading?: boolean;
     selectedCategory?: Category;
     selectedLink?: Link;
     selectedAnnotation?: Annotation;
@@ -255,9 +256,10 @@ export const TaskAnnotatorContextProvider: FC<ProviderProps> = ({
         }
     }
 
-    const categoriesResult = useCategoriesByJob({ jobId: getJobId() }, { enabled: false });
+    const categoriesResult = useCategoriesByJob({ jobId: getJobId() });
 
     const categories = categoriesResult.data?.data;
+    const categoriesLoading = categoriesResult.isLoading;
 
     const filters: Filter<keyof FileDocument>[] = [];
 
@@ -303,7 +305,6 @@ export const TaskAnnotatorContextProvider: FC<ProviderProps> = ({
 
     useEffect(() => {
         if (task || jobId) {
-            categoriesResult.refetch();
             setCurrentPage(pageNumbers[0]);
             documentsResult.refetch();
             latestAnnotationsResult.refetch();
@@ -928,6 +929,7 @@ export const TaskAnnotatorContextProvider: FC<ProviderProps> = ({
         return {
             task,
             categories,
+            categoriesLoading,
             selectedCategory,
             selectedLink,
             fileMetaInfo,
@@ -993,6 +995,7 @@ export const TaskAnnotatorContextProvider: FC<ProviderProps> = ({
     }, [
         task,
         categories,
+        categoriesLoading,
         selectedCategory,
         selectedLink,
         selectionType,
