@@ -27,9 +27,10 @@ from .services import (
     fetch_category_db,
     filter_category_db,
     get_random_category_ids,
+    insert_category_tree,
     insert_mock_categories,
-    modify_single_category,
     recursive_subcategory_search,
+    response_object_from_db,
     update_category_db,
 )
 
@@ -55,10 +56,9 @@ def save_category(
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
 ) -> CategoryResponseSchema:
     category_db = add_category_db(db, category, x_current_tenant)
-    category = CategoryORMSchema.from_orm(category_db).dict()
-    return CategoryResponseSchema.parse_obj(category)
+    return response_object_from_db(category_db)
 
-# Get by category id, requires children/parents
+
 @router.get(
     "/{category_id}",
     status_code=status.HTTP_200_OK,
@@ -74,11 +74,7 @@ def fetch_category(
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
 ) -> CategoryResponseSchema:
     category_db = fetch_category_db(db, category_id, x_current_tenant)
-    category = CategoryORMSchema.from_orm(category_db).dict()
-
-    random_ids = get_random_category_ids(db, count=5)
-    category_response = CategoryResponseSchema.parse_obj(category)
-    category_response = modify_single_category(db, category_response, random_ids)
+    category_response = insert_category_tree(db, category_db)
     return category_response
 
 
@@ -118,16 +114,13 @@ def search_categories(
     request: CategoryFilter,
     db: Session = Depends(get_db),
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
-) -> Page[List[CategoryResponseSchema]]:
+) -> Page[CategoryResponseSchema]:
     """
     Searches and returns categories data according to search request parameters
     filters. Supports pagination and ordering.
     """
     try:
         task_response = filter_category_db(db, request, x_current_tenant)
-        random_ids = get_random_category_ids(db, 5)
-
-        task_response = insert_mock_categories(db, task_response, random_ids)
     except BadFilterFormat as error:
         raise HTTPException(
             status_code=400,

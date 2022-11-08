@@ -519,12 +519,7 @@ def fetch_job_categories(
             )
         )
     )
-    task_response = filter_job_categories(categories_query, page_size, page_num)
-
-    # Insert_mock_categories
-    random_ids = get_random_category_ids(db, 5)
-    task_response = insert_mock_categories(db, task_response, random_ids)
-    return task_response
+    return filter_job_categories(db, categories_query, page_size, page_num)
 
 
 @router.get(
