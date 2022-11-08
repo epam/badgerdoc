@@ -329,7 +329,7 @@ const useAddJobFormValues = ({
             pipeline: pipelines?.find((el) => el.id === parseInt(initialJob.pipeline_id)),
             categories:
                 initialJob.categories?.map((el) => {
-                    const category = categories?.find((elem) => elem.id === el);
+                    const category = categories?.find((elem) => elem.id === el.toString());
                     if (category) return category;
                     return {} as Category;
                 }) || []

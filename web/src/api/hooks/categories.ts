@@ -27,10 +27,10 @@ type CategoriesByJobParams = {
 export const useCategories: QueryHookType<
     QueryHookParamsType<Category>,
     PagedResponse<Category>
-> = ({ page, size, searchText, sortConfig }, options) => {
+> = ({ page, size, searchText, filters, sortConfig }, options) => {
     return useQuery(
-        ['categories', page, size, searchText, sortConfig],
-        () => categoriesFetcher(page, size, searchText, sortConfig),
+        ['categories', page, size, searchText, filters, sortConfig],
+        () => categoriesFetcher(page, size, searchText, filters, sortConfig),
         options
     );
 };
@@ -83,22 +83,24 @@ export async function categoriesFetcher(
     page = 1,
     size = pageSizes._15,
     searchText?: string | null,
+    filters?: Filter<keyof Category>[],
     sortConfig: Sorting<keyof Category> = {
         field: 'name',
         direction: SortingDirection.ASC
     }
 ): Promise<PagedResponse<Category>> {
-    const filters: Filter<keyof Category>[] = [];
+    const filtersArr: Filter<keyof Category>[] = filters ? [...filters] : [];
     if (searchText) {
-        filters.push({
+        filtersArr.push({
             field: 'name',
             operator: Operators.ILIKE,
             value: `%${searchText.trim().toLowerCase()}%`
         });
     }
+
     const body: SearchBody<Category> = {
         pagination: { page_num: page, page_size: size },
-        filters,
+        filters: filtersArr,
         sorting: [{ direction: sortConfig.direction, field: sortConfig.field }]
     };
     return fetchCategories(`${namespace}/categories/search`, 'post', body);

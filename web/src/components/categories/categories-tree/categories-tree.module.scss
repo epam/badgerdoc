@@ -1,0 +1,16 @@
+@import '~shared/helpers/styles';
+
+.category {
+    padding-bottom: 12px;
+}
+.categoryWrapper {
+    display: flex;
+}
+
+.hotkey {
+    width: 24px;
+    height: 24px;
+    text-align: center;
+    margin-right: 5px;
+}
+
