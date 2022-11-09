@@ -58,7 +58,7 @@ def save_category(
     category_db = add_category_db(db, category, x_current_tenant)
     return response_object_from_db(category_db)
 
-
+# Get by category id, requires children/parents
 @router.get(
     "/{category_id}",
     status_code=status.HTTP_200_OK,
