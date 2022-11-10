@@ -153,8 +153,7 @@ def update_category(
     )
     if not category_db:
         raise NoSuchCategoryError("Cannot update category parameters")
-    category = CategoryORMSchema.from_orm(category_db)
-    return CategoryResponseSchema.parse_obj(category)
+    return response_object_from_db(category_db)
 
 
 @router.delete(

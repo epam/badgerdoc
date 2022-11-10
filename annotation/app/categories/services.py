@@ -43,7 +43,7 @@ def add_category_db(
     if parent_db and parent_db.tenant not in [tenant, None]:
         raise ForeignKeyError("Category with this id doesn't exist.")
 
-    if parent_db:
+    if parent_db and parent_db.tree:
         tree = Ltree(f'{parent_db.tree.path}.{category_input.id}')
     else:
         tree = Ltree(f'{category_input.id}')
@@ -203,10 +203,14 @@ def update_category_db(
     update_query["parent"] = (
         update_query["parent"] if update_query["parent"] != "null" else None
     )
-    parent = update_query["parent"]
-    parent_db = db.query(Category).get(parent) if parent else None
+    parent_id = update_query["parent"]
+    parent_db = db.query(Category).get(parent_id) if parent_id else None
     if parent_db and parent_db.tenant not in [tenant, None]:
         raise ForeignKeyError("Category with this id doesn't exist.")
+
+    if category.parent != parent_id and fetch_category_children(db, category):
+        raise CheckFieldError("Cannot update parent for category that has children.")
+
     name = (update_query["name"],)
     check_unique = (
         db.query(Category)
@@ -216,10 +220,18 @@ def update_category_db(
     )
     if update_query["name"] != category.name and check_unique:
         raise CheckFieldError("Category name must be unique.")
+
     update_query["metadata_"] = update_query.get("metadata")
     update_query["id"] = category_id
     for field, value in update_query.items():
         setattr(category, field, value)
+
+    if parent_db and parent_db.tree:
+        tree = Ltree(f'{parent_db.tree.path}.{category_id}')
+    else:
+        tree = Ltree(f'{category_id}')
+    category.tree = tree
+
     db.add(category)
     db.commit()
     return category

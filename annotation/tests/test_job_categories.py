@@ -68,6 +68,8 @@ def prepare_get_result(
     for cat_id, cat_name in categories_ids_names:
         category = prepare_category_body(name=cat_name)
         category["id"] = cat_id
+        category['parents'] = []
+        category['children'] = []
         categories.append(category)
     body = {
         "pagination": {
