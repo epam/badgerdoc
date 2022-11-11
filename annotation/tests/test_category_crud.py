@@ -508,6 +508,7 @@ def test_search_filter_ordering(
 
 
 @mark.skip(reason="filter_lib needs to be updated")
+@mark.integration
 def test_search_filter_distinct_id(prepare_db_categories_for_filtration):
     data = prepare_filtration_body(
         page_size=30, field="id", operator="distinct"
