@@ -507,7 +507,7 @@ def test_search_filter_ordering(
     assert categories["id"] == expected
 
 
-@mark.integration
+@mark.skip(reason="filter_lib needs to be updated")
 def test_search_filter_distinct_id(prepare_db_categories_for_filtration):
     data = prepare_filtration_body(
         page_size=30, field="id", operator="distinct"
@@ -520,6 +520,7 @@ def test_search_filter_distinct_id(prepare_db_categories_for_filtration):
     assert len(result_data) == 16
 
 
+@mark.skip(reason="filter_lib needs to be updated")
 @mark.integration
 def test_search_two_filters_different_distinct_order(
     prepare_db_categories_for_distinct_filtration,
@@ -542,6 +543,7 @@ def test_search_two_filters_different_distinct_order(
     assert first_result_data == second_result_data
 
 
+@mark.skip(reason="filter_lib needs to be updated")
 @mark.integration
 def test_search_two_filters_both_distinct(
     prepare_db_categories_for_distinct_filtration,
