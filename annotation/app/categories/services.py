@@ -3,7 +3,7 @@ from typing import List, Set
 
 from cachetools import TTLCache, cached, keys
 from filter_lib import Page, form_query, map_request_to_filter, paginate
-from sqlalchemy import and_, null, or_
+from sqlalchemy import and_, func, null, or_
 from sqlalchemy.event import listens_for
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.expression import func
@@ -190,6 +190,20 @@ def filter_category_db(
     )
 
 
+def update_category_tree(
+    db: Session, category_db: Category, new_parent: Category = None,
+) -> None:
+    tree = category_db.tree
+    nlevel = len(tree) - 1
+    query = db.query(Category).filter(Category.tree.op('<@')(tree))
+
+    new_path = func.subpath(Category.tree, nlevel)
+    if new_parent:
+        new_path = new_parent.tree.path + new_path
+
+    query.update(values={'tree': new_path}, synchronize_session=False)
+
+
 def update_category_db(
     db: Session, category_id: str, update_query: dict, tenant: str
 ) -> Category:
@@ -203,13 +217,12 @@ def update_category_db(
     update_query["parent"] = (
         update_query["parent"] if update_query["parent"] != "null" else None
     )
-    parent_id = update_query["parent"]
-    parent_db = db.query(Category).get(parent_id) if parent_id else None
+    ex_parent_id = category.parent
+    new_parent_id = update_query["parent"]
+    parent_db = db.query(Category).get(new_parent_id) if new_parent_id else None
+
     if parent_db and parent_db.tenant not in [tenant, None]:
         raise ForeignKeyError("Category with this id doesn't exist.")
-
-    if category.parent != parent_id and fetch_category_children(db, category):
-        raise CheckFieldError("Cannot update parent for category that has children.")
 
     name = (update_query["name"],)
     check_unique = (
@@ -226,11 +239,8 @@ def update_category_db(
     for field, value in update_query.items():
         setattr(category, field, value)
 
-    if parent_db and parent_db.tree:
-        tree = Ltree(f'{parent_db.tree.path}.{category_id}')
-    else:
-        tree = Ltree(f'{category_id}')
-    category.tree = tree
+    if ex_parent_id != new_parent_id and category.tree:
+        update_category_tree(db, category, parent_db)
 
     db.add(category)
     db.commit()
