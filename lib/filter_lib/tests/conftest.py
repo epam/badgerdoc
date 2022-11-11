@@ -4,7 +4,13 @@ import sqlalchemy as sa
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 
+from sqlalchemy_utils import LtreeType
+
+from sqlalchemy.dialects.sqlite.base import SQLiteTypeCompiler
+
 Base = declarative_base()
+
+SQLiteTypeCompiler.visit_LTREE = lambda *args, **kwargs: "LTREE"
 
 
 class User(Base):
@@ -14,6 +20,7 @@ class User(Base):
     name = sa.Column(sa.String)
     email = sa.Column(sa.String)
     addresses = relationship("Address", back_populates="user")
+    path = sa.Column(LtreeType, nullable=False)
 
 
 class Address(Base):

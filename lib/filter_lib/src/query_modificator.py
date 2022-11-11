@@ -119,15 +119,50 @@ def _create_sorting(query: Query, sor: Dict[str, Any]) -> Query:
 def _create_filter(query: Query, fil: Dict[str, Any]) -> Query:
     model = _get_entity(query, fil.get("model"))
     field = fil.get("field")
+    value = fil.get("value")
 
     if _has_relation(model, field) and _op_is_match(fil):
         raise BadFilterFormat(
             "Operator 'match' shouldn't be used with relations"
         )
 
+    if _is_ltree_op(fil):
+        op = fil["operation"]
+        subquery = (
+            query.with_entities(model.path)
+            .filter(model.id == value)
+            .subquery()
+        )
+
+        if op == "parent":
+            return (
+                query.filter(
+                    func.subpath(
+                        model.path, 0, func.nlevel(subquery.c.path) - 1
+                    )
+                    == model.path,
+                    func.index(subquery.c.path, model.path) != -1,
+                )
+                .order_by(model.path.desc())
+                .limit(1)
+            )
+        elif op == "parents_recursive":
+            return query.filter(
+                func.nlevel(subquery.c.path) != func.nlevel(model.path),
+                func.index(subquery.c.path, model.path) != -1,
+            ).order_by(model.path)
+        elif op == "children":
+            return query.filter(
+                func.nlevel(model.path) == func.nlevel(subquery.c.path) + 1
+            ).order_by(model.path)
+        elif op == "children_recursive":
+            return query.filter(
+                func.nlevel(model.path) > func.nlevel(subquery.c.path)
+            ).order_by(model.path)
+
     if _op_is_match(fil):
         column = _get_column(model, field)
-        query = _make_match(query, column, fil["value"])
+        query = _make_match(query, column, value)
         return query
 
     if _has_relation(model, field):
@@ -179,6 +214,17 @@ def _op_is_not(fil: Dict[str, str]) -> bool:
     """Checks for `not` operators ( NOT EQUAL, NOT IN, NOT ILIKE)"""
     op = fil.get("op")
     return op == "ne" or op == "not_in" or op == "not_ilike"
+
+
+def _is_ltree_op(fil: Dict[str, str]) -> bool:
+    op = fil.get("op")
+
+    return op in (
+        "parent",
+        "parents_recursive",
+        "children",
+        "children_recursive",
+    )
 
 
 def _create_or_condition(
