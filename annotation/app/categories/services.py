@@ -3,10 +3,11 @@ from typing import List, Set
 
 from cachetools import TTLCache, cached, keys
 from filter_lib import Page, form_query, map_request_to_filter, paginate
-from sqlalchemy import and_, null, or_
+from sqlalchemy import and_, func, null, or_
 from sqlalchemy.event import listens_for
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.expression import func
+from sqlalchemy_utils import Ltree
 
 from app.errors import (
     CheckFieldError,
@@ -38,8 +39,15 @@ def add_category_db(
     check_unique_category_field(db, name, "name", tenant)
     parent = category_input.parent
     parent_db = db.query(Category).get(parent) if parent else None
+
     if parent_db and parent_db.tenant not in [tenant, None]:
         raise ForeignKeyError("Category with this id doesn't exist.")
+
+    if parent_db and parent_db.tree:
+        tree = Ltree(f'{parent_db.tree.path}.{category_input.id}')
+    else:
+        tree = Ltree(f'{category_input.id}')
+
     category = Category(
         id=(id_ or str(uuid.uuid4())),
         name=name,
@@ -49,10 +57,28 @@ def add_category_db(
         editor=category_input.editor,
         data_attributes=category_input.data_attributes,
         type=category_input.type,
+        tree=tree,
     )
     db.add(category)
     db.commit()
     return category
+
+
+def response_object_from_db(category_db: Category) -> CategoryResponseSchema:
+    category_orm = CategoryORMSchema.from_orm(category_db).dict()
+    return CategoryResponseSchema.parse_obj(category_orm)
+
+
+def fetch_category_parents(db: Session, category_input: Category) -> List[Category]:
+    return db.query(Category).filter(
+        Category.tree.ancestor_of(category_input.tree)
+    ).order_by(Category.tree.desc()).offset(1).all()
+
+
+def fetch_category_children(db: Session, category_input: Category) -> List[Category]:
+    return db.query(Category).filter(
+        Category.tree.descendant_of(category_input.tree)
+    ).offset(1).all()
 
 
 def check_unique_category_field(
@@ -152,20 +178,30 @@ def filter_category_db(
     )
     filter_args = map_request_to_filter(request.dict(), Category.__name__)
     category_query, pagination = form_query(filter_args, filter_query)
+
+    # Check if filter is valid
     if request.filters and "distinct" in [
         item.operator.value for item in request.filters
     ]:
         return paginate(category_query.all(), pagination)
-    categories_db = (
-        CategoryORMSchema.from_orm(category) for category in category_query
-    )
     return paginate(
-        [
-            CategoryResponseSchema.parse_obj(category_db.dict())
-            for category_db in categories_db
-        ],
+        [insert_category_tree(db, category) for category in category_query],
         pagination,
     )
+
+
+def update_category_tree(
+    db: Session, category_db: Category, new_parent: Category = None,
+) -> None:
+    tree = category_db.tree
+    nlevel = len(tree) - 1
+    query = db.query(Category).filter(Category.tree.op('<@')(tree))
+
+    new_path = func.subpath(Category.tree, nlevel)
+    if new_parent:
+        new_path = new_parent.tree.path + new_path
+
+    query.update(values={'tree': new_path}, synchronize_session=False)
 
 
 def update_category_db(
@@ -181,10 +217,13 @@ def update_category_db(
     update_query["parent"] = (
         update_query["parent"] if update_query["parent"] != "null" else None
     )
-    parent = update_query["parent"]
-    parent_db = db.query(Category).get(parent) if parent else None
+    ex_parent_id = category.parent
+    new_parent_id = update_query["parent"]
+    parent_db = db.query(Category).get(new_parent_id) if new_parent_id else None
+
     if parent_db and parent_db.tenant not in [tenant, None]:
         raise ForeignKeyError("Category with this id doesn't exist.")
+
     name = (update_query["name"],)
     check_unique = (
         db.query(Category)
@@ -194,10 +233,15 @@ def update_category_db(
     )
     if update_query["name"] != category.name and check_unique:
         raise CheckFieldError("Category name must be unique.")
+
     update_query["metadata_"] = update_query.get("metadata")
     update_query["id"] = category_id
     for field, value in update_query.items():
         setattr(category, field, value)
+
+    if ex_parent_id != new_parent_id and category.tree:
+        update_category_tree(db, category, parent_db)
+
     db.add(category)
     db.commit()
     return category
@@ -243,22 +287,19 @@ def insert_mock_categories(
     return task_response
 
 
-def modify_single_category(
-    db: Session, category_response: CategoryResponseSchema, random_ids: List[str]
+def insert_category_tree(
+    db: Session, category_db: Category
 ) -> CategoryResponseSchema:
+    parents = fetch_category_parents(db, category_db)
+    children = fetch_category_children(db, category_db)
 
-    random_categories = db.query(Category).filter(Category.id.in_(random_ids))
+    category_response = response_object_from_db(category_db)
 
-    categories_db = (
-        CategoryORMSchema.from_orm(category) for category in random_categories
-    )
-    mock_items = [
-        CategoryResponseSchema.parse_obj(category_db.dict())
-        for category_db in categories_db
+    if category_response.parent:
+        category_response.parents = [
+            response_object_from_db(category) for category in parents
+        ]
+    category_response.children = [
+        response_object_from_db(category) for category in children
     ]
-    if not category_response.parent:
-            category_response.children = mock_items
-    else:
-        category_response.parents = mock_items
-
     return category_response

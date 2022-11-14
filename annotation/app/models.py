@@ -6,11 +6,13 @@ from sqlalchemy import (
     CheckConstraint,
     Column,
     ForeignKey,
+    Index,
     Table,
     func,
 )
 from sqlalchemy.dialects.postgresql import ARRAY, ENUM, JSON, JSONB, UUID
 from sqlalchemy.orm import relationship
+from sqlalchemy_utils import LtreeType
 
 from app.database import Base
 from app.schemas import (
@@ -119,6 +121,10 @@ class Category(Base):
     )
     jobs = relationship(
         "Job", secondary=association_job_category, back_populates="categories"
+    )
+    tree = Column(LtreeType, nullable=True)
+    __table_args__ = (
+        Index('index_tree', tree, postgresql_using="gist"),
     )
 
 

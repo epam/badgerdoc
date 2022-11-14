@@ -2,7 +2,7 @@ from collections import defaultdict
 from typing import Any, DefaultDict, Dict, List, Optional, Set, Tuple, Union
 from uuid import UUID
 
-from filter_lib import form_query, map_request_to_filter, paginate
+from filter_lib import Page, form_query, map_request_to_filter, paginate
 from pydantic import ValidationError
 from sqlalchemy import and_, desc, not_
 from sqlalchemy.orm import Session, query
@@ -10,6 +10,7 @@ from sqlalchemy.orm.attributes import InstrumentedAttribute
 from sqlalchemy.sql.expression import func
 
 from app.categories import fetch_bunch_categories_db
+from app.categories.services import insert_category_tree
 from app.database import Base
 from app.errors import EnumValidationError, FieldConstraintError, WrongJobError
 from app.microservice_communication.assets_communication import get_files_info
@@ -293,10 +294,8 @@ def get_job(db: Session, job_id: int, tenant: str) -> Job:
 
 
 def filter_job_categories(
-    filter_query: query,
-    page_size: int,
-    page_num: int,
-):
+    db: Session, filter_query: query, page_size: int, page_num: int,
+) -> Page[CategoryResponseSchema]:
     request = {
         "pagination": {
             "page_num": page_num,
@@ -312,15 +311,9 @@ def filter_job_categories(
     }
     filter_args = map_request_to_filter(request, Category.__name__)
     category_query, pagination = form_query(filter_args, filter_query)
-    categories_db = [
-        CategoryORMSchema.from_orm(category) for category in category_query
-    ]
     try:
         response = paginate(
-            [
-                CategoryResponseSchema.parse_obj(category_db.dict())
-                for category_db in categories_db
-            ],
+            [insert_category_tree(db, category) for category in category_query],
             pagination,
         )
     except ValidationError as exc:
