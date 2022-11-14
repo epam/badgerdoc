@@ -10,6 +10,7 @@ from sqlalchemy.dialects.sqlite.base import SQLiteTypeCompiler
 
 Base = declarative_base()
 
+# Monkey-patching visit operation not supported by SQLite
 SQLiteTypeCompiler.visit_LTREE = lambda *args, **kwargs: "LTREE"
 
 
