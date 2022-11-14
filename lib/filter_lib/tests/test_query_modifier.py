@@ -168,6 +168,32 @@ def test_create_filter_ltree_children_recursive(get_session):
     assert compiled_statement.params == {"id_1": 2}
 
 
+def test_create_filter_ltree_not_supported_operation(get_session):
+    # Arrange
+    session = get_session
+
+    query = session.query(Category)
+    spec = {
+        "model": "Category",
+        "field": "path",
+        "op": "not_supported_operation",
+        "value": 2,
+    }
+
+    # Act
+    query = _create_filter(query, spec)
+
+    expected_sql_str = (
+        "SELECT categories.id, categories.path \nFROM categories"
+    )
+
+    compiled_statement = query.statement.compile()
+
+    # Assert
+    assert str(compiled_statement) == expected_sql_str
+    assert compiled_statement.params == {}
+
+
 def test_form_query(get_session):
     session = get_session
     user_1 = User(id=5, name="user")
