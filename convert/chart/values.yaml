@@ -1,0 +1,5 @@
+image:
+    registry: 818863528939.dkr.ecr.eu-central-1.amazonaws.com/badgerdoc
+
+app:
+    hostname: dev1.badgerdoc.com

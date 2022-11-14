@@ -1,11 +1,11 @@
-from .conftest import User, Address
+from .conftest import User, Address, Category
 from ..src.query_modificator import (
     _get_entity,
     _get_column,
     _create_filter,
     form_query,
     _op_is_not,
-    _create_or_condition
+    _create_or_condition,
 )
 from ..src.enum_generator import get_enum_from_orm
 
@@ -34,6 +34,164 @@ def test_create_filter(get_session):
     spec = {"model": "User", "field": "name", "op": "eq", "value": "test_one"}
     query = _create_filter(query, spec)
     assert len(query.all()) == 1
+
+
+def test_create_filter_ltree_parent(get_session):
+    # Arrange
+    session = get_session
+
+    query = session.query(Category)
+    spec = {"model": "Category", "field": "path", "op": "parent", "value": 2}
+
+    # Act
+    query = _create_filter(query, spec)
+
+    expected_sql_str = (
+        "SELECT categories.id, categories.path \n"
+        "FROM categories, "
+        "(SELECT categories.path AS path \n"
+        "FROM categories \n"
+        "WHERE categories.id = :id_1) AS anon_1 \n"
+        "WHERE subpath(categories.path, :subpath_1, nlevel(anon_1.path) - :nlevel_1) = categories.path "
+        "AND index(anon_1.path, categories.path) != :index_1 "
+        "ORDER BY categories.path DESC\n"
+        " LIMIT :param_1"
+    )
+
+    compiled_statement = query.statement.compile()
+
+    # Assert
+    assert str(compiled_statement) == expected_sql_str
+    assert compiled_statement.params == {
+        "id_1": 2,
+        "subpath_1": 0,
+        "nlevel_1": 1,
+        "index_1": -1,
+        "param_1": 1,
+    }
+
+
+def test_create_filter_ltree_parents_recursive(get_session):
+    # Arrange
+    session = get_session
+
+    query = session.query(Category)
+    spec = {
+        "model": "Category",
+        "field": "path",
+        "op": "parents_recursive",
+        "value": 2,
+    }
+
+    # Act
+    query = _create_filter(query, spec)
+
+    expected_sql_str = (
+        "SELECT categories.id, categories.path \n"
+        "FROM categories, "
+        "(SELECT categories.path AS path \n"
+        "FROM categories \n"
+        "WHERE categories.id = :id_1) AS anon_1 \n"
+        "WHERE nlevel(anon_1.path) != nlevel(categories.path) "
+        "AND index(anon_1.path, categories.path) != :index_1 "
+        "ORDER BY categories.path"
+    )
+
+    compiled_statement = query.statement.compile()
+
+    # Assert
+    assert str(compiled_statement) == expected_sql_str
+    assert compiled_statement.params == {"id_1": 2, "index_1": -1}
+
+
+def test_create_filter_ltree_children(get_session):
+    # Arrange
+    session = get_session
+
+    query = session.query(Category)
+    spec = {
+        "model": "Category",
+        "field": "path",
+        "op": "children",
+        "value": 2,
+    }
+
+    # Act
+    query = _create_filter(query, spec)
+
+    expected_sql_str = (
+        "SELECT categories.id, categories.path \n"
+        "FROM categories, "
+        "(SELECT categories.path AS path \n"
+        "FROM categories \n"
+        "WHERE categories.id = :id_1) AS anon_1 \n"
+        "WHERE nlevel(categories.path) = nlevel(anon_1.path) + :nlevel_1 "
+        "ORDER BY categories.path"
+    )
+
+    compiled_statement = query.statement.compile()
+
+    # Assert
+    assert str(compiled_statement) == expected_sql_str
+    assert compiled_statement.params == {"id_1": 2, "nlevel_1": 1}
+
+
+def test_create_filter_ltree_children_recursive(get_session):
+    # Arrange
+    session = get_session
+
+    query = session.query(Category)
+    spec = {
+        "model": "Category",
+        "field": "path",
+        "op": "children_recursive",
+        "value": 2,
+    }
+
+    # Act
+    query = _create_filter(query, spec)
+
+    expected_sql_str = (
+        "SELECT categories.id, categories.path \n"
+        "FROM categories, "
+        "(SELECT categories.path AS path \n"
+        "FROM categories \n"
+        "WHERE categories.id = :id_1) AS anon_1 \n"
+        "WHERE nlevel(categories.path) > nlevel(anon_1.path) "
+        "ORDER BY categories.path"
+    )
+
+    compiled_statement = query.statement.compile()
+
+    # Assert
+    assert str(compiled_statement) == expected_sql_str
+    assert compiled_statement.params == {"id_1": 2}
+
+
+def test_create_filter_ltree_not_supported_operation(get_session):
+    # Arrange
+    session = get_session
+
+    query = session.query(Category)
+    spec = {
+        "model": "Category",
+        "field": "path",
+        "op": "not_supported_operation",
+        "value": 2,
+    }
+
+    # Act
+    query = _create_filter(query, spec)
+
+    expected_sql_str = (
+        "SELECT categories.id, categories.path \nFROM categories"
+    )
+
+    compiled_statement = query.statement.compile()
+
+    # Assert
+    assert str(compiled_statement) == expected_sql_str
+    assert compiled_statement.params == {}
 
 
 def test_form_query(get_session):
@@ -196,7 +354,12 @@ def test_form_query_with_distincts_and_filters_and_sorting(get_session):
 def test_op_is_not_positive():
     fil1 = {"model": "User", "field": "name", "op": "ne", "value": "123"}
     fil2 = {"model": "User", "field": "name", "op": "not_in", "value": ["123"]}
-    fil3 = {"model": "User", "field": "name", "op": "not_ilike", "value": "123"}
+    fil3 = {
+        "model": "User",
+        "field": "name",
+        "op": "not_ilike",
+        "value": "123",
+    }
     assert _op_is_not(fil1)
     assert _op_is_not(fil2)
     assert _op_is_not(fil3)
@@ -216,24 +379,54 @@ def test_op_is_not_negative():
 def test_create_or_condition():
     fil1 = {"model": "User", "field": "name", "op": "ne", "value": "123"}
     fil2 = {"model": "User", "field": "name", "op": "not_in", "value": ["123"]}
-    fil3 = {"model": "User", "field": "name", "op": "not_ilike", "value": "123"}
+    fil3 = {
+        "model": "User",
+        "field": "name",
+        "op": "not_ilike",
+        "value": "123",
+    }
 
     assert _create_or_condition(fil1) == {
         "or": [
             {"model": "User", "field": "name", "op": "ne", "value": "123"},
-            {"model": "User", "field": "name", "op": "is_null", "value": "123"}
+            {
+                "model": "User",
+                "field": "name",
+                "op": "is_null",
+                "value": "123",
+            },
         ]
     }
     assert _create_or_condition(fil2) == {
         "or": [
-            {"model": "User", "field": "name", "op": "not_in", "value": ["123"]},
-            {"model": "User", "field": "name", "op": "is_null", "value": ["123"]}
+            {
+                "model": "User",
+                "field": "name",
+                "op": "not_in",
+                "value": ["123"],
+            },
+            {
+                "model": "User",
+                "field": "name",
+                "op": "is_null",
+                "value": ["123"],
+            },
         ]
     }
     assert _create_or_condition(fil3) == {
         "or": [
-            {"model": "User", "field": "name", "op": "not_ilike", "value": "123"},
-            {"model": "User", "field": "name", "op": "is_null", "value": "123"}
+            {
+                "model": "User",
+                "field": "name",
+                "op": "not_ilike",
+                "value": "123",
+            },
+            {
+                "model": "User",
+                "field": "name",
+                "op": "is_null",
+                "value": "123",
+            },
         ]
     }
 

@@ -28,7 +28,7 @@ spec:
         app: annotation
     spec:
       containers:
-      - image: 818863528939.dkr.ecr.eu-central-1.amazonaws.com/badgerdoc/annotation:{{ .Values.image.tag }}
+      - image: {{ .Values.image.registry }}/annotation:{{ .Values.image.tag }}
         imagePullPolicy: IfNotPresent
         name: annotation
         resources:

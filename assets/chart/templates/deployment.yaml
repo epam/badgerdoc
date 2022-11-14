@@ -28,7 +28,7 @@ spec:
         app: assets
     spec:
       containers:
-      - image: 818863528939.dkr.ecr.eu-central-1.amazonaws.com/badgerdoc/assets:{{ .Values.image.tag }}
+      - image: {{ .Values.image.registry }}/assets:{{ .Values.image.tag }}
         imagePullPolicy: IfNotPresent
         name: assets
         resources:

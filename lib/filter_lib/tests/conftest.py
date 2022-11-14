@@ -4,7 +4,14 @@ import sqlalchemy as sa
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 
+from sqlalchemy_utils import LtreeType
+
+from sqlalchemy.dialects.sqlite.base import SQLiteTypeCompiler
+
 Base = declarative_base()
+
+# Monkey-patching visit operation not supported by SQLite
+SQLiteTypeCompiler.visit_LTREE = lambda *args, **kwargs: "LTREE"
 
 
 class User(Base):
@@ -23,6 +30,13 @@ class Address(Base):
     location = sa.Column(sa.String)
     owner = sa.Column(sa.Integer, sa.ForeignKey("users.id", use_alter=True))
     user = relationship("User", back_populates="addresses")
+
+
+class Category(Base):
+    __tablename__ = "categories"
+
+    id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
+    path = sa.Column(LtreeType, nullable=False)
 
 
 @pytest.fixture(scope="function")
