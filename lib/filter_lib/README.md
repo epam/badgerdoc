@@ -242,6 +242,10 @@ Available filter operations:
 - ``any``
 - ``not_any``
 - ``distinct``
+- ``parent``
+- ``parents_recursive``
+- ``children``
+- ``children_recursive``
 
 Available sort orders:
 - ``asc``
