@@ -63,7 +63,7 @@ def form_query(
         for fil in non_distinct_filters:
             query = _create_filter(query, fil)
 
-    if sorting:
+    if sorting and not query._order_by:
         for sor in sorting:
             query = _create_sorting(query, sor)
 
@@ -208,7 +208,7 @@ def _make_ltree_query(
     :return: Query instance
     """
     subquery = (
-        query.with_entities(model.path).filter(model.id == value).subquery()
+        query.with_entities(model.tree).filter(model.id == value).subquery()
     )
 
     if op == "parent":
@@ -216,28 +216,28 @@ def _make_ltree_query(
             query.filter(
                 (
                     func.subpath(
-                        model.path, 0, func.nlevel(subquery.c.path) - 1
+                        model.tree, 0, func.nlevel(subquery.c.tree) - 1
                     )
-                    == model.path
+                    == model.tree
                 ),
-                func.index(subquery.c.path, model.path) != -1,
+                func.index(subquery.c.tree, model.tree) != -1,
             )
-            .order_by(model.path.desc())
+            .order_by(model.tree.desc())
             .limit(1)
         )
     elif op == "parents_recursive":
         return query.filter(
-            func.nlevel(subquery.c.path) != func.nlevel(model.path),
-            func.index(subquery.c.path, model.path) != -1,
-        ).order_by(model.path)
+            func.nlevel(subquery.c.tree) != func.nlevel(model.tree),
+            func.index(subquery.c.tree, model.tree) != -1,
+        ).order_by(model.tree)
     elif op == "children":
         return query.filter(
-            func.nlevel(model.path) == func.nlevel(subquery.c.path) + 1
-        ).order_by(model.path)
+            func.nlevel(model.tree) == func.nlevel(subquery.c.tree) + 1
+        ).order_by(model.tree)
     elif op == "children_recursive":
         return query.filter(
-            func.nlevel(model.path) > func.nlevel(subquery.c.path)
-        ).order_by(model.path)
+            func.nlevel(model.tree) > func.nlevel(subquery.c.tree)
+        ).order_by(model.tree)
 
     return query
 
