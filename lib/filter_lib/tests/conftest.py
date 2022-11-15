@@ -36,7 +36,7 @@ class Category(Base):
     __tablename__ = "categories"
 
     id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
-    path = sa.Column(LtreeType, nullable=False)
+    tree = sa.Column(LtreeType, nullable=False)
 
 
 @pytest.fixture(scope="function")
