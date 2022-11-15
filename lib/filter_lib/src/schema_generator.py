@@ -34,6 +34,10 @@ class _FilterOperations(str, enum.Enum):
     NOT_ANY = "not_any"
     MATCH = "match"
     DISTINCT = "distinct"
+    PARENT = "parent"
+    PARENTS_RECURSIVE = "parents_recursive"
+    CHILDREN = "children"
+    CHILDREN_RECURSIVE = "children_recursive"
 
 
 class _FilterPagesize(enum.IntEnum):

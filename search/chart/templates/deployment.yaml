@@ -28,7 +28,7 @@ spec:
         app: search
     spec:
       containers:
-      - image: 818863528939.dkr.ecr.eu-central-1.amazonaws.com/badgerdoc/search:{{ .Values.image.tag }}
+      - image: {{ .Values.image.registry }}/search:{{ .Values.image.tag }}
         imagePullPolicy: IfNotPresent
         name: search
         resources:

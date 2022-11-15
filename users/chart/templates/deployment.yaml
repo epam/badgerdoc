@@ -28,7 +28,7 @@ spec:
         app: users
     spec:
       containers:
-      - image: 818863528939.dkr.ecr.eu-central-1.amazonaws.com/badgerdoc/users:{{ .Values.image.tag }}
+      - image: {{ .Values.image.registry }}/users:{{ .Values.image.tag }}
         imagePullPolicy: IfNotPresent
         name: users
         resources:
@@ -76,7 +76,6 @@ spec:
             secretKeyRef:
               name: users-keycloack
               key: KEYCLOAK_USERS_PUBLIC_KEY
-        {{- if eq .Release.Namespace "dev1" }}
         - name: KEYCLOAK_DIRECT_ENDPOINT
           valueFrom:
             secretKeyRef:
@@ -92,24 +91,6 @@ spec:
             secretKeyRef:
               name: users
               key: ADMIN_CLIENT_SECRET_DEV1
-        {{- end }}
-        {{- if eq .Release.Namespace "dev2" }}
-        - name: KEYCLOAK_DIRECT_ENDPOINT
-          valueFrom:
-            secretKeyRef:
-              name: users
-              key: KEYCLOAK_DIRECT_ENDPOINT_DEV2
-        - name: BADGERDOC_CLIENT_SECRET
-          valueFrom:
-            secretKeyRef:
-              name: users
-              key: BADGERDOC_CLIENT_SECRET_DEV2
-        - name: ADMIN_CLIENT_SECRET
-          valueFrom:
-            secretKeyRef:
-              name: users
-              key: ADMIN_CLIENT_SECRET_DEV2
-        {{- end }}
         command: ["/bin/sh"]
         args: ["-c", "uvicorn src.main:app --host 0.0.0.0 --port 8080 --root-path /api/v1/users"]
       dnsPolicy: ClusterFirst

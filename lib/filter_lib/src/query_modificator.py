@@ -8,6 +8,8 @@ from sqlalchemy.orm.query import Query
 from sqlalchemy_filters import apply_filters, apply_sort
 from sqlalchemy_filters.exceptions import BadFilterFormat, BadSpec
 
+from sqlalchemy_utils import LtreeType
+
 from .pagination import PaginationParams, make_pagination
 from .schema_generator import Pagination
 
@@ -119,15 +121,20 @@ def _create_sorting(query: Query, sor: Dict[str, Any]) -> Query:
 def _create_filter(query: Query, fil: Dict[str, Any]) -> Query:
     model = _get_entity(query, fil.get("model"))
     field = fil.get("field")
+    op = fil.get("op")
+    value = fil.get("value")
 
     if _has_relation(model, field) and _op_is_match(fil):
         raise BadFilterFormat(
             "Operator 'match' shouldn't be used with relations"
         )
 
+    if isinstance(getattr(model, field).type, LtreeType):
+        return _make_ltree_query(query=query, model=model, op=op, value=value)
+
     if _op_is_match(fil):
         column = _get_column(model, field)
-        query = _make_match(query, column, fil["value"])
+        query = _make_match(query, column, value)
         return query
 
     if _has_relation(model, field):
@@ -179,6 +186,60 @@ def _op_is_not(fil: Dict[str, str]) -> bool:
     """Checks for `not` operators ( NOT EQUAL, NOT IN, NOT ILIKE)"""
     op = fil.get("op")
     return op == "ne" or op == "not_in" or op == "not_ilike"
+
+
+def _make_ltree_query(
+    query: Query, model: Type[DeclarativeMeta], op: str, value: int
+) -> Query:
+    """
+    Makes query for LTREE field.
+    Passes through income query if operation is not supported.
+
+    Supported operations:
+    - "parent" - return parent of record with provided id
+    - "parents_recursive" - return all ancestors of record with provided id
+    - "children" - get first-level children for record with provided id
+    - "children_recursive" - get all descendants for record with provided id
+
+    :param query: Initial model's query
+    :param model: Model class
+    :param op: Operation name
+    :param value: Id of record
+    :return: Query instance
+    """
+    subquery = (
+        query.with_entities(model.path).filter(model.id == value).subquery()
+    )
+
+    if op == "parent":
+        return (
+            query.filter(
+                (
+                    func.subpath(
+                        model.path, 0, func.nlevel(subquery.c.path) - 1
+                    )
+                    == model.path
+                ),
+                func.index(subquery.c.path, model.path) != -1,
+            )
+            .order_by(model.path.desc())
+            .limit(1)
+        )
+    elif op == "parents_recursive":
+        return query.filter(
+            func.nlevel(subquery.c.path) != func.nlevel(model.path),
+            func.index(subquery.c.path, model.path) != -1,
+        ).order_by(model.path)
+    elif op == "children":
+        return query.filter(
+            func.nlevel(model.path) == func.nlevel(subquery.c.path) + 1
+        ).order_by(model.path)
+    elif op == "children_recursive":
+        return query.filter(
+            func.nlevel(model.path) > func.nlevel(subquery.c.path)
+        ).order_by(model.path)
+
+    return query
 
 
 def _create_or_condition(

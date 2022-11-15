@@ -1,4 +1,5 @@
-FROM artifactory.epam.com:6144/badgerdoc/python_base:0.1.5 AS build
+ARG base_image=818863528939.dkr.ecr.eu-central-1.amazonaws.com/badgerdoc/python_base:0.1.5
+FROM ${base_image} as build
 
 WORKDIR /opt/pipeline_executor
 
