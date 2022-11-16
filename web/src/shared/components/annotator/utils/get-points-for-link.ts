@@ -4,7 +4,6 @@ import {
     AnnotationBoundType,
     AnnotationImageToolType,
     AnnotationLinksBoundType,
-    Bound,
     Point
 } from 'shared';
 import { getAnnotationElementId } from './use-annotation-links';
@@ -23,9 +22,17 @@ export const offsetRelative = (element: HTMLElement, top: HTMLElement | Element)
     return offset;
 };
 
+interface PointWithId extends Point {
+    id: string | number;
+}
+
+interface DOMRectWithId extends DOMRect {
+    id: string | number;
+}
+
 export type PointSet = {
-    start: Point;
-    finish: Point;
+    start: PointWithId;
+    finish: PointWithId;
     link: Link;
     category: Category;
     type: string;
@@ -39,14 +46,15 @@ const getAnnotationById = (id: string | number, annotations: Annotation[]): Anno
     return annotations.find((ann: Annotation) => ann.id == id)!;
 };
 
-const getTrueBound = (elem: HTMLElement): DOMRect => {
+const getTrueBound = (elem: HTMLElement, id: string | number): DOMRectWithId => {
     const box = JSON.parse(JSON.stringify(elem.getBoundingClientRect()));
     const wrapper = document.getElementsByClassName('react-pdf__Document');
     const relOffset = offsetRelative(elem, wrapper[0]);
     return {
         ...box,
         top: relOffset.top,
-        left: relOffset.left
+        left: relOffset.left,
+        id
     };
 };
 
@@ -64,15 +72,15 @@ export const getPointsForLinks = (
     links: Link[],
     annotations: Annotation[],
     categories: Category[] | undefined
-) => {
-    let firstChildStart: DOMRect, lastChildStart: DOMRect;
+): PointSet[] => {
+    let firstChildStart: DOMRectWithId, lastChildStart: DOMRectWithId;
     let elementStart = document.getElementById(getAnnotationElementId(pageNum, id))!;
     if (!elementStart) return [];
     if (annType == 'text') {
-        firstChildStart = getTrueBound(elementStart.firstChild! as HTMLElement);
-        lastChildStart = getTrueBound(elementStart.lastChild! as HTMLElement);
+        firstChildStart = getTrueBound(elementStart.firstChild! as HTMLElement, id);
+        lastChildStart = getTrueBound(elementStart.lastChild! as HTMLElement, id);
     }
-    let boundStart = getTrueBound(elementStart);
+    let boundStart = getTrueBound(elementStart, id);
     let boundsFinish = links
         .filter((link) => getAnnotationById(link.to, annotations))
         .map((link) => {
@@ -82,8 +90,8 @@ export const getPointsForLinks = (
             if (boundType == 'text') {
                 return {
                     bound: [
-                        getTrueBound(elem.firstChild! as HTMLElement),
-                        getTrueBound(elem.lastChild! as HTMLElement)
+                        getTrueBound(elem.firstChild! as HTMLElement, link.to),
+                        getTrueBound(elem.lastChild! as HTMLElement, link.to)
                     ],
                     category: categoryName,
                     linkType: link.type,
@@ -92,7 +100,7 @@ export const getPointsForLinks = (
                 };
             }
             return {
-                bound: getTrueBound(elem),
+                bound: getTrueBound(elem, link.to),
                 category: categoryName,
                 linkType: link.type,
                 boundType: boundType,
@@ -100,10 +108,10 @@ export const getPointsForLinks = (
             };
         });
 
-    let linkPointA: Point, linkPointB: Point;
+    let linkPointA: PointWithId, linkPointB: PointWithId;
     let points: PointSet[] = boundsFinish.map((bound) => {
-        let higherBound: DOMRect | null;
-        let lowerBound: DOMRect | null;
+        let higherBound: DOMRectWithId | null;
+        let lowerBound: DOMRectWithId | null;
         let higherType: string | null;
         let lowerType: string | null;
         if (bound.boundType == 'text') {
@@ -131,28 +139,32 @@ export const getPointsForLinks = (
             if (lowerType == 'text') {
                 linkPointA = {
                     x: lowerBound!.left,
-                    y: lowerBound!.top + lowerBound!.height / 2
+                    y: lowerBound!.top + lowerBound!.height / 2,
+                    id: lowerBound!.id
                 };
             } else {
                 linkPointA = {
                     x: lowerBound!.left + lowerBound!.width / 2,
-                    y: lowerBound!.top
+                    y: lowerBound!.top,
+                    id: lowerBound!.id
                 };
             }
             if (higherType == 'text') {
                 linkPointB = {
                     x: higherBound.left + higherBound.width,
-                    y: higherBound.top + higherBound.height / 2
+                    y: higherBound.top + higherBound.height / 2,
+                    id: higherBound!.id
                 };
             } else {
                 linkPointB = {
                     x: higherBound.left + higherBound.width / 2,
-                    y: higherBound.top + higherBound.height
+                    y: higherBound.top + higherBound.height,
+                    id: higherBound!.id
                 };
             }
         } else {
-            let leftBound: DOMRect;
-            let rightBound: DOMRect;
+            let leftBound: DOMRectWithId;
+            let rightBound: DOMRectWithId;
             let leftType: string;
             let rightType: string;
 
@@ -185,18 +197,20 @@ export const getPointsForLinks = (
             } else {
                 [leftBound, rightBound, leftType, rightType] = getLeftBound2(
                     [boundStart],
-                    [bound.bound] as DOMRect[],
+                    [bound.bound] as DOMRectWithId[],
                     annType,
                     bound.boundType
                 );
             }
             linkPointA = {
                 x: leftBound.left + leftBound.width,
-                y: leftBound.top + leftBound.height / 2
+                y: leftBound.top + leftBound.height / 2,
+                id: leftBound.id
             };
             linkPointB = {
                 x: rightBound.left,
-                y: rightBound.top + rightBound.height / 2
+                y: rightBound.top + rightBound.height / 2,
+                id: rightBound.id
             };
         }
         return {
@@ -210,27 +224,12 @@ export const getPointsForLinks = (
     return points;
 };
 
-export const getTopOffset = (bound1: Bound, bound2: Bound) => {
-    if (bound1.y + bound1.height < bound2.y) {
-        return bound2.y;
-    }
-    if (bound2.y + bound2.height < bound1.y) {
-        return bound2.y + bound2.height;
-    }
-};
-
-export const getHigherBound = (boundStart: DOMRect, boundFinish: DOMRect): DOMRect | null => {
-    if (boundStart.top + boundStart.height < boundFinish.top) return boundStart;
-    if (boundStart.top > boundFinish.top + boundFinish.height) return boundFinish;
-    return null;
-};
-
 export const getHigherBound2 = (
-    boundsStart: DOMRect[],
-    boundsFinish: DOMRect[],
+    boundsStart: DOMRectWithId[],
+    boundsFinish: DOMRectWithId[],
     typeStart: string,
     typeFinish: string
-): [DOMRect | null, DOMRect | null, string | null, string | null] => {
+): [DOMRectWithId | null, DOMRectWithId | null, string | null, string | null] => {
     if (
         boundsStart[boundsStart.length - 1].top + boundsStart[boundsStart.length - 1].height <
         boundsFinish[0].top
@@ -245,19 +244,15 @@ export const getHigherBound2 = (
 };
 
 export const getLeftBound2 = (
-    boundsStart: DOMRect[],
-    boundsFinish: DOMRect[],
+    boundsStart: DOMRectWithId[],
+    boundsFinish: DOMRectWithId[],
     typeStart: string,
     typeFinish: string
-): [DOMRect, DOMRect, string, string] => {
+): [DOMRectWithId, DOMRectWithId, string, string] => {
     if (
         boundsStart[boundsStart.length - 1].left + boundsStart[boundsStart.length - 1].width <
         boundsFinish[0].left
     )
         return [boundsStart[boundsStart.length - 1], boundsFinish[0], typeStart, typeFinish];
     return [boundsFinish[boundsFinish.length - 1], boundsStart[0], typeFinish, typeStart];
-};
-
-export const getLeftBound = (boundStart: DOMRect, boundFinish: DOMRect): DOMRect => {
-    return boundStart.left < boundFinish.left ? boundStart : boundFinish;
 };
