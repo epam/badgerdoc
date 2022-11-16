@@ -7,7 +7,6 @@ from sqlalchemy.orm.attributes import InstrumentedAttribute
 from sqlalchemy.orm.query import Query
 from sqlalchemy_filters import apply_filters, apply_sort
 from sqlalchemy_filters.exceptions import BadFilterFormat, BadSpec
-
 from sqlalchemy_utils import LtreeType
 
 from .pagination import PaginationParams, make_pagination

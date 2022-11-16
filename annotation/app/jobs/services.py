@@ -13,6 +13,7 @@ from app.categories import fetch_bunch_categories_db
 from app.categories.services import insert_category_tree
 from app.database import Base
 from app.errors import EnumValidationError, FieldConstraintError, WrongJobError
+from app.filters import CategoryFilter
 from app.microservice_communication.assets_communication import get_files_info
 from app.microservice_communication.jobs_communication import get_job_names
 from app.models import (
@@ -27,7 +28,6 @@ from app.models import (
 )
 from app.schemas import (
     CROSS_MIN_ANNOTATORS_NUMBER,
-    CategoryORMSchema,
     CategoryResponseSchema,
     FileStatusEnumSchema,
     JobInfoSchema,
@@ -295,7 +295,7 @@ def get_job(db: Session, job_id: int, tenant: str) -> Job:
 
 def filter_job_categories(
     db: Session, filter_query: query, page_size: int, page_num: int,
-) -> Page[CategoryResponseSchema]:
+) -> Page[Union[CategoryResponseSchema, str, dict]]:
     request = {
         "pagination": {
             "page_num": page_num,
@@ -319,6 +319,22 @@ def filter_job_categories(
     except ValidationError as exc:
         raise EnumValidationError(str(exc))
     return response
+
+
+def filter_category_db(
+    db: Session, query: query, request: CategoryFilter,
+) -> Page[Union[CategoryResponseSchema, str, dict]]:
+    filter_args = map_request_to_filter(request.dict(), Category.__name__)
+    category_query, pagination = form_query(filter_args, query)
+
+    if request.filters and "distinct" in [
+        item.operator.value for item in request.filters
+    ]:
+        return paginate(category_query.all(), pagination)
+    return paginate(
+        [insert_category_tree(db, category) for category in category_query],
+        pagination,
+    )
 
 
 def update_files(db: Session, tasks: list, job_id: int):
@@ -528,33 +544,3 @@ def update_jobs_names(db: Session, jobs_names: Dict):
     for key, value in jobs_names.items():
         db.query(Job).filter(Job.job_id == key).update({Job.name: value})
     db.commit()
-
-
-def get_random_category_ids(db: Session, count: int) -> List[str]:
-    random_ids = [
-        item.id
-        for item in db.query(Category.id).order_by(func.random()).limit(count)
-    ]
-    return random_ids
-
-
-def insert_mock_categories(
-    db: Session, task_response: paginate, random_ids: List[str]
-) -> paginate:
-
-    random_categories = db.query(Category).filter(Category.id.in_(random_ids))
-
-    categories_db = (
-        CategoryORMSchema.from_orm(category) for category in random_categories
-    )
-    mock_items = [
-        CategoryResponseSchema.parse_obj(category_db.dict())
-        for category_db in categories_db
-    ]
-    for entity in task_response.data:
-        if not entity.parent:
-            entity.children = mock_items
-        else:
-            entity.parents = mock_items
-
-    return task_response

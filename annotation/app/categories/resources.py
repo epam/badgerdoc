@@ -13,7 +13,6 @@ from app.schemas import (
     BadRequestErrorSchema,
     CategoryBaseSchema,
     CategoryInputSchema,
-    CategoryORMSchema,
     CategoryResponseSchema,
     ConnectionErrorSchema,
     NotFoundErrorSchema,

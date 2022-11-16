@@ -1,5 +1,5 @@
 import uuid
-from typing import List, Set
+from typing import List, Union, Set
 
 from cachetools import TTLCache, cached, keys
 from filter_lib import Page, form_query, map_request_to_filter, paginate
@@ -172,14 +172,13 @@ def fetch_bunch_categories_db(
 
 def filter_category_db(
     db: Session, request: CategoryFilter, tenant: str
-) -> Page[CategoryResponseSchema]:
+) -> Page[Union[CategoryResponseSchema, str, dict]]:
     filter_query = db.query(Category).filter(
         or_(Category.tenant == tenant, Category.tenant == null())
     )
     filter_args = map_request_to_filter(request.dict(), Category.__name__)
     category_query, pagination = form_query(filter_args, filter_query)
 
-    # Check if filter is valid
     if request.filters and "distinct" in [
         item.operator.value for item in request.filters
     ]:
