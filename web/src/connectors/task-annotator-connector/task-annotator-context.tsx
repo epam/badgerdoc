@@ -38,7 +38,7 @@ import {
     AnnotationImageToolType,
     PaperToolParams,
     toolNames,
-    PaperTool
+    AnnotationLabel
 } from 'shared';
 import { ApiError } from 'api/api-error';
 import { useUsersDataFromTask } from './user-fetch-hook';
@@ -321,7 +321,8 @@ export const TaskAnnotatorContextProvider: FC<ProviderProps> = ({
                 {
                     ...newAnnotation,
                     color: selectedCategory?.metadata?.color,
-                    label: selectedCategory?.name
+                    label: selectedCategory?.name,
+                    labels: getAnnotationLabels(pageNum, newAnnotation, selectedCategory)
                 }
             ]
         }));
@@ -345,6 +346,14 @@ export const TaskAnnotatorContextProvider: FC<ProviderProps> = ({
     const deleteAnnotation = (pageNum: number, annotationId: string | number) => {
         const pageAnnotations = allAnnotations[pageNum] ?? [];
         const anntn: Maybe<Annotation> = pageAnnotations.find((el) => el.id === annotationId);
+        if (anntn?.labels) {
+            const labelIdxToDelete = anntn.labels.findIndex(
+                (item) => item.annotationId === annotationId
+            );
+            if (labelIdxToDelete !== -1) {
+                anntn?.labels?.splice(labelIdxToDelete, 1);
+            }
+        }
         setAllAnnotations((prevState) => {
             for (let k in prevState) {
                 prevState[k].map((annList) =>
@@ -808,13 +817,64 @@ export const TaskAnnotatorContextProvider: FC<ProviderProps> = ({
     const onCurrentPageChange = (page: number) => {
         setCurrentPage(page);
     };
+    const tokenLabelsMap = useMemo(
+        () => new Map<string, AnnotationLabel[]>(),
+        [latestAnnotationsResult.data]
+    );
+
+    const getTopRightToken = (tokens?: PageToken[]) => {
+        let topRightToken: PageToken | null = null;
+        if (!tokens) return;
+        for (const token of tokens) {
+            if (
+                !topRightToken ||
+                (token.x + token.width >= topRightToken.x + topRightToken.width &&
+                    token.y <= topRightToken.y)
+            ) {
+                topRightToken = token;
+            }
+        }
+        return topRightToken;
+    };
+
+    const getTokenKey = (pageNum: number, token: PageToken) =>
+        `${pageNum}_${token.text}_${token.x}_${token.y}`;
+
+    const getAnnotationLabels = (
+        pageNum: number,
+        ann: Annotation,
+        category?: Category
+    ): AnnotationLabel[] => {
+        if (ann.boundType !== 'text') {
+            return [];
+        }
+        const label = {
+            annotationId: ann.id,
+            label: category?.name,
+            color: category?.metadata?.color
+        };
+        const topRightToken: PageToken | null | undefined = getTopRightToken(ann?.tokens);
+        if (!topRightToken) {
+            return [label];
+        }
+        const tokenKey: string = getTokenKey(pageNum, topRightToken);
+        const labels: AnnotationLabel[] = tokenLabelsMap.get(tokenKey) ?? [];
+        labels.push(label);
+        tokenLabelsMap.set(tokenKey, labels);
+
+        return labels;
+    };
 
     useEffect(() => {
         if (!latestAnnotationsResult.data || !categories) return;
         setValidPages(latestAnnotationsResult.data.validated);
         setInvalidPages(latestAnnotationsResult.data.failed_validation_pages);
 
-        const result = mapAnnotationPagesFromApi(latestAnnotationsResult.data.pages, categories);
+        const result = mapAnnotationPagesFromApi(
+            latestAnnotationsResult.data.pages,
+            getAnnotationLabels,
+            categories
+        );
         setAllAnnotations(result);
 
         const annDataAttrsResult = mapAnnotationDataAttrsFromApi(

@@ -1,5 +1,5 @@
 import { Category, Link } from 'api/typings';
-import React, { RefObject } from 'react';
+import React, { ReactNode, RefObject } from 'react';
 import paper from 'paper';
 
 export type AnnotationBoundType = 'box' | 'free-box' | 'table' | 'text' | 'table_cell' | 'polygon';
@@ -57,7 +57,11 @@ export type AnnotationImageTool = {
 export type AnnotationLinksBoundType = 'Chain' | 'All to all';
 
 export type AnnotationBoundMode = 'box' | 'link' | 'segmentation';
-
+export type AnnotationLabel = {
+    annotationId?: string | number;
+    label?: ReactNode;
+    color?: string;
+};
 export type Annotation = {
     id: string | number;
     boundType: AnnotationBoundType | AnnotationLinksBoundType | AnnotationImageToolType;
@@ -74,6 +78,7 @@ export type Annotation = {
     tableCells?: Maybe<Annotation[]>;
     children?: number[] | string[];
     segments?: number[][];
+    labels?: AnnotationLabel[];
 };
 
 export type Bound = {
@@ -98,7 +103,13 @@ export type EditableAnnotationRenderer = (
         onClick: React.MouseEventHandler<HTMLDivElement>;
         onDoubleClick: React.MouseEventHandler<HTMLDivElement>;
         onContextMenu: React.MouseEventHandler<HTMLDivElement>;
+        onAnnotationContextMenu?: (
+            event: React.MouseEvent<HTMLDivElement>,
+            annotationId: string | number,
+            labels?: AnnotationLabel[]
+        ) => void;
         onCloseIconClick: React.MouseEventHandler<HTMLDivElement>;
+        onAnnotationDelete?: (id: string | number) => void;
         onMouseEnter?: React.MouseEventHandler<HTMLDivElement>;
         onMouseLeave?: React.MouseEventHandler<HTMLDivElement>;
         scale?: number;

@@ -8,7 +8,14 @@ import {
     ExternalViewerState
 } from 'api/typings';
 
-import { Annotation, AnnotationBoundType, AnnotationTable, PageToken, TableApi } from 'shared';
+import {
+    Annotation,
+    AnnotationBoundType,
+    AnnotationLabel,
+    AnnotationTable,
+    PageToken,
+    TableApi
+} from 'shared';
 import { isIntersected, isR2InsideR1 } from 'shared/components/annotator/utils/is-intersected';
 import { annotationToRect, tokenToRect } from 'shared/components/annotator/utils/to-rect-utils';
 import { bboxToBound } from 'shared/helpers/bbox-to-bound';
@@ -296,13 +303,22 @@ export const mapAnnotationDataAttrsFromApi = (annotationsPages: PageInfo[]) => {
 
 export const mapAnnotationPagesFromApi = (
     annotationsPages: PageInfo[],
+    getAnnotationLabels: (
+        pageNum: number,
+        ann: Annotation,
+        category?: Category
+    ) => AnnotationLabel[],
     categories?: Category[]
 ): Record<number, Annotation[]> => {
     const result: Record<number, Annotation[]> = {};
     annotationsPages.forEach((page) => {
         const pageAnnotations = page.objs.map((obj) => {
             const category = categories?.find((category) => category.id == obj.category);
-            return mapAnnotationFromApi(obj, category);
+            const ann = mapAnnotationFromApi(obj, category);
+            return {
+                ...ann,
+                labels: getAnnotationLabels(page.page_num, ann, category)
+            };
         });
         /* Merge cells into tables */
         for (let annotation of pageAnnotations) {
