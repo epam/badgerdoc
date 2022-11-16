@@ -1,5 +1,5 @@
 import noop from 'lodash/noop';
-import React, { useMemo } from 'react';
+import React, { Fragment, useMemo } from 'react';
 import styles from './text-annotation.module.scss';
 import { hexToRGBA } from '../../utils/hex-to-rgba';
 import {
@@ -13,41 +13,21 @@ import { getAnnotationElementId } from '../../utils/use-annotation-links';
 
 const TextAnnotationLabel = ({
     color,
-    labelPosition,
     label,
     onCloseIconClick = noop,
+    onContextMenu = noop,
     isEditable,
     isSelected,
     isHovered
 }: TextAnnotationLabelProps) => {
-    return labelPosition === 'both' ? (
-        <>
-            <TextLabel
-                className={styles['text-annotation-label-start']}
-                isEditable={isEditable}
-                isSelected={isSelected}
-                isHovered={isHovered}
-                onCloseIconClick={onCloseIconClick}
-                label={label}
-                color={color}
-            />
-            <TextLabel
-                className={styles['text-annotation-label-end']}
-                isEditable={isEditable}
-                isSelected={isSelected}
-                isHovered={isHovered}
-                onCloseIconClick={onCloseIconClick}
-                label={label}
-                color={color}
-            />
-        </>
-    ) : (
+    return (
         <TextLabel
-            className={styles[`text-annotation-label-${labelPosition}`]}
+            className={styles[`text-annotation-label-end`]}
             isEditable={isEditable}
             isSelected={isSelected}
             isHovered={isHovered}
             onCloseIconClick={onCloseIconClick}
+            onContextMenu={onContextMenu}
             label={label}
             color={color}
         />
@@ -57,17 +37,25 @@ const TextAnnotationLabel = ({
 export const TextAnnotation = ({
     label = '',
     color = 'black',
+    id = '',
+    labels = [
+        {
+            annotationId: id,
+            color: color,
+            label: label
+        }
+    ],
     tokens,
     onClick = noop,
     onContextMenu = noop,
-    onCloseIconClick = noop,
+    onAnnotationContextMenu = noop,
+    onAnnotationDelete = noop,
     onDoubleClick = noop,
     onMouseEnter = noop,
     onMouseLeave = noop,
     scale,
     isEditable,
     isSelected,
-    id = '',
     page,
     isHovered
 }: TextAnnotationProps) => {
@@ -101,15 +89,33 @@ export const TextAnnotation = ({
                             zIndex: isSelected ? 10 : 1
                         }}
                     >
-                        <TextAnnotationLabel
-                            color={color}
-                            labelPosition={singleBound.params.labelPosition}
-                            label={label}
-                            onCloseIconClick={onCloseIconClick}
-                            isEditable={isEditable}
-                            isSelected={isSelected}
-                            isHovered={isHovered}
-                        />
+                        <div className={styles.annLabel}>
+                            {singleBound.params.labelPosition != 'no_label' &&
+                                labels.map((annLabel) => (
+                                    <Fragment key={annLabel.annotationId}>
+                                        <TextAnnotationLabel
+                                            color={annLabel.color ?? color}
+                                            labelPosition="end"
+                                            label={annLabel.label}
+                                            onCloseIconClick={() => {
+                                                onAnnotationDelete(annLabel.annotationId!);
+                                            }}
+                                            onContextMenu={(e) => {
+                                                e.stopPropagation();
+                                                e.preventDefault();
+                                                onAnnotationContextMenu(
+                                                    e,
+                                                    annLabel.annotationId!,
+                                                    labels
+                                                );
+                                            }}
+                                            isEditable={isEditable}
+                                            isSelected={isSelected}
+                                            isHovered={isHovered}
+                                        />
+                                    </Fragment>
+                                ))}
+                        </div>
                     </div>
                 );
             })}

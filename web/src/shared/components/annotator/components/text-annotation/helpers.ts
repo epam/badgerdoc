@@ -1,4 +1,4 @@
-import { Bound, PageToken } from '../../typings';
+import { AnnotationLabel, Bound, PageToken } from '../../typings';
 import React from 'react';
 
 const MIN_GAP_INTER_LINES_TO_SHOW_LABEL = 10;
@@ -6,10 +6,17 @@ const MIN_GAP_BETWEEN_START_END_LABELS = 250;
 
 export type TextAnnotationProps = {
     label?: React.ReactNode;
+    labels?: AnnotationLabel[];
     color?: string;
     onClick?: React.MouseEventHandler<HTMLDivElement>;
     onContextMenu?: React.MouseEventHandler<HTMLDivElement>;
-    onCloseIconClick?: React.MouseEventHandler<HTMLDivElement>;
+    onAnnotationContextMenu?: (
+        event: React.MouseEvent<HTMLDivElement>,
+        annotationId: string | number,
+        labels?: AnnotationLabel[]
+    ) => void;
+
+    onAnnotationDelete?: (id: string | number) => void;
     onDoubleClick?: React.MouseEventHandler<HTMLDivElement>;
     onMouseEnter?: React.MouseEventHandler<HTMLDivElement>;
     onMouseLeave?: React.MouseEventHandler<HTMLDivElement>;
@@ -30,6 +37,7 @@ export type TextAnnotationLabelProps = {
     labelPosition: LabelPosition;
     label?: React.ReactNode;
     onCloseIconClick?: React.MouseEventHandler<HTMLDivElement>;
+    onContextMenu?: React.MouseEventHandler<HTMLDivElement>;
     isEditable?: boolean;
     isSelected?: boolean;
     isHovered?: boolean;
