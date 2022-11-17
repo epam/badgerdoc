@@ -126,6 +126,7 @@ const TaskDocumentPages = (props: DocumentPageProps) => {
                                                 pointFinish={pointSet.finish}
                                                 category={pointSet.category}
                                                 linkType={pointSet.type}
+                                                reversed={pointSet.finish.id === ann.id}
                                                 onDeleteLink={() =>
                                                     onLinkDeleted(key, ann.id, pointSet.link)
                                                 }

@@ -17,6 +17,7 @@ import {
     AnnotationBoundType,
     AnnotationImageTool,
     AnnotationImageToolType,
+    AnnotationLabel,
     AnnotationsStyle,
     Bound,
     PageToken,
@@ -62,7 +63,11 @@ export type AnnotatorProps = PropsWithChildren<{
     // --- Callbacks --- //
 
     onAnnotationAdded?: (ann: Pick<Annotation, 'bound' | 'boundType' | 'id'>) => void;
-    onAnnotationContextMenu?: (event: React.MouseEvent, annotationId: string | number) => void;
+    onAnnotationContextMenu?: (
+        event: React.MouseEvent,
+        annotationId: string | number,
+        labels?: AnnotationLabel[]
+    ) => void;
     onAnnotationDeleted?: (annotationId: string | number) => void;
     onAnnotationEdited?: (annotationId: string | number, changes: Partial<Annotation>) => void;
     onEmptyAreaClick: () => void;
@@ -520,11 +525,24 @@ export const Annotator: FC<AnnotatorProps> = ({
                             onContextMenu: (e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
-                                isSelected && onAnnotationContextMenu(e, annotation.id);
+                                onAnnotationContextMenu(e, annotation.id, annotation.labels);
+                                onClickHook(e, annotation);
+                            },
+                            onAnnotationContextMenu: (
+                                event: React.MouseEvent<HTMLDivElement>,
+                                annotationId: string | number,
+                                labels?: AnnotationLabel[]
+                            ) => {
+                                onAnnotationContextMenu(event, annotationId, labels);
+                                onClickHook(event, annotation);
                             },
                             onCloseIconClick: () => {
                                 setClickedAnnotation(undefined);
                                 onAnnotationDeleted?.(annotation.id);
+                            },
+                            onAnnotationDelete: (id: string | number) => {
+                                setClickedAnnotation(undefined);
+                                onAnnotationDeleted?.(id);
                             },
                             page,
                             onMouseEnter: () => setHoveredAnnotation(annotation),

@@ -16,7 +16,9 @@ export const editableAnnotationRenderer: EditableAnnotationRenderer = ({
     onDoubleClick,
     editable,
     onContextMenu,
+    onAnnotationContextMenu,
     onCloseIconClick,
+    onAnnotationDelete,
     onMouseEnter,
     onMouseLeave,
     panoRef,
@@ -61,11 +63,13 @@ export const editableAnnotationRenderer: EditableAnnotationRenderer = ({
                     tokens={annotation.tokens as PageToken[]}
                     color={annotation.color}
                     label={annotation.label}
+                    labels={annotation.labels}
                     scale={scale as number}
                     onClick={onClick}
                     onDoubleClick={onDoubleClick}
                     onContextMenu={onContextMenu}
-                    onCloseIconClick={onCloseIconClick}
+                    onAnnotationContextMenu={onAnnotationContextMenu}
+                    onAnnotationDelete={onAnnotationDelete}
                     id={annotation.id}
                     page={page!}
                     onMouseEnter={onMouseEnter}
