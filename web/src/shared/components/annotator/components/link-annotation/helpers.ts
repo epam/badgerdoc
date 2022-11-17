@@ -8,6 +8,7 @@ export type LinkAnnotationProps = {
     category: Category;
     linkType: string;
     onDeleteLink: () => void;
+    reversed: boolean;
 };
 
 export const getAngleFromPoints = (lower: Point, higher: Point, add_rotation: number = 0) => {

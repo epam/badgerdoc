@@ -1,6 +1,6 @@
 import React, { FC, useEffect } from 'react';
 import { PDFPageProxy } from 'react-pdf/dist/Page';
-import { Annotation, Annotator } from 'shared';
+import { Annotation, Annotator, AnnotationLabel } from 'shared';
 import { useTaskAnnotatorContext } from 'connectors/task-annotator-connector/task-annotator-context';
 import ContextMenu, { useContextMenu } from '../context-menu/context-menu';
 import ObservedElement from '../observed-element/observed-element';
@@ -72,9 +72,10 @@ const DocumentSinglePage: FC<RenderPageParams> = ({
     };
     const handleAnnotationContextMenu = (
         event: React.MouseEvent,
-        annotationId: string | number
+        annotationId: string | number,
+        labels?: AnnotationLabel[]
     ) => {
-        showMenu(event, { annotationId, pageNum, pageSize });
+        showMenu(event, { annotationId, pageNum, pageSize, labels });
     };
     const categoryColor = selectedCategory?.metadata?.color;
     const annotationStyle: Pick<React.CSSProperties, 'border'> = {
@@ -209,11 +210,22 @@ const DocumentSinglePage: FC<RenderPageParams> = ({
                     }
                 }}
                 onMenuItemClick={(menuItem, data) => {
+                    const labelToChangeIdx: number = data.labels.findIndex(
+                        (label: AnnotationLabel) => label.annotationId === data.annotationId
+                    );
+
+                    const changedLabel: AnnotationLabel = {
+                        ...data.labels[labelToChangeIdx],
+                        color: menuItem?.category?.metadata?.color,
+                        label: menuItem?.category?.name
+                    };
+                    data.labels[labelToChangeIdx] = changedLabel;
                     if (menuItem.category) {
                         onAnnotationEdited(data.pageNum, data.annotationId, {
                             category: menuItem.category.id,
                             color: menuItem.category.metadata?.color,
-                            label: menuItem.category.name
+                            label: menuItem.category.name,
+                            labels: data.labels
                         });
                     } else {
                         switch (menuItem.id) {

@@ -9,6 +9,7 @@ type TextLabelProps = {
     className: string;
     label?: React.ReactNode;
     onCloseIconClick?: React.MouseEventHandler<HTMLDivElement>;
+    onContextMenu?: React.MouseEventHandler<HTMLDivElement>;
     isEditable?: boolean;
     isSelected?: boolean;
     isHovered?: boolean;
@@ -19,13 +20,18 @@ export const TextLabel = ({
     className,
     label,
     onCloseIconClick = noop,
+    onContextMenu = noop,
     isEditable,
     isSelected,
     isHovered
 }: TextLabelProps) => {
     const labelStyle = isSelected || isHovered ? styles.show : '';
     return (
-        <span className={`${className} ${labelStyle}`} style={{ backgroundColor: color }}>
+        <span
+            className={`${className} ${labelStyle}`}
+            style={{ backgroundColor: color }}
+            onContextMenu={onContextMenu}
+        >
             {label}
             {isEditable && (
                 <IconButton
