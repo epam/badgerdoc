@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Any, List, Union
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Response, status
 from filter_lib import Page
@@ -13,7 +13,6 @@ from app.schemas import (
     BadRequestErrorSchema,
     CategoryBaseSchema,
     CategoryInputSchema,
-    CategoryORMSchema,
     CategoryResponseSchema,
     ConnectionErrorSchema,
     NotFoundErrorSchema,
@@ -26,9 +25,7 @@ from .services import (
     delete_category_db,
     fetch_category_db,
     filter_category_db,
-    get_random_category_ids,
     insert_category_tree,
-    insert_mock_categories,
     recursive_subcategory_search,
     response_object_from_db,
     update_category_db,
@@ -107,14 +104,14 @@ def get_child_categories(
 @router.post(
     "/search",
     status_code=status.HTTP_200_OK,
-    response_model=Page[CategoryResponseSchema],
+    response_model=Page[Union[CategoryResponseSchema, str, dict]],
     summary="Search categories.",
 )
 def search_categories(
     request: CategoryFilter,
     db: Session = Depends(get_db),
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
-) -> Page[CategoryResponseSchema]:
+) -> Page[Union[CategoryResponseSchema, str, dict]]:
     """
     Searches and returns categories data according to search request parameters
     filters. Supports pagination and ordering.

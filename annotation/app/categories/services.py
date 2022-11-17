@@ -1,5 +1,5 @@
 import uuid
-from typing import List, Set
+from typing import List, Union, Set
 
 from cachetools import TTLCache, cached, keys
 from filter_lib import Page, form_query, map_request_to_filter, paginate
@@ -172,14 +172,13 @@ def fetch_bunch_categories_db(
 
 def filter_category_db(
     db: Session, request: CategoryFilter, tenant: str
-) -> Page[CategoryResponseSchema]:
+) -> Page[Union[CategoryResponseSchema, str, dict]]:
     filter_query = db.query(Category).filter(
         or_(Category.tenant == tenant, Category.tenant == null())
     )
     filter_args = map_request_to_filter(request.dict(), Category.__name__)
     category_query, pagination = form_query(filter_args, filter_query)
 
-    # Check if filter is valid
     if request.filters and "distinct" in [
         item.operator.value for item in request.filters
     ]:
@@ -255,36 +254,6 @@ def delete_category_db(db: Session, category_id: str, tenant: str) -> None:
         raise CheckFieldError("Cannot delete default category.")
     db.delete(category)
     db.commit()
-
-
-def get_random_category_ids(db: Session, count: int) -> List[str]:
-    random_ids = [
-        item.id
-        for item in db.query(Category.id).order_by(func.random()).limit(count)
-    ]
-    return random_ids
-
-
-def insert_mock_categories(
-    db: Session, task_response: paginate, random_ids: List[str]
-) -> paginate:
-
-    random_categories = db.query(Category).filter(Category.id.in_(random_ids))
-
-    categories_db = (
-        CategoryORMSchema.from_orm(category) for category in random_categories
-    )
-    mock_items = [
-        CategoryResponseSchema.parse_obj(category_db.dict())
-        for category_db in categories_db
-    ]
-    for entity in task_response.data:
-        if not entity.parent:
-            entity.children = mock_items
-        else:
-            entity.parents = mock_items
-
-    return task_response
 
 
 def insert_category_tree(

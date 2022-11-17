@@ -117,7 +117,6 @@ class Category(Base):
     parent_id = relationship(
         "Category",
         remote_side=[id],
-        passive_deletes=True,
     )
     jobs = relationship(
         "Job", secondary=association_job_category, back_populates="categories"
