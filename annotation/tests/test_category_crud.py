@@ -166,7 +166,7 @@ def test_add_db_connection_error(prepare_db_categories_different_names):
     ["category_id", "category_name"],
     [  # this tenant and common category already exist names
         (None, "Title"),
-        ("my_favourite_category", "Table"),  # unique id
+        ("MyFavouriteCategory", "Table"),  # unique id
     ],
 )
 def test_add_already_exist_category_name(
@@ -284,7 +284,7 @@ def test_add_id_already_exists(prepare_db_categories_different_names):
 
 @mark.integration
 def test_add_id_is_unique(prepare_db_categories_different_names):
-    data = prepare_category_body(id_="my_favourite_category")
+    data = prepare_category_body(id_="MyFavouriteCategory")
     response = client.post(CATEGORIES_PATH, json=data, headers=TEST_HEADERS)
     assert response.status_code == 201
     assert (
@@ -295,11 +295,26 @@ def test_add_id_is_unique(prepare_db_categories_different_names):
 
 
 @mark.integration
+@mark.parametrize(
+    "category_id",
+    ("1st!-category1", "2nd%category", "3rd_category"),
+)
+def test_add_id_special_chars(
+    category_id,
+    prepare_db_categories_different_names
+):
+    data = prepare_category_body(id_=category_id)
+    response = client.post(CATEGORIES_PATH, json=data, headers=TEST_HEADERS)
+    assert response.status_code == 400
+    assert "Category id must be alphanumeric" in response.text
+
+
+@mark.integration
 @patch("uuid.uuid4", return_value="fe857daa-8332-4a26-ab50-29be0a74477e")
 def test_add_id_is_generated(prepare_db_categories_different_names):
     data = prepare_category_body()
     response = client.post(CATEGORIES_PATH, json=data, headers=TEST_HEADERS)
-    mocked_id = str(uuid.uuid4())
+    mocked_id = str(uuid.uuid4()).replace('-', '')
     data_with_mocked_id = prepare_category_body(id_=mocked_id)
     assert response.status_code == 201
     assert (
