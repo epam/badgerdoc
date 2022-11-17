@@ -1591,6 +1591,7 @@ def test_create_manifest_json_first_upload(
 
     expected_manifest["bucket"] = bucket_of_phys_file
     expected_manifest["file"] = s3_path_to_physical_file
+    expected_manifest["categories"] = ["science", "manifest"]
     create_manifest_json(
         annotated_doc,
         S3_PATH,
@@ -1599,6 +1600,7 @@ def test_create_manifest_json_first_upload(
         POST_ANNOTATION_PG_DOC.tenant,
         POST_ANNOTATION_JOB_1.job_id,
         POST_ANNOTATION_FILE_1.file_id,
+        ["science", "manifest"],
         prepare_db_for_manifest_creation_with_one_record,
         s3_resource,
     )
@@ -1777,6 +1779,7 @@ def test_create_manifest_json_with_annotated_docs_and_manifest_in_minio(
 
     expected_manifest["bucket"] = bucket_of_phys_file
     expected_manifest["file"] = s3_path_to_physical_file
+    expected_manifest["categories"] = ["science", "manifest"]
 
     create_manifest_json(
         annotated_doc,
@@ -1786,6 +1789,7 @@ def test_create_manifest_json_with_annotated_docs_and_manifest_in_minio(
         POST_ANNOTATION_PG_DOC.tenant,
         POST_ANNOTATION_JOB_1.job_id,
         POST_ANNOTATION_FILE_1.file_id,
+        ["science", "manifest"],
         prepare_db_for_manifest_creation_with_several_records,
         s3_resource,
     )

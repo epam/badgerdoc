@@ -67,6 +67,9 @@ class ParticularRevisionSchema(BaseModel):
     failed_validation_pages: Optional[List[int]] = Field(
         None, ge=1, example=[]
     )
+    categories: Optional[List[str]] = Field(
+        None, example=["science", "manifest"]
+    )
 
 
 class DocForSaveSchema(BaseModel):
@@ -81,6 +84,9 @@ class DocForSaveSchema(BaseModel):
     validated: Optional[Set[int]] = Field(None, ge=1, example={1, 2, 10})
     failed_validation_pages: Optional[Set[int]] = Field(
         None, ge=1, example={3, 4}
+    )
+    categories: Optional[List[str]] = Field(
+        None, example=["science", "manifest"]
     )
 
     @root_validator

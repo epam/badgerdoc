@@ -3,7 +3,7 @@ import logging
 import os
 from datetime import datetime
 from hashlib import sha1
-from typing import Dict, List, Optional, Set, Tuple, Union
+from typing import Any, Dict, List, Optional, Set, Tuple, Union
 from uuid import UUID
 
 import boto3
@@ -177,6 +177,7 @@ def create_manifest_json(
     tenant: str,
     job_id: int,
     file_id: int,
+    doc_categories: Optional[List[str]],
     db: Session,
     s3_resource: boto3.resource,
 ) -> None:
@@ -210,6 +211,7 @@ def create_manifest_json(
     manifest["failed_validation_pages"] = list(failed_validation)
     manifest["file"] = s3_file_path
     manifest["bucket"] = s3_file_bucket
+    manifest["categories"] = doc_categories
 
     manifest_json = json.dumps(manifest)
     upload_json_to_minio(manifest_json, manifest_path, tenant, s3_resource)
@@ -339,6 +341,7 @@ def construct_annotated_doc(
         tenant,
         job_id,
         file_id,
+        doc.categories,
         db,
         s3_resource,
     )
@@ -616,6 +619,14 @@ def load_page(
     loaded_pages.append(loaded_page)
 
 
+def get_file_manifest(
+    job_id: str, file_id: str, tenant: str, s3_resource: boto3.resource
+) -> Dict[str, Any]:
+    manifest_path = f"{S3_START_PATH}/{job_id}/{file_id}/{MANIFEST}"
+    manifest_obj = s3_resource.Object(tenant, manifest_path)
+    return json.loads(manifest_obj.get()["Body"].read().decode("utf-8"))
+
+
 def load_all_revisions_pages(
     pages: Dict[int, List[PageRevision]],
     tenant: str,
@@ -740,6 +751,13 @@ def construct_particular_rev_response(
     load_validated_pages_for_particular_rev(
         revision, page_revision, s3_resource, loaded_pages
     )
+    manifest = get_file_manifest(
+        str(revision.job_id),
+        str(revision.file_id),
+        revision.tenant,
+        s3_resource,
+    )
+    doc_categories = manifest.get("categories")
     particular_rev = ParticularRevisionSchema(
         revision=revision.revision,
         user=revision.user,
@@ -748,6 +766,7 @@ def construct_particular_rev_response(
         pages=loaded_pages,
         validated=revision.validated,
         failed_validation_pages=revision.failed_validation_pages,
+        categories=doc_categories,
     )
     return particular_rev
 
