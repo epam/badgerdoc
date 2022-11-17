@@ -6,6 +6,7 @@ import minio.error
 import pdf2image.exceptions
 import PIL.Image
 import urllib3.exceptions
+from minio.credentials import AWSConfigProvider
 
 from src import db, logger
 from src.config import settings
@@ -14,14 +15,21 @@ logger_ = logger.get_logger(__name__)
 
 MinioClient = minio.Minio(
     endpoint=settings.endpoint,
-    access_key=settings.minio_access_key,
-    secret_key=settings.minio_secret_key,
+    access_key=settings.MINIO_ROOT_USER,
+    secret_key=settings.MINIO_ROOT_PASSWORD,
+    secure=False,
+)
+
+
+MinioClientAWS = minio.Minio(
+    endpoint="s3.amazonaws.com",
+    credentials=AWSConfigProvider(profile=settings.aws_profile_name),
     secure=False,
 )
 
 
 def get_storage() -> minio.Minio:
-    client = MinioClient
+    client = MinioClientAWS if settings.aws_profile_name else MinioClient
     yield client
 
 
