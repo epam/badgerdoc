@@ -28,7 +28,7 @@ JOB_TEST_ANNOTATORS = (
     User(user_id="ef81a4d0-cc01-447b-9025-a70ed441672d"),
     User(user_id="2d3a59c3-c0e8-4322-82df-e693106c1cd0"),
 )
-CATEGORIES = [Category(id="18d3d189-e73a-4680-bfa7-7ba3fe6ebee5", name="Test")]
+CATEGORIES = [Category(id="18d3d189e73a4680bfa77ba3fe6ebee5", name="Test")]
 FILE_TEST_IDS = [
     1,
     2,

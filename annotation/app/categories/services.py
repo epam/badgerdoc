@@ -65,7 +65,7 @@ def add_category_db(
         tree = Ltree(f"{category_input.id}")
 
     category = Category(
-        id=(id_ or str(uuid.uuid4())),
+        id=(id_ or uuid.uuid4().hex),
         name=name,
         tenant=tenant,
         parent=parent if parent != "null" else None,

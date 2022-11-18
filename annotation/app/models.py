@@ -11,10 +11,11 @@ from sqlalchemy import (
     func,
 )
 from sqlalchemy.dialects.postgresql import ARRAY, ENUM, JSON, JSONB, UUID
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, validates
 from sqlalchemy_utils import LtreeType
 
 from app.database import Base
+from app.errors import CheckFieldError
 from app.schemas import (
     DEFAULT_LOAD,
     CategoryTypeSchema,
@@ -123,8 +124,14 @@ class Category(Base):
     )
     tree = Column(LtreeType, nullable=True)
     __table_args__ = (
-        Index('index_tree', tree, postgresql_using="gist"),
+        Index("index_tree", tree, postgresql_using="gist"),
     )
+
+    @validates("id")
+    def validate_id(self, key, id_):
+        if id_ and not id_.replace('_', '').isalnum():
+            raise CheckFieldError(f'Category id must be alphanumeric.')
+        return id_
 
 
 class User(Base):
