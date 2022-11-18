@@ -144,6 +144,8 @@ from tests.test_update_job import (
     UPDATE_USER_NO_JOBS,
 )
 
+DEFAULT_REGION = "us-east-1"
+
 
 def close_session(gen):
     try:
@@ -201,9 +203,7 @@ def db_session():
 @pytest.fixture
 def prepare_db_for_ud_task(db_session):
     add_objects(db_session, [CRUD_UD_JOB_1])
-    add_objects(
-        db_session, (CRUD_UD_JOB_2, ManualAnnotationTask(**CRUD_UD_TASK))
-    )
+    add_objects(db_session, (CRUD_UD_JOB_2, ManualAnnotationTask(**CRUD_UD_TASK)))
     yield db_session
     clear_db()
 
@@ -315,9 +315,8 @@ def prepare_db_for_post(db_session):
 @pytest.fixture(scope="module")
 def moto_s3():
     with mock_s3():
-        s3_resource = boto3.resource("s3")
+        s3_resource = boto3.resource("s3", region_name=DEFAULT_REGION)
         s3_resource.create_bucket(Bucket=POST_ANNOTATION_PG_DOC.tenant)
-
         yield s3_resource
 
 
@@ -342,9 +341,7 @@ def minio_with_manifest(empty_bucket):
 def prepare_db_for_get_revisions(db_session):
     db_session.add_all([User(user_id=annotator) for annotator in USERS_IDS])
     db_session.commit()
-    db_session.add_all(
-        [AnnotatedDoc(**revision) for revision in REVISIONS[:16]]
-    )
+    db_session.add_all([AnnotatedDoc(**revision) for revision in REVISIONS[:16]])
     db_session.commit()
 
     yield db_session
@@ -355,7 +352,7 @@ def prepare_db_for_get_revisions(db_session):
 @pytest.fixture
 def prepare_moto_s3_for_get_revisions():
     with mock_s3():
-        s3_resource = boto3.resource("s3")
+        s3_resource = boto3.resource("s3", region_name=DEFAULT_REGION)
         s3_resource.create_bucket(Bucket=TEST_TENANT)
         for page_path in PAGES_PATHS:
             s3_resource.Bucket(TEST_TENANT).put_object(
@@ -367,9 +364,7 @@ def prepare_moto_s3_for_get_revisions():
 
 @pytest.fixture(name="expected_latest_revisions", scope="module")
 def load_expected_latest_revisions():
-    with open(
-        "tests/fixtures/expected_latest_revisions.json", "r"
-    ) as json_file:
+    with open("tests/fixtures/expected_latest_revisions.json", "r") as json_file:
         json_data = json.load(json_file)
     return json_data
 
@@ -492,16 +487,12 @@ def prepare_db_for_finish_task_check_deleted_annotators(db_session):
 
 @pytest.fixture
 def prepare_db_categories_same_names(db_session):
-    category_tenant = Category(
-        id="1", tenant=TEST_TENANT, name="Title", type="box"
-    )
+    category_tenant = Category(id="1", tenant=TEST_TENANT, name="Title", type="box")
     category_common = Category(id="2", tenant=None, name="Table", type="box")
     category_other_tenant = Category(
         id="3", tenant="other_tenant", name="Title", type="box"
     )
-    add_objects(
-        db_session, (category_tenant, category_common, category_other_tenant)
-    )
+    add_objects(db_session, (category_tenant, category_common, category_other_tenant))
 
     yield db_session
 
@@ -510,9 +501,7 @@ def prepare_db_categories_same_names(db_session):
 
 @pytest.fixture
 def prepare_db_categories_different_names(db_session):
-    category_tenant = Category(
-        id="1", tenant=TEST_TENANT, name="Title", type="box"
-    )
+    category_tenant = Category(id="1", tenant=TEST_TENANT, name="Title", type="box")
     category_common = Category(id="2", tenant=None, name="Table", type="box")
     category_other_tenant = Category(
         id="3", tenant="other_tenant", name="Header", type="box"
@@ -529,13 +518,9 @@ def prepare_db_categories_different_names(db_session):
 
 @pytest.fixture
 def prepare_db_categories_for_filtration(db_session):
-    category_tenant = Category(
-        id="1", tenant=TEST_TENANT, name="Title", type="box"
-    )
+    category_tenant = Category(id="1", tenant=TEST_TENANT, name="Title", type="box")
     category_common = [
-        Category(
-            id=str(number + 2), tenant=None, name=f"Table{number}", type="box"
-        )
+        Category(id=str(number + 2), tenant=None, name=f"Table{number}", type="box")
         for number in range(1, 16)
     ]
     category_other_tenant = Category(
@@ -646,9 +631,7 @@ def prepare_db_for_get_next_task(db_session):
 @pytest.fixture(scope="function")
 def prepare_db_for_batch_delete_tasks(db_session):
     add_objects(db_session, [DELETE_BATCH_TASKS_JOB])
-    add_objects(
-        db_session, (DELETE_BATCH_TASKS_FILE, DELETE_BATCH_TASKS_ANNOTATOR)
-    )
+    add_objects(db_session, (DELETE_BATCH_TASKS_FILE, DELETE_BATCH_TASKS_ANNOTATOR))
     db_session.bulk_insert_mappings(ManualAnnotationTask, DIFF_STATUSES_TASKS)
     db_session.commit()
 
@@ -660,13 +643,10 @@ def prepare_db_for_batch_delete_tasks(db_session):
 @pytest.fixture(scope="module")
 def minio_particular_revision():
     with mock_s3():
-        s3_resource = boto3.resource("s3")
+        s3_resource = boto3.resource("s3", region_name=DEFAULT_REGION)
         s3_resource.create_bucket(Bucket=TEST_TENANT)
 
-        path = (
-            f"{S3_START_PATH}/{PART_REV_DOC.job_id}/"
-            f"{PART_REV_DOC.file_id}/"
-        )
+        path = f"{S3_START_PATH}/{PART_REV_DOC.job_id}/" f"{PART_REV_DOC.file_id}/"
 
         s3_resource.Bucket(TEST_TENANT).put_object(
             Body=json.dumps(PART_REV_PAGES[0]),
@@ -882,9 +862,7 @@ def db_get_unassigned_files(db_session):
 @pytest.fixture
 def db_validation_end(db_session):
     add_objects(db_session, [validation.JOBS[0]])
-    add_objects(
-        db_session, validation.FILES + validation.TASKS + validation.DOCS
-    )
+    add_objects(db_session, validation.FILES + validation.TASKS + validation.DOCS)
     update_annotators_overall_load(db_session, validation.ANNOTATORS)
 
     yield db_session
@@ -905,9 +883,9 @@ def prepare_db_find_annotators_for_failed_pages(db_validation_end):
         ManualAnnotationTask.user_id == annotator_for_delete
     ).delete(synchronize_session=False)
     db_validation_end.commit()
-    db_validation_end.query(User).filter(
-        User.user_id == annotator_for_delete
-    ).delete(synchronize_session=False)
+    db_validation_end.query(User).filter(User.user_id == annotator_for_delete).delete(
+        synchronize_session=False
+    )
     db_validation_end.commit()
 
     yield db_validation_end
@@ -917,10 +895,7 @@ def prepare_db_find_annotators_for_failed_pages(db_validation_end):
 
 @pytest.fixture(scope="module")
 def minio_accumulate_revisions(moto_s3):
-    path = (
-        f"{S3_START_PATH}/{accumulated_revs.JOB_ID}/"
-        f"{accumulated_revs.FILE_ID}/"
-    )
+    path = f"{S3_START_PATH}/{accumulated_revs.JOB_ID}/" f"{accumulated_revs.FILE_ID}/"
     for page_hash, page_annotation in accumulated_revs.PAGES.items():
         moto_s3.Bucket(accumulated_revs.TENANT).put_object(
             Body=json.dumps(page_annotation),
