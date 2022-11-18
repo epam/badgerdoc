@@ -28,9 +28,10 @@ class Config(BaseSettings):
     postgres_host: Optional[str]
     postgres_port: Optional[str]
     database_url: Optional[str]
-    endpoint: Optional[str]
-    MINIO_ROOT_USER: Optional[str]
-    MINIO_ROOT_PASSWORD: Optional[str]
+    s3_endpoint: Optional[str]
+    minio_root_user: Optional[str]
+    minio_root_password: Optional[str]
+    minio_secure_connection: Optional[bool] = False
     preprocessing_url: Optional[str]
     sqlalchemy_pool_size: Optional[int] = 10
     test_region: Optional[str]
@@ -43,6 +44,7 @@ class Config(BaseSettings):
     gotenberg_formats: List[str]
     image_formats: List[str]
     aws_profile_name: Optional[str]
+    bucket_prefix: Optional[str]
 
     class Config:
         env_file: str = find_dotenv(".env")

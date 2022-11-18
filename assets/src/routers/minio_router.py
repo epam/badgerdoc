@@ -134,7 +134,7 @@ async def get_image_piece(
     name="creates new bucket in minio",
 )
 async def create_bucket(
-    item: schemas.Bucket,
+    bucket: schemas.Bucket,
     storage: minio.Minio = fastapi.Depends(utils.minio_utils.get_storage),
     x_current_tenant: Optional[str] = fastapi.Header(
         None, alias="X-Current-Tenant"
@@ -155,13 +155,15 @@ async def create_bucket(
             HTTPException status 400
 
     """
+    if settings.bucket_prefix is not None:
+        bucket.name = f"{settings.bucket_prefix}-{bucket.name}"
     try:
-        if storage.bucket_exists(item.name):
+        if storage.bucket_exists(bucket.name):
             raise fastapi.HTTPException(
                 status_code=fastapi.status.HTTP_400_BAD_REQUEST,
-                detail=f"Bucket with name {item.name} already exists!",
+                detail=f"Bucket with name {bucket.name} already exists!",
             )
-        storage.make_bucket(item.name)
+        storage.make_bucket(bucket.name)
     except urllib3.exceptions.MaxRetryError as e:
         raise fastapi.HTTPException(
             status_code=fastapi.status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -171,4 +173,4 @@ async def create_bucket(
         raise fastapi.HTTPException(
             status_code=fastapi.status.HTTP_400_BAD_REQUEST, detail=str(e)
         )
-    return {"detail": f"Bucket {item.name} successfully created!"}
+    return {"detail": f"Bucket {bucket.name} successfully created!"}

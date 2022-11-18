@@ -13,23 +13,28 @@ from src.config import settings
 
 logger_ = logger.get_logger(__name__)
 
-MinioClient = minio.Minio(
-    endpoint=settings.endpoint,
-    access_key=settings.MINIO_ROOT_USER,
-    secret_key=settings.MINIO_ROOT_PASSWORD,
-    secure=False,
-)
-
-
-MinioClientAWS = minio.Minio(
-    endpoint="s3.amazonaws.com",
-    credentials=AWSConfigProvider(profile=settings.aws_profile_name),
-    secure=False,
-)
+minio_config = {
+    "endpoint": settings.s3_endpoint,
+    "secure": settings.minio_secure_connection,
+}
+if settings.aws_profile_name is not None:
+    # Minio is used with AWS S3
+    minio_config.update(
+        {"credentials": AWSConfigProvider(profile=settings.aws_profile_name)}
+    )
+else:
+    # Minio is used locally
+    minio_config.update(
+        {
+            "access_key": settings.minio_root_user,
+            "secret_key": settings.minio_root_password,
+        }
+    )
+MinioClient = minio.Minio(**minio_config)
 
 
 def get_storage() -> minio.Minio:
-    client = MinioClientAWS if settings.aws_profile_name else MinioClient
+    client = MinioClient
     yield client
 
 
