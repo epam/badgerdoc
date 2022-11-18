@@ -1,4 +1,5 @@
 import uuid
+from uuid import UUID
 from json import loads
 from typing import Any, List, Optional, Tuple, Union
 from unittest.mock import patch
@@ -166,7 +167,7 @@ def test_add_db_connection_error(prepare_db_categories_different_names):
     ["category_id", "category_name"],
     [  # this tenant and common category already exist names
         (None, "Title"),
-        ("MyFavouriteCategory", "Table"),  # unique id
+        ("My_Favourite_Category", "Table"),  # unique id
     ],
 )
 def test_add_already_exist_category_name(
@@ -284,7 +285,7 @@ def test_add_id_already_exists(prepare_db_categories_different_names):
 
 @mark.integration
 def test_add_id_is_unique(prepare_db_categories_different_names):
-    data = prepare_category_body(id_="MyFavouriteCategory")
+    data = prepare_category_body(id_="My_Favourite_Category")
     response = client.post(CATEGORIES_PATH, json=data, headers=TEST_HEADERS)
     assert response.status_code == 201
     assert (
@@ -297,7 +298,7 @@ def test_add_id_is_unique(prepare_db_categories_different_names):
 @mark.integration
 @mark.parametrize(
     "category_id",
-    ("1st!-category1", "2nd%category", "3rd_category"),
+    ("1st!-category1", "2nd%category", "3rd:.category"),
 )
 def test_add_id_special_chars(
     category_id,
@@ -310,15 +311,33 @@ def test_add_id_special_chars(
 
 
 @mark.integration
-@patch("uuid.uuid4", return_value="fe857daa-8332-4a26-ab50-29be0a74477e")
+@mark.parametrize(
+    "category_id",
+    ("1Category123", "second_category", "3rd_category"),
+)
+def test_add_id_numbers_underscore(
+    category_id,
+    prepare_db_categories_different_names
+):
+    data = prepare_category_body(id_=category_id)
+    response = client.post(CATEGORIES_PATH, json=data, headers=TEST_HEADERS)
+    assert response.status_code == 201
+    assert (
+        prepare_expected_result(response.json(), with_category_id=True)
+        == prepare_category_response(data)
+    )
+
+
+@mark.integration
+@patch("uuid.uuid4", return_value=UUID("fe857daa-8332-4a26-ab50-29be0a74477e"))
 def test_add_id_is_generated(prepare_db_categories_different_names):
     data = prepare_category_body()
     response = client.post(CATEGORIES_PATH, json=data, headers=TEST_HEADERS)
-    mocked_id = str(uuid.uuid4()).replace('-', '')
+    mocked_id = uuid.uuid4().hex
     data_with_mocked_id = prepare_category_body(id_=mocked_id)
     assert response.status_code == 201
     assert (
-        prepare_expected_result(response.text, with_category_id=True)
+        prepare_expected_result(response.json(), with_category_id=True)
         == prepare_category_response(data_with_mocked_id)
     )
 

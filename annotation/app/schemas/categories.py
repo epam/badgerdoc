@@ -31,7 +31,7 @@ class CategoryInputSchema(CategoryBaseSchema):
 
     @validator('id')
     def alphanumeric_validator(cls, value):
-        if value and not value.isalnum():
+        if value and not value.replace('_', '').isalnum():
             raise CheckFieldError(f'Category id must be alphanumeric.')
         return value
 
