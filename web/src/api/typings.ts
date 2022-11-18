@@ -197,27 +197,31 @@ export type Basement = {
 
 export const categoryTypes = ['box', 'link', 'segmentation'] as const;
 export type CategoryType = typeof categoryTypes[number];
-export type Category = {
+
+export interface BaseCategory {
     id: string;
     name: string;
+    parent: string | null;
     metadata?: {
         color: string;
     };
-    parent?: string | null;
+    type?: CategoryType;
+    data_attributes?: Array<CategoryDataAttribute> | null;
+}
+
+export interface Category extends BaseCategory {
     is_link?: boolean;
     hotkey?: string;
-    data_attributes?: Array<CategoryDataAttribute>;
-    type?: CategoryType;
-    parents?: Category[] | null;
-    children?: string[] | null;
-};
+    parents?: BaseCategory[] | null;
+    children?: BaseCategory[] | null;
+}
 
 export interface CategoryNode {
     title: string;
     key: string;
     isLeaf: boolean;
     children: CategoryNode[];
-    category: Category;
+    category: BaseCategory;
     hotKey?: string;
     style?: React.CSSProperties;
 }
