@@ -2358,12 +2358,9 @@ components:
           items:
             type: object
           default: []
-        children:
-          title: Children
-          type: array
-          items:
-            type: object
-          default: []
+        has_children:
+          title: Has Children
+          type: boolean
     CategoryTypeSchema:
       title: CategoryTypeSchema
       enum:
