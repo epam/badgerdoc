@@ -81,6 +81,14 @@ def fetch_category_children(db: Session, category_input: Category) -> List[Categ
     ).offset(1).all()
 
 
+def has_children(db: Session, category_input: Category) -> bool:
+    return bool(
+        db.query(Category.id).filter(
+            Category.tree.descendant_of(category_input.tree)
+        ).offset(1).first()
+    )
+
+
 def check_unique_category_field(
     db: Session, value: str, field: str, tenant: str
 ) -> None:
@@ -260,7 +268,7 @@ def insert_category_tree(
     db: Session, category_db: Category
 ) -> CategoryResponseSchema:
     parents = fetch_category_parents(db, category_db)
-    children = fetch_category_children(db, category_db)
+    has_descendants = has_children(db, category_db)
 
     category_response = response_object_from_db(category_db)
 
@@ -268,7 +276,5 @@ def insert_category_tree(
         category_response.parents = [
             response_object_from_db(category) for category in parents
         ]
-    category_response.children = [
-        response_object_from_db(category) for category in children
-    ]
+    category_response.has_children = has_descendants
     return category_response

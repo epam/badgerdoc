@@ -70,7 +70,7 @@ def prepare_get_result(
         category = prepare_category_body(name=cat_name)
         category["id"] = cat_id
         category['parents'] = []
-        category['children'] = []
+        category['has_children'] = False
         categories.append(category)
     body = {
         "pagination": {
@@ -128,10 +128,10 @@ def prepare_expected_result(
 
 
 def prepare_category_response(
-    data: dict, parents: List[dict] = [], children: List[dict] = []
+    data: dict, parents: List[dict] = [], has_children: Optional[bool] = None
 ) -> dict:
     data['parents'] = parents
-    data['children'] = children
+    data['has_children'] = has_children
     return data
 
 
@@ -504,7 +504,10 @@ def test_search_allowed_categories(
     )
     category = response.json()["data"][0]
     assert response.status_code == 200
-    assert prepare_expected_result(category) == prepare_category_response(expected)
+    assert (
+        prepare_category_response(expected, has_children=False)
+        == prepare_expected_result(category)
+    )
 
 
 @mark.integration

@@ -1,7 +1,7 @@
 import uuid
 from uuid import UUID
 from json import loads
-from typing import Any, List, Optional, Tuple, Union
+from typing import Any, Iterable, List, Optional, Tuple, Union
 from unittest.mock import patch
 
 import pytest
@@ -124,11 +124,24 @@ def prepare_expected_result(
 
 
 def prepare_category_response(
-    data: dict, parents: List[dict] = [], children: List[dict] = []
+    data: dict, parents: List[dict] = [], has_children: Optional[bool] = None
 ) -> dict:
     data['parents'] = parents
-    data['children'] = children
+    data['has_children'] = has_children
     return data
+
+
+def prepare_descendant_categories(data: dict, in_range: int = 3) -> Iterable[dict]:
+    data['parent'] = None
+    data['has_children'] = False
+
+    for i in range(in_range):
+        id_ = f'{uuid.uuid4().hex[:5]}_{i}'
+        data['id'] = id_
+        data['name'] = id_
+        yield data
+        data['parent'] = id_
+        data['has_children'] = True
 
 
 @fixture
@@ -289,9 +302,8 @@ def test_add_id_is_unique(prepare_db_categories_different_names):
     response = client.post(CATEGORIES_PATH, json=data, headers=TEST_HEADERS)
     assert response.status_code == 201
     assert (
-        prepare_expected_result(
-            response.text, with_category_id=True
-        ) == prepare_category_response(data)
+        prepare_expected_result(response.text, with_category_id=True)
+        == prepare_category_response(data)
     )
 
 
@@ -343,6 +355,37 @@ def test_add_id_is_generated(prepare_db_categories_different_names):
 
 
 @mark.integration
+@patch("uuid.uuid4", return_value=UUID("ffd03ec9-f57a-4994-8d7f-1a6b981db14c"))
+def test_create_and_search_single_branch(prepare_db_categories_different_names):
+    parent_category = prepare_category_body()
+    # List of dicts {id: , parent: , has_children: }
+
+    for category in prepare_descendant_categories(parent_category, 10):
+        response = client.post(
+            CATEGORIES_PATH, json=category, headers=TEST_HEADERS
+        )
+        assert response.status_code == 201
+
+    last_child = prepare_expected_result(response.json(), with_category_id=True)
+
+    data = prepare_filtration_body(value=last_child['id'])
+    response = client.post(
+        f"{CATEGORIES_PATH}/search", json=data, headers=TEST_HEADERS
+    )
+    result = prepare_expected_result(response.json(), with_category_id=True)
+    last_child = result['data'][0]
+    parents = last_child['parents']
+    parents.reverse()
+
+    assert last_child['has_children'] == False
+    assert len(parents) == 9
+    assert last_child['parent'] == parents[-1]['id']
+
+    for i in range(1, len(parents)):
+        assert parents[i]['parent'] == parents[i-1]['id']
+
+
+@mark.integration
 def test_add_self_parent(prepare_db_categories_different_names):
     data = prepare_category_body(id_="category", parent="category")
     response = client.post(CATEGORIES_PATH, json=data, headers=TEST_HEADERS)
@@ -390,7 +433,10 @@ def test_get_allowed_category(
         f"{CATEGORIES_PATH}/{category_id}", headers=TEST_HEADERS
     )
     assert response.status_code == 200
-    assert prepare_expected_result(response.text) == prepare_category_response(data)
+    assert (
+        prepare_category_response(data, has_children=False)
+        == prepare_expected_result(response.text)
+    )
 
 
 @mark.integration
@@ -487,7 +533,10 @@ def test_search_allowed_categories(
     )
     category = response.json()["data"][0]
     assert response.status_code == 200
-    assert prepare_expected_result(category) == prepare_category_response(expected)
+    assert (
+        prepare_category_response(expected, has_children=False)
+        == prepare_expected_result(category)
+    )
 
 
 @mark.integration
