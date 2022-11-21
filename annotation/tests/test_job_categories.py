@@ -64,14 +64,16 @@ def prepare_get_result(
     current_page: Optional[int] = 1,
     page_size: Optional[int] = 50,
     total_objects: Optional[int] = 16,
+    parents=[],
+    is_leaf=True,
 ) -> dict:
     categories = []
     for cat_id, cat_name in categories_ids_names:
         category = prepare_category_body(name=cat_name)
         category["id"] = cat_id
-        category['parents'] = []
-        category['children'] = []
-        categories.append(category)
+        category["parents"] = parents
+        category["is_leaf"] = is_leaf
+        categories.append(category),
     body = {
         "pagination": {
             "page_num": current_page,
@@ -127,11 +129,8 @@ def prepare_expected_result(
     return {key: response_map[key] for key in sorted(response_map)}
 
 
-def prepare_category_response(
-    data: dict, parents: List[dict] = [], children: List[dict] = []
-) -> dict:
-    data['parents'] = parents
-    data['children'] = children
+def prepare_category_response(data: dict, parents: List[dict] = []) -> dict:
+    data["parents"] = parents
     return data
 
 
@@ -373,7 +372,9 @@ def test_get_job_categories_tenant(
         f"{JOBS_PATH}/{MOCK_ID}/categories",
         headers=TEST_HEADERS,
     )
-    expected_result = prepare_get_result([(cat_id, cat_name)], total_objects=1)
+    expected_result = prepare_get_result(
+        [(cat_id, cat_name)], total_objects=1, parents=None, is_leaf=None
+    )
     assert response.status_code == 200
     assert response.json() == expected_result
 
@@ -431,14 +432,16 @@ def test_search_pagination(
     page_num,
     page_size,
     result_length,
-    prepare_db_categories_for_filtration, 
-    prepare_db_job_with_filter_categories
+    prepare_db_categories_for_filtration,
+    prepare_db_job_with_filter_categories,
 ):
     data = prepare_filtration_body(
         page_num=page_num, page_size=page_size, no_filtration=True
     )
     response = client.post(
-        f"{POST_JOBS_PATH}/{MOCK_ID}/categories/search", json=data, headers=TEST_HEADERS
+        f"{POST_JOBS_PATH}/{MOCK_ID}/categories/search",
+        json=data,
+        headers=TEST_HEADERS,
     )
     categories = response.json()["data"]
     pagination = response.json()["pagination"]
@@ -455,7 +458,9 @@ def test_search_no_filtration(
 ):
     data = prepare_filtration_body(page_size=30, no_filtration=True)
     response = client.post(
-        f"{POST_JOBS_PATH}/{MOCK_ID}/categories/search", json=data, headers=TEST_HEADERS
+        f"{POST_JOBS_PATH}/{MOCK_ID}/categories/search",
+        json=data,
+        headers=TEST_HEADERS,
     )
     categories = response.json()["data"]
     assert response.status_code == 200
@@ -474,7 +479,9 @@ def test_search_wrong_category(
 ):
     data = prepare_filtration_body(value=category_id)
     response = client.post(
-        f"{POST_JOBS_PATH}/{MOCK_ID}/categories/search", json=data, headers=TEST_HEADERS
+        f"{POST_JOBS_PATH}/{MOCK_ID}/categories/search",
+        json=data,
+        headers=TEST_HEADERS,
     )
     categories = response.json()["data"]
     total = response.json()["pagination"]["total"]
@@ -500,11 +507,15 @@ def test_search_allowed_categories(
     expected = prepare_category_body(name=category_name)
     data = prepare_filtration_body(value=category_id)
     response = client.post(
-        f"{POST_JOBS_PATH}/{MOCK_ID}/categories/search", json=data, headers=TEST_HEADERS
+        f"{POST_JOBS_PATH}/{MOCK_ID}/categories/search",
+        json=data,
+        headers=TEST_HEADERS,
     )
     category = response.json()["data"][0]
     assert response.status_code == 200
-    assert prepare_expected_result(category) == prepare_category_response(expected)
+    assert prepare_expected_result(category) == prepare_category_response(
+        expected
+    )
 
 
 @mark.integration
@@ -520,7 +531,9 @@ def test_search_filter_gt_lt(
 ):
     data = prepare_filtration_body(operator=operator, value=value)
     response = client.post(
-        f"{POST_JOBS_PATH}/{MOCK_ID}/categories/search", json=data, headers=TEST_HEADERS
+        f"{POST_JOBS_PATH}/{MOCK_ID}/categories/search",
+        json=data,
+        headers=TEST_HEADERS,
     )
     categories = response.json()["data"]
     assert response.status_code == 200
@@ -543,7 +556,9 @@ def test_search_filter_name_like(
         field="name", operator=operator, value=value
     )
     response = client.post(
-        f"{POST_JOBS_PATH}/{MOCK_ID}/categories/search", json=data, headers=TEST_HEADERS
+        f"{POST_JOBS_PATH}/{MOCK_ID}/categories/search",
+        json=data,
+        headers=TEST_HEADERS,
     )
     categories = response.json()["data"]
     assert response.status_code == 200
@@ -562,7 +577,9 @@ def test_search_filter_ordering(
         operator="lt", value="5", direction=direction
     )
     response = client.post(
-        f"{POST_JOBS_PATH}/{MOCK_ID}/categories/search", json=data, headers=TEST_HEADERS
+        f"{POST_JOBS_PATH}/{MOCK_ID}/categories/search",
+        json=data,
+        headers=TEST_HEADERS,
     )
     categories = response.json()["data"][0]
     assert response.status_code == 200
@@ -578,7 +595,9 @@ def test_search_filter_distinct_id(
         page_size=30, field="id", operator="distinct"
     )
     response = client.post(
-        f"{POST_JOBS_PATH}/{MOCK_ID}/categories/search", json=data, headers=TEST_HEADERS
+        f"{POST_JOBS_PATH}/{MOCK_ID}/categories/search",
+        json=data,
+        headers=TEST_HEADERS,
     )
     result_data = response.json()["data"]
     assert response.status_code == 200
@@ -597,12 +616,16 @@ def test_search_two_filters_different_distinct_order(
         sorting_field="type",
     )
     response = client.post(
-        f"{POST_JOBS_PATH}/{MOCK_ID}/categories/search", json=data, headers=TEST_HEADERS
+        f"{POST_JOBS_PATH}/{MOCK_ID}/categories/search",
+        json=data,
+        headers=TEST_HEADERS,
     )
     first_result_data = response.json()["data"]
     data = prepare_filtration_body_double_filter(first_operator="is_not_null")
     response = client.post(
-        f"{POST_JOBS_PATH}/{MOCK_ID}/categories/search", json=data, headers=TEST_HEADERS
+        f"{POST_JOBS_PATH}/{MOCK_ID}/categories/search",
+        json=data,
+        headers=TEST_HEADERS,
     )
     second_result_data = response.json()["data"]
     assert first_result_data == second_result_data
@@ -615,7 +638,9 @@ def test_search_two_filters_both_distinct(
 ):
     data = prepare_filtration_body_double_filter()
     response = client.post(
-        f"{POST_JOBS_PATH}/{MOCK_ID}/categories/search", json=data, headers=TEST_HEADERS
+        f"{POST_JOBS_PATH}/{MOCK_ID}/categories/search",
+        json=data,
+        headers=TEST_HEADERS,
     )
     result_data = response.json()["data"]
     assert response.status_code == 200
@@ -629,7 +654,9 @@ def test_search_categories_400_error(
 ):
     data = prepare_filtration_body(field="parent", operator="distinct")
     response = client.post(
-        f"{POST_JOBS_PATH}/{MOCK_ID}/categories/search", json=data, headers=TEST_HEADERS
+        f"{POST_JOBS_PATH}/{MOCK_ID}/categories/search",
+        json=data,
+        headers=TEST_HEADERS,
     )
     error_message = (
         "SELECT DISTINCT ON expressions must "
@@ -656,7 +683,9 @@ def test_search_wrong_parameters(
 ):
     data = prepare_filtration_body(**{wrong_parameter: value})
     response = client.post(
-        f"{POST_JOBS_PATH}/{MOCK_ID}/categories/search", json=data, headers=TEST_HEADERS
+        f"{POST_JOBS_PATH}/{MOCK_ID}/categories/search",
+        json=data,
+        headers=TEST_HEADERS,
     )
     assert response.status_code == 422
     assert "value is not a valid enumeration member" in response.text

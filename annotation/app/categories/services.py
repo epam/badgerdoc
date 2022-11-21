@@ -1,9 +1,9 @@
 import uuid
-from typing import List, Union, Set
+from typing import Dict, List, Set, Tuple, Union
 
 from cachetools import TTLCache, cached, keys
 from filter_lib import Page, form_query, map_request_to_filter, paginate
-from sqlalchemy import and_, func, null, or_
+from sqlalchemy import and_, null, or_
 from sqlalchemy.event import listens_for
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.expression import func
@@ -44,9 +44,9 @@ def add_category_db(
         raise ForeignKeyError("Category with this id doesn't exist.")
 
     if parent_db and parent_db.tree:
-        tree = Ltree(f'{parent_db.tree.path}.{category_input.id}')
+        tree = Ltree(f"{parent_db.tree.path}.{category_input.id}")
     else:
-        tree = Ltree(f'{category_input.id}')
+        tree = Ltree(f"{category_input.id}")
 
     category = Category(
         id=(id_ or str(uuid.uuid4())),
@@ -69,16 +69,26 @@ def response_object_from_db(category_db: Category) -> CategoryResponseSchema:
     return CategoryResponseSchema.parse_obj(category_orm)
 
 
-def fetch_category_parents(db: Session, category_input: Category) -> List[Category]:
-    return db.query(Category).filter(
-        Category.tree.ancestor_of(category_input.tree)
-    ).order_by(Category.tree.desc()).offset(1).all()
+def fetch_category_parents(
+    db: Session, category_input: Category
+) -> List[Category]:
+    return (
+        db.query(Category)
+        .filter(Category.tree.ancestor_of(category_input.tree))
+        .order_by(Category.tree.asc())
+        .all()[:-1]
+    )  # remove self item from result
 
 
-def fetch_category_children(db: Session, category_input: Category) -> List[Category]:
-    return db.query(Category).filter(
-        Category.tree.descendant_of(category_input.tree)
-    ).offset(1).all()
+def fetch_category_children(
+    db: Session, category_input: Category
+) -> List[Category]:
+    return (
+        db.query(Category)
+        .filter(Category.tree.descendant_of(category_input.tree))
+        .offset(1)
+        .all()
+    )
 
 
 def check_unique_category_field(
@@ -170,37 +180,130 @@ def fetch_bunch_categories_db(
     return categories
 
 
-def filter_category_db(
-    db: Session, request: CategoryFilter, tenant: str
-) -> Page[Union[CategoryResponseSchema, str, dict]]:
-    filter_query = db.query(Category).filter(
-        or_(Category.tenant == tenant, Category.tenant == null())
-    )
+CategoryIdT = str
+CategoryPathT = str
+IsLeafT = bool
+Leafs = Dict[CategoryIdT, IsLeafT]
+Parents = Dict[CategoryPathT, Category]
+
+
+def _get_leafs(db: Session, categories: List[Category], tenant: str) -> Leafs:
+    leafs: Leafs = {c.id: True for c in categories}
+    for child in (
+        db.query(Category)
+        .filter(
+            and_(
+                Category.parent.in_(leafs.keys()),
+                or_(Category.tenant == tenant, Category.tenant == null()),
+            )
+        )
+        .all()
+    ):
+        leafs[child.parent] = False
+    return leafs
+
+
+def _extract_category(
+    path: str, categories: Dict[str, Category]
+) -> List[Category]:
+    return [
+        CategoryResponseSchema.parse_obj(
+            {
+                **CategoryORMSchema.from_orm(categories[node]).dict(),
+                "is_leaf": False,
+            }
+        )
+        for node in path.split(".")[0:-1]
+    ]
+
+
+def _get_parents(
+    db: Session, categories: List[Category], tenant: str
+) -> Parents:
+    path_to_category: Parents = {}
+    uniq_cats = set()
+    uniq_pathes = set()
+
+    for cat in categories:
+        uniq_pathes.add(cat.tree.path)
+        uniq_cats = uniq_cats.union({tree.path for tree in cat.tree})
+
+    category_to_object = {
+        cat.id: cat for cat in fetch_bunch_categories_db(db, uniq_cats, tenant)
+    }
+
+    for path in uniq_pathes:
+        path_to_category[path] = _extract_category(path, category_to_object)
+
+    return path_to_category
+
+
+def _compose_response(
+    categories: List[Category], leafs: Leafs, parents: Parents
+) -> List[CategoryResponseSchema]:
+    return [
+        CategoryResponseSchema.parse_obj(
+            {
+                **CategoryORMSchema.from_orm(cat).dict(),
+                "is_leaf": leafs.get(cat.id, False),
+                "parents": parents.get(cat.tree.path, []),
+            }
+        )
+        for cat in categories
+    ]
+
+
+def _get_child_categories(
+    db: Session, request: CategoryFilter, tenant: filter, filter_query=None
+) -> Tuple:
+
+    if filter_query is None:
+        filter_query = db.query(Category).filter(
+            or_(Category.tenant == tenant, Category.tenant == null())
+        )
+
     filter_args = map_request_to_filter(request.dict(), Category.__name__)
     category_query, pagination = form_query(filter_args, filter_query)
+    return category_query.all(), pagination
+
+
+def filter_category_db(
+    db: Session, request: CategoryFilter, tenant: str, query_=None
+) -> Page[Union[CategoryResponseSchema, str, dict]]:
+
+    child_categories, pagination = _get_child_categories(
+        db, request, tenant, query_
+    )
 
     if request.filters and "distinct" in [
         item.operator.value for item in request.filters
     ]:
-        return paginate(category_query.all(), pagination)
+        return paginate(child_categories, pagination)
+
     return paginate(
-        [insert_category_tree(db, category) for category in category_query],
+        _compose_response(
+            child_categories,
+            _get_leafs(db, child_categories, tenant),
+            _get_parents(db, child_categories, tenant),
+        ),
         pagination,
     )
 
 
 def update_category_tree(
-    db: Session, category_db: Category, new_parent: Category = None,
+    db: Session,
+    category_db: Category,
+    new_parent: Category = None,
 ) -> None:
     tree = category_db.tree
     nlevel = len(tree) - 1
-    query = db.query(Category).filter(Category.tree.op('<@')(tree))
+    query = db.query(Category).filter(Category.tree.op("<@")(tree))
 
     new_path = func.subpath(Category.tree, nlevel)
     if new_parent:
         new_path = new_parent.tree.path + new_path
 
-    query.update(values={'tree': new_path}, synchronize_session=False)
+    query.update(values={"tree": new_path}, synchronize_session=False)
 
 
 def update_category_db(
@@ -218,7 +321,9 @@ def update_category_db(
     )
     ex_parent_id = category.parent
     new_parent_id = update_query["parent"]
-    parent_db = db.query(Category).get(new_parent_id) if new_parent_id else None
+    parent_db = (
+        db.query(Category).get(new_parent_id) if new_parent_id else None
+    )
 
     if parent_db and parent_db.tenant not in [tenant, None]:
         raise ForeignKeyError("Category with this id doesn't exist.")
@@ -254,21 +359,3 @@ def delete_category_db(db: Session, category_id: str, tenant: str) -> None:
         raise CheckFieldError("Cannot delete default category.")
     db.delete(category)
     db.commit()
-
-
-def insert_category_tree(
-    db: Session, category_db: Category
-) -> CategoryResponseSchema:
-    parents = fetch_category_parents(db, category_db)
-    children = fetch_category_children(db, category_db)
-
-    category_response = response_object_from_db(category_db)
-
-    if category_response.parent:
-        category_response.parents = [
-            response_object_from_db(category) for category in parents
-        ]
-    category_response.children = [
-        response_object_from_db(category) for category in children
-    ]
-    return category_response

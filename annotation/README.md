@@ -123,16 +123,7 @@ There are two ways for local development:
 **Disabling authorization**  
 
 To disable authorization, FastAPI dependency needs to be overrided  
-To do that, you need to 
-1) Change `app/token_dependency.py` module to
-```python
-from tenant_dependency import TenantData
-
-TOKEN = lambda: TenantData(
-    token="TEST_TOKEN", user_id="UUID", roles=["role"], tenants=["TEST_TENANT"]
-)
-```
-2) After you finish development, do not forget to roll back changes you made to this module
+To do that, you need to `export ANNOTATION_NO_AUTH=True` and than rerun uvicorn
 
 **Authorizing in SWAGGER**  
 

@@ -17,6 +17,7 @@ from sqlalchemy.sql.expression import func, or_
 from sqlalchemy_filters.exceptions import BadFilterFormat
 from tenant_dependency import TenantData
 
+import app.categories.services
 from app.categories import fetch_bunch_categories_db
 from app.database import get_db
 from app.distribution import distribute
@@ -59,7 +60,6 @@ from .services import (
     clean_tasks_before_jobs_update,
     collect_job_names,
     delete_redundant_users,
-    filter_category_db,
     filter_job_categories,
     find_users,
     get_job,
@@ -490,6 +490,7 @@ def get_users_for_job(
         for user in users
     ]
 
+
 # Get categories for job_id, each entity requires children/parents
 @router.get(
     "/{job_id}/categories",
@@ -533,7 +534,7 @@ def fetch_job_categories(
         404: {"model": NotFoundErrorSchema},
     },
 )
-def fetch_job_categories(
+def search_job_categories(
     request: CategoryFilter,
     job_id: int = Path(..., example=1),
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
@@ -555,7 +556,9 @@ def fetch_job_categories(
         )
     )
     try:
-        task_response = filter_category_db(db, categories_query, request)
+        task_response = app.categories.services.filter_category_db(
+            db, request, x_current_tenant, categories_query
+        )
     except BadFilterFormat as error:
         raise HTTPException(
             status_code=400,
