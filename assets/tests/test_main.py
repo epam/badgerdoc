@@ -17,6 +17,34 @@ def test_create_bucket(client_app_main_bucket_false):
     assert tests_bucket.status_code == 201
 
 
+def test_bucket_name_on_create_bucket_with_prefix(client_app_main_bucket_false):
+    from src.config import settings
+
+    test_prefix = uuid.uuid4().hex[:5]
+    settings.bucket_prefix = test_prefix
+
+    random_name = "tests" + uuid.uuid4().hex
+    bucket = {"name": random_name}
+    response = client_app_main_bucket_false.post("/bucket", data=json.dumps(bucket))
+    assert response.status_code == 201
+    assert (
+        response.json()["detail"]
+        == f"Bucket {test_prefix}-{random_name} successfully created!"
+    )
+
+
+def test_bucket_name_on_create_bucket_without_prefix(client_app_main_bucket_false):
+    from src.config import settings
+
+    settings.bucket_prefix = None
+
+    random_name = "tests" + uuid.uuid4().hex
+    bucket = {"name": random_name}
+    response = client_app_main_bucket_false.post("/bucket", data=json.dumps(bucket))
+    assert response.status_code == 201
+    assert response.json()["detail"] == f"Bucket {random_name} successfully created!"
+
+
 def test_upload_and_delete_file_without_conversion(client_app_main):
     with NamedTemporaryFile(suffix=".py") as file:
         data = {"files": file}
