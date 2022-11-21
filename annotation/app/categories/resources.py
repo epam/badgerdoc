@@ -1,4 +1,4 @@
-from typing import Any, List, Union
+from typing import List, Union
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Response, status
 from filter_lib import Page
@@ -55,6 +55,7 @@ def save_category(
     category_db = add_category_db(db, category, x_current_tenant)
     return response_object_from_db(category_db)
 
+
 # Get by category id, requires children/parents
 @router.get(
     "/{category_id}",
@@ -100,12 +101,15 @@ def get_child_categories(
     ]
     return response
 
-# Search with params, return paginate obj, each entity requires children/parents
+
+# Search with params, return paginate obj, each entity
+# requires children/parents
 @router.post(
     "/search",
     status_code=status.HTTP_200_OK,
     response_model=Page[Union[CategoryResponseSchema, str, dict]],
     summary="Search categories.",
+    response_model_exclude_none=True,
 )
 def search_categories(
     request: CategoryFilter,

@@ -7,13 +7,11 @@ from pydantic import ValidationError
 from sqlalchemy import and_, desc, not_
 from sqlalchemy.orm import Session, query
 from sqlalchemy.orm.attributes import InstrumentedAttribute
-from sqlalchemy.sql.expression import func
 
 from app.categories import fetch_bunch_categories_db
-from app.categories.services import insert_category_tree
+from app.categories.services import response_object_from_db
 from app.database import Base
 from app.errors import EnumValidationError, FieldConstraintError, WrongJobError
-from app.filters import CategoryFilter
 from app.microservice_communication.assets_communication import get_files_info
 from app.microservice_communication.jobs_communication import get_job_names
 from app.models import (
@@ -294,7 +292,10 @@ def get_job(db: Session, job_id: int, tenant: str) -> Job:
 
 
 def filter_job_categories(
-    db: Session, filter_query: query, page_size: int, page_num: int,
+    db: Session,
+    filter_query: query,
+    page_size: int,
+    page_num: int,
 ) -> Page[Union[CategoryResponseSchema, str, dict]]:
     request = {
         "pagination": {
@@ -313,28 +314,12 @@ def filter_job_categories(
     category_query, pagination = form_query(filter_args, filter_query)
     try:
         response = paginate(
-            [insert_category_tree(db, category) for category in category_query],
+            [response_object_from_db(category) for category in category_query],
             pagination,
         )
     except ValidationError as exc:
         raise EnumValidationError(str(exc))
     return response
-
-
-def filter_category_db(
-    db: Session, query: query, request: CategoryFilter,
-) -> Page[Union[CategoryResponseSchema, str, dict]]:
-    filter_args = map_request_to_filter(request.dict(), Category.__name__)
-    category_query, pagination = form_query(filter_args, query)
-
-    if request.filters and "distinct" in [
-        item.operator.value for item in request.filters
-    ]:
-        return paginate(category_query.all(), pagination)
-    return paginate(
-        [insert_category_tree(db, category) for category in category_query],
-        pagination,
-    )
 
 
 def update_files(db: Session, tasks: list, job_id: int):
