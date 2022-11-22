@@ -88,7 +88,7 @@ async def upload_files(
             less than 3 characters
 
     """
-    if settings.s3_prefix is not None:
+    if settings.s3_prefix:
         bucket_name = f"{settings.s3_prefix}-{x_current_tenant}"
     else:
         bucket_name = x_current_tenant

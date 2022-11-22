@@ -61,7 +61,7 @@ async def download_s3_files(
             detail=str(e),
         )
 
-    if settings.s3_prefix is not None:
+    if settings.s3_prefix:
         bucket_name = f"{settings.s3_prefix}-{x_current_tenant}"
     else:
         bucket_name = x_current_tenant

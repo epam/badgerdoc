@@ -155,7 +155,7 @@ async def create_bucket(
             HTTPException status 400
 
     """
-    if settings.s3_prefix is not None:
+    if settings.s3_prefix:
         bucket.name = f"{settings.s3_prefix}-{bucket.name}"
     try:
         if storage.bucket_exists(bucket.name):
