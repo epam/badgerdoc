@@ -17,11 +17,11 @@ def test_create_bucket(client_app_main_bucket_false):
     assert tests_bucket.status_code == 201
 
 
-def test_bucket_name_on_create_bucket_with_prefix(client_app_main_bucket_false):
-    from src.config import settings
+def test_bucket_name_on_create_bucket_with_prefix(client_app_main_bucket_false, monkeypatch):
+    test_prefix = 'test_prefix'
 
-    test_prefix = uuid.uuid4().hex[:5]
-    settings.bucket_prefix = test_prefix
+    from src.config import settings
+    monkeypatch.setattr(target=settings, name='bucket_prefix', value=test_prefix)
 
     random_name = "tests" + uuid.uuid4().hex
     bucket = {"name": random_name}
@@ -33,10 +33,11 @@ def test_bucket_name_on_create_bucket_with_prefix(client_app_main_bucket_false):
     )
 
 
-def test_bucket_name_on_create_bucket_without_prefix(client_app_main_bucket_false):
-    from src.config import settings
+def test_bucket_name_on_create_bucket_without_prefix(client_app_main_bucket_false, monkeypatch):
+    test_prefix = None
 
-    settings.bucket_prefix = None
+    from src.config import settings
+    monkeypatch.setattr(target=settings, name='bucket_prefix', value=test_prefix)
 
     random_name = "tests" + uuid.uuid4().hex
     bucket = {"name": random_name}

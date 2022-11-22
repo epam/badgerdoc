@@ -7,6 +7,7 @@ import sqlalchemy.orm
 import sqlalchemy_filters.exceptions
 
 from src import db, exceptions, schemas, utils
+from src.config import settings
 
 router = fastapi.APIRouter(prefix="/files", tags=["files"])
 
@@ -87,7 +88,11 @@ async def upload_files(
             less than 3 characters
 
     """
-    utils.minio_utils.check_bucket(x_current_tenant, storage_)
+    if settings.s3_prefix is not None:
+        bucket_name = f"{settings.s3_prefix}-{x_current_tenant}"
+    else:
+        bucket_name = x_current_tenant
+
     try:
         utils.common_utils.check_uploading_limit(files)
 
@@ -96,7 +101,7 @@ async def upload_files(
             status_code=fastapi.status.HTTP_400_BAD_REQUEST, detail=str(e)
         )
     upload_results = utils.common_utils.process_form_files(
-        x_current_tenant, files, session, storage_
+        bucket_name, files, session, storage_
     )
 
     return [

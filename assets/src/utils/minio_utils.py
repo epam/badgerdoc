@@ -18,12 +18,12 @@ minio_config = {
     "secure": settings.minio_secure_connection,
 }
 if settings.aws_profile_name is not None:
-    # Minio is used with AWS S3
+    # 'minio' library is used to connect with AWS S3
     minio_config.update(
         {"credentials": AWSConfigProvider(profile=settings.aws_profile_name)}
     )
 else:
-    # Minio is used locally
+    # 'minio' library is used to connect with Minio service locally
     minio_config.update(
         {
             "access_key": settings.minio_root_user,

@@ -155,8 +155,8 @@ async def create_bucket(
             HTTPException status 400
 
     """
-    if settings.bucket_prefix is not None:
-        bucket.name = f"{settings.bucket_prefix}-{bucket.name}"
+    if settings.s3_prefix is not None:
+        bucket.name = f"{settings.s3_prefix}-{bucket.name}"
     try:
         if storage.bucket_exists(bucket.name):
             raise fastapi.HTTPException(

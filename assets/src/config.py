@@ -44,7 +44,7 @@ class Config(BaseSettings):
     gotenberg_formats: List[str]
     image_formats: List[str]
     aws_profile_name: Optional[str]
-    bucket_prefix: Optional[str]
+    s3_prefix: Optional[str]
 
     class Config:
         env_file: str = find_dotenv(".env")
