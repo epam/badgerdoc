@@ -29,8 +29,8 @@ class Config(BaseSettings):
     postgres_port: Optional[str]
     database_url: Optional[str]
     s3_endpoint: Optional[str]
-    minio_root_user: Optional[str]
-    minio_root_password: Optional[str]
+    s3_access_key: Optional[str]
+    s3_secret_key: Optional[str]
     minio_secure_connection: Optional[bool] = False
     preprocessing_url: Optional[str]
     sqlalchemy_pool_size: Optional[int] = 10

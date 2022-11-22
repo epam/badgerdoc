@@ -26,8 +26,8 @@ else:
     # 'minio' library is used to connect with Minio service locally
     minio_config.update(
         {
-            "access_key": settings.minio_root_user,
-            "secret_key": settings.minio_root_password,
+            "access_key": settings.s3_access_key,
+            "secret_key": settings.s3_secret_key,
         }
     )
 MinioClient = minio.Minio(**minio_config)
