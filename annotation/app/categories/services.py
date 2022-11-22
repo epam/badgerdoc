@@ -26,6 +26,22 @@ from app.schemas import (
 cache = TTLCache(maxsize=128, ttl=300)
 
 
+def insert_category_tree(
+    db: Session, category_db: Category
+) -> CategoryResponseSchema:
+    parents = fetch_category_parents(db, category_db)
+    children = fetch_category_children(db, category_db)
+    category_response = response_object_from_db(category_db)
+    if category_response.parent:
+        category_response.parents = [
+            response_object_from_db(category) for category in parents
+        ]
+    category_response.children = [
+        response_object_from_db(category) for category in children
+    ]
+    return category_response
+
+
 def add_category_db(
     db: Session, category_input: CategoryInputSchema, tenant: str
 ) -> Category:
