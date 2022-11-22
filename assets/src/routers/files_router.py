@@ -93,6 +93,7 @@ async def upload_files(
     else:
         bucket_name = x_current_tenant
 
+    utils.minio_utils.check_bucket(bucket_name, storage_)
     try:
         utils.common_utils.check_uploading_limit(files)
 
