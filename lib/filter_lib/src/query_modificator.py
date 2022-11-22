@@ -9,8 +9,6 @@ from sqlalchemy_filters import apply_filters, apply_sort
 from sqlalchemy_filters.exceptions import BadFilterFormat, BadSpec
 from sqlalchemy_utils import LtreeType
 
-from sqlalchemy_utils import LtreeType
-
 from .pagination import PaginationParams, make_pagination
 from .schema_generator import Pagination
 
