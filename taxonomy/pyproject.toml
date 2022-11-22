@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "taxonomy"
+version = "0.1.0"
+description = "Taxonomy microservice for Badgerdoc project"
+authors = ["Badgerdoc-search team"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+fastapi = "^0.87.0"
+uvicorn = "^0.19.0"
+sqlalchemy = "^1.4.44"
+sqlalchemy-utils = "^0.38.3"
+alembic = "^1.8.1"
+python-dotenv = "^0.21.0"
+psycopg2-binary = "^2.9.5"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
