@@ -1,8 +1,8 @@
-"""First revision
+"""First Revision
 
-Revision ID: 06a72f86c28c
+Revision ID: 21e7e46d582c
 Revises: 
-Create Date: 2022-11-20 23:45:03.734131
+Create Date: 2022-11-23 17:19:07.991151
 
 """
 from alembic import op
@@ -11,7 +11,7 @@ import sqlalchemy_utils
 
 
 # revision identifiers, used by Alembic.
-revision = '06a72f86c28c'
+revision = '21e7e46d582c'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -22,14 +22,23 @@ def upgrade() -> None:
     op.create_table('taxonomy',
     sa.Column('id', sa.VARCHAR(), nullable=False),
     sa.Column('name', sa.VARCHAR(), nullable=False),
-    sa.Column('version', sa.VARCHAR(), nullable=False),
-    sa.Column('category_id', sa.VARCHAR(), nullable=True),
+    sa.Column('version', sa.Integer(), nullable=False),
+    sa.Column('tenant', sa.VARCHAR(), nullable=True),
+    sa.Column('category_id', sa.VARCHAR(), nullable=False),
+    sa.Column('latest', sa.Boolean(), nullable=False),
     sa.PrimaryKeyConstraint('id')
+    )
+    op.create_table('association_taxonomy_job',
+    sa.Column('taxonomy_id', sa.VARCHAR(), nullable=False),
+    sa.Column('job_id', sa.VARCHAR(), nullable=False),
+    sa.ForeignKeyConstraint(['taxonomy_id'], ['taxonomy.id'], ondelete='cascade'),
+    sa.PrimaryKeyConstraint('taxonomy_id', 'job_id')
     )
     op.create_table('taxon',
     sa.Column('id', sa.VARCHAR(), nullable=False),
     sa.Column('name', sa.VARCHAR(), nullable=False),
-    sa.Column('taxonomy_id', sa.VARCHAR(), nullable=True),
+    sa.Column('tenant', sa.VARCHAR(), nullable=True),
+    sa.Column('taxonomy_id', sa.VARCHAR(), nullable=False),
     sa.Column('parent_id', sa.VARCHAR(), nullable=True),
     sa.Column('tree', sqlalchemy_utils.types.ltree.LtreeType(), nullable=True),
     sa.ForeignKeyConstraint(['parent_id'], ['taxon.id'], ondelete='cascade'),
@@ -48,5 +57,6 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_taxon_parent_id'), table_name='taxon')
     op.drop_index('index_taxon_tree', table_name='taxon', postgresql_using='gist')
     op.drop_table('taxon')
+    op.drop_table('association_taxonomy_job')
     op.drop_table('taxonomy')
     # ### end Alembic commands ###

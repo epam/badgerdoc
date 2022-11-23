@@ -8,6 +8,7 @@ from app.schemas.taxonomy import (
     TaxonomyBaseSchema,
     TaxonomyInputSchema,
     TaxonomyResponseSchema,
+    JobIdSchema,
 )
 
 from app.schemas.errors import (

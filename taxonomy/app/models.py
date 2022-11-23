@@ -7,6 +7,7 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     Table, Integer, Boolean,
+    PrimaryKeyConstraint,
 )
 from sqlalchemy.orm import relationship, validates
 from sqlalchemy_utils import LtreeType
@@ -15,22 +16,29 @@ from app.database import Base
 from app.errors import CheckFieldError
 
 
-class TaxonomyToJobAssociation(Base):
+class AssociationTaxonomyJob(Base):
     __tablename__ = "association_taxonomy_job"
 
-    taxonomy_id = ForeignKey("taxonomy.id", ondelete="cascade")
-    job_id = Column(VARCHAR, nullable=False)
+    taxonomy_id = Column(
+        VARCHAR,
+        ForeignKey("taxonomy.id", ondelete="cascade"),
+        primary_key=True
+    )
+    job_id = Column(VARCHAR, primary_key=True)
 
-    
+
 class Taxonomy(Base):
     __tablename__ = "taxonomy"
 
-    id = Column(VARCHAR, primary_key=True)
+    id = Column(
+        VARCHAR, primary_key=True, default=lambda: uuid4().hex
+    )
     name = Column(VARCHAR, nullable=False)
     version = Column(Integer, nullable=False)
     tenant = Column(VARCHAR, nullable=True)
     # TODO
     category_id = Column(VARCHAR, nullable=False)
+    taxons = relationship("Taxon", back_populates="taxonomy")
     latest = Column(Boolean, nullable=False)
 
 
@@ -50,7 +58,7 @@ class Taxon(Base):
     )
     taxonomy = relationship(
         "Taxonomy",
-        remote_side=[id],
+        back_populates="taxons",
     )
     parent_id = Column(
         VARCHAR,

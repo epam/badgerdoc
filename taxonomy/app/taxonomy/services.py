@@ -3,13 +3,8 @@ from typing import Dict, Union, Optional, Tuple, List
 from sqlalchemy import desc
 from sqlalchemy.orm import Session
 
-from models import Taxonomy, TaxonomyToJob, TaxonomyToJobAssociation
-from schemas import TaxonomyInputSchema, TaxonomyBaseSchema
-
-
-def response_object_from_db(taxonomy: Taxonomy):
-    # todo get taxon ltree object here
-    pass
+from app.models import AssociationTaxonomyJob, Taxonomy
+from app.schemas import TaxonomyInputSchema, TaxonomyBaseSchema
 
 
 def create_taxonomy_instance(
@@ -78,7 +73,9 @@ def get_second_latest_taxonomy(
 def create_new_relation_to_job(
     session: Session, taxonomy_id: str, job_id: str
 ) -> None:
-    new_relation = TaxonomyToJob(taxonomy_id=taxonomy_id, job_id=job_id)
+    new_relation = AssociationTaxonomyJob(
+        taxonomy_id=taxonomy_id, job_id=job_id
+    )
     session.add(new_relation)
     session.commit()
 
@@ -87,7 +84,7 @@ def get_taxonomies_by_job_id(
     session: Session, job_id: str
 ) -> List[Taxonomy]:
     return (
-        session.query(TaxonomyToJobAssociation)
-        .filter(TaxonomyToJobAssociation.job_id == job_id)
+        session.query(Taxonomy)
+        .filter(Taxonomy.jobs == job_id)
         .all()
     )

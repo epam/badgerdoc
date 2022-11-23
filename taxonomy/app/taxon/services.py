@@ -1,9 +1,11 @@
-from typing import List
+from typing import List, Union
 
+from filter_lib import Page
 from sqlalchemy import and_, func, null, or_
 from sqlalchemy.orm import Session
 from sqlalchemy_utils import Ltree
 
+from app.filters import TaxonFilter
 from app.errors import (
     CheckFieldError,
     ForeignKeyError,
@@ -15,11 +17,6 @@ from app.schemas import (
     TaxonInputSchema,
     TaxonResponseSchema,
 )
-
-
-def response_object_from_db():
-    # TODO
-    pass
 
 
 def add_taxon_db(
@@ -177,3 +174,11 @@ def check_unique_taxon_field(
     ).scalar()
     if check_unique:
         raise CheckFieldError(f"Taxon {field} must be unique.")
+
+
+def filter_taxons(
+    db: Session,
+    request: TaxonFilter,
+    tenant: str
+) -> Page[Union[TaxonResponseSchema, str, dict]]:
+    pass

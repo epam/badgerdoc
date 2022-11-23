@@ -13,14 +13,13 @@ from app.schemas import (
     TaxonomyBaseSchema,
     TaxonomyInputSchema,
     TaxonomyResponseSchema,
+    JobIdSchema,
 )
 from app.tags import TAXONOMY_TAG
-from main import LOGGER
-from schemas.taxonomy import JobIdSchema
+from app.logging import LOGGER
 
 from .services import (
     create_taxonomy_instance,
-    response_object_from_db,
     get_taxonomy,
     get_latest_taxonomy,
     update_taxonomy_instance,
@@ -69,16 +68,16 @@ def create_new_taxonomy(
         LOGGER.info(
             "create_new_taxonomy does not find any taxonomy with id %s. "
             "First version of taxonomy will be 1",
-            latest_taxonomy.id,
+            taxonomy.id,
         )
         new_taxonomy_version = 1
     taxonomy_db = create_taxonomy_instance(
         session=session,
         args=taxonomy,
         tenant=x_current_tenant,
-        taxonomy_args={'version':new_taxonomy_version, 'latest': True},
+        taxonomy_args={'version': new_taxonomy_version, 'latest': True},
     )
-    return response_object_from_db(taxonomy_db)
+    return TaxonomyResponseSchema.from_orm(taxonomy_db)
 
 
 @router.get(
@@ -98,7 +97,7 @@ def get_taxonomy_by_id(
     if not taxonomy:
         LOGGER.error("get_taxonomy_by_id get not existing id %s", taxonomy_id)
         raise HTTPException(status_code=404, detail="Not existing taxonomy")
-    return response_object_from_db(taxonomy)
+    return TaxonomyResponseSchema.from_orm(taxonomy)
 
 
 @router.get(
@@ -123,7 +122,7 @@ def get_taxonomy_by_id_and_version(
             "get_taxonomy_by_id_and_version get not existing combination"
             "of id %s and version %s", (taxonomy_id, version))
         raise HTTPException(status_code=404, detail="Not existing taxonomy")
-    return response_object_from_db(taxonomy)
+    return TaxonomyResponseSchema.from_orm(taxonomy)
 
 
 @router.post(
@@ -159,7 +158,7 @@ def associate_taxonomy_to_job(
     session: Session = Depends(get_db),
 ):
     taxonomies = get_taxonomies_by_job_id(session, job_id)
-    return [response_object_from_db(taxonomy) for taxonomy in taxonomies]
+    return [TaxonomyResponseSchema.from_orm(taxonomy) for taxonomy in taxonomies]
 
 
 @router.put(
@@ -188,7 +187,7 @@ def update_taxonomy(
     taxonomy_db = update_taxonomy_instance(
         session, taxonomy, query,
     )
-    return response_object_from_db(taxonomy_db)
+    return TaxonomyResponseSchema.from_orm(taxonomy_db)
 
 
 @router.put(
@@ -219,7 +218,7 @@ def update_taxonomy_by_id_and_version(
     taxonomy_db = update_taxonomy_instance(
         session, taxonomy, query,
     )
-    return response_object_from_db(taxonomy_db)
+    return TaxonomyResponseSchema.from_orm(taxonomy_db)
 
 
 @router.delete(

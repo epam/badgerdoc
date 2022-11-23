@@ -1,3 +1,6 @@
+import os
+import urllib.parse
+
 from fastapi import Header
 
 HEADER_TENANT = "X-Current-Tenant"

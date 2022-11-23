@@ -1,8 +1,13 @@
-from fastapi import APIRouter, Depends, Path, Response, status
+from typing import Union
+
+from fastapi import APIRouter, Depends, HTTPException, Path, Response, status
+from filter_lib import Page
 from sqlalchemy.orm import Session
+from sqlalchemy_filters.exceptions import BadFilterFormat
 
 from app.database import get_db
 from app.errors import NoTaxonError
+from app.filters import TaxonFilter
 from app.microservice_communication.search import X_CURRENT_TENANT_HEADER
 from app.schemas import (
     BadRequestErrorSchema,
@@ -20,7 +25,7 @@ from .services import (
     insert_taxon_tree,
     update_taxon_db,
     delete_taxon_db,
-    response_object_from_db
+    filter_taxons,
 )
 
 router = APIRouter(
@@ -45,7 +50,7 @@ def save_taxon(
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
 ) -> TaxonResponseSchema:
     taxon_db = add_taxon_db(db, taxon, x_current_tenant)
-    return response_object_from_db(taxon_db)
+    return TaxonResponseSchema.from_orm(taxon_db)
 
 
 @router.get(
@@ -65,6 +70,32 @@ def fetch_taxon(
     taxon_db = fetch_taxon_db(db, taxon_id, x_current_tenant)
     taxon_response = insert_taxon_tree(db, taxon_db)
     return taxon_response
+
+
+@router.post(
+    "/search",
+    status_code=status.HTTP_200_OK,
+    response_model=Page[Union[TaxonResponseSchema, str, dict]],
+    summary="Search taxons.",
+    # response_model_exclude_none=True,
+)
+def search_categories(
+    request: TaxonFilter,
+    db: Session = Depends(get_db),
+    x_current_tenant: str = X_CURRENT_TENANT_HEADER,
+) -> Page[Union[TaxonResponseSchema, str, dict]]:
+    """
+    Searches and returns taxons data according to search request parameters
+    filters. Supports pagination and ordering.
+    """
+    try:
+        response = filter_taxons(db, request, x_current_tenant)
+    except BadFilterFormat as error:
+        raise HTTPException(
+            status_code=400,
+            detail=f"{error}",
+        )
+    return response
 
 
 @router.put(
@@ -91,7 +122,7 @@ def update_taxon(
     )
     if not taxon_id:
         raise NoTaxonError("Cannot update taxon parameters")
-    return response_object_from_db(taxon_db)
+    return TaxonResponseSchema.from_orm(taxon_db)
 
 
 @router.delete(
