@@ -68,7 +68,7 @@ def fetch_taxon(
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
 ) -> TaxonResponseSchema:
     taxon_db = fetch_taxon_db(db, taxon_id, x_current_tenant)
-    taxon_response = insert_taxon_tree(db, taxon_db)
+    taxon_response = insert_taxon_tree(db, taxon_db, x_current_tenant)
     return taxon_response
 
 
@@ -77,7 +77,6 @@ def fetch_taxon(
     status_code=status.HTTP_200_OK,
     response_model=Page[Union[TaxonResponseSchema, str, dict]],
     summary="Search taxons.",
-    # response_model_exclude_none=True,
 )
 def search_categories(
     request: TaxonFilter,
@@ -107,6 +106,7 @@ def search_categories(
         404: {"model": NotFoundErrorSchema},
     },
     summary="Update taxon.",
+    response_model_exclude_none=True,
 )
 def update_taxon(
     query: TaxonBaseSchema,

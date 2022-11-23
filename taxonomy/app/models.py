@@ -6,8 +6,8 @@ from sqlalchemy import (
     Column,
     ForeignKey,
     Index,
-    Table, Integer, Boolean,
-    PrimaryKeyConstraint,
+    Integer,
+    Boolean,
 )
 from sqlalchemy.orm import relationship, validates
 from sqlalchemy_utils import LtreeType
@@ -79,5 +79,5 @@ class Taxon(Base):
     @validates("id")
     def validate_id(self, key, id_):
         if id_ and not id_.replace('_', '').isalnum():
-            raise CheckFieldError(f'Taxon id must be alphanumeric.')
+            raise CheckFieldError("Taxon id must be alphanumeric.")
         return id_

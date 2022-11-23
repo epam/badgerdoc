@@ -1,8 +1,8 @@
-from typing import List, Union
+from typing import List, Union, Dict, Tuple, Set
 
-from filter_lib import Page
+from filter_lib import Page, paginate, map_request_to_filter, form_query
 from sqlalchemy import and_, func, null, or_
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, query
 from sqlalchemy_utils import Ltree
 
 from app.filters import TaxonFilter
@@ -17,6 +17,12 @@ from app.schemas import (
     TaxonInputSchema,
     TaxonResponseSchema,
 )
+
+TaxonIdT = str
+TaxonPathT = str
+IsLeafT = bool
+Leafs = Dict[TaxonIdT, IsLeafT]
+Parents = Dict[TaxonPathT, Taxon]
 
 
 def add_taxon_db(
@@ -71,25 +77,37 @@ def fetch_taxon_db(db: Session, taxon_id: str, tenant: str) -> Taxon:
 def fetch_taxon_parents(db: Session, taxon_input: Taxon) -> List[Taxon]:
     return db.query(Taxon).filter(
         Taxon.tree.ancestor_of(taxon_input.tree)
-    ).order_by(Taxon.tree.desc()).offset(1).all()
+    ).order_by(Taxon.tree.asc()).all()[:-1]
 
 
-def has_children(db: Session, taxon_input: Taxon) -> bool:
-    # TODO
-    return False
+def is_taxon_leaf(db: Session, taxon_input: Taxon, tenant: str) -> bool:
+    return not (
+        db.query(Taxon.id)
+        .filter(
+            and_(
+                Taxon.parent_id == taxon_input.id,
+                or_(Taxon.tenant == tenant, Taxon.tenant == null())
+            )).first()
+    )
+
+
+def set_parents_is_leaf(taxon_db: List[Taxon]) -> TaxonResponseSchema:
+    taxon_response = TaxonResponseSchema.from_orm(taxon_db)
+    taxon_response.is_leaf = False
+    return taxon_response
 
 
 def insert_taxon_tree(
-    db: Session, taxon_db: Taxon
+    db: Session, taxon_db: Taxon, tenant: str,
 ) -> TaxonResponseSchema:
     parents = fetch_taxon_parents(db, taxon_db)
-    is_leaf = has_children(db, taxon_db)
+    is_leaf = is_taxon_leaf(db, taxon_db, tenant)
 
-    taxon_response = response_object_from_db(taxon_db)
+    taxon_response = TaxonResponseSchema.from_orm(taxon_db)
 
     if taxon_response.parent_id:
         taxon_response.parents = [
-            response_object_from_db(taxon) for taxon in parents
+            set_parents_is_leaf(taxon) for taxon in parents
         ]
     taxon_response.is_leaf = is_leaf
     return taxon_response
@@ -122,7 +140,8 @@ def update_taxon_db(
         raise SelfParentError("Taxon cannot be its own parent.")
 
     update_query["parent_id"] = (
-        update_query["parent_id"] if update_query["parent_id"] != "null" else None
+        update_query["parent_id"]
+        if update_query["parent_id"] != "null" else None
     )
     ex_parent_id = taxon.parent_id
     new_parent_id = update_query["parent_id"]
@@ -176,9 +195,123 @@ def check_unique_taxon_field(
         raise CheckFieldError(f"Taxon {field} must be unique.")
 
 
+def _get_leafs(db: Session, taxons: List[Taxon], tenant: str) -> Leafs:
+    leafs: Leafs = {t.id: True for t in taxons}
+    for child in (
+        # TODO doublecheck select only ids
+        db.query(Taxon.id)
+        .filter(
+            and_(
+                Taxon.parent_id.in_(leafs.keys()),
+                or_(Taxon.tenant == tenant, Taxon.tenant == null()),
+            )
+        )
+        .all()
+    ):
+        leafs[child.parent_id] = False
+    return leafs
+
+
+def _get_child_taxons(
+    db: Session, request: TaxonFilter, tenant: filter, filter_query=None
+) -> Tuple:
+
+    if filter_query is None:
+        filter_query = db.query(Taxon).filter(
+            or_(Taxon.tenant == tenant, Taxon.tenant == null())
+        )
+
+    filter_args = map_request_to_filter(request.dict(), Taxon.__name__)
+    taxon_query, pagination = form_query(filter_args, filter_query)
+    return taxon_query.all(), pagination
+
+
+def _extract_taxon(
+    path: str, taxons: Dict[str, Taxon]
+) -> List[Taxon]:
+    return [
+        {
+            **TaxonResponseSchema.from_orm(taxons[node]).dict(),
+            "is_leaf": False,
+        } for node in path.split(".")[0:-1]
+    ]
+
+
+def _get_parents(
+    db: Session, taxons: List[Taxon], tenant: str
+) -> Parents:
+    path_to_taxon: Parents = {}
+    unique_taxons = set()
+    unique_pathes = set()
+
+    for tax in taxons:
+        unique_pathes.add(tax.tree.path)
+        unique_taxons = unique_taxons.union({tree.path for tree in tax.tree})
+
+    taxon_to_object = {
+        tax.id: tax for tax in fetch_bunch_taxons_db(db, unique_taxons, tenant)
+    }
+
+    for path in unique_pathes:
+        path_to_taxon[path] = _extract_taxon(path, taxon_to_object)
+
+    return path_to_taxon
+
+
+def fetch_bunch_taxons_db(
+    db: Session, taxon_ids: Set[str], tenant: str
+) -> List[Taxon]:
+    taxons = (
+        db.query(Taxon)
+        .filter(
+            and_(
+                Taxon.id.in_(taxon_ids),
+                or_(Taxon.tenant == tenant, Taxon.tenant == null()),
+            )
+        )
+        .all()
+    )
+    taxons_not_exist = {
+        taxon.id for taxon in taxons
+    }.symmetric_difference(taxon_ids)
+    error_message = ", ".join(sorted(taxons_not_exist))
+    if taxons_not_exist:
+        raise NoTaxonError(f"No such taxons: {error_message}")
+    return taxons
+
+
+def _compose_response(
+    taxons: List[Taxon], leafs: Leafs, parents: Parents
+) -> List[TaxonResponseSchema]:
+    return [
+        {
+            **TaxonResponseSchema.from_orm(tax).dict(),
+            "is_leaf": leafs.get(tax.id, False),
+            "parents": parents.get(tax.tree.path, []),
+        } for tax in taxons
+    ]
+
+
 def filter_taxons(
     db: Session,
     request: TaxonFilter,
-    tenant: str
+    tenant: str,
+    query: query = None,
 ) -> Page[Union[TaxonResponseSchema, str, dict]]:
-    pass
+    child_taxons, pagination = _get_child_taxons(
+        db, request, tenant, query
+    )
+
+    if request.filters and "distinct" in [
+        item.operator.value for item in request.filters
+    ]:
+        return paginate(child_taxons, pagination)
+
+    return paginate(
+        _compose_response(
+            child_taxons,
+            _get_leafs(db, child_taxons, tenant),
+            _get_parents(db, child_taxons, tenant),
+        ),
+        pagination,
+    )

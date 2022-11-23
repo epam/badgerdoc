@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -19,9 +19,6 @@ class TaxonomyInputSchema(TaxonomyBaseSchema):
 
 
 class TaxonomyResponseSchema(TaxonomyInputSchema):
-    parents: List[dict] = Field(default=[])
-    is_leaf: Optional[bool] = Field(default=None)
-
     class Config:
         allow_population_by_field_name = True
         orm_mode = True
