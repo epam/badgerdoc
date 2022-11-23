@@ -56,18 +56,18 @@ spec:
             secretKeyRef:
               name: assets
               key: POSTGRES_PASSWORD
-        - name: ENDPOINT
+        - name: S3_ENDPOINT
           value: "minio:80"
-        - name: MINIO_ACCESS_KEY
+        - name: S3_ACCESS_KEY
           valueFrom:
             secretKeyRef:
               name: assets
-              key: MINIO_ACCESS_KEY
-        - name: MINIO_SECRET_KEY
+              key: S3_ACCESS_KEY
+        - name: S3_SECRET_KEY
           valueFrom:
             secretKeyRef:
               name: assets
-              key: MINIO_SECRET_KEY
+              key: S3_SECRET_KEY
         - name: JWT_SECRET
           valueFrom:
             secretKeyRef:
