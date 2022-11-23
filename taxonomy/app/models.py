@@ -6,7 +6,7 @@ from sqlalchemy import (
     Column,
     ForeignKey,
     Index,
-    Table,
+    Table, Integer, Boolean,
 )
 from sqlalchemy.orm import relationship, validates
 from sqlalchemy_utils import LtreeType
@@ -27,10 +27,11 @@ class Taxonomy(Base):
 
     id = Column(VARCHAR, primary_key=True)
     name = Column(VARCHAR, nullable=False)
-    version = Column(VARCHAR, nullable=False)
+    version = Column(Integer, nullable=False)
     tenant = Column(VARCHAR, nullable=True)
     # TODO
-    category_id = Column(VARCHAR, nullable=True, default='my_category')
+    category_id = Column(VARCHAR, nullable=False)
+    latest = Column(Boolean, nullable=False)
 
 
 class Taxon(Base):

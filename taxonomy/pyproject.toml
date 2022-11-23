@@ -15,6 +15,15 @@ alembic = "^1.8.1"
 python-dotenv = "^0.21.0"
 psycopg2-binary = "^2.9.5"
 
+[tool.poetry.dev-dependencies]
+pre-commit = "^2.14.0"
+black = "^21.7b0"
+flake8 = "^3.9.2"
+pytest = "^6.2.4"
+isort = "^5.9.3"
+responses = "^0.14.0"
+pytest-cov = "^3.0.0"
+
 
 [build-system]
 requires = ["poetry-core"]
