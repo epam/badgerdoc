@@ -1,9 +1,9 @@
-from typing import Dict, Union, Optional, Tuple
+from typing import Dict, Union, Optional, Tuple, List
 
 from sqlalchemy import desc
 from sqlalchemy.orm import Session
 
-from models import Taxonomy
+from models import Taxonomy, TaxonomyToJob, TaxonomyToJobAssociation
 from schemas import TaxonomyInputSchema, TaxonomyBaseSchema
 
 
@@ -72,4 +72,22 @@ def get_second_latest_taxonomy(
         .order_by(desc(Taxonomy.version))
         .offset(1)
         .first()
+    )
+
+
+def create_new_relation_to_job(
+    session: Session, taxonomy_id: str, job_id: str
+) -> None:
+    new_relation = TaxonomyToJob(taxonomy_id=taxonomy_id, job_id=job_id)
+    session.add(new_relation)
+    session.commit()
+
+
+def get_taxonomies_by_job_id(
+    session: Session, job_id: str
+) -> List[Taxonomy]:
+    return (
+        session.query(TaxonomyToJobAssociation)
+        .filter(TaxonomyToJobAssociation.job_id == job_id)
+        .all()
     )

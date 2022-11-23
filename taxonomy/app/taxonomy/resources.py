@@ -1,3 +1,5 @@
+from typing import List
+
 from fastapi import APIRouter, Depends, Path, Response, status, HTTPException
 from sqlalchemy.orm import Session
 
@@ -14,6 +16,7 @@ from app.schemas import (
 )
 from app.tags import TAXONOMY_TAG
 from main import LOGGER
+from schemas.taxonomy import JobIdSchema
 
 from .services import (
     create_taxonomy_instance,
@@ -22,7 +25,7 @@ from .services import (
     get_latest_taxonomy,
     update_taxonomy_instance,
     delete_taxonomy_instance,
-    get_second_latest_taxonomy,
+    get_second_latest_taxonomy, create_new_relation_to_job, get_taxonomies_by_job_id,
 )
 
 router = APIRouter(
@@ -123,12 +126,47 @@ def get_taxonomy_by_id_and_version(
     return response_object_from_db(taxonomy)
 
 
+@router.post(
+    "/{taxonomy_id}/link_to_job",
+    status_code=status.HTTP_201_CREATED,
+    responses={
+        400: {"model": BadRequestErrorSchema},
+    },
+    summary="Save new taxonomy and return saved one.",
+)
+def associate_taxonomy_to_job(
+    query: JobIdSchema,
+    taxonomy_id: str = Path(..., example="1"),
+    session: Session = Depends(get_db),
+):
+    taxonomy = get_latest_taxonomy(session, taxonomy_id)
+    if not taxonomy:
+        LOGGER.error("associate_taxonomy_to_job get not existing id %s", taxonomy_id)
+        raise HTTPException(status_code=404, detail="Not existing taxonomy")
+
+    # todo validate job existence.
+    create_new_relation_to_job(session, taxonomy_id, query.id)
+
+
+@router.get(
+    "",
+    status_code=status.HTTP_200_OK,
+    response_model=List[TaxonomyResponseSchema],
+    summary="Get all taxonomies by job id",
+)
+def associate_taxonomy_to_job(
+    job_id: str,
+    session: Session = Depends(get_db),
+):
+    taxonomies = get_taxonomies_by_job_id(session, job_id)
+    return [response_object_from_db(taxonomy) for taxonomy in taxonomies]
+
+
 @router.put(
     "/update",
     status_code=status.HTTP_200_OK,
     response_model=TaxonomyResponseSchema,
     responses={
-        400: {"model": BadRequestErrorSchema},
         404: {"model": NotFoundErrorSchema},
     },
     summary="Update taxonomy.",

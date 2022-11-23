@@ -24,3 +24,7 @@ class TaxonomyResponseSchema(TaxonomyInputSchema):
 
     class Config:
         allow_population_by_field_name = True
+
+
+class JobIdSchema(BaseModel):
+    id: str = Field(..., exclude='123abc')
