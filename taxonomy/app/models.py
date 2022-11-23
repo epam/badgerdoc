@@ -6,7 +6,7 @@ from sqlalchemy import (
     Column,
     ForeignKey,
     Index,
-    Table,
+    Table, Integer, Boolean,
 )
 from sqlalchemy.orm import relationship, validates
 from sqlalchemy_utils import LtreeType
@@ -15,11 +15,11 @@ from app.database import Base
 from app.errors import CheckFieldError
 
 
-# class AssociationTaxonomyCategory(Base):
-#     __tablename__ = "association_taxonomy_category"
+class TaxonomyToJobAssociation(Base):
+    __tablename__ = "association_taxonomy_job"
 
-#     taxonomy_id = ForeignKey("taxonomy.id", ondelete="cascade")
-#     category_id =  Column(VARCHAR, nullable=False)
+    taxonomy_id = ForeignKey("taxonomy.id", ondelete="cascade")
+    job_id = Column(VARCHAR, nullable=False)
 
     
 class Taxonomy(Base):
@@ -27,10 +27,11 @@ class Taxonomy(Base):
 
     id = Column(VARCHAR, primary_key=True)
     name = Column(VARCHAR, nullable=False)
-    version = Column(VARCHAR, nullable=False)
+    version = Column(Integer, nullable=False)
     tenant = Column(VARCHAR, nullable=True)
     # TODO
-    category_id = Column(VARCHAR, nullable=True, default='my_category')
+    category_id = Column(VARCHAR, nullable=False)
+    latest = Column(Boolean, nullable=False)
 
 
 class Taxon(Base):

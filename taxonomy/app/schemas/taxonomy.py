@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field
 
 class TaxonomyBaseSchema(BaseModel):
     name: str = Field(..., example="taxonomy_name")
-    version: str = Field(..., example="0.1.0")
+    version: int = Field(..., example="1")
     # TODO
     category_id: Optional[str] = Field(None, example="my_category")
 
@@ -24,3 +24,7 @@ class TaxonomyResponseSchema(TaxonomyInputSchema):
 
     class Config:
         allow_population_by_field_name = True
+
+
+class JobIdSchema(BaseModel):
+    id: str = Field(..., exclude='123abc')
