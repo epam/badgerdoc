@@ -2,12 +2,12 @@ from uuid import uuid4
 
 from sqlalchemy import (
     VARCHAR,
+    Boolean,
     CheckConstraint,
     Column,
     ForeignKey,
     Index,
     Integer,
-    Boolean,
 )
 from sqlalchemy.orm import relationship, validates
 from sqlalchemy_utils import LtreeType
@@ -22,7 +22,7 @@ class AssociationTaxonomyJob(Base):
     taxonomy_id = Column(
         VARCHAR,
         ForeignKey("taxonomy.id", ondelete="cascade"),
-        primary_key=True
+        primary_key=True,
     )
     job_id = Column(VARCHAR, primary_key=True)
 
@@ -30,9 +30,7 @@ class AssociationTaxonomyJob(Base):
 class Taxonomy(Base):
     __tablename__ = "taxonomy"
 
-    id = Column(
-        VARCHAR, primary_key=True, default=lambda: uuid4().hex
-    )
+    id = Column(VARCHAR, primary_key=True, default=lambda: uuid4().hex)
     name = Column(VARCHAR, nullable=False)
     version = Column(Integer, nullable=False)
     tenant = Column(VARCHAR, nullable=True)
@@ -45,9 +43,7 @@ class Taxonomy(Base):
 class Taxon(Base):
     __tablename__ = "taxon"
 
-    id = Column(
-        VARCHAR, primary_key=True, default=lambda: uuid4().hex
-    )
+    id = Column(VARCHAR, primary_key=True, default=lambda: uuid4().hex)
     name = Column(VARCHAR, nullable=False)
     tenant = Column(VARCHAR, nullable=True)
     taxonomy_id = Column(
@@ -78,6 +74,6 @@ class Taxon(Base):
 
     @validates("id")
     def validate_id(self, key, id_):
-        if id_ and not id_.replace('_', '').isalnum():
+        if id_ and not id_.replace("_", "").isalnum():
             raise CheckFieldError("Taxon id must be alphanumeric.")
         return id_

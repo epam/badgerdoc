@@ -1,10 +1,10 @@
-from typing import Dict, Union, Optional, Tuple, List
+from typing import Dict, List, Optional, Tuple, Union
 
 from sqlalchemy import desc
 from sqlalchemy.orm import Session
 
 from app.models import AssociationTaxonomyJob, Taxonomy
-from app.schemas import TaxonomyInputSchema, TaxonomyBaseSchema
+from app.schemas import TaxonomyBaseSchema, TaxonomyInputSchema
 
 
 def create_taxonomy_instance(
@@ -29,10 +29,14 @@ def get_taxonomy(
     return taxonomy
 
 
-def get_latest_taxonomy(session: Session, taxonomy_id: str) -> Optional[Taxonomy]:
+def get_latest_taxonomy(
+    session: Session, taxonomy_id: str
+) -> Optional[Taxonomy]:
     return (
         session.query(Taxonomy)
-        .filter(Taxonomy.id == taxonomy_id, Taxonomy.latest == True)  # noqa E712
+        .filter(
+            Taxonomy.id == taxonomy_id, Taxonomy.latest == True  # noqa E712
+        )
         .first()
     )
 
@@ -43,7 +47,7 @@ def update_taxonomy_instance(
     new_data: TaxonomyBaseSchema,
 ) -> Optional[Taxonomy]:
     for key, value in new_data.dict():
-        if key == 'id':
+        if key == "id":
             continue
         setattr(taxonomy, key, value)
     session.commit()
@@ -51,9 +55,7 @@ def update_taxonomy_instance(
     return taxonomy
 
 
-def delete_taxonomy_instance(
-    session: Session, taxonomy: Taxonomy
-) -> None:
+def delete_taxonomy_instance(session: Session, taxonomy: Taxonomy) -> None:
     session.delete(taxonomy)
     session.commit()
 
@@ -80,11 +82,5 @@ def create_new_relation_to_job(
     session.commit()
 
 
-def get_taxonomies_by_job_id(
-    session: Session, job_id: str
-) -> List[Taxonomy]:
-    return (
-        session.query(Taxonomy)
-        .filter(Taxonomy.jobs == job_id)
-        .all()
-    )
+def get_taxonomies_by_job_id(session: Session, job_id: str) -> List[Taxonomy]:
+    return session.query(Taxonomy).filter(Taxonomy.jobs == job_id).all()

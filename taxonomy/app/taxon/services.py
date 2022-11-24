@@ -1,22 +1,19 @@
-from typing import List, Union, Dict, Tuple, Set
+from typing import Dict, List, Set, Tuple, Union
 
-from filter_lib import Page, paginate, map_request_to_filter, form_query
+from filter_lib import Page, form_query, map_request_to_filter, paginate
 from sqlalchemy import and_, func, null, or_
 from sqlalchemy.orm import Session, query
 from sqlalchemy_utils import Ltree
 
-from app.filters import TaxonFilter
 from app.errors import (
     CheckFieldError,
     ForeignKeyError,
-    SelfParentError,
     NoTaxonError,
+    SelfParentError,
 )
+from app.filters import TaxonFilter
 from app.models import Taxon, Taxonomy
-from app.schemas import (
-    TaxonInputSchema,
-    TaxonResponseSchema,
-)
+from app.schemas import TaxonInputSchema, TaxonResponseSchema
 
 TaxonIdT = str
 TaxonPathT = str
@@ -48,9 +45,9 @@ def add_taxon_db(
         raise ForeignKeyError("Taxonomy with this id doesn't exist.")
 
     if parent_db and parent_db.tree:
-        tree = Ltree(f'{parent_db.tree.path}.{taxon_input.id}')
+        tree = Ltree(f"{parent_db.tree.path}.{taxon_input.id}")
     else:
-        tree = Ltree(f'{taxon_input.id}')
+        tree = Ltree(f"{taxon_input.id}")
 
     taxon = Taxon(
         id=id_,
@@ -68,16 +65,17 @@ def add_taxon_db(
 def fetch_taxon_db(db: Session, taxon_id: str, tenant: str) -> Taxon:
     taxon = db.query(Taxon).get(taxon_id)
     if not taxon or taxon.tenant and taxon.tenant != tenant:
-        raise NoTaxonError(
-            f"Taxon with id: {taxon_id} doesn't exist"
-        )
+        raise NoTaxonError(f"Taxon with id: {taxon_id} doesn't exist")
     return taxon
 
 
 def fetch_taxon_parents(db: Session, taxon_input: Taxon) -> List[Taxon]:
-    return db.query(Taxon).filter(
-        Taxon.tree.ancestor_of(taxon_input.tree)
-    ).order_by(Taxon.tree.asc()).all()[:-1]
+    return (
+        db.query(Taxon)
+        .filter(Taxon.tree.ancestor_of(taxon_input.tree))
+        .order_by(Taxon.tree.asc())
+        .all()[:-1]
+    )
 
 
 def is_taxon_leaf(db: Session, taxon_input: Taxon, tenant: str) -> bool:
@@ -86,8 +84,10 @@ def is_taxon_leaf(db: Session, taxon_input: Taxon, tenant: str) -> bool:
         .filter(
             and_(
                 Taxon.parent_id == taxon_input.id,
-                or_(Taxon.tenant == tenant, Taxon.tenant == null())
-            )).first()
+                or_(Taxon.tenant == tenant, Taxon.tenant == null()),
+            )
+        )
+        .first()
     )
 
 
@@ -98,7 +98,9 @@ def set_parents_is_leaf(taxon_db: List[Taxon]) -> TaxonResponseSchema:
 
 
 def insert_taxon_tree(
-    db: Session, taxon_db: Taxon, tenant: str,
+    db: Session,
+    taxon_db: Taxon,
+    tenant: str,
 ) -> TaxonResponseSchema:
     parents = fetch_taxon_parents(db, taxon_db)
     is_leaf = is_taxon_leaf(db, taxon_db, tenant)
@@ -114,17 +116,19 @@ def insert_taxon_tree(
 
 
 def update_taxon_tree(
-    db: Session, taxon_db: Taxon, new_parent: Taxon = None,
+    db: Session,
+    taxon_db: Taxon,
+    new_parent: Taxon = None,
 ) -> None:
     tree = taxon_db.tree
     nlevel = len(tree) - 1
-    query = db.query(Taxon).filter(Taxon.tree.op('<@')(tree))
+    query = db.query(Taxon).filter(Taxon.tree.op("<@")(tree))
 
     new_path = func.subpath(Taxon.tree, nlevel)
     if new_parent:
         new_path = new_parent.tree.path + new_path
 
-    query.update(values={'tree': new_path}, synchronize_session=False)
+    query.update(values={"tree": new_path}, synchronize_session=False)
 
 
 def update_taxon_db(
@@ -141,7 +145,8 @@ def update_taxon_db(
 
     update_query["parent_id"] = (
         update_query["parent_id"]
-        if update_query["parent_id"] != "null" else None
+        if update_query["parent_id"] != "null"
+        else None
     )
     ex_parent_id = taxon.parent_id
     new_parent_id = update_query["parent_id"]
@@ -226,20 +231,17 @@ def _get_child_taxons(
     return taxon_query.all(), pagination
 
 
-def _extract_taxon(
-    path: str, taxons: Dict[str, Taxon]
-) -> List[Taxon]:
+def _extract_taxon(path: str, taxons: Dict[str, Taxon]) -> List[Taxon]:
     return [
         {
             **TaxonResponseSchema.from_orm(taxons[node]).dict(),
             "is_leaf": False,
-        } for node in path.split(".")[0:-1]
+        }
+        for node in path.split(".")[0:-1]
     ]
 
 
-def _get_parents(
-    db: Session, taxons: List[Taxon], tenant: str
-) -> Parents:
+def _get_parents(db: Session, taxons: List[Taxon], tenant: str) -> Parents:
     path_to_taxon: Parents = {}
     unique_taxons = set()
     unique_pathes = set()
@@ -271,9 +273,9 @@ def fetch_bunch_taxons_db(
         )
         .all()
     )
-    taxons_not_exist = {
-        taxon.id for taxon in taxons
-    }.symmetric_difference(taxon_ids)
+    taxons_not_exist = {taxon.id for taxon in taxons}.symmetric_difference(
+        taxon_ids
+    )
     error_message = ", ".join(sorted(taxons_not_exist))
     if taxons_not_exist:
         raise NoTaxonError(f"No such taxons: {error_message}")
@@ -288,7 +290,8 @@ def _compose_response(
             **TaxonResponseSchema.from_orm(tax).dict(),
             "is_leaf": leafs.get(tax.id, False),
             "parents": parents.get(tax.tree.path, []),
-        } for tax in taxons
+        }
+        for tax in taxons
     ]
 
 
@@ -298,9 +301,7 @@ def filter_taxons(
     tenant: str,
     query: query = None,
 ) -> Page[Union[TaxonResponseSchema, str, dict]]:
-    child_taxons, pagination = _get_child_taxons(
-        db, request, tenant, query
-    )
+    child_taxons, pagination = _get_child_taxons(db, request, tenant, query)
 
     if request.filters and "distinct" in [
         item.operator.value for item in request.filters

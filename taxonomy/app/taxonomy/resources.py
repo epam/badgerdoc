@@ -1,30 +1,31 @@
 from typing import List
 
-from fastapi import APIRouter, Depends, Path, Response, status, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Path, Response, status
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.errors import NoTaxonomyError
+from app.logging import LOGGER
 from app.microservice_communication.search import X_CURRENT_TENANT_HEADER
 from app.schemas import (
     BadRequestErrorSchema,
     ConnectionErrorSchema,
+    JobIdSchema,
     NotFoundErrorSchema,
     TaxonomyBaseSchema,
     TaxonomyInputSchema,
     TaxonomyResponseSchema,
-    JobIdSchema,
 )
 from app.tags import TAXONOMY_TAG
-from app.logging import LOGGER
 
 from .services import (
+    create_new_relation_to_job,
     create_taxonomy_instance,
-    get_taxonomy,
-    get_latest_taxonomy,
-    update_taxonomy_instance,
     delete_taxonomy_instance,
-    get_second_latest_taxonomy, create_new_relation_to_job, get_taxonomies_by_job_id,
+    get_latest_taxonomy,
+    get_second_latest_taxonomy,
+    get_taxonomies_by_job_id,
+    get_taxonomy,
+    update_taxonomy_instance,
 )
 
 router = APIRouter(
@@ -75,7 +76,7 @@ def create_new_taxonomy(
         session=session,
         args=taxonomy,
         tenant=x_current_tenant,
-        taxonomy_args={'version': new_taxonomy_version, 'latest': True},
+        taxonomy_args={"version": new_taxonomy_version, "latest": True},
     )
     return TaxonomyResponseSchema.from_orm(taxonomy_db)
 
@@ -101,7 +102,7 @@ def get_taxonomy_by_id(
 
 
 @router.get(
-    '/{taxonomy_id}/{version}',
+    "/{taxonomy_id}/{version}",
     status_code=200,
     responses={
         404: {
@@ -120,7 +121,9 @@ def get_taxonomy_by_id_and_version(
     if not taxonomy:
         LOGGER.error(
             "get_taxonomy_by_id_and_version get not existing combination"
-            "of id %s and version %s", (taxonomy_id, version))
+            "of id %s and version %s",
+            (taxonomy_id, version),
+        )
         raise HTTPException(status_code=404, detail="Not existing taxonomy")
     return TaxonomyResponseSchema.from_orm(taxonomy)
 
@@ -140,7 +143,9 @@ def associate_taxonomy_to_job(
 ):
     taxonomy = get_latest_taxonomy(session, taxonomy_id)
     if not taxonomy:
-        LOGGER.error("associate_taxonomy_to_job get not existing id %s", taxonomy_id)
+        LOGGER.error(
+            "associate_taxonomy_to_job get not existing id %s", taxonomy_id
+        )
         raise HTTPException(status_code=404, detail="Not existing taxonomy")
 
     # todo validate job existence.
@@ -153,12 +158,14 @@ def associate_taxonomy_to_job(
     response_model=List[TaxonomyResponseSchema],
     summary="Get all taxonomies by job id",
 )
-def associate_taxonomy_to_job(
+def get_job_taxonomies(
     job_id: str,
     session: Session = Depends(get_db),
 ):
     taxonomies = get_taxonomies_by_job_id(session, job_id)
-    return [TaxonomyResponseSchema.from_orm(taxonomy) for taxonomy in taxonomies]
+    return [
+        TaxonomyResponseSchema.from_orm(taxonomy) for taxonomy in taxonomies
+    ]
 
 
 @router.put(
@@ -185,7 +192,9 @@ def update_taxonomy(
         LOGGER.error("update_taxonomy get not existing id %s", query.id)
         raise HTTPException(status_code=404, detail="Not existing taxonomy")
     taxonomy_db = update_taxonomy_instance(
-        session, taxonomy, query,
+        session,
+        taxonomy,
+        query,
     )
     return TaxonomyResponseSchema.from_orm(taxonomy_db)
 
@@ -213,10 +222,14 @@ def update_taxonomy_by_id_and_version(
     if not taxonomy:
         LOGGER.error(
             "get_taxonomy_by_id_and_version get not existing combination"
-            "of id %s and version %s", (taxonomy_id, version))
+            "of id %s and version %s",
+            (taxonomy_id, version),
+        )
         raise HTTPException(status_code=404, detail="Not existing taxonomy")
     taxonomy_db = update_taxonomy_instance(
-        session, taxonomy, query,
+        session,
+        taxonomy,
+        query,
     )
     return TaxonomyResponseSchema.from_orm(taxonomy_db)
 
@@ -262,7 +275,9 @@ def delete_taxonomy_by_id_and_version(
     if not taxonomy:
         LOGGER.error(
             "delete_taxonomy_by_id_and_version get not existing combination"
-            "of id %s and version %s", (taxonomy_id, version))
+            "of id %s and version %s",
+            (taxonomy_id, version),
+        )
         raise HTTPException(status_code=404, detail="Not existing taxonomy")
     delete_taxonomy_instance(session, taxonomy)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

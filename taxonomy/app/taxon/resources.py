@@ -21,11 +21,11 @@ from app.tags import TAXON_TAG
 
 from .services import (
     add_taxon_db,
+    delete_taxon_db,
     fetch_taxon_db,
+    filter_taxons,
     insert_taxon_tree,
     update_taxon_db,
-    delete_taxon_db,
-    filter_taxons,
 )
 
 router = APIRouter(
@@ -117,9 +117,7 @@ def update_taxon(
     """
     Updates taxon by id and returns updated taxon.
     """
-    taxon_db = update_taxon_db(
-        db, taxon_id, query.dict(), x_current_tenant
-    )
+    taxon_db = update_taxon_db(db, taxon_id, query.dict(), x_current_tenant)
     if not taxon_id:
         raise NoTaxonError("Cannot update taxon parameters")
     return TaxonResponseSchema.from_orm(taxon_db)
