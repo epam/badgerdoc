@@ -12,9 +12,9 @@ from app.errors import (
     SelfParentError,
 )
 from app.filters import TaxonFilter
-from app.models import Taxon, Taxonomy
+from app.models import Taxon
 from app.schemas import TaxonInputSchema, TaxonResponseSchema
-from taxonomy.services import get_latest_taxonomy, get_taxonomy
+from app.taxonomy.services import get_latest_taxonomy, get_taxonomy
 
 TaxonIdT = str
 TaxonPathT = str
@@ -98,9 +98,14 @@ def is_taxon_leaf(db: Session, taxon_input: Taxon, tenant: str) -> bool:
     )
 
 
-def set_parents_is_leaf(taxon_db: List[Taxon]) -> TaxonResponseSchema:
+def set_parents_is_leaf(
+    taxon_db: Taxon,
+    is_leaf: bool = False,
+    parents: List[TaxonResponseSchema] = [],
+) -> TaxonResponseSchema:
     taxon_response = TaxonResponseSchema.from_orm(taxon_db)
-    taxon_response.is_leaf = False
+    taxon_response.is_leaf = is_leaf
+    taxon_response.parents = parents
     return taxon_response
 
 
@@ -209,9 +214,8 @@ def check_unique_taxon_field(
 
 def _get_leafs(db: Session, taxons: List[Taxon], tenant: str) -> Leafs:
     leafs: Leafs = {t.id: True for t in taxons}
-    for child in (
-        # TODO doublecheck select only ids
-        db.query(Taxon.id)
+    for (parent_id,) in (
+        db.query(Taxon.parent_id)
         .filter(
             and_(
                 Taxon.parent_id.in_(leafs.keys()),
@@ -220,11 +224,11 @@ def _get_leafs(db: Session, taxons: List[Taxon], tenant: str) -> Leafs:
         )
         .all()
     ):
-        leafs[child.parent_id] = False
+        leafs[parent_id] = False
     return leafs
 
 
-def _get_child_taxons(
+def _get_obj_from_request(
     db: Session, request: TaxonFilter, tenant: filter, filter_query=None
 ) -> Tuple:
 
@@ -238,13 +242,11 @@ def _get_child_taxons(
     return taxon_query.all(), pagination
 
 
-def _extract_taxon(path: str, taxons: Dict[str, Taxon]) -> List[Taxon]:
+def _extract_taxon(
+    path: str, taxons: Dict[str, Taxon]
+) -> List[TaxonResponseSchema]:
     return [
-        {
-            **TaxonResponseSchema.from_orm(taxons[node]).dict(),
-            "is_leaf": False,
-        }
-        for node in path.split(".")[0:-1]
+        set_parents_is_leaf(taxons[node]) for node in path.split(".")[0:-1]
     ]
 
 
@@ -263,7 +265,6 @@ def _get_parents(db: Session, taxons: List[Taxon], tenant: str) -> Parents:
 
     for path in unique_pathes:
         path_to_taxon[path] = _extract_taxon(path, taxon_to_object)
-
     return path_to_taxon
 
 
@@ -293,11 +294,11 @@ def _compose_response(
     taxons: List[Taxon], leafs: Leafs, parents: Parents
 ) -> List[TaxonResponseSchema]:
     return [
-        {
-            **TaxonResponseSchema.from_orm(tax).dict(),
-            "is_leaf": leafs.get(tax.id, False),
-            "parents": parents.get(tax.tree.path, []),
-        }
+        set_parents_is_leaf(
+            taxon_db=tax,
+            is_leaf=leafs.get(tax.id, False),
+            parents=parents.get(tax.tree.path, []),
+        )
         for tax in taxons
     ]
 
@@ -308,18 +309,20 @@ def filter_taxons(
     tenant: str,
     query: query = None,
 ) -> Page[Union[TaxonResponseSchema, str, dict]]:
-    child_taxons, pagination = _get_child_taxons(db, request, tenant, query)
+    taxons_request, pagination = _get_obj_from_request(
+        db, request, tenant, query
+    )
 
     if request.filters and "distinct" in [
         item.operator.value for item in request.filters
     ]:
-        return paginate(child_taxons, pagination)
+        return paginate(taxons_request, pagination)
 
     return paginate(
         _compose_response(
-            child_taxons,
-            _get_leafs(db, child_taxons, tenant),
-            _get_parents(db, child_taxons, tenant),
+            taxons_request,
+            _get_leafs(db, taxons_request, tenant),
+            _get_parents(db, taxons_request, tenant),
         ),
         pagination,
     )

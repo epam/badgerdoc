@@ -30,7 +30,8 @@ class AssociationTaxonomyJob(Base):
 
     taxonomy = relationship(
         "Taxonomy",
-        foreign_keys="[AssociationTaxonomyJob.taxonomy_id, AssociationTaxonomyJob.taxonomy_version]",
+        foreign_keys="[AssociationTaxonomyJob.taxonomy_id, "
+        "AssociationTaxonomyJob.taxonomy_version]",
         back_populates="jobs",
     )
     job_id = Column(VARCHAR, primary_key=True)
