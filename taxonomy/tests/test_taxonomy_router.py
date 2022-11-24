@@ -151,6 +151,7 @@ def test_should_associate_taxonomy_to_job(
     assert association.taxonomy is prepared_taxonomy_record_in_db
 
 
+@pytest.mark.integration
 def test_should_update_taxonomy_in_db(
     overrided_token_client,
     prepared_taxonomy_record_in_db: Taxonomy,
@@ -172,6 +173,7 @@ def test_should_update_taxonomy_in_db(
     assert response.json()["name"] == taxonomy_input_data["name"]
 
 
+@pytest.mark.integration
 def test_should_delete_taxonomy_from_db(
     overrided_token_client,
     prepared_taxonomy_record_in_db: Taxonomy,
@@ -194,6 +196,7 @@ def test_should_delete_taxonomy_from_db(
     assert taxonomy is None
 
 
+@pytest.mark.integration
 def test_should_delete_latest_taxonomy_from_db(
     prepare_two_taxonomy_records_with_same_id_in_db,
     overrided_token_client,
@@ -209,7 +212,6 @@ def test_should_delete_latest_taxonomy_from_db(
     response = overrided_token_client.delete(
         "/taxonomy/{taxonomy_id}".format(
             taxonomy_id=taxonomy_to_delete.id,
-            version=taxonomy_to_delete.version,
         ),
         headers=TEST_HEADER,
     )
