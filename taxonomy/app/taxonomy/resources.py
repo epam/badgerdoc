@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Path, Response, status
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.logging import LOGGER
+from app.logging_setup import LOGGER
 from app.microservice_communication.search import X_CURRENT_TENANT_HEADER
 from app.schemas import (
     BadRequestErrorSchema,
@@ -16,8 +16,7 @@ from app.schemas import (
     TaxonomyResponseSchema,
 )
 from app.tags import TAXONOMY_TAG
-
-from .services import (
+from app.taxonomy.services import (
     create_new_relation_to_job,
     create_taxonomy_instance,
     delete_taxonomy_instance,
@@ -149,7 +148,7 @@ def associate_taxonomy_to_job(
         raise HTTPException(status_code=404, detail="Not existing taxonomy")
 
     # todo validate job existence.
-    create_new_relation_to_job(session, taxonomy_id, query.id)
+    create_new_relation_to_job(session, taxonomy, query.id)
 
 
 @router.get(
@@ -169,7 +168,7 @@ def get_job_taxonomies(
 
 
 @router.put(
-    "/update",
+    "",
     status_code=status.HTTP_200_OK,
     response_model=TaxonomyResponseSchema,
     responses={
@@ -184,9 +183,6 @@ def update_taxonomy(
     """
     Updates taxonomy by id and returns updated taxonomy.
     """
-    # todo ??
-    # if not taxonomy_id:
-    #     raise NoTaxonomyError("Cannot update taxonomy parameters")
     taxonomy = get_latest_taxonomy(session, query.id)
     if not taxonomy:
         LOGGER.error("update_taxonomy get not existing id %s", query.id)
@@ -252,7 +248,7 @@ def delete_taxonomy(
         raise HTTPException(status_code=404, detail="Not existing taxonomy")
     if taxonomy.latest:
         second_latest_model = get_second_latest_taxonomy(session, taxonomy_id)
-        if second_latest_model:
+        if second_latest_model is not None:
             second_latest_model.latest = True
     delete_taxonomy_instance(session, taxonomy)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
@@ -279,5 +275,9 @@ def delete_taxonomy_by_id_and_version(
             (taxonomy_id, version),
         )
         raise HTTPException(status_code=404, detail="Not existing taxonomy")
+    if taxonomy.latest:
+        second_latest_model = get_second_latest_taxonomy(session, taxonomy_id)
+        if second_latest_model is not None:
+            second_latest_model.latest = True
     delete_taxonomy_instance(session, taxonomy)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

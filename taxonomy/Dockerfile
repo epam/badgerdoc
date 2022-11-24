@@ -32,21 +32,6 @@ COPY app app
 COPY alembic alembic
 RUN make test_checks
 
-FROM sonarsource/sonar-scanner-cli:4.6 AS sonar-taxonomy
-
-COPY --from=test /opt/taxonomy/tests /opt/taxonomy/tests
-COPY --from=test /opt/taxonomy/app /opt/taxonomy/app
-COPY --from=test /opt/taxonomy/alembic /opt/taxonomy/alembic
-COPY sonar-project.properties /opt/taxonomy/sonar-project.properties
-
-RUN ls -la /opt/taxonomy/tests && ls -la /opt/taxonomy/app && cat /opt/taxonomy/sonar-project.properties
-
-CMD sonar-scanner \
-  -Dsonar.projectKey=$SONAR_PROJECT_KEY_TAXONOMY \
-  -Dproject.settings=/opt/taxonomy/sonar-project.properties \
-  -Dsonar.host.url=$SONAR_HOST_URL \
-  -Dsonar.login=$SONAR_TOKEN_TAXONOMY
-
 FROM base as build-dev
 
 RUN poetry install --no-root

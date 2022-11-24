@@ -1,5 +1,3 @@
-SONAR_TEST_IMAGE="sonar_test_image_taxonomy"
-SONAR_TEST_TAG="sonar_test_tag_taxonomy"
 req:
 	poetry export -f requirements.txt --output requirements.txt
 
@@ -54,14 +52,6 @@ test:
 
 test-windows:
 	set "DOCKER_BUILDKIT=1" && docker build --target test -t taxonomy .
-
-sonar_test:
-	docker build --target sonar-taxonomy \
-	-t ${SONAR_TEST_IMAGE}:${SONAR_TEST_TAG} .
-	
-	docker run -e SONAR_PROJECT_KEY_TAXONOMY=${SONAR_PROJECT_KEY_TAXONOMY} \
-	-e SONAR_HOST_URL=${SONAR_HOST_URL} -e SONAR_TOKEN_TAXONOMY=${SONAR_TOKEN_TAXONOMY} \
-	-d ${SONAR_TEST_IMAGE}:${SONAR_TEST_TAG}
 
 image-build:
 	docker build --target build -t taxonomy .

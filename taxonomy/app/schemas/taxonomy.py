@@ -5,8 +5,6 @@ from pydantic import BaseModel, Field
 
 class TaxonomyBaseSchema(BaseModel):
     name: str = Field(..., example="taxonomy_name")
-    version: int = Field(..., example="1")
-    # TODO
     category_id: Optional[str] = Field(None, example="my_category")
 
 
@@ -19,10 +17,12 @@ class TaxonomyInputSchema(TaxonomyBaseSchema):
 
 
 class TaxonomyResponseSchema(TaxonomyInputSchema):
+    version: int = Field(description="Version of taxonomy", example=1)
+
     class Config:
         allow_population_by_field_name = True
         orm_mode = True
 
 
 class JobIdSchema(BaseModel):
-    id: str = Field(..., exclude='123abc')
+    id: str = Field(..., example="123abc")

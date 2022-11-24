@@ -46,7 +46,7 @@ def update_taxonomy_instance(
     taxonomy: Taxonomy,
     new_data: TaxonomyBaseSchema,
 ) -> Optional[Taxonomy]:
-    for key, value in new_data.dict():
+    for key, value in new_data.dict().items():
         if key == "id":
             continue
         setattr(taxonomy, key, value)
@@ -73,14 +73,28 @@ def get_second_latest_taxonomy(
 
 
 def create_new_relation_to_job(
-    session: Session, taxonomy_id: str, job_id: str
+    session: Session, taxonomy: Taxonomy, job_id: str
 ) -> None:
     new_relation = AssociationTaxonomyJob(
-        taxonomy_id=taxonomy_id, job_id=job_id
+        taxonomy_id=taxonomy.id,
+        taxonomy_version=taxonomy.version,
+        job_id=job_id,
     )
     session.add(new_relation)
     session.commit()
 
 
 def get_taxonomies_by_job_id(session: Session, job_id: str) -> List[Taxonomy]:
-    return session.query(Taxonomy).filter(Taxonomy.jobs == job_id).all()
+    taxonomies_ids = tuple(
+        session.query(AssociationTaxonomyJob.taxonomy_id)
+        .filter(AssociationTaxonomyJob.job_id == job_id)
+        .all()
+    )
+    return (
+        session.query(Taxonomy)
+        .filter(
+            Taxonomy.id.in_(taxonomies_ids),  # type: ignore
+            Taxonomy.latest == True,
+        )
+        .all()
+    )

@@ -18,8 +18,7 @@ from app.schemas import (
     TaxonResponseSchema,
 )
 from app.tags import TAXON_TAG
-
-from .services import (
+from app.taxon.services import (
     add_taxon_db,
     delete_taxon_db,
     fetch_taxon_db,

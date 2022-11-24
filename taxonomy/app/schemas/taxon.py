@@ -9,6 +9,7 @@ class TaxonBaseSchema(BaseModel):
     name: str = Field(..., example="taxon_name")
     taxonomy_id: str = Field(..., example="my_taxonomy_id")
     parent_id: Optional[str] = Field(None, example="null")
+    taxonomy_version: Optional[int] = Field(None, example=1)
 
 
 class TaxonInputSchema(TaxonBaseSchema):
@@ -18,10 +19,10 @@ class TaxonInputSchema(TaxonBaseSchema):
         description="If id is not provided, generates it as a UUID.",
     )
 
-    @validator('id')
+    @validator("id")
     def alphanumeric_validator(cls, value):
-        if value and not value.replace('_', '').isalnum():
-            raise CheckFieldError(f'Taxon id must be alphanumeric.')
+        if value and not value.replace("_", "").isalnum():
+            raise CheckFieldError(f"Taxon id must be alphanumeric.")
         return value
 
 

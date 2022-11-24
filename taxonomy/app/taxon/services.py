@@ -14,6 +14,7 @@ from app.errors import (
 from app.filters import TaxonFilter
 from app.models import Taxon, Taxonomy
 from app.schemas import TaxonInputSchema, TaxonResponseSchema
+from taxonomy.services import get_latest_taxonomy, get_taxonomy
 
 TaxonIdT = str
 TaxonPathT = str
@@ -29,6 +30,7 @@ def add_taxon_db(
     id_ = taxon_input.id
     parent_id = taxon_input.parent_id
     taxonomy_id = taxon_input.taxonomy_id
+    taxonomy_version = taxon_input.taxonomy_version
 
     if parent_id is not None and id_ == parent_id:
         raise SelfParentError("Taxon cannot be its own parent.")
@@ -40,7 +42,11 @@ def add_taxon_db(
     if parent_db and parent_db.tenant not in [tenant, None]:
         raise ForeignKeyError("Taxon with this id doesn't exist.")
 
-    taxonomy_db = db.query(Taxonomy).get(taxonomy_id)
+    if taxonomy_version is None:
+        taxonomy_db = get_latest_taxonomy(db, taxonomy_id)
+    else:
+        taxonomy_db = get_taxonomy(db, (taxonomy_id, taxonomy_version))
+
     if taxonomy_db and taxonomy_db.tenant not in [tenant, None]:
         raise ForeignKeyError("Taxonomy with this id doesn't exist.")
 
@@ -54,6 +60,7 @@ def add_taxon_db(
         name=name,
         tenant=tenant,
         taxonomy_id=taxonomy_id,
+        taxonomy_version=taxonomy_version,
         parent_id=parent_id if parent_id != "null" else None,
         tree=tree,
     )
