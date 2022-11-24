@@ -272,7 +272,7 @@ def check_bucket(bucket: str, client: minio.Minio) -> bool:
     except ValueError:
         raise fastapi.HTTPException(
             status_code=fastapi.status.HTTP_400_BAD_REQUEST,
-            detail="Bucket name length must be more than 3 characters and less than 63 characters!",
+            detail="Bucket name length must be more than 3 characters and less than 63 characters!",  # noqa
         )
     return True
 

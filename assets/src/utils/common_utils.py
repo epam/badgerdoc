@@ -65,7 +65,7 @@ def get_pages(file: bytes) -> Any:
 def get_pages_from_pdf(file: bytes) -> Any:
     try:
         pages = pdf2image.pdfinfo_from_bytes(file)["Pages"]
-    except:
+    except:  # noqa
         return None
     return pages
 
@@ -74,7 +74,7 @@ def get_pages_from_image(file: bytes) -> Any:
     try:
         with PIL.Image.open(BytesIO(file)) as image:
             pages = image.n_frames
-    except:
+    except:  # noqa
         return None
     return pages
 
@@ -179,8 +179,8 @@ class FileConverter:
             raise requests.exceptions.ConnectionError(e)
 
         if is_gotenberg_returns_file(converted_file.content) is False:
-            #  is_gotenberg_returns_file func checks if file was converted to pdf.
-            #  In case of some error, the content of Gotenberg response is plain text.
+            #  is_gotenberg_returns_file func checks if file was converted to pdf.  # noqa
+            #  In case of some error, the content of Gotenberg response is plain text.  # noqa
             self.conversion_status = "conversion error"
             logger_.error(
                 logger_.error(
@@ -398,7 +398,7 @@ class FileProcessor:
                 id_=self.new_file.id,
                 action=self.action,
                 action_status=True,
-                message=f"Successfully uploaded, converted: {self.conversion_status}",
+                message=f"Successfully uploaded, converted: {self.conversion_status}",  # noqa
                 name=self.file_name,
             )
             return True

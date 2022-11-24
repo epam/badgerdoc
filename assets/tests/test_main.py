@@ -1,3 +1,4 @@
+# flake8: noqa: F501
 import json
 import uuid
 from tempfile import NamedTemporaryFile

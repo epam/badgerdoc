@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session, relationship, sessionmaker
 
 Base = declarative_base()
 
-DATABASE_URL = "postgresql+psycopg2://admin:admin@localhost/db_for_usage_example"  # Database should be Postgres
+DATABASE_URL = "postgresql+psycopg2://admin:admin@localhost/db_for_usage_example"  # Database should be Postgres # noqa
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(bind=engine)
 

@@ -37,7 +37,8 @@ async def download_s3_files(
             storage_url: storage endpoint. Example: "http://localhost:9000"
             bucket_s3: s3 storage bucket name from where files to be downloaded
             files_keys: list of files keys, paths to the file in s3 storage.
-            bucket_storage: bucket in MinIO storage where files should be uploaded
+            bucket_storage: bucket in MinIO storage where files should be
+            uploaded
     """
     try:
         utils.common_utils.check_uploading_limit(s3_data.files_keys)
@@ -74,4 +75,4 @@ async def download_s3_files(
         bucket_name, s3_files, session, storage_
     )
 
-    return [schemas.ActionResponse.parse_obj(response) for response in upload_results]
+    return [schemas.ActionResponse.parse_obj(response) for response in upload_results]  # noqa
