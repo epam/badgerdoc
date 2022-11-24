@@ -545,19 +545,12 @@ def search_job_categories(
     filters for the given {job_id}. Supports pagination and ordering.
     """
     get_job(db, job_id, x_current_tenant)
-    categories_query = (
-        db.query(Category)
-        .join(Category.jobs)
-        .filter(
-            and_(
-                Job.job_id == job_id,
-                Job.tenant == x_current_tenant,
-            )
-        )
-    )
     try:
         task_response = app.categories.services.filter_category_db(
-            db, request, x_current_tenant, categories_query
+            db,
+            request,
+            x_current_tenant,
+            job_id,
         )
     except BadFilterFormat as error:
         raise HTTPException(

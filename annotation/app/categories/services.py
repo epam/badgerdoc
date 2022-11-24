@@ -1,5 +1,5 @@
 import uuid
-from typing import Dict, List, Set, Tuple, Union
+from typing import Dict, List, Optional, Set, Tuple, Union
 
 from cachetools import TTLCache, cached, keys
 from filter_lib import Page, form_query, map_request_to_filter, paginate
@@ -16,7 +16,7 @@ from app.errors import (
     SelfParentError,
 )
 from app.filters import CategoryFilter
-from app.models import Category
+from app.models import Category, Job
 from app.schemas import (
     CategoryInputSchema,
     CategoryORMSchema,
@@ -175,18 +175,21 @@ def recursive_subcategory_search(
 
 
 def fetch_bunch_categories_db(
-    db: Session, category_ids: Set[str], tenant: str
+    db: Session,
+    category_ids: Set[str],
+    tenant: str,
+    job_id: Optional[int] = None,
 ) -> List[Category]:
-    categories = (
-        db.query(Category)
-        .filter(
-            and_(
-                Category.id.in_(category_ids),
-                or_(Category.tenant == tenant, Category.tenant == null()),
-            )
+    categories_query = db.query(Category)
+    if job_id is not None:
+        categories_query = categories_query.join(Category.jobs)
+        categories_query.filter(Job.job_id == job_id)
+    categories = categories_query.filter(
+        and_(
+            Category.id.in_(category_ids),
+            or_(Category.tenant == tenant, Category.tenant == null()),
         )
-        .all()
-    )
+    ).all()
     wrong_categories = {
         category.id for category in categories
     }.symmetric_difference(category_ids)
@@ -199,24 +202,30 @@ def fetch_bunch_categories_db(
 CategoryIdT = str
 CategoryPathT = str
 IsLeafT = bool
-Leafs = Dict[CategoryIdT, IsLeafT]
+Leaves = Dict[CategoryIdT, IsLeafT]
 Parents = Dict[CategoryPathT, Category]
 
 
-def _get_leafs(db: Session, categories: List[Category], tenant: str) -> Leafs:
-    leafs: Leafs = {c.id: True for c in categories}
-    for child in (
-        db.query(Category)
-        .filter(
-            and_(
-                Category.parent.in_(leafs.keys()),
-                or_(Category.tenant == tenant, Category.tenant == null()),
-            )
+def _get_leaves(
+    db: Session,
+    categories: List[Category],
+    tenant: str,
+    job_id: Optional[int] = None,
+) -> Leaves:
+    leaves: Leaves = {c.id: True for c in categories}
+    categories_query = db.query(Category)
+    if job_id is not None:
+        categories_query = categories_query.join(Category.jobs)
+        categories_query.filter(Job.job_id == job_id)
+    categories_query = categories_query.filter(
+        and_(
+            Category.parent.in_(leaves.keys()),
+            or_(Category.tenant == tenant, Category.tenant == null()),
         )
-        .all()
-    ):
-        leafs[child.parent] = False
-    return leafs
+    )
+    for child in categories_query.all():
+        leaves[child.parent] = False
+    return leaves
 
 
 def _extract_category(
@@ -234,7 +243,10 @@ def _extract_category(
 
 
 def _get_parents(
-    db: Session, categories: List[Category], tenant: str
+    db: Session,
+    categories: List[Category],
+    tenant: str,
+    job_id: Optional[int] = None,
 ) -> Parents:
     path_to_category: Parents = {}
     uniq_cats = set()
@@ -245,7 +257,8 @@ def _get_parents(
         uniq_cats = uniq_cats.union({tree.path for tree in cat.tree})
 
     category_to_object = {
-        cat.id: cat for cat in fetch_bunch_categories_db(db, uniq_cats, tenant)
+        cat.id: cat
+        for cat in fetch_bunch_categories_db(db, uniq_cats, tenant, job_id)
     }
 
     for path in uniq_pathes:
@@ -255,13 +268,13 @@ def _get_parents(
 
 
 def _compose_response(
-    categories: List[Category], leafs: Leafs, parents: Parents
+    categories: List[Category], leaves: Leaves, parents: Parents
 ) -> List[CategoryResponseSchema]:
     return [
         CategoryResponseSchema.parse_obj(
             {
                 **CategoryORMSchema.from_orm(cat).dict(),
-                "is_leaf": leafs.get(cat.id, False),
+                "is_leaf": leaves.get(cat.id, False),
                 "parents": parents.get(cat.tree.path, []),
             }
         )
@@ -270,25 +283,35 @@ def _compose_response(
 
 
 def _get_child_categories(
-    db: Session, request: CategoryFilter, tenant: filter, filter_query=None
+    db: Session,
+    request: CategoryFilter,
+    tenant: str,
+    job_id: Optional[int] = None,
 ) -> Tuple:
-
-    if filter_query is None:
-        filter_query = db.query(Category).filter(
+    categories_query = db.query(Category)
+    if job_id is not None:
+        categories_query.join(Category.jobs)
+        categories_query = categories_query.filter(
+            and_(Job.job_id == job_id, Job.tenant == tenant)
+        )
+    else:
+        categories_query.filter(
             or_(Category.tenant == tenant, Category.tenant == null())
         )
 
     filter_args = map_request_to_filter(request.dict(), Category.__name__)
-    category_query, pagination = form_query(filter_args, filter_query)
+    category_query, pagination = form_query(filter_args, categories_query)
     return category_query.all(), pagination
 
 
 def filter_category_db(
-    db: Session, request: CategoryFilter, tenant: str, query_=None
+    db: Session,
+    request: CategoryFilter,
+    tenant: str,
+    job_id: Optional[int] = None,
 ) -> Page[Union[CategoryResponseSchema, str, dict]]:
-
     child_categories, pagination = _get_child_categories(
-        db, request, tenant, query_
+        db, request, tenant, job_id
     )
 
     if request.filters and "distinct" in [
@@ -299,8 +322,8 @@ def filter_category_db(
     return paginate(
         _compose_response(
             child_categories,
-            _get_leafs(db, child_categories, tenant),
-            _get_parents(db, child_categories, tenant),
+            _get_leaves(db, child_categories, tenant, job_id),
+            _get_parents(db, child_categories, tenant, job_id),
         ),
         pagination,
     )
