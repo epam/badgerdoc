@@ -1,3 +1,4 @@
+import logging
 import uuid
 from typing import Dict, List, Optional, Set, Tuple, Union
 
@@ -24,6 +25,9 @@ from app.schemas import (
 )
 
 cache = TTLCache(maxsize=128, ttl=300)
+
+
+logger = logging.getLogger(__name__)
 
 
 def insert_category_tree(
@@ -174,6 +178,12 @@ def recursive_subcategory_search(
     return child_categories
 
 
+# Turn off important check on job id
+# TODO: Remove this patch BEFORE RELEASE!!!
+# https://github.com/epam/badgerdoc/issues/2
+TEMP_PATCH_EXCLUDE_DIFF = True
+
+
 def fetch_bunch_categories_db(
     db: Session,
     category_ids: Set[str],
@@ -193,8 +203,9 @@ def fetch_bunch_categories_db(
     wrong_categories = {
         category.id for category in categories
     }.symmetric_difference(category_ids)
-    error_message = ", ".join(sorted(wrong_categories))
-    if wrong_categories:
+
+    if not TEMP_PATCH_EXCLUDE_DIFF and wrong_categories:
+        error_message = ", ".join(sorted(wrong_categories))
         raise NoSuchCategoryError(f"No such categories: {error_message}")
     return categories
 

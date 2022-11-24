@@ -1,3 +1,4 @@
+import logging
 from typing import Dict, List, Optional, Set, Union
 from uuid import UUID
 
@@ -69,6 +70,8 @@ from .services import (
     update_job_files,
     update_jobs_users,
 )
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(
     prefix="/jobs",
@@ -553,6 +556,7 @@ def search_job_categories(
             job_id,
         )
     except BadFilterFormat as error:
+        logger.exception(error)
         raise HTTPException(
             status_code=400,
             detail=f"{error}",
