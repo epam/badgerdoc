@@ -11,6 +11,12 @@ class TaxonBaseSchema(BaseModel):
     parent_id: Optional[str] = Field(None, example="null")
     taxonomy_version: Optional[int] = Field(None, example=1)
 
+    @validator("name")
+    def validate_name(cls, value):
+        if not value or value == "null":
+            raise CheckFieldError("Taxon name can not be empty.")
+        return value
+
 
 class TaxonInputSchema(TaxonBaseSchema):
     id: Optional[str] = Field(
@@ -22,7 +28,7 @@ class TaxonInputSchema(TaxonBaseSchema):
     @validator("id")
     def alphanumeric_validator(cls, value):
         if value and not value.replace("_", "").isalnum():
-            raise CheckFieldError(f"Taxon id must be alphanumeric.")
+            raise CheckFieldError("Taxon id must be alphanumeric.")
         return value
 
 

@@ -30,7 +30,8 @@ def get_taxonomy(
 
 
 def get_latest_taxonomy(
-    session: Session, taxonomy_id: str
+    session: Session,
+    taxonomy_id: str,
 ) -> Optional[Taxonomy]:
     return (
         session.query(Taxonomy)
@@ -94,7 +95,7 @@ def get_taxonomies_by_job_id(session: Session, job_id: str) -> List[Taxonomy]:
         session.query(Taxonomy)
         .filter(
             Taxonomy.id.in_(taxonomies_ids),  # type: ignore
-            Taxonomy.latest == True,
+            Taxonomy.latest == True,  # noqa E712
         )
         .all()
     )

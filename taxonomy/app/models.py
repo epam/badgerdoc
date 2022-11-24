@@ -89,3 +89,12 @@ class Taxon(Base):
         if id_ and not id_.replace("_", "").isalnum():
             raise CheckFieldError("Taxon id must be alphanumeric.")
         return id_
+
+    def to_dict(self):
+        return {
+            "name": self.name,
+            "taxonomy_id": self.taxonomy_id,
+            "parent_id": self.parent_id,
+            "taxonomy_version": self.taxonomy_version,
+            "id": self.id,
+        }

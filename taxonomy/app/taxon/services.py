@@ -5,12 +5,7 @@ from sqlalchemy import and_, func, null, or_
 from sqlalchemy.orm import Session, query
 from sqlalchemy_utils import Ltree
 
-from app.errors import (
-    CheckFieldError,
-    ForeignKeyError,
-    NoTaxonError,
-    SelfParentError,
-)
+from app.errors import CheckFieldError, NoTaxonError, SelfParentError
 from app.filters import TaxonFilter
 from app.models import Taxon
 from app.schemas import TaxonInputSchema, TaxonResponseSchema
@@ -32,6 +27,14 @@ def add_taxon_db(
     taxonomy_id = taxon_input.taxonomy_id
     taxonomy_version = taxon_input.taxonomy_version
 
+    if taxonomy_version is None:
+        taxonomy_db = get_latest_taxonomy(db, taxonomy_id)
+    else:
+        taxonomy_db = get_taxonomy(db, (taxonomy_id, taxonomy_version))
+
+    if not taxonomy_db or taxonomy_db.tenant not in [tenant, None]:
+        raise CheckFieldError("Taxonomy with this id doesn't exist.")
+
     if parent_id is not None and id_ == parent_id:
         raise SelfParentError("Taxon cannot be its own parent.")
     if id_:
@@ -40,15 +43,7 @@ def add_taxon_db(
 
     parent_db = db.query(Taxon).get(parent_id) if parent_id else None
     if parent_db and parent_db.tenant not in [tenant, None]:
-        raise ForeignKeyError("Taxon with this id doesn't exist.")
-
-    if taxonomy_version is None:
-        taxonomy_db = get_latest_taxonomy(db, taxonomy_id)
-    else:
-        taxonomy_db = get_taxonomy(db, (taxonomy_id, taxonomy_version))
-
-    if taxonomy_db and taxonomy_db.tenant not in [tenant, None]:
-        raise ForeignKeyError("Taxonomy with this id doesn't exist.")
+        raise CheckFieldError("Parent taxon with this id doesn't exist.")
 
     if parent_db and parent_db.tree:
         tree = Ltree(f"{parent_db.tree.path}.{taxon_input.id}")
@@ -165,7 +160,7 @@ def update_taxon_db(
     parent_db = db.query(Taxon).get(new_parent_id) if new_parent_id else None
 
     if parent_db and parent_db.tenant not in [tenant, None]:
-        raise ForeignKeyError("Taxon with this parent_id doesn't exist.")
+        raise CheckFieldError("Taxon with this parent_id doesn't exist.")
 
     name = (update_query["name"],)
     check_unique = (
