@@ -9,9 +9,6 @@ there are necessary tenants in token.
 """
 from tenant_dependency import TenantData
 
-from app.main import app
-from app.token_dependency import TOKEN
-
 HEADER_TENANT = "X-Current-Tenant"
 TEST_TOKEN = "token"
 TEST_TENANTS = "test", "other_tenant"
