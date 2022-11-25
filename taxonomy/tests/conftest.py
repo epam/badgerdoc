@@ -85,7 +85,7 @@ def taxonomy_input_data():
 @pytest.fixture
 def taxon_input_data(prepared_taxonomy_record_in_db):
     return {
-        "id_": None,
+        "id": None,
         "name": uuid4().hex,
         "taxonomy_id": prepared_taxonomy_record_in_db.id,
         "parent_id": None,
@@ -100,6 +100,28 @@ def prepared_taxonomy_record_in_db(
     return taxonomy_services.create_taxonomy_instance(
         db_session,
         TEST_TENANTS[0],
+        TaxonomyInputSchema(**taxonomy_input_data),
+        {"version": 1, "latest": True},
+    )
+
+
+@pytest.fixture
+def prepare_common_tenant_taxonomy(db_session, taxonomy_input_data):
+    taxonomy_input_data["id"] = "bcda"
+    return taxonomy_services.create_taxonomy_instance(
+        db_session,
+        None,
+        TaxonomyInputSchema(**taxonomy_input_data),
+        {"version": 1, "latest": True},
+    )
+
+
+@pytest.fixture
+def prepare_other_tenant_taxonomy(db_session, taxonomy_input_data):
+    taxonomy_input_data["id"] = "abcd"
+    return taxonomy_services.create_taxonomy_instance(
+        db_session,
+        TEST_TENANTS[1],
         TaxonomyInputSchema(**taxonomy_input_data),
         {"version": 1, "latest": True},
     )
@@ -184,3 +206,81 @@ def prepare_three_taxons_parent_each_other(
         )
         for taxon in [first_taxon, second_taxon, third_taxon]
     ]
+
+
+@pytest.fixture
+def prepared_taxon_hierarchy(taxon_input_data, db_session) -> List[Taxon]:
+    """
+    Implement following structure:
+        Europe.West.Germany.Hessen.Frankfurt.Sachsenhausen.Bahnhof
+        Europe.West.Italy.Genoa.Castelletto
+        Asia.South.China.Macao.Island.Macau_tower
+    """
+
+    path_1 = "Europe.West.Germany.Hessen.Frankfurt.Bahnhof".split(".")
+    path_2 = "Europe.West.Italy.Genoa.District12.Street12".split(".")
+    path_3 = "Asia.South.China.Mokao.Island.Macau_tower".split(".")
+
+    seen = set()
+    taxon_input_dataset = []
+    for path in (path_1, path_2, path_3):
+        for step in range(len(path)):
+            if path[step] in seen:
+                continue
+            seen.add(path[step])
+
+            if step == 0:
+                parent_id = None
+            else:
+                parent_id = path[step - 1]
+
+            taxon_data = taxon_input_data.copy()
+            taxon_data["parent_id"] = parent_id
+            taxon_data["id"] = path[step]
+            taxon_data["name"] = path[step]
+            taxon_input_dataset.append(taxon_data)
+
+    taxons = [
+        taxon_services.add_taxon_db(
+            db_session,
+            TaxonInputSchema(**taxon),
+            TEST_TENANTS[0],
+        )
+        for taxon in taxon_input_dataset
+    ]
+    yield taxons
+    # todo rework function to delete only needed items to avoid impact for
+    #  other testcases in parallel run.
+    clear_db()
+
+
+@pytest.fixture
+def other_tenants_taxon(db_session, prepare_other_tenant_taxonomy):
+    input_data = {
+        "id": "madagascar",
+        "name": "madagascar",
+        "taxonomy_id": prepare_other_tenant_taxonomy.id,
+        "parent_id": None,
+        "taxonomy_version": prepare_other_tenant_taxonomy.version,
+    }
+    yield taxon_services.add_taxon_db(
+        db_session,
+        TaxonInputSchema(**input_data),
+        TEST_TENANTS[1],
+    )
+
+
+@pytest.fixture
+def common_taxon(db_session, prepare_common_tenant_taxonomy):
+    input_data = {
+        "id": "australia",
+        "name": "australia",
+        "taxonomy_id": prepare_common_tenant_taxonomy.id,
+        "parent_id": None,
+        "taxonomy_version": prepare_common_tenant_taxonomy.version,
+    }
+    yield taxon_services.add_taxon_db(
+        db_session,
+        TaxonInputSchema(**input_data),
+        None,
+    )

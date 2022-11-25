@@ -1,6 +1,6 @@
 import uuid
 from copy import deepcopy
-from typing import List, Optional
+from typing import Any, List, Optional
 
 import pytest
 
@@ -24,6 +24,39 @@ def prepare_taxon_body(
         "id": id_,
     }
     return {key: body[key] for key in sorted(body)}
+
+
+def prepare_filtration_body(
+    page_num: Optional[int] = 1,
+    page_size: Optional[int] = 15,
+    field: Optional[str] = "id",
+    operator: Optional[str] = "eq",
+    value: Optional[Any] = 1,
+    direction: Optional[str] = "asc",
+    no_filtration: Optional[bool] = False,
+) -> dict:
+    body = {
+        "pagination": {
+            "page_num": page_num,
+            "page_size": page_size,
+        },
+        "filters": [
+            {
+                "field": field,
+                "operator": operator,
+                "value": value,
+            }
+        ],
+        "sorting": [
+            {
+                "field": "id",
+                "direction": direction,
+            }
+        ],
+    }
+    if no_filtration:
+        body.pop("filters")
+    return body
 
 
 def response_schema_from_request(
@@ -374,3 +407,111 @@ def test_delete_taxon_does_not_exist(
         "Cannot delete taxon that doesn't exist"
         in delete_response.json()["detail"]
     )
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize(
+    ["page_num", "page_size", "result_length"],
+    [(1, 15, 15), (2, 15, 1), (3, 15, 0), (1, 30, 16)],
+)
+def test_search_pagination_should_work(
+    page_num,
+    page_size,
+    result_length,
+    overrided_token_client,
+    prepared_taxon_hierarchy,
+    other_tenants_taxon,
+):
+    # given
+    search_request_data = prepare_filtration_body(
+        page_num=page_num, page_size=page_size, no_filtration=True
+    )
+    # when
+    response = overrided_token_client.post(
+        f"{TAXON_PATH}/search", json=search_request_data, headers=TEST_HEADER
+    )
+    # then
+    assert response
+    assert response.status_code == 200
+
+    categories = response.json()["data"]
+    pagination = response.json()["pagination"]
+    assert response.status_code == 200
+    assert pagination["total"] == 16
+    assert pagination["page_num"] == page_num
+    assert pagination["page_size"] == page_size
+    assert len(categories) == result_length
+
+
+@pytest.mark.integration
+def test_search_result_should_be_empty_if_taxon_not_exists(
+    overrided_token_client,
+    prepared_taxon_hierarchy,
+    other_tenants_taxon,
+):
+    # given
+    search_request_data = prepare_filtration_body(value="antarctica")
+    # when
+    response = overrided_token_client.post(
+        f"{TAXON_PATH}/search", json=search_request_data, headers=TEST_HEADER
+    )
+    # then
+    assert response
+    assert response.status_code == 200
+
+    categories = response.json()["data"]
+    total = response.json()["pagination"]["total"]
+    assert not categories
+    assert not total
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize(
+    ["taxon_id", "expected_total"],
+    (
+        ("madagascar", 0),
+        ("australia", 1),
+    ),
+)
+def test_search_should_return_only_allowed_taxon_for_current_tenant(
+    taxon_id,
+    expected_total,
+    overrided_token_client,
+    prepared_taxon_hierarchy,
+    common_taxon,
+    other_tenants_taxon,
+):
+    # given
+    search_request_data = prepare_filtration_body(value=taxon_id)
+    # when
+    response = overrided_token_client.post(
+        f"{TAXON_PATH}/search", json=search_request_data, headers=TEST_HEADER
+    )
+    # then
+    assert response
+    assert response.status_code == 200
+
+    total = response.json()["pagination"]["total"]
+    assert total == expected_total
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize(
+    ["operator", "value", "expected"],
+    [("like", "%G%", 2), ("like", "%D%1_", 1), ("ilike", "%D%1_", 1)],
+)
+def test_search_filter_name_like(
+    operator, value, expected, prepared_taxon_hierarchy, overrided_token_client
+):
+    # given
+    search_request_data = prepare_filtration_body(
+        field="name", operator=operator, value=value
+    )
+    # when
+    response = overrided_token_client.post(
+        f"{TAXON_PATH}/search", json=search_request_data, headers=TEST_HEADER
+    )
+    # then
+    assert response
+    taxons = response.json()["data"]
+    assert len(taxons) == expected

@@ -1,4 +1,4 @@
-from typing import Dict, List, Set, Tuple, Union
+from typing import Dict, List, Optional, Set, Tuple, Union
 
 from filter_lib import Page, form_query, map_request_to_filter, paginate
 from sqlalchemy import and_, func, null, or_
@@ -19,7 +19,7 @@ Parents = Dict[TaxonPathT, Taxon]
 
 
 def add_taxon_db(
-    db: Session, taxon_input: TaxonInputSchema, tenant: str
+    db: Session, taxon_input: TaxonInputSchema, tenant: Optional[str]
 ) -> Taxon:
     name = taxon_input.name
     id_ = taxon_input.id
@@ -96,7 +96,9 @@ def is_taxon_leaf(db: Session, taxon_input: Taxon, tenant: str) -> bool:
 def set_parents_is_leaf(
     taxon_db: Taxon,
     is_leaf: bool = False,
-    parents: List[TaxonResponseSchema] = [],
+    parents: List[
+        TaxonResponseSchema
+    ] = [],  # todo: remove default mutable argument
 ) -> TaxonResponseSchema:
     taxon_response = TaxonResponseSchema.from_orm(taxon_db)
     taxon_response.is_leaf = is_leaf

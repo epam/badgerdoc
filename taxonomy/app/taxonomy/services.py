@@ -9,7 +9,7 @@ from app.schemas import TaxonomyBaseSchema, TaxonomyInputSchema
 
 def create_taxonomy_instance(
     session: Session,
-    tenant: str,
+    tenant: Optional[str],
     args: TaxonomyInputSchema,
     taxonomy_args: Dict[str, Union[int, bool]] = None,
 ) -> Taxonomy:
