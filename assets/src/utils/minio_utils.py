@@ -6,18 +6,31 @@ import minio.error
 import pdf2image.exceptions
 import PIL.Image
 import urllib3.exceptions
+from minio.credentials import AWSConfigProvider
 
 from src import db, logger
 from src.config import settings
 
 logger_ = logger.get_logger(__name__)
 
-MinioClient = minio.Minio(
-    endpoint=settings.endpoint,
-    access_key=settings.minio_access_key,
-    secret_key=settings.minio_secret_key,
-    secure=False,
-)
+minio_config = {
+    "endpoint": settings.s3_endpoint,
+    "secure": settings.minio_secure_connection,
+}
+if settings.aws_profile_name is not None:
+    # 'minio' library is used to connect with AWS S3
+    minio_config.update(
+        {"credentials": AWSConfigProvider(profile=settings.aws_profile_name)}
+    )
+else:
+    # 'minio' library is used to connect with Minio service locally
+    minio_config.update(
+        {
+            "access_key": settings.s3_access_key,
+            "secret_key": settings.s3_secret_key,
+        }
+    )
+MinioClient = minio.Minio(**minio_config)
 
 
 def get_storage() -> minio.Minio:
