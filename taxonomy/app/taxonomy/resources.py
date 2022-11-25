@@ -53,7 +53,6 @@ def create_new_taxonomy(
         raise HTTPException(
             status_code=400, detail="Header x-current-tenant is required"
         )
-    # todo taxonomy_id is defined somewhere outside?
     latest_taxonomy = get_latest_taxonomy(session, taxonomy.id)
     if latest_taxonomy:
         LOGGER.info(

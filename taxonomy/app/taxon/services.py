@@ -95,11 +95,11 @@ def is_taxon_leaf(db: Session, taxon_input: Taxon, tenant: str) -> bool:
 
 def set_parents_is_leaf(
     taxon_db: Taxon,
+    parents: List[TaxonResponseSchema] = None,
     is_leaf: bool = False,
-    parents: List[
-        TaxonResponseSchema
-    ] = [],  # todo: remove default mutable argument
 ) -> TaxonResponseSchema:
+    if parents is None:
+        parents = []
     taxon_response = TaxonResponseSchema.from_orm(taxon_db)
     taxon_response.is_leaf = is_leaf
     taxon_response.parents = parents

@@ -44,6 +44,7 @@ def test_create_taxonomy_should_work(overrided_token_client, db_session):
 def test_create_new_taxonomy_with_same_id_should_update_version(
     overrided_token_client, db_session
 ):
+    # given
     input_data = {
         "id": "321",
         "category_id": "321",
@@ -203,6 +204,7 @@ def test_should_delete_latest_taxonomy_from_db(
     taxonomy_orm_object,
     db_session,
 ):
+    # given
     new_latest_taxonomy, taxonomy_to_delete, = sorted(
         prepare_two_taxonomy_records_with_same_id_in_db,
         key=lambda x: x.version,

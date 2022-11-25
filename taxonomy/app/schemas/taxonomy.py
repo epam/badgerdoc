@@ -25,4 +25,6 @@ class TaxonomyResponseSchema(TaxonomyInputSchema):
 
 
 class JobIdSchema(BaseModel):
-    id: str = Field(..., example="123abc")
+    id: str = Field(
+        ..., example="123abc", description="Job id to link taxonomy to"
+    )
