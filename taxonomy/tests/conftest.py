@@ -1,6 +1,6 @@
 import contextlib
 from copy import deepcopy
-from typing import List, Tuple
+from typing import Generator, List, Tuple
 from uuid import uuid4
 
 import pytest
@@ -24,7 +24,7 @@ def client() -> TestClient:
 
 
 @pytest.fixture
-def overrided_token_client(client) -> TestClient:
+def overrided_token_client(client) -> Generator[TestClient, None, None]:
     app.dependency_overrides[TOKEN] = override
     yield client
     app.dependency_overrides[TOKEN] = TOKEN
@@ -55,7 +55,7 @@ def close_session(gen):
 
 
 @pytest.fixture(scope="module")
-def db_session() -> Session:
+def db_session() -> Generator[Session, None, None]:
     """Creates all tables on setUp, yields SQLAlchemy session and removes
     tables on tearDown.
     """
@@ -209,7 +209,9 @@ def prepare_three_taxons_parent_each_other(
 
 
 @pytest.fixture
-def prepared_taxon_hierarchy(taxon_input_data, db_session) -> List[Taxon]:
+def prepared_taxon_hierarchy(
+    taxon_input_data, db_session
+) -> Generator[List[Taxon], None, None]:
     """
     Implement following structure:
         Europe.West.Germany.Hessen.Frankfurt.Sachsenhausen.Bahnhof

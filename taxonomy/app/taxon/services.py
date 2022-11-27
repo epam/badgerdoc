@@ -2,7 +2,8 @@ from typing import Dict, List, Optional, Set, Tuple, Union
 
 from filter_lib import Page, form_query, map_request_to_filter, paginate
 from sqlalchemy import and_, func, null, or_
-from sqlalchemy.orm import Session, query
+from sqlalchemy.orm import Session
+from sqlalchemy.orm.query import Query
 from sqlalchemy_utils import Ltree
 
 from app.errors import CheckFieldError, NoTaxonError, SelfParentError
@@ -13,8 +14,7 @@ from app.taxonomy.services import get_latest_taxonomy, get_taxonomy
 
 TaxonIdT = str
 TaxonPathT = str
-IsLeafT = bool
-Leafs = Dict[TaxonIdT, IsLeafT]
+Leafs = Dict[TaxonIdT, bool]
 Parents = Dict[TaxonPathT, Taxon]
 
 
@@ -95,7 +95,7 @@ def is_taxon_leaf(db: Session, taxon_input: Taxon, tenant: str) -> bool:
 
 def set_parents_is_leaf(
     taxon_db: Taxon,
-    parents: List[TaxonResponseSchema] = None,
+    parents: Optional[List[TaxonResponseSchema]] = None,
     is_leaf: bool = False,
 ) -> TaxonResponseSchema:
     if parents is None:
@@ -197,7 +197,7 @@ def delete_taxon_db(db: Session, taxon_id: str, tenant: str) -> None:
 
 
 def check_unique_taxon_field(
-    db: Session, value: str, field: str, tenant: str
+    db: Session, value: str, field: str, tenant: Optional[str]
 ) -> None:
     check_unique = db.query(
         db.query(Taxon)
@@ -226,7 +226,7 @@ def _get_leafs(db: Session, taxons: List[Taxon], tenant: str) -> Leafs:
 
 
 def _get_obj_from_request(
-    db: Session, request: TaxonFilter, tenant: filter, filter_query=None
+    db: Session, request: TaxonFilter, tenant: str, filter_query=None
 ) -> Tuple:
 
     if filter_query is None:
@@ -304,7 +304,7 @@ def filter_taxons(
     db: Session,
     request: TaxonFilter,
     tenant: str,
-    query: query = None,
+    query: Optional[Query] = None,
 ) -> Page[Union[TaxonResponseSchema, str, dict]]:
     taxons_request, pagination = _get_obj_from_request(
         db, request, tenant, query

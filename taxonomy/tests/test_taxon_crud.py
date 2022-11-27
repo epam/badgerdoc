@@ -430,10 +430,8 @@ def test_search_pagination_should_work(
     response = overrided_token_client.post(
         f"{TAXON_PATH}/search", json=search_request_data, headers=TEST_HEADER
     )
-    # then
-    assert response
-    assert response.status_code == 200
 
+    # TODO: Fix weird bug
     categories = response.json()["data"]
     pagination = response.json()["pagination"]
     assert response.status_code == 200
@@ -515,3 +513,107 @@ def test_search_filter_name_like(
     assert response
     taxons = response.json()["data"]
     assert len(taxons) == expected
+
+
+@pytest.mark.integration
+def test_search_children_tree(
+    overrided_token_client,
+    prepare_three_taxons_parent_each_other,
+):
+    root = prepare_three_taxons_parent_each_other[0]
+    second = prepare_three_taxons_parent_each_other[1]
+
+    search_request_data = prepare_filtration_body(
+        field="tree", operator="children", value=root.id
+    )
+
+    response = overrided_token_client.post(
+        f"{TAXON_PATH}/search",
+        json=search_request_data,
+        headers=TEST_HEADER,
+    )
+    assert response.status_code == 200
+    taxons = response.json()["data"]
+    child = taxons[0]
+
+    assert len(taxons) == 1
+    assert child == response_schema_from_request(
+        second.to_dict(),
+        parents=[response_schema_from_request(root.to_dict(), is_leaf=False)],
+        is_leaf=False,
+    )
+
+
+@pytest.mark.integration
+def test_search_children_recursive_tree(
+    overrided_token_client,
+    prepare_three_taxons_parent_each_other,
+):
+    root, second, third = prepare_three_taxons_parent_each_other
+
+    search_request_data = prepare_filtration_body(
+        field="tree", operator="children_recursive", value=root.id
+    )
+
+    response = overrided_token_client.post(
+        f"{TAXON_PATH}/search",
+        json=search_request_data,
+        headers=TEST_HEADER,
+    )
+    assert response.status_code == 200
+    taxons = response.json()["data"]
+    child_1 = taxons[0]
+    child_2 = taxons[1]
+
+    assert len(taxons) == 2
+
+    parents = []
+
+    for node in [root, second]:
+        parents.append(
+            response_schema_from_request(
+                node.to_dict(),
+                parents=[],
+                is_leaf=False,
+            )
+        )
+
+    assert child_1 == response_schema_from_request(
+        second.to_dict(), parents=[parents[0]], is_leaf=False
+    )
+    assert child_2 == response_schema_from_request(
+        third.to_dict(), parents=parents, is_leaf=True
+    )
+
+
+@pytest.mark.integration
+def test_search_parents_recursive_tree(
+    overrided_token_client,
+    prepare_three_taxons_parent_each_other,
+):
+    root, second, third = prepare_three_taxons_parent_each_other
+
+    search_request_data = prepare_filtration_body(
+        field="tree", operator="parents_recursive", value=third.id
+    )
+
+    response = overrided_token_client.post(
+        f"{TAXON_PATH}/search",
+        json=search_request_data,
+        headers=TEST_HEADER,
+    )
+    assert response.status_code == 200
+    taxons = response.json()["data"]
+    parent_1 = taxons[0]
+    parent_2 = taxons[1]
+
+    assert len(taxons) == 2
+
+    assert parent_1 == response_schema_from_request(
+        root.to_dict(), is_leaf=False
+    )
+    assert parent_2 == response_schema_from_request(
+        second.to_dict(),
+        parents=[response_schema_from_request(root.to_dict(), is_leaf=False)],
+        is_leaf=False,
+    )
