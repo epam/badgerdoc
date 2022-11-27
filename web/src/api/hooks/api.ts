@@ -10,7 +10,7 @@ type BadgerFetchOptions = {
     plainHeaders?: boolean;
     isBlob?: boolean;
 };
-type BadgerFetchBody =
+export type BadgerFetchBody =
     | ReadableStream
     | Blob
     | ArrayBufferView

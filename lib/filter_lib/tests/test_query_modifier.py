@@ -1,13 +1,13 @@
-from .conftest import User, Address, Category
-from ..src.query_modificator import (
-    _get_entity,
-    _get_column,
-    _create_filter,
-    form_query,
-    _op_is_not,
-    _create_or_condition,
-)
 from ..src.enum_generator import get_enum_from_orm
+from ..src.query_modificator import (
+    _create_filter,
+    _create_or_condition,
+    _get_column,
+    _get_entity,
+    _op_is_not,
+    form_query,
+)
+from .conftest import Address, Category, User
 
 
 def test_get_entity(get_session):
@@ -41,20 +41,20 @@ def test_create_filter_ltree_parent(get_session):
     session = get_session
 
     query = session.query(Category)
-    spec = {"model": "Category", "field": "path", "op": "parent", "value": 2}
+    spec = {"model": "Category", "field": "tree", "op": "parent", "value": 2}
 
     # Act
     query = _create_filter(query, spec)
 
     expected_sql_str = (
-        "SELECT categories.id, categories.path \n"
+        "SELECT categories.id, categories.tree \n"
         "FROM categories, "
-        "(SELECT categories.path AS path \n"
+        "(SELECT categories.tree AS tree \n"
         "FROM categories \n"
         "WHERE categories.id = :id_1) AS anon_1 \n"
-        "WHERE subpath(categories.path, :subpath_1, nlevel(anon_1.path) - :nlevel_1) = categories.path "
-        "AND index(anon_1.path, categories.path) != :index_1 "
-        "ORDER BY categories.path DESC\n"
+        "WHERE subpath(categories.tree, :subpath_1, nlevel(anon_1.tree) - :nlevel_1) = categories.tree "
+        "AND index(anon_1.tree, categories.tree) != :index_1 "
+        "ORDER BY categories.tree DESC\n"
         " LIMIT :param_1"
     )
 
@@ -78,7 +78,7 @@ def test_create_filter_ltree_parents_recursive(get_session):
     query = session.query(Category)
     spec = {
         "model": "Category",
-        "field": "path",
+        "field": "tree",
         "op": "parents_recursive",
         "value": 2,
     }
@@ -87,14 +87,14 @@ def test_create_filter_ltree_parents_recursive(get_session):
     query = _create_filter(query, spec)
 
     expected_sql_str = (
-        "SELECT categories.id, categories.path \n"
+        "SELECT categories.id, categories.tree \n"
         "FROM categories, "
-        "(SELECT categories.path AS path \n"
+        "(SELECT categories.tree AS tree \n"
         "FROM categories \n"
         "WHERE categories.id = :id_1) AS anon_1 \n"
-        "WHERE nlevel(anon_1.path) != nlevel(categories.path) "
-        "AND index(anon_1.path, categories.path) != :index_1 "
-        "ORDER BY categories.path"
+        "WHERE nlevel(anon_1.tree) != nlevel(categories.tree) "
+        "AND index(anon_1.tree, categories.tree) != :index_1 "
+        "ORDER BY categories.tree"
     )
 
     compiled_statement = query.statement.compile()
@@ -111,7 +111,7 @@ def test_create_filter_ltree_children(get_session):
     query = session.query(Category)
     spec = {
         "model": "Category",
-        "field": "path",
+        "field": "tree",
         "op": "children",
         "value": 2,
     }
@@ -120,13 +120,13 @@ def test_create_filter_ltree_children(get_session):
     query = _create_filter(query, spec)
 
     expected_sql_str = (
-        "SELECT categories.id, categories.path \n"
+        "SELECT categories.id, categories.tree \n"
         "FROM categories, "
-        "(SELECT categories.path AS path \n"
+        "(SELECT categories.tree AS tree \n"
         "FROM categories \n"
         "WHERE categories.id = :id_1) AS anon_1 \n"
-        "WHERE nlevel(categories.path) = nlevel(anon_1.path) + :nlevel_1 "
-        "ORDER BY categories.path"
+        "WHERE nlevel(categories.tree) = nlevel(anon_1.tree) + :nlevel_1 "
+        "ORDER BY categories.tree"
     )
 
     compiled_statement = query.statement.compile()
@@ -143,7 +143,7 @@ def test_create_filter_ltree_children_recursive(get_session):
     query = session.query(Category)
     spec = {
         "model": "Category",
-        "field": "path",
+        "field": "tree",
         "op": "children_recursive",
         "value": 2,
     }
@@ -152,13 +152,13 @@ def test_create_filter_ltree_children_recursive(get_session):
     query = _create_filter(query, spec)
 
     expected_sql_str = (
-        "SELECT categories.id, categories.path \n"
+        "SELECT categories.id, categories.tree \n"
         "FROM categories, "
-        "(SELECT categories.path AS path \n"
+        "(SELECT categories.tree AS tree \n"
         "FROM categories \n"
         "WHERE categories.id = :id_1) AS anon_1 \n"
-        "WHERE nlevel(categories.path) > nlevel(anon_1.path) "
-        "ORDER BY categories.path"
+        "WHERE nlevel(categories.tree) > nlevel(anon_1.tree) "
+        "ORDER BY categories.tree"
     )
 
     compiled_statement = query.statement.compile()
@@ -175,7 +175,7 @@ def test_create_filter_ltree_not_supported_operation(get_session):
     query = session.query(Category)
     spec = {
         "model": "Category",
-        "field": "path",
+        "field": "tree",
         "op": "not_supported_operation",
         "value": 2,
     }
@@ -184,7 +184,7 @@ def test_create_filter_ltree_not_supported_operation(get_session):
     query = _create_filter(query, spec)
 
     expected_sql_str = (
-        "SELECT categories.id, categories.path \nFROM categories"
+        "SELECT categories.id, categories.tree \nFROM categories"
     )
 
     compiled_statement = query.statement.compile()

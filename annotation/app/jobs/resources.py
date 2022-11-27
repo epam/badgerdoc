@@ -1,3 +1,4 @@
+import logging
 from typing import Dict, List, Optional, Set, Union
 from uuid import UUID
 
@@ -14,11 +15,14 @@ from filter_lib import Page
 from sqlalchemy import and_
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.expression import func, or_
+from sqlalchemy_filters.exceptions import BadFilterFormat
 from tenant_dependency import TenantData
 
+import app.categories.services
 from app.categories import fetch_bunch_categories_db
 from app.database import get_db
 from app.distribution import distribute
+from app.filters import CategoryFilter
 from app.microservice_communication.assets_communication import get_files_info
 from app.microservice_communication.jobs_communication import (
     JobUpdateException,
@@ -66,6 +70,8 @@ from .services import (
     update_job_files,
     update_jobs_users,
 )
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(
     prefix="/jobs",
@@ -488,11 +494,12 @@ def get_users_for_job(
     ]
 
 
+# Get categories for job_id, each entity requires children/parents
 @router.get(
     "/{job_id}/categories",
     status_code=status.HTTP_200_OK,
     tags=[JOBS_TAG],
-    response_model=Page[CategoryResponseSchema],
+    response_model=Page[Union[CategoryResponseSchema, str, dict]],
     summary="Get list of categories for provided job_id",
     responses={
         404: {"model": NotFoundErrorSchema},
@@ -504,7 +511,7 @@ def fetch_job_categories(
     page_num: Optional[int] = Query(1, ge=1, example=1),
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
     db: Session = Depends(get_db),
-) -> Page[CategoryResponseSchema]:
+) -> Page[Union[CategoryResponseSchema, str, dict]]:
     """Returns list of categories for provided job_id. Supports pagination"""
     get_job(db, job_id, x_current_tenant)
     categories_query = (
@@ -517,7 +524,44 @@ def fetch_job_categories(
             )
         )
     )
-    return filter_job_categories(categories_query, page_size, page_num)
+    return filter_job_categories(db, categories_query, page_size, page_num)
+
+
+@router.post(
+    "/{job_id}/categories/search",
+    status_code=status.HTTP_200_OK,
+    tags=[JOBS_TAG],
+    response_model=Page[Union[CategoryResponseSchema, str, dict]],
+    summary="Search categories for provided job_id",
+    responses={
+        404: {"model": NotFoundErrorSchema},
+    },
+)
+def search_job_categories(
+    request: CategoryFilter,
+    job_id: int = Path(..., example=1),
+    x_current_tenant: str = X_CURRENT_TENANT_HEADER,
+    db: Session = Depends(get_db),
+) -> Page[Union[CategoryResponseSchema, str, dict]]:
+    """
+    Searches and returns categories data according to search request parameters
+    filters for the given {job_id}. Supports pagination and ordering.
+    """
+    get_job(db, job_id, x_current_tenant)
+    try:
+        task_response = app.categories.services.filter_category_db(
+            db,
+            request,
+            x_current_tenant,
+            job_id,
+        )
+    except BadFilterFormat as error:
+        logger.exception(error)
+        raise HTTPException(
+            status_code=400,
+            detail=f"{error}",
+        )
+    return task_response
 
 
 @router.get(
