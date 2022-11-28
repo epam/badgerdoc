@@ -192,8 +192,9 @@ def fetch_bunch_categories_db(
 ) -> List[Category]:
     categories_query = db.query(Category)
     if job_id is not None:
-        categories_query = categories_query.join(Category.jobs)
-        categories_query.filter(Job.job_id == job_id)
+        categories_query = categories_query.join(Category.jobs).filter(
+            Job.job_id == job_id
+        )
     categories = categories_query.filter(
         and_(
             Category.id.in_(category_ids),
@@ -226,8 +227,9 @@ def _get_leaves(
     leaves: Leaves = {c.id: True for c in categories}
     categories_query = db.query(Category)
     if job_id is not None:
-        categories_query = categories_query.join(Category.jobs)
-        categories_query.filter(Job.job_id == job_id)
+        categories_query = categories_query.join(Category.jobs).filter(
+            Job.job_id == job_id
+        )
     categories_query = categories_query.filter(
         and_(
             Category.parent.in_(leaves.keys()),
@@ -301,12 +303,11 @@ def _get_child_categories(
 ) -> Tuple:
     categories_query = db.query(Category)
     if job_id is not None:
-        categories_query.join(Category.jobs)
-        categories_query = categories_query.filter(
+        categories_query = categories_query.join(Category.jobs).filter(
             and_(Job.job_id == job_id, Job.tenant == tenant)
         )
     else:
-        categories_query.filter(
+        categories_query = categories_query.filter(
             or_(Category.tenant == tenant, Category.tenant == null())
         )
 
