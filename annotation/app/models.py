@@ -122,9 +122,7 @@ class Category(Base):
         "Job", secondary=association_job_category, back_populates="categories"
     )
     tree = Column(LtreeType, nullable=True)
-    __table_args__ = (
-        Index('index_tree', tree, postgresql_using="gist"),
-    )
+    __table_args__ = (Index("index_tree", tree, postgresql_using="gist"),)
 
 
 class User(Base):

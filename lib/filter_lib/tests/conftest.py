@@ -1,12 +1,9 @@
 import pytest
-
 import sqlalchemy as sa
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, relationship
-
-from sqlalchemy_utils import LtreeType
-
 from sqlalchemy.dialects.sqlite.base import SQLiteTypeCompiler
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship, sessionmaker
+from sqlalchemy_utils import LtreeType
 
 Base = declarative_base()
 

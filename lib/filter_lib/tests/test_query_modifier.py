@@ -1,13 +1,13 @@
-from .conftest import User, Address, Category
-from ..src.query_modificator import (
-    _get_entity,
-    _get_column,
-    _create_filter,
-    form_query,
-    _op_is_not,
-    _create_or_condition,
-)
 from ..src.enum_generator import get_enum_from_orm
+from ..src.query_modificator import (
+    _create_filter,
+    _create_or_condition,
+    _get_column,
+    _get_entity,
+    _op_is_not,
+    form_query,
+)
+from .conftest import Address, Category, User
 
 
 def test_get_entity(get_session):

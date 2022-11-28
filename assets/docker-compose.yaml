@@ -5,6 +5,9 @@ services:
     image: 'bitnami/minio:latest'
     ports:
       - '9000:9000'
+    environment:
+        - MINIO_ROOT_USER=${S3_ACCESS_KEY}
+        - MINIO_ROOT_PASSWORD=${S3_SECRET_KEY}
     env_file:
       - .env
 
