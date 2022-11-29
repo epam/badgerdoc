@@ -1,5 +1,5 @@
 import os
-from typing import Union
+from typing import Union, Optional
 
 import requests
 from dotenv import load_dotenv, find_dotenv
@@ -26,19 +26,24 @@ def link_category_with_taxonomy(
     taxonomy_id: str,
     tenant: str,
     token: str,
+    taxonomy_version: Optional[int] = None,
 ):
+    response_budy = {
+        "category_id": category_id,
+        "taxonomy_id": taxonomy_id,
+    }
+    if taxonomy_version is not None:
+        response_budy["taxonomy_version"] = taxonomy_version
     try:
         response = requests.post(
-            "{url}/taxonomy/{taxonomy_id}/link_category".format(
+            "{url}/link_category".format(
                 url=TAXONOMY_URL, taxonomy_id=taxonomy_id
             ),
             headers={
                 HEADER_TENANT: tenant,
                 AUTHORIZATION: f"{BEARER} {token}",
             },
-            json={
-                "category_id": category_id,
-            },
+            json=response_budy,
             timeout=5,
         )
         if response.status_code != 201:

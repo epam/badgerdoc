@@ -341,7 +341,7 @@ def test_add_id_is_generated(
     data = prepare_category_body(
         id_="1213",
         name="taxonomy_12",
-        data_attributes=[{"taxonomy": "123"}],
+        data_attributes=[{"taxonomy_id": "123"}, {"taxonomy_version": 1}],
     )
     response = client.post(CATEGORIES_PATH, json=data, headers=TEST_HEADERS)
     assert response
