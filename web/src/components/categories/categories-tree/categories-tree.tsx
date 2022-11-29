@@ -4,15 +4,10 @@ import Tree from 'rc-tree';
 import React, { FC, useCallback, useEffect, useState } from 'react';
 import './rc-tree.scss';
 import styles from './categories-tree.module.scss';
-import { EventDataNode } from 'rc-tree/lib/interface';
-import classNames from 'classnames';
 
 interface CategoriesTreeProps {
     categoriesHeight: number;
     categoryNodes: CategoryNode[];
-    onLoadData: (treeNode: EventDataNode<CategoryNode>) => Promise<any>;
-    expandNode?: string;
-    defaultExpand: boolean;
     selectedCategory?: Category;
     onCategorySelected: (category: Category) => void;
     selectedHotKeys: string[];
@@ -23,10 +18,6 @@ const itemHeight = 24;
 export const CategoriesTree: FC<CategoriesTreeProps> = ({
     categoriesHeight,
     categoryNodes,
-    onLoadData,
-    expandNode,
-    defaultExpand,
-    selectedCategory,
     onCategorySelected,
     selectedHotKeys
 }) => {
@@ -38,35 +29,27 @@ export const CategoriesTree: FC<CategoriesTreeProps> = ({
         }
     }, [selectedHotKeys]);
 
-    const titleRenderer = useCallback(
-        (node: CategoryNode) => {
-            const boxStyle = {
-                border: `1px solid ${node.category.metadata?.color}`
-            };
-            const selectedStyle =
-                node.category.id === selectedCategory?.id ? 'rc-tree-treenode-selected' : '';
-            return (
-                <div
-                    style={{ color: node.category.metadata?.color }}
-                    className={styles.categoryWrapper}
-                >
-                    {node.hotKey && (
-                        <div className={styles.hotkey} style={boxStyle}>
-                            {node.hotKey.toUpperCase()}
-                        </div>
-                    )}
-                    <div
-                        style={{ color: node.category.metadata?.color }}
-                        className={styles.category}
-                    >
-                        {node.title}
+    const titleRenderer = useCallback((node: CategoryNode) => {
+        const boxStyle = {
+            border: `1px solid ${node.category.metadata?.color}`
+        };
+
+        return (
+            <div
+                style={{ color: node.category.metadata?.color }}
+                className={styles.categoryWrapper}
+            >
+                {node.hotKey && (
+                    <div className={styles.hotkey} style={boxStyle}>
+                        {node.hotKey.toUpperCase()}
                     </div>
-                    {expandNode === node.key && <Spinner color="sky" />}
+                )}
+                <div style={{ color: node.category.metadata?.color }} className={styles.category}>
+                    {node.title}
                 </div>
-            );
-        },
-        [expandNode]
-    );
+            </div>
+        );
+    }, []);
 
     const handleSelect = useCallback(
         (selectedKeys, info) => {
@@ -83,13 +66,12 @@ export const CategoriesTree: FC<CategoriesTreeProps> = ({
                     {categoryNodes.length ? (
                         <Tree
                             treeData={categoryNodes}
-                            loadData={onLoadData}
                             height={categoriesHeight}
                             itemHeight={itemHeight}
                             titleRender={titleRenderer}
                             onSelect={handleSelect}
                             selectedKeys={selectedKeys}
-                            defaultExpandAll={defaultExpand}
+                            defaultExpandAll
                         ></Tree>
                     ) : (
                         <Spinner color="sky" />

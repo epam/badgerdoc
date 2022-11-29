@@ -161,34 +161,6 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
     }, [boundModeSwitch]);
 
     useEffect(() => {
-        if (!categories?.length) {
-            return;
-        }
-        const subItems = getSubItems();
-        if (subItems.length > 0) {
-            setBoundModeSwitch(subItems[0].id as AnnotationBoundMode);
-            onCategorySelected(getFirstCategory(subItems[0].id)![0] as Category);
-        }
-
-        const keys = '123456789qwertyuiopasdfghjklzxcvbnm';
-        categories.forEach((category, i) => (category.hotkey = keys[i]));
-        const handleKey = (event: KeyboardEvent) => {
-            const keyCode = event.code;
-            const selectedCategory = categories.find(
-                (category) => category.hotkey === keyCode[keyCode.length - 1].toLowerCase()
-            );
-            if (selectedCategory?.type) {
-                setBoundModeSwitch(selectedCategory.type as AnnotationBoundMode);
-                onCategorySelected(selectedCategory);
-            }
-        };
-        document.addEventListener('keydown', handleKey);
-        return () => {
-            document.removeEventListener('keydown', handleKey);
-        };
-    }, [categories]);
-
-    useEffect(() => {
         if (task?.is_validation && pages) {
             if (pages?.failed_validation_pages || pages?.annotated_pages || pages?.not_processed) {
                 setAllvalid(false);
@@ -244,29 +216,6 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
         isValid ? styles.validColor : styles.invalidColor
     }`;
     const validationStatus: ValidationPageStatus = isValid ? 'Valid Page' : 'Invalid Page';
-    const getSubItems = (): any[] => {
-        if (!categories) return [];
-        const res = [];
-        if (categories.find((el) => el.type === 'box'))
-            res.push({
-                id: 'box',
-                caption: 'Layout',
-                cx: `${styles.categoriesAndLinks}`
-            });
-        if (categories.find((el) => el.type === 'link'))
-            res.push({
-                id: 'link',
-                caption: 'Links',
-                cx: `${styles.categoriesAndLinks}`
-            });
-        if (categories.find((el) => el.type === 'segmentation'))
-            res.push({
-                id: 'segmentation',
-                caption: 'Segmentation',
-                cx: `${styles.categoriesAndLinks}`
-            });
-        return res;
-    };
 
     return (
         <div className={`${styles.container} flex-col`}>
@@ -315,8 +264,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
                                 boundModeSwitch={boundModeSwitch}
                                 setBoundModeSwitch={setBoundModeSwitch}
                             />
-
-                            {boundModeSwitch === 'segmentation' ? (
+                            {boundModeSwitch === 'segmentation' && (
                                 <ImageToolsParams
                                     onChangeToolParams={(e) => {
                                         setSelectedToolParams({
@@ -327,8 +275,6 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
                                     selectedTool={selectedTool}
                                     toolParams={selectedToolParams}
                                 />
-                            ) : (
-                                <></>
                             )}
                             {!viewMode && (
                                 <CategoriesSelectionModeToggle

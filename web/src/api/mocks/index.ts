@@ -238,17 +238,16 @@ const MOCKS: Record<string, Record<string, BadgerFetch<any>>> = {
                 const nameFilter = filters.find((filter) => filter.field === 'name');
                 const nameFilterValue = String(nameFilter?.value ?? '').slice(1, -1);
                 const typeFilter = filters.find((filter) => filter.field === 'type');
+                const treeFilter = filters.find((filter) => filter.field === 'tree');
 
+                if (treeFilter) {
+                    data = data.filter((cat) => cat.parent === treeFilter.value);
+                }
                 if (parentFilter) {
-                    const value =
-                        parentFilter.operator === Operators.IS_NULL ? null : parentFilter.value;
-
-                    data = data.filter((cat) => cat.parent === value);
+                    data = data.filter((cat) => cat.parent === null);
                 }
                 if (nameFilterValue) {
-                    data = data
-                        .filter((cat) => cat.name.includes(nameFilterValue))
-                        .map(({ children, ...cat }) => cat);
+                    data = data.filter((cat) => cat.name.includes(nameFilterValue));
                 }
                 if (typeFilter) {
                     data = data.filter((cat) => cat.type === typeFilter.value);
@@ -267,8 +266,34 @@ const MOCKS: Record<string, Record<string, BadgerFetch<any>>> = {
             };
         }
     },
-    [`${CATEGORIES_NAMESPACE}/jobs/1/categories`]: {
-        get: async () => {
+    [`${CATEGORIES_NAMESPACE}/jobs/1/categories/search`]: {
+        post: async (body: BadgerFetchBody | undefined) => {
+            const { filters, pagination } = JSON.parse(body as string) as SearchBody<Category>;
+            let data = categoriesMockData;
+            if (filters.length > 0) {
+                const parentFilter = filters.find((filter) => filter.field === 'parent');
+                const nameFilter = filters.find((filter) => filter.field === 'name');
+                const nameFilterValue = String(nameFilter?.value ?? '').slice(1, -1);
+                const typeFilter = filters.find((filter) => filter.field === 'type');
+                const treeFilter = filters.find((filter) => filter.field === 'tree');
+
+                if (treeFilter) {
+                    data = data.filter((cat) => cat.parent === treeFilter.value);
+                }
+                if (parentFilter) {
+                    data = data.filter((cat) => cat.parent === null);
+                }
+                if (nameFilterValue) {
+                    data = data.filter((cat) => cat.name.includes(nameFilterValue));
+                }
+                if (typeFilter) {
+                    data = data.filter((cat) => cat.type === typeFilter.value);
+                }
+                return {
+                    data,
+                    pagination
+                };
+            }
             return {
                 data: categoriesMockData,
                 pagination: {

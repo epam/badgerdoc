@@ -21,6 +21,7 @@ import {
     Filter,
     Link,
     Operators,
+    SortingDirection,
     User
 } from 'api/typings';
 import { useDocuments } from 'api/hooks/documents';
@@ -256,10 +257,26 @@ export const TaskAnnotatorContextProvider: FC<ProviderProps> = ({
         }
     }
 
-    const categoriesResult = useCategoriesByJob({ jobId: getJobId() });
+    const {
+        data: categories,
+        refetch: refetchCategories,
+        isLoading: categoriesLoading
+    } = useCategoriesByJob(
+        {
+            jobId: getJobId(),
+            page: 1,
+            size: 100,
+            searchText: '',
+            sortConfig: { field: 'name', direction: SortingDirection.ASC }
+        },
+        { enabled: false }
+    );
 
-    const categories = categoriesResult.data?.data;
-    const categoriesLoading = categoriesResult.isLoading;
+    useEffect(() => {
+        if (task?.job.id) {
+            refetchCategories();
+        }
+    }, [task]);
 
     const filters: Filter<keyof FileDocument>[] = [];
 
@@ -486,7 +503,7 @@ export const TaskAnnotatorContextProvider: FC<ProviderProps> = ({
     const setAnnotationDataAttrs = (annotation: Annotation) => {
         const foundCategoryDataAttrs = getCategoryDataAttrs(
             annotation.label || annotation.category,
-            categories
+            categories?.data
         );
         if (foundCategoryDataAttrs && foundCategoryDataAttrs.length) {
             setAnnDataAttrs((prevState) => {
@@ -635,7 +652,7 @@ export const TaskAnnotatorContextProvider: FC<ProviderProps> = ({
             setTableMode(false);
         }
 
-        const foundCategoryDataAttrs = getCategoryDataAttrs(label, categories);
+        const foundCategoryDataAttrs = getCategoryDataAttrs(label, categories?.data);
 
         if (foundCategoryDataAttrs) {
             setAnnDataAttrs((prevState) => {
@@ -867,14 +884,14 @@ export const TaskAnnotatorContextProvider: FC<ProviderProps> = ({
     };
 
     useEffect(() => {
-        if (!latestAnnotationsResult.data || !categories) return;
+        if (!latestAnnotationsResult.data || !categories?.data) return;
         setValidPages(latestAnnotationsResult.data.validated);
         setInvalidPages(latestAnnotationsResult.data.failed_validation_pages);
 
         const result = mapAnnotationPagesFromApi(
             latestAnnotationsResult.data.pages,
             getAnnotationLabels,
-            categories
+            categories?.data
         );
         setAllAnnotations(result);
 
@@ -891,7 +908,7 @@ export const TaskAnnotatorContextProvider: FC<ProviderProps> = ({
         )
             return;
         setPageSize(latestAnnotationsResult.data.pages[0].size);
-    }, [latestAnnotationsResult.data, categories]);
+    }, [latestAnnotationsResult.data, categories?.data]);
 
     const onValidClick = useCallback(() => {
         if (invalidPages.includes(currentPage)) {
@@ -988,7 +1005,7 @@ export const TaskAnnotatorContextProvider: FC<ProviderProps> = ({
     const value = useMemo<ContextValue>(() => {
         return {
             task,
-            categories,
+            categories: categories?.data,
             categoriesLoading,
             selectedCategory,
             selectedLink,
@@ -1054,7 +1071,7 @@ export const TaskAnnotatorContextProvider: FC<ProviderProps> = ({
         };
     }, [
         task,
-        categories,
+        categories?.data,
         categoriesLoading,
         selectedCategory,
         selectedLink,

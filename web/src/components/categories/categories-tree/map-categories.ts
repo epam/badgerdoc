@@ -3,7 +3,7 @@ import { BaseCategory, Category, CategoryNode } from 'api/typings';
 export const mapCategory = (category: BaseCategory, hotKey?: string): CategoryNode => ({
     key: category.id,
     title: category.name,
-    isLeaf: true,
+    isLeaf: category.isLeaf,
     children: [],
     category,
     hotKey

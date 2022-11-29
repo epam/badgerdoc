@@ -207,13 +207,13 @@ export interface BaseCategory {
     };
     type?: CategoryType;
     data_attributes?: Array<CategoryDataAttribute> | null;
+    isLeaf: boolean;
 }
 
 export interface Category extends BaseCategory {
     is_link?: boolean;
     hotkey?: string;
     parents?: BaseCategory[] | null;
-    children?: BaseCategory[] | null;
 }
 
 export interface CategoryNode {
@@ -335,7 +335,8 @@ export enum Operators {
     ANY = 'any',
     NOT_ANY = 'not_any',
     MATCH = 'match',
-    DISTINCT = 'distinct'
+    DISTINCT = 'distinct',
+    CHILDREN = 'children'
 }
 export type DocumentExtraOption = {
     'datasets.id': string;
@@ -356,7 +357,7 @@ export type Sorting<TField> = {
 };
 export type SearchBody<TItem> = {
     pagination: Pagination;
-    filters: Filter<keyof TItem>[];
+    filters: Filter<keyof TItem | string>[];
     sorting: Sorting<keyof TItem>[];
 };
 

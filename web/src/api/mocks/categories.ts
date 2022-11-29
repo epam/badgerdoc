@@ -19,21 +19,11 @@ export const categories: Category[] = [
                 },
                 type: 'box',
                 data_attributes: null,
-                id: 'Parent'
+                id: 'Parent',
+                isLeaf: false
             }
         ],
-        children: [
-            {
-                name: 'Child1.1',
-                parent: 'Child1',
-                metadata: {
-                    color: '#c400ff'
-                },
-                type: 'box',
-                data_attributes: [],
-                id: 'Child1.1'
-            }
-        ]
+        isLeaf: false
     },
     {
         name: 'Child1.1',
@@ -53,7 +43,8 @@ export const categories: Category[] = [
                 },
                 type: 'box',
                 data_attributes: null,
-                id: 'Child1'
+                id: 'Child1',
+                isLeaf: false
             },
             {
                 name: 'Parent',
@@ -63,10 +54,11 @@ export const categories: Category[] = [
                 },
                 type: 'box',
                 data_attributes: null,
-                id: 'Parent'
+                id: 'Parent',
+                isLeaf: false
             }
         ],
-        children: []
+        isLeaf: true
     },
     {
         name: 'Child2',
@@ -86,10 +78,11 @@ export const categories: Category[] = [
                 },
                 type: 'box',
                 data_attributes: null,
-                id: 'Parent'
+                id: 'Parent',
+                isLeaf: false
             }
         ],
-        children: []
+        isLeaf: true
     },
     {
         name: 'Parent',
@@ -101,37 +94,6 @@ export const categories: Category[] = [
         data_attributes: null,
         id: 'Parent',
         parents: [],
-        children: [
-            {
-                name: 'Child1',
-                parent: 'Parent',
-                metadata: {
-                    color: '#4200ff'
-                },
-                type: 'box',
-                data_attributes: null,
-                id: 'Child1'
-            },
-            {
-                name: 'Child2',
-                parent: 'Parent',
-                metadata: {
-                    color: '#006e39'
-                },
-                type: 'box',
-                data_attributes: null,
-                id: 'Child2'
-            },
-            {
-                name: 'Child1.1',
-                parent: 'Child1',
-                metadata: {
-                    color: '#c400ff'
-                },
-                type: 'box',
-                data_attributes: [],
-                id: 'Child1.1'
-            }
-        ]
+        isLeaf: false
     }
 ];

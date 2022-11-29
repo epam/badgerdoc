@@ -3,7 +3,7 @@ import { FlexCell, MultiSwitch, SearchInput } from '@epam/loveship';
 import { useTaskAnnotatorContext } from 'connectors/task-annotator-connector/task-annotator-context';
 import styles from './categories-tab.module.scss';
 import { AnnotationBoundMode } from 'shared';
-import { CategoryNode } from '../../../api/typings';
+import { Category, CategoryNode } from '../../../api/typings';
 import { CategoriesTree } from 'components/categories/categories-tree/categories-tree';
 import { useHeight } from 'shared/hooks/use-height';
 import { isEmpty } from 'lodash';
@@ -13,18 +13,30 @@ interface CategoriesTabProps {
     boundModeSwitch: AnnotationBoundMode;
     setBoundModeSwitch: (type: AnnotationBoundMode) => void;
 }
-const categoriesTypes = [
-    {
-        id: 'box',
-        caption: 'Layout',
-        cx: `${styles.categoriesAndLinks}`
-    },
-    {
-        id: 'link',
-        caption: 'Links',
-        cx: `${styles.categoriesAndLinks}`
-    }
-];
+
+const getSubItems = (categories: Category[]): any[] => {
+    if (!categories) return [];
+    const res = [];
+    if (categories.find((el) => el.type === 'box'))
+        res.push({
+            id: 'box',
+            caption: 'Layout',
+            cx: `${styles.categoriesAndLinks}`
+        });
+    if (categories.find((el) => el.type === 'link'))
+        res.push({
+            id: 'link',
+            caption: 'Links',
+            cx: `${styles.categoriesAndLinks}`
+        });
+    if (categories.find((el) => el.type === 'segmentation'))
+        res.push({
+            id: 'segmentation',
+            caption: 'Segmentation',
+            cx: `${styles.categoriesAndLinks}`
+        });
+    return res;
+};
 
 export const CategoriesTab = ({ boundModeSwitch, setBoundModeSwitch }: CategoriesTabProps) => {
     const {
@@ -62,16 +74,12 @@ export const CategoriesTab = ({ boundModeSwitch, setBoundModeSwitch }: Categorie
         mapHotKeys(categoryNodes);
         return hotKeysMap;
     };
-    const { categoryNodes, onLoadData, expandNode } = useCategoriesTree({
+
+    const { categoryNodes } = useCategoriesTree({
         searchText,
         boundModeSwitch,
-        isTaskCategoriesTree,
-        taskCategories
+        jobId: task?.job.id
     });
-
-    const defaultExpand = useMemo(() => {
-        return isTaskCategoriesTree || !isEmpty(searchText);
-    }, [isTaskCategoriesTree, searchText]);
 
     useEffect(() => {
         if (!categoryNodes?.length || !isTaskCategoriesTree) {
@@ -94,31 +102,39 @@ export const CategoriesTab = ({ boundModeSwitch, setBoundModeSwitch }: Categorie
         };
     }, [categoryNodes, isTaskCategoriesTree]);
 
+    const categoriesTypes = useMemo(() => {
+        if (taskCategories) {
+            return getSubItems(taskCategories);
+        }
+        return [];
+    }, [taskCategories]);
+
     return (
         <>
-            <FlexCell width="auto" cx={styles.categoriesAndLinks__wrapper}>
-                <MultiSwitch
-                    items={categoriesTypes}
-                    value={boundModeSwitch}
-                    onValueChange={
-                        setBoundModeSwitch as React.Dispatch<React.SetStateAction<string>>
-                    }
+            {categoriesTypes.length > 1 && (
+                <FlexCell width="auto" cx={styles.categoriesAndLinks__wrapper}>
+                    <MultiSwitch
+                        items={categoriesTypes}
+                        value={boundModeSwitch}
+                        onValueChange={
+                            setBoundModeSwitch as React.Dispatch<React.SetStateAction<string>>
+                        }
+                    />
+                </FlexCell>
+            )}
+            {categoryNodes?.length > 20 && (
+                <SearchInput
+                    value={searchText}
+                    onValueChange={(text) => setSearchText(text ? text : '')}
+                    debounceDelay={300}
+                    cx={styles.search}
                 />
-            </FlexCell>
-            <SearchInput
-                value={searchText}
-                onValueChange={(text) => setSearchText(text ? text : '')}
-                debounceDelay={300}
-                cx={styles.search}
-            />
+            )}
             <div className={styles.categories} ref={hightRef}>
                 <CategoriesTree
                     key={searchText}
                     categoriesHeight={categoriesHeight}
                     categoryNodes={categoryNodes}
-                    onLoadData={onLoadData}
-                    expandNode={expandNode}
-                    defaultExpand={defaultExpand}
                     onCategorySelected={onCategorySelected}
                     selectedHotKeys={selectedKeys}
                 />
