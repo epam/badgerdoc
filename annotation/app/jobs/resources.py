@@ -115,7 +115,7 @@ def post_job(
     ]
     owners = [user for user in db_users if user.user_id in job_info.owners]
     categories = fetch_bunch_categories_db(
-        db, job_info.categories, x_current_tenant
+        db, job_info.categories, x_current_tenant, root_parents=True
     )
     is_auto_distribution = job_info.is_auto_distribution
     job_type = job_info.job_type

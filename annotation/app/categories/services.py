@@ -189,6 +189,7 @@ def fetch_bunch_categories_db(
     category_ids: Set[str],
     tenant: str,
     job_id: Optional[int] = None,
+    root_parents: bool = False,  # If true, add categories parents up to root
 ) -> List[Category]:
     categories_query = db.query(Category)
     if job_id is not None:
@@ -201,6 +202,13 @@ def fetch_bunch_categories_db(
             or_(Category.tenant == tenant, Category.tenant == null()),
         )
     ).all()
+    if root_parents:
+        categories_parents = _get_parents(db, categories, tenant, job_id)
+        categories = list(
+            set(categories).union(
+                cat for cats in categories_parents.values() for cat in cats
+            )
+        )
     wrong_categories = {
         category.id for category in categories
     }.symmetric_difference(category_ids)
@@ -215,7 +223,7 @@ CategoryIdT = str
 CategoryPathT = str
 IsLeafT = bool
 Leaves = Dict[CategoryIdT, IsLeafT]
-Parents = Dict[CategoryPathT, Category]
+Parents = Dict[CategoryPathT, List[Category]]
 
 
 def _get_leaves(
