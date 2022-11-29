@@ -28,3 +28,11 @@ class JobIdSchema(BaseModel):
     id: str = Field(
         ..., example="123abc", description="Job id to link taxonomy to"
     )
+
+
+class CategoryLinkSchema(BaseModel):
+    category_id: str = Field(
+        ..., example="123abc", description="Job id to link taxonomy to"
+    )
+    taxonomy_id: str = Field(..., example="my_taxonomy_id")
+    taxonomy_version: Optional[int] = Field(description="Version of taxonomy", example=1)
