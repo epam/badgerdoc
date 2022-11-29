@@ -8,10 +8,10 @@ on:
     paths:
       - 'assets/**'
 jobs:
-  pre-commit-actions:
+  assets-pre-commit-actions:
     strategy:
       matrix:
-        python-version: [ "3.9.15" ]
+        python-version: [ "3.8.10" ]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -32,11 +32,11 @@ jobs:
           options: "--line-length=79"
       - run: pip install flake8
       - run: flake8 --extend-ignore=E203 assets
-  build:
+  assets-build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [ "3.9.15" ]
+        python-version: [ "3.8.10" ]
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
