@@ -10,6 +10,11 @@ class CategoryTypeSchema(str, Enum):
     segmentation = "segmentation"
 
 
+class CategoryDataAttributeNames(str, Enum):
+    taxonomy_id = 'taxonomy_id'
+    taxonomy_version = 'taxonomy_version'
+
+
 class CategoryBaseSchema(BaseModel):
     name: str = Field(..., example="Title")
     parent: Optional[str] = Field(None, example="null")

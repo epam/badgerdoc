@@ -20,6 +20,10 @@ from app.schemas import (
 )
 from app.tags import CATEGORIES_TAG
 
+from tenant_dependency import TenantData
+from microservice_communication.taxonomy_communication import link_category_with_taxonomy
+from schemas.categories import CategoryDataAttributeNames
+from app.token_dependency import TOKEN
 from .services import (
     add_category_db,
     delete_category_db,
@@ -51,8 +55,30 @@ def save_category(
     category: CategoryInputSchema,
     db: Session = Depends(get_db),
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
+    token: TenantData = Depends(TOKEN),
 ) -> CategoryResponseSchema:
     category_db = add_category_db(db, category, x_current_tenant)
+    if category_db.data_attributes:
+        taxonomy_link_params = {}
+        for data_attribute in category.data_attributes:
+            for attr_name, value in data_attribute.items():
+                if attr_name in (
+                    CategoryDataAttributeNames.taxonomy_id.name,
+                    CategoryDataAttributeNames.taxonomy_version.name,
+                ):
+                    taxonomy_link_params[attr_name] = value
+        if taxonomy_link_params:
+            if (
+                CategoryDataAttributeNames.taxonomy_id.name
+                not in taxonomy_link_params
+            ):
+                raise BadRequestErrorSchema("Taxonomy ID was not provided")
+            link_category_with_taxonomy(
+                category_id=category.id,
+                tenant=x_current_tenant,
+                token=token.token,
+                **taxonomy_link_params,
+            )
     return response_object_from_db(category_db)
 
 
