@@ -315,28 +315,7 @@ def test_add_id_is_generated(prepare_db_categories_different_names):
 @patch("app.categories.resources.link_category_with_taxonomy")
 @patch("uuid.uuid4", return_value="fe857daa-8332-4a26-ab50-29be0a74477e")
 def test_should_send_link_request_taxonomy_service(
-    uuid_mock,
-    link_request_mock,
-    prepare_db_categories_different_names
-):
-    data = prepare_category_body(
-        id_="1213",
-        name="taxonomy_12",
-        data_attributes=[{"taxonomy_id": "123"}, {"taxonomy_version": 1}],
-    )
-    response = client.post(CATEGORIES_PATH, json=data, headers=TEST_HEADERS)
-    assert response
-    assert response.status_code == 201
-    assert link_request_mock.called
-
-
-@mark.integration
-@patch("app.categories.resources.link_category_with_taxonomy")
-@patch("uuid.uuid4", return_value="fe857daa-8332-4a26-ab50-29be0a74477e")
-def test_add_id_is_generated(
-    uuid_mock,
-    link_request_mock,
-    prepare_db_categories_different_names
+    uuid_mock, link_request_mock, prepare_db_categories_different_names
 ):
     data = prepare_category_body(
         id_="1213",
