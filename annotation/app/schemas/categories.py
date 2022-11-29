@@ -11,7 +11,8 @@ class CategoryTypeSchema(str, Enum):
 
 
 class CategoryDataAttributeNames(str, Enum):
-    taxonomy = 'taxonomy'
+    taxonomy_id = 'taxonomy_id'
+    taxonomy_version = 'taxonomy_version'
 
 
 class CategoryBaseSchema(BaseModel):

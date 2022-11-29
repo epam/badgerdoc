@@ -58,15 +58,26 @@ def save_category(
 ) -> CategoryResponseSchema:
     category_db = add_category_db(db, category, x_current_tenant)
     if category_db.data_attributes:
+        taxonomy_link_params = {}
         for data_attribute in category.data_attributes:
             for attr_name, value in data_attribute.items():
-                if attr_name == CategoryDataAttributeNames.taxonomy.name:
-                    link_category_with_taxonomy(
-                        category_id=category.id,
-                        taxonomy_id=value,
-                        tenant=x_current_tenant,
-                        token=token.token,
-                    )
+                if attr_name in (
+                    CategoryDataAttributeNames.taxonomy_id.name,
+                    CategoryDataAttributeNames.taxonomy_version.name,
+                ):
+                    taxonomy_link_params[attr_name] = value
+        if taxonomy_link_params:
+            if (
+                CategoryDataAttributeNames.taxonomy_id.name
+                not in taxonomy_link_params
+            ):
+                raise BadRequestErrorSchema("Taxonomy version was not provided")
+            link_category_with_taxonomy(
+                category_id=category.id,
+                tenant=x_current_tenant,
+                token=token.token,
+                **taxonomy_link_params,
+            )
     category = CategoryORMSchema.from_orm(category_db).dict()
     return CategoryResponseSchema.parse_obj(category)
 
