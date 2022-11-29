@@ -26,6 +26,7 @@ from app.schemas import (
 
 load_dotenv(find_dotenv())
 ENDPOINT_URL = os.environ.get("S3_ENDPOINT_URL")
+S3_PREFIX = os.environ.get("S3_PREFIX")
 AWS_ACCESS_KEY_ID = os.environ.get("S3_LOGIN")
 AWS_SECRET_ACCESS_KEY = os.environ.get("S3_PASS")
 INDEX_NAME = os.environ.get("INDEX_NAME")
@@ -67,7 +68,10 @@ def connect_s3(bucket_name: str) -> boto3.resource:
         aws_access_key_id=AWS_ACCESS_KEY_ID,
         aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
     )
+    # TODO: реализовать использование AWS IAM Service Role?
     try:
+        if S3_PREFIX:
+            bucket_name = f"{S3_PREFIX}-{bucket_name}"
         s3_resource.meta.client.head_bucket(Bucket=bucket_name)
         # here is some bug or I am missing smth: this line ^
         # should raise NoSuchBucket
@@ -601,7 +605,11 @@ def load_page(
             f"{page_revision['file_id']}/{page_revision['page_id']}"
             ".json"
         )
-        page_obj = s3_resource.Object(tenant, page_path)
+        if S3_PREFIX:
+            bucket_name = f"{S3_PREFIX}-{tenant}"
+        else:
+            bucket_name = tenant
+        page_obj = s3_resource.Object(bucket_name, page_path)
         loaded_page = json.loads(page_obj.get()["Body"].read().decode("utf-8"))
     else:
         loaded_page = {
@@ -623,7 +631,11 @@ def get_file_manifest(
     job_id: str, file_id: str, tenant: str, s3_resource: boto3.resource
 ) -> Dict[str, Any]:
     manifest_path = f"{S3_START_PATH}/{job_id}/{file_id}/{MANIFEST}"
-    manifest_obj = s3_resource.Object(tenant, manifest_path)
+    if S3_PREFIX:
+        bucket_name=f"{S3_PREFIX}-{tenant}"
+    else:
+        bucket_name = tenant
+    manifest_obj = s3_resource.Object(bucket_name, manifest_path)
     return json.loads(manifest_obj.get()["Body"].read().decode("utf-8"))
 
 
