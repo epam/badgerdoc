@@ -71,7 +71,7 @@ def save_category(
                 CategoryDataAttributeNames.taxonomy_id.name
                 not in taxonomy_link_params
             ):
-                raise BadRequestErrorSchema("Taxonomy version was not provided")
+                raise BadRequestErrorSchema("Taxonomy ID was not provided")
             link_category_with_taxonomy(
                 category_id=category.id,
                 tenant=x_current_tenant,
