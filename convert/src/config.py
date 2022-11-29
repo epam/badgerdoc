@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     minio_host: Optional[str] = os.getenv("MINIO_HOST")
     minio_access_key: Optional[str] = os.getenv("MINIO_ACCESS_KEY")
     minio_secret_key: Optional[str] = os.getenv("MINIO_SECRET_KEY")
+    s3_prefix: Optional[str] = os.getenv("S3_PREFIX")
     uploading_limit: int = Field(100, env="UPLOADING_LIMIT")
     coco_image_format: str = "jpg"
     dpi: int = 300
@@ -81,7 +82,7 @@ def get_minio_client() -> BaseClient:
         aws_secret_access_key=settings.minio_secret_key,
     )
     return client
-
+# TODO: реализовать авторизацию через AWS IAM Service Role?
 
 def get_minio_resource() -> BaseClient:
     """Initialized s3 client by boto3 resource"""
@@ -92,7 +93,7 @@ def get_minio_resource() -> BaseClient:
         aws_secret_access_key=settings.minio_secret_key,
     )
     return client
-
+# TODO: реализовать авторизацию через AWS IAM Service Role?
 
 API_VERSION = get_version()
 API_NAME = "convert"

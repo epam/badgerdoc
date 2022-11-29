@@ -5,13 +5,20 @@ import boto3
 import urllib3
 from fastapi import HTTPException, status
 
-from src.config import minio_client
+from src.config import minio_client, settings
 from src.exceptions import BucketError, FileKeyError, UploadLimitExceedError
 from src.logger import get_logger
 from src.models import coco
 from src.utils.common_utils import check_uploading_limit
 
 logger = get_logger(__name__)
+
+
+def convert_bucket_name_if_s3prefix(bucket_name: str) -> str:
+    if settings.s3_prefix:
+        return f"{settings.s3_prefix}-{bucket_name}"
+    else:
+        return bucket_name
 
 
 class S3Manager:
@@ -37,11 +44,13 @@ class S3Manager:
             aws_secret_access_key=aws_secret_access_key,
             region_name=region_name,
         )
+        # TODO: реализовать авторзацию через AWS IAM Service Role?
 
     def get_files(self, bucket_s3: str, files_keys: List[str]) -> None:
         """
         Downloads files from S3 storage
         """
+        bucket_s3 = convert_bucket_name_if_s3prefix(bucket_s3)
         for file_key in files_keys:
             self.client.download_file(bucket_s3, file_key, Path(file_key).name)
 
@@ -52,6 +61,7 @@ class S3Manager:
         all_s3_buckets = [
             bucket.name for bucket in self.resource.buckets.all()
         ]
+        bucket_s3 = convert_bucket_name_if_s3prefix(bucket_s3)
         if bucket_s3 not in all_s3_buckets:
             raise BucketError(f"bucket {bucket_s3} does not exist!")
 
@@ -59,6 +69,7 @@ class S3Manager:
         """
         Checks if required file keys are correct
         """
+        bucket_s3 = convert_bucket_name_if_s3prefix(bucket_s3)
         all_files_in_bucket = [
             content["Key"]
             for content in self.client.list_objects(Bucket=bucket_s3)[
