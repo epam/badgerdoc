@@ -7,6 +7,7 @@ from app.schemas.annotations import (
 )
 from app.schemas.categories import (
     CategoryBaseSchema,
+    CategoryDataAttributeNames,
     CategoryInputSchema,
     CategoryORMSchema,
     CategoryResponseSchema,
@@ -51,6 +52,7 @@ from app.schemas.tasks import (
 
 __all__ = [
     AnnotatedDocSchema,
+    CategoryDataAttributeNames,
     CategoryTypeSchema,
     DocForSaveSchema,
     PageOutSchema,

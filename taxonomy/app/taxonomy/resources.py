@@ -8,6 +8,7 @@ from app.logging_setup import LOGGER
 from app.microservice_communication.search import X_CURRENT_TENANT_HEADER
 from app.schemas import (
     BadRequestErrorSchema,
+    CategoryLinkSchema,
     ConnectionErrorSchema,
     JobIdSchema,
     NotFoundErrorSchema,
@@ -18,15 +19,15 @@ from app.schemas import (
 from app.tags import TAXONOMY_TAG
 from app.taxonomy.services import (
     create_new_relation_to_job,
+    create_new_relation_with_category,
     create_taxonomy_instance,
     delete_taxonomy_instance,
     get_latest_taxonomy,
     get_second_latest_taxonomy,
     get_taxonomies_by_job_id,
     get_taxonomy,
-    update_taxonomy_instance, create_new_relation_with_category,
+    update_taxonomy_instance,
 )
-from schemas.taxonomy import CategoryLinkSchema
 
 router = APIRouter(
     prefix="/taxonomy",
@@ -165,7 +166,9 @@ def associate_taxonomy_to_category(
     session: Session = Depends(get_db),
 ):
     if query.taxonomy_version:
-        taxonomy = get_taxonomy(session, (query.taxonomy_id, query.taxonomy_version))
+        taxonomy = get_taxonomy(
+            session, (query.taxonomy_id, query.taxonomy_version)
+        )
     else:
         taxonomy = get_latest_taxonomy(session, query.taxonomy_id)
     if not taxonomy:

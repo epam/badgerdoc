@@ -35,4 +35,6 @@ class CategoryLinkSchema(BaseModel):
         ..., example="123abc", description="Job id to link taxonomy to"
     )
     taxonomy_id: str = Field(..., example="my_taxonomy_id")
-    taxonomy_version: Optional[int] = Field(description="Version of taxonomy", example=1)
+    taxonomy_version: Optional[int] = Field(
+        description="Version of taxonomy", example=1
+    )

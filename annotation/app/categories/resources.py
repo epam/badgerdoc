@@ -4,14 +4,17 @@ from fastapi import APIRouter, Depends, HTTPException, Path, Response, status
 from filter_lib import Page
 from sqlalchemy.orm import Session
 from sqlalchemy_filters.exceptions import BadFilterFormat
+from tenant_dependency import TenantData
 
 from app.database import get_db
 from app.errors import NoSuchCategoryError
 from app.filters import CategoryFilter
 from app.microservice_communication.search import X_CURRENT_TENANT_HEADER
+from app.microservice_communication.taxonomy import link_category_with_taxonomy
 from app.schemas import (
     BadRequestErrorSchema,
     CategoryBaseSchema,
+    CategoryDataAttributeNames,
     CategoryInputSchema,
     CategoryResponseSchema,
     ConnectionErrorSchema,
@@ -19,11 +22,8 @@ from app.schemas import (
     SubCategoriesOutSchema,
 )
 from app.tags import CATEGORIES_TAG
-
-from tenant_dependency import TenantData
-from microservice_communication.taxonomy_communication import link_category_with_taxonomy
-from schemas.categories import CategoryDataAttributeNames
 from app.token_dependency import TOKEN
+
 from .services import (
     add_category_db,
     delete_category_db,
