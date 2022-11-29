@@ -24,8 +24,9 @@ from app.taxonomy.services import (
     get_second_latest_taxonomy,
     get_taxonomies_by_job_id,
     get_taxonomy,
-    update_taxonomy_instance,
+    update_taxonomy_instance, create_new_relation_with_category,
 )
+from schemas.taxonomy import CategoryLinkSchema
 
 router = APIRouter(
     prefix="/taxonomy",
@@ -148,6 +149,34 @@ def associate_taxonomy_to_job(
 
     # todo validate job existence.
     create_new_relation_to_job(session, taxonomy, query.id)
+
+
+@router.post(
+    "/link_category",
+    status_code=status.HTTP_201_CREATED,
+    response_model=TaxonomyResponseSchema,
+    responses={
+        400: {"model": BadRequestErrorSchema},
+    },
+    summary="Creates association between taxonomy and category.",
+)
+def associate_taxonomy_to_category(
+    query: CategoryLinkSchema,
+    session: Session = Depends(get_db),
+):
+    if query.taxonomy_version:
+        taxonomy = get_taxonomy(session, (query.taxonomy_id, query.taxonomy_version))
+    else:
+        taxonomy = get_latest_taxonomy(session, query.taxonomy_id)
+    if not taxonomy:
+        LOGGER.error(
+            "associate_taxonomy_to_category get not existing id %s",
+            query.taxonomy_id,
+        )
+        raise HTTPException(status_code=404, detail="Not existing taxonomy")
+
+    create_new_relation_with_category(session, taxonomy, query.category_id)
+    return TaxonomyResponseSchema.from_orm(taxonomy)
 
 
 @router.get(

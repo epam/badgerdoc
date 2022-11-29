@@ -153,6 +153,32 @@ def test_should_associate_taxonomy_to_job(
 
 
 @pytest.mark.integration
+def test_should_associate_taxonomy_to_job(
+    overrided_token_client,
+    prepared_taxonomy_record_in_db: Taxonomy,
+    db_session,
+):
+    # given
+    request_body = {
+        "taxonomy_id": prepared_taxonomy_record_in_db.id,
+        "taxonomy_version": prepared_taxonomy_record_in_db.version,
+        "category_id": "123",
+    }
+    # when
+    response = overrided_token_client.post(
+        "/taxonomy/link_category",
+        json=request_body,
+        headers=TEST_HEADER,
+    )
+    # then
+    assert response
+    assert response.status_code == 201
+
+    db_session.refresh(prepared_taxonomy_record_in_db)
+    assert prepared_taxonomy_record_in_db.category_id == request_body["category_id"]
+
+
+@pytest.mark.integration
 def test_should_update_taxonomy_in_db(
     overrided_token_client,
     prepared_taxonomy_record_in_db: Taxonomy,
