@@ -140,7 +140,10 @@ def post_job(
     )
 
     for cat in categories:
-        if taxonomy_link_params := get_taxonomy_from_data_attribute(cat):
+        if (
+            cat.data_attributes
+            and (taxonomy_link_params := get_taxonomy_from_data_attribute(cat))
+        ):
             link_job_with_taxonomy(
                 job_id=job_id,
                 tenant=x_current_tenant,
