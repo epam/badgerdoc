@@ -33,7 +33,7 @@ export const mapCategories = (categories?: Category[]): CategoryNode[] => {
     }
 
     for (let [, value] of nodeById) {
-        if (!value.category.parent) {
+        if (!value.category?.parent) {
             rootNodes.push(value);
         } else {
             const parent = nodeById.get(value.category.parent);

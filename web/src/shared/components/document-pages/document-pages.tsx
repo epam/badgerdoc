@@ -29,8 +29,7 @@ type DocumentPagesProps = {
     annotatorLinks: Record<number, Annotation[]>;
     containerRef: React.RefObject<HTMLDivElement>;
     scaleStyle?: CSSProperties;
-    clickedAnnotation: Annotation | undefined;
-    setClickedAnnotation: React.Dispatch<React.SetStateAction<Annotation | undefined>>;
+
     editable: boolean;
     onAnnotationCopyPress: (pageNum: number, annotationId: string | number) => void;
     onAnnotationCutPress: (pageNum: number, annotationId: string | number) => void;
@@ -61,8 +60,6 @@ const DocumentPages: FC<DocumentPagesProps> = ({
     renderLinks,
     annotatorLinks,
     containerRef,
-    clickedAnnotation,
-    setClickedAnnotation,
     editable,
     onAnnotationCopyPress,
     onAnnotationCutPress,
@@ -167,8 +164,6 @@ const DocumentPages: FC<DocumentPagesProps> = ({
                                             pageNum={pageNum}
                                             handlePageLoaded={handlePageLoaded}
                                             handleLinksUpdate={handleLinksUpdate}
-                                            clickedAnnotation={clickedAnnotation}
-                                            setClickedAnnotation={setClickedAnnotation}
                                             containerRef={containerRef}
                                             editable={editable}
                                             onAnnotationCopyPress={onAnnotationCopyPress}
@@ -196,8 +191,6 @@ const DocumentPages: FC<DocumentPagesProps> = ({
                                         pageNum={pageNum}
                                         handlePageLoaded={handlePageLoaded}
                                         handleLinksUpdate={handleLinksUpdate}
-                                        clickedAnnotation={clickedAnnotation}
-                                        setClickedAnnotation={setClickedAnnotation}
                                         containerRef={containerRef}
                                         editable={editable}
                                         isImage

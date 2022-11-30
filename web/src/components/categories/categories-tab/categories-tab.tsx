@@ -39,23 +39,13 @@ const getSubItems = (categories: Category[]): any[] => {
 };
 
 export const CategoriesTab = ({ boundModeSwitch, setBoundModeSwitch }: CategoriesTabProps) => {
-    const {
-        categories: taskCategories,
-        categoriesLoading,
-        task,
-        onCategorySelected
-    } = useTaskAnnotatorContext();
+    const { categories: taskCategories, task, onCategorySelected } = useTaskAnnotatorContext();
 
     const [searchText, setSearchText] = useState('');
     const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
 
     const hightRef = useRef<HTMLDivElement>(null);
     const categoriesHeight = useHeight({ ref: hightRef });
-
-    const isTaskCategoriesTree = useMemo<boolean | undefined>(() => {
-        if (!task || categoriesLoading) return;
-        return !isEmpty(taskCategories);
-    }, [task, categoriesLoading, taskCategories]);
 
     const addHotKey = (categoryNodes: CategoryNode[]) => {
         const hotKeys = '123456789qwertyuiopasdfghjklzxcvbnm';
@@ -82,7 +72,7 @@ export const CategoriesTab = ({ boundModeSwitch, setBoundModeSwitch }: Categorie
     });
 
     useEffect(() => {
-        if (!categoryNodes?.length || !isTaskCategoriesTree) {
+        if (!categoryNodes?.length) {
             return;
         }
         const hotKeysMap = addHotKey(categoryNodes);
@@ -90,7 +80,7 @@ export const CategoriesTab = ({ boundModeSwitch, setBoundModeSwitch }: Categorie
         const handleKey = (event: KeyboardEvent) => {
             const keyCode = event.key;
             const selectedNode = hotKeysMap.get(keyCode);
-            if (selectedNode) {
+            if (selectedNode && selectedNode.category) {
                 onCategorySelected(selectedNode.category);
                 setSelectedKeys([selectedNode.key]);
             }
@@ -100,7 +90,7 @@ export const CategoriesTab = ({ boundModeSwitch, setBoundModeSwitch }: Categorie
         return () => {
             document.removeEventListener('keydown', handleKey);
         };
-    }, [categoryNodes, isTaskCategoriesTree]);
+    }, [categoryNodes]);
 
     const categoriesTypes = useMemo(() => {
         if (taskCategories) {

@@ -24,6 +24,7 @@ type BoxAnnotationProps = {
     boundType: string;
     onMouseEnter?: React.MouseEventHandler<HTMLDivElement>;
     onMouseLeave?: React.MouseEventHandler<HTMLDivElement>;
+    taskHasTaxonomies?: boolean;
 };
 
 export const BoxAnnotation = ({
@@ -42,7 +43,8 @@ export const BoxAnnotation = ({
     page,
     boundType,
     onMouseEnter = noop,
-    onMouseLeave = noop
+    onMouseLeave = noop,
+    taskHasTaxonomies
 }: BoxAnnotationProps) => {
     const { x, y, width, height } = bound;
 
@@ -57,7 +59,7 @@ export const BoxAnnotation = ({
     };
 
     const annotationClassNames = `${styles.annotation} ${
-        isSelected ? styles.selected : isHovered ? styles.hovered : ''
+        isSelected ? styles.selected : isHovered || taskHasTaxonomies ? styles.hovered : ''
     }`;
     return (
         <div

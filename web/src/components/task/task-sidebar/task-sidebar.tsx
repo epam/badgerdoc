@@ -75,6 +75,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
         setTabValue,
         onChangeSelectionType,
         onDataAttributesChange,
+        onAnnotationEdited,
         tableMode,
         tableCellCategory,
         setTableCellCategory,
@@ -380,12 +381,12 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
                     {tabValue === 'Data' && !tableMode && (
                         <TaskSidebarData
                             annDataAttrs={annDataAttrs}
-                            selectedAnnotationId={
-                                selectedAnnotation ? +selectedAnnotation?.id : undefined
-                            }
+                            selectedAnnotation={selectedAnnotation}
                             isCategoryDataEmpty={isCategoryDataEmpty}
                             onDataAttributesChange={onDataAttributesChange}
                             viewMode={viewMode}
+                            onAnnotationEdited={onAnnotationEdited}
+                            currentPage={currentPage}
                         />
                     )}
                     {tabValue === 'Information' && (

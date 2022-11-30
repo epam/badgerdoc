@@ -26,6 +26,10 @@ const dataAttributesTypes = [
     {
         id: 'latex',
         type: 'latex'
+    },
+    {
+        id: 'taxonomy',
+        type: 'taxonomy'
     }
 ];
 

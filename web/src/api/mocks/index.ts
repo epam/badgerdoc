@@ -13,13 +13,15 @@ import {
     Pipeline,
     Category,
     SearchBody,
-    Operators
+    Operators,
+    Taxon
 } from '../typings';
 import { tasks } from './tasks';
 import { BadgerFetch, BadgerFetchBody, BadgerFetchProvider } from 'api/hooks/api';
 import { annotations } from './annotations';
 import { tokens } from './tokens';
 import { models } from './models';
+import { taxonomies } from './taxonomies';
 
 const FILEMANAGEMENT_NAMESPACE = process.env.REACT_APP_FILEMANAGEMENT_API_NAMESPACE;
 const JOBMANAGER_NAMESPACE = process.env.REACT_APP_JOBMANAGER_API_NAMESPACE;
@@ -28,6 +30,7 @@ const CATEGORIES_NAMESPACE = process.env.REACT_APP_CATEGORIES_API_NAMESPACE;
 const USERS_NAMESPACE = process.env.REACT_APP_USERS_API_NAMESPACE;
 const TOKENS_NAMESPACE = process.env.REACT_APP_TOKENS_API_NAMESPACE;
 const MODELS_NAMESPACE = process.env.REACT_APP_MODELS_API_NAMESPACE;
+const TAXONOMIES_NAMESPACE = process.env.REACT_APP_TAXONOMIES_API_NAMESPACE;
 
 let datasetsMockData = datasets;
 let jobsMockData = jobs;
@@ -38,6 +41,7 @@ let tasksMockData = tasks;
 let annotationsMockData = annotations;
 let tokensMockData = tokens;
 let modelsMockData = models;
+let taxonomiesMockData = taxonomies;
 
 const MOCKS: Record<string, Record<string, BadgerFetch<any>>> = {
     [`${FILEMANAGEMENT_NAMESPACE}/datasets/search`]: {
@@ -259,6 +263,39 @@ const MOCKS: Record<string, Record<string, BadgerFetch<any>>> = {
             }
             return {
                 data: categoriesMockData,
+                pagination: {
+                    page_num: 1,
+                    page_size: 100
+                }
+            };
+        }
+    },
+    [`${TAXONOMIES_NAMESPACE}/taxonomies/search`]: {
+        post: async (body: BadgerFetchBody | undefined) => {
+            const { filters, pagination } = JSON.parse(body as string) as SearchBody<Taxon>;
+            let data = taxonomiesMockData;
+            if (filters.length > 0) {
+                const parentFilter = filters.find((filter) => filter.field === 'parent_id');
+                const nameFilter = filters.find((filter) => filter.field === 'name');
+                const nameFilterValue = String(nameFilter?.value ?? '').slice(1, -1);
+
+                if (parentFilter) {
+                    const value =
+                        parentFilter.operator === Operators.IS_NULL ? null : parentFilter.value;
+
+                    data = data.filter((taxon) => taxon.parent_id === value);
+                }
+                if (nameFilterValue) {
+                    data = data.filter((taxon) => taxon.name.includes(nameFilterValue));
+                }
+
+                return {
+                    data,
+                    pagination
+                };
+            }
+            return {
+                data: taxonomiesMockData,
                 pagination: {
                     page_num: 1,
                     page_size: 100

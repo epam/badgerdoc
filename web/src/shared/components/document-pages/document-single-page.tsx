@@ -17,8 +17,6 @@ const DocumentSinglePage: FC<RenderPageParams> = ({
     handlePageLoaded,
     pageSize,
     handleLinksUpdate,
-    clickedAnnotation,
-    setClickedAnnotation,
     containerRef,
     editable,
     isImage = false,
@@ -46,8 +44,7 @@ const DocumentSinglePage: FC<RenderPageParams> = ({
         onAnnotationDeleted,
         onAnnotationEdited,
         onCurrentPageChange,
-        onAnnotationDoubleClick,
-        onAnnotationClick
+        onAnnotationDoubleClick
     } = useTaskAnnotatorContext();
     const { showMenu, getMenuProps } = useContextMenu();
     const pageAnnotations = allAnnotations[pageNum] ?? empty;
@@ -147,8 +144,6 @@ const DocumentSinglePage: FC<RenderPageParams> = ({
                         background: categoryColor,
                         opacity: 0.2
                     }}
-                    clickedAnnotation={clickedAnnotation}
-                    setClickedAnnotation={setClickedAnnotation}
                     onAnnotationAdded={handleAnnotationAdded}
                     onAnnotationContextMenu={handleAnnotationContextMenu}
                     onAnnotationDeleted={
@@ -156,7 +151,6 @@ const DocumentSinglePage: FC<RenderPageParams> = ({
                     }
                     onAnnotationEdited={handleAnnotationEdited}
                     onAnnotationDoubleClick={onAnnotationDoubleClick}
-                    onAnnotationClick={onAnnotationClick}
                     onAnnotationCopyPress={(annotationId) =>
                         onAnnotationCopyPress(pageNum, annotationId)
                     }
@@ -263,8 +257,6 @@ type RenderPageParams = {
     handlePageLoaded: (page: PDFPageProxy | HTMLImageElement) => void;
     pageSize?: PageSize;
     handleLinksUpdate: () => void;
-    clickedAnnotation: Annotation | undefined;
-    setClickedAnnotation: React.Dispatch<React.SetStateAction<Annotation | undefined>>;
     containerRef: React.RefObject<HTMLDivElement>;
     editable: boolean;
     isImage?: boolean;

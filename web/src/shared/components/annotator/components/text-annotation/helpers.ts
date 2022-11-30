@@ -28,6 +28,7 @@ export type TextAnnotationProps = {
     id?: string | number;
     page: number;
     isHovered?: boolean;
+    taskHasTaxonomies?: boolean;
 };
 
 type LabelPosition = 'start' | 'end' | 'middle' | 'both' | 'no_label';
@@ -41,6 +42,7 @@ export type TextAnnotationLabelProps = {
     isEditable?: boolean;
     isSelected?: boolean;
     isHovered?: boolean;
+    taskHasTaxonomies?: boolean;
 };
 
 type TextAnnBoundParams = {

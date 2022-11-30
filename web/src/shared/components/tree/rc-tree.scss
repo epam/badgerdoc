@@ -12,6 +12,7 @@
         display: flex;
         align-items: center;
         margin: 0;
+
         padding: 0;
         height: 32px;
         line-height: 24px;
@@ -70,10 +71,10 @@
                     cursor: auto;
                 }
                 &.rc-tree-switcher_open {
-                    background-image: url('./icons/down.svg');
+                    background-image: url('../../../icons/down.svg');
                 }
                 &.rc-tree-switcher_close {
-                    background-image: url('./icons/up.svg');
+                    background-image: url('../../../icons/up.svg');
                 }
             }
         }
@@ -98,6 +99,7 @@
         display: inline-block;
     }
     &-indent {
+        padding-left: 10px;
         display: inline-block;
         height: 0;
         vertical-align: bottom;

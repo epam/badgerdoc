@@ -121,7 +121,6 @@ type ContextValue = {
     onSaveEditClick: () => void;
     onEmptyAreaClick: () => void;
     onAnnotationDoubleClick: (annotation: Annotation) => void;
-    onAnnotationClick: (annotation: Annotation) => void;
     onAnnotationCopyPress: (pageNum: number, annotationId: string | number) => void;
     onAnnotationCutPress: (pageNum: number, annotationId: string | number) => void;
     onAnnotationPastePress: (pageSize: PageSize, pageNum: number) => void;
@@ -133,6 +132,8 @@ type ContextValue = {
     setTableCellCategory: (s: string | number | undefined) => void;
     selectedToolParams: PaperToolParams;
     setSelectedToolParams: (nt: PaperToolParams) => void;
+    setSelectedAnnotation: (annotation: Annotation | undefined) => void;
+    taskHasTaxonomies?: boolean;
 };
 
 const TaskAnnotatorContext = createContext<ContextValue | undefined>(undefined);
@@ -189,7 +190,7 @@ export const TaskAnnotatorContextProvider: FC<ProviderProps> = ({
         AnnotationBoundType | AnnotationLinksBoundType | AnnotationImageToolType
     >('free-box');
     const [selectedTool, setSelectedTool] = useState<AnnotationImageToolType>('pen');
-    const [selectedAnnotation, setSelectedAnnotation] = useState<Annotation>();
+    const [selectedAnnotation, setSelectedAnnotation] = useState<Annotation | undefined>(undefined);
     const [isDataTabDisabled, setIsDataTabDisabled] = useState<boolean>(dataTabDefaultDisableState);
     const [isCategoryDataEmpty, setIsCategoryDataEmpty] = useState<boolean>(false);
     const [annDataAttrs, setAnnDataAttrs] = useState<
@@ -278,16 +279,24 @@ export const TaskAnnotatorContextProvider: FC<ProviderProps> = ({
         }
     }, [task]);
 
-    const filters: Filter<keyof FileDocument>[] = [];
+    const taskHasTaxonomies = useMemo(() => {
+        if (categories) {
+            return !!categories.data.find((category) =>
+                category.data_attributes?.find((attr) => attr.type === 'taxonomy')
+            );
+        }
+    }, [categories]);
 
-    filters.push({
+    const documentFilters: Filter<keyof FileDocument>[] = [];
+
+    documentFilters.push({
         field: 'id',
         operator: Operators.EQ,
         value: getFileId()
     });
     const documentsResult = useDocuments(
         {
-            filters
+            filters: documentFilters
         },
         { enabled: false }
     );
@@ -498,11 +507,12 @@ export const TaskAnnotatorContextProvider: FC<ProviderProps> = ({
         setAnnDataAttrs({});
         setIsCategoryDataEmpty(true);
         setTabValue('Categories');
+        setSelectedAnnotation(undefined);
     };
 
     const setAnnotationDataAttrs = (annotation: Annotation) => {
         const foundCategoryDataAttrs = getCategoryDataAttrs(
-            annotation.label || annotation.category,
+            annotation.category ? annotation.category : annotation.label,
             categories?.data
         );
         if (foundCategoryDataAttrs && foundCategoryDataAttrs.length) {
@@ -519,14 +529,15 @@ export const TaskAnnotatorContextProvider: FC<ProviderProps> = ({
         } else {
             setTabValue('Categories');
             setIsCategoryDataEmpty(true);
-            setSelectedAnnotation(undefined);
         }
         setIsDataTabDisabled(foundCategoryDataAttrs && foundCategoryDataAttrs.length === 0);
     };
 
-    const onAnnotationClick = (annotation: Annotation) => {
-        setAnnotationDataAttrs(annotation);
-    };
+    useEffect(() => {
+        if (!selectedAnnotation) return;
+
+        setAnnotationDataAttrs(selectedAnnotation);
+    }, [selectedAnnotation]);
 
     const onAnnotationCopyPress = (pageNum: number, annotationId: string | number) => {
         if (annotationId && pageNum) {
@@ -1039,6 +1050,7 @@ export const TaskAnnotatorContextProvider: FC<ProviderProps> = ({
             annDataAttrs,
             externalViewer,
             tableCellCategory,
+            taskHasTaxonomies,
             setTableCellCategory,
             onAnnotationCreated,
             onAnnotationDeleted,
@@ -1060,14 +1072,14 @@ export const TaskAnnotatorContextProvider: FC<ProviderProps> = ({
             setTabValue,
             onDataAttributesChange,
             onEmptyAreaClick,
-            onAnnotationClick,
             onAnnotationDoubleClick,
             onAnnotationCopyPress,
             onAnnotationCutPress,
             onAnnotationPastePress,
             onAnnotationUndoPress,
             onAnnotationRedoPress,
-            onExternalViewerClose
+            onExternalViewerClose,
+            setSelectedAnnotation
         };
     }, [
         task,

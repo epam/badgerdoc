@@ -91,7 +91,12 @@ export const categories: Category[] = [
             color: '#ff0000'
         },
         type: 'box',
-        data_attributes: null,
+        data_attributes: [
+            {
+                name: 'taxonomy',
+                type: 'taxonomy'
+            }
+        ],
         id: 'Parent',
         parents: [],
         isLeaf: false

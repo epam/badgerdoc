@@ -159,7 +159,7 @@ export type ModelDeployment = {
     url?: string;
 };
 
-export type CategoryDataAttrType = 'molecule' | 'latex' | 'text' | '';
+export type CategoryDataAttrType = 'molecule' | 'latex' | 'text' | 'taxonomy' | '';
 
 export type CategoryDataAttribute = {
     name: string;
@@ -216,16 +216,39 @@ export interface Category extends BaseCategory {
     parents?: BaseCategory[] | null;
 }
 
-export interface CategoryNode {
+export interface TreeNode {
     title: string;
     key: string;
     isLeaf: boolean;
     children: CategoryNode[];
-    category: BaseCategory;
+}
+export interface CategoryNode extends TreeNode {
+    category?: BaseCategory;
     hotKey?: string;
     style?: React.CSSProperties;
 }
 
+export interface TaxonomyNode extends TreeNode {
+    dataAttributes?: string;
+    taxon?: BaseTaxon;
+}
+
+export interface BaseTaxon {
+    id: string;
+    name: string;
+    parent_id: string | null;
+    is_leaf: boolean;
+    taxonomy_id: string;
+}
+
+export interface Taxon extends BaseTaxon {
+    parents?: BaseTaxon[];
+}
+export interface Taxonomy {
+    id: string;
+    name: string;
+    taxons: BaseTaxon[];
+}
 export type Link = {
     category_id: string;
     to: string | number;

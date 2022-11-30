@@ -74,3 +74,15 @@
         color: #6c6f80;
     }
 }
+.hot-key-container {
+    margin-right: 6px;
+    padding: 1px 4px;
+    border: 1px solid $btn-blue;
+    color: $btn-blue;
+}
+.hot-key-container-disabled {
+    margin-right: 6px;
+    padding: 1px 4px;
+    border: 1px solid $night500;
+    color: $night500;
+}
