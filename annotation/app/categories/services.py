@@ -26,6 +26,7 @@ from app.schemas import (
     CategoryORMSchema,
     CategoryResponseSchema,
 )
+from app.schemas.categories import CategoryDataAttributeNames
 
 cache = TTLCache(maxsize=128, ttl=300)
 
@@ -278,8 +279,10 @@ def _get_parents(
     uniq_pathes = set()
 
     for cat in categories:
-        uniq_pathes.add(cat.tree.path)
-        uniq_cats = uniq_cats.union({tree.path for tree in cat.tree})
+        # if we pass root categories it causes exception.
+        if cat.tree is not None:
+            uniq_pathes.add(cat.tree.path)
+            uniq_cats = uniq_cats.union({tree.path for tree in cat.tree})
 
     category_to_object = {
         cat.id: cat
@@ -442,3 +445,13 @@ def link_category_with_taxonomy(
                 token=token.token,
                 taxonomy_link_params=taxonomy_link_params,
             )
+def get_taxonomy_from_data_attribute(category: Category) -> Dict[str, str]:
+    taxonomy_link_params = {}
+    for data_attribute in category.data_attributes:
+        for attr_name, value in data_attribute.items():
+            if attr_name in (
+                CategoryDataAttributeNames.taxonomy_id.name,
+                CategoryDataAttributeNames.taxonomy_version.name,
+            ):
+                taxonomy_link_params[attr_name] = value
+    return taxonomy_link_params
