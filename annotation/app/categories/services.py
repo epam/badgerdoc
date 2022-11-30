@@ -63,10 +63,11 @@ def add_category_db(
     if parent_db and parent_db.tenant not in [tenant, None]:
         raise ForeignKeyError("Category with this id doesn't exist.")
 
+    id_ = id_ or uuid.uuid4().hex
     if parent_db and parent_db.tree:
-        tree = Ltree(f"{parent_db.tree.path}.{category_input.id}")
+        tree = Ltree(f"{parent_db.tree.path}.{id_}")
     else:
-        tree = Ltree(f"{category_input.id}")
+        tree = Ltree(f"{id_}")
 
     category = Category(
         id=(id_ or str(uuid.uuid4())),

@@ -1,3 +1,4 @@
+from typing import Callable
 from uuid import uuid4
 
 from sqlalchemy import (
@@ -11,10 +12,17 @@ from sqlalchemy import (
     Integer,
 )
 from sqlalchemy.orm import relationship, validates
-from sqlalchemy_utils import LtreeType
+from sqlalchemy_utils import Ltree, LtreeType
 
 from app.database import Base
 from app.errors import CheckFieldError
+
+
+def default_tree(column_name: str) -> Callable:
+    def default_function(context) -> str:
+        return Ltree(f"{context.current_parameters.get(column_name)}")
+
+    return default_function
 
 
 class AssociationTaxonomyJob(Base):
@@ -74,7 +82,7 @@ class Taxon(Base):
         "Taxon",
         remote_side=[id],
     )
-    tree = Column(LtreeType, nullable=True)
+    tree = Column(LtreeType, nullable=True, default=default_tree("id"))
 
     __table_args__ = (
         Index("index_taxon_tree", tree, postgresql_using="gist"),

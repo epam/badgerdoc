@@ -1,3 +1,4 @@
+import uuid
 from typing import Dict, List, Optional, Set, Tuple, Union
 
 from filter_lib import Page, form_query, map_request_to_filter, paginate
@@ -45,10 +46,11 @@ def add_taxon_db(
     if parent_db and parent_db.tenant not in [tenant, None]:
         raise CheckFieldError("Parent taxon with this id doesn't exist.")
 
+    id_ = id_ or uuid.uuid4().hex
     if parent_db and parent_db.tree:
-        tree = Ltree(f"{parent_db.tree.path}.{taxon_input.id}")
+        tree = Ltree(f"{parent_db.tree.path}.{id_}")
     else:
-        tree = Ltree(f"{taxon_input.id}")
+        tree = Ltree(f"{id_}")
 
     taxon = Taxon(
         id=id_,
