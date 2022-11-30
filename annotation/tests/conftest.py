@@ -576,7 +576,7 @@ def prepare_db_categories_for_distinct_filtration(db_session):
             id=str(number + 2),
             tenant=None,
             name=f"Table{number}",
-            type="link",
+            type="box",
         )
         for number in range(2)
     ]
@@ -585,6 +585,25 @@ def prepare_db_categories_for_distinct_filtration(db_session):
     )
     for cat in [category_editor, *categories_link, category_segmentation]:
         db_session.add(cat)
+    try:
+        db_session.commit()
+    except FlushError:
+        db_session.rollback()
+    yield db_session
+
+    clear_db()
+
+
+@pytest.fixture
+def prepared_db_category_with_taxonomy_data_attribute(db_session):
+    category = Category(
+        id='test_taxonomy',
+        tenant=TEST_TENANT,
+        name=f"test_taxonomy",
+        type="link",
+        data_attributes=[{"taxonomy_id": "123"}, {"taxonomy_version": 1}]
+    )
+    db_session.add(category)
     try:
         db_session.commit()
     except FlushError:

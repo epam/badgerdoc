@@ -101,7 +101,7 @@ def get_taxonomies_by_job_id(session: Session, job_id: str) -> List[Taxonomy]:
     )
 
 
-def create_new_relation_with_category(
+def create_new_relation_to_category(
     session: Session, taxonomy: Taxonomy, category_id: str
 ) -> Taxonomy:
     taxonomy.category_id = category_id

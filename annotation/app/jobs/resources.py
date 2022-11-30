@@ -48,6 +48,8 @@ from app.schemas import (
 )
 from app.tags import FILES_TAG, JOBS_TAG
 from app.token_dependency import TOKEN
+from app.categories.services import get_taxonomy_from_data_attribute
+from app.microservice_communication.taxonomy import link_job_with_taxonomy
 
 from ..models import (
     AnnotatedDoc,
@@ -136,6 +138,15 @@ def post_job(
             job_type=job_type,
         )
     )
+
+    for cat in categories:
+        if taxonomy_link_params := get_taxonomy_from_data_attribute(cat):
+            link_job_with_taxonomy(
+                job_id=job_id,
+                tenant=x_current_tenant,
+                token=token,
+                **taxonomy_link_params
+            )
 
     files = get_files_info(
         job_info.files,

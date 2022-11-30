@@ -10,7 +10,7 @@ from app.schemas import (
     BadRequestErrorSchema,
     CategoryLinkSchema,
     ConnectionErrorSchema,
-    JobIdSchema,
+    JobIdSchemaIn,
     NotFoundErrorSchema,
     TaxonomyBaseSchema,
     TaxonomyInputSchema,
@@ -19,7 +19,7 @@ from app.schemas import (
 from app.tags import TAXONOMY_TAG
 from app.taxonomy.services import (
     create_new_relation_to_job,
-    create_new_relation_with_category,
+    create_new_relation_to_category,
     create_taxonomy_instance,
     delete_taxonomy_instance,
     get_latest_taxonomy,
@@ -28,6 +28,7 @@ from app.taxonomy.services import (
     get_taxonomy,
     update_taxonomy_instance,
 )
+from schemas.taxonomy import JobIdSchemaIn
 
 router = APIRouter(
     prefix="/taxonomy",
@@ -129,7 +130,7 @@ def get_taxonomy_by_id_and_version(
 
 
 @router.post(
-    "/{taxonomy_id}/link_to_job",
+    "/link_job",
     status_code=status.HTTP_201_CREATED,
     responses={
         400: {"model": BadRequestErrorSchema},
@@ -137,19 +138,22 @@ def get_taxonomy_by_id_and_version(
     summary="Save new taxonomy and return saved one.",
 )
 def associate_taxonomy_to_job(
-    query: JobIdSchema,
-    taxonomy_id: str = Path(..., example="1"),
+    query: JobIdSchemaIn,
     session: Session = Depends(get_db),
 ):
-    taxonomy = get_latest_taxonomy(session, taxonomy_id)
+    if query.taxonomy_version:
+        taxonomy = get_taxonomy(
+            session, (query.taxonomy_id, query.taxonomy_version)
+        )
+    else:
+        taxonomy = get_latest_taxonomy(session, query.taxonomy_id)
     if not taxonomy:
         LOGGER.error(
-            "associate_taxonomy_to_job get not existing id %s", taxonomy_id
+            "associate_taxonomy_to_job get not existing id %s", query.taxonomy_id
         )
         raise HTTPException(status_code=404, detail="Not existing taxonomy")
-
-    # todo validate job existence.
-    create_new_relation_to_job(session, taxonomy, query.id)
+    create_new_relation_to_job(session, taxonomy, query.job_id)
+    return TaxonomyResponseSchema.from_orm(taxonomy)
 
 
 @router.post(
@@ -178,7 +182,7 @@ def associate_taxonomy_to_category(
         )
         raise HTTPException(status_code=404, detail="Not existing taxonomy")
 
-    create_new_relation_with_category(session, taxonomy, query.category_id)
+    create_new_relation_to_category(session, taxonomy, query.category_id)
     return TaxonomyResponseSchema.from_orm(taxonomy)
 
 

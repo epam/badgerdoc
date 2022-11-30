@@ -7,7 +7,7 @@ from sqlalchemy_filters.exceptions import BadFilterFormat
 from tenant_dependency import TenantData
 
 from app.database import get_db
-from app.errors import NoSuchCategoryError
+from app.errors import NoSuchCategoryError, CheckFieldError
 from app.filters import CategoryFilter
 from app.microservice_communication.search import X_CURRENT_TENANT_HEADER
 from app.microservice_communication.taxonomy import link_category_with_taxonomy
@@ -32,7 +32,7 @@ from .services import (
     insert_category_tree,
     recursive_subcategory_search,
     response_object_from_db,
-    update_category_db,
+    update_category_db, get_taxonomy_from_data_attribute,
 )
 
 router = APIRouter(
@@ -59,20 +59,13 @@ def save_category(
 ) -> CategoryResponseSchema:
     category_db = add_category_db(db, category, x_current_tenant)
     if category_db.data_attributes:
-        taxonomy_link_params = {}
-        for data_attribute in category.data_attributes:
-            for attr_name, value in data_attribute.items():
-                if attr_name in (
-                    CategoryDataAttributeNames.taxonomy_id.name,
-                    CategoryDataAttributeNames.taxonomy_version.name,
-                ):
-                    taxonomy_link_params[attr_name] = value
+        taxonomy_link_params = get_taxonomy_from_data_attribute(category_db)
         if taxonomy_link_params:
             if (
                 CategoryDataAttributeNames.taxonomy_id.name
                 not in taxonomy_link_params
             ):
-                raise BadRequestErrorSchema("Taxonomy ID was not provided")
+                raise CheckFieldError("Taxonomy ID was not provided")
             link_category_with_taxonomy(
                 category_id=category.id,
                 tenant=x_current_tenant,

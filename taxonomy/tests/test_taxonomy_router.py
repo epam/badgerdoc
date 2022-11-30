@@ -129,23 +129,28 @@ def test_should_associate_taxonomy_to_job(
     db_session,
 ):
     # given
-    taxonomy_id = prepared_taxonomy_record_in_db.id
-    job_id = "123"
+    request_data = {
+        "taxonomy_id": prepared_taxonomy_record_in_db.id,
+        "taxonomy_version": prepared_taxonomy_record_in_db.version,
+        "job_id": "123",
+    }
     # when
     response = overrided_token_client.post(
-        "/taxonomy/{taxonomy_id}/link_to_job".format(
-            taxonomy_id=taxonomy_id,
-        ),
-        json={"id": job_id},
+        "/taxonomy/link_job",
+        json=request_data,
         headers=TEST_HEADER,
     )
     # then
     assert response
     assert response.status_code == 201
 
+    jobs = response.json()['jobs']
+    assert jobs
+    assert jobs[0]['job_id'] == request_data['job_id']
+
     association: AssociationTaxonomyJob = (
         db_session.query(AssociationTaxonomyJob)
-        .filter(AssociationTaxonomyJob.job_id == job_id)
+        .filter(AssociationTaxonomyJob.job_id == request_data['job_id'])
         .first()
     )
     assert association
@@ -153,7 +158,7 @@ def test_should_associate_taxonomy_to_job(
 
 
 @pytest.mark.integration
-def test_should_associate_taxonomy_to_job(
+def test_should_associate_taxonomy_to_category(
     overrided_token_client,
     prepared_taxonomy_record_in_db: Taxonomy,
     db_session,

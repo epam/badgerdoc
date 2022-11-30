@@ -1,5 +1,6 @@
 from json import loads
 from typing import Any, List, Optional, Tuple, Union
+from unittest.mock import patch
 from uuid import UUID
 
 from fastapi.testclient import TestClient
@@ -201,6 +202,19 @@ def test_job_available_categories(
     assert len(categories) == 1
     assert categories[0].id == cat_ids[0]
     assert categories[0].tenant == cat_tenant
+
+
+@patch("app.jobs.resources.link_job_with_taxonomy")
+def test_create_job_should_link_taxonomy_if_category_have_data_attribute(
+    link_taxonomy_mock,
+    prepared_db_category_with_taxonomy_data_attribute,
+):
+    client.post(
+        f"{POST_JOBS_PATH}/{MOCK_ID}",
+        json=prepare_job_body(categories=['test_taxonomy']),
+        headers=TEST_HEADERS,
+    )
+    assert link_taxonomy_mock.called
 
 
 @mark.integration
