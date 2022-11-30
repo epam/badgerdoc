@@ -25,3 +25,10 @@ class MinioCommunicator:
             "MinIO client for %s was created successfully",
             settings.minio_server,
         )
+
+
+def convert_bucket_name_if_s3prefix(bucket_name: str) -> str:
+    if settings.s3_prefix:
+        return f"{settings.s3_prefix}-{bucket_name}"
+    else:
+        return bucket_name

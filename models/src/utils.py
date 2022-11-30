@@ -21,10 +21,18 @@ from src.constants import (
     MINIO_PUBLIC_HOST,
     MINIO_SECRET_KEY,
     MODELS_NAMESPACE,
+    S3_PREFIX,
 )
 from src.db import Basement, Model
 from src.errors import NoSuchTenant
 from src.schemas import DeployedModelPod, MinioHTTPMethod
+
+
+def convert_bucket_name_if_s3prefix(bucket_name: str) -> str:
+    if S3_PREFIX:
+        return f"{S3_PREFIX}-{bucket_name}"
+    else:
+        return bucket_name
 
 
 def deploy(session: Session, instance: Model) -> None:
@@ -303,6 +311,7 @@ def get_minio_resource(tenant: str) -> boto3.resource:
         if "404" in err.args[0]:
             raise NoSuchTenant(f"Bucket for tenant {tenant} does not exist")
     return s3_resource
+# TODO: сделать авторизацию и через minio, и через AWS IAM Service Role?
 
 
 def generate_presigned_url(

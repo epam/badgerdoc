@@ -22,6 +22,7 @@ from src.tasks import GetLanguagesTask, PreprocessingTask
 from src.text_merge import merge_words_to_paragraph
 from src.utils.aiohttp_utils import http_session
 from src.utils.logger import get_logger
+from src.utils.minio_utils import convert_bucket_name_if_s3prefix
 from src.utils.utils import map_finish_status_for_assets
 
 logger = get_logger(__name__)
@@ -83,8 +84,9 @@ def get_preprocessing_result(
         pages,
         current_tenant,
     )
+    bucket_name = convert_bucket_name_if_s3prefix(current_tenant)
     return Response(
-        content=send_preprocess_result(current_tenant, file_id, pages),
+        content=send_preprocess_result(bucket_name, file_id, pages),
         media_type="application/json",
     )
 

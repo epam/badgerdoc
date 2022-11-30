@@ -33,6 +33,7 @@ class Settings(BaseSettings):
     minio_server: str = "minio:80"
     minio_root_user: str = "minioadmin"
     minio_root_password: str = "minioadmin"
+    s3_prefix: Optional[str]
 
     keycloak_host: str = "http://bagerdoc-keycloack"
     host_models: str = "http://models/deployed_models"
