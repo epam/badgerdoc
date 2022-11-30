@@ -125,8 +125,8 @@ def test_create_filter_ltree_children(get_session):
         "(SELECT categories.tree AS tree \n"
         "FROM categories \n"
         "WHERE categories.id = :id_1) AS anon_1 \n"
-        "WHERE nlevel(categories.tree) = nlevel(anon_1.tree) + :nlevel_1 "
-        "ORDER BY categories.tree"
+        "WHERE (categories.tree <@ anon_1.tree) AND "
+        "nlevel(categories.tree) = nlevel(anon_1.tree) + :nlevel_1"
     )
 
     compiled_statement = query.statement.compile()
@@ -157,8 +157,8 @@ def test_create_filter_ltree_children_recursive(get_session):
         "(SELECT categories.tree AS tree \n"
         "FROM categories \n"
         "WHERE categories.id = :id_1) AS anon_1 \n"
-        "WHERE nlevel(categories.tree) > nlevel(anon_1.tree) "
-        "ORDER BY categories.tree"
+        "WHERE (categories.tree <@ anon_1.tree) AND "
+        "nlevel(categories.tree) > nlevel(anon_1.tree)"
     )
 
     compiled_statement = query.statement.compile()
