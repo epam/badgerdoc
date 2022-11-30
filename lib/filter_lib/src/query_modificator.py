@@ -231,12 +231,14 @@ def _make_ltree_query(
         ).order_by(model.tree)
     elif op == "children":
         return query.filter(
-            func.nlevel(model.tree) == func.nlevel(subquery.c.tree) + 1
-        ).order_by(model.tree)
+            model.tree.op("<@")(subquery.c.tree),
+            func.nlevel(model.tree) == func.nlevel(subquery.c.tree) + 1,
+        )
     elif op == "children_recursive":
         return query.filter(
-            func.nlevel(model.tree) > func.nlevel(subquery.c.tree)
-        ).order_by(model.tree)
+            model.tree.op("<@")(subquery.c.tree),
+            func.nlevel(model.tree) > func.nlevel(subquery.c.tree),
+        )
 
     return query
 
