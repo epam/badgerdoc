@@ -46,7 +46,7 @@ export const TaskSidebarData: FC<TaskSidebarDataProps> = ({
             return dataAttrsArr.find((dataAttr) => dataAttr.type === 'taxonomy')?.name;
         }
     }, [dataAttrsArr]);
-    console.log(dataAttrsArr);
+
     const { taxonomyNodes, expandNode, onLoadData } = useTaxonomiesTree({
         searchText,
         taxonomyId
