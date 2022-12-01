@@ -1,10 +1,10 @@
 import { Spinner } from '@epam/loveship';
-import { Category, CategoryNode, TaxonomyNode, TreeNode } from 'api/typings';
-import React, { FC, useCallback, useEffect, useState } from 'react';
+import { TaxonomyNode, TreeNode } from 'api/typings';
+import React, { FC, useCallback, useState } from 'react';
 import styles from './taxonomies-tree.module.scss';
 import { EventDataNode } from 'rc-tree/lib/interface';
 import { BadgerTree } from 'shared/components/tree/tree';
-import { Annotation } from 'shared';
+import { Annotation, AnnotationLabel } from 'shared';
 
 interface TaxonomiesTreeProps {
     taxonomiesHeight: number;
@@ -55,6 +55,18 @@ export const TaxonomiesTree: FC<TaxonomiesTreeProps> = ({
 
     const handleSelect = useCallback((selectedKeys, info) => {
         setSelectedKeys(selectedKeys);
+        if (selectedAnnotation?.labels) {
+            const labelToChangeIdx: number = selectedAnnotation?.labels.findIndex(
+                (label: AnnotationLabel) => label.annotationId === selectedAnnotation.id
+            );
+
+            const changedLabel: AnnotationLabel = {
+                ...selectedAnnotation?.labels[labelToChangeIdx],
+                label: info.node.title
+            };
+
+            selectedAnnotation.labels[labelToChangeIdx] = changedLabel;
+        }
         onAnnotationEdited(currentPage, selectedAnnotation?.id!, { label: info.node.title });
         onDataAttributesChange(elementIndex, info.node.key);
     }, []);

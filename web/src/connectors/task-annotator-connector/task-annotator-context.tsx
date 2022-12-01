@@ -340,7 +340,9 @@ export const TaskAnnotatorContextProvider: FC<ProviderProps> = ({
 
     const createAnnotation = (pageNum: number, newAnnotation: Annotation) => {
         const pageAnnotations = allAnnotations[pageNum] ?? [];
-
+        const dataAttr: CategoryDataAttributeWithValue = newAnnotation.data?.dataAttributes.find(
+            (attr: CategoryDataAttributeWithValue) => attr.type === 'taxonomy'
+        );
         setAllAnnotations((prevState) => ({
             ...prevState,
             [pageNum]: [
@@ -348,7 +350,7 @@ export const TaskAnnotatorContextProvider: FC<ProviderProps> = ({
                 {
                     ...newAnnotation,
                     color: selectedCategory?.metadata?.color,
-                    label: selectedCategory?.name,
+                    label: dataAttr ? dataAttr.value : selectedCategory?.name,
                     labels: getAnnotationLabels(pageNum, newAnnotation, selectedCategory)
                 }
             ]
@@ -697,7 +699,6 @@ export const TaskAnnotatorContextProvider: FC<ProviderProps> = ({
                     value
                 });
             }
-
             setAnnDataAttrs(newAnn);
         }
     };
@@ -877,9 +878,14 @@ export const TaskAnnotatorContextProvider: FC<ProviderProps> = ({
         if (ann.boundType !== 'text') {
             return [];
         }
+        const dataAttr: CategoryDataAttributeWithValue = ann.data?.dataAttributes
+            ? ann.data?.dataAttributes.find(
+                  (attr: CategoryDataAttributeWithValue) => attr.type === 'taxonomy'
+              )
+            : null;
         const label = {
             annotationId: ann.id,
-            label: category?.name,
+            label: dataAttr ? dataAttr.value : category?.name,
             color: category?.metadata?.color
         };
         const topRightToken: PageToken | null | undefined = getTopRightToken(ann?.tokens);
