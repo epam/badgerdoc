@@ -1,0 +1,25 @@
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: taxonomy
+  namespace: {{ .Release.Namespace }}
+spec:
+  host: {{ .Release.Namespace }}.badgerdoc.com
+  connect_timeout_ms: 30000
+  idle_timeout_ms: 50000
+  prefix: /api/v1/taxonomy/
+  service: taxonomy
+  timeout_ms: 30000
+---
+apiVersion: getambassador.io/v2
+kind: Mapping
+metadata:
+  name: taxonomy-internal
+  namespace: {{ .Release.Namespace }}
+spec:
+  host: ambassador
+  connect_timeout_ms: 30000
+  idle_timeout_ms: 50000
+  prefix: /api/v1/taxonomy/
+  service: taxonomy
+  timeout_ms: 30000

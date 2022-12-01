@@ -11,7 +11,8 @@ const {
     REACT_APP_TOKENS_API_NAMESPACE,
     REACT_APP_USERS_API_NAMESPACE,
     REACT_APP_MODELS_API_NAMESPACE,
-    REACT_APP_SEARCH_API_NAMESPACE
+    REACT_APP_SEARCH_API_NAMESPACE,
+    REACT_APP_TAXONOMIES_API_NAMESPACE
 } = process.env;
 
 const filemanagementProxyMiddleware = createProxyMiddleware({
@@ -60,6 +61,11 @@ const searchProxyMiddleware = createProxyMiddleware({
     changeOrigin: true
 });
 
+const taxonomiesProxyMiddleware = createProxyMiddleware({
+    target: process.env.REACT_APP_TAXONOMIES_API,
+    changeOrigin: true
+});
+
 module.exports = (app) => {
     app.use(applyMocks);
     app.use(REACT_APP_AUTH_API_NAMESPACE, authProxyMiddleware);
@@ -71,6 +77,7 @@ module.exports = (app) => {
     app.use(REACT_APP_USERS_API_NAMESPACE, usersProxyMiddleware);
     app.use(REACT_APP_MODELS_API_NAMESPACE, modelsProxyMiddleware);
     app.use(REACT_APP_SEARCH_API_NAMESPACE, searchProxyMiddleware);
+    app.use(REACT_APP_TAXONOMIES_API_NAMESPACE, taxonomiesProxyMiddleware);
 
     app.use(morgan('combined'));
 };

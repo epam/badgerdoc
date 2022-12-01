@@ -1,12 +1,9 @@
 import pytest
-
 import sqlalchemy as sa
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, relationship
-
-from sqlalchemy_utils import LtreeType
-
 from sqlalchemy.dialects.sqlite.base import SQLiteTypeCompiler
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship, sessionmaker
+from sqlalchemy_utils import LtreeType
 
 Base = declarative_base()
 
@@ -36,7 +33,7 @@ class Category(Base):
     __tablename__ = "categories"
 
     id = sa.Column(sa.Integer, primary_key=True, autoincrement=True)
-    path = sa.Column(LtreeType, nullable=False)
+    tree = sa.Column(LtreeType, nullable=False)
 
 
 @pytest.fixture(scope="function")

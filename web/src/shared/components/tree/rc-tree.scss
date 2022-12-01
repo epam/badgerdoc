@@ -1,0 +1,111 @@
+@import '~shared/helpers/styles';
+
+.rc-tree {
+    margin: 0;
+    border: 1px solid transparent;
+
+    &-focused:not(&-active-focused) {
+        border-color: cyan;
+    }
+
+    .rc-tree-treenode {
+        display: flex;
+        align-items: center;
+        margin: 0;
+
+        padding: 0;
+        height: 32px;
+        line-height: 24px;
+        white-space: nowrap;
+        list-style: none;
+        outline: 0;
+        justify-content: stretch;
+
+        &:hover {
+            background: rgba($color: $light-grey, $alpha: 0.3);
+            cursor: pointer;
+        }
+        &-selected {
+            background: rgba($color: $light-blue, $alpha: 0.3);
+        }
+
+        ul {
+            margin: 0;
+            padding: 0 0 0 18px;
+        }
+        .rc-tree-node-content-wrapper {
+            position: relative;
+            display: inline-block;
+            height: 24px;
+            margin: 0;
+            padding: 0;
+            text-decoration: none;
+            vertical-align: top;
+            cursor: pointer;
+            flex: 1;
+        }
+        span {
+            &.rc-tree-switcher,
+            &.rc-tree-checkbox {
+                display: inline-block;
+                width: 16px;
+                height: 16px;
+                margin-right: 2px;
+                margin-bottom: 4px;
+                line-height: 16px;
+                vertical-align: -0.125em;
+                background-color: transparent;
+
+                background-repeat: no-repeat;
+                background-attachment: scroll;
+                border: 0 none;
+                outline: none;
+                cursor: pointer;
+
+                &.rc-tree-icon__customize {
+                    background-image: none;
+                }
+            }
+            &.rc-tree-switcher {
+                &.rc-tree-switcher-noop {
+                    cursor: auto;
+                }
+                &.rc-tree-switcher_open {
+                    background-image: url('../../../icons/down.svg');
+                }
+                &.rc-tree-switcher_close {
+                    background-image: url('../../../icons/up.svg');
+                }
+            }
+        }
+    }
+
+    &-child-tree {
+        display: none;
+        &-open {
+            display: block;
+        }
+    }
+    &-treenode-disabled {
+        > span:not(.rc-tree-switcher),
+        > a,
+        > a span {
+            color: #767676;
+            cursor: not-allowed;
+        }
+    }
+
+    &-title {
+        display: inline-block;
+    }
+    &-indent {
+        padding-left: 10px;
+        display: inline-block;
+        height: 0;
+        vertical-align: bottom;
+    }
+    &-indent-unit {
+        display: inline-block;
+        width: 16px;
+    }
+}

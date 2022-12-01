@@ -1,0 +1,1038 @@
+openapi: 3.0.2
+info:
+  title: Badgerdoc Taxonomy
+  version: 0.0.1
+paths:
+  /taxons:
+    post:
+      tags:
+      - Taxon
+      summary: Save new taxon and return saved one.
+      operationId: save_taxon_taxons_post
+      parameters:
+      - required: true
+        schema:
+          title: X-Current-Tenant
+          type: string
+        example: test
+        name: X-Current-Tenant
+        in: header
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaxonInputSchema'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaxonResponseSchema'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectionErrorSchema'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestErrorSchema'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /taxons/{taxon_id}:
+    get:
+      tags:
+      - Taxon
+      summary: Get taxon by id.
+      operationId: fetch_taxon_taxons__taxon_id__get
+      parameters:
+      - required: true
+        schema:
+          title: Taxon Id
+          type: string
+        example: '1'
+        name: taxon_id
+        in: path
+      - required: true
+        schema:
+          title: X-Current-Tenant
+          type: string
+        example: test
+        name: X-Current-Tenant
+        in: header
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaxonResponseSchema'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectionErrorSchema'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundErrorSchema'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    put:
+      tags:
+      - Taxon
+      summary: Update taxon.
+      description: Updates taxon by id and returns updated taxon.
+      operationId: update_taxon_taxons__taxon_id__put
+      parameters:
+      - required: true
+        schema:
+          title: Taxon Id
+          type: string
+        example: '1'
+        name: taxon_id
+        in: path
+      - required: true
+        schema:
+          title: X-Current-Tenant
+          type: string
+        example: test
+        name: X-Current-Tenant
+        in: header
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaxonBaseSchema'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaxonResponseSchema'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectionErrorSchema'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestErrorSchema'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundErrorSchema'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - Taxon
+      summary: Delete taxon by id.
+      operationId: delete_taxon_taxons__taxon_id__delete
+      parameters:
+      - required: true
+        schema:
+          title: Taxon Id
+          type: string
+        example: '1'
+        name: taxon_id
+        in: path
+      - required: true
+        schema:
+          title: X-Current-Tenant
+          type: string
+        example: test
+        name: X-Current-Tenant
+        in: header
+      responses:
+        '204':
+          description: Successful Response
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectionErrorSchema'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundErrorSchema'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /taxons/search:
+    post:
+      tags:
+      - Taxon
+      summary: Search taxons.
+      description: |-
+        Searches and returns taxons data according to search request parameters
+        filters. Supports pagination and ordering.
+      operationId: search_categories_taxons_search_post
+      parameters:
+      - required: true
+        schema:
+          title: X-Current-Tenant
+          type: string
+        example: test
+        name: X-Current-Tenant
+        in: header
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/_BadgerdocSearch_taxon_Taxon_'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Page_Union_app.schemas.taxon.TaxonResponseSchema__str__dict__'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectionErrorSchema'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /taxonomy:
+    get:
+      tags:
+      - Taxonomy
+      summary: Get all taxonomies by job id
+      operationId: get_job_taxonomies_taxonomy_get
+      parameters:
+      - required: true
+        schema:
+          title: Job Id
+          type: string
+        name: job_id
+        in: query
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                title: Response Get Job Taxonomies Taxonomy Get
+                type: array
+                items:
+                  $ref: '#/components/schemas/TaxonomyResponseSchema'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectionErrorSchema'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    put:
+      tags:
+      - Taxonomy
+      summary: Update taxonomy.
+      description: Updates taxonomy by id and returns updated taxonomy.
+      operationId: update_taxonomy_taxonomy_put
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaxonomyInputSchema'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaxonomyResponseSchema'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectionErrorSchema'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundErrorSchema'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    post:
+      tags:
+      - Taxonomy
+      summary: Save new taxonomy and return saved one.
+      operationId: create_new_taxonomy_taxonomy_post
+      parameters:
+      - required: true
+        schema:
+          title: X-Current-Tenant
+          type: string
+        example: test
+        name: X-Current-Tenant
+        in: header
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaxonomyInputSchema'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaxonomyResponseSchema'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectionErrorSchema'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestErrorSchema'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /taxonomy/{taxonomy_id}:
+    get:
+      tags:
+      - Taxonomy
+      summary: Get taxonomy by id.
+      operationId: get_taxonomy_by_id_taxonomy__taxonomy_id__get
+      parameters:
+      - required: true
+        schema:
+          title: Taxonomy Id
+          type: string
+        example: '1'
+        name: taxonomy_id
+        in: path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaxonomyResponseSchema'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectionErrorSchema'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundErrorSchema'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - Taxonomy
+      summary: Delete latest taxonomy by id.
+      operationId: delete_taxonomy_taxonomy__taxonomy_id__delete
+      parameters:
+      - required: true
+        schema:
+          title: Taxonomy Id
+          type: string
+        example: '1'
+        name: taxonomy_id
+        in: path
+      responses:
+        '204':
+          description: Successful Response
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectionErrorSchema'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundErrorSchema'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /taxonomy/{taxonomy_id}/{version}:
+    get:
+      tags:
+      - Taxonomy
+      summary: Get taxonomy by id and version.
+      operationId: get_taxonomy_by_id_and_version_taxonomy__taxonomy_id___version__get
+      parameters:
+      - required: true
+        schema:
+          title: Taxonomy Id
+          type: string
+        example: '1'
+        name: taxonomy_id
+        in: path
+      - required: true
+        schema:
+          title: Version
+          type: integer
+        example: 1
+        name: version
+        in: path
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectionErrorSchema'
+        '404':
+          description: Taxonomy was not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundErrorSchema'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    put:
+      tags:
+      - Taxonomy
+      summary: Update taxonomy by id and version.
+      description: Updates taxonomy by id and returns updated taxonomy.
+      operationId: update_taxonomy_by_id_and_version_taxonomy__taxonomy_id___version__put
+      parameters:
+      - required: true
+        schema:
+          title: Taxonomy Id
+          type: string
+        example: '1'
+        name: taxonomy_id
+        in: path
+      - required: true
+        schema:
+          title: Version
+          type: integer
+        example: 1
+        name: version
+        in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaxonomyBaseSchema'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaxonomyResponseSchema'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectionErrorSchema'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestErrorSchema'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundErrorSchema'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - Taxonomy
+      summary: Delete taxonomy by id and version.
+      operationId: delete_taxonomy_by_id_and_version_taxonomy__taxonomy_id___version__delete
+      parameters:
+      - required: true
+        schema:
+          title: Taxonomy Id
+          type: string
+        example: '1'
+        name: taxonomy_id
+        in: path
+      - required: true
+        schema:
+          title: Version
+          type: integer
+        example: 1
+        name: version
+        in: path
+      responses:
+        '204':
+          description: Successful Response
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectionErrorSchema'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundErrorSchema'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /taxonomy/{taxonomy_id}/link_to_job:
+    post:
+      tags:
+      - Taxonomy
+      summary: Save new taxonomy and return saved one.
+      operationId: associate_taxonomy_to_job_taxonomy__taxonomy_id__link_to_job_post
+      parameters:
+      - required: true
+        schema:
+          title: Taxonomy Id
+          type: string
+        example: '1'
+        name: taxonomy_id
+        in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JobIdSchema'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectionErrorSchema'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestErrorSchema'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+components:
+  schemas:
+    BadRequestErrorSchema:
+      title: BadRequestErrorSchema
+      required:
+      - detail
+      type: object
+      properties:
+        detail:
+          title: Detail
+          type: string
+      example:
+        detail: Bad request.
+    ConnectionErrorSchema:
+      title: ConnectionErrorSchema
+      required:
+      - detail
+      type: object
+      properties:
+        detail:
+          title: Detail
+          type: string
+      example:
+        detail: 'Error: Connection error.'
+    HTTPValidationError:
+      title: HTTPValidationError
+      type: object
+      properties:
+        detail:
+          title: Detail
+          type: array
+          items:
+            $ref: '#/components/schemas/ValidationError'
+    JobIdSchema:
+      title: JobIdSchema
+      required:
+      - id
+      type: object
+      properties:
+        id:
+          title: Id
+          type: string
+          example: 123abc
+    NotFoundErrorSchema:
+      title: NotFoundErrorSchema
+      required:
+      - detail
+      type: object
+      properties:
+        detail:
+          title: Detail
+          type: string
+      example:
+        detail: Resource was not found.
+    Page_Union_app.schemas.taxon.TaxonResponseSchema__str__dict__:
+      title: Page[Union[app.schemas.taxon.TaxonResponseSchema, str, dict]]
+      required:
+      - pagination
+      - data
+      type: object
+      properties:
+        pagination:
+          $ref: '#/components/schemas/PaginationOut'
+        data:
+          title: Data
+          type: array
+          items:
+            anyOf:
+            - $ref: '#/components/schemas/TaxonResponseSchema'
+            - type: string
+            - type: object
+      description: |-
+        Abstract base class for generic types.
+
+        A generic type is typically declared by inheriting from
+        this class parameterized with one or more type variables.
+        For example, a generic mapping type might be defined as::
+
+          class Mapping(Generic[KT, VT]):
+              def __getitem__(self, key: KT) -> VT:
+                  ...
+              # Etc.
+
+        This class can then be used as follows::
+
+          def lookup_name(mapping: Mapping[KT, VT], key: KT, default: VT) -> VT:
+              try:
+                  return mapping[key]
+              except KeyError:
+                  return default
+    Pagination:
+      title: Pagination
+      required:
+      - page_size
+      type: object
+      properties:
+        page_num:
+          title: Page Num
+          exclusiveMinimum: 0.0
+          type: integer
+          default: 1
+        page_size:
+          $ref: '#/components/schemas/_FilterPagesize'
+    PaginationOut:
+      title: PaginationOut
+      required:
+      - page_size
+      - min_pages_left
+      - total
+      - has_more
+      type: object
+      properties:
+        page_num:
+          title: Page Num
+          exclusiveMinimum: 0.0
+          type: integer
+          default: 1
+        page_size:
+          $ref: '#/components/schemas/_FilterPagesize'
+        min_pages_left:
+          title: Min Pages Left
+          type: integer
+        total:
+          title: Total
+          type: integer
+        has_more:
+          title: Has More
+          type: boolean
+    TaxonBaseSchema:
+      title: TaxonBaseSchema
+      required:
+      - name
+      - taxonomy_id
+      type: object
+      properties:
+        name:
+          title: Name
+          type: string
+          example: taxon_name
+        taxonomy_id:
+          title: Taxonomy Id
+          type: string
+          example: my_taxonomy_id
+        parent_id:
+          title: Parent Id
+          type: string
+          example: 'null'
+        taxonomy_version:
+          title: Taxonomy Version
+          type: integer
+          example: 1
+    TaxonInputSchema:
+      title: TaxonInputSchema
+      required:
+      - name
+      - taxonomy_id
+      type: object
+      properties:
+        name:
+          title: Name
+          type: string
+          example: taxon_name
+        taxonomy_id:
+          title: Taxonomy Id
+          type: string
+          example: my_taxonomy_id
+        parent_id:
+          title: Parent Id
+          type: string
+          example: 'null'
+        taxonomy_version:
+          title: Taxonomy Version
+          type: integer
+          example: 1
+        id:
+          title: Id
+          type: string
+          description: If id is not provided, generates it as a UUID.
+          example: my_taxon_id
+    TaxonResponseSchema:
+      title: TaxonResponseSchema
+      required:
+      - name
+      - taxonomy_id
+      type: object
+      properties:
+        name:
+          title: Name
+          type: string
+          example: taxon_name
+        taxonomy_id:
+          title: Taxonomy Id
+          type: string
+          example: my_taxonomy_id
+        parent_id:
+          title: Parent Id
+          type: string
+          example: 'null'
+        taxonomy_version:
+          title: Taxonomy Version
+          type: integer
+          example: 1
+        id:
+          title: Id
+          type: string
+          description: If id is not provided, generates it as a UUID.
+          example: my_taxon_id
+        parents:
+          title: Parents
+          type: array
+          items:
+            type: object
+          default: []
+        is_leaf:
+          title: Is Leaf
+          type: boolean
+    TaxonomyBaseSchema:
+      title: TaxonomyBaseSchema
+      required:
+      - name
+      type: object
+      properties:
+        name:
+          title: Name
+          type: string
+          example: taxonomy_name
+        category_id:
+          title: Category Id
+          type: string
+          example: my_category
+    TaxonomyInputSchema:
+      title: TaxonomyInputSchema
+      required:
+      - name
+      type: object
+      properties:
+        name:
+          title: Name
+          type: string
+          example: taxonomy_name
+        category_id:
+          title: Category Id
+          type: string
+          example: my_category
+        id:
+          title: Id
+          type: string
+          description: If id is not provided, generates it as a UUID.
+          example: my_taxonomy_id
+    TaxonomyResponseSchema:
+      title: TaxonomyResponseSchema
+      required:
+      - name
+      - version
+      type: object
+      properties:
+        name:
+          title: Name
+          type: string
+          example: taxonomy_name
+        category_id:
+          title: Category Id
+          type: string
+          example: my_category
+        id:
+          title: Id
+          type: string
+          description: If id is not provided, generates it as a UUID.
+          example: my_taxonomy_id
+        version:
+          title: Version
+          type: integer
+          description: Version of taxonomy
+          example: 1
+    ValidationError:
+      title: ValidationError
+      required:
+      - loc
+      - msg
+      - type
+      type: object
+      properties:
+        loc:
+          title: Location
+          type: array
+          items:
+            type: string
+        msg:
+          title: Message
+          type: string
+        type:
+          title: Error Type
+          type: string
+    _BadgerdocSearch_taxon_Taxon_:
+      title: _BadgerdocSearch[taxon_Taxon]
+      type: object
+      properties:
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+        filters:
+          title: Filters
+          type: array
+          items:
+            $ref: '#/components/schemas/_Filters_taxon_Taxon_'
+        sorting:
+          title: Sorting
+          type: array
+          items:
+            $ref: '#/components/schemas/_Sorts_taxon_Taxon_'
+      description: |-
+        Abstract base class for generic types.
+
+        A generic type is typically declared by inheriting from
+        this class parameterized with one or more type variables.
+        For example, a generic mapping type might be defined as::
+
+          class Mapping(Generic[KT, VT]):
+              def __getitem__(self, key: KT) -> VT:
+                  ...
+              # Etc.
+
+        This class can then be used as follows::
+
+          def lookup_name(mapping: Mapping[KT, VT], key: KT, default: VT) -> VT:
+              try:
+                  return mapping[key]
+              except KeyError:
+                  return default
+    _FilterOperations:
+      title: _FilterOperations
+      enum:
+      - is_null
+      - is_not_null
+      - eq
+      - ne
+      - gt
+      - lt
+      - ge
+      - le
+      - like
+      - ilike
+      - not_ilike
+      - in
+      - not_in
+      - any
+      - not_any
+      - match
+      - distinct
+      - parent
+      - parents_recursive
+      - children
+      - children_recursive
+      type: string
+      description: An enumeration.
+    _FilterPagesize:
+      title: _FilterPagesize
+      enum:
+      - 15
+      - 30
+      - 50
+      - 80
+      - 100
+      type: integer
+      description: An enumeration.
+    _Filters_taxon_Taxon_:
+      title: _Filters[taxon_Taxon]
+      required:
+      - field
+      - operator
+      type: object
+      properties:
+        field:
+          $ref: '#/components/schemas/taxon_Taxon'
+        operator:
+          $ref: '#/components/schemas/_FilterOperations'
+        value:
+          title: Value
+    _SortDirection:
+      title: _SortDirection
+      enum:
+      - asc
+      - desc
+      type: string
+      description: An enumeration.
+    _Sorts_taxon_Taxon_:
+      title: _Sorts[taxon_Taxon]
+      required:
+      - field
+      - direction
+      type: object
+      properties:
+        field:
+          $ref: '#/components/schemas/taxon_Taxon'
+        direction:
+          $ref: '#/components/schemas/_SortDirection'
+    taxon_Taxon:
+      title: taxon_Taxon
+      enum:
+      - id
+      - name
+      - taxonomy_id
+      - taxonomy_version
+      - parent_id
+      - tree
+      - taxonomy.id
+      - taxonomy.name
+      - taxonomy.version
+      - taxonomy.tenant
+      - taxonomy.category_id
+      - taxonomy.latest
+      - parent.id
+      - parent.name
+      - parent.tenant
+      - parent.taxonomy_id
+      - parent.taxonomy_version
+      - parent.parent_id
+      - parent.tree
+      type: string
+      description: An enumeration.
+tags:
+- name: Taxonomy
+  description: Actions associated with taxonomies.
+- name: Taxon
+  description: Actions associated with taxons.

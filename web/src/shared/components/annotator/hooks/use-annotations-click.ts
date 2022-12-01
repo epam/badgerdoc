@@ -15,7 +15,7 @@ export const useAnnotationsClick = (
     allowedSelectionTypes: Array<
         AnnotationBoundType | AnnotationLinksBoundType | AnnotationImageToolType
     >,
-    setClickedAnnotation: (ann: Annotation) => void,
+    setSelectedAnnotation: (ann: Annotation | undefined) => void,
     unselectAnnotation: () => void
 ) => {
     return useCallback(
@@ -48,7 +48,7 @@ export const useAnnotationsClick = (
                         : // original one is already scaled
                           scaleAnnotation(smallestClickedAnn, scale);
                 if (allowedSelectionTypes.includes(annotation.boundType)) {
-                    setClickedAnnotation(annotation);
+                    setSelectedAnnotation(annotation);
                     return;
                 }
             }
@@ -60,7 +60,7 @@ export const useAnnotationsClick = (
             annotations,
             annotations.length,
             allowedSelectionTypes,
-            setClickedAnnotation,
+            setSelectedAnnotation,
             scale,
             panoRef,
             panoRef.current

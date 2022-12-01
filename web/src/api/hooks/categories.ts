@@ -20,17 +20,17 @@ import { useBadgerFetch } from './api';
 
 const namespace = process.env.REACT_APP_CATEGORIES_API_NAMESPACE;
 
-type CategoriesByJobParams = {
-    jobId?: number;
-};
+interface CategoriesByJobParams extends QueryHookParamsType<Category> {
+    jobId?: number | undefined;
+}
 
 export const useCategories: QueryHookType<
     QueryHookParamsType<Category>,
     PagedResponse<Category>
-> = ({ page, size, searchText, sortConfig }, options) => {
+> = ({ page, size, searchText, filters, sortConfig }, options) => {
     return useQuery(
-        ['categories', page, size, searchText, sortConfig],
-        () => categoriesFetcher(page, size, searchText, sortConfig),
+        ['categories', page, size, searchText, filters, sortConfig],
+        () => categoriesFetcher(page, size, searchText, filters, sortConfig),
         options
     );
 };
@@ -79,47 +79,87 @@ export const getCategories = (id: string): Promise<Category> => {
     })();
 };
 
-export async function categoriesFetcher(
+export const useCategoriesByJob: QueryHookType<CategoriesByJobParams, PagedResponse<Category>> = (
+    { jobId, page, size, searchText, filters, sortConfig },
+    options
+) => {
+    return useQuery(
+        ['categoriesByJob', jobId, page, size, searchText, filters, sortConfig],
+        () => categoriesByJobFetcher(jobId, page, size, searchText, filters, sortConfig),
+        options
+    );
+};
+export async function categoriesByJobFetcher(
+    jobId?: number | undefined,
     page = 1,
     size = pageSizes._15,
     searchText?: string | null,
+    filters?: Filter<keyof Category | string>[],
     sortConfig: Sorting<keyof Category> = {
         field: 'name',
         direction: SortingDirection.ASC
     }
 ): Promise<PagedResponse<Category>> {
-    const filters: Filter<keyof Category>[] = [];
+    const filtersArr: Filter<keyof Category | string>[] = filters ? [...filters] : [];
+
     if (searchText) {
-        filters.push({
+        filtersArr.push({
             field: 'name',
             operator: Operators.ILIKE,
             value: `%${searchText.trim().toLowerCase()}%`
         });
     }
+
     const body: SearchBody<Category> = {
         pagination: { page_num: page, page_size: size },
-        filters,
+        filters: filtersArr,
+        sorting: [{ direction: sortConfig.direction, field: sortConfig.field }]
+    };
+    return fetchCategories(`${namespace}/jobs/${jobId}/categories/search`, 'post', body);
+}
+export async function categoriesFetcher(
+    page = 1,
+    size = pageSizes._15,
+    searchText?: string | null,
+    filters?: Filter<keyof Category | string>[],
+    sortConfig: Sorting<keyof Category> = {
+        field: 'name',
+        direction: SortingDirection.ASC
+    }
+): Promise<PagedResponse<Category>> {
+    const filtersArr: Filter<keyof Category | string>[] = filters ? [...filters] : [];
+    if (searchText) {
+        filtersArr.push({
+            field: 'name',
+            operator: Operators.ILIKE,
+            value: `%${searchText.trim().toLowerCase()}%`
+        });
+    }
+
+    const body: SearchBody<Category> = {
+        pagination: { page_num: page, page_size: size },
+        filters: filtersArr,
         sorting: [{ direction: sortConfig.direction, field: sortConfig.field }]
     };
     return fetchCategories(`${namespace}/categories/search`, 'post', body);
 }
 
-export const useCategoriesByJob: QueryHookType<
-    CategoriesByJobParams,
-    PagedResponse<Category> | null
-> = ({ jobId }, options) => {
-    return useQuery(
-        ['categoriesByJob', jobId],
-        async () => (jobId ? fetchCategoriesByJob({ jobId }) : null),
-        options
-    );
-};
+// export const useCategoriesByJob: QueryHookType<
+//     CategoriesByJobParams,
+//     PagedResponse<Category> | null
+// > = ({ jobId }, options) => {
+//     return useQuery(
+//         ['categoriesByJob', jobId],
+//         async () => (jobId ? fetchCategoriesByJob({ jobId }) : null),
+//         options
+//     );
+// };
 
-export async function fetchCategoriesByJob({
-    jobId
-}: CategoriesByJobParams): Promise<PagedResponse<Category>> {
-    return fetchCategories(`${namespace}/jobs/${jobId}/categories`, 'get');
-}
+// export async function fetchCategoriesByJob({
+//     jobId
+// }: CategoriesByJobParams): Promise<PagedResponse<Category>> {
+//     return fetchCategories(`${namespace}/jobs/${jobId}/categories`, 'get');
+// }
 
 export async function fetchCategories(
     url: string,

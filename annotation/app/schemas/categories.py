@@ -10,6 +10,11 @@ class CategoryTypeSchema(str, Enum):
     segmentation = "segmentation"
 
 
+class CategoryDataAttributeNames(str, Enum):
+    taxonomy_id = 'taxonomy_id'
+    taxonomy_version = 'taxonomy_version'
+
+
 class CategoryBaseSchema(BaseModel):
     name: str = Field(..., example="Title")
     parent: Optional[str] = Field(None, example="null")
@@ -43,5 +48,8 @@ class CategoryORMSchema(CategoryInputSchema):
 
 
 class CategoryResponseSchema(CategoryInputSchema):
+    parents: Optional[List[dict]] = Field()
+    is_leaf: Optional[bool] = Field()
+
     class Config:
         allow_population_by_field_name = True

@@ -5,12 +5,23 @@ import { pipelines } from './pipelines';
 import { users } from './users';
 import { categories } from './categories';
 
-import { PagedResponse, FileDocument, Dataset, Filter, Pipeline } from '../typings';
+import {
+    PagedResponse,
+    FileDocument,
+    Dataset,
+    Filter,
+    Pipeline,
+    Category,
+    SearchBody,
+    Operators,
+    Taxon
+} from '../typings';
 import { tasks } from './tasks';
-import { BadgerFetch, BadgerFetchProvider } from 'api/hooks/api';
+import { BadgerFetch, BadgerFetchBody, BadgerFetchProvider } from 'api/hooks/api';
 import { annotations } from './annotations';
 import { tokens } from './tokens';
 import { models } from './models';
+import { taxonomies } from './taxonomies';
 
 const FILEMANAGEMENT_NAMESPACE = process.env.REACT_APP_FILEMANAGEMENT_API_NAMESPACE;
 const JOBMANAGER_NAMESPACE = process.env.REACT_APP_JOBMANAGER_API_NAMESPACE;
@@ -19,6 +30,7 @@ const CATEGORIES_NAMESPACE = process.env.REACT_APP_CATEGORIES_API_NAMESPACE;
 const USERS_NAMESPACE = process.env.REACT_APP_USERS_API_NAMESPACE;
 const TOKENS_NAMESPACE = process.env.REACT_APP_TOKENS_API_NAMESPACE;
 const MODELS_NAMESPACE = process.env.REACT_APP_MODELS_API_NAMESPACE;
+const TAXONOMIES_NAMESPACE = process.env.REACT_APP_TAXONOMIES_API_NAMESPACE;
 
 let datasetsMockData = datasets;
 let jobsMockData = jobs;
@@ -29,6 +41,7 @@ let tasksMockData = tasks;
 let annotationsMockData = annotations;
 let tokensMockData = tokens;
 let modelsMockData = models;
+let taxonomiesMockData = taxonomies;
 
 const MOCKS: Record<string, Record<string, BadgerFetch<any>>> = {
     [`${FILEMANAGEMENT_NAMESPACE}/datasets/search`]: {
@@ -114,7 +127,7 @@ const MOCKS: Record<string, Record<string, BadgerFetch<any>>> = {
         get: async () => tasksMockData[0]
     },
     [`${CATEGORIES_NAMESPACE}/tasks/3`]: {
-        get: async () => tasksMockData[2]
+        get: async () => tasksMockData[1]
     },
     [`${CATEGORIES_NAMESPACE}/tasks/3/pages_summary`]: {
         get: async () => {
@@ -158,9 +171,15 @@ const MOCKS: Record<string, Record<string, BadgerFetch<any>>> = {
         post: async () => (tasksMockData[2].status = 'Finished')
     },
     [`${JOBMANAGER_NAMESPACE}/jobs/1`]: {
-        get: async () => jobById
+        get: async () => jobById[0]
+    },
+    [`${JOBMANAGER_NAMESPACE}/jobs/3`]: {
+        get: async () => jobById[1]
     },
     [`${CATEGORIES_NAMESPACE}/jobs/1/users`]: {
+        get: async () => usersMockData
+    },
+    [`${CATEGORIES_NAMESPACE}/jobs/3/users`]: {
         get: async () => usersMockData
     },
     [`${CATEGORIES_NAMESPACE}/revisions/1/1`]: {
@@ -215,7 +234,33 @@ const MOCKS: Record<string, Record<string, BadgerFetch<any>>> = {
         get: async () => pipelinesMockData[0]
     },
     [`${CATEGORIES_NAMESPACE}/categories/search`]: {
-        post: async () => {
+        post: async (body: BadgerFetchBody | undefined) => {
+            const { filters, pagination } = JSON.parse(body as string) as SearchBody<Category>;
+            let data = categoriesMockData;
+            if (filters.length > 0) {
+                const parentFilter = filters.find((filter) => filter.field === 'parent');
+                const nameFilter = filters.find((filter) => filter.field === 'name');
+                const nameFilterValue = String(nameFilter?.value ?? '').slice(1, -1);
+                const typeFilter = filters.find((filter) => filter.field === 'type');
+                const treeFilter = filters.find((filter) => filter.field === 'tree');
+
+                if (treeFilter) {
+                    data = data.filter((cat) => cat.parent === treeFilter.value);
+                }
+                if (parentFilter) {
+                    data = data.filter((cat) => cat.parent === null);
+                }
+                if (nameFilterValue) {
+                    data = data.filter((cat) => cat.name.includes(nameFilterValue));
+                }
+                if (typeFilter) {
+                    data = data.filter((cat) => cat.type === typeFilter.value);
+                }
+                return {
+                    data,
+                    pagination
+                };
+            }
             return {
                 data: categoriesMockData,
                 pagination: {
@@ -225,10 +270,80 @@ const MOCKS: Record<string, Record<string, BadgerFetch<any>>> = {
             };
         }
     },
-    [`${CATEGORIES_NAMESPACE}/jobs/1/categories`]: {
-        get: async () => {
+    [`${TAXONOMIES_NAMESPACE}/taxonomies/search`]: {
+        post: async (body: BadgerFetchBody | undefined) => {
+            const { filters, pagination } = JSON.parse(body as string) as SearchBody<Taxon>;
+            let data = taxonomiesMockData;
+            if (filters.length > 0) {
+                const parentFilter = filters.find((filter) => filter.field === 'parent_id');
+                const nameFilter = filters.find((filter) => filter.field === 'name');
+                const nameFilterValue = String(nameFilter?.value ?? '').slice(1, -1);
+
+                if (parentFilter) {
+                    const value =
+                        parentFilter.operator === Operators.IS_NULL ? null : parentFilter.value;
+
+                    data = data.filter((taxon) => taxon.parent_id === value);
+                }
+                if (nameFilterValue) {
+                    data = data.filter((taxon) => taxon.name.includes(nameFilterValue));
+                }
+
+                return {
+                    data,
+                    pagination
+                };
+            }
+            return {
+                data: taxonomiesMockData,
+                pagination: {
+                    page_num: 1,
+                    page_size: 100
+                }
+            };
+        }
+    },
+    [`${CATEGORIES_NAMESPACE}/jobs/1/categories/search`]: {
+        post: async (body: BadgerFetchBody | undefined) => {
+            const { filters, pagination } = JSON.parse(body as string) as SearchBody<Category>;
+            let data = categoriesMockData;
+            if (filters.length > 0) {
+                const parentFilter = filters.find((filter) => filter.field === 'parent');
+                const nameFilter = filters.find((filter) => filter.field === 'name');
+                const nameFilterValue = String(nameFilter?.value ?? '').slice(1, -1);
+                const typeFilter = filters.find((filter) => filter.field === 'type');
+                const treeFilter = filters.find((filter) => filter.field === 'tree');
+
+                if (treeFilter) {
+                    data = data.filter((cat) => cat.parent === treeFilter.value);
+                }
+                if (parentFilter) {
+                    data = data.filter((cat) => cat.parent === null);
+                }
+                if (nameFilterValue) {
+                    data = data.filter((cat) => cat.name.includes(nameFilterValue));
+                }
+                if (typeFilter) {
+                    data = data.filter((cat) => cat.type === typeFilter.value);
+                }
+                return {
+                    data,
+                    pagination
+                };
+            }
             return {
                 data: categoriesMockData,
+                pagination: {
+                    page_num: 1,
+                    page_size: 100
+                }
+            };
+        }
+    },
+    [`${CATEGORIES_NAMESPACE}/jobs/3/categories`]: {
+        get: async () => {
+            return {
+                data: [],
                 pagination: {
                     page_num: 1,
                     page_size: 100
@@ -257,6 +372,20 @@ const MOCKS: Record<string, Record<string, BadgerFetch<any>>> = {
                 ...JSON.parse(body as string)
             };
         }
+    },
+    [`${CATEGORIES_NAMESPACE}/annotation/3/1/latest?page_numbers=1`]: {
+        get: async () => annotationsMockData
+    },
+    [`${CATEGORIES_NAMESPACE}/annotation/1`]: {
+        post: async (body) => {
+            annotationsMockData = {
+                ...annotationsMockData,
+                ...JSON.parse(body as string)
+            };
+        }
+    },
+    [`${CATEGORIES_NAMESPACE}/jobs?file_ids=1`]: {
+        get: async () => {}
     },
     [`${TOKENS_NAMESPACE}/tokens/1?page_numbers=1`]: {
         get: async () => tokensMockData

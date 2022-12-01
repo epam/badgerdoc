@@ -121,6 +121,7 @@ export type EditableAnnotationRenderer = (
         tools: AnnotationImageTool;
         setTools: (t: AnnotationImageTool) => void;
         canvas: boolean;
+        taskHasTaxonomies?: boolean;
     }
 ) => React.ReactNode;
 

@@ -17,8 +17,8 @@ class MinioCommunicator:
     def create_client(cls) -> None:
         cls.client = Minio(
             endpoint=settings.minio_server,
-            access_key=settings.s3_access_key,
-            secret_key=settings.s3_secret_key,
+            access_key=settings.minio_root_user,
+            secret_key=settings.minio_root_password,
             secure=False,
         )
         logger.info(

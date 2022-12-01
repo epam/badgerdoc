@@ -1,4 +1,14 @@
 .task-sidebar-data {
-    padding: 0 15px 0 15px;
+    display: flex;
+    flex-direction: column;
     flex: 1;
+}
+
+.tree {
+    flex: 1;
+}
+
+.search {
+    width: 294px;
+    margin: 10px auto;
 }

@@ -72,7 +72,6 @@ export type AnnotatorProps = PropsWithChildren<{
     onAnnotationEdited?: (annotationId: string | number, changes: Partial<Annotation>) => void;
     onEmptyAreaClick: () => void;
     onAnnotationDoubleClick: (annotation: Annotation) => void;
-    onAnnotationClick?: (annotation: Annotation) => void;
     onAnnotationCopyPress: (annotationId: string | number) => void;
     onAnnotationCutPress: (annotationId: string | number) => void;
     onAnnotationPastePress: () => void;
@@ -87,8 +86,6 @@ export type AnnotatorProps = PropsWithChildren<{
     tokens?: PageToken[];
     annotationSpan?: number;
     selectedCategory?: Category;
-    clickedAnnotation: Annotation | undefined;
-    setClickedAnnotation: React.Dispatch<React.SetStateAction<Annotation | undefined>>;
     categories?: Category[];
     isCellMode: boolean;
     page: number;
@@ -111,8 +108,6 @@ export const Annotator: FC<AnnotatorProps> = ({
     annotationStyle,
     selectionStyle,
     selectionType = 'box',
-    clickedAnnotation,
-    setClickedAnnotation,
     onAnnotationAdded = noop,
     onAnnotationContextMenu = noop,
     onAnnotationDeleted,
@@ -122,7 +117,6 @@ export const Annotator: FC<AnnotatorProps> = ({
     isCellMode,
     onEmptyAreaClick,
     onAnnotationDoubleClick = noop,
-    onAnnotationClick = noop,
     page,
     onAnnotationCopyPress = noop,
     onAnnotationCutPress = noop,
@@ -137,7 +131,9 @@ export const Annotator: FC<AnnotatorProps> = ({
         fileMetaInfo,
         selectedTool,
         setSelectedTool,
-        selectedToolParams
+        selectedToolParams,
+        setSelectedAnnotation,
+        taskHasTaxonomies
     } = useTaskAnnotatorContext();
 
     const { setTableModeRows, setTableModeColumns } = useTableAnnotatorContext();
@@ -161,14 +157,14 @@ export const Annotator: FC<AnnotatorProps> = ({
     const panoRef = useRef<HTMLDivElement>(null);
     const unSelectAnnotation = () => {
         onEmptyAreaClick && onEmptyAreaClick();
-        setClickedAnnotation(undefined);
+        setSelectedAnnotation(undefined);
     };
     const onClickHook = useAnnotationsClick(
         panoRef,
         annotations,
         scale,
         ['box', 'free-box', 'table', 'text'],
-        setClickedAnnotation,
+        setSelectedAnnotation,
         unSelectAnnotation
     );
 
@@ -191,26 +187,26 @@ export const Annotator: FC<AnnotatorProps> = ({
     const submitResizedAnnotation = useSubmitAnnotation(
         resizeSelectionCast[selectionType],
         tokens,
-        (ann) => clickedAnnotation && onAnnotationEdited(clickedAnnotation.id, ann)
+        (ann) => selectedAnnotation && onAnnotationEdited(selectedAnnotation.id, ann)
     );
 
     const submitMovedAnnotation = useSubmitAnnotation(
         resizeSelectionCast[selectionType],
         tokens,
-        (ann) => clickedAnnotation && onAnnotationEdited(clickedAnnotation.id, ann)
+        (ann) => selectedAnnotation && onAnnotationEdited(selectedAnnotation.id, ann)
     );
 
     const { coords: resizedBoxAnnotationCoords, isEnded: isBoxAnnotationResizeEnded } =
         useBoxResize({
             panoRef,
             selectedAnnotationRef,
-            selectedAnnotation: clickedAnnotation
+            selectedAnnotation
         });
 
     const { coords: movedAnnotationCoords, isEnded: isAnnotationMoveEnded } = useAnnotationMove({
         panoRef,
         selectedAnnotationRef,
-        selectedAnnotation: clickedAnnotation,
+        selectedAnnotation,
         isEditable: editable
     });
 
@@ -221,7 +217,7 @@ export const Annotator: FC<AnnotatorProps> = ({
         selectionType
     });
 
-    const scaledClickedAnnotation = annotations.find((ann) => ann.id === clickedAnnotation?.id);
+    const scaledClickedAnnotation = annotations.find((ann) => ann.id === selectedAnnotation?.id);
 
     const clickedAnnotationTokens = useAnnotationsTokens({
         tokens,
@@ -353,7 +349,7 @@ export const Annotator: FC<AnnotatorProps> = ({
         if (createdIdRef.current) {
             const createdAnnotation = annotations.find((ann) => ann.id === createdIdRef.current);
             if (createdAnnotation) {
-                setClickedAnnotation(scaleAnnotation(createdAnnotation, scale));
+                setSelectedAnnotation(scaleAnnotation(createdAnnotation, scale));
             }
             createdIdRef.current = null;
         }
@@ -490,13 +486,13 @@ export const Annotator: FC<AnnotatorProps> = ({
                     annotationsStyle={annotationStyle}
                     annotations={annotations}
                     scale={scale}
-                    onAnnotationCopyPress={() => onAnnotationCopyPress(clickedAnnotation?.id)}
-                    onAnnotationCutPress={() => onAnnotationCutPress(clickedAnnotation?.id)}
+                    onAnnotationCopyPress={() => onAnnotationCopyPress(selectedAnnotation?.id)}
+                    onAnnotationCutPress={() => onAnnotationCutPress(selectedAnnotation?.id)}
                     onAnnotationPastePress={onAnnotationPastePress}
                     onAnnotationUndoPress={onAnnotationUndoPress}
                     onAnnotationRedoPress={onAnnotationRedoPress}
                     renderAnnotation={({ annotation }) => {
-                        const isSelected = annotation.id === clickedAnnotation?.id;
+                        const isSelected = annotation.id === selectedAnnotation?.id;
                         const isHovered = annotation.id === hoveredAnnotation?.id;
                         return editableAnnotationRenderer({
                             annotation,
@@ -512,7 +508,6 @@ export const Annotator: FC<AnnotatorProps> = ({
                             canvas: paperIsSet,
                             setTools,
                             onClick: (e) => {
-                                onAnnotationClick(annotation);
                                 onClickHook(e, annotation);
                             },
                             onDoubleClick: () => {
@@ -537,17 +532,18 @@ export const Annotator: FC<AnnotatorProps> = ({
                                 onClickHook(event, annotation);
                             },
                             onCloseIconClick: () => {
-                                setClickedAnnotation(undefined);
+                                setSelectedAnnotation(undefined);
                                 onAnnotationDeleted?.(annotation.id);
                             },
                             onAnnotationDelete: (id: string | number) => {
-                                setClickedAnnotation(undefined);
+                                setSelectedAnnotation(undefined);
                                 onAnnotationDeleted?.(id);
                             },
                             page,
                             onMouseEnter: () => setHoveredAnnotation(annotation),
                             onMouseLeave: () => setHoveredAnnotation(undefined),
-                            selectedAnnotationRef: isSelected ? selectedAnnotationRef : undefined
+                            selectedAnnotationRef: isSelected ? selectedAnnotationRef : undefined,
+                            taskHasTaxonomies
                         });
                     }}
                     page={page}

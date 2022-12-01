@@ -2,6 +2,7 @@ import { UseMutationResult, UseQueryOptions, UseQueryResult } from 'react-query'
 import { UseInfiniteQueryResult } from 'react-query/types/react/types';
 import { ModelStatus } from 'api/typings/models';
 import { Task } from './typings/tasks';
+import React from 'react';
 
 export type Credentials = {
     username: string;
@@ -158,7 +159,7 @@ export type ModelDeployment = {
     url?: string;
 };
 
-export type CategoryDataAttrType = 'molecule' | 'latex' | 'text' | '';
+export type CategoryDataAttrType = 'molecule' | 'latex' | 'text' | 'taxonomy' | '';
 
 export type CategoryDataAttribute = {
     name: string;
@@ -196,19 +197,58 @@ export type Basement = {
 
 export const categoryTypes = ['box', 'link', 'segmentation'] as const;
 export type CategoryType = typeof categoryTypes[number];
-export type Category = {
-    id: number;
+
+export interface BaseCategory {
+    id: string;
     name: string;
+    parent: string | null;
     metadata?: {
         color: string;
     };
-    parent?: string;
+    type?: CategoryType;
+    data_attributes?: Array<CategoryDataAttribute> | null;
+    isLeaf: boolean;
+}
+
+export interface Category extends BaseCategory {
     is_link?: boolean;
     hotkey?: string;
-    data_attributes?: Array<CategoryDataAttribute>;
-    type?: CategoryType;
-};
+    parents?: BaseCategory[] | null;
+}
 
+export interface TreeNode {
+    title: string;
+    key: string;
+    isLeaf: boolean;
+    children: CategoryNode[];
+}
+export interface CategoryNode extends TreeNode {
+    category?: BaseCategory;
+    hotKey?: string;
+    style?: React.CSSProperties;
+}
+
+export interface TaxonomyNode extends TreeNode {
+    dataAttributes?: string;
+    taxon?: BaseTaxon;
+}
+
+export interface BaseTaxon {
+    id: string;
+    name: string;
+    parent_id: string | null;
+    is_leaf: boolean;
+    taxonomy_id: string;
+}
+
+export interface Taxon extends BaseTaxon {
+    parents?: BaseTaxon[];
+}
+export interface Taxonomy {
+    id: string;
+    name: string;
+    taxons: BaseTaxon[];
+}
 export type Link = {
     category_id: string;
     to: string | number;
@@ -227,7 +267,7 @@ export type CreateCategory = {
 };
 
 export type UpdateCategory = {
-    id: number;
+    id: string;
     name: string;
     metadata: {
         color: string;
@@ -318,7 +358,8 @@ export enum Operators {
     ANY = 'any',
     NOT_ANY = 'not_any',
     MATCH = 'match',
-    DISTINCT = 'distinct'
+    DISTINCT = 'distinct',
+    CHILDREN = 'children'
 }
 export type DocumentExtraOption = {
     'datasets.id': string;
@@ -339,7 +380,7 @@ export type Sorting<TField> = {
 };
 export type SearchBody<TItem> = {
     pagination: Pagination;
-    filters: Filter<keyof TItem>[];
+    filters: Filter<keyof TItem | string>[];
     sorting: Sorting<keyof TItem>[];
 };
 

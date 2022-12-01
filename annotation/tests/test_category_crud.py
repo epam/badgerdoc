@@ -24,6 +24,7 @@ def prepare_category_body(
     body_other_tenant: Optional[bool] = False,
     editor: Optional[str] = None,
     data_attributes: Optional[List[dict]] = None,
+    is_leaf=True,
 ) -> dict:
     body = {
         "data_attributes": data_attributes,
@@ -33,6 +34,7 @@ def prepare_category_body(
         "metadata": metadata,
         "name": name,
         "parent": parent,
+        "is_leaf": is_leaf,
     }
     if body_other_tenant:
         body["tenant"] = "other_tenant"
@@ -122,6 +124,14 @@ def prepare_expected_result(
     return {key: response_map[key] for key in sorted(response_map)}
 
 
+def prepare_category_response(
+    data: dict, parents: List[dict] = [], children: List[dict] = []
+) -> dict:
+    data["parents"] = parents
+    data["children"] = children
+    return data
+
+
 @fixture
 def add_for_cascade_delete(
     prepare_db_categories_different_names, request
@@ -179,7 +189,9 @@ def test_add_unique_name(prepare_db_categories_different_names, category_name):
     data = prepare_category_body(name=category_name)
     response = client.post(CATEGORIES_PATH, json=data, headers=TEST_HEADERS)
     assert response.status_code == 201
-    assert prepare_expected_result(response.text) == data
+    assert prepare_expected_result(response.text) == prepare_category_response(
+        data
+    )
 
 
 @mark.integration
@@ -201,7 +213,9 @@ def test_add_unique_name_custom_fields(
     data = prepare_category_body(**field_value_pairs)
     response = client.post(CATEGORIES_PATH, json=data, headers=TEST_HEADERS)
     assert response.status_code == 201
-    assert prepare_expected_result(response.text) == data
+    assert prepare_expected_result(response.text) == prepare_category_response(
+        data
+    )
 
 
 @mark.integration
@@ -279,9 +293,9 @@ def test_add_id_is_unique(prepare_db_categories_different_names):
     data = prepare_category_body(id_="my_favourite_category")
     response = client.post(CATEGORIES_PATH, json=data, headers=TEST_HEADERS)
     assert response.status_code == 201
-    assert (
-        prepare_expected_result(response.text, with_category_id=True) == data
-    )
+    assert prepare_expected_result(
+        response.text, with_category_id=True
+    ) == prepare_category_response(data)
 
 
 @mark.integration
@@ -292,10 +306,28 @@ def test_add_id_is_generated(prepare_db_categories_different_names):
     mocked_id = str(uuid.uuid4())
     data_with_mocked_id = prepare_category_body(id_=mocked_id)
     assert response.status_code == 201
-    assert (
-        prepare_expected_result(response.text, with_category_id=True)
-        == data_with_mocked_id
+    assert prepare_expected_result(
+        response.text, with_category_id=True
+    ) == prepare_category_response(data_with_mocked_id)
+
+
+@mark.integration
+@patch("app.categories.resources.link_category_with_taxonomy")
+@patch("uuid.uuid4", return_value="fe857daa-8332-4a26-ab50-29be0a74477e")
+def test_should_send_link_request_taxonomy_service(
+    uuid_mock,
+    link_request_mock,
+    prepare_db_categories_different_names
+):
+    data = prepare_category_body(
+        id_="1213",
+        name="taxonomy_12",
+        data_attributes=[{"taxonomy_id": "123"}, {"taxonomy_version": 1}],
     )
+    response = client.post(CATEGORIES_PATH, json=data, headers=TEST_HEADERS)
+    assert response
+    assert response.status_code == 201
+    assert link_request_mock.called
 
 
 @mark.integration
@@ -346,7 +378,9 @@ def test_get_allowed_category(
         f"{CATEGORIES_PATH}/{category_id}", headers=TEST_HEADERS
     )
     assert response.status_code == 200
-    assert prepare_expected_result(response.text) == data
+    assert prepare_expected_result(response.text) == prepare_category_response(
+        data
+    )
 
 
 @mark.integration
@@ -443,7 +477,9 @@ def test_search_allowed_categories(
     )
     category = response.json()["data"][0]
     assert response.status_code == 200
-    assert prepare_expected_result(category) == expected
+    assert prepare_expected_result(category) == prepare_category_response(
+        expected
+    )
 
 
 @mark.integration
@@ -638,7 +674,9 @@ def test_update_category_custom_fields(
         f"{CATEGORIES_PATH}/{cat_id}", json=data, headers=TEST_HEADERS
     )
     assert response.status_code == 200
-    assert prepare_expected_result(response.text) == data
+    assert prepare_expected_result(response.text) == prepare_category_response(
+        data
+    )
 
 
 @mark.integration
@@ -669,7 +707,9 @@ def test_update_other_tenant_exist_name(prepare_db_categories_different_names):
         f"{CATEGORIES_PATH}/{cat_id}", json=data, headers=TEST_HEADERS
     )
     assert response.status_code == 200
-    assert prepare_expected_result(response.text) == data
+    assert prepare_expected_result(response.text) == prepare_category_response(
+        data
+    )
 
 
 @mark.integration
@@ -730,7 +770,9 @@ def test_update_allowed_parent(
         f"{CATEGORIES_PATH}/{cat_id}", json=data_update, headers=TEST_HEADERS
     )
     assert response.status_code == 200
-    assert prepare_expected_result(response.text) == data_update
+    assert prepare_expected_result(response.text) == prepare_category_response(
+        data_update
+    )
 
 
 @mark.integration
