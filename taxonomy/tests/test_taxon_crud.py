@@ -32,8 +32,10 @@ def prepare_filtration_body(
     field: Optional[str] = "id",
     operator: Optional[str] = "eq",
     value: Optional[Any] = 1,
+    sort_field: Optional[str] = "id",
     direction: Optional[str] = "asc",
     no_filtration: Optional[bool] = False,
+    no_sort: Optional[bool] = False,
 ) -> dict:
     body = {
         "pagination": {
@@ -49,13 +51,15 @@ def prepare_filtration_body(
         ],
         "sorting": [
             {
-                "field": "id",
+                "field": sort_field,
                 "direction": direction,
             }
         ],
     }
     if no_filtration:
         body.pop("filters")
+    if no_sort:
+        body.pop("sorting")
     return body
 
 
@@ -431,14 +435,12 @@ def test_search_pagination_should_work(
         f"{TAXON_PATH}/search", json=search_request_data, headers=TEST_HEADER
     )
 
-    # TODO: Fix weird bug
-    categories = response.json()["data"]
+    taxons = response.json()["data"]
     pagination = response.json()["pagination"]
     assert response.status_code == 200
-    assert pagination["total"] == 16
     assert pagination["page_num"] == page_num
     assert pagination["page_size"] == page_size
-    assert len(categories) == result_length
+    assert len(taxons) == result_length
 
 
 @pytest.mark.integration
@@ -552,7 +554,10 @@ def test_search_children_recursive_tree(
     root, second, third = prepare_three_taxons_parent_each_other
 
     search_request_data = prepare_filtration_body(
-        field="tree", operator="children_recursive", value=root.id
+        field="tree",
+        operator="children_recursive",
+        value=root.id,
+        sort_field="tree",
     )
 
     response = overrided_token_client.post(
