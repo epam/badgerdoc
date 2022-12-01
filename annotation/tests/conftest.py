@@ -5,6 +5,7 @@ from unittest.mock import Mock
 
 import boto3
 import pytest
+import sqlalchemy_utils
 from moto import mock_s3
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
@@ -143,6 +144,8 @@ from tests.test_update_job import (
     UPDATE_JOBS,
     UPDATE_USER_NO_JOBS,
 )
+
+DEFAULT_REGION = "us-east-1"
 
 
 def close_session(gen):
@@ -315,9 +318,8 @@ def prepare_db_for_post(db_session):
 @pytest.fixture(scope="module")
 def moto_s3():
     with mock_s3():
-        s3_resource = boto3.resource("s3")
+        s3_resource = boto3.resource("s3", region_name=DEFAULT_REGION)
         s3_resource.create_bucket(Bucket=POST_ANNOTATION_PG_DOC.tenant)
-
         yield s3_resource
 
 
@@ -355,7 +357,7 @@ def prepare_db_for_get_revisions(db_session):
 @pytest.fixture
 def prepare_moto_s3_for_get_revisions():
     with mock_s3():
-        s3_resource = boto3.resource("s3")
+        s3_resource = boto3.resource("s3", region_name=DEFAULT_REGION)
         s3_resource.create_bucket(Bucket=TEST_TENANT)
         for page_path in PAGES_PATHS:
             s3_resource.Bucket(TEST_TENANT).put_object(
@@ -530,16 +532,28 @@ def prepare_db_categories_different_names(db_session):
 @pytest.fixture
 def prepare_db_categories_for_filtration(db_session):
     category_tenant = Category(
-        id="1", tenant=TEST_TENANT, name="Title", type="box"
+        id="1",
+        tenant=TEST_TENANT,
+        name="Title",
+        type="box",
+        tree=sqlalchemy_utils.Ltree("1"),
     )
     category_common = [
         Category(
-            id=str(number + 2), tenant=None, name=f"Table{number}", type="box"
+            id=str(number + 2),
+            tenant=None,
+            name=f"Table{number}",
+            type="box",
+            tree=sqlalchemy_utils.Ltree(str(number + 2)),
         )
         for number in range(1, 16)
     ]
     category_other_tenant = Category(
-        id="2", tenant="other_tenant", name="Header", type="box"
+        id="2",
+        tenant="other_tenant",
+        name="Header",
+        type="box",
+        tree=sqlalchemy_utils.Ltree("2"),
     )
     for cat in [category_tenant, category_other_tenant, *category_common]:
         db_session.add(cat)
@@ -660,7 +674,7 @@ def prepare_db_for_batch_delete_tasks(db_session):
 @pytest.fixture(scope="module")
 def minio_particular_revision():
     with mock_s3():
-        s3_resource = boto3.resource("s3")
+        s3_resource = boto3.resource("s3", region_name=DEFAULT_REGION)
         s3_resource.create_bucket(Bucket=TEST_TENANT)
 
         path = (

@@ -14,7 +14,13 @@ import { QueryClient, QueryClientProvider } from 'react-query';
 import { ContextProvider } from '@epam/uui';
 
 const history = createBrowserHistory();
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+    defaultOptions: {
+        queries: {
+            refetchOnWindowFocus: process.env.NODE_ENV === 'production'
+        }
+    }
+});
 
 const UuiEnhancedApp = () => (
     <ContextProvider

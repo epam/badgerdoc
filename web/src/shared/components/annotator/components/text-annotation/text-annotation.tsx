@@ -18,7 +18,8 @@ const TextAnnotationLabel = ({
     onContextMenu = noop,
     isEditable,
     isSelected,
-    isHovered
+    isHovered,
+    taskHasTaxonomies
 }: TextAnnotationLabelProps) => {
     return (
         <TextLabel
@@ -30,6 +31,7 @@ const TextAnnotationLabel = ({
             onContextMenu={onContextMenu}
             label={label}
             color={color}
+            taskHasTaxonomies={taskHasTaxonomies}
         />
     );
 };
@@ -57,7 +59,8 @@ export const TextAnnotation = ({
     isEditable,
     isSelected,
     page,
-    isHovered
+    isHovered,
+    taskHasTaxonomies
 }: TextAnnotationProps) => {
     const bounds = useMemo(() => createBoundsFromTokens(tokens, scale), [tokens, scale]);
 
@@ -112,6 +115,7 @@ export const TextAnnotation = ({
                                             isEditable={isEditable}
                                             isSelected={isSelected}
                                             isHovered={isHovered}
+                                            taskHasTaxonomies={taskHasTaxonomies}
                                         />
                                     </Fragment>
                                 ))}

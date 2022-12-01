@@ -51,12 +51,12 @@ export const useSelection = (
             if (['Chain', 'All to all'].includes(selectionType)) return false;
             setIsEnded(true);
             setIsStarted(false);
-        }
+        },
         //TODO: There is no way just yet for click handling. I believe that when two events fire that quickly (onMouseDown -> onMouseUp)
         //TODO: async-based useState just can't handle two state changes so isEnded is never 'true'
-        //onClick() {
-        //    setIsEnded(true);
-        //}
+        onClick() {
+            setIsEnded(true);
+        }
     });
     if (['Chain', 'All to all'].includes(selectionType)) return { coords, isStarted, isEnded };
 

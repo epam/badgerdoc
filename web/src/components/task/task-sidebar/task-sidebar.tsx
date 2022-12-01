@@ -1,16 +1,13 @@
 import React, { FC, ReactElement, useEffect, useMemo, useState } from 'react';
 import {
     Button,
-    FlexCell,
     FlexRow,
     LabeledInput,
     MultiSwitch,
     NumericInput,
     RadioGroup,
-    TabButton,
-    Text
+    TabButton
 } from '@epam/loveship';
-import { ReactComponent as LinkIcon } from '@epam/assets/icons/common/content-link-18.svg';
 import { useUuiContext } from '@epam/uui';
 import { useSetTaskFinished, useGetValidatedPages } from 'api/hooks/tasks';
 import { useTaskAnnotatorContext } from 'connectors/task-annotator-connector/task-annotator-context';
@@ -38,6 +35,7 @@ import { ReactComponent as SplitIcon } from '@epam/assets/icons/common/editor-ta
 import { Tooltip } from '@epam/loveship';
 import { Category } from '../../../api/typings';
 import { ImageToolsParams } from './image-tools-params';
+import { CategoriesTab } from 'components/categories/categories-tab/categories-tab';
 
 type TaskSidebarProps = {
     onRedirectAfterFinish: () => void;
@@ -54,8 +52,6 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
         currentPage,
         validPages,
         invalidPages,
-        selectedCategory,
-        selectedLink,
         selectedAnnotation,
         editedPages,
         touchedPages,
@@ -69,7 +65,6 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
         onValidClick,
         onInvalidClick,
         onCategorySelected,
-        onLinkSelected,
         onSaveTask,
         onAnnotationTaskFinish,
         onEditClick,
@@ -80,11 +75,11 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
         setTabValue,
         onChangeSelectionType,
         onDataAttributesChange,
+        onAnnotationEdited,
         tableMode,
         tableCellCategory,
         setTableCellCategory,
         selectedTool,
-        setSelectedTool,
         onChangeSelectedTool,
         selectedToolParams,
         setSelectedToolParams
@@ -128,6 +123,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
     const [invalidPageCount, setInvalidPageCount] = useState(0);
     const [editedPageCount, setEditedPageCount] = useState(0);
     const [boundModeSwitch, setBoundModeSwitch] = useState<AnnotationBoundMode>('box');
+    const [tableModeValues, setTableModeValues] = useState<string>('');
 
     const { data: pages, refetch } = useGetValidatedPages(
         { taskId: task?.id, taskType: task?.is_validation },
@@ -166,34 +162,6 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
     }, [boundModeSwitch]);
 
     useEffect(() => {
-        if (!categories?.length) {
-            return;
-        }
-        const subItems = getSubItems();
-        if (subItems.length > 0) {
-            setBoundModeSwitch(subItems[0].id as AnnotationBoundMode);
-            onCategorySelected(getFirstCategory(subItems[0].id)![0] as Category);
-        }
-
-        const keys = '123456789qwertyuiopasdfghjklzxcvbnm';
-        categories.forEach((category, i) => (category.hotkey = keys[i]));
-        const handleKey = (event: KeyboardEvent) => {
-            const keyCode = event.code;
-            const selectedCategory = categories.find(
-                (category) => category.hotkey === keyCode[keyCode.length - 1].toLowerCase()
-            );
-            if (selectedCategory?.type) {
-                setBoundModeSwitch(selectedCategory.type as AnnotationBoundMode);
-                onCategorySelected(selectedCategory);
-            }
-        };
-        document.addEventListener('keydown', handleKey);
-        return () => {
-            document.removeEventListener('keydown', handleKey);
-        };
-    }, [categories]);
-
-    useEffect(() => {
         if (task?.is_validation && pages) {
             if (pages?.failed_validation_pages || pages?.annotated_pages || pages?.not_processed) {
                 setAllvalid(false);
@@ -227,11 +195,11 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
         );
     }, [validPages, invalidPages, touchedPages, modifiedPages, editedPages]);
 
-    const [tableModeValues, setTableModeValues] = useState<string>('');
     useEffect(() => {
         if (tableModeValues === 'cells') setIsCellMode(true);
         else setIsCellMode(false);
     }, [tableModeValues]);
+
     const SaveButton = (
         <div className="flex flex-center">
             <div
@@ -249,29 +217,6 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
         isValid ? styles.validColor : styles.invalidColor
     }`;
     const validationStatus: ValidationPageStatus = isValid ? 'Valid Page' : 'Invalid Page';
-    const getSubItems = (): any[] => {
-        if (!categories) return [];
-        const res = [];
-        if (categories.find((el) => el.type === 'box'))
-            res.push({
-                id: 'box',
-                caption: 'Layout',
-                cx: `${styles.categoriesAndLinks}`
-            });
-        if (categories.find((el) => el.type === 'link'))
-            res.push({
-                id: 'link',
-                caption: 'Links',
-                cx: `${styles.categoriesAndLinks}`
-            });
-        if (categories.find((el) => el.type === 'segmentation'))
-            res.push({
-                id: 'segmentation',
-                caption: 'Segmentation',
-                cx: `${styles.categoriesAndLinks}`
-            });
-        return res;
-    };
 
     return (
         <div className={`${styles.container} flex-col`}>
@@ -316,56 +261,11 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
                     ) : null}
                     {tabValue === 'Categories' && (
                         <>
-                            {getSubItems().length > 1 && (
-                                <FlexCell width="auto" cx={styles.categoriesAndLinks__wrapper}>
-                                    <MultiSwitch
-                                        items={getSubItems()}
-                                        value={boundModeSwitch}
-                                        onValueChange={
-                                            setBoundModeSwitch as React.Dispatch<
-                                                React.SetStateAction<string>
-                                            >
-                                        }
-                                    />
-                                </FlexCell>
-                            )}
-                            <div className={styles.categories}>
-                                {categories
-                                    ?.filter((cat) => cat.type === boundModeSwitch)
-
-                                    .map((category) => {
-                                        const categoryStyle = {
-                                            color: `${category.metadata?.color}`
-                                        };
-                                        const boxStyle = {
-                                            border: `1px solid ${category.metadata?.color}`
-                                        };
-                                        const active =
-                                            category.id === selectedCategory?.id
-                                                ? `${styles.active}`
-                                                : '';
-                                        return (
-                                            <div
-                                                role="none"
-                                                key={category.id}
-                                                style={categoryStyle}
-                                                className={`${styles.category} flex align-vert-center ${active}`}
-                                                onClick={() => onCategorySelected(category)}
-                                            >
-                                                <div className={styles.hotkey} style={boxStyle}>
-                                                    {category.hotkey?.toUpperCase()}
-                                                </div>
-                                                {category.is_link ? (
-                                                    <LinkIcon fill={category.metadata?.color} />
-                                                ) : (
-                                                    <></>
-                                                )}
-                                                <Text>{category.name}</Text>
-                                            </div>
-                                        );
-                                    })}
-                            </div>
-                            {boundModeSwitch === 'segmentation' ? (
+                            <CategoriesTab
+                                boundModeSwitch={boundModeSwitch}
+                                setBoundModeSwitch={setBoundModeSwitch}
+                            />
+                            {boundModeSwitch === 'segmentation' && (
                                 <ImageToolsParams
                                     onChangeToolParams={(e) => {
                                         setSelectedToolParams({
@@ -376,8 +276,6 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
                                     selectedTool={selectedTool}
                                     toolParams={selectedToolParams}
                                 />
-                            ) : (
-                                <></>
                             )}
                             {!viewMode && (
                                 <CategoriesSelectionModeToggle
@@ -483,12 +381,12 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
                     {tabValue === 'Data' && !tableMode && (
                         <TaskSidebarData
                             annDataAttrs={annDataAttrs}
-                            selectedAnnotationId={
-                                selectedAnnotation ? +selectedAnnotation?.id : undefined
-                            }
+                            selectedAnnotation={selectedAnnotation}
                             isCategoryDataEmpty={isCategoryDataEmpty}
                             onDataAttributesChange={onDataAttributesChange}
                             viewMode={viewMode}
+                            onAnnotationEdited={onAnnotationEdited}
+                            currentPage={currentPage}
                         />
                     )}
                     {tabValue === 'Information' && (

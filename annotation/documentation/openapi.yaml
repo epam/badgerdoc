@@ -1621,7 +1621,64 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Page_CategoryResponseSchema_'
+                $ref: '#/components/schemas/Page_Union_'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectionErrorSchema'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundErrorSchema'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - TenantDependencyDocs: []
+  /jobs/{job_id}/categories/search:
+    post:
+      tags:
+      - Jobs
+      summary: Search categories for provided job_id
+      description: |-
+        Searches and returns categories data according to search request parameters
+        filters for the given {job_id}. Supports pagination and ordering.
+      operationId: fetch_job_categories_jobs__job_id__categories_search_post
+      parameters:
+      - required: true
+        schema:
+          title: Job Id
+          type: integer
+        example: 1
+        name: job_id
+        in: path
+      - required: true
+        schema:
+          title: X-Current-Tenant
+          type: string
+        example: test
+        name: X-Current-Tenant
+        in: header
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/_BadgerdocSearch_categories_Category_'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Page_Union_'
         '500':
           description: Internal Server Error
           content:
@@ -2020,7 +2077,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Page_Any_'
+                $ref: '#/components/schemas/Page_Union_'
         '500':
           description: Internal Server Error
           content:
@@ -2187,6 +2244,7 @@ components:
       title: CategoryBaseSchema
       required:
       - name
+      - type
       type: object
       properties:
         name:
@@ -2220,6 +2278,7 @@ components:
       title: CategoryInputSchema
       required:
       - name
+      - type
       type: object
       properties:
         name:
@@ -2258,6 +2317,7 @@ components:
       title: CategoryResponseSchema
       required:
       - name
+      - type
       type: object
       properties:
         name:
@@ -2292,6 +2352,18 @@ components:
           type: string
           description: If id is not provided, generates it as a UUID.
           example: my_category
+        parents:
+          title: Parents
+          type: array
+          items:
+            type: object
+          default: []
+        children:
+          title: Children
+          type: array
+          items:
+            type: object
+          default: []
     CategoryTypeSchema:
       title: CategoryTypeSchema
       enum:
@@ -2515,8 +2587,8 @@ components:
             type: string
             format: uuid
           example:
-          - f0474853-f733-41c0-b897-90b788b822e3
           - b44156f8-e634-48a6-b5f3-c8b1462a2d67
+          - f0474853-f733-41c0-b897-90b788b822e3
         validators:
           title: Validators
           uniqueItems: true
@@ -2525,8 +2597,8 @@ components:
             type: string
             format: uuid
           example:
-          - f0474853-f733-41c0-b897-90b788b822e3
           - b44156f8-e634-48a6-b5f3-c8b1462a2d67
+          - f0474853-f733-41c0-b897-90b788b822e3
         owners:
           title: Owners
           uniqueItems: true
@@ -2535,8 +2607,8 @@ components:
             type: string
             format: uuid
           example:
-          - f0474853-f733-41c0-b897-90b788b822e3
           - b44156f8-e634-48a6-b5f3-c8b1462a2d67
+          - f0474853-f733-41c0-b897-90b788b822e3
         validation_type:
           allOf:
           - $ref: '#/components/schemas/ValidationSchema'
@@ -2574,8 +2646,8 @@ components:
           items:
             type: string
           example:
-          - '2'
           - '1'
+          - '2'
         deadline:
           title: Deadline
           type: string
@@ -2664,8 +2736,8 @@ components:
           items:
             type: string
           example:
-          - '2'
           - '1'
+          - '2'
         deadline:
           title: Deadline
           type: string
@@ -3011,8 +3083,8 @@ components:
                   return mapping[key]
               except KeyError:
                   return default
-    Page_CategoryResponseSchema_:
-      title: Page[CategoryResponseSchema]
+    Page_Union_:
+      title: Page[Union]
       required:
       - pagination
       - data
@@ -3024,7 +3096,10 @@ components:
           title: Data
           type: array
           items:
-            $ref: '#/components/schemas/CategoryResponseSchema'
+            anyOf:
+            - $ref: '#/components/schemas/CategoryResponseSchema'
+            - type: string
+            - type: object
       description: |-
         Abstract base class for generic types.
 
@@ -3207,8 +3282,8 @@ components:
             type: string
             format: uuid
           example:
-          - f0474853-f733-41c0-b897-90b788b822e3
           - b44156f8-e634-48a6-b5f3-c8b1462a2d67
+          - f0474853-f733-41c0-b897-90b788b822e3
         files:
           title: Files
           uniqueItems: true
@@ -3487,6 +3562,10 @@ components:
       - not_any
       - match
       - distinct
+      - parent
+      - parents_recursive
+      - children
+      - children_recursive
       type: string
       description: An enumeration.
     _FilterPagesize:
@@ -3562,6 +3641,7 @@ components:
       - parent
       - type
       - editor
+      - tree
       type: string
       description: An enumeration.
     tasks_ManualAnnotationTask:

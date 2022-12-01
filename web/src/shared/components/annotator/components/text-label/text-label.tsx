@@ -13,6 +13,7 @@ type TextLabelProps = {
     isEditable?: boolean;
     isSelected?: boolean;
     isHovered?: boolean;
+    taskHasTaxonomies?: boolean;
 };
 
 export const TextLabel = ({
@@ -23,9 +24,10 @@ export const TextLabel = ({
     onContextMenu = noop,
     isEditable,
     isSelected,
-    isHovered
+    isHovered,
+    taskHasTaxonomies
 }: TextLabelProps) => {
-    const labelStyle = isSelected || isHovered ? styles.show : '';
+    const labelStyle = isSelected || isHovered || taskHasTaxonomies ? styles.show : '';
     return (
         <span
             className={`${className} ${labelStyle}`}

@@ -1,36 +1,37 @@
-from typing import Any, List
+from typing import List, Union
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Response, status
 from filter_lib import Page
 from sqlalchemy.orm import Session
 from sqlalchemy_filters.exceptions import BadFilterFormat
+from tenant_dependency import TenantData
 
 from app.database import get_db
 from app.errors import NoSuchCategoryError
 from app.filters import CategoryFilter
 from app.microservice_communication.search import X_CURRENT_TENANT_HEADER
+from app.microservice_communication.taxonomy import link_category_with_taxonomy
 from app.schemas import (
     BadRequestErrorSchema,
     CategoryBaseSchema,
+    CategoryDataAttributeNames,
     CategoryInputSchema,
-    CategoryORMSchema,
     CategoryResponseSchema,
     ConnectionErrorSchema,
     NotFoundErrorSchema,
     SubCategoriesOutSchema,
 )
 from app.tags import CATEGORIES_TAG
-
-from lib.tenants.src import TenantData
-from microservice_communication.taxonomy_communication import link_category_with_taxonomy
-from schemas.categories import CategoryDataAttributeNames
 from app.token_dependency import TOKEN
+
 from .services import (
     add_category_db,
     delete_category_db,
     fetch_category_db,
     filter_category_db,
+    insert_category_tree,
     recursive_subcategory_search,
+    response_object_from_db,
     update_category_db,
 )
 
@@ -78,10 +79,10 @@ def save_category(
                 token=token.token,
                 **taxonomy_link_params,
             )
-    category = CategoryORMSchema.from_orm(category_db).dict()
-    return CategoryResponseSchema.parse_obj(category)
+    return response_object_from_db(category_db)
 
 
+# Get by category id, requires children/parents
 @router.get(
     "/{category_id}",
     status_code=status.HTTP_200_OK,
@@ -97,8 +98,8 @@ def fetch_category(
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
 ) -> CategoryResponseSchema:
     category_db = fetch_category_db(db, category_id, x_current_tenant)
-    category = CategoryORMSchema.from_orm(category_db).dict()
-    return CategoryResponseSchema.parse_obj(category)
+    category_response = insert_category_tree(db, category_db)
+    return category_response
 
 
 @router.get(
@@ -127,29 +128,32 @@ def get_child_categories(
     return response
 
 
+# Search with params, return paginate obj, each entity
+# requires children/parents
 @router.post(
     "/search",
     status_code=status.HTTP_200_OK,
-    response_model=Page[Any],  # type: ignore
+    response_model=Page[Union[CategoryResponseSchema, str, dict]],
     summary="Search categories.",
+    response_model_exclude_none=True,
 )
 def search_categories(
     request: CategoryFilter,
     db: Session = Depends(get_db),
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
-) -> Page[Any]:
+) -> Page[Union[CategoryResponseSchema, str, dict]]:
     """
     Searches and returns categories data according to search request parameters
     filters. Supports pagination and ordering.
     """
     try:
         task_response = filter_category_db(db, request, x_current_tenant)
-        return task_response
     except BadFilterFormat as error:
         raise HTTPException(
             status_code=400,
             detail=f"{error}",
         )
+    return task_response
 
 
 @router.put(
@@ -176,8 +180,7 @@ def update_category(
     )
     if not category_db:
         raise NoSuchCategoryError("Cannot update category parameters")
-    category = CategoryORMSchema.from_orm(category_db)
-    return CategoryResponseSchema.parse_obj(category)
+    return response_object_from_db(category_db)
 
 
 @router.delete(

@@ -33,6 +33,7 @@ const TaskDocumentPages = (props: DocumentPageProps) => {
         validPages,
         invalidPages,
         externalViewer,
+        selectedAnnotation,
         onAnnotationCreated,
         onAnnotationDeleted,
         onAnnotationEdited,
@@ -40,7 +41,6 @@ const TaskDocumentPages = (props: DocumentPageProps) => {
         onCurrentPageChange,
         onEmptyAreaClick,
         onAnnotationDoubleClick,
-        onAnnotationClick,
         onAnnotationCopyPress,
         onAnnotationCutPress,
         onAnnotationPastePress,
@@ -54,15 +54,14 @@ const TaskDocumentPages = (props: DocumentPageProps) => {
 
     const isValidation = task?.is_validation;
     const isEdited = editedPages.includes(currentPage);
-    const [clickedAnnotation, setClickedAnnotation] = useState<Annotation>();
-    // const [clickedAnnotationPage, setCurrentPage] = useState<number | undefined>();
+
     const annotatorLinks = useAnnotationsLinks(
-        clickedAnnotation,
+        selectedAnnotation,
         selectedCategory,
         currentPage,
         selectionType,
         allAnnotations,
-        (prevPage, links, annId) => clickedAnnotation && onAnnotationEdited(prevPage, annId, links)
+        (prevPage, links, annId) => selectedAnnotation && onAnnotationEdited(prevPage, annId, links)
     );
 
     const isValid = validPages.includes(currentPage);
@@ -88,8 +87,6 @@ const TaskDocumentPages = (props: DocumentPageProps) => {
                 fileMetaInfo={fileMetaInfo}
                 apiPageSize={pageSize}
                 setPageSize={setPageSize}
-                clickedAnnotation={clickedAnnotation}
-                setClickedAnnotation={setClickedAnnotation}
                 annotatorLinks={annotatorLinks}
                 editable={editable}
                 containerRef={containerRef}

@@ -48,5 +48,8 @@ class CategoryORMSchema(CategoryInputSchema):
 
 
 class CategoryResponseSchema(CategoryInputSchema):
+    parents: Optional[List[dict]] = Field()
+    is_leaf: Optional[bool] = Field()
+
     class Config:
         allow_population_by_field_name = True

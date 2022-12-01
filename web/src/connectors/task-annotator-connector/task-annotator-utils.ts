@@ -270,13 +270,19 @@ const formatTable = (table: TableApi): AnnotationTable => {
 };
 
 export const mapAnnotationFromApi = (obj: PageInfoObjs, category?: Category): Annotation => {
+    let dataAttr: CategoryDataAttributeWithValue | null = null;
+    if (obj.data.dataAttributes) {
+        dataAttr = obj.data.dataAttributes.find(
+            (attr: CategoryDataAttributeWithValue) => attr.type === 'taxonomy'
+        );
+    }
     return {
         id: obj.id!,
         boundType: (obj.type as AnnotationBoundType) || 'box',
         bound: bboxToBound(obj.bbox),
         category: obj.category,
         color: category?.metadata?.color,
-        label: category?.name,
+        label: dataAttr ? dataAttr.value : category?.name,
         tokens: obj.data?.tokens,
         links: obj?.links,
         data: obj.data,

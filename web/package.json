@@ -17,6 +17,7 @@
         "@types/react": "^17.0.0",
         "@types/react-dom": "^17.0.0",
         "@types/react-router-dom": "5.1.7",
+        "classnames": "^2.3.2",
         "dagre": "^0.8.5",
         "dart-sass": "1.25.0",
         "history": "4.10.1",
@@ -31,6 +32,7 @@
         "node-sass": "npm:sass",
         "paper": "^0.12.15",
         "qs": "^6.10.2",
+        "rc-tree": "^5.7.0",
         "react": "^17.0.2",
         "react-colorful": "^5.5.1",
         "react-datepicker": "^4.5.0",
@@ -69,8 +71,8 @@
         ]
     },
     "simple-git-hooks": {
-        "pre-commit": "yarn lint:js --fix && yarn lint:types && git add .",
-        "pre-push": "yarn test --runInBand --passWithNoTests --verbose --watchAll=false"
+        "pre-commit": "cd web && yarn lint:js --fix && yarn lint:types && git add .",
+        "pre-push": "cd web && yarn test --runInBand --passWithNoTests --verbose --watchAll=false"
     },
     "resolutions": {
         "node-sass": "npm:sass",

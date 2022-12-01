@@ -21,6 +21,7 @@ import {
     Filter,
     Link,
     Operators,
+    SortingDirection,
     User
 } from 'api/typings';
 import { useDocuments } from 'api/hooks/documents';
@@ -58,6 +59,7 @@ import { PageSize } from '../../shared/components/document-pages/document-pages'
 type ContextValue = {
     task?: Task;
     categories?: Category[];
+    categoriesLoading?: boolean;
     selectedCategory?: Category;
     selectedLink?: Link;
     selectedAnnotation?: Annotation;
@@ -119,7 +121,6 @@ type ContextValue = {
     onSaveEditClick: () => void;
     onEmptyAreaClick: () => void;
     onAnnotationDoubleClick: (annotation: Annotation) => void;
-    onAnnotationClick: (annotation: Annotation) => void;
     onAnnotationCopyPress: (pageNum: number, annotationId: string | number) => void;
     onAnnotationCutPress: (pageNum: number, annotationId: string | number) => void;
     onAnnotationPastePress: (pageSize: PageSize, pageNum: number) => void;
@@ -131,6 +132,8 @@ type ContextValue = {
     setTableCellCategory: (s: string | number | undefined) => void;
     selectedToolParams: PaperToolParams;
     setSelectedToolParams: (nt: PaperToolParams) => void;
+    setSelectedAnnotation: (annotation: Annotation | undefined) => void;
+    taskHasTaxonomies?: boolean;
 };
 
 const TaskAnnotatorContext = createContext<ContextValue | undefined>(undefined);
@@ -187,7 +190,7 @@ export const TaskAnnotatorContextProvider: FC<ProviderProps> = ({
         AnnotationBoundType | AnnotationLinksBoundType | AnnotationImageToolType
     >('free-box');
     const [selectedTool, setSelectedTool] = useState<AnnotationImageToolType>('pen');
-    const [selectedAnnotation, setSelectedAnnotation] = useState<Annotation>();
+    const [selectedAnnotation, setSelectedAnnotation] = useState<Annotation | undefined>(undefined);
     const [isDataTabDisabled, setIsDataTabDisabled] = useState<boolean>(dataTabDefaultDisableState);
     const [isCategoryDataEmpty, setIsCategoryDataEmpty] = useState<boolean>(false);
     const [annDataAttrs, setAnnDataAttrs] = useState<
@@ -255,20 +258,45 @@ export const TaskAnnotatorContextProvider: FC<ProviderProps> = ({
         }
     }
 
-    const categoriesResult = useCategoriesByJob({ jobId: getJobId() }, { enabled: false });
+    const {
+        data: categories,
+        refetch: refetchCategories,
+        isLoading: categoriesLoading
+    } = useCategoriesByJob(
+        {
+            jobId: getJobId(),
+            page: 1,
+            size: 100,
+            searchText: '',
+            sortConfig: { field: 'name', direction: SortingDirection.ASC }
+        },
+        { enabled: false }
+    );
 
-    const categories = categoriesResult.data?.data;
+    useEffect(() => {
+        if (task?.job.id) {
+            refetchCategories();
+        }
+    }, [task]);
 
-    const filters: Filter<keyof FileDocument>[] = [];
+    const taskHasTaxonomies = useMemo(() => {
+        if (categories) {
+            return !!categories.data.find((category) =>
+                category.data_attributes?.find((attr) => attr.type === 'taxonomy')
+            );
+        }
+    }, [categories]);
 
-    filters.push({
+    const documentFilters: Filter<keyof FileDocument>[] = [];
+
+    documentFilters.push({
         field: 'id',
         operator: Operators.EQ,
         value: getFileId()
     });
     const documentsResult = useDocuments(
         {
-            filters
+            filters: documentFilters
         },
         { enabled: false }
     );
@@ -303,7 +331,6 @@ export const TaskAnnotatorContextProvider: FC<ProviderProps> = ({
 
     useEffect(() => {
         if (task || jobId) {
-            categoriesResult.refetch();
             setCurrentPage(pageNumbers[0]);
             documentsResult.refetch();
             latestAnnotationsResult.refetch();
@@ -313,7 +340,9 @@ export const TaskAnnotatorContextProvider: FC<ProviderProps> = ({
 
     const createAnnotation = (pageNum: number, newAnnotation: Annotation) => {
         const pageAnnotations = allAnnotations[pageNum] ?? [];
-
+        const dataAttr: CategoryDataAttributeWithValue = newAnnotation.data?.dataAttributes.find(
+            (attr: CategoryDataAttributeWithValue) => attr.type === 'taxonomy'
+        );
         setAllAnnotations((prevState) => ({
             ...prevState,
             [pageNum]: [
@@ -321,7 +350,7 @@ export const TaskAnnotatorContextProvider: FC<ProviderProps> = ({
                 {
                     ...newAnnotation,
                     color: selectedCategory?.metadata?.color,
-                    label: selectedCategory?.name,
+                    label: dataAttr ? dataAttr.value : selectedCategory?.name,
                     labels: getAnnotationLabels(pageNum, newAnnotation, selectedCategory)
                 }
             ]
@@ -480,12 +509,13 @@ export const TaskAnnotatorContextProvider: FC<ProviderProps> = ({
         setAnnDataAttrs({});
         setIsCategoryDataEmpty(true);
         setTabValue('Categories');
+        setSelectedAnnotation(undefined);
     };
 
     const setAnnotationDataAttrs = (annotation: Annotation) => {
         const foundCategoryDataAttrs = getCategoryDataAttrs(
-            annotation.label || annotation.category,
-            categories
+            annotation.category ? annotation.category : annotation.label,
+            categories?.data
         );
         if (foundCategoryDataAttrs && foundCategoryDataAttrs.length) {
             setAnnDataAttrs((prevState) => {
@@ -501,14 +531,15 @@ export const TaskAnnotatorContextProvider: FC<ProviderProps> = ({
         } else {
             setTabValue('Categories');
             setIsCategoryDataEmpty(true);
-            setSelectedAnnotation(undefined);
         }
         setIsDataTabDisabled(foundCategoryDataAttrs && foundCategoryDataAttrs.length === 0);
     };
 
-    const onAnnotationClick = (annotation: Annotation) => {
-        setAnnotationDataAttrs(annotation);
-    };
+    useEffect(() => {
+        if (!selectedAnnotation) return;
+
+        setAnnotationDataAttrs(selectedAnnotation);
+    }, [selectedAnnotation]);
 
     const onAnnotationCopyPress = (pageNum: number, annotationId: string | number) => {
         if (annotationId && pageNum) {
@@ -634,7 +665,7 @@ export const TaskAnnotatorContextProvider: FC<ProviderProps> = ({
             setTableMode(false);
         }
 
-        const foundCategoryDataAttrs = getCategoryDataAttrs(label, categories);
+        const foundCategoryDataAttrs = getCategoryDataAttrs(label, categories?.data);
 
         if (foundCategoryDataAttrs) {
             setAnnDataAttrs((prevState) => {
@@ -668,7 +699,6 @@ export const TaskAnnotatorContextProvider: FC<ProviderProps> = ({
                     value
                 });
             }
-
             setAnnDataAttrs(newAnn);
         }
     };
@@ -848,9 +878,14 @@ export const TaskAnnotatorContextProvider: FC<ProviderProps> = ({
         if (ann.boundType !== 'text') {
             return [];
         }
+        const dataAttr: CategoryDataAttributeWithValue = ann.data?.dataAttributes
+            ? ann.data?.dataAttributes.find(
+                  (attr: CategoryDataAttributeWithValue) => attr.type === 'taxonomy'
+              )
+            : null;
         const label = {
             annotationId: ann.id,
-            label: category?.name,
+            label: dataAttr ? dataAttr.value : category?.name,
             color: category?.metadata?.color
         };
         const topRightToken: PageToken | null | undefined = getTopRightToken(ann?.tokens);
@@ -866,14 +901,14 @@ export const TaskAnnotatorContextProvider: FC<ProviderProps> = ({
     };
 
     useEffect(() => {
-        if (!latestAnnotationsResult.data || !categories) return;
+        if (!latestAnnotationsResult.data || !categories?.data) return;
         setValidPages(latestAnnotationsResult.data.validated);
         setInvalidPages(latestAnnotationsResult.data.failed_validation_pages);
 
         const result = mapAnnotationPagesFromApi(
             latestAnnotationsResult.data.pages,
             getAnnotationLabels,
-            categories
+            categories?.data
         );
         setAllAnnotations(result);
 
@@ -890,7 +925,7 @@ export const TaskAnnotatorContextProvider: FC<ProviderProps> = ({
         )
             return;
         setPageSize(latestAnnotationsResult.data.pages[0].size);
-    }, [latestAnnotationsResult.data, categories]);
+    }, [latestAnnotationsResult.data, categories?.data]);
 
     const onValidClick = useCallback(() => {
         if (invalidPages.includes(currentPage)) {
@@ -987,7 +1022,8 @@ export const TaskAnnotatorContextProvider: FC<ProviderProps> = ({
     const value = useMemo<ContextValue>(() => {
         return {
             task,
-            categories,
+            categories: categories?.data,
+            categoriesLoading,
             selectedCategory,
             selectedLink,
             fileMetaInfo,
@@ -1020,6 +1056,7 @@ export const TaskAnnotatorContextProvider: FC<ProviderProps> = ({
             annDataAttrs,
             externalViewer,
             tableCellCategory,
+            taskHasTaxonomies,
             setTableCellCategory,
             onAnnotationCreated,
             onAnnotationDeleted,
@@ -1041,18 +1078,19 @@ export const TaskAnnotatorContextProvider: FC<ProviderProps> = ({
             setTabValue,
             onDataAttributesChange,
             onEmptyAreaClick,
-            onAnnotationClick,
             onAnnotationDoubleClick,
             onAnnotationCopyPress,
             onAnnotationCutPress,
             onAnnotationPastePress,
             onAnnotationUndoPress,
             onAnnotationRedoPress,
-            onExternalViewerClose
+            onExternalViewerClose,
+            setSelectedAnnotation
         };
     }, [
         task,
-        categories,
+        categories?.data,
+        categoriesLoading,
         selectedCategory,
         selectedLink,
         selectionType,

@@ -18,6 +18,7 @@ requests = "^2.26.0"
 cryptography = "36.0.1"
 cachetools = "^5.0.0"
 kafka-python = "^2.0.2"
+sqlalchemy-utils = "^0.38.3"
 
 [tool.poetry.dev-dependencies]
 pre-commit = "^2.14.0"
