@@ -148,7 +148,7 @@ def test_should_associate_taxonomy_to_job(
 
 
 @pytest.mark.integration
-def test_should_associate_taxonomy_to_job1(
+def test_should_associate_taxonomy_to_category(
     overrided_token_client,
     prepared_taxonomy_record_in_db: Taxonomy,
     db_session,
