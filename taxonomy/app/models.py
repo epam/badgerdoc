@@ -45,6 +45,26 @@ class AssociationTaxonomyJob(Base):
     job_id = Column(VARCHAR, primary_key=True)
 
 
+class AssociationTaxonomyCategory(Base):
+    __tablename__ = "association_taxonomy_category"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["taxonomy_id", "taxonomy_version"],
+            ["taxonomy.id", "taxonomy.version"],
+        ),
+    )
+    taxonomy_id = Column(VARCHAR, primary_key=True)
+    taxonomy_version = Column(Integer, primary_key=True)
+
+    taxonomy = relationship(
+        "Taxonomy",
+        foreign_keys="[AssociationTaxonomyCategory.taxonomy_id, "
+        "AssociationTaxonomyCategory.taxonomy_version]",
+        back_populates="categories",
+    )
+    category_id = Column(VARCHAR, primary_key=True)
+
+
 class Taxonomy(Base):
     __tablename__ = "taxonomy"
 
@@ -52,7 +72,10 @@ class Taxonomy(Base):
     name = Column(VARCHAR, nullable=False)
     version = Column(Integer, primary_key=True)
     tenant = Column(VARCHAR, nullable=True)
-    category_id = Column(VARCHAR, nullable=False)
+    categories = relationship(
+        "AssociationTaxonomyCategory",
+        back_populates="taxonomy",
+    )
     latest = Column(Boolean, nullable=False)
     jobs = relationship("AssociationTaxonomyJob", back_populates="taxonomy")
     taxons = relationship("Taxon", back_populates="taxonomy")

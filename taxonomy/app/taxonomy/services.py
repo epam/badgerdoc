@@ -1,10 +1,18 @@
 from typing import Dict, List, Optional, Tuple, Union
 
-from sqlalchemy import desc
+from sqlalchemy import and_, desc, or_
 from sqlalchemy.orm import Session
 
-from app.models import AssociationTaxonomyJob, Taxonomy
-from app.schemas import TaxonomyBaseSchema, TaxonomyInputSchema
+from app.models import (
+    AssociationTaxonomyCategory,
+    AssociationTaxonomyJob,
+    Taxonomy,
+)
+from app.schemas import (
+    CategoryLinkSchema,
+    TaxonomyBaseSchema,
+    TaxonomyInputSchema,
+)
 
 
 def create_taxonomy_instance(
@@ -101,10 +109,62 @@ def get_taxonomies_by_job_id(session: Session, job_id: str) -> List[Taxonomy]:
     )
 
 
-def create_new_relation_with_category(
-    session: Session, taxonomy: Taxonomy, category_id: str
-) -> Taxonomy:
-    taxonomy.category_id = category_id
+def bulk_create_relations_with_categories(
+    session: Session,
+    taxonomies: Dict[str, int],
+    category_links: List[CategoryLinkSchema],
+) -> None:
+    objects = [
+        AssociationTaxonomyCategory(
+            taxonomy_id=link.taxonomy_id,
+            taxonomy_version=taxonomies[link.taxonomy_id],
+            category_id=link.category_id,
+        )
+        for link in category_links
+    ]
+    session.bulk_save_objects(objects)
     session.commit()
-    session.refresh(taxonomy)
-    return taxonomy
+
+
+def batch_versioned_taxonomies(
+    session: Session, schemas: List[CategoryLinkSchema]
+) -> Dict[str, int]:
+    taxonomies = session.query(Taxonomy.id, Taxonomy.version).filter(
+        or_(
+            *[
+                and_(
+                    Taxonomy.id == link.taxonomy_id,
+                    Taxonomy.version == link.taxonomy_version,
+                )
+                for link in schemas
+            ]
+        )
+    )
+    return {id_: version for id_, version in taxonomies.all()}
+
+
+def batch_latest_taxonomies(
+    session: Session, schemas: List[CategoryLinkSchema]
+) -> Dict[str, int]:
+    taxonomies = session.query(Taxonomy.id, Taxonomy.version).filter(
+        or_(
+            *[
+                and_(
+                    Taxonomy.id == link.taxonomy_id,
+                    Taxonomy.latest == True,  # noqa E712
+                )
+                for link in schemas
+            ]
+        )
+    )
+    return {id_: version for id_, version in taxonomies.all()}
+
+
+def bulk_delete_category_association(
+    session: Session,
+    category_id: str,
+) -> None:
+    session.query(AssociationTaxonomyCategory).filter(
+        AssociationTaxonomyCategory.category_id == category_id,
+    ).delete(synchronize_session=False)
+    session.commit()
