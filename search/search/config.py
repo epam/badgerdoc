@@ -30,6 +30,7 @@ class Settings(BaseSettings):
     s3_login: str
     s3_pass: str
     s3_start_path: str
+    s3_credentials_provider: Optional[str]
     s3_prefix: Optional[str]
     version: str = Field(default_factory=get_version)
     manifest: str

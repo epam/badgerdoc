@@ -18,21 +18,40 @@ def convert_bucket_name_if_s3prefix(bucket_name: str) -> str:
         return bucket_name
 
 
+class NotConfiguredException(Exception):
+    pass
+
+
+def create_boto3_config():
+    boto3_config = {}
+    if settings.s3_credentials_provider == "minio":
+        logger.info(f"S3_Credentials provider - {settings.s3_credentials_provider}")
+        boto3_config.update(
+            {
+                "aws_access_key_id": settings.s3_login,
+                "aws_secret_access_key": settings.s3_pass,
+                "endpoint_url": settings.s3_endpoint_url,
+            }
+        )
+    elif settings.s3_credentials_provider == "aws_iam":
+        logger.info(f"S3_Credentials provider - {settings.s3_credentials_provider}")
+        # No additional updates to config needed - boto3 uses env vars
+    else:
+        raise NotConfiguredException(
+            "s3 connection is not properly configured - s3_credentials_provider is not set"
+        )
+    return boto3_config
+
+
 def connect_s3(tenant: str) -> boto3.resource:
-    s3_resource = boto3.resource(
-        "s3",
-        endpoint_url=settings.s3_endpoint_url,
-        aws_access_key_id=settings.s3_login,
-        aws_secret_access_key=settings.s3_pass,
-    )
+    boto3_config = create_boto3_config()
+    s3_resource = boto3.resource("s3", **boto3_config)
     try:
         s3_resource.meta.client.head_bucket(Bucket=tenant)
     except ClientError as err:
         if "404" in err.args[0]:
             raise es.NoSuchTenant(f"Bucket for tenant {tenant} doesn't exist")
     return s3_resource
-
-# TODO: добавить авторизацию через AWS IAM Service Role?
 
 
 def parse_json(
