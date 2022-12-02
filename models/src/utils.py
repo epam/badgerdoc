@@ -10,6 +10,7 @@ from kubernetes.config import ConfigException
 from sqlalchemy.orm import Session
 from starlette.datastructures import UploadFile
 
+import src.logger as logger
 from src.constants import (
     CONTAINER_NAME,
     DOCKER_REGISTRY_URL,
@@ -21,11 +22,14 @@ from src.constants import (
     MINIO_PUBLIC_HOST,
     MINIO_SECRET_KEY,
     MODELS_NAMESPACE,
+    S3_CREDENTIALS_PROVIDER,
     S3_PREFIX,
 )
 from src.db import Basement, Model
 from src.errors import NoSuchTenant
 from src.schemas import DeployedModelPod, MinioHTTPMethod
+
+logger_ = logger.get_logger(__name__)
 
 
 def convert_bucket_name_if_s3prefix(bucket_name: str) -> str:
@@ -293,17 +297,39 @@ def get_pods(model_name: str) -> List[DeployedModelPod]:
     return pods
 
 
+class NotConfiguredException(Exception):
+    pass
+
+
+def create_boto3_config():
+    boto3_config = {}
+    if S3_CREDENTIALS_PROVIDER == "minio":
+        logger_.info(f"S3_Credentials provider - {S3_CREDENTIALS_PROVIDER}")
+        boto3_config.update(
+            {
+                "aws_access_key_id": MINIO_ACCESS_KEY,
+                "aws_secret_access_key": MINIO_SECRET_KEY,
+                "endpoint_url": f"http://{MINIO_HOST}",
+            }
+        )
+    elif S3_CREDENTIALS_PROVIDER == "aws_iam":
+        logger_.info(f"S3_Credentials provider - {S3_CREDENTIALS_PROVIDER}")
+        # No additional updates to config needed - boto3 uses env vars
+    else:
+        raise NotConfiguredException(
+            "s3 connection is not properly configured - s3_credentials_provider is not set"
+        )
+    return boto3_config
+
+
 def get_minio_resource(tenant: str) -> boto3.resource:
     """Creates and returns boto3 s3 resource with provided credentials
     to connect minio and validates that Bucket for provided tenant exists.
     If Bucket was not found - raises "NoSuchTenant" exception.
     """
+    boto3_config = create_boto3_config()
     s3_resource = boto3.resource(
-        "s3",
-        endpoint_url=f"http://{MINIO_HOST}",  # http prefix for SDK connection
-        aws_access_key_id=MINIO_ACCESS_KEY,
-        aws_secret_access_key=MINIO_SECRET_KEY,
-        config=Config(signature_version="s3v4"),  # more secure signature type
+        "s3", **boto3_config, config=Config(signature_version="s3v4")
     )
     try:
         s3_resource.meta.client.head_bucket(Bucket=tenant)
@@ -311,7 +337,6 @@ def get_minio_resource(tenant: str) -> boto3.resource:
         if "404" in err.args[0]:
             raise NoSuchTenant(f"Bucket for tenant {tenant} does not exist")
     return s3_resource
-# TODO: сделать авторизацию и через minio, и через AWS IAM Service Role?
 
 
 def generate_presigned_url(
