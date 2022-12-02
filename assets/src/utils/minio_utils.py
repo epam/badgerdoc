@@ -26,6 +26,7 @@ if settings.s3_endpoint:
     minio_config.update({"endpoint": settings.s3_endpoint})
 
 if settings.s3_credentials_provider == "minio":
+    logger_.info(f"S3_Credentials provider - {settings.s3_credentials_provider}")
     minio_config.update(
         {
             "access_key": settings.s3_access_key,
@@ -33,11 +34,14 @@ if settings.s3_credentials_provider == "minio":
         }
     )
 elif settings.s3_credentials_provider == "aws_iam":
+    logger_.info(f"S3_Credentials provider - {settings.s3_credentials_provider}")
     minio_config.update({"credentials": IamAwsProvider()})
 elif settings.s3_credentials_provider == "aws_env":
+    logger_.info(f"S3_Credentials provider - {settings.s3_credentials_provider}")
     minio_config.update({"credentials": EnvAWSProvider()})
 elif settings.s3_credentials_provider == "aws_config":
     # environmental variable AWS_PROFILE_NAME should be set
+    logger_.info(f"S3_Credentials provider - {settings.s3_credentials_provider}")
     minio_config.update(
         {"credentials": AWSConfigProvider(profile=settings.aws_profile_name)}
     )
