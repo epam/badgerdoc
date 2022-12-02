@@ -14,6 +14,7 @@ from kafka.errors import KafkaError
 from sqlalchemy import asc
 from sqlalchemy.orm import Session
 
+from app import logger
 from app.kafka_client import KAFKA_BOOTSTRAP_SERVER, KAFKA_SEARCH_TOPIC
 from app.kafka_client import producers as kafka_producers
 from app.models import AnnotatedDoc
@@ -31,8 +32,12 @@ AWS_ACCESS_KEY_ID = os.environ.get("S3_LOGIN")
 AWS_SECRET_ACCESS_KEY = os.environ.get("S3_PASS")
 INDEX_NAME = os.environ.get("INDEX_NAME")
 S3_START_PATH = os.environ.get("S3_START_PATH")
+S3_CREDENTIALS_PROVIDER = os.environ.get("S3_CREDENTIALS_PROVIDER")
 MANIFEST = "manifest.json"
 LATEST = "latest"
+
+
+logger_ = logger.get_logger(__name__)
 
 
 def row_to_dict(row) -> dict:
@@ -61,14 +66,30 @@ def row_to_dict(row) -> dict:
     }
 
 
+class NotConfiguredException(Exception):
+    pass
+
+
 def connect_s3(bucket_name: str) -> boto3.resource:
-    s3_resource = boto3.resource(
-        "s3",
-        endpoint_url=ENDPOINT_URL,
-        aws_access_key_id=AWS_ACCESS_KEY_ID,
-        aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
-    )
-    # TODO: реализовать использование AWS IAM Service Role?
+    boto3_config = {}
+    if S3_CREDENTIALS_PROVIDER == "minio":
+        logger_.info(f"S3_Credentials provider - {S3_CREDENTIALS_PROVIDER}")
+        boto3_config.update(
+            {
+                "aws_access_key_id": AWS_ACCESS_KEY_ID,
+                "aws_secret_access_key": AWS_SECRET_ACCESS_KEY,
+                "endpoint_url": ENDPOINT_URL,
+            }
+        )
+    elif S3_CREDENTIALS_PROVIDER == "aws_iam":
+        logger_.info(f"S3_Credentials provider - {S3_CREDENTIALS_PROVIDER}")
+        # No additional updates to config needed - boto3 uses env vars
+    else:
+        raise NotConfiguredException(
+            "s3 connection is not properly configured - s3_credentials_provider is not set"
+        )
+    s3_resource = boto3.resource("s3", **boto3_config)
+
     try:
         if S3_PREFIX:
             bucket_name = f"{S3_PREFIX}-{bucket_name}"
@@ -632,7 +653,7 @@ def get_file_manifest(
 ) -> Dict[str, Any]:
     manifest_path = f"{S3_START_PATH}/{job_id}/{file_id}/{MANIFEST}"
     if S3_PREFIX:
-        bucket_name=f"{S3_PREFIX}-{tenant}"
+        bucket_name = f"{S3_PREFIX}-{tenant}"
     else:
         bucket_name = tenant
     manifest_obj = s3_resource.Object(bucket_name, manifest_path)
