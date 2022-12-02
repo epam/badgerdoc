@@ -10,6 +10,10 @@ from requests import Session
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 
+from src import logger
+
+logger_ = logger.get_logger(__name__)
+
 
 class Settings(BaseSettings):
     """Base settings values"""
@@ -18,6 +22,9 @@ class Settings(BaseSettings):
     minio_access_key: Optional[str] = os.getenv("MINIO_ACCESS_KEY")
     minio_secret_key: Optional[str] = os.getenv("MINIO_SECRET_KEY")
     s3_prefix: Optional[str] = os.getenv("S3_PREFIX")
+    s3_credentials_provider: Optional[str] = os.getenv(
+        "S3_CREDENTIALS_PROVIDER"
+    )
     uploading_limit: int = Field(100, env="UPLOADING_LIMIT")
     coco_image_format: str = "jpg"
     dpi: int = 300
@@ -73,27 +80,48 @@ def get_request_session(*args: List[Any], **kwargs: Dict[str, Any]) -> Session:
 settings = Settings()
 
 
+class NotConfiguredException(Exception):
+    pass
+
+
+def create_boto3_config():
+    boto3_config = {}
+    if settings.s3_credentials_provider == "minio":
+        logger_.info(
+            f"S3_Credentials provider - {settings.s3_credentials_provider}"
+        )
+        boto3_config.update(
+            {
+                "aws_access_key_id": settings.minio_access_key,
+                "aws_secret_access_key": settings.minio_secret_key,
+                "endpoint_url": settings.minio_host,
+            }
+        )
+    elif settings.s3_credentials_provider == "aws_iam":
+        logger_.info(
+            f"S3_Credentials provider - {settings.s3_credentials_provider}"
+        )
+        # No additional updates to config needed - boto3 uses env vars
+    else:
+        raise NotConfiguredException(
+            "s3 connection is not properly configured - s3_credentials_provider is not set"
+        )
+    return boto3_config
+
+
 def get_minio_client() -> BaseClient:
     """Initialized s3 client by boto3 client"""
-    client = boto3.client(
-        "s3",
-        endpoint_url=settings.minio_host,
-        aws_access_key_id=settings.minio_access_key,
-        aws_secret_access_key=settings.minio_secret_key,
-    )
+    boto3_config = create_boto3_config()
+    client = boto3.client("s3", **boto3_config)
     return client
-# TODO: реализовать авторизацию через AWS IAM Service Role?
+
 
 def get_minio_resource() -> BaseClient:
     """Initialized s3 client by boto3 resource"""
-    client = boto3.resource(
-        "s3",
-        endpoint_url=settings.minio_host,
-        aws_access_key_id=settings.minio_access_key,
-        aws_secret_access_key=settings.minio_secret_key,
-    )
+    boto3_config = create_boto3_config()
+    client = boto3.resource("s3", **boto3_config)
     return client
-# TODO: реализовать авторизацию через AWS IAM Service Role?
+
 
 API_VERSION = get_version()
 API_NAME = "convert"
