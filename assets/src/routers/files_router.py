@@ -1,3 +1,4 @@
+# flake8: noqa: F501
 from typing import Any, Dict, List, Optional, Union
 
 import fastapi

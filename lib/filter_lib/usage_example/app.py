@@ -58,7 +58,7 @@ def create_new_user(
 
 @app.post("/users/search", tags=["users"], response_model=Page[UserOut])
 def search_users(
-    request: UserFilterModel, session: Session = Depends(get_db)  # type: ignore
+    request: UserFilterModel, session: Session = Depends(get_db)  # type: ignore # noqa
 ) -> Page[UserOut]:
     query = session.query(User)
     filter_args = map_request_to_filter(request.dict(), "User")  # type: ignore
@@ -82,9 +82,9 @@ def create_new_address(
     "/addresses/search", tags=["addresses"], response_model=Page[AddressOut]
 )
 def search_address(
-    request: AddressFilterModel, session: Session = Depends(get_db)  # type: ignore
+    request: AddressFilterModel, session: Session = Depends(get_db)  # type: ignore # noqa
 ) -> Page[UserOut]:
     query = session.query(Address)
-    filter_args = map_request_to_filter(request.dict(), "Address")  # type: ignore
+    filter_args = map_request_to_filter(request.dict(), "Address")  # type: ignore # noqa
     query, pagination = form_query(filter_args, query)
     return paginate([x for x in query], pagination)

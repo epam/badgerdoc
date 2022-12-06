@@ -22,8 +22,8 @@ class TenantDependencyBase:
 
         Args:
             key: a private key for decoding tokens with hs256 alg
-            algorithm: an alg for tokens, will be checked in available algorithms
-            url: an url to auth service (http://bagerdoc-keycloack, http://dev1.gcov.ru)
+            algorithm: an alg for tokens, will be checked in available algorithms  # noqa
+            url: an url to auth service (http://bagerdoc-keycloack, http://dev1.gcov.ru)  # noqa
         """
         self.key = key
         self.algorithm = self._check_algorithm(algorithm)
@@ -154,16 +154,16 @@ def get_tenant_info(
 
     Examples:
         RS256:
-            tenant = get_tenant_info(algorithm="RS256", url="http://dev1.gcov.ru").
+            tenant = get_tenant_info(algorithm="RS256", url="http://dev1.gcov.ru").  # noqa
         HS256:
-            tenant = get_tenant_info(algorithm="HS256", key="some_secret_key").
+            tenant = get_tenant_info(algorithm="HS256", key="some_secret_key").  # noqa
 
     Args:
         key: a private key for decoding tokens with hs256 alg.
         algorithm: an alg for tokens, will be checked in available algorithms.
-        url: an url to auth service (http://bagerdoc-keycloack, http://dev1.gcov.ru).
-        scheme_name: a name for TenantDependency on Swagger, if not provided class name will be used.
-        description: a description for TenantDependency on Swagger, if not provided description will be empty.
+        url: an url to auth service (http://bagerdoc-keycloack, http://dev1.gcov.ru).  # noqa
+        scheme_name: a name for TenantDependency on Swagger, if not provided class name will be used.  # noqa
+        description: a description for TenantDependency on Swagger, if not provided description will be empty.  # noqa
         debug: If True button 'Authorize' will be rendered on Swagger.
     """
     if debug:

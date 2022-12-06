@@ -1,0 +1,58 @@
+name: annotation precommit and test
+run-name: annotation precommit and test
+on:
+  push:
+    paths:
+      - 'annotation/**'
+  pull_request:
+    paths:
+      - 'annotation/**'
+jobs:
+  annotation-pre-commit-actions:
+    strategy:
+      matrix:
+        python-version: [ "3.8.15" ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+      - name: Run isort
+        uses: isort/isort-action@v1.1.0
+        with:
+          configuration:
+            --profile=black
+            --filter-files
+            --line-length=79
+      - name: Black
+        uses: psf/black@stable
+        with:
+          options: "--line-length=79"
+      - run: pip install flake8
+      - run: flake8 --extend-ignore=E203 annotation
+  annotation-build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ "3.8.15" ]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          cd annotation
+          pip install poetry pytest
+          poetry install --all-extras
+          poetry add --editable ../lib/filter_lib
+          poetry add --editable ../lib/tenants
+      - name: Test with pytest
+        run: |
+          cd annotation
+          poetry run pytest --cov-report= --cov=app tests -m unittest

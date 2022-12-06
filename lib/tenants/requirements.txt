@@ -1,2 +1,3 @@
-fastapi==0.70.0
+fastapi>=0.68.0
+httpx
 PyJWT[crypto]==2.3.0
