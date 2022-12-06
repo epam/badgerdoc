@@ -10,7 +10,6 @@ def test_create_taxonomy_should_work(overrided_token_client, db_session):
     # given
     input_data = {
         "id": "123",
-        "category_id": "321",
         "name": "some_name",
     }
 
@@ -25,7 +24,6 @@ def test_create_taxonomy_should_work(overrided_token_client, db_session):
     assert response
     assert response.status_code == 201
     assert response.json()["id"] == input_data["id"]
-    assert response.json()["category_id"] == input_data["category_id"]
     assert response.json()["name"] == input_data["name"]
     assert response.json()["version"] == 1
 
@@ -35,7 +33,6 @@ def test_create_taxonomy_should_work(overrided_token_client, db_session):
 
     assert taxonomy.id == input_data["id"]
     assert taxonomy.name == input_data["name"]
-    assert taxonomy.category_id == input_data["category_id"]
     assert taxonomy.version == 1
     assert taxonomy.latest
 
@@ -47,7 +44,6 @@ def test_create_new_taxonomy_with_same_id_should_update_version(
     # given
     input_data = {
         "id": "321",
-        "category_id": "321",
         "name": "some_name",
     }
     overrided_token_client.post(
@@ -73,7 +69,6 @@ def test_create_new_taxonomy_with_same_id_should_update_version(
 
     assert new_taxonomy.id == input_data["id"]
     assert new_taxonomy.name == input_data["name"]
-    assert new_taxonomy.category_id == input_data["category_id"]
     assert new_taxonomy.version == 2
     assert new_taxonomy.latest
 
@@ -153,17 +148,19 @@ def test_should_associate_taxonomy_to_job(
 
 
 @pytest.mark.integration
-def test_should_associate_taxonomy_to_job(
+def test_should_associate_taxonomy_to_category(
     overrided_token_client,
     prepared_taxonomy_record_in_db: Taxonomy,
     db_session,
 ):
     # given
-    request_body = {
-        "taxonomy_id": prepared_taxonomy_record_in_db.id,
-        "taxonomy_version": prepared_taxonomy_record_in_db.version,
-        "category_id": "123",
-    }
+    request_body = [
+        {
+            "taxonomy_id": prepared_taxonomy_record_in_db.id,
+            "taxonomy_version": prepared_taxonomy_record_in_db.version,
+            "category_id": "123",
+        }
+    ]
     # when
     response = overrided_token_client.post(
         "/taxonomy/link_category",
@@ -175,7 +172,9 @@ def test_should_associate_taxonomy_to_job(
     assert response.status_code == 201
 
     db_session.refresh(prepared_taxonomy_record_in_db)
-    assert prepared_taxonomy_record_in_db.category_id == request_body["category_id"]
+    assert request_body[0]["category_id"] in [
+        c.category_id for c in prepared_taxonomy_record_in_db.categories
+    ]
 
 
 @pytest.mark.integration
