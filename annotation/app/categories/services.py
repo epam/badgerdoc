@@ -26,7 +26,6 @@ from app.schemas import (
     CategoryORMSchema,
     CategoryResponseSchema,
 )
-from app.schemas.categories import CategoryDataAttributeNames
 
 cache = TTLCache(maxsize=128, ttl=300)
 
@@ -34,19 +33,43 @@ cache = TTLCache(maxsize=128, ttl=300)
 logger = logging.getLogger(__name__)
 
 
+def is_category_leaf(db: Session, category: Category, tenant: str) -> bool:
+    return not (
+        db.query(Category.id)
+        .filter(
+            and_(
+                Category.parent == category.id,
+                or_(Category.tenant == tenant, Category.tenant == null()),
+            )
+        )
+        .first()
+    )
+
+
+def set_parents_is_leaf(
+    category_db: Category,
+    parents: Optional[List[CategoryResponseSchema]] = None,
+    is_leaf: bool = False,
+) -> CategoryResponseSchema:
+    if parents is None:
+        parents = []
+    category_response = response_object_from_db(category_db)
+    category_response.is_leaf = is_leaf
+    category_response.parents = parents
+    return category_response
+
+
 def insert_category_tree(
-    db: Session, category_db: Category
+    db: Session, category_db: Category, tenant: str
 ) -> CategoryResponseSchema:
     parents = fetch_category_parents(db, category_db)
-    children = fetch_category_children(db, category_db)
+    is_leaf = is_category_leaf(db, category_db, tenant)
     category_response = response_object_from_db(category_db)
     if category_response.parent:
         category_response.parents = [
-            response_object_from_db(category) for category in parents
+            set_parents_is_leaf(category) for category in parents
         ]
-    category_response.children = [
-        response_object_from_db(category) for category in children
-    ]
+    category_response.is_leaf = is_leaf
     return category_response
 
 
@@ -445,6 +468,8 @@ def link_category_with_taxonomy(
                 token=token.token,
                 taxonomy_link_params=taxonomy_link_params,
             )
+
+
 def get_taxonomy_from_data_attribute(category: Category) -> Dict[str, str]:
     taxonomy_link_params = {}
     for data_attribute in category.data_attributes:

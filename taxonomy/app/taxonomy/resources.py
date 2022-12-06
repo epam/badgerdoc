@@ -23,7 +23,6 @@ from app.taxonomy.services import (
     bulk_create_relations_with_categories,
     bulk_delete_category_association,
     create_new_relation_to_job,
-    create_new_relation_to_category,
     create_taxonomy_instance,
     delete_taxonomy_instance,
     get_latest_taxonomy,
@@ -32,7 +31,6 @@ from app.taxonomy.services import (
     get_taxonomy,
     update_taxonomy_instance,
 )
-from schemas.taxonomy import JobIdSchemaIn
 
 router = APIRouter(
     prefix="/taxonomy",
@@ -153,7 +151,8 @@ def associate_taxonomy_to_job(
         taxonomy = get_latest_taxonomy(session, query.taxonomy_id)
     if not taxonomy:
         LOGGER.error(
-            "associate_taxonomy_to_job get not existing id %s", query.taxonomy_id
+            "associate_taxonomy_to_job get not existing id %s",
+            query.taxonomy_id,
         )
         raise HTTPException(status_code=404, detail="Not existing taxonomy")
     create_new_relation_to_job(session, taxonomy, query.job_id)

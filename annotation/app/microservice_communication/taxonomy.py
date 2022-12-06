@@ -1,5 +1,5 @@
 import os
-from typing import List
+from typing import List, Optional
 
 import requests
 from dotenv import find_dotenv, load_dotenv
@@ -14,11 +14,6 @@ from app.microservice_communication.search import (
 
 load_dotenv(find_dotenv())
 TAXONOMY_URL = os.environ.get("TAXONOMY_URL")
-
-
-class TaxonomyLinkException(Exception):
-    def __init__(self, exc_info: Union[str, RequestException]):
-        self.exc_info = exc_info
 
 
 def link_job_with_taxonomy(
@@ -40,7 +35,7 @@ def link_job_with_taxonomy(
     )
 
 
-def link_category_with_taxonomy(
+def send_category_taxonomy_link(
     category_id: str,
     tenant: str,
     token: str,
@@ -49,13 +44,6 @@ def link_category_with_taxonomy(
     request_body = [
         {"category_id": category_id, **param} for param in taxonomy_link_params
     ]
-    taxonomy_version: Optional[int] = None
-    request_body = {
-        "category_id": category_id,
-        "taxonomy_id": taxonomy_id,
-    }
-    if taxonomy_version is not None:
-        request_body["taxonomy_version"] = taxonomy_version
     url = "{url}/link_category".format(url=TAXONOMY_URL)
     return _request_taxonomy_service(
         tenant=tenant, token=token, request_body=request_body, url=url

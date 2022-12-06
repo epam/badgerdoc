@@ -7,7 +7,7 @@ from sqlalchemy_filters.exceptions import BadFilterFormat
 from tenant_dependency import TenantData
 
 from app.database import get_db
-from app.errors import NoSuchCategoryError, CheckFieldError
+from app.errors import NoSuchCategoryError
 from app.filters import CategoryFilter
 from app.microservice_communication.search import X_CURRENT_TENANT_HEADER
 from app.microservice_communication.taxonomy import delete_taxonomy_link
@@ -32,7 +32,7 @@ from .services import (
     link_category_with_taxonomy,
     recursive_subcategory_search,
     response_object_from_db,
-    update_category_db, get_taxonomy_from_data_attribute,
+    update_category_db,
 )
 
 router = APIRouter(
@@ -82,7 +82,7 @@ def fetch_category(
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
 ) -> CategoryResponseSchema:
     category_db = fetch_category_db(db, category_id, x_current_tenant)
-    category_response = insert_category_tree(db, category_db)
+    category_response = insert_category_tree(db, category_db, x_current_tenant)
     return category_response
 
 
