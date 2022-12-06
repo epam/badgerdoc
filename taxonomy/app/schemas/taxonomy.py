@@ -5,7 +5,6 @@ from pydantic import BaseModel, Field
 
 class TaxonomyBaseSchema(BaseModel):
     name: str = Field(..., example="taxonomy_name")
-    category_id: Optional[str] = Field(None, example="my_category")
 
 
 class TaxonomyInputSchema(TaxonomyBaseSchema):

@@ -79,7 +79,7 @@ def taxonomy_orm_object(taxonomy_input_data) -> Taxonomy:
 
 @pytest.fixture
 def taxonomy_input_data():
-    return dict(id=uuid4().hex, category_id=1, name="some_name")
+    return dict(id=uuid4().hex, name="some_name")
 
 
 @pytest.fixture
