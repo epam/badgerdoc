@@ -115,7 +115,7 @@ async def get_image_piece(
             status_code=fastapi.status.HTTP_400_BAD_REQUEST,
             detail=f"Content type {f.content_type} not supported",
         )
-    piece_path = f"files/bbox/{f.id}/page{page_number}_bbox{bbox}_ext{settings.bbox_ext}.jpg"
+    piece_path = f"files/bbox/{f.id}/page{page_number}_bbox{bbox}_ext{settings.bbox_ext}.jpg"  # noqa
     if not utils.minio_utils.check_file_exist(piece_path, f.bucket, storage):
         utils.minio_utils.make_pdf_piece(
             f, page_number, bbox, piece_path, storage
