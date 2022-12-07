@@ -471,12 +471,6 @@ def link_category_with_taxonomy(
 
 
 def get_taxonomy_from_data_attribute(category: Category) -> Dict[str, str]:
-    taxonomy_link_params = {}
     for data_attribute in category.data_attributes:
-        for attr_name, value in data_attribute.items():
-            if attr_name in (
-                CategoryDataAttributeNames.taxonomy_id.name,
-                CategoryDataAttributeNames.taxonomy_version.name,
-            ):
-                taxonomy_link_params[attr_name] = value
-    return taxonomy_link_params
+        if CategoryDataAttributeNames.validate_schema(data_attribute):
+            return data_attribute
