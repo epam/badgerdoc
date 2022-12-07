@@ -37,6 +37,18 @@ jobs:
     strategy:
       matrix:
         python-version: [ "3.8.15" ]
+    services:
+      postgres-postgresql:
+        image: postgres
+        env:
+          POSTGRES_DB: annotation
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
@@ -56,3 +68,9 @@ jobs:
         run: |
           cd annotation
           poetry run pytest --cov-report= --cov=app tests -m unittest
+        env:
+          POSTGRES_HOST: 127.0.0.1
+          POSTGRES_PORT: 5432
+          POSTGRES_DB: annotation
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
