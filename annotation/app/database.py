@@ -1,6 +1,5 @@
 import os
 
-import psycopg2
 import sqlalchemy
 from dotenv import find_dotenv, load_dotenv
 from sqlalchemy import create_engine

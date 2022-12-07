@@ -59,6 +59,8 @@ spec:
           value: "5432"
         - name: SERVICE_NAME
           value: "processing"
+        - name: S3_CREDENTIALS_PROVIDER
+          value: "minio"
         - name: MINIO_SERVER
           value: "minio:80"
         - name: MINIO_ROOT_USER

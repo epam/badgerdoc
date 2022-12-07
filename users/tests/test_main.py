@@ -1,18 +1,13 @@
-from unittest.mock import patch, Mock
-import pytest
-from fastapi.testclient import TestClient
-from fastapi.security import OAuth2PasswordBearer
-from src.main import (
-    app,
-    tenant,
-    check_authorization,
-    get_user_info_from_token_introspection,
-)
-import src.keycloak.schemas as kc_schemas
-from tenant_dependency import get_tenant_info, TenantData
-from fastapi import HTTPException
 from contextlib import contextmanager
+from unittest.mock import patch
 
+import pytest
+from fastapi import HTTPException
+from fastapi.testclient import TestClient
+from tenant_dependency import TenantData
+
+import src.keycloak.schemas as kc_schemas
+from src.main import app, check_authorization, tenant
 
 client = TestClient(app)
 
@@ -269,7 +264,7 @@ class TestGetTenants:
 
 
 @patch("src.keycloak.query.create_group", return_value=None)
-@patch("src.minio_storage.create_bucket", return_value=None)
+@patch("src.s3.create_bucket", return_value=None)
 class TestCreateTenant:
     def test_create_tenant_body(self, mock_group, mock_bucket):
         response = client.post("/tenants?tenant=tenant")
@@ -818,7 +813,7 @@ def test_get_idp_names_and_SSOauth_links(
             "Identity Providers Info": [
                 {
                     "Alias": "EPAM_SSO",
-                    "Auth link": "http://dev2.badgerdoc.com/auth/realms/master/protocol/openid-connect/auth?client_id=BadgerDoc&response_type=token&redirect_uri=http://dev2.badgerdoc.com/login&kc_idp_hint=EPAM_SSO",
+                    "Auth link": "http://dev2.badgerdoc.com/auth/realms/master/protocol/openid-connect/auth?client_id=BadgerDoc&response_type=token&redirect_uri=http://dev2.badgerdoc.com/login&kc_idp_hint=EPAM_SSO",  # noqa: E501
                 }
             ]
         }

@@ -34,11 +34,14 @@ Executor for pipelines.
 |`int` <br/> `default: 5432` <br/> DB_PORT| Server port. |
 |`int` <br/> `default: pipelines` <br/> DB_NAME| Database name. |
 
-### Minio settings
-Necessary for proper result merger work.
+### S3 settings
+File storage for result processing.
 
 | Variable | Description |
 |---|---------------|
-|`str` <br/> `default: ""` <br/> MINIO_URI| Minio storage URI. |
-|`str` <br/> `default: minioadmin` <br/> MINIO_ACCESS_KEY| Minio storage user ID. |
-|`str` <br/> `default: minioadmin` <br/> MINIO_SECRET_KEY| Minio storage password. |
+|`str` <br/> `default: None` <br/> S3_CREDENTIALS_PROVIDER| Credentials provider. Support `minio`, `aws_iam`, `aws_env`, `aws_config` |
+|`str` <br/> `default: ""` <br/> S3_PREFIX| Bucket name prefix. `<S3_PREFIX>[-]bucket_name` |
+|`str` <br/> `default: None` <br/> S3_ENDPOINT| S3 storage URI |
+|`str` <br/> `default: None` <br/> S3_ACCESS_KEY| S3 storage access key |
+|`str` <br/> `default: None` <br/> S3_SECRET_KEY| S3 storage secret key |
+|`str` <br/> `default: None` <br/> AWS_PROFILE| AWS_PROFILE if `aws_config` provider selected |

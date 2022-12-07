@@ -178,6 +178,7 @@ def test_update_categories_empty():
     assert td.pipeline.meta.categories == []
 
 
+@pytest.mark.skip(reason="We make request which is not mocked, fix needed")
 def test_get_model_urls():
     with patch.object(
         execution.PipelineStep,

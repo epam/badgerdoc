@@ -43,6 +43,8 @@ spec:
         env:
         - name: ROOT_PATH
           value: ""
+        - name: S3_CREDENTIALS_PROVIDER
+          value: "minio"
         - name: MINIO_HOST
           value: "http://minio"
         - name: MINIO_ACCESS_KEY
