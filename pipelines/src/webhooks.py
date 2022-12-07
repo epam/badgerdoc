@@ -49,7 +49,7 @@ def send_webhook(
     url: str,
     body: Dict[str, Any],
     token: Optional[str] = None,
-    bucket: Optional[str] = None,
+    tenant: Optional[str] = None,
 ) -> None:
     if token is None:
         token = service_token.get_service_token()
@@ -59,5 +59,5 @@ def send_webhook(
             f"with body {body} wasn`t sent."
         )
         return
-    headers = {"X-Current-Tenant": bucket, "Authorization": f"Bearer {token}"}
+    headers = {"X-Current-Tenant": tenant, "Authorization": f"Bearer {token}"}
     http_utils.make_request_with_retry(url=url, body=body, headers=headers)

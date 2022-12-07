@@ -1,4 +1,3 @@
-import logging
 import uuid
 from typing import Dict, List, Optional, Set, Tuple, Union
 
@@ -11,6 +10,7 @@ from sqlalchemy.sql.expression import func
 from sqlalchemy_utils import Ltree
 from tenant_dependency import TenantData
 
+from app import logger as app_logger
 from app.errors import (
     CheckFieldError,
     ForeignKeyError,
@@ -30,7 +30,7 @@ from app.schemas import (
 cache = TTLCache(maxsize=128, ttl=300)
 
 
-logger = logging.getLogger(__name__)
+logger = app_logger.Logger
 
 
 def insert_category_tree(

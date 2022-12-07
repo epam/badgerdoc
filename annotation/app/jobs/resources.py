@@ -1,16 +1,7 @@
-import logging
 from typing import Dict, List, Optional, Set, Union
 from uuid import UUID
 
-from fastapi import (
-    APIRouter,
-    Depends,
-    HTTPException,
-    Path,
-    Query,
-    Response,
-    status,
-)
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, Response, status
 from filter_lib import Page
 from sqlalchemy import and_
 from sqlalchemy.orm import Session
@@ -19,6 +10,7 @@ from sqlalchemy_filters.exceptions import BadFilterFormat
 from tenant_dependency import TenantData
 
 import app.categories.services
+from app import logger as app_logger
 from app.categories import fetch_bunch_categories_db
 from app.database import get_db
 from app.distribution import distribute
@@ -71,7 +63,7 @@ from .services import (
     update_jobs_users,
 )
 
-logger = logging.getLogger(__name__)
+logger = app_logger.Logger
 
 router = APIRouter(
     prefix="/jobs",

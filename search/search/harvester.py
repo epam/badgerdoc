@@ -11,13 +11,43 @@ from search.config import settings
 from search.logger import logger
 
 
+def convert_bucket_name_if_s3prefix(bucket_name: str) -> str:
+    if settings.s3_prefix:
+        return f"{settings.s3_prefix}-{bucket_name}"
+    else:
+        return bucket_name
+
+
+class NotConfiguredException(Exception):
+    pass
+
+
+def create_boto3_config():
+    boto3_config = {}
+    if settings.s3_credentials_provider == "minio":
+        boto3_config.update(
+            {
+                "aws_access_key_id": settings.s3_login,
+                "aws_secret_access_key": settings.s3_pass,
+                "endpoint_url": settings.s3_endpoint_url,
+            }
+        )
+    elif settings.s3_credentials_provider == "aws_iam":
+        # No additional updates to config needed - boto3 uses env vars
+        ...
+    else:
+        raise NotConfiguredException(
+            "s3 connection is not properly configured "
+            "- s3_credentials_provider is not set"
+        )
+    logger.info(
+        f"S3_Credentials provider - {settings.s3_credentials_provider}")
+    return boto3_config
+
+
 def connect_s3(tenant: str) -> boto3.resource:
-    s3_resource = boto3.resource(
-        "s3",
-        endpoint_url=settings.s3_endpoint_url,
-        aws_access_key_id=settings.s3_login,
-        aws_secret_access_key=settings.s3_pass,
-    )
+    boto3_config = create_boto3_config()
+    s3_resource = boto3.resource("s3", **boto3_config)
     try:
         s3_resource.meta.client.head_bucket(Bucket=tenant)
     except ClientError as err:
@@ -80,20 +110,21 @@ def extract_manifest_data(
 def harvester(
     tenant: str, job_id: int, file_id: Optional[int] = None
 ) -> Optional[Iterator[dict]]:
-    s3 = connect_s3(tenant)
+    bucket_name = convert_bucket_name_if_s3prefix(tenant)
+    s3 = connect_s3(bucket_name)
 
     if file_id is None:
         prefix = f"{settings.s3_start_path}/{job_id}"
     else:
         prefix = f"{settings.s3_start_path}/{job_id}/{file_id}"
 
-    for bucket_object in s3.Bucket(tenant).objects.filter(Prefix=prefix):
+    for bucket_object in s3.Bucket(bucket_name).objects.filter(Prefix=prefix):
         if not bucket_object.key.endswith(settings.manifest):
             continue
         object_data = bucket_object.get()["Body"].read().decode("utf-8")
         file_id = bucket_object.key.split("/")[-2]
         pages_objects = extract_manifest_data(
-            s3, tenant, job_id, file_id, object_data
+            s3, bucket_name, job_id, file_id, object_data
         )
         for page_num, text_piece_object in pages_objects.items():
             yield from parse_json(

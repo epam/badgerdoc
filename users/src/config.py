@@ -18,10 +18,13 @@ ADMIN_CLIENT_SECRET = os.getenv(
     "ADMIN_CLIENT_SECRET", "5aaae332-b24d-45b6-b2ea-f5949f0c95ae"
 )
 
-# Minio settings.
-MINIO_URI = os.getenv("MINIO_URI", "")
-MINIO_ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY", "minioadmin")
-MINIO_SECRET_KEY = os.getenv("MINIO_SECRET_KEY", "minioadmin")
+# S3 settings
+S3_CREDENTIALS_PROVIDER = os.getenv("S3_CREDENTIALS_PROVIDER")
+S3_PREFIX = os.getenv("S3_PREFIX", "")
+S3_ENDPOINT = os.getenv("S3_ENDPOINT")
+S3_ACCESS_KEY = os.getenv("S3_ACCESS_KEY")
+S3_SECRET_KEY = os.getenv("S3_SECRET_KEY")
+AWS_PROFILE = os.getenv("AWS_PROFILE")
 
 # app settings.
 ROOT_PATH = os.getenv("ROOT_PATH", "")

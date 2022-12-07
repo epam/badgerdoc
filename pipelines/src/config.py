@@ -45,19 +45,25 @@ DB_PORT = os.getenv("DB_PORT", "5432")
 DB_NAME = os.getenv("DB_NAME", "pipelines")
 DB_URI = os.getenv(
     "DB_URI",
-    f"postgresql+psycopg2://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}",
+    f"postgresql+psycopg2://{DB_USERNAME}:{DB_PASSWORD}"
+    f"@{DB_HOST}:{DB_PORT}/{DB_NAME}",
 )
 
-# Minio settings.
-MINIO_URI = os.getenv("MINIO_URI", "")
-MINIO_ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY", "minioadmin")
-MINIO_SECRET_KEY = os.getenv("MINIO_SECRET_KEY", "minioadmin")
+# S3 settings
+S3_CREDENTIALS_PROVIDER = os.getenv("S3_CREDENTIALS_PROVIDER")
+S3_PREFIX = os.getenv("S3_PREFIX", "")
+S3_ENDPOINT = os.getenv("S3_ENDPOINT")
+S3_ACCESS_KEY = os.getenv("S3_ACCESS_KEY")
+S3_SECRET_KEY = os.getenv("S3_SECRET_KEY")
+AWS_PROFILE = os.getenv("AWS_PROFILE")
 
 # Keycloak settings
 KEYCLOAK_URI = os.getenv("KEYCLOAK_URI", "http://dev1.badgerdoc.com")
 KEYCLOAK_REALM = os.getenv("KEYCLOAK_REALM", "master")
 CLIENT_SECRET = os.getenv("CLIENT_SECRET", "")
-KEYCLOAK_TOKEN_URI = f"{KEYCLOAK_URI}/auth/realms/{KEYCLOAK_REALM}/protocol/openid-connect/token"
+KEYCLOAK_TOKEN_URI = (
+    f"{KEYCLOAK_URI}/auth/realms/{KEYCLOAK_REALM}" f"/protocol/openid-connect/token"
+)
 
 # Kafka settings
 KAFKA_BOOTSTRAP_SERVER = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "kafka:9092")

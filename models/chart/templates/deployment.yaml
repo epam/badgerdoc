@@ -61,6 +61,8 @@ spec:
           value: "5432"
         - name: POSTGRES_DB
           value: "models"
+        - name: S3_CREDENTIALS_PROVIDER
+          value: "minio"
         - name: MINIO_ACCESS_KEY
           valueFrom:
             secretKeyRef:
