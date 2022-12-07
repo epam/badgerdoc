@@ -61,14 +61,16 @@ spec:
               key: DB_URL
         - name: DB_HOST
           value: "postgres-postgresql"
-        - name: MINIO_URI
+        - name: S3_CREDENTIALS_PROVIDER
+          value: "minio"
+        - name: S3_ENDPOINT
           value: "minio:80"
-        - name: MINIO_ACCESS_KEY
+        - name: S3_ACCESS_KEY
           valueFrom:
             secretKeyRef:
               name: pipelines
               key: MINIO_ACCESS_KEY
-        - name: MINIO_SECRET_KEY
+        - name: S3_SECRET_KEY
           valueFrom:
             secretKeyRef:
               name: pipelines

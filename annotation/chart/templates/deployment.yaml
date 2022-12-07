@@ -57,6 +57,8 @@ spec:
           value: "annotation"
         - name: POSTGRES_HOST
           value: "postgres-postgresql"
+        - name: S3_CREDENTIALS_PROVIDER
+          value: "minio"
         - name: S3_ENDPOINT_URL
           value: "http://minio"
         - name: S3_LOGIN

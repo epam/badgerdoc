@@ -2,7 +2,6 @@
 
 from copy import deepcopy
 from typing import Dict
-from unittest.mock import patch
 
 import pytest
 
@@ -294,7 +293,7 @@ def test_response__execute_pipeline_by_id(
 
 
 def test_response__execute_pipeline_by_id_not_found(testing_app, adjust_mock):
-    """Testing execute_pipeline_by_id response when there's no such pipeline."""
+    """When there's no such pipeline."""
     testing_app.post("/pipeline", json=td.pipeline_dict)
     response = testing_app.post(
         "/pipelines/2/execute",
@@ -343,7 +342,7 @@ def test_step_args__execute_pipeline_by_id(
 def test_steps_ids__execute_pipeline_by_id(
     testing_app, adjust_mock, mock_preprocessing_file_status
 ):
-    """Testing execute_pipeline_by_id steps ids equals to pipeline steps ids."""
+    """Steps ids equals to pipeline steps ids."""
     testing_app.post("/pipeline", json=td.pipeline_dict)
     testing_app.post(
         "/pipelines/1/execute",

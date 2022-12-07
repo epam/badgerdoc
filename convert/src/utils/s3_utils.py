@@ -5,13 +5,20 @@ import boto3
 import urllib3
 from fastapi import HTTPException, status
 
-from src.config import minio_client
+from src.config import minio_client, settings
 from src.exceptions import BucketError, FileKeyError, UploadLimitExceedError
 from src.logger import get_logger
 from src.models import coco
 from src.utils.common_utils import check_uploading_limit
 
 logger = get_logger(__name__)
+
+
+def convert_bucket_name_if_s3prefix(bucket_name: str) -> str:
+    if settings.s3_prefix:
+        return f"{settings.s3_prefix}-{bucket_name}"
+    else:
+        return bucket_name
 
 
 class S3Manager:

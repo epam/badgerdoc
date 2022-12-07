@@ -17,6 +17,7 @@ from src.db import Basement, get_db
 from src.routers import tenant
 from src.utils import (
     NoSuchTenant,
+    convert_bucket_name_if_s3prefix,
     get_minio_resource,
     upload_to_object_storage,
 )
@@ -192,6 +193,7 @@ def upload_files_to_object_storage(
     script: Optional[UploadFile] = File(None),
     archive: Optional[UploadFile] = File(None),
 ) -> None:
+    bucket_name = convert_bucket_name_if_s3prefix(x_current_tenant)
     basement = crud.get_instance(session, Basement, basement_id)
     if not basement:
         LOGGER.info(
@@ -199,11 +201,11 @@ def upload_files_to_object_storage(
         )
         raise HTTPException(status_code=404, detail="Not existing basement")
     try:
-        s3_resource = get_minio_resource(tenant=x_current_tenant)
+        s3_resource = get_minio_resource(tenant=bucket_name)
     except NoSuchTenant as err:
-        LOGGER.info(
-            "NoSuchTenant error was encountered. Bucket %s does not exist",
-            x_current_tenant,
+        LOGGER.exception(
+            "Bucket %s does not exist",
+            bucket_name,
         )
         raise HTTPException(status_code=500, detail=str(err))
     script_key = None
@@ -212,7 +214,7 @@ def upload_files_to_object_storage(
         script_key = f"basements/{basement_id}/training_script.py"
         upload_to_object_storage(
             s3_resource=s3_resource,
-            bucket_name=x_current_tenant,
+            bucket_name=bucket_name,
             file=script,
             file_path=script_key,
         )
@@ -220,7 +222,7 @@ def upload_files_to_object_storage(
         archive_key = f"basements/{basement_id}/training_archive.zip"
         upload_to_object_storage(
             s3_resource=s3_resource,
-            bucket_name=x_current_tenant,
+            bucket_name=bucket_name,
             file=archive,
             file_path=archive_key,
         )
