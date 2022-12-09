@@ -1,3 +1,4 @@
+from collections import defaultdict
 from copy import copy
 
 import pytest
@@ -13,6 +14,7 @@ from app.distribution import (
     find_unassigned_files,
     find_unassigned_pages,
 )
+from app.distribution.main import distribute_tasks_extensively
 from app.microservice_communication.assets_communication import (
     prepare_files_for_distribution,
 )
@@ -107,6 +109,7 @@ TASKS_STATUS = TaskStatusEnumSchema.pending
     [
         "test_files",
         "test_annotators",
+        "extensive_coverage",
         "expected_share_load",
         "expected_pages_number",
     ],
@@ -114,70 +117,121 @@ TASKS_STATUS = TaskStatusEnumSchema.pending
         (
             FILES,
             ANNOTATORS[0:5],
+            1,
             [0.21, 0.2, 0.2, 0.19, 0.19],
             [23, 23, 22, 22, 21],
         ),
-        (FILES, [ANNOTATORS[0], ANNOTATORS[4]], [0.53, 0.47], [58, 53]),
+        (FILES, [ANNOTATORS[0], ANNOTATORS[4]], 1, [0.53, 0.47], [58, 53]),
         (
             FILES,
             [ANNOTATORS[0], ANNOTATORS[2], ANNOTATORS[4]],
+            1,
             [0.35, 0.33, 0.32],
             [39, 37, 35],
         ),
         (
             FILES[0:2],
             [ANNOTATORS[0], ANNOTATORS[7]],
+            1,
             [1, 0],
             [56, 0],
         ),
         (
             FILES[2:4],
             [ANNOTATORS[0], ANNOTATORS[8]],
+            1,
             [1, 0],
             [31, 0],
         ),
         (
             [FILES[0]],
             [ANNOTATORS[6]],
+            1,
             [1],
             [31],
         ),
         (
             [FILES[0]],
             [ANNOTATORS[6], ANNOTATORS[9]],
+            1,
             [0.5, 0.5],
             [15, 16],
         ),
         (
             FILES,
             [ANNOTATORS[0], ANNOTATORS[5]],
+            1,
             [0.75, 0.25],
             [83, 28],
         ),
         (
             FILES,
             [ANNOTATORS[6], ANNOTATORS[5]],
+            1,
             [0.58, 0.42],
             [65, 46],
         ),
         (
             FILES,
             [ANNOTATORS[0], ANNOTATORS[6]],
+            1,
             [0.75, 0.25],
             [83, 28],
         ),
         (
             FILES,
             ANNOTATORS,
-            [0.14, 0.13, 0.13, 0.13, 0.13, 0.12, 0.11, 0.11, 0, 0, 0],
+            1,
+            [0.14, 0.13, 0.13, 0.13, 0.13, 0.12, 0.11, 0.11, 0, 0],
             [15, 15, 15, 14, 14, 14, 12, 12, 0, 0, 0],
+        ),
+        (
+            # load is not equal but both annotators should process same amount
+            # of pages to cover all of them without duplication for one of them
+            FILES,
+            [ANNOTATORS[6], ANNOTATORS[5]],
+            2,
+            [0.58, 0.42],
+            [111, 111]
+        ),
+        (
+            # all annotators share duplicated amount of docs based on load
+            FILES,
+            ANNOTATORS,
+            2,
+            [0.14, 0.13, 0.13, 0.13, 0.13, 0.12, 0.11, 0.11, 0, 0],
+            [31, 30, 29, 29, 28, 27, 24, 24, 0, 0],
+        ),
+        (   # all annotators share duplicated amount of docs based on load
+            FILES,
+            ANNOTATORS,
+            5,
+            [0.14, 0.13, 0.13, 0.13, 0.13, 0.12, 0.11, 0.11, 0, 0],
+            [77, 74, 74, 71, 70, 69, 60, 60, 0, 0],
+        ),
+        (   # all annotators receive full unique subset of documents even
+            # though they default load is 0
+            # todo validate if this logic is correct.
+            FILES,
+            ANNOTATORS,
+            10,
+            [0.14, 0.13, 0.13, 0.13, 0.13, 0.12, 0.11, 0.11, 0, 0],
+            [111, 111, 111, 111, 111, 111, 111, 111, 111, 111],
         ),
     ],
 )
 def test_calculate_annotators_load(
-    test_files, test_annotators, expected_share_load, expected_pages_number
+    test_files,
+    test_annotators,
+    extensive_coverage,
+    expected_share_load,
+    expected_pages_number
 ):
-    calculate_users_load(test_files, test_annotators)
+    calculate_users_load(
+        test_files,
+        test_annotators,
+        extensive_coverage=extensive_coverage
+    )
     for index, annotator in enumerate(test_annotators):
         assert round(annotator["share_load"], 2) == expected_share_load[index]
         assert annotator["pages_number"] == expected_pages_number[index]
@@ -906,6 +960,79 @@ def test_distribute_annotation_limit_50_pages(
         )
         == expected_tasks
     )
+
+
+@pytest.mark.unittest
+@pytest.mark.parametrize(
+    ["files", "annotators", "extensive_coverage"],
+    [
+        (
+            [copy(test_file) for test_file in FILE_LIMIT_50],
+            [copy(ANNOTATORS[0]), copy(ANNOTATORS[2]), copy(ANNOTATORS[3])],
+            2,
+        ),
+        (
+            [copy(test_file) for test_file in FILE_LIMIT_50],
+            [copy(ANNOTATORS[0]), copy(ANNOTATORS[2]), copy(ANNOTATORS[3])],
+            3,
+        ),
+        (
+            [copy(file) for file in FILES_PARTIAL],
+            [copy(ANNOTATORS[0]), copy(ANNOTATORS[2]), copy(ANNOTATORS[3])],
+            3,
+        ),
+        (
+            [copy(file) for file in FILES_PARTIAL[1:] + FILE_LIMIT_50],
+            [copy(ANNOTATORS[0]), copy(ANNOTATORS[2]), copy(ANNOTATORS[3])],
+            2
+        ),
+        (
+            [copy(file) for file in FILES_PARTIAL[1:] + FILE_LIMIT_50],
+            [copy(ANNOTATORS[0]), copy(ANNOTATORS[2]), copy(ANNOTATORS[3])],
+            3
+        ),
+        # function should work distribute with extensive_coverage==1
+        (
+            [copy(file) for file in FILES_PARTIAL[1:] + FILE_LIMIT_50],
+            [copy(ANNOTATORS[0]), copy(ANNOTATORS[2]), copy(ANNOTATORS[3])],
+            1
+        ),
+        (
+            [copy(file) for file in FILES_PARTIAL],
+            [copy(ANNOTATORS[0]), copy(ANNOTATORS[2]), copy(ANNOTATORS[3])],
+            1,
+        ),
+    ],
+)
+@pytest.mark.unittest
+def test_distribution_with_extensive_coverage(
+    files, annotators, extensive_coverage
+):
+    tasks = distribute_tasks_extensively(
+        files=files,
+        users=annotators,
+        job_id=JOB_ID,
+        tasks_status=TASKS_STATUS,
+        is_validation=False,
+        extensive_coverage=extensive_coverage,
+    )
+
+    # check all pages were assigned
+    all_tasks_pages = sum(len(x['pages']) for x in tasks)
+    all_files_pages = sum(x['pages_number'] for x in files)
+    assert all_tasks_pages / extensive_coverage == all_files_pages
+
+    users_seen_pages = defaultdict(lambda: defaultdict(list))
+    for task in tasks:
+        users_seen_pages[task['user_id']]['file_id'].extend(task['pages'])
+
+    # check user got assigment without duplicates
+    for user in users_seen_pages:
+        for file in user:
+            assert (
+                len(set(users_seen_pages[user][file]))
+                == len(users_seen_pages[user][file])
+            )
 
 
 @pytest.mark.unittest

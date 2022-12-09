@@ -51,6 +51,7 @@ class AnnotationJob(Job):
     is_auto_distribution = Column(Boolean)
     deadline = Column(DateTime)
     validation_type = Column(String(30))
+    extensive_coverage = Column(Integer, default=1)
 
     __mapper_args__ = {"polymorphic_identity": JobType.AnnotationJob.value}
 

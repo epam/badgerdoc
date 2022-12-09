@@ -55,7 +55,11 @@ from app.models import File, User
 from app.schemas import TaskStatusEnumSchema, ValidationSchema
 from app.tasks import create_tasks as create_db_tasks
 
+MAX_PAGES = 50
+
 Task = Dict[str, Union[int, List[int], bool]]
+AnnotatedFilesPages = Dict[int, List[Dict[str, Union[int, List[int]]]]]
+DistributionUser = Dict[str, Union[int, float, UUID]]
 
 
 def prepare_users(db: Session, users_id: Iterable[UUID]) -> List[User]:
@@ -81,6 +85,7 @@ def distribute(
     validation_tasks_status: TaskStatusEnumSchema = TaskStatusEnumSchema.pending,  # noqa E501
     already_created_tasks: List[Task] = None,
     deadline: Optional[datetime] = None,
+    extensive_coverage: int = 1,
 ) -> Iterable[Task]:
     """Main script to distribute given files between given existing annotators
     for annotation and between validators for validation (depending on job's
@@ -102,15 +107,26 @@ def distribute(
         x.__dict__ for x in validators if x.default_load  # type: ignore
     ]
     if annotators:
-        annotation_tasks = distribute_tasks(
-            annotated_files_pages,
-            files,
-            annotators,
-            job_id,
-            is_validation=False,
-            tasks_status=annotation_tasks_status,
-            deadline=deadline,
-        )
+        if extensive_coverage <= 1:
+            annotation_tasks = distribute_tasks(
+                annotated_files_pages,
+                files,
+                annotators,
+                job_id,
+                is_validation=False,
+                tasks_status=annotation_tasks_status,
+                deadline=deadline,
+            )
+        else:
+            annotation_tasks = distribute_tasks_extensively(
+                files=files,
+                users=annotators,
+                job_id=job_id,
+                is_validation=False,
+                tasks_status=annotation_tasks_status,
+                deadline=deadline,
+                extensive_coverage=extensive_coverage,
+            )
         # Distribute files and pages for validation considering already
         # distributed files and pages for annotation for each annotator
         create_db_tasks(db, annotation_tasks, job_id)
@@ -143,12 +159,78 @@ def choose_validators_users(validation_type, annotators, validators):
         ValidationSchema.cross.value: annotators,
         ValidationSchema.hierarchical.value: validators,
         ValidationSchema.validation_only.value: validators,
+        ValidationSchema.extensive_coverage.value: validators,
     }
     return cases[validation_type]
 
 
-AnnotatedFilesPages = Dict[int, List[Dict[str, Union[int, List[int]]]]]
-DistributionUser = Dict[str, Union[int, float, UUID]]
+def distribute_tasks_extensively(
+    files: List[Dict[str, int]],
+    users: List[DistributionUser],
+    job_id: int,
+    is_validation: bool,
+    tasks_status: TaskStatusEnumSchema,
+    extensive_coverage: int,
+    deadline: Optional[datetime] = None,
+) -> List[Task]:
+
+    calculate_users_load(
+        files=files,
+        users=users,
+        extensive_coverage=extensive_coverage,
+    )
+    users_seen_pages = defaultdict(lambda: defaultdict(set))
+    files = sorted(files, key=lambda x: x['pages_number'])
+    tasks = []
+    for file in files:
+        annotators = sorted(
+            filter(
+                lambda x: x['pages_number'] > 0,
+                users
+            ),
+            key=lambda x: -x['pages_number'],
+        )
+        for _ in range(extensive_coverage):
+            pages = list(range(1, file['pages_number'] + 1))
+            while pages:
+                if annotators[0]['pages_number'] >= MAX_PAGES:
+                    user_can_take_pages = MAX_PAGES
+                else:
+                    user_can_take_pages = annotators[0]['pages_number']
+
+                user_can_take_pages = min(len(pages), user_can_take_pages)
+                pages_not_seen_by_user = sorted(
+                    set(pages).difference(
+                        users_seen_pages[
+                            annotators[0]["user_id"]][file["file_id"]
+                        ]
+                    )
+                )
+
+                if not pages_not_seen_by_user:
+                    annotators.pop(0)
+                    continue
+                pages_for_user = pages_not_seen_by_user[:user_can_take_pages]
+
+                tasks.append(
+                    {
+                        "file_id": file["file_id"],
+                        "pages": pages_for_user,
+                        "job_id": job_id,
+                        "user_id": annotators[0]["user_id"],
+                        "is_validation": is_validation,
+                        "status": tasks_status,
+                        "deadline": deadline,
+                    }
+                )
+                users_seen_pages[
+                    annotators[0]["user_id"]][file["file_id"]
+                ].update(set(pages_for_user))
+                pages = sorted(set(pages).difference(set(pages_for_user)))
+                annotators[0]['pages_number'] -= len(pages_for_user)
+                if annotators[0]['pages_number'] == 0:
+                    annotators.pop(0)
+    return tasks
 
 
 def find_annotated_pages(annotation_tasks: List[Task]) -> AnnotatedFilesPages:
@@ -204,27 +286,53 @@ def distribute_tasks(
 def calculate_users_load(
     files: List[Dict[str, int]],
     users: List[DistributionUser],
+    extensive_coverage: int = 1,
 ):
     """Distribute page amount of all files between users depending on the
     default and overall load of users."""
     all_users_default_load = sum(x["default_load"] for x in users)
     all_job_pages_sum = sum(x["pages_number"] for x in files)
+    pages_with_extensive_coverage = all_job_pages_sum * extensive_coverage
     average_job_pages = all_job_pages_sum / len(users)
     all_users_overall_load = sum(x["overall_load"] for x in users)
     all_users_share_load = find_users_share_loads(
-        users,
-        all_job_pages_sum,
-        average_job_pages,
-        all_users_default_load,
-        all_users_overall_load,
+        users=users,
+        all_job_pages_sum=all_job_pages_sum,
+        average_job_pages=average_job_pages,
+        users_default_load=all_users_default_load,
+        users_overall_load=all_users_overall_load,
     )
+
+    pages_left_for_distribute = pages_with_extensive_coverage
     for user in users:
         user["share_load"] = user["share_load"] / all_users_share_load
-        user["pages_number"] = round(all_job_pages_sum * user["share_load"])
+        pages_number_for_user = min(
+            round(pages_with_extensive_coverage * user["share_load"]),
+            all_job_pages_sum
+        )
+
+        pages_left_for_distribute -= pages_number_for_user
+        user["pages_number"] = pages_number_for_user
+
     users.sort(key=lambda x: x["pages_number"], reverse=True)
+    while pages_left_for_distribute > 0:
+        for user in users:
+            if not pages_left_for_distribute:
+                break
+            if user["pages_number"] < all_job_pages_sum:
+                pages_number_for_user = min(
+                    all_job_pages_sum - user["pages_number"],
+                    max(
+                        round(pages_left_for_distribute * user["share_load"]),
+                        1
+                    ),
+                )
+                pages_left_for_distribute -= pages_number_for_user
+                user["pages_number"] += pages_number_for_user
+
     # Correct the difference between all files pages and all users load
     # pages caused by rounding. Fix it on the most loaded user:
-    users[0]["pages_number"] += all_job_pages_sum - sum(
+    users[0]["pages_number"] += pages_with_extensive_coverage - sum(
         x["pages_number"] for x in users
     )
 
@@ -404,13 +512,13 @@ def create_tasks(
             "unassigned_pages",
             list(range(1, file_for_task["pages_number"] + 1)),
         )
-        full_tasks = len(pages) // 50
-        tasks_number = full_tasks + 1 if len(pages) % 50 else full_tasks
+        full_tasks = len(pages) // MAX_PAGES
+        tasks_number = full_tasks + 1 if len(pages) % MAX_PAGES else full_tasks
         for times in range(tasks_number):
             tasks.append(
                 {
                     "file_id": file_for_task["file_id"],
-                    "pages": pages[:50],
+                    "pages": pages[:MAX_PAGES],
                     "job_id": job_id,
                     "user_id": user["user_id"],
                     "is_validation": is_validation,
@@ -418,7 +526,7 @@ def create_tasks(
                     "deadline": deadline,
                 }
             )
-            pages[:50] = []
+            pages[:MAX_PAGES] = []
         user["pages_number"] -= file_for_task["pages_number"]
         file_for_task["pages_number"] = 0
 
@@ -460,7 +568,7 @@ def distribute_annotation_partial_files(
         if not annotators[0]["pages_number"]:
             annotators.pop(0)
         for page in pages_to_distribute:
-            if annotators[0]["pages_number"] and len(pages) < 50:
+            if annotators[0]["pages_number"] and len(pages) < MAX_PAGES:
                 pages.append(page)
             else:
                 annotation_tasks.append(
@@ -479,13 +587,13 @@ def distribute_annotation_partial_files(
                 annotators.pop(0)
             annotators[0]["pages_number"] -= 1
         if pages:
-            full_tasks = len(pages) // 50
-            tasks_number = full_tasks + 1 if len(pages) % 50 else full_tasks
+            full_tasks = len(pages) // MAX_PAGES
+            tasks_number = full_tasks + 1 if len(pages) % MAX_PAGES else full_tasks
             for times in range(tasks_number):
                 annotation_tasks.append(
                     {
                         "file_id": item["file_id"],
-                        "pages": pages[:50],
+                        "pages": pages[:MAX_PAGES],
                         "job_id": job_id,
                         "user_id": annotators[0]["user_id"],
                         "is_validation": False,
@@ -493,7 +601,7 @@ def distribute_annotation_partial_files(
                         "deadline": deadline,
                     }
                 )
-                pages[:50] = []
+                pages[:MAX_PAGES] = []
     return annotation_tasks
 
 
@@ -574,15 +682,15 @@ def create_partial_validation_tasks(
         )
         for file_id, pages in validation_files_pages.items():
             if pages:
-                full_tasks = len(pages) // 50
+                full_tasks = len(pages) // MAX_PAGES
                 tasks_number = (
-                    full_tasks + 1 if len(pages) % 50 else full_tasks
+                    full_tasks + 1 if len(pages) % MAX_PAGES else full_tasks
                 )
                 for times in range(tasks_number):
                     validation_tasks.append(
                         {
                             "file_id": file_id,
-                            "pages": pages[:50],
+                            "pages": pages[:MAX_PAGES],
                             "job_id": job_id,
                             "user_id": validator["user_id"],
                             "is_validation": True,
@@ -590,7 +698,7 @@ def create_partial_validation_tasks(
                             "deadline": deadline,
                         }
                     )
-                    pages[:50] = []
+                    pages[:MAX_PAGES] = []
 
 
 def distribute_validation_partial_files(

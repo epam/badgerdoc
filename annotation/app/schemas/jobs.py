@@ -30,6 +30,7 @@ class ValidationSchema(str, Enum):
     cross = "cross"
     hierarchical = "hierarchical"
     validation_only = "validation only"
+    extensive_coverage = "extensive_coverage"
 
 
 class JobInfoSchema(BaseModel):
@@ -67,6 +68,7 @@ class JobInfoSchema(BaseModel):
     job_type: JobTypeEnumSchema = Field(
         ..., example=JobTypeEnumSchema.ExtractionJob
     )
+    extensive_coverage: Optional[int] = Field(None, example=1)
 
     @root_validator
     def check_files_and_datasets(cls, values):
@@ -94,10 +96,11 @@ class JobInfoSchema(BaseModel):
         annotators field should be empty and validators field should not be
         empty.
         """
-        validation_type, validators, annotators = (
+        validation_type, validators, annotators, extensive_coverage = (
             values.get("validation_type"),
             values.get("validators"),
             values.get("annotators"),
+            values.get("extensive_coverage")
         )
         job_type = values.get("job_type")
         if job_type in AUTOMATIC_JOBS:
@@ -128,6 +131,23 @@ class JobInfoSchema(BaseModel):
             raise ValueError(
                 "If the validation type is validation_only, annotators field "
                 "should be empty and validators field should not be empty."
+            )
+        if (
+            validation_type == ValidationSchema.extensive_coverage
+            and not extensive_coverage
+        ):
+            raise ValueError(
+                "If the validation type is extensive_coverage value "
+                "configuring this field should be provided to "
+                "extensive_coverage parameter."
+            )
+        if validation_type == ValidationSchema.extensive_coverage and  (
+            len(annotators) < extensive_coverage
+        ):
+            raise ValueError(
+                "If the validation type is extensive_coverage number of "
+                "annotators should equal or less then provided "
+                "extensive_coverage number."
             )
         return values
 
