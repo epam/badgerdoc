@@ -1,12 +1,12 @@
 name: assets precommit and test
 run-name: assets precommit and test
 on:
-  push:
-    paths:
-      - 'assets/**'
-  pull_request:
-    paths:
-      - 'assets/**'
+  push
+#    paths:
+#      - 'assets/**'
+#  pull_request:
+#    paths:
+#      - 'assets/**'
 jobs:
   assets-pre-commit-actions:
     strategy:

@@ -1,12 +1,12 @@
 name: tenants precommit and test
 run-name: tenants precommit and test
 on:
-  push:
-    paths:
-      - 'lib/filter-lib/**'
-  pull_request:
-    paths:
-      - 'lib/filter-lib/**'
+  push
+#    paths:
+#      - 'lib/tenants/**'
+#  pull_request:
+#    paths:
+#      - 'lib/tenants/**'
 jobs:
   tenants-pre-commit-actions:
     strategy:
@@ -54,3 +54,4 @@ jobs:
         run: |
           cd lib/tenants
           pytest
+#test

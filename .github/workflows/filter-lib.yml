@@ -1,12 +1,12 @@
 name: filter_lib precommit and test
 run-name: filter_lib precommit and test
 on:
-  push:
-    paths:
-      - 'lib/filter-lib/**'
-  pull_request:
-    paths:
-      - 'lib/filter-lib/**'
+  push
+#    paths:
+#      - 'lib/filter-lib/**'
+#  pull_request:
+#    paths:
+#      - 'lib/filter-lib/**'
 jobs:
   filter-lib-pre-commit-actions:
     strategy:
@@ -54,3 +54,4 @@ jobs:
         run: |
           cd lib/filter_lib
           pytest
+#test
