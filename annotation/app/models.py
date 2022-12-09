@@ -158,7 +158,10 @@ class Job(Base):
     callback_url = Column(VARCHAR, nullable=False)
     deadline = Column(TIMESTAMP)
     tenant = Column(VARCHAR, nullable=False)
-    validation_type = Column(ENUM(ValidationSchema), nullable=False)
+    validation_type = Column(
+        ENUM(ValidationSchema, name="validation_type"),
+        nullable=False
+    )
     status = Column(
         ENUM(JobStatusEnumSchema),
         nullable=False,
@@ -214,7 +217,7 @@ class File(Base):
         server_default="{}",
     )
     status = Column(
-        ENUM(FileStatusEnumSchema),
+        ENUM(FileStatusEnumSchema, name="file_status"),
         nullable=False,
         default=FileStatusEnumSchema.pending,
     )
