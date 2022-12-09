@@ -1,6 +1,9 @@
+from typing import Union
+
 from botocore.exceptions import BotoCoreError, ClientError
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
+from requests import RequestException
 from sqlalchemy.exc import DBAPIError, SQLAlchemyError
 
 
@@ -41,6 +44,11 @@ class WrongJobError(Exception):
 class SelfParentError(Exception):
     def __init__(self, message: str):
         self.message = message
+
+
+class TaxonomyLinkException(Exception):
+    def __init__(self, exc_info: Union[str, RequestException]):
+        self.exc_info = exc_info
 
 
 def no_such_revisions_error_handler(
@@ -132,4 +140,11 @@ def category_parent_child_error_handler(
     return JSONResponse(
         status_code=400,
         content={"detail": f"Self parent error. {exc.message}"},
+    )
+
+
+def taxonomy_link_error_handler(request: Request, exc: TaxonomyLinkException):
+    return JSONResponse(
+        status_code=400,
+        content={"detail": f"Taxonomy link error. {exc.exc_info}"},
     )

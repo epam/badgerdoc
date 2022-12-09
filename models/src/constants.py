@@ -19,6 +19,8 @@ MINIO_ACCESS_KEY = os.environ.get("MINIO_ACCESS_KEY")
 MINIO_SECRET_KEY = os.environ.get("MINIO_SECRET_KEY")
 MINIO_HOST = os.environ.get("MINIO_HOST")
 MINIO_PUBLIC_HOST = os.environ.get("MINIO_PUBLIC_HOST")
+S3_PREFIX = os.environ.get("S3_PREFIX")
+S3_CREDENTIALS_PROVIDER = os.environ.get("S3_CREDENTIALS_PROVIDER")
 
 INFERENCE_HOST = os.environ.get("INFERENCE_HOST")
 INFERENCE_PORT = os.environ.get("INFERENCE_PORT")

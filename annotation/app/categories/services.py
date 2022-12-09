@@ -1,4 +1,3 @@
-import logging
 import uuid
 from typing import Dict, List, Optional, Set, Tuple, Union
 
@@ -9,7 +8,9 @@ from sqlalchemy.event import listens_for
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.expression import func
 from sqlalchemy_utils import Ltree
+from tenant_dependency import TenantData
 
+from app import logger as app_logger
 from app.errors import (
     CheckFieldError,
     ForeignKeyError,
@@ -17,8 +18,10 @@ from app.errors import (
     SelfParentError,
 )
 from app.filters import CategoryFilter
+from app.microservice_communication.taxonomy import send_category_taxonomy_link
 from app.models import Category, Job
 from app.schemas import (
+    CategoryDataAttributeNames,
     CategoryInputSchema,
     CategoryORMSchema,
     CategoryResponseSchema,
@@ -27,7 +30,7 @@ from app.schemas import (
 cache = TTLCache(maxsize=128, ttl=300)
 
 
-logger = logging.getLogger(__name__)
+logger = app_logger.Logger
 
 
 def insert_category_tree(
@@ -419,3 +422,23 @@ def delete_category_db(db: Session, category_id: str, tenant: str) -> None:
         raise CheckFieldError("Cannot delete default category.")
     db.delete(category)
     db.commit()
+
+
+def link_category_with_taxonomy(
+    category_db: Category,
+    x_current_tenant: str,
+    token: TenantData,
+):
+    if category_db.data_attributes:
+        taxonomy_link_params = []
+        for data_attribute in category_db.data_attributes:
+            if CategoryDataAttributeNames.validate_schema(data_attribute):
+                taxonomy_link_params.append(data_attribute)
+
+        if taxonomy_link_params:
+            send_category_taxonomy_link(
+                category_id=category_db.id,
+                tenant=x_current_tenant,
+                token=token.token,
+                taxonomy_link_params=taxonomy_link_params,
+            )

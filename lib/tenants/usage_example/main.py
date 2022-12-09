@@ -5,7 +5,7 @@ from fastapi import Depends, FastAPI, Header
 from tenant_dependency import TenantData, get_tenant_info
 
 # RS256 (BadgerDoc)
-# url=http://dev1.gcov.ru for local testing, url=http://bagerdoc-keycloack for deployed service
+# url=http://dev1.gcov.ru for local testing, url=http://bagerdoc-keycloack for deployed service  # noqa
 tenant_ = get_tenant_info(url="http://dev1.gcov.ru", algorithm="RS256")
 app_ = FastAPI()
 

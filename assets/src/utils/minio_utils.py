@@ -6,30 +6,59 @@ import minio.error
 import pdf2image.exceptions
 import PIL.Image
 import urllib3.exceptions
-from minio.credentials import AWSConfigProvider
+from minio.credentials import AWSConfigProvider, EnvAWSProvider, IamAwsProvider
 
 from src import db, logger
 from src.config import settings
 
 logger_ = logger.get_logger(__name__)
 
-minio_config = {
-    "endpoint": settings.s3_endpoint,
-    "secure": settings.minio_secure_connection,
-}
-if settings.aws_profile_name is not None:
-    # 'minio' library is used to connect with AWS S3
-    minio_config.update(
-        {"credentials": AWSConfigProvider(profile=settings.aws_profile_name)}
+
+class NotConfiguredException(Exception):
+    pass
+
+
+def create_minio_config():
+    minio_config = {}
+
+    minio_config.update({"secure": settings.minio_secure_connection})
+
+    if settings.s3_endpoint:
+        minio_config.update({"endpoint": settings.s3_endpoint})
+
+    if settings.s3_credentials_provider == "minio":
+        minio_config.update(
+            {
+                "access_key": settings.s3_access_key,
+                "secret_key": settings.s3_secret_key,
+            }
+        )
+    elif settings.s3_credentials_provider == "aws_iam":
+        minio_config.update({"credentials": IamAwsProvider()})
+    elif settings.s3_credentials_provider == "aws_env":
+        minio_config.update({"credentials": EnvAWSProvider()})
+    elif settings.s3_credentials_provider == "aws_config":
+        # environmental variable AWS_PROFILE_NAME should be set
+        minio_config.update(
+            {
+                "credentials": AWSConfigProvider(
+                    profile=settings.aws_profile_name
+                )
+            }
+        )
+    else:
+        raise NotConfiguredException(
+            "s3 connection is not properly configured - "
+            "s3_credentials_provider is not set"
+        )
+    logger_.debug(
+        f"S3_Credentials provider - {settings.s3_credentials_provider}"
     )
-else:
-    # 'minio' library is used to connect with Minio service locally
-    minio_config.update(
-        {
-            "access_key": settings.s3_access_key,
-            "secret_key": settings.s3_secret_key,
-        }
-    )
+
+    return minio_config
+
+
+minio_config = create_minio_config()
 MinioClient = minio.Minio(**minio_config)
 
 
@@ -272,7 +301,7 @@ def check_bucket(bucket: str, client: minio.Minio) -> bool:
     except ValueError:
         raise fastapi.HTTPException(
             status_code=fastapi.status.HTTP_400_BAD_REQUEST,
-            detail="Bucket name length must be more than 3 characters and less than 63 characters!",
+            detail="Bucket name length must be more than 3 characters and less than 63 characters!",  # noqa
         )
     return True
 

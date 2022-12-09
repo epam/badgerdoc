@@ -16,7 +16,7 @@ def get_long_description(path: str) -> str:
 setup(
     name="tenant_dependency",
     version="0.1.3",
-    description="Package for validating and parsing jwt via FastAPI dependency",
+    description="Package for validating and parsing jwt via FastAPI dependency",  # noqa
     long_description=get_long_description("README.md"),
     author="Roman Kuzianov",
     author_email="Roman_Kuzianov@epam.com",

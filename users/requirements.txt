@@ -3,7 +3,6 @@ pydantic==1.8.2
 aiohttp==3.7.4.post0
 requests==2.26.0
 uvicorn==0.15.0
-pytest==6.2.5
 python-dotenv==0.19.1
 python-multipart==0.0.5
 minio==7.1.0

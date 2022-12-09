@@ -16,6 +16,7 @@ from src.models.coco import Annotation, Category, CocoDataset, Image
 from src.utils.common_utils import add_to_zip_and_local_remove, get_headers
 from src.utils.json_utils import export_save_to_json, load_from_json
 from src.utils.render_pdf_page import pdf_page_to_jpg
+from src.utils.s3_utils import convert_bucket_name_if_s3prefix
 
 LOGGER = get_logger(__file__)
 
@@ -24,6 +25,7 @@ class DatasetFetch:
     def __init__(self, job_id: int, current_tenant: str, uuid: str):
         self.job_id = job_id
         self.tenant = current_tenant
+        self.bucket_name = convert_bucket_name_if_s3prefix(self.tenant)
         self.uuid = uuid
 
     def load_input(self, file_id: int) -> str:
@@ -34,7 +36,7 @@ class DatasetFetch:
             Return path to loaded json
         """
         key = f"annotation/{self.job_id}/{file_id}"
-        minio_client.download_file(self.tenant, key, key)
+        minio_client.download_file(self.bucket_name, key, key)
         return key
 
     def download_image(
@@ -55,7 +57,7 @@ class DatasetFetch:
             f"{image_folder}/{self.job_id}_{Path(file_path).name}"
         )
         minio_resource.meta.client.download_file(
-            self.tenant, file_path, image_local_path
+            self.bucket_name, file_path, image_local_path
         )
         LOGGER.info("file %s was downloaded", Path(file_path).name)
         if Path(file_path).suffix == ".pdf" and validated_pages:
@@ -104,7 +106,7 @@ class DatasetFetch:
             if validated_pages and int(page_num) not in validated_pages:
                 continue
             minio_client.download_file(
-                self.tenant,
+                self.bucket_name,
                 f"{work_dir}/{page_name}.json",
                 f"{local_path}/{page_name}.json",
             )
@@ -127,7 +129,7 @@ class DatasetFetch:
                 continue
             annotation_page_content = json.loads(
                 minio_client.get_object(
-                    Bucket=self.tenant, Key=f"{work_dir}/{page_name}.json"
+                    Bucket=self.bucket_name, Key=f"{work_dir}/{page_name}.json"
                 )["Body"].read()
             )
             annotation_content_lst.append(annotation_page_content)
@@ -147,7 +149,9 @@ class DatasetFetch:
         """
         work_dir = Path(manifest).parent
         manifest_content = json.loads(
-            minio_client.get_object(Bucket=self.tenant, Key=manifest)["Body"]
+            minio_client.get_object(Bucket=self.bucket_name, Key=manifest)[
+                "Body"
+            ]
             .read()
             .decode("utf-8")
         )
@@ -208,7 +212,7 @@ class DatasetFetch:
         """Existence check of the job"""
         try:
             file_id = minio_client.list_objects(
-                Bucket=self.tenant,
+                Bucket=self.bucket_name,
                 Prefix=f"annotation/{self.job_id}/",
                 Delimiter="/",
             )["CommonPrefixes"]
@@ -235,6 +239,7 @@ class ExportConvertBase:
     ):
         self.job_id = job_id
         self.tenant = tenant
+        self.bucket_name = convert_bucket_name_if_s3prefix(self.tenant)
         self.token = token
         self.uuid = uuid
         self.zip_name = f"{self.uuid}_{export_format}.zip"
@@ -283,7 +288,7 @@ class ConvertToCoco(ExportConvertBase):
         }
         for page in file_id:
             files = minio_client.list_objects(
-                Bucket=self.tenant, Prefix=page["Prefix"]
+                Bucket=self.bucket_name, Prefix=page["Prefix"]
             )["Contents"]
             manifest_path = [
                 file for file in files if Path(file["Key"]).stem == "manifest"
@@ -397,7 +402,7 @@ class ExportBadgerdoc(ExportConvertBase):
         file_id = loader.is_job_exist()
         for page in file_id:
             files = minio_client.list_objects(
-                Bucket=self.tenant, Prefix=page["Prefix"]
+                Bucket=self.bucket_name, Prefix=page["Prefix"]
             )["Contents"]
             manifest_path = [
                 file for file in files if Path(file["Key"]).stem == "manifest"
@@ -407,7 +412,7 @@ class ExportBadgerdoc(ExportConvertBase):
             if not os.path.exists(Path(annotation_local_path).parent):
                 os.makedirs(Path(annotation_local_path).parent, exist_ok=True)
             minio_client.download_file(
-                self.tenant, manifest_path, annotation_local_path
+                self.bucket_name, manifest_path, annotation_local_path
             )
             LOGGER.info(
                 "manifest.json was downloaded for the job %s", self.job_id

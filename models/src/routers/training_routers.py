@@ -36,7 +36,12 @@ from src.colab_ssh_utils import (
 from src.convert_utils import prepare_dataset_info
 from src.db import Basement, Training, get_db
 from src.routers import tenant
-from src.utils import NoSuchTenant, get_minio_object, get_minio_resource
+from src.utils import (
+    NoSuchTenant,
+    convert_bucket_name_if_s3prefix,
+    get_minio_object,
+    get_minio_resource,
+)
 
 LOGGER = logging.getLogger(name="models")
 TRAINING_SCRIPT_NAME = "training_script.py"
@@ -116,11 +121,12 @@ def upload_files_to_object_storage(
             status_code=404,
             detail="Training with given id does not exist",
         )
-    s3_resource = get_minio_resource(tenant=x_current_tenant)
+    bucket_name = convert_bucket_name_if_s3prefix(x_current_tenant)
+    s3_resource = get_minio_resource(tenant=bucket_name)
     key_archive = f"trainings/{training_id}/training_archive.zip"
     utils.upload_to_object_storage(
         s3_resource=s3_resource,
-        bucket_name=x_current_tenant,
+        bucket_name=bucket_name,
         file=archive,
         file_path=key_archive,
     )
@@ -223,16 +229,17 @@ def delete_training_by_id(
     if not training:
         LOGGER.info("Delete_training get not existing id %s", request.id)
         raise HTTPException(status_code=404, detail="Not existing training")
+    bucket_name = convert_bucket_name_if_s3prefix(x_current_tenant)
     try:
-        s3_resource = get_minio_resource(tenant=x_current_tenant)
+        s3_resource = get_minio_resource(tenant=bucket_name)
     except NoSuchTenant as err:
-        LOGGER.info(
-            "NoSuchTenant error was encountered. Bucket %s does not exist",
-            x_current_tenant,
+        LOGGER.exception(
+            "Bucket %s does not exist",
+            bucket_name,
         )
         raise HTTPException(status_code=500, detail=str(err))
     s3_resource.meta.client.delete_object(
-        Bucket=training.tenant, Key=training.key_archive
+        Bucket=bucket_name, Key=training.key_archive
     )
     crud.delete_instance(session, training)
     LOGGER.info("Training %d was deleted", request.id)
@@ -334,7 +341,7 @@ def start_training(
         )
     key_archive = training.bases.key_archive
     with connect_colab(credentials) as ssh_client:
-        bucket = x_current_tenant
+        bucket = convert_bucket_name_if_s3prefix(x_current_tenant)
         file_script, size_script = get_minio_object(bucket, key_script)
         upload_file_to_colab(
             ssh_client, file_script, size_script, TRAINING_SCRIPT_NAME
@@ -384,6 +391,7 @@ def download_training_results(
     Results should be located at in "/content/training/results" directory in
     colab's file system.
     """
+    bucket_name = convert_bucket_name_if_s3prefix(x_current_tenant)
     training_exists = crud.is_id_existing(session, Training, training_id)
     if not training_exists:
         LOGGER.info(
@@ -395,5 +403,5 @@ def download_training_results(
     with tempfile.TemporaryDirectory(dir=home_directory) as temp_dir:
         LOGGER.info(f"Created temporary directory: {temp_dir}")
         local_mount_colab_drive(temp_dir, credentials)
-        sync_colab_with_minio(temp_dir, x_current_tenant, training_id)
+        sync_colab_with_minio(temp_dir, bucket_name, training_id)
     return {"msg": f"Results for training with id {training_id} were uploaded"}

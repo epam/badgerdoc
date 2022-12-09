@@ -33,6 +33,10 @@ class Settings(BaseSettings):
     minio_server: str = "minio:80"
     minio_root_user: str = "minioadmin"
     minio_root_password: str = "minioadmin"
+    minio_secure_connection: Optional[bool] = False
+    s3_prefix: Optional[str]
+    s3_credentials_provider: Optional[str]
+    aws_profile_name: Optional[str]
 
     keycloak_host: str = "http://bagerdoc-keycloack"
     host_models: str = "http://models/deployed_models"

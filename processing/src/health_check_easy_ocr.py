@@ -6,7 +6,10 @@ from minio.error import MinioException
 
 from src.utils.aiohttp_utils import send_request
 from src.utils.logger import get_logger
-from src.utils.minio_utils import MinioCommunicator
+from src.utils.minio_utils import (
+    MinioCommunicator,
+    convert_bucket_name_if_s3prefix,
+)
 
 logger = get_logger(__name__)
 minio_client = MinioCommunicator().client
@@ -15,6 +18,8 @@ minio_client = MinioCommunicator().client
 # Path to `health_check_files` accord to badgerdoc paths
 # bucket: `post`, path: `files/file_id/file_id.pdf`
 bucket = "post"
+bucket = convert_bucket_name_if_s3prefix(bucket)
+
 file_ids = {"health_check1": [1], "health_check2": [1, 2]}
 
 

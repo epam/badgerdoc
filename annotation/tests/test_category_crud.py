@@ -315,9 +315,7 @@ def test_add_id_is_generated(prepare_db_categories_different_names):
 @patch("app.categories.resources.link_category_with_taxonomy")
 @patch("uuid.uuid4", return_value="fe857daa-8332-4a26-ab50-29be0a74477e")
 def test_should_send_link_request_taxonomy_service(
-    uuid_mock,
-    link_request_mock,
-    prepare_db_categories_different_names
+    uuid_mock, link_request_mock, prepare_db_categories_different_names
 ):
     data = prepare_category_body(
         id_="1213",

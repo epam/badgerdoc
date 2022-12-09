@@ -1,5 +1,4 @@
 import json
-import logging
 import os
 from datetime import datetime
 from hashlib import sha1
@@ -14,6 +13,7 @@ from kafka.errors import KafkaError
 from sqlalchemy import asc
 from sqlalchemy.orm import Session
 
+from app import logger
 from app.kafka_client import KAFKA_BOOTSTRAP_SERVER, KAFKA_SEARCH_TOPIC
 from app.kafka_client import producers as kafka_producers
 from app.models import AnnotatedDoc
@@ -26,12 +26,18 @@ from app.schemas import (
 
 load_dotenv(find_dotenv())
 ENDPOINT_URL = os.environ.get("S3_ENDPOINT_URL")
+S3_PREFIX = os.environ.get("S3_PREFIX")
 AWS_ACCESS_KEY_ID = os.environ.get("S3_LOGIN")
 AWS_SECRET_ACCESS_KEY = os.environ.get("S3_PASS")
 INDEX_NAME = os.environ.get("INDEX_NAME")
 S3_START_PATH = os.environ.get("S3_START_PATH")
+S3_CREDENTIALS_PROVIDER = os.environ.get("S3_CREDENTIALS_PROVIDER")
 MANIFEST = "manifest.json"
 LATEST = "latest"
+
+
+logger_ = logger.Logger
+logger_.debug("S3_PREFIX: %s", S3_PREFIX)
 
 
 def row_to_dict(row) -> dict:
@@ -60,14 +66,40 @@ def row_to_dict(row) -> dict:
     }
 
 
+def convert_bucket_name_if_s3prefix(bucket_name: str) -> str:
+    if S3_PREFIX:
+        return f"{S3_PREFIX}-{bucket_name}"
+    else:
+        return bucket_name
+
+
+class NotConfiguredException(Exception):
+    pass
+
+
 def connect_s3(bucket_name: str) -> boto3.resource:
-    s3_resource = boto3.resource(
-        "s3",
-        endpoint_url=ENDPOINT_URL,
-        aws_access_key_id=AWS_ACCESS_KEY_ID,
-        aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
-    )
+    boto3_config = {}
+    if S3_CREDENTIALS_PROVIDER == "minio":
+        boto3_config.update(
+            {
+                "aws_access_key_id": AWS_ACCESS_KEY_ID,
+                "aws_secret_access_key": AWS_SECRET_ACCESS_KEY,
+                "endpoint_url": ENDPOINT_URL,
+            }
+        )
+    elif S3_CREDENTIALS_PROVIDER == "aws_iam":
+        # No additional updates to config needed - boto3 uses env vars
+        ...
+    else:
+        raise NotConfiguredException(
+            "s3 connection is not properly configured - "
+            "s3_credentials_provider is not set"
+        )
+    s3_resource = boto3.resource("s3", **boto3_config)
+    logger_.debug(f"S3_Credentials provider - {S3_CREDENTIALS_PROVIDER}")
+
     try:
+        logger_.debug("Connecting to S3 bucket: %s", bucket_name)
         s3_resource.meta.client.head_bucket(Bucket=bucket_name)
         # here is some bug or I am missing smth: this line ^
         # should raise NoSuchBucket
@@ -84,7 +116,7 @@ def upload_pages_to_minio(
     pages: List[PageSchema],
     pages_sha: Dict[str, str],
     s3_path: str,
-    tenant: str,
+    bucket_name: str,
     s3_resource: boto3.resource,
 ) -> None:
     """
@@ -101,13 +133,15 @@ def upload_pages_to_minio(
     for page in pages:
         json_page = json.dumps(page.dict())
         path_to_object = f"{s3_path}/{pages_sha[str(page.page_num)]}.json"
-        upload_json_to_minio(json_page, path_to_object, tenant, s3_resource)
+        upload_json_to_minio(
+            json_page, path_to_object, bucket_name, s3_resource
+        )
 
 
 def upload_json_to_minio(
     json_obj: str,
     path_to_object: str,
-    tenant: str,
+    bucket_name: str,
     s3_resource: boto3.resource,
 ) -> None:
     """
@@ -119,7 +153,7 @@ def upload_json_to_minio(
     :param s3_resource: opened minio connection
     :return: None
     """
-    s3_resource.Bucket(tenant).put_object(
+    s3_resource.Bucket(bucket_name).put_object(
         Body=json_obj,
         Key=path_to_object,
     )
@@ -174,7 +208,7 @@ def create_manifest_json(
     s3_path: str,
     s3_file_path: Optional[str],
     s3_file_bucket: Optional[str],
-    tenant: str,
+    bucket_name: str,
     job_id: int,
     file_id: int,
     doc_categories: Optional[List[str]],
@@ -214,7 +248,9 @@ def create_manifest_json(
     manifest["categories"] = doc_categories
 
     manifest_json = json.dumps(manifest)
-    upload_json_to_minio(manifest_json, manifest_path, tenant, s3_resource)
+    upload_json_to_minio(
+        manifest_json, manifest_path, bucket_name, s3_resource
+    )
 
 
 def construct_annotated_doc(
@@ -325,12 +361,13 @@ def construct_annotated_doc(
     db.add(annotated_doc)
     db.flush()
 
-    s3_resource = connect_s3(tenant)
+    bucket_name = convert_bucket_name_if_s3prefix(tenant)
+    s3_resource = connect_s3(bucket_name)
     upload_pages_to_minio(
         pages=doc.pages,
         pages_sha=pages_sha,
         s3_path=s3_path,
-        tenant=tenant,
+        bucket_name=bucket_name,
         s3_resource=s3_resource,
     )
     create_manifest_json(
@@ -338,7 +375,7 @@ def construct_annotated_doc(
         s3_path,
         s3_file_path,
         s3_file_bucket,
-        tenant,
+        bucket_name,
         job_id,
         file_id,
         doc.categories,
@@ -589,7 +626,7 @@ LoadedPage = Dict[
 def load_page(
     s3_resource: boto3.resource,
     loaded_pages: List[Optional[LoadedPage]],
-    tenant: str,
+    bucket_name: str,
     page_num: int,
     user_id: str,
     page_revision: PageRevision,
@@ -601,7 +638,7 @@ def load_page(
             f"{page_revision['file_id']}/{page_revision['page_id']}"
             ".json"
         )
-        page_obj = s3_resource.Object(tenant, page_path)
+        page_obj = s3_resource.Object(bucket_name, page_path)
         loaded_page = json.loads(page_obj.get()["Body"].read().decode("utf-8"))
     else:
         loaded_page = {
@@ -623,7 +660,8 @@ def get_file_manifest(
     job_id: str, file_id: str, tenant: str, s3_resource: boto3.resource
 ) -> Dict[str, Any]:
     manifest_path = f"{S3_START_PATH}/{job_id}/{file_id}/{MANIFEST}"
-    manifest_obj = s3_resource.Object(tenant, manifest_path)
+    bucket_name = convert_bucket_name_if_s3prefix(tenant)
+    manifest_obj = s3_resource.Object(bucket_name, manifest_path)
     return json.loads(manifest_obj.get()["Body"].read().decode("utf-8"))
 
 
@@ -631,14 +669,15 @@ def load_all_revisions_pages(
     pages: Dict[int, List[PageRevision]],
     tenant: str,
 ):
-    s3_resource = connect_s3(tenant)
+    bucket_name = convert_bucket_name_if_s3prefix(tenant)
+    s3_resource = connect_s3(bucket_name)
     for page_num, page_revisions in pages.items():
         loaded_pages = []
         for page_revision in page_revisions:
             load_page(
                 s3_resource,
                 loaded_pages,
-                tenant,
+                bucket_name,
                 page_num,
                 page_revision["user_id"],
                 page_revision,
@@ -651,14 +690,15 @@ def load_latest_revision_pages(
     pages: Dict[int, Dict[str, LatestPageRevision]],
     tenant: str,
 ):
-    s3_resource = connect_s3(tenant)
+    bucket_name = convert_bucket_name_if_s3prefix(tenant)
+    s3_resource = connect_s3(bucket_name)
     for page_num, page_revisions in pages.items():
         loaded_pages = []
         for user_id, page_revision in page_revisions.items():
             load_page(
                 s3_resource,
                 loaded_pages,
-                tenant,
+                bucket_name,
                 page_num,
                 user_id,
                 page_revision,
@@ -678,10 +718,11 @@ def load_annotated_pages_for_particular_rev(
     """
     for page_num, page_id in revision.pages.items():
         page_revision["page_id"] = page_id
+        bucket_name = convert_bucket_name_if_s3prefix(revision.tenant)
         load_page(
             s3_resource,
             loaded_pages,
-            revision.tenant,
+            bucket_name,
             page_num,
             revision.user,
             page_revision,
@@ -703,10 +744,11 @@ def load_validated_pages_for_particular_rev(
     for page_num in revision.validated:
         if str(page_num) not in revision.pages:
             page_revision["page_id"] = None
+            bucket_name = convert_bucket_name_if_s3prefix(revision.tenant)
             load_page(
                 s3_resource,
                 loaded_pages,
-                revision.tenant,
+                bucket_name,
                 page_num,
                 revision.user,
                 page_revision,
@@ -737,7 +779,8 @@ def construct_particular_rev_response(
       "failed_validation_pages": [],
     }
     """
-    s3_resource = connect_s3(revision.tenant)
+    bucket_name = convert_bucket_name_if_s3prefix(revision.tenant)
+    s3_resource = connect_s3(bucket_name)
 
     page_revision = {
         "job_id": revision.job_id,
@@ -911,7 +954,7 @@ def _init_search_annotation_producer():
         )
         return producer
     except KafkaError as error:  # KafkaError is parent of all kafka errors
-        logging.warning(
+        logger_.warning(
             f"Error occurred during kafka producer creating: {error}"
         )
 

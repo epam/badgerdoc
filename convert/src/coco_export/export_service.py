@@ -8,6 +8,7 @@ from fastapi import BackgroundTasks
 from src.coco_export.convert import ConvertToCoco, ExportConvertBase
 from src.config import minio_client
 from src.logger import get_logger
+from src.utils.s3_utils import convert_bucket_name_if_s3prefix
 
 LOGGER = get_logger(__file__)
 
@@ -36,14 +37,15 @@ def export_run(
         with ZipFile(zip_file.filename, "a") as zip_obj:  # type: ignore
             zip_obj.write(f"{export_format}.json")
         os.remove(f"{export_format}.json")
+    bucket_name = convert_bucket_name_if_s3prefix(current_tenant)
     minio_client.upload_file(
         zip_file.filename,  # type: ignore
-        Bucket=current_tenant,
+        Bucket=bucket_name,
         Key=f"{export_format}/{unique_identity}.zip",
     )
     LOGGER.info(
         "zip archive was uploaded to bucket - %s, key - %s/%s.zip",
-        current_tenant,
+        bucket_name,
         export_format,
         unique_identity,
     )
@@ -60,10 +62,11 @@ def export_run_and_return_url(
     validated_only: bool = False,
 ) -> Any:
     unique_value = uuid.uuid4()
+    bucket_name = convert_bucket_name_if_s3prefix(current_tenant)
     url = minio_client.generate_presigned_url(
         "get_object",
         Params={
-            "Bucket": current_tenant,
+            "Bucket": bucket_name,
             "Key": f"{export_format}/{unique_value}.zip",
         },
         ExpiresIn=3600,

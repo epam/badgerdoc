@@ -66,7 +66,7 @@ export const LoginConnector = ({ onSuccess = noop, onError = noop }: LoginConnec
             <FlexCell width="100%">
                 <FlexRow vPadding="12" alignItems="center">
                     <FlexCell grow={1}>
-                        <Button caption="Login with EPAM" fontSize="18" onClick={authWithSSO} />
+                        <Button caption="Login with SSO" fontSize="18" onClick={authWithSSO} />
                     </FlexCell>
                 </FlexRow>
                 <FlexRow vPadding="12" alignItems="center">
