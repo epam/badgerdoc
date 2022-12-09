@@ -41,6 +41,7 @@ export type JobVariables = {
     annotators?: string[];
     validators?: string[];
     owners?: string[];
+    extensive_coverage?: number;
 };
 const namespace = process.env.REACT_APP_JOBMANAGER_API_NAMESPACE;
 export const useJobs: QueryHookType<UseJobsParamsType, PagedResponse<Job>> = (

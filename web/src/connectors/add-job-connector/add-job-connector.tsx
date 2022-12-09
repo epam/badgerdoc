@@ -47,6 +47,7 @@ export type JobValues = {
     is_draft: boolean;
     is_auto_distribution: boolean;
     start_manual_job_automatically: boolean;
+    extensive_coverage: number | undefined;
 };
 
 const AddJobConnector: FC<AddJobConnectorProps> = ({
@@ -60,7 +61,8 @@ const AddJobConnector: FC<AddJobConnectorProps> = ({
         props: {
             jobName: { isRequired: true },
             pipeline: { isRequired: state.jobType === 'ExtractionJob' },
-            start_manual_job_automatically: { isDisabled: !state.pipeline }
+            start_manual_job_automatically: { isDisabled: !state.pipeline },
+            extensive_coverage: { isRequired: state.validationType === 'extensive coverage' }
         }
     });
 
@@ -130,7 +132,8 @@ const AddJobConnector: FC<AddJobConnectorProps> = ({
                         : 'AnnotationJob',
                 is_draft: values.is_draft,
                 is_auto_distribution: values.is_auto_distribution,
-                start_manual_job_automatically: values.start_manual_job_automatically
+                start_manual_job_automatically: values.start_manual_job_automatically,
+                extensive_coverage: values.extensive_coverage
             };
 
             const deadline = values.deadline
@@ -271,7 +274,8 @@ let initialValues: JobValues = {
     annotators_validators: undefined,
     is_draft: false,
     is_auto_distribution: true,
-    start_manual_job_automatically: true
+    start_manual_job_automatically: true,
+    extensive_coverage: 1
 };
 
 interface Params {

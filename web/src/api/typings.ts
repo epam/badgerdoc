@@ -384,7 +384,7 @@ export type SearchBody<TItem> = {
     sorting: Sorting<keyof TItem>[];
 };
 
-export type ValidationType = 'cross' | 'hierarchical' | 'validation only';
+export type ValidationType = 'cross' | 'hierarchical' | 'validation only' | 'extensive coverage';
 
 export type PageInfoObjs = {
     id?: number;

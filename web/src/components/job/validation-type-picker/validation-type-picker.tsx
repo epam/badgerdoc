@@ -20,11 +20,15 @@ const ValidationTypePicker: FC<ValidationTypePickerProps> = ({ lens }) => {
     const validationTypes: ValidationTypeChoice[] = [
         { id: 'cross', caption: 'Cross validation' },
         { id: 'hierarchical', caption: 'Hierarchical validation' },
-        { id: 'validation only', caption: 'Validation only' }
+        { id: 'validation only', caption: 'Validation only' },
+        { id: 'extensive coverage', caption: 'Extensive Coverage' }
     ];
-    const validationTypeDataSource = useArrayDataSource({ items: validationTypes }, [
-        pipeline ? validationTypes : validationTypes.splice(2, 1)
-    ]);
+
+    const validationTypesData = pipeline
+        ? validationTypes
+        : validationTypes.filter((type) => type.id !== 'validation only');
+
+    const validationTypeDataSource = useArrayDataSource({ items: validationTypesData }, []);
 
     return (
         <LabeledInput
