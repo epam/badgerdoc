@@ -12,15 +12,17 @@ RUN pip install virtualenv
 WORKDIR /opt/filter_lib
 RUN python3 -m venv env
 RUN . env/bin/activate && pip install -r requirements.txt \
-    && pip install -r requirements-dev.txt && isort src --check \
-    && black src --check && mypy src && pylint src \
+    && pip install -r requirements-dev.txt \  
+    # && isort src --check \
+    # && black src --check && mypy src && pylint src \
     && pytest -vv --cov --cov-report=xml && deactivate
 
 WORKDIR /opt/tenant_dependency
 RUN python3 -m venv env
 RUN . env/bin/activate && pip install -r requirements.txt \
-    && pip install -r requirements-dev.txt && isort src --check \
-    && black src --check && mypy src && pylint src \
+    && pip install -r requirements-dev.txt \ 
+# && isort src --check \
+    # && black src --check && mypy src && pylint src \
     && pytest -vv --cov --cov-report=xml && deactivate
 
 FROM base AS build
@@ -34,3 +36,4 @@ RUN python3 setup.py install
 WORKDIR /opt
 ENV PYTHONPATH /opt
 RUN rm -rf filter_lib && rm -rf tenant_dependency
+RUN pip uninstall certifi -y

@@ -1,0 +1,29 @@
+{
+  "annotations": [
+    {
+      "id": "1",
+      "begin": 0,
+      "end": 1,
+      "entity_type": "some_type",
+      "entity_name": "some_name, 19",
+      "links": ["42"]
+    },
+    {
+      "id": "42",
+      "begin": 1,
+      "end": 4,
+      "entity_type": "IMPOSITION",
+      "entity_name": "VAT, 19",
+      "links": ["1", "43"]
+    },
+    {
+      "id": "43",
+      "begin": 4,
+      "end": 6,
+      "entity_type": "some_type",
+      "entity_name": "some_other_name, 5",
+      "links": []
+    }
+  ],
+  "text": "w1 2\n3\t4"
+}

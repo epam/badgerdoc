@@ -1,15 +1,14 @@
-networks:
-  app-network:
-    driver: bridge
-
 services:
   minio:
-    image: 'bitnami/minio:latest'
-    ports:
-      - '9000:9000'
-      - '9001:9001'
+    image: minio/minio
     networks:
       - app-network
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    env_file:
+      - src/.env
+    command: server --console-address ":9001" /export
 
   web:
     build:
@@ -23,3 +22,7 @@ services:
       - '8080:8080'
     networks:
       - app-network
+
+networks:
+  app-network:
+    driver: bridge
