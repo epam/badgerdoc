@@ -11,17 +11,19 @@ from fastapi import HTTPException
 from kafka import KafkaProducer
 from kafka.errors import KafkaError
 from sqlalchemy import asc
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app import logger
 from app.kafka_client import KAFKA_BOOTSTRAP_SERVER, KAFKA_SEARCH_TOPIC
 from app.kafka_client import producers as kafka_producers
-from app.models import AnnotatedDoc
+from app.models import AnnotatedDoc, DocumentLinks
 from app.schemas import (
     AnnotatedDocSchema,
     DocForSaveSchema,
     PageSchema,
     ParticularRevisionSchema,
+    RevisionLink,
 )
 
 load_dotenv(find_dotenv())
@@ -358,8 +360,19 @@ def construct_annotated_doc(
     ):
         return latest_doc
 
+    document_links = construct_document_links(
+        annotated_doc, doc.similar_revisions or []
+    )
     db.add(annotated_doc)
-    db.flush()
+    db.add_all(document_links)
+    try:
+        db.commit()
+    except IntegrityError as err:
+        db.rollback()
+        logger_.exception(
+            "Cannot add links to document, document_links=%s", document_links
+        )
+        raise ValueError("No such documents or labels to link to") from err
 
     bucket_name = convert_bucket_name_if_s3prefix(tenant)
     s3_resource = connect_s3(bucket_name)
@@ -801,6 +814,15 @@ def construct_particular_rev_response(
         s3_resource,
     )
     doc_categories = manifest.get("categories")
+    similar_revisions = [
+        RevisionLink(
+            revision=link.similar_doc.revision,
+            job_id=link.similar_doc.job_id,
+            file_id=link.similar_doc.file_id,
+            label=link.label,
+        )
+        for link in revision.links or []
+    ]
     particular_rev = ParticularRevisionSchema(
         revision=revision.revision,
         user=revision.user,
@@ -810,6 +832,7 @@ def construct_particular_rev_response(
         validated=revision.validated,
         failed_validation_pages=revision.failed_validation_pages,
         categories=doc_categories,
+        similar_revisions=similar_revisions or None,
     )
     return particular_rev
 
@@ -982,3 +1005,22 @@ def send_annotation_kafka_message(
                 "tenant": tenant,
             },
         )
+
+
+def construct_document_links(
+    original_doc: AnnotatedDoc, document_links: List[RevisionLink]
+) -> List[DocumentLinks]:
+    links = []
+    for link in document_links:
+        links.append(
+            DocumentLinks(
+                original_revision=original_doc.revision,
+                original_file_id=original_doc.file_id,
+                original_job_id=original_doc.job_id,
+                similar_revision=link.revision,
+                similar_file_id=link.file_id,
+                similar_job_id=link.job_id,
+                label=link.label,
+            )
+        )
+    return links

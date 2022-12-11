@@ -53,6 +53,15 @@ class PageOutSchema(PageSchema):
     is_validated: bool = Field(default=False, example=False)
 
 
+class RevisionLink(BaseModel):
+    revision: Optional[str] = Field(
+        ..., example="20fe52cce6a632c6eb09fdc5b3e1594f926eea69"
+    )
+    job_id: int = Field(..., example=1)
+    file_id: int = Field(..., example=1)
+    label: str = Field(..., example="similar")
+
+
 class ParticularRevisionSchema(BaseModel):
     revision: Optional[str] = Field(
         ..., example="20fe52cce6a632c6eb09fdc5b3e1594f926eea69"
@@ -70,6 +79,7 @@ class ParticularRevisionSchema(BaseModel):
     categories: Optional[List[str]] = Field(
         None, example=["science", "manifest"]
     )
+    similar_revisions: Optional[List[RevisionLink]] = Field(None)
 
 
 class DocForSaveSchema(BaseModel):
@@ -88,6 +98,7 @@ class DocForSaveSchema(BaseModel):
     categories: Optional[List[str]] = Field(
         None, example=["science", "manifest"]
     )
+    similar_revisions: Optional[List[RevisionLink]] = Field(None)
 
     @root_validator
     def one_field_empty_other_filled_check(cls, values):
@@ -172,6 +183,22 @@ class AnnotatedDocSchema(BaseModel):
     failed_validation_pages: Set[int] = Field(..., ge=1, example={3, 4})
     tenant: str = Field(..., example="badger-doc")
     task_id: int = Field(None, example=2)
+    similar_revisions: Optional[List[RevisionLink]] = Field(None)
+
+    @classmethod
+    def from_orm(cls, obj):
+        value = super().from_orm(obj)
+        if links := obj.links:
+            value.similar_revisions = [
+                RevisionLink(
+                    revision=link.similar_doc.revision,
+                    job_id=link.similar_doc.job_id,
+                    file_id=link.similar_doc.file_id,
+                    label=link.label,
+                )
+                for link in links
+            ]
+        return value
 
     class Config:
         orm_mode = True
