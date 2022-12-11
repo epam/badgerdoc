@@ -108,8 +108,8 @@ REV_WITHOUT_ANNOTATION_DOC_3 = {
     "failed_validation_pages": [],
 }
 REV_WITHOUT_ANNOTATION_RESPONSE = [
-    REV_WITHOUT_ANNOTATION_DOC_1,
-    REV_WITHOUT_ANNOTATION_DOC_2,
+    {**REV_WITHOUT_ANNOTATION_DOC_1, "similar_revisions": None},
+    {**REV_WITHOUT_ANNOTATION_DOC_2, "similar_revisions": None},
 ]
 
 
@@ -131,7 +131,7 @@ def construct_rev_without_annotation_path(job_id: int, file_id: int) -> str:
             FILE_ID_2,
             DIFF_TENANT,
             200,
-            [REV_WITHOUT_ANNOTATION_DOC_3],
+            [{**REV_WITHOUT_ANNOTATION_DOC_3, "similar_revisions": None}],
         ),  # get list of one revision
         (
             NOT_EXISTING_ID,

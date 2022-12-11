@@ -173,23 +173,9 @@ def post_annotation_by_user(
         .order_by(desc(AnnotatedDoc.date))
         .first()
     )
-
-    if latest_doc is None or latest_doc.revision == doc.base_revision:
-        new_annotated_doc = construct_annotated_doc(
-            db=db,
-            user_id=doc.user,
-            pipeline_id=None,
-            job_id=task.job_id,
-            file_id=task.file_id,
-            doc=doc,
-            tenant=x_current_tenant,
-            s3_file_path=s3_file_path,
-            s3_file_bucket=s3_file_bucket,
-            latest_doc=latest_doc,
-            task_id=task_id,
-            is_latest=True,
-        )
-    else:
+    is_latest = True
+    if latest_doc is not None and latest_doc.revision != doc.base_revision:
+        is_latest = False
         for page in doc.pages:
             if str(page.page_num) in latest_doc.pages:
                 # non mvp case
@@ -203,7 +189,7 @@ def post_annotation_by_user(
                     f"and page with number {page.page_num} "
                     f"already exists in latest revision.",
                 )
-
+    try:
         new_annotated_doc = construct_annotated_doc(
             db=db,
             user_id=doc.user,
@@ -216,8 +202,13 @@ def post_annotation_by_user(
             s3_file_bucket=s3_file_bucket,
             latest_doc=latest_doc,
             task_id=task_id,
-            is_latest=False,
+            is_latest=is_latest,
         )
+    except ValueError as err:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Cannot assign similar documents: {err}",
+        ) from err
     check_if_kafka_message_is_needed(
         db,
         latest_doc,
@@ -290,21 +281,26 @@ def post_annotation_by_pipeline(
         .order_by(desc(AnnotatedDoc.date))
         .first()
     )
-
-    new_annotated_doc = construct_annotated_doc(
-        db=db,
-        user_id=None,
-        pipeline_id=doc.pipeline,
-        job_id=job_id,
-        file_id=file_id,
-        doc=doc,
-        tenant=x_current_tenant,
-        s3_file_path=s3_file_path,
-        s3_file_bucket=s3_file_bucket,
-        latest_doc=latest_doc,
-        task_id=None,
-        is_latest=True,
-    )
+    try:
+        new_annotated_doc = construct_annotated_doc(
+            db=db,
+            user_id=None,
+            pipeline_id=doc.pipeline,
+            job_id=job_id,
+            file_id=file_id,
+            doc=doc,
+            tenant=x_current_tenant,
+            s3_file_path=s3_file_path,
+            s3_file_bucket=s3_file_bucket,
+            latest_doc=latest_doc,
+            task_id=None,
+            is_latest=True,
+        )
+    except ValueError as err:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Cannot assign similar documents: {err}",
+        ) from err
     check_if_kafka_message_is_needed(
         db,
         latest_doc,

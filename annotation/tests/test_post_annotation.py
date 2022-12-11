@@ -535,6 +535,7 @@ ANNOTATED_DOC_FIRST = {
     "failed_validation_pages": [],
     "tenant": POST_ANNOTATION_PG_DOC.tenant,
     "task_id": POST_ANNOTATION_PG_TASK_1.id,
+    "similar_revisions": None,
 }
 ANNOTATED_DOC_PIPELINE_FIRST = {
     "revision": sha1(
@@ -556,6 +557,7 @@ ANNOTATED_DOC_PIPELINE_FIRST = {
         ).hexdigest()
     },
     "tenant": POST_ANNOTATION_PG_DOC.tenant,
+    "similar_revisions": None,
 }
 
 ANNOTATED_DOC_WITH_DIFFERENT_JOB_AND_FILE = copy.deepcopy(ANNOTATED_DOC_FIRST)
@@ -605,6 +607,7 @@ ANNOTATED_DOC_WITH_MANY_PAGES = {
     "failed_validation_pages": [],
     "tenant": POST_ANNOTATION_PG_DOC.tenant,
     "task_id": POST_ANNOTATION_PG_DOC.task_id,
+    "similar_revisions": None,
 }
 
 ANNOTATED_DOC_WITH_BASE_REVISION = {
@@ -2053,11 +2056,27 @@ def test_construct_annotated_doc_different_jobs_and_files(
     assert obj_1.key == expected_path_1
     assert obj_2.key == expected_path_2
 
-    assert doc_1_in_db == expected_result_1
-    assert doc_2_in_db == expected_result_2
+    assert doc_1_in_db == {
+        k: v
+        for k, v in expected_result_1.items()
+        if k not in ("similar_revisions",)
+    }
+    assert doc_2_in_db == {
+        k: v
+        for k, v in expected_result_2.items()
+        if k not in ("similar_revisions",)
+    }
 
-    assert formatted_actual_doc_1 == expected_result_1
-    assert formatted_actual_doc_2 == expected_result_2
+    assert formatted_actual_doc_1 == {
+        k: v
+        for k, v in expected_result_1.items()
+        if k not in ("similar_revisions",)
+    }
+    assert formatted_actual_doc_2 == {
+        k: v
+        for k, v in expected_result_2.items()
+        if k not in ("similar_revisions",)
+    }
 
 
 @pytest.mark.integration
@@ -2174,6 +2193,170 @@ def test_post_annotation_by_pipeline_two_eq_revs_in_a_row(
     assert amount_of_docs_after_commit == 1
 
 
+@pytest.mark.unittest
+@pytest.mark.parametrize(
+    ["pages", "validated", "failed", "task_pages"],
+    [
+        (
+            [
+                PageSchema(page_num=10, size={}, objs=[]),
+            ],
+            {1},
+            {2},
+            {1, 2, 3},
+        ),
+        (
+            [
+                PageSchema(page_num=1, size={}, objs=[]),
+            ],
+            {10},
+            {2},
+            {1, 2, 3},
+        ),
+        (
+            [
+                PageSchema(page_num=1, size={}, objs=[]),
+            ],
+            {1},
+            {20},
+            {1, 2, 3},
+        ),
+        (
+            [
+                PageSchema(page_num=100, size={}, objs=[]),
+            ],
+            {10},
+            {20},
+            {1, 2, 3},
+        ),
+    ],
+)
+def test_check_task_pages(pages, validated, failed, task_pages):
+    with pytest.raises(HTTPException):
+        check_task_pages(pages, validated, failed, task_pages)
+
+
+@pytest.mark.integration
+@patch("app.annotations.main.KafkaProducer", Mock)
+@responses.activate
+def test_post_annotation_by_user_assign_similar_doc(
+    mock_minio_empty_bucket,
+    prepare_db_for_post_annotation,
+) -> None:
+    responses.add(
+        responses.POST,
+        ASSETS_FILES_URL,
+        json=ASSETS_RESPONSES[0],
+        status=200,
+        headers=TEST_HEADERS,
+    )
+    doc_1 = DOC_FOR_FIRST_SAVE_BY_USER
+    doc_2 = {
+        **DOC_FOR_SECOND_SAVE_BY_USER,
+        "similar_revisions": [
+            {
+                "revision": ANNOTATED_DOC_FIRST["revision"],
+                "job_id": ANNOTATED_DOC_FIRST["job_id"],
+                "file_id": ANNOTATED_DOC_FIRST["file_id"],
+                "label": "18d3d189e73a4680bfa77ba3fe6ebee5",
+            }
+        ],
+        "validated": [2],
+        "pages": [{**doc_1["pages"][0], "page_num": 2}],
+    }
+    del doc_2["base_revision"]
+    with TestClient(app):
+        mock_producer = producers["search_annotation"]
+        mock_producer.send = Mock(return_value="any_message")
+        result_1 = client.post(
+            f"{ANNOTATION_PATH}/{TASK_ID}",
+            headers={
+                HEADER_TENANT: POST_ANNOTATION_PG_DOC.tenant,
+                AUTHORIZATION: f"{BEARER} {TEST_TOKEN}",
+            },
+            json=doc_1,
+        ).json()
+        result_2 = client.post(
+            f"{ANNOTATION_PATH}/{TASK_ID}",
+            headers={
+                HEADER_TENANT: POST_ANNOTATION_PG_DOC.tenant,
+                AUTHORIZATION: f"{BEARER} {TEST_TOKEN}",
+            },
+            json=doc_2,
+        )
+    assert result_2.status_code == 201
+    similar_revision = result_2.json()["similar_revisions"][0]
+    assert similar_revision["revision"] == result_1["revision"]
+    assert similar_revision["job_id"] == result_1["job_id"]
+    assert similar_revision["file_id"] == result_1["file_id"]
+    assert similar_revision["label"] == "18d3d189e73a4680bfa77ba3fe6ebee5"
+
+
+@pytest.mark.integration
+@patch("app.annotations.main.KafkaProducer", Mock)
+@responses.activate
+@pytest.mark.parametrize(
+    ("revision", "label"),
+    (
+        (ANNOTATED_DOC_FIRST["revision"], "invalid_category"),
+        ("invalid_revision", "18d3d189e73a4680bfa77ba3fe6ebee5"),
+        ("invalid_revision", "invalid_category"),
+    ),
+)
+def test_post_annotation_by_user_similar_doc_no_category(
+    mock_minio_empty_bucket,
+    prepare_db_for_post_annotation,
+    revision: str,
+    label: str,
+) -> None:
+    responses.add(
+        responses.POST,
+        ASSETS_FILES_URL,
+        json=ASSETS_RESPONSES[0],
+        status=200,
+        headers=TEST_HEADERS,
+    )
+    doc_1 = DOC_FOR_FIRST_SAVE_BY_USER
+    doc_2 = {
+        **DOC_FOR_SECOND_SAVE_BY_USER,
+        "similar_revisions": [
+            {
+                "revision": revision,
+                "job_id": ANNOTATED_DOC_FIRST["job_id"],
+                "file_id": ANNOTATED_DOC_FIRST["file_id"],
+                "label": label,
+            }
+        ],
+        "validated": [2],
+        "pages": [{**doc_1["pages"][0], "page_num": 2}],
+    }
+    del doc_2["base_revision"]
+    with TestClient(app):
+        mock_producer = producers["search_annotation"]
+        mock_producer.send = Mock(return_value="any_message")
+        client.post(
+            f"{ANNOTATION_PATH}/{TASK_ID}",
+            headers={
+                HEADER_TENANT: POST_ANNOTATION_PG_DOC.tenant,
+                AUTHORIZATION: f"{BEARER} {TEST_TOKEN}",
+            },
+            json=doc_1,
+        ).json()
+        result = client.post(
+            f"{ANNOTATION_PATH}/{TASK_ID}",
+            headers={
+                HEADER_TENANT: POST_ANNOTATION_PG_DOC.tenant,
+                AUTHORIZATION: f"{BEARER} {TEST_TOKEN}",
+            },
+            json=doc_2,
+        )
+    assert result.status_code == 404
+    assert (
+        result.json()["detail"] == "Cannot assign similar documents: "
+        "No such documents or labels to link to"
+    )
+
+
 @pytest.mark.integration
 @pytest.mark.parametrize(
     ["task", "doc"],
@@ -2262,46 +2445,3 @@ def test_post_user_annotation_wrong_task_statuses(
     assert expected_message in annotation_response.text
     db_task = session.query(ManualAnnotationTask).get(task_id)
     assert db_task.status == task_initial_status
-
-
-@pytest.mark.unittest
-@pytest.mark.parametrize(
-    ["pages", "validated", "failed", "task_pages"],
-    [
-        (
-            [
-                PageSchema(page_num=10, size={}, objs=[]),
-            ],
-            {1},
-            {2},
-            {1, 2, 3},
-        ),
-        (
-            [
-                PageSchema(page_num=1, size={}, objs=[]),
-            ],
-            {10},
-            {2},
-            {1, 2, 3},
-        ),
-        (
-            [
-                PageSchema(page_num=1, size={}, objs=[]),
-            ],
-            {1},
-            {20},
-            {1, 2, 3},
-        ),
-        (
-            [
-                PageSchema(page_num=100, size={}, objs=[]),
-            ],
-            {10},
-            {20},
-            {1, 2, 3},
-        ),
-    ],
-)
-def test_check_task_pages(pages, validated, failed, task_pages):
-    with pytest.raises(HTTPException):
-        check_task_pages(pages, validated, failed, task_pages)

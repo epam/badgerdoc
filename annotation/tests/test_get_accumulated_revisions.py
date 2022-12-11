@@ -124,6 +124,7 @@ EMPTY_RESPONSE = dict(
     validated=[],
     failed_validation_pages=[],
     categories=None,
+    similar_revisions=None,
 )
 LATEST_WITH_ALL_PAGES = dict(
     revision=DOCS[2].revision,
@@ -147,6 +148,7 @@ LATEST_WITH_ALL_PAGES = dict(
     validated=[3, 4, 5],
     failed_validation_pages=[1],
     categories=["test_category_1", "test_category_2"],
+    similar_revisions=None,
 )
 
 
@@ -190,6 +192,7 @@ LATEST_WITH_ALL_PAGES = dict(
                 validated=[5],
                 failed_validation_pages=[1],
                 categories=["test_category_1", "test_category_2"],
+                similar_revisions=None,
             ),
         ),
         # find first revision and accumulate
@@ -218,6 +221,7 @@ LATEST_WITH_ALL_PAGES = dict(
                 validated=[3],
                 failed_validation_pages=[4],
                 categories=["test_category_1", "test_category_2"],
+                similar_revisions=None,
             ),
         ),
         # find first revision and accumulate
@@ -245,6 +249,7 @@ LATEST_WITH_ALL_PAGES = dict(
                 validated=[3],
                 failed_validation_pages=[],
                 categories=["test_category_1", "test_category_2"],
+                similar_revisions=None,
             ),
         ),
         # find second revision and accumulate
@@ -273,6 +278,7 @@ LATEST_WITH_ALL_PAGES = dict(
                 validated=[3, 4],
                 failed_validation_pages=[1],
                 categories=["test_category_1", "test_category_2"],
+                similar_revisions=None,
             ),
         ),
         # find second revision and accumulate
@@ -292,6 +298,7 @@ LATEST_WITH_ALL_PAGES = dict(
                 validated=[],
                 failed_validation_pages=[],
                 categories=["test_category_1", "test_category_2"],
+                similar_revisions=None,
             ),
         ),
         # TODO: rework test for 404 case

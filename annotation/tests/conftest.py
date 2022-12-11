@@ -1,7 +1,7 @@
 import contextlib
 import json
 import random
-from typing import Iterable
+from typing import Iterable, List
 from unittest.mock import Mock
 
 import boto3
@@ -22,6 +22,7 @@ from app.jobs import update_user_overall_load
 from app.models import (
     AnnotatedDoc,
     Category,
+    DocumentLinks,
     File,
     Job,
     ManualAnnotationTask,
@@ -29,6 +30,7 @@ from app.models import (
 )
 from app.schemas import (
     AnnotationStatisticsInputSchema,
+    CategoryTypeSchema,
     FileStatusEnumSchema,
     JobStatusEnumSchema,
     TaskStatusEnumSchema,
@@ -352,17 +354,37 @@ def minio_with_manifest(empty_bucket):
 
 
 @pytest.fixture(scope="module")
-def prepare_db_for_get_revisions(db_session):
+def prepare_db_for_get_revisions(db_session) -> List[AnnotatedDoc]:
     db_session.add_all([User(user_id=annotator) for annotator in USERS_IDS])
     db_session.commit()
-    db_session.add_all(
-        [AnnotatedDoc(**revision) for revision in REVISIONS[:16]]
-    )
+    all_revisions = [AnnotatedDoc(**revision) for revision in REVISIONS[:16]]
+    db_session.add_all(all_revisions)
     db_session.commit()
 
-    yield db_session
+    yield all_revisions
 
     clear_db()
+
+
+@pytest.fixture(scope="module")
+def prepare_db_for_get_revisions_similar(
+    prepare_db_for_get_revisions: List[AnnotatedDoc],
+    db_session,
+) -> DocumentLinks:
+    similarity_category = Category(
+        id="pair_classification",
+        name="pair classification",
+        type=CategoryTypeSchema.link,
+    )
+    document_link = DocumentLinks(
+        original_doc=prepare_db_for_get_revisions[0],
+        similar_doc=prepare_db_for_get_revisions[1],
+        label="pair_classification",
+    )
+    db_session.add(similarity_category)
+    db_session.add(document_link)
+    db_session.commit()
+    yield document_link
 
 
 @pytest.fixture

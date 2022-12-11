@@ -8,6 +8,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.annotations import S3_START_PATH
+from app.models import DocumentLinks
 from tests.consts import ANNOTATION_PATH
 from tests.override_app_dependency import TEST_HEADERS, TEST_TENANT, app
 
@@ -44,7 +45,7 @@ PIPELINES = (
     8,
 )
 PAGE = {
-    "page_number": 1,
+    "page_num": 1,
     "size": {"width": float(1), "height": float(1)},
     "objs": [
         {
@@ -735,3 +736,35 @@ def test_get_all_revisions(
     )
     assert response.status_code == expected_status_code
     assert response.json() == expected_all_revisions[expected_response_key]
+
+
+@pytest.mark.integration
+def test_get_annotation_with_similarity(
+    monkeypatch,
+    prepare_moto_s3_for_get_revisions,
+    prepare_db_for_get_revisions_similar: DocumentLinks,
+) -> None:
+    monkeypatch.setattr(
+        "app.annotations.main.connect_s3",
+        Mock(return_value=prepare_moto_s3_for_get_revisions),
+    )
+    manifest_file_mock = {"categories": ["1"]}
+    with patch(
+        "app.annotations.main.get_file_manifest",
+        return_value=manifest_file_mock,
+    ):
+        response = client.get(
+            f"{ANNOTATION_PATH}/"
+            f"{prepare_db_for_get_revisions_similar.original_job_id}/"
+            f"{prepare_db_for_get_revisions_similar.original_file_id}/"
+            f"{prepare_db_for_get_revisions_similar.original_revision}",
+            headers=TEST_HEADERS,
+            params={"page_numbers": [1]},
+        )
+    expected_link = prepare_db_for_get_revisions_similar
+    assert response.status_code == 200
+    similar_revision = response.json()["similar_revisions"][0]
+    assert similar_revision["revision"] == expected_link.similar_revision
+    assert similar_revision["job_id"] == expected_link.similar_job_id
+    assert similar_revision["file_id"] == expected_link.similar_file_id
+    assert similar_revision["label"] == expected_link.label
