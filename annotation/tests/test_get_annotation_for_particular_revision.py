@@ -85,6 +85,7 @@ PART_REV_RESPONSE = {
     "validated": PART_REV_DOC.validated,
     "failed_validation_pages": PART_REV_DOC.failed_validation_pages,
     "categories": None,
+    "similar_revisions": None,
 }
 
 
