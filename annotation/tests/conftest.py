@@ -567,6 +567,35 @@ def prepare_db_categories_for_filtration(db_session):
 
 
 @pytest.fixture
+def prepare_categories_with_tree(db_session):
+    path = ''
+    categories = []
+    for number in range(1, 16):
+        if path:
+            path = f"{path}.{number + 2}"
+        else:
+            path = str(number + 2)
+        cat = Category(
+            id=str(number + 2),
+            tenant=None,
+            name=f"Table{number}",
+            type="box",
+            tree=sqlalchemy_utils.Ltree(path),
+        )
+        categories.append(cat)
+
+    for cat in categories:
+        db_session.add(cat)
+    try:
+        db_session.commit()
+    except FlushError:
+        db_session.rollback()
+    yield db_session
+
+    clear_db()
+
+
+@pytest.fixture
 def prepare_db_categories_for_distinct_filtration(db_session):
     category_editor = Category(
         id="1", tenant=TEST_TENANT, name="Title", editor="person", type="box"

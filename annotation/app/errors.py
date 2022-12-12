@@ -6,6 +6,9 @@ from fastapi.responses import JSONResponse
 from requests import RequestException
 from sqlalchemy.exc import DBAPIError, SQLAlchemyError
 
+from app import logger as app_logger
+
+logger = app_logger.Logger
 
 class NoSuchRevisionsError(Exception):
     pass
@@ -147,4 +150,12 @@ def taxonomy_link_error_handler(request: Request, exc: TaxonomyLinkException):
     return JSONResponse(
         status_code=400,
         content={"detail": f"Taxonomy link error. {exc.exc_info}"},
+    )
+
+
+def debug_exception_handler(request: Request, exc: Exception):
+    logger.exception(exc)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": f"Internal server error. {exc}"},
     )

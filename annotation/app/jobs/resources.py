@@ -130,6 +130,7 @@ def post_job(
             tenant=x_current_tenant,
             status=JobStatusEnumSchema.pending,
             job_type=job_type,
+            extensive_coverage=job_info.extensive_coverage,
         )
     )
 
@@ -183,6 +184,7 @@ def post_job(
             job_id,
             validation_type,
             deadline=job_info.deadline,
+            extensive_coverage=job_info.extensive_coverage
         )
 
     db.commit()

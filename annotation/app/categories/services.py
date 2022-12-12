@@ -214,7 +214,7 @@ def fetch_bunch_categories_db(
             )
         )
     wrong_categories = {
-        category.id for category in categories
+        cat.id for cat in categories
     }.symmetric_difference(category_ids)
 
     if not TEMP_PATCH_EXCLUDE_DIFF and wrong_categories:
@@ -257,19 +257,14 @@ def _extract_category(
     path: str, categories: Dict[str, Category]
 ) -> List[Category]:
     return [
-        CategoryResponseSchema.parse_obj(
-            {
-                **CategoryORMSchema.from_orm(categories[node]).dict(),
-                "is_leaf": False,
-            }
-        )
+        categories[node]
         for node in path.split(".")[0:-1]
     ]
 
 
 def _get_parents(
     db: Session,
-    categories: List[Category],
+    categories_leaf_mapping: List[Category],
     tenant: str,
     job_id: Optional[int] = None,
 ) -> Parents:
@@ -277,9 +272,10 @@ def _get_parents(
     uniq_cats = set()
     uniq_pathes = set()
 
-    for cat in categories:
-        uniq_pathes.add(cat.tree.path)
-        uniq_cats = uniq_cats.union({tree.path for tree in cat.tree})
+    for cat in categories_leaf_mapping:
+        if cat.tree is not None:
+            uniq_pathes.add(cat.tree.path)
+            uniq_cats = uniq_cats.union({tree.path for tree in cat.tree})
 
     category_to_object = {
         cat.id: cat

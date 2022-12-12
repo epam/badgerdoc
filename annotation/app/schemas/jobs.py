@@ -68,7 +68,7 @@ class JobInfoSchema(BaseModel):
     job_type: JobTypeEnumSchema = Field(
         ..., example=JobTypeEnumSchema.ExtractionJob
     )
-    extensive_coverage: Optional[int] = Field(None, example=1)
+    extensive_coverage: int = Field(1, example=1,)
 
     @root_validator
     def check_files_and_datasets(cls, values):

@@ -71,6 +71,7 @@ def create_annotation_job(
         creation_datetime=datetime.utcnow(),
         deadline=annotation_job_input.deadline,
         validation_type=annotation_job_input.validation_type,
+        extensive_coverage=annotation_job_input.extensive_coverage,
     )
     db.add(job_row)
     db.commit()
@@ -108,6 +109,7 @@ def create_extraction_annotation_job(
         pipeline_id=pipeline_id,
         all_files_data=all_files_data,
         start_manual_job_automatically=extraction_annotation_job_input.start_manual_job_automatically,
+        extensive_coverage=extraction_annotation_job_input.extensive_coverage,
     )
     db.add(job_row)
     db.commit()
