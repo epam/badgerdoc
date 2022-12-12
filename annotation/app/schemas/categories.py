@@ -56,6 +56,10 @@ class CategoryORMSchema(CategoryInputSchema):
         None, example={"color": "blue"}, alias="metadata_"
     )
 
+    # quick fix
+    def __hash__(self):
+        return hash((type(self),) + tuple(self.__dict__.values()))
+
     class Config:
         orm_mode = True
 
