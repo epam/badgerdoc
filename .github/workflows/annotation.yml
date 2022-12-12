@@ -60,7 +60,7 @@ jobs:
           python -m pip install --upgrade pip
           cd annotation
           pip install poetry pytest alembic python-dotenv psycopg2-binary
-          poetry install --all-extras
+          poetry install --no-root
           poetry add --editable ../lib/filter_lib
           poetry add --editable ../lib/tenants
           alembic upgrade head
