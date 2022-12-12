@@ -8,48 +8,55 @@ on:
 #    paths:
 #      - 'annotation/**'
 jobs:
-  annotation-pre-commit-actions:
-    strategy:
-      matrix:
-        python-version: [ "3.8.15" ]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python-version }}
-          cache: 'pip'
-      - name: Run isort
-        uses: isort/isort-action@v1.1.0
-        with:
-          configuration:
-            --profile=black
-            --filter-files
-            --line-length=79
-      - name: Black
-        uses: psf/black@stable
-        with:
-          options: "--line-length=79"
-      - run: pip install flake8
-      - run: flake8 --extend-ignore=E203 annotation
+#  annotation-pre-commit-actions:
+#    strategy:
+#      matrix:
+#        python-version: [ "3.8.15" ]
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v3
+#      - uses: actions/setup-python@v4
+#        with:
+#          python-version: ${{ matrix.python-version }}
+#          cache: 'pip'
+#      - name: Run isort
+#        uses: isort/isort-action@v1.1.0
+#        with:
+#          configuration:
+#            --profile=black
+#            --filter-files
+#            --line-length=79
+#      - name: Black
+#        uses: psf/black@stable
+#        with:
+#          options: "--line-length=79"
+#      - run: pip install flake8
+#      - run: flake8 --extend-ignore=E203 annotation
   annotation-build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: [ "3.8.15" ]
     services:
-      postgres-postgresql:
-        image: postgres
+      postgres:
+        image: postgres:13
+        ports:
+          - 5432:5432
         env:
-          POSTGRES_DB: annotation
+          POSTGRES_HOST_AUTH_METHOD: trust
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+        options: --name=postgres --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
+      - name: Install PostgreSQL client
+        run: |
+          apt-get update
+          apt-get install --yes postgresql-client
+      - name: Setup database
+        run: psql -h 127.0.0.1 -U postgres -c 'CREATE DATABASE "annotation";'
+        env:
+          PGPASSWORD: postgres
+
       - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
@@ -69,8 +76,8 @@ jobs:
           cd annotation
           poetry run pytest --cov-report= --cov=app tests -m unittest
         env:
-          POSTGRES_HOST: 127.0.0.1
-          POSTGRES_PORT: 5432
+#          POSTGRES_HOST: localhost
+#          POSTGRES_PORT: 5432
           POSTGRES_DB: annotation
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
