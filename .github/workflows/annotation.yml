@@ -59,13 +59,10 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           cd annotation
-          pip install poetry pytest alembic python-dotenv
           poetry install --all-extras
           poetry add --editable ../lib/filter_lib
           poetry add --editable ../lib/tenants
-      - name: Test with pytest
-        run: |
-          cd annotation
+          pip install poetry pytest alembic python-dotenv
           alembic upgrade head
           poetry run pytest --cov-report= --cov=app tests -m unittest
         env:
