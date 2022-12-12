@@ -44,7 +44,7 @@ const UsersPickers: FC<UsersPickersProps> = ({ lens, users }) => {
         cross: [owners, annotatorsAndValidators],
         hierarchical: [owners, annotators, validators],
         'validation only': [owners, validators],
-        'extensive_coverage': [owners, annotators, validators]
+        extensive_coverage: [owners, annotators, validators]
     };
 
     const typeProps = propMap[lensValidationType];
