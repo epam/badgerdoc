@@ -62,7 +62,7 @@ const AddJobConnector: FC<AddJobConnectorProps> = ({
             jobName: { isRequired: true },
             pipeline: { isRequired: state.jobType === 'ExtractionJob' },
             start_manual_job_automatically: { isDisabled: !state.pipeline },
-            extensive_coverage: { isRequired: state.validationType === 'extensive coverage' }
+            extensive_coverage: { isRequired: state.validationType === 'extensive_coverage' }
         }
     });
 

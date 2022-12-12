@@ -21,7 +21,7 @@ const ValidationTypePicker: FC<ValidationTypePickerProps> = ({ lens }) => {
         { id: 'cross', caption: 'Cross validation' },
         { id: 'hierarchical', caption: 'Hierarchical validation' },
         { id: 'validation only', caption: 'Validation only' },
-        { id: 'extensive coverage', caption: 'Extensive Coverage' }
+        { id: 'extensive_coverage', caption: 'Extensive Coverage' }
     ];
 
     const validationTypesData = pipeline

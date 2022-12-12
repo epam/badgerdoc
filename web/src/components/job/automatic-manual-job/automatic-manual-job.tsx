@@ -39,7 +39,7 @@ const AutomaticManualJob: FC<AutomaticManualJobProps> = ({
                 <DeadlinePicker lens={lens} />
             </div>
             <UsersPickers lens={lens} users={users} />
-            {vlidationType === 'extensive coverage' && <ExtensiveCoverageInput lens={lens} />}
+            {vlidationType === 'extensive_coverage' && <ExtensiveCoverageInput lens={lens} />}
 
             <div className="form-group">
                 <CategoriesPicker lens={lens} categories={categories} />
