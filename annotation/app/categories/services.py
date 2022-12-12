@@ -256,13 +256,17 @@ def _get_leaves(
 def _extract_category(
     path: str, categories: Dict[str, Category]
 ) -> List[Category]:
+    # return [
+    #     CategoryResponseSchema.parse_obj(
+    #         {
+    #             **CategoryORMSchema.from_orm(categories[node]).dict(),
+    #             "is_leaf": False,
+    #         }
+    #     )
+    #     for node in path.split(".")[0:-1]
+    # ]
     return [
-        CategoryResponseSchema.parse_obj(
-            {
-                **CategoryORMSchema.from_orm(categories[node]).dict(),
-                "is_leaf": False,
-            }
-        )
+        Category(**dict(categories[node].__dict__))
         for node in path.split(".")[0:-1]
     ]
 
