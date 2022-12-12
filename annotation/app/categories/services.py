@@ -278,8 +278,9 @@ def _get_parents(
     uniq_pathes = set()
 
     for cat in categories:
-        uniq_pathes.add(cat.tree.path)
-        uniq_cats = uniq_cats.union({tree.path for tree in cat.tree})
+        if cat.tree is not None:
+            uniq_pathes.add(cat.tree.path)
+            uniq_cats = uniq_cats.union({tree.path for tree in cat.tree})
 
     category_to_object = {
         cat.id: cat

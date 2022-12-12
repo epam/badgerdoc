@@ -107,7 +107,10 @@ def distribute(
         x.__dict__ for x in validators if x.default_load  # type: ignore
     ]
     if annotators:
-        if extensive_coverage <= 1:
+        if (
+            validation_type != ValidationSchema.extensive_coverage
+            and extensive_coverage <= 1
+        ):
             annotation_tasks = distribute_tasks(
                 annotated_files_pages,
                 files,
