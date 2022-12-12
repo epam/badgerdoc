@@ -46,7 +46,7 @@ jobs:
           POSTGRES_HOST_AUTH_METHOD: trust
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-        options: --name=postgres-postgresql --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
 #      - name: Install PostgreSQL client
 #        run: |
@@ -76,8 +76,8 @@ jobs:
           cd annotation
           poetry run pytest --cov-report= --cov=app tests -m unittest
         env:
-#          POSTGRES_HOST: localhost
-#          POSTGRES_PORT: 5432
+          POSTGRES_HOST: 127.0.0.1
+          POSTGRES_PORT: 5432
           POSTGRES_DB: annotation
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
