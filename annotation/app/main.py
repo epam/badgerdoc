@@ -10,6 +10,7 @@ from app.annotations import resources as annotations_resources
 from app.categories import resources as categories_resources
 from app.distribution import resources as distribution_resources
 from app.errors import (
+    AgreementScoreServiceException,
     CheckFieldError,
     EnumValidationError,
     FieldConstraintError,
@@ -19,6 +20,7 @@ from app.errors import (
     SelfParentError,
     TaxonomyLinkException,
     WrongJobError,
+    agreement_score_service_error_handler,
     category_foreign_key_error_handler,
     category_parent_child_error_handler,
     category_unique_field_error_handler,
@@ -72,6 +74,9 @@ app.include_router(jobs_resources.router)
 app.include_router(categories_resources.router)
 app.include_router(revision_resources.router)
 
+app.add_exception_handler(
+    AgreementScoreServiceException, agreement_score_service_error_handler
+)
 app.add_exception_handler(
     NoSuchRevisionsError, no_such_revisions_error_handler
 )

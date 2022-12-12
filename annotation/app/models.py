@@ -5,6 +5,7 @@ from sqlalchemy import (
     VARCHAR,
     CheckConstraint,
     Column,
+    DateTime,
     ForeignKey,
     Index,
     Table,
@@ -17,6 +18,7 @@ from sqlalchemy_utils import LtreeType
 from app.database import Base
 from app.schemas import (
     DEFAULT_LOAD,
+    AnnotationStatisticsEventEnumSchema,
     CategoryTypeSchema,
     FileStatusEnumSchema,
     JobStatusEnumSchema,
@@ -158,7 +160,9 @@ class Job(Base):
     callback_url = Column(VARCHAR, nullable=False)
     deadline = Column(TIMESTAMP)
     tenant = Column(VARCHAR, nullable=False)
-    validation_type = Column(ENUM(ValidationSchema), nullable=False)
+    validation_type = Column(
+        ENUM(ValidationSchema, name="validation_type"), nullable=False
+    )
     status = Column(
         ENUM(JobStatusEnumSchema),
         nullable=False,
@@ -213,7 +217,7 @@ class File(Base):
         server_default="{}",
     )
     status = Column(
-        ENUM(FileStatusEnumSchema),
+        ENUM(FileStatusEnumSchema, name="file_status"),
         nullable=False,
         default=FileStatusEnumSchema.pending,
     )
@@ -244,3 +248,67 @@ class ManualAnnotationTask(Base):
     user = relationship("User", back_populates="tasks")
     jobs = relationship("Job", back_populates="tasks")
     docs = relationship("AnnotatedDoc", back_populates="tasks")
+    stats = relationship("AnnotationStatistics", back_populates="task")
+    agreement_scores = relationship("AgreementScore", back_populates="task")
+
+
+class AnnotationStatistics(Base):
+    __tablename__ = "annotation_statistics"
+    task_id = Column(
+        INTEGER,
+        ForeignKey("tasks.id", ondelete="cascade"),
+        nullable=False,
+        primary_key=True,
+    )
+    task = relationship("ManualAnnotationTask", back_populates="stats")
+    event_type = Column(
+        ENUM(AnnotationStatisticsEventEnumSchema, name="event_type"),
+        nullable=False,
+        default=AnnotationStatisticsEventEnumSchema.opened,
+    )
+    created = Column(DateTime(), server_default=func.now())
+    updated = Column(DateTime(), onupdate=func.now())
+    additional_data = Column(JSONB, nullable=True)
+
+    # TODO validate even_type not "closed" on create instance
+    def to_dict(self) -> dict:
+        return {
+            "task_id": self.task_id,
+            "event_date": self.event_date,
+            "event_type": self.event_type,
+            "additional_data": self.additional_data,
+        }
+
+
+class AgreementScore(Base):
+    __tablename__ = "agreement_score"
+    annotator_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("users.user_id"),
+        nullable=False,
+        primary_key=True,
+    )
+    job_id = Column(
+        INTEGER,
+        ForeignKey("jobs.job_id", ondelete="cascade"),
+        nullable=False,
+    )
+    task_id = Column(
+        INTEGER,
+        ForeignKey("tasks.id", ondelete="cascade"),
+        nullable=False,
+    )
+    task = relationship(
+        "ManualAnnotationTask", back_populates="agreement_scores"
+    )
+    agreement_score = Column(JSONB, nullable=False)
+
+    def get_stats(self):
+        return {
+            "annotator_id": self.annotator_id,
+            "task_id": self.task_id,
+            "task_status": self.task.status,
+            "time_start": self.task.stats.created,
+            "time_finish": self.task.stats.updated,
+            "agreement_score": self.agreement_score,
+        }

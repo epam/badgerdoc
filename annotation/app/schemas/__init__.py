@@ -37,7 +37,12 @@ from app.schemas.jobs import (
 )
 from app.schemas.metadata import EntitiesStatusesSchema
 from app.schemas.tasks import (
+    AgreementScoreServiceInput,
+    AgreementScoreServiceResponse,
     AnnotationAndValidationActionsSchema,
+    AnnotationStatisticsEventEnumSchema,
+    AnnotationStatisticsInputSchema,
+    AnnotationStatisticsResponseSchema,
     ExpandedManualAnnotationTaskSchema,
     ManualAnnotationTaskInSchema,
     ManualAnnotationTaskSchema,
@@ -52,6 +57,11 @@ from app.schemas.tasks import (
 
 __all__ = [
     AnnotatedDocSchema,
+    AgreementScoreServiceInput,
+    AgreementScoreServiceResponse,
+    AnnotationStatisticsEventEnumSchema,
+    AnnotationStatisticsInputSchema,
+    AnnotationStatisticsResponseSchema,
     CategoryDataAttributeNames,
     CategoryTypeSchema,
     DocForSaveSchema,

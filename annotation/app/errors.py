@@ -51,6 +51,11 @@ class TaxonomyLinkException(Exception):
         self.exc_info = exc_info
 
 
+class AgreementScoreServiceException(Exception):
+    def __init__(self, exc: Union[str, RequestException]):
+        self.exc = exc
+
+
 def no_such_revisions_error_handler(
     request: Request, exc: NoSuchRevisionsError
 ):
@@ -147,4 +152,13 @@ def taxonomy_link_error_handler(request: Request, exc: TaxonomyLinkException):
     return JSONResponse(
         status_code=400,
         content={"detail": f"Taxonomy link error. {exc.exc_info}"},
+    )
+
+
+def agreement_score_service_error_handler(
+    request: Request, exc: AgreementScoreServiceException
+):
+    return JSONResponse(
+        status_code=400,
+        content={"detail": f"Agreement score service error. {exc.exc_info}"},
     )

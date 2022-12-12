@@ -9,13 +9,17 @@ from app.errors import FieldConstraintError
 from app.filters import TaskFilter
 from app.jobs import update_files, update_user_overall_load
 from app.models import (
+    AgreementScore,
     AnnotatedDoc,
+    AnnotationStatistics,
     File,
     ManualAnnotationTask,
     association_job_annotator,
     association_job_validator,
 )
 from app.schemas import (
+    AgreementScoreServiceResponse,
+    AnnotationStatisticsInputSchema,
     ManualAnnotationTaskInSchema,
     TaskStatusEnumSchema,
     ValidationSchema,
@@ -381,3 +385,40 @@ def unblock_validation_tasks(db: Session, task: ManualAnnotationTask) -> None:
             {"status": TaskStatusEnumSchema.ready}, synchronize_session=False
         )
     )
+
+
+def get_task_stats_by_id(
+    db: Session,
+    task_id: int,
+) -> Optional[AnnotationStatistics]:
+    return (
+        db.query(AnnotationStatistics)
+        .filter(AnnotationStatistics.task_id == task_id)
+        .first()
+    )
+
+
+def add_task_stats_record(
+    db: Session,
+    task_id: int,
+    stats: AnnotationStatisticsInputSchema,
+) -> AnnotationStatistics:
+    stats_db = get_task_stats_by_id(db, task_id)
+
+    if stats_db:
+        for name, value in stats.dict().items():
+            setattr(stats_db, name, value)
+    else:
+        stats_db = AnnotationStatistics(task_id=task_id, **stats.dict())
+
+    db.add(stats_db)
+    db.commit()
+    return stats_db
+
+
+def save_agreement_scores(
+    db: Session, agreement_scores: List[AgreementScoreServiceResponse]
+) -> None:
+    objects = [AgreementScore(**score.dict()) for score in agreement_scores]
+    db.bulk_save_objects(objects)
+    db.commit()
