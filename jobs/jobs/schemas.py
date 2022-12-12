@@ -59,6 +59,7 @@ class AnnotationJobParams(BaseModel):
     deadline: datetime
     validation_type: ValidationType
     is_draft: bool = False
+    extensive_coverage: int = 1
 
 
 class ExtractionWithAnnotationJobParams(
