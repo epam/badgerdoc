@@ -155,7 +155,7 @@ def taxonomy_link_error_handler(request: Request, exc: TaxonomyLinkException):
 
 
 def debug_exception_handler(request: Request, exc: Exception):
-    logger.exceptions(exc)
+    logger.exception(exc)
     exc_info = traceback.format_exception(
         etype=type(exc), value=exc, tb=exc.__traceback__
     )
