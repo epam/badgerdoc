@@ -59,7 +59,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           cd annotation
-          pip install poetry pytest alembic
+          pip install poetry pytest alembic dotenv
           poetry install --all-extras
           poetry add --editable ../lib/filter_lib
           poetry add --editable ../lib/tenants
