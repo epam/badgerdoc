@@ -43,6 +43,7 @@ jobs:
         ports:
           - 5432:5432
         env:
+          POSTGRES_DB: annotation
           POSTGRES_HOST_AUTH_METHOD: trust
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -58,7 +59,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           cd annotation
-          pip install poetry pytest
+          pip install poetry pytest alembic
           poetry install --all-extras
           poetry add --editable ../lib/filter_lib
           poetry add --editable ../lib/tenants
@@ -70,6 +71,6 @@ jobs:
         env:
           POSTGRES_HOST: 127.0.0.1
           POSTGRES_PORT: 5432
-#          POSTGRES_DB: annotation
+          POSTGRES_DB: annotation
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
