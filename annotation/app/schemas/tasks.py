@@ -133,7 +133,7 @@ class AnnotationStatisticsInputSchema(BaseModel):
 class AnnotationStatisticsResponseSchema(AnnotationStatisticsInputSchema):
     task_id: int = Field(..., example=1)
     created: datetime = Field(..., example="2022-12-20 01:01:01")
-    updated: datetime = Field(..., example="2022-12-20 01:01:01")
+    updated: Optional[datetime] = Field(None, example="2022-12-20 01:01:01")
 
     class Config:
         orm_mode = True
@@ -156,4 +156,10 @@ class AgreementScoreServiceResponse(BaseModel):
     )
     job_id: int = Field(..., example=1)
     task_id: int = Field(..., example=1)
-    agreement_score: dict = Field(..., example={"attr1": "value1"})
+    agreement_score: Optional[dict] = Field(None, example={"attr1": "value1"})
+
+
+class ExportTaskStatsInput(BaseModel):
+    user_id: UUID = Field(..., example="e20af190-0f05-4cd8-ad51-811bfb19ad71")
+    date_from: datetime = Field(..., example="2020-12-20 01:01:01")
+    date_to: Optional[datetime] = Field(None, example="2025-12-20 01:01:01")

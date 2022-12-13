@@ -1,11 +1,14 @@
-from typing import List, Optional, Set
+import csv
+import io
+from datetime import datetime
+from typing import List, Optional, Set, Tuple
 
 from fastapi import HTTPException
 from filter_lib import Page, form_query, map_request_to_filter, paginate
 from sqlalchemy import and_, asc
 from sqlalchemy.orm import Session
 
-from app.errors import FieldConstraintError
+from app.errors import CheckFieldError, FieldConstraintError
 from app.filters import TaskFilter
 from app.jobs import update_files, update_user_overall_load
 from app.models import (
@@ -20,6 +23,7 @@ from app.models import (
 from app.schemas import (
     AgreementScoreServiceResponse,
     AnnotationStatisticsInputSchema,
+    ExportTaskStatsInput,
     ManualAnnotationTaskInSchema,
     TaskStatusEnumSchema,
     ValidationSchema,
@@ -408,7 +412,12 @@ def add_task_stats_record(
     if stats_db:
         for name, value in stats.dict().items():
             setattr(stats_db, name, value)
+        stats_db.updated = datetime.now()
     else:
+        if stats.event_type == "closed":
+            raise CheckFieldError(
+                "Attribute event_type can not start from 'close'."
+            )
         stats_db = AnnotationStatistics(task_id=task_id, **stats.dict())
 
     db.add(stats_db)
@@ -422,3 +431,62 @@ def save_agreement_scores(
     objects = [AgreementScore(**score.dict()) for score in agreement_scores]
     db.bulk_save_objects(objects)
     db.commit()
+
+
+def create_export_csv(
+    db: Session,
+    schema: ExportTaskStatsInput,
+    tenant: str,
+) -> Tuple[str, bytes]:
+    task_ids = {
+        task.id: {
+            "score": getattr(task.agreement_score, "agreement_score", None),
+            "annotator": getattr(task.agreement_score, "annotator_id", None),
+        }
+        for task in (
+            db.query(ManualAnnotationTask)
+            .filter(ManualAnnotationTask.user_id == schema.user_id)
+            .all()
+        )
+    }
+    if schema.date_to:
+        case = and_(
+            AnnotationStatistics.created >= schema.date_from,
+            AnnotationStatistics.updated <= schema.date_to,
+        )
+    else:
+        case = AnnotationStatistics.created >= schema.date_from
+
+    annotation_stats = [
+        {
+            "annotator_id": task_ids[stat.task_id]["annotator"],
+            "task_id": stat.task_id,
+            "task_status": stat.task.status.value,
+            "time_start": stat.created.strftime("%Y/%m/%d, %H:%M:%S"),
+            "time_finish": (
+                stat.updated.strftime("%Y/%m/%d, %H:%M:%S")
+                if stat.updated
+                else None
+            ),
+            "agreement_score": task_ids[stat.task_id]["score"],
+        }
+        for stat in (
+            db.query(AnnotationStatistics)
+            .filter(AnnotationStatistics.task_id.in_(task_ids))
+            .filter(case)
+            .all()
+        )
+    ]
+    binary = io.BytesIO()
+    # Prevent from closing
+    binary.close = lambda: None
+    with io.TextIOWrapper(binary, encoding="utf-8", newline="") as text_file:
+        keys = annotation_stats[0].keys()
+        dict_writer = csv.DictWriter(text_file, keys)
+        dict_writer.writeheader()
+        dict_writer.writerows(annotation_stats)
+    # Reset cursor
+    binary.seek(0)
+
+    today = datetime.today().strftime("%Y%m%d")
+    return f"annotator_stats_export_{today}.csv", binary

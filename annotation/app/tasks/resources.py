@@ -13,7 +13,7 @@ from fastapi import (
     Response,
     status,
 )
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from filter_lib import Page
 from sqlalchemy import and_, not_
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
@@ -55,6 +55,7 @@ from app.schemas import (
     BadRequestErrorSchema,
     ConnectionErrorSchema,
     ExpandedManualAnnotationTaskSchema,
+    ExportTaskStatsInput,
     FileStatusEnumSchema,
     JobStatusEnumSchema,
     ManualAnnotationTaskInSchema,
@@ -77,6 +78,7 @@ from ..models import File, Job, ManualAnnotationTask
 from .services import (
     add_task_stats_record,
     create_annotation_task,
+    create_export_csv,
     filter_tasks_db,
     get_task_info,
     get_task_revisions,
@@ -230,6 +232,33 @@ def add_task_stats(
         )
     stats_db = add_task_stats_record(db, task_id, stats)
     return AnnotationStatisticsResponseSchema.from_orm(stats_db)
+
+
+@router.post(
+    "/export",
+    status_code=status.HTTP_200_OK,
+    responses={
+        400: {"model": BadRequestErrorSchema},
+    },
+    summary="Export agreement score statistics for task by user_id and date",
+)
+def export_stats(
+    user_date_schema: ExportTaskStatsInput,
+    db: Session = Depends(get_db),
+    x_current_tenant: str = X_CURRENT_TENANT_HEADER,
+) -> StreamingResponse:
+    file_name, csv_file_binary = create_export_csv(
+        db=db,
+        schema=user_date_schema,
+        tenant=x_current_tenant,
+    )
+    media_type = "text/csv"
+    headers = {"Content-Disposition": f"attachment; filename={file_name}"}
+    return StreamingResponse(
+        csv_file_binary,
+        headers=headers,
+        media_type=media_type,
+    )
 
 
 @router.get(
