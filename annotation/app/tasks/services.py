@@ -445,7 +445,7 @@ def create_export_csv(
         }
         for task in (
             db.query(ManualAnnotationTask)
-            .filter(ManualAnnotationTask.user_id == schema.user_id)
+            .filter(ManualAnnotationTask.user_id.in_(schema.user_ids))
             .all()
         )
     }
