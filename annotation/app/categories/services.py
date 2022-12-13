@@ -291,12 +291,26 @@ def _get_parents(
 def _compose_response(
     categories: List[Category], leaves: Leaves, parents: Parents
 ) -> List[CategoryResponseSchema]:
+    logger.info(categories)
+    logger.info(leaves)
+    logger.info(parents)
+    converted_parents = {}
+    for parent_path in parents:
+        converted_parents[parent_path] = [
+            CategoryResponseSchema.parse_obj(
+                {
+                    **CategoryORMSchema.from_orm(cat).dict(),
+                    "is_leaf": False,
+                }
+            )
+            for cat in parents[parent_path]
+        ]
     return [
         CategoryResponseSchema.parse_obj(
             {
                 **CategoryORMSchema.from_orm(cat).dict(),
                 "is_leaf": leaves.get(cat.id, False),
-                "parents": parents.get(cat.tree.path, []),
+                "parents": converted_parents.get(cat.tree.path, []),
             }
         )
         for cat in categories

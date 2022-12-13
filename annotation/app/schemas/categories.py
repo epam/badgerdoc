@@ -65,9 +65,5 @@ class CategoryResponseSchema(CategoryInputSchema):
     parents: Optional[List[dict]] = Field()
     is_leaf: Optional[bool] = Field()
 
-    # quick fix
-    def __hash__(self):
-        return hash((type(self),) + tuple(self.__dict__.values()))
-
     class Config:
         allow_population_by_field_name = True
