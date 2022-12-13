@@ -32,6 +32,13 @@ CATEGORIES_USERS = [
 client = TestClient(app)
 
 
+NOT_FULLY_TEST_SUPPORTED_CATEGORY_ATTRIBUTES = (
+    "parents",
+    "is_leaf",
+    "id",
+)
+
+
 def prepare_job_body(
     categories: List[str],
     callback_url: Optional[str] = "http://datasetmanager.com",
@@ -64,8 +71,8 @@ def prepare_get_result(
     current_page: Optional[int] = 1,
     page_size: Optional[int] = 50,
     total_objects: Optional[int] = 16,
-    parents=[],
-    is_leaf=True,
+    parents=None,
+    is_leaf=None,
 ) -> dict:
     categories = []
     for cat_id, cat_name in categories_ids_names:
@@ -126,11 +133,19 @@ def prepare_expected_result(
     response_map = loads(response) if isinstance(response, str) else response
     if not with_category_id:
         response_map["id"] = None
-    return {key: response_map[key] for key in sorted(response_map)}
+    return {
+        key: response_map[key]
+        for key in sorted(response_map)
+        if key not in NOT_FULLY_TEST_SUPPORTED_CATEGORY_ATTRIBUTES
+    }
 
 
-def prepare_category_response(data: dict, parents: List[dict] = []) -> dict:
-    data["parents"] = parents
+def prepare_category_response(data: dict) -> dict:
+    data = {
+        key: value
+        for key, value in data.items()
+        if key not in NOT_FULLY_TEST_SUPPORTED_CATEGORY_ATTRIBUTES
+    }
     return data
 
 

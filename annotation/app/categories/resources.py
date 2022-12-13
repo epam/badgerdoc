@@ -82,7 +82,9 @@ def fetch_category(
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
 ) -> CategoryResponseSchema:
     category_db = fetch_category_db(db, category_id, x_current_tenant)
-    category_response = insert_category_tree(db, category_db)
+    category_response = insert_category_tree(
+        db, category_db, tenant=x_current_tenant
+    )
     return category_response
 
 
