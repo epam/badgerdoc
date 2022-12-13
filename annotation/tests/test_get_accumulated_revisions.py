@@ -123,6 +123,7 @@ EMPTY_RESPONSE = dict(
     pages=[],
     validated=[],
     failed_validation_pages=[],
+    categories=None,
 )
 LATEST_WITH_ALL_PAGES = dict(
     revision=DOCS[2].revision,
@@ -145,6 +146,7 @@ LATEST_WITH_ALL_PAGES = dict(
     ],
     validated=[3, 4, 5],
     failed_validation_pages=[1],
+    categories=["test_category_1", "test_category_2"],
 )
 
 
@@ -187,6 +189,7 @@ LATEST_WITH_ALL_PAGES = dict(
                 ],
                 validated=[5],
                 failed_validation_pages=[1],
+                categories=["test_category_1", "test_category_2"],
             ),
         ),
         # find first revision and accumulate
@@ -214,6 +217,7 @@ LATEST_WITH_ALL_PAGES = dict(
                 ],
                 validated=[3],
                 failed_validation_pages=[4],
+                categories=["test_category_1", "test_category_2"],
             ),
         ),
         # find first revision and accumulate
@@ -240,6 +244,7 @@ LATEST_WITH_ALL_PAGES = dict(
                 ],
                 validated=[3],
                 failed_validation_pages=[],
+                categories=["test_category_1", "test_category_2"],
             ),
         ),
         # find second revision and accumulate
@@ -267,6 +272,7 @@ LATEST_WITH_ALL_PAGES = dict(
                 ],
                 validated=[3, 4],
                 failed_validation_pages=[1],
+                categories=["test_category_1", "test_category_2"],
             ),
         ),
         # find second revision and accumulate
@@ -285,6 +291,7 @@ LATEST_WITH_ALL_PAGES = dict(
                 pages=[],
                 validated=[],
                 failed_validation_pages=[],
+                categories=["test_category_1", "test_category_2"],
             ),
         ),
         # if revisions were not found,
@@ -337,6 +344,12 @@ def test_get_annotation_for_latest_revision_status_codes(
     monkeypatch.setattr(
         "app.annotations.main.connect_s3",
         Mock(return_value=minio_accumulate_revisions),
+    )
+    monkeypatch.setattr(
+        "app.annotations.main.get_file_manifest",
+        Mock(
+            return_value={"categories": ["test_category_1", "test_category_2"]}
+        ),
     )
     params = {"page_numbers": page_numbers}
 
