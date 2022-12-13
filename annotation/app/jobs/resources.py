@@ -87,110 +87,107 @@ def post_job(
     token: TenantData = Depends(TOKEN),
     db: Session = Depends(get_db),
 ):
-    try:
-        if db.query(Job).get(job_id):
-            raise HTTPException(
-                status_code=400,
-                detail="The job already exists.",
-            )
-        validation_type = job_info.validation_type
-        # todo: in case of extensive_coverage validation
-        #  check if there is enough annotators but some of them have default
-        #  load 0. should we throw an error or distribute load for these users
-        #  despite load
-        saved_users, new_users = find_users(
+    if db.query(Job).get(job_id):
+        raise HTTPException(
+            status_code=400,
+            detail="The job already exists.",
+        )
+    validation_type = job_info.validation_type
+    # todo: in case of extensive_coverage validation
+    #  check if there is enough annotators but some of them have default
+    #  load 0. should we throw an error or distribute load for these users
+    #  despite load
+    saved_users, new_users = find_users(
+        db,
+        {*job_info.annotators, *job_info.validators, *job_info.owners},
+    )
+    db.add_all(new_users)
+    db_users = saved_users + new_users
+    annotators = [
+        user for user in db_users if user.user_id in job_info.annotators
+    ]
+    validators = [
+        user for user in db_users if user.user_id in job_info.validators
+    ]
+    owners = [user for user in db_users if user.user_id in job_info.owners]
+    categories = fetch_bunch_categories_db(
+        db, job_info.categories, x_current_tenant, root_parents=True
+    )
+    is_auto_distribution = job_info.is_auto_distribution
+    job_type = job_info.job_type
+    db.add(
+        Job(
+            job_id=job_id,
+            name=job_info.name,
+            callback_url=job_info.callback_url,
+            is_auto_distribution=is_auto_distribution,
+            categories=categories,
+            annotators=annotators,
+            validators=validators,
+            owners=owners,
+            validation_type=validation_type,
+            deadline=job_info.deadline,
+            tenant=x_current_tenant,
+            status=JobStatusEnumSchema.pending,
+            job_type=job_type,
+            extensive_coverage=job_info.extensive_coverage,
+        )
+    )
+
+    files = get_files_info(
+        job_info.files,
+        job_info.datasets,
+        x_current_tenant,
+        token.token,
+    )
+    job_type = job_info.job_type
+    if (
+        validation_type == ValidationSchema.validation_only
+        and job_type != JobTypeEnumSchema.ExtractionJob
+    ):
+        db.add_all(
+            [
+                File(
+                    file_id=f["file_id"],
+                    tenant=x_current_tenant,
+                    job_id=job_id,
+                    pages_number=f["pages_number"],
+                    distributed_annotating_pages=list(
+                        range(1, f["pages_number"] + 1)
+                    ),
+                    annotated_pages=list(range(1, f["pages_number"] + 1)),
+                    status=FileStatusEnumSchema.pending,
+                )
+                for f in files
+            ]
+        )
+    else:
+        db.add_all(
+            [
+                File(
+                    file_id=f["file_id"],
+                    tenant=x_current_tenant,
+                    job_id=job_id,
+                    pages_number=f["pages_number"],
+                    status=FileStatusEnumSchema.pending,
+                )
+                for f in files
+            ]
+        )
+    if is_auto_distribution and job_type != JobTypeEnumSchema.ExtractionJob:
+        db.flush()
+        distribute(
             db,
-            {*job_info.annotators, *job_info.validators, *job_info.owners},
-        )
-        db.add_all(new_users)
-        db_users = saved_users + new_users
-        annotators = [
-            user for user in db_users if user.user_id in job_info.annotators
-        ]
-        validators = [
-            user for user in db_users if user.user_id in job_info.validators
-        ]
-        owners = [user for user in db_users if user.user_id in job_info.owners]
-        categories = fetch_bunch_categories_db(
-            db, job_info.categories, x_current_tenant, root_parents=True
-        )
-        is_auto_distribution = job_info.is_auto_distribution
-        job_type = job_info.job_type
-        db.add(
-            Job(
-                job_id=job_id,
-                name=job_info.name,
-                callback_url=job_info.callback_url,
-                is_auto_distribution=is_auto_distribution,
-                categories=categories,
-                annotators=annotators,
-                validators=validators,
-                owners=owners,
-                validation_type=validation_type,
-                deadline=job_info.deadline,
-                tenant=x_current_tenant,
-                status=JobStatusEnumSchema.pending,
-                job_type=job_type,
-                extensive_coverage=job_info.extensive_coverage,
-            )
+            files,
+            annotators,
+            validators,
+            job_id,
+            validation_type,
+            deadline=job_info.deadline,
+            extensive_coverage=job_info.extensive_coverage
         )
 
-        files = get_files_info(
-            job_info.files,
-            job_info.datasets,
-            x_current_tenant,
-            token.token,
-        )
-        job_type = job_info.job_type
-        if (
-            validation_type == ValidationSchema.validation_only
-            and job_type != JobTypeEnumSchema.ExtractionJob
-        ):
-            db.add_all(
-                [
-                    File(
-                        file_id=f["file_id"],
-                        tenant=x_current_tenant,
-                        job_id=job_id,
-                        pages_number=f["pages_number"],
-                        distributed_annotating_pages=list(
-                            range(1, f["pages_number"] + 1)
-                        ),
-                        annotated_pages=list(range(1, f["pages_number"] + 1)),
-                        status=FileStatusEnumSchema.pending,
-                    )
-                    for f in files
-                ]
-            )
-        else:
-            db.add_all(
-                [
-                    File(
-                        file_id=f["file_id"],
-                        tenant=x_current_tenant,
-                        job_id=job_id,
-                        pages_number=f["pages_number"],
-                        status=FileStatusEnumSchema.pending,
-                    )
-                    for f in files
-                ]
-            )
-        if is_auto_distribution and job_type != JobTypeEnumSchema.ExtractionJob:
-            db.flush()
-            distribute(
-                db,
-                files,
-                annotators,
-                validators,
-                job_id,
-                validation_type,
-                deadline=job_info.deadline,
-                extensive_coverage=job_info.extensive_coverage
-            )
-
-        db.commit()
-    except Exception as e:
-        logger.exception(e)
+    db.commit()
 
 
 @router.patch(
