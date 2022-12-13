@@ -100,9 +100,6 @@ class AnnotatedDoc(Base):
 class Category(Base):
     __tablename__ = "categories"
 
-    def __init__(self):
-        self.is_leaf = False
-
     id = Column(VARCHAR, primary_key=True)
     tenant = Column(VARCHAR, nullable=True)
     name = Column(VARCHAR, nullable=False)

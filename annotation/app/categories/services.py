@@ -214,7 +214,7 @@ def fetch_bunch_categories_db(
             )
         )
     wrong_categories = {
-        cat.id for cat in categories
+        category.id for category in categories
     }.symmetric_difference(category_ids)
 
     if not TEMP_PATCH_EXCLUDE_DIFF and wrong_categories:
@@ -264,7 +264,7 @@ def _extract_category(
 
 def _get_parents(
     db: Session,
-    categories_leaf_mapping: List[Category],
+    categories: List[Category],
     tenant: str,
     job_id: Optional[int] = None,
 ) -> Parents:
@@ -272,7 +272,7 @@ def _get_parents(
     uniq_cats = set()
     uniq_pathes = set()
 
-    for cat in categories_leaf_mapping:
+    for cat in categories:
         if cat.tree is not None:
             uniq_pathes.add(cat.tree.path)
             uniq_cats = uniq_cats.union({tree.path for tree in cat.tree})
