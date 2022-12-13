@@ -159,8 +159,7 @@ class Job(Base):
     deadline = Column(TIMESTAMP)
     tenant = Column(VARCHAR, nullable=False)
     validation_type = Column(
-        ENUM(ValidationSchema, name="validation_type"),
-        nullable=False
+        ENUM(ValidationSchema), nullable=False
     )
     status = Column(
         ENUM(JobStatusEnumSchema),
