@@ -11,7 +11,7 @@ import React, {
 } from 'react';
 import { cloneDeep } from 'lodash';
 import { Task } from 'api/typings/tasks';
-import { useSetTaskFinished, useSetTaskState, useTaskById } from 'api/hooks/tasks';
+import { useSetTaskFinished, useTaskById } from 'api/hooks/tasks';
 import { useCategoriesByJob } from 'api/hooks/categories';
 import {
     Category,
@@ -839,7 +839,6 @@ export const TaskAnnotatorContextProvider: FC<ProviderProps> = ({
         if (task) {
             onSaveTask().then((e) => {
                 useSetTaskFinished(task!.id);
-                useSetTaskState({ id: task!.id, eventType: 'closed' });
                 onRedirectAfterFinish();
             });
         }

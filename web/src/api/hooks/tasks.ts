@@ -322,18 +322,3 @@ export const useSetTaskFinished = (
         method: 'post'
     })(JSON.stringify(body));
 };
-
-type TaskEvent = {
-    id: number;
-    eventType: 'opened' | 'closed';
-};
-
-export const useSetTaskState = (taskState: TaskEvent) => {
-    const body = { event_type: taskState.eventType };
-
-    return useBadgerFetch<Task>({
-        url: `${namespace}/tasks/${taskState.id}/stats`,
-        method: 'post',
-        withCredentials: true
-    })(JSON.stringify(body));
-};
