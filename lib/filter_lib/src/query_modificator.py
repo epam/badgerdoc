@@ -128,7 +128,12 @@ def _create_filter(query: Query, fil: Dict[str, Any]) -> Query:
             "Operator 'match' shouldn't be used with relations"
         )
 
-    if isinstance(getattr(model, field).type, LtreeType):
+    try:
+        attr = getattr(model, field).type
+    except AttributeError:
+        attr = None
+
+    if isinstance(attr, LtreeType):
         return _make_ltree_query(query=query, model=model, op=op, value=value)
 
     if _op_is_match(fil):
