@@ -291,9 +291,6 @@ def _get_parents(
 def _compose_response(
     categories: List[Category], leaves: Leaves, parents: Parents
 ) -> List[CategoryResponseSchema]:
-    logger.info(categories)
-    logger.info(leaves)
-    logger.info(parents)
     converted_parents = {}
     for parent_path in parents:
         converted_parents[parent_path] = [
