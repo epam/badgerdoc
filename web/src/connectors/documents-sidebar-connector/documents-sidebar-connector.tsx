@@ -6,7 +6,6 @@ import styles from './documents-sidebar-connector.module.scss';
 import {
     Filter,
     PagedResponse,
-    Pipeline,
     QueryHookParamsType,
     QueryHookType,
     SortingDirection
@@ -41,14 +40,14 @@ export const DocumentsSidebarConnector = <T extends object>({
     filters
 }: DocumentsSidebarConnectorProps<T>) => {
     const [searchText, setSearchText] = useState('');
-    const [sortConfig, setSortConfig] = useState({
-        field: sortField,
-        direction: SortingDirection.ASC
-    });
     const [page, setPageNum] = useState(1);
     const [items, setItems] = useState<T[]>([]);
     const [canLoad, setCanLoad] = useState(false);
 
+    const sortConfig = {
+        field: sortField,
+        direction: SortingDirection.ASC
+    };
     const { data } = useEntitiesHook({ searchText, sortConfig, page, size, filters }, {});
 
     useEffect(() => {
