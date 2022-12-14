@@ -1,6 +1,6 @@
 pytest
 pytest-cov
 black
-isort
+isort==5.9.1
 pylint
 mypy==0.910
