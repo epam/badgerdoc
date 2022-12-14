@@ -8,11 +8,11 @@ import { Operators } from '../../api/typings';
 import { Job } from '../../api/typings/jobs';
 import { DocumentsSearch } from 'shared/contexts/documents-search';
 
-type DocumentsTableConnectorProps = {
+type DocumentsCardConnectorProps = {
     onFilesSelect?: (files: number[]) => void;
 };
 
-export const DocumentsCardConnector: FC<DocumentsTableConnectorProps> = ({ onFilesSelect }) => {
+export const DocumentsCardConnector: FC<DocumentsCardConnectorProps> = ({ onFilesSelect }) => {
     const { pageConfig, onPageChange, totalCount, onTotalCountChange } = usePageTable('category');
     const { query, facetFilter, documentsSort } = useContext(DocumentsSearch);
     const [jobs, setJobs] = useState<Job[]>();

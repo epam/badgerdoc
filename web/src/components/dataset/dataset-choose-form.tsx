@@ -68,7 +68,7 @@ export const DatasetChooseForm: FC<IProps> = ({ onChooseDataset, ...modalProps }
                                 dataSource={dataSource}
                                 title={(<h4>Datasets</h4>) as unknown as HTMLElement}
                                 dataset={selectedDataset}
-                            ></DatasetPicker>
+                            />
                         </LabeledInput>
                     </FlexRow>
                 </Panel>
