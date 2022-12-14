@@ -462,11 +462,9 @@ def create_export_csv(
             "annotator_id": task_ids[stat.task_id]["annotator"],
             "task_id": stat.task_id,
             "task_status": stat.task.status.value,
-            "time_start": stat.created.strftime("%Y/%m/%d, %H:%M:%S"),
+            "time_start": stat.created.isoformat(),
             "time_finish": (
-                stat.updated.strftime("%Y/%m/%d, %H:%M:%S")
-                if stat.updated
-                else None
+                stat.updated.isoformat() if stat.updated else None
             ),
             "agreement_score": task_ids[stat.task_id]["score"],
         }
@@ -477,6 +475,13 @@ def create_export_csv(
             .all()
         )
     ]
+
+    if not annotation_stats:
+        raise HTTPException(
+            status_code=404,
+            detail="Export data not found.",
+        )
+
     binary = io.BytesIO()
     # Prevent from closing
     binary.close = lambda: None
