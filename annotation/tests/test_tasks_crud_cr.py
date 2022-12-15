@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import Any, Optional
+from typing import Any, List, Optional
 from unittest.mock import Mock, patch
 from uuid import uuid4
 
@@ -605,6 +605,18 @@ def validate_datetime(reponse_content: dict, is_updated: bool = False) -> bool:
     return True
 
 
+def prepare_stats_export_body(
+    user_ids: List[str],
+    date_from: Optional[datetime] = datetime.now() - timedelta(days=365),
+    date_to: Optional[datetime] = datetime.now() + timedelta(days=365),
+) -> dict:
+    return {
+        "user_ids": user_ids,
+        "date_from": date_from.isoformat(),
+        "date_to": date_to.isoformat(),
+    }
+
+
 @pytest.mark.integration
 @patch.object(Session, "query")
 def test_post_task_500_response(Session, prepare_db_for_cr_task):
@@ -767,7 +779,7 @@ def test_create_task_stats(prepare_db_for_cr_task, task_id):
     assert validate_datetime(content, is_updated=False)
     assert prepare_task_stats_expected_response(
         task_id=task_id
-    ) == prepare_task_stats_expected_response(**response.json())
+    ) == prepare_task_stats_expected_response(**content)
 
 
 @pytest.mark.integration
@@ -838,6 +850,72 @@ def test_update_task_already_updated_change_event(
         task_id=task_id,
         event_type="closed",
     ) == prepare_task_stats_expected_response(**content)
+
+
+@pytest.mark.integration
+def test_create_export_users_not_found(prepare_db_update_stats):
+    body = prepare_stats_export_body(
+        user_ids=[f"{uuid4()}" for _ in range(10)]
+    )
+
+    response = client.post(
+        f"{CRUD_TASKS_PATH}/export",
+        json=body,
+        headers=TEST_HEADERS,
+    )
+
+    assert response.status_code == 404
+    assert "Export data not found." in response.text
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize(
+    ["date_from", "date_to"],
+    [
+        ("2021-12-15", "2100-12-15T00:00:00"),
+        ("abcdef", "2100-12-15T00:00:00"),
+        ("2000-12-15T00:00:00", "!@#$%^"),
+        ("2000-12-15T00:00:00", "2100-12-15"),
+    ],
+)
+def test_create_export_invalid_datetime_format(
+    prepare_db_for_cr_task, date_from, date_to
+):
+    body = prepare_stats_export_body(
+        user_ids=[f"{uuid4()}" for _ in range(10)]
+    )
+    body["date_from"] = date_from
+    body["date_to"] = date_to
+
+    response = client.post(
+        f"{CRUD_TASKS_PATH}/export",
+        json=body,
+        headers=TEST_HEADERS,
+    )
+
+    assert response.status_code == 422
+    assert "invalid datetime format" in response.text
+
+
+@pytest.mark.integration
+def test_create_export_return_csv(prepare_db_update_stats_already_updated):
+    body = prepare_stats_export_body(
+        user_ids=[task["user_id"] for task in EXPANDED_TASKS_RESPONSE]
+    )
+
+    response = client.post(
+        f"{CRUD_TASKS_PATH}/export",
+        json=body,
+        headers=TEST_HEADERS,
+    )
+
+    assert response.status_code == 200
+    assert "text/csv" in response.headers["content-type"]
+    assert (
+        "filename=annotator_stats_export"
+        in response.headers["content-disposition"]
+    )
+    assert len(response.content) > 0
 
 
 @pytest.mark.unittest
