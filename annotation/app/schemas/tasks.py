@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import Enum
-from typing import Optional, Set
+from typing import List, Optional, Set
 from uuid import UUID
 
 from pydantic import BaseModel, Field, root_validator
@@ -160,6 +160,8 @@ class AgreementScoreServiceResponse(BaseModel):
 
 
 class ExportTaskStatsInput(BaseModel):
-    user_id: UUID = Field(..., example="e20af190-0f05-4cd8-ad51-811bfb19ad71")
+    user_ids: List[UUID] = Field(
+        ..., example=["e20af190-0f05-4cd8-ad51-811bfb19ad71"]
+    )
     date_from: datetime = Field(..., example="2020-12-20 01:01:01")
     date_to: Optional[datetime] = Field(None, example="2025-12-20 01:01:01")

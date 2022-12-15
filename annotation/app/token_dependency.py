@@ -8,7 +8,6 @@ from tenant_dependency import TenantData, get_tenant_info
 
 TOKEN = get_tenant_info(url="http://bagerdoc-keycloack", algorithm="RS256")
 
-os.environ["ANNOTATION_NO_AUTH"] = "1"
 if os.getenv("ANNOTATION_NO_AUTH", False):
     TOKEN = lambda: TenantData(  # noqa: E731
         token="TEST_TOKEN",

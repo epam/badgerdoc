@@ -26,7 +26,8 @@ from app.models import (
     ManualAnnotationTask,
     User,
 )
-from app.schemas import ValidationSchema
+from app.schemas import AnnotationStatisticsInputSchema, ValidationSchema
+from app.tasks import add_task_stats_record
 from tests.override_app_dependency import TEST_TENANT
 from tests.test_annotators_overall_load import (
     OVERALL_LOAD_CREATED_TASKS,
@@ -603,6 +604,42 @@ def prepare_db_for_cr_task(db_session):
 
     yield db_session
 
+    clear_db()
+
+
+@pytest.fixture(scope="module")
+def prepare_db_update_stats(prepare_db_for_cr_task):
+    for task_id in [
+        id_
+        for (id_,) in prepare_db_for_cr_task.query(
+            ManualAnnotationTask.id
+        ).all()
+    ]:
+        add_task_stats_record(
+            db=prepare_db_for_cr_task,
+            task_id=task_id,
+            stats=AnnotationStatisticsInputSchema(event_type="opened"),
+        )
+
+    yield prepare_db_for_cr_task
+    clear_db()
+
+
+@pytest.fixture(scope="module")
+def prepare_db_update_stats_already_updated(prepare_db_update_stats):
+    for task_id in [
+        id_
+        for (id_,) in prepare_db_update_stats.query(
+            ManualAnnotationTask.id
+        ).all()
+    ]:
+        add_task_stats_record(
+            db=prepare_db_update_stats,
+            task_id=task_id,
+            stats=AnnotationStatisticsInputSchema(event_type="opened"),
+        )
+
+    yield prepare_db_update_stats
     clear_db()
 
 
