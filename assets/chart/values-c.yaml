@@ -1,0 +1,57 @@
+extraEnvs: []
+
+host:  example.com
+
+image:
+    registry: 818863528939.dkr.ecr.eu-central-1.amazonaws.com/badgerdoc
+    tag: latest
+
+imagePullPolicy: Always
+
+podAnnotations:
+    sidecar.istio.io/inject: "false"
+labels:
+    app: assets
+
+replicaCount: 1
+
+resources:
+    requests:
+        memory: "200Mi"
+        cpu: "200m"
+    limits:
+        memory: "1000Mi"
+        cpu: "400m"
+
+rbac:
+    serviceAccountName: null
+    automountToken: false
+
+schedulerName: default-scheduler
+
+s3:
+    endpoint: "http://minio"
+
+nameOverride: ""
+
+affinity: {}
+nodeSelector: {}
+tolerations: []
+
+secret:
+    enabled: true
+    dburl: "postgresql+psycopg2://postgres:postgres@postgres-postgresql:5432/file_management"
+    s3user: "serviceuser"
+    s3password: "12345678"
+
+
+securityContext: {}
+
+servicePort: 80
+serviceType: ClusterIP
+
+updateStrategy:
+    rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+    type: RollingUpdate

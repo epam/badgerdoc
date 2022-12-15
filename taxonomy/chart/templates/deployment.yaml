@@ -4,40 +4,61 @@ metadata:
   annotations:
     deployment.kubernetes.io/revision: "1"
   labels:
-    app: taxonomy
-  name: taxonomy
+    release: {{ .Release.Name | quote }}
+    chart: "{{ .Chart.Name }}"
+    app: "{{ template "svc.name" . }}"
+    {{- range $key, $value := .Values.labels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+  name: {{ template "svc.name" . }}
   namespace: {{ .Release.Namespace }}
 spec:
   progressDeadlineSeconds: 600
-  replicas: 1
+  replicas: {{ default .Values.global.replicaCount .Values.replicaCount }}
   revisionHistoryLimit: 10
   selector:
     matchLabels:
-      app: taxonomy
+      app: {{ template "svc.name" . }}
   strategy:
-    rollingUpdate:
-      maxSurge: 25%
-      maxUnavailable: 25%
-    type: RollingUpdate
+{{ .Values.updateStrategy | default .Values.global.updateStrategy | toYaml | indent 4 }}
   template:
     metadata:
-      annotations:
-        sidecar.istio.io/inject: "false"
-      creationTimestamp: null
       labels:
-        app: taxonomy
+        release: {{ .Release.Name | quote }}
+        chart: "{{ .Chart.Name }}"
+        app: "{{ template "svc.name" . }}"
+        {{- if .Values.labels }}
+        {{- range $key, $value := .Values.labels }}
+        {{ $key }}: {{ $value | quote }}
+        {{- end }}
+        {{- else }}
+        {{- range $key, $value := .Values.global.labels }}
+        {{ $key }}: {{ $value | quote }}
+        {{- end }}
+        {{- end }}
+      annotations:
+        {{- if .Values.podAnnotation }}
+        {{- range $key, $value := .Values.podAnnotations }}
+        {{ $key }}: {{ $value | quote }}
+        {{- end }}
+        {{- else}}
+        {{- range $key, $value := .Values.global.podAnnotations }}
+        {{ $key }}: {{ $value | quote }}
+        {{- end }}
+        {{- end }}
     spec:
+      affinity:
+{{ .Values.affinity | default .Values.global.affinity | toYaml | indent 8 }}
+      nodeSelector:
+{{ .Values.nodeSelector | default .Values.global.nodeSelector | toYaml | indent 8 }}
+      tolerations:
+{{ .Values.tolerations | default .Values.global.tolerations | toYaml | indent 8 }}
       containers:
-      - image: {{ .Values.image.registry }}/taxonomy:{{ .Values.image.tag }}
-        imagePullPolicy: IfNotPresent
-        name: taxonomy
+      - image: "{{ .Values.imageName }}:{{ default .Values.global.imageTag .Values.imageTag }}"
+        imagePullPolicy: "{{ default .Values.global.imagePullPolicy .Values.imagePullPolicy }}"
+        name: {{ template "svc.name" . }}
         resources:
-          requests:
-            memory: "200Mi"
-            cpu: "200m"
-          limits:
-            memory: "1000Mi"
-            cpu: "400m"
+{{ .Values.resources | default .Values.global.resources | toYaml | indent 10 }}
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
         env:
@@ -52,15 +73,21 @@ spec:
               name: taxonomy
               key: POSTGRES_PASSWORD
         - name: POSTGRES_PORT
-          value: "5432"
+          value: "{{ default .Values.global.dbPort .Values.dbPort }}"
         - name: POSTGRES_DB
-          value: "taxonomy"
+          value: "{{ .Values.dbName }}"
         - name: POSTGRES_HOST
-          value: "postgres-postgresql"
+          value: "{{ default .Values.global.dbHost .Values.dbHost }}"
+{{- if .Values.extraEnvs }}
+{{ toYaml .Values.extraEnvs | indent 8 }}
+{{- end }}
         command: ["/bin/sh"]
         args: ["-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8080 --root-path /api/v1/taxonomy"]
+      serviceAccountName: {{ default .Values.global.serviceAccountName .Values.serviceAccountName }}
+      automountServiceAccountToken: {{ default .Values.global.automountToken .Values.automountToken }}
       dnsPolicy: ClusterFirst
       restartPolicy: Always
-      schedulerName: default-scheduler
-      securityContext: {}
+      schedulerName: {{ default .Values.global.schedulerName .Values.schedulerName }}
+      securityContext:
+{{ toYaml .Values.securityContext | indent 8 }}
       terminationGracePeriodSeconds: 30

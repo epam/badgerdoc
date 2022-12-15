@@ -2,18 +2,18 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
-    app: jobs
-  name: jobs
+    app: "{{ template "svc.name" . }}"
+  name: "{{ template "svc.name" . }}"
   namespace: {{ .Release.Namespace }}
 spec:
   ipFamilies:
   - IPv4
   ipFamilyPolicy: SingleStack
   ports:
-  - port: 80
-    protocol: TCP
-    targetPort: 8123
+    - port: {{ default .Values.global.servicePort .Values.servicePort }}
+      protocol: TCP
+      targetPort: 8123
   selector:
-    app: jobs
+    app: "{{ template "svc.name" . }}"
   sessionAffinity: None
-  type: ClusterIP
+  type: "{{ default .Values.global.serviceType .Values.serviceType }}"

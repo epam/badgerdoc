@@ -1,0 +1,84 @@
+global:
+  affinity: null
+  labels: null
+  nodeSelector: null
+  tolerations: null
+  podAnnotations:
+    sidecar.istio.io/inject: "false"
+  dbHost: postgres-postgresql
+  dbPort: 5432
+  s3CredentialsProvider: "aws_iam"
+  s3Endpoint: "minio"
+  host: yourexample.com
+  imagePullPolicy: Always
+  serviceAccountName: null
+  automountToken: false
+  replicaCount: 1
+  resources:
+    requests:
+      memory: "000Mi"
+      cpu: "000m"
+    limits:
+      memory: "0000Mi"
+      cpu: "000m"
+  schedulerName: default-scheduler
+  servicePort: 80
+  serviceType: ClusterIP
+  updateStrategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+
+annotation:
+  dbName: "annotation"
+  imageName: 818863528939.dkr.ecr.eu-central-1.amazonaws.com/badgerdoc/annotation
+  imageTag: 0.1.5-0d3e100
+  secret:
+    dbpassword: postgres
+    dbuser: postgres
+    enabled: true
+
+assets:
+  imageName: 818863528939.dkr.ecr.eu-central-1.amazonaws.com/badgerdoc/assets
+  imageTag: 0.1.7-0d3e100
+  secret:
+    enabled: true
+    dbUrl: "postgresql+psycopg2://postgres:postgres@postgres-postgresql:5432/file_management"
+
+jobs:
+  imageName: 818863528939.dkr.ecr.eu-central-1.amazonaws.com/badgerdoc/jobs
+  imageTag: 0.1.9-0d3e100
+  keycloak:
+    externalUrl: "http://example.com"
+  secret:
+    enabled: true
+    dbUrl: "postgresql+psycopg2://postgres:postgres@postgres-postgresql:5432/job_manager"
+
+
+users:
+  imageName: 818863528939.dkr.ecr.eu-central-1.amazonaws.com/badgerdoc/users
+  imageTag: 0.1.2-0d3e100
+  dbName: "users"
+  keycloak:
+    externalUrl: "http://example.com"
+    internalUrl: "http://bagerdoc-keycloak"
+  secret:
+    enabled: true
+    dbuser: "postgres"
+    dbpassword: "postgres"
+
+taxonomy:
+  dbName: "taxonomy"
+  imageName: 818863528939.dkr.ecr.eu-central-1.amazonaws.com/badgerdoc/taxonomy
+  imageTag: 0.0.1-0d3e100
+  secret:
+    dbpassword: postgres
+    dbuser: postgres
+    enabled: true
+
+badgerdoc-ui:
+  imageName: 818863528939.dkr.ecr.eu-central-1.amazonaws.com/badgerdoc/badgerdoc_ui
+  imageTag: 0.2.0-379754b
+
+

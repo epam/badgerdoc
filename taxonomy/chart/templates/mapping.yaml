@@ -1,25 +1,25 @@
 apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
-  name: taxonomy
+  name: {{ template "svc.name" . }}
   namespace: {{ .Release.Namespace }}
 spec:
-  host: {{ .Release.Namespace }}.badgerdoc.com
+  host: {{ default .Values.host .Values.global.host }}
   connect_timeout_ms: 30000
   idle_timeout_ms: 50000
   prefix: /api/v1/taxonomy/
-  service: taxonomy
+  service: {{ template "svc.name" . }}
   timeout_ms: 30000
 ---
 apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
-  name: taxonomy-internal
+  name: {{ template "svc.name" . }}-internal
   namespace: {{ .Release.Namespace }}
 spec:
   host: ambassador
   connect_timeout_ms: 30000
   idle_timeout_ms: 50000
   prefix: /api/v1/taxonomy/
-  service: taxonomy
+  service: {{ template "svc.name" . }}
   timeout_ms: 30000

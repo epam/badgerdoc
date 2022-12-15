@@ -1,14 +1,14 @@
 apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
-  name: badgerdoc-ui
+  name: {{ template "svc.name" . }}
   namespace: {{ .Release.Namespace }}
 spec:
-  host: {{ .Release.Namespace }}.gcov.ru
+  host: {{ default .Values.host .Values.global.host }}
   connect_timeout_ms: 30000
   idle_timeout_ms: 50000
   prefix: /
-  service: badgerdoc-ui:80
+  service: {{ template "svc.name" . }}:80
   timeout_ms: 30000
   keepalive:
     interval: 10
