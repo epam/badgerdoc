@@ -233,6 +233,10 @@ def distribute_tasks_extensively(
                 annotators[0]['pages_number'] -= len(pages_for_user)
                 if annotators[0]['pages_number'] == 0:
                     annotators.pop(0)
+    # merge tasks for annotators if it's possible.
+
+    ...
+
     return tasks
 
 

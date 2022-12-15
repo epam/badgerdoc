@@ -348,24 +348,14 @@ def get_task_info(
     )
 
 
-def unblock_validation_tasks(db: Session, task: ManualAnnotationTask) -> None:
-    """Gets list of already annotated_pages for task's file (including provided
-    task pages) - 'annotated_file_pages'. Then searches for all 'pending'
+def unblock_validation_tasks(
+    db: Session, task: ManualAnnotationTask, annotated_file_pages: List[int],
+) -> None:
+    """Having list of all annotated pages search for all 'pending'
     validation tasks for this job_id and file_id for which 'task.pages' is
     subset of annotated_file_pages list and updates such tasks status from
     'pending' to 'ready'.
     """
-    annotated_file_pages = (
-        db.query(File.annotated_pages)
-        .filter(
-            and_(
-                File.file_id == task.file_id,
-                File.job_id == task.job_id,
-            )
-        )
-        .first()[0]
-    )
-    annotated_file_pages.extend(task.pages)
     (
         db.query(ManualAnnotationTask)
         .filter(

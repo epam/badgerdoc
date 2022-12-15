@@ -275,7 +275,7 @@ let initialValues: JobValues = {
     is_draft: false,
     is_auto_distribution: true,
     start_manual_job_automatically: true,
-    extensive_coverage: 1
+    extensive_coverage: undefined
 };
 
 interface Params {

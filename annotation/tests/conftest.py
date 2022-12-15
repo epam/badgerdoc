@@ -1,5 +1,6 @@
 import contextlib
 import json
+import random
 from typing import Iterable
 from unittest.mock import Mock
 
@@ -26,7 +27,7 @@ from app.models import (
     ManualAnnotationTask,
     User,
 )
-from app.schemas import ValidationSchema
+from app.schemas import ValidationSchema, JobStatusEnumSchema, TaskStatusEnumSchema, FileStatusEnumSchema
 from tests.override_app_dependency import TEST_TENANT
 from tests.test_annotators_overall_load import (
     OVERALL_LOAD_CREATED_TASKS,
@@ -48,6 +49,8 @@ from tests.test_finish_task import (
     FINISH_TASK_1_SAME_JOB,
     FINISH_TASK_2,
     FINISH_TASK_2_SAME_JOB,
+    FINISH_TASK_USER_2,
+    FINISH_TASK_USER_3,
     FINISH_TASK_CHECK_DELETE_USER_ANNOTATOR_1,
     FINISH_TASK_CHECK_DELETE_USER_ANNOTATOR_2,
     FINISH_TASK_CHECK_DELETE_USER_VALIDATOR,
@@ -61,7 +64,7 @@ from tests.test_finish_task import (
     FINISH_TASK_JOB_4,
     FINISH_TASK_USER_1,
     TASK_NOT_IN_PROGRESS_STATUS,
-    VALIDATION_TASKS_TO_READY,
+    VALIDATION_TASKS_TO_READY, CATEGORIES,
 )
 from tests.test_get_annotation_for_particular_revision import (
     PART_REV_ANNOTATOR,
@@ -170,7 +173,6 @@ def clear_db():
             sequence_name = sequence[2]
             con.execute(f"ALTER SEQUENCE {sequence_name} RESTART WITH 1")
         trans.commit()
-
 
 def add_objects(db: Session, objects: Iterable[Base]) -> None:
     for obj in objects:
@@ -402,12 +404,13 @@ def prepare_db_for_get_job(db_session):
 
 @pytest.fixture
 def prepare_db_for_finish_task_status_one_task(db_session):
+
+    add_objects(db_session, [FINISH_TASK_USER_1])
     add_objects(db_session, [FINISH_TASK_JOB_1])
     add_objects(
         db_session,
         (
             FINISH_TASK_FILE_1,
-            FINISH_TASK_USER_1,
             ManualAnnotationTask(**FINISH_TASK_1),
             ManualAnnotationTask(**FINISH_TASK_2),
             ManualAnnotationTask(**FINISH_TASK_1_SAME_JOB),
@@ -418,6 +421,22 @@ def prepare_db_for_finish_task_status_one_task(db_session):
     yield db_session
 
     clear_db()
+
+
+@pytest.fixture
+def prepare_db_for_finish_task_with_finish_docs(
+    prepare_db_for_finish_task_status_one_task
+):
+    db_session = prepare_db_for_finish_task_status_one_task
+    add_objects(
+        db_session,
+        (
+            ManualAnnotationTask(**FINISH_TASK_1_SAME_JOB),
+            *FINISH_DOCS,
+        ),
+    )
+
+
 
 
 @pytest.fixture
@@ -437,6 +456,7 @@ def prepare_db_for_finish_task_with_not_in_progress_status(
     prepare_db_for_finish_task_status_one_task,
 ):
     session = prepare_db_for_finish_task_status_one_task
+    add_objects(session, [FINISH_TASK_USER_2])
     add_objects(session, [FINISH_TASK_JOB_2])
     add_objects(
         session,
@@ -1098,3 +1118,86 @@ def mock_minio_empty_bucket(monkeypatch, empty_bucket):
         Mock(return_value=empty_bucket),
     )
     yield empty_bucket
+
+
+@pytest.fixture
+def prepare_db_with_extensive_coverage_annotations(db_session):
+    job = Job(
+        # TODO: clean_db() do not clean DB fully. Having static
+        #  id causes Exception for tests running after initial
+        #   >>> AssertionError: Dependency rule tried to blank-out primary key
+        #        column 'files.job_id' on instance '<File at 0x1049e0fa0>'
+        job_id=random.randint(1000, 100000),
+        callback_url="http://www.test.com/test1",
+        annotators=[FINISH_TASK_USER_1, FINISH_TASK_USER_2, FINISH_TASK_USER_3],
+        validators=[FINISH_TASK_USER_3],
+        validation_type=ValidationSchema.extensive_coverage,
+        files=[FINISH_TASK_FILE_1],
+        is_auto_distribution=False,
+        categories=CATEGORIES,
+        deadline=None,
+        tenant=TEST_TENANT,
+        status=JobStatusEnumSchema.in_progress,
+        extensive_coverage=2,
+    )
+    file = File(
+        file_id=10,
+        tenant=TEST_TENANT,
+        job_id=job.job_id,
+        pages_number=9,
+        distributed_annotating_pages=[1, 2, 3, 4, 5, 6, 7, 8, 9],
+        distributed_validating_pages=[1, 2, 3, 4, 5, 6, 7, 8, 9],
+        status=FileStatusEnumSchema.annotated,
+    )
+    add_objects(
+        db_session,
+        [
+            job,
+            file
+        ]
+    )
+    task_1 = {
+        "id": 1,
+        "file_id": file.file_id,
+        "pages": [1, 2, 3, 4, 9, 8],
+        "job_id": job.job_id,
+        "user_id": FINISH_TASK_USER_1.user_id,
+        "is_validation": False,
+        "status": TaskStatusEnumSchema.in_progress,
+        "deadline": None,
+    }
+    task_2 = {
+        "id": 2,
+        "file_id": file.file_id,
+        "pages": [1, 2, 5, 6, 7, 8, 9],
+        "job_id": job.job_id,
+        "user_id": FINISH_TASK_USER_2.user_id,
+        "is_validation": False,
+        "status": TaskStatusEnumSchema.in_progress,
+        "deadline": None,
+    }
+    task_3 = {
+        "id": 3,
+        "file_id": file.file_id,
+        "pages": [3, 4, 5, 6, 7],
+        "job_id": job.job_id,
+        "user_id": FINISH_TASK_USER_3.user_id,
+        "is_validation": False,
+        "status": TaskStatusEnumSchema.in_progress,
+        "deadline": None,
+    }
+    validation = {
+        "id": 4,
+        "file_id": file.file_id,
+        "pages": [1, 2, 3, 4, 5, 6, 7, 8, 9],
+        "job_id": job.job_id,
+        "user_id": FINISH_TASK_USER_3.user_id,
+        "is_validation": True,
+        "status": TaskStatusEnumSchema.pending,
+        "deadline": None,
+    }
+
+    yield (db_session, (task_1, task_2, task_3), validation)
+    clear_db()
+
+
