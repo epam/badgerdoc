@@ -442,3 +442,10 @@ export type PagingFetcher<T> = (
 ) => Promise<PagedResponse<T>>;
 
 export type DocumentView = 'table' | 'card';
+
+export type Report = {
+    users: User[] | undefined;
+    from: string;
+    to: string;
+    validationType: ValidationType | undefined;
+};
