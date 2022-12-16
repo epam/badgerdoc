@@ -33,7 +33,6 @@ export const useDownloadFile = ({
             postDownloading();
             URL.revokeObjectURL(url);
         } catch (error) {
-            console.log('The error occured: ', error);
             onError(error);
         }
     };
