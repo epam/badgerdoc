@@ -15,6 +15,7 @@ boto3 = "^1.20.50"
 boto3-stubs = "^1.21.1"
 click = "^8.1.2"
 aiohttp = "^3.8.1"
+python-multipart = "^0.0.5"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.5"

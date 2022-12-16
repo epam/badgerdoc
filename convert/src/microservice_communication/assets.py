@@ -6,19 +6,14 @@ from fastapi import Header
 from requests import RequestException
 from requests import Timeout
 from tenant_dependency import TenantData
-from tenant_dependency import get_tenant_info
 
-from config import settings
-from utils.common_utils import raise_request_exception
-
-tenant = get_tenant_info(
-    url=settings.keycloak_url, algorithm="RS256", debug=True
-)
+from src.config import settings
+from src.utils.common_utils import raise_request_exception
 
 
 def upload_files(
         files: List,
-        token: TenantData = Depends(tenant),
+        token: TenantData = Depends,
         current_tenant: str = Header(None, alias="X-Current-Tenant"),
 ):
     assets_url = settings.assets_service_url
@@ -28,12 +23,15 @@ def upload_files(
             url=assets_url,
             headers={
                 "X-Current-Tenant": current_tenant,
-                "Authorization": token,
+                "Authorization": f"Bearer {token.token}",
             },
             timeout=5,
-            files=files
+            files={_.filename: _.file for _ in files}
+
         )
     except (ConnectionError, RequestException, Timeout) as err:
+        breakpoint()
         raise_request_exception(err)
     if response.status_code != 200:
+        breakpoint()
         raise_request_exception(response.text)

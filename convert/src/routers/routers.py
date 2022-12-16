@@ -4,6 +4,8 @@ from urllib.parse import urlparse
 
 import requests
 from fastapi import APIRouter, BackgroundTasks, Depends, Header, status
+from fastapi import File
+from fastapi import UploadFile
 from fastapi.responses import Response, StreamingResponse
 from requests import HTTPError
 from tenant_dependency import TenantData, get_tenant_info
@@ -16,11 +18,11 @@ from src.coco_export.export_service import (
 from src.coco_import.convert import ConvertToBadgerdoc
 from src.coco_import.import_job import create_import_job
 
-from microservice_communication.assets import upload_files
-from microservice_communication.jobs import create_jobs
-from microservice_communication.jobs import start_jobs
-from microservice_communication.jobs import wait_for_end
-from microservice_communication.taxonomy import link_categories
+from src.microservice_communication.assets import upload_files
+from src.microservice_communication.jobs import create_jobs
+from src.microservice_communication.jobs import start_jobs
+from src.microservice_communication.jobs import wait_for_end
+from src.microservice_communication.taxonomy import link_categories
 from src.config import minio_client, settings
 from src.logger import get_logger
 from src.models import coco
@@ -167,12 +169,12 @@ def download_dataset(
     summary="Batch documents upload and job creation",
 )
 def batch_upload(
-        files: List,
-        jobs: List,
+        jobs: List[dict],
         category_id: str,
         taxonomy_link_params: List[dict],
         token: TenantData = Depends(tenant),
         current_tenant: str = Header(None, alias="X-Current-Tenant"),
+        files: List[UploadFile] = File(...)
 ):
     uplodaded_files_info = upload_files(files, token, current_tenant)
     created_jobs = create_jobs(jobs, token, current_tenant)

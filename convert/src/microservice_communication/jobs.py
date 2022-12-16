@@ -2,7 +2,7 @@ from typing import Union
 from typing import List
 
 import requests
-from config import settings
+from src.config import settings
 from dotenv import find_dotenv, load_dotenv
 from requests import RequestException
 
@@ -23,10 +23,10 @@ def create_jobs(jobs: List, token: TenantData, tenant: str):
     for job in jobs:
         try:
             job_response = requests.post(
-                settings.job_service_url,
+                settings.job_creation_url,
                 headers={
                     "X-Current-Tenant": tenant,
-                    "Authorization": token,
+                    "Authorization": f"Bearer {token.token}",
                 },
                 json=job,
                 timeout=5,
@@ -46,7 +46,7 @@ def wait_for_end(jobs: List, token: TenantData, tenant: str):
                 settings.job_service_url,
                 headers={
                     "X-Current-Tenant": tenant,
-                    "Authorization": token,
+                    "Authorization": f"Bearer {token.token}",
                 },
                 json=jobs,
                 timeout=5,
@@ -69,7 +69,7 @@ def start_jobs(jobs: List, token: TenantData, tenant: str):
                 f"{settings.job_service_url}/start/{job.get('id')}",
                 headers={
                     "X-Current-Tenant": tenant,
-                    "Authorization": token,
+                    "Authorization": f"Bearer {token.token}",
                 },
                 timeout=5,
             )

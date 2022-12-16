@@ -33,6 +33,7 @@ class Settings(BaseSettings):
     category_service_url: Optional[str] = os.getenv("CATEGORY_SERVICE_URL")
     import_coco_url: Optional[str] = os.getenv("IMPORT_COCO_URL")
     job_service_url: Optional[str] = os.getenv("JOB_SERVICE_URL")
+    job_creation_url: Optional[str] = os.getenv("JOB_CREATION_URL")
     taxonomy_service_url: Optional[str] = os.environ.get("TAXONOMY_URL")
     annotation_service_url: Optional[str] = os.getenv("ANNOTATION_SERVICE_URL")
     keycloak_url: Optional[str] = os.getenv("KEYCLOAK_URL")

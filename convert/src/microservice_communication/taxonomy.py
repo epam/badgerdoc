@@ -6,7 +6,7 @@ from dotenv import find_dotenv, load_dotenv
 from requests import RequestException
 from tenant_dependency import TenantData
 
-from config import settings
+from src.config import settings
 
 load_dotenv(find_dotenv())
 
@@ -30,7 +30,7 @@ def link_categories(
             "{url}/link_to_job".format(url=settings.taxonomy_service_url),
             headers={
                 "X-Current-Tenant": tenant,
-                "Authorization": token,
+                "Authorization": f"Bearer {token.token}",
             },
             json=request_body,
             timeout=5,
