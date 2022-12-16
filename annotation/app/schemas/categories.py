@@ -1,7 +1,9 @@
 from enum import Enum
 from typing import List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, validator
+
+from app.errors import CheckFieldError
 
 
 class CategoryTypeSchema(str, Enum):
@@ -45,6 +47,12 @@ class CategoryInputSchema(CategoryBaseSchema):
         example="my_category",
         description="If id is not provided, generates it as a UUID.",
     )
+
+    @validator("id")
+    def alphanumeric_validator(cls, value):
+        if value and not value.replace("_", "").isalnum():
+            raise CheckFieldError("Category id must be alphanumeric.")
+        return value
 
 
 class SubCategoriesOutSchema(BaseModel):

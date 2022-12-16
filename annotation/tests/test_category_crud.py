@@ -334,6 +334,36 @@ def test_add_id_is_generated(prepare_db_categories_different_names):
 
 
 @mark.integration
+@mark.parametrize(
+    "category_id",
+    ("1Category123", "second_category", "3rd_category"),
+)
+def test_add_id_numbers_underscore(
+    category_id, prepare_db_categories_different_names
+):
+    data = prepare_category_body(id_=category_id, name=str(uuid.uuid4()))
+    response = client.post(CATEGORIES_PATH, json=data, headers=TEST_HEADERS)
+    assert response.status_code == 201
+    assert prepare_expected_result(
+        response.json(), with_category_id=True
+    ) == prepare_category_response(data)
+
+
+@mark.integration
+@mark.parametrize(
+    "category_id",
+    ("1st!-category1", "2nd%category", "3rd:.category"),
+)
+def test_add_id_special_chars(
+    category_id, prepare_db_categories_different_names
+):
+    data = prepare_category_body(id_=category_id, name=str(uuid.uuid4()))
+    response = client.post(CATEGORIES_PATH, json=data, headers=TEST_HEADERS)
+    assert response.status_code == 400
+    assert "Category id must be alphanumeric" in response.text
+
+
+@mark.integration
 @patch("app.categories.resources.link_category_with_taxonomy")
 @patch("uuid.uuid4", return_value="fe857daa-8332-4a26-ab50-29be0a74477e")
 def test_should_send_link_request_taxonomy_service(

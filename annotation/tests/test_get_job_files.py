@@ -23,7 +23,7 @@ client = TestClient(app)
 GET_JOB_FILES_PATH = "/jobs/{job_id}/files"
 CATEGORIES = [
     Category(
-        id="18d3d189-e73a-4680-bfa7-7ba3fe6ebee5",
+        id="18d3d189e73a4680bfa77ba3fe6ebee5",
         name="Test",
         type=CategoryTypeSchema.box,
     ),
