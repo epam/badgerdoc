@@ -1,6 +1,6 @@
 import React, { FC, useCallback, useEffect, useState } from 'react';
-import { Panel } from '@epam/loveship';
-import { Form, Metadata, RenderFormProps } from '@epam/uui';
+import { ErrorNotification, Panel, Text } from '@epam/loveship';
+import { Form, INotification, Metadata, RenderFormProps, useUuiContext } from '@epam/uui';
 import { useUsers } from 'api/hooks/users';
 import { Report, SortingDirection } from 'api/typings';
 import { useHistory } from 'react-router-dom';
@@ -11,6 +11,7 @@ import RetrieveReportsList from 'components/reports/retrieve-reports-list';
 import { renderWizardButtons } from 'shared/components/wizard/wizard/wizard';
 import { useDownloadTaskReport } from 'api/hooks/tasks';
 import { useDownloadFile } from 'shared/hooks/use-download-file';
+import { getError } from 'shared/helpers/get-error';
 
 let initialValues: Report = {
     users: [],
@@ -24,6 +25,7 @@ const timeAppendix = '00:00:00';
 export const ReportsConnector: FC<{}> = () => {
     const finishButtonCaption = 'Download';
     const history = useHistory();
+    const svc = useUuiContext();
     const [isLoading, setLoading] = useState(false);
 
     const users = useUsers(
@@ -40,32 +42,48 @@ export const ReportsConnector: FC<{}> = () => {
         initialValues = { ...initialValues, users: users.data?.data };
     }, []);
 
+    const handleError = useCallback((err) => {
+        setLoading(false);
+
+        svc.uuiNotifications.show(
+            (props: INotification) => (
+                <ErrorNotification {...props}>
+                    <Text>{getError(err)}</Text>
+                </ErrorNotification>
+            ),
+            { duration: 2 }
+        );
+    }, []);
+
     const { ref, url, download, name } = useDownloadFile({
         preDownloading: () => setLoading(true),
         postDownloading: () => setLoading(false),
-        onError: () => setLoading(false)
+        onError: (err) => handleError(err)
     });
 
-    const renderForm = useCallback(({ lens, save }: RenderFormProps<Report>) => {
-        const values = users.data?.data;
+    const renderForm = useCallback(
+        ({ lens, save }: RenderFormProps<Report>) => {
+            const values = users.data?.data;
 
-        const formInvalid = isFormInvalid(lens);
-        /* eslint-disable jsx-a11y/anchor-has-content */
-        return (
-            <>
-                <RetrieveReportsList lens={lens} users={values} />
-                <div className="flex justify-end p-t-10">
-                    {renderWizardButtons({
-                        onNextClick: () => {
-                            save();
-                        },
-                        nextButtonCaption: finishButtonCaption,
-                        disableNextButton: formInvalid && isLoading
-                    })}
-                </div>
-            </>
-        );
-    }, []);
+            const formInvalid = isFormInvalid(lens);
+            /* eslint-disable jsx-a11y/anchor-has-content */
+            return (
+                <>
+                    <RetrieveReportsList lens={lens} users={values} />
+                    <div className="flex justify-end p-t-10">
+                        {renderWizardButtons({
+                            onNextClick: () => {
+                                save();
+                            },
+                            nextButtonCaption: finishButtonCaption,
+                            disableNextButton: formInvalid && isLoading
+                        })}
+                    </div>
+                </>
+            );
+        },
+        [users]
+    );
 
     const isFormInvalid = useCallback((lens) => {
         const usersIds = lens.prop('users').get();
@@ -88,14 +106,10 @@ export const ReportsConnector: FC<{}> = () => {
 
         const fileName = `Reports ${from}-${to}.csv`;
 
-        try {
-            download(
-                useDownloadTaskReport({ userIds, from: formattedFrom, to: formattedTo }),
-                fileName
-            );
-        } catch (err: any) {
-            console.error('The error has occured: ', err.message);
-        }
+        download(
+            useDownloadTaskReport({ userIds, from: formattedFrom, to: formattedTo }),
+            fileName
+        );
     }, []);
 
     const getMetaData = useCallback(

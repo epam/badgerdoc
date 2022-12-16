@@ -1,4 +1,4 @@
-import { Button, FlexRow, LinkButton, FlexSpacer, ErrorNotification, Text } from '@epam/loveship';
+import { FlexRow, LinkButton, FlexSpacer, ErrorNotification, Text } from '@epam/loveship';
 import { useUuiContext, INotification } from '@epam/uui';
 
 import { useDeleteDatasetMutation } from 'api/hooks/datasets';

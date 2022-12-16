@@ -4,7 +4,6 @@ import {
     Operators,
     PagedResponse,
     Pipeline,
-    QueryHookParamsType,
     QueryHookType,
     SearchBody,
     SortingDirection

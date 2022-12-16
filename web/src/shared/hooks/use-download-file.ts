@@ -3,7 +3,7 @@ import React, { useRef, useState } from 'react';
 interface DownloadFileProps {
     readonly preDownloading: () => void;
     readonly postDownloading: () => void;
-    readonly onError: () => void;
+    readonly onError: (error: any) => void;
 }
 
 interface DownloadedFileInfo {
@@ -34,7 +34,7 @@ export const useDownloadFile = ({
             URL.revokeObjectURL(url);
         } catch (error) {
             console.log('The error occured: ', error);
-            onError();
+            onError(error);
         }
     };
 

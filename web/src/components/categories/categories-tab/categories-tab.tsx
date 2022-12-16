@@ -6,7 +6,6 @@ import { AnnotationBoundMode } from 'shared';
 import { Category, CategoryNode } from '../../../api/typings';
 import { CategoriesTree } from 'components/categories/categories-tree/categories-tree';
 import { useHeight } from 'shared/hooks/use-height';
-import { isEmpty } from 'lodash';
 import { useCategoriesTree } from '../categories-tree/use-categories-tree';
 
 interface CategoriesTabProps {
