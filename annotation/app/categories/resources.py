@@ -189,6 +189,6 @@ def delete_category(
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
     token: TenantData = Depends(TOKEN),
 ) -> Response:
-    delete_taxonomy_link(category_id, x_current_tenant, token)
+    delete_taxonomy_link(category_id, x_current_tenant, token.token)
     delete_category_db(db, category_id, x_current_tenant)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

@@ -23,7 +23,7 @@ client = TestClient(app)
 START_JOB_PATH = "/jobs/{job_id}/start"
 CATEGORIES = [
     Category(
-        id="aeacb631-672e-4b04-8b42-ed76f0ede2c5",
+        id="aeacb631672e4b048b42ed76f0ede2c5",
         name="Test",
         type=CategoryTypeSchema.box,
     ),

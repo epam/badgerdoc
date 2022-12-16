@@ -1,3 +1,5 @@
+from typing import Callable
+
 from sqlalchemy import (
     BOOLEAN,
     INTEGER,
@@ -12,10 +14,11 @@ from sqlalchemy import (
     func,
 )
 from sqlalchemy.dialects.postgresql import ARRAY, ENUM, JSON, JSONB, UUID
-from sqlalchemy.orm import relationship
-from sqlalchemy_utils import LtreeType
+from sqlalchemy.orm import relationship, validates
+from sqlalchemy_utils import Ltree, LtreeType
 
 from app.database import Base
+from app.errors import CheckFieldError
 from app.schemas import (
     DEFAULT_LOAD,
     AnnotationStatisticsEventEnumSchema,
@@ -99,6 +102,13 @@ class AnnotatedDoc(Base):
     tasks = relationship("ManualAnnotationTask", back_populates="docs")
 
 
+def default_tree(column_name: str) -> Callable:
+    def default_function(context) -> str:
+        return Ltree(f"{context.current_parameters.get(column_name)}")
+
+    return default_function
+
+
 class Category(Base):
     __tablename__ = "categories"
 
@@ -123,8 +133,14 @@ class Category(Base):
     jobs = relationship(
         "Job", secondary=association_job_category, back_populates="categories"
     )
-    tree = Column(LtreeType, nullable=True)
+    tree = Column(LtreeType, nullable=True, default=default_tree("id"))
     __table_args__ = (Index("index_tree", tree, postgresql_using="gist"),)
+
+    @validates("id")
+    def validate_id(self, key, id_):
+        if id_ and not id_.replace("_", "").isalnum():
+            raise CheckFieldError("Taxon id must be alphanumeric.")
+        return id_
 
 
 class User(Base):
