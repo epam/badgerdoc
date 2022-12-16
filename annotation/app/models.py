@@ -139,7 +139,7 @@ class Category(Base):
     @validates("id")
     def validate_id(self, key, id_):
         if id_ and not id_.replace("_", "").isalnum():
-            raise CheckFieldError("Taxon id must be alphanumeric.")
+            raise CheckFieldError("Category id must be alphanumeric.")
         return id_
 
 

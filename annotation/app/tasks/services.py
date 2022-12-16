@@ -478,7 +478,7 @@ def create_export_csv(
 
     if not annotation_stats:
         raise HTTPException(
-            status_code=404,
+            status_code=406,
             detail="Export data not found.",
         )
 

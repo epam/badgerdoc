@@ -853,7 +853,7 @@ def test_update_task_already_updated_change_event(
 
 
 @pytest.mark.integration
-def test_create_export_users_not_found(prepare_db_update_stats):
+def test_create_export_data_not_found(prepare_db_update_stats):
     body = prepare_stats_export_body(
         user_ids=[f"{uuid4()}" for _ in range(10)]
     )
@@ -864,7 +864,7 @@ def test_create_export_users_not_found(prepare_db_update_stats):
         headers=TEST_HEADERS,
     )
 
-    assert response.status_code == 404
+    assert response.status_code == 406
     assert "Export data not found." in response.text
 
 
