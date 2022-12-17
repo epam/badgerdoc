@@ -412,11 +412,11 @@ def add_task_stats_record(
     if stats_db:
         for name, value in stats.dict().items():
             setattr(stats_db, name, value)
-        stats_db.updated = datetime.now()
+        stats_db.updated = datetime.utcnow()
     else:
         if stats.event_type == "closed":
             raise CheckFieldError(
-                "Attribute event_type can not start from 'close'."
+                "Attribute event_type can not start from closed."
             )
         stats_db = AnnotationStatistics(task_id=task_id, **stats.dict())
 
