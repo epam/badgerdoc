@@ -16,6 +16,7 @@ import { AdminPage } from 'pages/admin/admin';
 import TaskPage from 'pages/task/task-page';
 import ModelsPage from './pages/models/models-page';
 import BasementsPage from './pages/basements/basements-page';
+import ReportsPage from 'pages/reports/reports-page';
 import { SkillHunterDashboardPage } from './pages/SH-Dashboard/sh-dashboard';
 import { setUpdateTokenInterval } from './shared/helpers/auth-tools';
 import {
@@ -25,7 +26,8 @@ import {
     DOCUMENTS_PAGE,
     JOBS_PAGE,
     MODELS_PAGE,
-    PIPELINES_PAGE
+    PIPELINES_PAGE,
+    REPORTS_PAGE
 } from './shared/constants';
 import { ProtectedRoute } from 'shared/components/protected-route';
 import { CategoriesTableConnector } from './connectors/categories-table-connector';
@@ -65,6 +67,7 @@ export const App = () => {
                         <Route path="/categories" component={CategoriesTableConnector} />
                         <Route path={MODELS_PAGE} component={ModelsPage} />
                         <Route path={BASEMENTS_PAGE} component={BasementsPage} />
+                        <Route path={REPORTS_PAGE} component={ReportsPage} />
                         <Route path="/my documents" component={SkillHunterDashboardPage} />
                         <Route path={`${ANNOTATION_PAGE}/:taskId`} component={TaskPage} />
                         <Redirect to="/documents" />

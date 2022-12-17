@@ -1,3 +1,6 @@
+from datetime import datetime
+from typing import Callable
+
 from sqlalchemy import (
     BOOLEAN,
     INTEGER,
@@ -5,18 +8,21 @@ from sqlalchemy import (
     VARCHAR,
     CheckConstraint,
     Column,
+    DateTime,
     ForeignKey,
     Index,
     Table,
     func,
 )
 from sqlalchemy.dialects.postgresql import ARRAY, ENUM, JSON, JSONB, UUID
-from sqlalchemy.orm import relationship
-from sqlalchemy_utils import LtreeType
+from sqlalchemy.orm import relationship, validates
+from sqlalchemy_utils import Ltree, LtreeType
 
 from app.database import Base
+from app.errors import CheckFieldError
 from app.schemas import (
     DEFAULT_LOAD,
+    AnnotationStatisticsEventEnumSchema,
     CategoryTypeSchema,
     FileStatusEnumSchema,
     JobStatusEnumSchema,
@@ -97,6 +103,16 @@ class AnnotatedDoc(Base):
     tasks = relationship("ManualAnnotationTask", back_populates="docs")
 
 
+def default_tree(column_name: str) -> Callable[..., Ltree]:
+    def default_function(context) -> Ltree:
+        path = context.current_parameters.get(column_name)
+        if not path or not path.replace("_", "").isalnum():
+            raise ValueError(f"{path} is not a valid Ltree path.")
+        return Ltree(f"{path}")
+
+    return default_function
+
+
 class Category(Base):
     __tablename__ = "categories"
 
@@ -121,8 +137,14 @@ class Category(Base):
     jobs = relationship(
         "Job", secondary=association_job_category, back_populates="categories"
     )
-    tree = Column(LtreeType, nullable=True)
+    tree = Column(LtreeType, nullable=True, default=default_tree("id"))
     __table_args__ = (Index("index_tree", tree, postgresql_using="gist"),)
+
+    @validates("id")
+    def validate_id(self, key, id_):
+        if id_ and not id_.replace("_", "").isalnum():
+            raise CheckFieldError("Category id must be alphanumeric.")
+        return id_
 
 
 class User(Base):
@@ -158,7 +180,9 @@ class Job(Base):
     callback_url = Column(VARCHAR, nullable=False)
     deadline = Column(TIMESTAMP)
     tenant = Column(VARCHAR, nullable=False)
-    validation_type = Column(ENUM(ValidationSchema), nullable=False)
+    validation_type = Column(
+        ENUM(ValidationSchema, name="validation_type"), nullable=False
+    )
     status = Column(
         ENUM(JobStatusEnumSchema),
         nullable=False,
@@ -213,7 +237,7 @@ class File(Base):
         server_default="{}",
     )
     status = Column(
-        ENUM(FileStatusEnumSchema),
+        ENUM(FileStatusEnumSchema, name="file_status"),
         nullable=False,
         default=FileStatusEnumSchema.pending,
     )
@@ -244,3 +268,66 @@ class ManualAnnotationTask(Base):
     user = relationship("User", back_populates="tasks")
     jobs = relationship("Job", back_populates="tasks")
     docs = relationship("AnnotatedDoc", back_populates="tasks")
+    stats = relationship("AnnotationStatistics", back_populates="task")
+    agreement_score = relationship(
+        "AgreementScore", uselist=False, back_populates="task"
+    )
+
+
+class AnnotationStatistics(Base):
+    __tablename__ = "annotation_statistics"
+    task_id = Column(
+        INTEGER,
+        ForeignKey("tasks.id", ondelete="cascade"),
+        primary_key=True,
+    )
+    task = relationship("ManualAnnotationTask", back_populates="stats")
+    event_type = Column(
+        ENUM(AnnotationStatisticsEventEnumSchema, name="event_type"),
+        nullable=False,
+        default=AnnotationStatisticsEventEnumSchema.opened,
+    )
+    created = Column(DateTime(), default=datetime.utcnow)
+    updated = Column(DateTime(), onupdate=datetime.utcnow)
+    additional_data = Column(JSONB, nullable=True)
+
+    def to_dict(self) -> dict:
+        return {
+            "task_id": self.task_id,
+            "event_date": self.event_date,
+            "event_type": self.event_type,
+            "additional_data": self.additional_data,
+        }
+
+
+class AgreementScore(Base):
+    __tablename__ = "agreement_score"
+    annotator_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("users.user_id"),
+        nullable=False,
+    )
+    job_id = Column(
+        INTEGER,
+        ForeignKey("jobs.job_id", ondelete="cascade"),
+        nullable=False,
+    )
+    task_id = Column(
+        INTEGER,
+        ForeignKey("tasks.id", ondelete="cascade"),
+        primary_key=True,
+    )
+    task = relationship(
+        "ManualAnnotationTask", back_populates="agreement_score"
+    )
+    agreement_score = Column(JSONB, nullable=False)
+
+    def get_stats(self):
+        return {
+            "annotator_id": self.annotator_id,
+            "task_id": self.task_id,
+            "task_status": self.task.status,
+            "time_start": self.task.stats.created,
+            "time_finish": self.task.stats.updated,
+            "agreement_score": self.agreement_score,
+        }

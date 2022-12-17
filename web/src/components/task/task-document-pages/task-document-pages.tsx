@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import styles from './task-document-pages.module.scss';
 import { Annotation } from 'shared';
 import { useTaskAnnotatorContext } from 'connectors/task-annotator-connector/task-annotator-context';

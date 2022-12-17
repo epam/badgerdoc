@@ -38,7 +38,7 @@ def send_category_taxonomy_link(
         if response.status_code != 201:
             raise TaxonomyLinkException(response.json()["detail"])
     except RequestException as exc:
-        raise TaxonomyLinkException(exc)
+        raise TaxonomyLinkException(str(exc)) from RequestException
 
 
 def delete_taxonomy_link(
@@ -58,4 +58,4 @@ def delete_taxonomy_link(
         if response.status_code != 204:
             raise TaxonomyLinkException(response.json()["detail"])
     except RequestException as exc:
-        raise TaxonomyLinkException(exc)
+        raise TaxonomyLinkException(str(exc)) from RequestException
