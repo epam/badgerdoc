@@ -600,7 +600,7 @@ def validate_datetime(reponse_content: dict, is_updated: bool = False) -> bool:
         if not field:
             continue
         timestamp = datetime.fromisoformat(field)
-        if datetime.now() - timestamp > timedelta(minutes=5):
+        if datetime.utcnow() - timestamp > timedelta(minutes=5):
             return False
     return True
 

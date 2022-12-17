@@ -39,7 +39,7 @@ def get_agreement_score(
         if response.status_code != 200:
             raise AgreementScoreServiceException(response.text)
     except RequestException as exc:
-        raise AgreementScoreServiceException(exc)
+        raise AgreementScoreServiceException(str(exc)) from exc
     return [
         AgreementScoreServiceResponse.construct(**response_score)
         for response_score in response.json()

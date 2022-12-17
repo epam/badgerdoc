@@ -1,8 +1,8 @@
-"""annotation statistics
+"""agreement score
 
-Revision ID: b13e7ea70983
+Revision ID: 4272d0a43ff1
 Revises: 66cd6054c2d0
-Create Date: 2022-12-13 00:16:25.180295
+Create Date: 2022-12-17 17:45:27.366512
 
 """
 import sqlalchemy as sa
@@ -11,7 +11,7 @@ from sqlalchemy.dialects import postgresql
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision = "b13e7ea70983"
+revision = "4272d0a43ff1"
 down_revision = "66cd6054c2d0"
 branch_labels = None
 depends_on = None
@@ -39,7 +39,7 @@ def upgrade():
             ["job_id"], ["jobs.job_id"], ondelete="cascade"
         ),
         sa.ForeignKeyConstraint(["task_id"], ["tasks.id"], ondelete="cascade"),
-        sa.PrimaryKeyConstraint("annotator_id"),
+        sa.PrimaryKeyConstraint("task_id"),
     )
     op.create_table(
         "annotation_statistics",
@@ -49,12 +49,7 @@ def upgrade():
             postgresql.ENUM("opened", "closed", name="event_type"),
             nullable=False,
         ),
-        sa.Column(
-            "created",
-            sa.DateTime(),
-            server_default=sa.text("now()"),
-            nullable=True,
-        ),
+        sa.Column("created", sa.DateTime(), nullable=True),
         sa.Column("updated", sa.DateTime(), nullable=True),
         sa.Column(
             "additional_data",

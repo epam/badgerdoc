@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Callable
 
 from sqlalchemy import (
@@ -102,9 +103,12 @@ class AnnotatedDoc(Base):
     tasks = relationship("ManualAnnotationTask", back_populates="docs")
 
 
-def default_tree(column_name: str) -> Callable:
-    def default_function(context) -> str:
-        return Ltree(f"{context.current_parameters.get(column_name)}")
+def default_tree(column_name: str) -> Callable[..., Ltree]:
+    def default_function(context) -> Ltree:
+        path = context.current_parameters.get(column_name)
+        if not path or not path.replace("_", "").isalnum():
+            raise ValueError(f"{path} is not a valid Ltree path.")
+        return Ltree(f"{path}")
 
     return default_function
 
@@ -275,7 +279,6 @@ class AnnotationStatistics(Base):
     task_id = Column(
         INTEGER,
         ForeignKey("tasks.id", ondelete="cascade"),
-        nullable=False,
         primary_key=True,
     )
     task = relationship("ManualAnnotationTask", back_populates="stats")
@@ -284,11 +287,10 @@ class AnnotationStatistics(Base):
         nullable=False,
         default=AnnotationStatisticsEventEnumSchema.opened,
     )
-    created = Column(DateTime(), server_default=func.now())
-    updated = Column(DateTime(), server_onupdate=func.now())
+    created = Column(DateTime(), default=datetime.utcnow)
+    updated = Column(DateTime(), onupdate=datetime.utcnow)
     additional_data = Column(JSONB, nullable=True)
 
-    # TODO validate even_type not "closed" on create instance
     def to_dict(self) -> dict:
         return {
             "task_id": self.task_id,
@@ -304,7 +306,6 @@ class AgreementScore(Base):
         UUID(as_uuid=True),
         ForeignKey("users.user_id"),
         nullable=False,
-        primary_key=True,
     )
     job_id = Column(
         INTEGER,
@@ -314,7 +315,7 @@ class AgreementScore(Base):
     task_id = Column(
         INTEGER,
         ForeignKey("tasks.id", ondelete="cascade"),
-        nullable=False,
+        primary_key=True,
     )
     task = relationship(
         "ManualAnnotationTask", back_populates="agreement_score"
