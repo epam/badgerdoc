@@ -81,6 +81,22 @@ association_job_category = Table(
     Column("category_id", ForeignKey("categories.id"), primary_key=True),
     Column("job_id", ForeignKey("jobs.job_id"), primary_key=True),
 )
+association_doc_category = Table(
+    "association_doc_category",
+    Base.metadata,
+    Column("revision", primary_key=True),
+    Column("file_id", primary_key=True),
+    Column("job_id", primary_key=True),
+    Column("category_id", ForeignKey("categories.id"), primary_key=True),
+    ForeignKeyConstraint(
+        ("revision", "file_id", "job_id"),
+        (
+            "annotated_docs.revision",
+            "annotated_docs.file_id",
+            "annotated_docs.job_id",
+        ),
+    ),
+)
 
 
 class AnnotatedDoc(Base):
@@ -121,6 +137,7 @@ class AnnotatedDoc(Base):
         "DocumentLinks.original_file_id, "
         "DocumentLinks.original_job_id]",
     )
+    categories = relationship("Category", secondary=association_doc_category)
 
     def __repr__(self) -> str:
         return (

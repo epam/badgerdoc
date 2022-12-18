@@ -2,7 +2,7 @@ import json
 import os
 from datetime import datetime
 from hashlib import sha1
-from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from typing import Dict, List, Optional, Set, Tuple, Union
 from uuid import UUID
 
 import boto3
@@ -213,7 +213,6 @@ def create_manifest_json(
     bucket_name: str,
     job_id: int,
     file_id: int,
-    doc_categories: Optional[List[str]],
     db: Session,
     s3_resource: boto3.resource,
 ) -> None:
@@ -247,7 +246,6 @@ def create_manifest_json(
     manifest["failed_validation_pages"] = list(failed_validation)
     manifest["file"] = s3_file_path
     manifest["bucket"] = s3_file_bucket
-    manifest["categories"] = doc_categories
 
     manifest_json = json.dumps(manifest)
     upload_json_to_minio(
@@ -314,6 +312,14 @@ def construct_annotated_doc(
         or not. If flag is False, merge conflict will occur
     :return: newly created revision or latest revision
     """
+    from app.categories import fetch_bunch_categories_db
+
+    doc_categories = fetch_bunch_categories_db(
+        db=db,
+        category_ids=set(doc.categories or []),
+        tenant=tenant,
+        root_parents=True,
+    )
     annotated_doc = AnnotatedDoc(
         user=user_id,
         pipeline=pipeline_id,
@@ -323,6 +329,7 @@ def construct_annotated_doc(
         failed_validation_pages=doc.failed_validation_pages,
         tenant=tenant,
         task_id=task_id,
+        categories=doc_categories,
     )
     s3_path = f"{S3_START_PATH}/{str(job_id)}/{str(file_id)}"
 
@@ -391,7 +398,6 @@ def construct_annotated_doc(
         bucket_name,
         job_id,
         file_id,
-        doc.categories,
         db,
         s3_resource,
     )
@@ -669,15 +675,6 @@ def load_page(
     loaded_pages.append(loaded_page)
 
 
-def get_file_manifest(
-    job_id: str, file_id: str, tenant: str, s3_resource: boto3.resource
-) -> Dict[str, Any]:
-    manifest_path = f"{S3_START_PATH}/{job_id}/{file_id}/{MANIFEST}"
-    bucket_name = convert_bucket_name_if_s3prefix(tenant)
-    manifest_obj = s3_resource.Object(bucket_name, manifest_path)
-    return json.loads(manifest_obj.get()["Body"].read().decode("utf-8"))
-
-
 def load_all_revisions_pages(
     pages: Dict[int, List[PageRevision]],
     tenant: str,
@@ -807,13 +804,7 @@ def construct_particular_rev_response(
     load_validated_pages_for_particular_rev(
         revision, page_revision, s3_resource, loaded_pages
     )
-    manifest = get_file_manifest(
-        str(revision.job_id),
-        str(revision.file_id),
-        revision.tenant,
-        s3_resource,
-    )
-    doc_categories = manifest.get("categories")
+    doc_categories = [category.id for category in revision.categories or []]
     similar_revisions = [
         RevisionLink(
             revision=link.similar_doc.revision,
