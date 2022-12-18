@@ -76,10 +76,8 @@ class ParticularRevisionSchema(BaseModel):
     failed_validation_pages: Optional[List[int]] = Field(
         None, ge=1, example=[]
     )
-    categories: Optional[List[str]] = Field(
-        None, example=["science", "manifest"]
-    )
     similar_revisions: Optional[List[RevisionLink]] = Field(None)
+    categories: Optional[List[str]] = Field(None, example=["1", "2"])
 
 
 class DocForSaveSchema(BaseModel):
@@ -95,10 +93,8 @@ class DocForSaveSchema(BaseModel):
     failed_validation_pages: Optional[Set[int]] = Field(
         None, ge=1, example={3, 4}
     )
-    categories: Optional[List[str]] = Field(
-        None, example=["science", "manifest"]
-    )
     similar_revisions: Optional[List[RevisionLink]] = Field(None)
+    categories: Optional[List[str]] = Field(None, example=["1", "2"])
 
     @root_validator
     def one_field_empty_other_filled_check(cls, values):
@@ -184,6 +180,7 @@ class AnnotatedDocSchema(BaseModel):
     tenant: str = Field(..., example="badger-doc")
     task_id: int = Field(None, example=2)
     similar_revisions: Optional[List[RevisionLink]] = Field(None)
+    categories: Optional[List[str]] = Field(None, example=["1", "2"])
 
     @classmethod
     def from_orm(cls, obj):
@@ -198,6 +195,8 @@ class AnnotatedDocSchema(BaseModel):
                 )
                 for link in links
             ]
+        if categories := obj.categories:
+            value.categories = [category.id for category in categories]
         return value
 
     class Config:

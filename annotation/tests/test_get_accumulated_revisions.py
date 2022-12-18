@@ -10,7 +10,8 @@ from app.microservice_communication.search import (
     BEARER,
     HEADER_TENANT,
 )
-from app.models import AnnotatedDoc, User
+from app.models import AnnotatedDoc, Category, User
+from app.schemas import CategoryTypeSchema
 from tests.consts import ANNOTATION_PATH
 from tests.override_app_dependency import TEST_TOKEN, app
 from tests.test_post_annotation import POST_ANNOTATION_PG_DOC
@@ -56,6 +57,13 @@ DOCS = [
         validated=[3],
         failed_validation_pages=[4],
         tenant=TENANT,
+        categories=[
+            Category(
+                id="jurisdiction",
+                name="jurisdiction category",
+                type=CategoryTypeSchema.link,
+            ),
+        ],
     ),
     AnnotatedDoc(
         revision="2",
@@ -70,6 +78,13 @@ DOCS = [
         validated=[4],
         failed_validation_pages=[1],
         tenant=TENANT,
+        categories=[
+            Category(
+                id="medical",
+                name="medical category",
+                type=CategoryTypeSchema.link,
+            ),
+        ],
     ),
     AnnotatedDoc(
         revision="3",
@@ -85,6 +100,13 @@ DOCS = [
         validated=[5],
         failed_validation_pages=[],
         tenant=TENANT,
+        categories=[
+            Category(
+                id="technical",
+                name="technical category",
+                type=CategoryTypeSchema.link,
+            ),
+        ],
     ),
 ]
 
@@ -147,7 +169,7 @@ LATEST_WITH_ALL_PAGES = dict(
     ],
     validated=[3, 4, 5],
     failed_validation_pages=[1],
-    categories=["test_category_1", "test_category_2"],
+    categories=[cat.id for cat in DOCS[2].categories],
     similar_revisions=None,
 )
 
@@ -191,7 +213,7 @@ LATEST_WITH_ALL_PAGES = dict(
                 ],
                 validated=[5],
                 failed_validation_pages=[1],
-                categories=["test_category_1", "test_category_2"],
+                categories=[cat.id for cat in DOCS[2].categories],
                 similar_revisions=None,
             ),
         ),
@@ -220,7 +242,7 @@ LATEST_WITH_ALL_PAGES = dict(
                 ],
                 validated=[3],
                 failed_validation_pages=[4],
-                categories=["test_category_1", "test_category_2"],
+                categories=[cat.id for cat in DOCS[0].categories],
                 similar_revisions=None,
             ),
         ),
@@ -248,7 +270,7 @@ LATEST_WITH_ALL_PAGES = dict(
                 ],
                 validated=[3],
                 failed_validation_pages=[],
-                categories=["test_category_1", "test_category_2"],
+                categories=[cat.id for cat in DOCS[0].categories],
                 similar_revisions=None,
             ),
         ),
@@ -277,7 +299,7 @@ LATEST_WITH_ALL_PAGES = dict(
                 ],
                 validated=[3, 4],
                 failed_validation_pages=[1],
-                categories=["test_category_1", "test_category_2"],
+                categories=[cat.id for cat in DOCS[1].categories],
                 similar_revisions=None,
             ),
         ),
@@ -297,7 +319,7 @@ LATEST_WITH_ALL_PAGES = dict(
                 pages=[],
                 validated=[],
                 failed_validation_pages=[],
-                categories=["test_category_1", "test_category_2"],
+                categories=[cat.id for cat in DOCS[1].categories],
                 similar_revisions=None,
             ),
         ),
@@ -353,12 +375,6 @@ def test_get_annotation_for_latest_revision_status_codes(
     monkeypatch.setattr(
         "app.annotations.main.connect_s3",
         Mock(return_value=minio_accumulate_revisions),
-    )
-    monkeypatch.setattr(
-        "app.annotations.main.get_file_manifest",
-        Mock(
-            return_value={"categories": ["test_category_1", "test_category_2"]}
-        ),
     )
     params = {"page_numbers": page_numbers}
 

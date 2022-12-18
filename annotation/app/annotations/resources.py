@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from tenant_dependency import TenantData
 
 from app.database import get_db
-from app.errors import NoSuchRevisionsError
+from app.errors import NoSuchCategoryError, NoSuchRevisionsError
 from app.microservice_communication.assets_communication import (
     get_file_path_and_bucket,
 )
@@ -209,6 +209,11 @@ def post_annotation_by_user(
             status_code=404,
             detail=f"Cannot assign similar documents: {err}",
         ) from err
+    except NoSuchCategoryError as err:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Cannot assign categories to document: {err}",
+        ) from err
     check_if_kafka_message_is_needed(
         db,
         latest_doc,
@@ -300,6 +305,11 @@ def post_annotation_by_pipeline(
         raise HTTPException(
             status_code=404,
             detail=f"Cannot assign similar documents: {err}",
+        ) from err
+    except NoSuchCategoryError as err:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Cannot assign categories to document: {err}",
         ) from err
     check_if_kafka_message_is_needed(
         db,
