@@ -84,7 +84,7 @@ PART_REV_RESPONSE = {
     "pages": PART_REV_PAGES,
     "validated": PART_REV_DOC.validated,
     "failed_validation_pages": PART_REV_DOC.failed_validation_pages,
-    "categories": None,
+    "categories": [],
     "similar_revisions": None,
 }
 
@@ -129,10 +129,6 @@ def test_get_annotation_for_particular_revision_status_codes(
     monkeypatch.setattr(
         "app.annotations.main.connect_s3",
         Mock(return_value=minio_particular_revision),
-    )
-    monkeypatch.setattr(
-        "app.annotations.main.get_file_manifest",
-        Mock(return_value={}),
     )
     response = client.get(
         construct_part_rev_path(

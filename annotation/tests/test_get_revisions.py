@@ -378,7 +378,9 @@ def test_get_all_revisions_sql_connection_error(
 @pytest.mark.integration
 @patch.object(boto3, "resource")
 def test_get_all_revisions_s3_connection_error(
-    boto3, prepare_db_for_get_revisions, prepare_job_for_safe_annotations,
+    boto3,
+    prepare_db_for_get_revisions,
+    prepare_job_for_safe_annotations,
 ):
     boto3.side_effect = Mock(side_effect=BotoCoreError())
     response = client.get(
@@ -748,19 +750,14 @@ def test_get_annotation_with_similarity(
         "app.annotations.main.connect_s3",
         Mock(return_value=prepare_moto_s3_for_get_revisions),
     )
-    manifest_file_mock = {"categories": ["1"]}
-    with patch(
-        "app.annotations.main.get_file_manifest",
-        return_value=manifest_file_mock,
-    ):
-        response = client.get(
-            f"{ANNOTATION_PATH}/"
-            f"{prepare_db_for_get_revisions_similar.original_job_id}/"
-            f"{prepare_db_for_get_revisions_similar.original_file_id}/"
-            f"{prepare_db_for_get_revisions_similar.original_revision}",
-            headers=TEST_HEADERS,
-            params={"page_numbers": [1]},
-        )
+    response = client.get(
+        f"{ANNOTATION_PATH}/"
+        f"{prepare_db_for_get_revisions_similar.original_job_id}/"
+        f"{prepare_db_for_get_revisions_similar.original_file_id}/"
+        f"{prepare_db_for_get_revisions_similar.original_revision}",
+        headers=TEST_HEADERS,
+        params={"page_numbers": [1]},
+    )
     expected_link = prepare_db_for_get_revisions_similar
     assert response.status_code == 200
     similar_revision = response.json()["similar_revisions"][0]

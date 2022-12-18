@@ -536,6 +536,7 @@ ANNOTATED_DOC_FIRST = {
     "tenant": POST_ANNOTATION_PG_DOC.tenant,
     "task_id": POST_ANNOTATION_PG_TASK_1.id,
     "similar_revisions": None,
+    "categories": [],
 }
 ANNOTATED_DOC_PIPELINE_FIRST = {
     "revision": sha1(
@@ -558,6 +559,7 @@ ANNOTATED_DOC_PIPELINE_FIRST = {
     },
     "tenant": POST_ANNOTATION_PG_DOC.tenant,
     "similar_revisions": None,
+    "categories": [],
 }
 
 ANNOTATED_DOC_WITH_DIFFERENT_JOB_AND_FILE = copy.deepcopy(ANNOTATED_DOC_FIRST)
@@ -608,6 +610,7 @@ ANNOTATED_DOC_WITH_MANY_PAGES = {
     "tenant": POST_ANNOTATION_PG_DOC.tenant,
     "task_id": POST_ANNOTATION_PG_DOC.task_id,
     "similar_revisions": None,
+    "categories": [],
 }
 
 ANNOTATED_DOC_WITH_BASE_REVISION = {
@@ -1594,7 +1597,6 @@ def test_create_manifest_json_first_upload(
 
     expected_manifest["bucket"] = bucket_of_phys_file
     expected_manifest["file"] = s3_path_to_physical_file
-    expected_manifest["categories"] = ["science", "manifest"]
     create_manifest_json(
         annotated_doc,
         S3_PATH,
@@ -1603,7 +1605,6 @@ def test_create_manifest_json_first_upload(
         POST_ANNOTATION_PG_DOC.tenant,
         POST_ANNOTATION_JOB_1.job_id,
         POST_ANNOTATION_FILE_1.file_id,
-        ["science", "manifest"],
         prepare_db_for_manifest_creation_with_one_record,
         s3_resource,
     )
@@ -1782,7 +1783,6 @@ def test_create_manifest_json_with_annotated_docs_and_manifest_in_minio(
 
     expected_manifest["bucket"] = bucket_of_phys_file
     expected_manifest["file"] = s3_path_to_physical_file
-    expected_manifest["categories"] = ["science", "manifest"]
 
     create_manifest_json(
         annotated_doc,
@@ -1792,7 +1792,6 @@ def test_create_manifest_json_with_annotated_docs_and_manifest_in_minio(
         POST_ANNOTATION_PG_DOC.tenant,
         POST_ANNOTATION_JOB_1.job_id,
         POST_ANNOTATION_FILE_1.file_id,
-        ["science", "manifest"],
         prepare_db_for_manifest_creation_with_several_records,
         s3_resource,
     )
@@ -1972,8 +1971,16 @@ def test_construct_annotated_doc_different_jobs_and_files(
     """
     s3_resource = mock_minio_empty_bucket
 
-    expected_result_1 = ANNOTATED_DOC_FIRST
-    expected_result_2 = ANNOTATED_DOC_WITH_DIFFERENT_JOB_AND_FILE
+    expected_result_1 = {
+        k: v
+        for k, v in ANNOTATED_DOC_FIRST.items()
+        if k not in ("similar_revisions", "categories")
+    }
+    expected_result_2 = {
+        k: v
+        for k, v in ANNOTATED_DOC_WITH_DIFFERENT_JOB_AND_FILE.items()
+        if k not in ("similar_revisions", "categories")
+    }
 
     expected_path_1 = (
         f"annotation/{expected_result_1['job_id']}"
@@ -2056,27 +2063,11 @@ def test_construct_annotated_doc_different_jobs_and_files(
     assert obj_1.key == expected_path_1
     assert obj_2.key == expected_path_2
 
-    assert doc_1_in_db == {
-        k: v
-        for k, v in expected_result_1.items()
-        if k not in ("similar_revisions",)
-    }
-    assert doc_2_in_db == {
-        k: v
-        for k, v in expected_result_2.items()
-        if k not in ("similar_revisions",)
-    }
+    assert doc_1_in_db == expected_result_1
+    assert doc_2_in_db == expected_result_2
 
-    assert formatted_actual_doc_1 == {
-        k: v
-        for k, v in expected_result_1.items()
-        if k not in ("similar_revisions",)
-    }
-    assert formatted_actual_doc_2 == {
-        k: v
-        for k, v in expected_result_2.items()
-        if k not in ("similar_revisions",)
-    }
+    assert formatted_actual_doc_1 == expected_result_1
+    assert formatted_actual_doc_2 == expected_result_2
 
 
 @pytest.mark.integration
