@@ -31,6 +31,7 @@ class ValidationType(str, Enum):
     cross = "cross"
     hierarchical = "hierarchical"
     validation_only = "validation only"
+    extensive_coverage = "extensive_coverage"
 
 
 class ExtractionJobParams(BaseModel):
@@ -58,6 +59,7 @@ class AnnotationJobParams(BaseModel):
     deadline: datetime
     validation_type: ValidationType
     is_draft: bool = False
+    extensive_coverage: int = 1
 
 
 class ExtractionWithAnnotationJobParams(
@@ -88,6 +90,7 @@ class JobParams(BaseModel):
     categories: Optional[List[str]]
     deadline: Optional[datetime]
     validators: Optional[List[str]]
+    extensive_coverage: Optional[int]
     # ---- ExtractionJob and ExtractionWithAnnotationJob attributes ---- #
     pipeline_name: Optional[str]
     pipeline_version: Optional[str] = None
@@ -213,6 +216,26 @@ class JobParams(BaseModel):
         if job_type == JobType.ImportJob and not v:
             raise ValueError(
                 f"{field.name} cannot be empty in {JobType.ImportJob}"
+            )
+        return v
+
+    @validator("extensive_coverage")
+    def check_extensive_coverage(
+        cls, v: int, values: Dict[str, Any], field: ModelField
+    ):
+        validation_type = values.get("validation_type")
+        if validation_type != ValidationType.extensive_coverage and v:
+            raise ValueError(
+                f"{field.name} cannot be assigned to {validation_type}."
+            )
+        if validation_type != ValidationType.extensive_coverage and not v:
+            raise ValueError(
+                f"{field.name} cannot be empty with {validation_type=}."
+            )
+        annotators = values.get("annotators")
+        if v > len(annotators):
+            raise ValueError(
+                f"{field.name} cannot be less then number of annotators."
             )
         return v
 

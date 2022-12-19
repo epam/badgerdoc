@@ -10,6 +10,7 @@ import UsersPickers from '../users-pickers/users-pickers';
 import PipelinePicker from '../pipeline-picker/pipeline-picker';
 import CategoriesPicker from 'shared/components/categories-picker/categories-picker';
 import { Checkbox } from '@epam/loveship';
+import { ExtensiveCoverageInput } from './extensive-coverage-input/extensive-coverage-input';
 
 type AutomaticManualJobProps = {
     categories: Category[] | undefined;
@@ -28,6 +29,7 @@ const AutomaticManualJob: FC<AutomaticManualJobProps> = ({
         startManuallyProps.value = false;
     }
 
+    const vlidationType = lens.prop('validationType').get();
     return (
         <div className={styles.job}>
             <JobName lens={lens} />
@@ -37,6 +39,8 @@ const AutomaticManualJob: FC<AutomaticManualJobProps> = ({
                 <DeadlinePicker lens={lens} />
             </div>
             <UsersPickers lens={lens} users={users} />
+            {vlidationType === 'extensive_coverage' && <ExtensiveCoverageInput lens={lens} />}
+
             <div className="form-group">
                 <CategoriesPicker lens={lens} categories={categories} />
             </div>

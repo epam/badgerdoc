@@ -274,15 +274,7 @@ def _get_leaves(
 def _extract_category(
     path: str, categories: Dict[str, Category]
 ) -> List[Category]:
-    return [
-        CategoryResponseSchema.parse_obj(
-            {
-                **CategoryORMSchema.from_orm(categories[node]).dict(),
-                "is_leaf": False,
-            }
-        )
-        for node in path.split(".")[0:-1]
-    ]
+    return [categories[node] for node in path.split(".")[0:-1]]
 
 
 def _get_parents(
@@ -315,12 +307,25 @@ def _get_parents(
 def _compose_response(
     categories: List[Category], leaves: Leaves, parents: Parents
 ) -> List[CategoryResponseSchema]:
+    converted_parents = {}
+    for parent_path in parents:
+        converted_parents[parent_path] = [
+            CategoryResponseSchema.parse_obj(
+                {
+                    **CategoryORMSchema.from_orm(cat).dict(),
+                    "is_leaf": False,
+                }
+            )
+            for cat in parents[parent_path]
+        ]
     return [
         CategoryResponseSchema.parse_obj(
             {
                 **CategoryORMSchema.from_orm(cat).dict(),
                 "is_leaf": leaves.get(cat.id, False),
-                "parents": parents.get(cat.tree.path, []) if cat.tree else [],
+                "parents": converted_parents.get(cat.tree.path, [])
+                if cat.tree
+                else [],
             }
         )
         for cat in categories

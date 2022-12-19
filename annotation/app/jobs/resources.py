@@ -1,7 +1,15 @@
 from typing import Dict, List, Optional, Set, Union
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Path, Query, Response, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    Path,
+    Query,
+    Response,
+    status,
+)
 from filter_lib import Page
 from sqlalchemy import and_
 from sqlalchemy.orm import Session
@@ -93,6 +101,10 @@ def post_job(
             detail="The job already exists.",
         )
     validation_type = job_info.validation_type
+    # todo: in case of extensive_coverage validation
+    #  check if there is enough annotators but some of them have default
+    #  load 0. should we throw an error or distribute load for these users
+    #  despite load
     saved_users, new_users = find_users(
         db,
         {*job_info.annotators, *job_info.validators, *job_info.owners},
@@ -126,6 +138,7 @@ def post_job(
             tenant=x_current_tenant,
             status=JobStatusEnumSchema.pending,
             job_type=job_type,
+            extensive_coverage=job_info.extensive_coverage,
         )
     )
 
@@ -179,6 +192,7 @@ def post_job(
             job_id,
             validation_type,
             deadline=job_info.deadline,
+            extensive_coverage=job_info.extensive_coverage,
         )
 
     db.commit()

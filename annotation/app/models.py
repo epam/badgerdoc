@@ -188,6 +188,7 @@ class Job(Base):
         nullable=False,
         default=JobStatusEnumSchema.pending,
     )
+    extensive_coverage = Column(INTEGER, default=1)
     tasks = relationship("ManualAnnotationTask", back_populates="jobs")
     files = relationship("File", back_populates="jobs")
     annotators = relationship(

@@ -1,3 +1,4 @@
+from collections import Counter
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 from uuid import UUID
@@ -811,9 +812,8 @@ def finish_task(
         annotation_user,
         validation_user,
     )
-
+    job = get_job(db, task.job_id, x_current_tenant)
     if task.is_validation:
-        job = get_job(db, task.job_id, x_current_tenant)
 
         # create annotation and validation tasks for pages,
         # that validator marked as failed, unless job type
@@ -838,13 +838,34 @@ def finish_task(
             user_id=task.user_id,
             db=db,
         )
-    task.status = TaskStatusEnumSchema.finished
-    # If user is finishing any annotation task, search for validation tasks
+    # If user is finishing any annotation task (considering
+    # extensive_coverage number), search for validation tasks
     # that can be moved from 'pending' to 'ready' status for all users within
     # job and changes validation task's statuses respectively.
-    if not task.is_validation:
-        unblock_validation_tasks(db, task)
+    count_pages_annotations = Counter()
+    count_pages_annotations.update(task.pages)
+    finished_annotation_tasks = (
+        db.query(ManualAnnotationTask)
+        .filter(
+            ManualAnnotationTask.job_id == task.job_id,
+            ManualAnnotationTask.is_validation.is_(False),
+            ManualAnnotationTask.status == TaskStatusEnumSchema.finished,
+        )
+        .all()
+    )
+    for finished_task in finished_annotation_tasks:
+        count_pages_annotations.update(finished_task.pages)
 
+    finished_pages = sorted(
+        filter(
+            lambda x: count_pages_annotations[x] == job.extensive_coverage,
+            count_pages_annotations,
+        )
+    )
+
+    if not task.is_validation:
+        unblock_validation_tasks(db, task, annotated_file_pages=finished_pages)
+    task.status = TaskStatusEnumSchema.finished
     same_job_tasks_amount = (
         db.query(ManualAnnotationTask)
         .filter(ManualAnnotationTask.job_id == task.job_id)
@@ -907,9 +928,7 @@ def finish_task(
                 save_agreement_scores(db, agreement_scores)
 
         else:
-            task_file.annotated_pages = sorted(
-                {*task_file.annotated_pages, *task.pages}
-            )
+            task_file.annotated_pages = finished_pages
             if task_file.pages_number == len(task_file.annotated_pages):
                 task_file.status = FileStatusEnumSchema.annotated
 

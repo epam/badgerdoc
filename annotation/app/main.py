@@ -34,6 +34,7 @@ from app.errors import (
     no_such_revisions_error_handler,
     taxonomy_link_error_handler,
     wrong_job_error_handler,
+    debug_exception_handler,
 )
 from app.jobs import resources as jobs_resources
 from app.metadata import resources as metadata_resources
@@ -92,3 +93,4 @@ app.add_exception_handler(SQLAlchemyError, db_sa_error_handler)
 app.add_exception_handler(DBAPIError, db_dbapi_error_handler)
 app.add_exception_handler(SelfParentError, category_parent_child_error_handler)
 app.add_exception_handler(TaxonomyLinkException, taxonomy_link_error_handler)
+app.add_exception_handler(Exception, debug_exception_handler)
