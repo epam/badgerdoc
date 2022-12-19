@@ -9,7 +9,7 @@ import {
     TabButton
 } from '@epam/loveship';
 import { useUuiContext } from '@epam/uui';
-import { useSetTaskFinished, useGetValidatedPages } from 'api/hooks/tasks';
+import { useSetTaskFinished, useGetValidatedPages, useSetTaskState } from 'api/hooks/tasks';
 import { useTaskAnnotatorContext } from 'connectors/task-annotator-connector/task-annotator-context';
 import {
     FinishTaskValidationModal,
@@ -111,11 +111,14 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
                 option_edited: formOptions.option_edited,
                 option_invalid: formOptions.option_invalid
             });
+
+            await useSetTaskState({ id: task?.id, eventType: 'closed' });
         }
     };
     const onSaveValidForm = () => {
         if (task) {
             useSetTaskFinished(task?.id);
+            useSetTaskState({ id: task?.id, eventType: 'closed' });
         }
     };
     const [allValid, setAllvalid] = useState(true);

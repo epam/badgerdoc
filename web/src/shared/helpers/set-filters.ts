@@ -8,6 +8,12 @@ export function getFiltersSetter<T>(
 ) {
     return (filtersToAdd: (Filter<keyof T> | null)[]) => {
         let resultFilters: Filter<keyof T>[] = [...filtersState];
+
+        if (filtersToAdd.length === 0) {
+            setFiltersState([]);
+            return;
+        }
+
         filtersToAdd.forEach((filter) => {
             if (!filter) {
                 return;
@@ -70,4 +76,8 @@ export function getFiltersFromStorage(field: string) {
         return localFilters[field];
     }
     return null;
+}
+
+export function clearFiltersFromStorage() {
+    sessionStorage.removeItem('filters');
 }

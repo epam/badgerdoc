@@ -1,4 +1,4 @@
-import { DropSpot, UploadFileToggler, Button, Text, Blocker, Panel } from '@epam/loveship';
+import { DropSpot, Text, Blocker, Panel } from '@epam/loveship';
 import { useAddFilesToDatasetMutation } from 'api/hooks/datasets';
 import { useUploadFilesMutation } from 'api/hooks/documents';
 import { Dataset } from 'api/typings';

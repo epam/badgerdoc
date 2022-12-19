@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState, useContext, Fragment } from 'react';
+import React, { useEffect, useMemo, useRef, useState, useContext } from 'react';
 import styles from './documents-table-connector.module.scss';
 import {
     Button,
@@ -34,7 +34,7 @@ import { ReactComponent as DeleteIcon } from '@epam/assets/icons/common/action-d
 import { DatasetChooseForm, DatasetWithFiles } from '../../components';
 import { getError } from '../../shared/helpers/get-error';
 import { useAddFilesToDatasetMutation } from '../../api/hooks/datasets';
-import { getFiltersFromStorage, saveFiltersToStorage } from '../../shared/helpers/set-filters';
+import { saveFiltersToStorage } from '../../shared/helpers/set-filters';
 
 type DocumentsTableConnectorProps = {
     dataset?: Dataset | null | undefined;
@@ -107,9 +107,8 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
     }, [selectedFiles]);
 
     useEffect(() => {
-        const localFilters = getFiltersFromStorage('documents');
-        if (localFilters) setFilters(localFilters);
-    }, []);
+        onTableValueChange({ ...tableValue, filter: dataset ? {} : undefined });
+    }, [dataset]);
 
     useEffect(() => {
         let filtersToSet: Filter<keyof FileDocument>[] = [];
@@ -145,14 +144,24 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
                 operator: Operators.EQ,
                 value: dataset.id
             });
+            saveFiltersToStorage(filtersToSet, 'documents');
+            setFilters(filtersToSet);
         }
         if (tableValue.filter) {
             saveFiltersToStorage(filtersToSet, 'documents');
-
             setFilters(filtersToSet);
         }
     }, [tableValue.filter, dataset]);
-    const { data: files, isFetching } = useDocuments(
+
+    useEffect(() => {
+        refetch();
+    }, [filters]);
+
+    const {
+        data: files,
+        isFetching,
+        refetch
+    } = useDocuments(
         {
             page: pageConfig.page,
             size: pageConfig.pageSize,
@@ -186,11 +195,6 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
         sortConfig,
         filters
     );
-
-    const getCardSort = () => ({
-        direction: 'desc',
-        field: documentsSort
-    });
 
     const view = dataSource.useView(tableValue, onTableValueChange, {
         getRowOptions: () => ({

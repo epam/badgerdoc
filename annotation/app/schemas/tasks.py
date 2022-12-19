@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import Enum
-from typing import Optional, Set
+from typing import List, Optional, Set
 from uuid import UUID
 
 from pydantic import BaseModel, Field, root_validator
@@ -17,6 +17,11 @@ class AnnotationAndValidationActionsSchema(str, Enum):
     initial = "initial"
     auto = "auto"
     not_required = "not_required"
+
+
+class AnnotationStatisticsEventEnumSchema(str, Enum):
+    opened = "opened"
+    closed = "closed"
 
 
 class TaskStatusSchema(BaseModel):
@@ -116,3 +121,47 @@ class TaskPatchSchema(BaseModel):
     )
     is_validation: Optional[bool] = Field(None, example=False)
     deadline: Optional[datetime] = Field(None, example="2021-10-19 01:01:01")
+
+
+class AnnotationStatisticsInputSchema(BaseModel):
+    event_type: AnnotationStatisticsEventEnumSchema = Field(
+        ..., example=AnnotationStatisticsEventEnumSchema.opened
+    )
+    additional_data: Optional[dict] = Field(None, example={"attr1": "value1"})
+
+
+class AnnotationStatisticsResponseSchema(AnnotationStatisticsInputSchema):
+    task_id: int = Field(..., example=1)
+    created: datetime = Field(..., example="2022-12-20 01:01:01")
+    updated: Optional[datetime] = Field(None, example="2022-12-20 01:01:01")
+
+    class Config:
+        orm_mode = True
+
+
+class AgreementScoreServiceInput(BaseModel):
+    annotator_id: UUID = Field(
+        ..., example="f0474853-f733-41c0-b897-90b788b822e3"
+    )
+    job_id: int = Field(..., example=1)
+    task_id: int = Field(..., example=1)
+    s3_file_path: str = Field(...)
+    s3_file_bucket: str = Field(...)
+    manifest_url: str = Field(...)
+
+
+class AgreementScoreServiceResponse(BaseModel):
+    annotator_id: UUID = Field(
+        ..., example="f0474853-f733-41c0-b897-90b788b822e3"
+    )
+    job_id: int = Field(..., example=1)
+    task_id: int = Field(..., example=1)
+    agreement_score: Optional[dict] = Field(None, example={"attr1": "value1"})
+
+
+class ExportTaskStatsInput(BaseModel):
+    user_ids: List[UUID] = Field(
+        ..., example=["e20af190-0f05-4cd8-ad51-811bfb19ad71"]
+    )
+    date_from: datetime = Field(..., example="2020-12-20 01:01:01")
+    date_to: Optional[datetime] = Field(None, example="2025-12-20 01:01:01")

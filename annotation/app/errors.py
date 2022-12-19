@@ -1,9 +1,6 @@
-from typing import Union
-
 from botocore.exceptions import BotoCoreError, ClientError
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
-from requests import RequestException
 from sqlalchemy.exc import DBAPIError, SQLAlchemyError
 
 from app import logger as app_logger
@@ -50,8 +47,13 @@ class SelfParentError(Exception):
 
 
 class TaxonomyLinkException(Exception):
-    def __init__(self, exc_info: Union[str, RequestException]):
+    def __init__(self, exc_info: str):
         self.exc_info = exc_info
+
+
+class AgreementScoreServiceException(Exception):
+    def __init__(self, exc: str):
+        self.exc = exc
 
 
 def no_such_revisions_error_handler(
@@ -158,4 +160,12 @@ def debug_exception_handler(request: Request, exc: Exception):
     return JSONResponse(
         status_code=500,
         content={"detail": f"Internal server error. {exc}"},
+
+
+def agreement_score_service_error_handler(
+    request: Request, exc: AgreementScoreServiceException
+):
+    return JSONResponse(
+        status_code=400,
+        content={"detail": f"Agreement score service error. {exc.exc_info}"},
     )

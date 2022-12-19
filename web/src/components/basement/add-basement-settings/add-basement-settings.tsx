@@ -73,8 +73,8 @@ const AddBasementSettings: FC<AddBasementSettingsProps> = ({ lens }) => {
                                 }
                             />
                         )}
-                        onSave={(prop: SupportedArgs) => {
-                            return new Promise<void>((resolve) => {});
+                        onSave={() => {
+                            return new Promise<void>(() => {});
                         }}
                         value={{ ...lens.prop('supported_args').get()[index] }}
                     />

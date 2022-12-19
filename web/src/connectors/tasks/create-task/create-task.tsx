@@ -91,7 +91,7 @@ export const CreateTask: FC<ICreateNewTaskProps> = ({
                     onTaskCreation={onTaskCreation}
                     filesDataSource={filesDataSource}
                     annotatorsDataSource={annotatorsDataSource}
-                ></CreateTaskForm>
+                />
             </ModalWindow>
         </ModalBlocker>
     );
