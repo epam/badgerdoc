@@ -848,6 +848,7 @@ def finish_task(
         db.query(ManualAnnotationTask)
         .filter(
             ManualAnnotationTask.job_id == task.job_id,
+            ManualAnnotationTask.file_id == task.file_id,
             ManualAnnotationTask.is_validation.is_(False),
             ManualAnnotationTask.status == TaskStatusEnumSchema.finished,
         )
