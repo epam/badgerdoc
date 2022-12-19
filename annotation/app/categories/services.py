@@ -232,7 +232,7 @@ def fetch_bunch_categories_db(
             )
         )
     wrong_categories = {
-        category.id for category in categories
+        str(category.id) for category in categories
     }.symmetric_difference(category_ids)
 
     if wrong_categories:

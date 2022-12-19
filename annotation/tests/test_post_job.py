@@ -536,8 +536,11 @@ def test_post_job_with_extensive_coverage_should_work(
         json=requests_data,
         headers=TEST_HEADERS,
     )
-    saved_job = row_to_dict(session.query(Job).get(new_job_id))
+    assert response
     assert response.status_code == 201
+    created_job_row = session.query(Job).get(new_job_id)
+    assert created_job_row
+    saved_job = row_to_dict(created_job_row)
     assert saved_job["is_auto_distribution"]
     assert session.query(File).get(
         (

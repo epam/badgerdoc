@@ -901,7 +901,7 @@ def finish_task(
                 task_file.status = FileStatusEnumSchema.validated
 
             # TODO extensive coverage, annotators, manifest_url
-            if getattr(task.jobs, "extensive_coverage", None):
+            if False:
                 annotators = []
                 manifest_url = None
                 s3_file_path, s3_file_bucket = get_file_path_and_bucket(
