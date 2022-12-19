@@ -274,10 +274,7 @@ def _get_leaves(
 def _extract_category(
     path: str, categories: Dict[str, Category]
 ) -> List[Category]:
-    return [
-        categories[node]
-        for node in path.split(".")[0:-1]
-    ]
+    return [categories[node] for node in path.split(".")[0:-1]]
 
 
 def _get_parents(
@@ -326,9 +323,9 @@ def _compose_response(
             {
                 **CategoryORMSchema.from_orm(cat).dict(),
                 "is_leaf": leaves.get(cat.id, False),
-                "parents": converted_parents.get(
-                    cat.tree.path, []
-                ) if cat.tree else [],
+                "parents": converted_parents.get(cat.tree.path, [])
+                if cat.tree
+                else [],
             }
         )
         for cat in categories

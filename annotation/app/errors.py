@@ -7,6 +7,7 @@ from app import logger as app_logger
 
 logger = app_logger.Logger
 
+
 class NoSuchRevisionsError(Exception):
     pass
 
@@ -158,8 +159,8 @@ def taxonomy_link_error_handler(request: Request, exc: TaxonomyLinkException):
 def debug_exception_handler(request: Request, exc: Exception):
     logger.exception(exc)
     return JSONResponse(
-        status_code=500,
-        content={"detail": f"Internal server error. {exc}"},
+        status_code=500, content={"detail": f"Internal server error. {exc}"}
+    )
 
 
 def agreement_score_service_error_handler(

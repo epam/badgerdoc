@@ -68,7 +68,10 @@ class JobInfoSchema(BaseModel):
     job_type: JobTypeEnumSchema = Field(
         ..., example=JobTypeEnumSchema.ExtractionJob
     )
-    extensive_coverage: int = Field(1, example=1,)
+    extensive_coverage: int = Field(
+        1,
+        example=1,
+    )
 
     @root_validator
     def check_files_and_datasets(cls, values):
@@ -100,7 +103,7 @@ class JobInfoSchema(BaseModel):
             values.get("validation_type"),
             values.get("validators"),
             values.get("annotators"),
-            values.get("extensive_coverage")
+            values.get("extensive_coverage"),
         )
         job_type = values.get("job_type")
         if job_type in AUTOMATIC_JOBS:
@@ -141,7 +144,7 @@ class JobInfoSchema(BaseModel):
                 "configuring this field should be provided to "
                 "extensive_coverage parameter."
             )
-        if validation_type == ValidationSchema.extensive_coverage and  (
+        if validation_type == ValidationSchema.extensive_coverage and (
             len(annotators) < extensive_coverage
         ):
             raise ValueError(

@@ -64,7 +64,6 @@ class CategoryORMSchema(CategoryInputSchema):
         None, example={"color": "blue"}, alias="metadata_"
     )
 
-
     class Config:
         orm_mode = True
 

@@ -33,7 +33,8 @@ from app.errors import (
     no_such_category_error_handler,
     no_such_revisions_error_handler,
     taxonomy_link_error_handler,
-    wrong_job_error_handler, debug_exception_handler,
+    wrong_job_error_handler,
+    debug_exception_handler,
 )
 from app.jobs import resources as jobs_resources
 from app.metadata import resources as metadata_resources
