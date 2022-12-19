@@ -1,12 +1,12 @@
 name: annotation precommit and test
 run-name: annotation precommit and test
 on:
-  push
-#    paths:
-#      - 'annotation/**'
-#  pull_request:
-#    paths:
-#      - 'annotation/**'
+  push:
+    paths:
+      - 'annotation/**'
+  pull_request:
+    paths:
+      - 'annotation/**'
 jobs:
   annotation-pre-commit-actions:
     strategy:
