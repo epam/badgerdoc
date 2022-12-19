@@ -6,6 +6,7 @@ import src.config as conf
 import src.keycloak.query as kc_query
 import src.keycloak.schemas as kc_schemas
 import src.keycloak.utils as kc_utils
+from src.logger import Logger
 from aiohttp.web_exceptions import HTTPException as AIOHTTPException
 from apscheduler.schedulers.background import BackgroundScheduler
 from email_validator import EmailNotValidError, validate_email
@@ -278,11 +279,14 @@ async def get_idp_names_and_SSOauth_links() -> Dict[str, List[Dict[str, str]]]:
 
 @app.on_event("startup")
 def periodic() -> None:
-    scheduler = BackgroundScheduler()
-    scheduler.add_job(
-        utils.delete_file_after_7_days,
-        kwargs={"client": minio_client},
-        trigger="cron",
-        hour="*/1",
-    )
-    scheduler.start()
+    if not conf.S3_CREDENTIALS_PROVIDER == "aws_iam":
+        Logger.info("Background task 'delete_file_after_7_days' is turned off")
+        scheduler = BackgroundScheduler()
+        scheduler.add_job(
+            utils.delete_file_after_7_days,
+            kwargs={"client": minio_client},
+            trigger="cron",
+            # hour="*/1",
+            minutes=2
+        )
+        scheduler.start()
