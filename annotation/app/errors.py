@@ -1,9 +1,6 @@
-from typing import Union
-
 from botocore.exceptions import BotoCoreError, ClientError
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
-from requests import RequestException
 from sqlalchemy.exc import DBAPIError, SQLAlchemyError
 
 from app import logger as app_logger
@@ -48,6 +45,16 @@ class WrongJobError(Exception):
 class SelfParentError(Exception):
     def __init__(self, message: str):
         self.message = message
+
+
+class TaxonomyLinkException(Exception):
+    def __init__(self, exc_info: str):
+        self.exc_info = exc_info
+
+
+class AgreementScoreServiceException(Exception):
+    def __init__(self, exc: str):
+        self.exc = exc
 
 
 def no_such_revisions_error_handler(
