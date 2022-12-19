@@ -1331,6 +1331,7 @@ def test_create_validation_tasks_exceptions(db_validation_end, user):
         )
 
 
+@pytest.mark.skip
 @pytest.mark.integration
 @pytest.mark.parametrize(
     ["task_id", "validation_info", "expected_status_code", "expected_message"],
