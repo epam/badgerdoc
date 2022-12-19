@@ -28,13 +28,12 @@ from app.models import (
     User,
 )
 from app.schemas import (
-    AnnotationStatisticsInputSchema, 
-    ValidationSchema, 
-    JobStatusEnumSchema, 
-    TaskStatusEnumSchema, 
-    FileStatusEnumSchema.
+    AnnotationStatisticsInputSchema,
+    ValidationSchema,
+    JobStatusEnumSchema,
+    TaskStatusEnumSchema,
+    FileStatusEnumSchema,
 )
-from app.schemas import , ValidationSchema
 from app.tasks import add_task_stats_record
 from tests.override_app_dependency import TEST_TENANT
 from tests.test_annotators_overall_load import (
@@ -72,7 +71,8 @@ from tests.test_finish_task import (
     FINISH_TASK_JOB_4,
     FINISH_TASK_USER_1,
     TASK_NOT_IN_PROGRESS_STATUS,
-    VALIDATION_TASKS_TO_READY, CATEGORIES,
+    VALIDATION_TASKS_TO_READY,
+    CATEGORIES,
 )
 from tests.test_get_annotation_for_particular_revision import (
     PART_REV_ANNOTATOR,
@@ -181,6 +181,7 @@ def clear_db():
             sequence_name = sequence[2]
             con.execute(f"ALTER SEQUENCE {sequence_name} RESTART WITH 1")
         trans.commit()
+
 
 def add_objects(db: Session, objects: Iterable[Base]) -> None:
     for obj in objects:
@@ -433,7 +434,7 @@ def prepare_db_for_finish_task_status_one_task(db_session):
 
 @pytest.fixture
 def prepare_db_for_finish_task_with_finish_docs(
-    prepare_db_for_finish_task_status_one_task
+    prepare_db_for_finish_task_status_one_task,
 ):
     db_session = prepare_db_for_finish_task_status_one_task
     add_objects(
@@ -443,8 +444,6 @@ def prepare_db_for_finish_task_with_finish_docs(
             *FINISH_DOCS,
         ),
     )
-
-
 
 
 @pytest.fixture
@@ -596,7 +595,7 @@ def prepare_db_categories_for_filtration(db_session):
 
 @pytest.fixture
 def prepare_categories_with_tree(db_session):
-    path = ''
+    path = ""
     categories = []
     for number in range(1, 16):
         if path:
@@ -1173,7 +1172,11 @@ def prepare_db_with_extensive_coverage_annotations(db_session):
         #        column 'files.job_id' on instance '<File at 0x1049e0fa0>'
         job_id=random.randint(1000, 100000),
         callback_url="http://www.test.com/test1",
-        annotators=[FINISH_TASK_USER_1, FINISH_TASK_USER_2, FINISH_TASK_USER_3],
+        annotators=[
+            FINISH_TASK_USER_1,
+            FINISH_TASK_USER_2,
+            FINISH_TASK_USER_3,
+        ],
         validators=[FINISH_TASK_USER_3],
         validation_type=ValidationSchema.extensive_coverage,
         files=[FINISH_TASK_FILE_1],
@@ -1193,13 +1196,7 @@ def prepare_db_with_extensive_coverage_annotations(db_session):
         distributed_validating_pages=[1, 2, 3, 4, 5, 6, 7, 8, 9],
         status=FileStatusEnumSchema.annotated,
     )
-    add_objects(
-        db_session,
-        [
-            job,
-            file
-        ]
-    )
+    add_objects(db_session, [job, file])
     task_1 = {
         "id": 1,
         "file_id": file.file_id,
@@ -1243,5 +1240,3 @@ def prepare_db_with_extensive_coverage_annotations(db_session):
 
     yield (db_session, (task_1, task_2, task_3), validation)
     clear_db()
-
-

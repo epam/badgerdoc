@@ -1,7 +1,15 @@
 from typing import Dict, List, Optional, Set, Union
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Path, Query, Response, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    Path,
+    Query,
+    Response,
+    status,
+)
 from filter_lib import Page
 from sqlalchemy import and_
 from sqlalchemy.orm import Session
@@ -184,7 +192,7 @@ def post_job(
             job_id,
             validation_type,
             deadline=job_info.deadline,
-            extensive_coverage=job_info.extensive_coverage
+            extensive_coverage=job_info.extensive_coverage,
         )
 
     db.commit()

@@ -357,7 +357,9 @@ def get_task_info(
 
 
 def unblock_validation_tasks(
-    db: Session, task: ManualAnnotationTask, annotated_file_pages: List[int],
+    db: Session,
+    task: ManualAnnotationTask,
+    annotated_file_pages: List[int],
 ) -> None:
     """Having list of all annotated pages search for all 'pending'
     validation tasks for this job_id and file_id for which 'task.pages' is

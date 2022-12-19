@@ -846,11 +846,12 @@ def finish_task(
     count_pages_annotations.update(task.pages)
     finished_annotation_tasks = (
         db.query(ManualAnnotationTask)
-            .filter(
-                ManualAnnotationTask.job_id == task.job_id,
-                ManualAnnotationTask.is_validation.is_(False),
-                ManualAnnotationTask.status == TaskStatusEnumSchema.finished
-            ).all()
+        .filter(
+            ManualAnnotationTask.job_id == task.job_id,
+            ManualAnnotationTask.is_validation.is_(False),
+            ManualAnnotationTask.status == TaskStatusEnumSchema.finished,
+        )
+        .all()
     )
     for finished_task in finished_annotation_tasks:
         count_pages_annotations.update(finished_task.pages)
@@ -858,16 +859,12 @@ def finish_task(
     finished_pages = sorted(
         filter(
             lambda x: count_pages_annotations[x] == job.extensive_coverage,
-            count_pages_annotations
+            count_pages_annotations,
         )
     )
 
     if not task.is_validation:
-        unblock_validation_tasks(
-            db,
-            task,
-            annotated_file_pages=finished_pages
-        )
+        unblock_validation_tasks(db, task, annotated_file_pages=finished_pages)
     task.status = TaskStatusEnumSchema.finished
     same_job_tasks_amount = (
         db.query(ManualAnnotationTask)

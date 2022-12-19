@@ -925,9 +925,11 @@ def test_finish_task_should_work_with_pages_covered_extensively_once(
     prepare_db_with_extensive_coverage_annotations,
 ):
     # given
-    db, annotation_tasks, validation = (
-        prepare_db_with_extensive_coverage_annotations
-    )
+    (
+        db,
+        annotation_tasks,
+        validation,
+    ) = prepare_db_with_extensive_coverage_annotations
     for obj in [*annotation_tasks, validation]:
         db.merge(ManualAnnotationTask(**obj))
     db.commit()
@@ -943,8 +945,8 @@ def test_finish_task_should_work_with_pages_covered_extensively_once(
     task_file = (
         db.query(File)
         .filter(
-            File.job_id == annotation_tasks[0]['job_id'],
-            File.file_id == annotation_tasks[0]['file_id'],
+            File.job_id == annotation_tasks[0]["job_id"],
+            File.file_id == annotation_tasks[0]["file_id"],
         )
         .first()
     )
@@ -955,17 +957,19 @@ def test_finish_task_should_work_with_some_pages_covered_extensively_twice(
     prepare_db_with_extensive_coverage_annotations,
 ):
     # given
-    db, annotation_tasks, validation = (
-        prepare_db_with_extensive_coverage_annotations
-    )
-    annotation_tasks[0]['status'] = TaskStatusEnumSchema.finished
+    (
+        db,
+        annotation_tasks,
+        validation,
+    ) = prepare_db_with_extensive_coverage_annotations
+    annotation_tasks[0]["status"] = TaskStatusEnumSchema.finished
     for obj in [*annotation_tasks, validation]:
         db.merge(ManualAnnotationTask(**obj))
     db.commit()
 
     # when
     response = client.post(
-        FINISH_TASK_PATH.format(task_id=annotation_tasks[1]['id']),
+        FINISH_TASK_PATH.format(task_id=annotation_tasks[1]["id"]),
         headers=TEST_HEADERS,
     )
 
@@ -974,14 +978,15 @@ def test_finish_task_should_work_with_some_pages_covered_extensively_twice(
     task_file = (
         db.query(File)
         .filter(
-            File.job_id == annotation_tasks[0]['job_id'],
-            File.file_id == annotation_tasks[0]['file_id'],
+            File.job_id == annotation_tasks[0]["job_id"],
+            File.file_id == annotation_tasks[0]["file_id"],
         )
         .first()
     )
     assert task_file.annotated_pages == sorted(
-        set(annotation_tasks[0]['pages'])
-            .intersection(set(annotation_tasks[1]['pages']))
+        set(annotation_tasks[0]["pages"]).intersection(
+            set(annotation_tasks[1]["pages"])
+        )
     )
 
 
@@ -989,18 +994,20 @@ def test_finish_task_should_work_with_all_pages_covered_extensively_twice(
     prepare_db_with_extensive_coverage_annotations,
 ):
     # given
-    db, annotation_tasks, validation = (
-        prepare_db_with_extensive_coverage_annotations
-    )
-    annotation_tasks[0]['status'] = TaskStatusEnumSchema.finished
-    annotation_tasks[1]['status'] = TaskStatusEnumSchema.finished
+    (
+        db,
+        annotation_tasks,
+        validation,
+    ) = prepare_db_with_extensive_coverage_annotations
+    annotation_tasks[0]["status"] = TaskStatusEnumSchema.finished
+    annotation_tasks[1]["status"] = TaskStatusEnumSchema.finished
     for obj in [*annotation_tasks, validation]:
         db.merge(ManualAnnotationTask(**obj))
     db.commit()
 
     # when
     response = client.post(
-        FINISH_TASK_PATH.format(task_id=annotation_tasks[2]['id']),
+        FINISH_TASK_PATH.format(task_id=annotation_tasks[2]["id"]),
         headers=TEST_HEADERS,
     )
 
@@ -1009,24 +1016,24 @@ def test_finish_task_should_work_with_all_pages_covered_extensively_twice(
     task_file = (
         db.query(File)
         .filter(
-            File.job_id == annotation_tasks[0]['job_id'],
-            File.file_id == annotation_tasks[0]['file_id'],
+            File.job_id == annotation_tasks[0]["job_id"],
+            File.file_id == annotation_tasks[0]["file_id"],
         )
         .first()
     )
     all_anno_pages = (
-        annotation_tasks[0]['pages'] +
-        annotation_tasks[1]['pages'] +
-        annotation_tasks[2]['pages']
+        annotation_tasks[0]["pages"]
+        + annotation_tasks[1]["pages"]
+        + annotation_tasks[2]["pages"]
     )
     assert task_file.annotated_pages == sorted(set(all_anno_pages))
     assert task_file.annotated_pages == task_file.distributed_annotating_pages
     validation_task = (
         db.query(ManualAnnotationTask)
         .filter(
-            ManualAnnotationTask.job_id == annotation_tasks[0]['job_id'],
+            ManualAnnotationTask.job_id == annotation_tasks[0]["job_id"],
             ManualAnnotationTask.is_validation.is_(True),
-            ManualAnnotationTask.file_id == annotation_tasks[0]['file_id'],
+            ManualAnnotationTask.file_id == annotation_tasks[0]["file_id"],
         )
         .first()
     )

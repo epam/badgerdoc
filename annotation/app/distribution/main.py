@@ -183,29 +183,26 @@ def distribute_tasks_extensively(
         extensive_coverage=extensive_coverage,
     )
     users_seen_pages = defaultdict(lambda: defaultdict(set))
-    files = sorted(files, key=lambda x: x['pages_number'])
+    files = sorted(files, key=lambda x: x["pages_number"])
     tasks = []
     for file in files:
         annotators = sorted(
-            filter(
-                lambda x: x['pages_number'] > 0,
-                users
-            ),
-            key=lambda x: -x['pages_number'],
+            filter(lambda x: x["pages_number"] > 0, users),
+            key=lambda x: -x["pages_number"],
         )
         for _ in range(extensive_coverage):
-            pages = list(range(1, file['pages_number'] + 1))
+            pages = list(range(1, file["pages_number"] + 1))
             while pages:
-                if annotators[0]['pages_number'] >= MAX_PAGES:
+                if annotators[0]["pages_number"] >= MAX_PAGES:
                     user_can_take_pages = MAX_PAGES
                 else:
-                    user_can_take_pages = annotators[0]['pages_number']
+                    user_can_take_pages = annotators[0]["pages_number"]
 
                 user_can_take_pages = min(len(pages), user_can_take_pages)
                 pages_not_seen_by_user = sorted(
                     set(pages).difference(
-                        users_seen_pages[
-                            annotators[0]["user_id"]][file["file_id"]
+                        users_seen_pages[annotators[0]["user_id"]][
+                            file["file_id"]
                         ]
                     )
                 )
@@ -226,12 +223,12 @@ def distribute_tasks_extensively(
                         "deadline": deadline,
                     }
                 )
-                users_seen_pages[
-                    annotators[0]["user_id"]][file["file_id"]
+                users_seen_pages[annotators[0]["user_id"]][
+                    file["file_id"]
                 ].update(set(pages_for_user))
                 pages = sorted(set(pages).difference(set(pages_for_user)))
-                annotators[0]['pages_number'] -= len(pages_for_user)
-                if annotators[0]['pages_number'] == 0:
+                annotators[0]["pages_number"] -= len(pages_for_user)
+                if annotators[0]["pages_number"] == 0:
                     annotators.pop(0)
     # merge tasks for annotators if it's possible.
 
@@ -315,7 +312,7 @@ def calculate_users_load(
         user["share_load"] = user["share_load"] / all_users_share_load
         pages_number_for_user = min(
             round(pages_with_extensive_coverage * user["share_load"]),
-            all_job_pages_sum
+            all_job_pages_sum,
         )
 
         pages_left_for_distribute -= pages_number_for_user
@@ -331,7 +328,7 @@ def calculate_users_load(
                     all_job_pages_sum - user["pages_number"],
                     max(
                         round(pages_left_for_distribute * user["share_load"]),
-                        1
+                        1,
                     ),
                 )
                 pages_left_for_distribute -= pages_number_for_user
@@ -595,7 +592,9 @@ def distribute_annotation_partial_files(
             annotators[0]["pages_number"] -= 1
         if pages:
             full_tasks = len(pages) // MAX_PAGES
-            tasks_number = full_tasks + 1 if len(pages) % MAX_PAGES else full_tasks
+            tasks_number = (
+                full_tasks + 1 if len(pages) % MAX_PAGES else full_tasks
+            )
             for times in range(tasks_number):
                 annotation_tasks.append(
                     {

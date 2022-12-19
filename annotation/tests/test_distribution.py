@@ -192,7 +192,7 @@ TASKS_STATUS = TaskStatusEnumSchema.pending
             [ANNOTATORS[6], ANNOTATORS[5]],
             2,
             [0.58, 0.42],
-            [111, 111]
+            [111, 111],
         ),
         (
             # all annotators share duplicated amount of docs based on load
@@ -202,14 +202,14 @@ TASKS_STATUS = TaskStatusEnumSchema.pending
             [0.14, 0.13, 0.13, 0.13, 0.13, 0.12, 0.11, 0.11, 0, 0],
             [31, 30, 29, 29, 28, 27, 24, 24, 0, 0],
         ),
-        (   # all annotators share duplicated amount of docs based on load
+        (  # all annotators share duplicated amount of docs based on load
             FILES,
             ANNOTATORS,
             5,
             [0.14, 0.13, 0.13, 0.13, 0.13, 0.12, 0.11, 0.11, 0, 0],
             [77, 74, 74, 71, 70, 69, 60, 60, 0, 0],
         ),
-        (   # all annotators receive full unique subset of documents even
+        (  # all annotators receive full unique subset of documents even
             # though they default load is 0
             # todo validate if this logic is correct.
             FILES,
@@ -225,12 +225,10 @@ def test_calculate_annotators_load(
     test_annotators,
     extensive_coverage,
     expected_share_load,
-    expected_pages_number
+    expected_pages_number,
 ):
     calculate_users_load(
-        test_files,
-        test_annotators,
-        extensive_coverage=extensive_coverage
+        test_files, test_annotators, extensive_coverage=extensive_coverage
     )
     for index, annotator in enumerate(test_annotators):
         assert round(annotator["share_load"], 2) == expected_share_load[index]
@@ -984,18 +982,18 @@ def test_distribute_annotation_limit_50_pages(
         (
             [copy(file) for file in FILES_PARTIAL[1:] + FILE_LIMIT_50],
             [copy(ANNOTATORS[0]), copy(ANNOTATORS[2]), copy(ANNOTATORS[3])],
-            2
+            2,
         ),
         (
             [copy(file) for file in FILES_PARTIAL[1:] + FILE_LIMIT_50],
             [copy(ANNOTATORS[0]), copy(ANNOTATORS[2]), copy(ANNOTATORS[3])],
-            3
+            3,
         ),
         # function should work distribute with extensive_coverage==1
         (
             [copy(file) for file in FILES_PARTIAL[1:] + FILE_LIMIT_50],
             [copy(ANNOTATORS[0]), copy(ANNOTATORS[2]), copy(ANNOTATORS[3])],
-            1
+            1,
         ),
         (
             [copy(file) for file in FILES_PARTIAL],
@@ -1018,20 +1016,19 @@ def test_distribution_with_extensive_coverage(
     )
 
     # check all pages were assigned
-    all_tasks_pages = sum(len(x['pages']) for x in tasks)
-    all_files_pages = sum(x['pages_number'] for x in files)
+    all_tasks_pages = sum(len(x["pages"]) for x in tasks)
+    all_files_pages = sum(x["pages_number"] for x in files)
     assert all_tasks_pages / extensive_coverage == all_files_pages
 
     users_seen_pages = defaultdict(lambda: defaultdict(list))
     for task in tasks:
-        users_seen_pages[task['user_id']]['file_id'].extend(task['pages'])
+        users_seen_pages[task["user_id"]]["file_id"].extend(task["pages"])
 
     # check user got assigment without duplicates
     for user in users_seen_pages:
         for file in user:
-            assert (
-                len(set(users_seen_pages[user][file]))
-                == len(users_seen_pages[user][file])
+            assert len(set(users_seen_pages[user][file])) == len(
+                users_seen_pages[user][file]
             )
 
 

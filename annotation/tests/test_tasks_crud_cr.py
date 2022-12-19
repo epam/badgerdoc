@@ -846,10 +846,13 @@ def test_update_task_already_updated_change_event(
 
     assert response.status_code == 201
     assert validate_datetime(content, is_updated=True)
-    assert prepare_task_stats_expected_response(
-        task_id=task_id,
-        event_type="closed",
-    ) == prepare_task_stats_expected_response(**content)
+    assert (
+        prepare_task_stats_expected_response(
+            task_id=task_id,
+            event_type="closed",
+        )
+        == prepare_task_stats_expected_response(**content)
+    )
 
 
 @pytest.mark.integration

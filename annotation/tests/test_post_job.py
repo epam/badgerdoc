@@ -510,19 +510,19 @@ def test_post_job_with_extensive_coverage_should_work(
     ]
     validators = [POST_JOB_ANNOTATORS[3].user_id]
     requests_data = {
-            "callback_url": "test6",
-            "name": "AnnotationJob1",
-            "annotators": users,
-            "validators": validators,
-            "owners": [],
-            "validation_type": ValidationSchema.extensive_coverage,
-            "extensive_coverage": 2,
-            "files": [POST_JOB_NEW_FILE_ID],
-            "datasets": [],
-            "is_auto_distribution": True,
-            "categories": ['13'],
-            "deadline": "2021-12-12T01:01:01",
-            "job_type": JobTypeEnumSchema.AnnotationJob,
+        "callback_url": "test6",
+        "name": "AnnotationJob1",
+        "annotators": users,
+        "validators": validators,
+        "owners": [],
+        "validation_type": ValidationSchema.extensive_coverage,
+        "extensive_coverage": 2,
+        "files": [POST_JOB_NEW_FILE_ID],
+        "datasets": [],
+        "is_auto_distribution": True,
+        "categories": ["13"],
+        "deadline": "2021-12-12T01:01:01",
+        "job_type": JobTypeEnumSchema.AnnotationJob,
     }
     responses.add(
         responses.POST,
