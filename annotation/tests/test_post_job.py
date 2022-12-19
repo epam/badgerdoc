@@ -496,6 +496,7 @@ def test_post_job(
     )
 
 
+# @pytest.mark.skip
 @pytest.mark.integration
 @responses.activate
 def test_post_job_with_extensive_coverage_should_work(
@@ -603,8 +604,11 @@ def test_post_job_auto_distribution(prepare_db_for_post_job):
         },
         headers=TEST_HEADERS,
     )
-    saved_job = row_to_dict(session.query(Job).get(new_job_id))
+    assert response
     assert response.status_code == 201
+    new_job = session.query(Job).get(new_job_id)
+    assert new_job
+    saved_job = row_to_dict(session.query(Job).get(new_job_id))
     assert saved_job["is_auto_distribution"]
     assert session.query(File).get(
         (

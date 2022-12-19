@@ -224,6 +224,14 @@ def fetch_bunch_categories_db(
             or_(Category.tenant == tenant, Category.tenant == null()),
         )
     ).all()
+
+    wrong_categories = {
+        str(category.id) for category in categories
+    }.symmetric_difference(category_ids)
+    if wrong_categories:
+        error_message = ", ".join(sorted(wrong_categories))
+        raise NoSuchCategoryError(f"No such categories: {error_message}")
+
     if root_parents:
         categories_parents = _get_parents(db, categories, tenant, job_id)
         categories = list(
@@ -231,13 +239,6 @@ def fetch_bunch_categories_db(
                 cat for cats in categories_parents.values() for cat in cats
             )
         )
-    wrong_categories = {
-        str(category.id) for category in categories
-    }.symmetric_difference(category_ids)
-
-    if wrong_categories:
-        error_message = ", ".join(sorted(wrong_categories))
-        raise NoSuchCategoryError(f"No such categories: {error_message}")
     return categories
 
 
