@@ -287,6 +287,6 @@ def periodic() -> None:
             kwargs={"client": minio_client},
             trigger="cron",
             # hour="*/1",
-            minutes=2
+            minute="*/2"
         )
         scheduler.start()
