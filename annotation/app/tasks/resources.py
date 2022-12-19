@@ -1,3 +1,4 @@
+from collections import Counter
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 from uuid import UUID
@@ -13,7 +14,7 @@ from fastapi import (
     Response,
     status,
 )
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from filter_lib import Page
 from sqlalchemy import and_, not_
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
@@ -34,7 +35,10 @@ from app.jobs import (
     update_inner_job_status,
     update_user_overall_load,
 )
-from app.microservice_communication.assets_communication import get_file_names
+from app.microservice_communication.assets_communication import (
+    get_file_names,
+    get_file_path_and_bucket,
+)
 from app.microservice_communication.jobs_communication import (
     JobUpdateException,
     update_job_status,
@@ -43,10 +47,16 @@ from app.microservice_communication.search import (
     X_CURRENT_TENANT_HEADER,
     expand_response,
 )
+from app.microservice_communication.task import get_agreement_score
 from app.schemas import (
+    AgreementScoreServiceInput,
+    AgreementScoreServiceResponse,
+    AnnotationStatisticsInputSchema,
+    AnnotationStatisticsResponseSchema,
     BadRequestErrorSchema,
     ConnectionErrorSchema,
     ExpandedManualAnnotationTaskSchema,
+    ExportTaskStatsInput,
     FileStatusEnumSchema,
     JobStatusEnumSchema,
     ManualAnnotationTaskInSchema,
@@ -67,12 +77,15 @@ from app.token_dependency import TOKEN
 
 from ..models import File, Job, ManualAnnotationTask
 from .services import (
+    add_task_stats_record,
     create_annotation_task,
+    create_export_csv,
     filter_tasks_db,
     get_task_info,
     get_task_revisions,
     read_annotation_task,
     read_annotation_tasks,
+    save_agreement_scores,
     unblock_validation_tasks,
     validate_task_info,
     validate_user_actions,
@@ -196,6 +209,57 @@ def post_task(
     update_files(db, [row_to_dict(task_info)], task_info.job_id)
 
     return create_annotation_task(db, task_info)
+
+
+@router.post(
+    "/{task_id}/stats",
+    status_code=status.HTTP_201_CREATED,
+    response_model=AnnotationStatisticsResponseSchema,
+    responses={
+        400: {"model": BadRequestErrorSchema},
+    },
+    summary="Add task stats record.",
+)
+def add_task_stats(
+    task_id: int,
+    stats: AnnotationStatisticsInputSchema,
+    db: Session = Depends(get_db),
+    x_current_tenant: str = X_CURRENT_TENANT_HEADER,
+) -> AnnotationStatisticsResponseSchema:
+    if not read_annotation_task(db, task_id, x_current_tenant):
+        return JSONResponse(
+            status_code=404,
+            content={"detail": f"Task with id {task_id} not found."},
+        )
+    stats_db = add_task_stats_record(db, task_id, stats)
+    return AnnotationStatisticsResponseSchema.from_orm(stats_db)
+
+
+@router.post(
+    "/export",
+    status_code=status.HTTP_200_OK,
+    responses={
+        400: {"model": BadRequestErrorSchema},
+    },
+    summary="Export agreement score statistics for task by user_id and date",
+)
+def export_stats(
+    user_date_schema: ExportTaskStatsInput,
+    db: Session = Depends(get_db),
+    x_current_tenant: str = X_CURRENT_TENANT_HEADER,
+) -> StreamingResponse:
+    file_name, csv_file_binary = create_export_csv(
+        db=db,
+        schema=user_date_schema,
+        tenant=x_current_tenant,
+    )
+    media_type = "text/csv"
+    headers = {"Content-Disposition": f"attachment; filename={file_name}"}
+    return StreamingResponse(
+        csv_file_binary,
+        headers=headers,
+        media_type=media_type,
+    )
 
 
 @router.get(
@@ -748,9 +812,8 @@ def finish_task(
         annotation_user,
         validation_user,
     )
-
+    job = get_job(db, task.job_id, x_current_tenant)
     if task.is_validation:
-        job = get_job(db, task.job_id, x_current_tenant)
 
         # create annotation and validation tasks for pages,
         # that validator marked as failed, unless job type
@@ -775,13 +838,35 @@ def finish_task(
             user_id=task.user_id,
             db=db,
         )
-    task.status = TaskStatusEnumSchema.finished
-    # If user is finishing any annotation task, search for validation tasks
+    # If user is finishing any annotation task (considering
+    # extensive_coverage number), search for validation tasks
     # that can be moved from 'pending' to 'ready' status for all users within
     # job and changes validation task's statuses respectively.
-    if not task.is_validation:
-        unblock_validation_tasks(db, task)
+    count_pages_annotations = Counter()
+    count_pages_annotations.update(task.pages)
+    finished_annotation_tasks = (
+        db.query(ManualAnnotationTask)
+        .filter(
+            ManualAnnotationTask.job_id == task.job_id,
+            ManualAnnotationTask.file_id == task.file_id,
+            ManualAnnotationTask.is_validation.is_(False),
+            ManualAnnotationTask.status == TaskStatusEnumSchema.finished,
+        )
+        .all()
+    )
+    for finished_task in finished_annotation_tasks:
+        count_pages_annotations.update(finished_task.pages)
 
+    finished_pages = sorted(
+        filter(
+            lambda x: count_pages_annotations[x] == job.extensive_coverage,
+            count_pages_annotations,
+        )
+    )
+
+    if not task.is_validation:
+        unblock_validation_tasks(db, task, annotated_file_pages=finished_pages)
+    task.status = TaskStatusEnumSchema.finished
     same_job_tasks_amount = (
         db.query(ManualAnnotationTask)
         .filter(ManualAnnotationTask.job_id == task.job_id)
@@ -815,10 +900,36 @@ def finish_task(
             )
             if task_file.pages_number == len(task_file.validated_pages):
                 task_file.status = FileStatusEnumSchema.validated
+
+            # TODO extensive coverage, annotators, manifest_url
+            if False:
+                annotators = []
+                manifest_url = None
+                s3_file_path, s3_file_bucket = get_file_path_and_bucket(
+                    task.file_id, x_current_tenant, token.token
+                )
+                agreement_scores_input = [
+                    AgreementScoreServiceInput.construct(
+                        annotator_id=annotator_id,
+                        job_id=task.job_id,
+                        task_id=task.id,
+                        s3_file_path=s3_file_path,
+                        s3_file_bucket=s3_file_bucket,
+                        manifest_url=manifest_url,
+                    )
+                    for annotator_id in annotators
+                ]
+                agreement_scores: List[
+                    AgreementScoreServiceResponse
+                ] = get_agreement_score(
+                    agreement_scores_input=agreement_scores_input,
+                    tenant=x_current_tenant,
+                    token=token.token,
+                )
+                save_agreement_scores(db, agreement_scores)
+
         else:
-            task_file.annotated_pages = sorted(
-                {*task_file.annotated_pages, *task.pages}
-            )
+            task_file.annotated_pages = finished_pages
             if task_file.pages_number == len(task_file.annotated_pages):
                 task_file.status = FileStatusEnumSchema.annotated
 

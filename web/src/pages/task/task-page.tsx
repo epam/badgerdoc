@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import React, { FC, useEffect } from 'react';
 import TaskDocumentPages from 'components/task/task-document-pages/task-document-pages';
 import TaskSidebar from 'components/task/task-sidebar/task-sidebar';
 import styles from './task-page.module.scss';
@@ -10,9 +10,14 @@ import { useNotifications } from 'shared/components/notifications';
 import { TableAnnotatorContextProvider } from '../../shared/components/annotator/context/table-annotator-context';
 import { DASHBOARD_PAGE, JOBS_PAGE, PREVIOUS_PAGE_JOB } from '../../shared/constants';
 import { BreadcrumbNavigation } from '../../shared/components/breadcrumb';
+import { useSetTaskState } from 'api/hooks/tasks';
 
 const TaskPage: FC = () => {
     const { taskId } = useParams<{ taskId: string }>();
+
+    useEffect(() => {
+        useSetTaskState({ id: +taskId, eventType: 'opened' });
+    }, [taskId]);
 
     const history = useHistory();
     const handleRedirectAfterFinish = () => {

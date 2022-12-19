@@ -305,6 +305,7 @@ async def execute_in_annotation_microservice(
         "datasets": created_job.datasets,
         "categories": created_job.categories,
         "deadline": fastapi.encoders.jsonable_encoder(created_job.deadline),
+        "extensive_coverage": created_job.extensive_coverage,
     }
     is_optional_fields_set = (
         created_job.validation_type and created_job.is_auto_distribution

@@ -322,3 +322,37 @@ export const useSetTaskFinished = (
         method: 'post'
     })(JSON.stringify(body));
 };
+
+type TaskEvent = {
+    id: number;
+    eventType: 'opened' | 'closed';
+};
+
+export const useSetTaskState = (taskState: TaskEvent) => {
+    const body = { event_type: taskState.eventType };
+
+    return useBadgerFetch<Task>({
+        url: `${namespace}/tasks/${taskState.id}/stats`,
+        method: 'post',
+        withCredentials: true
+    })(JSON.stringify(body));
+};
+
+type TaskReportRequestParams = {
+    userIds: string[];
+    from: string;
+    to: string;
+};
+
+export const useDownloadTaskReport = async (params: TaskReportRequestParams) => {
+    const body = { user_ids: params.userIds, date_from: params.from, date_to: params.to };
+
+    const response = await useBadgerFetch<Blob>({
+        url: `${namespace}/tasks/export`,
+        method: 'post',
+        withCredentials: true,
+        isBlob: true
+    })(JSON.stringify(body));
+
+    return response;
+};

@@ -66,7 +66,7 @@ let useBadgerFetch: BadgerFetchProvider = (arg) => {
         } else {
             let responseBody;
             if (isBlob) {
-                responseBody = await response.blob();
+                responseBody = response.ok ? await response.blob() : await response.json();
             } else responseBody = await response.json();
             if (!response.ok) {
                 if (status === 403) {

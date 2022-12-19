@@ -1,5 +1,7 @@
-from typing import Any, Optional
+from datetime import datetime, timedelta
+from typing import Any, List, Optional
 from unittest.mock import Mock, patch
+from uuid import uuid4
 
 import pytest
 import responses
@@ -21,7 +23,7 @@ client = TestClient(app)
 
 CATEGORIES = [
     Category(
-        id="18d3d189-e73a-4680-bfa7-7ba3fe6ebee5",
+        id="18d3d189e73a4680bfa77ba3fe6ebee5",
         name="Test",
         type=CategoryTypeSchema.box,
     ),
@@ -569,6 +571,52 @@ EXPANDED_TASKS_RESPONSE = [
 ]
 
 
+def prepare_task_stats_expected_response(
+    task_id: int,
+    event_type: str = "opened",
+    additional_data: Optional[dict] = None,
+    created: Optional[str] = None,
+    updated: Optional[str] = None,
+) -> dict:
+    return {
+        "event_type": event_type,
+        "additional_data": additional_data,
+        "task_id": task_id,
+    }
+
+
+def validate_datetime(reponse_content: dict, is_updated: bool = False) -> bool:
+    created = reponse_content["created"]
+    updated = reponse_content["updated"]
+    if (
+        not created
+        or (updated and not created)
+        or (is_updated and not updated)
+        or (not is_updated and updated)
+    ):
+        return False
+
+    for field in [created, updated]:
+        if not field:
+            continue
+        timestamp = datetime.fromisoformat(field)
+        if datetime.utcnow() - timestamp > timedelta(minutes=5):
+            return False
+    return True
+
+
+def prepare_stats_export_body(
+    user_ids: List[str],
+    date_from: Optional[datetime] = datetime.now() - timedelta(days=365),
+    date_to: Optional[datetime] = datetime.now() + timedelta(days=365),
+) -> dict:
+    return {
+        "user_ids": user_ids,
+        "date_from": date_from.isoformat(),
+        "date_to": date_to.isoformat(),
+    }
+
+
 @pytest.mark.integration
 @patch.object(Session, "query")
 def test_post_task_500_response(Session, prepare_db_for_cr_task):
@@ -686,6 +734,191 @@ def test_post_task(prepare_db_for_cr_task, task_info, expected_response):
     }
     assert response == expected_response
     check_files_distributed_pages(prepare_db_for_cr_task, task_info["job_id"])
+
+
+@pytest.mark.integration
+def test_add_task_stats_start_from_close(prepare_db_for_cr_task):
+    response = client.post(
+        f"{CRUD_TASKS_PATH}/{CRUD_CR_ANNOTATION_TASKS[0].id}/stats",
+        json={"event_type": "closed"},
+        headers=TEST_HEADERS,
+    )
+    assert response.status_code == 400
+    assert "Field constraint error." in response.text
+
+
+@pytest.mark.integration
+def test_add_task_stats_404_not_found(prepare_db_for_cr_task):
+    id_ = uuid4().int
+
+    response = client.post(
+        f"{CRUD_TASKS_PATH}/{id_}/stats",
+        json={"event_type": "opened"},
+        headers=TEST_HEADERS,
+    )
+
+    assert response.status_code == 404
+    assert f"Task with id {id_} not found." in response.text
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize(
+    ["task_id"],
+    # Task ids
+    [(id_,) for id_ in [1, 2, 3, 4, 5]],
+)
+def test_create_task_stats(prepare_db_for_cr_task, task_id):
+    response = client.post(
+        f"{CRUD_TASKS_PATH}/{task_id}/stats",
+        json={"event_type": "opened"},
+        headers=TEST_HEADERS,
+    )
+    content = response.json()
+
+    assert response.status_code == 201
+    assert validate_datetime(content, is_updated=False)
+    assert prepare_task_stats_expected_response(
+        task_id=task_id
+    ) == prepare_task_stats_expected_response(**content)
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize(
+    ["task_id"],
+    # Task ids
+    [(id_,) for id_ in [1, 2, 3, 4, 5]],
+)
+def test_update_task_stats_same_event(prepare_db_update_stats, task_id):
+    response = client.post(
+        f"{CRUD_TASKS_PATH}/{task_id}/stats",
+        json={"event_type": "opened"},
+        headers=TEST_HEADERS,
+    )
+    content = response.json()
+
+    assert response.status_code == 201
+    assert validate_datetime(content, is_updated=True)
+    assert prepare_task_stats_expected_response(
+        task_id=task_id
+    ) == prepare_task_stats_expected_response(**content)
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize(
+    ["task_id"],
+    # Task ids
+    [(id_,) for id_ in [1, 2, 3, 4, 5]],
+)
+def test_update_task_already_updated(
+    prepare_db_update_stats_already_updated,
+    task_id,
+):
+    response = client.post(
+        f"{CRUD_TASKS_PATH}/{task_id}/stats",
+        json={"event_type": "opened"},
+        headers=TEST_HEADERS,
+    )
+    content = response.json()
+
+    assert response.status_code == 201
+    assert validate_datetime(content, is_updated=True)
+    assert prepare_task_stats_expected_response(
+        task_id=task_id
+    ) == prepare_task_stats_expected_response(**content)
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize(
+    ["task_id"],
+    # Task ids
+    [(id_,) for id_ in [1, 2, 3, 4, 5]],
+)
+def test_update_task_already_updated_change_event(
+    prepare_db_update_stats_already_updated,
+    task_id,
+):
+    response = client.post(
+        f"{CRUD_TASKS_PATH}/{task_id}/stats",
+        json={"event_type": "closed"},
+        headers=TEST_HEADERS,
+    )
+    content = response.json()
+
+    assert response.status_code == 201
+    assert validate_datetime(content, is_updated=True)
+    assert (
+        prepare_task_stats_expected_response(
+            task_id=task_id,
+            event_type="closed",
+        )
+        == prepare_task_stats_expected_response(**content)
+    )
+
+
+@pytest.mark.integration
+def test_create_export_data_not_found(prepare_db_update_stats):
+    body = prepare_stats_export_body(
+        user_ids=[f"{uuid4()}" for _ in range(10)]
+    )
+
+    response = client.post(
+        f"{CRUD_TASKS_PATH}/export",
+        json=body,
+        headers=TEST_HEADERS,
+    )
+
+    assert response.status_code == 406
+    assert "Export data not found." in response.text
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize(
+    ["date_from", "date_to"],
+    [
+        ("2021-12-15", "2100-12-15T00:00:00"),
+        ("abcdef", "2100-12-15T00:00:00"),
+        ("2000-12-15T00:00:00", "!@#$%^"),
+        ("2000-12-15T00:00:00", "2100-12-15"),
+    ],
+)
+def test_create_export_invalid_datetime_format(
+    prepare_db_for_cr_task, date_from, date_to
+):
+    body = prepare_stats_export_body(
+        user_ids=[f"{uuid4()}" for _ in range(10)]
+    )
+    body["date_from"] = date_from
+    body["date_to"] = date_to
+
+    response = client.post(
+        f"{CRUD_TASKS_PATH}/export",
+        json=body,
+        headers=TEST_HEADERS,
+    )
+
+    assert response.status_code == 422
+    assert "invalid datetime format" in response.text
+
+
+@pytest.mark.integration
+def test_create_export_return_csv(prepare_db_update_stats_already_updated):
+    body = prepare_stats_export_body(
+        user_ids=[task["user_id"] for task in EXPANDED_TASKS_RESPONSE]
+    )
+
+    response = client.post(
+        f"{CRUD_TASKS_PATH}/export",
+        json=body,
+        headers=TEST_HEADERS,
+    )
+
+    assert response.status_code == 200
+    assert "text/csv" in response.headers["content-type"]
+    assert (
+        "filename=annotator_stats_export"
+        in response.headers["content-disposition"]
+    )
+    assert len(response.content) > 0
 
 
 @pytest.mark.unittest

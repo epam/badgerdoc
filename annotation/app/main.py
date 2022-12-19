@@ -10,6 +10,7 @@ from app.annotations import resources as annotations_resources
 from app.categories import resources as categories_resources
 from app.distribution import resources as distribution_resources
 from app.errors import (
+    AgreementScoreServiceException,
     CheckFieldError,
     EnumValidationError,
     FieldConstraintError,
@@ -19,12 +20,14 @@ from app.errors import (
     SelfParentError,
     TaxonomyLinkException,
     WrongJobError,
+    agreement_score_service_error_handler,
     category_foreign_key_error_handler,
     category_parent_child_error_handler,
     category_unique_field_error_handler,
     db_dbapi_error_handler,
     db_s3_error_handler,
     db_sa_error_handler,
+    debug_exception_handler,
     enum_validation_error_handler,
     field_constraint_error_handler,
     minio_no_such_bucket_error_handler,
@@ -73,6 +76,9 @@ app.include_router(categories_resources.router)
 app.include_router(revision_resources.router)
 
 app.add_exception_handler(
+    AgreementScoreServiceException, agreement_score_service_error_handler
+)
+app.add_exception_handler(
     NoSuchRevisionsError, no_such_revisions_error_handler
 )
 app.add_exception_handler(CheckFieldError, category_unique_field_error_handler)
@@ -87,3 +93,4 @@ app.add_exception_handler(SQLAlchemyError, db_sa_error_handler)
 app.add_exception_handler(DBAPIError, db_dbapi_error_handler)
 app.add_exception_handler(SelfParentError, category_parent_child_error_handler)
 app.add_exception_handler(TaxonomyLinkException, taxonomy_link_error_handler)
+app.add_exception_handler(Exception, debug_exception_handler)

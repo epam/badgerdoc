@@ -33,7 +33,7 @@ client = TestClient(app)
 
 CATEGORIES = [
     Category(
-        id="18d3d189-e73a-4680-bfa7-7ba3fe6ebee5",
+        id="18d3d189e73a4680bfa77ba3fe6ebee5",
         name="Test",
         type=CategoryTypeSchema.box,
     )
@@ -685,6 +685,16 @@ VALIDATION_TASKS_TO_READY = [
         "status": TaskStatusEnumSchema.pending,
         "deadline": None,
     },
+    {
+        "id": 33,
+        "file_id": FINISH_TASK_FILE_3.file_id,
+        "pages": [1, 2, 3, 4, 5],
+        "job_id": FINISH_TASK_JOB_3.job_id,
+        "user_id": FINISH_TASK_USER_1.user_id,
+        "is_validation": False,
+        "status": TaskStatusEnumSchema.finished,
+        "deadline": None,
+    },
 ]
 
 
@@ -909,3 +919,122 @@ def test_finish_task_initial_annotator_deleted(
         "detail": "It`s not possible to create an annotation task "
         "for the initial user(s).They were deleted."
     }
+
+
+def test_finish_task_should_work_with_pages_covered_extensively_once(
+    prepare_db_with_extensive_coverage_annotations,
+):
+    # given
+    (
+        db,
+        annotation_tasks,
+        validation,
+    ) = prepare_db_with_extensive_coverage_annotations
+    for obj in [*annotation_tasks, validation]:
+        db.merge(ManualAnnotationTask(**obj))
+    db.commit()
+
+    # when
+    response = client.post(
+        FINISH_TASK_PATH.format(task_id=annotation_tasks[0]["id"]),
+        headers=TEST_HEADERS,
+    )
+
+    # then
+    assert response
+    task_file = (
+        db.query(File)
+        .filter(
+            File.job_id == annotation_tasks[0]["job_id"],
+            File.file_id == annotation_tasks[0]["file_id"],
+        )
+        .first()
+    )
+    assert not task_file.annotated_pages
+
+
+def test_finish_task_should_work_with_some_pages_covered_extensively_twice(
+    prepare_db_with_extensive_coverage_annotations,
+):
+    # given
+    (
+        db,
+        annotation_tasks,
+        validation,
+    ) = prepare_db_with_extensive_coverage_annotations
+    annotation_tasks[0]["status"] = TaskStatusEnumSchema.finished
+    for obj in [*annotation_tasks, validation]:
+        db.merge(ManualAnnotationTask(**obj))
+    db.commit()
+
+    # when
+    response = client.post(
+        FINISH_TASK_PATH.format(task_id=annotation_tasks[1]["id"]),
+        headers=TEST_HEADERS,
+    )
+
+    # then
+    assert response
+    task_file = (
+        db.query(File)
+        .filter(
+            File.job_id == annotation_tasks[0]["job_id"],
+            File.file_id == annotation_tasks[0]["file_id"],
+        )
+        .first()
+    )
+    assert task_file.annotated_pages == sorted(
+        set(annotation_tasks[0]["pages"]).intersection(
+            set(annotation_tasks[1]["pages"])
+        )
+    )
+
+
+def test_finish_task_should_work_with_all_pages_covered_extensively_twice(
+    prepare_db_with_extensive_coverage_annotations,
+):
+    # given
+    (
+        db,
+        annotation_tasks,
+        validation,
+    ) = prepare_db_with_extensive_coverage_annotations
+    annotation_tasks[0]["status"] = TaskStatusEnumSchema.finished
+    annotation_tasks[1]["status"] = TaskStatusEnumSchema.finished
+    for obj in [*annotation_tasks, validation]:
+        db.merge(ManualAnnotationTask(**obj))
+    db.commit()
+
+    # when
+    response = client.post(
+        FINISH_TASK_PATH.format(task_id=annotation_tasks[2]["id"]),
+        headers=TEST_HEADERS,
+    )
+
+    # then
+    assert response
+    task_file = (
+        db.query(File)
+        .filter(
+            File.job_id == annotation_tasks[0]["job_id"],
+            File.file_id == annotation_tasks[0]["file_id"],
+        )
+        .first()
+    )
+    all_anno_pages = (
+        annotation_tasks[0]["pages"]
+        + annotation_tasks[1]["pages"]
+        + annotation_tasks[2]["pages"]
+    )
+    assert task_file.annotated_pages == sorted(set(all_anno_pages))
+    assert task_file.annotated_pages == task_file.distributed_annotating_pages
+    validation_task = (
+        db.query(ManualAnnotationTask)
+        .filter(
+            ManualAnnotationTask.job_id == annotation_tasks[0]["job_id"],
+            ManualAnnotationTask.is_validation.is_(True),
+            ManualAnnotationTask.file_id == annotation_tasks[0]["file_id"],
+        )
+        .first()
+    )
+    assert validation_task.status == TaskStatusEnumSchema.ready

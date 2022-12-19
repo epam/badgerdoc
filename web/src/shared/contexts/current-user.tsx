@@ -27,7 +27,7 @@ export type SubMenu = {
 
 type UserRole = 'annotator' | 'engineer' | 'viewer' | 'simple_flow';
 
-export const ML_MENU_ITEMS = ['pipelines', 'categories', 'models', 'basements'];
+export const ML_MENU_ITEMS = ['pipelines', 'categories', 'models', 'basements', 'reports'];
 
 export const UserContextProvider: FC<{ currentUser: User | null }> = ({
     currentUser,

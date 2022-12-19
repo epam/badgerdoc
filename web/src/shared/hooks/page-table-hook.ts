@@ -19,6 +19,7 @@ export const usePageTable = <T, TFilter = TableFilters<T>>(item: keyof T) => {
     const [totalCount, onTotalCountChange] = useState<number>(0);
     const [searchText, setSearchText] = useState<string>('');
     const [tableValue, onTableValueChange] = useState<DataSourceState<TFilter>>({});
+    const [filters, setF] = React.useState<Array<Filter<keyof T>>>([]);
 
     const onPageChange = useCallback(
         (page: number, pageSize?: number) => {
@@ -26,8 +27,6 @@ export const usePageTable = <T, TFilter = TableFilters<T>>(item: keyof T) => {
         },
         [pageConfig]
     );
-
-    const [filters, setF] = React.useState<Array<Filter<keyof T>>>([]);
 
     const setFilters = useCallback(getFiltersSetter<T>(filters, setF), [filters]);
 

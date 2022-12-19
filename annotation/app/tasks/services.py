@@ -1,21 +1,29 @@
-from typing import List, Optional, Set
+import csv
+import io
+from datetime import datetime
+from typing import List, Optional, Set, Tuple
 
 from fastapi import HTTPException
 from filter_lib import Page, form_query, map_request_to_filter, paginate
 from sqlalchemy import and_, asc
 from sqlalchemy.orm import Session
 
-from app.errors import FieldConstraintError
+from app.errors import CheckFieldError, FieldConstraintError
 from app.filters import TaskFilter
 from app.jobs import update_files, update_user_overall_load
 from app.models import (
+    AgreementScore,
     AnnotatedDoc,
+    AnnotationStatistics,
     File,
     ManualAnnotationTask,
     association_job_annotator,
     association_job_validator,
 )
 from app.schemas import (
+    AgreementScoreServiceResponse,
+    AnnotationStatisticsInputSchema,
+    ExportTaskStatsInput,
     ManualAnnotationTaskInSchema,
     TaskStatusEnumSchema,
     ValidationSchema,
@@ -348,24 +356,16 @@ def get_task_info(
     )
 
 
-def unblock_validation_tasks(db: Session, task: ManualAnnotationTask) -> None:
-    """Gets list of already annotated_pages for task's file (including provided
-    task pages) - 'annotated_file_pages'. Then searches for all 'pending'
+def unblock_validation_tasks(
+    db: Session,
+    task: ManualAnnotationTask,
+    annotated_file_pages: List[int],
+) -> None:
+    """Having list of all annotated pages search for all 'pending'
     validation tasks for this job_id and file_id for which 'task.pages' is
     subset of annotated_file_pages list and updates such tasks status from
     'pending' to 'ready'.
     """
-    annotated_file_pages = (
-        db.query(File.annotated_pages)
-        .filter(
-            and_(
-                File.file_id == task.file_id,
-                File.job_id == task.job_id,
-            )
-        )
-        .first()[0]
-    )
-    annotated_file_pages.extend(task.pages)
     (
         db.query(ManualAnnotationTask)
         .filter(
@@ -381,3 +381,109 @@ def unblock_validation_tasks(db: Session, task: ManualAnnotationTask) -> None:
             {"status": TaskStatusEnumSchema.ready}, synchronize_session=False
         )
     )
+
+
+def get_task_stats_by_id(
+    db: Session,
+    task_id: int,
+) -> Optional[AnnotationStatistics]:
+    return (
+        db.query(AnnotationStatistics)
+        .filter(AnnotationStatistics.task_id == task_id)
+        .first()
+    )
+
+
+def add_task_stats_record(
+    db: Session,
+    task_id: int,
+    stats: AnnotationStatisticsInputSchema,
+) -> AnnotationStatistics:
+    stats_db = get_task_stats_by_id(db, task_id)
+
+    if stats_db:
+        for name, value in stats.dict().items():
+            setattr(stats_db, name, value)
+        stats_db.updated = datetime.utcnow()
+    else:
+        if stats.event_type == "closed":
+            raise CheckFieldError(
+                "Attribute event_type can not start from closed."
+            )
+        stats_db = AnnotationStatistics(task_id=task_id, **stats.dict())
+
+    db.add(stats_db)
+    db.commit()
+    return stats_db
+
+
+def save_agreement_scores(
+    db: Session, agreement_scores: List[AgreementScoreServiceResponse]
+) -> None:
+    objects = [AgreementScore(**score.dict()) for score in agreement_scores]
+    db.bulk_save_objects(objects)
+    db.commit()
+
+
+def create_export_csv(
+    db: Session,
+    schema: ExportTaskStatsInput,
+    tenant: str,
+) -> Tuple[str, bytes]:
+    task_ids = {
+        task.id: {
+            "score": getattr(task.agreement_score, "agreement_score", None),
+            "annotator": getattr(task.agreement_score, "annotator_id", None),
+        }
+        for task in (
+            db.query(ManualAnnotationTask)
+            .filter(ManualAnnotationTask.user_id.in_(schema.user_ids))
+            .all()
+        )
+    }
+    if schema.date_to:
+        case = and_(
+            AnnotationStatistics.created >= schema.date_from,
+            AnnotationStatistics.updated <= schema.date_to,
+        )
+    else:
+        case = AnnotationStatistics.created >= schema.date_from
+
+    annotation_stats = [
+        {
+            "annotator_id": task_ids[stat.task_id]["annotator"],
+            "task_id": stat.task_id,
+            "task_status": stat.task.status.value,
+            "time_start": stat.created.isoformat(),
+            "time_finish": (
+                stat.updated.isoformat() if stat.updated else None
+            ),
+            "agreement_score": task_ids[stat.task_id]["score"],
+        }
+        for stat in (
+            db.query(AnnotationStatistics)
+            .filter(AnnotationStatistics.task_id.in_(task_ids))
+            .filter(case)
+            .all()
+        )
+    ]
+
+    if not annotation_stats:
+        raise HTTPException(
+            status_code=406,
+            detail="Export data not found.",
+        )
+
+    binary = io.BytesIO()
+    # Prevent from closing
+    binary.close = lambda: None
+    with io.TextIOWrapper(binary, encoding="utf-8", newline="") as text_file:
+        keys = annotation_stats[0].keys()
+        dict_writer = csv.DictWriter(text_file, keys)
+        dict_writer.writeheader()
+        dict_writer.writerows(annotation_stats)
+    # Reset cursor
+    binary.seek(0)
+
+    today = datetime.today().strftime("%Y%m%d")
+    return f"annotator_stats_export_{today}.csv", binary

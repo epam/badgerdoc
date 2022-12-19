@@ -33,19 +33,43 @@ cache = TTLCache(maxsize=128, ttl=300)
 logger = app_logger.Logger
 
 
+def is_category_leaf(db: Session, category: Category, tenant: str) -> bool:
+    return not (
+        db.query(Category.id)
+        .filter(
+            and_(
+                Category.parent == category.id,
+                or_(Category.tenant == tenant, Category.tenant == null()),
+            )
+        )
+        .first()
+    )
+
+
+def set_parents_is_leaf(
+    category_db: Category,
+    parents: Optional[List[CategoryResponseSchema]] = None,
+    is_leaf: bool = False,
+) -> CategoryResponseSchema:
+    if parents is None:
+        parents = []
+    category_response = response_object_from_db(category_db)
+    category_response.is_leaf = is_leaf
+    category_response.parents = parents
+    return category_response
+
+
 def insert_category_tree(
-    db: Session, category_db: Category
+    db: Session, category_db: Category, tenant: str
 ) -> CategoryResponseSchema:
     parents = fetch_category_parents(db, category_db)
-    children = fetch_category_children(db, category_db)
+    is_leaf = is_category_leaf(db, category_db, tenant)
     category_response = response_object_from_db(category_db)
     if category_response.parent:
         category_response.parents = [
-            response_object_from_db(category) for category in parents
+            set_parents_is_leaf(category) for category in parents
         ]
-    category_response.children = [
-        response_object_from_db(category) for category in children
-    ]
+    category_response.is_leaf = is_leaf
     return category_response
 
 
@@ -73,7 +97,7 @@ def add_category_db(
         tree = Ltree(f"{id_}")
 
     category = Category(
-        id=(id_ or str(uuid.uuid4())),
+        id=id_,
         name=name,
         tenant=tenant,
         parent=parent if parent != "null" else None,
@@ -182,12 +206,6 @@ def recursive_subcategory_search(
     return child_categories
 
 
-# Turn off important check on job id
-# TODO: Remove this patch BEFORE RELEASE!!!
-# https://github.com/epam/badgerdoc/issues/2
-TEMP_PATCH_EXCLUDE_DIFF = True
-
-
 def fetch_bunch_categories_db(
     db: Session,
     category_ids: Set[str],
@@ -206,6 +224,14 @@ def fetch_bunch_categories_db(
             or_(Category.tenant == tenant, Category.tenant == null()),
         )
     ).all()
+
+    wrong_categories = {
+        str(category.id) for category in categories
+    }.symmetric_difference(category_ids)
+    if wrong_categories:
+        error_message = ", ".join(sorted(wrong_categories))
+        raise NoSuchCategoryError(f"No such categories: {error_message}")
+
     if root_parents:
         categories_parents = _get_parents(db, categories, tenant, job_id)
         categories = list(
@@ -213,13 +239,6 @@ def fetch_bunch_categories_db(
                 cat for cats in categories_parents.values() for cat in cats
             )
         )
-    wrong_categories = {
-        category.id for category in categories
-    }.symmetric_difference(category_ids)
-
-    if not TEMP_PATCH_EXCLUDE_DIFF and wrong_categories:
-        error_message = ", ".join(sorted(wrong_categories))
-        raise NoSuchCategoryError(f"No such categories: {error_message}")
     return categories
 
 
@@ -256,15 +275,7 @@ def _get_leaves(
 def _extract_category(
     path: str, categories: Dict[str, Category]
 ) -> List[Category]:
-    return [
-        CategoryResponseSchema.parse_obj(
-            {
-                **CategoryORMSchema.from_orm(categories[node]).dict(),
-                "is_leaf": False,
-            }
-        )
-        for node in path.split(".")[0:-1]
-    ]
+    return [categories[node] for node in path.split(".")[0:-1]]
 
 
 def _get_parents(
@@ -278,8 +289,10 @@ def _get_parents(
     uniq_pathes = set()
 
     for cat in categories:
-        uniq_pathes.add(cat.tree.path)
-        uniq_cats = uniq_cats.union({tree.path for tree in cat.tree})
+        # if we pass root categories it causes exception.
+        if cat.tree is not None:
+            uniq_pathes.add(cat.tree.path)
+            uniq_cats = uniq_cats.union({tree.path for tree in cat.tree})
 
     category_to_object = {
         cat.id: cat
@@ -295,12 +308,25 @@ def _get_parents(
 def _compose_response(
     categories: List[Category], leaves: Leaves, parents: Parents
 ) -> List[CategoryResponseSchema]:
+    converted_parents = {}
+    for parent_path in parents:
+        converted_parents[parent_path] = [
+            CategoryResponseSchema.parse_obj(
+                {
+                    **CategoryORMSchema.from_orm(cat).dict(),
+                    "is_leaf": False,
+                }
+            )
+            for cat in parents[parent_path]
+        ]
     return [
         CategoryResponseSchema.parse_obj(
             {
                 **CategoryORMSchema.from_orm(cat).dict(),
                 "is_leaf": leaves.get(cat.id, False),
-                "parents": parents.get(cat.tree.path, []),
+                "parents": converted_parents.get(cat.tree.path, [])
+                if cat.tree
+                else [],
             }
         )
         for cat in categories
