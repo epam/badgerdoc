@@ -5,6 +5,8 @@ from botocore.exceptions import BotoCoreError, ClientError
 from dotenv import find_dotenv, load_dotenv
 from fastapi import Depends, FastAPI
 from sqlalchemy.exc import DBAPIError, SQLAlchemyError
+from starlette.requests import Request
+from starlette.responses import Response
 
 from app.annotations import resources as annotations_resources
 from app.categories import resources as categories_resources
@@ -35,6 +37,7 @@ from app.errors import (
     wrong_job_error_handler,
 )
 from app.jobs import resources as jobs_resources
+from app import logger as app_logger
 from app.metadata import resources as metadata_resources
 from app.revisions import resources as revision_resources
 from app.tags import TAGS
@@ -65,6 +68,17 @@ app = FastAPI(
     dependencies=[Depends(TOKEN)],
 )
 
+logger = app_logger.Logger
+
+
+async def catch_exceptions_middleware(request: Request, call_next):
+    try:
+        return await call_next(request)
+    except Exception as exception:  # noqa
+        logger.exception(exception)
+        return Response("Internal server error", status_code=500)
+
+app.middleware('http')(catch_exceptions_middleware)
 app.include_router(annotations_resources.router)
 app.include_router(task_resources.router)
 app.include_router(distribution_resources.router)
