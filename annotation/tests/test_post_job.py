@@ -568,13 +568,10 @@ def test_post_job_with_extensive_coverage_should_work(
     check_files_distributed_pages(prepare_db_for_post_job, new_job_id)
 
 
-# TODO: if we run test alone it works, together with other in suite is fails.
-#  Fixture for this tests should be reworked.
-@pytest.mark.skip
 @pytest.mark.integration
 @responses.activate
 def test_post_job_auto_distribution(prepare_db_for_post_job):
-    new_job_id = 6
+    new_job_id = 14
     session = prepare_db_for_post_job
     users = [
         POST_JOB_ANNOTATORS[1].user_id,
@@ -592,7 +589,7 @@ def test_post_job_auto_distribution(prepare_db_for_post_job):
         f"{POST_JOBS_PATH}/{new_job_id}",
         json={
             "callback_url": "test6",
-            "name": "AnnotationJob1",
+            "name": f"AnnotationJob_{new_job_id}",
             "annotators": users,
             "validators": [],
             "owners": [],
@@ -600,7 +597,7 @@ def test_post_job_auto_distribution(prepare_db_for_post_job):
             "files": [POST_JOB_NEW_FILE_ID],
             "datasets": [],
             "is_auto_distribution": True,
-            "categories": [1],
+            "categories": ["1"],
             "deadline": "2021-12-12T01:01:01",
             "job_type": JobTypeEnumSchema.AnnotationJob,
         },
@@ -633,12 +630,11 @@ def test_post_job_auto_distribution(prepare_db_for_post_job):
         )
         == 7
     )
-    assert saved_job.pop("name") == "AnnotationJob1"
+    assert saved_job.pop("name") == f"AnnotationJob_{new_job_id}"
     assert saved_job.pop("job_type") == JobTypeEnumSchema.AnnotationJob
     check_files_distributed_pages(prepare_db_for_post_job, new_job_id)
 
 
-@pytest.mark.skip
 @pytest.mark.integration
 @patch.object(Session, "bulk_insert_mappings")
 @responses.activate
@@ -692,7 +688,6 @@ def test_post_job_auto_distribution_exc(Session, prepare_db_for_post_job):
     )
 
 
-@pytest.mark.skip
 @pytest.mark.integration
 @pytest.mark.parametrize(
     ["attribute_filter", "expected_result"],
@@ -724,7 +719,6 @@ def test_get_job_attributes_for_post(
         assert db_job_info == expected_result
 
 
-@pytest.mark.skip
 @pytest.mark.integration
 @pytest.mark.parametrize(
     ["job_info", "expected_name"],
