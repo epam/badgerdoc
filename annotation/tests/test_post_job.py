@@ -536,8 +536,11 @@ def test_post_job_with_extensive_coverage_should_work(
         json=requests_data,
         headers=TEST_HEADERS,
     )
-    saved_job = row_to_dict(session.query(Job).get(new_job_id))
+    assert response
     assert response.status_code == 201
+    created_job_row = session.query(Job).get(new_job_id)
+    assert created_job_row
+    saved_job = row_to_dict(created_job_row)
     assert saved_job["is_auto_distribution"]
     assert session.query(File).get(
         (
@@ -568,7 +571,7 @@ def test_post_job_with_extensive_coverage_should_work(
 @pytest.mark.integration
 @responses.activate
 def test_post_job_auto_distribution(prepare_db_for_post_job):
-    new_job_id = 6
+    new_job_id = 14
     session = prepare_db_for_post_job
     users = [
         POST_JOB_ANNOTATORS[1].user_id,
@@ -586,7 +589,7 @@ def test_post_job_auto_distribution(prepare_db_for_post_job):
         f"{POST_JOBS_PATH}/{new_job_id}",
         json={
             "callback_url": "test6",
-            "name": "AnnotationJob1",
+            "name": f"AnnotationJob_{new_job_id}",
             "annotators": users,
             "validators": [],
             "owners": [],
@@ -594,14 +597,17 @@ def test_post_job_auto_distribution(prepare_db_for_post_job):
             "files": [POST_JOB_NEW_FILE_ID],
             "datasets": [],
             "is_auto_distribution": True,
-            "categories": [1],
+            "categories": ["1"],
             "deadline": "2021-12-12T01:01:01",
             "job_type": JobTypeEnumSchema.AnnotationJob,
         },
         headers=TEST_HEADERS,
     )
-    saved_job = row_to_dict(session.query(Job).get(new_job_id))
+    assert response
     assert response.status_code == 201
+    new_job = session.query(Job).get(new_job_id)
+    assert new_job
+    saved_job = row_to_dict(session.query(Job).get(new_job_id))
     assert saved_job["is_auto_distribution"]
     assert session.query(File).get(
         (
@@ -624,7 +630,7 @@ def test_post_job_auto_distribution(prepare_db_for_post_job):
         )
         == 7
     )
-    assert saved_job.pop("name") == "AnnotationJob1"
+    assert saved_job.pop("name") == f"AnnotationJob_{new_job_id}"
     assert saved_job.pop("job_type") == JobTypeEnumSchema.AnnotationJob
     check_files_distributed_pages(prepare_db_for_post_job, new_job_id)
 

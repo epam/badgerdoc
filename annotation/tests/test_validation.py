@@ -1459,15 +1459,6 @@ def test_create_validation_tasks_exceptions(db_validation_end, user):
             "This task is for annotation",
         ),
         (
-            # when finishing task for annotation
-            # there should not be values for edited and failed pages
-            # but None is acceptable
-            TASKS[10].id,
-            {"validation_user_for_reannotated_pages": None},
-            200,
-            "",
-        ),
-        (
             TASKS[4].id,
             {
                 "validation_user_for_reannotated_pages": str(

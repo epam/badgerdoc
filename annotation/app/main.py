@@ -27,6 +27,7 @@ from app.errors import (
     db_dbapi_error_handler,
     db_s3_error_handler,
     db_sa_error_handler,
+    debug_exception_handler,
     enum_validation_error_handler,
     field_constraint_error_handler,
     minio_no_such_bucket_error_handler,
@@ -34,7 +35,6 @@ from app.errors import (
     no_such_revisions_error_handler,
     taxonomy_link_error_handler,
     wrong_job_error_handler,
-    debug_exception_handler,
 )
 from app.jobs import resources as jobs_resources
 from app.metadata import resources as metadata_resources
