@@ -757,6 +757,7 @@ def test_post_extraction_job_saved(
     assert saved_job.get("job_type") == JobTypeEnumSchema.ExtractionJob
 
 
+@pytest.mark.integration
 def test_post_import_job_saved(prepare_db_for_post_job):
     """Tests that new ImportJob with no users, no files or datasets provided
     will be created in db with correct values for all required fields"""
