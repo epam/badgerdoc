@@ -29,10 +29,10 @@ from app.models import (
 )
 from app.schemas import (
     AnnotationStatisticsInputSchema,
-    ValidationSchema,
+    FileStatusEnumSchema,
     JobStatusEnumSchema,
     TaskStatusEnumSchema,
-    FileStatusEnumSchema,
+    ValidationSchema,
 )
 from app.tasks import add_task_stats_record
 from tests.override_app_dependency import TEST_TENANT
@@ -50,14 +50,13 @@ from tests.test_delete_batch_tasks import (
     DIFF_STATUSES_TASKS,
 )
 from tests.test_finish_task import (
+    CATEGORIES,
     FINISH_DOCS,
     FINISH_DOCS_CHECK_DELETED_ANNOTATOR,
     FINISH_TASK_1,
     FINISH_TASK_1_SAME_JOB,
     FINISH_TASK_2,
     FINISH_TASK_2_SAME_JOB,
-    FINISH_TASK_USER_2,
-    FINISH_TASK_USER_3,
     FINISH_TASK_CHECK_DELETE_USER_ANNOTATOR_1,
     FINISH_TASK_CHECK_DELETE_USER_ANNOTATOR_2,
     FINISH_TASK_CHECK_DELETE_USER_VALIDATOR,
@@ -70,9 +69,10 @@ from tests.test_finish_task import (
     FINISH_TASK_JOB_3,
     FINISH_TASK_JOB_4,
     FINISH_TASK_USER_1,
+    FINISH_TASK_USER_2,
+    FINISH_TASK_USER_3,
     TASK_NOT_IN_PROGRESS_STATUS,
     VALIDATION_TASKS_TO_READY,
-    CATEGORIES,
 )
 from tests.test_get_annotation_for_particular_revision import (
     PART_REV_ANNOTATOR,
@@ -593,20 +593,23 @@ def prepare_db_categories_for_filtration(db_session):
     clear_db()
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def prepare_categories_with_tree(db_session):
     path = ""
     categories = []
     for number in range(1, 16):
         if path:
             path = f"{path}.{number + 2}"
+            parent = str(number + 1)
         else:
             path = str(number + 2)
+            parent = None
         cat = Category(
             id=str(number + 2),
-            tenant=None,
+            tenant="test",
             name=f"Table{number}",
             type="box",
+            parent=parent,
             tree=sqlalchemy_utils.Ltree(path),
         )
         categories.append(cat)
