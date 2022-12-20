@@ -2,6 +2,7 @@ import React, { FC, useState } from 'react';
 import { IModal, useArrayDataSource } from '@epam/uui';
 import {
     Button,
+    Checkbox,
     FlexCell,
     FlexRow,
     FlexSpacer,
@@ -36,6 +37,7 @@ import { usePageTable } from '../../shared';
 import { useNotifications } from '../../shared/components/notifications';
 import { CategoriesParentSelector } from '../../components/categories/categories-parent-selector/categories-parent-selector';
 import { useEntity } from '../../shared/hooks/use-entity';
+import styles from './categories-modal-connector.module.scss';
 
 export interface TaskValidationValues {
     categoryValue?: Category;
@@ -59,6 +61,7 @@ export const ModalWithDisabledClickOutsideAndCross: FC<IProps> = (props) => {
     const [categoryName, setCategoryName] = useState<string | undefined>(nameProps);
     const [categoryId, setCategoryId] = useState<string | undefined>(nameProps);
     const [parentValue, setParentValue] = useState<string | null>(parenProps);
+    const [attachTaxonomy, setAttachTaxonomy] = useState<boolean>(false);
     const { page, pageSize } = pageConfig;
     const { notifyError, notifySuccess } = useNotifications();
     const { data: categories, refetch: refetchCategory } = useCategories(
@@ -87,7 +90,8 @@ export const ModalWithDisabledClickOutsideAndCross: FC<IProps> = (props) => {
                 metadata: { color: color },
                 type: type,
                 parent: parentValue,
-                data_attributes: dataAttributes
+                data_attributes: dataAttributes,
+                has_taxonomy: attachTaxonomy
             });
             await refetchCategory();
             notifySuccess(<Text>The category was updated successfully</Text>);
@@ -103,7 +107,8 @@ export const ModalWithDisabledClickOutsideAndCross: FC<IProps> = (props) => {
                 name: categoryName!,
                 metadata: { color: color },
                 type: type,
-                parent: parentValue
+                parent: parentValue,
+                has_taxonomy: attachTaxonomy
             });
             await refetchCategory();
             notifySuccess(<Text>The category was successfully added</Text>);
@@ -213,6 +218,12 @@ export const ModalWithDisabledClickOutsideAndCross: FC<IProps> = (props) => {
                                 </LabeledInput>
                             </FlexCell>
                         </FlexRow>
+                        <Checkbox
+                            cx={styles['taxonomy-checkbox']}
+                            label="Attach Taxonomy"
+                            value={attachTaxonomy}
+                            onValueChange={setAttachTaxonomy}
+                        />
                         <FlexRow padding="24" vPadding="12">
                             <FlexCell grow={1}>
                                 <CategoriesParentSelector
