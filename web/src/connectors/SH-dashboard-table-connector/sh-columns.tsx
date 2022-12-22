@@ -29,7 +29,9 @@ const shTasksColumns: DataColumnProps<Task, any, TableFilters<Task, TaskStatus[]
         key: 'deadline',
         caption: 'Creation date',
         render: (task: Task) => (
-            <Text fontSize="14">{new Date(task.deadline).toLocaleDateString()}</Text>
+            <Text fontSize="14">
+                {task.deadline === null ? '' : new Date(task.deadline).toLocaleDateString()}
+            </Text>
         ),
         grow: 1,
         shrink: 1,
