@@ -48,6 +48,10 @@ export const UploadWizardPage = () => {
         }
     };
 
+    const handleRedirectAfterFinish = () => {
+        history.push(DOCUMENTS_PAGE);
+    };
+
     const uploadFilesHandler = useCallback(async () => {
         try {
             // todo: put this inside <UploadFilesControl>
@@ -175,6 +179,7 @@ export const UploadWizardPage = () => {
             content: (
                 <AddJobConnector
                     onJobAdded={handleJobAdded}
+                    onRedirectAfterFinish={handleRedirectAfterFinish}
                     files={uploadedFilesIds}
                     renderWizardButtons={({ save, disableNextButton, finishButtonCaption }) =>
                         renderWizardButtons({

@@ -26,6 +26,7 @@ type AddJobConnectorProps = {
         finishButtonCaption: string;
     }) => ReactElement;
     onJobAdded: (id: number) => void;
+    onRedirectAfterFinish?: () => void;
     files: number[];
     checkedFiles?: number[];
     initialJob?: Job;
@@ -53,15 +54,18 @@ export type JobValues = {
 const AddJobConnector: FC<AddJobConnectorProps> = ({
     renderWizardButtons,
     onJobAdded,
+    onRedirectAfterFinish,
     files,
     initialJob,
     showNoExtractionTab
 }) => {
     const getMetadata = (state: JobValues) => ({
         props: {
-            jobName: { isRequired: true },
+            jobName: { isRequired: state.jobType !== 'NoExtraction' },
             pipeline: { isRequired: state.jobType === 'ExtractionJob' },
             start_manual_job_automatically: { isDisabled: !state.pipeline },
+            validationType: { isRequired: state.jobType === 'ExtractionWithAnnotationJob' },
+            categories: { isRequired: state.jobType === 'ExtractionWithAnnotationJob' },
             extensive_coverage: { isRequired: state.validationType === 'extensive_coverage' }
         }
     });
@@ -117,6 +121,7 @@ const AddJobConnector: FC<AddJobConnectorProps> = ({
     const handleSave = useCallback(
         async (values: JobValues) => {
             if (values.jobType === 'NoExtraction') {
+                onRedirectAfterFinish?.();
                 return;
             }
 
