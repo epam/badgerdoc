@@ -12,6 +12,7 @@ import { useUsers } from 'api/hooks/users';
 import { Job, JobType } from 'api/typings/jobs';
 import { CurrentUser } from 'shared/contexts/current-user';
 import wizardStyles from '../../shared/components/wizard/wizard/wizard.module.scss';
+import { useAllTaxonomies } from 'api/hooks/taxonomies';
 
 type AddJobConnectorProps = {
     renderWizardButtons: ({
@@ -66,7 +67,7 @@ const AddJobConnector: FC<AddJobConnectorProps> = ({
         }
     });
 
-    const { pipelines, categories, users } = useEntities();
+    const { pipelines, categories, users, taxonomies } = useEntities();
 
     const addJobMutation = useAddJobMutation();
 
@@ -254,10 +255,20 @@ const useEntities = () => {
         {}
     );
 
+    const taxonomiesResult = useAllTaxonomies({
+        page: 1,
+        size: 100,
+        searchText: '',
+        sortConfig: { field: 'name', direction: SortingDirection.ASC }
+    });
+
+    console.log(taxonomiesResult);
+
     return {
         pipelines: pipelinesResult.data?.data,
         categories: categoriesResult.data?.data,
-        users: usersResult.data?.data
+        users: usersResult.data?.data,
+        taxonomies: taxonomiesResult.data?.data
     };
 };
 
@@ -293,6 +304,7 @@ const useAddJobFormValues = ({
 }: Params): JobValues | null => {
     const { currentUser } = useContext(CurrentUser);
 
+    console.log('categories: ', initialJob);
     return useMemo(() => {
         if (!initialJob) {
             return {

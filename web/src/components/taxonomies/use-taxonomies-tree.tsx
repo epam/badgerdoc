@@ -1,4 +1,4 @@
-import { taxonomiesFetcher, useTaxonomies } from 'api/hooks/taxonomies';
+import { taxonsFetcher, useTaxonomies } from 'api/hooks/taxonomies';
 import { Operators, SortingDirection, Filter, TaxonomyNode, Taxon } from 'api/typings';
 import { isEmpty } from 'lodash';
 import { useState, useEffect } from 'react';
@@ -73,7 +73,7 @@ export const useTaxonomiesTree = ({ searchText, taxonomyId }: Props) => {
             operator: Operators.EQ,
             value: node.key
         };
-        const childTaxons = await taxonomiesFetcher(1, 100, '', [parentFilter]);
+        const childTaxons = await taxonsFetcher(1, 100, '', [parentFilter]);
 
         if (childTaxons) {
             setExpandNode(undefined);

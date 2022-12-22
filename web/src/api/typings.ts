@@ -264,6 +264,7 @@ export type CreateCategory = {
     };
     parent: string | null;
     type: CategoryType;
+    data_attributes: Array<CategoryDataAttribute>;
 };
 
 export type UpdateCategory = {

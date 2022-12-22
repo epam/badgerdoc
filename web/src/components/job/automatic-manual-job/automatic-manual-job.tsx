@@ -1,7 +1,7 @@
 import { ILens } from '@epam/uui';
 import { Category, Pipeline, User } from 'api/typings';
 import { JobValues } from 'connectors/add-job-connector/add-job-connector';
-import React, { FC } from 'react';
+import React, { FC, useCallback } from 'react';
 import JobName from '../job-name/job-name';
 import styles from './automatic-manual-job.module.scss';
 import ValidationTypePicker from '../validation-type-picker/validation-type-picker';
@@ -29,6 +29,13 @@ const AutomaticManualJob: FC<AutomaticManualJobProps> = ({
         startManuallyProps.value = false;
     }
 
+    const onCategoriesSelection = useCallback(async (categories: Category[]) => {
+        const categoriesWithTaxonomy = categories?.filter(
+            (category) => (category.data_attributes || [])[0]?.type === 'taxonomy'
+        );
+        console.log(categoriesWithTaxonomy);
+    }, []);
+
     const vlidationType = lens.prop('validationType').get();
     return (
         <div className={styles.job}>
@@ -42,7 +49,11 @@ const AutomaticManualJob: FC<AutomaticManualJobProps> = ({
             {vlidationType === 'extensive_coverage' && <ExtensiveCoverageInput lens={lens} />}
 
             <div className="form-group">
-                <CategoriesPicker lens={lens} categories={categories} />
+                <CategoriesPicker
+                    lens={lens}
+                    categories={categories}
+                    onChangeHandler={onCategoriesSelection}
+                />
             </div>
             <div className="form-group">
                 <Checkbox
