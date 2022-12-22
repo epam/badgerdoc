@@ -264,7 +264,6 @@ export type CreateCategory = {
     };
     parent: string | null;
     type: CategoryType;
-    has_taxonomy: boolean;
 };
 
 export type UpdateCategory = {
@@ -276,7 +275,6 @@ export type UpdateCategory = {
     parent: string | null;
     type: CategoryType;
     data_attributes: Array<CategoryDataAttribute>;
-    has_taxonomy: boolean;
 };
 
 export type User = {
