@@ -20,12 +20,12 @@ export interface FileMetaInfo {
 
 export interface DocumentPageSidebarContentProps {
     fileMetaInfo: FileMetaInfo;
-    documentJobsInfo: {
+    documentJobsInfo?: {
         documentJobDataSource: LazyDataSource<DocumentJob, string>;
         setSelectedDocumentJobId: React.Dispatch<React.SetStateAction<string>>;
         selectedDocumentJobId: string;
     };
-    documentJobRevisionsInfo: {
+    documentJobRevisionsInfo?: {
         documentJobRevisions: UseQueryResult<DocumentJobRevisionsResponse, unknown>;
         setSelectedDocumentJobRevisionId: React.Dispatch<React.SetStateAction<string>>;
         selectedDocumentJobRevisionId: string;
@@ -37,52 +37,62 @@ export const DocumentPageSidebarContent = (props: DocumentPageSidebarContentProp
 
     const annotationsDataSource = useArrayDataSource(
         {
-            items: Array.isArray(documentJobRevisionsInfo.documentJobRevisions.data)
-                ? documentJobRevisionsInfo.documentJobRevisions.data
-                : [],
+            items:
+                documentJobRevisionsInfo &&
+                Array.isArray(documentJobRevisionsInfo.documentJobRevisions.data)
+                    ? documentJobRevisionsInfo.documentJobRevisions.data
+                    : [],
             getId: (item) => item.revision
         },
-        [documentJobRevisionsInfo.documentJobRevisions.data]
+        [documentJobRevisionsInfo?.documentJobRevisions.data]
     );
 
     return (
         <>
             <PendingContent loading={fileMetaInfo.isLoading}>
-                <div className={styles['sidebar-picker']}>
-                    <span
-                        className={styles['sidebar-picker-header']}
-                    >{`Extractions for document`}</span>
-                    <div className={styles['sidebar-picker-body']}>
-                        <PickerInput
-                            dataSource={documentJobsInfo.documentJobDataSource}
-                            value={+documentJobsInfo.selectedDocumentJobId}
-                            onValueChange={documentJobsInfo.setSelectedDocumentJobId}
-                            selectionMode="single"
-                            valueType="id"
-                            minBodyWidth={100}
-                            disableClear={true}
-                        />
+                {documentJobsInfo && (
+                    <div className={styles['sidebar-picker']}>
+                        <span
+                            className={styles['sidebar-picker-header']}
+                        >{`Extractions for document`}</span>
+                        <div className={styles['sidebar-picker-body']}>
+                            (
+                            <PickerInput
+                                dataSource={documentJobsInfo.documentJobDataSource}
+                                value={+documentJobsInfo.selectedDocumentJobId}
+                                onValueChange={documentJobsInfo.setSelectedDocumentJobId}
+                                selectionMode="single"
+                                valueType="id"
+                                minBodyWidth={100}
+                                disableClear={true}
+                            />
+                            )
+                        </div>
                     </div>
-                </div>
-                <div className={styles['sidebar-picker']}>
-                    <span className={styles['sidebar-picker-header']}>
-                        {`Revisions for selected extraction`}
-                    </span>
-                    <div className={styles['sidebar-picker-body']}>
-                        <PickerInput
-                            onValueChange={
-                                documentJobRevisionsInfo.setSelectedDocumentJobRevisionId
-                            }
-                            getName={(item) => item?.revision ?? ''}
-                            dataSource={annotationsDataSource}
-                            valueType="id"
-                            selectionMode="single"
-                            value={documentJobRevisionsInfo.selectedDocumentJobRevisionId}
-                            minBodyWidth={100}
-                            disableClear={true}
-                        />
+                )}
+                {documentJobRevisionsInfo && (
+                    <div className={styles['sidebar-picker']}>
+                        <span className={styles['sidebar-picker-header']}>
+                            {`Revisions for selected extraction`}
+                        </span>
+                        <div className={styles['sidebar-picker-body']}>
+                            (
+                            <PickerInput
+                                onValueChange={
+                                    documentJobRevisionsInfo.setSelectedDocumentJobRevisionId
+                                }
+                                getName={(item) => item?.revision ?? ''}
+                                dataSource={annotationsDataSource}
+                                valueType="id"
+                                selectionMode="single"
+                                value={documentJobRevisionsInfo.selectedDocumentJobRevisionId}
+                                minBodyWidth={100}
+                                disableClear={true}
+                            />
+                            )
+                        </div>
                     </div>
-                </div>
+                )}
             </PendingContent>
         </>
     );
