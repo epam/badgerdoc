@@ -53,7 +53,9 @@ export default [
         key: 'deadline',
         caption: 'deadline',
         render: (task: Task) => (
-            <Text fontSize="14">{new Date(task.deadline).toLocaleDateString()}</Text>
+            <Text fontSize="14">
+                {task.deadline === null ? '' : new Date(task.deadline).toLocaleDateString()}
+            </Text>
         ),
         grow: 1,
         shrink: 1,
