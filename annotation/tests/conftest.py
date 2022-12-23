@@ -97,7 +97,7 @@ from tests.test_get_job_progress import (
     TASKS_TEST_PROGRESS,
 )
 from tests.test_get_pages_info import PAGES_INFO_ENTITIES
-from tests.test_get_revisions import PAGE, PAGES_PATHS, REVISIONS, USERS_IDS
+from tests.test_get_revisions import PAGE, PAGES_PATHS, REVISIONS, USERS_IDS, JOBS_IDS
 from tests.test_get_revisions_without_annotation import (
     REV_WITHOUT_ANNOTATION_DOC_1,
     REV_WITHOUT_ANNOTATION_DOC_2,
@@ -738,6 +738,28 @@ def prepare_db_for_post_job(db_session):
     yield db_session
 
     clear_db()
+
+
+@pytest.fixture(scope="module")
+def prepare_job_for_safe_annotations(db_session):
+    job_data ={
+        "callback_url": "http://www.test.com/test1",
+        "annotators": [],
+        "validation_type": ValidationSchema.cross,
+        "files": [],
+        "is_auto_distribution": False,
+        "categories": CATEGORIES,
+        "deadline": None,
+        "tenant": TEST_TENANT,
+    }
+    for job_id in JOBS_IDS:
+        db_session.add(Job(**{**job_data, "job_id": job_id}))
+        db_session.commit()
+
+    yield db_session
+
+    clear_db()
+
 
 
 @pytest.fixture(scope="module")

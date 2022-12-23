@@ -20,12 +20,12 @@ from app.schemas import (
     JobOutSchema,
     NotFoundErrorSchema,
     PageOutSchema,
-    ParticularRevisionSchema,
+    ParticularRevisionSchema, ValidationSchema,
 )
 from app.tags import ANNOTATION_TAG, JOBS_TAG, REVISION_TAG
 from app.tasks import update_task_status
 
-from ..models import AnnotatedDoc, File, ManualAnnotationTask
+from ..models import AnnotatedDoc, File, ManualAnnotationTask, Job
 from ..token_dependency import TOKEN
 from .main import (
     LATEST,
@@ -519,14 +519,31 @@ def get_all_revisions(
     file_id: int,
     page_numbers: Set[int] = Query(..., min_items=1, ge=1),
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
+    user_id: Optional[UUID] = Query(
+        None,
+        example="1843c251-564b-4c2f-8d42-c61fdac369a1",
+        description="Required in case job validation type is extensive_"
+                    "coverage"
+    ),
     db: Session = Depends(get_db),
 ):
+    job: Job = db.query(Job).filter(Job.job_id == job_id).first()
+    if not job:
+        raise HTTPException(
+            status_code=404,
+            detail="Job with provided job_id do not exists.",
+        )
+    filters = [
+        AnnotatedDoc.job_id == job_id,
+        AnnotatedDoc.file_id == file_id,
+        AnnotatedDoc.tenant == x_current_tenant,
+    ]
+    if job.validation_type == ValidationSchema.extensive_coverage:
+        filters.append(AnnotatedDoc.user.in_(user_id, None))
     revisions = (
         db.query(AnnotatedDoc)
         .filter(
-            AnnotatedDoc.job_id == job_id,
-            AnnotatedDoc.file_id == file_id,
-            AnnotatedDoc.tenant == x_current_tenant,
+            *filters
         )
         .order_by(AnnotatedDoc.date)
         .all()

@@ -12,12 +12,12 @@ from tests.consts import ANNOTATION_PATH
 from tests.override_app_dependency import TEST_HEADERS, TEST_TENANT, app
 
 JOBS_IDS = (
-    1,
-    2,
-    3,
-    4,
-    5,
-    6,
+    10,
+    20,
+    30,
+    40,
+    50,
+    60,
 )
 FILES_IDS = (
     1,
@@ -377,7 +377,7 @@ def test_get_all_revisions_sql_connection_error(
 @pytest.mark.integration
 @patch.object(boto3, "resource")
 def test_get_all_revisions_s3_connection_error(
-    boto3, prepare_db_for_get_revisions
+    boto3, prepare_db_for_get_revisions, prepare_job_for_safe_annotations,
 ):
     boto3.side_effect = Mock(side_effect=BotoCoreError())
     response = client.get(
@@ -714,6 +714,7 @@ def test_get_latest_revision_by_user(
 def test_get_all_revisions(
     monkeypatch,
     prepare_db_for_get_revisions,
+    prepare_job_for_safe_annotations,
     prepare_moto_s3_for_get_revisions,
     expected_all_revisions,
     tenant,
