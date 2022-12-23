@@ -63,15 +63,6 @@ export const DocumentPageConnector = () => {
             return;
         }
 
-        // history.replace({
-        //     pathname: history.location.pathname,
-        //     search: qs.stringify({
-        //         ...qs.parse(history.location.search, { ignoreQueryPrefix: true }),
-        //         jobId: selectedDocumentJobId,
-        //         revisionId: selectedDocumentJobId === jobId ? revisionId : ''
-        //     }),
-        //     state: history.location.state
-        // });
         setSelectedDocumentJobRevisionId('');
     }, [selectedDocumentJobId, jobId]);
 
@@ -120,10 +111,6 @@ export const DocumentPageConnector = () => {
         selectedDocumentJobId,
         documentJobRevisions.data
     ]);
-
-    if (!documentJobId) {
-        return null;
-    }
 
     return (
         <DocumentPage

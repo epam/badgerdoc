@@ -19,17 +19,17 @@ import { BreadcrumbNavigation } from '../../shared/components/breadcrumb';
 
 export interface DocumentPageProps {
     fileMetaInfo: FileMetaInfo;
-    documentJobsInfo: {
+    documentJobsInfo?: {
         documentJobDataSource: LazyDataSource<DocumentJob, string>;
         setSelectedDocumentJobId: React.Dispatch<React.SetStateAction<string>>;
         selectedDocumentJobId: string;
     };
-    documentJobRevisionsInfo: {
+    documentJobRevisionsInfo?: {
         documentJobRevisions: UseQueryResult<DocumentJobRevisionsResponse, unknown>;
         setSelectedDocumentJobRevisionId: React.Dispatch<React.SetStateAction<string>>;
         selectedDocumentJobRevisionId: string;
     };
-    documentJobId: number;
+    documentJobId?: number;
 }
 
 export function DocumentPage(props: DocumentPageProps) {
@@ -61,7 +61,7 @@ export function DocumentPage(props: DocumentPageProps) {
             <div className={styles['document-page-content']}>
                 <TaskAnnotatorContextProvider
                     jobId={documentJobId}
-                    revisionId={documentJobRevisionsInfo.selectedDocumentJobRevisionId}
+                    revisionId={documentJobRevisionsInfo?.selectedDocumentJobRevisionId}
                     fileMetaInfo={fileMetaInfo}
                     onRedirectAfterFinish={() => {}}
                     onSaveTaskSuccess={() => {}}
