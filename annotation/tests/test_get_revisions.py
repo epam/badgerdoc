@@ -12,7 +12,6 @@ from tests.consts import ANNOTATION_PATH
 from tests.override_app_dependency import TEST_HEADERS, TEST_TENANT, app
 
 JOBS_IDS = (
-    1,
     10,
     20,
     30,

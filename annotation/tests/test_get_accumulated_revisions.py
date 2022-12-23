@@ -30,7 +30,7 @@ TENANT = POST_ANNOTATION_PG_DOC.tenant
 NOT_EXISTING_TENANT = "not-exist"
 NOT_EXISTING_ID = 20
 FILE_ID = 1
-JOB_ID = 1
+JOB_ID_FOR_ACC_REVISION = 70
 
 USERS = [
     User(
@@ -47,7 +47,7 @@ DOCS = [
         user=USERS[0].user_id,
         pipeline=None,
         file_id=FILE_ID,
-        job_id=JOB_ID,
+        job_id=JOB_ID_FOR_ACC_REVISION,
         date="2021-10-01 01:01:01.000000",
         pages={
             "1": "11",
@@ -62,7 +62,7 @@ DOCS = [
         user=USERS[0].user_id,
         pipeline=None,
         file_id=FILE_ID,
-        job_id=JOB_ID,
+        job_id=JOB_ID_FOR_ACC_REVISION,
         date="2021-10-01 01:01:02.000000",
         pages={
             "3": "32",
@@ -76,7 +76,7 @@ DOCS = [
         user=USERS[1].user_id,
         pipeline=None,
         file_id=FILE_ID,
-        job_id=JOB_ID,
+        job_id=JOB_ID_FOR_ACC_REVISION,
         date="2021-10-01 01:01:03.000000",
         pages={
             "1": "13",
@@ -164,7 +164,7 @@ LATEST_WITH_ALL_PAGES = dict(
         # info about all pages
         # from previous revisions
         (
-            JOB_ID,
+            JOB_ID_FOR_ACC_REVISION,
             LATEST,
             {1, 2, 3, 4, 5},
             TENANT,
@@ -174,7 +174,7 @@ LATEST_WITH_ALL_PAGES = dict(
         # info about [1, 5] pages
         # from previous revisions
         (
-            JOB_ID,
+            JOB_ID_FOR_ACC_REVISION,
             LATEST,
             {1, 5},
             TENANT,
@@ -197,7 +197,7 @@ LATEST_WITH_ALL_PAGES = dict(
         # from previous revisions
         # (there are no previous revisions)
         (
-            JOB_ID,
+            JOB_ID_FOR_ACC_REVISION,
             "1",
             {1, 2, 3, 4, 5},
             TENANT,
@@ -225,7 +225,7 @@ LATEST_WITH_ALL_PAGES = dict(
         # from previous revisions
         # (there are no previous revisions)
         (
-            JOB_ID,
+            JOB_ID_FOR_ACC_REVISION,
             "1",
             {2, 3, 5},
             TENANT,
@@ -251,7 +251,7 @@ LATEST_WITH_ALL_PAGES = dict(
         # info about all pages
         # from previous revisions
         (
-            JOB_ID,
+            JOB_ID_FOR_ACC_REVISION,
             "2",
             {1, 2, 3, 4, 5},
             TENANT,
@@ -279,7 +279,7 @@ LATEST_WITH_ALL_PAGES = dict(
         # info about [5] page
         # from previous revisions
         (
-            JOB_ID,
+            JOB_ID_FOR_ACC_REVISION,
             "2",
             {5},
             TENANT,
@@ -294,19 +294,20 @@ LATEST_WITH_ALL_PAGES = dict(
                 categories=["test_category_1", "test_category_2"],
             ),
         ),
+        # TODO: rework test for 404 case
+        # # if revisions were not found,
+        # # there will be empty response
+        # (
+        #     NOT_EXISTING_ID,
+        #     "2",
+        #     {5},
+        #     TENANT,
+        #     EMPTY_RESPONSE,
+        # ),
         # if revisions were not found,
         # there will be empty response
         (
-            NOT_EXISTING_ID,
-            "2",
-            {5},
-            TENANT,
-            EMPTY_RESPONSE,
-        ),
-        # if revisions were not found,
-        # there will be empty response
-        (
-            JOB_ID,
+            JOB_ID_FOR_ACC_REVISION,
             "10",
             {5},
             TENANT,
@@ -315,7 +316,7 @@ LATEST_WITH_ALL_PAGES = dict(
         # if there are no pages,
         # info about all pages will be accumulated
         (
-            JOB_ID,
+            JOB_ID_FOR_ACC_REVISION,
             "3",
             {},
             TENANT,
@@ -323,7 +324,7 @@ LATEST_WITH_ALL_PAGES = dict(
         ),
         # bad tenant, empty response
         (
-            JOB_ID,
+            JOB_ID_FOR_ACC_REVISION,
             "3",
             {1},
             NOT_EXISTING_TENANT,
@@ -335,7 +336,7 @@ def test_get_annotation_for_latest_revision_status_codes(
     monkeypatch,
     minio_accumulate_revisions,
     db_accumulated_revs,
-    prepare_job_for_safe_annotations,
+    prepare_job_for_get_revision,
     job_id,
     revision,
     page_numbers,
