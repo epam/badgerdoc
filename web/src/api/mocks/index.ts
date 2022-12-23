@@ -21,7 +21,8 @@ import { BadgerFetch, BadgerFetchBody, BadgerFetchProvider } from 'api/hooks/api
 import { annotations } from './annotations';
 import { tokens } from './tokens';
 import { models } from './models';
-import { taxonomies } from './taxonomies';
+import { taxons } from './taxons';
+import { taskStats } from './task_stats';
 
 const FILEMANAGEMENT_NAMESPACE = process.env.REACT_APP_FILEMANAGEMENT_API_NAMESPACE;
 const JOBMANAGER_NAMESPACE = process.env.REACT_APP_JOBMANAGER_API_NAMESPACE;
@@ -38,10 +39,11 @@ let pipelinesMockData = pipelines;
 let categoriesMockData = categories;
 let usersMockData = users;
 let tasksMockData = tasks;
+let taskStatsMockData = taskStats;
 let annotationsMockData = annotations;
 let tokensMockData = tokens;
 let modelsMockData = models;
-let taxonomiesMockData = taxonomies;
+let taxonsMockData = taxons;
 
 const MOCKS: Record<string, Record<string, BadgerFetch<any>>> = {
     [`${FILEMANAGEMENT_NAMESPACE}/datasets/search`]: {
@@ -170,6 +172,9 @@ const MOCKS: Record<string, Record<string, BadgerFetch<any>>> = {
     [`${CATEGORIES_NAMESPACE}/tasks/3/finish`]: {
         post: async () => (tasksMockData[2].status = 'Finished')
     },
+    [`${CATEGORIES_NAMESPACE}/tasks/1/stats`]: {
+        post: async () => taskStatsMockData
+    },
     [`${JOBMANAGER_NAMESPACE}/jobs/1`]: {
         get: async () => jobById[0]
     },
@@ -270,14 +275,16 @@ const MOCKS: Record<string, Record<string, BadgerFetch<any>>> = {
             };
         }
     },
-    [`${TAXONOMIES_NAMESPACE}/taxonomies/search`]: {
+    [`${TAXONOMIES_NAMESPACE}/taxons/search`]: {
         post: async (body: BadgerFetchBody | undefined) => {
             const { filters, pagination } = JSON.parse(body as string) as SearchBody<Taxon>;
-            let data = taxonomiesMockData;
+            let data = taxonsMockData;
             if (filters.length > 0) {
                 const parentFilter = filters.find((filter) => filter.field === 'parent_id');
                 const nameFilter = filters.find((filter) => filter.field === 'name');
                 const nameFilterValue = String(nameFilter?.value ?? '').slice(1, -1);
+                console.log('nameFilterValue: ', nameFilterValue);
+                console.log('parentFilter: ', parentFilter);
 
                 if (parentFilter) {
                     const value =
@@ -295,7 +302,7 @@ const MOCKS: Record<string, Record<string, BadgerFetch<any>>> = {
                 };
             }
             return {
-                data: taxonomiesMockData,
+                data: taxonsMockData,
                 pagination: {
                     page_num: 1,
                     page_size: 100

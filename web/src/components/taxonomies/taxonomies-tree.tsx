@@ -24,7 +24,7 @@ interface TaxonomiesTreeProps {
     defaultExpandAll: boolean;
 }
 
-const itemHeight = 32;
+const itemHeight = 33;
 
 export const TaxonomiesTree: FC<TaxonomiesTreeProps> = ({
     taxonomiesHeight,
