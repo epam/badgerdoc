@@ -11,22 +11,22 @@ export const annotations: AnotationsResponse = {
             page_num: 1,
             objs: [
                 {
-                    id: 1642342666611,
-                    type: 'box',
-                    bbox: [75, 82, 537, 119],
-                    category: 1
-                },
-                {
                     id: 1642343157986,
                     type: 'box',
                     bbox: [53, 266, 295, 487],
-                    category: 2
+                    category: 'Child2',
+                    data: {
+                        dataAttributes: [{ name: 'dataAttr', type: 'text', value: 'dataAttr' }]
+                    }
                 },
                 {
                     id: 1642343249912,
                     type: 'box',
                     bbox: [317, 406, 558, 447],
-                    category: 3
+                    category: 'Child1.1',
+                    data: {
+                        dataAttributes: [{ name: 'dataAttr', type: 'text', value: 'dataAttr' }]
+                    }
                 }
             ]
         }

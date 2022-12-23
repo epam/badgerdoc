@@ -34,6 +34,14 @@ export type ValidationPages = {
     not_processed: [];
 };
 
+export type TaskStats = {
+    event_type: 'opened' | 'closed';
+    additional_data: { [key in string]: string };
+    task_id: number;
+    created: string;
+    updated: string;
+};
+
 export type TaskStatus = 'Pending' | 'Ready' | 'In Progress' | 'Finished';
 
 export type ValidationPageStatus = 'Valid Page' | 'Invalid Page';
