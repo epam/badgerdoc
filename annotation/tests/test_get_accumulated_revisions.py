@@ -335,6 +335,7 @@ def test_get_annotation_for_latest_revision_status_codes(
     monkeypatch,
     minio_accumulate_revisions,
     db_accumulated_revs,
+    prepare_job_for_safe_annotations,
     job_id,
     revision,
     page_numbers,
@@ -361,6 +362,7 @@ def test_get_annotation_for_latest_revision_status_codes(
         },
         params=params,
     )
+    assert response
     accumulated_rev = response.json()
     accumulated_rev["pages"].sort(key=lambda x: x["page_num"])
 
