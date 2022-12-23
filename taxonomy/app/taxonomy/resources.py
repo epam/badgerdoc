@@ -58,7 +58,8 @@ def create_new_taxonomy(
         raise HTTPException(
             status_code=400, detail="Header x-current-tenant is required"
         )
-    latest_taxonomy = get_latest_taxonomy(session, taxonomy.id)
+    latest_taxonomy = get_latest_taxonomy(
+        session, taxonomy.id, x_current_tenant)
     if latest_taxonomy:
         LOGGER.info(
             "save_taxonomy find taxonomy with id %s. "
@@ -96,8 +97,14 @@ def create_new_taxonomy(
 def get_taxonomy_by_id(
     taxonomy_id: str = Path(..., example="1"),
     session: Session = Depends(get_db),
+    x_current_tenant: str = X_CURRENT_TENANT_HEADER,
 ) -> TaxonomyResponseSchema:
-    taxonomy = get_latest_taxonomy(session, taxonomy_id)
+    if not x_current_tenant:
+        LOGGER.info("get_taxonomy_by_id doesn't get header")
+        raise HTTPException(
+            status_code=400, detail="Header x-current-tenant is required"
+        )
+    taxonomy = get_latest_taxonomy(session, taxonomy_id, x_current_tenant)
     if not taxonomy:
         LOGGER.error("get_taxonomy_by_id get not existing id %s", taxonomy_id)
         raise HTTPException(status_code=404, detail="Not existing taxonomy")
@@ -119,8 +126,14 @@ def get_taxonomy_by_id_and_version(
     taxonomy_id: str = Path(..., example="1"),
     version: int = Path(..., example=1),
     session: Session = Depends(get_db),
+    x_current_tenant: str = X_CURRENT_TENANT_HEADER,
 ) -> TaxonomyResponseSchema:
-    taxonomy = get_taxonomy(session, (taxonomy_id, version))
+    if not x_current_tenant:
+        LOGGER.info("get_taxonomy_by_id doesn't get header")
+        raise HTTPException(
+            status_code=400, detail="Header x-current-tenant is required"
+        )
+    taxonomy = get_taxonomy(session, (taxonomy_id, version), x_current_tenant)
     if not taxonomy:
         LOGGER.error(
             "get_taxonomy_by_id_and_version get not existing combination"
@@ -143,8 +156,9 @@ def associate_taxonomy_to_job(
     query: JobIdSchema,
     taxonomy_id: str = Path(..., example="1"),
     session: Session = Depends(get_db),
+    x_current_tenant: str = X_CURRENT_TENANT_HEADER,
 ):
-    taxonomy = get_latest_taxonomy(session, taxonomy_id)
+    taxonomy = get_latest_taxonomy(session, taxonomy_id, x_current_tenant)
     if not taxonomy:
         LOGGER.error(
             "associate_taxonomy_to_job get not existing id %s", taxonomy_id
@@ -152,7 +166,7 @@ def associate_taxonomy_to_job(
         raise HTTPException(status_code=404, detail="Not existing taxonomy")
 
     # todo validate job existence.
-    create_new_relation_to_job(session, taxonomy, query.id)
+    create_new_relation_to_job(session, taxonomy, query.id, x_current_tenant)
 
 
 @router.post(
@@ -167,6 +181,7 @@ def associate_taxonomy_to_job(
 def associate_taxonomy_to_category(
     category_links: List[CategoryLinkSchema],
     session: Session = Depends(get_db),
+    x_current_tenant: str = X_CURRENT_TENANT_HEADER,
 ) -> List[CategoryLinkSchema]:
     versions = []
     latests = []
@@ -177,8 +192,10 @@ def associate_taxonomy_to_category(
         else:
             latests.append(category_link)
 
-    taxonomies: dict = batch_versioned_taxonomies(session, versions)
-    taxonomies.update(batch_latest_taxonomies(session, latests))
+    taxonomies: dict = batch_versioned_taxonomies(
+        session, versions, x_current_tenant)
+    taxonomies.update(batch_latest_taxonomies(
+        session, latests, x_current_tenant))
 
     not_found_taxonomies = [
         link.taxonomy_id
@@ -195,7 +212,8 @@ def associate_taxonomy_to_category(
             detail="Taxonomy does not exist.",
         )
 
-    bulk_create_relations_with_categories(session, taxonomies, category_links)
+    bulk_create_relations_with_categories(
+        session, taxonomies, category_links)
     return category_links
 
 
@@ -210,8 +228,9 @@ def associate_taxonomy_to_category(
 def delete_category_link(
     category_id: str = Path(..., example="1"),
     session: Session = Depends(get_db),
+    x_current_tenant: str = X_CURRENT_TENANT_HEADER,
 ) -> Response:
-    bulk_delete_category_association(session, category_id)
+    bulk_delete_category_association(session, category_id, x_current_tenant)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
@@ -224,8 +243,9 @@ def delete_category_link(
 def get_job_taxonomies(
     job_id: str,
     session: Session = Depends(get_db),
+    x_current_tenant: str = X_CURRENT_TENANT_HEADER,
 ):
-    taxonomies = get_taxonomies_by_job_id(session, job_id)
+    taxonomies = get_taxonomies_by_job_id(session, job_id, x_current_tenant)
     return [
         TaxonomyResponseSchema.from_orm(taxonomy) for taxonomy in taxonomies
     ]
@@ -243,11 +263,12 @@ def get_job_taxonomies(
 def update_taxonomy(
     query: TaxonomyInputSchema,
     session: Session = Depends(get_db),
+    x_current_tenant: str = X_CURRENT_TENANT_HEADER,
 ) -> TaxonomyResponseSchema:
     """
     Updates taxonomy by id and returns updated taxonomy.
     """
-    taxonomy = get_latest_taxonomy(session, query.id)
+    taxonomy = get_latest_taxonomy(session, query.id, x_current_tenant)
     if not taxonomy:
         LOGGER.error("update_taxonomy get not existing id %s", query.id)
         raise HTTPException(status_code=404, detail="Not existing taxonomy")
@@ -255,6 +276,7 @@ def update_taxonomy(
         session,
         taxonomy,
         query,
+        x_current_tenant
     )
     return TaxonomyResponseSchema.from_orm(taxonomy_db)
 
@@ -274,11 +296,12 @@ def update_taxonomy_by_id_and_version(
     taxonomy_id: str = Path(..., example="1"),
     version: int = Path(..., example=1),
     session: Session = Depends(get_db),
+    x_current_tenant: str = X_CURRENT_TENANT_HEADER,
 ) -> TaxonomyResponseSchema:
     """
     Updates taxonomy by id and returns updated taxonomy.
     """
-    taxonomy = get_taxonomy(session, (taxonomy_id, version))
+    taxonomy = get_taxonomy(session, (taxonomy_id, version), x_current_tenant)
     if not taxonomy:
         LOGGER.error(
             "get_taxonomy_by_id_and_version get not existing combination"
@@ -290,6 +313,7 @@ def update_taxonomy_by_id_and_version(
         session,
         taxonomy,
         query,
+        x_current_tenant
     )
     return TaxonomyResponseSchema.from_orm(taxonomy_db)
 
@@ -305,16 +329,18 @@ def update_taxonomy_by_id_and_version(
 def delete_taxonomy(
     taxonomy_id: str = Path(..., example="1"),
     session: Session = Depends(get_db),
+    x_current_tenant: str = X_CURRENT_TENANT_HEADER,
 ) -> Response:
-    taxonomy = get_latest_taxonomy(session, taxonomy_id)
+    taxonomy = get_latest_taxonomy(session, taxonomy_id, x_current_tenant)
     if not taxonomy:
         LOGGER.error("update_taxonomy get not existing id %s", taxonomy_id)
         raise HTTPException(status_code=404, detail="Not existing taxonomy")
     if taxonomy.latest:
-        second_latest_model = get_second_latest_taxonomy(session, taxonomy_id)
+        second_latest_model = get_second_latest_taxonomy(
+            session, taxonomy_id, x_current_tenant)
         if second_latest_model is not None:
             second_latest_model.latest = True
-    delete_taxonomy_instance(session, taxonomy)
+    delete_taxonomy_instance(session, taxonomy, x_current_tenant)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
@@ -330,8 +356,9 @@ def delete_taxonomy_by_id_and_version(
     taxonomy_id: str = Path(..., example="1"),
     version: int = Path(..., example=1),
     session: Session = Depends(get_db),
+    x_current_tenant: str = X_CURRENT_TENANT_HEADER,
 ) -> Response:
-    taxonomy = get_taxonomy(session, (taxonomy_id, version))
+    taxonomy = get_taxonomy(session, (taxonomy_id, version), x_current_tenant)
     if not taxonomy:
         LOGGER.error(
             "delete_taxonomy_by_id_and_version get not existing combination"
@@ -340,8 +367,9 @@ def delete_taxonomy_by_id_and_version(
         )
         raise HTTPException(status_code=404, detail="Not existing taxonomy")
     if taxonomy.latest:
-        second_latest_model = get_second_latest_taxonomy(session, taxonomy_id)
+        second_latest_model = get_second_latest_taxonomy(
+            session, taxonomy_id, x_current_tenant)
         if second_latest_model is not None:
             second_latest_model.latest = True
-    delete_taxonomy_instance(session, taxonomy)
+    delete_taxonomy_instance(session, taxonomy, x_current_tenant)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
