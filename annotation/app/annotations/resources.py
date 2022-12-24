@@ -428,7 +428,7 @@ def get_annotations_up_to_given_revision(
         AnnotatedDoc.tenant == x_current_tenant,
     ]
     if job.validation_type == ValidationSchema.extensive_coverage:
-        filters.append(AnnotatedDoc.user.in_(user_id, None))
+        filters.append(AnnotatedDoc.user.in_((user_id, None)))
     revisions = (
         db.query(AnnotatedDoc)
         .filter(*filters)
@@ -554,7 +554,7 @@ def get_all_revisions(
         AnnotatedDoc.tenant == x_current_tenant,
     ]
     if job.validation_type == ValidationSchema.extensive_coverage:
-        filters.append(AnnotatedDoc.user.in_(user_id, None))
+        filters.append(AnnotatedDoc.user.in_((user_id, None)))
     revisions = (
         db.query(AnnotatedDoc)
         .filter(and_(*filters))
