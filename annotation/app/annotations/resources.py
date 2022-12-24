@@ -154,14 +154,22 @@ def post_annotation_by_user(
     s3_file_path, s3_file_bucket = get_file_path_and_bucket(
         task.file_id, x_current_tenant, token.token
     )
-
+    job: Job = db.query(Job).filter(Job.job_id == task.job_id).first()
+    if not job:
+        raise HTTPException(
+            status_code=404,
+            detail="Job with provided job_id do not exists.",
+        )
+    filters = [
+        AnnotatedDoc.job_id == task.job_id,
+        AnnotatedDoc.file_id == task.file_id,
+        AnnotatedDoc.tenant == x_current_tenant,
+    ]
+    if job.validation_type == ValidationSchema.extensive_coverage:
+        filters.append(AnnotatedDoc.user.in_((task.user_id, None)))
     latest_doc = (
         db.query(AnnotatedDoc)
-        .filter(
-            AnnotatedDoc.job_id == task.job_id,
-            AnnotatedDoc.tenant == x_current_tenant,
-            AnnotatedDoc.file_id == task.file_id,
-        )
+        .filter(*filters)
         .order_by(desc(AnnotatedDoc.date))
         .first()
     )
