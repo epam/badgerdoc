@@ -10,6 +10,7 @@ class CategoryTypeSchema(str, Enum):
     box = "box"
     link = "link"
     segmentation = "segmentation"
+    document = "document"
 
 
 class CategoryDataAttributeNames(str, Enum):
