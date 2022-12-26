@@ -59,7 +59,8 @@ def create_new_taxonomy(
             status_code=400, detail="Header x-current-tenant is required"
         )
     latest_taxonomy = get_latest_taxonomy(
-        session, taxonomy.id, x_current_tenant)
+        session, taxonomy.id, x_current_tenant
+    )
     if latest_taxonomy:
         LOGGER.info(
             "save_taxonomy find taxonomy with id %s. "
@@ -166,7 +167,7 @@ def associate_taxonomy_to_job(
         raise HTTPException(status_code=404, detail="Not existing taxonomy")
 
     # todo validate job existence.
-    create_new_relation_to_job(session, taxonomy, query.id, x_current_tenant)
+    create_new_relation_to_job(session, taxonomy, query.id)
 
 
 @router.post(
@@ -193,9 +194,11 @@ def associate_taxonomy_to_category(
             latests.append(category_link)
 
     taxonomies: dict = batch_versioned_taxonomies(
-        session, versions, x_current_tenant)
-    taxonomies.update(batch_latest_taxonomies(
-        session, latests, x_current_tenant))
+        session, versions, x_current_tenant
+    )
+    taxonomies.update(
+        batch_latest_taxonomies(session, latests, x_current_tenant)
+    )
 
     not_found_taxonomies = [
         link.taxonomy_id
@@ -212,8 +215,7 @@ def associate_taxonomy_to_category(
             detail="Taxonomy does not exist.",
         )
 
-    bulk_create_relations_with_categories(
-        session, taxonomies, category_links)
+    bulk_create_relations_with_categories(session, taxonomies, category_links)
     return category_links
 
 
@@ -273,10 +275,7 @@ def update_taxonomy(
         LOGGER.error("update_taxonomy get not existing id %s", query.id)
         raise HTTPException(status_code=404, detail="Not existing taxonomy")
     taxonomy_db = update_taxonomy_instance(
-        session,
-        taxonomy,
-        query,
-        x_current_tenant
+        session, taxonomy, query, x_current_tenant
     )
     return TaxonomyResponseSchema.from_orm(taxonomy_db)
 
@@ -310,10 +309,7 @@ def update_taxonomy_by_id_and_version(
         )
         raise HTTPException(status_code=404, detail="Not existing taxonomy")
     taxonomy_db = update_taxonomy_instance(
-        session,
-        taxonomy,
-        query,
-        x_current_tenant
+        session, taxonomy, query, x_current_tenant
     )
     return TaxonomyResponseSchema.from_orm(taxonomy_db)
 
@@ -337,7 +333,8 @@ def delete_taxonomy(
         raise HTTPException(status_code=404, detail="Not existing taxonomy")
     if taxonomy.latest:
         second_latest_model = get_second_latest_taxonomy(
-            session, taxonomy_id, x_current_tenant)
+            session, taxonomy_id, x_current_tenant
+        )
         if second_latest_model is not None:
             second_latest_model.latest = True
     delete_taxonomy_instance(session, taxonomy, x_current_tenant)
@@ -368,7 +365,8 @@ def delete_taxonomy_by_id_and_version(
         raise HTTPException(status_code=404, detail="Not existing taxonomy")
     if taxonomy.latest:
         second_latest_model = get_second_latest_taxonomy(
-            session, taxonomy_id, x_current_tenant)
+            session, taxonomy_id, x_current_tenant
+        )
         if second_latest_model is not None:
             second_latest_model.latest = True
     delete_taxonomy_instance(session, taxonomy, x_current_tenant)
