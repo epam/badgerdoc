@@ -38,6 +38,13 @@ CATEGORIES = [
         type=CategoryTypeSchema.box,
     )
 ]
+CATEGORIES_2 = [
+    Category(
+        id="1234",
+        name="Test",
+        type=CategoryTypeSchema.box,
+    )
+]
 FINISH_TASK_USER_1 = User(user_id="17ec1df0-006d-4905-a902-fbd1ed99a49d")
 FINISH_TASK_USER_2 = User(user_id="23ec1df0-006d-4905-a902-fbd1ed99a49d")
 FINISH_TASK_USER_3 = User(user_id="31ec1df0-006d-4905-a902-fbd1ed99a49d")

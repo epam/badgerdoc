@@ -72,7 +72,7 @@ from tests.test_finish_task import (
     FINISH_TASK_USER_2,
     FINISH_TASK_USER_3,
     TASK_NOT_IN_PROGRESS_STATUS,
-    VALIDATION_TASKS_TO_READY,
+    VALIDATION_TASKS_TO_READY, CATEGORIES_2,
 )
 from tests.test_get_annotation_for_particular_revision import (
     PART_REV_ANNOTATOR,
@@ -97,7 +97,7 @@ from tests.test_get_job_progress import (
     TASKS_TEST_PROGRESS,
 )
 from tests.test_get_pages_info import PAGES_INFO_ENTITIES
-from tests.test_get_revisions import PAGE, PAGES_PATHS, REVISIONS, USERS_IDS
+from tests.test_get_revisions import PAGE, PAGES_PATHS, REVISIONS, USERS_IDS, JOBS_IDS
 from tests.test_get_revisions_without_annotation import (
     REV_WITHOUT_ANNOTATION_DOC_1,
     REV_WITHOUT_ANNOTATION_DOC_2,
@@ -741,6 +741,48 @@ def prepare_db_for_post_job(db_session):
 
 
 @pytest.fixture(scope="module")
+def prepare_job_for_safe_annotations(db_session):
+    job_data ={
+        "callback_url": "http://www.test.com/test1",
+        "annotators": [],
+        "validation_type": ValidationSchema.cross,
+        "files": [],
+        "is_auto_distribution": False,
+        "categories": CATEGORIES,
+        "deadline": None,
+        "tenant": TEST_TENANT,
+    }
+    for job_id in JOBS_IDS:
+        db_session.add(Job(**{**job_data, "job_id": job_id}))
+        db_session.commit()
+
+    yield db_session
+
+    clear_db()
+
+
+@pytest.fixture(scope="module")
+def prepare_job_for_get_revision(db_session):
+    job_data ={
+        "job_id": accumulated_revs.JOB_ID_FOR_ACC_REVISION,
+        "callback_url": "http://www.test.com/test1",
+        "annotators": [],
+        "validation_type": ValidationSchema.cross,
+        "files": [],
+        "is_auto_distribution": False,
+        "categories": CATEGORIES_2,
+        "deadline": None,
+        "tenant": TEST_TENANT,
+    }
+    db_session.add(Job(**job_data))
+    db_session.commit()
+
+    yield db_session
+
+    clear_db()
+
+
+@pytest.fixture(scope="module")
 def prepare_db_for_get_next_task(db_session):
     db_session.add(NEXT_TASK_JOB)
     db_session.commit()
@@ -1027,7 +1069,7 @@ def prepare_db_find_annotators_for_failed_pages(db_validation_end):
 @pytest.fixture(scope="module")
 def minio_accumulate_revisions(moto_s3):
     path = (
-        f"{S3_START_PATH}/{accumulated_revs.JOB_ID}/"
+        f"{S3_START_PATH}/{accumulated_revs.JOB_ID_FOR_ACC_REVISION}/"
         f"{accumulated_revs.FILE_ID}/"
     )
     for page_hash, page_annotation in accumulated_revs.PAGES.items():
