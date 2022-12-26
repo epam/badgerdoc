@@ -59,16 +59,29 @@ const AddJobConnector: FC<AddJobConnectorProps> = ({
     initialJob,
     showNoExtractionTab
 }) => {
-    const getMetadata = (state: JobValues) => ({
-        props: {
-            jobName: { isRequired: state.jobType !== 'NoExtraction' },
-            pipeline: { isRequired: state.jobType === 'ExtractionJob' },
-            start_manual_job_automatically: { isDisabled: !state.pipeline },
-            validationType: { isRequired: state.jobType === 'ExtractionWithAnnotationJob' },
-            categories: { isRequired: state.jobType === 'ExtractionWithAnnotationJob' },
-            extensive_coverage: { isRequired: state.validationType === 'extensive_coverage' }
+    const getMetadata = (state: JobValues) => {
+        // TODO add proper typing for validators
+        const metadata: any = {
+            props: {
+                jobName: { isRequired: state.jobType !== 'NoExtraction' },
+                pipeline: { isRequired: state.jobType === 'ExtractionJob' },
+                start_manual_job_automatically: { isDisabled: !state.pipeline },
+                validationType: { isRequired: state.jobType === 'ExtractionWithAnnotationJob' },
+                categories: { isRequired: state.jobType === 'ExtractionWithAnnotationJob' },
+                extensive_coverage: { isRequired: state.validationType === 'extensive_coverage' }
+            }
+        };
+
+        if (state.jobType === 'ExtractionWithAnnotationJob') {
+            metadata.props['annotators_validators'] = {
+                isInvalid: (state.annotators_validators?.length || 0) < 2,
+                validationMessage:
+                    'For Cross validation at least 2 annotators or validators are required'
+            };
         }
-    });
+
+        return metadata;
+    };
 
     const { pipelines, categories, users } = useEntities();
 
