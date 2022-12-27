@@ -8,25 +8,27 @@ import styles from '../../../components/task/task-document-pages/task-document-p
 import { useTableAnnotatorContext } from '../annotator/context/table-annotator-context';
 import { defaultRenderPage } from './document-pages';
 import { Category } from '../../../api/typings';
+import { noop } from 'lodash';
 
 const empty: any[] = [];
 
 const DocumentSinglePage: FC<RenderPageParams> = ({
+    annotations,
     scale,
     pageNum,
-    handlePageLoaded,
+    handlePageLoaded = noop,
     pageSize,
-    handleLinksUpdate,
     containerRef,
-    editable,
+    editable = false,
     isImage = false,
     imageId,
-    onAnnotationCopyPress,
-    onAnnotationCutPress,
-    onAnnotationPastePress,
-    onAnnotationUndoPress,
-    onAnnotationRedoPress,
-    onEmptyAreaClick
+    onAnnotationCopyPress = noop,
+    onAnnotationCutPress = noop,
+    onAnnotationSelected,
+    onAnnotationPastePress = noop,
+    onAnnotationUndoPress = noop,
+    onAnnotationRedoPress = noop,
+    onEmptyAreaClick = noop
 }) => {
     const {
         task,
@@ -44,10 +46,11 @@ const DocumentSinglePage: FC<RenderPageParams> = ({
         onAnnotationDeleted,
         onAnnotationEdited,
         onCurrentPageChange,
-        onAnnotationDoubleClick
+        onAnnotationDoubleClick,
+        isSplitValidation
     } = useTaskAnnotatorContext();
     const { showMenu, getMenuProps } = useContextMenu();
-    const pageAnnotations = allAnnotations[pageNum] ?? empty;
+    const pageAnnotations = annotations ?? allAnnotations[pageNum] ?? empty;
     const isValidation = task?.is_validation;
     const isEdited = editedPages.includes(currentPage);
     const pageTokens = tokensByPages[pageNum] ?? empty;
@@ -84,10 +87,6 @@ const DocumentSinglePage: FC<RenderPageParams> = ({
         isValid ? styles.validColor : styles.invalidColor
     }`;
     const isValidationProcessed = isValid || isInvalid;
-    useEffect(() => {
-        if (pageNumbers[pageNumbers.length - 1] == pageNum)
-            handleLinksUpdate && handleLinksUpdate();
-    }, []);
 
     type MenuItem = {
         id: ('cut' | 'copy' | 'paste' | 'undo' | 'redo') | number;
@@ -132,7 +131,7 @@ const DocumentSinglePage: FC<RenderPageParams> = ({
                     opacity: isValidation && pageNum !== currentPage ? 0.4 : 1
                 }}
             >
-                {pageNum === currentPage && isValidationProcessed ? (
+                {pageNum === currentPage && isValidationProcessed && !isSplitValidation ? (
                     <div className={validationStyle} />
                 ) : null}
                 <Annotator
@@ -147,7 +146,9 @@ const DocumentSinglePage: FC<RenderPageParams> = ({
                     onAnnotationAdded={handleAnnotationAdded}
                     onAnnotationContextMenu={handleAnnotationContextMenu}
                     onAnnotationDeleted={
-                        isEdited || !isValidation ? handleAnnotationDeleted : undefined
+                        isEdited || !isValidation || isSplitValidation
+                            ? handleAnnotationDeleted
+                            : undefined
                     }
                     onAnnotationEdited={handleAnnotationEdited}
                     onAnnotationDoubleClick={onAnnotationDoubleClick}
@@ -157,6 +158,7 @@ const DocumentSinglePage: FC<RenderPageParams> = ({
                     onAnnotationCutPress={(annotationId) =>
                         onAnnotationCutPress(pageNum, annotationId)
                     }
+                    onAnnotationSelected={onAnnotationSelected}
                     onAnnotationPastePress={() =>
                         pageSize && onAnnotationPastePress(pageSize, pageNum)
                     }
@@ -184,7 +186,6 @@ const DocumentSinglePage: FC<RenderPageParams> = ({
                         pageNum,
                         handlePageLoaded,
                         pageSize,
-                        handleLinksUpdate,
                         isImage,
                         imageId
                     })}
@@ -252,21 +253,22 @@ const DocumentSinglePage: FC<RenderPageParams> = ({
 };
 
 type RenderPageParams = {
+    annotations?: Annotation[];
     scale: number;
     pageNum: number;
-    handlePageLoaded: (page: PDFPageProxy | HTMLImageElement) => void;
+    handlePageLoaded?: (page: PDFPageProxy | HTMLImageElement) => void;
     pageSize?: PageSize;
-    handleLinksUpdate: () => void;
-    containerRef: React.RefObject<HTMLDivElement>;
-    editable: boolean;
+    containerRef?: React.RefObject<HTMLDivElement>;
+    editable?: boolean;
     isImage?: boolean;
     imageId?: number;
-    onAnnotationCopyPress: (pageNum: number, annotationId: string | number) => void;
-    onAnnotationCutPress: (pageNum: number, annotationId: string | number) => void;
-    onAnnotationPastePress: (pageSize: PageSize, pageNum: number) => void;
-    onAnnotationUndoPress: () => void;
-    onAnnotationRedoPress: () => void;
-    onEmptyAreaClick: () => void;
+    onAnnotationCopyPress?: (pageNum: number, annotationId: string | number) => void;
+    onAnnotationCutPress?: (pageNum: number, annotationId: string | number) => void;
+    onAnnotationPastePress?: (pageSize: PageSize, pageNum: number) => void;
+    onAnnotationSelected?: (annotation?: Annotation) => void;
+    onAnnotationUndoPress?: () => void;
+    onAnnotationRedoPress?: () => void;
+    onEmptyAreaClick?: () => void;
 };
 
 interface PageSize {

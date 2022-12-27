@@ -154,6 +154,7 @@ export const TasksTableConnector: FC<TaskTableConnectorProps> = ({ onRowClick })
     return (
         <>
             <Panel
+                cx="flex-cell"
                 rawProps={{
                     role: 'table',
                     'aria-rowcount': view.getListProps().rowsCount,

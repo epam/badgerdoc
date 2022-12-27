@@ -28,7 +28,7 @@ export const jobs = [
 // TODO: temporary remove notation
 export const jobById = [
     {
-        id: 2,
+        id: 1,
         name: 'job_1',
         datasets: [{ name: 'Juristic Documents 1', count: 1, id: 1, created: '' }],
         deadline: '11/11/11',
@@ -39,10 +39,11 @@ export const jobById = [
         annotators: ['02336646-f5d0-4670-b111-c140a3ad58b5', '20'],
         owners: ['02336646-f5d0-4670-b111-c140a3ad58b5'],
         validators: [],
-        type: 'AnnotationJob'
+        type: 'AnnotationJob',
+        validation_type: 'extensive_coverage'
     },
     {
-        id: 4,
+        id: 3,
         name: 'job_3',
         datasets: [{ name: 'Juristic Documents 1', count: 1, id: 1, created: '' }],
         deadline: '11/11/11',

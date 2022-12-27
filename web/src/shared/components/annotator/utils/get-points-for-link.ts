@@ -8,7 +8,7 @@ import {
 } from 'shared';
 import { getAnnotationElementId } from './use-annotation-links';
 
-export const offsetRelative = (element: HTMLElement, top: HTMLElement | Element) => {
+export const offsetRelative = (element: HTMLElement, top?: HTMLElement | Element) => {
     let parent = element.parentElement!;
     let offset = { left: element.offsetLeft, top: element.offsetTop };
 
@@ -48,8 +48,7 @@ const getAnnotationById = (id: string | number, annotations: Annotation[]): Anno
 
 const getTrueBound = (elem: HTMLElement, id: string | number): DOMRectWithId => {
     const box = JSON.parse(JSON.stringify(elem.getBoundingClientRect()));
-    const wrapper = document.getElementsByClassName('react-pdf__Document');
-    const relOffset = offsetRelative(elem, wrapper[0]);
+    const relOffset = offsetRelative(elem);
     return {
         ...box,
         top: relOffset.top,
