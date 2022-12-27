@@ -21,14 +21,15 @@ requests = "*"
 
 [dev-packages]
 pre-commit = "*"
-pytest = "*"
 requests = "*"
+pytest = "*"
 pytest-cov = "*"
 isort = "*"
 black = "*"
 mypy = "*"
 pylint = "*"
 types-requests = "*"
+sqlalchemy-utils = "*"
 
 [requires]
 python_version = "3.8"

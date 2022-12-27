@@ -1,23 +1,28 @@
 import contextlib
 import json
+import os
 import random
 from typing import Iterable, List
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import boto3
 import pytest
+import sqlalchemy
 import sqlalchemy_utils
 from moto import mock_s3
+from sqlalchemy.engine import create_engine
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.orm.exc import FlushError
 
 import tests.test_get_accumulated_revisions as accumulated_revs
 import tests.test_get_jobs_info_by_files as jobs_info_by_files
 import tests.test_validation as validation
+from alembic import command
+from alembic.config import Config
 from app.annotations import MANIFEST, S3_START_PATH
 from app.categories import cache
-from app.database import Base, engine
+from app.database import SQLALCHEMY_DATABASE_URL, Base
 from app.jobs import update_user_overall_load
 from app.models import (
     AnnotatedDoc,
@@ -53,6 +58,7 @@ from tests.test_delete_batch_tasks import (
 )
 from tests.test_finish_task import (
     CATEGORIES,
+    CATEGORIES_2,
     FINISH_DOCS,
     FINISH_DOCS_CHECK_DELETED_ANNOTATOR,
     FINISH_TASK_1,
@@ -74,7 +80,7 @@ from tests.test_finish_task import (
     FINISH_TASK_USER_2,
     FINISH_TASK_USER_3,
     TASK_NOT_IN_PROGRESS_STATUS,
-    VALIDATION_TASKS_TO_READY, CATEGORIES_2,
+    VALIDATION_TASKS_TO_READY,
 )
 from tests.test_get_annotation_for_particular_revision import (
     PART_REV_ANNOTATOR,
@@ -99,7 +105,13 @@ from tests.test_get_job_progress import (
     TASKS_TEST_PROGRESS,
 )
 from tests.test_get_pages_info import PAGES_INFO_ENTITIES
-from tests.test_get_revisions import PAGE, PAGES_PATHS, REVISIONS, USERS_IDS, JOBS_IDS
+from tests.test_get_revisions import (
+    JOBS_IDS,
+    PAGE,
+    PAGES_PATHS,
+    REVISIONS,
+    USERS_IDS,
+)
 from tests.test_get_revisions_without_annotation import (
     REV_WITHOUT_ANNOTATION_DOC_1,
     REV_WITHOUT_ANNOTATION_DOC_2,
@@ -157,8 +169,42 @@ from tests.test_update_job import (
     UPDATE_JOBS,
     UPDATE_USER_NO_JOBS,
 )
+from tests.utils import get_test_db_url
 
 DEFAULT_REGION = "us-east-1"
+
+alembic_cfg = Config("alembic.ini")
+
+test_db_url = get_test_db_url(SQLALCHEMY_DATABASE_URL)
+engine = create_engine(test_db_url)
+
+
+@pytest.fixture(scope="module")
+def setup_test_db(use_temp_env_var):
+    if not sqlalchemy_utils.database_exists(engine.url):
+        sqlalchemy_utils.create_database(engine.url)
+    else:
+        # Drop all tables except 'alembic'
+        Base.metadata.drop_all(bind=engine)
+
+        # Drop 'alembic_version' table
+        with contextlib.closing(engine.connect()) as con:
+            trans = con.begin()
+            con.execute("DROP TABLE IF EXISTS alembic_version ")
+            trans.commit()
+
+    # Ensure LTREE extensions is installed
+    with engine.connect() as conn:
+        try:
+            conn.execute(sqlalchemy.sql.text("CREATE EXTENSION LTREE"))
+        except sqlalchemy.exc.ProgrammingError as err_:
+            # Extension installed, just skip error
+            if "DuplicateObject" not in str(err_):
+                raise err_
+    try:
+        command.upgrade(alembic_cfg, "head")
+    except SQLAlchemyError as e:
+        raise SQLAlchemyError(f"Got an Exception during migrations - {e}")
 
 
 def close_session(gen):
@@ -199,26 +245,29 @@ def update_annotators_overall_load(
     db_session.commit()
 
 
-@pytest.fixture(scope="module")
-def db_session():
-    from app.database import get_db
+@pytest.fixture(scope="session")
+def use_temp_env_var():
+    with patch.dict(os.environ, {"USE_TEST_DB": "1"}):
+        yield
 
-    Base.metadata.drop_all(bind=engine)
-    Base.metadata.create_all(bind=engine)
-    clear_db()
-    gen = get_db()
-    session = next(gen)
+
+@pytest.fixture(scope="module")
+def db_session(setup_test_db):
+    session_local = sessionmaker(
+        autocommit=False, autoflush=False, bind=engine
+    )
+    session = session_local()
 
     yield session
-
-    close_session(gen)
+    session.close()
 
 
 @pytest.fixture
 def prepare_db_for_ud_task(db_session):
     add_objects(db_session, [CRUD_UD_JOB_1])
     add_objects(
-        db_session, (CRUD_UD_JOB_2, ManualAnnotationTask(**CRUD_UD_TASK))
+        db_session,
+        (CRUD_UD_JOB_2, ManualAnnotationTask(**CRUD_UD_TASK)),
     )
     yield db_session
     clear_db()
@@ -764,7 +813,7 @@ def prepare_db_for_post_job(db_session):
 
 @pytest.fixture(scope="module")
 def prepare_job_for_safe_annotations(db_session):
-    job_data ={
+    job_data = {
         "callback_url": "http://www.test.com/test1",
         "annotators": [],
         "validation_type": ValidationSchema.cross,
@@ -785,7 +834,7 @@ def prepare_job_for_safe_annotations(db_session):
 
 @pytest.fixture(scope="module")
 def prepare_job_for_get_revision(db_session):
-    job_data ={
+    job_data = {
         "job_id": accumulated_revs.JOB_ID_FOR_ACC_REVISION,
         "callback_url": "http://www.test.com/test1",
         "annotators": [],

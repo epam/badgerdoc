@@ -16,6 +16,7 @@ def create_expected_models(
     status: StatusEnum = None,
     tenant: str = None,
     name: str = None,
+    description: str = ''
 ) -> dict:
     return {
         "basement": basement_id,
@@ -32,6 +33,7 @@ def create_expected_models(
         "training_id": training_id,
         "type": None,
         "version": version,
+        "description": description
     }
 
 
@@ -56,3 +58,10 @@ def row_to_dict(row) -> dict:
 def delete_date_field(entities: list, date_field_name: str) -> None:
     for entity in entities:
         del entity[date_field_name]
+
+
+def get_test_db_url(main_db_url: str) -> str:
+    main_db_url_split = main_db_url.split("/")
+    main_db_url_split[-1] = 'test_db'
+    result = "/".join(main_db_url_split)
+    return result

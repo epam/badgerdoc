@@ -32,7 +32,7 @@ def test_minio_no_such_bucket_error_handling(moto_minio, monkeypatch):
     will raise "NoSuchTenant" exception with appropriate message.
     """
     wrong_tenant = "wrong_tenant"
-    error_message = f"Bucket for tenant {wrong_tenant} does not exist"
+    error_message = f"Bucket {wrong_tenant} does not exist"
     monkeypatch.setattr(
         "src.utils.boto3.resource",
         Mock(return_value=moto_minio),
@@ -73,7 +73,7 @@ def test_get_object_via_presigned_url(
     )
     presigned_url = utils.generate_presigned_url(
         http_method=MinioHTTPMethod.get_object,
-        tenant=TEST_TENANT,
+        bucket_name=TEST_TENANT,
         key=request_key,
         expiration=5,
     )
@@ -106,7 +106,7 @@ def test_generate_presigned_url(
     )
     presigned_url = utils.generate_presigned_url(
         http_method=minio_method,
-        tenant=TEST_TENANT,
+        bucket_name=TEST_TENANT,
         key=key,
         expiration=expiration,
     )
@@ -125,7 +125,7 @@ def test_expired_presigned_url(create_minio_bucket):
     """
     presigned_url = utils.generate_presigned_url(
         http_method=MinioHTTPMethod.get_object,
-        tenant=TEST_TENANT,
+        bucket_name=TEST_TENANT,
         key="file_1.json",
         expiration=1,
     )
@@ -146,7 +146,7 @@ def test_generate_presigned_url_error(moto_minio, monkeypatch):
     )
     presigned_url = utils.generate_presigned_url(
         http_method="some_wrong_method",
-        tenant=TEST_TENANT,
+        bucket_name=TEST_TENANT,
         key="file_1.json",
         expiration=1,
     )
@@ -163,7 +163,7 @@ def test_put_object_via_presigned_url(moto_minio, monkeypatch):
     )
     presigned_url = utils.generate_presigned_url(
         http_method=MinioHTTPMethod.put_object,
-        tenant=TEST_TENANT,
+        bucket_name=TEST_TENANT,
         key=key,
         expiration=5,
     )
@@ -525,7 +525,7 @@ def test_get_minio_object_wrong_tenant(monkeypatch, moto_minio) -> None:
     )
     wrong_tenant = "wrong_tenant"
     with pytest.raises(
-        NoSuchTenant, match=f"Bucket for tenant {wrong_tenant} does not exist"
+        NoSuchTenant, match=f"Bucket {wrong_tenant} does not exist"
     ):
         utils.get_minio_object(wrong_tenant, "file/file.txt")
 

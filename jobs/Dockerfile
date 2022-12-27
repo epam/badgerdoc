@@ -7,16 +7,15 @@ COPY requirements.txt .env alembic.ini version.txt ./
 RUN python3 -m pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
 COPY alembic alembic
 COPY jobs jobs
+COPY alembic.ini alembic.ini
 
 CMD alembic upgrade head && uvicorn jobs.main:app --host 0.0.0.0 --port 8123
 
-FROM build as test
+FROM build as development
 
 COPY requirements-dev.txt setup.cfg pytest.ini ./
 RUN pip install --no-cache-dir -r requirements-dev.txt
 COPY tests tests
-
-CMD isort jobs --check && black jobs -l 79 --check && mypy jobs && pylint --rcfile=setup.cfg jobs && pytest -vv --cov --cov-report=xml
 
 FROM sonarsource/sonar-scanner-cli:4.6 AS sonar
 
