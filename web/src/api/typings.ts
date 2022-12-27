@@ -251,7 +251,13 @@ export interface Taxonomy {
     id: string;
     name: string;
     taxons: BaseTaxon[];
+    version?: number;
 }
+
+export type CategoryRelatedTaxonomies = {
+    [key in string]: Taxonomy;
+};
+
 export type Link = {
     category_id: string;
     to: string | number;
@@ -267,6 +273,7 @@ export type CreateCategory = {
     };
     parent: string | null;
     type: CategoryType;
+    data_attributes: Array<CategoryDataAttribute>;
 };
 
 export type UpdateCategory = {

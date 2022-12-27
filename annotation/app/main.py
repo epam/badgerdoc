@@ -18,7 +18,6 @@ from app.errors import (
     NoSuchCategoryError,
     NoSuchRevisionsError,
     SelfParentError,
-    TaxonomyLinkException,
     WrongJobError,
     agreement_score_service_error_handler,
     category_foreign_key_error_handler,
@@ -33,7 +32,6 @@ from app.errors import (
     minio_no_such_bucket_error_handler,
     no_such_category_error_handler,
     no_such_revisions_error_handler,
-    taxonomy_link_error_handler,
     wrong_job_error_handler,
 )
 from app.jobs import resources as jobs_resources
@@ -92,5 +90,4 @@ app.add_exception_handler(ClientError, minio_no_such_bucket_error_handler)
 app.add_exception_handler(SQLAlchemyError, db_sa_error_handler)
 app.add_exception_handler(DBAPIError, db_dbapi_error_handler)
 app.add_exception_handler(SelfParentError, category_parent_child_error_handler)
-app.add_exception_handler(TaxonomyLinkException, taxonomy_link_error_handler)
 app.add_exception_handler(Exception, debug_exception_handler)

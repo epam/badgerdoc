@@ -18,6 +18,7 @@ const CategoriesPicker: FC<CategoriesPickerProps> = ({ lens, categories }) => {
         },
         [categories]
     );
+
     return (
         <LabeledInput cx={`m-t-15`} label="Categories" {...lens.prop('categories').toProps()}>
             <div className="flex align-vert-center">

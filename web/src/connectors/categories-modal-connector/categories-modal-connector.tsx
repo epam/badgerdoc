@@ -103,7 +103,8 @@ export const ModalWithDisabledClickOutsideAndCross: FC<IProps> = (props) => {
                 name: categoryName!,
                 metadata: { color: color },
                 type: type,
-                parent: parentValue
+                parent: parentValue,
+                data_attributes: dataAttributes
             });
             await refetchCategory();
             notifySuccess(<Text>The category was successfully added</Text>);

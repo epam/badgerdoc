@@ -32,6 +32,7 @@ KEYCLOAK_HOST = os.environ.get("KEYCLOAK_HOST", "http://dev1.badgerdoc.com")
 HOST_PIPELINES = "http://pipelines"
 HOST_ASSETS = "http://assets"
 HOST_ANNOTATION = "http://annotation"
+HOST_TAXONOMY = "http://taxonomy"
 JOBS_HOST = "http://jobs"
 
 PAGINATION_THRESHOLD = 7

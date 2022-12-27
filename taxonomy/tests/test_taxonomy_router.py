@@ -1,6 +1,9 @@
+from typing import Tuple
+
 import pytest
 
-from app.models import AssociationTaxonomyJob, Taxonomy
+from app.models import Taxonomy
+from app.schemas import CategoryLinkSchema
 from app.taxonomy import services
 from tests.override_app_dependency import TEST_HEADER, TEST_TENANTS
 
@@ -118,36 +121,6 @@ def test_should_return_taxonomy_by_id_and_version(
 
 
 @pytest.mark.integration
-def test_should_associate_taxonomy_to_job(
-    overrided_token_client,
-    prepared_taxonomy_record_in_db: Taxonomy,
-    db_session,
-):
-    # given
-    taxonomy_id = prepared_taxonomy_record_in_db.id
-    job_id = "123"
-    # when
-    response = overrided_token_client.post(
-        "/taxonomy/{taxonomy_id}/link_to_job".format(
-            taxonomy_id=taxonomy_id,
-        ),
-        json={"id": job_id},
-        headers=TEST_HEADER,
-    )
-    # then
-    assert response
-    assert response.status_code == 201
-
-    association: AssociationTaxonomyJob = (
-        db_session.query(AssociationTaxonomyJob)
-        .filter(AssociationTaxonomyJob.job_id == job_id)
-        .first()
-    )
-    assert association
-    assert association.taxonomy is prepared_taxonomy_record_in_db
-
-
-@pytest.mark.integration
 def test_should_associate_taxonomy_to_category(
     overrided_token_client,
     prepared_taxonomy_record_in_db: Taxonomy,
@@ -159,6 +132,7 @@ def test_should_associate_taxonomy_to_category(
             "taxonomy_id": prepared_taxonomy_record_in_db.id,
             "taxonomy_version": prepared_taxonomy_record_in_db.version,
             "category_id": "123",
+            "job_id": "321",
         }
     ]
     # when
@@ -175,6 +149,90 @@ def test_should_associate_taxonomy_to_category(
     assert request_body[0]["category_id"] in [
         c.category_id for c in prepared_taxonomy_record_in_db.categories
     ]
+    assert request_body[0]["job_id"] in [
+        c.job_id for c in prepared_taxonomy_record_in_db.categories
+    ]
+
+
+@pytest.mark.integration
+def test_should_get_link_taxonomy_to_category(
+    overrided_token_client,
+    prepared_taxonomy_with_category_link: Tuple[Taxonomy, CategoryLinkSchema],
+    db_session,
+):
+    # given
+    job_id = prepared_taxonomy_with_category_link[1].job_id
+    category_id = prepared_taxonomy_with_category_link[1].category_id
+    response = overrided_token_client.get(
+        "/taxonomy/link_category/{job_id}/{category_id}".format(
+            job_id=job_id,
+            category_id=category_id,
+        ),
+        headers=TEST_HEADER,
+    )
+    # then
+    assert response
+    assert response.status_code == 200
+    assert prepared_taxonomy_with_category_link[1].taxonomy_id in {
+        taxonomy["id"] for taxonomy in response.json()
+    }
+
+
+@pytest.mark.integration
+def test_should_search_taxonomies(
+    overrided_token_client,
+    prepared_taxonomy_with_category_link: Tuple[Taxonomy, CategoryLinkSchema],
+    db_session,
+):
+    response = overrided_token_client.post(
+        "/taxonomy/all",
+        json={},
+        headers=TEST_HEADER,
+    )
+    assert response.status_code == 200
+    assert response.json()["data"]
+
+
+@pytest.mark.integration
+def test_should_delete_link_taxonomy_to_category_by_job(
+    overrided_token_client,
+    prepared_taxonomy_with_category_link: Tuple[Taxonomy, CategoryLinkSchema],
+    db_session,
+):
+    # given
+    job_id = prepared_taxonomy_with_category_link[1].job_id
+    # when
+    response = overrided_token_client.delete(
+        "/taxonomy/link_category/{job_id}".format(
+            job_id=job_id,
+        ),
+        headers=TEST_HEADER,
+    )
+    # then
+    assert response
+    assert response.status_code == 204
+
+
+@pytest.mark.integration
+def test_should_delete_link_taxonomy_to_category_by_job_and_category(
+    overrided_token_client,
+    prepared_taxonomy_with_category_link: Tuple[Taxonomy, CategoryLinkSchema],
+    db_session,
+):
+    # given
+    job_id = prepared_taxonomy_with_category_link[1].job_id
+    category_id = prepared_taxonomy_with_category_link[1].category_id
+    # when
+    response = overrided_token_client.delete(
+        "/taxonomy/link_category/{job_id}/{category_id}".format(
+            job_id=job_id,
+            category_id=category_id,
+        ),
+        headers=TEST_HEADER,
+    )
+    # then
+    assert response
+    assert response.status_code == 204
 
 
 @pytest.mark.integration

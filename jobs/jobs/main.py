@@ -64,46 +64,65 @@ async def create_job(
             )
         return created_extraction_job.as_dict
 
-    if job_params.type == schemas.JobType.AnnotationJob:
+    if job_params.type in {
+        schemas.JobType.AnnotationJob,
+        schemas.JobType.ExtractionWithAnnotationJob,
+    }:
 
-        created_annotation_job = create_job_funcs.create_annotation_job(
-            annotation_job_input=job_params,  # type: ignore
-            db=db,
-        )
-        if not job_params.is_draft:
-            await run_job_funcs.run_annotation_job(
-                job_to_run=created_annotation_job,
-                current_tenant=current_tenant,
-                db=db,
-                jw_token=jw_token,
+        categories_links: List[schemas.CategoryLinkInput] = []
+        if job_params.categories:
+            categories_ids, categories_links = utils.get_categories_ids(
+                job_params.categories
             )
-        return created_annotation_job.as_dict
+            job_params.categories = categories_ids
 
-    if job_params.type == schemas.JobType.ExtractionWithAnnotationJob:
+        if job_params.type == schemas.JobType.AnnotationJob:
 
-        created_extraction_annotation_job = await (
-            create_job_funcs.create_extraction_annotation_job(
-                extraction_annotation_job_input=job_params,  # type: ignore
-                current_tenant=current_tenant,
+            created_annotation_job = create_job_funcs.create_annotation_job(
+                annotation_job_input=job_params,  # type: ignore
                 db=db,
-                jw_token=jw_token,
             )
-        )
-        if not job_params.is_draft:
-            await run_job_funcs.run_extraction_job(
-                db=db,
-                job_to_run=created_extraction_annotation_job,
-                current_tenant=current_tenant,
-                jw_token=jw_token,
+            if not job_params.is_draft:
+                await run_job_funcs.run_annotation_job(
+                    job_to_run=created_annotation_job,
+                    current_tenant=current_tenant,
+                    db=db,
+                    jw_token=jw_token,
+                )
+            created_job = created_annotation_job.as_dict
+
+        else:
+            created_extraction_annotation_job = await (
+                create_job_funcs.create_extraction_annotation_job(
+                    extraction_annotation_job_input=job_params,  # type: ignore
+                    current_tenant=current_tenant,
+                    db=db,
+                    jw_token=jw_token,
+                )
             )
-            await run_job_funcs.run_annotation_job(
-                job_to_run=created_extraction_annotation_job,
-                current_tenant=current_tenant,
-                db=db,
-                updated_status=schemas.JobMode.Automatic,
-                jw_token=jw_token,
+            if not job_params.is_draft:
+                await run_job_funcs.run_extraction_job(
+                    db=db,
+                    job_to_run=created_extraction_annotation_job,
+                    current_tenant=current_tenant,
+                    jw_token=jw_token,
+                )
+                await run_job_funcs.run_annotation_job(
+                    job_to_run=created_extraction_annotation_job,
+                    current_tenant=current_tenant,
+                    db=db,
+                    updated_status=schemas.JobMode.Automatic,
+                    jw_token=jw_token,
+                )
+            created_job = created_extraction_annotation_job.as_dict
+
+        if categories_links:
+            job_id = created_job["id"]
+            taxonomy_links = utils.get_taxonomy_links(job_id, categories_links)
+            await utils.send_category_taxonomy_link(
+                current_tenant, jw_token, taxonomy_links
             )
-        return created_extraction_annotation_job.as_dict
+        return created_job
 
     if job_params.type == schemas.JobType.ImportJob:
         new_import_job = db_service.create_import_job(db, job_params)  # type: ignore
@@ -200,7 +219,29 @@ async def change_job(
                 detail="Access denied. This user is not allowed to change the job",
             )
 
+    if (
+        new_job_params.type == schemas.JobType.ExtractionWithAnnotationJob
+        and job_to_change.type != schemas.JobType.ExtractionJob
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_406_NOT_ACCEPTABLE,
+            detail=f"only {schemas.JobType.ExtractionJob} is allowed to be "
+            f"converted to {schemas.JobType.ExtractionWithAnnotationJob}",
+        )
+
     jw_token = token_data.token
+    new_categories_links: List[schemas.CategoryLinkInput] = []
+    if new_job_params.categories:
+        new_categories_ids, new_categories_links = utils.get_categories_ids(
+            new_job_params.categories
+        )
+        new_job_params.categories = new_categories_ids
+        old_categories_ids = job_to_change.categories or []
+        if set(new_categories_ids) != set(old_categories_ids):
+            await utils.delete_taxonomy_link(job_id, current_tenant, jw_token)
+        else:
+            new_categories_links = []
+
     if job_to_change.type in [
         schemas.JobType.AnnotationJob,
         schemas.JobType.ExtractionWithAnnotationJob,
@@ -216,16 +257,7 @@ async def change_job(
                 jw_token=jw_token,
             )
 
-    if (
-        new_job_params.type == schemas.JobType.ExtractionWithAnnotationJob
-        and job_to_change.type != schemas.JobType.ExtractionJob
-    ):
-        raise HTTPException(
-            status_code=status.HTTP_406_NOT_ACCEPTABLE,
-            detail=f"only {schemas.JobType.ExtractionJob} is allowed to be "
-            f"converted to {schemas.JobType.ExtractionWithAnnotationJob}",
-        )
-
+    is_job_changed = False
     if job_to_change.type == schemas.JobType.ExtractionWithAnnotationJob:
         if (
             job_to_change.mode == schemas.JobMode.Automatic
@@ -238,7 +270,7 @@ async def change_job(
                 await utils.start_job_in_annotation(
                     job_id, current_tenant, token_data.token
                 )
-                return job_to_change.as_dict
+                is_job_changed = True
 
     if (
         job_to_change.type == schemas.JobType.ExtractionJob
@@ -247,8 +279,14 @@ async def change_job(
         new_job_params.mode = schemas.JobMode.Manual
         new_job_params.status = schemas.Status.ready_for_annotation
 
-    db_service.change_job(db, job_to_change, new_job_params)
+    if not is_job_changed:
+        db_service.change_job(db, job_to_change, new_job_params)
 
+    if new_categories_links:
+        taxonomy_links = utils.get_taxonomy_links(job_id, new_categories_links)
+        await utils.send_category_taxonomy_link(
+            current_tenant, jw_token, taxonomy_links
+        )
     return job_to_change.as_dict
 
 
@@ -305,9 +343,10 @@ async def delete_job(
     job_id: int,
     current_tenant: Optional[str] = Header(None, alias="X-Current-Tenant"),
     db: Session = Depends(db_service.get_session),
+    token_data: TenantData = Depends(tenant),
 ) -> Union[Dict[str, Any], HTTPException]:
     """Deletes Job instance by its id"""
-
+    jw_token = token_data.token
     job_to_delete = db_service.get_job_in_db_by_id(db, job_id)
     if not job_to_delete:
         raise HTTPException(
@@ -315,6 +354,7 @@ async def delete_job(
             detail="Job with this id does not exist.",
         )
     db_service.delete_job(db, job_to_delete)
+    await utils.delete_taxonomy_link(job_id, current_tenant, jw_token)
     return {"success": f"Job with id={job_id} was deleted"}
 
 
