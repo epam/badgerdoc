@@ -78,14 +78,18 @@ export default function useSplitValidation({
             if (!scaledAnn) {
                 return;
             }
+
             let category: Category | undefined;
+            const originalAnn = annotationsByUserId[userId].find((ann) => ann.id === scaledAnn.id);
+
             if (categories) {
                 category = categories.find((category) => category.id === scaledAnn.category);
             }
-            const originalAnn = annotationsByUserId[userId].find((ann) => ann.id === scaledAnn.id);
+
             if (!originalAnn) {
                 return;
             }
+
             const copy = cloneDeep(originalAnn);
             copy.id = Date.now();
 

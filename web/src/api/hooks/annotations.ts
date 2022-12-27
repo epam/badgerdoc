@@ -3,19 +3,18 @@ import { Task } from 'api/typings/tasks';
 import { useMutation, useQuery } from 'react-query';
 import { useBadgerFetch } from './api';
 import { JobStatus } from '../typings/jobs';
-import { Annotation } from 'shared';
 
-interface LatestAnnotationsParams {
+type LatestAnnotationsParams = {
     jobId?: number;
     fileId?: number;
     revisionId?: string;
     pageNumbers?: number[];
     userId?: string;
-}
+};
 
-interface LatestAnnotationsParamsByUser extends LatestAnnotationsParams {
+type LatestAnnotationsParamsByUser = LatestAnnotationsParams & {
     userId?: string;
-}
+};
 const namespace = process.env.REACT_APP_CATEGORIES_API_NAMESPACE;
 
 export type FileJobs = {
