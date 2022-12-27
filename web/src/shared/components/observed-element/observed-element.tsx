@@ -17,11 +17,11 @@ const useIntersectionThreshold = (
 };
 
 interface ObservedElementProps {
-    rootRef: React.RefObject<HTMLDivElement>;
+    rootRef?: React.RefObject<HTMLDivElement>;
     onIntersect: () => void;
     disabled?: boolean;
     width?: number;
-    height?: number;
+    height?: number | string;
     className?: string;
 }
 
@@ -35,10 +35,10 @@ const ObservedElement: FC<ObservedElementProps> = ({
     className
 }) => {
     const elementRef = useRef<HTMLDivElement>(null);
-    const threshold = useIntersectionThreshold(rootRef.current, elementRef.current);
+    const threshold = useIntersectionThreshold(rootRef?.current ?? null, elementRef.current);
 
     useEffect(() => {
-        if (!rootRef.current || !elementRef.current || disabled) return;
+        if (!rootRef?.current || !elementRef.current || disabled) return;
         const element = elementRef.current;
 
         const observer = new IntersectionObserver(

@@ -37,7 +37,6 @@ const TaskDocumentPages = (props: DocumentPageProps) => {
         onAnnotationCreated,
         onAnnotationDeleted,
         onAnnotationEdited,
-        onLinkDeleted,
         onCurrentPageChange,
         onEmptyAreaClick,
         onAnnotationDoubleClick,
@@ -50,19 +49,8 @@ const TaskDocumentPages = (props: DocumentPageProps) => {
     } = useTaskAnnotatorContext();
     const { isCellMode } = useTableAnnotatorContext();
 
-    const containerRef = useRef<HTMLDivElement>(null);
-
     const isValidation = task?.is_validation;
     const isEdited = editedPages.includes(currentPage);
-
-    const annotatorLinks = useAnnotationsLinks(
-        selectedAnnotation,
-        selectedCategory,
-        currentPage,
-        selectionType,
-        allAnnotations,
-        (prevPage, links, annId) => selectedAnnotation && onAnnotationEdited(prevPage, annId, links)
-    );
 
     const isValid = validPages.includes(currentPage);
     const isInvalid = invalidPages.includes(currentPage);
@@ -73,7 +61,7 @@ const TaskDocumentPages = (props: DocumentPageProps) => {
     const editable = !viewMode && (!isValidation || isEdited);
 
     return (
-        <div ref={containerRef} className={styles.container}>
+        <div className={styles.container}>
             {externalViewer.isOpen && (
                 <ExternalViewerPopup
                     onClose={onExternalViewerClose}
@@ -87,54 +75,13 @@ const TaskDocumentPages = (props: DocumentPageProps) => {
                 fileMetaInfo={fileMetaInfo}
                 apiPageSize={pageSize}
                 setPageSize={setPageSize}
-                annotatorLinks={annotatorLinks}
                 editable={editable}
-                containerRef={containerRef}
                 onAnnotationCopyPress={onAnnotationCopyPress}
                 onAnnotationCutPress={onAnnotationCutPress}
                 onAnnotationPastePress={onAnnotationPastePress}
                 onAnnotationUndoPress={onAnnotationUndoPress}
                 onAnnotationRedoPress={onAnnotationRedoPress}
                 onEmptyAreaClick={onEmptyAreaClick}
-                renderLinks={(params) => {
-                    const { scale, updLinks } = params;
-                    const anns = ([] as Annotation[]).concat.apply(
-                        [],
-                        Object.values(allAnnotations)
-                    );
-
-                    return (Object.keys(allAnnotations) as unknown as number[]).map(
-                        (key: number) => {
-                            return allAnnotations[key].map((ann: Annotation) => {
-                                return (
-                                    ann.links?.length &&
-                                    getPointsForLinks(
-                                        ann.id,
-                                        ann.boundType,
-                                        key,
-                                        ann.links,
-                                        anns,
-                                        categories
-                                    ).map((pointSet) => {
-                                        return (
-                                            <LinkAnnotation
-                                                key={ann.id}
-                                                pointStart={pointSet.start}
-                                                pointFinish={pointSet.finish}
-                                                category={pointSet.category}
-                                                linkType={pointSet.type}
-                                                reversed={pointSet.finish.id === ann.id}
-                                                onDeleteLink={() =>
-                                                    onLinkDeleted(key, ann.id, pointSet.link)
-                                                }
-                                            />
-                                        );
-                                    })
-                                );
-                            });
-                        }
-                    );
-                }}
             />
         </div>
     );

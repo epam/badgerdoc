@@ -7,6 +7,11 @@
     gap: 0.5rem;
 }
 
+.pdf-document-container {
+    display: grid;
+    overflow: hidden;
+}
+
 .pdf-parent {
     overflow: auto;
 }
@@ -42,6 +47,31 @@
         }
     }
 }
+
 .document-wrapper {
     position: relative;
+}
+
+.split-document-wrapper {
+    overflow: hidden;
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+}
+
+.split-document-wrapper--pages-2 {
+    grid-template-rows: 1fr 1fr;
+}
+
+.split-document-wrapper--pages-3 {
+    grid-template-rows: 1fr 1fr 1fr;
+}
+
+.split-document-wrapper--pages-4 {
+    grid-template-rows: 1fr 1fr 1fr 1fr;
+}
+
+.split-document-page {
+    overflow: auto;
 }

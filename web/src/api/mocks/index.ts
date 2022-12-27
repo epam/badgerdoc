@@ -23,6 +23,7 @@ import { tokens } from './tokens';
 import { models } from './models';
 import { taxons } from './taxons';
 import { taskStats } from './task_stats';
+import { annotationsByUser } from './annotationsByUser';
 
 const FILEMANAGEMENT_NAMESPACE = process.env.REACT_APP_FILEMANAGEMENT_API_NAMESPACE;
 const JOBMANAGER_NAMESPACE = process.env.REACT_APP_JOBMANAGER_API_NAMESPACE;
@@ -44,6 +45,7 @@ let annotationsMockData = annotations;
 let tokensMockData = tokens;
 let modelsMockData = models;
 let taxonsMockData = taxons;
+let annotationsMockDataByUser = annotationsByUser;
 
 const MOCKS: Record<string, Record<string, BadgerFetch<any>>> = {
     [`${FILEMANAGEMENT_NAMESPACE}/datasets/search`]: {
@@ -128,6 +130,21 @@ const MOCKS: Record<string, Record<string, BadgerFetch<any>>> = {
     [`${CATEGORIES_NAMESPACE}/tasks/1`]: {
         get: async () => tasksMockData[0]
     },
+    [`${CATEGORIES_NAMESPACE}/tasks/1/pages_summary`]: {
+        get: async () => {
+            const validatedAnns = annotationsMockData.validated;
+            const failedAnns = annotationsMockData.failed_validation_pages;
+            const processed = [...validatedAnns, ...failedAnns];
+            return {
+                validated: validatedAnns,
+                failed_validation_pages: failedAnns,
+                annotated_pages: processed,
+                not_processed: tasksMockData[0].pages.filter(
+                    (pageNum) => !processed.includes(pageNum)
+                )
+            };
+        }
+    },
     [`${CATEGORIES_NAMESPACE}/tasks/3`]: {
         get: async () => tasksMockData[1]
     },
@@ -173,6 +190,9 @@ const MOCKS: Record<string, Record<string, BadgerFetch<any>>> = {
         post: async () => (tasksMockData[2].status = 'Finished')
     },
     [`${CATEGORIES_NAMESPACE}/tasks/1/stats`]: {
+        post: async () => taskStatsMockData
+    },
+    [`${CATEGORIES_NAMESPACE}/tasks/3/stats`]: {
         post: async () => taskStatsMockData
     },
     [`${JOBMANAGER_NAMESPACE}/jobs/1`]: {
@@ -347,6 +367,43 @@ const MOCKS: Record<string, Record<string, BadgerFetch<any>>> = {
             };
         }
     },
+    [`${CATEGORIES_NAMESPACE}/jobs/3/categories/search`]: {
+        post: async (body: BadgerFetchBody | undefined) => {
+            const { filters, pagination } = JSON.parse(body as string) as SearchBody<Category>;
+            let data = categoriesMockData;
+            if (filters.length > 0) {
+                const parentFilter = filters.find((filter) => filter.field === 'parent');
+                const nameFilter = filters.find((filter) => filter.field === 'name');
+                const nameFilterValue = String(nameFilter?.value ?? '').slice(1, -1);
+                const typeFilter = filters.find((filter) => filter.field === 'type');
+                const treeFilter = filters.find((filter) => filter.field === 'tree');
+
+                if (treeFilter) {
+                    data = data.filter((cat) => cat.parent === treeFilter.value);
+                }
+                if (parentFilter) {
+                    data = data.filter((cat) => cat.parent === null);
+                }
+                if (nameFilterValue) {
+                    data = data.filter((cat) => cat.name.includes(nameFilterValue));
+                }
+                if (typeFilter) {
+                    data = data.filter((cat) => cat.type === typeFilter.value);
+                }
+                return {
+                    data,
+                    pagination
+                };
+            }
+            return {
+                data: categoriesMockData,
+                pagination: {
+                    page_num: 1,
+                    page_size: 100
+                }
+            };
+        }
+    },
     [`${CATEGORIES_NAMESPACE}/jobs/3/categories`]: {
         get: async () => {
             return {
@@ -371,6 +428,9 @@ const MOCKS: Record<string, Record<string, BadgerFetch<any>>> = {
     },
     [`${CATEGORIES_NAMESPACE}/annotation/1/1/latest?page_numbers=1`]: {
         get: async () => annotationsMockData
+    },
+    [`${CATEGORIES_NAMESPACE}/annotation/1/1/latest_by_user?page_numbers=1`]: {
+        get: async () => annotationsMockDataByUser
     },
     [`${CATEGORIES_NAMESPACE}/annotation/1`]: {
         post: async (body) => {
