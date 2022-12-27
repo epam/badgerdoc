@@ -21,7 +21,7 @@ interface ObservedElementProps {
     onIntersect: () => void;
     disabled?: boolean;
     width?: number;
-    height?: number | string;
+    height?: number;
     className?: string;
 }
 

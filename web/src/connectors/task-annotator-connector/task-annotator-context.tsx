@@ -258,16 +258,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
 
     const { isOwner, sortedUsers } = useUsersDataFromTask(task);
 
-    const { data: job, refetch: refetchJob } = useJobById(
-        { jobId: task?.job.id },
-        { enabled: false }
-    );
-
-    useEffect(() => {
-        if (task) {
-            refetchJob();
-        }
-    }, [task]);
+    const { data: job } = useJobById({ jobId: task?.job.id });
 
     let pageNumbers: number[] = [];
 
