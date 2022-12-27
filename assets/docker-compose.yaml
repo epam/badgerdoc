@@ -14,7 +14,7 @@ services:
   db:
     image: postgres:13
     ports:
-      - "5432"
+      - "5432:5432"
     env_file:
       - .env
 
@@ -28,7 +28,7 @@ services:
   web:
     build:
       context: .
-      target: build
+      target: development
     env_file:
       - .env
     environment:

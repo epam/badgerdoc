@@ -36,7 +36,7 @@ def send_category_taxonomy_link(
             timeout=5,
         )
         if response.status_code != 201:
-            raise TaxonomyLinkException(response.json()["detail"])
+            raise TaxonomyLinkException(response.text)
     except RequestException as exc:
         raise TaxonomyLinkException(str(exc)) from RequestException
 

@@ -1,4 +1,6 @@
 # flake8: noqa: F501
+import contextlib
+import os
 import tempfile
 import uuid
 from io import BytesIO
@@ -9,39 +11,63 @@ import pytest
 import urllib3
 from fastapi.testclient import TestClient
 from minio import Minio
-from sqlalchemy import Column, String
 from sqlalchemy.engine import create_engine
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy_utils import create_database, database_exists
 
 import src.utils.minio_utils as minio_utils
+from alembic import command
+from alembic.config import Config
+from src.config import settings
 from src.db.models import Base
 from src.db.service import session_scope_for_dependency
 from src.main import app, tenant
 from src.utils.minio_utils import get_storage
+from tests.test_helpers import get_test_db_url
 
 BUCKET_TESTS = "tests" + uuid.uuid4().hex
 
+alembic_cfg = Config("alembic.ini")
+
+
+@pytest.fixture(scope="session")
+def use_temp_env_var():
+    with patch.dict(os.environ, {"USE_TEST_DB": "1"}):
+        yield
+
 
 @pytest.fixture
-def setup_database():
-    test_db_name = uuid.uuid4().hex
-    db_url = f"sqlite:///./{test_db_name}.db"
-    engine = create_engine(db_url, connect_args={"check_same_thread": False})
-    Base.metadata.tables["datasets"].append_column(
-        Column("ts_vector", String(150))
-    )
-    Base.metadata.tables["files"].append_column(
-        Column("ts_vector", String(150))
-    )
-    Base.metadata.create_all(bind=engine)
+def setup_database(use_temp_env_var):
+
+    # 1. Create database for tests if it does not exist
+    test_db_url = get_test_db_url(settings.database_url)
+
+    engine = create_engine(test_db_url)
+    if not database_exists(engine.url):
+        create_database(engine.url)
+
+    # 2. Apply database migrations to test database
+    try:
+        command.upgrade(alembic_cfg, "head")
+    except SQLAlchemyError as e:
+        raise SQLAlchemyError(f"Got an Exception during migrations - {e}")
+
     session_local = sessionmaker(
         autocommit=False, autoflush=False, bind=engine
     )
     session = session_local()
     yield session
     session.close()
+
+    # 3. Drop all tables in the test database
     Base.metadata.drop_all(bind=engine)
-    remove_db(test_db_name)
+    with contextlib.closing(engine.connect()) as con:
+        trans = con.begin()
+        con.execute("DROP TABLE IF EXISTS alembic_version ")
+        trans.commit()
+
+    remove_db(test_db_url)
 
 
 @pytest.fixture

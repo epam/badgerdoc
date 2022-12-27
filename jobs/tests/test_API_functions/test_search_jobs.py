@@ -37,44 +37,8 @@ def test_search_job_invalid_field(testing_app, testing_session):
         },
     )
     assert response.status_code == 422
-    assert response.json() == {
-        "detail": [
-            {
-                "ctx": {
-                    "enum_values": [
-                        "id",
-                        "name",
-                        "status",
-                        "files",
-                        "datasets",
-                        "creation_datetime",
-                        "type",
-                        "mode",
-                        "annotators",
-                        "validators",
-                        "owners",
-                        "categories",
-                        "is_auto_distribution",
-                        "deadline",
-                        "validation_type",
-                        "pipeline_id",
-                        "import_source",
-                        "import_format",
-                        "start_manual_job_automatically",
-                    ]
-                },
-                "loc": ["body", "filters", 0, "field"],
-                "msg": "value is not a valid enumeration member; permitted: 'id', "
-                "'name', 'status', 'files', 'datasets', "
-                "'creation_datetime', 'type', 'mode', 'annotators', "
-                "'validators', 'owners', 'categories', "
-                "'is_auto_distribution', 'deadline', 'validation_type', "
-                "'pipeline_id', 'import_source', 'import_format', "
-                "'start_manual_job_automatically'",
-                "type": "type_error.enum",
-            }
-        ]
-    }
+    response_message = response.json()['detail'][0]['msg']
+    assert response_message.startswith("value is not a valid enumeration member")
 
 
 def test_search_job_without_filters(

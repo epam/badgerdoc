@@ -1,4 +1,5 @@
 import datetime
+import os
 import time
 from typing import List
 from unittest.mock import patch
@@ -6,54 +7,63 @@ from unittest.mock import patch
 import pytest
 from fastapi.testclient import TestClient
 from pydantic import BaseModel
-from sqlalchemy import JSON, Column, String, create_engine  # type: ignore
+from sqlalchemy import create_engine  # type: ignore
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import sessionmaker  # type: ignore
-from sqlalchemy_utils import create_database, drop_database  # type: ignore
+from sqlalchemy_utils import (  # type: ignore
+    create_database,
+    database_exists,
+    drop_database,
+)
 
 import jobs.db_service as service
 import jobs.main as main
-import jobs.models as dbm
 import jobs.schemas as schemas
+from alembic import command
+from alembic.config import Config
+from tests.test_helpers import get_test_db_url
+
+main_database_url = os.environ.get("POSTGRESQL_JOBMANAGER_DATABASE_URI")
+test_db_url = get_test_db_url(main_database_url)
+alembic_cfg = Config("alembic.ini")
+
+
+@pytest.fixture(scope="session")
+def use_temp_env_var():
+    with patch.dict(os.environ, {"USE_TEST_DB": "1"}):
+        yield
 
 
 @pytest.fixture
 def testing_engine():
-    url = "sqlite:///test.db"
-    engine = create_engine(url, connect_args={"check_same_thread": False})
-    dbm.Base.metadata.tables["job"].append_column(
-        Column("files", JSON(none_as_null=True))
-    )
-    dbm.Base.metadata.tables["job"].append_column(
-        Column("datasets", JSON(none_as_null=True))
-    )
-    dbm.Base.metadata.tables["job"].append_column(
-        Column("all_files_data", JSON(none_as_null=True))
-    )
-    dbm.Base.metadata.tables["job"].append_column(
-        Column("categories", JSON(none_as_null=True))
-    )
-    dbm.Base.metadata.tables["job"].append_column(
-        Column("annotators", JSON(none_as_null=True))
-    )
-    dbm.Base.metadata.tables["job"].append_column(
-        Column("validators", JSON(none_as_null=True))
-    )
-    dbm.Base.metadata.tables["job"].append_column(
-        Column("owners", JSON(none_as_null=True))
-    )
+    engine = create_engine(test_db_url)
+
     yield engine
+
+
+@pytest.fixture
+def setup_test_db(testing_engine, use_temp_env_var):
+    if not database_exists(testing_engine.url):
+        create_database(testing_engine.url)
+
+    try:
+        command.upgrade(alembic_cfg, "head")
+
+    except SQLAlchemyError as e:
+        raise SQLAlchemyError(f"Got an Exception during migrations - {e}")
+
+    yield
+
     for _ in range(20):
         try:
-            drop_database(url)
+            drop_database(test_db_url)
             break
         except PermissionError:
             time.sleep(0.001)
 
 
 @pytest.fixture
-def testing_session(testing_engine):
-    create_database(testing_engine.url)
-    dbm.Base.metadata.create_all(bind=testing_engine)
+def testing_session(testing_engine, setup_test_db):
     SessionLocal = sessionmaker(bind=testing_engine)
     session = SessionLocal()
     try:
@@ -89,11 +99,7 @@ def setup_tenant():
 
 @pytest.fixture
 def testing_app(testing_engine, testing_session, setup_tenant):
-    create_database(testing_engine.url)
-    dbm.Base.metadata.create_all(bind=testing_engine)
-    session = sessionmaker(bind=testing_engine)
-    with patch("jobs.db_service.LocalSession", session):
-
+    with patch("jobs.db_service.LocalSession", testing_session):
         main.app.dependency_overrides[main.tenant] = lambda: setup_tenant
         main.app.dependency_overrides[
             service.get_session
@@ -256,7 +262,8 @@ def pipeline_info_from_pipeline_manager():
                     {
                         "id": "7571f17b-d9f1-4d31-af42-7f29fbfd0fb9",
                         "model": "ternary",
-                        "model_url": "http://ternary.dev1/v1/models/ternary:predict",
+                        "model_url": "http://ternary.dev1/v1/models/"
+                        "ternary:predict",
                         "categories": ["mrt"],
                         "steps": [],
                     }
