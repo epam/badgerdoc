@@ -3,6 +3,7 @@ from typing import Dict, List, Optional, Tuple, Union
 from sqlalchemy import and_, desc, or_
 from sqlalchemy.orm import Session
 
+from app.errors import CheckFieldError
 from app.models import (
     AssociationTaxonomyCategory,
     AssociationTaxonomyJob,
@@ -31,20 +32,30 @@ def create_taxonomy_instance(
 
 
 def get_taxonomy(
-    session: Session, primary_key: Union[int, str, Tuple[str, int]]
+    session: Session,
+    primary_key: Union[int, str, Tuple[str, int]],
+    tenant: str,
 ) -> Optional[Taxonomy]:
     taxonomy = session.query(Taxonomy).get(primary_key)
-    return taxonomy
+    if taxonomy.tenant in (tenant, None):
+        return taxonomy
+    else:
+        raise CheckFieldError("Taxonomy is not associated with current tenant")
 
 
 def get_latest_taxonomy(
     session: Session,
     taxonomy_id: str,
+    tenant: str,
 ) -> Optional[Taxonomy]:
     return (
         session.query(Taxonomy)
         .filter(
-            Taxonomy.id == taxonomy_id, Taxonomy.latest == True  # noqa E712
+            and_(
+                Taxonomy.id == taxonomy_id,
+                Taxonomy.latest == True,  # noqa E712
+                or_(Taxonomy.tenant.in_((tenant, None))),
+            )
         )
         .first()
     )
@@ -54,9 +65,10 @@ def update_taxonomy_instance(
     session: Session,
     taxonomy: Taxonomy,
     new_data: TaxonomyBaseSchema,
+    tenant: str,
 ) -> Optional[Taxonomy]:
     for key, value in new_data.dict().items():
-        if key == "id":
+        if key == "id" or taxonomy.tenant not in (tenant, None):
             continue
         setattr(taxonomy, key, value)
     session.commit()
@@ -64,17 +76,27 @@ def update_taxonomy_instance(
     return taxonomy
 
 
-def delete_taxonomy_instance(session: Session, taxonomy: Taxonomy) -> None:
-    session.delete(taxonomy)
-    session.commit()
+def delete_taxonomy_instance(
+    session: Session,
+    taxonomy: Taxonomy,
+    tenant: str,
+) -> None:
+    if taxonomy.tenant in (tenant, None):
+        session.delete(taxonomy)
+        session.commit()
+    else:
+        raise CheckFieldError("Taxonomy is not associated with current tenant")
 
 
 def get_second_latest_taxonomy(
-    session: Session, taxonomy_id: str
+    session: Session,
+    taxonomy_id: str,
+    tenant: str,
 ) -> Optional[Taxonomy]:
     return (
         session.query(Taxonomy)
         .filter(Taxonomy.id == taxonomy_id)
+        .filter(Taxonomy.tenant.in_((tenant, None)))
         .order_by(desc(Taxonomy.version))
         .offset(1)
         .first()
@@ -82,7 +104,9 @@ def get_second_latest_taxonomy(
 
 
 def create_new_relation_to_job(
-    session: Session, taxonomy: Taxonomy, job_id: str
+    session: Session,
+    taxonomy: Taxonomy,
+    job_id: str,
 ) -> None:
     new_relation = AssociationTaxonomyJob(
         taxonomy_id=taxonomy.id,
@@ -93,10 +117,15 @@ def create_new_relation_to_job(
     session.commit()
 
 
-def get_taxonomies_by_job_id(session: Session, job_id: str) -> List[Taxonomy]:
+def get_taxonomies_by_job_id(
+    session: Session,
+    job_id: str,
+    tenant: str,
+) -> List[Taxonomy]:
     taxonomies_ids = tuple(
         session.query(AssociationTaxonomyJob.taxonomy_id)
         .filter(AssociationTaxonomyJob.job_id == job_id)
+        .filter(Taxonomy.tenant.in_((tenant, None)))
         .all()
     )
     return (
@@ -127,7 +156,7 @@ def bulk_create_relations_with_categories(
 
 
 def batch_versioned_taxonomies(
-    session: Session, schemas: List[CategoryLinkSchema]
+    session: Session, schemas: List[CategoryLinkSchema], tenant: str
 ) -> Dict[str, int]:
     taxonomies = session.query(Taxonomy.id, Taxonomy.version).filter(
         or_(
@@ -135,6 +164,7 @@ def batch_versioned_taxonomies(
                 and_(
                     Taxonomy.id == link.taxonomy_id,
                     Taxonomy.version == link.taxonomy_version,
+                    or_(Taxonomy.tenant.in_((tenant, None))),
                 )
                 for link in schemas
             ]
@@ -144,7 +174,7 @@ def batch_versioned_taxonomies(
 
 
 def batch_latest_taxonomies(
-    session: Session, schemas: List[CategoryLinkSchema]
+    session: Session, schemas: List[CategoryLinkSchema], tenant: str
 ) -> Dict[str, int]:
     taxonomies = session.query(Taxonomy.id, Taxonomy.version).filter(
         or_(
@@ -152,6 +182,7 @@ def batch_latest_taxonomies(
                 and_(
                     Taxonomy.id == link.taxonomy_id,
                     Taxonomy.latest == True,  # noqa E712
+                    Taxonomy.tenant.in_((tenant, None)),
                 )
                 for link in schemas
             ]
@@ -163,8 +194,12 @@ def batch_latest_taxonomies(
 def bulk_delete_category_association(
     session: Session,
     category_id: str,
+    tenant: str,
 ) -> None:
-    session.query(AssociationTaxonomyCategory).filter(
-        AssociationTaxonomyCategory.category_id == category_id,
-    ).delete(synchronize_session=False)
+    association = session.query(AssociationTaxonomyCategory).filter(
+        AssociationTaxonomyCategory.category_id == category_id
+    )
+    if association.taxonomy.tenant != tenant:
+        raise CheckFieldError("Taxonomy is not associated with current tenant")
+    session.delete(association)
     session.commit()

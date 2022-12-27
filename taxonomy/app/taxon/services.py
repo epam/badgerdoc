@@ -29,9 +29,9 @@ def add_taxon_db(
     taxonomy_version = taxon_input.taxonomy_version
 
     if taxonomy_version is None:
-        taxonomy_db = get_latest_taxonomy(db, taxonomy_id)
+        taxonomy_db = get_latest_taxonomy(db, taxonomy_id, tenant)
     else:
-        taxonomy_db = get_taxonomy(db, (taxonomy_id, taxonomy_version))
+        taxonomy_db = get_taxonomy(db, (taxonomy_id, taxonomy_version), tenant)
 
     if not taxonomy_db or taxonomy_db.tenant not in [tenant, None]:
         raise CheckFieldError("Taxonomy with this id doesn't exist.")

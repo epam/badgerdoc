@@ -2,7 +2,7 @@ import pytest
 
 from app.models import AssociationTaxonomyJob, Taxonomy
 from app.taxonomy import services
-from tests.override_app_dependency import TEST_HEADER
+from tests.override_app_dependency import TEST_HEADER, TEST_TENANTS
 
 
 @pytest.mark.integration
@@ -28,7 +28,7 @@ def test_create_taxonomy_should_work(overrided_token_client, db_session):
     assert response.json()["version"] == 1
 
     taxonomy: Taxonomy = services.get_latest_taxonomy(
-        db_session, input_data["id"]
+        db_session, input_data["id"], TEST_TENANTS[0]
     )
 
     assert taxonomy.id == input_data["id"]
@@ -64,7 +64,7 @@ def test_create_new_taxonomy_with_same_id_should_update_version(
     assert response.status_code == 201
 
     new_taxonomy: Taxonomy = services.get_latest_taxonomy(
-        db_session, input_data["id"]
+        db_session, input_data["id"], TEST_TENANTS[0]
     )
 
     assert new_taxonomy.id == input_data["id"]
@@ -73,7 +73,7 @@ def test_create_new_taxonomy_with_same_id_should_update_version(
     assert new_taxonomy.latest
 
     previous_taxonomy = services.get_second_latest_taxonomy(
-        db_session, input_data["id"]
+        db_session, input_data["id"], TEST_TENANTS[0]
     )
 
     assert not previous_taxonomy.latest
@@ -217,7 +217,7 @@ def test_should_delete_taxonomy_from_db(
     assert response.status_code == 204
 
     taxonomy = services.get_latest_taxonomy(
-        db_session, prepared_taxonomy_record_in_db.id
+        db_session, prepared_taxonomy_record_in_db.id, TEST_TENANTS[0]
     )
     assert taxonomy is None
 
