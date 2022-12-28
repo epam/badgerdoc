@@ -150,7 +150,8 @@ const mapAnnotationToApi = (
                     ...addTableValues(ann)
                 },
                 children: ann.children,
-                links: ann.links
+                links: ann.links,
+                original_annotation_id: ann.originalAnnotationId
             },
             ...cells
         ];

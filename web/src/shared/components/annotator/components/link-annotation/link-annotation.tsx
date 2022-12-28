@@ -12,6 +12,7 @@ export const LinkAnnotation = ({
     category,
     linkType,
     onDeleteLink,
+    onLinkSelect,
     reversed
 }: LinkAnnotationProps) => {
     const getStyleFromLink = useMemo(() => {
@@ -31,7 +32,12 @@ export const LinkAnnotation = ({
     }, [pointStart, pointFinish]);
 
     return (
-        <div style={getStyleFromLink as CSSProperties} className={styles.link}>
+        <div
+            style={getStyleFromLink as CSSProperties}
+            className={styles.link}
+            onClick={onLinkSelect}
+            role="none"
+        >
             <div className={styles.container} style={{ color: category.metadata?.color }}>
                 <div
                     className={styles.arrowBottom}
