@@ -1,7 +1,7 @@
 import React, { FC } from 'react';
 import { MultiSwitch } from '@epam/loveship';
 import { ILens } from '@epam/uui';
-import { Category, Pipeline, User } from 'api/typings';
+import { Category, CategoryRelatedTaxonomies, Pipeline, Taxonomy, User } from 'api/typings';
 import { JobValues } from 'connectors/add-job-connector/add-job-connector';
 import AutomaticJob from '../automatic-job/automatic-job';
 import styles from './add-job-settings.module.scss';
@@ -13,6 +13,7 @@ export type AddJobSettingsProps = {
     pipelines: Pipeline[] | undefined;
     categories: Category[] | undefined;
     users: User[] | undefined;
+    taxonomies: Taxonomy[] | undefined;
     lens: ILens<JobValues>;
     initialType?: JobType;
     showNoExtractionTab?: boolean;
@@ -22,6 +23,7 @@ const AddJobSettings: FC<AddJobSettingsProps> = ({
     pipelines,
     categories,
     users,
+    taxonomies,
     lens,
     initialType,
     showNoExtractionTab
@@ -36,6 +38,7 @@ const AddJobSettings: FC<AddJobSettingsProps> = ({
                 categories={categories}
                 users={users}
                 pipelines={pipelines}
+                taxonomies={taxonomies}
                 lens={lens}
             />
         );

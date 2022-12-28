@@ -1,7 +1,7 @@
 import { ILens } from '@epam/uui';
-import { Category, Pipeline, User } from 'api/typings';
+import { Category, Pipeline, Taxonomy, User } from 'api/typings';
 import { JobValues } from 'connectors/add-job-connector/add-job-connector';
-import React, { FC, useCallback } from 'react';
+import React, { FC, useCallback, useState } from 'react';
 import JobName from '../job-name/job-name';
 import styles from './automatic-manual-job.module.scss';
 import ValidationTypePicker from '../validation-type-picker/validation-type-picker';
@@ -11,30 +11,38 @@ import PipelinePicker from '../pipeline-picker/pipeline-picker';
 import CategoriesPicker from 'shared/components/categories-picker/categories-picker';
 import { Checkbox } from '@epam/loveship';
 import { ExtensiveCoverageInput } from './extensive-coverage-input/extensive-coverage-input';
+import TaxonomyPickers from 'shared/components/taxonomy-pickers/taxonomy-pickers';
 
 type AutomaticManualJobProps = {
     categories: Category[] | undefined;
     users: User[] | undefined;
     pipelines: Pipeline[] | undefined;
+    taxonomies: Taxonomy[] | undefined;
     lens: ILens<JobValues>;
 };
 const AutomaticManualJob: FC<AutomaticManualJobProps> = ({
     lens,
     categories,
     users,
+    taxonomies,
     pipelines
 }) => {
+    const [categoriesWithTaxonomy, setCategoriesWithTaxonomy] = useState<Category[]>([]);
     const startManuallyProps = lens.prop('start_manual_job_automatically').toProps();
     if (startManuallyProps.isDisabled) {
         startManuallyProps.value = false;
     }
 
-    const onCategoriesSelection = useCallback(async (categories: Category[]) => {
-        const categoriesWithTaxonomy = categories?.filter(
-            (category) => (category.data_attributes || [])[0]?.type === 'taxonomy'
-        );
-        console.log(categoriesWithTaxonomy);
-    }, []);
+    const onCategoriesSelection = useCallback(
+        async (categories: Category[]) => {
+            const categoriesWithTaxonomy = categories?.filter(
+                (category) => (category.data_attributes || [])[0]?.type === 'taxonomy'
+            );
+
+            setCategoriesWithTaxonomy(categoriesWithTaxonomy);
+        },
+        [categories]
+    );
 
     const vlidationType = lens.prop('validationType').get();
     return (
@@ -53,6 +61,13 @@ const AutomaticManualJob: FC<AutomaticManualJobProps> = ({
                     lens={lens}
                     categories={categories}
                     onChangeHandler={onCategoriesSelection}
+                />
+            </div>
+            <div className="form-group">
+                <TaxonomyPickers
+                    lens={lens}
+                    taxonomies={taxonomies}
+                    categories={categoriesWithTaxonomy}
                 />
             </div>
             <div className="form-group">

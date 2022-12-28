@@ -2,7 +2,15 @@ import React, { FC, ReactElement, useCallback, useContext, useMemo } from 'react
 import AddJobSettings from 'components/job/add-job-settings/add-job-settings';
 import { usePipelines } from 'api/hooks/pipelines';
 import { JobVariables, useAddJobMutation } from 'api/hooks/jobs';
-import { Category, Pipeline, SortingDirection, User, ValidationType } from 'api/typings';
+import {
+    Category,
+    CategoryRelatedTaxonomies,
+    Pipeline,
+    SortingDirection,
+    Taxonomy,
+    User,
+    ValidationType
+} from 'api/typings';
 import { Form, INotification, RenderFormProps } from '@epam/uui';
 import { ErrorNotification, SuccessNotification, Text } from '@epam/loveship';
 import { svc } from 'services';
@@ -49,6 +57,7 @@ export type JobValues = {
     is_auto_distribution: boolean;
     start_manual_job_automatically: boolean;
     extensive_coverage: number | undefined;
+    selected_taxonomies: CategoryRelatedTaxonomies | undefined;
 };
 
 const AddJobConnector: FC<AddJobConnectorProps> = ({
@@ -96,6 +105,7 @@ const AddJobConnector: FC<AddJobConnectorProps> = ({
                             pipelines={pipelines}
                             categories={categories}
                             users={users}
+                            taxonomies={taxonomies}
                             lens={lens}
                             showNoExtractionTab={showNoExtractionTab}
                         />
@@ -112,7 +122,7 @@ const AddJobConnector: FC<AddJobConnectorProps> = ({
                 </>
             );
         },
-        [pipelines, categories, users]
+        [pipelines, categories, users, taxonomies]
     );
 
     const handleSave = useCallback(
@@ -205,7 +215,13 @@ const AddJobConnector: FC<AddJobConnectorProps> = ({
         [onJobAdded]
     );
 
-    const formValues = useAddJobFormValues({ initialJob, pipelines, categories, users });
+    const formValues = useAddJobFormValues({
+        initialJob,
+        pipelines,
+        categories,
+        users,
+        taxonomies
+    });
 
     if (!formValues) {
         return null;
@@ -262,8 +278,6 @@ const useEntities = () => {
         sortConfig: { field: 'name', direction: SortingDirection.ASC }
     });
 
-    console.log(taxonomiesResult);
-
     return {
         pipelines: pipelinesResult.data?.data,
         categories: categoriesResult.data?.data,
@@ -286,7 +300,8 @@ let initialValues: JobValues = {
     is_draft: false,
     is_auto_distribution: true,
     start_manual_job_automatically: true,
-    extensive_coverage: undefined
+    extensive_coverage: undefined,
+    selected_taxonomies: undefined
 };
 
 interface Params {
@@ -294,17 +309,18 @@ interface Params {
     pipelines?: Pipeline[];
     categories?: Category[];
     users?: User[];
+    taxonomies?: Taxonomy[];
 }
 
 const useAddJobFormValues = ({
     initialJob,
     pipelines,
     categories,
-    users
+    users,
+    taxonomies
 }: Params): JobValues | null => {
     const { currentUser } = useContext(CurrentUser);
 
-    console.log('categories: ', initialJob);
     return useMemo(() => {
         if (!initialJob) {
             return {
@@ -350,5 +366,5 @@ const useAddJobFormValues = ({
                     return {} as Category;
                 }) || []
         };
-    }, [currentUser, initialJob, pipelines, categories, users]);
+    }, [currentUser, initialJob, pipelines, categories, users, taxonomies]);
 };

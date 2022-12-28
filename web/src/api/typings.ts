@@ -249,6 +249,11 @@ export interface Taxonomy {
     name: string;
     taxons: BaseTaxon[];
 }
+
+export type CategoryRelatedTaxonomies = {
+    [key in string]: Taxonomy;
+};
+
 export type Link = {
     category_id: string;
     to: string | number;
