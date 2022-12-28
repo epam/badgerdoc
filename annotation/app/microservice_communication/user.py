@@ -34,7 +34,7 @@ def get_response(callback_url: str, user_id: str, tenant: str, token: str):
 
 def get_user_logins(
     tasks: List[ManualAnnotationTask], tenant: str, token: str
-) -> Dict[str:str]:
+) -> Dict[str, str]:
     """
     Return list of logins for provided tasks from users microservice.
     """
