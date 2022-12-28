@@ -176,7 +176,7 @@ EXPANDED_TASKS = [
     ExpandedManualAnnotationTaskSchema(
         id=TASKS[0].id,
         pages=[1],
-        user_id=TASKS[0].user_id,
+        user={"user_id": TASKS[0].user_id, "login": "test0"},
         is_validation=True,
         status=TaskStatusEnumSchema.pending,
         deadline=None,
@@ -186,7 +186,10 @@ EXPANDED_TASKS = [
     ExpandedManualAnnotationTaskSchema(
         id=TASKS[1].id,
         pages=[1],
-        user_id="7b626e68-857d-430a-b65b-bba0a40417ee",
+        user={
+            "user_id": "7b626e68-857d-430a-b65b-bba0a40417ee",
+            "login": "test1",
+        },
         is_validation=True,
         status=TaskStatusEnumSchema.pending,
         deadline=None,
@@ -196,7 +199,10 @@ EXPANDED_TASKS = [
     ExpandedManualAnnotationTaskSchema(
         id=TASKS[2].id,
         pages=[1],
-        user_id="7b626e68-857d-430a-b65b-bba0a40417ee",
+        user={
+            "user_id": "7b626e68-857d-430a-b65b-bba0a40417ee",
+            "login": "test2",
+        },
         is_validation=True,
         status=TaskStatusEnumSchema.pending,
         deadline=None,
@@ -206,7 +212,10 @@ EXPANDED_TASKS = [
     ExpandedManualAnnotationTaskSchema(
         id=TASKS[3].id,
         pages=[1],
-        user_id="7b626e68-857d-430a-b65b-bba0a40417ee",
+        user={
+            "user_id": "7b626e68-857d-430a-b65b-bba0a40417ee",
+            "login": "test3",
+        },
         is_validation=True,
         status=TaskStatusEnumSchema.pending,
         deadline=None,
