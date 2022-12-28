@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from tenant_dependency import TenantData
 
 from app.database import get_db
-from app.errors import NoSuchCategoryError, NoSuchRevisionsError
+from app.errors import NoSuchRevisionsError
 from app.microservice_communication.assets_communication import (
     get_file_path_and_bucket,
 )
@@ -20,12 +20,13 @@ from app.schemas import (
     JobOutSchema,
     NotFoundErrorSchema,
     PageOutSchema,
-    ParticularRevisionSchema, ValidationSchema,
+    ParticularRevisionSchema,
+    ValidationSchema,
 )
 from app.tags import ANNOTATION_TAG, JOBS_TAG, REVISION_TAG
 from app.tasks import update_task_status
 
-from ..models import AnnotatedDoc, File, ManualAnnotationTask, Job
+from ..models import AnnotatedDoc, File, Job, ManualAnnotationTask
 from ..token_dependency import TOKEN
 from .main import (
     LATEST,
@@ -209,11 +210,6 @@ def post_annotation_by_user(
             status_code=404,
             detail=f"Cannot assign similar documents: {err}",
         ) from err
-    except NoSuchCategoryError as err:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Cannot assign categories to document: {err}",
-        ) from err
     check_if_kafka_message_is_needed(
         db,
         latest_doc,
@@ -305,11 +301,6 @@ def post_annotation_by_pipeline(
         raise HTTPException(
             status_code=404,
             detail=f"Cannot assign similar documents: {err}",
-        ) from err
-    except NoSuchCategoryError as err:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Cannot assign categories to document: {err}",
         ) from err
     check_if_kafka_message_is_needed(
         db,
@@ -427,7 +418,7 @@ def get_annotations_up_to_given_revision(
         None,
         example="1843c251-564b-4c2f-8d42-c61fdac369a1",
         description="Required in case job validation type is extensive_"
-                    "coverage"
+        "coverage",
     ),
 ):
     job: Job = db.query(Job).filter(Job.job_id == job_id).first()
@@ -552,7 +543,7 @@ def get_all_revisions(
         None,
         example="1843c251-564b-4c2f-8d42-c61fdac369a1",
         description="Required in case job validation type is extensive_"
-                    "coverage"
+        "coverage",
     ),
     db: Session = Depends(get_db),
 ):

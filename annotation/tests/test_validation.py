@@ -287,6 +287,7 @@ DOCS = [
         tenant=TEST_TENANT,
         task_id=TASKS[0].id,
         date="2004-10-19T10:01:00",
+        categories=[],
     ),  # first revision of annotation task for
     # first job, first file, first user
     AnnotatedDoc(
@@ -301,6 +302,7 @@ DOCS = [
         tenant=TEST_TENANT,
         task_id=TASKS[0].id,
         date="2004-10-19T10:01:01",
+        categories=[],
     ),  # second revision of annotation task for
     # first job, first file, first user
     AnnotatedDoc(
@@ -315,6 +317,7 @@ DOCS = [
         tenant=TEST_TENANT,
         task_id=TASKS[1].id,
         date="2004-10-19T10:01:02",
+        categories=[],
     ),  # first revision of annotation task for
     # first job, first file, second user
     AnnotatedDoc(
@@ -329,6 +332,7 @@ DOCS = [
         tenant=TEST_TENANT,
         task_id=TASKS[1].id,
         date="2004-10-19T10:01:03",
+        categories=[],
     ),  # second revision of annotation task for
     # first job, first file, second user
     AnnotatedDoc(
@@ -343,6 +347,7 @@ DOCS = [
         tenant=TEST_TENANT,
         task_id=TASKS[2].id,
         date="2004-10-19T10:01:00",
+        categories=[],
     ),  # first revision of annotation task for
     # first job, second file, first user
     AnnotatedDoc(
@@ -357,6 +362,7 @@ DOCS = [
         tenant=TEST_TENANT,
         task_id=TASKS[3].id,
         date="2004-10-19T10:01:00",
+        categories=[],
     ),  # first revision of annotation task for
     # first job, second file, first user
     AnnotatedDoc(
@@ -371,6 +377,7 @@ DOCS = [
         tenant=TEST_TENANT,
         task_id=TASKS[4].id,
         date="2004-10-19T10:01:00",
+        categories=[],
     ),  # first revision of validation task for
     # first job, first file, third user
     AnnotatedDoc(
@@ -385,6 +392,7 @@ DOCS = [
         tenant=TEST_TENANT,
         task_id=TASKS[4].id,
         date="2004-10-19T10:01:01",
+        categories=[],
     ),  # second revision of validation task for
     # first job, first file, third user
     AnnotatedDoc(
@@ -399,6 +407,7 @@ DOCS = [
         tenant=TEST_TENANT,
         task_id=TASKS[5].id,
         date="2004-10-19T10:01:00",
+        categories=[],
     ),  # first revision of validation task for
     # first job, second file, fourth user
     AnnotatedDoc(
@@ -413,6 +422,7 @@ DOCS = [
         tenant=TEST_TENANT,
         task_id=TASKS[5].id,
         date="2004-10-19T10:01:01",
+        categories=[],
     ),  # second revision of validation task for
     # first job, second file, fourth user
     AnnotatedDoc(
@@ -427,6 +437,7 @@ DOCS = [
         tenant=TEST_TENANT,
         task_id=TASKS[6].id,
         date="2004-10-19T10:01:00",
+        categories=[],
     ),  # first revision of validation task for
     # first job, second file, fourth user
     AnnotatedDoc(
@@ -441,6 +452,7 @@ DOCS = [
         tenant=TEST_TENANT,
         task_id=TASKS[7].id,
         date="2004-10-19T10:01:00",
+        categories=[],
     ),  # first revision of annotation task for
     # second job, third file, first user
     AnnotatedDoc(
@@ -455,6 +467,7 @@ DOCS = [
         tenant=TEST_TENANT,
         task_id=TASKS[8].id,
         date="2004-10-19T10:01:00",
+        categories=[],
     ),  # first revision of annotation task for
     # second job, third file, second user
     AnnotatedDoc(
@@ -469,6 +482,7 @@ DOCS = [
         tenant=TEST_TENANT,
         task_id=TASKS[11].id,
         date="2004-10-19T10:01:00",
+        categories=[],
     ),  # first revision of annotation task for
     # first job, fourth file, first user
     AnnotatedDoc(
@@ -485,6 +499,7 @@ DOCS = [
         tenant=TEST_TENANT,
         task_id=TASKS[12].id,
         date="2004-10-19T10:01:00",
+        categories=[],
     ),  # first revision of validation task for
     # first job, fourth file, first user
     AnnotatedDoc(
@@ -499,6 +514,7 @@ DOCS = [
         tenant=TEST_TENANT,
         task_id=TASKS[13].id,
         date="2004-10-19T10:01:00",
+        categories=[],
     ),  # first revision of validation task for
     # first job, fourth file, first user
 ]

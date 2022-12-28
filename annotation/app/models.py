@@ -81,24 +81,6 @@ association_job_category = Table(
     Column("category_id", ForeignKey("categories.id"), primary_key=True),
     Column("job_id", ForeignKey("jobs.job_id"), primary_key=True),
 )
-association_doc_category = Table(
-    "association_doc_category",
-    Base.metadata,
-    Column("revision", VARCHAR, primary_key=True),
-    Column("file_id", INTEGER, primary_key=True),
-    Column("job_id", INTEGER, primary_key=True),
-    Column(
-        "category_id", VARCHAR, ForeignKey("categories.id"), primary_key=True
-    ),
-    ForeignKeyConstraint(
-        ("revision", "file_id", "job_id"),
-        (
-            "annotated_docs.revision",
-            "annotated_docs.file_id",
-            "annotated_docs.job_id",
-        ),
-    ),
-)
 
 
 class AnnotatedDoc(Base):
@@ -119,6 +101,7 @@ class AnnotatedDoc(Base):
     validated = Column(ARRAY(INTEGER), nullable=False, server_default="{}")
     tenant = Column(VARCHAR, nullable=False)
     task_id = Column(INTEGER, ForeignKey("tasks.id", ondelete="SET NULL"))
+    categories = Column(ARRAY(VARCHAR), nullable=False, server_default="{}")
 
     tasks = relationship("ManualAnnotationTask", back_populates="docs")
     similar_docs = relationship(
@@ -139,7 +122,6 @@ class AnnotatedDoc(Base):
         "DocumentLinks.original_file_id, "
         "DocumentLinks.original_job_id]",
     )
-    categories = relationship("Category", secondary=association_doc_category)
 
     def __repr__(self) -> str:
         return (
