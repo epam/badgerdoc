@@ -10,8 +10,7 @@ from app.microservice_communication.search import (
     BEARER,
     HEADER_TENANT,
 )
-from app.models import AnnotatedDoc, Category, User
-from app.schemas import CategoryTypeSchema
+from app.models import AnnotatedDoc, User
 from tests.consts import ANNOTATION_PATH
 from tests.override_app_dependency import TEST_TOKEN, app
 from tests.test_post_annotation import POST_ANNOTATION_PG_DOC
@@ -57,13 +56,7 @@ DOCS = [
         validated=[3],
         failed_validation_pages=[4],
         tenant=TENANT,
-        categories=[
-            Category(
-                id="jurisdiction",
-                name="jurisdiction category",
-                type=CategoryTypeSchema.link,
-            ),
-        ],
+        categories=["jurisdiction"],
     ),
     AnnotatedDoc(
         revision="2",
@@ -78,13 +71,7 @@ DOCS = [
         validated=[4],
         failed_validation_pages=[1],
         tenant=TENANT,
-        categories=[
-            Category(
-                id="medical",
-                name="medical category",
-                type=CategoryTypeSchema.link,
-            ),
-        ],
+        categories=["medical"],
     ),
     AnnotatedDoc(
         revision="3",
@@ -100,13 +87,7 @@ DOCS = [
         validated=[5],
         failed_validation_pages=[],
         tenant=TENANT,
-        categories=[
-            Category(
-                id="technical",
-                name="technical category",
-                type=CategoryTypeSchema.link,
-            ),
-        ],
+        categories=["technical"],
     ),
 ]
 
@@ -169,7 +150,7 @@ LATEST_WITH_ALL_PAGES = dict(
     ],
     validated=[3, 4, 5],
     failed_validation_pages=[1],
-    categories=[cat.id for cat in DOCS[2].categories],
+    categories=DOCS[2].categories,
     similar_revisions=None,
 )
 
@@ -213,7 +194,7 @@ LATEST_WITH_ALL_PAGES = dict(
                 ],
                 validated=[5],
                 failed_validation_pages=[1],
-                categories=[cat.id for cat in DOCS[2].categories],
+                categories=DOCS[2].categories,
                 similar_revisions=None,
             ),
         ),
@@ -242,7 +223,7 @@ LATEST_WITH_ALL_PAGES = dict(
                 ],
                 validated=[3],
                 failed_validation_pages=[4],
-                categories=[cat.id for cat in DOCS[0].categories],
+                categories=DOCS[0].categories,
                 similar_revisions=None,
             ),
         ),
@@ -270,7 +251,7 @@ LATEST_WITH_ALL_PAGES = dict(
                 ],
                 validated=[3],
                 failed_validation_pages=[],
-                categories=[cat.id for cat in DOCS[0].categories],
+                categories=DOCS[0].categories,
                 similar_revisions=None,
             ),
         ),
@@ -299,7 +280,7 @@ LATEST_WITH_ALL_PAGES = dict(
                 ],
                 validated=[3, 4],
                 failed_validation_pages=[1],
-                categories=[cat.id for cat in DOCS[1].categories],
+                categories=DOCS[1].categories,
                 similar_revisions=None,
             ),
         ),
@@ -319,7 +300,7 @@ LATEST_WITH_ALL_PAGES = dict(
                 pages=[],
                 validated=[],
                 failed_validation_pages=[],
-                categories=[cat.id for cat in DOCS[1].categories],
+                categories=DOCS[1].categories,
                 similar_revisions=None,
             ),
         ),

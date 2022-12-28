@@ -235,7 +235,7 @@ def create_manifest_json(
         [], revisions, with_page_hash=True
     )
     manifest = row_to_dict(doc)
-    redundant_keys = ("task_id", "file_id", "tenant")
+    redundant_keys = ("task_id", "file_id", "tenant", "categories")
     manifest = {
         key: value
         for key, value in manifest.items()
@@ -312,14 +312,6 @@ def construct_annotated_doc(
         or not. If flag is False, merge conflict will occur
     :return: newly created revision or latest revision
     """
-    from app.categories import fetch_bunch_categories_db
-
-    doc_categories = fetch_bunch_categories_db(
-        db=db,
-        category_ids=set(doc.categories or []),
-        tenant=tenant,
-        root_parents=True,
-    )
     annotated_doc = AnnotatedDoc(
         user=user_id,
         pipeline=pipeline_id,
@@ -329,7 +321,7 @@ def construct_annotated_doc(
         failed_validation_pages=doc.failed_validation_pages,
         tenant=tenant,
         task_id=task_id,
-        categories=doc_categories,
+        categories=doc.categories or [],
     )
     s3_path = f"{S3_START_PATH}/{str(job_id)}/{str(file_id)}"
 
@@ -804,7 +796,6 @@ def construct_particular_rev_response(
     load_validated_pages_for_particular_rev(
         revision, page_revision, s3_resource, loaded_pages
     )
-    doc_categories = [category.id for category in revision.categories or []]
     similar_revisions = [
         RevisionLink(
             revision=link.similar_doc.revision,
@@ -822,7 +813,7 @@ def construct_particular_rev_response(
         pages=loaded_pages,
         validated=revision.validated,
         failed_validation_pages=revision.failed_validation_pages,
-        categories=doc_categories,
+        categories=revision.categories,
         similar_revisions=similar_revisions or None,
     )
     return particular_rev

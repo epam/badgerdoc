@@ -270,6 +270,7 @@ POST_ANNOTATION_PG_DOC = AnnotatedDoc(
     failed_validation_pages=[],
     tenant=POST_ANNOTATION_FILE_1.tenant,
     task_id=POST_ANNOTATION_PG_TASK_1.id,
+    categories=[],
 )
 
 S3_PATH = (
@@ -635,6 +636,7 @@ ANNOTATED_DOC_WITH_BASE_REVISION = {
     "failed_validation_pages": [],
     "tenant": POST_ANNOTATION_PG_DOC.tenant,
     "task_id": POST_ANNOTATION_PG_DOC.task_id,
+    "categories": [],
 }
 
 ANNOTATED_DOC_WITH_BOTH_TOKENS_AND_BBOX = {
@@ -660,6 +662,7 @@ ANNOTATED_DOC_WITH_BOTH_TOKENS_AND_BBOX = {
     "failed_validation_pages": [],
     "tenant": POST_ANNOTATION_PG_DOC.tenant,
     "task_id": POST_ANNOTATION_PG_DOC.task_id,
+    "categories": [],
 }
 
 ANNOTATED_DOC_WITHOUT_BOTH_TOKENS_AND_BBOX = {
@@ -683,6 +686,7 @@ ANNOTATED_DOC_WITHOUT_BOTH_TOKENS_AND_BBOX = {
     "failed_validation_pages": [],
     "tenant": POST_ANNOTATION_PG_DOC.tenant,
     "task_id": POST_ANNOTATION_PG_DOC.task_id,
+    "categories": [],
 }
 
 ANNOTATED_DOCS_FOR_MANIFEST_CREATION = {
@@ -857,6 +861,7 @@ ANNOTATED_DOC_WITH_MERGE_CONFLICT = {
     "failed_validation_pages": [],
     "tenant": POST_ANNOTATION_PG_DOC.tenant,
     "task_id": POST_ANNOTATION_PG_DOC.task_id,
+    "categories": [],
 }
 
 
@@ -1898,6 +1903,7 @@ def test_create_manifest_json_date_field(
                 "failed_validation_pages": [],
                 "tenant": POST_ANNOTATION_FILE_1.tenant,
                 "task_id": POST_ANNOTATION_PG_TASK_1.id,
+                "categories": [],
             },
         ),  # if new revision has same pages, validated and
         # failed validation arrays as latest revision,
@@ -1920,7 +1926,6 @@ def test_construct_annotated_doc(
     field types will be changed to list.
     """
     db = prepare_db_for_post_annotation_with_existing_doc
-
     actual_doc = row_to_dict(
         construct_annotated_doc(
             db,
@@ -1974,12 +1979,12 @@ def test_construct_annotated_doc_different_jobs_and_files(
     expected_result_1 = {
         k: v
         for k, v in ANNOTATED_DOC_FIRST.items()
-        if k not in ("similar_revisions", "categories")
+        if k not in ("similar_revisions",)
     }
     expected_result_2 = {
         k: v
         for k, v in ANNOTATED_DOC_WITH_DIFFERENT_JOB_AND_FILE.items()
-        if k not in ("similar_revisions", "categories")
+        if k not in ("similar_revisions",)
     }
 
     expected_path_1 = (
