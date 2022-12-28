@@ -1,7 +1,7 @@
 import { ILens } from '@epam/uui';
 import { Category, Pipeline, Taxonomy, User } from 'api/typings';
 import { JobValues } from 'connectors/add-job-connector/add-job-connector';
-import React, { FC, useCallback, useState } from 'react';
+import React, { FC } from 'react';
 import JobName from '../job-name/job-name';
 import styles from './automatic-manual-job.module.scss';
 import ValidationTypePicker from '../validation-type-picker/validation-type-picker';
@@ -27,22 +27,15 @@ const AutomaticManualJob: FC<AutomaticManualJobProps> = ({
     taxonomies,
     pipelines
 }) => {
-    const [categoriesWithTaxonomy, setCategoriesWithTaxonomy] = useState<Category[]>([]);
     const startManuallyProps = lens.prop('start_manual_job_automatically').toProps();
     if (startManuallyProps.isDisabled) {
         startManuallyProps.value = false;
     }
 
-    const onCategoriesSelection = useCallback(
-        async (categories: Category[]) => {
-            const categoriesWithTaxonomy = categories?.filter(
-                (category) => (category.data_attributes || [])[0]?.type === 'taxonomy'
-            );
-
-            setCategoriesWithTaxonomy(categoriesWithTaxonomy);
-        },
-        [categories]
-    );
+    const categoriesWithTaxonomy = lens
+        .prop('categories')
+        .get()
+        ?.filter((category) => (category.data_attributes || [])[0]?.type === 'taxonomy');
 
     const vlidationType = lens.prop('validationType').get();
     return (
@@ -57,11 +50,7 @@ const AutomaticManualJob: FC<AutomaticManualJobProps> = ({
             {vlidationType === 'extensive_coverage' && <ExtensiveCoverageInput lens={lens} />}
 
             <div className="form-group">
-                <CategoriesPicker
-                    lens={lens}
-                    categories={categories}
-                    onChangeHandler={onCategoriesSelection}
-                />
+                <CategoriesPicker lens={lens} categories={categories} />
             </div>
             <div className="form-group">
                 <TaxonomyPickers

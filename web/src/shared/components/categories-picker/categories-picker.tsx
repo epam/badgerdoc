@@ -3,34 +3,20 @@ import { ILens, useArrayDataSource } from '@epam/uui';
 import { Category } from 'api/typings';
 import { JobValues } from 'connectors/add-job-connector/add-job-connector';
 import { ModelValues } from 'connectors/add-model-connector/add-model-connector';
-import React, { FC, useCallback, useState } from 'react';
+import React, { FC } from 'react';
 import { InfoIcon } from '../info-icon/info-icon';
 
 type CategoriesPickerProps = {
     lens: ILens<JobValues | ModelValues>;
     categories: Category[] | undefined;
-    onChangeHandler?: (vals: Category[]) => void;
 };
 
-const CategoriesPicker: FC<CategoriesPickerProps> = ({
-    lens,
-    categories,
-    onChangeHandler = () => {}
-}) => {
-    const [values, setValues] = useState([]);
+const CategoriesPicker: FC<CategoriesPickerProps> = ({ lens, categories }) => {
     const categoriesDataSource = useArrayDataSource(
         {
             items: categories ?? []
         },
         [categories]
-    );
-
-    const handleChange = useCallback(
-        (val) => {
-            setValues(val);
-            onChangeHandler(val);
-        },
-        [values]
     );
 
     return (
@@ -45,8 +31,6 @@ const CategoriesPicker: FC<CategoriesPickerProps> = ({
                     valueType={'entity'}
                     sorting={{ field: 'name', direction: 'asc' }}
                     placeholder="Select categories"
-                    value={values}
-                    onValueChange={handleChange}
                 />
                 <InfoIcon
                     title="Select Categories"
