@@ -3,7 +3,7 @@ import os
 from sqlalchemy import engine_from_config, pool
 
 from alembic import context
-from tests.test_helpers import get_test_db_url
+from src.db.utils import get_test_db_url
 from src.config import settings
 
 # this is the Alembic Config object, which provides

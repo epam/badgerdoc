@@ -24,7 +24,7 @@ from src.db.models import Base
 from src.db.service import session_scope_for_dependency
 from src.main import app, tenant
 from src.utils.minio_utils import get_storage
-from tests.test_helpers import get_test_db_url
+from src.db.utils import get_test_db_url
 
 BUCKET_TESTS = "tests" + uuid.uuid4().hex
 

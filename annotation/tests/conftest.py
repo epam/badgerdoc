@@ -169,7 +169,7 @@ from tests.test_update_job import (
     UPDATE_JOBS,
     UPDATE_USER_NO_JOBS,
 )
-from tests.utils import get_test_db_url
+from app.utils import get_test_db_url
 
 DEFAULT_REGION = "us-east-1"
 
