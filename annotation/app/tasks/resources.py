@@ -108,7 +108,7 @@ def _prepare_expanded_tasks_response(
     token: str,
 ) -> List[ExpandedManualAnnotationTaskSchema]:
     """
-    Get names of files, jobs and logins and add them to manual annotation tasks.
+    Get names of files, jobs, logins and add them to manual annotation tasks.
     """
     file_names = get_file_names(list(file_ids), tenant, token)
     job_names = collect_job_names(db, list(job_ids), tenant, token)
