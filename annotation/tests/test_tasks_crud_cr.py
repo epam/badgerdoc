@@ -1,3 +1,4 @@
+import re
 from datetime import datetime, timedelta
 from typing import Any, List, Optional
 from unittest.mock import Mock, patch
@@ -13,6 +14,7 @@ from app.microservice_communication.assets_communication import (
     ASSETS_FILES_URL,
 )
 from app.microservice_communication.jobs_communication import JOBS_SEARCH_URL
+from app.microservice_communication.user import USERS_SEARCH_URL
 from app.models import Category, File, Job, ManualAnnotationTask, User
 from app.schemas import CategoryTypeSchema, ValidationSchema
 from tests.consts import CRUD_TASKS_PATH
@@ -569,6 +571,41 @@ EXPANDED_TASKS_RESPONSE = [
         },
     ),
 ]
+USERS_SEARCH_RESPONSE = {
+    "access": {
+        "manageGroupMembership": True,
+        "view": True,
+        "mapRoles": True,
+        "impersonate": True,
+        "manage": True
+    },
+    "attributes": {
+        "tenants": [
+            "test"
+        ]
+    },
+    "clientConsents": None,
+    "clientRoles": None,
+    "createdTimestamp": 1638362379072,
+    "credentials": None,
+    "disableableCredentialTypes": [],
+    "email": None,
+    "emailVerified": False,
+    "enabled": True,
+    "federatedIdentities": [],
+    "federationLink": None,
+    "firstName": None,
+    "groups": None,
+    "id": "02336646-f5d0-4670-b111-c140a3ad58b5",
+    "lastName": None,
+    "notBefore": 0,
+    "origin": None,
+    "realmRoles": None,
+    "requiredActions": [],
+    "self": None,
+    "serviceAccountClientId": None,
+    "username": "admin"
+}
 
 
 def prepare_task_stats_expected_response(
@@ -1036,6 +1073,13 @@ def test_get_tasks(
         responses.POST,
         JOBS_SEARCH_URL,
         json={1: "annotation_job_1"},
+        status=200,
+        headers=TEST_HEADERS,
+    )
+    responses.add(
+        responses.GET,
+        re.compile(f"{USERS_SEARCH_URL}/\\w+"),
+        json=USERS_SEARCH_RESPONSE,
         status=200,
         headers=TEST_HEADERS,
     )

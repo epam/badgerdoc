@@ -54,11 +54,14 @@ class NameSchema(BaseModel):
     name: str = Field(None, example="NameOfJobOrFile")
 
 
-class ExpandedManualAnnotationTaskSchema(TaskStatusSchema):
-    pages: Set[int] = Field(
-        ..., ge=1, min_items=1, example={1, 2, 3}
-    )  # type: ignore
+class UserSchema(BaseModel):
     user_id: UUID = Field(..., example="3082242e-15e3-4e18-aad0-e3bf182b8550")
+    login: str = Field(..., example="user_login")
+
+
+class ExpandedManualAnnotationTaskSchema(TaskStatusSchema):
+    pages: Set[int] = Field(..., ge=1, min_items=1, example={1, 2, 3})  # type: ignore
+    user: UserSchema
     is_validation: bool = Field(default=False, example=False)
     deadline: Optional[datetime] = Field(None, example="2021-10-19 01:01:01")
     file: NameSchema
