@@ -5,7 +5,7 @@ from logging.config import fileConfig
 from sqlalchemy import engine_from_config, pool
 
 from alembic import context
-from tests.test_helpers import get_test_db_url
+from jobs.utils import get_test_db_url
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

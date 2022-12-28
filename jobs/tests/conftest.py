@@ -21,7 +21,7 @@ import jobs.main as main
 import jobs.schemas as schemas
 from alembic import command
 from alembic.config import Config
-from tests.test_helpers import get_test_db_url
+from jobs.utils import get_test_db_url
 
 main_database_url = os.environ.get("POSTGRESQL_JOBMANAGER_DATABASE_URI")
 test_db_url = get_test_db_url(main_database_url)

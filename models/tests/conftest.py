@@ -25,7 +25,7 @@ from src.constants import (
 from src.db import Base, Basement, Training, get_db
 from src.main import app
 from src.routers import tenant
-from tests.utils import get_test_db_url
+from src.utils import get_test_db_url
 
 from .override_app_dependency import override
 from .test_colab_start_training import (

@@ -21,7 +21,7 @@ from app.microservice_communication.search import (
     HEADER_TENANT,
 )
 from app.token_dependency import TOKEN
-from tests.utils import get_test_db_url
+from app.utils import get_test_db_url
 from app.database import SQLALCHEMY_DATABASE_URL
 
 
