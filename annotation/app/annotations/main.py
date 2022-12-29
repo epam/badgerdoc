@@ -417,6 +417,7 @@ def check_docs_identity(
         and set(latest_doc.validated) == new_doc.validated
         and set(latest_doc.failed_validation_pages)
         == new_doc.failed_validation_pages
+        and latest_doc.categories == new_doc.categories
     )
 
 

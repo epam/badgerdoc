@@ -1460,8 +1460,28 @@ def test_upload_pages_to_minio(mock_minio_empty_bucket):
                 failed_validation_pages=set(),
                 tenant=POST_ANNOTATION_FILE_1.tenant,
                 task_id=POST_ANNOTATION_PG_TASK_1.id,
+                categories=[],
             ),
             True,
+        ),
+        (
+            # empty annotation and not empty doc categories
+            POST_ANNOTATION_PG_DOC,
+            AnnotatedDoc(
+                revision="29fe52cce6a632c6eb09fdc5b3e1594f926eea69",
+                user=POST_ANNOTATION_ANNOTATOR.user_id,
+                pipeline=None,
+                date=FIRST_DATE,
+                file_id=POST_ANNOTATION_FILE_1.file_id,
+                job_id=POST_ANNOTATION_JOB_1.job_id,
+                pages={"1": SHA_FIRST_PAGE},
+                validated={1},
+                failed_validation_pages=set(),
+                tenant=POST_ANNOTATION_FILE_1.tenant,
+                task_id=POST_ANNOTATION_PG_TASK_1.id,
+                categories=["foo", "bar"],
+            ),
+            False,
         ),
         (
             # if latest doc is None, revisions are not identical
