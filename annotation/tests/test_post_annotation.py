@@ -836,6 +836,34 @@ ANNOTATED_DOCS_FOR_MANIFEST_CREATION = {
             tenant=POST_ANNOTATION_PG_DOC.tenant,
         ),
     ),
+    "docs_with_categories": (
+        AnnotatedDoc(
+            revision="20fe52cce6a632c6eb09fdc5b3e1594f926eea69",
+            user=POST_ANNOTATION_ANNOTATOR.user_id,
+            pipeline=None,
+            date=SECOND_DATE,
+            file_id=POST_ANNOTATION_FILE_1.file_id,
+            job_id=POST_ANNOTATION_JOB_1.job_id,
+            pages={"2": PAGES_SHA["2"]},
+            validated=[1, 2],
+            failed_validation_pages=[],
+            tenant=POST_ANNOTATION_PG_DOC.tenant,
+            categories=["foo", "bar"],
+        ),
+        AnnotatedDoc(
+            revision="21fe52cce6a632c6eb09fdc5b3e1594f926eea69",
+            user=POST_ANNOTATION_ANNOTATOR.user_id,
+            pipeline=None,
+            date=SECOND_DATE,
+            file_id=POST_ANNOTATION_FILE_1.file_id,
+            job_id=POST_ANNOTATION_JOB_1.job_id,
+            pages={},
+            validated=[],
+            failed_validation_pages=[1],
+            tenant=POST_ANNOTATION_PG_DOC.tenant,
+            categories=["baz", "42"],
+        ),
+    ),
 }
 
 ANNOTATED_DOC_WITH_MERGE_CONFLICT = {
@@ -1538,6 +1566,7 @@ def test_check_docs_identity(latest_doc, new_doc, expected_result):
                 "pages": {},
                 "validated": [1],
                 "failed_validation_pages": [],
+                "categories": [],
             },
         ),  # revision contains only validated page.
         # manifest will be like:
@@ -1556,6 +1585,7 @@ def test_check_docs_identity(latest_doc, new_doc, expected_result):
                 "pages": POST_ANNOTATION_PG_DOC.pages,
                 "validated": POST_ANNOTATION_PG_DOC.validated,
                 "failed_validation_pages": [],
+                "categories": [],
             },
         ),  # revision contains pages, that have been validated
         # manifest will be like:
@@ -1576,6 +1606,7 @@ def test_check_docs_identity(latest_doc, new_doc, expected_result):
                 "pages": POST_ANNOTATION_PG_DOC.pages,
                 "validated": [],
                 "failed_validation_pages": [],
+                "categories": [],
             },
         ),  # user's revision contains pages, that have not been validated yet
         # validated and failed_validations_pages are empty
@@ -1597,12 +1628,33 @@ def test_check_docs_identity(latest_doc, new_doc, expected_result):
                 "pages": POST_ANNOTATION_PG_DOC.pages,
                 "validated": [],
                 "failed_validation_pages": [],
+                "categories": [],
             },
         ),  # pipeline's revision contains pages, that have not been validated
         # manifest will be like:
         # pages: from revision
         # validated: empty
         # failed_validation_pages: empty
+        (
+            ANNOTATED_DOCS_FOR_MANIFEST_CREATION.get("docs_with_categories")[
+                0
+            ],
+            "path/to/file",
+            "bucket-of-phys-file",
+            {
+                "revision": "20fe52cce6a632c6eb09fdc5b3e1594f926eea69",
+                "user": "6ffab2dd-3605-46d4-98a1-2d20011e132d",
+                "pipeline": None,
+                "job_id": 1,
+                "pages": {"2": "b922f25f41b0d7a0f3226f077ba0745e540818f7"},
+                "validated": [1, 2],
+                "failed_validation_pages": [],
+                "categories": [
+                    {"type": "taxonomy", "value": "foo"},
+                    {"type": "taxonomy", "value": "bar"},
+                ],
+            },
+        ),
     ],
 )
 def test_create_manifest_json_first_upload(
@@ -1667,6 +1719,7 @@ def test_create_manifest_json_first_upload(
                 },
                 "validated": [1, 2],
                 "failed_validation_pages": [],
+                "categories": [],
             },
         ),  # 1st and 2nd revisions contains pages, that have been validated
         # failed_validation array is empty
@@ -1687,6 +1740,7 @@ def test_create_manifest_json_first_upload(
                 "pages": POST_ANNOTATION_PG_DOC.pages,
                 "validated": [],
                 "failed_validation_pages": [1],
+                "categories": [],
             },
         ),  # 1st revision contains page "1" in 2nd revision no pages provided
         # but page from 1st revision in 2nd revision's failed list
@@ -1707,6 +1761,7 @@ def test_create_manifest_json_first_upload(
                 "pages": {**POST_ANNOTATION_PG_DOC.pages, "2": PAGES_SHA["2"]},
                 "validated": [2],
                 "failed_validation_pages": [1],
+                "categories": [],
             },
         ),  # 1st revision contains page and validated page
         # 2nd contains page, validated page, but in failed_validation_pages
@@ -1732,6 +1787,7 @@ def test_create_manifest_json_first_upload(
                 },
                 "validated": [2, 3],
                 "failed_validation_pages": [1],
+                "categories": [],
             },
         ),  # 1st revision contains two pages and validated page
         # 2nd contains page, validated page, and
@@ -1753,6 +1809,7 @@ def test_create_manifest_json_first_upload(
                 "pages": {"1": HASH_OF_DIFF_FIRST_PAGE},
                 "validated": [1],
                 "failed_validation_pages": [],
+                "categories": [],
             },
         ),  # 1st revision contains page and validated page
         # failed_validation_pages is empty
@@ -1779,6 +1836,7 @@ def test_create_manifest_json_first_upload(
                 "pages": {"1": HASH_OF_DIFF_FIRST_PAGE},
                 "validated": [],
                 "failed_validation_pages": [],
+                "categories": [],
             },
         ),  # 1st revision contains page, that have not been validated yet
         # failed_validations_pages is empty
@@ -1788,6 +1846,27 @@ def test_create_manifest_json_first_upload(
         # pages: same page number but from latest revision
         # validated: empty
         # failed_validation_pages: empty
+        (
+            ANNOTATED_DOCS_FOR_MANIFEST_CREATION.get("docs_with_categories"),
+            ANNOTATED_DOCS_FOR_MANIFEST_CREATION.get("docs_with_categories")[
+                1
+            ],
+            "path/to/file",
+            "bucket-of-phys-file",
+            {
+                "revision": "21fe52cce6a632c6eb09fdc5b3e1594f926eea69",
+                "user": "6ffab2dd-3605-46d4-98a1-2d20011e132d",
+                "pipeline": None,
+                "job_id": 1,
+                "pages": {"2": "b922f25f41b0d7a0f3226f077ba0745e540818f7"},
+                "validated": [2],
+                "failed_validation_pages": [1],
+                "categories": [
+                    {"type": "taxonomy", "value": "baz"},
+                    {"type": "taxonomy", "value": "42"},
+                ],
+            },
+        ),
     ],
     indirect=["prepare_db_for_manifest_creation_with_several_records"],
 )
