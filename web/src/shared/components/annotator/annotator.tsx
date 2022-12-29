@@ -136,6 +136,7 @@ export const Annotator: FC<AnnotatorProps> = ({
         selectedAnnotation,
         fileMetaInfo,
         onLinkDeleted,
+        onSplitLinkSelected,
         selectedTool,
         setSelectedTool,
         selectedToolParams,
@@ -597,6 +598,7 @@ export const Annotator: FC<AnnotatorProps> = ({
                 annotations={annotations}
                 categories={categories}
                 onLinkDeleted={onLinkDeleted}
+                onLinkSelected={onSplitLinkSelected}
                 pageNum={page}
             />
         </div>
@@ -607,6 +609,7 @@ interface LinksLayerProps {
     annotations: Annotation[];
     categories?: Category[];
     onLinkDeleted: (pageNum: number, annotationId: string | number, link: Link) => void;
+    onLinkSelected: (fromOriginalAnnotationId: string | number, originalLink: Link) => void;
     pageNum: number;
 }
 
@@ -614,6 +617,7 @@ const LinksLayer = function LinksLayer({
     annotations,
     categories,
     onLinkDeleted,
+    onLinkSelected,
     pageNum
 }: LinksLayerProps) {
     const ref = useRef<HTMLDivElement>(null);
@@ -641,6 +645,7 @@ const LinksLayer = function LinksLayer({
                             linkType={pointSet.type}
                             reversed={pointSet.finish.id === ann.id}
                             onDeleteLink={() => onLinkDeleted(pageNum, ann.id, pointSet.link)}
+                            onLinkSelect={() => onLinkSelected(ann.id, pointSet.link)}
                         />
                     );
                 });

@@ -397,7 +397,6 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         const newAnnotation = createAnnotation(pageNum, annData, category);
 
         updateUndoList(pageNum, cloneDeep(annData), 'add');
-
         return newAnnotation;
     };
 
@@ -1009,7 +1008,9 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         fileId: getFileId(),
         isValidation: task?.is_validation,
         job,
+        validatorAnnotations: allAnnotations,
         onAnnotationCreated,
+        onAnnotationEdited,
         onAddTouchedPage,
         setSelectedAnnotation,
         setValidPages,

@@ -1,6 +1,6 @@
 import { AnnotationsByUserObj, useLatestAnnotationsByUser } from 'api/hooks/annotations';
 import { useJobById } from 'api/hooks/jobs';
-import { Category } from 'api/typings';
+import { Category, Link } from 'api/typings';
 import { Job } from 'api/typings/jobs';
 import { cloneDeep } from 'lodash';
 import { useCallback, useMemo } from 'react';
@@ -15,11 +15,17 @@ interface SplitValidationParams {
     fileId?: number;
     isValidation?: boolean;
     job?: Job;
+    validatorAnnotations: Record<number, Annotation[]>;
     onAnnotationCreated: (
         pageNum: number,
         annotation: Annotation,
         category?: Category
     ) => Annotation;
+    onAnnotationEdited: (
+        pageNum: number,
+        annotationId: string | number,
+        changes: Partial<Annotation>
+    ) => void;
     onAddTouchedPage: () => void;
     setSelectedAnnotation: (ann: Annotation | undefined) => void;
     setValidPages: (pages: number[]) => void;
@@ -31,6 +37,7 @@ export interface SplitValidationValue {
     userPages: AnnotationsByUserObj[];
     annotationsByUserId: Record<string, Annotation[]>;
     onSplitAnnotationSelected: (scale: number, userId: string, annotation?: Annotation) => void;
+    onSplitLinkSelected: (fromOriginalAnnotationId: string | number, originalLink: Link) => void;
 }
 
 export default function useSplitValidation({
@@ -39,7 +46,9 @@ export default function useSplitValidation({
     fileId,
     isValidation,
     job,
+    validatorAnnotations,
     onAnnotationCreated,
+    onAnnotationEdited,
     onAddTouchedPage,
     setSelectedAnnotation,
     setValidPages,
@@ -90,7 +99,11 @@ export default function useSplitValidation({
                 return;
             }
 
-            const copy = cloneDeep(originalAnn);
+            const copy = {
+                ...cloneDeep(originalAnn),
+                links: [],
+                originalAnnotationId: Number(originalAnn.id)
+            };
             copy.id = Date.now();
 
             const newAnn = onAnnotationCreated(currentPage, copy, category);
@@ -101,12 +114,33 @@ export default function useSplitValidation({
         [categories, onAnnotationCreated]
     );
 
+    const onSplitLinkSelected = useCallback(
+        (fromOriginalAnnotationId: string | number, originalLink: Link) => {
+            const fromUserAnnotation = validatorAnnotations[currentPage].find(
+                (annotation) => annotation.originalAnnotationId === fromOriginalAnnotationId
+            );
+            const toUserAnnotation = validatorAnnotations[currentPage].find(
+                (annotation) => annotation.originalAnnotationId === originalLink.to
+            );
+
+            if (fromUserAnnotation && toUserAnnotation) {
+                const fromUserLinks = fromUserAnnotation.links ?? [];
+
+                onAnnotationEdited(currentPage, fromUserAnnotation.id, {
+                    links: [...fromUserLinks, { ...originalLink, to: toUserAnnotation.id }]
+                });
+            }
+        },
+        [validatorAnnotations]
+    );
+
     return useMemo(
         () => ({
             annotationsByUserId,
             isSplitValidation,
             job,
             onSplitAnnotationSelected,
+            onSplitLinkSelected,
             userPages
         }),
         [
@@ -114,8 +148,10 @@ export default function useSplitValidation({
             isSplitValidation,
             job,
             onSplitAnnotationSelected,
+            onSplitLinkSelected,
             onAddTouchedPage,
-            userPages
+            userPages,
+            validatorAnnotations
         ]
     );
 }

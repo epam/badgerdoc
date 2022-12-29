@@ -195,9 +195,9 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
 
     const disableSave = useMemo(() => {
         return (
-            (isValidation && touchedPages.length === 0) ||
-            !isAnnotatable ||
-            (!isValidation && modifiedPages.length === 0)
+            (isValidation && !splitValidation && touchedPages.length === 0) ||
+            ((!isValidation || splitValidation) && modifiedPages.length === 0) ||
+            !isAnnotatable
         );
     }, [validPages, invalidPages, touchedPages, modifiedPages, editedPages]);
 
