@@ -25,6 +25,14 @@ type UseJobsParamsType = {
     filters?: Array<Filter<keyof Job>>;
 };
 
+type CategoryWithTaxonomy = {
+    category_id: string;
+    taxonomy_id: string;
+    taxonomy_version: number;
+};
+
+type JobVariablesCategory = string | number | CategoryWithTaxonomy;
+
 export type JobVariables = {
     name: string | undefined;
     files: string[] | number[];
@@ -35,7 +43,7 @@ export type JobVariables = {
     is_draft: boolean;
     is_auto_distribution?: boolean;
     start_manual_job_automatically?: boolean;
-    categories?: number[] | string[] | undefined;
+    categories?: JobVariablesCategory[] | undefined;
     deadline?: string;
     validation_type?: ValidationType;
     annotators?: string[];

@@ -172,6 +172,19 @@ const AddJobConnector: FC<AddJobConnectorProps> = ({
             if (!values.pipeline) {
                 delete jobProps.start_manual_job_automatically;
             }
+            if (values.selected_taxonomies) {
+                jobProps.categories?.forEach((categoryId, index) => {
+                    const currentTaxonomy =
+                        values.selected_taxonomies![categoryId as string | number];
+                    if (currentTaxonomy) {
+                        jobProps.categories![index] = {
+                            category_id: categoryId?.toString(),
+                            taxonomy_id: currentTaxonomy.id,
+                            taxonomy_version: currentTaxonomy.version!
+                        };
+                    }
+                });
+            }
             try {
                 const response = await addJobMutation.mutateAsync(jobProps);
                 values.addedJobId = response.id;

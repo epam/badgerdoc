@@ -248,6 +248,7 @@ export interface Taxonomy {
     id: string;
     name: string;
     taxons: BaseTaxon[];
+    version?: number;
 }
 
 export type CategoryRelatedTaxonomies = {
