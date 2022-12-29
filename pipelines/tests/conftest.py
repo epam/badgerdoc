@@ -1,61 +1,56 @@
-import time
-import uuid
+import os
 from unittest.mock import patch
 
 import pytest
 from fastapi.testclient import TestClient
 from pydantic import BaseModel
-from sqlalchemy import create_engine, Column, String, JSON
+from sqlalchemy import create_engine
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy_utils import create_database, drop_database
+from sqlalchemy_utils import create_database, database_exists, drop_database
+
 import src.app as app
 import src.db.models as dbm
 import src.db.service as service
 import src.execution as execution
 import tests.testing_data as td
+from alembic import command
+from alembic.config import Config
+from src.config import DB_URI
+
+test_db_url = service.get_test_db_url(DB_URI)
+alembic_cfg = Config("alembic.ini")
+
+
+@pytest.fixture()
+def use_temp_env_var():
+    with patch.dict(os.environ, {"USE_TEST_DB": "1"}):
+        yield
 
 
 @pytest.fixture
 def testing_engine():
-    url = "sqlite:///test.db"
-    engine = create_engine(url, connect_args={"check_same_thread": False})
-    # Replace postgres columns such UUID and JSONB for sqlite compatible.
-    dbm.Base.metadata.tables["pipeline_execution_task"].append_column(
-        Column("runner_id", String(36))
-    )
-    dbm.Base.metadata.tables["execution_step"].append_column(
-        Column("step_id", String(36))
-    )
-    dbm.Base.metadata.tables["execution_step"].append_column(
-        Column("parent_step", String(36))
-    )
-    dbm.Base.metadata.tables["heartbeat"].append_column(
-        Column(
-            "id",
-            String(36),
-            primary_key=True,
-            default=lambda: str(uuid.uuid4()),
-        )
-    )
-    dbm.Base.metadata.tables["main_event_log"].append_column(
-        Column("runner_id", String(36))
-    )
-    dbm.Base.metadata.tables["main_event_log"].append_column(
-        Column("event", JSON(none_as_null=True))
-    )
+    engine = create_engine(test_db_url)
     yield engine
-    for _ in range(20):
-        try:
-            drop_database(url)
-            break
-        except PermissionError:
-            time.sleep(0.001)
 
 
 @pytest.fixture
-def testing_session(testing_engine):
-    create_database(testing_engine.url)
-    dbm.Base.metadata.create_all(bind=testing_engine)
+def setup_test_db(testing_engine):
+    if not database_exists(testing_engine.url):
+        create_database(testing_engine.url)
+
+    try:
+        command.upgrade(alembic_cfg, "head")
+    except SQLAlchemyError as e:
+        raise SQLAlchemyError(f"Got an Exception during migrations - {e}")
+
+    yield
+
+    drop_database(test_db_url)
+
+
+@pytest.fixture
+def testing_session(use_temp_env_var, testing_engine, setup_test_db):
     LocalSession = sessionmaker(bind=testing_engine)
     session = LocalSession()
     try:
@@ -75,8 +70,6 @@ def setup_token():
 
 @pytest.fixture
 def testing_app(testing_engine, testing_session, setup_token):
-    create_database(testing_engine.url)
-    dbm.Base.metadata.create_all(bind=testing_engine)
     session = sessionmaker(bind=testing_engine)
     app.app.dependency_overrides[app.TOKEN] = lambda: setup_token
     with patch("src.db.service.LocalSession", session):
