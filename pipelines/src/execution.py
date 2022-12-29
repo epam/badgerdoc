@@ -269,7 +269,7 @@ class PipelineTask(BaseModel):
         tenant = s3.tenant_from_bucket(args.get_output_bucket())
         if pipeline_type == schemas.PipelineTypes.INFERENCE:
             preprecessing_passed = await self.check_preprocessing_status(
-                bucket
+                tenant
             )
             if not preprecessing_passed:
                 return

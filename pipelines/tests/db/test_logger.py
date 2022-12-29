@@ -1,4 +1,5 @@
 """Testing src/db/logger.py."""
+import uuid
 
 import sqlalchemy.event
 
@@ -26,7 +27,8 @@ def test_create_log(testing_session):
 
 def test_log_after_insert(testing_session):
     """Testing log_after_insert."""
-    runner.runner_id = "foo-bar-baz"
+    generated_random_runner_uuid = str(uuid.uuid4())
+    runner.runner_id = generated_random_runner_uuid
     pipeline = models.Pipeline(
         name="foo",
         version=1,
@@ -42,13 +44,14 @@ def test_log_after_insert(testing_session):
     )
     result = testing_session.query(models.MainEventLog).all()
     assert len(result) == 1
-    assert result[0].runner_id == "foo-bar-baz"
+    assert result[0].runner_id == generated_random_runner_uuid
     assert result[0].event == log.dict()
 
 
 def test_log_after_delete(testing_session):
     """Testing log_after_delete."""
-    runner.runner_id = "foo-bar-baz"
+    generated_random_runner_uuid = str(uuid.uuid4())
+    runner.runner_id = generated_random_runner_uuid
     pipeline = models.Pipeline(
         name="foo",
         version=1,
@@ -66,16 +69,17 @@ def test_log_after_delete(testing_session):
     )
     result = testing_session.query(models.MainEventLog).all()
     assert len(result) == 2
-    assert result[1].runner_id == "foo-bar-baz"
+    assert result[1].runner_id == generated_random_runner_uuid
     assert result[1].event == log.dict()
 
 
 def test_log_after_update(testing_session):
     """Testing log_after_update."""
+    generated_random_runner_uuid = str(uuid.uuid4())
     sqlalchemy.event.listen(
         testing_session, "after_bulk_update", logger.log_after_update
     )
-    runner.runner_id = "foo-bar-baz"
+    runner.runner_id = generated_random_runner_uuid
     pipeline = models.Pipeline(
         name="foo",
         version=1,
@@ -93,5 +97,5 @@ def test_log_after_update(testing_session):
     )
     result = testing_session.query(models.MainEventLog).all()
     assert len(result) == 2
-    assert result[1].runner_id == "foo-bar-baz"
+    assert result[1].runner_id == generated_random_runner_uuid
     assert result[1].event == log.dict()
