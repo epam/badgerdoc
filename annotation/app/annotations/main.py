@@ -246,6 +246,12 @@ def create_manifest_json(
     manifest["failed_validation_pages"] = list(failed_validation)
     manifest["file"] = s3_file_path
     manifest["bucket"] = s3_file_bucket
+    # TODO: hardcoded dictionary for now, has to be changed with
+    #  future releases on pair with AnnotatedDoc.categories;
+    #  Saved categories in manifest are not used, we fetch them from db.
+    manifest["categories"] = [
+        {"type": "taxonomy", "value": cat} for cat in doc.categories or []
+    ]
 
     manifest_json = json.dumps(manifest)
     upload_json_to_minio(
