@@ -112,6 +112,22 @@ def _prepare_expanded_tasks_response(
     """
     file_names = get_file_names(list(file_ids), tenant, token)
     job_names = collect_job_names(db, list(job_ids), tenant, token)
+    return expand_response(tasks, file_names, job_names)
+
+
+def _prepare_expanded_tasks_response(
+    db: Session,
+    file_ids: List[int],
+    job_ids: List[int],
+    tasks: List[ManualAnnotationTask],
+    tenant: str,
+    token: str,
+) -> List[ExpandedManualAnnotationTaskSchema]:
+    """
+    Get names of files, jobs, logins and add them to manual annotation tasks.
+    """
+    file_names = get_file_names(list(file_ids), tenant, token)
+    job_names = collect_job_names(db, list(job_ids), tenant, token)
     user_logins = get_user_logins(tasks, tenant, token)
     return expand_response(tasks, file_names, job_names, user_logins)
 

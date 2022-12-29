@@ -1,3 +1,4 @@
+import re
 from unittest.mock import Mock, patch
 
 import pytest
@@ -15,6 +16,7 @@ from app.microservice_communication.search import (
     BEARER,
     HEADER_TENANT,
 )
+from app.microservice_communication.user import USERS_SEARCH_URL
 from app.models import Category, File, Job, ManualAnnotationTask, User
 from app.schemas import (
     CategoryTypeSchema,
@@ -27,6 +29,7 @@ from tests.override_app_dependency import (
     TEST_TOKEN,
     app,
 )
+from tests.test_tasks_crud_cr import USERS_SEARCH_RESPONSE
 
 client = TestClient(app)
 
@@ -302,17 +305,53 @@ def test_post_next_task_404_error(
     assert "Can't find working tasks for user" in response.text
 
 
+EXPANDED_NEXT_TASK_RESPONSES_WITH_USER = [
+    dict(
+        id=2,
+        pages=[1, 2, 3],
+        user={'id': ANNOTATORS[0].user_id, 'name': 'admin'},
+        is_validation=False,
+        status=TaskStatusEnumSchema.in_progress,
+        deadline=None,
+        file={
+            "id": FILE.file_id,
+            "name": FILES_FROM_ASSETS[0]["original_name"],
+        },
+        job={
+            "id": NEXT_TASK_JOB.job_id,
+            "name": JOBS_FROM_JOBS_SERVICE["data"][0]["name"],
+        },
+    ),
+    dict(
+        id=4,
+        pages=[1, 2, 3],
+        user={'id': ANNOTATORS[1].user_id, 'name': 'admin'},
+        is_validation=False,
+        status=TaskStatusEnumSchema.in_progress,
+        deadline=None,
+        file={
+            "id": FILE.file_id,
+            "name": FILES_FROM_ASSETS[0]["original_name"],
+        },
+        job={
+            "id": NEXT_TASK_JOB.job_id,
+            "name": JOBS_FROM_JOBS_SERVICE["data"][0]["name"],
+        },
+    ),
+]
+
+
 @pytest.mark.integration
 @pytest.mark.parametrize(
     ["user_id", "expected_response"],
     [
         (
             ANNOTATORS[0].user_id,
-            EXPANDED_NEXT_TASK_RESPONSES[0],
+            EXPANDED_NEXT_TASK_RESPONSES_WITH_USER[0],
         ),
         (
             ANNOTATORS[1].user_id,
-            EXPANDED_NEXT_TASK_RESPONSES[1],
+            EXPANDED_NEXT_TASK_RESPONSES_WITH_USER[1],
         ),
     ],
 )
@@ -328,6 +367,13 @@ def test_post_next_task(
         json=ASSETS_RESPONSE,
         headers=TEST_HEADERS,
         status=200,
+    )
+    responses.add(
+        responses.GET,
+        re.compile(f"{USERS_SEARCH_URL}/\\w+"),
+        json=USERS_SEARCH_RESPONSE,
+        status=200,
+        headers=TEST_HEADERS,
     )
     response = client.post(
         POST_NEXT_TASK_PATH,

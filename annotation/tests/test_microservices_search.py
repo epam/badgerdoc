@@ -156,7 +156,7 @@ TASKS = [
         file_id=2,
         pages=[1],
         job_id=2,
-        user_id="7b626e68-857d-430a-b65b-bba0a40417ee",
+        user_id="7b626e68-857d-430a-b65b-bba0a40417ea",
         is_validation=True,
         status=TaskStatusEnumSchema.pending,
         deadline=None,
@@ -166,17 +166,23 @@ TASKS = [
         file_id=10,
         pages=[1],
         job_id=10,
-        user_id="7b626e68-857d-430a-b65b-bba0a40417ee",
+        user_id="7b626e68-857d-430a-b65b-bba0a40417eb",
         is_validation=True,
         status=TaskStatusEnumSchema.pending,
         deadline=None,
     ),
 ]
+USER_LOGINS = {
+    TASKS[0].user_id: "test1",
+    "7b626e68-857d-430a-b65b-bba0a40417ee": "test1",
+    "7b626e68-857d-430a-b65b-bba0a40417ea": "test2",
+    "7b626e68-857d-430a-b65b-bba0a40417eb": "test3"
+}
 EXPANDED_TASKS = [
     ExpandedManualAnnotationTaskSchema(
         id=TASKS[0].id,
         pages=[1],
-        user={"user_id": TASKS[0].user_id, "login": "test0"},
+        user={"id": TASKS[0].user_id, "name": "test1"},
         is_validation=True,
         status=TaskStatusEnumSchema.pending,
         deadline=None,
@@ -187,8 +193,8 @@ EXPANDED_TASKS = [
         id=TASKS[1].id,
         pages=[1],
         user={
-            "user_id": "7b626e68-857d-430a-b65b-bba0a40417ee",
-            "login": "test1",
+            "id": "7b626e68-857d-430a-b65b-bba0a40417ee",
+            "name": "test1",
         },
         is_validation=True,
         status=TaskStatusEnumSchema.pending,
@@ -200,8 +206,8 @@ EXPANDED_TASKS = [
         id=TASKS[2].id,
         pages=[1],
         user={
-            "user_id": "7b626e68-857d-430a-b65b-bba0a40417ee",
-            "login": "test2",
+            "id": "7b626e68-857d-430a-b65b-bba0a40417ea",
+            "name": "test2",
         },
         is_validation=True,
         status=TaskStatusEnumSchema.pending,
@@ -213,8 +219,8 @@ EXPANDED_TASKS = [
         id=TASKS[3].id,
         pages=[1],
         user={
-            "user_id": "7b626e68-857d-430a-b65b-bba0a40417ee",
-            "login": "test3",
+            "id": "7b626e68-857d-430a-b65b-bba0a40417eb",
+            "name": "test3",
         },
         is_validation=True,
         status=TaskStatusEnumSchema.pending,
@@ -251,7 +257,7 @@ def test_construct_dataset_params(page, ids, expected_result):
 
 @pytest.mark.unittest
 def test_expand_response():
-    actual_result = expand_response(TASKS, FILE_NAMES, JOB_NAMES)
+    actual_result = expand_response(TASKS, FILE_NAMES, JOB_NAMES, USER_LOGINS)
     assert actual_result == EXPANDED_TASKS
 
 

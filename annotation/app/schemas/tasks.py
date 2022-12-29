@@ -55,8 +55,8 @@ class NameSchema(BaseModel):
 
 
 class UserSchema(BaseModel):
-    user_id: UUID = Field(..., example="3082242e-15e3-4e18-aad0-e3bf182b8550")
-    login: str = Field(..., example="user_login")
+    id: UUID = Field(..., example="3082242e-15e3-4e18-aad0-e3bf182b8550")
+    name: str = Field(..., example="user_login")
 
 
 class ExpandedManualAnnotationTaskSchema(TaskStatusSchema):
