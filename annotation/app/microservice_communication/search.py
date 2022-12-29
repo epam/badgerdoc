@@ -195,8 +195,8 @@ def expand_response(
             "name": job_names.get(task.job_id, None),
         }
         response_task["user"] = {
-            "id": response_task.get("user_id"),
-            "name": user_logins.get(response_task.get("user_id")),
+            "id": str(task.user_id),
+            "name": user_logins.get(task.user_id),
         }
         response.append(ExpandedManualAnnotationTaskSchema(**response_task))
     return response

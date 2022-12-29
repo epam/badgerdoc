@@ -1,9 +1,10 @@
 import os
-from typing import List, Union, Dict
+from typing import Dict, List, Union
 
 import requests
 from dotenv import find_dotenv, load_dotenv
 from requests import RequestException
+
 from app.models import ManualAnnotationTask
 
 load_dotenv(find_dotenv())
@@ -26,7 +27,9 @@ def get_response(callback_url: str, user_id: str, tenant: str, token: str):
             timeout=5,
         )
         if user_response.status_code != 200:
-            raise GetUserInfoException(user_response.text)
+            raise GetUserInfoException(
+                f"Failed request to 'users' microservice: {user_response.text}"
+            )
         return user_response.json().get("username")
     except RequestException as exc:
         raise GetUserInfoException(exc)
@@ -38,7 +41,7 @@ def get_user_logins(
     """
     Return list of logins for provided tasks from users microservice.
     """
-    user_ids = [_.user_id for _ in tasks]
+    user_ids = [task.user_id for task in tasks]
     return {
         str(user_id): get_response(USERS_SEARCH_URL, user_id, tenant, token)
         for user_id in user_ids
