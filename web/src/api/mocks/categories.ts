@@ -2,14 +2,92 @@ import { Category } from 'api/typings';
 
 export const categories: Category[] = [
     {
-        name: 'Child1',
+        name: 'Category_1',
         parent: 'Parent',
         metadata: {
             color: '#4200ff'
         },
-        type: 'box',
+        type: 'document',
         data_attributes: null,
-        id: 'Child1',
+        id: 'Category_1_id',
+        parents: [
+            {
+                name: 'Parent',
+                parent: null,
+                metadata: {
+                    color: '#ff0000'
+                },
+                type: 'box',
+                data_attributes: null,
+                id: 'Parent',
+                isLeaf: false
+            }
+        ],
+        isLeaf: false
+    },
+    {
+        name: 'Category_2',
+        parent: 'Parent',
+        metadata: {
+            color: '#4200ff'
+        },
+        type: 'document',
+        data_attributes: [
+            {
+                name: 'taxonomy_id1_cat2',
+                type: 'taxonomy'
+            },
+            {
+                name: 'taxonomy_id2_cat2',
+                type: 'taxonomy'
+            },
+            {
+                name: 'taxonomy_id2_cat2',
+                type: 'taxonomy'
+            },
+            {
+                name: 'text_name',
+                type: 'text'
+            }
+        ],
+        id: 'Category_2_id',
+        parents: [
+            {
+                name: 'Parent',
+                parent: null,
+                metadata: {
+                    color: '#ff0000'
+                },
+                type: 'box',
+                data_attributes: null,
+                id: 'Parent',
+                isLeaf: false
+            }
+        ],
+        isLeaf: false
+    },
+    {
+        name: 'Category_3',
+        parent: 'Parent',
+        metadata: {
+            color: '#4200ff'
+        },
+        type: 'document',
+        data_attributes: [
+            {
+                name: 'taxonomy_id1_cat3',
+                type: 'taxonomy'
+            },
+            {
+                name: 'taxonomy_id2_cat3',
+                type: 'taxonomy'
+            },
+            {
+                name: 'taxonomy_id3_cat3',
+                type: 'taxonomy'
+            }
+        ],
+        id: 'Category_3_id',
         parents: [
             {
                 name: 'Parent',

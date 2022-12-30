@@ -40,11 +40,12 @@ export function fileJobsFetcher(fileIds: number[]): Promise<FileJobs[]> {
     })();
 }
 
-export type AnotationsResponse = {
+export type AnnotationsResponse = {
     revision: string;
     pages: PageInfo[];
     validated: number[];
     failed_validation_pages: number[];
+    categories: string[];
     data?: { dataAttributes: CategoryDataAttrType[] };
 };
 
@@ -54,10 +55,10 @@ export type AnnotationsByUserObj = PageInfo & {
     data?: { dataAttributes: CategoryDataAttrType[] };
 };
 
-export type AnotationsByUserResponse = {
+export type AnnotationsByUserResponse = {
     [page_num: number]: AnnotationsByUserObj[];
 };
-export const useLatestAnnotations: QueryHookType<LatestAnnotationsParams, AnotationsResponse> = (
+export const useLatestAnnotations: QueryHookType<LatestAnnotationsParams, AnnotationsResponse> = (
     { jobId, fileId, revisionId, pageNumbers, userId },
     options
 ) => {
@@ -70,7 +71,7 @@ export const useLatestAnnotations: QueryHookType<LatestAnnotationsParams, Anotat
 
 export const useLatestAnnotationsByUser: QueryHookType<
     LatestAnnotationsParamsByUser,
-    AnotationsByUserResponse
+    AnnotationsByUserResponse
 > = ({ jobId, fileId, pageNumbers, userId }, options) => {
     return useQuery(
         ['latestAnnotationsByUser', jobId, fileId, pageNumbers, userId],
@@ -123,6 +124,7 @@ type addAnnotationsParams = {
     revision?: string;
     validPages: number[];
     invalidPages: number[];
+    selectedLabelsId?: string[];
 };
 
 export const addAnnotations = async (data: addAnnotationsParams) => {
@@ -131,7 +133,8 @@ export const addAnnotations = async (data: addAnnotationsParams) => {
         pages: data.pages,
         base_revision: data.revision,
         validated: data.validPages,
-        failed_validation_pages: data.invalidPages
+        failed_validation_pages: data.invalidPages,
+        categories: data.selectedLabelsId
     };
     return useBadgerFetch({
         url: `${namespace}/annotation/${data.taskId}`,

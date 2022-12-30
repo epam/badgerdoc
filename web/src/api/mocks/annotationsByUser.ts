@@ -1,6 +1,6 @@
-import { AnotationsByUserResponse } from 'api/hooks/annotations';
+import { AnnotationsByUserResponse } from 'api/hooks/annotations';
 
-export const annotationsByUser: AnotationsByUserResponse = {
+export const annotationsByUser: AnnotationsByUserResponse = {
     '1': [
         {
             page_num: 1,
