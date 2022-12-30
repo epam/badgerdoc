@@ -17,12 +17,12 @@ import { useBadgerFetch } from './api';
 const namespace = process.env.REACT_APP_TAXONOMIES_API_NAMESPACE;
 
 export const useTaxonomies: QueryHookType<QueryHookParamsType<Taxon>, PagedResponse<Taxon>> = (
-    { page, size, searchText, filters, sortConfig },
+    { page, size, searchText, searchField, filters, sortConfig },
     options
 ) => {
     return useQuery(
         ['taxonomies', page, size, searchText, filters, sortConfig],
-        () => taxonomiesFetcher(page, size, searchText, filters, sortConfig),
+        () => taxonomiesFetcher(page, size, searchText, filters, sortConfig, searchField),
         options
     );
 };
@@ -33,14 +33,15 @@ export async function taxonomiesFetcher(
     searchText?: string | null,
     filters?: Filter<keyof Taxon>[],
     sortConfig: Sorting<keyof Taxon> = {
-        field: 'name',
+        field: 'taxonomy_id',
         direction: SortingDirection.ASC
-    }
+    },
+    searchField: keyof Taxon | undefined = 'name'
 ): Promise<PagedResponse<Taxon>> {
     const filtersArr: Filter<keyof Taxon>[] = filters ? [...filters] : [];
     if (searchText) {
         filtersArr.push({
-            field: 'name',
+            field: searchField,
             operator: Operators.ILIKE,
             value: `%${searchText.trim().toLowerCase()}%`
         });

@@ -40,12 +40,13 @@ export function fileJobsFetcher(fileIds: number[]): Promise<FileJobs[]> {
     })();
 }
 
-export type AnotationsResponse = {
+export type AnnotationsResponse = {
     revision: string;
     pages: PageInfo[];
     validated: number[];
     failed_validation_pages: number[];
     data?: { dataAttributes: CategoryDataAttrType[] };
+    categories: string[];
 };
 
 export type AnnotationsByUserObj = PageInfo & {
@@ -57,7 +58,7 @@ export type AnnotationsByUserObj = PageInfo & {
 export type AnotationsByUserResponse = {
     [page_num: number]: AnnotationsByUserObj[];
 };
-export const useLatestAnnotations: QueryHookType<LatestAnnotationsParams, AnotationsResponse> = (
+export const useLatestAnnotations: QueryHookType<LatestAnnotationsParams, AnnotationsResponse> = (
     { jobId, fileId, revisionId, pageNumbers, userId },
     options
 ) => {
@@ -123,6 +124,7 @@ type addAnnotationsParams = {
     revision?: string;
     validPages: number[];
     invalidPages: number[];
+    selectedLabelsId?: string[];
 };
 
 export const addAnnotations = async (data: addAnnotationsParams) => {
@@ -131,7 +133,8 @@ export const addAnnotations = async (data: addAnnotationsParams) => {
         pages: data.pages,
         base_revision: data.revision,
         validated: data.validPages,
-        failed_validation_pages: data.invalidPages
+        failed_validation_pages: data.invalidPages,
+        categories: data.selectedLabelsId
     };
     return useBadgerFetch({
         url: `${namespace}/annotation/${data.taskId}`,

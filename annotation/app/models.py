@@ -142,6 +142,16 @@ def default_tree(column_name: str) -> Callable[..., Ltree]:
     return default_function
 
 
+def default_tree(column_name: str) -> Callable[..., Ltree]:
+    def default_function(context) -> Ltree:
+        path = context.current_parameters.get(column_name)
+        if not path or not path.replace("_", "").isalnum():
+            raise ValueError(f"{path} is not a valid Ltree path.")
+        return Ltree(f"{path}")
+
+    return default_function
+
+
 class Category(Base):
     __tablename__ = "categories"
 

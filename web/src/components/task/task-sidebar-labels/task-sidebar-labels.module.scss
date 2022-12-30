@@ -1,0 +1,26 @@
+.container {
+  height: 100%;
+  & > * {
+    margin: 0 0 6px;
+    padding: 5px 26px;
+  }
+}
+
+.search {
+  margin: 0 15px;
+  width: auto;
+}
+
+.header {
+  padding: 10px 16px 5px;
+  font-weight: 500;
+}
+
+.picker_list {
+  height: calc(100% - 70px);
+  & > div {
+    height: 100%;
+    overflow: auto;
+    padding-left: 2px;
+  }
+}

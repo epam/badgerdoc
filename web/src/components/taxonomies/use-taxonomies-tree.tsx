@@ -8,17 +8,21 @@ import { mapTaxons, mapTaxon } from './map-taxonomies';
 interface Props {
     searchText: string;
     taxonomyId?: string;
+    taxonomyFilter?: Filter<keyof Taxon>;
 }
 
-export const useTaxonomiesTree = ({ searchText, taxonomyId }: Props) => {
+export const useTaxonomiesTree = ({ searchText, taxonomyId, taxonomyFilter }: Props) => {
     const [taxonomyNodes, setTaxonomyNodes] = useState<TaxonomyNode[]>([]);
     const [expandNode, setExpandNode] = useState<string>();
 
-    const taxonomyFilter: Filter<keyof Taxon> = {
-        field: 'taxonomy_id',
-        operator: Operators.EQ,
-        value: taxonomyId
-    };
+    if (!taxonomyFilter) {
+        taxonomyFilter = {
+            field: 'taxonomy_id',
+            operator: Operators.EQ,
+            value: taxonomyId
+        };
+    }
+
     const { data: rootCategories } = useTaxonomies(
         {
             page: 1,
@@ -82,5 +86,5 @@ export const useTaxonomiesTree = ({ searchText, taxonomyId }: Props) => {
         }
         return node.children;
     };
-    return { taxonomyNodes, expandNode, onLoadData };
+    return { taxonomyNodes, expandNode, onLoadData, searchResult, rootCategories };
 };
