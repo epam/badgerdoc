@@ -1,4 +1,4 @@
-ARG base_image=818863528939.dkr.ecr.eu-central-1.amazonaws.com/badgerdoc/python_base:0.1.4
+ARG base_image=818863528939.dkr.ecr.eu-central-1.amazonaws.com/badgerdoc/python_base:0.1.7
 FROM ${base_image} as base
 
 RUN apt-get update \
@@ -21,7 +21,7 @@ FROM base as build
 #ENV ROOT_PATH="/api/v1/convert"
 WORKDIR /convert
 COPY src/ /convert/src
-CMD uvicorn src.main:app --host 0.0.0.0 --port 8080
+CMD uvicorn src.main:app --host 0.0.0.0 --port 8080 --reload
 
 
 FROM base as test

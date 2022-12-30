@@ -41,4 +41,3 @@ def pdf_page_to_jpg(
             )
             LOGGER.info("Page %s was removed", num)
             add_to_zip_and_local_remove(str(image_path), zip_file)
-
