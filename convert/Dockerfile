@@ -21,7 +21,7 @@ FROM base as build
 #ENV ROOT_PATH="/api/v1/convert"
 WORKDIR /convert
 COPY src/ /convert/src
-CMD uvicorn src.main:app --host 0.0.0.0 --port 8080 --reload
+CMD uvicorn src.main:app --host 0.0.0.0 --port 8080
 
 
 FROM base as test
