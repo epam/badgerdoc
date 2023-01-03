@@ -16,6 +16,7 @@ class PageSchema(BaseModel):
             {
                 "id": 2,
                 "type": "string",
+                "original_annotation_id": "int",
                 "segmentation": {"segment": "string"},
                 "bbox": [10.2, 123.34, 34.2, 43.4],
                 "tokens": None,
