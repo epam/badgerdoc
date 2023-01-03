@@ -20,7 +20,6 @@ from src.health_check_easy_ocr import health_check_preprocessing
 from src.send_preprocess_results import send_preprocess_result
 from src.tasks import GetLanguagesTask, PreprocessingTask
 from src.text_merge import merge_words_to_paragraph
-from src.utils.aiohttp_utils import http_session
 from src.utils.logger import get_logger
 from src.utils.minio_utils import convert_bucket_name_if_s3prefix
 from src.utils.utils import map_finish_status_for_assets
@@ -33,11 +32,6 @@ app = FastAPI(
 )
 
 tenant = get_tenant_info(url=settings.keycloak_host, algorithm="RS256")
-
-
-@app.on_event("shutdown")
-async def on_shutdown() -> None:
-    await http_session.close()
 
 
 @app.post("/", response_model=schema.AnnotationData)

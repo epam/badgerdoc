@@ -1,3 +1,4 @@
+import json
 import uuid
 
 import pytest
@@ -6,6 +7,24 @@ from fastapi import HTTPException
 
 from src.config import settings
 from src.utils import utils
+
+
+class MockResponse:
+    def __init__(self, text, status):
+        self._text = text
+        self.status = status
+
+    async def text(self):
+        return self._text
+
+    async def __aexit__(self, exc_type, exc, tb):
+        pass
+
+    async def __aenter__(self):
+        return self
+
+    async def json(self):
+        return json.loads(self._text)
 
 
 # -------------------- TESTING list_split -------------------------------
@@ -23,7 +42,7 @@ def test_iterable_split(value, threshold, expected):
     assert utils.split_iterable(value, threshold) == expected
 
 
-# ---------------------TEST get_files_data_from_separate_files-------------------------------
+# ------------TEST get_files_data_from_separate_files-----------------
 @pytest.mark.skip
 @responses.activate
 def test_positive_get_files_data_from_separate_files(jw_token):
@@ -407,7 +426,9 @@ def test_get_files_data_from_separate_files_501_code(jw_token):
         status=501,
     )
     with pytest.raises(HTTPException) as e_info:
-        utils.get_files_data([1234], "testest_execute_pipeline_negativet_tenant", jw_token)
+        utils.get_files_data(
+            [1234], "testest_execute_pipeline_negativet_tenant", jw_token
+        )
 
     assert e_info.value.status_code == 400
 
@@ -415,7 +436,9 @@ def test_get_files_data_from_separate_files_501_code(jw_token):
 # --------------------- TESTING execute_pipeline -------------------------
 @pytest.mark.skip
 @responses.activate
-def test_execute_pipeline_negative(jw_token, files_data_for_pipeline, setup_database):
+def test_execute_pipeline_negative(
+    jw_token, files_data_for_pipeline, db_test_session
+):
 
     responses.add(
         responses.POST,
@@ -431,30 +454,29 @@ def test_execute_pipeline_negative(jw_token, files_data_for_pipeline, setup_data
             jw_token=jw_token,
             args={"languages": ["en"]},
             batch_id=uuid.uuid4().hex,
-            session=setup_database
+            session=db_test_session,
         )
 
     assert e_info.value.status_code == 400
 
 
-@pytest.mark.skip
-@responses.activate
-def test_execute_pipeline_positive(jw_token, files_data_for_pipeline, setup_database):
-    responses.add(
-        responses.POST,
-        f"{settings.host_pipelines}/pipelines/2/execute",
-        json=[{"id": 1}, {"id": 52}],
-        status=200,
+@pytest.mark.asyncio
+async def test_execute_pipeline_positive(
+    jw_token, files_data_for_pipeline, db_test_session, mocker
+):
+    data = [{"id": 1}, {"id": 52}]
+
+    resp = MockResponse(json.dumps(data), 200)
+
+    mocker.patch("aiohttp.ClientSession.request", return_value=resp)
+
+    result = await utils.execute_pipeline(
+        pipeline_id=2,
+        files_data=files_data_for_pipeline,
+        current_tenant="test_tenant",
+        jw_token=jw_token,
+        args={"type": "postprocessing"},
+        batch_id=uuid.uuid4().hex,
+        session=db_test_session,
     )
-    assert (
-        utils.execute_pipeline(
-            pipeline_id=2,
-            files_data=files_data_for_pipeline,
-            current_tenant="test_tenant",
-            jw_token=jw_token,
-            args={"type": "postprocessing"},
-            batch_id=uuid.uuid4().hex,
-            session=setup_database
-        )
-        is None
-    )
+    assert result is None
