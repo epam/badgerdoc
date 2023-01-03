@@ -357,12 +357,6 @@ def test_get_annotation_for_latest_revision_status_codes(
         "app.annotations.main.connect_s3",
         Mock(return_value=minio_accumulate_revisions),
     )
-    monkeypatch.setattr(
-        "app.annotations.main.get_file_manifest",
-        Mock(
-            return_value={"categories": ["test_category_1", "test_category_2"]}
-        ),
-    )
     params = {"page_numbers": page_numbers}
 
     response = client.get(
