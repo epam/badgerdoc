@@ -2,7 +2,6 @@ from typing import List
 from unittest.mock import Mock
 
 import pytest
-
 from search.harvester import parse_json, start_harvester
 
 from .override_app_dependency import TEST_TENANT
@@ -16,6 +15,7 @@ PAGE_OBJECTS = [
         "id": "obj_id_1",
         "type": {"type": "some type"},
         "segmentation": "some segmentation",
+        "original_annotation_id": 1,
         "links": ["link_1", "link_2", "link_3"],
         "category": "Header",
         "text": "Elasticsearch",
@@ -26,6 +26,7 @@ PAGE_OBJECTS = [
         "id": "obj_id_2",
         "type": {"type": "some type"},
         "segmentation": "some segmentation",
+        "original_annotation_id": 1,
         "links": ["link_1", "link_2", "link_3"],
         "category": "Paragraph",
         "text": (
@@ -38,6 +39,7 @@ PAGE_OBJECTS = [
         "id": "obj_id_3",
         "type": {"type": "some type"},
         "segmentation": "some segmentation",
+        "original_annotation_id": 1,
         "links": ["link_1", "link_2", "link_3"],
         "category": "Title",
         "text": "History",
@@ -48,6 +50,7 @@ PAGE_OBJECTS = [
         "id": "obj_id_4",
         "type": {"type": "some type"},
         "segmentation": "some segmentation",
+        "original_annotation_id": 1,
         "links": ["link_1", "link_2", "link_3"],
         "category": "Footer",
         "text": "Cookie statements",
@@ -58,6 +61,7 @@ PAGE_OBJECTS = [
         "id": "obj_id_5",
         "type": {"type": "some type"},
         "segmentation": "some segmentation",
+        "original_annotation_id": 1,
         "links": ["link_1", "link_2", "link_3"],
         "category": "Paragraph",
         "text": (
