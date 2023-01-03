@@ -36,6 +36,7 @@ import { Tooltip } from '@epam/loveship';
 import { Category } from '../../../api/typings';
 import { ImageToolsParams } from './image-tools-params';
 import { CategoriesTab } from 'components/categories/categories-tab/categories-tab';
+import { useLinkTaxonomyByCategoryAndJobId } from 'api/hooks/taxonomies';
 
 type TaskSidebarProps = {
     onRedirectAfterFinish: () => void;
@@ -221,6 +222,11 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
     }`;
     const validationStatus: ValidationPageStatus = isValid ? 'Valid Page' : 'Invalid Page';
 
+    const taxonomy = useLinkTaxonomyByCategoryAndJobId({
+        jobId: task?.job.id,
+        categoryId: selectedAnnotation?.category!
+    });
+
     return (
         <div className={`${styles.container} flex-col`}>
             <div className={`${styles.main} flex-col`}>
@@ -390,6 +396,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
                             viewMode={viewMode}
                             onAnnotationEdited={onAnnotationEdited}
                             currentPage={currentPage}
+                            taxonomyId={(taxonomy?.data || [])[0]?.id}
                         />
                     )}
                     {tabValue === 'Information' && (

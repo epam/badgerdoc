@@ -116,3 +116,36 @@ export async function fetchTaxonomies(
         withCredentials: true
     })(JSON.stringify(body));
 }
+
+type TaxonomyByCategoryAndJobIdParams = {
+    jobId?: number;
+    categoryId?: string | number;
+};
+
+export type TaxonomyByCategoryAndJobIdResponse = {
+    name: string;
+    id: string;
+    version: number;
+}[];
+
+export const useLinkTaxonomyByCategoryAndJobId: QueryHookType<
+    TaxonomyByCategoryAndJobIdParams,
+    TaxonomyByCategoryAndJobIdResponse
+> = ({ jobId, categoryId }, options) => {
+    return useQuery(
+        ['taxonomy', jobId, categoryId],
+        async () => (jobId && categoryId ? linkTaxonomyByCategoryAndJobId(jobId, categoryId) : []),
+        options
+    );
+};
+
+async function linkTaxonomyByCategoryAndJobId(
+    jobId?: number,
+    categoryId?: string | number
+): Promise<any> {
+    return useBadgerFetch({
+        url: `${namespace}/taxonomy/link_category/${jobId}/${categoryId}`,
+        method: 'get',
+        withCredentials: true
+    })();
+}

@@ -58,7 +58,7 @@ export const getCategoryDataAttrs = (
 
     if (!categoryDataAttrsCache.has(annotationLabel)) {
         const foundCategoryDataAttrs = categories?.find(
-            (el) => el.name.toString() === annotationLabel
+            (el) => el.id.toString() === annotationLabel
         )?.data_attributes;
         categoryDataAttrsCache.set(annotationLabel, foundCategoryDataAttrs);
     }
