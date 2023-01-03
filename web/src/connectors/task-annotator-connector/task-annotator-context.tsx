@@ -1,16 +1,3 @@
-import React, {
-    createContext,
-    FC,
-    MutableRefObject,
-    useCallback,
-    useContext,
-    useEffect,
-    useMemo,
-    useRef,
-    useState
-} from 'react';
-import { cloneDeep } from 'lodash';
-import { Task } from 'api/typings/tasks';
 import { useSetTaskFinished, useSetTaskState, useTaskById } from 'api/hooks/tasks';
 import { ApiError } from 'api/api-error';
 import { useAddAnnotationsMutation, useLatestAnnotations } from 'api/hooks/annotations';
@@ -18,7 +5,6 @@ import { useCurrentUser } from 'api/hooks/auth';
 import { useCategoriesByJob } from 'api/hooks/categories';
 import { useDocuments } from 'api/hooks/documents';
 import { useJobById } from 'api/hooks/jobs';
-import { useSetTaskFinished, useSetTaskState, useTaskById } from 'api/hooks/tasks';
 import { useTokens } from 'api/hooks/tokens';
 import {
     Category,
