@@ -150,7 +150,8 @@ const mapAnnotationToApi = (
                     ...addTableValues(ann)
                 },
                 children: ann.children,
-                links: ann.links
+                links: ann.links,
+                original_annotation_id: ann.originalAnnotationId
             },
             ...cells
         ];
@@ -304,41 +305,6 @@ export const mapAnnotationDataAttrsFromApi = (annotationsPages: PageInfo[]) => {
         });
     });
 
-    return result;
-};
-
-export const mapAnnotationPagesFromApi = (
-    annotationsPages: PageInfo[],
-    getAnnotationLabels: (
-        pageNum: number,
-        ann: Annotation,
-        category?: Category
-    ) => AnnotationLabel[],
-    categories?: Category[]
-): Record<number, Annotation[]> => {
-    const result: Record<number, Annotation[]> = {};
-    annotationsPages.forEach((page) => {
-        const pageAnnotations = page.objs.map((obj) => {
-            const category = categories?.find((category) => category.id == obj.category);
-            const ann = mapAnnotationFromApi(obj, category);
-            return {
-                ...ann,
-                labels: getAnnotationLabels(page.page_num, ann, category)
-            };
-        });
-        /* Merge cells into tables */
-        for (let annotation of pageAnnotations) {
-            if (annotation.boundType !== 'table') continue;
-            const relatedCells = pageAnnotations.filter(
-                (el) =>
-                    (annotation.children as number[])?.includes(el.id as number) &&
-                    el.boundType === 'table_cell'
-            );
-            annotation.tableCells = relatedCells;
-        }
-        const filteredAnnotations = pageAnnotations.filter((el) => el.boundType !== 'table_cell');
-        result[page.page_num] = [...(result[page.page_num] ?? []), ...filteredAnnotations];
-    });
     return result;
 };
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Point } from 'shared';
-import { Category } from 'api/typings';
+import { Category, Link } from 'api/typings';
 
 export type LinkAnnotationProps = {
     pointStart: Point;
@@ -8,6 +8,7 @@ export type LinkAnnotationProps = {
     category: Category;
     linkType: string;
     onDeleteLink: () => void;
+    onLinkSelect: () => void;
     reversed: boolean;
 };
 

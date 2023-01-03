@@ -93,7 +93,7 @@ export const categories: Category[] = [
         type: 'box',
         data_attributes: [
             {
-                name: 'taxonomy',
+                name: 'Taxonomy',
                 type: 'taxonomy'
             }
         ],

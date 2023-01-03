@@ -1,6 +1,7 @@
 import React, {
     CSSProperties,
     FC,
+    memo,
     PropsWithChildren,
     useCallback,
     useEffect,
@@ -37,7 +38,7 @@ import {
     useSelectionTokens,
     useTokensByResizing
 } from './hooks/use-active-tokens-calculation';
-import { Category } from '../../../api/typings';
+import { Category, Link } from '../../../api/typings';
 import { arrayUniqueByKey } from './utils/unique-array';
 import { useTaskAnnotatorContext } from '../../../connectors/task-annotator-connector/task-annotator-context';
 import { AnnotationLinksBoundType } from 'shared';
@@ -49,6 +50,9 @@ import { updateAnnotation } from './components/table-annotation/helpers';
 import paper from 'paper';
 import { createImageTool } from './components/image-tools';
 import { removeAllSelections } from './components/image-tools/utils';
+import { ANNOTATION_RESIZER_CLASS } from './components/box-annotation';
+import { getPointsForLinks } from './utils/get-points-for-link';
+import { LinkAnnotation } from './components/link-annotation';
 
 const resizeSelectionCast = {
     box: 'free-box',
@@ -75,6 +79,7 @@ export type AnnotatorProps = PropsWithChildren<{
     onAnnotationCopyPress: (annotationId: string | number) => void;
     onAnnotationCutPress: (annotationId: string | number) => void;
     onAnnotationPastePress: () => void;
+    onAnnotationSelected?: (annotation?: Annotation) => void;
     onAnnotationUndoPress: () => void;
     onAnnotationRedoPress: () => void;
 
@@ -120,6 +125,7 @@ export const Annotator: FC<AnnotatorProps> = ({
     page,
     onAnnotationCopyPress = noop,
     onAnnotationCutPress = noop,
+    onAnnotationSelected,
     onAnnotationPastePress = noop,
     onAnnotationUndoPress = noop,
     onAnnotationRedoPress = noop
@@ -129,12 +135,16 @@ export const Annotator: FC<AnnotatorProps> = ({
         setIsNeedToSaveTable,
         selectedAnnotation,
         fileMetaInfo,
+        onLinkDeleted,
+        onSplitLinkSelected,
         selectedTool,
         setSelectedTool,
         selectedToolParams,
         setSelectedAnnotation,
         taskHasTaxonomies
     } = useTaskAnnotatorContext();
+
+    const handleAnnotationSelected = onAnnotationSelected ?? setSelectedAnnotation;
 
     const { setTableModeRows, setTableModeColumns } = useTableAnnotatorContext();
     const selectedAnnotationRef = useRef<HTMLDivElement>(null);
@@ -155,25 +165,26 @@ export const Annotator: FC<AnnotatorProps> = ({
     const [paperIsSet, setPaperIsSet] = useState<boolean>(false);
 
     const panoRef = useRef<HTMLDivElement>(null);
+
     const unSelectAnnotation = () => {
+        if (!isStarted) return;
         onEmptyAreaClick && onEmptyAreaClick();
-        setSelectedAnnotation(undefined);
+        handleAnnotationSelected(undefined);
     };
     const onClickHook = useAnnotationsClick(
         panoRef,
         annotations,
         scale,
         ['box', 'free-box', 'table', 'text'],
-        setSelectedAnnotation,
+        handleAnnotationSelected,
         unSelectAnnotation
     );
 
-    const { coords: selectionCoords, isEnded: isSelectionEnded } = useSelection(
-        panoRef,
-        selectionType,
-        isCellMode,
-        editable
-    );
+    const {
+        coords: selectionCoords,
+        isStarted,
+        isEnded: isSelectionEnded
+    } = useSelection(panoRef, selectionType, isCellMode, editable);
 
     const submitAnnotation = useSubmitAnnotation(
         selectionType,
@@ -349,7 +360,7 @@ export const Annotator: FC<AnnotatorProps> = ({
         if (createdIdRef.current) {
             const createdAnnotation = annotations.find((ann) => ann.id === createdIdRef.current);
             if (createdAnnotation) {
-                setSelectedAnnotation(scaleAnnotation(createdAnnotation, scale));
+                handleAnnotationSelected(scaleAnnotation(createdAnnotation, scale));
             }
             createdIdRef.current = null;
         }
@@ -476,7 +487,11 @@ export const Annotator: FC<AnnotatorProps> = ({
                 role="none"
                 ref={panoRef}
                 onClick={(e) => {
-                    if ((e.target as HTMLElement).classList.contains(ANNOTATION_LABEL_CLASS)) {
+                    const target = e.target as HTMLElement;
+                    if (
+                        target.classList.contains(ANNOTATION_LABEL_CLASS) ||
+                        target.classList.contains(ANNOTATION_RESIZER_CLASS)
+                    ) {
                         return;
                     }
                     onClickHook(e);
@@ -532,11 +547,11 @@ export const Annotator: FC<AnnotatorProps> = ({
                                 onClickHook(event, annotation);
                             },
                             onCloseIconClick: () => {
-                                setSelectedAnnotation(undefined);
+                                handleAnnotationSelected(undefined);
                                 onAnnotationDeleted?.(annotation.id);
                             },
                             onAnnotationDelete: (id: string | number) => {
-                                setSelectedAnnotation(undefined);
+                                handleAnnotationSelected(undefined);
                                 onAnnotationDeleted?.(id);
                             },
                             page,
@@ -579,6 +594,62 @@ export const Annotator: FC<AnnotatorProps> = ({
                 }}
                 page={page}
             />
+            <LinksLayer
+                annotations={annotations}
+                categories={categories}
+                onLinkDeleted={onLinkDeleted}
+                onLinkSelected={onSplitLinkSelected}
+                pageNum={page}
+            />
+        </div>
+    );
+};
+
+interface LinksLayerProps {
+    annotations: Annotation[];
+    categories?: Category[];
+    onLinkDeleted: (pageNum: number, annotationId: string | number, link: Link) => void;
+    onLinkSelected: (fromOriginalAnnotationId: string | number, originalLink: Link) => void;
+    pageNum: number;
+}
+
+const LinksLayer = function LinksLayer({
+    annotations,
+    categories,
+    onLinkDeleted,
+    onLinkSelected,
+    pageNum
+}: LinksLayerProps) {
+    const ref = useRef<HTMLDivElement>(null);
+
+    return (
+        <div ref={ref}>
+            {annotations.map((ann: Annotation) => {
+                const points = ann.links?.length
+                    ? getPointsForLinks(
+                          ann.id,
+                          ann.boundType,
+                          pageNum,
+                          ann.links,
+                          annotations,
+                          categories
+                      )
+                    : [];
+                return points.map((pointSet) => {
+                    return (
+                        <LinkAnnotation
+                            key={ann.id}
+                            pointStart={pointSet.start}
+                            pointFinish={pointSet.finish}
+                            category={pointSet.category}
+                            linkType={pointSet.type}
+                            reversed={pointSet.finish.id === ann.id}
+                            onDeleteLink={() => onLinkDeleted(pageNum, ann.id, pointSet.link)}
+                            onLinkSelect={() => onLinkSelected(ann.id, pointSet.link)}
+                        />
+                    );
+                });
+            })}
         </div>
     );
 };

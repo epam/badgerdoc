@@ -9,7 +9,7 @@ RUN pip install poetry
 COPY pyproject.toml /
 
 RUN poetry config virtualenvs.create false \
-    && poetry install --no-interaction --no-dev\
+    && poetry install --no-interaction\
     && rm -rf pyproject.toml poetry.lock
 
 RUN apt-get update && apt-get -y install curl unzip sshfs

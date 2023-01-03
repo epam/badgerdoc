@@ -1,6 +1,8 @@
 import contextlib
 import json
+import os
 from typing import Iterable
+from unittest.mock import patch
 
 import boto3
 import pytest
@@ -8,12 +10,22 @@ from botocore.config import Config
 from botocore.exceptions import ClientError
 from fastapi.testclient import TestClient
 from moto import mock_s3
-from sqlalchemy.orm import Session
+from sqlalchemy.engine import create_engine
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy_utils import create_database, database_exists
 
-from src.constants import MINIO_ACCESS_KEY, MINIO_HOST, MINIO_SECRET_KEY
-from src.db import Base, Basement, Training, engine
+from alembic import command
+from src.constants import (
+    DATABASE_URL,
+    MINIO_ACCESS_KEY,
+    MINIO_HOST,
+    MINIO_SECRET_KEY,
+)
+from src.db import Base, Basement, Training, get_db
 from src.main import app
 from src.routers import tenant
+from src.utils import get_test_db_url
 
 from .override_app_dependency import override
 from .test_colab_start_training import (
@@ -27,6 +39,9 @@ from .test_colab_start_training import (
 from .test_crud import GET_BASEMENT, GET_LATEST_MODELS, GET_TRAINING
 from .test_utils import TEST_LIMITS, TEST_TENANT
 
+test_db_url = get_test_db_url(DATABASE_URL)
+engine = create_engine(test_db_url)
+
 
 @pytest.fixture(scope="function")
 def client() -> TestClient:
@@ -35,8 +50,9 @@ def client() -> TestClient:
 
 
 @pytest.fixture
-def overrided_token_client(client) -> TestClient:
+def overrided_token_client(client, db_session) -> TestClient:
     app.dependency_overrides[tenant] = override
+    app.dependency_overrides[get_db] = lambda: db_session
     yield client
     app.dependency_overrides[tenant] = tenant
 
@@ -114,22 +130,40 @@ def clear_db():
         trans.commit()
 
 
-@pytest.fixture(scope="module")
-def db_session() -> Session:
-    """Creates all tables on setUp, yields SQLAlchemy session and removes
-    tables on tearDown.
-    """
-    from src.db import get_db
+@pytest.fixture(scope="session")
+def use_temp_env_var():
+    with patch.dict(os.environ, {"USE_TEST_DB": "1"}):
+        yield
 
-    Base.metadata.drop_all(bind=engine)
-    Base.metadata.create_all(bind=engine)
-    clear_db()
-    gen = get_db()
-    session = next(gen)
+
+@pytest.fixture(scope="module")
+def setup_test_db(use_temp_env_var):
+    from alembic.config import Config
+
+    alembic_cfg = Config("alembic.ini")
+
+    # 1. Create database for tests if it does not exist
+    if not database_exists(engine.url):
+        create_database(engine.url)
+
+    # 2. Create all tables
+    try:
+        command.upgrade(alembic_cfg, "head")
+    except SQLAlchemyError as e:
+        raise SQLAlchemyError(f"Got an Exception during migrations - {e}")
+
+
+@pytest.fixture(scope="module")
+def db_session(setup_test_db) -> Session:
+    """yields SQLAlchemy session"""
+    session_local = sessionmaker(
+        autocommit=False, autoflush=False, bind=engine
+    )
+    session = session_local()
 
     yield session
 
-    close_session(gen)
+    session.close()
 
 
 @pytest.fixture

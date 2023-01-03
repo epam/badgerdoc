@@ -21,11 +21,12 @@ from app.schemas import (
     NotFoundErrorSchema,
     PageOutSchema,
     ParticularRevisionSchema,
+    ValidationSchema,
 )
 from app.tags import ANNOTATION_TAG, JOBS_TAG, REVISION_TAG
 from app.tasks import update_task_status
 
-from ..models import AnnotatedDoc, File, ManualAnnotationTask
+from ..models import AnnotatedDoc, File, Job, ManualAnnotationTask
 from ..token_dependency import TOKEN
 from .main import (
     LATEST,
@@ -154,34 +155,28 @@ def post_annotation_by_user(
     s3_file_path, s3_file_bucket = get_file_path_and_bucket(
         task.file_id, x_current_tenant, token.token
     )
-
+    job: Job = db.query(Job).filter(Job.job_id == task.job_id).first()
+    if not job:
+        raise HTTPException(
+            status_code=404,
+            detail="Job with provided job_id do not exists.",
+        )
+    filters = [
+        AnnotatedDoc.job_id == task.job_id,
+        AnnotatedDoc.file_id == task.file_id,
+        AnnotatedDoc.tenant == x_current_tenant,
+    ]
+    if job.validation_type == ValidationSchema.extensive_coverage:
+        filters.append(AnnotatedDoc.user.in_((task.user_id, None)))
     latest_doc = (
         db.query(AnnotatedDoc)
-        .filter(
-            AnnotatedDoc.job_id == task.job_id,
-            AnnotatedDoc.tenant == x_current_tenant,
-            AnnotatedDoc.file_id == task.file_id,
-        )
+        .filter(*filters)
         .order_by(desc(AnnotatedDoc.date))
         .first()
     )
-
-    if latest_doc is None or latest_doc.revision == doc.base_revision:
-        new_annotated_doc = construct_annotated_doc(
-            db=db,
-            user_id=doc.user,
-            pipeline_id=None,
-            job_id=task.job_id,
-            file_id=task.file_id,
-            doc=doc,
-            tenant=x_current_tenant,
-            s3_file_path=s3_file_path,
-            s3_file_bucket=s3_file_bucket,
-            latest_doc=latest_doc,
-            task_id=task_id,
-            is_latest=True,
-        )
-    else:
+    is_latest = True
+    if latest_doc is not None and latest_doc.revision != doc.base_revision:
+        is_latest = False
         for page in doc.pages:
             if str(page.page_num) in latest_doc.pages:
                 # non mvp case
@@ -195,7 +190,7 @@ def post_annotation_by_user(
                     f"and page with number {page.page_num} "
                     f"already exists in latest revision.",
                 )
-
+    try:
         new_annotated_doc = construct_annotated_doc(
             db=db,
             user_id=doc.user,
@@ -208,8 +203,13 @@ def post_annotation_by_user(
             s3_file_bucket=s3_file_bucket,
             latest_doc=latest_doc,
             task_id=task_id,
-            is_latest=False,
+            is_latest=is_latest,
         )
+    except ValueError as err:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Cannot assign similar documents: {err}",
+        ) from err
     check_if_kafka_message_is_needed(
         db,
         latest_doc,
@@ -282,21 +282,26 @@ def post_annotation_by_pipeline(
         .order_by(desc(AnnotatedDoc.date))
         .first()
     )
-
-    new_annotated_doc = construct_annotated_doc(
-        db=db,
-        user_id=None,
-        pipeline_id=doc.pipeline,
-        job_id=job_id,
-        file_id=file_id,
-        doc=doc,
-        tenant=x_current_tenant,
-        s3_file_path=s3_file_path,
-        s3_file_bucket=s3_file_bucket,
-        latest_doc=latest_doc,
-        task_id=None,
-        is_latest=True,
-    )
+    try:
+        new_annotated_doc = construct_annotated_doc(
+            db=db,
+            user_id=None,
+            pipeline_id=doc.pipeline,
+            job_id=job_id,
+            file_id=file_id,
+            doc=doc,
+            tenant=x_current_tenant,
+            s3_file_path=s3_file_path,
+            s3_file_bucket=s3_file_bucket,
+            latest_doc=latest_doc,
+            task_id=None,
+            is_latest=True,
+        )
+    except ValueError as err:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Cannot assign similar documents: {err}",
+        ) from err
     check_if_kafka_message_is_needed(
         db,
         latest_doc,
@@ -409,14 +414,29 @@ def get_annotations_up_to_given_revision(
     page_numbers: Set[int] = Query(None, min_items=1, ge=1, example={3, 4, 1}),
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
     db: Session = Depends(get_db),
+    user_id: Optional[UUID] = Query(
+        None,
+        example="1843c251-564b-4c2f-8d42-c61fdac369a1",
+        description="Required in case job validation type is extensive_"
+        "coverage",
+    ),
 ):
+    job: Job = db.query(Job).filter(Job.job_id == job_id).first()
+    if not job:
+        raise HTTPException(
+            status_code=404,
+            detail="Job with provided job_id do not exists.",
+        )
+    filters = [
+        AnnotatedDoc.job_id == job_id,
+        AnnotatedDoc.file_id == file_id,
+        AnnotatedDoc.tenant == x_current_tenant,
+    ]
+    if job.validation_type == ValidationSchema.extensive_coverage:
+        filters.append(AnnotatedDoc.user.in_((user_id, None)))
     revisions = (
         db.query(AnnotatedDoc)
-        .filter(
-            AnnotatedDoc.job_id == job_id,
-            AnnotatedDoc.file_id == file_id,
-            AnnotatedDoc.tenant == x_current_tenant,
-        )
+        .filter(*filters)
         .order_by(AnnotatedDoc.date.asc())
         .all()
     )
@@ -519,15 +539,30 @@ def get_all_revisions(
     file_id: int,
     page_numbers: Set[int] = Query(..., min_items=1, ge=1),
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
+    user_id: Optional[UUID] = Query(
+        None,
+        example="1843c251-564b-4c2f-8d42-c61fdac369a1",
+        description="Required in case job validation type is extensive_"
+        "coverage",
+    ),
     db: Session = Depends(get_db),
 ):
+    job: Job = db.query(Job).filter(Job.job_id == job_id).first()
+    if not job:
+        raise HTTPException(
+            status_code=404,
+            detail="Job with provided job_id do not exists.",
+        )
+    filters = [
+        AnnotatedDoc.job_id == job_id,
+        AnnotatedDoc.file_id == file_id,
+        AnnotatedDoc.tenant == x_current_tenant,
+    ]
+    if job.validation_type == ValidationSchema.extensive_coverage:
+        filters.append(AnnotatedDoc.user.in_((user_id, None)))
     revisions = (
         db.query(AnnotatedDoc)
-        .filter(
-            AnnotatedDoc.job_id == job_id,
-            AnnotatedDoc.file_id == file_id,
-            AnnotatedDoc.tenant == x_current_tenant,
-        )
+        .filter(and_(*filters))
         .order_by(AnnotatedDoc.date)
         .all()
     )

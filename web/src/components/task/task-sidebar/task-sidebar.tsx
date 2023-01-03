@@ -48,6 +48,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
     const {
         annDataAttrs,
         task,
+        job,
         categories,
         fileMetaInfo,
         currentPage,
@@ -70,6 +71,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
         onAnnotationTaskFinish,
         onEditClick,
         onClearTouchedPages,
+        onClearModifiedPages,
         onAddTouchedPage,
         onCancelClick,
         onSaveEditClick,
@@ -102,8 +104,9 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
     const isValid = validPages.includes(currentPage);
     const isInvalid = invalidPages.includes(currentPage);
     const editPage = editedPages.includes(currentPage);
+    const splitValidation = isValidation && job?.validation_type === 'extensive_coverage';
 
-    const isValidationDisabled = !currentPage && !isAnnotatable;
+    const isValidationDisabled = !currentPage && !isAnnotatable && !splitValidation;
 
     const svc = useUuiContext();
     const onSaveForm = async (formOptions: TaskValidationValues) => {
@@ -193,9 +196,9 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
 
     const disableSave = useMemo(() => {
         return (
-            (isValidation && touchedPages.length === 0) ||
-            !isAnnotatable ||
-            (!isValidation && modifiedPages.length === 0)
+            (isValidation && !splitValidation && touchedPages.length === 0) ||
+            ((!isValidation || splitValidation) && modifiedPages.length === 0) ||
+            !isAnnotatable
         );
     }, [validPages, invalidPages, touchedPages, modifiedPages, editedPages]);
 
@@ -226,6 +229,23 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
         jobId: task?.job.id,
         categoryId: selectedAnnotation?.category!
     });
+
+    const onFinishValidation = async () => {
+        await svc.uuiModals.show<TaskValidationValues>((props) => (
+            <FinishTaskValidationModal
+                onSaveForm={onSaveForm}
+                allValid={allValid}
+                allUsers={sortedUsers.current}
+                currentUser={task?.user_id || ''}
+                isOwner={isOwner}
+                invalidPages={invalidPageCount}
+                editedPageCount={editedPageCount}
+                validSave={onSaveValidForm}
+                {...props}
+            />
+        ));
+        onRedirectAfterFinish();
+    };
 
     return (
         <div className={`${styles.container} flex-col`}>
@@ -260,7 +280,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
                     />
                 </FlexRow>
                 <div className={`${styles.tabs} flex-col flex-cell`}>
-                    {isValid || isInvalid ? (
+                    {!splitValidation && (isValid || isInvalid) ? (
                         <div className={validationStyle}>
                             <Status
                                 statusTitle={mapStatusForValidationPage(validationStatus).title}
@@ -482,7 +502,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
                         </div>
                     )}
 
-                    {isValidation ? (
+                    {isValidation && !splitValidation && (
                         <div className="flex justify-around">
                             {!editPage && (
                                 <Button
@@ -557,8 +577,6 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
                                 />
                             )}
                         </div>
-                    ) : (
-                        ''
                     )}
                 </div>
             </div>
@@ -572,6 +590,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
                         onClick={async () => {
                             await onSaveTask();
                             onClearTouchedPages();
+                            onClearModifiedPages();
                             refetch();
                         }}
                         cx={styles.button}
@@ -582,7 +601,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
             {isValidation && (
                 <Tooltip
                     content={
-                        allValidated
+                        allValidated && !splitValidation
                             ? ''
                             : 'Please validate all page to finish task. Remaining pages: ' +
                               pages?.not_processed?.join(', ')
@@ -591,24 +610,9 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
                     <Button
                         cx={styles['button-finish']}
                         caption={'FINISH VALIDATION'}
-                        isDisabled={!allValidated}
+                        isDisabled={!allValidated && !touchedPages.length}
                         captionCX
-                        onClick={async () => {
-                            await svc.uuiModals.show<TaskValidationValues>((props) => (
-                                <FinishTaskValidationModal
-                                    onSaveForm={onSaveForm}
-                                    allValid={allValid}
-                                    allUsers={sortedUsers.current}
-                                    currentUser={task?.user_id || ''}
-                                    isOwner={isOwner}
-                                    invalidPages={invalidPageCount}
-                                    editedPageCount={editedPageCount}
-                                    validSave={onSaveValidForm}
-                                    {...props}
-                                />
-                            ));
-                            onRedirectAfterFinish();
-                        }}
+                        onClick={splitValidation ? onAnnotationTaskFinish : onFinishValidation}
                     />
                 </Tooltip>
             )}

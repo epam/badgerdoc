@@ -629,6 +629,7 @@ def test_create_import_job(testing_app):
         "name": "MockImportJob",
         "import_source": "s3bucket",
         "type": "ImportJob",
+        "extensive_coverage": 1,
     }
 
 

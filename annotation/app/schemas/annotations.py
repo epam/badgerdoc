@@ -16,6 +16,7 @@ class PageSchema(BaseModel):
             {
                 "id": 2,
                 "type": "string",
+                "original_annotation_id": "int",
                 "segmentation": {"segment": "string"},
                 "bbox": [10.2, 123.34, 34.2, 43.4],
                 "tokens": None,
@@ -53,6 +54,15 @@ class PageOutSchema(PageSchema):
     is_validated: bool = Field(default=False, example=False)
 
 
+class RevisionLink(BaseModel):
+    revision: Optional[str] = Field(
+        ..., example="20fe52cce6a632c6eb09fdc5b3e1594f926eea69"
+    )
+    job_id: int = Field(..., example=1)
+    file_id: int = Field(..., example=1)
+    label: str = Field(..., example="similar")
+
+
 class ParticularRevisionSchema(BaseModel):
     revision: Optional[str] = Field(
         ..., example="20fe52cce6a632c6eb09fdc5b3e1594f926eea69"
@@ -67,9 +77,8 @@ class ParticularRevisionSchema(BaseModel):
     failed_validation_pages: Optional[List[int]] = Field(
         None, ge=1, example=[]
     )
-    categories: Optional[List[str]] = Field(
-        None, example=["science", "manifest"]
-    )
+    similar_revisions: Optional[List[RevisionLink]] = Field(None)
+    categories: Optional[Set[str]] = Field(None, example=["1", "2"])
 
 
 class DocForSaveSchema(BaseModel):
@@ -85,9 +94,8 @@ class DocForSaveSchema(BaseModel):
     failed_validation_pages: Optional[Set[int]] = Field(
         None, ge=1, example={3, 4}
     )
-    categories: Optional[List[str]] = Field(
-        None, example=["science", "manifest"]
-    )
+    similar_revisions: Optional[List[RevisionLink]] = Field(None)
+    categories: Optional[Set[str]] = Field(None, example=["1", "2"])
 
     @root_validator
     def one_field_empty_other_filled_check(cls, values):
@@ -133,19 +141,20 @@ class DocForSaveSchema(BaseModel):
     @root_validator
     def pages_for_save_check(cls, values):
         """
-        Arrays pages, validated and failed
+        Arrays pages, validated, failed and categories
         should not be empty at the same time.
         """
-        pages, validated, failed = (
+        pages, validated, failed, categories = (
             values.get("pages"),
             values.get("validated"),
             values.get("failed_validation_pages"),
+            values.get("categories"),
         )
-        if not pages and not validated and not failed:
+        if not any((pages, validated, failed, categories)):
             raise ValueError(
                 "Fields pages, "
-                "validated and failed validation pages are empty. "
-                "Nothing to save."
+                "validated, failed validation pages "
+                "and categories are empty. Nothing to save."
             )
         return values
 
@@ -172,6 +181,23 @@ class AnnotatedDocSchema(BaseModel):
     failed_validation_pages: Set[int] = Field(..., ge=1, example={3, 4})
     tenant: str = Field(..., example="badger-doc")
     task_id: int = Field(None, example=2)
+    similar_revisions: Optional[List[RevisionLink]] = Field(None)
+    categories: Optional[Set[str]] = Field(None, example=["1", "2"])
+
+    @classmethod
+    def from_orm(cls, obj):
+        value = super().from_orm(obj)
+        if links := obj.links:
+            value.similar_revisions = [
+                RevisionLink(
+                    revision=link.similar_doc.revision,
+                    job_id=link.similar_doc.job_id,
+                    file_id=link.similar_doc.file_id,
+                    label=link.label,
+                )
+                for link in links
+            ]
+        return value
 
     class Config:
         orm_mode = True

@@ -2,7 +2,7 @@ import json
 import os
 from datetime import datetime
 from hashlib import sha1
-from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from typing import Dict, List, Optional, Set, Tuple, Union
 from uuid import UUID
 
 import boto3
@@ -11,17 +11,19 @@ from fastapi import HTTPException
 from kafka import KafkaProducer
 from kafka.errors import KafkaError
 from sqlalchemy import asc
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app import logger
 from app.kafka_client import KAFKA_BOOTSTRAP_SERVER, KAFKA_SEARCH_TOPIC
 from app.kafka_client import producers as kafka_producers
-from app.models import AnnotatedDoc
+from app.models import AnnotatedDoc, DocumentLinks
 from app.schemas import (
     AnnotatedDocSchema,
     DocForSaveSchema,
     PageSchema,
     ParticularRevisionSchema,
+    RevisionLink,
 )
 
 load_dotenv(find_dotenv())
@@ -211,7 +213,6 @@ def create_manifest_json(
     bucket_name: str,
     job_id: int,
     file_id: int,
-    doc_categories: Optional[List[str]],
     db: Session,
     s3_resource: boto3.resource,
 ) -> None:
@@ -234,7 +235,7 @@ def create_manifest_json(
         [], revisions, with_page_hash=True
     )
     manifest = row_to_dict(doc)
-    redundant_keys = ("task_id", "file_id", "tenant")
+    redundant_keys = ("task_id", "file_id", "tenant", "categories")
     manifest = {
         key: value
         for key, value in manifest.items()
@@ -245,7 +246,12 @@ def create_manifest_json(
     manifest["failed_validation_pages"] = list(failed_validation)
     manifest["file"] = s3_file_path
     manifest["bucket"] = s3_file_bucket
-    manifest["categories"] = doc_categories
+    # TODO: hardcoded dictionary for now, has to be changed with
+    #  future releases on pair with AnnotatedDoc.categories;
+    #  Saved categories in manifest are not used, we fetch them from db.
+    manifest["categories"] = [
+        {"type": "taxonomy", "value": cat} for cat in doc.categories or []
+    ]
 
     manifest_json = json.dumps(manifest)
     upload_json_to_minio(
@@ -321,6 +327,7 @@ def construct_annotated_doc(
         failed_validation_pages=doc.failed_validation_pages,
         tenant=tenant,
         task_id=task_id,
+        categories=doc.categories or [],
     )
     s3_path = f"{S3_START_PATH}/{str(job_id)}/{str(file_id)}"
 
@@ -358,8 +365,19 @@ def construct_annotated_doc(
     ):
         return latest_doc
 
+    document_links = construct_document_links(
+        annotated_doc, doc.similar_revisions or []
+    )
     db.add(annotated_doc)
-    db.flush()
+    db.add_all(document_links)
+    try:
+        db.commit()
+    except IntegrityError as err:
+        db.rollback()
+        logger_.exception(
+            "Cannot add links to document, document_links=%s", document_links
+        )
+        raise ValueError("No such documents or labels to link to") from err
 
     bucket_name = convert_bucket_name_if_s3prefix(tenant)
     s3_resource = connect_s3(bucket_name)
@@ -378,7 +396,6 @@ def construct_annotated_doc(
         bucket_name,
         job_id,
         file_id,
-        doc.categories,
         db,
         s3_resource,
     )
@@ -406,6 +423,7 @@ def check_docs_identity(
         and set(latest_doc.validated) == new_doc.validated
         and set(latest_doc.failed_validation_pages)
         == new_doc.failed_validation_pages
+        and latest_doc.categories == new_doc.categories
     )
 
 
@@ -656,15 +674,6 @@ def load_page(
     loaded_pages.append(loaded_page)
 
 
-def get_file_manifest(
-    job_id: str, file_id: str, tenant: str, s3_resource: boto3.resource
-) -> Dict[str, Any]:
-    manifest_path = f"{S3_START_PATH}/{job_id}/{file_id}/{MANIFEST}"
-    bucket_name = convert_bucket_name_if_s3prefix(tenant)
-    manifest_obj = s3_resource.Object(bucket_name, manifest_path)
-    return json.loads(manifest_obj.get()["Body"].read().decode("utf-8"))
-
-
 def load_all_revisions_pages(
     pages: Dict[int, List[PageRevision]],
     tenant: str,
@@ -794,13 +803,15 @@ def construct_particular_rev_response(
     load_validated_pages_for_particular_rev(
         revision, page_revision, s3_resource, loaded_pages
     )
-    manifest = get_file_manifest(
-        str(revision.job_id),
-        str(revision.file_id),
-        revision.tenant,
-        s3_resource,
-    )
-    doc_categories = manifest.get("categories")
+    similar_revisions = [
+        RevisionLink(
+            revision=link.similar_doc.revision,
+            job_id=link.similar_doc.job_id,
+            file_id=link.similar_doc.file_id,
+            label=link.label,
+        )
+        for link in revision.links or []
+    ]
     particular_rev = ParticularRevisionSchema(
         revision=revision.revision,
         user=revision.user,
@@ -809,7 +820,8 @@ def construct_particular_rev_response(
         pages=loaded_pages,
         validated=revision.validated,
         failed_validation_pages=revision.failed_validation_pages,
-        categories=doc_categories,
+        categories=revision.categories,
+        similar_revisions=similar_revisions or None,
     )
     return particular_rev
 
@@ -982,3 +994,22 @@ def send_annotation_kafka_message(
                 "tenant": tenant,
             },
         )
+
+
+def construct_document_links(
+    original_doc: AnnotatedDoc, document_links: List[RevisionLink]
+) -> List[DocumentLinks]:
+    links = []
+    for link in document_links:
+        links.append(
+            DocumentLinks(
+                original_revision=original_doc.revision,
+                original_file_id=original_doc.file_id,
+                original_job_id=original_doc.job_id,
+                similar_revision=link.revision,
+                similar_file_id=link.file_id,
+                similar_job_id=link.job_id,
+                label=link.label,
+            )
+        )
+    return links

@@ -8,16 +8,17 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.annotations import S3_START_PATH
+from app.models import DocumentLinks
 from tests.consts import ANNOTATION_PATH
 from tests.override_app_dependency import TEST_HEADERS, TEST_TENANT, app
 
 JOBS_IDS = (
-    1,
-    2,
-    3,
-    4,
-    5,
-    6,
+    10,
+    20,
+    30,
+    40,
+    50,
+    60,
 )
 FILES_IDS = (
     1,
@@ -44,7 +45,7 @@ PIPELINES = (
     8,
 )
 PAGE = {
-    "page_number": 1,
+    "page_num": 1,
     "size": {"width": float(1), "height": float(1)},
     "objs": [
         {
@@ -377,7 +378,9 @@ def test_get_all_revisions_sql_connection_error(
 @pytest.mark.integration
 @patch.object(boto3, "resource")
 def test_get_all_revisions_s3_connection_error(
-    boto3, prepare_db_for_get_revisions
+    boto3,
+    prepare_db_for_get_revisions,
+    prepare_job_for_safe_annotations,
 ):
     boto3.side_effect = Mock(side_effect=BotoCoreError())
     response = client.get(
@@ -714,6 +717,7 @@ def test_get_latest_revision_by_user(
 def test_get_all_revisions(
     monkeypatch,
     prepare_db_for_get_revisions,
+    prepare_job_for_safe_annotations,
     prepare_moto_s3_for_get_revisions,
     expected_all_revisions,
     tenant,
@@ -734,3 +738,30 @@ def test_get_all_revisions(
     )
     assert response.status_code == expected_status_code
     assert response.json() == expected_all_revisions[expected_response_key]
+
+
+@pytest.mark.integration
+def test_get_annotation_with_similarity(
+    monkeypatch,
+    prepare_moto_s3_for_get_revisions,
+    prepare_db_for_get_revisions_similar: DocumentLinks,
+) -> None:
+    monkeypatch.setattr(
+        "app.annotations.main.connect_s3",
+        Mock(return_value=prepare_moto_s3_for_get_revisions),
+    )
+    response = client.get(
+        f"{ANNOTATION_PATH}/"
+        f"{prepare_db_for_get_revisions_similar.original_job_id}/"
+        f"{prepare_db_for_get_revisions_similar.original_file_id}/"
+        f"{prepare_db_for_get_revisions_similar.original_revision}",
+        headers=TEST_HEADERS,
+        params={"page_numbers": [1]},
+    )
+    expected_link = prepare_db_for_get_revisions_similar
+    assert response.status_code == 200
+    similar_revision = response.json()["similar_revisions"][0]
+    assert similar_revision["revision"] == expected_link.similar_revision
+    assert similar_revision["job_id"] == expected_link.similar_job_id
+    assert similar_revision["file_id"] == expected_link.similar_file_id
+    assert similar_revision["label"] == expected_link.label

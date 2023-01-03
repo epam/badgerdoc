@@ -403,6 +403,7 @@ export type PageInfoObjs = {
     links?: Link[];
     children?: number[] | string[];
     segments?: number[][];
+    original_annotation_id?: number;
 };
 export type PageInfo = {
     size?: { width: number; height: number };

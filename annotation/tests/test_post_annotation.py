@@ -270,6 +270,7 @@ POST_ANNOTATION_PG_DOC = AnnotatedDoc(
     failed_validation_pages=[],
     tenant=POST_ANNOTATION_FILE_1.tenant,
     task_id=POST_ANNOTATION_PG_TASK_1.id,
+    categories=[],
 )
 
 S3_PATH = (
@@ -535,6 +536,8 @@ ANNOTATED_DOC_FIRST = {
     "failed_validation_pages": [],
     "tenant": POST_ANNOTATION_PG_DOC.tenant,
     "task_id": POST_ANNOTATION_PG_TASK_1.id,
+    "similar_revisions": None,
+    "categories": [],
 }
 ANNOTATED_DOC_PIPELINE_FIRST = {
     "revision": sha1(
@@ -556,6 +559,8 @@ ANNOTATED_DOC_PIPELINE_FIRST = {
         ).hexdigest()
     },
     "tenant": POST_ANNOTATION_PG_DOC.tenant,
+    "similar_revisions": None,
+    "categories": [],
 }
 
 ANNOTATED_DOC_WITH_DIFFERENT_JOB_AND_FILE = copy.deepcopy(ANNOTATED_DOC_FIRST)
@@ -605,6 +610,8 @@ ANNOTATED_DOC_WITH_MANY_PAGES = {
     "failed_validation_pages": [],
     "tenant": POST_ANNOTATION_PG_DOC.tenant,
     "task_id": POST_ANNOTATION_PG_DOC.task_id,
+    "similar_revisions": None,
+    "categories": [],
 }
 
 ANNOTATED_DOC_WITH_BASE_REVISION = {
@@ -629,6 +636,7 @@ ANNOTATED_DOC_WITH_BASE_REVISION = {
     "failed_validation_pages": [],
     "tenant": POST_ANNOTATION_PG_DOC.tenant,
     "task_id": POST_ANNOTATION_PG_DOC.task_id,
+    "categories": [],
 }
 
 ANNOTATED_DOC_WITH_BOTH_TOKENS_AND_BBOX = {
@@ -654,6 +662,7 @@ ANNOTATED_DOC_WITH_BOTH_TOKENS_AND_BBOX = {
     "failed_validation_pages": [],
     "tenant": POST_ANNOTATION_PG_DOC.tenant,
     "task_id": POST_ANNOTATION_PG_DOC.task_id,
+    "categories": [],
 }
 
 ANNOTATED_DOC_WITHOUT_BOTH_TOKENS_AND_BBOX = {
@@ -677,6 +686,7 @@ ANNOTATED_DOC_WITHOUT_BOTH_TOKENS_AND_BBOX = {
     "failed_validation_pages": [],
     "tenant": POST_ANNOTATION_PG_DOC.tenant,
     "task_id": POST_ANNOTATION_PG_DOC.task_id,
+    "categories": [],
 }
 
 ANNOTATED_DOCS_FOR_MANIFEST_CREATION = {
@@ -826,6 +836,34 @@ ANNOTATED_DOCS_FOR_MANIFEST_CREATION = {
             tenant=POST_ANNOTATION_PG_DOC.tenant,
         ),
     ),
+    "docs_with_categories": (
+        AnnotatedDoc(
+            revision="20fe52cce6a632c6eb09fdc5b3e1594f926eea69",
+            user=POST_ANNOTATION_ANNOTATOR.user_id,
+            pipeline=None,
+            date=SECOND_DATE,
+            file_id=POST_ANNOTATION_FILE_1.file_id,
+            job_id=POST_ANNOTATION_JOB_1.job_id,
+            pages={"2": PAGES_SHA["2"]},
+            validated=[1, 2],
+            failed_validation_pages=[],
+            tenant=POST_ANNOTATION_PG_DOC.tenant,
+            categories=["foo", "bar"],
+        ),
+        AnnotatedDoc(
+            revision="21fe52cce6a632c6eb09fdc5b3e1594f926eea69",
+            user=POST_ANNOTATION_ANNOTATOR.user_id,
+            pipeline=None,
+            date=SECOND_DATE,
+            file_id=POST_ANNOTATION_FILE_1.file_id,
+            job_id=POST_ANNOTATION_JOB_1.job_id,
+            pages={},
+            validated=[],
+            failed_validation_pages=[1],
+            tenant=POST_ANNOTATION_PG_DOC.tenant,
+            categories=["baz", "42"],
+        ),
+    ),
 }
 
 ANNOTATED_DOC_WITH_MERGE_CONFLICT = {
@@ -851,6 +889,7 @@ ANNOTATED_DOC_WITH_MERGE_CONFLICT = {
     "failed_validation_pages": [],
     "tenant": POST_ANNOTATION_PG_DOC.tenant,
     "task_id": POST_ANNOTATION_PG_DOC.task_id,
+    "categories": [],
 }
 
 
@@ -1449,8 +1488,28 @@ def test_upload_pages_to_minio(mock_minio_empty_bucket):
                 failed_validation_pages=set(),
                 tenant=POST_ANNOTATION_FILE_1.tenant,
                 task_id=POST_ANNOTATION_PG_TASK_1.id,
+                categories=[],
             ),
             True,
+        ),
+        (
+            # empty annotation and not empty doc categories
+            POST_ANNOTATION_PG_DOC,
+            AnnotatedDoc(
+                revision="29fe52cce6a632c6eb09fdc5b3e1594f926eea69",
+                user=POST_ANNOTATION_ANNOTATOR.user_id,
+                pipeline=None,
+                date=FIRST_DATE,
+                file_id=POST_ANNOTATION_FILE_1.file_id,
+                job_id=POST_ANNOTATION_JOB_1.job_id,
+                pages={"1": SHA_FIRST_PAGE},
+                validated={1},
+                failed_validation_pages=set(),
+                tenant=POST_ANNOTATION_FILE_1.tenant,
+                task_id=POST_ANNOTATION_PG_TASK_1.id,
+                categories=["foo", "bar"],
+            ),
+            False,
         ),
         (
             # if latest doc is None, revisions are not identical
@@ -1507,6 +1566,7 @@ def test_check_docs_identity(latest_doc, new_doc, expected_result):
                 "pages": {},
                 "validated": [1],
                 "failed_validation_pages": [],
+                "categories": [],
             },
         ),  # revision contains only validated page.
         # manifest will be like:
@@ -1525,6 +1585,7 @@ def test_check_docs_identity(latest_doc, new_doc, expected_result):
                 "pages": POST_ANNOTATION_PG_DOC.pages,
                 "validated": POST_ANNOTATION_PG_DOC.validated,
                 "failed_validation_pages": [],
+                "categories": [],
             },
         ),  # revision contains pages, that have been validated
         # manifest will be like:
@@ -1545,6 +1606,7 @@ def test_check_docs_identity(latest_doc, new_doc, expected_result):
                 "pages": POST_ANNOTATION_PG_DOC.pages,
                 "validated": [],
                 "failed_validation_pages": [],
+                "categories": [],
             },
         ),  # user's revision contains pages, that have not been validated yet
         # validated and failed_validations_pages are empty
@@ -1566,12 +1628,33 @@ def test_check_docs_identity(latest_doc, new_doc, expected_result):
                 "pages": POST_ANNOTATION_PG_DOC.pages,
                 "validated": [],
                 "failed_validation_pages": [],
+                "categories": [],
             },
         ),  # pipeline's revision contains pages, that have not been validated
         # manifest will be like:
         # pages: from revision
         # validated: empty
         # failed_validation_pages: empty
+        (
+            ANNOTATED_DOCS_FOR_MANIFEST_CREATION.get("docs_with_categories")[
+                0
+            ],
+            "path/to/file",
+            "bucket-of-phys-file",
+            {
+                "revision": "20fe52cce6a632c6eb09fdc5b3e1594f926eea69",
+                "user": "6ffab2dd-3605-46d4-98a1-2d20011e132d",
+                "pipeline": None,
+                "job_id": 1,
+                "pages": {"2": "b922f25f41b0d7a0f3226f077ba0745e540818f7"},
+                "validated": [1, 2],
+                "failed_validation_pages": [],
+                "categories": [
+                    {"type": "taxonomy", "value": "foo"},
+                    {"type": "taxonomy", "value": "bar"},
+                ],
+            },
+        ),
     ],
 )
 def test_create_manifest_json_first_upload(
@@ -1591,7 +1674,6 @@ def test_create_manifest_json_first_upload(
 
     expected_manifest["bucket"] = bucket_of_phys_file
     expected_manifest["file"] = s3_path_to_physical_file
-    expected_manifest["categories"] = ["science", "manifest"]
     create_manifest_json(
         annotated_doc,
         S3_PATH,
@@ -1600,7 +1682,6 @@ def test_create_manifest_json_first_upload(
         POST_ANNOTATION_PG_DOC.tenant,
         POST_ANNOTATION_JOB_1.job_id,
         POST_ANNOTATION_FILE_1.file_id,
-        ["science", "manifest"],
         prepare_db_for_manifest_creation_with_one_record,
         s3_resource,
     )
@@ -1638,6 +1719,7 @@ def test_create_manifest_json_first_upload(
                 },
                 "validated": [1, 2],
                 "failed_validation_pages": [],
+                "categories": [],
             },
         ),  # 1st and 2nd revisions contains pages, that have been validated
         # failed_validation array is empty
@@ -1658,6 +1740,7 @@ def test_create_manifest_json_first_upload(
                 "pages": POST_ANNOTATION_PG_DOC.pages,
                 "validated": [],
                 "failed_validation_pages": [1],
+                "categories": [],
             },
         ),  # 1st revision contains page "1" in 2nd revision no pages provided
         # but page from 1st revision in 2nd revision's failed list
@@ -1678,6 +1761,7 @@ def test_create_manifest_json_first_upload(
                 "pages": {**POST_ANNOTATION_PG_DOC.pages, "2": PAGES_SHA["2"]},
                 "validated": [2],
                 "failed_validation_pages": [1],
+                "categories": [],
             },
         ),  # 1st revision contains page and validated page
         # 2nd contains page, validated page, but in failed_validation_pages
@@ -1703,6 +1787,7 @@ def test_create_manifest_json_first_upload(
                 },
                 "validated": [2, 3],
                 "failed_validation_pages": [1],
+                "categories": [],
             },
         ),  # 1st revision contains two pages and validated page
         # 2nd contains page, validated page, and
@@ -1724,6 +1809,7 @@ def test_create_manifest_json_first_upload(
                 "pages": {"1": HASH_OF_DIFF_FIRST_PAGE},
                 "validated": [1],
                 "failed_validation_pages": [],
+                "categories": [],
             },
         ),  # 1st revision contains page and validated page
         # failed_validation_pages is empty
@@ -1750,6 +1836,7 @@ def test_create_manifest_json_first_upload(
                 "pages": {"1": HASH_OF_DIFF_FIRST_PAGE},
                 "validated": [],
                 "failed_validation_pages": [],
+                "categories": [],
             },
         ),  # 1st revision contains page, that have not been validated yet
         # failed_validations_pages is empty
@@ -1759,6 +1846,27 @@ def test_create_manifest_json_first_upload(
         # pages: same page number but from latest revision
         # validated: empty
         # failed_validation_pages: empty
+        (
+            ANNOTATED_DOCS_FOR_MANIFEST_CREATION.get("docs_with_categories"),
+            ANNOTATED_DOCS_FOR_MANIFEST_CREATION.get("docs_with_categories")[
+                1
+            ],
+            "path/to/file",
+            "bucket-of-phys-file",
+            {
+                "revision": "21fe52cce6a632c6eb09fdc5b3e1594f926eea69",
+                "user": "6ffab2dd-3605-46d4-98a1-2d20011e132d",
+                "pipeline": None,
+                "job_id": 1,
+                "pages": {"2": "b922f25f41b0d7a0f3226f077ba0745e540818f7"},
+                "validated": [2],
+                "failed_validation_pages": [1],
+                "categories": [
+                    {"type": "taxonomy", "value": "baz"},
+                    {"type": "taxonomy", "value": "42"},
+                ],
+            },
+        ),
     ],
     indirect=["prepare_db_for_manifest_creation_with_several_records"],
 )
@@ -1779,7 +1887,6 @@ def test_create_manifest_json_with_annotated_docs_and_manifest_in_minio(
 
     expected_manifest["bucket"] = bucket_of_phys_file
     expected_manifest["file"] = s3_path_to_physical_file
-    expected_manifest["categories"] = ["science", "manifest"]
 
     create_manifest_json(
         annotated_doc,
@@ -1789,7 +1896,6 @@ def test_create_manifest_json_with_annotated_docs_and_manifest_in_minio(
         POST_ANNOTATION_PG_DOC.tenant,
         POST_ANNOTATION_JOB_1.job_id,
         POST_ANNOTATION_FILE_1.file_id,
-        ["science", "manifest"],
         prepare_db_for_manifest_creation_with_several_records,
         s3_resource,
     )
@@ -1896,6 +2002,7 @@ def test_create_manifest_json_date_field(
                 "failed_validation_pages": [],
                 "tenant": POST_ANNOTATION_FILE_1.tenant,
                 "task_id": POST_ANNOTATION_PG_TASK_1.id,
+                "categories": [],
             },
         ),  # if new revision has same pages, validated and
         # failed validation arrays as latest revision,
@@ -1918,7 +2025,6 @@ def test_construct_annotated_doc(
     field types will be changed to list.
     """
     db = prepare_db_for_post_annotation_with_existing_doc
-
     actual_doc = row_to_dict(
         construct_annotated_doc(
             db,
@@ -1969,8 +2075,16 @@ def test_construct_annotated_doc_different_jobs_and_files(
     """
     s3_resource = mock_minio_empty_bucket
 
-    expected_result_1 = ANNOTATED_DOC_FIRST
-    expected_result_2 = ANNOTATED_DOC_WITH_DIFFERENT_JOB_AND_FILE
+    expected_result_1 = {
+        k: v
+        for k, v in ANNOTATED_DOC_FIRST.items()
+        if k not in ("similar_revisions",)
+    }
+    expected_result_2 = {
+        k: v
+        for k, v in ANNOTATED_DOC_WITH_DIFFERENT_JOB_AND_FILE.items()
+        if k not in ("similar_revisions",)
+    }
 
     expected_path_1 = (
         f"annotation/{expected_result_1['job_id']}"
@@ -2174,6 +2288,170 @@ def test_post_annotation_by_pipeline_two_eq_revs_in_a_row(
     assert amount_of_docs_after_commit == 1
 
 
+@pytest.mark.unittest
+@pytest.mark.parametrize(
+    ["pages", "validated", "failed", "task_pages"],
+    [
+        (
+            [
+                PageSchema(page_num=10, size={}, objs=[]),
+            ],
+            {1},
+            {2},
+            {1, 2, 3},
+        ),
+        (
+            [
+                PageSchema(page_num=1, size={}, objs=[]),
+            ],
+            {10},
+            {2},
+            {1, 2, 3},
+        ),
+        (
+            [
+                PageSchema(page_num=1, size={}, objs=[]),
+            ],
+            {1},
+            {20},
+            {1, 2, 3},
+        ),
+        (
+            [
+                PageSchema(page_num=100, size={}, objs=[]),
+            ],
+            {10},
+            {20},
+            {1, 2, 3},
+        ),
+    ],
+)
+def test_check_task_pages(pages, validated, failed, task_pages):
+    with pytest.raises(HTTPException):
+        check_task_pages(pages, validated, failed, task_pages)
+
+
+@pytest.mark.integration
+@patch("app.annotations.main.KafkaProducer", Mock)
+@responses.activate
+def test_post_annotation_by_user_assign_similar_doc(
+    mock_minio_empty_bucket,
+    prepare_db_for_post_annotation,
+) -> None:
+    responses.add(
+        responses.POST,
+        ASSETS_FILES_URL,
+        json=ASSETS_RESPONSES[0],
+        status=200,
+        headers=TEST_HEADERS,
+    )
+    doc_1 = DOC_FOR_FIRST_SAVE_BY_USER
+    doc_2 = {
+        **DOC_FOR_SECOND_SAVE_BY_USER,
+        "similar_revisions": [
+            {
+                "revision": ANNOTATED_DOC_FIRST["revision"],
+                "job_id": ANNOTATED_DOC_FIRST["job_id"],
+                "file_id": ANNOTATED_DOC_FIRST["file_id"],
+                "label": "18d3d189e73a4680bfa77ba3fe6ebee5",
+            }
+        ],
+        "validated": [2],
+        "pages": [{**doc_1["pages"][0], "page_num": 2}],
+    }
+    del doc_2["base_revision"]
+    with TestClient(app):
+        mock_producer = producers["search_annotation"]
+        mock_producer.send = Mock(return_value="any_message")
+        result_1 = client.post(
+            f"{ANNOTATION_PATH}/{TASK_ID}",
+            headers={
+                HEADER_TENANT: POST_ANNOTATION_PG_DOC.tenant,
+                AUTHORIZATION: f"{BEARER} {TEST_TOKEN}",
+            },
+            json=doc_1,
+        ).json()
+        result_2 = client.post(
+            f"{ANNOTATION_PATH}/{TASK_ID}",
+            headers={
+                HEADER_TENANT: POST_ANNOTATION_PG_DOC.tenant,
+                AUTHORIZATION: f"{BEARER} {TEST_TOKEN}",
+            },
+            json=doc_2,
+        )
+    assert result_2.status_code == 201
+    similar_revision = result_2.json()["similar_revisions"][0]
+    assert similar_revision["revision"] == result_1["revision"]
+    assert similar_revision["job_id"] == result_1["job_id"]
+    assert similar_revision["file_id"] == result_1["file_id"]
+    assert similar_revision["label"] == "18d3d189e73a4680bfa77ba3fe6ebee5"
+
+
+@pytest.mark.integration
+@patch("app.annotations.main.KafkaProducer", Mock)
+@responses.activate
+@pytest.mark.parametrize(
+    ("revision", "label"),
+    (
+        (ANNOTATED_DOC_FIRST["revision"], "invalid_category"),
+        ("invalid_revision", "18d3d189e73a4680bfa77ba3fe6ebee5"),
+        ("invalid_revision", "invalid_category"),
+    ),
+)
+def test_post_annotation_by_user_similar_doc_no_category(
+    mock_minio_empty_bucket,
+    prepare_db_for_post_annotation,
+    revision: str,
+    label: str,
+) -> None:
+    responses.add(
+        responses.POST,
+        ASSETS_FILES_URL,
+        json=ASSETS_RESPONSES[0],
+        status=200,
+        headers=TEST_HEADERS,
+    )
+    doc_1 = DOC_FOR_FIRST_SAVE_BY_USER
+    doc_2 = {
+        **DOC_FOR_SECOND_SAVE_BY_USER,
+        "similar_revisions": [
+            {
+                "revision": revision,
+                "job_id": ANNOTATED_DOC_FIRST["job_id"],
+                "file_id": ANNOTATED_DOC_FIRST["file_id"],
+                "label": label,
+            }
+        ],
+        "validated": [2],
+        "pages": [{**doc_1["pages"][0], "page_num": 2}],
+    }
+    del doc_2["base_revision"]
+    with TestClient(app):
+        mock_producer = producers["search_annotation"]
+        mock_producer.send = Mock(return_value="any_message")
+        client.post(
+            f"{ANNOTATION_PATH}/{TASK_ID}",
+            headers={
+                HEADER_TENANT: POST_ANNOTATION_PG_DOC.tenant,
+                AUTHORIZATION: f"{BEARER} {TEST_TOKEN}",
+            },
+            json=doc_1,
+        ).json()
+        result = client.post(
+            f"{ANNOTATION_PATH}/{TASK_ID}",
+            headers={
+                HEADER_TENANT: POST_ANNOTATION_PG_DOC.tenant,
+                AUTHORIZATION: f"{BEARER} {TEST_TOKEN}",
+            },
+            json=doc_2,
+        )
+    assert result.status_code == 404
+    assert (
+        result.json()["detail"] == "Cannot assign similar documents: "
+        "No such documents or labels to link to"
+    )
+
+
 @pytest.mark.integration
 @pytest.mark.parametrize(
     ["task", "doc"],
@@ -2262,46 +2540,3 @@ def test_post_user_annotation_wrong_task_statuses(
     assert expected_message in annotation_response.text
     db_task = session.query(ManualAnnotationTask).get(task_id)
     assert db_task.status == task_initial_status
-
-
-@pytest.mark.unittest
-@pytest.mark.parametrize(
-    ["pages", "validated", "failed", "task_pages"],
-    [
-        (
-            [
-                PageSchema(page_num=10, size={}, objs=[]),
-            ],
-            {1},
-            {2},
-            {1, 2, 3},
-        ),
-        (
-            [
-                PageSchema(page_num=1, size={}, objs=[]),
-            ],
-            {10},
-            {2},
-            {1, 2, 3},
-        ),
-        (
-            [
-                PageSchema(page_num=1, size={}, objs=[]),
-            ],
-            {1},
-            {20},
-            {1, 2, 3},
-        ),
-        (
-            [
-                PageSchema(page_num=100, size={}, objs=[]),
-            ],
-            {10},
-            {20},
-            {1, 2, 3},
-        ),
-    ],
-)
-def test_check_task_pages(pages, validated, failed, task_pages):
-    with pytest.raises(HTTPException):
-        check_task_pages(pages, validated, failed, task_pages)

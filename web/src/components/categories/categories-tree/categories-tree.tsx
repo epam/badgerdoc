@@ -11,7 +11,7 @@ interface CategoriesTreeProps {
     selectedHotKeys: string[];
 }
 
-const itemHeight = 32;
+const itemHeight = 33;
 
 export const CategoriesTree: FC<CategoriesTreeProps> = ({
     categoriesHeight,

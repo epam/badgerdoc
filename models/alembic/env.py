@@ -1,3 +1,4 @@
+import os
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config, pool
@@ -5,6 +6,7 @@ from sqlalchemy import engine_from_config, pool
 from alembic import context
 from src.constants import DATABASE_URL
 from src.db import Base
+from src.utils import get_test_db_url
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -19,7 +21,11 @@ fileConfig(config.config_file_name)
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
 target_metadata = Base.metadata
-config.set_main_option("sqlalchemy.url", DATABASE_URL)
+
+if not os.getenv("USE_TEST_DB"):
+    config.set_main_option("sqlalchemy.url", DATABASE_URL)
+else:
+    config.set_main_option("sqlalchemy.url", get_test_db_url(DATABASE_URL))
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:

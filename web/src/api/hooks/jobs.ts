@@ -170,17 +170,19 @@ export const useAddJobMutation: MutationHookType<JobVariables, Job> = () => {
 };
 
 type JobByIdParams = {
-    jobId: number;
+    jobId?: number;
 };
-export const useJobById: QueryHookType<JobByIdParams, Job> = ({ jobId }, options) => {
+export const useJobById: QueryHookType<JobByIdParams, Job | undefined> = ({ jobId }, options) => {
     return useQuery(
         ['jobDetailed', jobId],
-        () =>
-            useBadgerFetch<Job>({
-                url: `${namespace}/jobs/${jobId}`,
-                method: 'get',
-                withCredentials: true
-            })(),
+        async () =>
+            jobId
+                ? useBadgerFetch<Job>({
+                      url: `${namespace}/jobs/${jobId}`,
+                      method: 'get',
+                      withCredentials: true
+                  })()
+                : undefined,
         options
     );
 };

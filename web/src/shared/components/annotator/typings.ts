@@ -79,6 +79,7 @@ export type Annotation = {
     children?: number[] | string[];
     segments?: number[][];
     labels?: AnnotationLabel[];
+    originalAnnotationId?: number;
 };
 
 export type Bound = {

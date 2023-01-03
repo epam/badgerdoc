@@ -1,4 +1,4 @@
-import { MutationHookType, PageInfo, QueryHookType } from 'api/typings';
+import { CategoryDataAttrType, MutationHookType, PageInfo, QueryHookType } from 'api/typings';
 import { Task } from 'api/typings/tasks';
 import { useMutation, useQuery } from 'react-query';
 import { useBadgerFetch } from './api';
@@ -9,6 +9,11 @@ type LatestAnnotationsParams = {
     fileId?: number;
     revisionId?: string;
     pageNumbers?: number[];
+    userId?: string;
+};
+
+type LatestAnnotationsParamsByUser = LatestAnnotationsParams & {
+    userId?: string;
 };
 const namespace = process.env.REACT_APP_CATEGORIES_API_NAMESPACE;
 
@@ -40,14 +45,36 @@ export type AnotationsResponse = {
     pages: PageInfo[];
     validated: number[];
     failed_validation_pages: number[];
+    data?: { dataAttributes: CategoryDataAttrType[] };
+};
+
+export type AnnotationsByUserObj = PageInfo & {
+    revision: string;
+    user_id: string;
+    data?: { dataAttributes: CategoryDataAttrType[] };
+};
+
+export type AnotationsByUserResponse = {
+    [page_num: number]: AnnotationsByUserObj[];
 };
 export const useLatestAnnotations: QueryHookType<LatestAnnotationsParams, AnotationsResponse> = (
-    { jobId, fileId, revisionId, pageNumbers },
+    { jobId, fileId, revisionId, pageNumbers, userId },
     options
 ) => {
     return useQuery(
-        ['latestAnnotations', jobId, fileId, revisionId, pageNumbers],
-        async () => fetchLatestAnnotations(jobId, fileId, revisionId, pageNumbers),
+        ['latestAnnotations', jobId, fileId, revisionId, pageNumbers, userId],
+        async () => fetchLatestAnnotations(jobId, fileId, revisionId, pageNumbers, userId),
+        options
+    );
+};
+
+export const useLatestAnnotationsByUser: QueryHookType<
+    LatestAnnotationsParamsByUser,
+    AnotationsByUserResponse
+> = ({ jobId, fileId, pageNumbers, userId }, options) => {
+    return useQuery(
+        ['latestAnnotationsByUser', jobId, fileId, pageNumbers, userId],
+        async () => fetchLatestAnnotationsByUser(jobId, fileId, pageNumbers, userId),
         options
     );
 };
@@ -56,12 +83,34 @@ async function fetchLatestAnnotations(
     jobId?: number,
     fileId?: number,
     revisionId?: string,
-    pageNumbers?: number[]
+    pageNumbers?: number[],
+    userId?: string
 ): Promise<any> {
     const pageNums = pageNumbers?.map((pageNumber) => `page_numbers=${pageNumber}`);
     const revId = revisionId || 'latest';
+    const user = userId ? `&user_id=${userId}` : '';
     return useBadgerFetch({
-        url: `${namespace}/annotation/${jobId}/${fileId}/${revId}?${pageNums?.join('&')}`,
+        url: `${namespace}/annotation/${jobId}/${fileId}/${revId}?${pageNums?.join('&')}${user}`,
+        method: 'get',
+        withCredentials: true
+    })();
+}
+
+async function fetchLatestAnnotationsByUser(
+    jobId?: number,
+    fileId?: number,
+    pageNumbers?: number[],
+    userId?: string
+): Promise<any> {
+    if (!jobId || !fileId) {
+        return undefined;
+    }
+    const pageNums = pageNumbers?.map((pageNumber) => `page_numbers=${pageNumber}`);
+    const userQueryStr = userId ? `&user_id=${userId}` : '';
+    return useBadgerFetch({
+        url: `${namespace}/annotation/${jobId}/${fileId}/latest_by_user?${pageNums?.join(
+            '&'
+        )}${userQueryStr}`,
         method: 'get',
         withCredentials: true
     })();

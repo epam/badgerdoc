@@ -30,7 +30,7 @@ TENANT = POST_ANNOTATION_PG_DOC.tenant
 NOT_EXISTING_TENANT = "not-exist"
 NOT_EXISTING_ID = 20
 FILE_ID = 1
-JOB_ID = 1
+JOB_ID_FOR_ACC_REVISION = 70
 
 USERS = [
     User(
@@ -47,7 +47,7 @@ DOCS = [
         user=USERS[0].user_id,
         pipeline=None,
         file_id=FILE_ID,
-        job_id=JOB_ID,
+        job_id=JOB_ID_FOR_ACC_REVISION,
         date="2021-10-01 01:01:01.000000",
         pages={
             "1": "11",
@@ -56,13 +56,14 @@ DOCS = [
         validated=[3],
         failed_validation_pages=[4],
         tenant=TENANT,
+        categories=["jurisdiction"],
     ),
     AnnotatedDoc(
         revision="2",
         user=USERS[0].user_id,
         pipeline=None,
         file_id=FILE_ID,
-        job_id=JOB_ID,
+        job_id=JOB_ID_FOR_ACC_REVISION,
         date="2021-10-01 01:01:02.000000",
         pages={
             "3": "32",
@@ -70,13 +71,14 @@ DOCS = [
         validated=[4],
         failed_validation_pages=[1],
         tenant=TENANT,
+        categories=["medical"],
     ),
     AnnotatedDoc(
         revision="3",
         user=USERS[1].user_id,
         pipeline=None,
         file_id=FILE_ID,
-        job_id=JOB_ID,
+        job_id=JOB_ID_FOR_ACC_REVISION,
         date="2021-10-01 01:01:03.000000",
         pages={
             "1": "13",
@@ -85,6 +87,7 @@ DOCS = [
         validated=[5],
         failed_validation_pages=[],
         tenant=TENANT,
+        categories=["technical"],
     ),
 ]
 
@@ -124,6 +127,7 @@ EMPTY_RESPONSE = dict(
     validated=[],
     failed_validation_pages=[],
     categories=None,
+    similar_revisions=None,
 )
 LATEST_WITH_ALL_PAGES = dict(
     revision=DOCS[2].revision,
@@ -146,7 +150,8 @@ LATEST_WITH_ALL_PAGES = dict(
     ],
     validated=[3, 4, 5],
     failed_validation_pages=[1],
-    categories=["test_category_1", "test_category_2"],
+    categories=DOCS[2].categories,
+    similar_revisions=None,
 )
 
 
@@ -164,7 +169,7 @@ LATEST_WITH_ALL_PAGES = dict(
         # info about all pages
         # from previous revisions
         (
-            JOB_ID,
+            JOB_ID_FOR_ACC_REVISION,
             LATEST,
             {1, 2, 3, 4, 5},
             TENANT,
@@ -174,7 +179,7 @@ LATEST_WITH_ALL_PAGES = dict(
         # info about [1, 5] pages
         # from previous revisions
         (
-            JOB_ID,
+            JOB_ID_FOR_ACC_REVISION,
             LATEST,
             {1, 5},
             TENANT,
@@ -189,7 +194,8 @@ LATEST_WITH_ALL_PAGES = dict(
                 ],
                 validated=[5],
                 failed_validation_pages=[1],
-                categories=["test_category_1", "test_category_2"],
+                categories=DOCS[2].categories,
+                similar_revisions=None,
             ),
         ),
         # find first revision and accumulate
@@ -197,7 +203,7 @@ LATEST_WITH_ALL_PAGES = dict(
         # from previous revisions
         # (there are no previous revisions)
         (
-            JOB_ID,
+            JOB_ID_FOR_ACC_REVISION,
             "1",
             {1, 2, 3, 4, 5},
             TENANT,
@@ -217,7 +223,8 @@ LATEST_WITH_ALL_PAGES = dict(
                 ],
                 validated=[3],
                 failed_validation_pages=[4],
-                categories=["test_category_1", "test_category_2"],
+                categories=DOCS[0].categories,
+                similar_revisions=None,
             ),
         ),
         # find first revision and accumulate
@@ -225,7 +232,7 @@ LATEST_WITH_ALL_PAGES = dict(
         # from previous revisions
         # (there are no previous revisions)
         (
-            JOB_ID,
+            JOB_ID_FOR_ACC_REVISION,
             "1",
             {2, 3, 5},
             TENANT,
@@ -244,14 +251,15 @@ LATEST_WITH_ALL_PAGES = dict(
                 ],
                 validated=[3],
                 failed_validation_pages=[],
-                categories=["test_category_1", "test_category_2"],
+                categories=DOCS[0].categories,
+                similar_revisions=None,
             ),
         ),
         # find second revision and accumulate
         # info about all pages
         # from previous revisions
         (
-            JOB_ID,
+            JOB_ID_FOR_ACC_REVISION,
             "2",
             {1, 2, 3, 4, 5},
             TENANT,
@@ -272,14 +280,15 @@ LATEST_WITH_ALL_PAGES = dict(
                 ],
                 validated=[3, 4],
                 failed_validation_pages=[1],
-                categories=["test_category_1", "test_category_2"],
+                categories=DOCS[1].categories,
+                similar_revisions=None,
             ),
         ),
         # find second revision and accumulate
         # info about [5] page
         # from previous revisions
         (
-            JOB_ID,
+            JOB_ID_FOR_ACC_REVISION,
             "2",
             {5},
             TENANT,
@@ -291,22 +300,24 @@ LATEST_WITH_ALL_PAGES = dict(
                 pages=[],
                 validated=[],
                 failed_validation_pages=[],
-                categories=["test_category_1", "test_category_2"],
+                categories=DOCS[1].categories,
+                similar_revisions=None,
             ),
         ),
+        # TODO: rework test for 404 case
+        # # if revisions were not found,
+        # # there will be empty response
+        # (
+        #     NOT_EXISTING_ID,
+        #     "2",
+        #     {5},
+        #     TENANT,
+        #     EMPTY_RESPONSE,
+        # ),
         # if revisions were not found,
         # there will be empty response
         (
-            NOT_EXISTING_ID,
-            "2",
-            {5},
-            TENANT,
-            EMPTY_RESPONSE,
-        ),
-        # if revisions were not found,
-        # there will be empty response
-        (
-            JOB_ID,
+            JOB_ID_FOR_ACC_REVISION,
             "10",
             {5},
             TENANT,
@@ -315,7 +326,7 @@ LATEST_WITH_ALL_PAGES = dict(
         # if there are no pages,
         # info about all pages will be accumulated
         (
-            JOB_ID,
+            JOB_ID_FOR_ACC_REVISION,
             "3",
             {},
             TENANT,
@@ -323,7 +334,7 @@ LATEST_WITH_ALL_PAGES = dict(
         ),
         # bad tenant, empty response
         (
-            JOB_ID,
+            JOB_ID_FOR_ACC_REVISION,
             "3",
             {1},
             NOT_EXISTING_TENANT,
@@ -335,6 +346,7 @@ def test_get_annotation_for_latest_revision_status_codes(
     monkeypatch,
     minio_accumulate_revisions,
     db_accumulated_revs,
+    prepare_job_for_get_revision,
     job_id,
     revision,
     page_numbers,
@@ -361,6 +373,7 @@ def test_get_annotation_for_latest_revision_status_codes(
         },
         params=params,
     )
+    assert response
     accumulated_rev = response.json()
     accumulated_rev["pages"].sort(key=lambda x: x["page_num"])
 

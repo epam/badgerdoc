@@ -2,10 +2,12 @@
     display: flex;
     flex-direction: column;
     flex: 1;
+    max-height: 100%;
 }
 
 .tree {
     flex: 1;
+    max-height: calc(100% - 56px);
 }
 
 .search {

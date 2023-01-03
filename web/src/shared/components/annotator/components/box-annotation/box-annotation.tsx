@@ -97,23 +97,25 @@ export const BoxAnnotation = ({
     );
 };
 
+export const ANNOTATION_RESIZER_CLASS = 'resizer';
+
 const Resizer = ({ color }: { color: string }) => (
     <>
         <div
             style={{ borderColor: color }}
-            className={`${styles.resizer} ${styles['top-left']} resizer top-left`}
+            className={`${styles.resizer} ${styles['top-left']} ${ANNOTATION_RESIZER_CLASS} top-left`}
         ></div>
         <div
             style={{ borderColor: color }}
-            className={`${styles.resizer} ${styles['top-right']} resizer top-right`}
+            className={`${styles.resizer} ${styles['top-right']} ${ANNOTATION_RESIZER_CLASS} top-right`}
         ></div>
         <div
             style={{ borderColor: color }}
-            className={`${styles.resizer} ${styles['bottom-left']} resizer bottom-left`}
+            className={`${styles.resizer} ${styles['bottom-left']} ${ANNOTATION_RESIZER_CLASS} bottom-left`}
         ></div>
         <div
             style={{ borderColor: color }}
-            className={`${styles.resizer} ${styles['bottom-right']} resizer bottom-right`}
+            className={`${styles.resizer} ${styles['bottom-right']} ${ANNOTATION_RESIZER_CLASS} bottom-right`}
         ></div>
     </>
 );
