@@ -18,7 +18,7 @@ services:
     build:
       context: .
       target:
-        build
+        development
     image: 'processing:v1.1'
     env_file:
       - .env

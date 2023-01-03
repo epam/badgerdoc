@@ -1,10 +1,17 @@
+import os
 from pathlib import Path
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy import create_engine
-from src.db.models import Base
-import uuid
+from unittest.mock import patch
 
 import pytest
+from sqlalchemy import create_engine
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy_utils import create_database, database_exists, drop_database
+
+from alembic import command
+from alembic.config import Config
+from src.config import settings
+from src.db.service import get_test_db_url
 
 pytest_plugins = ["docker_compose"]
 
@@ -67,24 +74,43 @@ def files_data_for_pipeline(files_data):
     return files_data
 
 
+alembic_cfg = Config("alembic.ini")
+
+
+@pytest.fixture(scope="session")
+def use_temp_env_var():
+    with patch.dict(os.environ, {"USE_TEST_DB": "1"}):
+        yield
+
+
 @pytest.fixture
-def setup_database():
-    test_db_name = uuid.uuid4().hex
-    db_url = f"sqlite:///./{test_db_name}.db"
-    engine = create_engine(db_url, connect_args={"check_same_thread": False})
-    Base.metadata.create_all(bind=engine)
-    session_local = sessionmaker(
-        autocommit=False, autoflush=False, bind=engine
-    )
+def db_test_engine():
+    db_url = get_test_db_url(settings.database_url)
+    test_db_engine = create_engine(db_url)
+    yield test_db_engine
+
+
+@pytest.fixture
+def setup_database(use_temp_env_var, db_test_engine):
+
+    if not database_exists(db_test_engine.url):
+        create_database(db_test_engine.url)
+
+    try:
+        command.upgrade(alembic_cfg, "head")
+    except SQLAlchemyError as e:
+        raise SQLAlchemyError(f"Got an Exception during migrations - {e}")
+
+    yield
+
+    drop_database(db_test_engine.url)
+
+
+@pytest.fixture
+def db_test_session(db_test_engine, setup_database):
+    session_local = sessionmaker(bind=db_test_engine)
     session = session_local()
-    yield session
-    session.close()
-    Base.metadata.drop_all(bind=engine)
-    remove_db(test_db_name)
-
-
-def remove_db(db_name):
-    base = Path(__file__).parent.parent.parent
-    dbs = base.glob(f"**/{db_name}.db")
-    for db in dbs:
-        db.unlink()
+    try:
+        yield session
+    finally:
+        session.close()

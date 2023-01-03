@@ -14,13 +14,12 @@ Response = NamedTuple(
     "Response", [("status_code", int), ("json", Dict[Any, Any])]
 )
 
-http_session = aiohttp.ClientSession(
-    raise_for_status=False,
-    timeout=aiohttp.ClientTimeout(total=settings.request_timeout),
-)
-
 
 async def send_request(method: str, url: str, **kwargs: Any) -> Response:
+    http_session = aiohttp.ClientSession(
+        raise_for_status=False,
+        timeout=aiohttp.ClientTimeout(total=settings.request_timeout),
+    )
     logger.info("Send request to %s. %s, %s", url, method, kwargs)
     for attempt in range(settings.retry_attempts):
         async with http_session.request(

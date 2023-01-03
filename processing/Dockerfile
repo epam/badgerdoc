@@ -16,21 +16,13 @@ COPY alembic alembic
 COPY src src
 CMD alembic upgrade head && uvicorn src.main:app --host 0.0.0.0 --port 8080
 
-
-FROM base as test
+FROM build as development
 
 RUN pip install poetry \
     && poetry config virtualenvs.create false \
     && poetry install --no-interaction
 
-COPY src/ src/
 COPY tests/ tests/
-RUN pytest -m "not integration" \
-    && black --check src/ && echo "black passed" \
-    && isort --check src/ && echo "isort passed" \
-    && pylint src/ && echo "pylint passed" \
-    && mypy src/ && echo "mypy passed"
-CMD ["/bin/bash"]
 
 FROM sonarsource/sonar-scanner-cli:4.6 AS sonar
 
