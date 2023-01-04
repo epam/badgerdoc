@@ -146,7 +146,7 @@ type ContextValue = SplitValidationValue &
         taskHasTaxonomies?: boolean;
         setValidPages: (pages: number[]) => void;
         selectedLabels?: Label[];
-        onLabelsSelected: (labels: Label[]) => void;
+        onLabelsSelected: (labels: Label[], pickedLabels: string[]) => void;
         setSelectedLabels: (labels: Label[]) => void;
         latestLabelsId: string[];
         isDocLabelsModified: boolean;
@@ -462,7 +462,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         setSelectedCategory(category);
     };
 
-    const onLabelsSelected = (labels: Label[]) => {
+    const onLabelsSelected = (labels: Label[], pickedLabels: string[]) => {
         if (!Array.isArray(labels)) return;
 
         const currentLabelsId = labels.map((label) => label.id);
@@ -471,7 +471,14 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         } else {
             setIsDocLabelsModified(true);
         }
-        setSelectedLabels(labels);
+        setSelectedLabels((prev) => {
+            const combinedLabels = [...prev, ...labels];
+            const ids = combinedLabels.map((label) => label.id);
+            const result = combinedLabels
+                .filter((label) => pickedLabels.includes(label.id))
+                .filter(({ id }, index) => !ids.includes(id, index + 1));
+            return result;
+        });
     };
 
     const onLinkSelected = (link: Link) => {
@@ -848,7 +855,6 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         let { revision, pages } = latestAnnotationsResult.data;
 
         const selectedLabelsId: string[] = selectedLabels.map((obj) => obj.id) ?? [];
-        console.log(selectedLabelsId);
         onCloseDataTab();
 
         if (task.is_validation && !splitValidation.isSplitValidation) {
@@ -907,6 +913,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
     useEffect(() => {
         if (!latestAnnotationsResult.data || !categories?.data) return;
         const latestLabelIds = latestAnnotationsResult.data.categories;
+
         setLatestLabelsId(latestLabelIds);
         setValidPages(latestAnnotationsResult.data.validated);
         setInvalidPages(latestAnnotationsResult.data.failed_validation_pages);

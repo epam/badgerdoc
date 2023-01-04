@@ -1,4 +1,4 @@
-import React, { useState, FC, useEffect } from 'react';
+import React, { useState, FC, useEffect, useMemo } from 'react';
 
 import { useArrayDataSource } from '@epam/uui';
 import { SearchInput, PickerList, Spinner, Text } from '@epam/loveship';
@@ -16,21 +16,27 @@ type TaskSidebarLabelsViewProps = {
     labels: PagedResponse<Taxon> | undefined;
     pickerValue: string[];
     onValueChange: (e: any, labelsArr: Label[]) => void;
+    selectedLabels: Label[];
 };
 
 const TaskSidebarLabelsView: FC<TaskSidebarLabelsViewProps> = ({
     labels,
     pickerValue,
-    onValueChange
+    onValueChange,
+    selectedLabels
 }) => {
     if (!labels) {
         return <Spinner color="sky" />;
     }
+    const labelsArr = useMemo(
+        () =>
+            labels.data.map((el: { name: string; id: string }) => {
+                return { name: el.name, id: el.id };
+            }),
+        [labels]
+    );
 
-    const labelsArr = labels.data.map((el: { name: string; id: string }) => {
-        return { name: el.name, id: el.id };
-    });
-    const dataSource = useArrayDataSource({ items: labelsArr }, [labels]);
+    const dataSource = useArrayDataSource({ items: [...selectedLabels, ...labelsArr] }, [labels]);
 
     return (
         <div className={`${styles.picker_list}`}>
@@ -51,7 +57,7 @@ const TaskSidebarLabelsView: FC<TaskSidebarLabelsViewProps> = ({
 
 type TaskSidebarLabelsProps = {
     categories: any;
-    onLabelsSelected: (labels: Label[]) => void;
+    onLabelsSelected: (labels: Label[], pickedLabels: string[]) => void;
     selectedLabels: Label[];
 };
 
@@ -66,10 +72,11 @@ export const TaskSidebarLabels = ({
 
     const { notifyError } = useNotifications();
     const ids: string[] = getTaxonsId(categories);
+
     const taxonomyFilter: Filter<keyof Taxon> = {
         field: 'taxonomy_id',
-        operator: ids.length > 1 ? Operators.IN : Operators.EQ,
-        value: ids.length > 1 ? ids : ids[0]
+        operator: Operators.IN,
+        value: ids
     };
 
     const {
@@ -82,7 +89,7 @@ export const TaskSidebarLabels = ({
             page: 1,
             size: 100,
             searchText,
-            searchField: searchText ? 'taxonomy_id' : undefined,
+            searchField: searchText ? 'name' : undefined,
             filters: [taxonomyFilter],
             sortConfig: { field: 'name', direction: SortingDirection.ASC }
         },
@@ -111,7 +118,7 @@ export const TaskSidebarLabels = ({
             labelsId = e;
         }
         setPickerValue(labelsId);
-        onLabelsSelected(selectedLabels);
+        onLabelsSelected(selectedLabels, labelsId);
     };
 
     return (
@@ -131,6 +138,7 @@ export const TaskSidebarLabels = ({
                     labels={labels}
                     pickerValue={pickerValue}
                     onValueChange={handleOnValueChange}
+                    selectedLabels={selectedLabels}
                 />
             )}
         </div>

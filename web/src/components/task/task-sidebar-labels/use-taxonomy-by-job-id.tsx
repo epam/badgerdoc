@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useBadgerFetch } from 'api/hooks/api';
 import {
     Category,
@@ -21,7 +20,7 @@ const defaultSort = {
     field: 'id',
     direction: SortingDirection.ASC
 };
-type useTaxonomyByJobIdProps = {
+type useCategoriesByJobIdProps = {
     jobId: string;
     searchText?: string | null;
     pageNum?: number;
@@ -30,14 +29,14 @@ type useTaxonomyByJobIdProps = {
     sortConfig?: any;
 };
 
-export const useTaxonomyByJobId = ({
+export const useCategoriesByJobId = ({
     jobId,
     searchText = null,
     pageNum = 1,
     pageSize = pageSizes._100,
     filters = defaultFilters,
     sortConfig = defaultSort
-}: useTaxonomyByJobIdProps) => {
+}: useCategoriesByJobIdProps) => {
     return useQuery(['categories', pageNum, pageSize, searchText, filters, sortConfig], () =>
         categoryFetcher(pageNum, pageSize, searchText, filters, sortConfig, jobId)
     );

@@ -21,8 +21,7 @@ import { BadgerFetch, BadgerFetchBody, BadgerFetchProvider } from 'api/hooks/api
 import { annotations } from './annotations';
 import { tokens } from './tokens';
 import { models } from './models';
-import { taxons } from './taxons';
-import { taxonomies } from './taxonomies';
+import { taxons, taxonomy } from './taxons';
 import { taskStats } from './task_stats';
 import { annotationsByUser } from './annotationsByUser';
 
@@ -46,17 +45,12 @@ let annotationsMockData = annotations;
 let tokensMockData = tokens;
 let modelsMockData = models;
 let taxonsMockData = taxons;
-let taxonomiesMockData = taxonomies;
 let annotationsMockDataByUser = annotationsByUser;
-const taxonsByIdMockData = {
-    name: 'taxons_name_1',
-    id: 'taxons_id_1',
-    version: 1
-};
+const taxonomyByIdMockData = taxonomy;
 
 const MOCKS: Record<string, Record<string, BadgerFetch<any>>> = {
     [`${TAXONOMIES_NAMESPACE}/taxonomy_id_1`]: {
-        get: async () => taxonsByIdMockData
+        get: async () => taxonomyByIdMockData
     },
     [`${FILEMANAGEMENT_NAMESPACE}/datasets/search`]: {
         post: async (): Promise<PagedResponse<Dataset>> => ({
@@ -308,14 +302,12 @@ const MOCKS: Record<string, Record<string, BadgerFetch<any>>> = {
     [`${TAXONOMIES_NAMESPACE}/taxons/search`]: {
         post: async (body: BadgerFetchBody | undefined) => {
             const { filters, pagination } = JSON.parse(body as string) as SearchBody<Taxon>;
-            let data = taxonomiesMockData;
+            let data = taxonsMockData;
 
             if (filters.length > 0) {
                 const parentFilter = filters.find((filter) => filter.field === 'parent_id');
                 const nameFilter = filters.find((filter) => filter.field === 'name');
                 const nameFilterValue = String(nameFilter?.value ?? '').slice(1, -1);
-                console.log('nameFilterValue: ', nameFilterValue);
-                console.log('parentFilter: ', parentFilter);
 
                 if (parentFilter) {
                     const value =
@@ -695,6 +687,7 @@ export const applyMocks = (fetchProvider: BadgerFetchProvider): BadgerFetchProvi
             if (mock) {
                 return async function (body: any) {
                     await time(1000);
+                    console.log(`MOCK: ${method.toUpperCase()} ${url}`);
                     return mock(body);
                 };
             } else {

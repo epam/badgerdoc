@@ -38,7 +38,6 @@ import { Category, Filter, Label, Operators, SortingDirection, Taxon } from '../
 import { ImageToolsParams } from './image-tools-params';
 import { CategoriesTab } from 'components/categories/categories-tab/categories-tab';
 import { useTaxonomies } from 'api/hooks/taxonomies';
-import { useBadgerFetch } from 'api/hooks/api';
 
 type TaskSidebarProps = {
     onRedirectAfterFinish: () => void;
@@ -234,14 +233,15 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
         isValid ? styles.validColor : styles.invalidColor
     }`;
     const validationStatus: ValidationPageStatus = isValid ? 'Valid Page' : 'Invalid Page';
+
     useEffect(() => {
         refetchTaxons();
     }, [latestLabelsId]);
 
-    const taxonomyFilter: Filter<keyof Taxon> = {
+    const taxonsFilter: Filter<keyof Taxon> = {
         field: 'id',
         operator: Operators.IN,
-        value: latestLabelsId
+        value: latestLabelsId ?? []
     };
 
     const { data: latestTaxons, refetch: refetchTaxons } = useTaxonomies(
@@ -250,18 +250,19 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
             size: 100,
             searchText: '',
             searchField: undefined,
-            filters: [taxonomyFilter],
+            filters: [taxonsFilter],
             sortConfig: { field: 'name', direction: SortingDirection.ASC }
         },
         {}
     );
 
     useEffect(() => {
-        const latestLabels: Label[] =
-            latestTaxons?.data.map((taxon) => {
+        if (latestTaxons) {
+            const latestLabels: Label[] = latestTaxons?.data.map((taxon) => {
                 return { name: taxon.name, id: taxon.id };
-            }) ?? [];
-        setSelectedLabels(latestLabels);
+            });
+            setSelectedLabels(latestLabels);
+        }
     }, [latestTaxons]);
 
     const onFinishValidation = async () => {

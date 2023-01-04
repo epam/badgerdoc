@@ -1,5 +1,11 @@
 import { Taxon } from 'api/typings';
 
+export const taxonomy = {
+    name: 'taxons_name_1',
+    id: 'taxons_id_1',
+    version: 1
+};
+
 export const taxons: Taxon[] = [
     {
         name: 'Child1',

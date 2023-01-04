@@ -19,7 +19,7 @@ export const useTaxonomiesTree = ({ searchText, taxonomyId, taxonomyFilter }: Pr
         taxonomyFilter = {
             field: 'taxonomy_id',
             operator: Operators.EQ,
-            value: taxonomyId
+            value: taxonomyId ?? []
         };
     }
 

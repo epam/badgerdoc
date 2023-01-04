@@ -33,7 +33,7 @@ export async function taxonomiesFetcher(
     searchText?: string | null,
     filters?: Filter<keyof Taxon>[],
     sortConfig: Sorting<keyof Taxon> = {
-        field: 'taxonomy_id',
+        field: 'name',
         direction: SortingDirection.ASC
     },
     searchField: keyof Taxon | undefined = 'name'
