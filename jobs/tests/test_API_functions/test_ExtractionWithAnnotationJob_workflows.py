@@ -22,6 +22,7 @@ def test_change_extraction_job_to_extraction_with_annotation_job_and_run_it(
             (200, [{"id": 426}]),
             (200, {}),
             (200, {}),
+            (200, {}),
         ]
         response1 = testing_app.post(
             "/jobs/create_job",

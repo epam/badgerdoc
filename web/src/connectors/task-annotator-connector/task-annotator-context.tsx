@@ -1,10 +1,10 @@
+import { useSetTaskFinished, useSetTaskState, useTaskById } from 'api/hooks/tasks';
 import { ApiError } from 'api/api-error';
 import { useAddAnnotationsMutation, useLatestAnnotations } from 'api/hooks/annotations';
 import { useCurrentUser } from 'api/hooks/auth';
 import { useCategoriesByJob } from 'api/hooks/categories';
 import { useDocuments } from 'api/hooks/documents';
 import { useJobById } from 'api/hooks/jobs';
-import { useSetTaskFinished, useSetTaskState, useTaskById } from 'api/hooks/tasks';
 import { useTokens } from 'api/hooks/tokens';
 import {
     Category,
@@ -686,7 +686,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
     };
 
     const onAnnotationDoubleClick = (annotation: Annotation) => {
-        const { id, label } = annotation;
+        const { id, category } = annotation;
 
         if (annotation.boundType === 'table') {
             setTableMode(true);
@@ -697,7 +697,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             setTableMode(false);
         }
 
-        const foundCategoryDataAttrs = getCategoryDataAttrs(label, categories?.data);
+        const foundCategoryDataAttrs = getCategoryDataAttrs(category, categories?.data);
 
         if (foundCategoryDataAttrs) {
             setAnnDataAttrs((prevState) => {

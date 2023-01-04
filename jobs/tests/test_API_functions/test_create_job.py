@@ -36,6 +36,37 @@ def test_create_annotation_job_draft(testing_app, jw_token):
     assert response.json()["status"] == schemas.Status.draft
 
 
+def test_create_annotation_job_linked_taxonomy(testing_app, jw_token):
+    with patch("jobs.utils.fetch", return_value=asyncio.Future()) as mock:
+        mock.side_effect = [(200, {})]
+        response = testing_app.post(
+            "/jobs/create_job",
+            json={
+                "name": "MockAnnotationJob",
+                "type": "AnnotationJob",
+                "datasets": [1, 2],
+                "files": [],
+                "owners": ["owner1", "owner2"],
+                "annotators": ["annotator1", "annotator2"],
+                "validators": ["validator1", "validator2"],
+                "categories": ["category1", {
+                    "category_id": "category2",
+                    "taxonomy_id": "my_taxonomy_id",
+                    "taxonomy_version": 1
+                }],
+                "validation_type": schemas.ValidationType.hierarchical,
+                "is_auto_distribution": False,
+                "deadline": str(
+                    datetime.datetime.utcnow() + datetime.timedelta(days=1)
+                ),
+                "is_draft": True,
+            },
+        )
+        assert response.status_code == 200
+        assert response.json()["status"] == schemas.Status.draft
+        assert response.json()["categories"] ==["category1", "category2"]
+
+
 def test_create_annotation_job_without_deadline(testing_app):
     response = testing_app.post(
         "/jobs/create_job",

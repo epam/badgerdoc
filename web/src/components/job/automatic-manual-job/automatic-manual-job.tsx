@@ -1,5 +1,5 @@
 import { ILens } from '@epam/uui';
-import { Category, Pipeline, User } from 'api/typings';
+import { Category, Pipeline, Taxonomy, User } from 'api/typings';
 import { JobValues } from 'connectors/add-job-connector/add-job-connector';
 import React, { FC } from 'react';
 import JobName from '../job-name/job-name';
@@ -11,23 +11,31 @@ import PipelinePicker from '../pipeline-picker/pipeline-picker';
 import CategoriesPicker from 'shared/components/categories-picker/categories-picker';
 import { Checkbox } from '@epam/loveship';
 import { ExtensiveCoverageInput } from './extensive-coverage-input/extensive-coverage-input';
+import TaxonomyPickers from 'shared/components/taxonomy-pickers/taxonomy-pickers';
 
 type AutomaticManualJobProps = {
     categories: Category[] | undefined;
     users: User[] | undefined;
     pipelines: Pipeline[] | undefined;
+    taxonomies: Taxonomy[] | undefined;
     lens: ILens<JobValues>;
 };
 const AutomaticManualJob: FC<AutomaticManualJobProps> = ({
     lens,
     categories,
     users,
+    taxonomies,
     pipelines
 }) => {
     const startManuallyProps = lens.prop('start_manual_job_automatically').toProps();
     if (startManuallyProps.isDisabled) {
         startManuallyProps.value = false;
     }
+
+    const categoriesWithTaxonomy = lens
+        .prop('categories')
+        .get()
+        ?.filter((category) => (category.data_attributes || [])[0]?.type === 'taxonomy');
 
     const vlidationType = lens.prop('validationType').get();
     return (
@@ -43,6 +51,13 @@ const AutomaticManualJob: FC<AutomaticManualJobProps> = ({
 
             <div className="form-group">
                 <CategoriesPicker lens={lens} categories={categories} />
+            </div>
+            <div className="form-group">
+                <TaxonomyPickers
+                    lens={lens}
+                    taxonomies={taxonomies}
+                    categories={categoriesWithTaxonomy}
+                />
             </div>
             <div className="form-group">
                 <Checkbox

@@ -8,7 +8,8 @@ import {
     SearchBody,
     Sorting,
     SortingDirection,
-    Taxon
+    Taxon,
+    Taxonomy
 } from 'api/typings';
 import { useQuery } from 'react-query';
 import { pageSizes } from 'shared';
@@ -22,12 +23,23 @@ export const useTaxonomies: QueryHookType<QueryHookParamsType<Taxon>, PagedRespo
 ) => {
     return useQuery(
         ['taxonomies', page, size, searchText, filters, sortConfig],
+        () => taxonsFetcher(page, size, searchText, filters, sortConfig),
+        options
+    );
+};
+
+export const useAllTaxonomies: QueryHookType<
+    QueryHookParamsType<Taxonomy>,
+    PagedResponse<Taxonomy>
+> = ({ page, size, searchText, filters, sortConfig }, options) => {
+    return useQuery(
+        ['taxonomies/all', page, size, searchText, filters, sortConfig],
         () => taxonomiesFetcher(page, size, searchText, filters, sortConfig),
         options
     );
 };
 
-export async function taxonomiesFetcher(
+export async function taxonsFetcher(
     page = 1,
     size = pageSizes._15,
     searchText?: string | null,
@@ -51,10 +63,37 @@ export async function taxonomiesFetcher(
         filters: filtersArr,
         sorting: [{ direction: sortConfig.direction, field: sortConfig.field }]
     };
-    return fetchTaxonomies(`${namespace}/taxons/search`, 'post', body);
+    return fetchTaxons(`${namespace}/taxons/search`, 'post', body);
 }
 
-export async function fetchTaxonomies(
+export async function taxonomiesFetcher(
+    page = 1,
+    size = pageSizes._15,
+    searchText?: string | null,
+    filters?: Filter<keyof Taxonomy>[],
+    sortConfig: Sorting<keyof Taxonomy> = {
+        field: 'name',
+        direction: SortingDirection.ASC
+    }
+): Promise<PagedResponse<Taxonomy>> {
+    const filtersArr: Filter<keyof Taxonomy>[] = filters ? [...filters] : [];
+    if (searchText) {
+        filtersArr.push({
+            field: 'name',
+            operator: Operators.ILIKE,
+            value: `%${searchText.trim().toLowerCase()}%`
+        });
+    }
+
+    const body: SearchBody<Taxonomy> = {
+        pagination: { page_num: page, page_size: size },
+        filters: filtersArr,
+        sorting: [{ direction: sortConfig.direction, field: sortConfig.field }]
+    };
+    return fetchTaxonomies(`${namespace}/taxonomy/all`, 'post', body);
+}
+
+export async function fetchTaxons(
     url: string,
     method: HTTPRequestMethod,
     body?: SearchBody<Taxon>
@@ -64,4 +103,49 @@ export async function fetchTaxonomies(
         method,
         withCredentials: true
     })(JSON.stringify(body));
+}
+
+export async function fetchTaxonomies(
+    url: string,
+    method: HTTPRequestMethod,
+    body?: SearchBody<Taxonomy>
+): Promise<PagedResponse<Taxonomy>> {
+    return useBadgerFetch<PagedResponse<Taxonomy>>({
+        url,
+        method,
+        withCredentials: true
+    })(JSON.stringify(body));
+}
+
+type TaxonomyByCategoryAndJobIdParams = {
+    jobId?: number;
+    categoryId?: string | number;
+};
+
+export type TaxonomyByCategoryAndJobIdResponse = {
+    name: string;
+    id: string;
+    version: number;
+}[];
+
+export const useLinkTaxonomyByCategoryAndJobId: QueryHookType<
+    TaxonomyByCategoryAndJobIdParams,
+    TaxonomyByCategoryAndJobIdResponse
+> = ({ jobId, categoryId }, options) => {
+    return useQuery(
+        ['taxonomy', jobId, categoryId],
+        async () => (jobId && categoryId ? linkTaxonomyByCategoryAndJobId(jobId, categoryId) : []),
+        options
+    );
+};
+
+async function linkTaxonomyByCategoryAndJobId(
+    jobId?: number,
+    categoryId?: string | number
+): Promise<any> {
+    return useBadgerFetch({
+        url: `${namespace}/taxonomy/link_category/${jobId}/${categoryId}`,
+        method: 'get',
+        withCredentials: true
+    })();
 }

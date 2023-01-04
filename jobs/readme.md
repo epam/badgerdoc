@@ -18,5 +18,6 @@ Change all variables in accordance to your setup
 |`str` <br/> PIPELINE_MANAGER_URI | URI of the Inference Pipeline Manager microservice |
 |`str` <br/> DATASET_MANAGER_URI | URI of the Dataset Manager microservice |
 |`str` <br/> ANNOTATION_MICROSERVICE_URI | URI of the Annotation microservice |
+|`str` <br/> TAXONOMY_URI | URI of the Taxonomy microservice |
 |`str` <br/> POSTGRESQL_JOBMANAGER_DATABASE_URI | URI of database to work with. Should have format postgresql+psycopg2://user:password@host:port/db_name |
 |`int` <br/> PAGINATION_THRESHOLD| Maximum number of pages in one batch of files data to pass it into Inference Pipeline Manager or Annotation microservice |

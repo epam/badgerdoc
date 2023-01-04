@@ -4,13 +4,11 @@ from fastapi import APIRouter, Depends, HTTPException, Path, Response, status
 from filter_lib import Page
 from sqlalchemy.orm import Session
 from sqlalchemy_filters.exceptions import BadFilterFormat
-from tenant_dependency import TenantData
 
 from app.database import get_db
 from app.errors import NoSuchCategoryError
 from app.filters import CategoryFilter
 from app.microservice_communication.search import X_CURRENT_TENANT_HEADER
-from app.microservice_communication.taxonomy import delete_taxonomy_link
 from app.schemas import (
     BadRequestErrorSchema,
     CategoryBaseSchema,
@@ -21,7 +19,6 @@ from app.schemas import (
     SubCategoriesOutSchema,
 )
 from app.tags import CATEGORIES_TAG
-from app.token_dependency import TOKEN
 
 from .services import (
     add_category_db,
@@ -29,7 +26,6 @@ from .services import (
     fetch_category_db,
     filter_category_db,
     insert_category_tree,
-    link_category_with_taxonomy,
     recursive_subcategory_search,
     response_object_from_db,
     update_category_db,
@@ -55,14 +51,8 @@ def save_category(
     category: CategoryInputSchema,
     db: Session = Depends(get_db),
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
-    token: TenantData = Depends(TOKEN),
 ) -> CategoryResponseSchema:
     category_db = add_category_db(db, category, x_current_tenant)
-    link_category_with_taxonomy(
-        category_db=category_db,
-        x_current_tenant=x_current_tenant,
-        token=token,
-    )
     return response_object_from_db(category_db)
 
 
@@ -157,7 +147,6 @@ def update_category(
     category_id: str = Path(..., example="1"),
     db: Session = Depends(get_db),
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
-    token: TenantData = Depends(TOKEN),
 ) -> CategoryResponseSchema:
     """
     Updates category by id and returns updated category.
@@ -167,11 +156,6 @@ def update_category(
     )
     if not category_db:
         raise NoSuchCategoryError("Cannot update category parameters")
-    link_category_with_taxonomy(
-        category_db=category_db,
-        x_current_tenant=x_current_tenant,
-        token=token,
-    )
     return response_object_from_db(category_db)
 
 
@@ -187,8 +171,6 @@ def delete_category(
     category_id: str = Path(..., example="1"),
     db: Session = Depends(get_db),
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
-    token: TenantData = Depends(TOKEN),
 ) -> Response:
-    delete_taxonomy_link(category_id, x_current_tenant, token.token)
     delete_category_db(db, category_id, x_current_tenant)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
