@@ -44,11 +44,11 @@ export const isValidCategoryType = (type: CategoryDataAttrType) => {
 };
 
 export const getCategoryDataAttrs = (
-    annotationLabel: string | number | undefined,
+    annotationCategory: string | number | undefined,
     categories: Category[] | undefined
 ) => {
     /**
-     * @param annotationLabel - The annotation label (name category too)
+     * @param annotationLabel - The category name
      * @param categories - The array of categories
      * @returns The data attribute(s) of category.
      *
@@ -56,14 +56,14 @@ export const getCategoryDataAttrs = (
      * If not, it finds the value and stores it in the hash.
      */
 
-    if (!categoryDataAttrsCache.has(annotationLabel)) {
+    if (!categoryDataAttrsCache.has(annotationCategory)) {
         const foundCategoryDataAttrs = categories?.find(
-            (el) => el.id.toString() === annotationLabel
+            (el) => el.id.toString() === annotationCategory
         )?.data_attributes;
-        categoryDataAttrsCache.set(annotationLabel, foundCategoryDataAttrs);
+        categoryDataAttrsCache.set(annotationCategory, foundCategoryDataAttrs);
     }
 
-    return categoryDataAttrsCache.get(annotationLabel);
+    return categoryDataAttrsCache.get(annotationCategory);
 };
 
 export const mapAnnDataAttrs = (

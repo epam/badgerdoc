@@ -682,7 +682,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
     };
 
     const onAnnotationDoubleClick = (annotation: Annotation) => {
-        const { id, label } = annotation;
+        const { id, category } = annotation;
 
         if (annotation.boundType === 'table') {
             setTableMode(true);
@@ -693,7 +693,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             setTableMode(false);
         }
 
-        const foundCategoryDataAttrs = getCategoryDataAttrs(label, categories?.data);
+        const foundCategoryDataAttrs = getCategoryDataAttrs(category, categories?.data);
 
         if (foundCategoryDataAttrs) {
             setAnnDataAttrs((prevState) => {
