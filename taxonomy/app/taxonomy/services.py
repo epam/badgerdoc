@@ -81,7 +81,7 @@ def delete_taxonomy_instance(
     taxonomy: Taxonomy,
     tenant: str,
 ) -> None:
-    if taxonomy.tenant in (tenant, None):
+    if taxonomy and taxonomy.tenant in (tenant, None):
         session.delete(taxonomy)
         session.commit()
     else:
