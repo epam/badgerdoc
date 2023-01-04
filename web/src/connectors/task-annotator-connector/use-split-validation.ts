@@ -1,12 +1,11 @@
 import { AnnotationsByUserObj, useLatestAnnotationsByUser } from 'api/hooks/annotations';
-import { useJobById } from 'api/hooks/jobs';
 import { Category, Link } from 'api/typings';
 import { Job } from 'api/typings/jobs';
 import { cloneDeep } from 'lodash';
 import { useCallback, useMemo } from 'react';
-import { Annotation, pageSizes } from 'shared';
-import { downScaleCoords } from 'shared/components/annotator/utils/down-scale-coords';
+import { Annotation } from 'shared';
 import { scaleAnnotation } from 'shared/components/annotator/utils/scale-annotation';
+import useAnnotationsTaxons from 'shared/hooks/use-annotations-taxons';
 import useAnnotationsMapper from 'shared/hooks/use-annotations-mapper';
 
 interface SplitValidationParams {
@@ -72,7 +71,9 @@ export default function useSplitValidation({
         return byUser[currentPage].filter((userPage) => userPage.user_id !== userId);
     }, [byUser, currentPage]);
 
-    const { mapAnnotationPagesFromApi } = useAnnotationsMapper([byUser]);
+    const taxonLabels = useAnnotationsTaxons(userPages);
+
+    const { mapAnnotationPagesFromApi } = useAnnotationsMapper(taxonLabels, [byUser, taxonLabels]);
 
     const annotationsByUserId = useMemo(() => {
         return mapAnnotationPagesFromApi(

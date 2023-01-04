@@ -5,7 +5,8 @@ import {
     PageInfo,
     Category,
     CategoryDataAttrType,
-    ExternalViewerState
+    ExternalViewerState,
+    Taxon
 } from 'api/typings';
 
 import {
@@ -270,20 +271,25 @@ const formatTable = (table: TableApi): AnnotationTable => {
     };
 };
 
-export const mapAnnotationFromApi = (obj: PageInfoObjs, category?: Category): Annotation => {
+export const mapAnnotationFromApi = (
+    obj: PageInfoObjs,
+    category?: Category,
+    taxonLabels?: Map<string, Taxon>
+): Annotation => {
     let dataAttr: CategoryDataAttributeWithValue | null = null;
     if (obj.data.dataAttributes) {
         dataAttr = obj.data.dataAttributes.find(
             (attr: CategoryDataAttributeWithValue) => attr.type === 'taxonomy'
         );
     }
+    const taxonName = dataAttr && dataAttr.value ? taxonLabels?.get(dataAttr.value)?.name : null;
     return {
         id: obj.id!,
         boundType: (obj.type as AnnotationBoundType) || 'box',
         bound: bboxToBound(obj.bbox),
         category: obj.category,
         color: category?.metadata?.color,
-        label: dataAttr ? dataAttr.value : category?.name,
+        label: taxonName ?? category?.name,
         tokens: obj.data?.tokens,
         links: obj?.links,
         data: obj.data,
