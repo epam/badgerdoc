@@ -171,6 +171,9 @@ export type CategoryDataAttributeWithValue = {
     type: CategoryDataAttrType;
     value: string;
 };
+export type CategoryDataAttributeWithLabel = CategoryDataAttributeWithValue & {
+    label: string;
+};
 
 export type ExternalViewerState = {
     isOpen: boolean;
