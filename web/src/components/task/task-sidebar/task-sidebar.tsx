@@ -37,7 +37,11 @@ import { Tooltip } from '@epam/loveship';
 import { Category, Filter, Label, Operators, SortingDirection, Taxon } from '../../../api/typings';
 import { ImageToolsParams } from './image-tools-params';
 import { CategoriesTab } from 'components/categories/categories-tab/categories-tab';
-import { useTaxonomies, useLinkTaxonomyByCategoryAndJobId } from 'api/hooks/taxonomies';
+import {
+    //TODO deep name refactoring needed
+    useTaxonomies as useTaxons,
+    useLinkTaxonomyByCategoryAndJobId
+} from 'api/hooks/taxonomies';
 
 type TaskSidebarProps = {
     onRedirectAfterFinish: () => void;
@@ -244,7 +248,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
         value: latestLabelsId ?? []
     };
 
-    const { data: latestTaxons, refetch: refetchTaxons } = useTaxonomies(
+    const { data: latestTaxons, refetch: refetchTaxons } = useTaxons(
         {
             page: 1,
             size: 100,
