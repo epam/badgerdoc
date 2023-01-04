@@ -75,6 +75,16 @@ class ImportJobParams(BaseModel):
     import_format: Optional[str]
 
 
+class CategoryLinkInput(BaseModel):
+    category_id: str = Field(..., example="123abc")
+    taxonomy_id: str = Field(..., example="my_taxonomy_id")
+    taxonomy_version: Optional[int] = Field(..., example=1)
+
+
+class CategoryLinkParams(CategoryLinkInput):
+    job_id: str = Field(..., example="123abc")
+
+
 class JobParams(BaseModel):
     # ---- common attributes ---- #
     name: str
@@ -87,7 +97,7 @@ class JobParams(BaseModel):
     validation_type: Optional[ValidationType]
     annotators: Optional[List[str]]
     owners: Optional[List[str]]
-    categories: Optional[List[str]]
+    categories: Optional[List[Union[str, CategoryLinkInput]]]
     deadline: Optional[datetime]
     validators: Optional[List[str]]
     extensive_coverage: Optional[int]
@@ -131,7 +141,7 @@ class JobParams(BaseModel):
     )  # pylint: disable=no-self-argument
     def check_annotationjob_attributes(
         cls,
-        v: Union[List[int], List[str]],
+        v: Union[List[str], List[Union[str, CategoryLinkInput]]],
         values: Dict[str, Any],
         field: ModelField,
     ) -> Union[List[int], List[str]]:
@@ -271,7 +281,7 @@ class JobParamsToChange(BaseModel):
     annotators: Optional[List[str]]
     validators: Optional[List[str]]
     owners: Optional[List[str]]
-    categories: Optional[List[str]]
+    categories: Optional[List[Union[str, CategoryLinkInput]]]
     deadline: Optional[datetime]
     validation_type: Optional[ValidationType]
     # ---- ExtractionJob and ExtractionWithAnnotationJob attributes ---- #

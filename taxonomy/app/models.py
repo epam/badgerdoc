@@ -25,26 +25,6 @@ def default_tree(column_name: str) -> Callable:
     return default_function
 
 
-class AssociationTaxonomyJob(Base):
-    __tablename__ = "association_taxonomy_job"
-    __table_args__ = (
-        ForeignKeyConstraint(
-            ["taxonomy_id", "taxonomy_version"],
-            ["taxonomy.id", "taxonomy.version"],
-        ),
-    )
-    taxonomy_id = Column(VARCHAR)
-    taxonomy_version = Column(Integer)
-
-    taxonomy = relationship(
-        "Taxonomy",
-        foreign_keys="[AssociationTaxonomyJob.taxonomy_id, "
-        "AssociationTaxonomyJob.taxonomy_version]",
-        back_populates="jobs",
-    )
-    job_id = Column(VARCHAR, primary_key=True)
-
-
 class AssociationTaxonomyCategory(Base):
     __tablename__ = "association_taxonomy_category"
     __table_args__ = (
@@ -63,6 +43,7 @@ class AssociationTaxonomyCategory(Base):
         back_populates="categories",
     )
     category_id = Column(VARCHAR, primary_key=True)
+    job_id = Column(VARCHAR, primary_key=True)
 
 
 class Taxonomy(Base):
@@ -77,7 +58,6 @@ class Taxonomy(Base):
         back_populates="taxonomy",
     )
     latest = Column(Boolean, nullable=False)
-    jobs = relationship("AssociationTaxonomyJob", back_populates="taxonomy")
     taxons = relationship("Taxon", back_populates="taxonomy")
 
 

@@ -1,4 +1,6 @@
+import asyncio
 import pytest
+from unittest.mock import patch
 
 import jobs.schemas as schemas
 from tests.test_db import (
@@ -66,3 +68,18 @@ def test_change_job_pipeline_id(
     response = testing_app.put("/jobs/1", json={"pipeline_id": 555})
     assert response.status_code == 200
     assert response.json()["pipeline_id"] == str(555)
+
+
+def test_change_job_linked_taxonomy(
+    testing_app, testing_session, mock_AnnotationJobParams
+):
+    create_mock_extraction_job_in_db(testing_session)
+    with patch("jobs.utils.fetch", return_value=asyncio.Future()) as mock:
+        mock.side_effect = [(204, {}), (200, {})]
+        response = testing_app.put("/jobs/1", json={"categories": [{
+            "category_id": "category2",
+            "taxonomy_id": "my_taxonomy_id",
+            "taxonomy_version": 1
+        }]})
+        assert response.status_code == 200
+        assert response.json()["categories"] == ["category2"]

@@ -20,6 +20,7 @@ type TaskSidebarDataProps = {
         changes: Partial<Annotation>
     ) => void;
     currentPage: number;
+    taxonomyId?: string;
 };
 
 export const TaskSidebarData: FC<TaskSidebarDataProps> = ({
@@ -29,23 +30,13 @@ export const TaskSidebarData: FC<TaskSidebarDataProps> = ({
     onDataAttributesChange,
     viewMode,
     onAnnotationEdited,
-    currentPage
+    currentPage,
+    taxonomyId
 }) => {
     const [searchText, setSearchText] = useState('');
 
     const hightRef = useRef<HTMLDivElement>(null);
     const taxonomiesHeight = useHeight({ ref: hightRef });
-
-    const dataAttrsArr =
-        annDataAttrs && selectedAnnotation && annDataAttrs[+selectedAnnotation.id]
-            ? annDataAttrs[+selectedAnnotation.id]
-            : undefined;
-
-    const taxonomyId = useMemo(() => {
-        if (dataAttrsArr) {
-            return dataAttrsArr.find((dataAttr) => dataAttr.type === 'taxonomy')?.name;
-        }
-    }, [dataAttrsArr]);
 
     const { taxonomyNodes, expandNode, onLoadData } = useTaxonomiesTree({
         searchText,

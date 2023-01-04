@@ -1,7 +1,7 @@
 import uuid
 from json import loads
 from typing import Any, List, Optional, Tuple, Union
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 from uuid import UUID
 
 import pytest
@@ -361,23 +361,6 @@ def test_add_id_special_chars(
     response = client.post(CATEGORIES_PATH, json=data, headers=TEST_HEADERS)
     assert response.status_code == 400
     assert "Category id must be alphanumeric" in response.text
-
-
-@mark.integration
-@patch("app.categories.resources.link_category_with_taxonomy")
-@patch("uuid.uuid4", return_value="fe857daa-8332-4a26-ab50-29be0a74477e")
-def test_should_send_link_request_taxonomy_service(
-    uuid_mock, link_request_mock, prepare_db_categories_different_names
-):
-    data = prepare_category_body(
-        id_="1213",
-        name="taxonomy_12",
-        data_attributes=[{"taxonomy_id": "123"}, {"taxonomy_version": 1}],
-    )
-    response = client.post(CATEGORIES_PATH, json=data, headers=TEST_HEADERS)
-    assert response
-    assert response.status_code == 201
-    assert link_request_mock.called
 
 
 @mark.integration
@@ -834,7 +817,6 @@ def test_update_allowed_parent(
 @patch(
     "app.categories.resources.delete_category_db", side_effect=SQLAlchemyError
 )
-@patch("app.categories.resources.delete_taxonomy_link", Mock)
 def test_delete_db_connection_error(prepare_db_categories_same_names):
     cat_id = "1"
     response = client.delete(
@@ -849,7 +831,6 @@ def test_delete_db_connection_error(prepare_db_categories_same_names):
     "category_id",
     ("3", "100"),  # category from other tenant and category that doesn't exist
 )
-@patch("app.categories.resources.delete_taxonomy_link", Mock)
 def test_delete_wrong_category(
     category_id,
     prepare_db_categories_same_names,
@@ -863,7 +844,6 @@ def test_delete_wrong_category(
 
 
 @mark.integration
-@patch("app.categories.resources.delete_taxonomy_link", Mock)
 def test_delete_common_category(prepare_db_categories_same_names):
     cat_id = "2"
     response = client.delete(
@@ -874,7 +854,6 @@ def test_delete_common_category(prepare_db_categories_same_names):
 
 
 @mark.integration
-@patch("app.categories.resources.delete_taxonomy_link", Mock)
 def test_delete_tenant_category(prepare_db_categories_same_names):
     cat_id = "1"
     response = client.delete(
@@ -891,7 +870,6 @@ def test_delete_tenant_category(prepare_db_categories_same_names):
 
 @mark.integration
 @mark.parametrize("add_for_cascade_delete", ["1"], indirect=True)
-@patch("app.categories.resources.delete_taxonomy_link", Mock)
 def test_cascade_delete_tenant_parent(add_for_cascade_delete):
     cat_id = "1"
     child_1, child_2 = add_for_cascade_delete

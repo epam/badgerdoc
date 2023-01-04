@@ -52,6 +52,8 @@ spec:
           value: "assets"
         - name: ANNOTATION_MICROSERVICE_URI
           value: "annotation"
+        - name: TAXONOMY_URI
+          value: "taxonomy"
         - name: KEYCLOAK_HOST
           valueFrom:
             secretKeyRef:

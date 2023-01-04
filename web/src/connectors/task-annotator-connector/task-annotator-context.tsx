@@ -1,6 +1,5 @@
 import React, {
     createContext,
-    FC,
     MutableRefObject,
     useCallback,
     useContext,
@@ -48,6 +47,7 @@ import {
 } from 'shared';
 import { useAnnotationsLinks } from 'shared/components/annotator/utils/use-annotation-links';
 import { documentSearchResultMapper } from 'shared/helpers/document-search-result-mapper';
+import useAnnotationsTaxons from 'shared/hooks/use-annotations-taxons';
 import useAnnotationsMapper from 'shared/hooks/use-annotations-mapper';
 import useSycnScroll, { SyncScrollValue } from 'shared/hooks/use-sync-scroll';
 import { PageSize } from '../../shared/components/document-pages/document-pages';
@@ -361,8 +361,11 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         }
     }, [task, job]);
 
-    const { getAnnotationLabels, mapAnnotationPagesFromApi } = useAnnotationsMapper([
-        latestAnnotationsResult.data
+    const taxonLabels = useAnnotationsTaxons(latestAnnotationsResult.data?.pages);
+
+    const { getAnnotationLabels, mapAnnotationPagesFromApi } = useAnnotationsMapper(taxonLabels, [
+        latestAnnotationsResult.data?.pages,
+        taxonLabels
     ]);
 
     useAnnotationsLinks(
@@ -711,7 +714,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
     };
 
     const onAnnotationDoubleClick = (annotation: Annotation) => {
-        const { id, label } = annotation;
+        const { id, category } = annotation;
 
         if (annotation.boundType === 'table') {
             setTableMode(true);
@@ -722,7 +725,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             setTableMode(false);
         }
 
-        const foundCategoryDataAttrs = getCategoryDataAttrs(label, categories?.data);
+        const foundCategoryDataAttrs = getCategoryDataAttrs(category, categories?.data);
 
         if (foundCategoryDataAttrs) {
             setAnnDataAttrs((prevState) => {
@@ -938,7 +941,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         )
             return;
         setPageSize(latestAnnotationsResult.data.pages[0].size);
-    }, [latestAnnotationsResult.data, categories?.data]);
+    }, [latestAnnotationsResult.data, categories?.data, mapAnnotationPagesFromApi]);
 
     const onValidClick = useCallback(() => {
         if (invalidPages.includes(currentPage)) {

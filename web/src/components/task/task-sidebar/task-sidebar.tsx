@@ -37,7 +37,7 @@ import { Tooltip } from '@epam/loveship';
 import { Category, Filter, Label, Operators, SortingDirection, Taxon } from '../../../api/typings';
 import { ImageToolsParams } from './image-tools-params';
 import { CategoriesTab } from 'components/categories/categories-tab/categories-tab';
-import { useTaxonomies } from 'api/hooks/taxonomies';
+import { useTaxonomies, useLinkTaxonomyByCategoryAndJobId } from 'api/hooks/taxonomies';
 
 type TaskSidebarProps = {
     onRedirectAfterFinish: () => void;
@@ -265,6 +265,11 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
         }
     }, [latestTaxons]);
 
+    const taxonomy = useLinkTaxonomyByCategoryAndJobId({
+        jobId: task?.job.id,
+        categoryId: selectedAnnotation?.category!
+    });
+
     const onFinishValidation = async () => {
         await svc.uuiModals.show<TaskValidationValues>((props) => (
             <FinishTaskValidationModal
@@ -451,6 +456,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
                             viewMode={viewMode}
                             onAnnotationEdited={onAnnotationEdited}
                             currentPage={currentPage}
+                            taxonomyId={(taxonomy?.data || [])[0]?.id}
                         />
                     )}
                     {tabValue === 'Information' && (

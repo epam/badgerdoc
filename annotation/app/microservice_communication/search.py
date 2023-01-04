@@ -176,9 +176,10 @@ def expand_response(
     tasks: List[ManualAnnotationTask],
     file_names: Dict[int, str],
     job_names: Dict[int, str],
+    user_logins: Dict[str, str],
 ) -> List[ExpandedManualAnnotationTaskSchema]:
     """
-    Add to manual annotation tasks fields file and job,
+    Add to manual annotation tasks fields file, job, and login
     containing their id and name and delete fields
     job_id and file_id.
     """
@@ -192,6 +193,10 @@ def expand_response(
         response_task["job"] = {
             "id": response_task.pop("job_id"),
             "name": job_names.get(task.job_id, None),
+        }
+        response_task["user"] = {
+            "id": response_task.get("user_id"),
+            "name": user_logins.get(response_task.get("user_id")),
         }
         response.append(ExpandedManualAnnotationTaskSchema(**response_task))
     return response

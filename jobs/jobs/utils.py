@@ -10,6 +10,8 @@ from jobs.logger import logger
 from jobs.models import CombinedJob
 from jobs.schemas import (
     AnnotationJobUpdateParamsInAnnotation,
+    CategoryLinkInput,
+    CategoryLinkParams,
     JobMode,
     JobParamsToChange,
 )
@@ -484,3 +486,89 @@ def get_test_db_url(main_db_url: str) -> str:
     main_db_url_split[-1] = 'test_db'
     result = "/".join(main_db_url_split)
     return result
+
+
+async def send_category_taxonomy_link(
+    current_tenant: str,
+    jwt_token: str,
+    taxonomy_link_params: List[CategoryLinkParams],
+) -> None:
+    headers = {
+        "X-Current-Tenant": current_tenant,
+        "Authorization": f"Bearer: {jwt_token}",
+    }
+    try:
+        _, response = await fetch(
+            method="POST",
+            url=f"{HOST_TAXONOMY}/taxonomy/link_category",
+            headers=headers,
+            body=[
+                taxonomy_link_param.dict(exclude_defaults=True)
+                for taxonomy_link_param
+                in taxonomy_link_params
+            ],
+            raise_for_status=True,
+        )
+    except aiohttp.client_exceptions.ClientError as err:
+        logger.exception("Failed send category link to taxonomy")
+        raise fastapi.HTTPException(
+            status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Failed send category link to taxonomy: {err}",
+        )
+
+
+async def delete_taxonomy_link(
+    job_id: str,
+    current_tenant: str,
+    jwt_token: str,
+) -> None:
+    headers = {
+        "X-Current-Tenant": current_tenant,
+        "Authorization": f"Bearer: {jwt_token}",
+    }
+    try:
+        _, response = await fetch(
+            method="DELETE",
+            url=f"{HOST_TAXONOMY}/taxonomy/link_category/{job_id}",
+            headers=headers,
+            raise_for_status=True,
+        )
+    except aiohttp.client_exceptions.ClientError as err:
+        logger.exception("Failed delete taxonomy link")
+        raise fastapi.HTTPException(
+            status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Failed delete taxonomy link: {err}",
+        )
+
+
+def get_categories_ids(
+    categories: List[Union[str, CategoryLinkInput]]
+) -> Tuple[List[str], List[CategoryLinkInput]]:
+    categories_ids = [
+        category_id
+        for category_id in categories
+        if isinstance(category_id, str)
+    ]
+    categories_links = [
+        category_link
+        for category_link in categories
+        if isinstance(category_link, CategoryLinkInput)
+    ]
+    categories_links_ids = [
+        category_link.category_id for category_link in categories_links
+    ]
+    return categories_ids + categories_links_ids, categories_links
+
+
+def get_taxonomy_links(
+    job_id: str, categories_links: List[CategoryLinkInput]
+) -> List[CategoryLinkParams]:
+    return [
+        CategoryLinkParams(
+            job_id=job_id,
+            category_id=category_link.category_id,
+            taxonomy_id=category_link.taxonomy_id,
+            taxonomy_version=category_link.taxonomy_version,
+        )
+        for category_link in categories_links
+    ]

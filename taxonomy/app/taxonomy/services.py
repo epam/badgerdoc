@@ -1,18 +1,18 @@
 from typing import Dict, List, Optional, Tuple, Union
 
-from sqlalchemy import and_, desc, or_
-from sqlalchemy.orm import Session
+from filter_lib import Page, form_query, map_request_to_filter, paginate
+from sqlalchemy import and_, desc, null, or_
+from sqlalchemy.orm import Query, Session
 
 from app.errors import CheckFieldError
-from app.models import (
-    AssociationTaxonomyCategory,
-    AssociationTaxonomyJob,
-    Taxonomy,
-)
+from app.filters import TaxonomyFilter
+from app.models import AssociationTaxonomyCategory, Taxonomy
 from app.schemas import (
     CategoryLinkSchema,
+    JobTaxonomySchema,
     TaxonomyBaseSchema,
     TaxonomyInputSchema,
+    TaxonomyResponseSchema,
 )
 
 
@@ -37,7 +37,7 @@ def get_taxonomy(
     tenant: str,
 ) -> Optional[Taxonomy]:
     taxonomy = session.query(Taxonomy).get(primary_key)
-    if taxonomy.tenant in (tenant, None):
+    if taxonomy and taxonomy.tenant in (tenant, None):
         return taxonomy
     else:
         raise CheckFieldError("Taxonomy is not associated with current tenant")
@@ -81,7 +81,7 @@ def delete_taxonomy_instance(
     taxonomy: Taxonomy,
     tenant: str,
 ) -> None:
-    if taxonomy.tenant in (tenant, None):
+    if taxonomy and taxonomy.tenant in (tenant, None):
         session.delete(taxonomy)
         session.commit()
     else:
@@ -103,39 +103,59 @@ def get_second_latest_taxonomy(
     )
 
 
-def create_new_relation_to_job(
-    session: Session,
-    taxonomy: Taxonomy,
-    job_id: str,
-) -> None:
-    new_relation = AssociationTaxonomyJob(
-        taxonomy_id=taxonomy.id,
-        taxonomy_version=taxonomy.version,
-        job_id=job_id,
-    )
-    session.add(new_relation)
-    session.commit()
-
-
 def get_taxonomies_by_job_id(
-    session: Session,
-    job_id: str,
-    tenant: str,
-) -> List[Taxonomy]:
-    taxonomies_ids = tuple(
-        session.query(AssociationTaxonomyJob.taxonomy_id)
-        .filter(AssociationTaxonomyJob.job_id == job_id)
-        .filter(Taxonomy.tenant.in_((tenant, None)))
-        .all()
-    )
-    return (
-        session.query(Taxonomy)
+    session: Session, job_id: str, x_current_tenant: str
+) -> List[JobTaxonomySchema]:
+    job_taxonomies = (
+        session.query(
+            Taxonomy.name,
+            Taxonomy.id,
+            Taxonomy.version,
+            AssociationTaxonomyCategory.category_id,
+        )
+        .join(Taxonomy.categories)
         .filter(
-            Taxonomy.id.in_(taxonomies_ids),  # type: ignore
+            AssociationTaxonomyCategory.job_id == job_id,
+            Taxonomy.tenant == x_current_tenant,
             Taxonomy.latest == True,  # noqa E712
         )
-        .all()
     )
+    return [
+        JobTaxonomySchema(
+            name=name,
+            id=id,
+            version=version,
+            category_id=category_id,
+        )
+        for name, id, version, category_id in job_taxonomies.all()
+    ]
+
+
+def get_linked_taxonomies(
+    session: Session, job_id: str, category_id: str, x_current_tenant: str
+) -> List[TaxonomyResponseSchema]:
+    linked_taxonomies = (
+        session.query(
+            Taxonomy.name,
+            Taxonomy.id,
+            Taxonomy.version,
+        )
+        .join(Taxonomy.categories)
+        .filter(
+            AssociationTaxonomyCategory.job_id == job_id,
+            AssociationTaxonomyCategory.category_id == category_id,
+            Taxonomy.tenant == x_current_tenant,
+            Taxonomy.latest == True,  # noqa E712
+        )
+    )
+    return [
+        TaxonomyResponseSchema(
+            name=name,
+            id=id,
+            version=version,
+        )
+        for name, id, version in linked_taxonomies.all()
+    ]
 
 
 def bulk_create_relations_with_categories(
@@ -148,6 +168,7 @@ def bulk_create_relations_with_categories(
             taxonomy_id=link.taxonomy_id,
             taxonomy_version=taxonomies[link.taxonomy_id],
             category_id=link.category_id,
+            job_id=link.job_id,
         )
         for link in category_links
     ]
@@ -193,13 +214,54 @@ def batch_latest_taxonomies(
 
 def bulk_delete_category_association(
     session: Session,
-    category_id: str,
     tenant: str,
+    job_id: str,
+    category_id: Optional[str] = None,
 ) -> None:
-    association = session.query(AssociationTaxonomyCategory).filter(
-        AssociationTaxonomyCategory.category_id == category_id
+    tenant_taxonomy = session.query(Taxonomy.id, Taxonomy.version).filter(
+        Taxonomy.tenant == tenant,
     )
-    if association.taxonomy.tenant != tenant:
-        raise CheckFieldError("Taxonomy is not associated with current tenant")
-    session.delete(association)
+    taxonomy_links = session.query(AssociationTaxonomyCategory).filter(
+        AssociationTaxonomyCategory.job_id == job_id,
+    )
+    if category_id:
+        taxonomy_links.filter(
+            AssociationTaxonomyCategory.category_id == category_id,
+        )
+    taxonomy_links.filter(
+        AssociationTaxonomyCategory.taxonomy_id.in_(
+            tenant_taxonomy.subquery()
+        ),
+        AssociationTaxonomyCategory.taxonomy_version.in_(
+            tenant_taxonomy.subquery()
+        ),
+    )
+    taxonomy_links.delete(synchronize_session=False)
     session.commit()
+
+
+def _get_obj_from_request(
+    db: Session, request: TaxonomyFilter, tenant: str, filter_query=None
+) -> Tuple:
+
+    if filter_query is None:
+        filter_query = db.query(Taxonomy).filter(
+            or_(Taxonomy.tenant == tenant, Taxonomy.tenant == null())
+        )
+
+    filter_args = map_request_to_filter(request.dict(), Taxonomy.__name__)
+    taxonomy_query, pagination = form_query(filter_args, filter_query)
+    return taxonomy_query.all(), pagination
+
+
+def filter_taxonomies(
+    db: Session,
+    request: TaxonomyFilter,
+    tenant: str,
+    query: Optional[Query] = None,
+) -> Page[Union[TaxonomyResponseSchema, str, dict]]:
+    taxonomies_request, pagination = _get_obj_from_request(
+        db, request, tenant, query
+    )
+
+    return paginate(taxonomies_request, pagination)

@@ -10,7 +10,11 @@ from sqlalchemy.orm import Session
 from app.database import Base, engine
 from app.main import app
 from app.models import Taxon, Taxonomy
-from app.schemas import TaxonInputSchema, TaxonomyInputSchema
+from app.schemas import (
+    CategoryLinkSchema,
+    TaxonInputSchema,
+    TaxonomyInputSchema,
+)
 from app.taxon import services as taxon_services
 from app.taxonomy import services as taxonomy_services
 from app.token_dependency import TOKEN
@@ -103,6 +107,31 @@ def prepared_taxonomy_record_in_db(
         TaxonomyInputSchema(**taxonomy_input_data),
         {"version": 1, "latest": True},
     )
+
+
+@pytest.fixture
+def prepared_taxonomy_with_category_link(
+    taxonomy_input_data, db_session
+) -> Tuple[Taxonomy, CategoryLinkSchema]:
+    taxonomy_version = 1
+    taxonomy = taxonomy_services.create_taxonomy_instance(
+        db_session,
+        TEST_TENANTS[0],
+        TaxonomyInputSchema(**taxonomy_input_data),
+        {"version": taxonomy_version, "latest": True},
+    )
+    category_link = CategoryLinkSchema(
+        category_id="123",
+        job_id="321",
+        taxonomy_id=taxonomy_input_data["id"],
+        taxonomy_version=taxonomy_version,
+    )
+    taxonomy_services.bulk_create_relations_with_categories(
+        db_session,
+        {taxonomy_input_data["id"]: taxonomy_version},
+        [category_link],
+    )
+    return taxonomy, category_link
 
 
 @pytest.fixture

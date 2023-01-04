@@ -1,4 +1,10 @@
-import { Category, CategoryDataAttributeWithValue, PageInfo } from 'api/typings';
+import {
+    Category,
+    CategoryDataAttributeWithLabel,
+    CategoryDataAttributeWithValue,
+    PageInfo,
+    Taxon
+} from 'api/typings';
 import { mapAnnotationFromApi } from 'connectors/task-annotator-connector/task-annotator-utils';
 import { DependencyList, useCallback, useMemo } from 'react';
 import { Annotation, AnnotationLabel, PageToken } from 'shared';
@@ -34,7 +40,10 @@ const getTopRightToken = (tokens?: PageToken[]) => {
 const getTokenKey = (pageKey: string, token: PageToken) =>
     `${pageKey}_${token.text}_${token.x}_${token.y}`;
 
-export default function useAnnotationsMapper(deps: DependencyList): AnnotationsMapperValue {
+export default function useAnnotationsMapper(
+    taxonLabels: Map<string, Taxon>,
+    deps: DependencyList
+): AnnotationsMapperValue {
     const tokenLabelsMap = useMemo(() => new Map<string, AnnotationLabel[]>(), deps);
 
     const getAnnotationLabels = useCallback(
@@ -42,14 +51,18 @@ export default function useAnnotationsMapper(deps: DependencyList): AnnotationsM
             if (ann.boundType !== 'text') {
                 return [];
             }
-            const dataAttr: CategoryDataAttributeWithValue = ann.data?.dataAttributes
+            const dataAttr: CategoryDataAttributeWithLabel = ann.data?.dataAttributes
                 ? ann.data?.dataAttributes.find(
                       (attr: CategoryDataAttributeWithValue) => attr.type === 'taxonomy'
                   )
                 : null;
+
             const label = {
                 annotationId: ann.id,
-                label: dataAttr ? dataAttr.value : category?.name,
+                label:
+                    dataAttr && dataAttr.value
+                        ? taxonLabels.get(dataAttr.value)?.name
+                        : category?.name,
                 color: category?.metadata?.color
             };
             const topRightToken: PageToken | null | undefined = getTopRightToken(ann?.tokens);
@@ -77,7 +90,7 @@ export default function useAnnotationsMapper(deps: DependencyList): AnnotationsM
                 const pageKey = getPageKey(page);
                 const pageAnnotations = page.objs.map((obj) => {
                     const category = categories?.find((category) => category.id == obj.category);
-                    const ann = mapAnnotationFromApi(obj, category);
+                    const ann = mapAnnotationFromApi(obj, category, taxonLabels);
                     return {
                         ...ann,
                         labels: getAnnotationLabels(pageKey, ann, category)

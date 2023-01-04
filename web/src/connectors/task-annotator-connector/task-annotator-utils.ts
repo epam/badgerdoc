@@ -5,7 +5,8 @@ import {
     PageInfo,
     Category,
     CategoryDataAttrType,
-    ExternalViewerState
+    ExternalViewerState,
+    Taxon
 } from 'api/typings';
 
 import {
@@ -44,11 +45,11 @@ export const isValidCategoryType = (type: CategoryDataAttrType) => {
 };
 
 export const getCategoryDataAttrs = (
-    annotationLabel: string | number | undefined,
+    annotationCategory: string | number | undefined,
     categories: Category[] | undefined
 ) => {
     /**
-     * @param annotationLabel - The annotation label (name category too)
+     * @param annotationLabel - The category name
      * @param categories - The array of categories
      * @returns The data attribute(s) of category.
      *
@@ -56,14 +57,14 @@ export const getCategoryDataAttrs = (
      * If not, it finds the value and stores it in the hash.
      */
 
-    if (!categoryDataAttrsCache.has(annotationLabel)) {
+    if (!categoryDataAttrsCache.has(annotationCategory)) {
         const foundCategoryDataAttrs = categories?.find(
-            (el) => el.name.toString() === annotationLabel
+            (el) => el.id.toString() === annotationCategory
         )?.data_attributes;
-        categoryDataAttrsCache.set(annotationLabel, foundCategoryDataAttrs);
+        categoryDataAttrsCache.set(annotationCategory, foundCategoryDataAttrs);
     }
 
-    return categoryDataAttrsCache.get(annotationLabel);
+    return categoryDataAttrsCache.get(annotationCategory);
 };
 
 export const mapAnnDataAttrs = (
@@ -270,20 +271,25 @@ const formatTable = (table: TableApi): AnnotationTable => {
     };
 };
 
-export const mapAnnotationFromApi = (obj: PageInfoObjs, category?: Category): Annotation => {
+export const mapAnnotationFromApi = (
+    obj: PageInfoObjs,
+    category?: Category,
+    taxonLabels?: Map<string, Taxon>
+): Annotation => {
     let dataAttr: CategoryDataAttributeWithValue | null = null;
     if (obj.data.dataAttributes) {
         dataAttr = obj.data.dataAttributes.find(
             (attr: CategoryDataAttributeWithValue) => attr.type === 'taxonomy'
         );
     }
+    const taxonName = dataAttr && dataAttr.value ? taxonLabels?.get(dataAttr.value)?.name : null;
     return {
         id: obj.id!,
         boundType: (obj.type as AnnotationBoundType) || 'box',
         bound: bboxToBound(obj.bbox),
         category: obj.category,
         color: category?.metadata?.color,
-        label: dataAttr ? dataAttr.value : category?.name,
+        label: taxonName ?? category?.name,
         tokens: obj.data?.tokens,
         links: obj?.links,
         data: obj.data,

@@ -47,11 +47,6 @@ class SelfParentError(Exception):
         self.message = message
 
 
-class TaxonomyLinkException(Exception):
-    def __init__(self, exc_info: str):
-        self.exc_info = exc_info
-
-
 class AgreementScoreServiceException(Exception):
     def __init__(self, exc: str):
         self.exc = exc
@@ -146,13 +141,6 @@ def category_parent_child_error_handler(
     return JSONResponse(
         status_code=400,
         content={"detail": f"Self parent error. {exc.message}"},
-    )
-
-
-def taxonomy_link_error_handler(request: Request, exc: TaxonomyLinkException):
-    return JSONResponse(
-        status_code=400,
-        content={"detail": f"Taxonomy link error. {exc.exc_info}"},
     )
 
 

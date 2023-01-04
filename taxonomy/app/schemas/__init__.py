@@ -10,7 +10,7 @@ from app.schemas.taxon import (
 )
 from app.schemas.taxonomy import (
     CategoryLinkSchema,
-    JobIdSchema,
+    JobTaxonomySchema,
     TaxonomyBaseSchema,
     TaxonomyInputSchema,
     TaxonomyResponseSchema,
@@ -24,8 +24,8 @@ __all__ = [
     TaxonInputSchema,
     TaxonResponseSchema,
     CategoryLinkSchema,
-    JobIdSchema,
     TaxonomyBaseSchema,
     TaxonomyInputSchema,
     TaxonomyResponseSchema,
+    JobTaxonomySchema,
 ]

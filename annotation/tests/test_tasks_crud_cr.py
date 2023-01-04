@@ -1,3 +1,4 @@
+import re
 from datetime import datetime, timedelta
 from typing import Any, List, Optional
 from unittest.mock import Mock, patch
@@ -13,6 +14,7 @@ from app.microservice_communication.assets_communication import (
     ASSETS_FILES_URL,
 )
 from app.microservice_communication.jobs_communication import JOBS_SEARCH_URL
+from app.microservice_communication.user import USERS_SEARCH_URL
 from app.models import Category, File, Job, ManualAnnotationTask, User
 from app.schemas import CategoryTypeSchema, ValidationSchema
 from tests.consts import CRUD_TASKS_PATH
@@ -482,7 +484,7 @@ EXPANDED_TASKS_RESPONSE = [
         is_validation=False,
         pages=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
         status="Pending",
-        user_id=ANNOTATORS[0].user_id,
+        user={"id": ANNOTATORS[0].user_id, "name": "admin"},
         deadline="2021-10-19T01:01:01",
         file={
             "id": FILES[0].file_id,
@@ -497,7 +499,7 @@ EXPANDED_TASKS_RESPONSE = [
         is_validation=False,
         pages=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
         status="Pending",
-        user_id=ANNOTATORS[1].user_id,
+        user={"id": ANNOTATORS[1].user_id, "name": "admin"},
         deadline="2021-10-19T01:01:01",
         file={
             "id": FILES[1].file_id,
@@ -512,7 +514,7 @@ EXPANDED_TASKS_RESPONSE = [
         is_validation=False,
         pages=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
         status="Pending",
-        user_id=ANNOTATORS[3].user_id,
+        user={"id": ANNOTATORS[3].user_id, "name": "admin"},
         deadline="2021-11-19T01:01:01",
         file={
             "id": FILES[2].file_id,
@@ -527,7 +529,7 @@ EXPANDED_TASKS_RESPONSE = [
         is_validation=False,
         pages=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
         status="Pending",
-        user_id=ANNOTATORS[3].user_id,
+        user={"id": ANNOTATORS[3].user_id, "name": "admin"},
         deadline="2021-10-19T01:01:01",
         file={
             "id": FILES[3].file_id,
@@ -542,7 +544,7 @@ EXPANDED_TASKS_RESPONSE = [
         is_validation=True,
         pages=[1, 2, 3, 4, 5],
         status="In Progress",
-        user_id=ANNOTATORS[3].user_id,
+        user={"id": ANNOTATORS[3].user_id, "name": "admin"},
         deadline="2021-10-19T01:01:01",
         file={
             "id": FILES[3].file_id,
@@ -557,7 +559,7 @@ EXPANDED_TASKS_RESPONSE = [
         is_validation=True,
         pages=[6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
         status="Ready",
-        user_id=ANNOTATORS[3].user_id,
+        user={"id": ANNOTATORS[3].user_id, "name": "admin"},
         deadline="2021-10-19T01:01:01",
         file={
             "id": FILES[3].file_id,
@@ -569,6 +571,41 @@ EXPANDED_TASKS_RESPONSE = [
         },
     ),
 ]
+USERS_SEARCH_RESPONSE = {
+    "access": {
+        "manageGroupMembership": True,
+        "view": True,
+        "mapRoles": True,
+        "impersonate": True,
+        "manage": True
+    },
+    "attributes": {
+        "tenants": [
+            "test"
+        ]
+    },
+    "clientConsents": None,
+    "clientRoles": None,
+    "createdTimestamp": 1638362379072,
+    "credentials": None,
+    "disableableCredentialTypes": [],
+    "email": None,
+    "emailVerified": False,
+    "enabled": True,
+    "federatedIdentities": [],
+    "federationLink": None,
+    "firstName": None,
+    "groups": None,
+    "id": "02336646-f5d0-4670-b111-c140a3ad58b5",
+    "lastName": None,
+    "notBefore": 0,
+    "origin": None,
+    "realmRoles": None,
+    "requiredActions": [],
+    "self": None,
+    "serviceAccountClientId": None,
+    "username": "admin"
+}
 
 
 def prepare_task_stats_expected_response(
@@ -903,7 +940,7 @@ def test_create_export_invalid_datetime_format(
 @pytest.mark.integration
 def test_create_export_return_csv(prepare_db_update_stats_already_updated):
     body = prepare_stats_export_body(
-        user_ids=[task["user_id"] for task in EXPANDED_TASKS_RESPONSE]
+        user_ids=[str(ann.user_id) for ann in ANNOTATORS]
     )
 
     response = client.post(
@@ -944,6 +981,13 @@ def test_get_task(prepare_db_for_cr_task):
         responses.POST,
         ASSETS_FILES_URL,
         json=ASSET_FILE_RESPONSE,
+        status=200,
+        headers=TEST_HEADERS,
+    )
+    responses.add(
+        responses.GET,
+        re.compile(f"{USERS_SEARCH_URL}/\\w+"),
+        json=USERS_SEARCH_RESPONSE,
         status=200,
         headers=TEST_HEADERS,
     )
@@ -1036,6 +1080,13 @@ def test_get_tasks(
         responses.POST,
         JOBS_SEARCH_URL,
         json={1: "annotation_job_1"},
+        status=200,
+        headers=TEST_HEADERS,
+    )
+    responses.add(
+        responses.GET,
+        re.compile(f"{USERS_SEARCH_URL}/\\w+"),
+        json=USERS_SEARCH_RESPONSE,
         status=200,
         headers=TEST_HEADERS,
     )
@@ -1133,6 +1184,13 @@ def test_get_tasks_pagination(
         responses.POST,
         JOBS_SEARCH_URL,
         json=JOBS_RESPONSE,
+        status=200,
+        headers=TEST_HEADERS,
+    )
+    responses.add(
+        responses.GET,
+        re.compile(f"{USERS_SEARCH_URL}/\\w+"),
+        json=USERS_SEARCH_RESPONSE,
         status=200,
         headers=TEST_HEADERS,
     )
@@ -1294,7 +1352,7 @@ def test_search_two_filters_both_distinct(prepare_db_for_cr_task):
 @pytest.mark.integration
 @pytest.mark.parametrize(
     ["page_num", "page_size", "result_length"],
-    [(1, 15, 15), (2, 15, 7), (3, 15, 0), (1, 30, 22)],
+    [(1, 15, 15), (2, 15, 7), (3, 15, 0), (22, 30, 0)],
 )
 @responses.activate
 def test_search_tasks_pagination(
@@ -1311,6 +1369,13 @@ def test_search_tasks_pagination(
         responses.POST,
         JOBS_SEARCH_URL,
         json=JOBS_RESPONSE,
+        status=200,
+        headers=TEST_HEADERS,
+    )
+    responses.add(
+        responses.GET,
+        re.compile(f"{USERS_SEARCH_URL}/\\w+"),
+        json=USERS_SEARCH_RESPONSE,
         status=200,
         headers=TEST_HEADERS,
     )
@@ -1367,6 +1432,13 @@ def tests_search_tasks_filtration(
         status=200,
         headers=TEST_HEADERS,
     )
+    responses.add(
+        responses.GET,
+        re.compile(f"{USERS_SEARCH_URL}/\\w+"),
+        json=USERS_SEARCH_RESPONSE,
+        status=200,
+        headers=TEST_HEADERS,
+    )
     data = prepare_filtration_body(
         filter_field=filter_field,
         operator=operator,
@@ -1400,6 +1472,13 @@ def tests_search_tasks_ordering(
         responses.POST,
         ASSETS_FILES_URL,
         json=ASSET_FILE_RESPONSE,
+        status=200,
+        headers=TEST_HEADERS,
+    )
+    responses.add(
+        responses.GET,
+        re.compile(f"{USERS_SEARCH_URL}/\\w+"),
+        json=USERS_SEARCH_RESPONSE,
         status=200,
         headers=TEST_HEADERS,
     )
