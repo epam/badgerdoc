@@ -37,7 +37,7 @@ def get_taxonomy(
     tenant: str,
 ) -> Optional[Taxonomy]:
     taxonomy = session.query(Taxonomy).get(primary_key)
-    if taxonomy.tenant in (tenant, None):
+    if taxonomy and taxonomy.tenant in (tenant, None):
         return taxonomy
     else:
         raise CheckFieldError("Taxonomy is not associated with current tenant")
@@ -81,7 +81,7 @@ def delete_taxonomy_instance(
     taxonomy: Taxonomy,
     tenant: str,
 ) -> None:
-    if taxonomy.tenant in (tenant, None):
+    if taxonomy and taxonomy.tenant in (tenant, None):
         session.delete(taxonomy)
         session.commit()
     else:
