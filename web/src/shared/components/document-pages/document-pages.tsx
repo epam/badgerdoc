@@ -3,21 +3,18 @@ import { ReactComponent as increaseIcon } from '@epam/assets/icons/common/action
 import { ReactComponent as searchIcon } from '@epam/assets/icons/common/action-search-18.svg';
 import { ReactComponent as decreaseIcon } from '@epam/assets/icons/common/content-minus-24.svg';
 import { useTaskAnnotatorContext } from 'connectors/task-annotator-connector/task-annotator-context';
-import { Render } from 'ketcher-core';
 import { FileMetaInfo } from 'pages/document/document-page-sidebar-content/document-page-sidebar-content';
 import { Document, Page, pdfjs, PDFPageProxy } from 'react-pdf';
 import { Annotation } from 'shared';
 import { getAuthHeaders } from 'shared/helpers/auth-tools';
 import { getPdfDocumentAddress } from 'shared/helpers/get-pdf-document-address';
-import { LinkAnnotation } from '../annotator/components/link-annotation';
-import { getPointsForLinks } from '../annotator/utils/get-points-for-link';
 import { Image } from '../image/image';
 import DocumentSinglePage from './document-single-page';
-import './react-pdf.scss';
 import { IconButton, IconContainer, Spinner } from '@epam/loveship';
 import { LabelsPanel } from 'components/labels-panel';
 import styles from './document-pages.module.scss';
 import cn from 'classnames';
+import './react-pdf.scss';
 
 export interface PageSize {
     width: number;
@@ -73,7 +70,8 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
         currentPage,
         isSplitValidation,
         onSplitAnnotationSelected,
-        userPages
+        userPages,
+        selectedLabels
     } = useTaskAnnotatorContext();
 
     const containerRef = useRef<HTMLDivElement>(null);
@@ -81,7 +79,6 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
     const [scale, setScale] = useState(0);
     const [initialScale, setInitialScale] = useState(0);
     const [originalPageSize, setOriginalPageSize] = useState<PageSize>();
-    const { selectedLabels } = useTaskAnnotatorContext();
 
     useEffect(() => {
         const newPageSize = apiPageSize && apiPageSize.height > 0 ? apiPageSize : originalPageSize;
@@ -137,7 +134,7 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
 
     return (
         <>
-            <LabelsPanel labels={selectedLabels ?? []} />
+            <LabelsPanel labels={selectedLabels} />
             <div className={styles['pdf-container']}>
                 {pageScale}
                 <div ref={containerRef} className={styles['pdf-document-container']}>

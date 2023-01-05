@@ -5,11 +5,15 @@ import { Label } from 'api/typings';
 import { useTaskAnnotatorContext } from 'connectors/task-annotator-connector/task-annotator-context';
 
 type LabelsPanelProps = {
-    labels: Label[];
+    labels?: Label[];
 };
 
 export const LabelsPanel: FC<LabelsPanelProps> = ({ labels }) => {
+    if (!labels) {
+        return <div>Loading...</div>;
+    }
     const labelsName = labels.map((label) => label.name);
+
     const { setTabValue } = useTaskAnnotatorContext();
     return (
         <FlexCell width="auto" cx={styles.container}>

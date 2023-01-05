@@ -269,8 +269,6 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
             setSelectedLabels(latestLabels);
         }
     }, [latestTaxons]);
-    // получить все taxonomy ids по job id
-    // http://dev2.badgerdoc.com/api/v1/taxonomy/docs#/Taxonomy/get_job_taxonomies_taxonomy_get
     const { data: taxonomies, isLoading } = useAllTaxonomiesByJobId({ jobId: task?.job.id });
 
     // needed for taskSidebarLabel ^
@@ -554,8 +552,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
                     {tabValue === 'Labels' && categories !== undefined && (
                         <>
                             <TaskSidebarLabels
-                                // categories={categories}
-                                taxonomies={taxonomies}
+                                taxonomies={isLoading === false ? taxonomies : []}
                                 onLabelsSelected={onLabelsSelected}
                                 selectedLabels={selectedLabels ?? []}
                             />

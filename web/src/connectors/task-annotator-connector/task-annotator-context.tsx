@@ -476,11 +476,10 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         }
         setSelectedLabels((prev) => {
             const combinedLabels = [...prev, ...labels];
-            const ids = combinedLabels.map((label) => label.id);
-            const result = combinedLabels
-                .filter((label) => pickedLabels.includes(label.id))
-                .filter(({ id }, index) => !ids.includes(id, index + 1));
-            return result;
+            const arrayUniqueByKey = [
+                ...new Map(combinedLabels.map((item) => [item['id'], item])).values()
+            ].filter((label) => pickedLabels.includes(label.id));
+            return arrayUniqueByKey;
         });
     };
 

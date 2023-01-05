@@ -14,7 +14,7 @@ import styles from './task-sidebar-labels.module.scss';
 type TaskSidebarLabelsViewProps = {
     labels: PagedResponse<Taxon> | undefined;
     pickerValue: string[];
-    onValueChange: (e: string[], labelsArr: Label[]) => void;
+    onValueChange: (e: any, labelsArr: Label[]) => void;
     selectedLabels: Label[];
 };
 
@@ -42,7 +42,7 @@ const TaskSidebarLabelsView: FC<TaskSidebarLabelsViewProps> = ({
             <PickerList<Label, Label | unknown>
                 dataSource={dataSource}
                 value={pickerValue}
-                onValueChange={(e) => onValueChange((e as string[]) ?? [], labelsArr)}
+                onValueChange={(e) => onValueChange(e ?? [], labelsArr)}
                 entityName="location"
                 selectionMode="multi"
                 valueType="id"
@@ -70,7 +70,9 @@ export const TaskSidebarLabels = ({
     const [pickerValue, setPickerValue] = useState<string[]>(latestLabelsId);
 
     const { notifyError } = useNotifications();
-    const taxonomyIds = taxonomies?.map((taxonomy) => taxonomy.id);
+
+    const taxonomyIds = useMemo(() => taxonomies?.map((taxonomy) => taxonomy.id), [taxonomies]);
+
     const taxonomyFilter: Filter<keyof Taxon> = {
         field: 'taxonomy_id',
         operator: Operators.IN,
