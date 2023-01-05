@@ -1,13 +1,21 @@
 import contextlib
+import os
 from copy import deepcopy
 from typing import Generator, List, Tuple
+from unittest.mock import patch
 from uuid import uuid4
 
 import pytest
+import sqlalchemy
 from fastapi.testclient import TestClient
-from sqlalchemy.orm import Session
+from sqlalchemy import create_engine
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy_utils import create_database, database_exists, drop_database
 
-from app.database import Base, engine
+from alembic import command
+from alembic.config import Config
+from app.database import SQLALCHEMY_DATABASE_URL, Base, get_db, get_test_db_url
 from app.main import app
 from app.models import Taxon, Taxonomy
 from app.schemas import (
@@ -21,26 +29,19 @@ from app.token_dependency import TOKEN
 from tests.override_app_dependency import TEST_TENANTS, override
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def client() -> TestClient:
     client = TestClient(app)
     return client
 
 
-@pytest.fixture
-def overrided_token_client(client) -> Generator[TestClient, None, None]:
-    app.dependency_overrides[TOKEN] = override
-    yield client
-    app.dependency_overrides[TOKEN] = TOKEN
-
-
-def clear_db():
+def clear_db(db_test_engine):
     """
     Clear db
     reversed(Base.metadata.sorted_tables) makes
     it so children are deleted before parents.
     """
-    with contextlib.closing(engine.connect()) as con:
+    with contextlib.closing(db_test_engine.connect()) as con:
         trans = con.begin()
         for table in reversed(Base.metadata.sorted_tables):
             con.execute(table.delete())
@@ -58,22 +59,59 @@ def close_session(gen):
         pass
 
 
-@pytest.fixture(scope="module")
-def db_session() -> Generator[Session, None, None]:
+@pytest.fixture
+def use_temp_env_var():
+    with patch.dict(os.environ, {"USE_TEST_DB": "1"}):
+        yield
+
+
+@pytest.fixture
+def db_test_engine():
+    db_url = get_test_db_url(SQLALCHEMY_DATABASE_URL)
+    test_db_engine = create_engine(db_url)
+    yield test_db_engine
+
+
+@pytest.fixture
+def setup_test_db(use_temp_env_var, db_test_engine):
+
+    # 1. drop existing database if there is one
+    if database_exists(db_test_engine.url):
+        drop_database(db_test_engine.url)
+
+    # 2. create test database (empty)
+    create_database(db_test_engine.url)
+
+    # 3. Install 'ltree' extension
+    with db_test_engine.connect() as conn:
+        conn.execute(
+            sqlalchemy.sql.text("CREATE EXTENSION IF NOT EXISTS ltree")
+        )
+
+    # 4. run 'alembic upgrade head'
+    alembic_cfg = Config("alembic.ini")
+
+    try:
+        command.upgrade(alembic_cfg, "head")
+    except SQLAlchemyError as e:
+        raise SQLAlchemyError(f"Got an Exception during migrations - {e}")
+
+    yield
+
+
+@pytest.fixture
+def db_session(
+    db_test_engine, setup_test_db
+) -> Generator[Session, None, None]:
     """Creates all tables on setUp, yields SQLAlchemy session and removes
     tables on tearDown.
     """
-    from app.database import get_db
-
-    Base.metadata.drop_all(bind=engine)
-    Base.metadata.create_all(bind=engine)
-    clear_db()
-    gen = get_db()
-    session = next(gen)
-
-    yield session
-
-    close_session(gen)
+    session_local = sessionmaker(bind=db_test_engine)
+    session = session_local()
+    try:
+        yield session
+    finally:
+        session.close()
 
 
 @pytest.fixture
@@ -239,7 +277,7 @@ def prepare_three_taxons_parent_each_other(
 
 @pytest.fixture
 def prepared_taxon_hierarchy(
-    taxon_input_data, db_session
+    taxon_input_data, db_session, db_test_engine
 ) -> Generator[List[Taxon], None, None]:
     """
     Implement following structure:
@@ -282,7 +320,7 @@ def prepared_taxon_hierarchy(
     yield taxons
     # todo rework function to delete only needed items to avoid impact for
     #  other testcases in parallel run.
-    clear_db()
+    clear_db(db_test_engine)
 
 
 @pytest.fixture
@@ -315,3 +353,14 @@ def common_taxon(db_session, prepare_common_tenant_taxonomy):
         TaxonInputSchema(**input_data),
         None,
     )
+
+
+@pytest.fixture
+def overrided_token_client(
+    client, db_session
+) -> Generator[TestClient, None, None]:
+
+    app.dependency_overrides[TOKEN] = override
+    app.dependency_overrides[get_db] = lambda: db_session
+    yield client
+    app.dependency_overrides[TOKEN] = TOKEN
