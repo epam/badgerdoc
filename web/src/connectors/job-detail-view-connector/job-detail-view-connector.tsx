@@ -13,13 +13,8 @@ import {
 } from '@epam/loveship';
 import { JobDetailViewHeader } from '../../shared/components/job/job-detail-view-header';
 import { useDocumentsInJob } from '../../api/hooks/documents';
-import {
-    useDistributeTasksMutation,
-    useTasksForJob,
-    useTasksForJobAndUsers,
-    useUsersForTask
-} from '../../api/hooks/tasks';
-import { Task } from '../../api/typings/tasks';
+import { useDistributeTasksMutation, useTasksForJob, useUsersForTask } from '../../api/hooks/tasks';
+import { ApiTask, Task } from '../../api/typings/tasks';
 import tasksColumn from './job-tasks-column';
 import filesColumn from './job-files-columns';
 import { CreateTask } from 'connectors/tasks';
@@ -47,8 +42,6 @@ type JobDetailViewProps = {
 export const JobConnector: React.FC<JobDetailViewProps> = ({
     jobId,
     user,
-    onRowClick,
-    onTaskClick,
     onEditJobClick,
     getActiveTab
 }) => {
@@ -146,7 +139,7 @@ export const JobConnector: React.FC<JobDetailViewProps> = ({
         searchText
     );
 
-    const { dataSource: taskDataSource } = useAsyncSourceTable<Task, number>(
+    const { dataSource: taskDataSource } = useAsyncSourceTable<ApiTask, number>(
         taskFetching,
         tasks?.data ?? [],
         page,
@@ -157,7 +150,7 @@ export const JobConnector: React.FC<JobDetailViewProps> = ({
     );
 
     const taskView = taskDataSource.useView(taskTableValue, onTaskTableValueChange, {
-        getRowOptions: (item: Task) => ({
+        getRowOptions: (item: ApiTask) => ({
             isSelectable: true,
             onClick: () => {
                 if (tabValueReference.current === 'Tasks') {
@@ -181,7 +174,7 @@ export const JobConnector: React.FC<JobDetailViewProps> = ({
     const columnsFiles: DataColumnProps<FileDocument>[] = useMemo(() => {
         return filesColumn;
     }, []);
-    const columnsTasks: DataColumnProps<Task>[] = useMemo(() => {
+    const columnsTasks: DataColumnProps<ApiTask>[] = useMemo(() => {
         return tasksColumn;
     }, []);
 

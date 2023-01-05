@@ -1,6 +1,6 @@
 import { ValidationType } from 'api/typings';
 
-export type Task = {
+export type ApiTask = {
     id: number;
     status: TaskStatus;
     file: {
@@ -12,9 +12,16 @@ export type Task = {
         name: string;
         id: number;
     };
-    user_id: string;
+    user: {
+        id: string;
+        name: string;
+    };
     is_validation: boolean;
     deadline: string;
+};
+
+export type Task = Omit<ApiTask, 'user'> & {
+    user_id: string;
 };
 
 export type DistributeTasksResponse = Task[];
