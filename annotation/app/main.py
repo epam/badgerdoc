@@ -6,7 +6,6 @@ from dotenv import find_dotenv, load_dotenv
 from fastapi import Depends, FastAPI
 from sqlalchemy.exc import DBAPIError, SQLAlchemyError
 from starlette.requests import Request
-from starlette.responses import Response
 
 from app.annotations import resources as annotations_resources
 from app.categories import resources as categories_resources
