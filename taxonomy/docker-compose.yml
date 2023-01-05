@@ -25,10 +25,9 @@ services:
   taxonomy:
     build:
       context: .
-      target: test
+      target: development
     ports:
       - ${APP_PORT}:${APP_PORT}
-    command: bash -c "alembic upgrade head"
     env_file:
       - .env
     networks:
