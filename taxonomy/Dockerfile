@@ -1,4 +1,4 @@
-ARG base_image=818863528939.dkr.ecr.eu-central-1.amazonaws.com/badgerdoc/python_base:0.1.6
+ARG base_image=818863528939.dkr.ecr.eu-central-1.amazonaws.com/badgerdoc/python_base:0.1.7
 FROM ${base_image} as base
 
 ENV PYTHONPATH /opt
@@ -22,15 +22,12 @@ RUN poetry install --no-root --no-dev
 COPY ./documentation ./documentation
 CMD alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8080
 
-FROM base as test
+FROM build as development
 
 RUN apt-get install -y make
 RUN poetry install --no-root
 COPY Makefile pytest.ini setup.cfg ./
 COPY ./tests ./tests
-COPY app app
-COPY alembic alembic
-RUN make test_checks
 
 FROM base as build-dev
 
