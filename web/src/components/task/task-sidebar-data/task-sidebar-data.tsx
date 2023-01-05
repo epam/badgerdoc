@@ -1,4 +1,4 @@
-import React, { FC, Fragment, useMemo, useRef, useState } from 'react';
+import React, { FC, Fragment, useRef, useState } from 'react';
 import { SearchInput, Text, TextArea } from '@epam/loveship';
 import { CategoryDataAttributeWithValue } from 'api/typings';
 import { TaxonomiesTree } from 'components/taxonomies/taxonomies-tree';

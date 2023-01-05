@@ -131,19 +131,3 @@ export const applyTableConfigs = <TFilter, TSorting, TDirection, TOperator, TVal
 };
 export const mapUndefString = (fn: (s: string) => void) => (val: string | undefined) =>
     fn(val || '');
-
-export const getTaxonsId = (searchResult: any[] = []) => {
-    const documents = searchResult.filter((el) => el.type === 'document');
-
-    const taxonsId = documents.reduce((acc: string[], curr: { data_attributes: any[] }) => {
-        if (curr.data_attributes) {
-            curr.data_attributes.forEach((el: { type: string; name: string }) => {
-                if (el.type === 'taxonomy' && !acc.includes(el.name)) {
-                    acc.push(el.name);
-                }
-            });
-        }
-        return acc;
-    }, []);
-    return taxonsId;
-};

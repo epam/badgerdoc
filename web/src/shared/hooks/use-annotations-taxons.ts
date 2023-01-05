@@ -1,4 +1,4 @@
-import { useTaxonomies } from 'api/hooks/taxonomies';
+import { useTaxons } from 'api/hooks/taxons';
 import { Operators, PageInfo, SortingDirection, Taxon } from 'api/typings';
 import { useEffect, useMemo, useState } from 'react';
 
@@ -23,7 +23,7 @@ export default function useAnnotationsTaxons(annotationsByPages?: PageInfo[]): M
         }
     }, [annotationsByPages]);
 
-    const { data: taxons, refetch } = useTaxonomies(
+    const { data: taxons, refetch } = useTaxons(
         {
             page: 1,
             size: 100,

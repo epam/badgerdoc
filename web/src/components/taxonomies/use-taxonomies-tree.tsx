@@ -1,4 +1,4 @@
-import { taxonsFetcher, useTaxonomies } from 'api/hooks/taxonomies';
+import { taxonsFetcher, useTaxons } from 'api/hooks/taxons';
 import { Operators, SortingDirection, Filter, TaxonomyNode, Taxon } from 'api/typings';
 import { isEmpty } from 'lodash';
 import { useState, useEffect } from 'react';
@@ -23,7 +23,7 @@ export const useTaxonomiesTree = ({ searchText, taxonomyId, taxonomyFilter }: Pr
         };
     }
 
-    const { data: rootCategories } = useTaxonomies(
+    const { data: rootCategories } = useTaxons(
         {
             page: 1,
             size: 100,
@@ -39,7 +39,7 @@ export const useTaxonomiesTree = ({ searchText, taxonomyId, taxonomyFilter }: Pr
         },
         {}
     );
-    const searchResult = useTaxonomies(
+    const searchResult = useTaxons(
         {
             page: 1,
             size: 100,

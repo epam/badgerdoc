@@ -6,16 +6,15 @@ import { SearchInput, PickerList, Spinner, Text } from '@epam/loveship';
 import { Filter, Operators, SortingDirection, Taxon, Label, PagedResponse } from 'api/typings';
 
 import { useNotifications } from 'shared/components/notifications';
-import { useTaxonomies } from 'api/hooks/taxonomies';
+import { TaxonomyByJobIdResponse, useTaxons } from 'api/hooks/taxons';
 import { getError } from 'shared/helpers/get-error';
 
-import { getTaxonsId } from 'shared/helpers/utils';
 import styles from './task-sidebar-labels.module.scss';
 
 type TaskSidebarLabelsViewProps = {
     labels: PagedResponse<Taxon> | undefined;
     pickerValue: string[];
-    onValueChange: (e: any, labelsArr: Label[]) => void;
+    onValueChange: (e: string[], labelsArr: Label[]) => void;
     selectedLabels: Label[];
 };
 
@@ -43,7 +42,7 @@ const TaskSidebarLabelsView: FC<TaskSidebarLabelsViewProps> = ({
             <PickerList<Label, Label | unknown>
                 dataSource={dataSource}
                 value={pickerValue}
-                onValueChange={(e) => onValueChange(e ?? [], labelsArr)}
+                onValueChange={(e) => onValueChange((e as string[]) ?? [], labelsArr)}
                 entityName="location"
                 selectionMode="multi"
                 valueType="id"
@@ -56,13 +55,13 @@ const TaskSidebarLabelsView: FC<TaskSidebarLabelsViewProps> = ({
 };
 
 type TaskSidebarLabelsProps = {
-    categories: any;
+    taxonomies: TaxonomyByJobIdResponse | undefined;
     onLabelsSelected: (labels: Label[], pickedLabels: string[]) => void;
     selectedLabels: Label[];
 };
 
 export const TaskSidebarLabels = ({
-    categories,
+    taxonomies,
     onLabelsSelected,
     selectedLabels = []
 }: TaskSidebarLabelsProps) => {
@@ -71,12 +70,11 @@ export const TaskSidebarLabels = ({
     const [pickerValue, setPickerValue] = useState<string[]>(latestLabelsId);
 
     const { notifyError } = useNotifications();
-    const ids: string[] = getTaxonsId(categories);
-
+    const taxonomyIds = taxonomies?.map((taxonomy) => taxonomy.id);
     const taxonomyFilter: Filter<keyof Taxon> = {
         field: 'taxonomy_id',
         operator: Operators.IN,
-        value: ids
+        value: taxonomyIds
     };
 
     const {
@@ -84,7 +82,7 @@ export const TaskSidebarLabels = ({
         isLoading,
         isError,
         refetch
-    } = useTaxonomies(
+    } = useTaxons(
         {
             page: 1,
             size: 100,

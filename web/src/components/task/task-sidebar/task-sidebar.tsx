@@ -38,10 +38,10 @@ import { Category, Filter, Label, Operators, SortingDirection, Taxon } from '../
 import { ImageToolsParams } from './image-tools-params';
 import { CategoriesTab } from 'components/categories/categories-tab/categories-tab';
 import {
-    //TODO deep name refactoring needed
-    useTaxonomies as useTaxons,
-    useLinkTaxonomyByCategoryAndJobId
-} from 'api/hooks/taxonomies';
+    useTaxons,
+    useLinkTaxonomyByCategoryAndJobId,
+    useAllTaxonomiesByJobId
+} from 'api/hooks/taxons';
 
 type TaskSidebarProps = {
     onRedirectAfterFinish: () => void;
@@ -238,6 +238,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
     }`;
     const validationStatus: ValidationPageStatus = isValid ? 'Valid Page' : 'Invalid Page';
 
+    // needed for taskSidebarLabel:
     useEffect(() => {
         refetchTaxons();
     }, [latestLabelsId]);
@@ -268,6 +269,11 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
             setSelectedLabels(latestLabels);
         }
     }, [latestTaxons]);
+    // получить все taxonomy ids по job id
+    // http://dev2.badgerdoc.com/api/v1/taxonomy/docs#/Taxonomy/get_job_taxonomies_taxonomy_get
+    const { data: taxonomies, isLoading } = useAllTaxonomiesByJobId({ jobId: task?.job.id });
+
+    // needed for taskSidebarLabel ^
 
     const taxonomy = useLinkTaxonomyByCategoryAndJobId({
         jobId: task?.job.id,
@@ -548,7 +554,8 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
                     {tabValue === 'Labels' && categories !== undefined && (
                         <>
                             <TaskSidebarLabels
-                                categories={categories}
+                                // categories={categories}
+                                taxonomies={taxonomies}
                                 onLabelsSelected={onLabelsSelected}
                                 selectedLabels={selectedLabels ?? []}
                             />
