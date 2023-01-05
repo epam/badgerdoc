@@ -76,7 +76,7 @@ async def catch_exceptions_middleware(request: Request, call_next):
         return await call_next(request)
     except Exception as exception:  # noqa
         logger.exception(exception)
-        return Response("Internal server error", status_code=500)
+        raise exception
 
 app.middleware('http')(catch_exceptions_middleware)
 app.include_router(annotations_resources.router)
