@@ -44,6 +44,7 @@ class Config(BaseSettings):
     gotenberg: Optional[str]
     gotenberg_libre_office_endpoint: Optional[str]
     gotenberg_formats: List[str]
+    convert_service_formats: List[str]
     image_formats: List[str]
     aws_profile_name: Optional[str]
 
