@@ -2,7 +2,7 @@ import { Category, Step } from 'api/typings';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Elements, FlowElement, FlowTransform, isNode, Node } from 'react-flow-renderer';
 import { EditStepProps, StepValues } from '../edit-step/edit-step';
-import { nanoid } from 'nanoid';
+import { v4 as uuidv4 } from 'uuid';
 
 type UsePipelineEditorResult = {
     flowProps: {
@@ -43,7 +43,7 @@ export const usePipelineEditor = (
         (values: StepValues) => {
             const newStep: Step = {
                 ...values,
-                id: nanoid(),
+                id: uuidv4(),
                 model: values.model!,
                 version: values.version!,
                 model_url: values.model!,
