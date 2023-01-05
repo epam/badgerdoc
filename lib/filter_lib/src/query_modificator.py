@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Tuple, Type
+from typing import Any, Dict, List, Optional, Tuple, Type, Union
 
 from sqlalchemy import func
 from sqlalchemy.exc import ArgumentError, DataError, ProgrammingError
@@ -117,16 +117,30 @@ def _create_sorting(query: Query, sor: Dict[str, Any]) -> Query:
     return query
 
 
+def validate_filter_args(
+    model: Type[DeclarativeMeta],
+    fil: Dict[str, Any],
+    field: Optional[Union[str, List]],
+    operator: Optional[str],
+    value: Optional[str],
+) -> None:
+    if operator and operator.value == "in" and not value:
+        raise BadFilterFormat(
+            f"Field value should not be null for operator {operator.value}."
+        )
+    if _has_relation(model, field) and _op_is_match(fil):
+        raise BadFilterFormat(
+            "Operator 'match' shouldn't be used with relations"
+        )
+
+
 def _create_filter(query: Query, fil: Dict[str, Any]) -> Query:
     model = _get_entity(query, fil.get("model"))
     field = fil.get("field")
     op = fil.get("op")
     value = fil.get("value")
 
-    if _has_relation(model, field) and _op_is_match(fil):
-        raise BadFilterFormat(
-            "Operator 'match' shouldn't be used with relations"
-        )
+    validate_filter_args(model, fil, field, op, value)
 
     try:
         attr = getattr(model, field).type
