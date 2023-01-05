@@ -28,7 +28,6 @@
         "lodash": "^4.17.21",
         "magic-wand-tool": "^1.1.7",
         "morgan": "^1.10.0",
-        "nanoid": "^3.3.3",
         "node-sass": "npm:sass",
         "paper": "^0.12.15",
         "qs": "^6.10.2",
@@ -45,6 +44,7 @@
         "react-router-dom": "5.2.0",
         "react-scripts": "4.0.3",
         "universal-cookie": "^4.0.4",
+        "uuid": "^9.0.0",
         "web-vitals": "^1.0.1"
     },
     "scripts": {
@@ -85,6 +85,7 @@
         "@types/react-datepicker": "^4.3.2",
         "@types/react-latex": "^2.0.0",
         "@types/react-pdf": "^5.0.5",
+        "@types/uuid": "^9.0.0",
         "@typescript-eslint/eslint-plugin": "^4.31.1",
         "@typescript-eslint/parser": "^4.31.1",
         "eslint": "^7.32.0",
