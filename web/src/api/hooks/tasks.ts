@@ -14,7 +14,7 @@ import {
 } from 'api/typings';
 import { Job } from 'api/typings/jobs';
 import { useMutation, useQuery, useQueryClient } from 'react-query';
-import { Task, TaskModel, ValidationPages } from '../typings/tasks';
+import { ApiTask, Task, TaskModel, ValidationPages } from '../typings/tasks';
 import { useBadgerFetch } from './api';
 import { pageSizes } from '../../shared';
 
@@ -37,15 +37,6 @@ type DistributeTasksParams = {
     job: Job;
     datasets: Dataset[];
     users: User[];
-};
-
-type UseTasksForJobAndUsersParamsType = {
-    page: number;
-    size: number;
-    jobId: number;
-    userIds?: string[];
-    jobType?: string;
-    allUsers?: User[];
 };
 
 const namespace = process.env.REACT_APP_CATEGORIES_API_NAMESPACE;
@@ -155,12 +146,20 @@ export function taskPropFetcher(
     })(JSON.stringify(body));
 }
 
+const mapTaskFromApi = (apiTask: ApiTask): Task => {
+    const { user, ...task } = apiTask;
+    return { ...task, user_id: user.id };
+};
+
 export const useTaskById: QueryHookType<TaskByIdParams, Task> = ({ taskId }) =>
-    useQuery(['task', taskId], async () =>
-        useBadgerFetch({
-            url: `${namespace}/tasks/${taskId}`,
-            method: 'get'
-        })()
+    useQuery(
+        ['task', taskId],
+        async () =>
+            useBadgerFetch<ApiTask>({
+                url: `${namespace}/tasks/${taskId}`,
+                method: 'get'
+            })(),
+        { select: mapTaskFromApi }
     );
 export const useUsersForTask: QueryHookType<UsersForTaskParams, User[]> = ({ jobId }) =>
     useQuery(['usersForTask', jobId], async () =>
@@ -215,7 +214,7 @@ async function fetchTasksForJob(
     return data;
 }
 
-export const useTasksForJob: QueryHookType<UseTasksForJobParamsType, PagedResponse<Task>> = ({
+export const useTasksForJob: QueryHookType<UseTasksForJobParamsType, PagedResponse<ApiTask>> = ({
     user_id,
     page,
     size,
@@ -241,29 +240,6 @@ export const useTasksForJob: QueryHookType<UseTasksForJobParamsType, PagedRespon
                 total: 0,
                 page_size: 1,
                 page_num: 15
-            }
-        };
-    });
-};
-
-export const useTasksForJobAndUsers: QueryHookType<
-    UseTasksForJobAndUsersParamsType,
-    PagedResponse<Task>
-> = ({ userIds, page, size, jobId, jobType, allUsers }) => {
-    return useQuery(['tasks', userIds, page, size, jobId, jobType, allUsers], async () => {
-        let data: Task[] = [];
-        if ((jobType && jobType === 'AnnotationJob') || jobType === 'ExtractionWithAnnotationJob') {
-            const promisesResults = await Promise.all(
-                (userIds ?? []).map((userId) => fetchTasksForJob(userId, jobId, size, page))
-            );
-            data = promisesResults.flatMap((res) => res.annotation_tasks);
-        }
-        return {
-            data,
-            pagination: {
-                total: data.length,
-                page_size: data.length > 15 ? 30 : 15,
-                page_num: 1
             }
         };
     });

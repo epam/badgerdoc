@@ -1,12 +1,12 @@
-import { Task } from '../../api/typings/tasks';
+import { ApiTask } from '../../api/typings/tasks';
 import { FlexRow, Text } from '@epam/loveship';
 import React from 'react';
 
 export default [
     {
         key: 'name',
-        caption: 'User ID',
-        render: (task: Task) => <Text fontSize="14">{task.user_id || 'Unassigned'}</Text>,
+        caption: 'User',
+        render: (task: ApiTask) => <Text fontSize="14">{task.user.name || 'Unassigned'}</Text>,
         isSortable: true,
         grow: 2,
         shrink: 2
@@ -14,7 +14,7 @@ export default [
     {
         key: 'file_name',
         caption: 'File Name',
-        render: (task: Task) => <Text fontSize="14">{task.file.name}</Text>,
+        render: (task: ApiTask) => <Text fontSize="14">{task.file.name}</Text>,
         isSortable: true,
         grow: 2,
         shrink: 1
@@ -22,7 +22,7 @@ export default [
     {
         key: 'status',
         caption: 'status',
-        render: (task: Task) => (
+        render: (task: ApiTask) => (
             <FlexRow cx="align-baseline">
                 <Text fontSize="14">{task.status}</Text>
             </FlexRow>
@@ -34,7 +34,7 @@ export default [
     {
         key: 'is_validation',
         caption: 'Type',
-        render: (task: Task) => (
+        render: (task: ApiTask) => (
             <Text fontSize="14">{task.is_validation ? 'Validation' : 'Annotation'}</Text>
         ),
         isSortable: true,
@@ -44,7 +44,7 @@ export default [
     {
         key: 'pages',
         caption: 'Pages',
-        render: (task: Task) => <Text fontSize="14">{task.pages.length}</Text>,
+        render: (task: ApiTask) => <Text fontSize="14">{task.pages.length}</Text>,
         isSortable: true,
         grow: 1,
         shrink: 1
@@ -52,7 +52,7 @@ export default [
     {
         key: 'deadline',
         caption: 'deadline',
-        render: (task: Task) => (
+        render: (task: ApiTask) => (
             <Text fontSize="14">
                 {task.deadline === null ? '' : new Date(task.deadline).toLocaleDateString()}
             </Text>
