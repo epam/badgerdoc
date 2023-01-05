@@ -1,4 +1,4 @@
-import { taxonsFetcher, useTaxonomies } from 'api/hooks/taxonomies';
+import { taxonsFetcher, useTaxons } from 'api/hooks/taxons';
 import { Operators, SortingDirection, Filter, TaxonomyNode, Taxon } from 'api/typings';
 import { isEmpty } from 'lodash';
 import { useState, useEffect } from 'react';
@@ -8,18 +8,22 @@ import { mapTaxons, mapTaxon } from './map-taxonomies';
 interface Props {
     searchText: string;
     taxonomyId?: string;
+    taxonomyFilter?: Filter<keyof Taxon>;
 }
 
-export const useTaxonomiesTree = ({ searchText, taxonomyId }: Props) => {
+export const useTaxonomiesTree = ({ searchText, taxonomyId, taxonomyFilter }: Props) => {
     const [taxonomyNodes, setTaxonomyNodes] = useState<TaxonomyNode[]>([]);
     const [expandNode, setExpandNode] = useState<string>();
 
-    const taxonomyFilter: Filter<keyof Taxon> = {
-        field: 'taxonomy_id',
-        operator: Operators.EQ,
-        value: taxonomyId
-    };
-    const { data: rootCategories } = useTaxonomies(
+    if (!taxonomyFilter) {
+        taxonomyFilter = {
+            field: 'taxonomy_id',
+            operator: Operators.EQ,
+            value: taxonomyId ?? []
+        };
+    }
+
+    const { data: rootCategories } = useTaxons(
         {
             page: 1,
             size: 100,
@@ -35,7 +39,7 @@ export const useTaxonomiesTree = ({ searchText, taxonomyId }: Props) => {
         },
         {}
     );
-    const searchResult = useTaxonomies(
+    const searchResult = useTaxons(
         {
             page: 1,
             size: 100,
@@ -82,5 +86,5 @@ export const useTaxonomiesTree = ({ searchText, taxonomyId }: Props) => {
         }
         return node.children;
     };
-    return { taxonomyNodes, expandNode, onLoadData };
+    return { taxonomyNodes, expandNode, onLoadData, searchResult, rootCategories };
 };

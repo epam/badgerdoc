@@ -1,12 +1,12 @@
-import React, { FC, Fragment, useMemo, useRef, useState } from 'react';
+import React, { FC, Fragment, useRef, useState } from 'react';
 import { SearchInput, Text, TextArea } from '@epam/loveship';
-import styles from './task-sidebar-data.module.scss';
 import { CategoryDataAttributeWithValue } from 'api/typings';
 import { TaxonomiesTree } from 'components/taxonomies/taxonomies-tree';
 import { useTaxonomiesTree } from 'components/taxonomies/use-taxonomies-tree';
 import { useHeight } from 'shared/hooks/use-height';
 import { Annotation } from 'shared';
 import { isEmpty } from 'lodash';
+import styles from './task-sidebar-data.module.scss';
 
 type TaskSidebarDataProps = {
     isCategoryDataEmpty: boolean;

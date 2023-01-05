@@ -198,7 +198,7 @@ export type Basement = {
     tenant?: string;
 };
 
-export const categoryTypes = ['box', 'link', 'segmentation'] as const;
+export const categoryTypes = ['box', 'link', 'segmentation', 'document'] as const;
 export type CategoryType = typeof categoryTypes[number];
 
 export interface BaseCategory {
@@ -245,6 +245,7 @@ export interface BaseTaxon {
 }
 
 export interface Taxon extends BaseTaxon {
+    type?: CategoryType;
     parents?: BaseTaxon[];
 }
 export interface Taxonomy {
@@ -325,6 +326,7 @@ export type QueryHookParamsType<T> = {
     size: number;
     tenant?: string;
     searchText: string;
+    searchField?: keyof T;
     sortConfig: {
         field: keyof T;
         direction: SortingDirection;
@@ -436,6 +438,11 @@ export type UseTasksResponseObj = {
 };
 
 export type Language = {
+    id: string;
+    name: string;
+};
+
+export type Label = {
     id: string;
     name: string;
 };

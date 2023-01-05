@@ -19,6 +19,7 @@ import styles from './task-sidebar.module.scss';
 import { CategoriesSelectionModeToggle } from 'components/categories/categories-selection-mode-toggle/categories-selection-mode-toggle';
 import { useTableAnnotatorContext } from '../../../shared/components/annotator/context/table-annotator-context';
 import { TaskSidebarData } from '../task-sidebar-data/task-sidebar-data';
+import { TaskSidebarLabels } from '../task-sidebar-labels/task-sidebar-labels';
 import {
     AnnotationBoundMode,
     AnnotationBoundType,
@@ -33,10 +34,14 @@ import { ValidationPageStatus } from 'api/typings/tasks';
 import { ReactComponent as MergeIcon } from '@epam/assets/icons/common/editor-table_merge_cells-24.svg';
 import { ReactComponent as SplitIcon } from '@epam/assets/icons/common/editor-table_split_cells-24.svg';
 import { Tooltip } from '@epam/loveship';
-import { Category } from '../../../api/typings';
+import { Category, Filter, Label, Operators, SortingDirection, Taxon } from '../../../api/typings';
 import { ImageToolsParams } from './image-tools-params';
 import { CategoriesTab } from 'components/categories/categories-tab/categories-tab';
-import { useLinkTaxonomyByCategoryAndJobId } from 'api/hooks/taxonomies';
+import {
+    useTaxons,
+    useLinkTaxonomyByCategoryAndJobId,
+    useAllTaxonomiesByJobId
+} from 'api/hooks/taxons';
 
 type TaskSidebarProps = {
     onRedirectAfterFinish: () => void;
@@ -85,7 +90,12 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
         selectedTool,
         onChangeSelectedTool,
         selectedToolParams,
-        setSelectedToolParams
+        setSelectedToolParams,
+        onLabelsSelected,
+        setSelectedLabels,
+        selectedLabels,
+        latestLabelsId,
+        isDocLabelsModified
     } = useTaskAnnotatorContext();
     const {
         tableModeColumns,
@@ -194,13 +204,14 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
         if (tableMode) setTabValue('Data');
     }, [tableMode]);
 
-    const disableSave = useMemo(() => {
+    const isSaveButtonDisabled = useMemo(() => {
+        if (isDocLabelsModified) return false;
         return (
             (isValidation && !splitValidation && touchedPages.length === 0) ||
             ((!isValidation || splitValidation) && modifiedPages.length === 0) ||
             !isAnnotatable
         );
-    }, [validPages, invalidPages, touchedPages, modifiedPages, editedPages]);
+    }, [validPages, invalidPages, touchedPages, modifiedPages, editedPages, isDocLabelsModified]);
 
     useEffect(() => {
         if (tableModeValues === 'cells') setIsCellMode(true);
@@ -211,7 +222,9 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
         <div className="flex flex-center">
             <div
                 className={
-                    disableSave ? styles['hot-key-container-disabled'] : styles['hot-key-container']
+                    isSaveButtonDisabled
+                        ? styles['hot-key-container-disabled']
+                        : styles['hot-key-container']
                 }
             >
                 Ctrl + S
@@ -224,6 +237,41 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
         isValid ? styles.validColor : styles.invalidColor
     }`;
     const validationStatus: ValidationPageStatus = isValid ? 'Valid Page' : 'Invalid Page';
+
+    // needed for taskSidebarLabel:
+    useEffect(() => {
+        refetchTaxons();
+    }, [latestLabelsId]);
+
+    const taxonsFilter: Filter<keyof Taxon> = {
+        field: 'id',
+        operator: Operators.IN,
+        value: latestLabelsId ?? []
+    };
+
+    const { data: latestTaxons, refetch: refetchTaxons } = useTaxons(
+        {
+            page: 1,
+            size: 100,
+            searchText: '',
+            searchField: undefined,
+            filters: [taxonsFilter],
+            sortConfig: { field: 'name', direction: SortingDirection.ASC }
+        },
+        {}
+    );
+
+    useEffect(() => {
+        if (latestTaxons) {
+            const latestLabels: Label[] = latestTaxons?.data.map((taxon) => {
+                return { name: taxon.name, id: taxon.id };
+            });
+            setSelectedLabels(latestLabels);
+        }
+    }, [latestTaxons]);
+    const { data: taxonomies, isLoading } = useAllTaxonomiesByJobId({ jobId: task?.job.id });
+
+    // needed for taskSidebarLabel ^
 
     const taxonomy = useLinkTaxonomyByCategoryAndJobId({
         jobId: task?.job.id,
@@ -273,9 +321,9 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
                         size="36"
                     />
                     <TabButton
-                        caption={'Settings'}
-                        isLinkActive={tabValue === 'Settings'}
-                        onClick={() => setTabValue('Settings')}
+                        caption={'Labels'}
+                        isLinkActive={tabValue === 'Labels'}
+                        onClick={() => setTabValue('Labels')}
                         size="36"
                     />
                 </FlexRow>
@@ -501,6 +549,18 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
                             )}
                         </div>
                     )}
+                    {tabValue === 'Labels' && categories !== undefined && (
+                        <>
+                            <TaskSidebarLabels
+                                taxonomies={isLoading === false ? taxonomies : []}
+                                onLabelsSelected={onLabelsSelected}
+                                selectedLabels={selectedLabels ?? []}
+                            />
+                        </>
+                    )}
+                    {tabValue === 'Labels' && categories === undefined && (
+                        <div> There are no categories</div>
+                    )}
 
                     {isValidation && !splitValidation && (
                         <div className="flex justify-around">
@@ -582,7 +642,9 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
             </div>
             {task && ( // todo: add "EDIT ANNOTATION" button here if no task
                 <Tooltip
-                    content={disableSave ? 'Please modify annotation to enable save button' : ''}
+                    content={
+                        isSaveButtonDisabled ? 'Please modify annotation to enable save button' : ''
+                    }
                 >
                     <Button
                         caption={SaveButton}
@@ -594,7 +656,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
                             refetch();
                         }}
                         cx={styles.button}
-                        isDisabled={disableSave}
+                        isDisabled={isSaveButtonDisabled}
                     />
                 </Tooltip>
             )}

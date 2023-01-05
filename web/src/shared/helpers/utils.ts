@@ -6,7 +6,8 @@ import {
     Filter,
     PagedResponse,
     Sorting,
-    TableFilters
+    TableFilters,
+    Category
 } from '../../api/typings';
 import { useColumnPickerFilter } from '../components/filters/column-picker';
 import { useMemo } from 'react';

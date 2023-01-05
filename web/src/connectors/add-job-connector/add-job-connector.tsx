@@ -20,7 +20,7 @@ import { useUsers } from 'api/hooks/users';
 import { Job, JobType } from 'api/typings/jobs';
 import { CurrentUser } from 'shared/contexts/current-user';
 import wizardStyles from '../../shared/components/wizard/wizard/wizard.module.scss';
-import { useAllTaxonomies } from 'api/hooks/taxonomies';
+import { useAllTaxonomies } from 'api/hooks/taxons';
 
 type AddJobConnectorProps = {
     renderWizardButtons: ({

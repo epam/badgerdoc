@@ -21,7 +21,7 @@ import { BadgerFetch, BadgerFetchBody, BadgerFetchProvider } from 'api/hooks/api
 import { annotations } from './annotations';
 import { tokens } from './tokens';
 import { models } from './models';
-import { taxons } from './taxons';
+import { taxons, taxonomy } from './taxons';
 import { taskStats } from './task_stats';
 import { annotationsByUser } from './annotationsByUser';
 
@@ -46,8 +46,12 @@ let tokensMockData = tokens;
 let modelsMockData = models;
 let taxonsMockData = taxons;
 let annotationsMockDataByUser = annotationsByUser;
+const taxonomyByIdMockData = taxonomy;
 
 const MOCKS: Record<string, Record<string, BadgerFetch<any>>> = {
+    [`${TAXONOMIES_NAMESPACE}/taxonomy_id_1`]: {
+        get: async () => taxonomyByIdMockData
+    },
     [`${FILEMANAGEMENT_NAMESPACE}/datasets/search`]: {
         post: async (): Promise<PagedResponse<Dataset>> => ({
             data: datasetsMockData,
@@ -163,7 +167,7 @@ const MOCKS: Record<string, Record<string, BadgerFetch<any>>> = {
             };
         }
     },
-    [`${CATEGORIES_NAMESPACE}/annotation/3`]: {
+    [`${CATEGORIES_NAMESPACE}/annotation/1`]: {
         post: async (body) => {
             const bodyObj = JSON.parse(body as string);
             annotationsMockData = {
@@ -299,12 +303,11 @@ const MOCKS: Record<string, Record<string, BadgerFetch<any>>> = {
         post: async (body: BadgerFetchBody | undefined) => {
             const { filters, pagination } = JSON.parse(body as string) as SearchBody<Taxon>;
             let data = taxonsMockData;
+
             if (filters.length > 0) {
                 const parentFilter = filters.find((filter) => filter.field === 'parent_id');
                 const nameFilter = filters.find((filter) => filter.field === 'name');
                 const nameFilterValue = String(nameFilter?.value ?? '').slice(1, -1);
-                console.log('nameFilterValue: ', nameFilterValue);
-                console.log('parentFilter: ', parentFilter);
 
                 if (parentFilter) {
                     const value =
@@ -334,6 +337,7 @@ const MOCKS: Record<string, Record<string, BadgerFetch<any>>> = {
         post: async (body: BadgerFetchBody | undefined) => {
             const { filters, pagination } = JSON.parse(body as string) as SearchBody<Category>;
             let data = categoriesMockData;
+
             if (filters.length > 0) {
                 const parentFilter = filters.find((filter) => filter.field === 'parent');
                 const nameFilter = filters.find((filter) => filter.field === 'name');
@@ -443,7 +447,7 @@ const MOCKS: Record<string, Record<string, BadgerFetch<any>>> = {
     [`${CATEGORIES_NAMESPACE}/annotation/3/1/latest?page_numbers=1`]: {
         get: async () => annotationsMockData
     },
-    [`${CATEGORIES_NAMESPACE}/annotation/1`]: {
+    [`${CATEGORIES_NAMESPACE}/annotation/3`]: {
         post: async (body) => {
             annotationsMockData = {
                 ...annotationsMockData,
@@ -678,13 +682,12 @@ export const applyMocks = (fetchProvider: BadgerFetchProvider): BadgerFetchProvi
         apply(target, thisArg, argumentsList) {
             const [options] = argumentsList;
             const { url, method } = options;
+
             const mock = MOCKS[url]?.[method.toLowerCase()];
             if (mock) {
                 return async function (body: any) {
                     await time(1000);
-
                     console.log(`MOCK: ${method.toUpperCase()} ${url}`);
-
                     return mock(body);
                 };
             } else {

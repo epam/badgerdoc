@@ -17,13 +17,13 @@ import { useBadgerFetch } from './api';
 
 const namespace = process.env.REACT_APP_TAXONOMIES_API_NAMESPACE;
 
-export const useTaxonomies: QueryHookType<QueryHookParamsType<Taxon>, PagedResponse<Taxon>> = (
-    { page, size, searchText, filters, sortConfig },
+export const useTaxons: QueryHookType<QueryHookParamsType<Taxon>, PagedResponse<Taxon>> = (
+    { page, size, searchText, searchField, filters, sortConfig },
     options
 ) => {
     return useQuery(
-        ['taxonomies', page, size, searchText, filters, sortConfig],
-        () => taxonsFetcher(page, size, searchText, filters, sortConfig),
+        ['taxons', page, size, searchText, filters, sortConfig],
+        () => taxonsFetcher(page, size, searchText, filters, sortConfig, searchField),
         options
     );
 };
@@ -47,12 +47,13 @@ export async function taxonsFetcher(
     sortConfig: Sorting<keyof Taxon> = {
         field: 'name',
         direction: SortingDirection.ASC
-    }
+    },
+    searchField: keyof Taxon | undefined = 'name'
 ): Promise<PagedResponse<Taxon>> {
     const filtersArr: Filter<keyof Taxon>[] = filters ? [...filters] : [];
     if (searchText) {
         filtersArr.push({
-            field: 'name',
+            field: searchField,
             operator: Operators.ILIKE,
             value: `%${searchText.trim().toLowerCase()}%`
         });
@@ -122,10 +123,21 @@ type TaxonomyByCategoryAndJobIdParams = {
     categoryId?: string | number;
 };
 
+type TaxonomyByJobIdParams = {
+    jobId?: number;
+};
+
 export type TaxonomyByCategoryAndJobIdResponse = {
     name: string;
     id: string;
     version: number;
+}[];
+
+export type TaxonomyByJobIdResponse = {
+    name: string;
+    id: string;
+    version: number;
+    category_id: string;
 }[];
 
 export const useLinkTaxonomyByCategoryAndJobId: QueryHookType<
@@ -145,6 +157,22 @@ async function linkTaxonomyByCategoryAndJobId(
 ): Promise<any> {
     return useBadgerFetch({
         url: `${namespace}/taxonomy/link_category/${jobId}/${categoryId}`,
+        method: 'get',
+        withCredentials: true
+    })();
+}
+
+export const useAllTaxonomiesByJobId: QueryHookType<
+    TaxonomyByJobIdParams,
+    TaxonomyByJobIdResponse
+> = ({ jobId }) => {
+    return useQuery(['taxonomy/all', jobId], async () => jobId && fetchAllTaxonomyByJobId(jobId));
+};
+
+async function fetchAllTaxonomyByJobId(jobId: number): Promise<any> {
+    if (!jobId) return;
+    return useBadgerFetch({
+        url: `${namespace}/taxonomy?job_id=${jobId}`,
         method: 'get',
         withCredentials: true
     })();

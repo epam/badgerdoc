@@ -1,6 +1,6 @@
-import { AnotationsResponse } from 'api/hooks/annotations';
+import { AnnotationsResponse } from 'api/hooks/annotations';
 
-export const annotations: AnotationsResponse = {
+export const annotations: AnnotationsResponse = {
     revision: 'revision-1',
     pages: [
         {
@@ -32,5 +32,6 @@ export const annotations: AnotationsResponse = {
         }
     ],
     validated: [],
-    failed_validation_pages: []
+    failed_validation_pages: [],
+    categories: ['taxons_id_1', 'taxons_id_2']
 };
