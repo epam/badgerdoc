@@ -1,0 +1,413 @@
+{
+  "openapi": "3.0.2",
+  "info": {
+    "title": "convert",
+    "description": "This service implements converting from selected format to COCO and back",
+    "version": "0.1.0"
+  },
+  "servers": [
+    {
+      "url": ""
+    }
+  ],
+  "paths": {
+    "/import": {
+      "post": {
+        "tags": [
+          "convert"
+        ],
+        "summary": "Import Job Create",
+        "description": "Router gets dataset from s3, converts it to badgerdoc format",
+        "operationId": "import_job_create_import_post",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Import Format",
+              "type": "string"
+            },
+            "name": "import_format",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DataS3"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportJobCreatedSuccess"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnavailableService"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/export": {
+      "post": {
+        "tags": [
+          "convert"
+        ],
+        "summary": "Dataset Export",
+        "description": "Router get annotation by job_id, converts it to input format and returns\nthe result as a zipfile",
+        "operationId": "dataset_export_export_post",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExportInputData"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "201": {
+            "description": "Conversion is started",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExportConvertStart"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Dataset not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WrongConvertToCoco"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Service is unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnavailableService"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/download": {
+      "get": {
+        "tags": [
+          "convert"
+        ],
+        "summary": "Download Dataset",
+        "operationId": "download_dataset_download_get",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Url",
+              "type": "string"
+            },
+            "name": "url",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "404": {
+            "description": "Dataset not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WrongConvertToCoco"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Service is unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnavailableService"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "DataS3": {
+        "title": "DataS3",
+        "required": [
+          "aws_access_key_id",
+          "aws_secret_access_key",
+          "bucket_s3",
+          "files_keys"
+        ],
+        "type": "object",
+        "properties": {
+          "aws_access_key_id": {
+            "title": "Aws Access Key Id",
+            "type": "string"
+          },
+          "aws_secret_access_key": {
+            "title": "Aws Secret Access Key",
+            "type": "string"
+          },
+          "bucket_s3": {
+            "title": "Bucket S3",
+            "type": "string"
+          },
+          "files_keys": {
+            "title": "Files Keys",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "ExportConvertStart": {
+        "title": "ExportConvertStart",
+        "required": [
+          "url",
+          "bucket",
+          "minio_path",
+          "msg"
+        ],
+        "type": "object",
+        "properties": {
+          "url": {
+            "title": "Url",
+            "type": "string"
+          },
+          "bucket": {
+            "title": "Bucket",
+            "type": "string"
+          },
+          "minio_path": {
+            "title": "Minio Path",
+            "type": "string"
+          },
+          "msg": {
+            "title": "Msg",
+            "type": "string",
+            "example": "Conversion is started"
+          }
+        }
+      },
+      "ExportInputData": {
+        "title": "ExportInputData",
+        "required": [
+          "job_lst",
+          "export_format"
+        ],
+        "type": "object",
+        "properties": {
+          "job_lst": {
+            "title": "Job Lst",
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "export_format": {
+            "title": "Export Format",
+            "type": "string"
+          },
+          "validated_only": {
+            "title": "Validated Only",
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "HTTPValidationError": {
+        "title": "HTTPValidationError",
+        "type": "object",
+        "properties": {
+          "detail": {
+            "title": "Detail",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            }
+          }
+        }
+      },
+      "ImportJobCreatedSuccess": {
+        "title": "ImportJobCreatedSuccess",
+        "required": [
+          "msg",
+          "job_id"
+        ],
+        "type": "object",
+        "properties": {
+          "msg": {
+            "title": "Msg",
+            "type": "string",
+            "example": "Import job is created"
+          },
+          "job_id": {
+            "title": "Job Id",
+            "type": "integer"
+          }
+        }
+      },
+      "UnavailableService": {
+        "title": "UnavailableService",
+        "required": [
+          "details"
+        ],
+        "type": "object",
+        "properties": {
+          "details": {
+            "title": "Details",
+            "type": "string",
+            "example": "Service is unavailable"
+          }
+        }
+      },
+      "ValidationError": {
+        "title": "ValidationError",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "loc": {
+            "title": "Location",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        }
+      },
+      "WrongConvertToCoco": {
+        "title": "WrongConvertToCoco",
+        "required": [
+          "details"
+        ],
+        "type": "object",
+        "properties": {
+          "details": {
+            "title": "Details",
+            "type": "string",
+            "example": "Not existing annotation file"
+          }
+        }
+      }
+    }
+  }
+}
