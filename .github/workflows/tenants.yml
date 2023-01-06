@@ -22,7 +22,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: 'pip'
           token: "${{ secrets.GITHUB_TOKEN }}"
-      - id: cz
+      - id: cz check
         name: Create bump and changelog
         uses: commitizen-tools/commitizen-action@master
         with:
