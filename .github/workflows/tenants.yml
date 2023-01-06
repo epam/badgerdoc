@@ -1,6 +1,7 @@
 name: tenants precommit and test
 run-name: tenants precommit and test
-on: []
+on:
+  push
 #on:
 #  push:
 #    paths:
