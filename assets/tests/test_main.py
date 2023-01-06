@@ -18,15 +18,20 @@ def test_create_bucket(client_app_main_bucket_false):
     assert tests_bucket.status_code == 201
 
 
-def test_bucket_name_on_create_bucket_with_prefix(client_app_main_bucket_false, monkeypatch):
-    test_prefix = 'test_prefix'
+def test_bucket_name_on_create_bucket_with_prefix(
+    client_app_main_bucket_false, monkeypatch
+):
+    test_prefix = "test_prefix"
 
     from src.config import settings
-    monkeypatch.setattr(target=settings, name='s3_prefix', value=test_prefix)
+
+    monkeypatch.setattr(target=settings, name="s3_prefix", value=test_prefix)
 
     random_name = "tests" + uuid.uuid4().hex
     bucket = {"name": random_name}
-    response = client_app_main_bucket_false.post("/bucket", data=json.dumps(bucket))
+    response = client_app_main_bucket_false.post(
+        "/bucket", data=json.dumps(bucket)
+    )
     assert response.status_code == 201
     assert (
         response.json()["detail"]
@@ -34,17 +39,25 @@ def test_bucket_name_on_create_bucket_with_prefix(client_app_main_bucket_false, 
     )
 
 
-def test_bucket_name_on_create_bucket_without_prefix(client_app_main_bucket_false, monkeypatch):
+def test_bucket_name_on_create_bucket_without_prefix(
+    client_app_main_bucket_false, monkeypatch
+):
     test_prefix = None
 
     from src.config import settings
-    monkeypatch.setattr(target=settings, name='s3_prefix', value=test_prefix)
+
+    monkeypatch.setattr(target=settings, name="s3_prefix", value=test_prefix)
 
     random_name = "tests" + uuid.uuid4().hex
     bucket = {"name": random_name}
-    response = client_app_main_bucket_false.post("/bucket", data=json.dumps(bucket))
+    response = client_app_main_bucket_false.post(
+        "/bucket", data=json.dumps(bucket)
+    )
     assert response.status_code == 201
-    assert response.json()["detail"] == f"Bucket {random_name} successfully created!"
+    assert (
+        response.json()["detail"]
+        == f"Bucket {random_name} successfully created!"
+    )
 
 
 def test_upload_and_delete_file_without_conversion(client_app_main):
@@ -56,7 +69,7 @@ def test_upload_and_delete_file_without_conversion(client_app_main):
     assert response.status_code == 201
 
     id_ = response.json()[0]["id"]
-    body = {"bucket_name": BUCKET_TESTS, "objects": [id_]}
+    body = {"objects": [id_]}
     res = client_app_main.delete("/files", data=json.dumps(body))
     assert res.status_code == 201
     assert id_ == res.json()[0]["id"]
@@ -88,7 +101,7 @@ def test_upload_and_delete_file_s3(
     assert response.status_code == 201
 
     id_ = response.json()[0]["id"]
-    body = {"bucket_name": BUCKET_TESTS, "objects": [id_]}
+    body = {"objects": [id_]}
     res = client_app_main.delete("/files", data=json.dumps(body))
     assert res.status_code == 201
     assert id_ == res.json()[0]["id"]
@@ -117,7 +130,7 @@ def test_get_files(client_app_main):
     assert file_id in keys
     assert res_get.status_code == 200
 
-    body = {"bucket_name": BUCKET_TESTS, "objects": [file_id]}
+    body = {"objects": [file_id]}
 
     res_delete = client_app_main.delete("/files", data=json.dumps(body))
     assert res_delete.status_code == 201
@@ -141,7 +154,7 @@ def test_get_file_by_id(client_app_main):
     assert res_get_one.status_code == 200
     assert res_get_one.json()["data"][0]["id"] == file_id
 
-    delete_body = {"bucket_name": BUCKET_TESTS, "objects": [file_id]}
+    delete_body = {"objects": [file_id]}
     res_delete = client_app_main.delete("/files", data=json.dumps(delete_body))
     assert res_delete.status_code == 201
     assert file_id == res_delete.json()[0]["id"]
@@ -229,7 +242,7 @@ def test_bound_and_unbound(client_app_main):
         "detail": f"Dataset {dataset_name} successfully deleted!"
     }
 
-    file_body = {"bucket_name": BUCKET_TESTS, "objects": [file_id]}
+    file_body = {"objects": [file_id]}
     res_delete_file = client_app_main.delete(
         f"/files?bucket={BUCKET_TESTS}", data=json.dumps(file_body)
     )
@@ -275,7 +288,7 @@ def test_get_files_by_dataset(client_app_main):
         "detail": f"Dataset {dataset_name} successfully deleted!"
     }
 
-    file_body = {"bucket_name": BUCKET_TESTS, "objects": [file_id]}
+    file_body = {"objects": [file_id]}
     res_delete_file = client_app_main.delete(
         "/files", data=json.dumps(file_body)
     )
@@ -311,7 +324,7 @@ def test_get_bonds(client_app_main):
         {"dataset_name": dataset_name, "file_id": file_id}
     ]
 
-    file_body = {"bucket_name": BUCKET_TESTS, "objects": [file_id]}
+    file_body = {"objects": [file_id]}
     res_delete_file = client_app_main.delete(
         f"/files?bucket={BUCKET_TESTS}", data=json.dumps(file_body)
     )
@@ -390,7 +403,7 @@ def test_get_files_by_filename_positive(client_app_main):
     assert len(get_by_name.json()["data"]) == 3
     assert all_names == [file_name, file_name, file_name]
 
-    file_body = {"bucket_name": BUCKET_TESTS, "objects": [id_1, id_2, id_3]}
+    file_body = {"objects": [id_1, id_2, id_3]}
     res_delete = client_app_main.delete("/files", data=json.dumps(file_body))
     assert res_delete.status_code == 201
 
@@ -414,7 +427,7 @@ def test_get_files_by_filename_empty_array(client_app_main):
     assert get_by_name.status_code == 200
     assert get_by_name.json()["data"] == []
 
-    file_body = {"bucket_name": BUCKET_TESTS, "objects": [id_]}
+    file_body = {"objects": [id_]}
     res_delete = client_app_main.delete("/files", data=json.dumps(file_body))
     assert res_delete.status_code == 201
 
@@ -497,7 +510,7 @@ def test_count_changing(client_app_main):
     assert res_count.json()["data"][0]["count"] == 1
 
     id_ = res_upload.json()[0]["id"]
-    body_delete = {"bucket_name": BUCKET_TESTS, "objects": [id_]}
+    body_delete = {"objects": [id_]}
     res_delete = client_app_main.delete("/files", data=json.dumps(body_delete))
     assert res_delete.status_code == 201
     assert file_id == res_delete.json()[0]["id"]
