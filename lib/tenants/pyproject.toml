@@ -18,6 +18,3 @@ disallow_untyped_calls = "False"
 max-line-length=79
 errors-only = "True"
 disable = ["E0401", "E0611"]
-
-[tool.commitizen]
-version = "0.1.0"
