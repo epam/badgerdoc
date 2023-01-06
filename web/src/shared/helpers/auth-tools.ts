@@ -4,7 +4,7 @@ import { useBadgerFetch } from '../../api/hooks/api';
 
 const cookies = new Cookies();
 const AUTH_DETAILS_ID = 'auth-details-id';
-const AUTH_CURRENT_TENNANT = 'auth-current-tenant';
+const AUTH_CURRENT_TENANT = 'auth-current-tenant';
 const DEFAULT_REFRESH_INTERVAL = 60000;
 
 const namespace = process.env.REACT_APP_USERS_API_NAMESPACE;
@@ -40,7 +40,7 @@ export const setAuthDetails = (result: AuthResult) => {
 };
 
 export const setCurrentTenant = (tenant: string) =>
-    localStorage.setItem(AUTH_CURRENT_TENNANT, tenant);
+    localStorage.setItem(AUTH_CURRENT_TENANT, tenant);
 
 const getStoredAuthDetails = (): StoredAuthResult => {
     const authDetails = localStorage.getItem(AUTH_DETAILS_ID)!;
@@ -58,7 +58,7 @@ const getAuthDetails = (): AuthResult | null => {
     return data.authResult || null;
 };
 
-export const getCurrentTenant = (): string => localStorage.getItem(AUTH_CURRENT_TENNANT)!;
+export const getCurrentTenant = (): string => localStorage.getItem(AUTH_CURRENT_TENANT)!;
 
 export const refetchToken = async () => {
     const refetch = useBadgerFetch<AuthResultRaw>({
@@ -89,8 +89,10 @@ export const getAuthHeaders = () => {
 };
 
 export const clearAuthDetails = () => {
+    localStorage.removeItem(AUTH_DETAILS_ID);
+    localStorage.removeItem(AUTH_CURRENT_TENANT);
     cookies.set(AUTH_DETAILS_ID, '');
-    cookies.set(AUTH_CURRENT_TENNANT, '');
+    cookies.set(AUTH_CURRENT_TENANT, '');
 };
 
 export const setUpdateTokenInterval = () => {
