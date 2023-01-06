@@ -150,6 +150,7 @@ type ContextValue = SplitValidationValue &
         setSelectedLabels: (labels: Label[]) => void;
         latestLabelsId: string[];
         isDocLabelsModified: boolean;
+        getJobId: () => number | undefined;
     };
 
 const TaskAnnotatorContext = createContext<ContextValue | undefined>(undefined);
@@ -1059,6 +1060,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         return {
             task,
             job,
+            getJobId,
             categories: categories?.data,
             categoriesLoading,
             selectedCategory,
@@ -1136,6 +1138,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         };
     }, [
         task,
+        job,
         categories?.data,
         categoriesLoading,
         selectedCategory,
