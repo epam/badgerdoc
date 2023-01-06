@@ -1,0 +1,2136 @@
+{
+  "openapi": "3.0.2",
+  "info": {
+    "title": "Badgerdoc Taxonomy",
+    "version": "0.0.1"
+  },
+  "paths": {
+    "/taxons": {
+      "post": {
+        "tags": [
+          "Taxon"
+        ],
+        "summary": "Save new taxon and return saved one.",
+        "operationId": "save_taxon_taxons_post",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaxonInputSchema"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaxonResponseSchema"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/taxons/{taxon_id}": {
+      "get": {
+        "tags": [
+          "Taxon"
+        ],
+        "summary": "Get taxon by id.",
+        "operationId": "fetch_taxon_taxons__taxon_id__get",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Taxon Id",
+              "type": "string"
+            },
+            "example": "1",
+            "name": "taxon_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaxonResponseSchema"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "Taxon"
+        ],
+        "summary": "Update taxon.",
+        "description": "Updates taxon by id and returns updated taxon.",
+        "operationId": "update_taxon_taxons__taxon_id__put",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Taxon Id",
+              "type": "string"
+            },
+            "example": "1",
+            "name": "taxon_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaxonBaseSchema"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaxonResponseSchema"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestErrorSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Taxon"
+        ],
+        "summary": "Delete taxon by id.",
+        "operationId": "delete_taxon_taxons__taxon_id__delete",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Taxon Id",
+              "type": "string"
+            },
+            "example": "1",
+            "name": "taxon_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/taxons/search": {
+      "post": {
+        "tags": [
+          "Taxon"
+        ],
+        "summary": "Search taxons.",
+        "description": "Searches and returns taxons data according to search request parameters\nfilters. Supports pagination and ordering.",
+        "operationId": "search_categories_taxons_search_post",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/_BadgerdocSearch_taxon_Taxon_"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_Union_app.schemas.taxon.TaxonResponseSchema__str__dict__"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/taxonomy": {
+      "get": {
+        "tags": [
+          "Taxonomy"
+        ],
+        "summary": "Get all taxonomies by job id",
+        "operationId": "get_job_taxonomies_taxonomy_get",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            },
+            "name": "job_id",
+            "in": "query"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Job Taxonomies Taxonomy Get",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/JobTaxonomySchema"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "Taxonomy"
+        ],
+        "summary": "Update taxonomy.",
+        "description": "Updates taxonomy by id and returns updated taxonomy.",
+        "operationId": "update_taxonomy_taxonomy_put",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaxonomyInputSchema"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaxonomyResponseSchema"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Taxonomy"
+        ],
+        "summary": "Save new taxonomy and return saved one.",
+        "operationId": "create_new_taxonomy_taxonomy_post",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaxonomyInputSchema"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaxonomyResponseSchema"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/taxonomy/{taxonomy_id}": {
+      "get": {
+        "tags": [
+          "Taxonomy"
+        ],
+        "summary": "Get taxonomy by id.",
+        "operationId": "get_taxonomy_by_id_taxonomy__taxonomy_id__get",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Taxonomy Id",
+              "type": "string"
+            },
+            "example": "1",
+            "name": "taxonomy_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaxonomyResponseSchema"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Taxonomy"
+        ],
+        "summary": "Delete latest taxonomy by id.",
+        "operationId": "delete_taxonomy_taxonomy__taxonomy_id__delete",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Taxonomy Id",
+              "type": "string"
+            },
+            "example": "1",
+            "name": "taxonomy_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/taxonomy/{taxonomy_id}/{version}": {
+      "get": {
+        "tags": [
+          "Taxonomy"
+        ],
+        "summary": "Get taxonomy by id and version.",
+        "operationId": "get_taxonomy_by_id_and_version_taxonomy__taxonomy_id___version__get",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Taxonomy Id",
+              "type": "string"
+            },
+            "example": "1",
+            "name": "taxonomy_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "Version",
+              "type": "integer"
+            },
+            "example": 1,
+            "name": "version",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Taxonomy was not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "Taxonomy"
+        ],
+        "summary": "Update taxonomy by id and version.",
+        "description": "Updates taxonomy by id and returns updated taxonomy.",
+        "operationId": "update_taxonomy_by_id_and_version_taxonomy__taxonomy_id___version__put",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Taxonomy Id",
+              "type": "string"
+            },
+            "example": "1",
+            "name": "taxonomy_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "Version",
+              "type": "integer"
+            },
+            "example": 1,
+            "name": "version",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaxonomyBaseSchema"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaxonomyResponseSchema"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestErrorSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Taxonomy"
+        ],
+        "summary": "Delete taxonomy by id and version.",
+        "operationId": "delete_taxonomy_by_id_and_version_taxonomy__taxonomy_id___version__delete",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Taxonomy Id",
+              "type": "string"
+            },
+            "example": "1",
+            "name": "taxonomy_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "Version",
+              "type": "integer"
+            },
+            "example": 1,
+            "name": "version",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/taxonomy/link_category": {
+      "post": {
+        "tags": [
+          "Taxonomy"
+        ],
+        "summary": "Creates association between taxonomy and category for exact job.",
+        "operationId": "associate_taxonomy_to_category_taxonomy_link_category_post",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "Category Links",
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/CategoryLinkSchema"
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Associate Taxonomy To Category Taxonomy Link Category Post",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CategoryLinkSchema"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/taxonomy/link_category/{job_id}": {
+      "delete": {
+        "tags": [
+          "Taxonomy"
+        ],
+        "summary": "Deletes association between taxonomies for exact job.",
+        "operationId": "delete_category_link_by_job_id_taxonomy_link_category__job_id__delete",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            },
+            "example": "123",
+            "name": "job_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/taxonomy/link_category/{job_id}/{category_id}": {
+      "get": {
+        "tags": [
+          "Taxonomy"
+        ],
+        "summary": "Get taxonomy by job id and category id.",
+        "operationId": "get_taxonomy_by_job_and_category_id_taxonomy_link_category__job_id___category_id__get",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            },
+            "example": "123",
+            "name": "job_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "Category Id",
+              "type": "string"
+            },
+            "example": "321",
+            "name": "category_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Taxonomy By Job And Category Id Taxonomy Link Category  Job Id   Category Id  Get",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TaxonomyResponseSchema"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Taxonomy was not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Taxonomy"
+        ],
+        "summary": "Deletes association between taxonomy and category for exact job.",
+        "operationId": "delete_category_link_taxonomy_link_category__job_id___category_id__delete",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            },
+            "example": "123",
+            "name": "job_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "Category Id",
+              "type": "string"
+            },
+            "example": "321",
+            "name": "category_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/taxonomy/all": {
+      "post": {
+        "tags": [
+          "Taxonomy"
+        ],
+        "summary": "Search all taxonomies.",
+        "description": "Searches and returns taxonomies according to search request parameters\nfilters. Supports pagination and ordering.",
+        "operationId": "search_categories_taxonomy_all_post",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/_BadgerdocSearch_taxonomy_Taxonomy_"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_Union_app.schemas.taxonomy.TaxonomyResponseSchema__str__dict__"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "BadRequestErrorSchema": {
+        "title": "BadRequestErrorSchema",
+        "required": [
+          "detail"
+        ],
+        "type": "object",
+        "properties": {
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          }
+        },
+        "example": {
+          "detail": "Bad request."
+        }
+      },
+      "CategoryLinkSchema": {
+        "title": "CategoryLinkSchema",
+        "required": [
+          "category_id",
+          "job_id",
+          "taxonomy_id"
+        ],
+        "type": "object",
+        "properties": {
+          "category_id": {
+            "title": "Category Id",
+            "type": "string",
+            "description": "Category id to link taxonomy to",
+            "example": "123abc"
+          },
+          "job_id": {
+            "title": "Job Id",
+            "type": "string",
+            "description": "Job id to link taxonomy to",
+            "example": "123abc"
+          },
+          "taxonomy_id": {
+            "title": "Taxonomy Id",
+            "type": "string",
+            "example": "my_taxonomy_id"
+          },
+          "taxonomy_version": {
+            "title": "Taxonomy Version",
+            "type": "integer",
+            "description": "Version of taxonomy",
+            "example": 1
+          }
+        }
+      },
+      "ConnectionErrorSchema": {
+        "title": "ConnectionErrorSchema",
+        "required": [
+          "detail"
+        ],
+        "type": "object",
+        "properties": {
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          }
+        },
+        "example": {
+          "detail": "Error: Connection error."
+        }
+      },
+      "HTTPValidationError": {
+        "title": "HTTPValidationError",
+        "type": "object",
+        "properties": {
+          "detail": {
+            "title": "Detail",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            }
+          }
+        }
+      },
+      "JobTaxonomySchema": {
+        "title": "JobTaxonomySchema",
+        "required": [
+          "name",
+          "id",
+          "version",
+          "category_id"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string",
+            "description": "Taxonomy name",
+            "example": "taxonomy_name"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string",
+            "description": "Taxonomy id",
+            "example": "my_taxonomy_id"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer",
+            "description": "Version of taxonomy",
+            "example": 1
+          },
+          "category_id": {
+            "title": "Category Id",
+            "type": "string",
+            "description": "Category id to link taxonomy to",
+            "example": "123abc"
+          }
+        }
+      },
+      "NotFoundErrorSchema": {
+        "title": "NotFoundErrorSchema",
+        "required": [
+          "detail"
+        ],
+        "type": "object",
+        "properties": {
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          }
+        },
+        "example": {
+          "detail": "Resource was not found."
+        }
+      },
+      "Page_Union_app.schemas.taxon.TaxonResponseSchema__str__dict__": {
+        "title": "Page[Union[app.schemas.taxon.TaxonResponseSchema, str, dict]]",
+        "required": [
+          "pagination",
+          "data"
+        ],
+        "type": "object",
+        "properties": {
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationOut"
+          },
+          "data": {
+            "title": "Data",
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/TaxonResponseSchema"
+                },
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "object"
+                }
+              ]
+            }
+          }
+        },
+        "description": "Abstract base class for generic types.\n\nA generic type is typically declared by inheriting from\nthis class parameterized with one or more type variables.\nFor example, a generic mapping type might be defined as::\n\n  class Mapping(Generic[KT, VT]):\n      def __getitem__(self, key: KT) -> VT:\n          ...\n      # Etc.\n\nThis class can then be used as follows::\n\n  def lookup_name(mapping: Mapping[KT, VT], key: KT, default: VT) -> VT:\n      try:\n          return mapping[key]\n      except KeyError:\n          return default"
+      },
+      "Page_Union_app.schemas.taxonomy.TaxonomyResponseSchema__str__dict__": {
+        "title": "Page[Union[app.schemas.taxonomy.TaxonomyResponseSchema, str, dict]]",
+        "required": [
+          "pagination",
+          "data"
+        ],
+        "type": "object",
+        "properties": {
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationOut"
+          },
+          "data": {
+            "title": "Data",
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/TaxonomyResponseSchema"
+                },
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "object"
+                }
+              ]
+            }
+          }
+        },
+        "description": "Abstract base class for generic types.\n\nA generic type is typically declared by inheriting from\nthis class parameterized with one or more type variables.\nFor example, a generic mapping type might be defined as::\n\n  class Mapping(Generic[KT, VT]):\n      def __getitem__(self, key: KT) -> VT:\n          ...\n      # Etc.\n\nThis class can then be used as follows::\n\n  def lookup_name(mapping: Mapping[KT, VT], key: KT, default: VT) -> VT:\n      try:\n          return mapping[key]\n      except KeyError:\n          return default"
+      },
+      "Pagination": {
+        "title": "Pagination",
+        "required": [
+          "page_size"
+        ],
+        "type": "object",
+        "properties": {
+          "page_num": {
+            "title": "Page Num",
+            "exclusiveMinimum": 0.0,
+            "type": "integer",
+            "default": 1
+          },
+          "page_size": {
+            "$ref": "#/components/schemas/_FilterPagesize"
+          }
+        }
+      },
+      "PaginationOut": {
+        "title": "PaginationOut",
+        "required": [
+          "page_size",
+          "min_pages_left",
+          "total",
+          "has_more"
+        ],
+        "type": "object",
+        "properties": {
+          "page_num": {
+            "title": "Page Num",
+            "exclusiveMinimum": 0.0,
+            "type": "integer",
+            "default": 1
+          },
+          "page_size": {
+            "$ref": "#/components/schemas/_FilterPagesize"
+          },
+          "min_pages_left": {
+            "title": "Min Pages Left",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          },
+          "has_more": {
+            "title": "Has More",
+            "type": "boolean"
+          }
+        }
+      },
+      "TaxonBaseSchema": {
+        "title": "TaxonBaseSchema",
+        "required": [
+          "name",
+          "taxonomy_id"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string",
+            "example": "taxon_name"
+          },
+          "taxonomy_id": {
+            "title": "Taxonomy Id",
+            "type": "string",
+            "example": "my_taxonomy_id"
+          },
+          "parent_id": {
+            "title": "Parent Id",
+            "type": "string",
+            "example": "null"
+          },
+          "taxonomy_version": {
+            "title": "Taxonomy Version",
+            "type": "integer",
+            "example": 1
+          }
+        }
+      },
+      "TaxonInputSchema": {
+        "title": "TaxonInputSchema",
+        "required": [
+          "name",
+          "taxonomy_id"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string",
+            "example": "taxon_name"
+          },
+          "taxonomy_id": {
+            "title": "Taxonomy Id",
+            "type": "string",
+            "example": "my_taxonomy_id"
+          },
+          "parent_id": {
+            "title": "Parent Id",
+            "type": "string",
+            "example": "null"
+          },
+          "taxonomy_version": {
+            "title": "Taxonomy Version",
+            "type": "integer",
+            "example": 1
+          },
+          "id": {
+            "title": "Id",
+            "type": "string",
+            "description": "If id is not provided, generates it as a UUID.",
+            "example": "my_taxon_id"
+          }
+        }
+      },
+      "TaxonResponseSchema": {
+        "title": "TaxonResponseSchema",
+        "required": [
+          "name",
+          "taxonomy_id"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string",
+            "example": "taxon_name"
+          },
+          "taxonomy_id": {
+            "title": "Taxonomy Id",
+            "type": "string",
+            "example": "my_taxonomy_id"
+          },
+          "parent_id": {
+            "title": "Parent Id",
+            "type": "string",
+            "example": "null"
+          },
+          "taxonomy_version": {
+            "title": "Taxonomy Version",
+            "type": "integer",
+            "example": 1
+          },
+          "id": {
+            "title": "Id",
+            "type": "string",
+            "description": "If id is not provided, generates it as a UUID.",
+            "example": "my_taxon_id"
+          },
+          "parents": {
+            "title": "Parents",
+            "type": "array",
+            "items": {
+              "type": "object"
+            },
+            "default": []
+          },
+          "is_leaf": {
+            "title": "Is Leaf",
+            "type": "boolean"
+          }
+        }
+      },
+      "TaxonomyBaseSchema": {
+        "title": "TaxonomyBaseSchema",
+        "required": [
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string",
+            "example": "taxonomy_name"
+          }
+        }
+      },
+      "TaxonomyInputSchema": {
+        "title": "TaxonomyInputSchema",
+        "required": [
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string",
+            "example": "taxonomy_name"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string",
+            "description": "If id is not provided, generates it as a UUID.",
+            "example": "my_taxonomy_id"
+          }
+        }
+      },
+      "TaxonomyResponseSchema": {
+        "title": "TaxonomyResponseSchema",
+        "required": [
+          "name",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string",
+            "example": "taxonomy_name"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string",
+            "description": "If id is not provided, generates it as a UUID.",
+            "example": "my_taxonomy_id"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer",
+            "description": "Version of taxonomy",
+            "example": 1
+          }
+        }
+      },
+      "ValidationError": {
+        "title": "ValidationError",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "loc": {
+            "title": "Location",
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            }
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        }
+      },
+      "_BadgerdocSearch_taxon_Taxon_": {
+        "title": "_BadgerdocSearch[taxon_Taxon]",
+        "type": "object",
+        "properties": {
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          },
+          "filters": {
+            "title": "Filters",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/_Filters_taxon_Taxon_"
+            }
+          },
+          "sorting": {
+            "title": "Sorting",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/_Sorts_taxon_Taxon_"
+            }
+          }
+        },
+        "description": "Abstract base class for generic types.\n\nA generic type is typically declared by inheriting from\nthis class parameterized with one or more type variables.\nFor example, a generic mapping type might be defined as::\n\n  class Mapping(Generic[KT, VT]):\n      def __getitem__(self, key: KT) -> VT:\n          ...\n      # Etc.\n\nThis class can then be used as follows::\n\n  def lookup_name(mapping: Mapping[KT, VT], key: KT, default: VT) -> VT:\n      try:\n          return mapping[key]\n      except KeyError:\n          return default"
+      },
+      "_BadgerdocSearch_taxonomy_Taxonomy_": {
+        "title": "_BadgerdocSearch[taxonomy_Taxonomy]",
+        "type": "object",
+        "properties": {
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          },
+          "filters": {
+            "title": "Filters",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/_Filters_taxonomy_Taxonomy_"
+            }
+          },
+          "sorting": {
+            "title": "Sorting",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/_Sorts_taxonomy_Taxonomy_"
+            }
+          }
+        },
+        "description": "Abstract base class for generic types.\n\nA generic type is typically declared by inheriting from\nthis class parameterized with one or more type variables.\nFor example, a generic mapping type might be defined as::\n\n  class Mapping(Generic[KT, VT]):\n      def __getitem__(self, key: KT) -> VT:\n          ...\n      # Etc.\n\nThis class can then be used as follows::\n\n  def lookup_name(mapping: Mapping[KT, VT], key: KT, default: VT) -> VT:\n      try:\n          return mapping[key]\n      except KeyError:\n          return default"
+      },
+      "_FilterOperations": {
+        "title": "_FilterOperations",
+        "enum": [
+          "is_null",
+          "is_not_null",
+          "eq",
+          "ne",
+          "gt",
+          "lt",
+          "ge",
+          "le",
+          "like",
+          "ilike",
+          "not_ilike",
+          "in",
+          "not_in",
+          "any",
+          "not_any",
+          "match",
+          "distinct",
+          "parent",
+          "parents_recursive",
+          "children",
+          "children_recursive"
+        ],
+        "type": "string",
+        "description": "An enumeration."
+      },
+      "_FilterPagesize": {
+        "title": "_FilterPagesize",
+        "enum": [
+          15,
+          30,
+          50,
+          80,
+          100
+        ],
+        "type": "integer",
+        "description": "An enumeration."
+      },
+      "_Filters_taxon_Taxon_": {
+        "title": "_Filters[taxon_Taxon]",
+        "required": [
+          "field",
+          "operator"
+        ],
+        "type": "object",
+        "properties": {
+          "field": {
+            "$ref": "#/components/schemas/taxon_Taxon"
+          },
+          "operator": {
+            "$ref": "#/components/schemas/_FilterOperations"
+          },
+          "value": {
+            "title": "Value"
+          }
+        }
+      },
+      "_Filters_taxonomy_Taxonomy_": {
+        "title": "_Filters[taxonomy_Taxonomy]",
+        "required": [
+          "field",
+          "operator"
+        ],
+        "type": "object",
+        "properties": {
+          "field": {
+            "$ref": "#/components/schemas/taxonomy_Taxonomy"
+          },
+          "operator": {
+            "$ref": "#/components/schemas/_FilterOperations"
+          },
+          "value": {
+            "title": "Value"
+          }
+        }
+      },
+      "_SortDirection": {
+        "title": "_SortDirection",
+        "enum": [
+          "asc",
+          "desc"
+        ],
+        "type": "string",
+        "description": "An enumeration."
+      },
+      "_Sorts_taxon_Taxon_": {
+        "title": "_Sorts[taxon_Taxon]",
+        "required": [
+          "field",
+          "direction"
+        ],
+        "type": "object",
+        "properties": {
+          "field": {
+            "$ref": "#/components/schemas/taxon_Taxon"
+          },
+          "direction": {
+            "$ref": "#/components/schemas/_SortDirection"
+          }
+        }
+      },
+      "_Sorts_taxonomy_Taxonomy_": {
+        "title": "_Sorts[taxonomy_Taxonomy]",
+        "required": [
+          "field",
+          "direction"
+        ],
+        "type": "object",
+        "properties": {
+          "field": {
+            "$ref": "#/components/schemas/taxonomy_Taxonomy"
+          },
+          "direction": {
+            "$ref": "#/components/schemas/_SortDirection"
+          }
+        }
+      },
+      "taxon_Taxon": {
+        "title": "taxon_Taxon",
+        "enum": [
+          "id",
+          "name",
+          "taxonomy_id",
+          "taxonomy_version",
+          "parent_id",
+          "tree",
+          "taxonomy.id",
+          "taxonomy.name",
+          "taxonomy.version",
+          "taxonomy.tenant",
+          "taxonomy.latest",
+          "parent.id",
+          "parent.name",
+          "parent.tenant",
+          "parent.taxonomy_id",
+          "parent.taxonomy_version",
+          "parent.parent_id",
+          "parent.tree"
+        ],
+        "type": "string",
+        "description": "An enumeration."
+      },
+      "taxonomy_Taxonomy": {
+        "title": "taxonomy_Taxonomy",
+        "enum": [
+          "id",
+          "name",
+          "version",
+          "latest",
+          "categories.taxonomy_id",
+          "categories.taxonomy_version",
+          "categories.category_id",
+          "categories.job_id",
+          "taxons.id",
+          "taxons.name",
+          "taxons.tenant",
+          "taxons.taxonomy_id",
+          "taxons.taxonomy_version",
+          "taxons.parent_id",
+          "taxons.tree"
+        ],
+        "type": "string",
+        "description": "An enumeration."
+      }
+    },
+    "securitySchemes": {
+      "TenantDependencyDocs": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Taxonomy",
+      "description": "Actions associated with taxonomies."
+    },
+    {
+      "name": "Taxon",
+      "description": "Actions associated with taxons."
+    }
+  ]
+}

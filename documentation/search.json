@@ -1,0 +1,963 @@
+{
+  "openapi": "3.0.2",
+  "info": {
+    "title": "Badgerdoc Search",
+    "version": "0.1.4"
+  },
+  "paths": {
+    "/pieces": {
+      "get": {
+        "tags": [
+          "Search"
+        ],
+        "summary": "Search text pieces.",
+        "description": "Searches for text pieces saved in Elastic Search according to query\nparameters. If no parameters specified - returns all text pieces from\nElastic Search index. Supports pagination.",
+        "operationId": "get_text_piece_pieces_get",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "title": "Category",
+              "type": "string"
+            },
+            "example": "Header",
+            "name": "category",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Content",
+              "type": "string"
+            },
+            "example": "Elasticsearch",
+            "name": "content",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Document Id",
+              "minimum": 1.0,
+              "type": "integer"
+            },
+            "example": 1,
+            "name": "document_id",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Page Number",
+              "minimum": 1.0,
+              "type": "integer"
+            },
+            "example": 1,
+            "name": "page_number",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Page Size",
+              "maximum": 100.0,
+              "minimum": 1.0,
+              "type": "integer",
+              "default": 50
+            },
+            "example": 50,
+            "name": "page_size",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Page Num",
+              "minimum": 1.0,
+              "type": "integer",
+              "default": 1
+            },
+            "example": 1,
+            "name": "page_num",
+            "in": "query"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "badger-doc",
+            "name": "x-current-tenant",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResultSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundErrorSchema"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Search"
+        ],
+        "summary": "Search text pieces.",
+        "operationId": "search_text_pieces_pieces_post",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "badger-doc",
+            "name": "x-current-tenant",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PiecesRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResultSchema2"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundErrorSchema"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/indexation/{job_id}": {
+      "post": {
+        "tags": [
+          "Search"
+        ],
+        "summary": "Start text pieces indexation process for provided job_id.",
+        "description": "Drops all already existing text pieces from Elastic Search index for this\njob if exists and starts indexation process for new text pieces in minio\nfor annotated pages mentioned in manifest.json files for this job.",
+        "operationId": "start_indexing_indexation__job_id__post",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "integer"
+            },
+            "example": 1,
+            "name": "job_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "badger-doc",
+            "name": "x-current-tenant",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundErrorSchema"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/facets": {
+      "post": {
+        "tags": [
+          "Facets"
+        ],
+        "summary": "API for facets",
+        "operationId": "search_facets_facets_post",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FacetsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FacetsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AggResult": {
+        "title": "AggResult",
+        "required": [
+          "id",
+          "count"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "description": "*Aggregation key id*",
+            "example": "Header"
+          },
+          "count": {
+            "title": "Count",
+            "type": "integer",
+            "description": "*Count of aggregated docs*",
+            "example": 10
+          },
+          "name": {
+            "title": "Name",
+            "type": "string",
+            "description": "*A name of a category or a job*"
+          }
+        }
+      },
+      "ConnectionErrorSchema": {
+        "title": "ConnectionErrorSchema",
+        "required": [
+          "detail"
+        ],
+        "type": "object",
+        "properties": {
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          }
+        },
+        "example": {
+          "detail": "Error: Connection error."
+        }
+      },
+      "FACET_FIELDS": {
+        "title": "FACET_FIELDS",
+        "enum": [
+          "category",
+          "document_id",
+          "page_number",
+          "job_id"
+        ],
+        "type": "string",
+        "description": "An enumeration."
+      },
+      "FacetBodyResponse": {
+        "title": "FacetBodyResponse",
+        "required": [
+          "name",
+          "values"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string",
+            "description": "*A name of aggregation*",
+            "example": "category"
+          },
+          "values": {
+            "title": "Values",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AggResult"
+            },
+            "description": "*An array aggregation results*"
+          }
+        }
+      },
+      "FacetOperator": {
+        "title": "FacetOperator",
+        "enum": [
+          "in",
+          "not_in"
+        ],
+        "type": "string",
+        "description": "An enumeration."
+      },
+      "FacetParams": {
+        "title": "FacetParams",
+        "required": [
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FACET_FIELDS"
+              }
+            ],
+            "description": "*Available fields for facets*",
+            "example": "category"
+          },
+          "limit": {
+            "title": "Limit",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "type": "integer",
+            "description": "*A limit that will be returned for particular field*",
+            "default": 10,
+            "example": 10
+          }
+        }
+      },
+      "FacetsRequest": {
+        "title": "FacetsRequest",
+        "required": [
+          "facets"
+        ],
+        "type": "object",
+        "properties": {
+          "query": {
+            "title": "Query",
+            "type": "string",
+            "description": "*Match query in a text type field*",
+            "example": "Elasticsearch"
+          },
+          "facets": {
+            "title": "Facets",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FacetParams"
+            },
+            "description": "*An array for ES aggregations*"
+          },
+          "filters": {
+            "title": "Filters",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FilterParams"
+            },
+            "description": "*Filters for facets*"
+          }
+        }
+      },
+      "FacetsResponse": {
+        "title": "FacetsResponse",
+        "required": [
+          "facets"
+        ],
+        "type": "object",
+        "properties": {
+          "facets": {
+            "title": "Facets",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FacetBodyResponse"
+            },
+            "example": [
+              {
+                "name": "category",
+                "values": [
+                  {
+                    "id": "Header",
+                    "count": 20
+                  },
+                  {
+                    "id": "Title",
+                    "count": 5
+                  },
+                  {
+                    "id": "Table",
+                    "count": 1
+                  }
+                ]
+              },
+              {
+                "name": "job_id",
+                "values": [
+                  {
+                    "id": 409,
+                    "count": 10
+                  },
+                  {
+                    "id": 42,
+                    "count": 20
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "FilterParams": {
+        "title": "FilterParams",
+        "required": [
+          "field",
+          "operator",
+          "value"
+        ],
+        "type": "object",
+        "properties": {
+          "field": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FACET_FIELDS"
+              }
+            ],
+            "description": "*Available fields for facets*",
+            "example": "category"
+          },
+          "operator": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FacetOperator"
+              }
+            ],
+            "description": "*Available filter operators*",
+            "example": "in"
+          },
+          "value": {
+            "title": "Value",
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "*An array of str|float|int values*",
+            "example": [
+              "Header",
+              "Title"
+            ]
+          }
+        }
+      },
+      "GeomObject": {
+        "title": "GeomObject",
+        "required": [
+          "category",
+          "content",
+          "document_id",
+          "page_number",
+          "job_id"
+        ],
+        "type": "object",
+        "properties": {
+          "category": {
+            "title": "Category",
+            "type": "string",
+            "example": "Header"
+          },
+          "content": {
+            "title": "Content",
+            "type": "string",
+            "example": "ElasticSearch"
+          },
+          "document_id": {
+            "title": "Document Id",
+            "minimum": 1.0,
+            "type": "integer",
+            "example": 1
+          },
+          "page_number": {
+            "title": "Page Number",
+            "minimum": 1.0,
+            "type": "integer",
+            "example": 1
+          },
+          "bbox": {
+            "title": "Bbox",
+            "maxItems": 4,
+            "minItems": 4,
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "example": [
+              1.5,
+              1.5,
+              1.5,
+              1.5
+            ]
+          },
+          "tokens": {
+            "title": "Tokens",
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "token1",
+              "token2",
+              "token3"
+            ]
+          },
+          "job_id": {
+            "title": "Job Id",
+            "minimum": 1.0,
+            "type": "integer",
+            "example": 1
+          }
+        }
+      },
+      "HTTPValidationError": {
+        "title": "HTTPValidationError",
+        "type": "object",
+        "properties": {
+          "detail": {
+            "title": "Detail",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            }
+          }
+        }
+      },
+      "NotFoundErrorSchema": {
+        "title": "NotFoundErrorSchema",
+        "required": [
+          "detail"
+        ],
+        "type": "object",
+        "properties": {
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          }
+        },
+        "example": {
+          "detail": "Resource was not found."
+        }
+      },
+      "PIECES_ENUM": {
+        "title": "PIECES_ENUM",
+        "enum": [
+          "category",
+          "document_id",
+          "page_number",
+          "job_id"
+        ],
+        "type": "string",
+        "description": "An enumeration."
+      },
+      "PaginationOut": {
+        "title": "PaginationOut",
+        "required": [
+          "pages",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "page_num": {
+            "title": "Page Num",
+            "exclusiveMinimum": 0.0,
+            "type": "integer",
+            "default": 1
+          },
+          "page_size": {
+            "title": "Page Size",
+            "exclusiveMinimum": 0.0,
+            "type": "integer",
+            "default": 50
+          },
+          "pages": {
+            "title": "Pages",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        }
+      },
+      "PieceFilter": {
+        "title": "PieceFilter",
+        "required": [
+          "field",
+          "operator",
+          "value"
+        ],
+        "type": "object",
+        "properties": {
+          "field": {
+            "$ref": "#/components/schemas/PIECES_ENUM"
+          },
+          "operator": {
+            "$ref": "#/components/schemas/PieceOperators"
+          },
+          "value": {
+            "title": "Value",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "anyOf": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      },
+      "PieceOperators": {
+        "title": "PieceOperators",
+        "enum": [
+          "eq",
+          "in",
+          "not_in"
+        ],
+        "type": "string",
+        "description": "An enumeration."
+      },
+      "PiecePagination": {
+        "title": "PiecePagination",
+        "type": "object",
+        "properties": {
+          "page_num": {
+            "title": "Page Num",
+            "exclusiveMinimum": 0.0,
+            "type": "integer",
+            "default": 1
+          },
+          "page_size": {
+            "title": "Page Size",
+            "exclusiveMinimum": 0.0,
+            "type": "integer",
+            "default": 50
+          }
+        }
+      },
+      "PieceSort": {
+        "title": "PieceSort",
+        "required": [
+          "field",
+          "direction"
+        ],
+        "type": "object",
+        "properties": {
+          "field": {
+            "$ref": "#/components/schemas/PIECES_ENUM"
+          },
+          "direction": {
+            "$ref": "#/components/schemas/PieceSortDirections"
+          }
+        }
+      },
+      "PieceSortDirections": {
+        "title": "PieceSortDirections",
+        "enum": [
+          "asc",
+          "desc"
+        ],
+        "type": "string",
+        "description": "An enumeration."
+      },
+      "PiecesRequest": {
+        "title": "PiecesRequest",
+        "type": "object",
+        "properties": {
+          "query": {
+            "title": "Query",
+            "type": "string"
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PiecePagination"
+          },
+          "filters": {
+            "title": "Filters",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PieceFilter"
+            }
+          },
+          "sorting": {
+            "title": "Sorting",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PieceSort"
+            }
+          }
+        }
+      },
+      "SearchResultSchema": {
+        "title": "SearchResultSchema",
+        "required": [
+          "current_page",
+          "page_size",
+          "total_objects",
+          "text_pieces"
+        ],
+        "type": "object",
+        "properties": {
+          "current_page": {
+            "title": "Current Page",
+            "minimum": 1.0,
+            "type": "integer"
+          },
+          "page_size": {
+            "title": "Page Size",
+            "minimum": 1.0,
+            "type": "integer"
+          },
+          "total_objects": {
+            "title": "Total Objects",
+            "minimum": 0.0,
+            "type": "integer"
+          },
+          "text_pieces": {
+            "title": "Text Pieces",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GeomObject"
+            }
+          }
+        }
+      },
+      "SearchResultSchema2": {
+        "title": "SearchResultSchema2",
+        "required": [
+          "pagination",
+          "data"
+        ],
+        "type": "object",
+        "properties": {
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationOut"
+          },
+          "data": {
+            "title": "Data",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GeomObject"
+            }
+          }
+        }
+      },
+      "ValidationError": {
+        "title": "ValidationError",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "loc": {
+            "title": "Location",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "TenantDependencyDocs": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Search",
+      "description": "Actions associated with search management."
+    }
+  ]
+}
