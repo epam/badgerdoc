@@ -5,6 +5,7 @@ import boto3
 import urllib3.exceptions
 
 from src import exceptions, logger
+from src.config import settings
 
 logger_ = logger.get_logger(__name__)
 
@@ -83,12 +84,13 @@ class S3Manager:
         try:
             self._check_bucket_exist(bucket_s3)
             self._check_files_exist(bucket_s3, files_keys)
-        except exceptions.FileKeyError as e:
-            logger_.error(f"S3 error - detail: {e}")
-            raise exceptions.FileKeyError(e)
-        except exceptions.BucketError as e:
-            logger_.error(f"S3 error - detail: {e}")
-            raise exceptions.BucketError(e)
+        except (exceptions.FileKeyError, exceptions.FileKeyError) as e:
+            logger_.exception(f"S3 error - detail: {e}")
+            raise
         except urllib3.exceptions.MaxRetryError as e:
-            logger_.error(f"Connection error - detail: {e}")
-            raise urllib3.exceptions.MaxRetryError  # type: ignore
+            logger_.exception(f"Connection error - detail: {e}")
+            raise  # type: ignore
+
+
+def get_bucket_name(tenant: str) -> str:
+    return f"{settings.s3_prefix}-{tenant}" if settings.s3_prefix else tenant

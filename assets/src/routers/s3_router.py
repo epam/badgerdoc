@@ -6,7 +6,6 @@ import sqlalchemy.orm
 import urllib3.exceptions
 
 from src import db, exceptions, schemas, utils
-from src.config import settings
 
 router = fastapi.APIRouter(prefix="/s3_upload", tags=["s_3"])
 
@@ -62,11 +61,7 @@ async def download_s3_files(
             detail=str(e),
         )
 
-    if settings.s3_prefix:
-        bucket_name = f"{settings.s3_prefix}-{x_current_tenant}"
-    else:
-        bucket_name = x_current_tenant
-
+    bucket_name = utils.s3_utils.get_bucket_name(x_current_tenant)
     utils.minio_utils.check_bucket(bucket_name, storage_)
 
     s3_files = s3.get_files(s3_data.bucket_s3, s3_data.files_keys)
@@ -75,4 +70,7 @@ async def download_s3_files(
         bucket_name, s3_files, session, storage_
     )
 
-    return [schemas.ActionResponse.parse_obj(response) for response in upload_results]  # noqa
+    return [
+        schemas.ActionResponse.parse_obj(response)
+        for response in upload_results
+    ]  # noqa

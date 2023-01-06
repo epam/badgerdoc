@@ -1,5 +1,5 @@
 # flake8: noqa: F501
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, List, Optional, Union
 
 import fastapi
 import filter_lib
@@ -8,7 +8,6 @@ import sqlalchemy.orm
 import sqlalchemy_filters.exceptions
 
 from src import db, exceptions, schemas, utils
-from src.config import settings
 
 router = fastapi.APIRouter(prefix="/files", tags=["files"])
 
@@ -89,10 +88,7 @@ async def upload_files(
             less than 3 characters
 
     """
-    if settings.s3_prefix:
-        bucket_name = f"{settings.s3_prefix}-{x_current_tenant}"
-    else:
-        bucket_name = x_current_tenant
+    bucket_name = utils.s3_utils.get_bucket_name(x_current_tenant)
 
     utils.minio_utils.check_bucket(bucket_name, storage_)
     try:
@@ -134,7 +130,6 @@ async def delete_files(
     each file will be written into resulting dict.
 
         Args:\n
-            bucket_name: current bucket in minio
             objects: list of object ids to be deleted
 
         Returns:\n
@@ -145,7 +140,8 @@ async def delete_files(
         less than 3 characters
 
     """
-    utils.minio_utils.check_bucket(objects.bucket_name, storage)
+    bucket_name = utils.s3_utils.get_bucket_name(x_current_tenant)
+    utils.minio_utils.check_bucket(bucket_name, storage)
     action = "delete"
     result: List[schemas.ActionResponse] = []
 
@@ -164,13 +160,13 @@ async def delete_files(
         minio_file_name = "files/" + str(file_id)
         f_original_ext = file.original_ext
         minio_ = utils.minio_utils.delete_one_from_minio(
-            objects.bucket_name, minio_file_name, storage
+            bucket_name, minio_file_name, storage
         )
         minio_originals = 1
         if f_original_ext:
             minio_origin_file_name = "files/origins/" + str(file_id)
             minio_originals = utils.minio_utils.delete_one_from_minio(
-                objects.bucket_name, minio_origin_file_name, storage
+                bucket_name, minio_origin_file_name, storage
             )
         db_ = db.service.delete_file_from_db(session, file_id)
 

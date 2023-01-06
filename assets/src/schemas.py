@@ -8,7 +8,6 @@ from src.db.models import Datasets
 
 
 class MinioObjects(BaseModel):
-    bucket_name: str
     objects: List[int]
 
 
