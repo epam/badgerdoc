@@ -38,7 +38,7 @@ const getSubItems = (categories: Category[]): any[] => {
 };
 
 export const CategoriesTab = ({ boundModeSwitch, setBoundModeSwitch }: CategoriesTabProps) => {
-    const { categories: taskCategories, task, onCategorySelected } = useTaskAnnotatorContext();
+    const { categories: taskCategories, onCategorySelected, getJobId } = useTaskAnnotatorContext();
 
     const [searchText, setSearchText] = useState('');
     const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
@@ -67,7 +67,7 @@ export const CategoriesTab = ({ boundModeSwitch, setBoundModeSwitch }: Categorie
     const { categoryNodes } = useCategoriesTree({
         searchText,
         boundModeSwitch,
-        jobId: task?.job.id
+        jobId: getJobId()
     });
 
     useEffect(() => {
