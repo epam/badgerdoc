@@ -112,7 +112,7 @@ class JobParams(BaseModel):
 
     # ---- common attributes ---- #
     @validator("datasets", always=True)
-    def check_files_and_datasets_are_not_empty(  # pylint: disable=no-self-argument
+    def check_files_and_datasets_are_not_empty(  # pylint: disable=no-self-argument  # noqa: E501
         cls, v: List[int], values: Dict[str, Any]
     ) -> List[int]:
         if not values.get("type") == JobType.ImportJob:
@@ -183,7 +183,8 @@ class JobParams(BaseModel):
 
         elif len(v) < 2 and validation_type == ValidationType.cross:
             raise ValueError(
-                f"{field.name} should include at least 2 annotators with {validation_type=}"
+                f"{field.name} should include at least 2 annotators "
+                f"with {validation_type=}"
             )
 
         return v

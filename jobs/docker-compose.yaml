@@ -17,6 +17,7 @@ services:
     build:
       context: .
       target: development
+    container_name: jobs_web_app
     env_file:
       - .env
     command: bash -c "alembic upgrade head && uvicorn jobs.main:app --host 0.0.0.0 --port 8123 --reload"
