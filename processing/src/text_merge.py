@@ -1,4 +1,6 @@
-"""Merging texts from small word bboxes to paragraph texts according to annotations.
+"""
+Merging texts from small word bboxes to paragraph texts
+according to annotations.
 """
 import json
 import logging
@@ -55,7 +57,8 @@ def match_page(words: Dict[str, Any], page: Page) -> MatchedPage:
 def convert_points_to_pixels(
     page: Dict[str, Any], new_width: float, new_height: float
 ) -> Dict[str, Any]:
-    """Converts units of page size from word bboxes to units of annotation bboxes."""
+    """Converts units of page size from word bboxes to
+    units of annotation bboxes."""
     k_width = new_width / page["size"]["width"]
     k_height = new_height / page["size"]["height"]
     page["size"]["width"] = new_width
