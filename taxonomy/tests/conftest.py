@@ -18,11 +18,7 @@ from alembic.config import Config
 from app.database import SQLALCHEMY_DATABASE_URL, Base, get_db, get_test_db_url
 from app.main import app
 from app.models import Taxon, Taxonomy
-from app.schemas import (
-    CategoryLinkSchema,
-    TaxonInputSchema,
-    TaxonomyInputSchema,
-)
+from app.schemas import CategoryLinkSchema, TaxonInputSchema, TaxonomyInputSchema
 from app.taxon import services as taxon_services
 from app.taxonomy import services as taxonomy_services
 from app.token_dependency import TOKEN

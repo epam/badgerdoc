@@ -26,6 +26,7 @@ services:
     build:
       context: .
       target: development
+    container_name: taxonomy_web_app
     ports:
       - ${APP_PORT}:${APP_PORT}
     env_file:
