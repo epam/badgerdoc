@@ -14,8 +14,11 @@ services:
     build:
       context: .
       target: build
+    restart: on-failure
     env_file:
       - src/.env
+    volumes:
+      - "./src:/convert/src"
     depends_on:
       - minio
     ports:

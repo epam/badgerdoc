@@ -1,40 +1,44 @@
-from typing import Dict
-
 from fastapi import APIRouter, status
 
-from src.logger import get_logger
-from src.vertex_to_bd.converter import (
-    PDFRenderer,
-    PlainTextToBadgerdocTokenConverter,
-    VertexToBDConvertUseCase,
+from src.config import minio_client
+from src.vertex_to_bd.badgerdoc_to_vertex_use_case import (
+    BDToVertexConvertUseCase,
 )
 from src.vertex_to_bd.models import VertexRequest
-from src.config import minio_client, settings
-
+from src.vertex_to_bd.models.vertex_models import BadgerdocToVertexRequest
+from src.vertex_to_bd.vertex_to_badgerdoc_use_case import (
+    VertexToBDConvertUseCase,
+)
 
 router = APIRouter(prefix="/vertex", tags=["vertex"])
-LOGGER = get_logger(__file__)
 
 
 @router.post(
     "/import",
     status_code=status.HTTP_201_CREATED,
 )
-def import_vertex(request: VertexRequest) -> Dict[str, int]:
-    page_border_offset = 15  # TODO
-    plain_text_converter = PlainTextToBadgerdocTokenConverter(
-        page_border_offset=page_border_offset
-    )
-    pdf_renderer = PDFRenderer(page_border_offset=page_border_offset)
-
+def import_vertex(request: VertexRequest) -> None:
     vertext_to_bd_use_case = VertexToBDConvertUseCase(
-        plain_text_converter=plain_text_converter, pdf_renderer=pdf_renderer, s3_client=minio_client
+        s3_client=minio_client,
     )
     vertext_to_bd_use_case.execute(
         s3_input_annotation=request.input_annotation,
         s3_output_pdf=request.output_pdf,
         s3_output_tokens=request.output_tokens,
-        s3_output_annotation=request.output_annotation,
+        s3_output_annotations=request.output_annotation,
     )
 
-    return {"status": status.HTTP_201_CREATED}
+
+@router.post(
+    "/export",
+    status_code=status.HTTP_201_CREATED,
+)
+def export_vertex(request: BadgerdocToVertexRequest) -> None:
+    bd_to_vertex_use_case = BDToVertexConvertUseCase(
+        s3_client=minio_client,
+    )
+    bd_to_vertex_use_case.execute(
+        s3_input_tokens=request.input_tokens,
+        s3_input_annotations=request.input_annotation,
+        s3_output_annotation=request.output_annotation,
+    )
