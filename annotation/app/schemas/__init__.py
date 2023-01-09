@@ -38,6 +38,7 @@ from app.schemas.jobs import (
 )
 from app.schemas.metadata import EntitiesStatusesSchema
 from app.schemas.tasks import (
+    AgreementScoreComparingResult,
     AgreementScoreServiceInput,
     AgreementScoreServiceResponse,
     AnnotationAndValidationActionsSchema,
@@ -50,7 +51,9 @@ from app.schemas.tasks import (
     ManualAnnotationTaskSchema,
     NameSchema,
     PagesInfoSchema,
+    ResponseScore,
     TaskInfoSchema,
+    TaskMetric,
     TaskPatchSchema,
     TaskStatusEnumSchema,
     TaskStatusSchema,
@@ -61,6 +64,7 @@ __all__ = [
     AnnotatedDocSchema,
     AgreementScoreServiceInput,
     AgreementScoreServiceResponse,
+    AgreementScoreComparingResult,
     AnnotationStatisticsEventEnumSchema,
     AnnotationStatisticsInputSchema,
     AnnotationStatisticsResponseSchema,
@@ -98,6 +102,7 @@ __all__ = [
     TaskInfoSchema,
     TaskPatchSchema,
     TaskStatusEnumSchema,
+    ResponseScore,
     TaskStatusSchema,
     ValidationEndSchema,
     CROSS_MIN_ANNOTATORS_NUMBER,
@@ -106,4 +111,5 @@ __all__ = [
     ConnectionErrorSchema,
     NotFoundErrorSchema,
     JobProgressSchema,
+    TaskMetric,
 ]

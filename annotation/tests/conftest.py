@@ -42,6 +42,7 @@ from app.schemas import (
     ValidationSchema,
 )
 from app.tasks import add_task_stats_record
+from app.utils import get_test_db_url
 from tests.override_app_dependency import TEST_TENANT
 from tests.test_annotators_overall_load import (
     OVERALL_LOAD_CREATED_TASKS,
@@ -169,7 +170,6 @@ from tests.test_update_job import (
     UPDATE_JOBS,
     UPDATE_USER_NO_JOBS,
 )
-from app.utils import get_test_db_url
 
 DEFAULT_REGION = "us-east-1"
 
@@ -1347,6 +1347,86 @@ def prepare_db_with_extensive_coverage_annotations(db_session):
         "id": 4,
         "file_id": file.file_id,
         "pages": [1, 2, 3, 4, 5, 6, 7, 8, 9],
+        "job_id": job.job_id,
+        "user_id": FINISH_TASK_USER_3.user_id,
+        "is_validation": True,
+        "status": TaskStatusEnumSchema.pending,
+        "deadline": None,
+    }
+
+    yield (db_session, (task_1, task_2, task_3), validation)
+    clear_db()
+
+
+@pytest.fixture
+def prepare_db_with_extensive_coverage_annotations_same_pages(db_session):
+    pages = [_ for _ in range(1, 10)]
+    job = Job(
+        # TODO: clean_db() do not clean DB fully. Having static
+        #  id causes Exception for tests running after initial
+        #   >>> AssertionError: Dependency rule tried to blank-out primary key
+        #        column 'files.job_id' on instance '<File at 0x1049e0fa0>'
+        job_id=random.randint(1000, 100000),
+        callback_url="http://www.test.com/test1",
+        annotators=[
+            FINISH_TASK_USER_1,
+            FINISH_TASK_USER_2,
+            FINISH_TASK_USER_3,
+        ],
+        validators=[FINISH_TASK_USER_3],
+        validation_type=ValidationSchema.extensive_coverage,
+        files=[FINISH_TASK_FILE_1],
+        is_auto_distribution=False,
+        categories=CATEGORIES,
+        deadline=None,
+        tenant=TEST_TENANT,
+        status=JobStatusEnumSchema.in_progress,
+        extensive_coverage=2,
+    )
+    file = File(
+        file_id=10,
+        tenant=TEST_TENANT,
+        job_id=job.job_id,
+        pages_number=9,
+        distributed_annotating_pages=pages,
+        distributed_validating_pages=pages,
+        status=FileStatusEnumSchema.annotated,
+    )
+    add_objects(db_session, [job, file])
+    task_1 = {
+        "id": 1,
+        "file_id": file.file_id,
+        "pages": pages,
+        "job_id": job.job_id,
+        "user_id": FINISH_TASK_USER_1.user_id,
+        "is_validation": False,
+        "status": TaskStatusEnumSchema.in_progress,
+        "deadline": None,
+    }
+    task_2 = {
+        "id": 2,
+        "file_id": file.file_id,
+        "pages": pages,
+        "job_id": job.job_id,
+        "user_id": FINISH_TASK_USER_2.user_id,
+        "is_validation": False,
+        "status": TaskStatusEnumSchema.in_progress,
+        "deadline": None,
+    }
+    task_3 = {
+        "id": 3,
+        "file_id": file.file_id,
+        "pages": pages,
+        "job_id": job.job_id,
+        "user_id": FINISH_TASK_USER_3.user_id,
+        "is_validation": False,
+        "status": TaskStatusEnumSchema.in_progress,
+        "deadline": None,
+    }
+    validation = {
+        "id": 4,
+        "file_id": file.file_id,
+        "pages": pages,
         "job_id": job.job_id,
         "user_id": FINISH_TASK_USER_3.user_id,
         "is_validation": True,

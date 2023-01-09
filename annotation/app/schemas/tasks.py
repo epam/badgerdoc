@@ -60,8 +60,9 @@ class UserSchema(BaseModel):
 
 
 class ExpandedManualAnnotationTaskSchema(TaskStatusSchema):
-    pages: Set[int] = \
-        Field(..., ge=1, min_items=1, example={1, 2, 3})  # type: ignore
+    pages: Set[int] = Field(
+        ..., ge=1, min_items=1, example={1, 2, 3}
+    )  # type: ignore
     user: UserSchema
     is_validation: bool = Field(default=False, example=False)
     deadline: Optional[datetime] = Field(None, example="2021-10-19 01:01:01")
@@ -154,18 +155,34 @@ class AgreementScoreServiceInput(BaseModel):
     manifest_url: str = Field(...)
 
 
-class AgreementScoreServiceResponse(BaseModel):
-    annotator_id: UUID = Field(
-        ..., example="f0474853-f733-41c0-b897-90b788b822e3"
-    )
-    job_id: int = Field(..., example=1)
-    task_id: int = Field(..., example=1)
-    agreement_score: Optional[dict] = Field(None, example={"attr1": "value1"})
-
-
 class ExportTaskStatsInput(BaseModel):
     user_ids: List[UUID] = Field(
         ..., example=["e20af190-0f05-4cd8-ad51-811bfb19ad71"]
     )
     date_from: datetime = Field(..., example="2020-12-20 01:01:01")
     date_to: Optional[datetime] = Field(None, example="2025-12-20 01:01:01")
+
+
+class ResponseScore(BaseModel):
+    task_id: int = Field(..., example=1)
+    agreement_score: float = Field(..., example=0.89)
+
+
+class AgreementScoreServiceResponse(BaseModel):
+    annotator_id: UUID = Field(
+        ..., example="f0474853-f733-41c0-b897-90b788b822e3"
+    )
+    job_id: int = Field(..., example=1)
+    task_id: int = Field(..., example=1)
+    agreement_score: List[ResponseScore] = Field(...)
+
+
+class TaskMetric(BaseModel):
+    task_from_id: int = Field(..., example=1)
+    task_to_id: int = Field(..., example=1)
+    metric_score: float = Field(..., example=0.78)
+
+
+class AgreementScoreComparingResult(BaseModel):
+    agreement_score_reached: bool = Field(..., example=True)
+    task_metrics: List[TaskMetric] = Field(...)

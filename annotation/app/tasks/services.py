@@ -1,17 +1,26 @@
 import csv
 import io
+import os
 from datetime import datetime
-from typing import List, Optional, Set, Tuple
+from typing import List, NamedTuple, Optional, Set, Tuple
 
+import dotenv
+import pydantic
 from fastapi import HTTPException
 from filter_lib import Page, form_query, map_request_to_filter, paginate
 from sqlalchemy import and_, asc
 from sqlalchemy.orm import Session
+from tenant_dependency import TenantData
 
 from app.errors import CheckFieldError, FieldConstraintError
 from app.filters import TaskFilter
 from app.jobs import update_files, update_user_overall_load
+from app.microservice_communication.assets_communication import (
+    get_file_path_and_bucket,
+)
+from app.microservice_communication.task import get_agreement_score
 from app.models import (
+    AgreementMetrics,
     AgreementScore,
     AnnotatedDoc,
     AnnotationStatistics,
@@ -21,13 +30,20 @@ from app.models import (
     association_job_validator,
 )
 from app.schemas import (
+    AgreementScoreComparingResult,
+    AgreementScoreServiceInput,
     AgreementScoreServiceResponse,
     AnnotationStatisticsInputSchema,
     ExportTaskStatsInput,
     ManualAnnotationTaskInSchema,
+    ResponseScore,
+    TaskMetric,
     TaskStatusEnumSchema,
     ValidationSchema,
 )
+
+dotenv.load_dotenv(dotenv.find_dotenv())
+AGREEMENT_SCORE_MIN_MATCH = float(os.getenv("AGREEMENT_SCORE_MIN_MATCH"))
 
 
 def validate_task_info(
@@ -293,6 +309,32 @@ def update_task_status(db: Session, task: ManualAnnotationTask) -> None:
         )
 
 
+def finish_validation_task(db: Session, task: ManualAnnotationTask) -> None:
+    db.query(ManualAnnotationTask).filter(
+        ManualAnnotationTask.job_id == task.job_id,
+        ManualAnnotationTask.file_id == task.file_id,
+        ManualAnnotationTask.is_validation.is_(True),
+    ).with_for_update().update(
+        {
+            ManualAnnotationTask.status: TaskStatusEnumSchema.finished  # noqa: E501
+        },
+        synchronize_session="fetch",
+    )
+    db.commit()
+
+
+def count_annotation_tasks(db: Session, task: ManualAnnotationTask) -> int:
+    return (
+        db.query(ManualAnnotationTask)
+        .filter(
+            ManualAnnotationTask.job_id == task.job_id,
+            ManualAnnotationTask.file_id == task.file_id,
+            ManualAnnotationTask.is_validation.is_(False),
+        )
+        .count()
+    )
+
+
 def get_task_revisions(
     db: Session,
     tenant: str,
@@ -454,6 +496,8 @@ def create_export_csv(
             "annotator_id": task_ids[stat.task_id]["annotator"],
             "task_id": stat.task_id,
             "task_status": stat.task.status.value,
+            "file_id": stat.task.file_id,
+            "pages": stat.task.pages,
             "time_start": stat.created.isoformat(),
             "time_finish": (
                 stat.updated.isoformat() if stat.updated else None
@@ -487,3 +531,115 @@ def create_export_csv(
 
     today = datetime.today().strftime("%Y%m%d")
     return f"annotator_stats_export_{today}.csv", binary
+
+
+def evaluate_agreement_score(
+    db: Session,
+    task: ManualAnnotationTask,
+    tenant: str,
+    token: TenantData,
+) -> AgreementScoreComparingResult:
+    annotators = []
+    manifest_url = None
+    s3_file_path, s3_file_bucket = get_file_path_and_bucket(
+        task.file_id, tenant, token.token
+    )
+    agreement_scores_input = [
+        AgreementScoreServiceInput.construct(
+            annotator_id=annotator_id,
+            job_id=task.job_id,
+            task_id=task.id,
+            s3_file_path=s3_file_path,
+            s3_file_bucket=s3_file_bucket,
+            manifest_url=manifest_url,
+        )
+        for annotator_id in annotators
+    ]
+    agreement_scores: List[
+        AgreementScoreServiceResponse
+    ] = get_agreement_score(
+        agreement_scores_input=agreement_scores_input,
+        tenant=tenant,
+        token=token.token,
+    )
+    save_agreement_scores(db, agreement_scores)
+    compared_score: AgreementScoreComparingResult = compare_agreement_scores(
+        agreement_scores, AGREEMENT_SCORE_MIN_MATCH
+    )
+    return compared_score
+
+
+class _MetricScoreTuple(NamedTuple):
+    task_from: int
+    task_to: int
+    score: float
+
+
+def get_unique_scores(
+    task_id: int,
+    scores: List[ResponseScore],
+    unique_scores: Set[_MetricScoreTuple],
+) -> None:
+    for score in scores:
+        el = _MetricScoreTuple(task_id, score.task_id, score.agreement_score)
+        unique_scores.add(
+            _MetricScoreTuple(
+                min(el.task_from, el.task_to),
+                max(el.task_from, el.task_to),
+                el.score,
+            )
+        )
+
+
+def compare_agreement_scores(
+    agreement_score_response: List[AgreementScoreServiceResponse],
+    min_match: float,
+) -> AgreementScoreComparingResult:
+    # firstly get unique pairs of task agreement score metrics, example:
+    # (1, 2, 0.95), (2, 1, 0.95) where 1 and 2 are task ids
+    # there is no need to store both of them in db since they are the same
+    # so transform (1, 2, 0.95), (2, 1, 0.95) to (1, 2, 0.95)
+    unique_scores: Set[_MetricScoreTuple] = set()
+    for entity in agreement_score_response:
+        task_from_id: int = entity.task_id
+        scores: List[ResponseScore] = pydantic.parse_obj_as(
+            List[ResponseScore],
+            entity.agreement_score if entity.agreement_score else [],
+        )
+        get_unique_scores(task_from_id, scores, unique_scores)
+
+    # check is every annotator reached min match score and return result
+    agreement_reached: bool = all(
+        map(lambda a: a.score >= min_match, unique_scores)
+    )
+    metrics: List[TaskMetric] = list(
+        sorted(
+            map(
+                lambda a: TaskMetric(
+                    task_from_id=a.task_from,
+                    task_to_id=a.task_to,
+                    metric_score=a.score,
+                ),
+                unique_scores,
+            ),
+            key=lambda b: (b.task_from_id, b.task_to_id),
+        )
+    )
+    return AgreementScoreComparingResult(
+        agreement_score_reached=agreement_reached, task_metrics=metrics
+    )
+
+
+def save_agreement_metrics(
+    db: Session, scores: AgreementScoreComparingResult
+) -> None:
+    metrics: List[AgreementMetrics] = [
+        AgreementMetrics(
+            task_from=el.task_from_id,
+            task_to=el.task_to_id,
+            agreement_metric=el.metric_score,
+        )
+        for el in scores.task_metrics
+    ]
+    db.bulk_save_objects(metrics)
+    db.commit()
