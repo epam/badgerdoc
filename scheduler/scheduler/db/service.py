@@ -2,10 +2,10 @@ import datetime
 from typing import Any, Dict, List, Union
 
 import sqlalchemy
-from scheduler.db import models
 from sqlalchemy import orm
 
 from scheduler import config, unit
+from scheduler.db import models
 
 engine = sqlalchemy.create_engine(
     config.DB_URL, pool_size=int(config.POOL_SIZE)

@@ -3,10 +3,10 @@ import datetime
 import random
 
 from aiokafka import AIOKafkaProducer
-from scheduler.db import models, service
 from sqlalchemy import orm
 
 from scheduler import config, log, runner
+from scheduler.db import models, service
 
 logger = log.get_logger(__name__)
 
