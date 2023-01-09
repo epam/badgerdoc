@@ -21,7 +21,6 @@ FROM base AS build
 WORKDIR /working
 
 COPY src /working/src
-COPY src /working/src
 COPY alembic /working/alembic
 COPY alembic.ini /working
 

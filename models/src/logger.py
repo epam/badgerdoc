@@ -1,8 +1,8 @@
 import logging
 
 _log_format = (
-    f"%(asctime)s - [%(levelname)s] - %(name)s - "
-    f"(%(filename)s).%(funcName)s(%(lineno)d) - %(message)s"
+    "%(asctime)s - [%(levelname)s] - %(name)s - "
+    "(%(filename)s).%(funcName)s(%(lineno)d) - %(message)s"
 )
 _datefmt = "%d-%b-%y %H:%M:%S"
 

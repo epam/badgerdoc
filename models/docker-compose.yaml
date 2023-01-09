@@ -28,6 +28,7 @@ services:
     build:
       context: .
       target: build
+    container_name: models_web_app
     env_file:
       - src/.env
     volumes:
