@@ -37,7 +37,8 @@ async def create_job(
     db: Session = Depends(db_service.get_session),
     token_data: TenantData = Depends(tenant),
 ) -> Union[Dict[str, Any], None]:
-    """Creates ExtractionJob, AnnotationJob or ExtractionWithAnnotationJob. If it is not 'Draft' - runs it"""
+    """Creates ExtractionJob, AnnotationJob or ExtractionWithAnnotationJob.
+    If it is not 'Draft' - runs it"""
     jw_token = token_data.token
 
     if job_params.type == schemas.JobType.ExtractionJob:
@@ -125,7 +126,7 @@ async def create_job(
         return created_job
 
     if job_params.type == schemas.JobType.ImportJob:
-        new_import_job = db_service.create_import_job(db, job_params)  # type: ignore
+        new_import_job = db_service.create_import_job(db, job_params)  # type: ignore  # noqa: E501
         return new_import_job.as_dict
 
     return None
@@ -154,8 +155,8 @@ async def run_job(
         ):
             raise HTTPException(
                 status_code=status.HTTP_406_NOT_ACCEPTABLE,
-                detail=f"You can run only Job with a status 'Draft' or "
-                f"ExtractionWithAnnotationJob with finished Automatic part",
+                detail="You can run only Job with a status 'Draft' or "
+                "ExtractionWithAnnotationJob with finished Automatic part",
             )
 
     if job_to_run.type == schemas.JobType.ExtractionJob:
@@ -203,7 +204,8 @@ async def change_job(
     current_tenant: Optional[str] = Header(None, alias="X-Current-Tenant"),
     db: Session = Depends(db_service.get_session),
 ) -> Union[Dict[str, Any], HTTPException]:
-    """Provides an ability to change any value of any field of any Job in the database"""
+    """Provides an ability to change any value
+    of any field of any Job in the database"""
     job_to_change = db_service.get_job_in_db_by_id(db, job_id)
     if not job_to_change:
         raise HTTPException(
@@ -216,7 +218,8 @@ async def change_job(
         if (owners := job_to_change.owners) and user_id not in owners:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Access denied. This user is not allowed to change the job",
+                detail="Access denied. This user is not "
+                "allowed to change the job",
             )
 
     if (
@@ -362,7 +365,8 @@ async def delete_job(
 async def get_metadata(
     current_tenant: Optional[str] = Header(None, alias="X-Current-Tenant"),
 ) -> Dict[str, List[str]]:
-    """Provides metadata that contains names and values of Enum Classes from schemas"""
+    """Provides metadata that contains names
+    and values of Enum Classes from schemas"""
     return {
         schemas.JobType.__name__: [member.value for member in schemas.JobType],
         schemas.Status.__name__: [member.value for member in schemas.Status],

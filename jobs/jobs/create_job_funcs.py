@@ -17,8 +17,9 @@ async def get_all_datasets_and_files_data(
     current_tenant: str,
     jw_token: str,
 ) -> Tuple[List[Dict[str, Any]], List[int], List[int]]:
-    """Gets all the data about datasets and files passed in from Assets microservice.
-    Also returns valid dataset tags and valid file ids - if they exist in assets"""
+    """Gets all the data about datasets and files passed in
+    from Assets microservice. Also returns valid dataset tags and valid
+    file ids - if they exist in assets"""
     get_datasets_data_response = await utils.get_files_data_from_datasets(
         datasets_data=datasets_tags,
         current_tenant=current_tenant,

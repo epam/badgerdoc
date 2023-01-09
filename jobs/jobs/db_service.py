@@ -103,13 +103,13 @@ def create_extraction_annotation_job(
         validators=extraction_annotation_job_input.validators,
         owners=extraction_annotation_job_input.owners,
         categories=categories,
-        is_auto_distribution=extraction_annotation_job_input.is_auto_distribution,
+        is_auto_distribution=extraction_annotation_job_input.is_auto_distribution,  # noqa: E501
         deadline=extraction_annotation_job_input.deadline,
         validation_type=extraction_annotation_job_input.validation_type,
         pipeline_id=pipeline_id,
         all_files_data=all_files_data,
-        start_manual_job_automatically=extraction_annotation_job_input.start_manual_job_automatically,
-        extensive_coverage=extraction_annotation_job_input.extensive_coverage,
+        start_manual_job_automatically=extraction_annotation_job_input.start_manual_job_automatically,  # noqa: E501
+        extensive_coverage=extraction_annotation_job_input.extensive_coverage,  # noqa: E501
     )
     db.add(job_row)
     db.commit()
@@ -177,6 +177,6 @@ def change_job(
     """Changes any parameter of any job in db"""
     new_job_params_dict = new_job_params.dict()
     for job_param_key in new_job_params_dict:
-        if new_job_params_dict[job_param_key] != None:
+        if new_job_params_dict[job_param_key] is not None:
             setattr(job, job_param_key, new_job_params_dict[job_param_key])
     db.commit()

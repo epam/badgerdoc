@@ -5,7 +5,15 @@ import fastapi.encoders
 from sqlalchemy.orm import Session
 
 from jobs import db_service
-from jobs.config import *
+from jobs.config import (
+    HOST_ANNOTATION,
+    HOST_ASSETS,
+    HOST_PIPELINES,
+    HOST_TAXONOMY,
+    JOBS_HOST,
+    PAGINATION_THRESHOLD,
+    ROOT_PATH,
+)
 from jobs.logger import logger
 from jobs.models import CombinedJob
 from jobs.schemas import (
@@ -317,7 +325,8 @@ async def execute_in_annotation_microservice(
         json["is_auto_distribution"] = created_job.is_auto_distribution
     logger.info(
         f"Job id = {job_id}. Sending request to annotation manager. "
-        f" Callback URI is {callback_url}, headers={headers}, params sent = {json}"
+        f" Callback URI is {callback_url}, headers={headers}, "
+        f"params sent = {json}"
     )
     # --------- request to an annotation microservice ---------- #
     try:
@@ -373,7 +382,8 @@ async def start_job_in_annotation(
     }
 
     logger.info(
-        f"Job id = {job_id}. Sending request to start job in annotation manager."
+        f"Job id = {job_id}. Sending request to start "
+        f"job in annotation manager."
         f"Headers={headers}"
     )
     try:
@@ -405,7 +415,8 @@ async def update_job_in_annotation(
     }
 
     logger.info(
-        f"Job id = {job_id}. Sending request to update job in annotation manager. "
+        f"Job id = {job_id}. Sending request to update "
+        f"job in annotation manager. "
         f" Headers={headers}, params sent = {new_job_params_for_annotation}"
     )
     try:
@@ -483,7 +494,7 @@ def get_test_db_url(main_db_url: str) -> str:
     postgresql+psycopg2://admin:admin@host:5432/test_db
     """
     main_db_url_split = main_db_url.split("/")
-    main_db_url_split[-1] = 'test_db'
+    main_db_url_split[-1] = "test_db"
     result = "/".join(main_db_url_split)
     return result
 
@@ -504,8 +515,7 @@ async def send_category_taxonomy_link(
             headers=headers,
             body=[
                 taxonomy_link_param.dict(exclude_defaults=True)
-                for taxonomy_link_param
-                in taxonomy_link_params
+                for taxonomy_link_param in taxonomy_link_params
             ],
             raise_for_status=True,
         )
