@@ -3,6 +3,7 @@ from typing import Callable
 
 from sqlalchemy import (
     BOOLEAN,
+    FLOAT,
     INTEGER,
     TIMESTAMP,
     VARCHAR,
@@ -419,3 +420,21 @@ class DocumentLinks(Base):
             f"similar_job_id={self.similar_job_id}, "
             f"label={self.label})>"
         )
+
+
+class AgreementMetrics(Base):
+
+    __tablename__ = "agreement_metrics"
+    task_from = Column(
+        INTEGER,
+        ForeignKey("tasks.id", ondelete="cascade"),
+        primary_key=True,
+        unique=False,
+    )
+    task_to = Column(
+        INTEGER,
+        ForeignKey("tasks.id", ondelete="cascade"),
+        primary_key=True,
+        unique=False,
+    )
+    agreement_metric = Column(FLOAT, nullable=False)

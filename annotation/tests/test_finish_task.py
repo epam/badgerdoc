@@ -1,5 +1,7 @@
 import copy
-from unittest.mock import Mock
+import os
+import uuid
+from unittest.mock import Mock, patch
 
 import pytest
 import responses
@@ -11,6 +13,7 @@ from sqlalchemy.orm import Session
 
 from app.annotations import accumulate_pages_info, row_to_dict
 from app.models import (
+    AgreementMetrics,
     AnnotatedDoc,
     Category,
     File,
@@ -19,6 +22,7 @@ from app.models import (
     User,
 )
 from app.schemas import (
+    AgreementScoreServiceResponse,
     CategoryTypeSchema,
     FileStatusEnumSchema,
     JobStatusEnumSchema,
@@ -284,6 +288,50 @@ FINISH_DOCS_CHECK_DELETED_ANNOTATOR = [
         tenant=TEST_TENANT,
         task_id=FINISH_TASK_CHECK_DELETE_USER_VALIDATOR["id"],
         date="2004-10-19T10:01:00",
+    ),
+]
+
+
+AGREEMENT_SCORE_RESPONSE = [
+    AgreementScoreServiceResponse(
+        annotator_id=uuid.uuid4(),
+        job_id=1,
+        task_id=1,
+        agreement_score=[
+            {"task_id": 2, "agreement_score": 0.99},
+            {"task_id": 3, "agreement_score": 0.81},
+            {"task_id": 4, "agreement_score": 0.85},
+        ],
+    ),
+    AgreementScoreServiceResponse(
+        annotator_id=uuid.uuid4(),
+        job_id=1,
+        task_id=2,
+        agreement_score=[
+            {"task_id": 1, "agreement_score": 0.99},
+            {"task_id": 4, "agreement_score": 0.89},
+            {"task_id": 3, "agreement_score": 0.86},
+        ],
+    ),
+    AgreementScoreServiceResponse(
+        annotator_id=uuid.uuid4(),
+        job_id=1,
+        task_id=3,
+        agreement_score=[
+            {"task_id": 4, "agreement_score": 0.92},
+            {"task_id": 2, "agreement_score": 0.86},
+            {"task_id": 1, "agreement_score": 0.81},
+        ],
+    ),
+    AgreementScoreServiceResponse(
+        annotator_id=uuid.uuid4(),
+        job_id=1,
+        task_id=4,
+        agreement_score=[
+            {"task_id": 1, "agreement_score": 0.85},
+            {"task_id": 2, "agreement_score": 0.89},
+            {"task_id": 3, "agreement_score": 0.92},
+        ],
     ),
 ]
 
@@ -1045,3 +1093,163 @@ def test_finish_task_should_work_with_all_pages_covered_extensively_twice(
         .first()
     )
     assert validation_task.status == TaskStatusEnumSchema.ready
+
+
+@patch("app.tasks.services.AGREEMENT_SCORE_MIN_MATCH", 0.7)
+@patch("app.tasks.resources.AGREEMENT_SCORE_ENABLED", "true")
+def test_finish_task_with_agreement_score_enabled_score_matched(
+    prepare_db_with_extensive_coverage_annotations,
+):
+    (
+        db,
+        annotation_tasks,
+        validation,
+    ) = prepare_db_with_extensive_coverage_annotations
+    annotation_tasks[0]["status"] = TaskStatusEnumSchema.finished
+    annotation_tasks[1]["status"] = TaskStatusEnumSchema.finished
+    for obj in [*annotation_tasks, validation]:
+        db.merge(ManualAnnotationTask(**obj))
+    db.commit()
+
+    with patch(
+        "app.tasks.services.get_agreement_score",
+        return_value=AGREEMENT_SCORE_RESPONSE,
+    ) as mock1:
+        with patch(
+            "app.tasks.services.get_file_path_and_bucket",
+            return_value=("", ""),
+        ) as mock2:
+            with patch("app.tasks.services.save_agreement_scores") as mock3:
+                with patch("app.tasks.resources.update_job_status") as mock4:
+                    response = client.post(
+                        FINISH_TASK_PATH.format(
+                            task_id=annotation_tasks[2]["id"]
+                        ),
+                        headers=TEST_HEADERS,
+                    )
+    assert response
+
+    mock1.assert_called_once()
+    mock2.assert_called_once()
+    mock3.assert_called_once()
+    mock4.assert_called_once()
+    validation_task = (
+        db.query(ManualAnnotationTask)
+        .filter(
+            ManualAnnotationTask.job_id == annotation_tasks[0]["job_id"],
+            ManualAnnotationTask.is_validation.is_(True),
+            ManualAnnotationTask.file_id == annotation_tasks[0]["file_id"],
+        )
+        .first()
+    )
+    assert validation_task.status == TaskStatusEnumSchema.finished
+
+    job = db.query(Job).filter(Job.job_id == validation_task.job_id).first()
+    assert job.status == JobStatusEnumSchema.finished
+    assert db.query(AgreementMetrics).count() == 6
+
+
+@patch("app.tasks.services.AGREEMENT_SCORE_MIN_MATCH", 0.99)
+@patch("app.tasks.resources.AGREEMENT_SCORE_ENABLED", "true")
+def test_finish_task_with_agreement_score_enabled_score_not_matched(
+    prepare_db_with_extensive_coverage_annotations,
+):
+    (
+        db,
+        annotation_tasks,
+        validation,
+    ) = prepare_db_with_extensive_coverage_annotations
+    annotation_tasks[0]["status"] = TaskStatusEnumSchema.finished
+    annotation_tasks[1]["status"] = TaskStatusEnumSchema.finished
+    for obj in [*annotation_tasks, validation]:
+        db.merge(ManualAnnotationTask(**obj))
+    db.commit()
+
+    with patch(
+        "app.tasks.services.get_agreement_score",
+        return_value=AGREEMENT_SCORE_RESPONSE,
+    ) as mock1:
+        with patch(
+            "app.tasks.services.get_file_path_and_bucket",
+            return_value=("", ""),
+        ) as mock2:
+            with patch("app.tasks.services.save_agreement_scores") as mock3:
+                with patch("app.tasks.resources.update_job_status") as mock4:
+                    response = client.post(
+                        FINISH_TASK_PATH.format(
+                            task_id=annotation_tasks[2]["id"]
+                        ),
+                        headers=TEST_HEADERS,
+                    )
+    assert response
+
+    mock1.assert_called_once()
+    mock2.assert_called_once()
+    mock3.assert_called_once()
+    mock4.assert_not_called()
+    validation_task = (
+        db.query(ManualAnnotationTask)
+        .filter(
+            ManualAnnotationTask.job_id == annotation_tasks[0]["job_id"],
+            ManualAnnotationTask.is_validation.is_(True),
+            ManualAnnotationTask.file_id == annotation_tasks[0]["file_id"],
+        )
+        .first()
+    )
+    assert validation_task.status == TaskStatusEnumSchema.ready
+
+    job = db.query(Job).filter(Job.job_id == validation_task.job_id).first()
+    assert job.status == JobStatusEnumSchema.in_progress
+
+
+@patch("app.tasks.services.AGREEMENT_SCORE_MIN_MATCH", 0.5)
+@patch.dict(os.environ, {"AGREEMENT_SCORE_ENABLED": "true"})
+def test_finish_task_with_agreement_score_enabled_annotation_not_finished(
+    prepare_db_with_extensive_coverage_annotations_same_pages,
+):
+    (
+        db,
+        annotation_tasks,
+        validation,
+    ) = prepare_db_with_extensive_coverage_annotations_same_pages
+    annotation_tasks[0]["status"] = TaskStatusEnumSchema.finished
+    annotation_tasks[1]["status"] = TaskStatusEnumSchema.ready
+    for obj in [*annotation_tasks, validation]:
+        db.merge(ManualAnnotationTask(**obj))
+    db.commit()
+
+    with patch(
+        "app.tasks.services.get_agreement_score",
+        return_value=AGREEMENT_SCORE_RESPONSE,
+    ) as mock1:
+        with patch(
+            "app.tasks.services.get_file_path_and_bucket",
+            return_value=("", ""),
+        ) as mock2:
+            with patch("app.tasks.services.save_agreement_scores") as mock3:
+                with patch("app.tasks.resources.update_job_status") as mock4:
+                    response = client.post(
+                        FINISH_TASK_PATH.format(
+                            task_id=annotation_tasks[2]["id"]
+                        ),
+                        headers=TEST_HEADERS,
+                    )
+    assert response
+
+    mock1.assert_not_called()
+    mock2.assert_not_called()
+    mock3.assert_not_called()
+    mock4.assert_not_called()
+    validation_task = (
+        db.query(ManualAnnotationTask)
+        .filter(
+            ManualAnnotationTask.job_id == annotation_tasks[0]["job_id"],
+            ManualAnnotationTask.is_validation.is_(True),
+            ManualAnnotationTask.file_id == annotation_tasks[0]["file_id"],
+        )
+        .first()
+    )
+    assert validation_task.status == TaskStatusEnumSchema.ready
+
+    job = db.query(Job).filter(Job.job_id == validation_task.job_id).first()
+    assert job.status == JobStatusEnumSchema.in_progress
