@@ -364,7 +364,9 @@ def manage_result_for_annotator(
         "input": merged_data.dict(exclude_none=True),
     }
     headers = {"X-Current-Tenant": tenant, "Authorization": f"Bearer {token}"}
-    postprocessed_data = postprocess_result(data_for_postprocessor, headers=headers)
+    postprocessed_data = postprocess_result(
+        data_for_postprocessor, headers=headers
+    )
     if postprocessed_data is None:
         logger.info("result for postprocessing data is None")
         return False

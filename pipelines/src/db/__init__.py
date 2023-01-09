@@ -1,1 +1,1 @@
-import src.db.logger
+import src.db.logger  # noqa: F401
