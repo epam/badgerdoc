@@ -124,7 +124,7 @@ def validate_filter_args(
     operator: Optional[str],
     value: Optional[str],
 ) -> None:
-    if operator and operator.value == "in" and not value:
+    if getattr(operator, "value", None) == "in" and not value:
         raise BadFilterFormat(
             f"Field value should not be null for operator {operator.value}."
         )
