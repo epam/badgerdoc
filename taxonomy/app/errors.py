@@ -47,9 +47,7 @@ def no_taxon_error_handler(request: Request, exc: NoTaxonError):
     )
 
 
-def check_field_error_handler(
-    request: Request, exc: CheckFieldError
-):
+def check_field_error_handler(request: Request, exc: CheckFieldError):
     return JSONResponse(
         status_code=400,
         content={"detail": f"Field constraint error. {exc.message}"},
@@ -65,9 +63,7 @@ def field_constraint_error_handler(
     )
 
 
-def taxon_parent_child_error_handler(
-    request: Request, exc: SelfParentError
-):
+def taxon_parent_child_error_handler(request: Request, exc: SelfParentError):
     return JSONResponse(
         status_code=400,
         content={"detail": f"Self parent error. {exc.message}"},
