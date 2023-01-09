@@ -11,6 +11,7 @@ COPY policy.xml  /etc/ImageMagick-6/policy.xml
 
 
 RUN pip install poetry
+RUN poetry install certifi
 COPY poetry.lock pyproject.toml /
 RUN poetry config virtualenvs.create false \
     && poetry install --no-interaction --no-dev\
