@@ -41,7 +41,8 @@ async def health_check_preprocessing(
             404,
             detail=f"Testing documents should exist. Check bucket `{bucket}`,"
             f"paths `{[f'files/{file_id}/' for file_id in file_ids]}`."
-            "This directories should contain pdf file and folder with expected data",
+            "This directories should contain pdf file "
+            "and folder with expected data",
         )
 
     await asyncio.gather(
