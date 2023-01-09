@@ -3,7 +3,10 @@ from typing import Any, Dict, Optional
 
 from src.config import LOG_LEVEL
 
-_log_format = f"%(asctime)s - [%(levelname)s] - %(name)s - (%(filename)s).%(funcName)s(%(lineno)d) - %(message)s"
+_log_format = (
+    "%(asctime)s - [%(levelname)s] - %(name)s - "
+    "(%(filename)s).%(funcName)s(%(lineno)d) - %(message)s"
+)
 _datefmt = "%d-%b-%y %H:%M:%S"
 
 

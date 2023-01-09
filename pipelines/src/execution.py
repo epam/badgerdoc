@@ -302,7 +302,8 @@ class PipelineTask(BaseModel):
         pipeline_type = self.get_pipeline_type()
         if not failed and pipeline_type == schemas.PipelineTypes.INFERENCE:
             logger.info(
-                "preparing to merge results and send it to postprocessing/annotation"
+                "preparing to merge results and "
+                "send it to postprocessing/annotation"
             )
             path_ = args.get_path()
             filename = args.get_filename()
@@ -324,9 +325,13 @@ class PipelineTask(BaseModel):
 
         task_status = schemas.Status.FAIL if failed else schemas.Status.DONE
         self.change_status(task_status)
-        logger.info(f"Task with id = {self.id} finished with status = {task_status}")
+        logger.info(
+            f"Task with id = {self.id} finished with status = {task_status}"
+        )
         tenant = s3.tenant_from_bucket(bucket)
-        self.send_status(pipeline_type=pipeline_type, tenant=tenant, token=token)
+        self.send_status(
+            pipeline_type=pipeline_type, tenant=tenant, token=token
+        )
 
     def change_status(self, status: schemas.Status) -> None:
         """Changes status of the task in the db and in the instance."""
@@ -387,7 +392,9 @@ class PipelineTask(BaseModel):
         max_retries = config.MAX_FILE_STATUS_RETRIES
         timeout = config.FILE_STATUS_TIMEOUT
         for retry in range(1, int(max_retries) + 1):
-            file_status = http_utils.get_file_status(file_id=file_id, tenant=tenant)
+            file_status = http_utils.get_file_status(
+                file_id=file_id, tenant=tenant
+            )
             if file_status == schemas.PreprocessingStatus.PREPROCESSED:
                 return True
             elif file_status is None:

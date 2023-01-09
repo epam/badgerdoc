@@ -182,7 +182,7 @@ def get_step_by_step_and_task_id(
             dbm.ExecutionStep.task_id == task_id,
             dbm.ExecutionStep.step_id == step_id,
             dbm.ExecutionStep.status.in_(statuses)
-            | (dbm.ExecutionStep.status == None),
+            | (dbm.ExecutionStep.status == None),  # noqa: E711
         )
         .first()
     )
@@ -589,6 +589,6 @@ def get_test_db_url(main_db_url: str) -> str:
     postgresql+psycopg2://admin:admin@host:5432/test_db
     """
     main_db_url_split = main_db_url.split("/")
-    main_db_url_split[-1] = 'test_db'
+    main_db_url_split[-1] = "test_db"
     result = "/".join(main_db_url_split)
     return result
