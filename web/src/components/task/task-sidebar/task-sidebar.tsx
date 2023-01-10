@@ -9,7 +9,7 @@ import {
     TabButton
 } from '@epam/loveship';
 import { useUuiContext } from '@epam/uui';
-import { useSetTaskFinished, useGetValidatedPages, useSetTaskState } from 'api/hooks/tasks';
+import { useSetTaskFinishedMutation, useGetValidatedPages, useSetTaskState } from 'api/hooks/tasks';
 import { useTaskAnnotatorContext } from 'connectors/task-annotator-connector/task-annotator-context';
 import {
     FinishTaskValidationModal,
@@ -119,11 +119,15 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
     const isValidationDisabled = !currentPage && !isAnnotatable && !splitValidation;
 
     const svc = useUuiContext();
+    const finishTaskMutation = useSetTaskFinishedMutation();
     const onSaveForm = async (formOptions: TaskValidationValues) => {
         if (task && (formOptions.option_invalid || formOptions.option_edited)) {
-            await useSetTaskFinished(task?.id, {
-                option_edited: formOptions.option_edited,
-                option_invalid: formOptions.option_invalid
+            await finishTaskMutation.mutateAsync({
+                taskId: task?.id,
+                options: {
+                    option_edited: formOptions.option_edited,
+                    option_invalid: formOptions.option_invalid
+                }
             });
 
             await useSetTaskState({ id: task?.id, eventType: 'closed' });
@@ -131,7 +135,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
     };
     const onSaveValidForm = () => {
         if (task) {
-            useSetTaskFinished(task?.id);
+            finishTaskMutation.mutateAsync({ taskId: task?.id });
             useSetTaskState({ id: task?.id, eventType: 'closed' });
         }
     };

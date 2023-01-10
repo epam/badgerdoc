@@ -28,6 +28,7 @@ export type DistributeTasksResponse = Task[];
 
 // all properties are optional due to form validation
 export type TaskModel = {
+    id: number;
     file_id: number;
     pages: Array<number>;
     job_id: number;
@@ -35,6 +36,7 @@ export type TaskModel = {
     user_id: string;
     is_validation: boolean;
     deadline: string;
+    status: string;
 };
 export type ValidationPages = {
     validated: [];
