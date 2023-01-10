@@ -95,7 +95,8 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
         setSelectedLabels,
         selectedLabels,
         latestLabelsId,
-        isDocLabelsModified
+        isDocLabelsModified,
+        getJobId
     } = useTaskAnnotatorContext();
     const {
         tableModeColumns,
@@ -238,6 +239,8 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
     }`;
     const validationStatus: ValidationPageStatus = isValid ? 'Valid Page' : 'Invalid Page';
 
+    const jobId = useMemo(() => getJobId(), [getJobId]);
+
     // needed for taskSidebarLabel:
     useEffect(() => {
         refetchTaxons();
@@ -269,12 +272,12 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
             setSelectedLabels(latestLabels);
         }
     }, [latestTaxons]);
-    const { data: taxonomies, isLoading } = useAllTaxonomiesByJobId({ jobId: task?.job.id });
+    const { data: taxonomies, isLoading } = useAllTaxonomiesByJobId({ jobId });
 
     // needed for taskSidebarLabel ^
 
     const taxonomy = useLinkTaxonomyByCategoryAndJobId({
-        jobId: task?.job.id,
+        jobId,
         categoryId: selectedAnnotation?.category!
     });
 
@@ -552,7 +555,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
                     {tabValue === 'Labels' && categories !== undefined && (
                         <>
                             <TaskSidebarLabels
-                                taxonomies={isLoading === false ? taxonomies : []}
+                                jobId={jobId}
                                 onLabelsSelected={onLabelsSelected}
                                 selectedLabels={selectedLabels ?? []}
                             />

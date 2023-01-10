@@ -89,7 +89,7 @@ export const useCategoriesByJob: QueryHookType<CategoriesByJobParams, PagedRespo
         options
     );
 };
-export async function categoriesByJobFetcher(
+async function categoriesByJobFetcher(
     jobId?: number | undefined,
     page = 1,
     size = pageSizes._15,
