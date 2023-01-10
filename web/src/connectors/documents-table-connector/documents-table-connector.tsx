@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState, useContext } from 'react';
+import React, { useEffect, useMemo, useRef, useState, useContext, useCallback } from 'react';
 import styles from './documents-table-connector.module.scss';
 import {
     Button,
@@ -10,7 +10,7 @@ import {
     Text
 } from '@epam/loveship';
 import { Dataset, FileDocument, Filter, Operators, SortingDirection } from '../../api/typings';
-import { useDocuments } from '../../api/hooks/documents';
+import { useDeleteFilesMutation, useDocuments } from '../../api/hooks/documents';
 
 import { TableWrapper, usePageTable } from 'shared';
 import { pageSizes } from 'shared/primitives';
@@ -75,6 +75,7 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
     const { documentView, documentsSort, query } = useContext(DocumentsSearch);
     const svc = useUuiContext();
     const mutation = useAddFilesToDatasetMutation();
+    const deleteFilesMutation = useDeleteFilesMutation();
 
     const [selectedFiles, setSelectedFiles] = useState<number[] | []>([]);
     const isTableView = isJobPage || documentView === 'table';
@@ -322,6 +323,21 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
 
     const isCardView = documentView === 'card' && files?.data && thumbnails && jobs;
 
+    const handleFileDeleteClick = async () => {
+        try {
+            await deleteFilesMutation.mutateAsync(selectedFiles);
+        } catch (err) {
+            svc.uuiNotifications.show(
+                (props: INotification) => (
+                    <ErrorNotification {...props}>
+                        <Text>{getError(err)}</Text>
+                    </ErrorNotification>
+                ),
+                { duration: 2 }
+            );
+        }
+    };
+
     if (isTableView) {
         return (
             <>
@@ -373,7 +389,7 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
                             <Button
                                 icon={DeleteIcon}
                                 caption="Delete"
-                                onClick={() => {}}
+                                onClick={handleFileDeleteClick}
                                 fill="light"
                                 isDisabled={!selectedFiles?.length}
                             />
@@ -452,7 +468,7 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
                         <Button
                             icon={DeleteIcon}
                             caption="Delete"
-                            onClick={() => {}}
+                            onClick={handleFileDeleteClick}
                             fill="light"
                             isDisabled={!selectedFiles?.length}
                         />

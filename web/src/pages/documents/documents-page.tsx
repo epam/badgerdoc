@@ -28,7 +28,7 @@ const DocumentsPage = () => {
 
     const [isFileOver, setFileOver] = useState<boolean>(false);
 
-    const onFilterSelect = useCallback((ids) => {
+    const onFileSelect = useCallback((ids) => {
         setFileIds(ids);
     }, []);
 
@@ -107,7 +107,7 @@ const DocumentsPage = () => {
                                             dataset={activeDataset}
                                             onRowClick={handleRowClick}
                                             fileIds={fileIds}
-                                            onFilesSelect={onFilterSelect}
+                                            onFilesSelect={onFileSelect}
                                             handleJobAddClick={handleJobAddClick}
                                             withHeader
                                         />
@@ -138,7 +138,7 @@ const DocumentsPage = () => {
                         sideContent={<DocumentsSearchConnector />}
                         mainContent={
                             <DocumentsDropZone dataset={activeDataset}>
-                                <DocumentsCardConnector onFilesSelect={onFilterSelect} />
+                                <DocumentsCardConnector onFilesSelect={onFileSelect} />
                             </DocumentsDropZone>
                         }
                         sidebarHeaderContent={
