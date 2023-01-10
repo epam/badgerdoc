@@ -2,6 +2,7 @@ import asyncio
 import uuid
 
 import aiokafka
+
 from scheduler import exceptions, log, unit
 from scheduler.db import models
 
