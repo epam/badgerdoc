@@ -37,6 +37,7 @@ from app.jobs import (
     update_inner_job_status,
     update_user_overall_load,
 )
+from app.logger import Logger
 from app.microservice_communication.assets_communication import get_file_names
 from app.microservice_communication.jobs_communication import (
     JobUpdateException,
@@ -46,7 +47,10 @@ from app.microservice_communication.search import (
     X_CURRENT_TENANT_HEADER,
     expand_response,
 )
-from app.microservice_communication.user import get_user_logins
+from app.microservice_communication.user import (
+    GetUserInfoAccessDenied,
+    get_user_logins,
+)
 from app.schemas import (
     AnnotationStatisticsInputSchema,
     AnnotationStatisticsResponseSchema,
@@ -114,7 +118,16 @@ def _prepare_expanded_tasks_response(
     """
     file_names = get_file_names(list(file_ids), tenant, token)
     job_names = collect_job_names(db, list(job_ids), tenant, token)
-    user_logins = get_user_logins(tasks, tenant, token)
+
+    try:
+        user_logins = get_user_logins(tasks, tenant, token)
+    except GetUserInfoAccessDenied:
+        Logger.info(
+            "Trying to get users logins with non-admin jwt. "
+            "Getting empty dict"
+        )
+        user_logins = {}
+
     return expand_response(tasks, file_names, job_names, user_logins)
 
 

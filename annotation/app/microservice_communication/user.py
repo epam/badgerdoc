@@ -16,6 +16,10 @@ class GetUserInfoException(Exception):
         self.exc_info = exc_info
 
 
+class GetUserInfoAccessDenied(GetUserInfoException):
+    pass
+
+
 def get_response(callback_url: str, user_id: str, tenant: str, token: str):
     try:
         user_response = requests.get(
@@ -26,6 +30,10 @@ def get_response(callback_url: str, user_id: str, tenant: str, token: str):
             },
             timeout=5,
         )
+        if user_response.status_code == 403:
+            raise GetUserInfoAccessDenied(
+                "Access Denied on request to users microservice "
+            )
         if user_response.status_code != 200:
             raise GetUserInfoException(
                 f"Failed request to 'users' microservice: {user_response.text}"
