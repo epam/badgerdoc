@@ -3,10 +3,12 @@ run-name: tenants precommit and test
 on:
   push:
     paths:
-      - 'lib/filter-lib/**'
+      - lib/tenants/**
+      - .github/worlflows/tenants.yml
   pull_request:
     paths:
-      - 'lib/filter-lib/**'
+      - lib/tenants/**
+      - .github/worlflows/tenants.yml
 jobs:
   tenants-pre-commit-actions:
     strategy:
@@ -22,16 +24,19 @@ jobs:
       - name: Run isort
         uses: isort/isort-action@v1.1.0
         with:
+          sort-paths: lib/tenants/*
           configuration:
+            --check-only
             --profile=black
-            --filter-files
             --line-length=79
+            --skip=tests
       - name: Black
         uses: psf/black@stable
         with:
-          options: "--line-length=79"
+          src: "lib/tenants"
+          options: '--check --line-length=79 --exclude="tests" --verbose'
       - run: pip install flake8
-      - run: flake8 --extend-ignore=E203 lib/tenants
+      - run: flake8 --exclude=tests --extend-ignore=E203 lib/tenants
   tenants-build:
     runs-on: ubuntu-latest
     strategy:

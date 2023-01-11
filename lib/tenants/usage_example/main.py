@@ -1,7 +1,6 @@
 from typing import Any
 
 from fastapi import Depends, FastAPI, Header
-
 from tenant_dependency import TenantData, get_tenant_info
 
 # RS256 (BadgerDoc)

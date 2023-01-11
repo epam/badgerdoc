@@ -33,11 +33,11 @@ Now you are able to see that generated model in FastAPI `docs`.
 To apply filters and sorts use functions `map_request_to_filter` and `form_query` with your model:
 ```Python
 from filter_lib import (
+    Page,
     create_filter_model,
-    map_request_to_filter,
     form_query,
+    map_request_to_filter,
     paginate,
-    Page
 )
 
 ...
@@ -134,7 +134,11 @@ Base.metadata.create_all(engine)
 # app.py
 from typing import Set
 
+from db_example import Address, User, get_db
 from fastapi import Depends, FastAPI
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
 from filter_lib import (
     Page,
     create_filter_model,
@@ -142,10 +146,6 @@ from filter_lib import (
     map_request_to_filter,
     paginate,
 )
-from pydantic import BaseModel
-from sqlalchemy.orm import Session
-
-from db_example import Address, User, get_db
 
 app = FastAPI()
 

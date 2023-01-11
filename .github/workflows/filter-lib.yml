@@ -3,10 +3,12 @@ run-name: filter_lib precommit and test
 on:
   push:
     paths:
-      - 'lib/filter-lib/**'
+      - lib/filter_lib/**
+      - .github/worlflows/filter-lib.yml
   pull_request:
     paths:
-      - 'lib/filter-lib/**'
+      - lib/filter_lib/**
+      - .github/worlflows/filter-lib.yml
 jobs:
   filter-lib-pre-commit-actions:
     strategy:
@@ -22,16 +24,19 @@ jobs:
       - name: Run isort
         uses: isort/isort-action@v1.1.0
         with:
+          sort-paths: lib/filter_lib/*
           configuration:
+            --check-only
             --profile=black
-            --filter-files
             --line-length=79
+            --skip=tests
       - name: Black
         uses: psf/black@stable
         with:
-          options: "--line-length=79"
+          src: "lib/filter_lib"
+          options: '--check --line-length=79 --exclude="tests" --verbose'
       - run: pip install flake8
-      - run: flake8 --extend-ignore=E203 lib/filter_lib
+      - run: flake8 --exclude=tests --extend-ignore=E203 lib/filter_lib
   filter-lib-build:
     runs-on: ubuntu-latest
     strategy:
