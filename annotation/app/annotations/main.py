@@ -891,7 +891,7 @@ def accumulate_pages_info(
                 if page_hash is not None:
                     annotated[page] = page_hash
         else:
-            annotated.update(set(map(int, revision.pages)))
+            annotated.update(set(map(int, revision.pages)).difference(failed))
 
         # if there is specific revision, where we need to stop,
         # we will stop here
