@@ -1,26 +1,15 @@
-import React, { useState, FC, useEffect, useMemo } from 'react';
+import React, { useState, FC, useMemo } from 'react';
 
 import { useArrayDataSource } from '@epam/uui';
 import { SearchInput, PickerList, Spinner, Text } from '@epam/loveship';
 
-import {
-    Filter,
-    Operators,
-    SortingDirection,
-    Taxon,
-    Label,
-    PagedResponse,
-    Category,
-    CategoryNode
-} from 'api/typings';
+import { Label, PagedResponse, Category } from 'api/typings';
 
 import { useNotifications } from 'shared/components/notifications';
-import { TaxonomyByJobIdResponse, useTaxons } from 'api/hooks/taxons';
 import { getError } from 'shared/helpers/get-error';
 
 import styles from './task-sidebar-labels.module.scss';
-import { useCategoriesTree } from 'components/categories/categories-tree/use-categories-tree';
-import { useCategories, useCategoriesByJob } from 'api/hooks/categories';
+import { useDocumentCategoriesByJob } from 'api/hooks/categories';
 
 type TaskSidebarLabelsViewProps = {
     labels?: PagedResponse<Category>;
@@ -82,31 +71,7 @@ export const TaskSidebarLabels = ({
 
     const { notifyError } = useNotifications();
 
-    const categoriesFilter: Filter<keyof Category> = {
-        field: 'type',
-        operator: Operators.EQ,
-        value: 'document'
-    };
-
-    const {
-        data: labels,
-        isError,
-        isLoading,
-        refetch
-    } = useCategoriesByJob({
-        page: 1,
-        size: 100,
-        sortConfig: { field: 'name', direction: SortingDirection.ASC },
-        searchText,
-        filters: [categoriesFilter],
-        jobId
-    });
-
-    useEffect(() => {
-        if (searchText) {
-            refetch();
-        }
-    }, [searchText]);
+    const { data: labels, isError, isLoading } = useDocumentCategoriesByJob({ searchText, jobId });
 
     if (isError) {
         notifyError(<Text>{getError(isError)}</Text>);
