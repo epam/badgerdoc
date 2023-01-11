@@ -42,7 +42,8 @@ export const modelsColumns: DataColumnProps<Model>[] = [
         render: (model: Model) => <Text fontSize="14">{model.name}</Text>,
         isSortable: true,
         grow: 3,
-        shrink: 2
+        shrink: 2,
+        width: 100
     },
     {
         key: 'tenant',
@@ -50,7 +51,8 @@ export const modelsColumns: DataColumnProps<Model>[] = [
         grow: 1,
         shrink: 1,
         isSortable: true,
-        render: (model: Model) => <Text fontSize="14">{model.tenant}</Text>
+        render: (model: Model) => <Text fontSize="14">{model.tenant}</Text>,
+        width: 100
     },
     {
         key: 'status',
@@ -67,7 +69,8 @@ export const modelsColumns: DataColumnProps<Model>[] = [
                     />
                 )}
             </FlexRow>
-        )
+        ),
+        width: 100
     },
     {
         key: 'type',
@@ -75,7 +78,8 @@ export const modelsColumns: DataColumnProps<Model>[] = [
         grow: 1,
         shrink: 1,
         isSortable: true,
-        render: (model: Model) => <Text fontSize="14">{model.type}</Text>
+        render: (model: Model) => <Text fontSize="14">{model.type}</Text>,
+        width: 100
     },
     {
         key: 'score',
@@ -83,7 +87,8 @@ export const modelsColumns: DataColumnProps<Model>[] = [
         grow: 1,
         shrink: 1,
         isSortable: true,
-        render: (model: Model) => <Text fontSize="14">{model.score}</Text>
+        render: (model: Model) => <Text fontSize="14">{model.score}</Text>,
+        width: 100
     },
     {
         key: 'basement',
@@ -91,7 +96,8 @@ export const modelsColumns: DataColumnProps<Model>[] = [
         grow: 3,
         shrink: 1,
         isSortable: true,
-        render: (model: Model) => <Text fontSize="14">{model.basement}</Text>
+        render: (model: Model) => <Text fontSize="14">{model.basement}</Text>,
+        width: 100
     },
     {
         key: 'created_at',
@@ -103,7 +109,8 @@ export const modelsColumns: DataColumnProps<Model>[] = [
             <Text fontSize="14">
                 {model.created_at ? new Date(model.created_at).toLocaleDateString() : ''}
             </Text>
-        )
+        ),
+        width: 100
     },
     {
         key: 'created_by',
@@ -111,7 +118,8 @@ export const modelsColumns: DataColumnProps<Model>[] = [
         grow: 2,
         shrink: 1,
         isSortable: true,
-        render: (model: Model) => <Text fontSize="14">{model.created_by}</Text>
+        render: (model: Model) => <Text fontSize="14">{model.created_by}</Text>,
+        width: 100
     },
     {
         key: 'actions',

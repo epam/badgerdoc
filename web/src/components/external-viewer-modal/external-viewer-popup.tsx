@@ -3,7 +3,6 @@ import React, { ReactElement, useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
 import { Rnd } from 'react-rnd';
 import { Bound } from 'shared';
-import styles from './external-viewer-popup.module.scss';
 import Latex from 'react-latex';
 import { ExternalViewerPopupProps } from 'api/typings/annotations';
 import { StandaloneStructServiceProvider } from 'ketcher-standalone';
@@ -11,6 +10,7 @@ import { Editor, ButtonsConfig } from 'ketcher-react';
 import { ALL_BUTTONS } from './buttons-config';
 import { Ketcher } from 'ketcher-core';
 import 'ketcher-react/dist/index.css';
+import styles from './external-viewer-popup.module.scss';
 
 const structServiceProvider = new StandaloneStructServiceProvider();
 import { CategoryDataAttrType } from 'api/typings';

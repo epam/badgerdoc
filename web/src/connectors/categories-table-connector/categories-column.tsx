@@ -12,7 +12,8 @@ export const categoryColumns: DataColumnProps<Category>[] = [
         },
         isSortable: true,
         grow: 2,
-        shrink: 1
+        shrink: 1,
+        width: 100
     },
     {
         key: 'name',
@@ -26,7 +27,8 @@ export const categoryColumns: DataColumnProps<Category>[] = [
         },
         isSortable: true,
         grow: 1,
-        shrink: 1
+        shrink: 1,
+        width: 100
     },
     {
         key: 'parent',
@@ -36,7 +38,8 @@ export const categoryColumns: DataColumnProps<Category>[] = [
         },
         isSortable: true,
         grow: 1,
-        shrink: 1
+        shrink: 1,
+        width: 100
     },
     {
         key: 'type',
@@ -46,6 +49,7 @@ export const categoryColumns: DataColumnProps<Category>[] = [
         },
         isSortable: false,
         grow: 1,
-        shrink: 1
+        shrink: 1,
+        width: 100
     }
 ];

@@ -404,6 +404,8 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
                                 <div>
                                     <div className={styles.mergeButton}>
                                         <RadioGroup
+                                            //TODO need to fix
+                                            //@ts-ignore
                                             items={categories
                                                 ?.filter((el) => el.parent === 'table')
                                                 .map((el) => ({
@@ -559,7 +561,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
                         </>
                     )}
                     {tabValue === 'Labels' && categories === undefined && (
-                        <div> There are no categories</div>
+                        <p> There are no categories</p>
                     )}
 
                     {isValidation && !splitValidation && (

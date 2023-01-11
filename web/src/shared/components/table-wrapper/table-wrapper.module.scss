@@ -19,5 +19,9 @@
 
 .container {
     overflow: auto;
-    height: calc(100% - 36px);
+    padding-bottom: 36px;
+    height: 100%;
+    &>div {
+        height: auto !important;
+    }
 }

@@ -10,7 +10,8 @@ export const documentColumns: DataColumnProps<FileDocument>[] = [
         render: (file) => <Text>{file.original_name}</Text>,
         grow: 1,
         minWidth: 224,
-        isSortable: true
+        isSortable: true,
+        width: 100
     },
     {
         key: 'last_modified',
@@ -18,7 +19,8 @@ export const documentColumns: DataColumnProps<FileDocument>[] = [
         render: (file) => <Text>{new Date(file.last_modified).toLocaleDateString()}</Text>,
         grow: 0,
         minWidth: 100,
-        isSortable: true
+        isSortable: true,
+        width: 100
     },
     {
         key: 'size_in_bytes',
@@ -38,6 +40,7 @@ export const documentColumns: DataColumnProps<FileDocument>[] = [
             );
         },
         grow: 0,
-        minWidth: 100
+        minWidth: 100,
+        width: 100
     }
 ];

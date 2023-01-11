@@ -57,7 +57,7 @@ export const DocumentPageSidebarContent = (props: DocumentPageSidebarContentProp
                         >{`Extractions for document`}</span>
                         <div className={styles['sidebar-picker-body']}>
                             (
-                            <PickerInput
+                            <PickerInput<unknown, unknown>
                                 dataSource={documentJobsInfo.documentJobDataSource}
                                 value={+documentJobsInfo.selectedDocumentJobId}
                                 onValueChange={documentJobsInfo.setSelectedDocumentJobId}

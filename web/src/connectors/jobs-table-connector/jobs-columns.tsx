@@ -1,7 +1,7 @@
-import { FlexRow, Text } from '@epam/loveship';
 import React from 'react';
 import { Job } from 'api/typings/jobs';
 import { Status } from 'shared/components/status';
+import { FlexRow, Text } from '@epam/loveship';
 import { DataColumnProps } from '@epam/uui';
 
 import { mapStatusForJobs } from '../../shared/helpers/map-statuses';
@@ -13,7 +13,8 @@ export const jobColumns: DataColumnProps<Job>[] = [
         render: (job: Job) => <Text fontSize="14">{job.name}</Text>,
         isSortable: true,
         grow: 3,
-        shrink: 2
+        shrink: 2,
+        width: 100
     },
     {
         key: 'type',
@@ -21,7 +22,8 @@ export const jobColumns: DataColumnProps<Job>[] = [
         grow: 1,
         shrink: 1,
         isSortable: true,
-        render: (job: Job) => <Text fontSize="14">{job.type.replace('Job', '')}</Text>
+        render: (job: Job) => <Text fontSize="14">{job.type.replace('Job', '')}</Text>,
+        width: 100
     },
     {
         key: 'status',
@@ -38,7 +40,8 @@ export const jobColumns: DataColumnProps<Job>[] = [
         ),
         isSortable: true,
         grow: 1,
-        shrink: 1
+        shrink: 1,
+        width: 100
     },
     {
         key: 'deadline',
@@ -50,7 +53,8 @@ export const jobColumns: DataColumnProps<Job>[] = [
         ),
         grow: 1,
         shrink: 1,
-        isSortable: true
+        isSortable: true,
+        width: 100
     },
     {
         key: 'creation_datetime',
@@ -62,6 +66,7 @@ export const jobColumns: DataColumnProps<Job>[] = [
         ),
         grow: 1,
         shrink: 1,
-        isSortable: true
+        isSortable: true,
+        width: 100
     }
 ];

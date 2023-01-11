@@ -10,7 +10,8 @@ export const jobColumns: DataColumnProps<Job>[] = [
         render: (job: Job) => <Text fontSize="14">{job.name}</Text>,
         isSortable: true,
         grow: 3,
-        shrink: 2
+        shrink: 2,
+        width: 100
     },
     {
         key: 'created_date',
@@ -22,7 +23,8 @@ export const jobColumns: DataColumnProps<Job>[] = [
         ),
         grow: 1,
         shrink: 1,
-        isSortable: true
+        isSortable: true,
+        width: 100
     },
     {
         key: 'deadline',
@@ -34,6 +36,7 @@ export const jobColumns: DataColumnProps<Job>[] = [
         ),
         grow: 1,
         shrink: 1,
-        isSortable: true
+        isSortable: true,
+        width: 100
     }
 ];
