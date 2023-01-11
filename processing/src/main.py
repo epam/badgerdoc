@@ -47,9 +47,11 @@ def run_text_matching(
     responses={
         200: {
             "model": schema.PreprocessingResultResponse,
-            "description": "`!`For more information look at preprocessing microservice. "
+            "description": "`!`For more information look at "
+            "preprocessing microservice. "
             "This endpoint just glues it's results. "
-            "https://git.epam.com/epm-uii/badgerdoc/back-end/-/tree/master/preprocessing",
+            "https://git.epam.com/epm-uii/badgerdoc/back-end/-"
+            "/tree/master/preprocessing",
         },
         400: {
             "model": schema.MinioProblem,
@@ -68,12 +70,14 @@ def get_preprocessing_result(
     ),
 ) -> Response:
     """
-    Take preprocess data from MinIO for `file_id`, and return it as array of pages.
-    If file doesn't contain words, then service return array of pages with empty `objs` field.
-    If there are no preprocess result (preprocess didn't run or `file_id` is wrong), then return `[]`.
+    Take preprocess data from MinIO for `file_id`, and return it as
+    array of pages. If file doesn't contain words, then service return
+    array of pages with empty `objs` field. If there are no preprocess result
+    (preprocess didn't run or `file_id` is wrong), then return `[]`.
     """
     logger.info(
-        "Get request to `preprocessing_result` endpoint. With params: `file_id`=%s, `pages`=%s, `tenant`=%s",
+        "Get request to `preprocessing_result` endpoint. "
+        "With params: `file_id`=%s, `pages`=%s, `tenant`=%s",
         file_id,
         pages,
         current_tenant,
@@ -162,7 +166,7 @@ async def update_task_status(
 async def get_list_language(
     model_id: str = Query(..., description="model id", example="preprocessing")
 ) -> List[str]:
-    logger.info(f"Get request to `/lang` endpoint for model_id=%s", model_id)
+    logger.info("Get request to `/lang` endpoint for model_id=%s", model_id)
     return await GetLanguagesTask(model_id).execute()
 
 

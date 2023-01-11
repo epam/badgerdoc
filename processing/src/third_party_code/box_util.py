@@ -70,7 +70,7 @@ def stitch_boxes_into_lines(
     merged_boxes = []
 
     # sort groups based on the x_min coordinate of boxes
-    x_sorted_boxes = sorted(boxes, key=lambda x: np.min(x["box"][::2]))  # type: ignore
+    x_sorted_boxes = sorted(boxes, key=lambda x: np.min(x["box"][::2]))  # type: ignore  # noqa: E501
     # store indexes of boxes which are already parts of other lines
     skip_idxs = set()
 

@@ -36,6 +36,8 @@ export const useSelection = (
         onMouseDown(_, target) {
             if (['Chain', 'All to all'].includes(selectionType)) return false;
             if (isClickedOnControlElement(target)) return false;
+            if (!isEditable) return false;
+
             setCoords([]);
             setIsStarted(true);
             setIsEnded(false);
@@ -43,12 +45,16 @@ export const useSelection = (
         onMouseMove(start: Point, end: Point, target) {
             if (['Chain', 'All to all'].includes(selectionType)) return false;
             if (isClickedOnControlElement(target)) return false;
+            if (!isEditable) return false;
+
             // HERE WILL BE THE LOGIC ABOUT DIFFERENT SELECTION TYPES
             // WE WILL SET COORDS DIFFERETLY BASED ON TYPE
             setCoords([start, end]);
         },
         onMouseUp() {
             if (['Chain', 'All to all'].includes(selectionType)) return false;
+            if (!isEditable) return false;
+
             setIsEnded(true);
             setIsStarted(false);
         },

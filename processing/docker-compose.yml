@@ -19,6 +19,7 @@ services:
       context: .
       target:
         development
+    container_name: processing_web_app
     image: 'processing:v1.1'
     env_file:
       - .env

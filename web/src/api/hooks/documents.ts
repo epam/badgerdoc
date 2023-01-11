@@ -105,3 +105,32 @@ export const useDocumentsInJob: QueryHookType<
         { ...options, ...{ enabled: !!filesIds.length, keepPreviousData: true } }
     );
 };
+
+type DeleteFilesResponse = {
+    file_name: string;
+    id: number;
+    action: string;
+    status: boolean;
+    message: string;
+};
+
+const deleteFiles = async (fileIds: number[]): Promise<DeleteFilesResponse> => {
+    const body = {
+        objects: fileIds
+    };
+
+    return useBadgerFetch<DeleteFilesResponse>({
+        url: `${namespace}/files`,
+        method: 'delete',
+        withCredentials: true
+    })(JSON.stringify(body));
+};
+
+export const useDeleteFilesMutation: MutationHookType<number[], DeleteFilesResponse> = () => {
+    const queryClient = useQueryClient();
+    return useMutation(deleteFiles, {
+        onSuccess: () => {
+            queryClient.invalidateQueries('documents');
+        }
+    });
+};

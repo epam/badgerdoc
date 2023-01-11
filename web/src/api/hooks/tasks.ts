@@ -280,23 +280,35 @@ export const useGetValidatedPages: QueryHookType<UseTaskForValidatedPagesParams,
             }
         });
 
-export const useSetTaskFinished = (
-    taskId: number,
+interface TaskOptions {
+    taskId: number;
     options?: {
         option_invalid?: string;
         option_edited?: string;
-    }
-) => {
+    };
+}
+
+const finishTask = async ({ taskId, options }: TaskOptions): Promise<TaskModel> => {
     const body = options
         ? {
               annotation_user_for_failed_pages: options.option_invalid || null,
               validation_user_for_reannotated_pages: options.option_edited || null
           }
         : {};
-    return useBadgerFetch({
+    return await useBadgerFetch<TaskModel>({
         url: `${namespace}/tasks/${taskId}/finish`,
         method: 'post'
     })(JSON.stringify(body));
+};
+
+export const useSetTaskFinishedMutation: MutationHookType<TaskOptions, TaskModel> = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation(finishTask, {
+        onSuccess: () => {
+            queryClient.invalidateQueries('tasks');
+        }
+    });
 };
 
 type TaskEvent = {

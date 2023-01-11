@@ -1,8 +1,10 @@
+import os
 from collections import Counter
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 from uuid import UUID
 
+import dotenv
 from fastapi import (
     APIRouter,
     Body,
@@ -35,10 +37,8 @@ from app.jobs import (
     update_inner_job_status,
     update_user_overall_load,
 )
-from app.microservice_communication.assets_communication import (
-    get_file_names,
-    get_file_path_and_bucket,
-)
+from app.logger import Logger
+from app.microservice_communication.assets_communication import get_file_names
 from app.microservice_communication.jobs_communication import (
     JobUpdateException,
     update_job_status,
@@ -47,11 +47,11 @@ from app.microservice_communication.search import (
     X_CURRENT_TENANT_HEADER,
     expand_response,
 )
-from app.microservice_communication.task import get_agreement_score
-from app.microservice_communication.user import get_user_logins
+from app.microservice_communication.user import (
+    GetUserInfoAccessDenied,
+    get_user_logins,
+)
 from app.schemas import (
-    AgreementScoreServiceInput,
-    AgreementScoreServiceResponse,
     AnnotationStatisticsInputSchema,
     AnnotationStatisticsResponseSchema,
     BadRequestErrorSchema,
@@ -79,18 +79,24 @@ from app.token_dependency import TOKEN
 from ..models import File, Job, ManualAnnotationTask
 from .services import (
     add_task_stats_record,
+    count_annotation_tasks,
     create_annotation_task,
     create_export_csv,
+    evaluate_agreement_score,
     filter_tasks_db,
+    finish_validation_task,
     get_task_info,
     get_task_revisions,
     read_annotation_task,
     read_annotation_tasks,
-    save_agreement_scores,
+    save_agreement_metrics,
     unblock_validation_tasks,
     validate_task_info,
     validate_user_actions,
 )
+
+dotenv.load_dotenv(dotenv.find_dotenv())
+AGREEMENT_SCORE_ENABLED = os.getenv("AGREEMENT_SCORE_ENABLED", "false")
 
 router = APIRouter(
     prefix="/tasks",
@@ -112,7 +118,16 @@ def _prepare_expanded_tasks_response(
     """
     file_names = get_file_names(list(file_ids), tenant, token)
     job_names = collect_job_names(db, list(job_ids), tenant, token)
-    user_logins = get_user_logins(tasks, tenant, token)
+
+    try:
+        user_logins = get_user_logins(tasks, tenant, token)
+    except GetUserInfoAccessDenied:
+        Logger.info(
+            "Trying to get users logins with non-admin jwt. "
+            "Getting empty dict"
+        )
+        user_logins = {}
+
     return expand_response(tasks, file_names, job_names, user_logins)
 
 
@@ -904,31 +919,15 @@ def finish_task(
                 task_file.status = FileStatusEnumSchema.validated
 
             # TODO extensive coverage, annotators, manifest_url
-            if False:
-                annotators = []
-                manifest_url = None
-                s3_file_path, s3_file_bucket = get_file_path_and_bucket(
-                    task.file_id, x_current_tenant, token.token
-                )
-                agreement_scores_input = [
-                    AgreementScoreServiceInput.construct(
-                        annotator_id=annotator_id,
-                        job_id=task.job_id,
-                        task_id=task.id,
-                        s3_file_path=s3_file_path,
-                        s3_file_bucket=s3_file_bucket,
-                        manifest_url=manifest_url,
-                    )
-                    for annotator_id in annotators
-                ]
-                agreement_scores: List[
-                    AgreementScoreServiceResponse
-                ] = get_agreement_score(
-                    agreement_scores_input=agreement_scores_input,
+            extensive_coverage = task.jobs.extensive_coverage
+            if extensive_coverage and extensive_coverage > 1:
+                compared_score = evaluate_agreement_score(
+                    db=db,
+                    task=task,
                     tenant=x_current_tenant,
-                    token=token.token,
+                    token=token,
                 )
-                save_agreement_scores(db, agreement_scores)
+                save_agreement_metrics(db=db, scores=compared_score)
 
         else:
             task_file.annotated_pages = finished_pages
@@ -951,6 +950,44 @@ def finish_task(
                 detail=f"Error: connection error ({exc.exc_info})",
             )
         update_inner_job_status(db, task.job_id, JobStatusEnumSchema.finished)
+
+    elif (
+        job.validation_type == ValidationSchema.extensive_coverage
+        and AGREEMENT_SCORE_ENABLED == "true"
+    ):
+        annotated_count: int = count_annotation_tasks(db=db, task=task)
+
+        current_task = int(not task.is_validation)
+        if len(finished_annotation_tasks) + current_task == annotated_count:
+            # call agreement score service
+            compared_score = evaluate_agreement_score(
+                db=db,
+                task=task,
+                tenant=x_current_tenant,
+                token=token,
+            )
+            if compared_score.agreement_score_reached:
+                # update a validation task and finish a job
+                finish_validation_task(db=db, task=task)
+                try:
+                    update_job_status(
+                        job.callback_url,
+                        JobStatusEnumSchema.finished,
+                        x_current_tenant,
+                        token.token,
+                    )
+                except JobUpdateException as exc:
+                    db.rollback()
+                    raise HTTPException(
+                        status_code=500,
+                        detail=f"Error: connection error ({exc.exc_info})",
+                    )
+                update_inner_job_status(
+                    db, task.job_id, JobStatusEnumSchema.finished
+                )
+            # store metrics in db
+            save_agreement_metrics(db=db, scores=compared_score)
+
     db.flush()
     update_user_overall_load(db, task.user_id)
     db.commit()

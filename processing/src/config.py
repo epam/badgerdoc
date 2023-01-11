@@ -45,7 +45,8 @@ class Settings(BaseSettings):
     external_postfix: str = ".badgerdoc.com"
     preprocessing_url: Optional[str]
 
-    max_tasks: int = 10  # max amount of tasks that this service can processing simultaneously
+    max_tasks: int = 10  # max amount of tasks that this
+    # service can processing simultaneously
     pages_per_batch = 3
 
     retry_attempts: int = 3

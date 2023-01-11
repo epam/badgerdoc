@@ -5,7 +5,7 @@ import boto3
 import urllib3
 from fastapi import HTTPException, status
 
-from src.config import minio_client, settings
+from src.config import settings
 from src.exceptions import BucketError, FileKeyError, UploadLimitExceedError
 from src.logger import get_logger
 from src.models import coco

@@ -194,10 +194,14 @@ def expand_response(
             "id": response_task.pop("job_id"),
             "name": job_names.get(task.job_id, None),
         }
-        response_task["user"] = {
-            "id": response_task.get("user_id"),
-            "name": user_logins.get(response_task.get("user_id")),
-        }
+
+        attribute_user_dict = {"id": response_task.get("user_id")}
+        if user_logins:
+            attribute_user_dict.update(
+                {"name": user_logins.get(response_task.get("user_id"))}
+            )
+        response_task["user"] = attribute_user_dict
+
         response.append(ExpandedManualAnnotationTaskSchema(**response_task))
     return response
 

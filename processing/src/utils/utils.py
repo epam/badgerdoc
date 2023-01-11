@@ -37,7 +37,8 @@ async def get_model_url(model_id: str) -> str:
         return get_internal_url(str(models_response.json["url"]))
     except KeyError as err:
         logger.error(
-            "Error while getting model url. No `url` key. Model_id=%s Traceback: `%s`. ",
+            "Error while getting model url. No `url` key. "
+            "Model_id=%s Traceback: `%s`. ",
             model_id,
             get_log_exception_msg(err),
         )

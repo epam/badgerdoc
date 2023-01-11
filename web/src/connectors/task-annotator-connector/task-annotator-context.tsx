@@ -12,7 +12,7 @@ import { cloneDeep, isEqual } from 'lodash';
 import { Task } from 'api/typings/tasks';
 import { ApiError } from 'api/api-error';
 import { useAddAnnotationsMutation, useLatestAnnotations } from 'api/hooks/annotations';
-import { useSetTaskFinished, useSetTaskState, useTaskById } from 'api/hooks/tasks';
+import { useSetTaskFinishedMutation, useSetTaskState, useTaskById } from 'api/hooks/tasks';
 import { useCategoriesByJob } from 'api/hooks/categories';
 import { useDocuments } from 'api/hooks/documents';
 import { useJobById } from 'api/hooks/jobs';
@@ -896,12 +896,12 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             onSaveTaskError(error as ApiError);
         }
     };
-
+    const finishTaskMutation = useSetTaskFinishedMutation();
     const onAnnotationTaskFinish = () => {
         if (task) {
             onSaveTask()
                 .then(() => {
-                    useSetTaskFinished(task!.id);
+                    finishTaskMutation.mutateAsync({ taskId: task!.id });
                     useSetTaskState({ id: task!.id, eventType: 'closed' });
                     onRedirectAfterFinish();
                 })
