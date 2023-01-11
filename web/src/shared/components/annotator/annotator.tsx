@@ -1,7 +1,6 @@
 import React, {
     CSSProperties,
     FC,
-    memo,
     PropsWithChildren,
     useCallback,
     useEffect,
@@ -138,7 +137,6 @@ export const Annotator: FC<AnnotatorProps> = ({
         onLinkDeleted,
         onSplitLinkSelected,
         selectedTool,
-        setSelectedTool,
         selectedToolParams,
         setSelectedAnnotation,
         taskHasTaxonomies

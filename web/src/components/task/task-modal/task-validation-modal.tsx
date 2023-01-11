@@ -3,7 +3,7 @@ import {
     FormSaveResponse,
     IModal,
     Metadata,
-    RenderFormProps,
+    IFormApi,
     useUuiContext,
     useArrayDataSource
 } from '@epam/uui';
@@ -68,7 +68,7 @@ export const FinishTaskValidationModal: FC<IProps> = (modalProps) => {
         },
         []
     );
-
+    //TODO check if it can be removed
     // const validatorsDataSource = useArrayDataSource<User, string, any>(
     //     {
     //         items: (modalProps.allUsers.validators || modalProps.allUsers.annotators) ?? []
@@ -83,7 +83,7 @@ export const FinishTaskValidationModal: FC<IProps> = (modalProps) => {
         }
     });
 
-    const renderForm = ({ lens, save }: RenderFormProps<TaskValidationValues>): ReactNode => {
+    const renderForm = ({ lens, save }: IFormApi<TaskValidationValues>): ReactNode => {
         return (
             <>
                 <Panel>

@@ -1,12 +1,12 @@
 import { PickerInput, LabeledInput, TextInput, Button } from '@epam/loveship';
-import { RenderFormProps, useArrayDataSource } from '@epam/uui';
+import { IFormApi, useArrayDataSource } from '@epam/uui';
 import { useModelById } from 'api/hooks/models';
 import { Model, Basement, SupportedArgs } from 'api/typings';
 import React, { FC, useState, useEffect } from 'react';
 import { StepValues } from './edit-step';
 import styles from './edit-step.module.scss';
 
-type FormProps = RenderFormProps<StepValues> & {
+type FormProps = IFormApi<StepValues> & {
     models: Model[];
     stepCategories: { id: string; name: string }[] | undefined;
     basements: Basement[] | undefined;

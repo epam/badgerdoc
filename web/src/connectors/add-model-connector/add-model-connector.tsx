@@ -1,7 +1,7 @@
 import React, { FC, useCallback, useState } from 'react';
 import AddModelSettings from 'components/model/add-model-settings/add-model-settings';
 import AddModelData from 'components/model/add-model-data/add-model-data';
-import { Form, RenderFormProps } from '@epam/uui';
+import { Form, IFormApi } from '@epam/uui';
 import { useAddModelMutation, useModels } from 'api/hooks/models';
 import { useCategories } from 'api/hooks/categories';
 import { Basement, Category, Model, SortingDirection } from 'api/typings';
@@ -98,7 +98,7 @@ const AddModelConnector: FC<AddModelConnectorProps> = ({ onModelAdded, onError }
     const finishButtonCaption = 'Add Model';
 
     const renderForm = useCallback(
-        ({ lens, save }: RenderFormProps<ModelValues>) => {
+        ({ lens, save }: IFormApi<ModelValues>) => {
             const steps: WizardPropsStep[] = [
                 {
                     title: 'Model',

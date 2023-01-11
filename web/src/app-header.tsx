@@ -106,7 +106,7 @@ export const AppHeader = () => {
                         return renderMenuButton(item);
                     }
                 })}
-                <FlexSpacer></FlexSpacer>
+                <FlexSpacer />
                 {currentUser && (
                     <FlexRow spacing="18">
                         <Text color="white">{currentUser.current_tenant}</Text>|

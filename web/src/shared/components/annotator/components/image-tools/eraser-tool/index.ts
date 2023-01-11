@@ -1,5 +1,5 @@
 import paper from 'paper';
-import { BrushToolParams, EraserToolParams, PaperTool, PaperToolParams } from '../../../typings';
+import { EraserToolParams, PaperTool, PaperToolParams } from '../../../typings';
 import { defaultOnKeyDown } from '../utils';
 
 export const createEraserTool = ({

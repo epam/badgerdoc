@@ -43,10 +43,20 @@ export const TasksTableConnector: FC<TaskTableConnectorProps> = ({ onRowClick })
         []
     );
 
-    const typesDS = useArrayDataSource<boolean, boolean, unknown>(
+    const typesDSItems = [
         {
-            items: [true, false],
-            getId: (is_validation) => is_validation
+            name: true,
+            id: true
+        },
+        {
+            name: false,
+            id: false
+        }
+    ];
+
+    const typesDS = useArrayDataSource<any, boolean, unknown>(
+        {
+            items: typesDSItems
         },
         []
     );
@@ -168,14 +178,16 @@ export const TasksTableConnector: FC<TaskTableConnectorProps> = ({ onRowClick })
                     hasMore={data?.pagination.has_more}
                     onPageChange={onPageChange}
                 >
-                    <DataTable
-                        {...view.getListProps()}
-                        getRows={view.getVisibleRows}
-                        value={tableValue}
-                        onValueChange={onTableValueChange}
-                        columns={columns}
-                        headerTextCase="upper"
-                    />
+                    <div>
+                        <DataTable
+                            {...view.getListProps()}
+                            getRows={view.getVisibleRows}
+                            value={tableValue}
+                            onValueChange={onTableValueChange}
+                            columns={columns}
+                            headerTextCase="upper"
+                        />
+                    </div>
                 </TableWrapper>
             </Panel>
         </>

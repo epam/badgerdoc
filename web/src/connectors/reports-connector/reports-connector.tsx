@@ -1,6 +1,6 @@
 import React, { FC, useCallback, useEffect, useState } from 'react';
 import { ErrorNotification, Panel, Text } from '@epam/loveship';
-import { Form, INotification, Metadata, RenderFormProps, useUuiContext } from '@epam/uui';
+import { Form, INotification, Metadata, IFormApi, useUuiContext } from '@epam/uui';
 import { useUsers } from 'api/hooks/users';
 import { Report, SortingDirection } from 'api/typings';
 import { useHistory } from 'react-router-dom';
@@ -62,7 +62,7 @@ export const ReportsConnector: FC<{}> = () => {
     });
 
     const renderForm = useCallback(
-        ({ lens, save }: RenderFormProps<Report>) => {
+        ({ lens, save }: IFormApi<Report>) => {
             const values = users.data?.data;
 
             const formInvalid = isFormInvalid(lens);

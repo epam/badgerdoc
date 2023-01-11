@@ -1,5 +1,5 @@
 import React, { FC, useCallback, useEffect } from 'react';
-import { Form, INotification, RenderFormProps } from '@epam/uui';
+import { Form, INotification, IFormApi } from '@epam/uui';
 import { ErrorNotification, Text } from '@epam/loveship';
 import { svc } from 'services';
 import { getError } from '../../shared/helpers/get-error';
@@ -53,7 +53,7 @@ const AddBasementConnector: FC<AddBasementConnectorProps> = ({
     // };
     const finishButtonCaption = 'Add Basement';
 
-    const renderForm = useCallback(({ lens, save }: RenderFormProps<Basement>) => {
+    const renderForm = useCallback(({ lens, save }: IFormApi<Basement>) => {
         const steps: WizardPropsStep[] = [
             {
                 title: 'Basement',

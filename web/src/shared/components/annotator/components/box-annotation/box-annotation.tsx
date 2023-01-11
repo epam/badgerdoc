@@ -41,7 +41,6 @@ export const BoxAnnotation = ({
     onCloseIconClick = noop,
     id,
     page,
-    boundType,
     onMouseEnter = noop,
     onMouseLeave = noop,
     taskHasTaxonomies

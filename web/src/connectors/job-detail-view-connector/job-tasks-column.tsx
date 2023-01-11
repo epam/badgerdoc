@@ -9,7 +9,8 @@ export default [
         render: (task: ApiTask) => <Text fontSize="14">{task.user.name || 'Unassigned'}</Text>,
         isSortable: true,
         grow: 2,
-        shrink: 2
+        shrink: 2,
+        width: 100
     },
     {
         key: 'file_name',
@@ -17,7 +18,8 @@ export default [
         render: (task: ApiTask) => <Text fontSize="14">{task.file.name}</Text>,
         isSortable: true,
         grow: 2,
-        shrink: 1
+        shrink: 1,
+        width: 100
     },
     {
         key: 'status',
@@ -29,7 +31,8 @@ export default [
         ),
         isSortable: true,
         grow: 1,
-        shrink: 1
+        shrink: 1,
+        width: 100
     },
     {
         key: 'is_validation',
@@ -39,7 +42,8 @@ export default [
         ),
         isSortable: true,
         grow: 1,
-        shrink: 1
+        shrink: 1,
+        width: 100
     },
     {
         key: 'pages',
@@ -47,7 +51,8 @@ export default [
         render: (task: ApiTask) => <Text fontSize="14">{task.pages.length}</Text>,
         isSortable: true,
         grow: 1,
-        shrink: 1
+        shrink: 1,
+        width: 100
     },
     {
         key: 'deadline',
@@ -59,6 +64,7 @@ export default [
         ),
         grow: 1,
         shrink: 1,
-        isSortable: false
+        isSortable: false,
+        width: 100
     }
 ];

@@ -51,7 +51,7 @@ export const TableWrapper: FC<TablePageableProps> = ({
             {props.children}
             <FlexRow alignItems="center" cx={styles['pages-controls']}>
                 <>
-                    <FlexSpacer></FlexSpacer>
+                    <FlexSpacer />
                     <Paginator
                         value={page}
                         onValueChange={(newPage) => {

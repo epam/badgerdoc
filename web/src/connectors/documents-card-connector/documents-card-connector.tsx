@@ -1,5 +1,4 @@
 import React, { FC, useEffect, useState, useContext } from 'react';
-import styles from './documents-card-connector.module.scss';
 import { TableWrapper, usePageTable } from 'shared';
 import { DocumentCardViewItem } from '../../components/documents/document-card-view-item/document-card-view-item';
 import { usePieces } from 'api/hooks/search';
@@ -7,12 +6,13 @@ import { jobsFetcher } from '../../api/hooks/jobs';
 import { Operators } from '../../api/typings';
 import { Job } from '../../api/typings/jobs';
 import { DocumentsSearch } from 'shared/contexts/documents-search';
+import styles from './documents-card-connector.module.scss';
 
 type DocumentsCardConnectorProps = {
     onFilesSelect?: (files: number[]) => void;
 };
 
-export const DocumentsCardConnector: FC<DocumentsCardConnectorProps> = ({ onFilesSelect }) => {
+export const DocumentsCardConnector: FC<DocumentsCardConnectorProps> = () => {
     const { pageConfig, onPageChange, totalCount, onTotalCountChange } = usePageTable('category');
     const { query, facetFilter, documentsSort } = useContext(DocumentsSearch);
     const [jobs, setJobs] = useState<Job[]>();

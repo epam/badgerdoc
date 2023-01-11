@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { ReactComponent as infoIcon } from '@epam/assets/icons/common/notification-info-outline-18.svg';
-import paper from 'paper';
 import {
     AnnotationImageToolType,
     BrushToolParams,
     EraserToolParams,
-    PaperTool,
     PaperToolParams,
     PenToolParams,
     WandToolParams

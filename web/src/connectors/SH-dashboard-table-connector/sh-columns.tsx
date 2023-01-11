@@ -11,7 +11,8 @@ const shTasksColumns: DataColumnProps<Task, any, TableFilters<Task, TaskStatus[]
         caption: 'File Name',
         render: (task: Task) => <Text fontSize="14">{task.file.name}</Text>,
         grow: 2,
-        shrink: 1
+        shrink: 1,
+        width: 100
     },
     {
         key: 'status',
@@ -23,7 +24,8 @@ const shTasksColumns: DataColumnProps<Task, any, TableFilters<Task, TaskStatus[]
         ),
         isSortable: true,
         grow: 1,
-        shrink: 1
+        shrink: 1,
+        width: 100
     },
     {
         key: 'deadline',
@@ -35,7 +37,8 @@ const shTasksColumns: DataColumnProps<Task, any, TableFilters<Task, TaskStatus[]
         ),
         grow: 1,
         shrink: 1,
-        isSortable: false
+        isSortable: false,
+        width: 100
     }
 ];
 

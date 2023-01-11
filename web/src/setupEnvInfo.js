@@ -1,7 +1,7 @@
 const { writeFile } = require('fs');
 const { exec } = require('child_process');
 
-exec('git rev-parse --verify --short HEAD', (err, stdout, stderr) => {
+exec('git rev-parse --verify --short HEAD', (err, stdout) => {
     if (err) {
         console.error(err);
         throw err;

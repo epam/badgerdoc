@@ -1,4 +1,3 @@
-import noop from 'lodash/noop';
 import React, { RefObject, useEffect } from 'react';
 import { Annotation, AnnotationImageTool, Bound } from '../../typings';
 import paper from 'paper';
@@ -31,25 +30,8 @@ type ImageAnnotationProps = {
 
 export const ImageAnnotation = ({
     annotation,
-    label = '',
     color = 'black',
-    bound,
-    isSelected,
-    isEditable,
-    isHovered,
-    annotationRef,
-    onClick = noop,
-    onDoubleClick = noop,
-    onContextMenu = noop,
-    onCloseIconClick = noop,
-    id,
-    page,
-    boundType,
-    onMouseEnter = noop,
-    onMouseLeave = noop,
     segments,
-    tools,
-    setTools,
     canvas,
     scale
 }: ImageAnnotationProps) => {

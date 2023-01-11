@@ -1,7 +1,7 @@
-import { RenderFormProps } from '@epam/uui';
+import React, { FC, useMemo, useEffect, useState } from 'react';
+import { IFormApi } from '@epam/uui-core';
 import { Pipeline, Category, PipelineData, PipelineTypes } from 'api/typings';
 import { PipelineValues } from 'components/pipeline/add-pipeline-form';
-import React, { FC, useMemo, useEffect, useState } from 'react';
 import Wizard, {
     renderWizardButtons,
     WizardPropsStep
@@ -12,7 +12,7 @@ import { PipelineFormField } from '../pipeline-form-field/pipeline-form-field';
 import wizardStyles from '../../../shared/components/wizard/wizard/wizard.module.scss';
 import { PipelineTextArea } from '../pipeline-text-area/pipeline-text-area';
 
-type FormProps = RenderFormProps<PipelineValues> & {
+type FormProps = IFormApi<PipelineValues> & {
     basePipelines?: Pipeline[];
     allCategories?: Category[];
 };

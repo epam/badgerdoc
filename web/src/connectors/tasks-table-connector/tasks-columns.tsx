@@ -12,7 +12,8 @@ export const tasksColumns: DataColumnProps<Task>[] = [
         render: (task: Task) => <Text fontSize="14">{task.id}</Text>,
         isSortable: true,
         grow: 1,
-        shrink: 1
+        shrink: 1,
+        width: 100
     },
     {
         key: 'job_name',
@@ -20,7 +21,8 @@ export const tasksColumns: DataColumnProps<Task>[] = [
         render: (task: Task) => <Text fontSize="14">{task.job.name}</Text>,
         isSortable: false,
         grow: 2,
-        shrink: 2
+        shrink: 2,
+        width: 100
     },
     {
         key: 'file_name',
@@ -28,7 +30,8 @@ export const tasksColumns: DataColumnProps<Task>[] = [
         render: (task: Task) => <Text fontSize="14">{task.file.name}</Text>,
         isSortable: false,
         grow: 2,
-        shrink: 1
+        shrink: 1,
+        width: 100
     },
     {
         key: 'status',
@@ -43,7 +46,8 @@ export const tasksColumns: DataColumnProps<Task>[] = [
         ),
         isSortable: true,
         grow: 1,
-        shrink: 1
+        shrink: 1,
+        width: 100
     },
 
     {
@@ -54,14 +58,16 @@ export const tasksColumns: DataColumnProps<Task>[] = [
         ),
         isSortable: true,
         grow: 1,
-        shrink: 1
+        shrink: 1,
+        width: 100
     },
     {
         key: 'pages',
         caption: 'Pages',
         render: (task: Task) => <Text fontSize="14">{task.pages.length}</Text>,
         grow: 1,
-        shrink: 1
+        shrink: 1,
+        width: 100
     },
     {
         key: 'deadline',
@@ -73,6 +79,7 @@ export const tasksColumns: DataColumnProps<Task>[] = [
         ),
         grow: 1,
         shrink: 1,
-        isSortable: true
+        isSortable: true,
+        width: 100
     }
 ];

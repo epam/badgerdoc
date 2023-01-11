@@ -2,13 +2,8 @@ import React, { FC, useEffect, useMemo, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { noop } from 'lodash';
 import { FacetFilter } from 'api/typings/search';
-import { DocumentView, FileDocument, SortingDirection } from 'api/typings';
+import { DocumentView, FileDocument } from 'api/typings';
 import { Breadcrumbs } from 'api/typings/documents';
-
-type FileSort = {
-    field: keyof FileDocument;
-    direction: SortingDirection;
-};
 
 type DocumentsSearchContext = {
     query: string;
@@ -62,7 +57,6 @@ export const DocumentsSearchProvider: FC = ({ children }) => {
     const [documentsSort, setDocumentsSort] = useState<string | keyof FileDocument>(
         'last_modified'
     );
-    const [searchUrl, setSearchUrl] = useState<string>('');
 
     const isDocuments = history.location.pathname === '/documents';
     const isSearch = history.location.pathname === '/documents/search';

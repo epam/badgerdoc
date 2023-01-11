@@ -11,7 +11,7 @@ import {
     User,
     ValidationType
 } from 'api/typings';
-import { Form, INotification, RenderFormProps } from '@epam/uui';
+import { Form, INotification, IFormApi } from '@epam/uui';
 import { ErrorNotification, SuccessNotification, Text } from '@epam/loveship';
 import { svc } from 'services';
 import { getError } from '../../shared/helpers/get-error';
@@ -98,7 +98,7 @@ const AddJobConnector: FC<AddJobConnectorProps> = ({
     const addJobMutation = useAddJobMutation();
 
     const renderForm = useCallback(
-        ({ lens, save }: RenderFormProps<JobValues>) => {
+        ({ lens, save }: IFormApi<JobValues>) => {
             const values = lens.get();
 
             let isValid;

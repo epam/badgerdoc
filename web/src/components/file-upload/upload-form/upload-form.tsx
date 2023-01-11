@@ -56,9 +56,7 @@ export const UploadForm: FC<UploadFormProps> = ({ onFilesAdded }) => {
                                             fill="light"
                                             cx={styles['upload-form__drop-zone__text__button']}
                                             onClick={onClick}
-                                        >
-                                            browse
-                                        </Button>{' '}
+                                        />{' '}
                                         files from your device
                                     </Text>
                                 )}

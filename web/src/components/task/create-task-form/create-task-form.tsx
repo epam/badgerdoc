@@ -14,7 +14,7 @@ import {
     TextInput
 } from '@epam/loveship';
 import { TaskModel } from 'api/typings/tasks';
-import { ILens, LazyDataSource, Metadata, RenderFormProps } from '@epam/uui';
+import { ILens, LazyDataSource, Metadata, IFormApi } from '@epam/uui';
 import { FileDocument, User } from 'api/typings';
 
 import 'react-datepicker/src/stylesheets/datepicker.scss';
@@ -68,7 +68,7 @@ export const CreateTaskForm: FC<CreateTaskFormProps> = ({
         [setDeadlineDate]
     );
 
-    const renderForm = ({ lens, save }: RenderFormProps<FormTaskModel>): ReactNode => {
+    const renderForm = ({ lens, save }: IFormApi<FormTaskModel>): ReactNode => {
         return (
             <>
                 <FlexRow>

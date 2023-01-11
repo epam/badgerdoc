@@ -1,7 +1,7 @@
 import AddJobConnector from '../../connectors/add-job-connector/add-job-connector';
 import React, { useState } from 'react';
 import { Job } from '../../api/typings/jobs';
-import { useHistory, useRouteMatch } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 import { Button } from '@epam/loveship';
 import styles from '../../shared/components/wizard/wizard/wizard.module.scss';
 import Wizard, {
@@ -19,7 +19,6 @@ type HistoryState = {
 
 export const AddJobPage = () => {
     const history = useHistory();
-    const { path } = useRouteMatch();
     const historyState = history.location.state as HistoryState;
     const checkedFiles = historyState?.files;
     const initialJob = historyState?.job;

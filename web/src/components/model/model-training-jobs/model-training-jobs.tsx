@@ -5,6 +5,7 @@ import { jobColumns } from './jobs-columns';
 import { usePageTable } from '../../../shared';
 import { Job } from '../../../api/typings/jobs';
 import { useArrayDataSource } from '@epam/uui';
+import { TableFilters } from 'api/typings';
 
 type ModelTrainingJobsProps = {
     jobs: Job[];
@@ -13,7 +14,7 @@ type ModelTrainingJobsProps = {
 export const ModelTrainingJobs: React.FC<ModelTrainingJobsProps> = ({ jobs }) => {
     const { tableValue, onTableValueChange } = usePageTable<Job>('id');
 
-    const source = useArrayDataSource<Job, number, unknown>(
+    const source = useArrayDataSource<Job, number, TableFilters<Job, []>>(
         {
             items: jobs
         },

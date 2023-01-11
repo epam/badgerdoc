@@ -7,7 +7,6 @@ import { ImageAnnotation } from '../../components/image-annotation';
 
 export const editableAnnotationRenderer: EditableAnnotationRenderer = ({
     annotation,
-    cells,
     isSelected,
     isHovered,
     scale,

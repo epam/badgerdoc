@@ -1,5 +1,5 @@
 import React, { FC, ReactNode, useState } from 'react';
-import { FormSaveResponse, IModal, Metadata, RenderFormProps, useUuiContext } from '@epam/uui';
+import { FormSaveResponse, IModal, Metadata, useUuiContext, IFormApi } from '@epam/uui';
 import {
     ModalBlocker,
     ModalWindow,
@@ -34,7 +34,7 @@ export const DatasetAddForm: FC<IProps> = (modalProps) => {
         }
     });
 
-    const renderForm = ({ lens, save }: RenderFormProps<DatasetValues>): ReactNode => {
+    const renderForm = ({ lens, save }: IFormApi<DatasetValues>): ReactNode => {
         return (
             <>
                 <Panel>

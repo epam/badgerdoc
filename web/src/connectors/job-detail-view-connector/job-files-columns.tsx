@@ -11,7 +11,8 @@ export default [
         },
         isSortable: true,
         grow: 2,
-        shrink: 1
+        shrink: 1,
+        width: 100
     },
     {
         key: 'status',
@@ -21,7 +22,8 @@ export default [
         },
         isSortable: true,
         grow: 1,
-        shrink: 1
+        shrink: 1,
+        width: 100
     },
     {
         key: 'pages',
@@ -31,6 +33,7 @@ export default [
         },
         isSortable: false,
         grow: 1,
-        shrink: 1
+        shrink: 1,
+        width: 100
     }
 ];

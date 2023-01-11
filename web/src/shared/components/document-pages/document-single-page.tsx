@@ -1,4 +1,4 @@
-import React, { FC, useEffect } from 'react';
+import React, { FC } from 'react';
 import { PDFPageProxy } from 'react-pdf/dist/Page';
 import { Annotation, Annotator, AnnotationLabel } from 'shared';
 import { useTaskAnnotatorContext } from 'connectors/task-annotator-connector/task-annotator-context';
@@ -37,7 +37,6 @@ const DocumentSinglePage: FC<RenderPageParams> = ({
         tokensByPages,
         categories,
         selectionType,
-        pageNumbers,
         currentPage,
         editedPages,
         validPages,

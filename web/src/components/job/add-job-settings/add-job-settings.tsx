@@ -1,7 +1,7 @@
 import React, { FC } from 'react';
 import { MultiSwitch } from '@epam/loveship';
 import { ILens } from '@epam/uui';
-import { Category, CategoryRelatedTaxonomies, Pipeline, Taxonomy, User } from 'api/typings';
+import { Category, Pipeline, Taxonomy, User } from 'api/typings';
 import { JobValues } from 'connectors/add-job-connector/add-job-connector';
 import AutomaticJob from '../automatic-job/automatic-job';
 import styles from './add-job-settings.module.scss';
