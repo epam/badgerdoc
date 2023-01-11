@@ -2,6 +2,9 @@ from typing import Optional, Set
 
 from db_example import Address, User, get_db
 from fastapi import Depends, FastAPI
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
 from filter_lib import (  # type: ignore
     Page,
     create_filter_model,
@@ -9,8 +12,6 @@ from filter_lib import (  # type: ignore
     map_request_to_filter,
     paginate,
 )
-from pydantic import BaseModel
-from sqlalchemy.orm import Session
 
 app = FastAPI()
 
