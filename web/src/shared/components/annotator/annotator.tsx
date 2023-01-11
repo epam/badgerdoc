@@ -184,7 +184,7 @@ export const Annotator: FC<AnnotatorProps> = ({
         coords: selectionCoords,
         isStarted,
         isEnded: isSelectionEnded
-    } = useSelection(panoRef, selectionType, isCellMode, editable);
+    } = useSelection(panoRef, selectionType, isCellMode, editable && !!selectedCategory);
 
     const submitAnnotation = useSubmitAnnotation(
         selectionType,
