@@ -15,6 +15,13 @@ from src import logger
 logger_ = logger.get_logger(__name__)
 
 
+DEFAULT_PAGE_BORDER_OFFSET = 15
+DEFAULT_PDF_PAGE_WIDTH = 595
+DEFAULT_PDF_FONT_HEIGHT = 11
+DEFAULT_PDF_FONT_WIDTH = 7
+DEFAULT_PDF_LINE_SPACING = 2
+
+
 class Settings(BaseSettings):
     """Base settings values"""
 

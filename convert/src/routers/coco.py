@@ -19,7 +19,7 @@ from src.logger import get_logger
 from src.models import coco
 from src.utils.s3_utils import get_bucket_path
 
-router = APIRouter(prefix="", tags=["convert"])
+router = APIRouter(prefix="/coco", tags=["coco"])
 LOGGER = get_logger(__file__)
 tenant = get_tenant_info(
     url=settings.keycloak_url, algorithm="RS256", debug=True
