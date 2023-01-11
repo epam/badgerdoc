@@ -1,6 +1,6 @@
 import { Button, DataTable, Panel } from '@epam/loveship';
 import React, { FC, useEffect } from 'react';
-import { Basement, Operators, SortingDirection, TableFilters } from 'api/typings';
+import { Basement, SortingDirection, TableFilters } from 'api/typings';
 
 import { TableWrapper, usePageTable } from 'shared';
 import { basementColumns } from './basements-columns';

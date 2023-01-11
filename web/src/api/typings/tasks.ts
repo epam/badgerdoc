@@ -1,5 +1,3 @@
-import { ValidationType } from 'api/typings';
-
 export type ApiTask = {
     id: number;
     status: TaskStatus;

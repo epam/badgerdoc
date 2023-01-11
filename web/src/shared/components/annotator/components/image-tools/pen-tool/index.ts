@@ -1,5 +1,5 @@
 import paper from 'paper';
-import { PaperTool, PaperToolParams, PenToolParams } from '../../../typings';
+import { PaperTool, PaperToolParams } from '../../../typings';
 import { defaultOnKeyDown } from '../utils';
 
 export const createPenTool = ({

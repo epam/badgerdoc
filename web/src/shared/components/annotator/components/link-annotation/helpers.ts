@@ -1,6 +1,5 @@
-import React from 'react';
 import { Point } from 'shared';
-import { Category, Link } from 'api/typings';
+import { Category } from 'api/typings';
 
 export type LinkAnnotationProps = {
     pointStart: Point;

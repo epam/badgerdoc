@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import styles from './job-sidebar-header.module.scss';
 import { Job, JobType } from '../../../api/typings/jobs';
 import { Status } from '../status';
