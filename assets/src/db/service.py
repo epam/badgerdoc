@@ -51,6 +51,40 @@ def insert_file(
     return new_file
 
 
+def update_file(
+    file_id: int,
+    session: Session,
+    file_to_update: str,
+    bucket_name: str,
+    size: int,
+    ext: str,
+    original_ext: str,
+    content_type: str,
+    pages: Optional[int],
+    file_status: str,
+) -> Optional[FileObject]:
+    file: Optional[FileObject] = (
+        session.query(FileObject)
+        .filter(FileObject.id == file_id)
+        .with_for_update()
+    ).first()
+    file.original_name = file_to_update
+    file.bucket = (bucket_name,)
+    file.size_in_bytes = size
+    file.content_type = content_type
+    file.extension = ext
+    file.original_ext = original_ext
+    file.pages = pages
+    file.status = file_status
+    try:
+        session.commit()
+    except SQLAlchemyError as e:
+        logger.error(f"Error while updating file - detail: {e}")
+        session.rollback()
+        return None
+    return file
+
+
 def insert_dataset(session: Session, dataset_name: str) -> None:
     ds = Datasets(name=dataset_name)
     session.add(ds)
