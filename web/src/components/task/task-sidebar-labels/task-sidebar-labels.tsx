@@ -1,18 +1,18 @@
-import React, { useState, FC, useEffect, useMemo } from 'react';
+import React, { useState, FC, useMemo } from 'react';
 
 import { useArrayDataSource } from '@epam/uui';
 import { SearchInput, PickerList, Spinner, Text } from '@epam/loveship';
 
-import { Filter, Operators, SortingDirection, Taxon, Label, PagedResponse } from 'api/typings';
+import { Label, PagedResponse, Category } from 'api/typings';
 
 import { useNotifications } from 'shared/components/notifications';
-import { TaxonomyByJobIdResponse, useTaxons } from 'api/hooks/taxons';
 import { getError } from 'shared/helpers/get-error';
 
 import styles from './task-sidebar-labels.module.scss';
+import { useDocumentCategoriesByJob } from 'api/hooks/categories';
 
 type TaskSidebarLabelsViewProps = {
-    labels: PagedResponse<Taxon> | undefined;
+    labels?: PagedResponse<Category>;
     pickerValue: string[];
     onValueChange: (e: any, labelsArr: Label[]) => void;
     selectedLabels: Label[];
@@ -55,13 +55,13 @@ const TaskSidebarLabelsView: FC<TaskSidebarLabelsViewProps> = ({
 };
 
 type TaskSidebarLabelsProps = {
-    taxonomies: TaxonomyByJobIdResponse | undefined;
+    jobId?: number;
     onLabelsSelected: (labels: Label[], pickedLabels: string[]) => void;
     selectedLabels: Label[];
 };
 
 export const TaskSidebarLabels = ({
-    taxonomies,
+    jobId,
     onLabelsSelected,
     selectedLabels = []
 }: TaskSidebarLabelsProps) => {
@@ -71,36 +71,7 @@ export const TaskSidebarLabels = ({
 
     const { notifyError } = useNotifications();
 
-    const taxonomyIds = useMemo(() => taxonomies?.map((taxonomy) => taxonomy.id), [taxonomies]);
-
-    const taxonomyFilter: Filter<keyof Taxon> = {
-        field: 'taxonomy_id',
-        operator: Operators.IN,
-        value: taxonomyIds
-    };
-
-    const {
-        data: labels,
-        isLoading,
-        isError,
-        refetch
-    } = useTaxons(
-        {
-            page: 1,
-            size: 100,
-            searchText,
-            searchField: searchText ? 'name' : undefined,
-            filters: [taxonomyFilter],
-            sortConfig: { field: 'name', direction: SortingDirection.ASC }
-        },
-        {}
-    );
-
-    useEffect(() => {
-        if (searchText) {
-            refetch();
-        }
-    }, [searchText]);
+    const { data: labels, isError, isLoading } = useDocumentCategoriesByJob({ searchText, jobId });
 
     if (isError) {
         notifyError(<Text>{getError(isError)}</Text>);
@@ -112,7 +83,6 @@ export const TaskSidebarLabels = ({
                 return label;
             }
         });
-
         let labelsId: string[] = [];
         if (Array.isArray(e)) {
             labelsId = e;

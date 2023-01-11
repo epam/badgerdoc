@@ -470,11 +470,10 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         if (!Array.isArray(labels)) return;
 
         const currentLabelsId = labels.map((label) => label.id);
-        if (isEqual(latestLabelsId, currentLabelsId)) {
-            setIsDocLabelsModified(false);
-        } else {
-            setIsDocLabelsModified(true);
-        }
+        const isDocLabelsModifiedNewVal = !isEqual(latestLabelsId, currentLabelsId);
+
+        setIsDocLabelsModified(isDocLabelsModifiedNewVal);
+
         setSelectedLabels((prev) => {
             const combinedLabels = [...prev, ...labels];
             const arrayUniqueByKey = [
