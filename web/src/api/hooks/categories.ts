@@ -89,7 +89,7 @@ export const useCategoriesByJob: QueryHookType<CategoriesByJobParams, PagedRespo
         options
     );
 };
-export async function categoriesByJobFetcher(
+async function categoriesByJobFetcher(
     jobId?: number | undefined,
     page = 1,
     size = pageSizes._15,
@@ -143,23 +143,6 @@ export async function categoriesFetcher(
     };
     return fetchCategories(`${namespace}/categories/search`, 'post', body);
 }
-
-// export const useCategoriesByJob: QueryHookType<
-//     CategoriesByJobParams,
-//     PagedResponse<Category> | null
-// > = ({ jobId }, options) => {
-//     return useQuery(
-//         ['categoriesByJob', jobId],
-//         async () => (jobId ? fetchCategoriesByJob({ jobId }) : null),
-//         options
-//     );
-// };
-
-// export async function fetchCategoriesByJob({
-//     jobId
-// }: CategoriesByJobParams): Promise<PagedResponse<Category>> {
-//     return fetchCategories(`${namespace}/jobs/${jobId}/categories`, 'get');
-// }
 
 export async function fetchCategories(
     url: string,
@@ -227,3 +210,41 @@ export async function fetchInfiniteCategories(
         withCredentials: true
     })(JSON.stringify(body));
 }
+
+type DocumentCategoriesByJobProps = {
+    searchText: string;
+    jobId?: number;
+    filters?: Filter<keyof Category>[];
+};
+
+export type DocumentCategoriesByJobResponse = {
+    data?: PagedResponse<Category>;
+    isLoading: boolean;
+    isError: boolean;
+};
+
+export const useDocumentCategoriesByJob = ({
+    searchText,
+    jobId,
+    filters
+}: DocumentCategoriesByJobProps): DocumentCategoriesByJobResponse => {
+    const categoriesFilter: Filter<keyof Category> = {
+        field: 'type',
+        operator: Operators.EQ,
+        value: 'document'
+    };
+
+    const { data, isError, isLoading } = useCategoriesByJob(
+        {
+            page: 1,
+            size: 100,
+            sortConfig: { field: 'name', direction: SortingDirection.ASC },
+            searchText,
+            filters: filters ? [categoriesFilter, ...filters] : [categoriesFilter],
+            jobId
+        },
+        { enabled: !!jobId }
+    );
+
+    return { data, isError, isLoading };
+};
