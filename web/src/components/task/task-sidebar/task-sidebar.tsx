@@ -252,7 +252,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
     useEffect(() => {
         if (documentCategories) {
             const latestLabels: Label[] = documentCategories.data
-                .filter((category) => latestLabelsId.includes(category.id))
+                .filter((category) => latestLabelsId?.includes(category.id))
                 .map((category) => {
                     return { name: category.name, id: category.id };
                 });
