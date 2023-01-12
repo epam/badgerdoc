@@ -36,6 +36,7 @@ import { usePageTable } from '../../shared';
 import { useNotifications } from '../../shared/components/notifications';
 import { CategoriesParentSelector } from '../../components/categories/categories-parent-selector/categories-parent-selector';
 import { useEntity } from '../../shared/hooks/use-entity';
+import { getError } from 'shared/helpers/get-error';
 
 export interface TaskValidationValues {
     categoryValue?: Category;
@@ -80,53 +81,49 @@ export const ModalWithDisabledClickOutsideAndCross: FC<IProps> = (props) => {
     const addCategoryMutation = useAddCategoriesMutation();
 
     const updateCategory = async () => {
-        try {
-            await updateCategoryMutation.mutateAsync({
-                id: props.categoryValue!.id,
-                name: categoryName!,
-                metadata: { color: color },
-                type: type,
-                parent: parentValue,
-                data_attributes: dataAttributes
-            });
-            await refetchCategory();
-            notifySuccess(<Text>The category was updated successfully</Text>);
-        } catch (err: any) {
-            notifyError(<Text>{err}</Text>);
-        }
+        await updateCategoryMutation.mutateAsync({
+            id: props.categoryValue!.id,
+            name: categoryName!,
+            metadata: { color: color },
+            type: type,
+            parent: parentValue,
+            data_attributes: dataAttributes
+        });
+        await refetchCategory();
     };
 
     const addCategory = async () => {
-        try {
-            await addCategoryMutation.mutateAsync({
-                id: categoryId!,
-                name: categoryName!,
-                metadata: { color: color },
-                type: type,
-                parent: parentValue,
-                data_attributes: dataAttributes
-            });
-            await refetchCategory();
-            notifySuccess(<Text>The category was successfully added</Text>);
-        } catch (err: any) {
-            notifyError(<Text>{err}</Text>);
-        }
+        await addCategoryMutation.mutateAsync({
+            id: categoryId!,
+            name: categoryName!,
+            metadata: { color: color },
+            type: type,
+            parent: parentValue,
+            data_attributes: dataAttributes
+        });
+        await refetchCategory();
     };
 
     const saveCategory = async () => {
-        const findEmptyAtt = dataAttributes.filter(
-            ({ name, type }) => name === '' || type === '' || type === null
-        );
+        try {
+            const findEmptyAtt = dataAttributes.filter(
+                ({ name, type }) => name === '' || type === '' || type === null
+            );
 
-        if (categoryName?.length && color && !findEmptyAtt.length && categoryId?.length) {
-            if (props.categoryValue) {
-                await updateCategory();
-            } else {
-                await addCategory();
+            if (categoryName?.length && color && !findEmptyAtt.length && categoryId?.length) {
+                if (props.categoryValue) {
+                    await updateCategory();
+                    notifySuccess(<Text>The category was updated successfully</Text>);
+                } else {
+                    await addCategory();
+                    notifySuccess(<Text>The category was successfully added</Text>);
+                }
+                return true;
             }
-            return true;
+        } catch (err: any) {
+            notifyError(<Text>{getError(err)}</Text>);
+            return false;
         }
-        return false;
     };
 
     const addDataAtt = () => {
@@ -241,9 +238,9 @@ export const ModalWithDisabledClickOutsideAndCross: FC<IProps> = (props) => {
                             caption={props.categoryValue ? 'Update' : 'Save'}
                             onClick={async () => {
                                 let success = await saveCategory();
-                                success
-                                    ? props.abort()
-                                    : notifyError(<Text>{'Fill the form'}</Text>);
+                                if (success) {
+                                    props.abort();
+                                }
                             }}
                         />
                     </ModalFooter>
