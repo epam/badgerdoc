@@ -11,6 +11,7 @@ import { TableAnnotatorContextProvider } from '../../shared/components/annotator
 import { DASHBOARD_PAGE, JOBS_PAGE, PREVIOUS_PAGE_JOB } from '../../shared/constants';
 import { BreadcrumbNavigation } from '../../shared/components/breadcrumb';
 import { useSetTaskState } from 'api/hooks/tasks';
+import { getError } from 'shared/helpers/get-error';
 
 const TaskPage: FC = () => {
     const { taskId } = useParams<{ taskId: string }>();
@@ -32,12 +33,8 @@ const TaskPage: FC = () => {
 
     const handleSaveTaskError = (error: ApiError) => {
         notifyError(
-            // TODO: create component for notifications
             <Panel>
-                <Text font="sans-semibold" fontSize="16" color="fire">
-                    {error.message}
-                </Text>
-                <Text>{error.summary}</Text>
+                <Text>{getError(error)}</Text>
             </Panel>
         );
     };

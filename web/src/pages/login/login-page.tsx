@@ -3,6 +3,7 @@ import { Panel, Text } from '@epam/loveship';
 import { LoginConnector } from 'connectors/login-connector';
 import { useNotifications } from 'shared/components/notifications';
 import { ApiError } from 'api/api-error';
+import { getError } from 'shared/helpers/get-error';
 
 export const LoginPage = () => {
     const { notifySuccess, notifyError } = useNotifications();
@@ -19,10 +20,7 @@ export const LoginPage = () => {
     const onError = (error: ApiError) => {
         notifyError(
             <Panel>
-                <Text font="sans-semibold" fontSize="16" color="fire">
-                    {error.message}
-                </Text>
-                <Text>{error.summary}</Text>
+                <Text>{getError(error)}</Text>
             </Panel>
         );
     };
