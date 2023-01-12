@@ -1,4 +1,4 @@
-import React, { FC, ReactElement, useEffect, useMemo, useState } from 'react';
+import React, { FC, ReactElement, ReactNode, useEffect, useMemo, useState } from 'react';
 import {
     Button,
     FlexRow,
@@ -42,6 +42,7 @@ import {
     useLinkTaxonomyByCategoryAndJobId,
     useAllTaxonomiesByJobId
 } from 'api/hooks/taxons';
+import { RadioGroupItem } from '@epam/uui-components';
 
 type TaskSidebarProps = {
     onRedirectAfterFinish: () => void;
@@ -408,24 +409,37 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
                                 <div>
                                     <div className={styles.mergeButton}>
                                         <RadioGroup
-                                            //TODO need to fix
-                                            //@ts-ignore
-                                            items={categories
-                                                ?.filter((el) => el.parent === 'table')
-                                                .map((el) => ({
-                                                    id: el.name,
-                                                    name: el.name,
-                                                    renderLabel: (el: any) => (
-                                                        <span style={{ color: el.metadata?.color }}>
-                                                            {el.name}
-                                                        </span>
-                                                    ),
-                                                    renderName: (s: any) => (
-                                                        <span style={{ color: el.metadata?.color }}>
-                                                            {el.name}
-                                                        </span>
-                                                    )
-                                                }))}
+                                            items={
+                                                categories
+                                                    ?.filter((el) => el.parent === 'table')
+                                                    .map((el) => ({
+                                                        id: el.name,
+                                                        name: el.name,
+                                                        renderLabel: (el: any) => (
+                                                            <span
+                                                                style={{
+                                                                    color: el.metadata?.color
+                                                                }}
+                                                            >
+                                                                {el.name}
+                                                            </span>
+                                                        ),
+                                                        renderName: (s: any) => (
+                                                            <span
+                                                                style={{
+                                                                    color: el.metadata?.color
+                                                                }}
+                                                            >
+                                                                {el.name}
+                                                            </span>
+                                                        )
+                                                    })) as unknown as RadioGroupItem<{
+                                                    id: string;
+                                                    name: string;
+                                                    renderLabel: (el: any) => ReactNode;
+                                                    renderName: (s: any) => ReactNode;
+                                                }>[]
+                                            }
                                             value={tableCellCategory}
                                             onValueChange={setTableCellCategory}
                                             direction="vertical"

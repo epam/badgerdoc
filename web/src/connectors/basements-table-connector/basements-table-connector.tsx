@@ -1,6 +1,6 @@
 import { Button, DataTable, Panel } from '@epam/loveship';
 import React, { FC, useEffect } from 'react';
-import { Basement, SortingDirection, TableFilters } from 'api/typings';
+import { Basement, Filter, SortingDirection, TableFilters } from 'api/typings';
 
 import { TableWrapper, usePageTable } from 'shared';
 import { basementColumns } from './basements-columns';
@@ -81,7 +81,7 @@ export const BasementsTableConnector: FC<JobsTableConnectorProps> = ({
         if (tableValue.filter) {
             const filtersToSet = prepareFiltersToSet<Basement, unknown>(tableValue);
             saveFiltersToStorage(filtersToSet, 'basements');
-            setFilters(filtersToSet);
+            setFilters(filtersToSet as (Filter<keyof Basement> | null)[]);
         }
     }, [tableValue.filter, tableValue.sorting, sortConfig]);
 

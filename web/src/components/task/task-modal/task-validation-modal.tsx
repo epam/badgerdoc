@@ -68,13 +68,6 @@ export const FinishTaskValidationModal: FC<IProps> = (modalProps) => {
         },
         []
     );
-    //TODO check if it can be removed
-    // const validatorsDataSource = useArrayDataSource<User, string, any>(
-    //     {
-    //         items: (modalProps.allUsers.validators || modalProps.allUsers.annotators) ?? []
-    //     },
-    //     []
-    // );
 
     const getMetaData = (): Metadata<TaskValidationValues> => ({
         props: {
