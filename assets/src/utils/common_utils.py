@@ -224,7 +224,7 @@ class FileConverter:
             f"{self.new_file.id}{self.new_file.original_ext}"
         )
         output_pdf_path = f"files/{self.new_file.id}/{self.new_file.id}.pdf"
-        output_tokens_path = f"files/{self.new_file.id}/tokens/1.json"
+        output_tokens_path = f"files/{self.new_file.id}/ocr/1.json"
         post_to_convert(
             self.bucket_storage,
             input_text_path,
