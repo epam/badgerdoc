@@ -234,14 +234,17 @@ export const useDocumentCategoriesByJob = ({
         value: 'document'
     };
 
-    const { data, isError, isLoading } = useCategoriesByJob({
-        page: 1,
-        size: 100,
-        sortConfig: { field: 'name', direction: SortingDirection.ASC },
-        searchText,
-        filters: filters ? [categoriesFilter, ...filters] : [categoriesFilter],
-        jobId
-    });
+    const { data, isError, isLoading } = useCategoriesByJob(
+        {
+            page: 1,
+            size: 100,
+            sortConfig: { field: 'name', direction: SortingDirection.ASC },
+            searchText,
+            filters: filters ? [categoriesFilter, ...filters] : [categoriesFilter],
+            jobId
+        },
+        { enabled: !!jobId }
+    );
 
     return { data, isError, isLoading };
 };
