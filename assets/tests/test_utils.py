@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 
 import src.utils.minio_utils as minio_utils
 from src.config import settings
+from src.db.models import FileObject
 from src.exceptions import (
     BucketError,
     FileConversionError,
@@ -485,7 +486,10 @@ def test_file_processor_conversion_error(
     gotenberg.return_value = response
     get_mimetype.return_value = "text/plain"
     with NamedTemporaryFile(suffix=".doc", prefix="some_file") as file:
-        converter = FileConverter(file.read(), "some_file.doc", ".doc", "test")
+        new_db_file = FileObject()
+        converter = FileConverter(
+            file.read(), "some_file.doc", ".doc", "test", new_db_file
+        )
         assert converter.convert() is False
         assert converter.conversion_status == "conversion error"
 
@@ -496,7 +500,10 @@ def test_file_converted_converted_to_pdf(gotenberg, pdf_file_bytes):
     response._content = pdf_file_bytes
     gotenberg.return_value = response
     with NamedTemporaryFile(suffix=".doc", prefix="some_file") as file:
-        converter = FileConverter(file.read(), "some_file.doc", ".doc", "test")
+        new_db_file = FileObject()
+        converter = FileConverter(
+            file.read(), "some_file.doc", ".doc", "test", new_db_file
+        )
         assert converter.convert() is True
         assert converter.conversion_status == "converted to PDF"
 
@@ -511,7 +518,10 @@ def test_file_converted_converted_to_pdf_side_effect(
     gotenberg.return_value = response
     get_mimetype.return_value = "text/plain"
     with NamedTemporaryFile(suffix=".doc", prefix="some_file") as file:
-        converter = FileConverter(file.read(), "some_file.doc", ".doc", "test")
+        new_db_file = FileObject()
+        converter = FileConverter(
+            file.read(), "some_file.doc", ".doc", "test", new_db_file
+        )
         with pytest.raises(FileConversionError):
             converter.convert_to_pdf()
         assert converter.convert() is False
@@ -519,12 +529,18 @@ def test_file_converted_converted_to_pdf_side_effect(
 
 
 def test_file_converted_converted_to_jpg(png_bytes):
-    converter = FileConverter(png_bytes, "some_file.png", ".png", "test")
+    new_db_file = FileObject()
+    converter = FileConverter(
+        png_bytes, "some_file.png", ".png", "test", new_db_file
+    )
     assert converter.convert() is True
 
 
 def test_file_converted_converted_to_jpg_error(pdf_file_bytes):
-    converter = FileConverter(pdf_file_bytes, "some_file.png", ".png", "test")
+    new_db_file = FileObject()
+    converter = FileConverter(
+        pdf_file_bytes, "some_file.png", ".png", "test", new_db_file
+    )
     assert converter.convert() is False
     assert converter.conversion_status == "conversion error"
 
