@@ -56,7 +56,7 @@ export type AnnotationImageTool = {
 
 export type AnnotationLinksBoundType = 'Chain' | 'All to all';
 
-export type AnnotationBoundMode = 'box' | 'link' | 'segmentation';
+export type AnnotationBoundMode = 'box' | 'link' | 'segmentation' | 'document';
 export type AnnotationLabel = {
     annotationId?: string | number;
     label?: ReactNode;

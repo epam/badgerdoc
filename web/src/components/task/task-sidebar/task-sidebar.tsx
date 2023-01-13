@@ -34,15 +34,12 @@ import { ValidationPageStatus } from 'api/typings/tasks';
 import { ReactComponent as MergeIcon } from '@epam/assets/icons/common/editor-table_merge_cells-24.svg';
 import { ReactComponent as SplitIcon } from '@epam/assets/icons/common/editor-table_split_cells-24.svg';
 import { Tooltip } from '@epam/loveship';
-import { Category, Filter, Label, Operators, SortingDirection, Taxon } from '../../../api/typings';
+import { Category, Label } from '../../../api/typings';
 import { ImageToolsParams } from './image-tools-params';
 import { CategoriesTab } from 'components/categories/categories-tab/categories-tab';
-import {
-    useTaxons,
-    useLinkTaxonomyByCategoryAndJobId,
-    useAllTaxonomiesByJobId
-} from 'api/hooks/taxons';
+import { useLinkTaxonomyByCategoryAndJobId } from 'api/hooks/taxons';
 import { RadioGroupItem } from '@epam/uui-components';
+import { useDocumentCategoriesByJob } from 'api/hooks/categories';
 
 type TaskSidebarProps = {
     onRedirectAfterFinish: () => void;
@@ -96,7 +93,8 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
         setSelectedLabels,
         selectedLabels,
         latestLabelsId,
-        isDocLabelsModified
+        isDocLabelsModified,
+        getJobId
     } = useTaskAnnotatorContext();
     const {
         tableModeColumns,
@@ -243,43 +241,24 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
     }`;
     const validationStatus: ValidationPageStatus = isValid ? 'Valid Page' : 'Invalid Page';
 
-    // needed for taskSidebarLabel:
-    useEffect(() => {
-        refetchTaxons();
-    }, [latestLabelsId]);
+    const jobId = useMemo(() => getJobId(), [getJobId]);
 
-    const taxonsFilter: Filter<keyof Taxon> = {
-        field: 'id',
-        operator: Operators.IN,
-        value: latestLabelsId ?? []
-    };
-
-    const { data: latestTaxons, refetch: refetchTaxons } = useTaxons(
-        {
-            page: 1,
-            size: 100,
-            searchText: '',
-            searchField: undefined,
-            filters: [taxonsFilter],
-            sortConfig: { field: 'name', direction: SortingDirection.ASC }
-        },
-        {}
-    );
+    const allDocumentCategoriesResponse = useDocumentCategoriesByJob({ searchText: '', jobId });
+    const { data: documentCategories } = allDocumentCategoriesResponse;
 
     useEffect(() => {
-        if (latestTaxons) {
-            const latestLabels: Label[] = latestTaxons?.data.map((taxon) => {
-                return { name: taxon.name, id: taxon.id };
-            });
+        if (documentCategories) {
+            const latestLabels: Label[] = documentCategories.data
+                .filter((category) => latestLabelsId?.includes(category.id))
+                .map((category) => {
+                    return { name: category.name, id: category.id };
+                });
             setSelectedLabels(latestLabels);
         }
-    }, [latestTaxons]);
-    const { data: taxonomies, isLoading } = useAllTaxonomiesByJobId({ jobId: task?.job.id });
-
-    // needed for taskSidebarLabel ^
+    }, [documentCategories, latestLabelsId]);
 
     const taxonomy = useLinkTaxonomyByCategoryAndJobId({
-        jobId: task?.job.id,
+        jobId,
         categoryId: selectedAnnotation?.category!
     });
 
@@ -572,7 +551,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
                     {tabValue === 'Labels' && categories !== undefined && (
                         <>
                             <TaskSidebarLabels
-                                taxonomies={isLoading === false ? taxonomies : []}
+                                jobId={jobId}
                                 onLabelsSelected={onLabelsSelected}
                                 selectedLabels={selectedLabels ?? []}
                             />

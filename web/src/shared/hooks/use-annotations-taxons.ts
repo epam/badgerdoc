@@ -41,7 +41,7 @@ export default function useAnnotationsTaxons(annotationsByPages?: PageInfo[]): M
     );
 
     useEffect(() => {
-        if (taxonIds) {
+        if (taxonIds && taxonIds.length) {
             refetch();
         }
     }, [taxonIds]);
