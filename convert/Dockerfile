@@ -1,4 +1,4 @@
-ARG base_image=818863528939.dkr.ecr.eu-central-1.amazonaws.com/badgerdoc/python_base:0.1.6
+ARG base_image=818863528939.dkr.ecr.eu-central-1.amazonaws.com/badgerdoc/python_base:0.1.7
 FROM ${base_image} as base
 
 RUN apt-get update \
