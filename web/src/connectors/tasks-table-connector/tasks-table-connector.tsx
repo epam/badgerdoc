@@ -7,7 +7,7 @@ import { Task, TaskStatus } from 'api/typings/tasks';
 import { tasksColumns } from './tasks-columns';
 import { CurrentUser } from '../../shared/contexts/current-user';
 import { useAsyncSourceTable } from 'shared/hooks/async-source-table';
-import { Operators, SortingDirection, TableFilters } from 'api/typings';
+import { Filter, Operators, SortingDirection, TableFilters } from 'api/typings';
 import { useColumnPickerFilter, useDateRangeFilter } from 'shared/components/filters/column-picker';
 import {
     getFiltersFromStorage,
@@ -43,10 +43,10 @@ export const TasksTableConnector: FC<TaskTableConnectorProps> = ({ onRowClick })
         []
     );
 
-    const typesDS = useArrayDataSource<boolean, boolean, unknown>(
+    const typesDS = useArrayDataSource<boolean, string, unknown>(
         {
             items: [true, false],
-            getId: (is_validation) => is_validation
+            getId: (item) => item.toString()
         },
         []
     );
@@ -56,13 +56,13 @@ export const TasksTableConnector: FC<TaskTableConnectorProps> = ({ onRowClick })
         'status'
     );
 
-    const renderTypeFilter = useColumnPickerFilter<boolean, boolean, unknown, 'is_validation'>(
+    const renderTypeFilter = useColumnPickerFilter<boolean, string, unknown, 'is_validation'>(
         typesDS,
         'is_validation',
         {
             showSearch: false,
             isPickByEntity: true,
-            getName: (item: boolean) => (item ? 'Validation' : 'Annotation')
+            getName: (item) => (item ? 'Validation' : 'Annotation')
         }
     );
 
@@ -124,7 +124,7 @@ export const TasksTableConnector: FC<TaskTableConnectorProps> = ({ onRowClick })
         if (tableValue.filter) {
             const filtersToSet = prepareFiltersToSet<Task, TaskStatus[] | boolean[]>(tableValue);
             saveFiltersToStorage(filtersToSet, 'tasks');
-            setFilters(filtersToSet);
+            setFilters(filtersToSet as (Filter<keyof Task> | null)[]);
         }
     }, [tableValue.filter, tableValue.sorting, sortConfig]);
 
@@ -168,14 +168,16 @@ export const TasksTableConnector: FC<TaskTableConnectorProps> = ({ onRowClick })
                     hasMore={data?.pagination.has_more}
                     onPageChange={onPageChange}
                 >
-                    <DataTable
-                        {...view.getListProps()}
-                        getRows={view.getVisibleRows}
-                        value={tableValue}
-                        onValueChange={onTableValueChange}
-                        columns={columns}
-                        headerTextCase="upper"
-                    />
+                    <div>
+                        <DataTable
+                            {...view.getListProps()}
+                            getRows={view.getVisibleRows}
+                            value={tableValue}
+                            onValueChange={onTableValueChange}
+                            columns={columns}
+                            headerTextCase="upper"
+                        />
+                    </div>
                 </TableWrapper>
             </Panel>
         </>

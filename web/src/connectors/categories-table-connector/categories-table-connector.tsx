@@ -47,6 +47,7 @@ export const CategoriesTableConnector: FC<CategoriesTableConnectorProps> = () =>
         [data?.data]
     );
 
+    //@ts-ignore
     const view = categoriesSource.useView(tableValue, onTableValueChange, {
         getRowOptions: () => ({
             isSelectable: true,

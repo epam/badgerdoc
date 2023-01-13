@@ -34,14 +34,10 @@ import { ValidationPageStatus } from 'api/typings/tasks';
 import { ReactComponent as MergeIcon } from '@epam/assets/icons/common/editor-table_merge_cells-24.svg';
 import { ReactComponent as SplitIcon } from '@epam/assets/icons/common/editor-table_split_cells-24.svg';
 import { Tooltip } from '@epam/loveship';
-import { Category, Filter, Label, Operators, SortingDirection, Taxon } from '../../../api/typings';
+import { Category, Label } from '../../../api/typings';
 import { ImageToolsParams } from './image-tools-params';
 import { CategoriesTab } from 'components/categories/categories-tab/categories-tab';
-import {
-    useTaxons,
-    useLinkTaxonomyByCategoryAndJobId,
-    useAllTaxonomiesByJobId
-} from 'api/hooks/taxons';
+import { useLinkTaxonomyByCategoryAndJobId } from 'api/hooks/taxons';
 import { useDocumentCategoriesByJob } from 'api/hooks/categories';
 
 type TaskSidebarProps = {
@@ -282,6 +278,41 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
         onRedirectAfterFinish();
     };
 
+    const cellsItems: {
+        id: string;
+        name: string;
+        renderLabel: (el: any) => React.ReactNode;
+        renderName: () => React.ReactNode;
+    }[] = useMemo(
+        () =>
+            categories
+                ?.filter((el) => el.parent === 'table')
+                .map((el) => ({
+                    id: el.name,
+                    name: el.name,
+                    renderLabel: (el: any) => (
+                        <span
+                            style={{
+                                color: el.metadata?.color
+                            }}
+                        >
+                            {el.name}
+                        </span>
+                    ),
+                    // eslint-disable-next-line react/display-name
+                    renderName: () => (
+                        <span
+                            style={{
+                                color: el.metadata?.color
+                            }}
+                        >
+                            {el.name}
+                        </span>
+                    )
+                })) || [],
+        [categories]
+    );
+
     return (
         <div className={`${styles.container} flex-col`}>
             <div className={`${styles.main} flex-col`}>
@@ -391,22 +422,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
                                 <div>
                                     <div className={styles.mergeButton}>
                                         <RadioGroup
-                                            items={categories
-                                                ?.filter((el) => el.parent === 'table')
-                                                .map((el) => ({
-                                                    id: el.name,
-                                                    name: el.name,
-                                                    renderLabel: (el: any) => (
-                                                        <span style={{ color: el.metadata?.color }}>
-                                                            {el.name}
-                                                        </span>
-                                                    ),
-                                                    renderName: (s: any) => (
-                                                        <span style={{ color: el.metadata?.color }}>
-                                                            {el.name}
-                                                        </span>
-                                                    )
-                                                }))}
+                                            items={cellsItems}
                                             value={tableCellCategory}
                                             onValueChange={setTableCellCategory}
                                             direction="vertical"
@@ -546,7 +562,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
                         </>
                     )}
                     {tabValue === 'Labels' && categories === undefined && (
-                        <div> There are no categories</div>
+                        <p> There are no categories</p>
                     )}
 
                     {isValidation && !splitValidation && (

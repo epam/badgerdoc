@@ -1,7 +1,7 @@
 import { DataTable, Panel } from '@epam/loveship';
 import React, { FC, useEffect, useMemo, useRef } from 'react';
 import { ILens, useArrayDataSource, useLazyDataSource } from '@epam/uui';
-import { Operators, PagingCache, SortingDirection } from 'api/typings';
+import { Filter, Operators, PagingCache, SortingDirection, TableFilters } from 'api/typings';
 import { jobPropFetcher, useJobs } from 'api/hooks/jobs';
 import { usePageTable } from 'shared';
 import styles from './train-model-job.module.scss';
@@ -46,7 +46,7 @@ export const TrainModelJob: FC<JobsTableConnectorProps> = ({ lens }) => {
         }
     }, [data?.pagination.total]);
 
-    const jobsSource = useArrayDataSource<Job, number, unknown>(
+    const jobsSource = useArrayDataSource<Job, number, TableFilters<Job, []>>(
         {
             items: data?.data ?? []
         },
@@ -78,7 +78,7 @@ export const TrainModelJob: FC<JobsTableConnectorProps> = ({ lens }) => {
                     return null;
                 }
             });
-            setFilters(filtersToSet);
+            setFilters(filtersToSet as (Filter<keyof Job> | null)[]);
         }
     }, [tableValue.filter]);
 

@@ -10,13 +10,15 @@ import {
     Form
 } from '@epam/loveship';
 
-import { RenderFormProps } from '@epam/uui';
+import { IFormApi } from '@epam/uui';
 import { Paper } from 'shared';
 import { Credentials, AuthResultRaw } from 'api/typings';
 import { useAuthByCredsMutation, authWithSSO, useAuthBySSOMutation } from 'api/hooks/auth';
 import noop from 'lodash/noop';
 import { ApiError } from 'api/api-error';
 import { setAuthDetails, setCurrentTenant } from 'shared/helpers/auth-tools';
+//TODO: move out styles from the connector
+import styles from './login-connector.module.scss';
 
 interface LoginConnectorProps {
     onSuccess: () => void;
@@ -55,7 +57,7 @@ export const LoginConnector = ({ onSuccess = noop, onError = noop }: LoginConnec
         }
     }, [error, errorSSO]);
 
-    const renderForm = ({ lens, save }: RenderFormProps<Credentials>) => {
+    const renderForm = ({ lens, save }: IFormApi<Credentials>) => {
         const handleFormInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
             if (e.code === 'Enter') {
                 save();
@@ -66,7 +68,12 @@ export const LoginConnector = ({ onSuccess = noop, onError = noop }: LoginConnec
             <FlexCell width="100%">
                 <FlexRow vPadding="12" alignItems="center">
                     <FlexCell grow={1}>
-                        <Button caption="Login with SSO" fontSize="18" onClick={authWithSSO} />
+                        <Button
+                            caption="Login with SSO"
+                            fontSize="18"
+                            onClick={authWithSSO}
+                            cx={styles.button_full_width}
+                        />
                     </FlexCell>
                 </FlexRow>
                 <FlexRow vPadding="12" alignItems="center">

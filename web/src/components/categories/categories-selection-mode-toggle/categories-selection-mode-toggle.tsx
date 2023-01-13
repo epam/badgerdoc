@@ -82,8 +82,6 @@ export const CategoriesSelectionModeToggle: React.FC<SelectionModeSelectorProps>
                         onValueChange={onChangeSelectedTool}
                         direction="horizontal"
                         cx="selection-mode-toggle"
-                        RadioInput={{ checked: false }}
-                        size="12"
                     />
                 ) : (
                     <RadioGroup
@@ -92,7 +90,6 @@ export const CategoriesSelectionModeToggle: React.FC<SelectionModeSelectorProps>
                         onValueChange={onChangeSelectionType}
                         direction="horizontal"
                         cx="selection-mode-toggle"
-                        size="12"
                     />
                 )}
             </FlexCell>

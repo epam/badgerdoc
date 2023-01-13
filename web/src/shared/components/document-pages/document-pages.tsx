@@ -1,4 +1,4 @@
-import React, { CSSProperties, FC, Fragment, ReactNode, useEffect, useState, useRef } from 'react';
+import React, { CSSProperties, Fragment, ReactNode, useEffect, useState, useRef } from 'react';
 import { ReactComponent as increaseIcon } from '@epam/assets/icons/common/action-add-24.svg';
 import { ReactComponent as searchIcon } from '@epam/assets/icons/common/action-search-18.svg';
 import { ReactComponent as decreaseIcon } from '@epam/assets/icons/common/content-minus-24.svg';

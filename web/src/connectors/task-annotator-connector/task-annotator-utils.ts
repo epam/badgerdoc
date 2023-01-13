@@ -9,14 +9,7 @@ import {
     Taxon
 } from 'api/typings';
 
-import {
-    Annotation,
-    AnnotationBoundType,
-    AnnotationLabel,
-    AnnotationTable,
-    PageToken,
-    TableApi
-} from 'shared';
+import { Annotation, AnnotationBoundType, AnnotationTable, PageToken, TableApi } from 'shared';
 import { isIntersected, isR2InsideR1 } from 'shared/components/annotator/utils/is-intersected';
 import { annotationToRect, tokenToRect } from 'shared/components/annotator/utils/to-rect-utils';
 import { bboxToBound } from 'shared/helpers/bbox-to-bound';

@@ -1,3 +1,4 @@
+import React, { ReactNode } from 'react';
 import {
     Dropdown,
     DropdownMenuBody,
@@ -6,7 +7,6 @@ import {
     IconButton,
     Text
 } from '@epam/loveship';
-import React, { ReactNode } from 'react';
 import { Basement, SupportedArgs } from 'api/typings';
 import { ReactComponent as PencilIcon } from '@epam/assets/icons/common/content-edit-18.svg';
 import { ReactComponent as MoreIcon } from '@epam/assets/icons/common/navigation-more_vert-18.svg';
@@ -53,7 +53,8 @@ export const basementColumns: DataColumnProps<Basement>[] = [
         render: (basement: Basement) => <Text fontSize="14">{basement.name}</Text>,
         isSortable: true,
         grow: 3,
-        shrink: 2
+        shrink: 2,
+        width: 100
     },
     {
         key: 'id',
@@ -61,7 +62,8 @@ export const basementColumns: DataColumnProps<Basement>[] = [
         grow: 1,
         shrink: 1,
         isSortable: true,
-        render: (basement: Basement) => <Text fontSize="14">{basement.id}</Text>
+        render: (basement: Basement) => <Text fontSize="14">{basement.id}</Text>,
+        width: 100
     },
     {
         key: 'tenant',
@@ -69,7 +71,8 @@ export const basementColumns: DataColumnProps<Basement>[] = [
         grow: 1,
         shrink: 1,
         isSortable: true,
-        render: (basement: Basement) => <Text fontSize="14">{basement.tenant}</Text>
+        render: (basement: Basement) => <Text fontSize="14">{basement.tenant}</Text>,
+        width: 100
     },
     {
         key: 'gpu_support',
@@ -82,7 +85,8 @@ export const basementColumns: DataColumnProps<Basement>[] = [
                 <Text fontSize="18" cx="m-r-15">
                     <CheckIcon />
                 </Text>
-            ) : null
+            ) : null,
+        width: 100
     },
     {
         key: 'arguments',
@@ -92,7 +96,8 @@ export const basementColumns: DataColumnProps<Basement>[] = [
         isSortable: true,
         render: (basement: Basement) => (
             <Text fontSize="14">{renderArgumentsString(basement.supported_args)}</Text>
-        )
+        ),
+        width: 100
     },
     {
         key: 'creation_at',
@@ -104,7 +109,8 @@ export const basementColumns: DataColumnProps<Basement>[] = [
         ),
         grow: 1,
         shrink: 1,
-        isSortable: true
+        isSortable: true,
+        width: 100
     },
     {
         key: 'created_by',
@@ -112,7 +118,8 @@ export const basementColumns: DataColumnProps<Basement>[] = [
         grow: 1,
         shrink: 1,
         isSortable: true,
-        render: (basement: Basement) => <Text fontSize="14">{basement.created_by}</Text>
+        render: (basement: Basement) => <Text fontSize="14">{basement.created_by}</Text>,
+        width: 100
     },
     {
         key: 'actions',

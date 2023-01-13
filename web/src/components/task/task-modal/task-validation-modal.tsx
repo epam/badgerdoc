@@ -3,7 +3,7 @@ import {
     FormSaveResponse,
     IModal,
     Metadata,
-    RenderFormProps,
+    IFormApi,
     useUuiContext,
     useArrayDataSource
 } from '@epam/uui';
@@ -69,13 +69,6 @@ export const FinishTaskValidationModal: FC<IProps> = (modalProps) => {
         []
     );
 
-    // const validatorsDataSource = useArrayDataSource<User, string, any>(
-    //     {
-    //         items: (modalProps.allUsers.validators || modalProps.allUsers.annotators) ?? []
-    //     },
-    //     []
-    // );
-
     const getMetaData = (): Metadata<TaskValidationValues> => ({
         props: {
             option_invalid: { isRequired: true },
@@ -83,7 +76,7 @@ export const FinishTaskValidationModal: FC<IProps> = (modalProps) => {
         }
     });
 
-    const renderForm = ({ lens, save }: RenderFormProps<TaskValidationValues>): ReactNode => {
+    const renderForm = ({ lens, save }: IFormApi<TaskValidationValues>): ReactNode => {
         return (
             <>
                 <Panel>
