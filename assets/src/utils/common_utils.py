@@ -14,7 +14,7 @@ from src import db, exceptions, logger, schemas
 from src.config import settings
 from src.utils import minio_utils
 from src.utils.convert_service_utils import post_to_convert
-from src.utils.s3_utils import S3Manager
+from src.utils.minio_utils import create_minio_config
 
 logger_ = logger.get_logger(__name__)
 
@@ -157,16 +157,21 @@ class FileConverter:
     """
 
     def __init__(
-        self, file_bytes: bytes, file_name: str, ext: str, bucket_storage: str
+        self,
+        file_bytes: bytes,
+        file_name: str,
+        ext: str,
+        bucket_storage: str,
+        blank_db_file,
     ) -> None:
         self.bucket_storage = bucket_storage
         self.file_bytes = file_bytes
         self.file_name = file_name
+        self.new_file = blank_db_file
         self.ext: str = ext
         self.conversion_status: Optional[str] = None
         self.converted_file: Optional[bytes] = None
         self.converted_ext: Optional[str] = None
-        self.new_file: Optional[db.models.FileObject] = None
 
     def convert_to_pdf(self) -> bytes:
         """
@@ -220,10 +225,11 @@ class FileConverter:
 
     def convert_txt(self):
         input_text_path = (
-            f"files/{self.new_file.id}/"
-            f"{self.new_file.id}{self.new_file.original_ext}"
+            f"files/{self.new_file.id}/" f"{self.new_file.id}.txt"
         )
-        output_pdf_path = f"files/{self.new_file.id}/{self.new_file.id}.pdf"
+        output_pdf_path = (
+            f"files/{self.new_file.id}/" f"{self.new_file.id}.pdf"
+        )
         output_tokens_path = f"files/{self.new_file.id}/tokens/1.json"
         post_to_convert(
             self.bucket_storage,
@@ -232,26 +238,25 @@ class FileConverter:
             output_tokens_path,
         )
         self.converted_ext = ".pdf"
-        self.conversion_status = "converted to PDF"
-        converted_file = S3Manager(
-            settings.s3_access_key,
-            settings.s3_secret_key,
-            settings.s3_endpoint,
-        ).get_files(
-            bucket_s3=self.bucket_storage,
-            files_keys=[
-                output_pdf_path,
-            ],
+        self.conversion_status = "converted to PDF from txt"
+        minio_config = create_minio_config()
+        minio_client = minio.Minio(**minio_config)
+        tmp_file_name = f"{self.new_file.id}.pdf"
+        converted_file = minio_client.fget_object(  # noqa
+            self.bucket_storage,
+            output_pdf_path,
+            tmp_file_name,
         )
-        return converted_file.get(output_pdf_path).read()
+        return open(tmp_file_name).read()
 
     def convert(self) -> Union[bool]:
         """
         Checks if file format is in the available conversion formats.
         """
         try:
-            if self.ext == "txt":
+            if self.ext == ".txt":
                 self.converted_file = self.convert_txt()
+                return True
             if self.ext in settings.gotenberg_formats:
                 self.converted_file = self.convert_to_pdf()
             if self.ext in settings.image_formats:
@@ -331,9 +336,20 @@ class FileProcessor:
             get_pages(file_to_upload),
             schemas.FileProcessingStatus.UPLOADING,
         )
-        storage = minio_utils.upload_in_minio(  # noqa
-            file_to_upload, self.storage, self.new_file
-        )
+        if ext == ".txt":
+            minio_config = create_minio_config()
+            minio_client = minio.Minio(**minio_config)
+            minio_client.put_object(
+                bucket_name=self.bucket_storage,
+                object_name=self.new_file.path,
+                data=BytesIO(self.file_bytes),
+                length=len(self.file_bytes),
+            )
+        else:
+            storage = minio_utils.upload_in_minio(  # noqa
+                file_to_upload, self.storage, self.new_file
+            )
+
         if self.new_file:
             return True
         self.response = to_dict(
@@ -350,7 +366,11 @@ class FileProcessor:
         Checks if file was converted
         """
         converter = FileConverter(
-            self.file_bytes, self.file_name, self.ext, self.bucket_storage
+            self.file_bytes,
+            self.file_name,
+            self.ext,
+            self.bucket_storage,
+            self.new_file,
         )
         converter.convert()
         self.conversion_status = converter.conversion_status
@@ -374,6 +394,8 @@ class FileProcessor:
         """
         Checks if file metadata has been inserted into database
         """
+        if self.conversion_status == "converted to PDF from txt":
+            return True
         if self.converted_file is None:
             file_to_upload = self.file_bytes
             file_name = self.file_name
@@ -411,6 +433,8 @@ class FileProcessor:
         """
         Checks if file fas been uploaded to Minio
         """
+        if self.conversion_status == "converted to PDF from txt":
+            return True
         if self.converted_file is None:
             file_to_upload = self.file_bytes
         else:
@@ -435,6 +459,8 @@ class FileProcessor:
         return False
 
     def is_original_file_uploaded_to_storage(self) -> bool:
+        if self.conversion_status == "converted to PDF from txt":
+            return True
         if self.conversion_status is None:
             return True
         storage = minio_utils.put_file_to_minio(

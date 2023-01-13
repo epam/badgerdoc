@@ -70,6 +70,11 @@ spec:
             secretKeyRef:
               name: assets
               key: S3_SECRET_KEY
+        - name: SERVICE_CONVERT_URI
+          valueFrom:
+            secretKeyRef:
+              name: convert
+              key: SERVICE_CONVERT_URI
         - name: JWT_SECRET
           valueFrom:
             secretKeyRef:

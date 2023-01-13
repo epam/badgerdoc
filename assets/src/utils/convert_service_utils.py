@@ -15,12 +15,10 @@ def post_to_convert(
     try:
         response = requests.post(
             url=settings.service_convert_uri,
-            data={
-                {
-                    "input_text": {"bucket": bucket, "path": input_text},
-                    "output_pdf": {"bucket": bucket, "path": output_pdf},
-                    "output_tokens": {"bucket": bucket, "path": output_tokens},
-                }
+            json={
+                "input_text": {"bucket": bucket, "path": input_text},
+                "output_pdf": {"bucket": bucket, "path": output_pdf},
+                "output_tokens": {"bucket": bucket, "path": output_tokens},
             },
         )
         if response.status_code != 201:
