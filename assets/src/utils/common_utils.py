@@ -238,7 +238,7 @@ class FileConverter:
             output_tokens_path,
         )
         self.converted_ext = ".pdf"
-        self.conversion_status = "converted to PDF from txt"
+        self.conversion_status = "converted to PDF"
         minio_config = create_minio_config()
         minio_client = minio.Minio(**minio_config)
         tmp_file_name = f"{self.new_file.id}.pdf"
@@ -247,7 +247,7 @@ class FileConverter:
             output_pdf_path,
             tmp_file_name,
         )
-        return open(tmp_file_name).read()
+        return open(tmp_file_name, "rb").read()
 
     def convert(self) -> Union[bool]:
         """
@@ -256,7 +256,6 @@ class FileConverter:
         try:
             if self.ext == ".txt":
                 self.converted_file = self.convert_txt()
-                return True
             if self.ext in settings.gotenberg_formats:
                 self.converted_file = self.convert_to_pdf()
             if self.ext in settings.image_formats:
@@ -394,8 +393,6 @@ class FileProcessor:
         """
         Checks if file metadata has been inserted into database
         """
-        if self.conversion_status == "converted to PDF from txt":
-            return True
         if self.converted_file is None:
             file_to_upload = self.file_bytes
             file_name = self.file_name
@@ -433,8 +430,6 @@ class FileProcessor:
         """
         Checks if file fas been uploaded to Minio
         """
-        if self.conversion_status == "converted to PDF from txt":
-            return True
         if self.converted_file is None:
             file_to_upload = self.file_bytes
         else:
@@ -459,8 +454,6 @@ class FileProcessor:
         return False
 
     def is_original_file_uploaded_to_storage(self) -> bool:
-        if self.conversion_status == "converted to PDF from txt":
-            return True
         if self.conversion_status is None:
             return True
         storage = minio_utils.put_file_to_minio(
