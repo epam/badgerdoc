@@ -6,12 +6,6 @@ from unittest.mock import Mock, patch
 
 import pytest
 import responses
-from fastapi import HTTPException
-from fastapi.testclient import TestClient
-from requests import RequestException
-from sqlalchemy.exc import DBAPIError, SQLAlchemyError
-from sqlalchemy.orm import Session
-
 from app.annotations import (
     MANIFEST,
     check_task_pages,
@@ -50,6 +44,12 @@ from app.schemas import (
     TaskStatusEnumSchema,
     ValidationSchema,
 )
+from fastapi import HTTPException
+from fastapi.testclient import TestClient
+from requests import RequestException
+from sqlalchemy.exc import DBAPIError, SQLAlchemyError
+from sqlalchemy.orm import Session
+
 from tests.consts import ANNOTATION_PATH
 from tests.override_app_dependency import (
     TEST_HEADERS,
@@ -291,7 +291,7 @@ ASSETS_RESPONSES = [
             {
                 "id": POST_ANNOTATION_TASK_1["id"],
                 "original_name": "some.pdf",
-                "bucket": "merck",
+                "bucket": "tenant1",
                 "size_in_bytes": 165887,
                 "content_type": "image/png",
                 "pages": 10,
@@ -594,7 +594,7 @@ MANIFEST_IN_MINIO = {
     "pages": {"1": PAGES_SHA["1"]},
     "validated": [1],
     "failed_validation_pages": [],
-    "bucket": "merck",
+    "bucket": "tenant1",
     "file": "path/to/file.pdf",
 }
 

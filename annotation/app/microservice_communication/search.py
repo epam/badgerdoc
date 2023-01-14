@@ -12,7 +12,7 @@ Example of response for files:
           {
              "id":1,
              "original_name":"A17_FlightPlan.pdf",
-             "bucket":"merck",
+             "bucket":"tenant1",
              "size_in_bytes":20702285,
              "extension":".pdf",
              "content_type":"application/pdf",
@@ -90,12 +90,11 @@ Example of response for jobs:
 from typing import Dict, List
 
 import requests
-from fastapi import Header, HTTPException
-from requests.exceptions import ConnectionError, RequestException, Timeout
-
 from app.annotations import row_to_dict
 from app.models import ManualAnnotationTask
 from app.schemas import ExpandedManualAnnotationTaskSchema
+from fastapi import Header, HTTPException
+from requests.exceptions import ConnectionError, RequestException, Timeout
 
 PAGE_SIZE = 100  # max page size in assets
 HEADER_TENANT = "X-Current-Tenant"

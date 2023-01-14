@@ -26,7 +26,7 @@ access_token = create_access_token(
     data={
         "sub": "901",
         "realm_access": {"roles": ["role-annotator"]},
-        "tenants": ["merck", "epam"],
+        "tenants": ["tenant1", "epam"],
     },
     secret=SECRET,
     expires_delta=15,

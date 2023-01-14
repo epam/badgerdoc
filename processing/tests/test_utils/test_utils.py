@@ -65,7 +65,7 @@ def test_positive_get_files_data_from_separate_files(jw_token):
                 {
                     "id": 1,
                     "original_name": "3.pdf",
-                    "bucket": "merck",
+                    "bucket": "tenant1",
                     "size_in_bytes": 44900,
                     "extension": ".pdf",
                     "content_type": "application/pdf",
@@ -78,7 +78,7 @@ def test_positive_get_files_data_from_separate_files(jw_token):
                 {
                     "id": 2,
                     "original_name": "4.pdf",
-                    "bucket": "merck",
+                    "bucket": "tenant1",
                     "size_in_bytes": 30111,
                     "extension": ".pdf",
                     "content_type": "application/pdf",
@@ -96,7 +96,7 @@ def test_positive_get_files_data_from_separate_files(jw_token):
     expected_result = (
         [
             {
-                "bucket": "merck",
+                "bucket": "tenant1",
                 "content_type": "application/pdf",
                 "datasets": ["dataset11"],
                 "extension": ".pdf",
@@ -109,7 +109,7 @@ def test_positive_get_files_data_from_separate_files(jw_token):
                 "status": "uploaded",
             },
             {
-                "bucket": "merck",
+                "bucket": "tenant1",
                 "content_type": "application/pdf",
                 "datasets": ["dataset11"],
                 "extension": ".pdf",
@@ -146,7 +146,7 @@ def test_get_files_data_from_separate_files_100_elements(jw_token):
             {
                 "id": i,
                 "original_name": f"{i}.pdf",
-                "bucket": "merck",
+                "bucket": "tenant1",
                 "size_in_bytes": 44900,
                 "extension": ".pdf",
                 "content_type": "application/pdf",
@@ -215,7 +215,7 @@ def test_get_files_data_from_separate_files_101_elements(jw_token):
                 {
                     "id": i,
                     "original_name": f"{i}.pdf",
-                    "bucket": "merck",
+                    "bucket": "tenant1",
                     "size_in_bytes": 44900,
                     "extension": ".pdf",
                     "content_type": "application/pdf",
@@ -257,7 +257,7 @@ def test_get_files_data_from_separate_files_101_elements(jw_token):
                 {
                     "id": i,
                     "original_name": f"{i}.pdf",
-                    "bucket": "merck",
+                    "bucket": "tenant1",
                     "size_in_bytes": 44900,
                     "extension": ".pdf",
                     "content_type": "application/pdf",
@@ -276,7 +276,7 @@ def test_get_files_data_from_separate_files_101_elements(jw_token):
         {
             "id": i,
             "original_name": f"{i}.pdf",
-            "bucket": "merck",
+            "bucket": "tenant1",
             "size_in_bytes": 44900,
             "extension": ".pdf",
             "content_type": "application/pdf",
@@ -304,7 +304,7 @@ def test_get_files_data_from_separate_files_111_elements(jw_token):
         {
             "id": i,
             "original_name": f"{i}.pdf",
-            "bucket": "merck",
+            "bucket": "tenant1",
             "size_in_bytes": 44900,
             "extension": ".pdf",
             "content_type": "application/pdf",
@@ -343,7 +343,7 @@ def test_get_files_data_from_separate_files_111_elements(jw_token):
                 {
                     "id": i,
                     "original_name": f"{i}.pdf",
-                    "bucket": "merck",
+                    "bucket": "tenant1",
                     "size_in_bytes": 44900,
                     "extension": ".pdf",
                     "content_type": "application/pdf",
@@ -385,7 +385,7 @@ def test_get_files_data_from_separate_files_111_elements(jw_token):
                 {
                     "id": i,
                     "original_name": f"{i}.pdf",
-                    "bucket": "merck",
+                    "bucket": "tenant1",
                     "size_in_bytes": 44900,
                     "extension": ".pdf",
                     "content_type": "application/pdf",

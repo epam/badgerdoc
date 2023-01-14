@@ -4,10 +4,9 @@ from unittest.mock import patch
 
 import aiohttp.client_exceptions
 import freezegun
-import pytest
-
 import jobs.create_job_funcs as create_job_funcs
 import jobs.schemas as schemas
+import pytest
 
 
 # ----------- Create Job Drafts ------------- #
@@ -49,11 +48,14 @@ def test_create_annotation_job_linked_taxonomy(testing_app, jw_token):
                 "owners": ["owner1", "owner2"],
                 "annotators": ["annotator1", "annotator2"],
                 "validators": ["validator1", "validator2"],
-                "categories": ["category1", {
-                    "category_id": "category2",
-                    "taxonomy_id": "my_taxonomy_id",
-                    "taxonomy_version": 1
-                }],
+                "categories": [
+                    "category1",
+                    {
+                        "category_id": "category2",
+                        "taxonomy_id": "my_taxonomy_id",
+                        "taxonomy_version": 1,
+                    },
+                ],
                 "validation_type": schemas.ValidationType.hierarchical,
                 "is_auto_distribution": False,
                 "deadline": str(
@@ -64,7 +66,7 @@ def test_create_annotation_job_linked_taxonomy(testing_app, jw_token):
         )
         assert response.status_code == 200
         assert response.json()["status"] == schemas.Status.draft
-        assert response.json()["categories"] ==["category1", "category2"]
+        assert response.json()["categories"] == ["category1", "category2"]
 
 
 def test_create_annotation_job_without_deadline(testing_app):
@@ -425,7 +427,7 @@ async def test_get_all_datasets_and_files_data(
                     "status": "uploaded",
                 },
                 {
-                    "bucket": "merck",
+                    "bucket": "tenant1",
                     "content_type": "application/pdf",
                     "datasets": ["dataset11"],
                     "extension": ".pdf",
@@ -438,7 +440,7 @@ async def test_get_all_datasets_and_files_data(
                     "status": "uploaded",
                 },
                 {
-                    "bucket": "merck",
+                    "bucket": "tenant1",
                     "content_type": "application/pdf",
                     "datasets": ["dataset11"],
                     "extension": ".pdf",

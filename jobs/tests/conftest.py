@@ -4,8 +4,12 @@ import time
 from typing import List
 from unittest.mock import patch
 
+import jobs.db_service as service
+import jobs.main as main
+import jobs.schemas as schemas
 import pytest
 from fastapi.testclient import TestClient
+from jobs.utils import get_test_db_url
 from pydantic import BaseModel
 from sqlalchemy import create_engine  # type: ignore
 from sqlalchemy.exc import SQLAlchemyError
@@ -16,12 +20,8 @@ from sqlalchemy_utils import (  # type: ignore
     drop_database,
 )
 
-import jobs.db_service as service
-import jobs.main as main
-import jobs.schemas as schemas
 from alembic import command
 from alembic.config import Config
-from jobs.utils import get_test_db_url
 
 main_database_url = os.environ.get("POSTGRESQL_JOBMANAGER_DATABASE_URI")
 test_db_url = get_test_db_url(main_database_url)
@@ -288,7 +288,7 @@ def separate_files_1_2_data_from_dataset_manager():
             {
                 "id": 1,
                 "original_name": "3.pdf",
-                "bucket": "merck",
+                "bucket": "tenant1",
                 "size_in_bytes": 44900,
                 "extension": ".pdf",
                 "content_type": "application/pdf",
@@ -301,7 +301,7 @@ def separate_files_1_2_data_from_dataset_manager():
             {
                 "id": 2,
                 "original_name": "4.pdf",
-                "bucket": "merck",
+                "bucket": "tenant1",
                 "size_in_bytes": 30111,
                 "extension": ".pdf",
                 "content_type": "application/pdf",

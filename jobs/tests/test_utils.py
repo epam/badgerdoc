@@ -1,10 +1,9 @@
 from unittest.mock import patch
 
 import aiohttp.client_exceptions
+import jobs.utils as utils
 import pytest
 from fastapi import HTTPException
-
-import jobs.utils as utils
 
 # --------------TEST get_files_data_from_datasets---------------
 
@@ -157,7 +156,7 @@ async def test_get_files_data_from_datasets_501_error(jw_token):
         assert e_info.value.status_code == 422
 
 
-# ---------------------TEST get_files_data_from_separate_files-------------------------------
+# ---------------------TEST get_files_data_from_separate_files-----------------
 
 
 @pytest.mark.asyncio
@@ -174,7 +173,7 @@ async def test_positive_get_files_data_from_separate_files(jw_token):
             {
                 "id": 1,
                 "original_name": "3.pdf",
-                "bucket": "merck",
+                "bucket": "tenant1",
                 "size_in_bytes": 44900,
                 "extension": ".pdf",
                 "content_type": "application/pdf",
@@ -187,7 +186,7 @@ async def test_positive_get_files_data_from_separate_files(jw_token):
             {
                 "id": 2,
                 "original_name": "4.pdf",
-                "bucket": "merck",
+                "bucket": "tenant1",
                 "size_in_bytes": 30111,
                 "extension": ".pdf",
                 "content_type": "application/pdf",
@@ -203,7 +202,7 @@ async def test_positive_get_files_data_from_separate_files(jw_token):
         expected_result = (
             [
                 {
-                    "bucket": "merck",
+                    "bucket": "tenant1",
                     "content_type": "application/pdf",
                     "datasets": ["dataset11"],
                     "extension": ".pdf",
@@ -216,7 +215,7 @@ async def test_positive_get_files_data_from_separate_files(jw_token):
                     "status": "uploaded",
                 },
                 {
-                    "bucket": "merck",
+                    "bucket": "tenant1",
                     "content_type": "application/pdf",
                     "datasets": ["dataset11"],
                     "extension": ".pdf",
@@ -254,7 +253,7 @@ async def test_get_files_data_from_separate_files_100_elements(jw_token):
             {
                 "id": i,
                 "original_name": f"{i}.pdf",
-                "bucket": "merck",
+                "bucket": "tenant1",
                 "size_in_bytes": 44900,
                 "extension": ".pdf",
                 "content_type": "application/pdf",
@@ -294,7 +293,7 @@ async def test_get_files_data_from_separate_files_101_elements(jw_token):
             {
                 "id": i,
                 "original_name": f"{i}.pdf",
-                "bucket": "merck",
+                "bucket": "tenant1",
                 "size_in_bytes": 44900,
                 "extension": ".pdf",
                 "content_type": "application/pdf",
@@ -319,7 +318,7 @@ async def test_get_files_data_from_separate_files_101_elements(jw_token):
             {
                 "id": i,
                 "original_name": f"{i}.pdf",
-                "bucket": "merck",
+                "bucket": "tenant1",
                 "size_in_bytes": 44900,
                 "extension": ".pdf",
                 "content_type": "application/pdf",
@@ -339,7 +338,7 @@ async def test_get_files_data_from_separate_files_101_elements(jw_token):
             {
                 "id": i,
                 "original_name": f"{i}.pdf",
-                "bucket": "merck",
+                "bucket": "tenant1",
                 "size_in_bytes": 44900,
                 "extension": ".pdf",
                 "content_type": "application/pdf",
@@ -366,7 +365,7 @@ async def test_get_files_data_from_separate_files_111_elements(jw_token):
         {
             "id": i,
             "original_name": f"{i}.pdf",
-            "bucket": "merck",
+            "bucket": "tenant1",
             "size_in_bytes": 44900,
             "extension": ".pdf",
             "content_type": "application/pdf",
@@ -390,7 +389,7 @@ async def test_get_files_data_from_separate_files_111_elements(jw_token):
             {
                 "id": i,
                 "original_name": f"{i}.pdf",
-                "bucket": "merck",
+                "bucket": "tenant1",
                 "size_in_bytes": 44900,
                 "extension": ".pdf",
                 "content_type": "application/pdf",
@@ -415,7 +414,7 @@ async def test_get_files_data_from_separate_files_111_elements(jw_token):
             {
                 "id": i,
                 "original_name": f"{i}.pdf",
-                "bucket": "merck",
+                "bucket": "tenant1",
                 "size_in_bytes": 44900,
                 "extension": ".pdf",
                 "content_type": "application/pdf",
@@ -470,25 +469,25 @@ async def test_get_pipeline_id_by_its_name_positive(jw_token):
             {
                 "id": "c56614b0-7b9d-4dd4-a42d-d6a6d447f3b0",
                 "name": "first_step",
-                "model": "https://de0a3a54-03ef-4d45-9c24-346e45dbc549.mock.pstmn.io/kek1",
+                "model": "https://de0a3a54-03ef-4d45-9c24-346e45dbc549.mock.pstmn.io/kek1",  # noqa
                 "steps": [
                     {
                         "id": "bbc56daf-5a69-46f0-a0af-ea998815c362",
                         "name": "sec",
-                        "model": "https://de0a3a54-03ef-4d45-9c24-346e45dbc549.mock.pstmn.io/kek3",
+                        "model": "https://de0a3a54-03ef-4d45-9c24-346e45dbc549.mock.pstmn.io/kek3",  # noqa
                         "label": "table",
                         "steps": [
                             {
                                 "id": "63ecbed4-93bc-486c-966b-e7fda8c3cddc",
                                 "name": "foo",
-                                "model": "https://de0a3a54-03ef-4d45-9c24-346e45dbc549.mock.pstmn.io/kek1",
+                                "model": "https://de0a3a54-03ef-4d45-9c24-346e45dbc549.mock.pstmn.io/kek1",  # noqa
                             }
                         ],
                     },
                     {
                         "id": "8986012f-bb6a-490e-b0e4-da3ef8aed2a9",
                         "name": "foo",
-                        "model": "https://de0a3a54-03ef-4d45-9c24-346e45dbc549.mock.pstmn.io/kek1",
+                        "model": "https://de0a3a54-03ef-4d45-9c24-346e45dbc549.mock.pstmn.io/kek1",  # noqa
                         "label": "mrt",
                     },
                 ],
@@ -496,7 +495,7 @@ async def test_get_pipeline_id_by_its_name_positive(jw_token):
             {
                 "id": "49ff07bc-0c1d-471f-a62b-60a412c5f779",
                 "name": "asd",
-                "model": "https://de0a3a54-03ef-4d45-9c24-346e45dbc549.mock.pstmn.io/kek2",
+                "model": "https://de0a3a54-03ef-4d45-9c24-346e45dbc549.mock.pstmn.io/kek2",  # noqa
             },
         ],
     }
@@ -581,7 +580,7 @@ def mock_files_data_to_convert():
             "original_name": "33.pdf",
             "pages": 6,
             "size_in_bytes": 917433,
-            "uuid_name": "minioadmin/223781a0f9c44bc69daf09e1da6a8c02/223781a0f9c44bc69daf09e1da6a8c02",
+            "uuid_name": "minioadmin/223781a0f9c44bc69daf09e1da6a8c02/223781a0f9c44bc69daf09e1da6a8c02",  # noqa
         },
         {
             "bucket": "bucket11",
@@ -592,7 +591,7 @@ def mock_files_data_to_convert():
             "original_name": "44.pdf",
             "pages": 32,
             "size_in_bytes": 2680002,
-            "uuid_name": "minioadmin/9949bfab887148e58ae1fdb7209bb1b3/9949bfab887148e58ae1fdb7209bb1b3",
+            "uuid_name": "minioadmin/9949bfab887148e58ae1fdb7209bb1b3/9949bfab887148e58ae1fdb7209bb1b3",  # noqa
         },
     ]
     return mock_files_data_to_convert
@@ -779,7 +778,7 @@ def test_convert_files_data_for_inference_without_output_bucket(
     )
 
 
-def test_convert_files_data_for_inference_with_completley_another_output_bucket(
+def test_convert_files_data_for_inference_with_completley_another_output_bucket(  # noqa
     files_data_from_FManager,
 ):
     expected_result = [

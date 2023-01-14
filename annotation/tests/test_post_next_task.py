@@ -3,11 +3,6 @@ from unittest.mock import Mock, patch
 
 import pytest
 import responses
-from fastapi.testclient import TestClient
-from requests import ConnectionError, RequestException, Timeout
-from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import Session
-
 from app.microservice_communication.assets_communication import (
     ASSETS_FILES_URL,
 )
@@ -23,6 +18,11 @@ from app.schemas import (
     TaskStatusEnumSchema,
     ValidationSchema,
 )
+from fastapi.testclient import TestClient
+from requests import ConnectionError, RequestException, Timeout
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session
+
 from tests.override_app_dependency import (
     TEST_HEADERS,
     TEST_TENANT,
@@ -143,7 +143,7 @@ FILES_FROM_ASSETS = [
     {
         "id": 2,
         "original_name": "some_1.pdf",
-        "bucket": "merck",
+        "bucket": "tenant1",
         "size_in_bytes": 165887,
         "content_type": "image/png",
         "pages": 10,
@@ -175,7 +175,7 @@ JOBS_FROM_JOBS_SERVICE = {
                     "id": 3,
                     "path": "files/3/3.pdf",
                     "pages": 6,
-                    "bucket": "merck",
+                    "bucket": "tenant1",
                     "status": "uploaded",
                     "datasets": ["dataset22"],
                     "extension": ".pdf",
@@ -309,7 +309,7 @@ EXPANDED_NEXT_TASK_RESPONSES_WITH_USER = [
     dict(
         id=2,
         pages=[1, 2, 3],
-        user={'id': ANNOTATORS[0].user_id, 'name': 'admin'},
+        user={"id": ANNOTATORS[0].user_id, "name": "admin"},
         is_validation=False,
         status=TaskStatusEnumSchema.in_progress,
         deadline=None,
@@ -325,7 +325,7 @@ EXPANDED_NEXT_TASK_RESPONSES_WITH_USER = [
     dict(
         id=4,
         pages=[1, 2, 3],
-        user={'id': ANNOTATORS[1].user_id, 'name': 'admin'},
+        user={"id": ANNOTATORS[1].user_id, "name": "admin"},
         is_validation=False,
         status=TaskStatusEnumSchema.in_progress,
         deadline=None,

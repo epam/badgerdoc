@@ -2,9 +2,6 @@ from unittest.mock import Mock
 
 import pytest
 import responses
-from fastapi import HTTPException
-from requests import ConnectionError, RequestException, Timeout
-
 from app.microservice_communication.assets_communication import (
     ASSETS_FILES_URL,
     ASSETS_URL,
@@ -13,13 +10,16 @@ from app.microservice_communication.assets_communication import (
     get_file_path_and_bucket,
     get_files_info,
 )
+from fastapi import HTTPException
+from requests import ConnectionError, RequestException, Timeout
+
 from tests.override_app_dependency import TEST_HEADERS, TEST_TENANT, TEST_TOKEN
 
 FILES = [
     {
         "id": 1,
         "original_name": "name_1.pdf",
-        "bucket": "merck",
+        "bucket": "tenant1",
         "size_in_bytes": 20702285,
         "extension": ".pdf",
         "content_type": "application/pdf",
@@ -32,7 +32,7 @@ FILES = [
     {
         "id": 2,
         "original_name": "name_2.pdf",
-        "bucket": "merck",
+        "bucket": "tenant1",
         "size_in_bytes": 20597,
         "extension": ".pdf",
         "content_type": "application/pdf",
@@ -45,7 +45,7 @@ FILES = [
     {
         "id": 3,
         "original_name": "name_3.pdf",
-        "bucket": "merck",
+        "bucket": "tenant1",
         "size_in_bytes": 658529,
         "extension": ".pdf",
         "content_type": "application/pdf",
@@ -58,7 +58,7 @@ FILES = [
     {
         "id": 4,
         "original_name": "name_4.pdf",
-        "bucket": "merck",
+        "bucket": "tenant1",
         "size_in_bytes": 658529,
         "extension": ".pdf",
         "content_type": "application/pdf",

@@ -1,8 +1,5 @@
 import pytest
 import responses
-from fastapi import HTTPException
-from requests import ConnectionError, RequestException, Timeout
-
 from app.microservice_communication.assets_communication import (
     ASSETS_FILES_URL,
 )
@@ -19,6 +16,9 @@ from app.schemas import (
     ExpandedManualAnnotationTaskSchema,
     TaskStatusEnumSchema,
 )
+from fastapi import HTTPException
+from requests import ConnectionError, RequestException, Timeout
+
 from tests.override_app_dependency import TEST_HEADERS, TEST_TENANT, TEST_TOKEN
 
 AMOUNT_OF_ELEMENTS = 150
@@ -54,7 +54,7 @@ ASSETS_FILES = [
     {
         "id": i,
         "original_name": f"some_{i}.pdf",
-        "bucket": "merck",
+        "bucket": "tenant1",
         "size_in_bytes": 165887,
         "content_type": "image/png",
         "pages": i,
@@ -99,7 +99,7 @@ JOBS_RESPONSE = {
                     "id": 3,
                     "path": "files/3/3.pdf",
                     "pages": 6,
-                    "bucket": "merck",
+                    "bucket": "tenant1",
                     "status": "uploaded",
                     "datasets": ["dataset22"],
                     "extension": ".pdf",
@@ -176,7 +176,7 @@ USER_LOGINS = {
     TASKS[0].user_id: "test1",
     "7b626e68-857d-430a-b65b-bba0a40417ee": "test1",
     "7b626e68-857d-430a-b65b-bba0a40417ea": "test2",
-    "7b626e68-857d-430a-b65b-bba0a40417eb": "test3"
+    "7b626e68-857d-430a-b65b-bba0a40417eb": "test3",
 }
 EXPANDED_TASKS = [
     ExpandedManualAnnotationTaskSchema(
