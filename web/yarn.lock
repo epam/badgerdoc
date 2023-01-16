@@ -1233,13 +1233,6 @@
   resolved "https://registry.npmjs.org/@csstools/normalize.css/-/normalize.css-10.1.0.tgz"
   integrity sha512-ij4wRiunFfaJxjB0BdrYHIH8FxBJpOwNPhhAcunlmPdXudL1WQV1qoP9un6JsEBAgQH+7UXyyjh0g7jTxXK6tg==
 
-"@epam/assets@4.6.1":
-  version "4.6.1"
-  resolved "https://registry.yarnpkg.com/@epam/assets/-/assets-4.6.1.tgz#c192f9fbd97a2ec828ecd0785a99849e5fe19e08"
-  integrity sha512-0aAxHIVtJ8W7IXtPyLYRHgwDcoFiA3sM5P3yCTKygQ4YQanhfErJXSZh7Wb2ZoUUZmUytPfrGMTSt2SeL23hCg==
-  dependencies:
-    normalize.css "^7.0.0"
-
 "@epam/assets@4.9.1", "@epam/assets@^4.9.1":
   version "4.9.1"
   resolved "https://registry.yarnpkg.com/@epam/assets/-/assets-4.9.1.tgz#d327703e672efd57194582e3ff3060d3a0137fbe"
@@ -1265,55 +1258,24 @@
     react-custom-scrollbars-2 "^4.4.0"
     react-popper "2.2.5"
 
-"@epam/promo@^4.6.1":
-  version "4.6.1"
-  resolved "https://registry.yarnpkg.com/@epam/promo/-/promo-4.6.1.tgz#cd5382ecea3ab3c22b5e5a22ac40d3ec381bf340"
-  integrity sha512-T5EayOA8Q270y7HtArQi4Q3JP9FSwLt7QJl/3zgdt+mYxHfjuzyBdobdKtTF6axJC+YyZQu42RX8UskJV3RM0A==
+"@epam/promo@^4.9.2":
+  version "4.9.2"
+  resolved "https://registry.yarnpkg.com/@epam/promo/-/promo-4.9.2.tgz#6f14ebe5970f9d5bfb231e13dd4bd92a7ce43b71"
+  integrity sha512-rdAjz/TWyU1OQlCBIW9m5OSq7w7TtLQaHW6rIGeM0MM+sacfXdtcH/rhBBCMGAczwccMLLMsMD+i+34WcM01DQ==
   dependencies:
-    "@epam/assets" "4.6.1"
-    "@epam/uui-components" "4.6.1"
-    "@epam/uui-core" "4.6.1"
+    "@epam/assets" "4.9.1"
+    "@epam/uui-components" "4.9.2"
+    "@epam/uui-core" "4.9.2"
     "@types/classnames" "2.2.6"
     "@types/lodash.isequal" "4.5.5"
     "@types/lodash.sortby" "4.7.6"
-    "@types/react-custom-scrollbars" "4.0.3"
     classnames "2.2.6"
-    dayjs "^1.10.6"
+    dayjs "1.10.7"
     lodash.isequal "4.5.0"
     lodash.sortby "4.7.0"
     react-custom-scrollbars-2 "^4.4.0"
     react-focus-lock "2.7.1"
     react-popper "2.2.5"
-
-"@epam/uui-components@4.6.1":
-  version "4.6.1"
-  resolved "https://registry.yarnpkg.com/@epam/uui-components/-/uui-components-4.6.1.tgz#02979c0209df24dbc2926d8637860b70d34a6e9b"
-  integrity sha512-WJs39EaD29QzLHg4DBWBfmYvKA5xHej1HktXyVJVtcviFhHJZ9VwOS7qMIWFqHorYLGsqs6ZLZqZwCCvqgCwlw==
-  dependencies:
-    "@epam/uui-core" "4.6.1"
-    "@popperjs/core" "2.9.0"
-    "@types/classnames" "2.2.6"
-    "@types/lodash.clone" "4.5.6"
-    "@types/lodash.isequal" "4.5.5"
-    "@types/lodash.orderby" "4.6.6"
-    "@types/lodash.range" "3.2.6"
-    "@types/query-string" "6.1.0"
-    "@types/react-custom-scrollbars" "4.0.3"
-    "@types/react-measure" "2.0.6"
-    "@types/react-transition-group" "4.4.1"
-    "@types/resize-observer-browser" "0.1.5"
-    classnames "2.2.6"
-    csstype "2.6.10"
-    dayjs "^1.10.6"
-    lodash.clone "4.5.0"
-    lodash.isequal "4.5.0"
-    lodash.orderby "4.6.0"
-    lodash.range "3.2.0"
-    react-custom-scrollbars-2 "^4.4.0"
-    react-focus-lock "2.7.1"
-    react-measure "2.5.2"
-    react-popper "2.2.4"
-    react-transition-group "4.4.2"
 
 "@epam/uui-components@4.9.2", "@epam/uui-components@^4.9.2":
   version "4.9.2"
@@ -1343,35 +1305,6 @@
     react-measure "2.5.2"
     react-popper "2.2.5"
     react-transition-group "4.4.2"
-
-"@epam/uui-core@4.6.1":
-  version "4.6.1"
-  resolved "https://registry.yarnpkg.com/@epam/uui-core/-/uui-core-4.6.1.tgz#9da858cc000051c8c0341e74bc3d230526e8e82e"
-  integrity sha512-W/YUshWcJzrwCt4YrbhG7ykdCZeLG5obdgr0w9As54848dYSCfCM2r98ULQXAegkkfCK59X0h9lhyRiE4mXzsQ==
-  dependencies:
-    "@types/classnames" "2.2.6"
-    "@types/lodash.clone" "4.5.6"
-    "@types/lodash.debounce" "4.0.6"
-    "@types/lodash.isequal" "4.5.5"
-    "@types/lodash.maxby" "4.6.6"
-    "@types/lodash.memoize" "4.1.6"
-    "@types/lodash.orderby" "4.6.6"
-    "@types/lodash.sortby" "4.7.6"
-    "@types/lodash.trimend" "4.5.6"
-    "@types/query-string" "6.3.0"
-    classnames "2.2.6"
-    csstype "2.6.10"
-    jsurl "0.1.5"
-    lodash.clone "4.5.0"
-    lodash.debounce "4.0.8"
-    lodash.isequal "4.5.0"
-    lodash.maxby "4.6.0"
-    lodash.memoize "4.1.2"
-    lodash.orderby "4.6.0"
-    lodash.sortby "4.7.0"
-    lodash.trimend "4.5.1"
-    query-string "7.1.1"
-    react-popper "2.2.5"
 
 "@epam/uui-core@4.9.2":
   version "4.9.2"
@@ -2491,24 +2424,10 @@
   resolved "https://registry.npmjs.org/@types/query-string/-/query-string-6.1.0.tgz"
   integrity sha512-6QxF7V3SkdyBRJ81GheWL9Nzr7uDrCZH0hkxdorNcXeBOeAPN5AUf1n9dpecaBOzxJAckWP4nIOeY1YxlhuMTQ==
 
-"@types/query-string@6.3.0":
-  version "6.3.0"
-  resolved "https://registry.yarnpkg.com/@types/query-string/-/query-string-6.3.0.tgz#b6fa172a01405abcaedac681118e78429d62ea39"
-  integrity sha512-yuIv/WRffRzL7cBW+sla4HwBZrEXRNf1MKQ5SklPEadth+BKbDxiVG8A3iISN5B3yC4EeSCzMZP8llHTcUhOzQ==
-  dependencies:
-    query-string "*"
-
 "@types/range-parser@*":
   version "1.2.4"
   resolved "https://registry.npmjs.org/@types/range-parser/-/range-parser-1.2.4.tgz"
   integrity sha512-EEhsLsD6UsDM1yFhAvy0Cjr6VwmpMWqFBCb9w07wVugF7w9nfajxLuVmngTIpgS6svCnm6Vaw+MZhoDCKnOfsw==
-
-"@types/react-custom-scrollbars@4.0.3":
-  version "4.0.3"
-  resolved "https://registry.npmjs.org/@types/react-custom-scrollbars/-/react-custom-scrollbars-4.0.3.tgz"
-  integrity sha512-QR2oYInCuUBpUig0sq7cLbJV4pv0Ve1I6rGKLTSWPANj3V9Ge6Zr+BzFOpmR2mSj62d+JHwC7SOmEgm+Awit/w==
-  dependencies:
-    "@types/react" "*"
 
 "@types/react-datepicker@^4.3.2":
   version "4.3.2"
@@ -2586,13 +2505,6 @@
     "@types/history" "*"
     "@types/react" "*"
 
-"@types/react-transition-group@4.4.1":
-  version "4.4.1"
-  resolved "https://registry.npmjs.org/@types/react-transition-group/-/react-transition-group-4.4.1.tgz"
-  integrity sha512-vIo69qKKcYoJ8wKCJjwSgCTM+z3chw3g18dkrDfVX665tMH7tmbDxEAnPdey4gTlwZz5QuHGzd+hul0OVZDqqQ==
-  dependencies:
-    "@types/react" "*"
-
 "@types/react-transition-group@4.4.4":
   version "4.4.4"
   resolved "https://registry.yarnpkg.com/@types/react-transition-group/-/react-transition-group-4.4.4.tgz#acd4cceaa2be6b757db61ed7b432e103242d163e"
@@ -2608,11 +2520,6 @@
     "@types/prop-types" "*"
     "@types/scheduler" "*"
     csstype "^3.0.2"
-
-"@types/resize-observer-browser@0.1.5":
-  version "0.1.5"
-  resolved "https://registry.npmjs.org/@types/resize-observer-browser/-/resize-observer-browser-0.1.5.tgz"
-  integrity sha512-8k/67Z95Goa6Lznuykxkfhq9YU3l1Qe6LNZmwde1u7802a3x8v44oq0j91DICclxatTr0rNnhXx7+VTIetSrSQ==
 
 "@types/resolve@0.0.8":
   version "0.0.8"
@@ -4929,7 +4836,7 @@ date-fns@^2.0.1, date-fns@^2.24.0:
   resolved "https://registry.npmjs.org/date-fns/-/date-fns-2.27.0.tgz"
   integrity sha512-sj+J0Mo2p2X1e306MHq282WS4/A8Pz/95GIFcsPNMPMZVI3EUrAdSv90al1k+p74WGLCruMXk23bfEDZa71X9Q==
 
-dayjs@1.10.7, dayjs@^1.10.6:
+dayjs@1.10.7:
   version "1.10.7"
   resolved "https://registry.npmjs.org/dayjs/-/dayjs-1.10.7.tgz"
   integrity sha512-P6twpd70BcPK34K26uJ1KT3wlhpuOAPoMwJzpsIWUxHZ7wpmbdZL/hQqBDfz7hGurYSa5PhzdhDHtt319hL3ig==
@@ -6155,11 +6062,6 @@ fill-range@^7.0.1:
   integrity sha512-qOo9F+dMUmC2Lcb4BbVvnKJxTPjCm+RRpe4gDuGrzkL7mEVl/djYSu2OdQ2Pa302N4oqkSg9ir6jaLWJ2USVpQ==
   dependencies:
     to-regex-range "^5.0.1"
-
-filter-obj@^1.1.0:
-  version "1.1.0"
-  resolved "https://registry.npmjs.org/filter-obj/-/filter-obj-1.1.0.tgz"
-  integrity sha1-mzERErxsYSehbgFsbF1/GeCAXFs=
 
 finalhandler@~1.1.2:
   version "1.1.2"
@@ -10767,16 +10669,6 @@ qs@^6.10.2:
   dependencies:
     side-channel "^1.0.4"
 
-query-string@*, query-string@7.1.1:
-  version "7.1.1"
-  resolved "https://registry.yarnpkg.com/query-string/-/query-string-7.1.1.tgz#754620669db978625a90f635f12617c271a088e1"
-  integrity sha512-MplouLRDHBZSG9z7fpuAAcI7aAYjDLhtsiVZsevsfaHWDS2IDdORKbSd1kWUA+V4zyva/HZoSfpwnYMMQDhb0w==
-  dependencies:
-    decode-uri-component "^0.2.0"
-    filter-obj "^1.1.0"
-    split-on-first "^1.0.0"
-    strict-uri-encode "^2.0.0"
-
 query-string@^4.1.0:
   version "4.3.4"
   resolved "https://registry.npmjs.org/query-string/-/query-string-4.3.4.tgz"
@@ -11116,14 +11008,6 @@ react-pdf@^5.3.2:
     merge-refs "^1.0.0"
     pdfjs-dist "2.6.347"
     prop-types "^15.6.2"
-
-react-popper@2.2.4:
-  version "2.2.4"
-  resolved "https://registry.npmjs.org/react-popper/-/react-popper-2.2.4.tgz"
-  integrity sha512-NacOu4zWupdQjVXq02XpTD3yFPSfg5a7fex0wa3uGKVkFK7UN6LvVxgcb+xYr56UCuWiNPMH20tntdVdJRwYew==
-  dependencies:
-    react-fast-compare "^3.0.1"
-    warning "^4.0.2"
 
 react-popper@2.2.5, react-popper@^2.2.5:
   version "2.2.5"
@@ -12273,11 +12157,6 @@ spdy@^4.0.2:
     select-hose "^2.0.0"
     spdy-transport "^3.0.0"
 
-split-on-first@^1.0.0:
-  version "1.1.0"
-  resolved "https://registry.npmjs.org/split-on-first/-/split-on-first-1.1.0.tgz"
-  integrity sha512-43ZssAJaMusuKWL8sKUBQXHWOpq8d6CfN/u1p4gUzfJkM05C8rxTmYrkIPTXapZpORA6LkkzcUulJ8FqA7Uudw==
-
 split-string@^3.0.1, split-string@^3.0.2:
   version "3.1.0"
   resolved "https://registry.npmjs.org/split-string/-/split-string-3.1.0.tgz"
@@ -12371,11 +12250,6 @@ strict-uri-encode@^1.0.0:
   version "1.1.0"
   resolved "https://registry.npmjs.org/strict-uri-encode/-/strict-uri-encode-1.1.0.tgz"
   integrity sha1-J5siXfHVgrH1TmWt3UNS4Y+qBxM=
-
-strict-uri-encode@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.npmjs.org/strict-uri-encode/-/strict-uri-encode-2.0.0.tgz"
-  integrity sha1-ucczDHBChi9rFC3CdLvMWGbONUY=
 
 string-length@^4.0.1:
   version "4.0.2"

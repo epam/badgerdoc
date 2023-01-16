@@ -1,8 +1,8 @@
 import React from 'react';
-import styles from './task-document-pages.module.scss';
 import { useTaskAnnotatorContext } from 'connectors/task-annotator-connector/task-annotator-context';
 import DocumentPages from 'shared/components/document-pages/document-pages';
 import ExternalViewerPopup from 'components/external-viewer-modal/external-viewer-popup';
+import styles from './task-document-pages.module.scss';
 
 export interface DocumentPageProps {
     viewMode: boolean;
@@ -29,8 +29,10 @@ const TaskDocumentPages = (props: DocumentPageProps) => {
     } = useTaskAnnotatorContext();
 
     const isValidation = task?.is_validation;
+    const isReady = task?.status === 'Ready';
+    const isInProgress = task?.status === 'In Progress';
     const isEdited = editedPages.includes(currentPage);
-    const editable = !viewMode && (!isValidation || isEdited);
+    const editable = !viewMode && (!isValidation || isEdited) && (isReady || isInProgress);
 
     return (
         <div className={styles.container}>
