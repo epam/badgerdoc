@@ -72,7 +72,7 @@
         ]
     },
     "simple-git-hooks": {
-        "pre-commit": "cd web && yarn lint:js --fix && yarn lint:types && git add .",
+        "pre-commit": "cd web && yarn lint:js --fix && yarn lint:types",
         "pre-push": "cd web && yarn test --runInBand --passWithNoTests --verbose --watchAll=false"
     },
     "resolutions": {
