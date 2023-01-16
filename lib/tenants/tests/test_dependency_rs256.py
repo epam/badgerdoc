@@ -1,10 +1,10 @@
 from src.dependency import (
-    get_tenant_info,
     TenantDependencyBase,
     TenantDependencyDocs,
+    get_tenant_info,
 )
 
-CURRENT_TENANT = "merck"
+CURRENT_TENANT = "tenant1"
 
 
 def test_dependency_positive(token_mock_rs256, test_app_rs256):
@@ -14,7 +14,7 @@ def test_dependency_positive(token_mock_rs256, test_app_rs256):
     }
     response_body = {
         "roles": ["role-annotator"],
-        "tenants": ["merck", "epam"],
+        "tenants": ["tenant1", "epam"],
         "token": f"{token_mock_rs256}",
         "user_id": "901",
     }

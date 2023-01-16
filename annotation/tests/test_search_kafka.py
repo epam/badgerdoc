@@ -1,10 +1,6 @@
 from unittest import mock
 
 import responses
-from fastapi.testclient import TestClient
-from kafka.errors import NoBrokersAvailable
-from pytest import mark
-
 from app.annotations import add_search_annotation_producer
 from app.kafka_client import producers
 from app.microservice_communication.assets_communication import (
@@ -17,6 +13,10 @@ from app.schemas import (
     TaskStatusEnumSchema,
     ValidationSchema,
 )
+from fastapi.testclient import TestClient
+from kafka.errors import NoBrokersAvailable
+from pytest import mark
+
 from tests.override_app_dependency import TEST_HEADERS, TEST_TENANT, app
 
 from .consts import ANNOTATION_PATH
@@ -75,7 +75,7 @@ ASSETS_RESPONSE = {
         {
             "id": ANNOTATION_KAFKA_FILE_ID,
             "original_name": "some.pdf",
-            "bucket": "merck",
+            "bucket": "tenant1",
             "size_in_bytes": 165887,
             "content_type": "image/png",
             "pages": 10,

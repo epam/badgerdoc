@@ -1,14 +1,13 @@
-from unittest.mock import patch, MagicMock
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
-from fastapi import FastAPI, Depends
+import pytest
+from fastapi import Depends, FastAPI
 from fastapi.testclient import TestClient
+from usage_example.jwt_generator import create_access_token
 
 from src import TenantData
-from usage_example.jwt_generator import create_access_token
 from src.dependency import get_tenant_info
-import pytest
-
 
 SECRET_KEY = "test_secret_key"
 
@@ -60,7 +59,7 @@ def token_mock_rs256():
     payload = {
         "sub": "901",
         "realm_access": {"roles": ["role-annotator"]},
-        "tenants": ["merck", "epam"],
+        "tenants": ["tenant1", "epam"],
     }
 
     token = create_access_token(
@@ -114,7 +113,7 @@ def expired_token_mock_rs256():
     payload = {
         "sub": "901",
         "realm_access": {"roles": ["role-annotator"]},
-        "tenants": ["merck", "epam"],
+        "tenants": ["tenant1", "epam"],
     }
     token = create_access_token(
         data=payload, secret=private_key, expires_delta=-15, algorithm="RS256"
@@ -127,7 +126,7 @@ def wrong_data_token_mock_rs256():
     payload = {
         "sub": "901",
         "realm_access": {"roles": ["role-annotator"]},
-        "qtenants": ["merck"],
+        "qtenants": ["tenant1"],
     }
     token = create_access_token(
         data=payload, secret=private_key, expires_delta=15, algorithm="RS256"
@@ -140,7 +139,7 @@ def token_mock_hs256():
     payload = {
         "sub": "901",
         "realm_access": {"roles": ["role-annotator"]},
-        "tenants": ["merck", "epam"],
+        "tenants": ["tenant1", "epam"],
     }
     token = create_access_token(
         data=payload, secret=SECRET_KEY, expires_delta=15
@@ -153,7 +152,7 @@ def expired_token_mock_hs256():
     payload = {
         "sub": "901",
         "realm_access": {"roles": ["role-annotator"]},
-        "tenants": ["merck", "epam"],
+        "tenants": ["tenant1", "epam"],
     }
     token = create_access_token(
         data=payload, secret=SECRET_KEY, expires_delta=-15
@@ -166,7 +165,7 @@ def wrong_data_token_mock_hs256():
     payload = {
         "sub": "901",
         "realm_access": {"roles": ["role-annotator"]},
-        "qtenants": ["merck"],
+        "qtenants": ["tenant1"],
     }
     token = create_access_token(
         data=payload, secret=SECRET_KEY, expires_delta=15

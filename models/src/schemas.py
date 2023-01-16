@@ -111,7 +111,7 @@ class Model(ModelWithId):
         description="Author who has created model", example="901"
     )
     created_at: datetime = Field(example="2021-11-09T17:09:43.101004")
-    tenant: str = Field(description="Author's tenant", example="Merck")
+    tenant: str = Field(description="Author's tenant", example="tenant1")
     latest: bool = Field(
         description="Flag to show if version of model is latest", example=True
     )
@@ -163,7 +163,7 @@ class Basement(BasementBase):
         description="Author who has created docker image", example="901"
     )
     created_at: datetime = Field(example="2021-11-09T17:09:43.101004")
-    tenant: str = Field(description="Author's tenant", example="Merck")
+    tenant: str = Field(description="Author's tenant", example="tenant1")
 
     class Config:
         orm_mode = True
@@ -202,7 +202,7 @@ class Training(TrainingUpdate):
         description="Author who has created training", example="901"
     )
     created_at: datetime = Field(example="2021-11-09T17:09:43.101004")
-    tenant: str = Field(description="Author's tenant", example="Merck")
+    tenant: str = Field(description="Author's tenant", example="tenant1")
     key_archive: str = Field(None, example="trainings/127/training_archive")
     key_annotation_dataset: str = Field(
         None, example="coco/dfedf2ed-1f11-4e44-bdbd-7c6c25111abc.zip"
