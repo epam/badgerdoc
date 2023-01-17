@@ -76,7 +76,7 @@ REV_WITHOUT_ANNOTATION_DOC_1 = {
         "1": "adda414648714f01c1c9657646b72ebb4433c8b5",
         "2": "19fe52cce6a632c6eb09fdc5b3e1594f926eea69",
     },
-    "validated": [1, 3],
+    "validated": [3],
     "tenant": TEST_TENANT,
     "task_id": REV_WITHOUT_ANNOTATION_TASK.id,
     "failed_validation_pages": [],

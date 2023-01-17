@@ -283,8 +283,8 @@ export const useGetValidatedPages: QueryHookType<UseTaskForValidatedPagesParams,
 interface TaskOptions {
     taskId: number;
     options?: {
-        option_invalid?: string;
-        option_edited?: string;
+        option_invalid?: string | null;
+        option_edited?: string | null;
     };
 }
 

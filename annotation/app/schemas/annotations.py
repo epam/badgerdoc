@@ -116,26 +116,26 @@ class DocForSaveSchema(BaseModel):
     @root_validator
     def check_not_intersecting_pages(cls, values):
         """
-        Same pages should not be in validated and failed
+        Same pages should not be in annotated or validated or failed
         arrays at the same time.
         """
-        validated, failed = (
-            values.get("validated"),
-            values.get("failed_validation_pages"),
+        annotated, validated, failed = (
+            set([i.page_num for i in values.get("pages", {})]),
+            values.get("validated", set()) or set(),
+            values.get("failed_validation_pages", set()) or set(),
         )
 
-        validated = set() if validated is None else validated
-        failed = set() if failed is None else failed
+        intersecting_pages = annotated.intersection(validated)
+        intersecting_pages.update(annotated.intersection(failed))
+        intersecting_pages.update(validated.intersection(failed))
 
-        intersecting_pages = validated & failed
         if intersecting_pages:
             raise ValueError(
                 f"Pages {intersecting_pages} "
-                "should not be in validated and "
+                "should not be in annotated (pages), validated and "
                 "failed validation arrays at the "
                 "same time. "
             )
-
         return values
 
     @root_validator

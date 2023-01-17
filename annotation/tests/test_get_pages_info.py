@@ -65,7 +65,7 @@ ANNOTATED_DOCS = [
         date="2004-10-19 10:23:54",
         file_id=FILE.file_id,
         job_id=JOB.job_id,
-        pages={"1": "1"},
+        pages={},
         validated=[1, 2],
         failed_validation_pages=[3, 4],
         tenant=TEST_TENANT,
@@ -78,7 +78,7 @@ ANNOTATED_DOCS = [
         date="2004-10-19 10:23:55",
         file_id=FILE.file_id,
         job_id=JOB.job_id,
-        pages={"3": "3"},
+        pages={},
         validated=[3],
         failed_validation_pages=[2],
         tenant=TEST_TENANT,
@@ -96,7 +96,7 @@ DOCS_FOR_ACCUMULATE_PAGES_INFO = [
             date="2004-10-19 10:23:54",
             file_id=FILE.file_id,
             job_id=JOB.job_id,
-            pages={"1": "1"},
+            pages={},
             validated=[1, 2],
             failed_validation_pages=[3, 4],
             tenant=TEST_TENANT,
@@ -137,7 +137,7 @@ DOCS_FOR_ACCUMULATE_PAGES_INFO = [
             date="2004-10-19 10:23:55",
             file_id=FILE.file_id,
             job_id=JOB.job_id,
-            pages={"1": "1"},
+            pages={},
             validated=[1, 2],
             failed_validation_pages=[3, 4],
             tenant=TEST_TENANT,
@@ -161,7 +161,7 @@ DOCS_FOR_ACCUMULATE_PAGES_INFO = [
     ],
 ]
 
-EXPECTED_ACCUMULATE_PAGES_INFO = ({1, 3}, {4, 2}, {1, 3}, {5, 6})
+EXPECTED_ACCUMULATE_PAGES_INFO = ({1, 3}, {4, 2}, set(), {5, 6})
 
 
 @pytest.mark.unittest
@@ -172,12 +172,12 @@ EXPECTED_ACCUMULATE_PAGES_INFO = ({1, 3}, {4, 2}, {1, 3}, {5, 6})
         (
             DOCS_FOR_ACCUMULATE_PAGES_INFO[0],
             (TASKS[0].pages,),
-            ({1, 2}, {3, 4}, {1}, {5, 6}),
+            ({1, 2}, {3, 4}, set(), {5, 6}),
         ),
         (
             DOCS_FOR_ACCUMULATE_PAGES_INFO[1],
             (TASKS[0].pages,),
-            ({1, 2}, {3, 4}, {1}, {5, 6}),
+            ({1, 2}, {3, 4}, set(), {5, 6}),
         ),
         (
             DOCS_FOR_ACCUMULATE_PAGES_INFO[2],
@@ -254,7 +254,7 @@ def test_get_task_revisions(
             TEST_TENANT,
             200,
             {
-                "annotated_pages": [1, 3],
+                "annotated_pages": [],
                 "failed_validation_pages": [2, 4],
                 "validated": [1, 3],
                 "not_processed": [5, 6],
