@@ -131,6 +131,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
             await useSetTaskState({ id: task?.id, eventType: 'closed' });
         }
     };
+
     const onSaveValidForm = () => {
         if (task) {
             finishTaskMutation.mutateAsync({ taskId: task?.id });
@@ -189,6 +190,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
                 if (
                     pages?.failed_validation_pages.length === 0 &&
                     pages?.not_processed.length === 0 &&
+                    pages?.annotated_pages.length === 0 &&
                     pages.validated
                 ) {
                     setAllvalid(true);
