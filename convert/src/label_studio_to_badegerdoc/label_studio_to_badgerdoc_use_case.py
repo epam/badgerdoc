@@ -8,7 +8,7 @@ from .badgerdoc_format.pdf_renderer import PDFRenderer
 from .badgerdoc_format.plain_text_converter import (
     TextToBadgerdocTokensConverter,
 )
-from .models.vertex_models import LabelStudioModel, S3Path
+from .models.label_studio_models import LabelStudioModel, S3Path
 
 
 class VertexToBDConvertUseCase:

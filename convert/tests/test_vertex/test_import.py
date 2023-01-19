@@ -9,11 +9,11 @@ from src.config import (
     DEFAULT_PDF_LINE_SPACING,
     DEFAULT_PDF_PAGE_WIDTH,
 )
-from src.vertex_to_bd.badgerdoc_format.badgerdoc_format import BadgerdocFormat
-from src.vertex_to_bd.badgerdoc_format.plain_text_converter import (
+from src.label_studio_to_badegerdoc.badgerdoc_format.badgerdoc_format import BadgerdocFormat
+from src.label_studio_to_badegerdoc.badgerdoc_format.plain_text_converter import (
     TextToBadgerdocTokensConverter,
 )
-from src.vertex_to_bd.models.vertex_models import LabelStudioModel
+from src.label_studio_to_badegerdoc.models.label_studio_models import LabelStudioModel
 
 TEST_FILES_DIR = Path(__file__).parent / "test_data"
 
@@ -25,7 +25,7 @@ TEST_PDF = TEST_FILES_DIR / "test.pdf"
 
 
 def test_plain_text_converter():
-    vertex_data = json.loads(INPUT_VERTEX_FILE.read_text())
+    label_studio_data = json.loads(INPUT_VERTEX_FILE.read_text())
     converter = TextToBadgerdocTokensConverter(
         page_width=DEFAULT_PDF_PAGE_WIDTH,
         page_border_offset=DEFAULT_PAGE_BORDER_OFFSET,
@@ -33,7 +33,7 @@ def test_plain_text_converter():
         font_width=DEFAULT_PDF_FONT_WIDTH,
         line_spacing=DEFAULT_PDF_LINE_SPACING,
     )
-    tokens = converter.convert(vertex_data["text"])
+    tokens = converter.convert(label_studio_data["text"])
     expected_bd_tokens = json.loads(Path(BADGERDOC_TOKENS_FILE).read_text())
     assert tokens.dict(by_alias=True) == expected_bd_tokens
 

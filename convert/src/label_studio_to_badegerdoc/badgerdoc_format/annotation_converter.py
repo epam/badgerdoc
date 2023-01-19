@@ -2,7 +2,7 @@ from typing import List, Optional, Tuple
 
 from ..models.bd_annotation_model import BadgerdocAnnotation, Obj, Page, Size
 from ..models.bd_tokens_model import Page as BadgerdocTokensPage
-from ..models.vertex_models import LabelStudioModel, ModelItem, ResultItem
+from ..models.label_studio_models import LabelStudioModel, ModelItem, ResultItem
 
 
 class AnnotationConverter:
