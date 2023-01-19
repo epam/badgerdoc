@@ -1,30 +1,32 @@
 import React, { FC, ReactNode, useState } from 'react';
+
+import {
+    Button,
+    ControlWrapper,
+    FlexCell,
+    FlexRow,
+    Form,
+    LabeledInput,
+    ModalBlocker,
+    ModalFooter,
+    ModalHeader,
+    ModalWindow,
+    Panel,
+    PickerInput,
+    RadioGroup,
+    Text
+} from '@epam/loveship';
 import {
     FormSaveResponse,
+    IFormApi,
     IModal,
     Metadata,
-    IFormApi,
-    useUuiContext,
-    useArrayDataSource
+    useArrayDataSource,
+    useUuiContext
 } from '@epam/uui';
-import {
-    ModalBlocker,
-    ModalWindow,
-    ModalHeader,
-    FlexRow,
-    LabeledInput,
-    Button,
-    ModalFooter,
-    Panel,
-    FlexCell,
-    Form,
-    Text,
-    ControlWrapper,
-    RadioGroup,
-    PickerInput
-} from '@epam/loveship';
-import styles from './task-modal.module.scss';
+
 import { User } from '../../../api/typings';
+import styles from './task-modal.module.scss';
 
 export interface TaskValidationValues {
     option_invalid?: string;
@@ -191,7 +193,7 @@ export const FinishTaskValidationModal: FC<IProps> = (modalProps) => {
         >
             <ModalWindow>
                 <Panel background="white">
-                    <ModalHeader title="Asign" onClose={modalProps.abort} />
+                    <ModalHeader title="Assign" onClose={modalProps.abort} />
 
                     {modalProps.allValid && (
                         <>

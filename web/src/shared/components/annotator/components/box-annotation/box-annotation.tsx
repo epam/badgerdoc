@@ -1,11 +1,14 @@
-import noop from 'lodash/noop';
 import React, { RefObject } from 'react';
-import { Bound } from '../../typings';
-import styles from './box-annotation.module.scss';
-import { IconButton } from '@epam/loveship';
+
+import noop from 'lodash/noop';
+
 import { ReactComponent as closeIcon } from '@epam/assets/icons/common/navigation-close-12.svg';
-import { getAnnotationElementId } from '../../utils/use-annotation-links';
+import { IconButton } from '@epam/loveship';
+
 import { ANNOTATION_LABEL_CLASS } from '../../hooks/use-annotation-move';
+import { Bound } from '../../typings';
+import { getAnnotationElementId } from '../../utils/use-annotation-links';
+import styles from './box-annotation.module.scss';
 
 type BoxAnnotationProps = {
     label?: React.ReactNode;
@@ -103,18 +106,18 @@ const Resizer = ({ color }: { color: string }) => (
         <div
             style={{ borderColor: color }}
             className={`${styles.resizer} ${styles['top-left']} ${ANNOTATION_RESIZER_CLASS} top-left`}
-        ></div>
+        />
         <div
             style={{ borderColor: color }}
             className={`${styles.resizer} ${styles['top-right']} ${ANNOTATION_RESIZER_CLASS} top-right`}
-        ></div>
+        />
         <div
             style={{ borderColor: color }}
             className={`${styles.resizer} ${styles['bottom-left']} ${ANNOTATION_RESIZER_CLASS} bottom-left`}
-        ></div>
+        />
         <div
             style={{ borderColor: color }}
             className={`${styles.resizer} ${styles['bottom-right']} ${ANNOTATION_RESIZER_CLASS} bottom-right`}
-        ></div>
+        />
     </>
 );

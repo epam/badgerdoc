@@ -565,7 +565,6 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
 
     const onEmptyAreaClick = () => {
         setIsDataTabDisabled(dataTabDefaultDisableState);
-        setAnnDataAttrs({});
         setIsCategoryDataEmpty(true);
         setTabValue('Categories');
         setSelectedAnnotation(undefined);

@@ -8,6 +8,7 @@ import { annotationToRect, tokenToRect } from '../utils/to-rect-utils';
 
 const square = (ann: Annotation) => ann.bound.width * ann.bound.height;
 
+// TODO: check the trigger event for this hook - it works onmousemove, not onmouseclick
 export const useAnnotationsClick = (
     panoRef: RefObject<HTMLDivElement>,
     annotations: Annotation[],

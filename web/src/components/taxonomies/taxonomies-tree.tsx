@@ -1,10 +1,10 @@
+import React, { FC, useCallback, useMemo } from 'react';
 import { Spinner } from '@epam/loveship';
 import { TaxonomyNode, TreeNode } from 'api/typings';
-import React, { FC, useCallback, useState } from 'react';
-import styles from './taxonomies-tree.module.scss';
 import { EventDataNode } from 'rc-tree/lib/interface';
-import { BadgerTree } from 'shared/components/tree/tree';
+import { BadgerTree } from 'shared/components/badger-tree/badger-tree';
 import { Annotation, AnnotationLabel } from 'shared';
+import styles from './taxonomies-tree.module.scss';
 
 interface TaxonomiesTreeProps {
     taxonomiesHeight: number;
@@ -39,7 +39,9 @@ export const TaxonomiesTree: FC<TaxonomiesTreeProps> = ({
     selectedKey,
     defaultExpandAll
 }) => {
-    const [selectedKeys, setSelectedKeys] = useState<string[]>([selectedKey]);
+    let selectedKeys = useMemo(() => {
+        return [selectedKey];
+    }, [selectedKey]);
 
     const titleRenderer = useCallback(
         (node: TreeNode) => {
@@ -53,23 +55,27 @@ export const TaxonomiesTree: FC<TaxonomiesTreeProps> = ({
         [expandNode]
     );
 
-    const handleSelect = useCallback((selectedKeys, info) => {
-        setSelectedKeys(selectedKeys);
-        if (selectedAnnotation?.labels) {
-            const labelToChangeIdx: number = selectedAnnotation?.labels.findIndex(
-                (label: AnnotationLabel) => label.annotationId === selectedAnnotation.id
-            );
+    const handleSelect = useCallback(
+        (handleSelectedKeys, info) => {
+            selectedKeys = handleSelectedKeys;
+            if (selectedAnnotation?.labels) {
+                const labelToChangeIdx: number = selectedAnnotation?.labels.findIndex(
+                    (label: AnnotationLabel) => label.annotationId === selectedAnnotation.id
+                );
 
-            const changedLabel: AnnotationLabel = {
-                ...selectedAnnotation?.labels[labelToChangeIdx],
-                label: info.node.title
-            };
+                const changedLabel: AnnotationLabel = {
+                    ...selectedAnnotation?.labels[labelToChangeIdx],
+                    label: info.node.title
+                };
 
-            selectedAnnotation.labels[labelToChangeIdx] = changedLabel;
-        }
-        onAnnotationEdited(currentPage, selectedAnnotation?.id!, { label: info.node.title });
-        onDataAttributesChange(elementIndex, info.node.key);
-    }, []);
+                selectedAnnotation.labels[labelToChangeIdx] = changedLabel;
+            }
+            onAnnotationEdited(currentPage, selectedAnnotation?.id!, { label: info.node.title });
+            onDataAttributesChange(elementIndex, info.node.key);
+        },
+        [selectedKeys]
+    );
+
     return (
         <BadgerTree
             nodes={taxonomyNodes}
