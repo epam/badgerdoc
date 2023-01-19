@@ -1,8 +1,8 @@
 from fastapi import APIRouter, status
 
 from src.config import minio_client
-from src.vertex_to_bd.models.text_model import TextRequest
-from src.vertex_to_bd.text_to_badgerdoc_use_case import TextToBDConvertUseCase
+from src.label_studio_to_badegerdoc.models.text_model import TextRequest
+from src.label_studio_to_badegerdoc.text_to_badgerdoc_use_case import TextToBDConvertUseCase
 
 router = APIRouter(prefix="/text", tags=["text"])
 
