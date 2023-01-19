@@ -1,1 +1,0 @@
-from .labelstudio_format import LabelStudioFormat
