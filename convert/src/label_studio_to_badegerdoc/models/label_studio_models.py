@@ -7,14 +7,14 @@ from pydantic import BaseModel
 from .common import S3Path
 
 
-class VertexRequest(BaseModel):
+class LabelStudioRequest(BaseModel):
     input_annotation: S3Path
     output_pdf: Optional[S3Path]
     output_tokens: Optional[S3Path]
     output_annotation: Optional[S3Path]
 
 
-class BadgerdocToVertexRequest(BaseModel):
+class BadgerdocToLabelStudioRequest(BaseModel):
     input_tokens: S3Path
     input_annotation: S3Path
     output_annotation: S3Path

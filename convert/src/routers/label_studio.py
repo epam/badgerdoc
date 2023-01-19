@@ -2,12 +2,12 @@ from fastapi import APIRouter, status
 
 from src.config import minio_client
 from src.label_studio_to_badegerdoc.badgerdoc_to_label_studio_use_case import (
-    BDToVertexConvertUseCase,
+    BDToLabelStudioConvertUseCase,
 )
-from src.label_studio_to_badegerdoc.models import VertexRequest
-from src.label_studio_to_badegerdoc.models.label_studio_models import BadgerdocToVertexRequest
+from src.label_studio_to_badegerdoc.models import LabelStudioRequest
+from src.label_studio_to_badegerdoc.models.label_studio_models import BadgerdocToLabelStudioRequest
 from src.label_studio_to_badegerdoc.label_studio_to_badgerdoc_use_case import (
-    VertexToBDConvertUseCase,
+    LabelStudioToBDConvertUseCase,
 )
 
 router = APIRouter(prefix="/label_studio", tags=["label_studio"])
@@ -17,8 +17,8 @@ router = APIRouter(prefix="/label_studio", tags=["label_studio"])
     "/import",
     status_code=status.HTTP_201_CREATED,
 )
-def import_label_studio(request: VertexRequest) -> None:
-    label_studio_to_bd_use_case = VertexToBDConvertUseCase(
+def import_label_studio(request: LabelStudioRequest) -> None:
+    label_studio_to_bd_use_case = LabelStudioToBDConvertUseCase(
         s3_client=minio_client,
     )
     label_studio_to_bd_use_case.execute(
@@ -33,8 +33,8 @@ def import_label_studio(request: VertexRequest) -> None:
     "/export",
     status_code=status.HTTP_201_CREATED,
 )
-def export_label_studio(request: BadgerdocToVertexRequest) -> None:
-    bd_to_label_studio_use_case = BDToVertexConvertUseCase(
+def export_label_studio(request: BadgerdocToLabelStudioRequest) -> None:
+    bd_to_label_studio_use_case = BDToLabelStudioConvertUseCase(
         s3_client=minio_client,
     )
     bd_to_label_studio_use_case.execute(

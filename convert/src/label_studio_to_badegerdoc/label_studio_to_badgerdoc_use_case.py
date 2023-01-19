@@ -11,7 +11,7 @@ from .badgerdoc_format.plain_text_converter import (
 from .models.label_studio_models import LabelStudioModel, S3Path
 
 
-class VertexToBDConvertUseCase:
+class LabelStudioToBDConvertUseCase:
     def __init__(
         self,
         s3_client,

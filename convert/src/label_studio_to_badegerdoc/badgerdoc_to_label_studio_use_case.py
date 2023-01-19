@@ -14,7 +14,7 @@ class BadgerdocData(NamedTuple):
     annotation: BadgerdocAnnotation
 
 
-class BDToVertexConvertUseCase:
+class BDToLabelStudioConvertUseCase:
     def __init__(
         self,
         s3_client,

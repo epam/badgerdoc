@@ -17,7 +17,7 @@ from src.label_studio_to_badegerdoc.models.label_studio_models import LabelStudi
 
 TEST_FILES_DIR = Path(__file__).parent / "test_data"
 
-INPUT_VERTEX_FILE = TEST_FILES_DIR / "input_text_field.json"
+INPUT_LABEL_STUDIO_FILE = TEST_FILES_DIR / "input_text_field.json"
 INPUT_LABELSTUDIO_FILE = TEST_FILES_DIR / "label_studio_format.json"
 BADGERDOC_TOKENS_FILE = TEST_FILES_DIR / "badgerdoc_tokens.json"
 BADGERDOC_ANNOTATIONS_FILE = TEST_FILES_DIR / "badgerdoc_annotation.json"
@@ -25,7 +25,7 @@ TEST_PDF = TEST_FILES_DIR / "test.pdf"
 
 
 def test_plain_text_converter():
-    label_studio_data = json.loads(INPUT_VERTEX_FILE.read_text())
+    label_studio_data = json.loads(INPUT_LABEL_STUDIO_FILE.read_text())
     converter = TextToBadgerdocTokensConverter(
         page_width=DEFAULT_PDF_PAGE_WIDTH,
         page_border_offset=DEFAULT_PAGE_BORDER_OFFSET,
