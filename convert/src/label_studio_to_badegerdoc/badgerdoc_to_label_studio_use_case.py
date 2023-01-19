@@ -2,7 +2,7 @@ import tempfile
 from pathlib import Path
 from typing import NamedTuple
 
-from src.vertex_to_bd.labelstudio_format import LabelStudioFormat
+from src.label_studio_to_badegerdoc.labelstudio_format import LabelStudioFormat
 
 from .models import S3Path
 from .models.bd_annotation_model import BadgerdocAnnotation
@@ -14,7 +14,7 @@ class BadgerdocData(NamedTuple):
     annotation: BadgerdocAnnotation
 
 
-class BDToVertexConvertUseCase:
+class BDToLabelStudioConvertUseCase:
     def __init__(
         self,
         s3_client,

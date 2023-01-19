@@ -3,7 +3,7 @@ from typing import List
 
 from ..models.bd_annotation_model import BadgerdocAnnotation
 from ..models.bd_tokens_model import BadgerdocToken, Page
-from ..models.vertex_models import (
+from ..models.label_studio_models import (
     Annotation,
     Data,
     LabelStudioModel,
