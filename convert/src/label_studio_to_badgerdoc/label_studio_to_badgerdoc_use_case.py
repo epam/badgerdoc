@@ -147,11 +147,6 @@ class LabelStudioToBDConvertUseCase:
                 s3_output_tokens_path,
             )
 
-            # pdf_path = tmp_dirname / Path("badgerdoc_render.pdf")
-            # self.badgerdoc_format.export_pdf(pdf_path)
-            #
-            # file_id = self.make_upload_file_request_to_assets(pdf_path)
-
             badgerdoc_annotations_path = tmp_dirname / Path(
                 "badgerdoc_annotations.json"
             )
@@ -168,6 +163,7 @@ class LabelStudioToBDConvertUseCase:
             )
 
     def request_jobs_to_create_importjob(self, file_id_in_assets) -> int:
+        categories = self.request_annotations_to_post_categories()
         post_importjob_url = f"{settings.job_service_url}create_job/"
         post_importjob_body = {
             "name": f"import_job_{uuid4()}",
@@ -178,7 +174,7 @@ class LabelStudioToBDConvertUseCase:
                 self.token_data.user_id,
             ],
             "files": [file_id_in_assets, ],
-            "categories": [],
+            "categories": categories,
         }
         LOGGER.debug("Making a request to create an ImportJob in 'jobs' to url: %s with request body: %s", post_importjob_url, post_importjob_body)
 
@@ -232,8 +228,7 @@ class LabelStudioToBDConvertUseCase:
                         f"Failed request to 'annotation' - {e}"
                     ) from e
 
-            else:
-                LOGGER.debug("Got this response from annotation service: %s", request_to_post_categories.json())
+            LOGGER.debug("Got this response from annotation service: %s", request_to_post_categories.json())
 
         return list(categories)
 
