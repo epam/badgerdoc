@@ -108,8 +108,9 @@ class LabelStudioToBDConvertUseCase:
 
     def make_upload_file_request_to_assets(self, pdf_path):
         upload_file_to_assets_url = f"{settings.assets_service_url}"
-        files = {'file': open(str(pdf_path), 'rb')}
-        LOGGER.debug("Sending request ti assets to upload output file - url: %s files: %s", upload_file_to_assets_url, files)
+        files = [
+            ('files', (pdf_path.name, open(pdf_path, 'rb'), 'application/pdf')),
+        ]
         try:
             request_to_post_assets = requests.post(
                 url=upload_file_to_assets_url,
@@ -121,7 +122,7 @@ class LabelStudioToBDConvertUseCase:
             raise requests.exceptions.RequestException(
                 f"Failed request to 'assets' - {e}"
             ) from e
-        return request_to_post_assets.json()["id"]
+        return request_to_post_assets.json()[0]["id"]
 
     def upload_output_pdf_to_s3(self):
         with tempfile.TemporaryDirectory() as tmp_dirname:
