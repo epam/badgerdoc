@@ -56,8 +56,8 @@ export const TaxonomiesTree: FC<TaxonomiesTreeProps> = ({
     );
 
     const handleSelect = useCallback(
-        (handleSelectedKeys, info) => {
-            selectedKeys = handleSelectedKeys;
+        (pickedKeys, info) => {
+            selectedKeys = pickedKeys;
             if (selectedAnnotation?.labels) {
                 const labelToChangeIdx: number = selectedAnnotation?.labels.findIndex(
                     (label: AnnotationLabel) => label.annotationId === selectedAnnotation.id
