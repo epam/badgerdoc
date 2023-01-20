@@ -327,6 +327,7 @@ def construct_annotated_doc(
         failed_validation_pages=doc.failed_validation_pages,
         tenant=tenant,
         task_id=task_id,
+        links_json=doc.links_json,
         categories=doc.categories or [],
     )
     s3_path = f"{S3_START_PATH}/{str(job_id)}/{str(file_id)}"
