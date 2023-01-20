@@ -2,7 +2,7 @@ import { taxonsFetcher, useTaxons } from 'api/hooks/taxons';
 import { Operators, SortingDirection, Filter, TaxonomyNode, Taxon } from 'api/typings';
 import { isEmpty } from 'lodash';
 import { useState, useEffect } from 'react';
-import { updateTreeData } from 'shared/components/tree/update-tree-data';
+import { updateTreeData } from 'shared/components/badger-tree/update-tree-data';
 import { mapTaxons, mapTaxon } from './map-taxonomies';
 
 interface Props {

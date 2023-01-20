@@ -1,9 +1,9 @@
-import { Spinner } from '@epam/loveship';
-import { TreeNode } from 'api/typings';
-import Tree from 'rc-tree';
 import React, { FC, ReactElement } from 'react';
-import './rc-tree.scss';
+import { TreeNode } from 'api/typings';
 import { EventDataNode } from 'rc-tree/lib/interface';
+import Tree from 'rc-tree';
+import { Spinner } from '@epam/loveship';
+import './rc-tree.scss';
 
 interface Props {
     height: number;
@@ -39,7 +39,7 @@ export const BadgerTree: FC<Props> = ({
                             onSelect={onSelect}
                             selectedKeys={selectedKeys}
                             defaultExpandAll={defaultExpandAll}
-                        ></Tree>
+                        />
                     ) : (
                         <Spinner color="sky" />
                     )}

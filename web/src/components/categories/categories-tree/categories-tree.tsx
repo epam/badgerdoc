@@ -1,7 +1,9 @@
-import { Category, CategoryNode } from 'api/typings';
 import React, { FC, useCallback, useEffect, useState } from 'react';
+
+import { Category, CategoryNode } from 'api/typings';
+import { BadgerTree } from 'shared/components/badger-tree/badger-tree';
+
 import styles from './categories-tree.module.scss';
-import { BadgerTree } from 'shared/components/tree/tree';
 
 interface CategoriesTreeProps {
     categoriesHeight: number;
