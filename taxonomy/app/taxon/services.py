@@ -40,7 +40,6 @@ def add_taxon_db(
         raise SelfParentError("Taxon cannot be its own parent.")
     if id_:
         check_unique_taxon_field(db, id_, "id", tenant)
-    check_unique_taxon_field(db, name, "name", tenant)
 
     parent_db = db.query(Taxon).get(parent_id) if parent_id else None
     if parent_db and parent_db.tenant not in [tenant, None]:
