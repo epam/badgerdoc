@@ -880,7 +880,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         try {
             await addAnnotationMutation.mutateAsync({
                 taskId,
-                pages,
+                pages: validPages.length || invalidPages.length ? [] : pages,
                 userId: task.user_id,
                 revision,
                 validPages,
@@ -1014,8 +1014,8 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
                 pages,
                 userId: task.user_id,
                 revision,
-                validPages,
-                invalidPages
+                validPages: [],
+                invalidPages: []
             });
             onCancelClick();
             onSaveTaskSuccess();
