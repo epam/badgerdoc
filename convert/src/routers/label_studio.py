@@ -34,7 +34,6 @@ def import_label_studio(
         token_data=token_data,
         s3_input_annotation=request.input_annotation,
         s3_output_bucket=request.output_bucket,
-        s3_output_file_id=request.output_file_id
     )
     label_studio_to_bd_use_case.execute()
 

@@ -10,7 +10,6 @@ from .common import S3Path
 class LabelStudioRequest(BaseModel):
     input_annotation: S3Path
     output_bucket: str
-    output_file_id: int
 
 
 class BadgerdocToLabelStudioRequest(BaseModel):
