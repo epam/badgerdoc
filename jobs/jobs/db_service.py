@@ -125,6 +125,7 @@ def create_import_job(
         creation_datetime=datetime.utcnow(),
         import_source=import_job_input.import_source,
         import_format=import_job_input.import_format,
+        files=import_job_input.files
     )
     db.add(job_row)
     db.commit()

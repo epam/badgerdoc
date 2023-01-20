@@ -73,6 +73,7 @@ class ImportJobParams(BaseModel):
     type: JobType = JobType.ImportJob
     import_source: Optional[str]
     import_format: Optional[str]
+    files: Optional[List[int]]
 
 
 class CategoryLinkInput(BaseModel):
