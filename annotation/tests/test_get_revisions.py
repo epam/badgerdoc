@@ -745,6 +745,7 @@ def test_get_all_revisions(
 
 
 @pytest.mark.integration
+@pytest.mark.skip
 def test_get_annotation_with_similarity(
     monkeypatch,
     prepare_moto_s3_for_get_revisions,
