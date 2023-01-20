@@ -69,7 +69,7 @@ class LabelStudioToBDConvertUseCase:
         importjob_id_created = (
             self.import_annotations_to_annotation_microservice(file_id_in_assets)
         )
-        self.upload_badgerdoc_format_to_s3(importjob_id_created, file_id_in_assets)  # TODO: delete output file upload
+        self.upload_badgerdoc_annotations_and_tokens_to_s3(importjob_id_created, file_id_in_assets)  # TODO: delete output file upload
         LOGGER.debug("Tokens and annotations uploaded")
 
     def download_label_studio_from_s3(
@@ -132,7 +132,7 @@ class LabelStudioToBDConvertUseCase:
             return file_id_in_assets
 
 
-    def upload_badgerdoc_format_to_s3(self, importjob_id_created: int, file_id_in_assets: int) -> None:
+    def upload_badgerdoc_annotations_and_tokens_to_s3(self, importjob_id_created: int, file_id_in_assets: int) -> None:
         with tempfile.TemporaryDirectory() as tmp_dirname:
             tmp_dirname = Path(tmp_dirname)
 
@@ -237,11 +237,10 @@ class LabelStudioToBDConvertUseCase:
         return list(categories)
 
     def request_annotation_to_post_annotations(
-        self, importjob_id_created: int
+        self, importjob_id_created: int, file_id_in_assets: int
     ) -> None:
-        file_id = self.s3_output_file_id
 
-        annotations_post_url = f"{settings.annotation_service_url}annotation/{importjob_id_created}/{file_id}"
+        annotations_post_url = f"{settings.annotation_service_url}annotation/{importjob_id_created}/{file_id_in_assets}"
 
         pages = self.badgerdoc_format.badgerdoc_annotation.pages
         annotations_post_body = {
@@ -272,7 +271,7 @@ class LabelStudioToBDConvertUseCase:
     def import_annotations_to_annotation_microservice(self, file_id_in_assets):
         importjob_id_created = self.request_jobs_to_create_importjob(file_id_in_assets)
         self.request_annotation_to_post_annotations(
-            importjob_id_created
+            importjob_id_created, file_id_in_assets
         )
 
         return importjob_id_created
