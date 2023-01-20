@@ -79,6 +79,7 @@ class ParticularRevisionSchema(BaseModel):
     )
     similar_revisions: Optional[List[RevisionLink]] = Field(None)
     categories: Optional[Set[str]] = Field(None, example=["1", "2"])
+    links_json: Optional[List[dict]] = Field(None, example={})
 
 
 class DocForSaveSchema(BaseModel):
