@@ -3,16 +3,12 @@ import React, { useState, FC, useMemo } from 'react';
 import { useArrayDataSource } from '@epam/uui';
 import { SearchInput, PickerList, Spinner, Text } from '@epam/loveship';
 
-import { Label, PagedResponse, Category } from 'api/typings';
-
-import { useNotifications } from 'shared/components/notifications';
-import { getError } from 'shared/helpers/get-error';
+import { Label, Category } from 'api/typings';
 
 import styles from './task-sidebar-labels.module.scss';
-import { useDocumentCategoriesByJob } from 'api/hooks/categories';
 
 type TaskSidebarLabelsViewProps = {
-    labels?: PagedResponse<Category>;
+    labels?: Category[];
     pickerValue: string[];
     onValueChange: (e: any, labelsArr: Label[]) => void;
     selectedLabels: Label[];
@@ -29,7 +25,7 @@ const TaskSidebarLabelsView: FC<TaskSidebarLabelsViewProps> = ({
     }
     const labelsArr = useMemo(
         () =>
-            labels.data.map((el: { name: string; id: string }) => {
+            labels.map((el: { name: string; id: string }) => {
                 return { name: el.name, id: el.id };
             }),
         [labels]
@@ -55,27 +51,24 @@ const TaskSidebarLabelsView: FC<TaskSidebarLabelsViewProps> = ({
 };
 
 type TaskSidebarLabelsProps = {
-    jobId?: number;
+    labels?: Category[];
     onLabelsSelected: (labels: Label[], pickedLabels: string[]) => void;
     selectedLabels: Label[];
+    searchText: string;
+    setSearchText: (text: string) => void;
 };
 
 export const TaskSidebarLabels = ({
-    jobId,
+    labels,
     onLabelsSelected,
-    selectedLabels = []
+    selectedLabels = [],
+    searchText,
+    setSearchText
 }: TaskSidebarLabelsProps) => {
     const latestLabelsId = selectedLabels.map((label) => label.id);
-    const [searchText, setSearchText] = useState('');
     const [pickerValue, setPickerValue] = useState<string[]>(latestLabelsId);
 
-    const { notifyError } = useNotifications();
-
-    const { data: labels, isError, isLoading } = useDocumentCategoriesByJob({ searchText, jobId });
-
-    if (isError) {
-        notifyError(<Text>{getError(isError)}</Text>);
-    }
+    // const { data: labels, isError, isLoading } = useDocumentCategoriesByJob({ searchText, jobId });
 
     const handleOnValueChange = (e: string[], labelsArr: Label[]) => {
         const selectedLabels = labelsArr.filter((label) => {
@@ -102,14 +95,15 @@ export const TaskSidebarLabels = ({
                 size="24"
                 placeholder="Search by label name"
             />
-            {isLoading && <Spinner color="sky" />}
-            {!isLoading && !isError && (
+            {labels ? (
                 <TaskSidebarLabelsView
                     labels={labels}
                     pickerValue={pickerValue}
                     onValueChange={handleOnValueChange}
                     selectedLabels={selectedLabels}
                 />
+            ) : (
+                <Spinner color="sky" />
             )}
         </div>
     );

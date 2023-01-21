@@ -224,7 +224,7 @@ export const JobConnector: React.FC<JobDetailViewProps> = ({
             svc.uuiNotifications.show(
                 (props: INotification) => (
                     <ErrorNotification {...props}>
-                        <Text>{error.message}</Text>
+                        <Text>{getError(error)}</Text>
                     </ErrorNotification>
                 ),
                 { duration: 2 }

@@ -198,7 +198,7 @@ export type Basement = {
     tenant?: string;
 };
 
-export const categoryTypes = ['box', 'link', 'segmentation', 'document'] as const;
+export const categoryTypes = ['box', 'link', 'segmentation', 'document', 'document_link'] as const;
 export type CategoryType = typeof categoryTypes[number];
 
 export interface BaseCategory {

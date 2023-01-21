@@ -1,5 +1,5 @@
-import { Task } from '../typings/tasks';
-export const tasks: Task[] = [
+import { ApiTask } from '../typings/tasks';
+export const tasks: ApiTask[] = [
     {
         id: 1,
         status: 'In Progress',
@@ -12,7 +12,7 @@ export const tasks: Task[] = [
             id: 1,
             name: 'job_1'
         },
-        user_id: '02336646-f5d0-4670-b111-c140a3ad58b5',
+        user: { id: '02336646-f5d0-4670-b111-c140a3ad58b5', name: 'admin' },
         is_validation: true,
         deadline: '2021-12-22T17:38:36.939Z'
     },
@@ -29,7 +29,7 @@ export const tasks: Task[] = [
             id: 3,
             name: 'job_3'
         },
-        user_id: '02336646-f5d0-4670-b111-c140a3ad58b5',
+        user: { id: '02336646-f5d0-4670-b111-c140a3ad58b5', name: 'admin' },
         is_validation: false,
         deadline: '2021-12-22T17:38:36.939Z'
     },
@@ -45,7 +45,7 @@ export const tasks: Task[] = [
             id: 3,
             name: 'job_5'
         },
-        user_id: '02336646-f5d0-4670-b111-c140a3ad58b5',
+        user: { id: '02336646-f5d0-4670-b111-c140a3ad58b5', name: 'admin' },
         is_validation: false,
         deadline: '2021-12-22T17:38:36.939Z'
     },
@@ -62,7 +62,7 @@ export const tasks: Task[] = [
             id: 3,
             name: 'job_6'
         },
-        user_id: '02336646-f5d0-4670-b111-c140a3ad58b5',
+        user: { id: '02336646-f5d0-4670-b111-c140a3ad58b5', name: 'admin' },
         is_validation: false,
         deadline: '2021-12-22T17:38:36.939Z'
     },
@@ -79,7 +79,7 @@ export const tasks: Task[] = [
             id: 3,
             name: 'job_7'
         },
-        user_id: '02336646-f5d0-4670-b111-c140a3ad58b5',
+        user: { id: '02336646-f5d0-4670-b111-c140a3ad58b5', name: 'admin' },
         is_validation: false,
         deadline: '2021-12-22T17:38:36.939Z'
     },
@@ -96,7 +96,7 @@ export const tasks: Task[] = [
             id: 3,
             name: 'job_8'
         },
-        user_id: '02336646-f5d0-4670-b111-c140a3ad58b5',
+        user: { id: '02336646-f5d0-4670-b111-c140a3ad58b5', name: 'admin' },
         is_validation: false,
         deadline: '2021-12-22T17:38:36.939Z'
     },
@@ -113,7 +113,7 @@ export const tasks: Task[] = [
             id: 3,
             name: 'job_9'
         },
-        user_id: '02336646-f5d0-4670-b111-c140a3ad58b5',
+        user: { id: '02336646-f5d0-4670-b111-c140a3ad58b5', name: 'admin' },
         is_validation: false,
         deadline: '2021-12-22T17:38:36.939Z'
     },
@@ -130,7 +130,7 @@ export const tasks: Task[] = [
             id: 3,
             name: 'job_10'
         },
-        user_id: '02336646-f5d0-4670-b111-c140a3ad58b5',
+        user: { id: '02336646-f5d0-4670-b111-c140a3ad58b5', name: 'admin' },
         is_validation: false,
         deadline: '2021-12-22T17:38:36.939Z'
     },
@@ -147,7 +147,7 @@ export const tasks: Task[] = [
             id: 3,
             name: 'job_11'
         },
-        user_id: '02336646-f5d0-4670-b111-c140a3ad58b5',
+        user: { id: '02336646-f5d0-4670-b111-c140a3ad58b5', name: 'admin' },
         is_validation: false,
         deadline: '2021-12-22T17:38:36.939Z'
     },
@@ -164,7 +164,7 @@ export const tasks: Task[] = [
             id: 3,
             name: 'job_12'
         },
-        user_id: '02336646-f5d0-4670-b111-c140a3ad58b5',
+        user: { id: '02336646-f5d0-4670-b111-c140a3ad58b5', name: 'admin' },
         is_validation: false,
         deadline: '2021-12-22T17:38:36.939Z'
     }
