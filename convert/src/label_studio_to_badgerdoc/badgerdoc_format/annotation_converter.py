@@ -1,6 +1,8 @@
 from typing import List, Optional, Tuple
 
+from .annotation_converter_practic import AnnotationConverterPractic
 from ..models.bd_annotation_model import BadgerdocAnnotation, Obj, Page, Size
+from ..models import bd_annotation_model_practic
 from ..models.bd_tokens_model import Page as BadgerdocTokensPage
 from ..models.label_studio_models import LabelStudioModel, ModelItem, ResultItem
 
@@ -30,7 +32,8 @@ class AnnotationConverter:
                     self.process_relations(
                         badgerdoc_annotations, labelstudio_item
                     )
-        return badgerdoc_annotations
+        badgerdoc_annotations_practic = AnnotationConverterPractic(badgerdoc_annotations, badgerdoc_tokens).convert()
+        return badgerdoc_annotations_practic
 
     def _is_labels(self, labelstudio_item: ResultItem) -> bool:
         return labelstudio_item.type == self.LABELS
@@ -90,7 +93,8 @@ class AnnotationConverter:
         badgerdoc_tokens: BadgerdocTokensPage,
     ) -> Tuple[List[int], List[float]]:
         badgerdoc_annotation_token_indexes = list(
-            range(offset_begin, offset_end + 1)
+            # range(offset_begin, offset_end + 1)
+            range(offset_begin, offset_end)
         )
         bbox = self.form_common_bbox(
             [

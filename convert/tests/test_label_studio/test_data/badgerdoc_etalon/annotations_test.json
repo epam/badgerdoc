@@ -1,0 +1,155 @@
+{
+  "revision": null,
+  "pages": [
+    {
+      "size": {
+        "width": 100.0,
+        "height": 100.0
+      },
+      "page_num": 1,
+      "objs": [
+        {
+          "id": 0,
+          "type": "text",
+          "bbox": [
+            344.0,
+            15.0,
+            407.0,
+            26.0
+          ],
+          "category": "Organization",
+          "data": {
+            "tokens": [
+              {
+                "id": 47,
+                "text": "J",
+                "x": 344.0,
+                "y": 15.0,
+                "width": 7.0,
+                "height": 11.0
+              },
+              {
+                "id": 48,
+                "text": "e",
+                "x": 351.0,
+                "y": 15.0,
+                "width": 7.0,
+                "height": 11.0
+              },
+              {
+                "id": 49,
+                "text": "r",
+                "x": 358.0,
+                "y": 15.0,
+                "width": 7.0,
+                "height": 11.0
+              },
+              {
+                "id": 50,
+                "text": "u",
+                "x": 365.0,
+                "y": 15.0,
+                "width": 7.0,
+                "height": 11.0
+              },
+              {
+                "id": 51,
+                "text": "s",
+                "x": 372.0,
+                "y": 15.0,
+                "width": 7.0,
+                "height": 11.0
+              },
+              {
+                "id": 52,
+                "text": "a",
+                "x": 379.0,
+                "y": 15.0,
+                "width": 7.0,
+                "height": 11.0
+              },
+              {
+                "id": 53,
+                "text": "l",
+                "x": 386.0,
+                "y": 15.0,
+                "width": 7.0,
+                "height": 11.0
+              },
+              {
+                "id": 54,
+                "text": "e",
+                "x": 393.0,
+                "y": 15.0,
+                "width": 7.0,
+                "height": 11.0
+              },
+              {
+                "id": 55,
+                "text": "m",
+                "x": 400.0,
+                "y": 15.0,
+                "width": 7.0,
+                "height": 11.0
+              }
+            ],
+            "dataAttributes": []
+          },
+          "text": "Jerusalem",
+          "links": [
+            {
+              "category_id": "Link",
+              "to": 1,
+              "type": "directional",
+              "page_num": 1
+            }
+          ]
+        },
+        {
+          "id": 1,
+          "type": "text",
+          "bbox": [
+            218.0,
+            15.0,
+            239.0,
+            26.0
+          ],
+          "category": "Datetime",
+          "data": {
+            "tokens": [
+              {
+                "id": 29,
+                "text": "2",
+                "x": 218.0,
+                "y": 15.0,
+                "width": 7.0,
+                "height": 11.0
+              },
+              {
+                "id": 30,
+                "text": "7",
+                "x": 225.0,
+                "y": 15.0,
+                "width": 7.0,
+                "height": 11.0
+              },
+              {
+                "id": 31,
+                "text": " ",
+                "x": 232.0,
+                "y": 15.0,
+                "width": 7.0,
+                "height": 11.0
+              }
+            ],
+            "dataAttributes": []
+          },
+          "text": "27 ",
+          "links": []
+        }
+      ]
+    }
+  ],
+  "validated": null,
+  "failed_validation_pages": null
+}

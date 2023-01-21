@@ -3,9 +3,11 @@ from pathlib import Path
 from typing import NamedTuple
 
 from src.label_studio_to_badgerdoc.labelstudio_format import LabelStudioFormat
+from src.label_studio_to_badgerdoc.badgerdoc_format.annotation_converter_practic import AnnotationConverterToTheory
 
 from .models import S3Path
 from .models.bd_annotation_model import BadgerdocAnnotation
+from .models import bd_annotation_model_practic
 from .models.bd_tokens_model import Page
 
 
@@ -63,7 +65,7 @@ class BDToLabelStudioConvertUseCase:
             )
 
             page = Page.parse_file(input_tokens)
-            annotation = BadgerdocAnnotation.parse_file(input_annotations)
+            annotation = AnnotationConverterToTheory(practic_annotations=bd_annotation_model_practic.BadgerdocAnnotation.parse_file(input_annotations)).convert()
             return BadgerdocData(page=page, annotation=annotation)
 
     def upload_labelstudio_to_s3(
