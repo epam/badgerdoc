@@ -15,6 +15,7 @@ import { LabelsPanel } from 'components/labels-panel';
 import styles from './document-pages.module.scss';
 import cn from 'classnames';
 import './react-pdf.scss';
+import { RelationsPanel } from '../annotator/components/relations-panel/relations-panel';
 
 export interface PageSize {
     width: number;
@@ -65,13 +66,18 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
     onEmptyAreaClick
 }) => {
     const {
+        categories,
         SyncedContainer,
         annotationsByUserId,
         currentPage,
         isSplitValidation,
         onSplitAnnotationSelected,
         userPages,
-        selectedLabels
+        selectedLabels,
+        linksFromApi,
+        documentLinks,
+        onLinkChanged,
+        selectedRelatedDoc
     } = useTaskAnnotatorContext();
 
     const containerRef = useRef<HTMLDivElement>(null);
@@ -134,7 +140,16 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
 
     return (
         <>
-            <LabelsPanel labels={selectedLabels} />
+            {selectedRelatedDoc ? (
+                <RelationsPanel
+                    categories={categories}
+                    selectedRelatedDoc={selectedRelatedDoc}
+                    documentLinks={documentLinks}
+                    onLinkChanged={onLinkChanged}
+                />
+            ) : (
+                <LabelsPanel labels={selectedLabels} />
+            )}
             <div className={styles['pdf-container']}>
                 {pageScale}
                 <div ref={containerRef} className={styles['pdf-document-container']}>
@@ -185,6 +200,66 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                                 </SyncedContainer>
                             ))}
                         </Document>
+                    ) : selectedRelatedDoc ? (
+                        <div
+                            className={cn(
+                                styles['split-document-wrapper'],
+                                styles[`split-document-wrapper--pages-2`]
+                            )}
+                        >
+                            <SyncedContainer className={styles['split-document-page']}>
+                                <Document
+                                    file={getPdfDocumentAddress(fileMetaInfo.id)}
+                                    loading={<Spinner color="sky" />}
+                                    options={{ httpHeaders: getAuthHeaders() }}
+                                    // className={cn(
+                                    //     styles['split-document-wrapper'],
+                                    //     styles[`split-document-wrapper--pages-2`]
+                                    // )}
+                                >
+                                    <DocumentSinglePage
+                                        scale={scale}
+                                        pageSize={apiPageSize}
+                                        pageNum={currentPage}
+                                        handlePageLoaded={handlePageLoaded}
+                                        containerRef={containerRef}
+                                        editable
+                                        onAnnotationCopyPress={onAnnotationCopyPress}
+                                        onAnnotationCutPress={onAnnotationCutPress}
+                                        onAnnotationPastePress={onAnnotationPastePress}
+                                        onAnnotationUndoPress={onAnnotationUndoPress}
+                                        onAnnotationRedoPress={onAnnotationRedoPress}
+                                        onEmptyAreaClick={onEmptyAreaClick}
+                                    />
+                                </Document>
+                            </SyncedContainer>
+                            <SyncedContainer className={styles['split-document-page']}>
+                                <Document
+                                    file={getPdfDocumentAddress(selectedRelatedDoc.id)}
+                                    loading={<Spinner color="sky" />}
+                                    options={{ httpHeaders: getAuthHeaders() }}
+                                    // className={cn(
+                                    //     styles['split-document-wrapper'],
+                                    //     styles[`split-document-wrapper--pages-2`]
+                                    // )}
+                                >
+                                    <DocumentSinglePage
+                                        scale={scale}
+                                        pageSize={apiPageSize}
+                                        pageNum={currentPage}
+                                        handlePageLoaded={handlePageLoaded}
+                                        containerRef={containerRef}
+                                        editable={false}
+                                        onAnnotationCopyPress={onAnnotationCopyPress}
+                                        onAnnotationCutPress={onAnnotationCutPress}
+                                        onAnnotationPastePress={onAnnotationPastePress}
+                                        onAnnotationUndoPress={onAnnotationUndoPress}
+                                        onAnnotationRedoPress={onAnnotationRedoPress}
+                                        onEmptyAreaClick={onEmptyAreaClick}
+                                    />
+                                </Document>
+                            </SyncedContainer>
+                        </div>
                     ) : (
                         <div className={`${styles['pdf-parent']} pdf-parent`}>
                             {fileMetaInfo.extension === '.pdf' ? (

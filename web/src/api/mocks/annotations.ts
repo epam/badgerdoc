@@ -33,5 +33,6 @@ export const annotations: AnnotationsResponse = {
     ],
     validated: [],
     failed_validation_pages: [],
-    categories: ['taxons_id_1', 'taxons_id_2']
+    categories: ['taxons_id_1', 'taxons_id_2'],
+    links_json: [{ to: 1, category: 'doc_link1', type: 'undirectional' }]
 };
