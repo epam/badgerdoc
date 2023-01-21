@@ -51,7 +51,7 @@ class BadgerdocFormat:
 
     def export_tokens(self, path: Path):
         if self.tokens_page:
-            path.write_text(self.tokens_page.json(indent=4))
+            path.write_text(self.tokens_page.json(indent=4, by_alias=True))
 
     def export_annotations(self, path: Path):
         if self.badgerdoc_annotation:
