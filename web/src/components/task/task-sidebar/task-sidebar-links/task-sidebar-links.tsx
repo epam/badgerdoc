@@ -1,5 +1,5 @@
 import { Accordion, Spinner } from '@epam/loveship';
-import { DocumentLink, DocumentLinkWithName } from 'api/hooks/annotations';
+import { DocumentLinkWithName } from 'api/hooks/annotations';
 import { Category, FileDocument } from 'api/typings';
 import React, { useEffect, useMemo } from 'react';
 
@@ -7,25 +7,23 @@ import styles from './task-sidebar-links.module.scss';
 
 interface TaskSidebarLinksProps {
     categories?: Category[];
-    searchText: string;
-    setSearchText: (text: string) => void;
     documentLinks?: DocumentLinkWithName[];
-    onLinkChanged: (documentId: number, categoryId: string) => void;
     onRelatedDocClick: (documentId?: number) => void;
     selectedRelatedDoc?: FileDocument;
-    linksFromApi?: DocumentLink[];
 }
 
 export const TaskSidebarLinks: React.FC<TaskSidebarLinksProps> = ({
     categories,
     documentLinks,
-    onRelatedDocClick
+    onRelatedDocClick,
+    selectedRelatedDoc
 }) => {
     useEffect(() => {
         return function cleanSelectedDoc() {
             onRelatedDocClick(undefined);
         };
     }, []);
+
     const linksToShow = useMemo(() => {
         return categories ? (
             categories.map((category) => (
@@ -36,7 +34,9 @@ export const TaskSidebarLinks: React.FC<TaskSidebarLinksProps> = ({
                             .map((docLink) => (
                                 <div
                                     key={docLink.to}
-                                    className={styles.documents}
+                                    className={`${styles.document} ${
+                                        docLink.to === selectedRelatedDoc?.id ? styles.selected : ''
+                                    }`}
                                     role="none"
                                     onClick={() => onRelatedDocClick(docLink.to)}
                                 >
@@ -49,7 +49,7 @@ export const TaskSidebarLinks: React.FC<TaskSidebarLinksProps> = ({
         ) : (
             <Spinner color="sky" />
         );
-    }, [documentLinks, categories]);
+    }, [documentLinks, categories, selectedRelatedDoc]);
 
     return (
         <div className={styles.container}>

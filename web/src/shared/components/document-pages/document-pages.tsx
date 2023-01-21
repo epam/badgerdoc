@@ -74,7 +74,6 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
         onSplitAnnotationSelected,
         userPages,
         selectedLabels,
-        linksFromApi,
         documentLinks,
         onLinkChanged,
         selectedRelatedDoc
@@ -212,10 +211,6 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                                     file={getPdfDocumentAddress(fileMetaInfo.id)}
                                     loading={<Spinner color="sky" />}
                                     options={{ httpHeaders: getAuthHeaders() }}
-                                    // className={cn(
-                                    //     styles['split-document-wrapper'],
-                                    //     styles[`split-document-wrapper--pages-2`]
-                                    // )}
                                 >
                                     <DocumentSinglePage
                                         scale={scale}
@@ -238,12 +233,9 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                                     file={getPdfDocumentAddress(selectedRelatedDoc.id)}
                                     loading={<Spinner color="sky" />}
                                     options={{ httpHeaders: getAuthHeaders() }}
-                                    // className={cn(
-                                    //     styles['split-document-wrapper'],
-                                    //     styles[`split-document-wrapper--pages-2`]
-                                    // )}
                                 >
                                     <DocumentSinglePage
+                                        annotations={[]}
                                         scale={scale}
                                         pageSize={apiPageSize}
                                         pageNum={currentPage}

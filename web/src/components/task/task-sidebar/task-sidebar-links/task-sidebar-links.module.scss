@@ -1,3 +1,21 @@
+@import '~shared/helpers/styles';
+@import '@epam/assets/scss/loveship-colors.scss';
+
 .text {
     padding-top: 10px;
+}
+
+.document {
+    cursor: pointer;
+    margin-bottom: 5px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    &:hover {
+        background: $hover-blue;
+    }
+}
+
+.selected {
+    background: $light-blue;
 }

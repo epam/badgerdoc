@@ -1,7 +1,7 @@
 import { DocumentLink, DocumentLinkWithName } from 'api/hooks/annotations';
 import { useDocuments } from 'api/hooks/documents';
 import { FileDocument, Operators } from 'api/typings';
-import { useEffect, useMemo, useState } from 'react';
+import { Dispatch, SetStateAction, useEffect, useMemo, useState } from 'react';
 
 export interface DocumentLinksValue {
     documentLinks?: DocumentLinkWithName[];
@@ -10,6 +10,7 @@ export interface DocumentLinksValue {
     onLinkChanged: (documentId: number, categoryId: string) => void;
     onRelatedDocClick: (documentId?: number) => void;
     selectedRelatedDoc?: FileDocument;
+    setDocumentLinksChanged?: Dispatch<SetStateAction<boolean>>;
 }
 
 export const useDocumentLinks = (linksFromApi?: DocumentLink[]): DocumentLinksValue => {
@@ -78,14 +79,17 @@ export const useDocumentLinks = (linksFromApi?: DocumentLink[]): DocumentLinksVa
             linksToApi,
             onLinkChanged,
             onRelatedDocClick,
-            selectedRelatedDoc
+            selectedRelatedDoc,
+            setDocumentLinksChanged
         }),
         [documentLinks, documentLinksChanged, linksToApi, selectedRelatedDoc]
     );
 };
 
 const useRelatedDocsMap = (linksFromApi?: DocumentLink[]): Map<number, FileDocument> | null => {
-    const documentIds = linksFromApi?.map((link) => link.to);
+    const documentIds = useMemo(() => {
+        return linksFromApi?.map((link) => link.to);
+    }, [linksFromApi]);
 
     const { data: relatedDocs, refetch: refetchDocs } = useDocuments(
         {

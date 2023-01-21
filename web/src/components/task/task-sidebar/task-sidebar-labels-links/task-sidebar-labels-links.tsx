@@ -16,10 +16,8 @@ type TaskSidebarLabelsLinksProps = {
     onLabelsSelected: (labels: Label[], pickedLabels: string[]) => void;
     selectedLabels: Label[];
     documentLinks?: DocumentLinkWithName[];
-    onLinkChanged: (documentId: number, categoryId: string) => void;
     onRelatedDocClick: (documentId?: number) => void;
     selectedRelatedDoc?: FileDocument;
-    linksFromApi?: DocumentLink[];
 };
 export enum DocumentCategoryType {
     Document = 'document',
@@ -34,10 +32,8 @@ export const TaskSidebarLabelsLinks: FC<TaskSidebarLabelsLinksProps> = ({
     onLabelsSelected,
     selectedLabels,
     documentLinks,
-    onLinkChanged,
     onRelatedDocClick,
-    selectedRelatedDoc,
-    linksFromApi
+    selectedRelatedDoc
 }) => {
     const [documentCategoryType, setDocumentCategoryType] = useState<DocumentCategoryType>(
         DocumentCategoryType.Document
@@ -101,13 +97,9 @@ export const TaskSidebarLabelsLinks: FC<TaskSidebarLabelsLinksProps> = ({
             ) : (
                 <TaskSidebarLinks
                     categories={categories?.data}
-                    searchText={searchText}
-                    setSearchText={setSearchText}
                     documentLinks={documentLinks}
-                    onLinkChanged={onLinkChanged}
                     onRelatedDocClick={onRelatedDocClick}
                     selectedRelatedDoc={selectedRelatedDoc}
-                    linksFromApi={linksFromApi}
                 />
             )}
         </FlexCell>

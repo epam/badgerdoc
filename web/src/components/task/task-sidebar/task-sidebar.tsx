@@ -38,7 +38,6 @@ import { Category, Label } from '../../../api/typings';
 import { ImageToolsParams } from './image-tools-params';
 import { CategoriesTab } from 'components/categories/categories-tab/categories-tab';
 import { useLinkTaxonomyByCategoryAndJobId } from 'api/hooks/taxons';
-import { useDocumentCategoriesByJob } from 'api/hooks/categories';
 import { TaskSidebarLabelsLinks } from './task-sidebar-labels-links/task-sidebar-labels-links';
 
 type TaskSidebarProps = {
@@ -96,10 +95,8 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
         isDocLabelsModified,
         getJobId,
         documentLinks,
-        onLinkChanged,
         onRelatedDocClick,
         selectedRelatedDoc,
-        linksFromApi,
         documentLinksChanged
     } = useTaskAnnotatorContext();
     const {
@@ -222,7 +219,15 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
             ((!isValidation || splitValidation) && modifiedPages.length === 0) ||
             !isAnnotatable
         );
-    }, [validPages, invalidPages, touchedPages, modifiedPages, editedPages, isDocLabelsModified]);
+    }, [
+        validPages,
+        invalidPages,
+        touchedPages,
+        modifiedPages,
+        editedPages,
+        isDocLabelsModified,
+        documentLinksChanged
+    ]);
 
     useEffect(() => {
         if (tableModeValues === 'cells') setIsCellMode(true);
@@ -564,10 +569,8 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
                             onLabelsSelected={onLabelsSelected}
                             selectedLabels={selectedLabels ?? []}
                             documentLinks={documentLinks}
-                            onLinkChanged={onLinkChanged}
                             onRelatedDocClick={onRelatedDocClick}
                             selectedRelatedDoc={selectedRelatedDoc}
-                            linksFromApi={linksFromApi}
                         />
                     )}
                     {tabValue === 'Document' && categories === undefined && (

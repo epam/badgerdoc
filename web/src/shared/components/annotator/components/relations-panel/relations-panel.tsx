@@ -35,7 +35,7 @@ export const RelationsPanel: FC<Props> = ({
 
     return (
         <div className={styles.relationsWrapper}>
-            <LabeledInput label="Documents relation"></LabeledInput>
+            <LabeledInput label="Documents relation" />
             <div className={styles.category}>
                 <PickerInput
                     size="24"

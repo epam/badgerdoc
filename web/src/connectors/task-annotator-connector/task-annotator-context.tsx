@@ -900,6 +900,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             onSaveTaskSuccess();
             latestAnnotationsResult.refetch();
             refetchTask();
+            documentLinksValues?.setDocumentLinksChanged?.(false);
         } catch (error) {
             onSaveTaskError(error as ApiError);
         }
