@@ -823,6 +823,7 @@ def construct_particular_rev_response(
         failed_validation_pages=revision.failed_validation_pages,
         categories=revision.categories,
         similar_revisions=similar_revisions or None,
+        links_json=revision.links_json,
     )
     return particular_rev
 

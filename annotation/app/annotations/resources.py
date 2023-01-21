@@ -450,6 +450,7 @@ def get_annotations_up_to_given_revision(
             pages=[],
             validated=[],
             failed_validation_pages=[],
+            links_json=[],
         )
 
     validated, failed, annotated, _, required_revision = accumulate_pages_info(
@@ -470,6 +471,7 @@ def get_annotations_up_to_given_revision(
             pages=[],
             validated=[],
             failed_validation_pages=[],
+            links_json=[],
         )
 
     required_revision.pages = annotated
