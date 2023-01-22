@@ -9,13 +9,13 @@ from src.config import (
     DEFAULT_PDF_LINE_SPACING,
     DEFAULT_PDF_PAGE_WIDTH,
 )
-from src.label_studio_to_badegerdoc.badgerdoc_format.badgerdoc_format import (
+from src.label_studio_to_badgerdoc.badgerdoc_format.badgerdoc_format import (
     BadgerdocFormat,
 )
-from src.label_studio_to_badegerdoc.badgerdoc_format.plain_text_converter import (
+from src.label_studio_to_badgerdoc.badgerdoc_format.plain_text_converter import (
     TextToBadgerdocTokensConverter,
 )
-from src.label_studio_to_badegerdoc.models.label_studio_models import (
+from src.label_studio_to_badgerdoc.models.label_studio_models import (
     LabelStudioModel,
 )
 

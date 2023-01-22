@@ -2,8 +2,8 @@ import tempfile
 from pathlib import Path
 from typing import NamedTuple
 
-from src.label_studio_to_badegerdoc.labelstudio_format import LabelStudioFormat
-from src.label_studio_to_badegerdoc.badgerdoc_format.annotation_converter_practic import AnnotationConverterToTheory
+from src.label_studio_to_badgerdoc.labelstudio_format import LabelStudioFormat
+from src.label_studio_to_badgerdoc.badgerdoc_format.annotation_converter_practic import AnnotationConverterToTheory
 
 from .models import S3Path
 from .models.bd_annotation_model import BadgerdocAnnotation

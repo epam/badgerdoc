@@ -1,12 +1,12 @@
 from fastapi import APIRouter, status
 
 from src.config import minio_client
-from src.label_studio_to_badegerdoc.badgerdoc_to_label_studio_use_case import (
+from src.label_studio_to_badgerdoc.badgerdoc_to_label_studio_use_case import (
     BDToLabelStudioConvertUseCase,
 )
-from src.label_studio_to_badegerdoc.models import LabelStudioRequest
-from src.label_studio_to_badegerdoc.models.label_studio_models import BadgerdocToLabelStudioRequest
-from src.label_studio_to_badegerdoc.label_studio_to_badgerdoc_use_case import (
+from src.label_studio_to_badgerdoc.models import LabelStudioRequest
+from src.label_studio_to_badgerdoc.models.label_studio_models import BadgerdocToLabelStudioRequest
+from src.label_studio_to_badgerdoc.label_studio_to_badgerdoc_use_case import (
     LabelStudioToBDConvertUseCase,
 )
 
