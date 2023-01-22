@@ -23,7 +23,7 @@ export const useTaxonomiesTree = ({ searchText, taxonomyId, taxonomyFilter }: Pr
         };
     }
 
-    const { data: rootCategories } = useTaxons(
+    const { data: rootCategories, isLoading } = useTaxons(
         {
             page: 1,
             size: 100,
@@ -86,5 +86,5 @@ export const useTaxonomiesTree = ({ searchText, taxonomyId, taxonomyFilter }: Pr
         }
         return node.children;
     };
-    return { taxonomyNodes, expandNode, onLoadData, searchResult, rootCategories };
+    return { taxonomyNodes, expandNode, onLoadData, searchResult, rootCategories, isLoading };
 };

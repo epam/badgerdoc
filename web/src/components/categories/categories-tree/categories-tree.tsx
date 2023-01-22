@@ -60,6 +60,7 @@ export const CategoriesTree: FC<CategoriesTreeProps> = ({
 
     return (
         <BadgerTree
+            isLoading={categoryNodes.length <= 0}
             nodes={categoryNodes}
             height={categoriesHeight}
             itemHeight={itemHeight}

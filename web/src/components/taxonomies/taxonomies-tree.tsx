@@ -7,6 +7,7 @@ import { Annotation, AnnotationLabel } from 'shared';
 import styles from './taxonomies-tree.module.scss';
 
 interface TaxonomiesTreeProps {
+    isLoading: boolean;
     taxonomiesHeight: number;
     taxonomyNodes: TaxonomyNode[];
     onLoadData: (treeNode: EventDataNode<TaxonomyNode>) => Promise<any>;
@@ -27,6 +28,7 @@ interface TaxonomiesTreeProps {
 const itemHeight = 33;
 
 export const TaxonomiesTree: FC<TaxonomiesTreeProps> = ({
+    isLoading,
     taxonomiesHeight,
     taxonomyNodes,
     onLoadData,
@@ -78,6 +80,7 @@ export const TaxonomiesTree: FC<TaxonomiesTreeProps> = ({
 
     return (
         <BadgerTree
+            isLoading={isLoading}
             nodes={taxonomyNodes}
             height={taxonomiesHeight}
             onLoadData={onLoadData}
