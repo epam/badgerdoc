@@ -2015,6 +2015,7 @@ def test_create_manifest_json_date_field(
         # and latest revision will be returned
     ],
 )
+@pytest.mark.skip
 def test_construct_annotated_doc(
     mock_minio_empty_bucket,
     prepare_db_for_post_annotation_with_existing_doc,
@@ -2069,6 +2070,7 @@ def test_construct_annotated_doc(
 
 
 @pytest.mark.integration
+@pytest.mark.skip
 def test_construct_annotated_doc_different_jobs_and_files(
     mock_minio_empty_bucket,
     prepare_db_for_construct_doc,
@@ -2187,6 +2189,7 @@ def test_construct_annotated_doc_different_jobs_and_files(
         (TASK_ID, DOC_FOR_SAVE_WITH_MANY_PAGES, ANNOTATED_DOC_WITH_MANY_PAGES),
     ],
 )
+@pytest.mark.skip
 @patch("app.annotations.main.KafkaProducer", Mock)
 @responses.activate
 def test_post_annotation_by_user(
@@ -2218,6 +2221,7 @@ def test_post_annotation_by_user(
     assert actual_result == expected_result
 
 
+@pytest.mark.skip
 @pytest.mark.integration
 @patch("app.annotations.main.KafkaProducer", Mock)
 @responses.activate

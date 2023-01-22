@@ -79,6 +79,7 @@ class ParticularRevisionSchema(BaseModel):
     )
     similar_revisions: Optional[List[RevisionLink]] = Field(None)
     categories: Optional[Set[str]] = Field(None, example=["1", "2"])
+    links_json: Optional[List[dict]] = Field(None, example={})
 
 
 class DocForSaveSchema(BaseModel):
@@ -96,6 +97,7 @@ class DocForSaveSchema(BaseModel):
     )
     similar_revisions: Optional[List[RevisionLink]] = Field(None)
     categories: Optional[Set[str]] = Field(None, example=["1", "2"])
+    links_json: Optional[List[dict]] = Field(None, example={})
 
     @root_validator
     def one_field_empty_other_filled_check(cls, values):
@@ -183,6 +185,7 @@ class AnnotatedDocSchema(BaseModel):
     task_id: int = Field(None, example=2)
     similar_revisions: Optional[List[RevisionLink]] = Field(None)
     categories: Optional[Set[str]] = Field(None, example=["1", "2"])
+    links_json: Optional[List[dict]] = Field(None, example={})
 
     @classmethod
     def from_orm(cls, obj):

@@ -327,6 +327,7 @@ def construct_annotated_doc(
         failed_validation_pages=doc.failed_validation_pages,
         tenant=tenant,
         task_id=task_id,
+        links_json=doc.links_json,
         categories=doc.categories or [],
     )
     s3_path = f"{S3_START_PATH}/{str(job_id)}/{str(file_id)}"
@@ -822,6 +823,7 @@ def construct_particular_rev_response(
         failed_validation_pages=revision.failed_validation_pages,
         categories=revision.categories,
         similar_revisions=similar_revisions or None,
+        links_json=revision.links_json,
     )
     return particular_rev
 

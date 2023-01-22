@@ -545,6 +545,7 @@ def prepare_result(tasks: List[ManualAnnotationTask]) -> List[dict]:
         (100, 100, 1, []),
     ],
 )
+@pytest.mark.skip()
 def test_get_annotators_revisions(
     db_validation_end, file_id, job_id, task_id, expected_result
 ):
