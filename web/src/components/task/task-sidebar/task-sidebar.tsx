@@ -38,7 +38,7 @@ import { Category, Label } from '../../../api/typings';
 import { ImageToolsParams } from './image-tools-params';
 import { CategoriesTab } from 'components/categories/categories-tab/categories-tab';
 import { useLinkTaxonomyByCategoryAndJobId } from 'api/hooks/taxons';
-import { useDocumentCategoriesByJob } from 'api/hooks/categories';
+import { TaskSidebarLabelsLinks } from './task-sidebar-labels-links/task-sidebar-labels-links';
 
 type TaskSidebarProps = {
     onRedirectAfterFinish: () => void;
@@ -93,7 +93,11 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
         selectedLabels,
         latestLabelsId,
         isDocLabelsModified,
-        getJobId
+        getJobId,
+        documentLinks,
+        onRelatedDocClick,
+        selectedRelatedDoc,
+        documentLinksChanged
     } = useTaskAnnotatorContext();
     const {
         tableModeColumns,
@@ -131,6 +135,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
             await useSetTaskState({ id: task?.id, eventType: 'closed' });
         }
     };
+
     const onSaveValidForm = () => {
         if (task) {
             finishTaskMutation.mutateAsync({ taskId: task?.id });
@@ -189,6 +194,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
                 if (
                     pages?.failed_validation_pages.length === 0 &&
                     pages?.not_processed.length === 0 &&
+                    pages?.annotated_pages.length === 0 &&
                     pages.validated
                 ) {
                     setAllvalid(true);
@@ -207,13 +213,21 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
     }, [tableMode]);
 
     const isSaveButtonDisabled = useMemo(() => {
-        if (isDocLabelsModified) return false;
+        if (isDocLabelsModified || documentLinksChanged) return false;
         return (
             (isValidation && !splitValidation && touchedPages.length === 0) ||
             ((!isValidation || splitValidation) && modifiedPages.length === 0) ||
             !isAnnotatable
         );
-    }, [validPages, invalidPages, touchedPages, modifiedPages, editedPages, isDocLabelsModified]);
+    }, [
+        validPages,
+        invalidPages,
+        touchedPages,
+        modifiedPages,
+        editedPages,
+        isDocLabelsModified,
+        documentLinksChanged
+    ]);
 
     useEffect(() => {
         if (tableModeValues === 'cells') setIsCellMode(true);
@@ -242,19 +256,16 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
 
     const jobId = useMemo(() => getJobId(), [getJobId]);
 
-    const allDocumentCategoriesResponse = useDocumentCategoriesByJob({ searchText: '', jobId });
-    const { data: documentCategories } = allDocumentCategoriesResponse;
-
     useEffect(() => {
-        if (documentCategories) {
-            const latestLabels: Label[] = documentCategories.data
+        if (categories) {
+            const latestLabels: Label[] = categories
                 .filter((category) => latestLabelsId?.includes(category.id))
                 .map((category) => {
                     return { name: category.name, id: category.id };
                 });
             setSelectedLabels(latestLabels);
         }
-    }, [documentCategories, latestLabelsId]);
+    }, [categories, latestLabelsId]);
 
     const taxonomy = useLinkTaxonomyByCategoryAndJobId({
         jobId,
@@ -339,9 +350,9 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
                         size="36"
                     />
                     <TabButton
-                        caption={'Labels'}
-                        isLinkActive={tabValue === 'Labels'}
-                        onClick={() => setTabValue('Labels')}
+                        caption={'Document'}
+                        isLinkActive={tabValue === 'Document'}
+                        onClick={() => setTabValue('Document')}
                         size="36"
                     />
                 </FlexRow>
@@ -552,17 +563,18 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
                             )}
                         </div>
                     )}
-                    {tabValue === 'Labels' && categories !== undefined && (
-                        <>
-                            <TaskSidebarLabels
-                                jobId={jobId}
-                                onLabelsSelected={onLabelsSelected}
-                                selectedLabels={selectedLabels ?? []}
-                            />
-                        </>
+                    {tabValue === 'Document' && categories !== undefined && (
+                        <TaskSidebarLabelsLinks
+                            jobId={jobId}
+                            onLabelsSelected={onLabelsSelected}
+                            selectedLabels={selectedLabels ?? []}
+                            documentLinks={documentLinks}
+                            onRelatedDocClick={onRelatedDocClick}
+                            selectedRelatedDoc={selectedRelatedDoc}
+                        />
                     )}
-                    {tabValue === 'Labels' && categories === undefined && (
-                        <p> There are no categories</p>
+                    {tabValue === 'Document' && categories === undefined && (
+                        <div> There are no categories</div>
                     )}
 
                     {isValidation && !splitValidation && (

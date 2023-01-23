@@ -11,7 +11,12 @@ import React, {
 import { cloneDeep, isEqual } from 'lodash';
 import { Task } from 'api/typings/tasks';
 import { ApiError } from 'api/api-error';
-import { useAddAnnotationsMutation, useLatestAnnotations } from 'api/hooks/annotations';
+import {
+    DocumentLink,
+    DocumentLinkWithName,
+    useAddAnnotationsMutation,
+    useLatestAnnotations
+} from 'api/hooks/annotations';
 import { useSetTaskFinishedMutation, useSetTaskState, useTaskById } from 'api/hooks/tasks';
 import { useCategoriesByJob } from 'api/hooks/categories';
 import { useDocuments } from 'api/hooks/documents';
@@ -62,9 +67,11 @@ import {
 } from './task-annotator-utils';
 import useSplitValidation, { SplitValidationValue } from './use-split-validation';
 import { useUsersDataFromTask } from './user-fetch-hook';
+import { DocumentLinksValue, useDocumentLinks } from './use-document-links';
 
 type ContextValue = SplitValidationValue &
-    SyncScrollValue & {
+    SyncScrollValue &
+    DocumentLinksValue & {
         task?: Task;
         job?: Job;
         categories?: Category[];
@@ -151,6 +158,7 @@ type ContextValue = SplitValidationValue &
         latestLabelsId: string[];
         isDocLabelsModified: boolean;
         getJobId: () => number | undefined;
+        linksFromApi?: DocumentLink[];
     };
 
 const TaskAnnotatorContext = createContext<ContextValue | undefined>(undefined);
@@ -856,6 +864,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         let { revision, pages } = latestAnnotationsResult.data;
 
         const selectedLabelsId: string[] = selectedLabels.map((obj) => obj.id) ?? [];
+
         onCloseDataTab();
 
         if (task.is_validation && !splitValidation.isSplitValidation) {
@@ -880,16 +889,18 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         try {
             await addAnnotationMutation.mutateAsync({
                 taskId,
-                pages,
+                pages: validPages.length || invalidPages.length ? [] : pages,
                 userId: task.user_id,
                 revision,
                 validPages,
                 invalidPages,
-                selectedLabelsId
+                selectedLabelsId,
+                links: documentLinksValues.linksToApi
             });
             onSaveTaskSuccess();
             latestAnnotationsResult.refetch();
             refetchTask();
+            documentLinksValues?.setDocumentLinksChanged?.(false);
         } catch (error) {
             onSaveTaskError(error as ApiError);
         }
@@ -1014,8 +1025,8 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
                 pages,
                 userId: task.user_id,
                 revision,
-                validPages,
-                invalidPages
+                validPages: [],
+                invalidPages: []
             });
             onCancelClick();
             onSaveTaskSuccess();
@@ -1053,6 +1064,10 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         setValidPages,
         userId: task?.user_id
     });
+
+    const linksFromApi = latestAnnotationsResult.data?.links_json;
+
+    const documentLinksValues = useDocumentLinks(linksFromApi);
 
     const value = useMemo<ContextValue>(() => {
         return {
@@ -1131,8 +1146,10 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             setSelectedLabels,
             latestLabelsId,
             setLatestLabelsId,
+            linksFromApi,
             ...splitValidation,
-            ...syncScroll
+            ...syncScroll,
+            ...documentLinksValues
         };
     }, [
         task,
@@ -1163,7 +1180,9 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         splitValidation,
         syncScroll,
         selectedLabels,
-        latestLabelsId
+        latestLabelsId,
+        linksFromApi,
+        documentLinksValues
     ]);
 
     return <TaskAnnotatorContext.Provider value={value}>{children}</TaskAnnotatorContext.Provider>;

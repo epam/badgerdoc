@@ -327,6 +327,7 @@ def construct_annotated_doc(
         failed_validation_pages=doc.failed_validation_pages,
         tenant=tenant,
         task_id=task_id,
+        links_json=doc.links_json,
         categories=doc.categories or [],
     )
     s3_path = f"{S3_START_PATH}/{str(job_id)}/{str(file_id)}"
@@ -822,6 +823,7 @@ def construct_particular_rev_response(
         failed_validation_pages=revision.failed_validation_pages,
         categories=revision.categories,
         similar_revisions=similar_revisions or None,
+        links_json=revision.links_json,
     )
     return particular_rev
 
@@ -841,6 +843,7 @@ def accumulate_pages_info(
     stop_revision: str = None,
     specific_pages: Set[int] = None,
     with_page_hash: bool = False,
+    unique_status: bool = False,
 ) -> Tuple[Set[int], Set[int], Set[int], Set[int], Optional[AnnotatedDoc]]:
     """
     Get pages, that have been validated, marked as failed, annotated and
@@ -850,48 +853,22 @@ def accumulate_pages_info(
     if with_page_hash param is True, info about page nums and their hash will
     be accumulated, otherwise info only about annotated page nums
     """
-    validated = set()
-    failed = set()
-    annotated = {} if with_page_hash else set()
+    all_annotated = {} if with_page_hash else set()
     required_revision = None
+    latest_status = {}
+    attr_map = {
+        "annotated": "pages",
+        "validated": "validated",
+        "failed": "failed_validation_pages",
+    }
 
     for revision in revisions:
-        validated = update_pages_array(
-            old_pages_to_add=validated,
-            new_pages_to_add=set(revision.validated)
-            if specific_pages is None
-            else set(revision.validated).intersection(specific_pages),
-            new_pages_to_remove=set(revision.failed_validation_pages)
-            if specific_pages is None
-            else set(revision.failed_validation_pages).intersection(
-                specific_pages
-            ),
-        )
+        all_annotated.update(revision.pages)
 
-        failed = update_pages_array(
-            old_pages_to_add=failed,
-            new_pages_to_add=set(revision.failed_validation_pages)
-            if specific_pages is None
-            else set(revision.failed_validation_pages).intersection(
-                specific_pages
-            ),
-            new_pages_to_remove=set(revision.validated)
-            if specific_pages is None
-            else set(revision.validated).intersection(specific_pages),
-        )
-
-        if with_page_hash:
-            pages = (
-                set(revision.pages)
-                if specific_pages is None
-                else set(map(str, specific_pages))
+        for status, attr in attr_map.items():
+            latest_status.update(
+                {int(i): status for i in getattr(revision, attr)}
             )
-            for page in pages:
-                page_hash = revision.pages.get(page)
-                if page_hash is not None:
-                    annotated[page] = page_hash
-        else:
-            annotated.update(set(map(int, revision.pages)))
 
         # if there is specific revision, where we need to stop,
         # we will stop here
@@ -905,6 +882,44 @@ def accumulate_pages_info(
         elif stop_revision is not None:
             # required revision id was not found
             required_revision = None
+
+    if specific_pages:
+        latest_status = {
+            page_num: status
+            for page_num, status in latest_status.items()
+            if page_num in specific_pages
+        }
+        all_annotated = {
+            page_num: pg_hash
+            for page_num, pg_hash in all_annotated.items()
+            if int(page_num) in specific_pages
+        }
+
+    current_status = {
+        "annotated": set(),
+        "validated": set(),
+        "failed": set(),
+    }
+
+    for page_num, status in latest_status.items():
+        current_status[status].add(page_num)
+
+    if unique_status:
+        annotated_list = current_status["annotated"]
+    else:
+        annotated_list = all_annotated
+
+    if with_page_hash:
+        annotated = {
+            str(page): all_annotated[str(page)] for page in annotated_list
+        }
+    else:
+        annotated = set(map(int, annotated_list))
+
+    validated, failed = (
+        current_status["validated"],
+        current_status["failed"],
+    )
 
     not_processed = (
         set(sorted(task_pages))

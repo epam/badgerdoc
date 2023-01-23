@@ -29,8 +29,8 @@ import { User } from '../../../api/typings';
 import styles from './task-modal.module.scss';
 
 export interface TaskValidationValues {
-    option_invalid?: string;
-    option_edited?: string;
+    option_invalid?: string | null;
+    option_edited?: string | null;
 }
 interface IProps extends IModal<TaskValidationValues> {
     onSaveForm: (
@@ -60,8 +60,8 @@ export const FinishTaskValidationModal: FC<IProps> = (modalProps) => {
 
     const handleLeave = () => svc.uuiLocks.acquire(() => Promise.resolve());
     const [formOption] = useState<TaskValidationValues>({
-        option_invalid: '',
-        option_edited: ''
+        option_invalid: null,
+        option_edited: null
     });
 
     const annotatorsDataSource = useArrayDataSource<User, string, any>(
@@ -73,8 +73,8 @@ export const FinishTaskValidationModal: FC<IProps> = (modalProps) => {
 
     const getMetaData = (): Metadata<TaskValidationValues> => ({
         props: {
-            option_invalid: { isRequired: true },
-            option_edited: { isRequired: true }
+            option_invalid: { isRequired: !!modalProps.invalidPages },
+            option_edited: { isRequired: !!modalProps.editedPageCount }
         }
     });
 
@@ -82,7 +82,7 @@ export const FinishTaskValidationModal: FC<IProps> = (modalProps) => {
         return (
             <>
                 <Panel>
-                    {modalProps.invalidPages && (
+                    {!!modalProps.invalidPages && (
                         <>
                             <FlexRow padding="24" vPadding="12">
                                 <FlexCell grow={1}>
@@ -123,7 +123,7 @@ export const FinishTaskValidationModal: FC<IProps> = (modalProps) => {
                             </FlexRow>
                         </>
                     )}
-                    {modalProps.editedPageCount !== 0 && (
+                    {!!modalProps.editedPageCount && (
                         <>
                             <FlexRow padding="24" vPadding="12">
                                 <FlexCell grow={1}>
@@ -211,7 +211,7 @@ export const FinishTaskValidationModal: FC<IProps> = (modalProps) => {
                                     size={'36'}
                                     onClick={async () => {
                                         await modalProps.validSave();
-                                        modalProps.success({ option_invalid: '' });
+                                        modalProps.success({ option_invalid: null });
                                     }}
                                 />
                             </ModalFooter>

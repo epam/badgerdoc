@@ -371,7 +371,7 @@ const MOCKS: Record<string, Record<string, BadgerFetch<any>>> = {
             };
         }
     },
-    [`${CATEGORIES_NAMESPACE}/jobs/3/categories/search`]: {
+    [`${CATEGORIES_NAMESPACE}/jobs/2/categories/search`]: {
         post: async (body: BadgerFetchBody | undefined) => {
             const { filters, pagination } = JSON.parse(body as string) as SearchBody<Category>;
             let data = categoriesMockData;
@@ -408,7 +408,45 @@ const MOCKS: Record<string, Record<string, BadgerFetch<any>>> = {
             };
         }
     },
-    [`${CATEGORIES_NAMESPACE}/jobs/3/categories`]: {
+    [`${CATEGORIES_NAMESPACE}/jobs/3/categories/search`]: {
+        post: async (body: BadgerFetchBody | undefined) => {
+            const { filters, pagination } = JSON.parse(body as string) as SearchBody<Category>;
+            let data = categoriesMockData;
+            if (filters.length > 0) {
+                const parentFilter = filters.find((filter) => filter.field === 'parent');
+                const nameFilter = filters.find((filter) => filter.field === 'name');
+                const nameFilterValue = String(nameFilter?.value ?? '').slice(1, -1);
+                const typeFilter = filters.find((filter) => filter.field === 'type');
+                const treeFilter = filters.find((filter) => filter.field === 'tree');
+                console.log(typeFilter);
+                if (treeFilter) {
+                    data = data.filter((cat) => cat.parent === treeFilter.value);
+                }
+                if (parentFilter) {
+                    data = data.filter((cat) => cat.parent === null);
+                }
+                if (nameFilterValue) {
+                    data = data.filter((cat) => cat.name.includes(nameFilterValue));
+                }
+                if (typeFilter) {
+                    data = data.filter((cat) => cat.type === typeFilter.value);
+                }
+                console.log(data);
+                return {
+                    data,
+                    pagination
+                };
+            }
+            return {
+                data: categoriesMockData,
+                pagination: {
+                    page_num: 1,
+                    page_size: 100
+                }
+            };
+        }
+    },
+    [`${CATEGORIES_NAMESPACE}/jobs/2/categories`]: {
         get: async () => {
             return {
                 data: [],

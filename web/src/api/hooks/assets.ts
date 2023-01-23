@@ -103,20 +103,3 @@ export const fetchThumbnailPiece = async (
         return URL.createObjectURL(imageBlob);
     }
 };
-
-// export const fetchThumbnailPiece = (
-//     fileId: number,
-//     pageNum: number | undefined,
-//     bbox: number[] | undefined
-// ) => {
-//     if (pageNum && bbox) {
-//         return useBadgerFetch({
-//             url: `${namespace}/download/piece?file_id=${fileId}&page_number=${pageNum}${bbox
-//                 .map((el) => `&bbox=${el}`)
-//                 .join('')}`,
-//             method: 'get',
-//             withCredentials: true,
-//             isBlob: true
-//         })();
-//     }
-// };

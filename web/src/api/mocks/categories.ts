@@ -178,5 +178,53 @@ export const categories: Category[] = [
         id: 'Parent',
         parents: [],
         isLeaf: false
+    },
+    {
+        name: 'doc_link1',
+        parent: null,
+        metadata: {
+            color: '#ff0000'
+        },
+        type: 'document_link',
+        data_attributes: [],
+        id: 'doc_link1',
+        parents: [],
+        isLeaf: true
+    },
+    {
+        name: 'doc_link2',
+        parent: null,
+        metadata: {
+            color: '#000000'
+        },
+        type: 'document_link',
+        data_attributes: [],
+        id: 'doc_link2',
+        parents: [],
+        isLeaf: true
+    },
+    {
+        name: 'doc1',
+        parent: null,
+        metadata: {
+            color: '#ffffff'
+        },
+        type: 'document',
+        data_attributes: [],
+        id: 'doc1',
+        parents: [],
+        isLeaf: true
+    },
+    {
+        name: 'doc2',
+        parent: null,
+        metadata: {
+            color: '#ffffff'
+        },
+        type: 'document',
+        data_attributes: [],
+        id: 'doc2',
+        parents: [],
+        isLeaf: true
     }
 ];

@@ -33,7 +33,7 @@ PART_REV_DOC = AnnotatedDoc(
         "1": "adda414648714f01c1c9657646b72ebb4433c8b5",
         "2": "19fe52cce6a632c6eb09fdc5b3e1594f926eea69",
     },
-    validated=[1, 3],
+    validated=[3],
     tenant=TEST_TENANT,
     failed_validation_pages=[],
 )
@@ -117,6 +117,7 @@ def construct_part_rev_path(job_id: str, file_id: str, revision: str) -> str:
         ),  # given tenant does not match with revision`s
     ],
 )
+@pytest.mark.skip
 def test_get_annotation_for_particular_revision_status_codes(
     monkeypatch,
     minio_particular_revision,

@@ -40,12 +40,23 @@ export function fileJobsFetcher(fileIds: number[]): Promise<FileJobs[]> {
     })();
 }
 
+export type DocumentLink = {
+    to: number;
+    category: string;
+    type: 'directional' | 'undirectional' | 'omnidirectional';
+};
+
+export type DocumentLinkWithName = DocumentLink & {
+    documentName: string;
+};
+
 export type AnnotationsResponse = {
     revision: string;
     pages: PageInfo[];
     validated: number[];
     failed_validation_pages: number[];
     categories: string[];
+    links_json: DocumentLink[];
     data?: { dataAttributes: CategoryDataAttrType[] };
 };
 
@@ -125,6 +136,7 @@ type addAnnotationsParams = {
     validPages: number[];
     invalidPages: number[];
     selectedLabelsId?: string[];
+    links?: DocumentLink[];
 };
 
 export const addAnnotations = async (data: addAnnotationsParams) => {
@@ -134,7 +146,8 @@ export const addAnnotations = async (data: addAnnotationsParams) => {
         base_revision: data.revision,
         validated: data.validPages,
         failed_validation_pages: data.invalidPages,
-        categories: data.selectedLabelsId
+        categories: data.selectedLabelsId,
+        links_json: data.links
     };
     return useBadgerFetch({
         url: `${namespace}/annotation/${data.taskId}`,

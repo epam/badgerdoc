@@ -679,7 +679,7 @@ def get_pages_info(
     )
 
     validated, failed, annotated, not_processed, _ = accumulate_pages_info(
-        task.pages, revisions
+        task.pages, revisions, unique_status=True
     )
 
     return PagesInfoSchema(
@@ -809,7 +809,7 @@ def finish_task(
     )
     # accumulate info about pages, validated/annotated by him
     validated, failed, annotated, not_processed, _ = accumulate_pages_info(
-        task.pages, revisions
+        task.pages, revisions, unique_status=True
     )
     # if same pages were annotated and marked as failed
     # it means, that these pages are edited by validator
