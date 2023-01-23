@@ -1,11 +1,11 @@
 import React, { FC, Fragment, useRef, useState } from 'react';
-import { SearchInput, Text, TextArea } from '@epam/loveship';
 import { CategoryDataAttributeWithValue } from 'api/typings';
 import { TaxonomiesTree } from 'components/taxonomies/taxonomies-tree';
 import { useTaxonomiesTree } from 'components/taxonomies/use-taxonomies-tree';
 import { useHeight } from 'shared/hooks/use-height';
 import { Annotation } from 'shared';
 import { isEmpty } from 'lodash';
+import { SearchInput, Text, TextArea } from '@epam/loveship';
 import styles from './task-sidebar-data.module.scss';
 
 type TaskSidebarDataProps = {
@@ -38,10 +38,11 @@ export const TaskSidebarData: FC<TaskSidebarDataProps> = ({
     const hightRef = useRef<HTMLDivElement>(null);
     const taxonomiesHeight = useHeight({ ref: hightRef });
 
-    const { taxonomyNodes, expandNode, onLoadData } = useTaxonomiesTree({
+    const { taxonomyNodes, expandNode, onLoadData, isLoading, searchResult } = useTaxonomiesTree({
         searchText,
         taxonomyId
     });
+
     return (
         <div className={styles['task-sidebar-data']}>
             {isCategoryDataEmpty && (
@@ -62,6 +63,7 @@ export const TaskSidebarData: FC<TaskSidebarDataProps> = ({
                                 />
                                 <div ref={hightRef} className={styles.tree}>
                                     <TaxonomiesTree
+                                        isLoading={searchResult.isLoading || isLoading}
                                         key={searchText}
                                         taxonomiesHeight={taxonomiesHeight}
                                         taxonomyNodes={taxonomyNodes}
