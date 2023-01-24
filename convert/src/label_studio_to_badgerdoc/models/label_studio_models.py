@@ -1,17 +1,27 @@
 from __future__ import annotations
-
+from datetime import datetime
 from typing import Any, Dict, List, Optional
-
+from enum import Enum
 from pydantic import BaseModel
 
 from .common import S3Path
 
 
+class ValidationType(str, Enum):
+    cross = "cross"
+    hierarchical = "hierarchical"
+    validation_only = "validation only"
+    extensive_coverage = "extensive_coverage"
+
+
 class LabelStudioRequest(BaseModel):
     input_annotation: S3Path
-    output_pdf: Optional[S3Path]
-    output_tokens: Optional[S3Path]
-    output_annotation: Optional[S3Path]
+    output_bucket: str
+    validation_type: Optional[ValidationType] = ValidationType.extensive_coverage
+    deadline: Optional[datetime]
+    extensive_coverage: Optional[int] = 0
+    annotators: Optional[List[str]] = []
+    validators: Optional[List[str]] = []
 
 
 class BadgerdocToLabelStudioRequest(BaseModel):

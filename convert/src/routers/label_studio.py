@@ -1,32 +1,46 @@
-from fastapi import APIRouter, status
+from fastapi import APIRouter
 
-from src.config import minio_client
-from src.label_studio_to_badegerdoc.badgerdoc_to_label_studio_use_case import (
+from src.label_studio_to_badgerdoc.badgerdoc_to_label_studio_use_case import (
     BDToLabelStudioConvertUseCase,
 )
-from src.label_studio_to_badegerdoc.models import LabelStudioRequest
-from src.label_studio_to_badegerdoc.models.label_studio_models import BadgerdocToLabelStudioRequest
-from src.label_studio_to_badegerdoc.label_studio_to_badgerdoc_use_case import (
+from src.label_studio_to_badgerdoc.models import LabelStudioRequest
+from src.label_studio_to_badgerdoc.models.label_studio_models import BadgerdocToLabelStudioRequest
+from src.label_studio_to_badgerdoc.label_studio_to_badgerdoc_use_case import (
     LabelStudioToBDConvertUseCase,
 )
+from src.config import minio_client, settings
+from tenant_dependency import TenantData, get_tenant_info
+from typing import Optional
+from fastapi import Depends, Header, status
 
 router = APIRouter(prefix="/label_studio", tags=["label_studio"])
+tenant = get_tenant_info(
+    url=settings.keycloak_url, algorithm="RS256", debug=True
+)
 
 
 @router.post(
     "/import",
     status_code=status.HTTP_201_CREATED,
 )
-def import_label_studio(request: LabelStudioRequest) -> None:
+def import_label_studio(
+    request: LabelStudioRequest,
+    current_tenant: Optional[str] = Header(None, alias="X-Current-Tenant"),
+    token_data: TenantData = Depends(tenant),
+) -> None:
     label_studio_to_bd_use_case = LabelStudioToBDConvertUseCase(
         s3_client=minio_client,
-    )
-    label_studio_to_bd_use_case.execute(
+        current_tenant=current_tenant,
+        token_data=token_data,
         s3_input_annotation=request.input_annotation,
-        s3_output_pdf=request.output_pdf,
-        s3_output_tokens=request.output_tokens,
-        s3_output_annotations=request.output_annotation,
+        s3_output_bucket=request.output_bucket,
+        validation_type=request.validation_type,
+        deadline=request.deadline,
+        extensive_coverage=request.extensive_coverage,
+        annotators=request.annotators,
+        validators=request.validators
     )
+    label_studio_to_bd_use_case.execute()
 
 
 @router.post(

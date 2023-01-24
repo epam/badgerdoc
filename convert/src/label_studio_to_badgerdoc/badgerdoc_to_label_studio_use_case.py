@@ -2,7 +2,7 @@ import tempfile
 from pathlib import Path
 from typing import NamedTuple
 
-from src.label_studio_to_badegerdoc.labelstudio_format import LabelStudioFormat
+from src.label_studio_to_badgerdoc.labelstudio_format import LabelStudioFormat
 
 from .models import S3Path
 from .models.bd_annotation_model import BadgerdocAnnotation
