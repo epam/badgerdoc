@@ -18,7 +18,7 @@ class AnnotationConverter:
     ):
         model_items: List[ModelItem] = annotations.__root__
         badgerdoc_annotations = BadgerdocAnnotation(
-            pages=[Page(page_num=1, size=Size(width=100, height=100))]
+            pages=[Page(page_num=1, size=Size(width=badgerdoc_tokens.size.width, height=badgerdoc_tokens.size.height))]
         )
         for model_item in model_items:
             for annotation in model_item.annotations:
