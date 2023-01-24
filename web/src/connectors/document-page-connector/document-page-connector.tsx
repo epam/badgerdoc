@@ -25,11 +25,11 @@ export const DocumentPageConnector = () => {
                 {
                     field: 'id',
                     operator: Operators.EQ,
-                    value: documentId || ''
+                    value: documentId
                 }
             ]
         },
-        {}
+        { enabled: !!documentId }
     );
     const fileMetaInfo = {
         ...documentSearchResultMapper(documentSearchResult.data),
@@ -42,10 +42,10 @@ export const DocumentPageConnector = () => {
 
     const { dataSource: documentJobDataSource, cache: documentJobsCache } = useEntity<
         DocumentJob,
-        string
+        number
     >(documentJobsFetcher, documentJobsFilters);
 
-    const [selectedDocumentJobId, setSelectedDocumentJobId] = useState('');
+    const [selectedDocumentJobId, setSelectedDocumentJobId] = useState<number | null>(null);
     const [selectedDocumentJobRevisionId, setSelectedDocumentJobRevisionId] = useState('');
     const [documentJobId, setDocumentJobId] = useState<number>(Number(jobId));
 
@@ -59,7 +59,7 @@ export const DocumentPageConnector = () => {
 
     useEffect(() => {
         if (jobId && !selectedDocumentJobId) {
-            setSelectedDocumentJobId(jobId);
+            setSelectedDocumentJobId(+jobId);
             return;
         }
 
@@ -74,7 +74,7 @@ export const DocumentPageConnector = () => {
     );
 
     const documentJobRevisions = useDocumentJobsRevisions(
-        { documentId: documentId || '', jobId: selectedDocumentJobId },
+        { documentId: documentId || '', jobId: selectedDocumentJobId! },
         { enabled: !!selectedDocumentJobId }
     );
 

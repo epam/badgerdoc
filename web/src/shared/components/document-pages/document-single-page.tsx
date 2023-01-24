@@ -113,7 +113,6 @@ const DocumentSinglePage: FC<RenderPageParams> = ({
         { id: 'undo', name: 'Undo', shortcut: 'Ctrl+Z' },
         { id: 'redo', name: 'Redo', shortcut: 'Ctrl+Y' }
     ];
-
     return (
         <ObservedElement
             rootRef={containerRef}

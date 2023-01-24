@@ -21,9 +21,9 @@ export interface FileMetaInfo {
 export interface DocumentPageSidebarContentProps {
     fileMetaInfo: FileMetaInfo;
     documentJobsInfo?: {
-        documentJobDataSource: LazyDataSource<DocumentJob, string>;
-        setSelectedDocumentJobId: React.Dispatch<React.SetStateAction<string>>;
-        selectedDocumentJobId: string;
+        documentJobDataSource: LazyDataSource<DocumentJob, number>;
+        setSelectedDocumentJobId: React.Dispatch<React.SetStateAction<number | null>>;
+        selectedDocumentJobId: number | null;
     };
     documentJobRevisionsInfo?: {
         documentJobRevisions: UseQueryResult<DocumentJobRevisionsResponse, unknown>;
@@ -65,7 +65,6 @@ export const DocumentPageSidebarContent = (props: DocumentPageSidebarContentProp
                                 minBodyWidth={100}
                                 disableClear={true}
                             />
-                            )
                         </div>
                     </div>
                 )}
@@ -75,7 +74,6 @@ export const DocumentPageSidebarContent = (props: DocumentPageSidebarContentProp
                             {`Revisions for selected extraction`}
                         </span>
                         <div className={styles['sidebar-picker-body']}>
-                            (
                             <PickerInput
                                 onValueChange={
                                     documentJobRevisionsInfo.setSelectedDocumentJobRevisionId
@@ -88,7 +86,6 @@ export const DocumentPageSidebarContent = (props: DocumentPageSidebarContentProp
                                 minBodyWidth={100}
                                 disableClear={true}
                             />
-                            )
                         </div>
                     </div>
                 )}

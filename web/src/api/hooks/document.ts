@@ -9,7 +9,6 @@ import {
 } from '../typings';
 import { useQuery } from 'react-query';
 import { DocumentJob } from '../typings/jobs';
-import { DocumentAnnotationsResponse } from '../typings/annotations';
 import { DocumentJobRevisionsResponse } from '../typings/revisions';
 import { pageSizes } from '../../shared';
 import { useBadgerFetch } from './api';
@@ -47,7 +46,7 @@ export async function documentJobsFetcher(
 
 export type useDocumentJobsRevisionsParamsType = {
     documentId: string | number;
-    jobId: string;
+    jobId: number;
 };
 
 export const useDocumentJobsRevisions: QueryHookType<
@@ -63,42 +62,13 @@ export const useDocumentJobsRevisions: QueryHookType<
 
 export async function documentJobsRevisionsFetcher(
     documentId: number,
-    jobId: string
+    jobId: number
 ): Promise<DocumentJobRevisionsResponse> {
     return useBadgerFetch({
         url: `${annotationManagerNamespace}/revisions/${jobId}/${documentId}`,
         method: 'get',
         withCredentials: true
     })() as Promise<DocumentJobRevisionsResponse>;
-}
-
-export type useDocumentAnnotationParamsType = {
-    documentId: string | number;
-    jobId: string;
-    revision: string;
-};
-
-export const useDocumentAnnotation: QueryHookType<
-    useDocumentAnnotationParamsType,
-    DocumentAnnotationsResponse
-> = ({ documentId, jobId, revision }, options) => {
-    return useQuery(
-        ['document', 'revision', 'annotation', documentId, jobId, revision],
-        async () => documentAnnotationFetcher(Number(documentId), Number(jobId), revision),
-        options
-    );
-};
-
-export async function documentAnnotationFetcher(
-    documentId: number,
-    jobId: number,
-    revision: string
-): Promise<DocumentAnnotationsResponse> {
-    return useBadgerFetch<DocumentAnnotationsResponse>({
-        url: `${annotationManagerNamespace}/annotation/${jobId}/${documentId}/${revision}`,
-        method: 'get',
-        withCredentials: true
-    })();
 }
 
 export function documentNamesFetcher(
