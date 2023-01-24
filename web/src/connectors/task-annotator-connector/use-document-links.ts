@@ -105,7 +105,7 @@ const useRelatedDocsMap = (linksFromApi?: DocumentLink[]): Map<number, FileDocum
     );
 
     useEffect(() => {
-        if (documentIds) {
+        if (documentIds?.length) {
             refetchDocs();
         }
     }, [documentIds]);

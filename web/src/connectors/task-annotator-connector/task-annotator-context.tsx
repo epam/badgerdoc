@@ -274,7 +274,6 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
     const getJobId = (): number | undefined => (task ? task.job.id : jobId);
 
     const getFileId = (): number | undefined => (task ? task.file.id : fileMetaInfo?.id);
-
     const { isOwner, sortedUsers } = useUsersDataFromTask(task);
 
     const { data: job } = useJobById({ jobId: task?.job.id });
@@ -288,7 +287,6 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             pageNumbers.push(i + 1);
         }
     }
-
     const {
         data: categories,
         refetch: refetchCategories,
@@ -305,10 +303,10 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
     );
 
     useEffect(() => {
-        if (task?.job.id) {
+        if (task?.job.id || jobId) {
             refetchCategories();
         }
-    }, [task]);
+    }, [task, jobId]);
 
     const taskHasTaxonomies = useMemo(() => {
         if (categories) {
@@ -337,7 +335,8 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             fileId: getFileId(),
             revisionId,
             pageNumbers: pageNumbers,
-            userId: job?.validation_type === 'extensive_coverage' ? task?.user_id : ''
+            userId:
+                job?.validation_type === 'extensive_coverage' && !revisionId ? task?.user_id : ''
         },
         { enabled: !!(task || job) }
     );
@@ -362,13 +361,13 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
     }
 
     useEffect(() => {
-        if (task || job) {
+        if (task || job || revisionId) {
             setCurrentPage(pageNumbers[0]);
             documentsResult.refetch();
             latestAnnotationsResult.refetch();
             tokenRes.refetch();
         }
-    }, [task, job]);
+    }, [task, job, revisionId]);
 
     const taxonLabels = useAnnotationsTaxons(latestAnnotationsResult.data?.pages);
 

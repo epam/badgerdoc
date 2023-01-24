@@ -20,9 +20,9 @@ import { BreadcrumbNavigation } from '../../shared/components/breadcrumb';
 export interface DocumentPageProps {
     fileMetaInfo: FileMetaInfo;
     documentJobsInfo?: {
-        documentJobDataSource: LazyDataSource<DocumentJob, string>;
-        setSelectedDocumentJobId: React.Dispatch<React.SetStateAction<string>>;
-        selectedDocumentJobId: string;
+        documentJobDataSource: LazyDataSource<DocumentJob, number>;
+        setSelectedDocumentJobId: React.Dispatch<React.SetStateAction<number | undefined>>;
+        selectedDocumentJobId?: number;
     };
     documentJobRevisionsInfo?: {
         documentJobRevisions: UseQueryResult<DocumentJobRevisionsResponse, unknown>;
