@@ -105,7 +105,7 @@ class AnnotatedDoc(Base):
     categories = Column(ARRAY(VARCHAR), nullable=False, server_default="{}")
 
     tasks = relationship("ManualAnnotationTask", back_populates="docs")
-    links_json = Column(JSON, nullable=False, server_default="{}")
+    links_json = Column(JSON, nullable=False, server_default="[]")
     similar_docs = relationship(
         "AnnotatedDoc",
         secondary="document_links",

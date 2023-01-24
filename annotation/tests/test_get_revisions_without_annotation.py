@@ -112,11 +112,13 @@ REV_WITHOUT_ANNOTATION_RESPONSE = [
         **REV_WITHOUT_ANNOTATION_DOC_1,
         "similar_revisions": None,
         "categories": [],
+        "links_json": [],
     },
     {
         **REV_WITHOUT_ANNOTATION_DOC_2,
         "similar_revisions": None,
         "categories": [],
+        "links_json": [],
     },
 ]
 
@@ -144,6 +146,7 @@ def construct_rev_without_annotation_path(job_id: int, file_id: int) -> str:
                     **REV_WITHOUT_ANNOTATION_DOC_3,
                     "similar_revisions": None,
                     "categories": [],
+                    "links_json": [],
                 }
             ],
         ),  # get list of one revision
@@ -175,7 +178,6 @@ def construct_rev_without_annotation_path(job_id: int, file_id: int) -> str:
         ),
     ],
 )
-@pytest.mark.skip()
 def test_get_revisions_without_annotation_status_codes(
     db_revisions_without_annotation,
     file_id,

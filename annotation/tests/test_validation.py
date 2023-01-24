@@ -288,6 +288,7 @@ DOCS = [
         task_id=TASKS[0].id,
         date="2004-10-19T10:01:00",
         categories=[],
+        links_json=[],
     ),  # first revision of annotation task for
     # first job, first file, first user
     AnnotatedDoc(
@@ -303,6 +304,7 @@ DOCS = [
         task_id=TASKS[0].id,
         date="2004-10-19T10:01:01",
         categories=[],
+        links_json=[],
     ),  # second revision of annotation task for
     # first job, first file, first user
     AnnotatedDoc(
@@ -318,6 +320,7 @@ DOCS = [
         task_id=TASKS[1].id,
         date="2004-10-19T10:01:02",
         categories=[],
+        links_json=[],
     ),  # first revision of annotation task for
     # first job, first file, second user
     AnnotatedDoc(
@@ -333,6 +336,7 @@ DOCS = [
         task_id=TASKS[1].id,
         date="2004-10-19T10:01:03",
         categories=[],
+        links_json=[],
     ),  # second revision of annotation task for
     # first job, first file, second user
     AnnotatedDoc(
@@ -348,6 +352,7 @@ DOCS = [
         task_id=TASKS[2].id,
         date="2004-10-19T10:01:00",
         categories=[],
+        links_json=[],
     ),  # first revision of annotation task for
     # first job, second file, first user
     AnnotatedDoc(
@@ -363,6 +368,7 @@ DOCS = [
         task_id=TASKS[3].id,
         date="2004-10-19T10:01:00",
         categories=[],
+        links_json=[],
     ),  # first revision of annotation task for
     # first job, second file, first user
     AnnotatedDoc(
@@ -378,6 +384,7 @@ DOCS = [
         task_id=TASKS[4].id,
         date="2004-10-19T10:01:00",
         categories=[],
+        links_json=[],
     ),  # first revision of validation task for
     # first job, first file, third user
     AnnotatedDoc(
@@ -393,6 +400,7 @@ DOCS = [
         task_id=TASKS[4].id,
         date="2004-10-19T10:01:01",
         categories=[],
+        links_json=[],
     ),  # second revision of validation task for
     # first job, first file, third user
     AnnotatedDoc(
@@ -408,6 +416,7 @@ DOCS = [
         task_id=TASKS[5].id,
         date="2004-10-19T10:01:00",
         categories=[],
+        links_json=[],
     ),  # first revision of validation task for
     # first job, second file, fourth user
     AnnotatedDoc(
@@ -423,6 +432,7 @@ DOCS = [
         task_id=TASKS[5].id,
         date="2004-10-19T10:01:01",
         categories=[],
+        links_json=[],
     ),  # second revision of validation task for
     # first job, second file, fourth user
     AnnotatedDoc(
@@ -438,6 +448,7 @@ DOCS = [
         task_id=TASKS[6].id,
         date="2004-10-19T10:01:00",
         categories=[],
+        links_json=[],
     ),  # first revision of validation task for
     # first job, second file, fourth user
     AnnotatedDoc(
@@ -453,6 +464,7 @@ DOCS = [
         task_id=TASKS[7].id,
         date="2004-10-19T10:01:00",
         categories=[],
+        links_json=[],
     ),  # first revision of annotation task for
     # second job, third file, first user
     AnnotatedDoc(
@@ -468,6 +480,7 @@ DOCS = [
         task_id=TASKS[8].id,
         date="2004-10-19T10:01:00",
         categories=[],
+        links_json=[],
     ),  # first revision of annotation task for
     # second job, third file, second user
     AnnotatedDoc(
@@ -483,6 +496,7 @@ DOCS = [
         task_id=TASKS[11].id,
         date="2004-10-19T10:01:00",
         categories=[],
+        links_json=[],
     ),  # first revision of annotation task for
     # first job, fourth file, first user
     AnnotatedDoc(
@@ -500,6 +514,7 @@ DOCS = [
         task_id=TASKS[12].id,
         date="2004-10-19T10:01:00",
         categories=[],
+        links_json=[],
     ),  # first revision of validation task for
     # first job, fourth file, first user
     AnnotatedDoc(
@@ -515,6 +530,7 @@ DOCS = [
         task_id=TASKS[13].id,
         date="2004-10-19T10:01:00",
         categories=[],
+        links_json=[],
     ),  # first revision of validation task for
     # first job, fourth file, first user
 ]
@@ -545,7 +561,6 @@ def prepare_result(tasks: List[ManualAnnotationTask]) -> List[dict]:
         (100, 100, 1, []),
     ],
 )
-@pytest.mark.skip()
 def test_get_annotators_revisions(
     db_validation_end, file_id, job_id, task_id, expected_result
 ):
@@ -1566,7 +1581,7 @@ def test_finish_task_status_codes(
     assert expected_message in response.text
 
 
-@pytest.mark.skip
+@pytest.mark.skip("wrong pages count")
 @pytest.mark.integration
 def test_finish_task_successful_status_codes(
     db_validation_end,

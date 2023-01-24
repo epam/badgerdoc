@@ -24,7 +24,7 @@ def upgrade():
         sa.Column(
             "links_json",
             postgresql.JSON(astext_type=sa.Text()),
-            server_default="{}",
+            server_default="[]",
             nullable=False,
         ),
     )
