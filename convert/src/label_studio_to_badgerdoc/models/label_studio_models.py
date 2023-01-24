@@ -17,9 +17,9 @@ class ValidationType(str, Enum):
 class LabelStudioRequest(BaseModel):
     input_annotation: S3Path
     output_bucket: str
-    validation_type: Optional[ValidationType] = ValidationType.extensive_coverage
+    validation_type: ValidationType
     deadline: Optional[datetime]
-    extensive_coverage: Optional[int] = 0
+    extensive_coverage: Optional[int] = None
     annotators: Optional[List[str]] = []
     validators: Optional[List[str]] = []
 
