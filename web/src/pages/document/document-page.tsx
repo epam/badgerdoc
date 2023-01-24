@@ -21,8 +21,8 @@ export interface DocumentPageProps {
     fileMetaInfo: FileMetaInfo;
     documentJobsInfo?: {
         documentJobDataSource: LazyDataSource<DocumentJob, number>;
-        setSelectedDocumentJobId: React.Dispatch<React.SetStateAction<number | undefined>>;
-        selectedDocumentJobId?: number;
+        setSelectedDocumentJobId: React.Dispatch<React.SetStateAction<number | null>>;
+        selectedDocumentJobId: number | null;
     };
     documentJobRevisionsInfo?: {
         documentJobRevisions: UseQueryResult<DocumentJobRevisionsResponse, unknown>;

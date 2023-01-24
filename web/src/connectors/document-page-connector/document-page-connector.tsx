@@ -45,9 +45,7 @@ export const DocumentPageConnector = () => {
         number
     >(documentJobsFetcher, documentJobsFilters);
 
-    const [selectedDocumentJobId, setSelectedDocumentJobId] = useState<number | undefined>(
-        undefined
-    );
+    const [selectedDocumentJobId, setSelectedDocumentJobId] = useState<number | null>(null);
     const [selectedDocumentJobRevisionId, setSelectedDocumentJobRevisionId] = useState('');
     const [documentJobId, setDocumentJobId] = useState<number>(Number(jobId));
 

@@ -11,9 +11,9 @@ export default function useAnnotationsTaxons(annotationsByPages?: PageInfo[]): M
             for (let page of annotationsByPages) {
                 for (let obj of page.objs) {
                     if (
-                        obj.data.dataAttributes[0] &&
-                        obj.data.dataAttributes[0].value &&
-                        obj.data.dataAttributes[0].type === 'taxonomy'
+                        obj.data.dataAttributes?.[0] &&
+                        obj.data.dataAttributes?.[0].value &&
+                        obj.data.dataAttributes?.[0].type === 'taxonomy'
                     ) {
                         taxonIdArr.push(obj.data.dataAttributes[0].value);
                     }
