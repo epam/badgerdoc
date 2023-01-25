@@ -78,10 +78,7 @@ class AnnotationConverterPractic:
         links = []
         for link_theoretic in theoretic_links:
             link = bd_annotation_model_practic.AnnotationLink(
-                category_id="Link",
-                to=link_theoretic.to,
-                type="directional",
-                page_num=1,
+                **link_theoretic.dict()
             )
             links.append(link)
         return links

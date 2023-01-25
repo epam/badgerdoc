@@ -98,7 +98,7 @@
           "text": "Jerusalem",
           "links": [
             {
-              "category_id": "Link",
+              "category_id": "some_relation",
               "to": 1,
               "type": "directional",
               "page_num": 1

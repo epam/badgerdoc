@@ -77,6 +77,5 @@ def test_annotation_converter():
         )
         tokens_etalon = json.loads(tokens_etalon_path.read_text())
         annotations_etalon = json.loads(annotations_etalon_path.read_text())
-
         assert tokens_test == tokens_etalon
         assert annotations_test == annotations_etalon

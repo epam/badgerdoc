@@ -41,7 +41,9 @@
             "to_id": "i6mZKQ4DGD",
             "type": "relation",
             "direction": "right",
-            "labels": []
+            "labels": [
+              "some_relation"
+            ]
           }
         ],
         "was_cancelled": false,
