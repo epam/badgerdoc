@@ -4,7 +4,9 @@ import { TreeNode } from 'api/typings';
 import { EventDataNode } from 'rc-tree/lib/interface';
 import Tree from 'rc-tree';
 import { Spinner } from '@epam/loveship';
+
 import './rc-tree.scss';
+import styles from './badger-tree.module.scss';
 
 interface Props {
     isLoading: boolean;
@@ -44,9 +46,9 @@ export const BadgerTree: FC<Props> = ({
     const renderData = nodes.length ? data : <NoData />;
 
     return (
-        <div className="animation">
-            <div style={{ display: 'flex' }}>
-                <div style={{ flex: '1 1 50%' }}>{isLoading ? spinner : renderData}</div>
+        <div>
+            <div className={styles.container}>
+                <div className={styles.data}>{isLoading ? spinner : renderData}</div>
             </div>
         </div>
     );

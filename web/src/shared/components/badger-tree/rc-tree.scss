@@ -1,11 +1,33 @@
-@import '~shared/helpers/styles';
+@import "~shared/helpers/styles";
 
 .rc-tree {
     margin: 0;
     border: 1px solid transparent;
+    width: 100%;
 
     &-focused:not(&-active-focused) {
         border-color: cyan;
+    }
+    .rc-tree-list-holder {
+        overflow: auto;
+        scrollbar-width: thin;
+        scrollbar-color: hsl(0, 0%, 60%);
+        margin-right: 9px;
+
+        &::-webkit-scrollbar {
+            width: 7px;
+            height: 7px;
+        }
+
+        &::-webkit-scrollbar-track {
+            background: rgba(128, 128, 128, 0.1);
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background-color: hsl(0 0% 60%);
+            border-radius: 15px;
+            border: 3px solid hsl(0 0% 60%);
+        }
     }
 
     .rc-tree-treenode {
@@ -34,7 +56,6 @@
             padding: 0 0 0 18px;
         }
         .rc-tree-node-content-wrapper {
-            position: relative;
             display: inline-block;
             height: 24px;
             margin: 0;
@@ -42,7 +63,6 @@
             text-decoration: none;
             vertical-align: top;
             cursor: pointer;
-            flex: 1;
         }
         span {
             &.rc-tree-switcher,
@@ -52,6 +72,7 @@
                 height: 16px;
                 margin-right: 2px;
                 margin-bottom: 4px;
+                flex-shrink: 0;
                 line-height: 16px;
                 vertical-align: -0.125em;
                 background-color: transparent;
@@ -71,10 +92,10 @@
                     cursor: auto;
                 }
                 &.rc-tree-switcher_open {
-                    background-image: url('../../../icons/down.svg');
+                    background-image: url("../../../icons/down.svg");
                 }
                 &.rc-tree-switcher_close {
-                    background-image: url('../../../icons/up.svg');
+                    background-image: url("../../../icons/up.svg");
                 }
             }
         }
