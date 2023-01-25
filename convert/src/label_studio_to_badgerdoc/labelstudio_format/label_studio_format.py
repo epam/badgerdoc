@@ -46,7 +46,6 @@ class LabelStudioFormat:
             if not obj.tokens:
                 continue
             item = ResultItem(
-                # id=obj.data["source_id"],
                 id=obj.id,
                 from_name="label",
                 to_name="text",

@@ -20,8 +20,8 @@ class LabelStudioRequest(BaseModel):
     validation_type: ValidationType
     deadline: Optional[datetime]
     extensive_coverage: Optional[int] = None
-    annotators: Optional[List[str]] = []
-    validators: Optional[List[str]] = []
+    annotators: List[str] = []
+    validators: List[str] = []
 
 
 class BadgerdocToLabelStudioRequest(BaseModel):

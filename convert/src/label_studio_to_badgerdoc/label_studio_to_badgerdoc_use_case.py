@@ -1,10 +1,12 @@
 import random
 import tempfile
+from datetime import datetime
 from pathlib import Path
-from typing import List
+from typing import Any, List
 from uuid import uuid4
 
 import requests
+from botocore.client import BaseClient
 from botocore.exceptions import ClientError
 from fastapi import HTTPException, status
 from fastapi.encoders import jsonable_encoder
@@ -26,6 +28,7 @@ from src.label_studio_to_badgerdoc.badgerdoc_format.plain_text_converter import 
 from src.label_studio_to_badgerdoc.models.label_studio_models import (
     LabelStudioModel,
     S3Path,
+    ValidationType,
 )
 from src.logger import get_logger
 
@@ -37,19 +40,22 @@ class LabelStudioToBDConvertUseCase:
 
     converted_annotations_filename = "annotations.json"
     converted_tokens_filename = "1.json"
+    output_pdf_filename = "badgerdoc_render.pdf"
+    badgerdoc_tokens_filename = "badgerdoc_tokens.json"
+    badgerdoc_annotations_filename = "badgerdoc_annotations.json"
 
     def __init__(
         self,
-        s3_client,
+        s3_client: BaseClient,
         current_tenant: str,
         token_data: TenantData,
         s3_input_annotation: S3Path,
         s3_output_bucket: str,
-        validation_type,
-        deadline,
-        extensive_coverage,
-        annotators,
-        validators,
+        validation_type: ValidationType,
+        deadline: datetime,
+        extensive_coverage: int,
+        annotators: List[str],
+        validators: List[str],
     ) -> None:
         page_border_offset = DEFAULT_PAGE_BORDER_OFFSET
         self.plain_text_converter = TextToBadgerdocTokensConverter(
@@ -108,7 +114,6 @@ class LabelStudioToBDConvertUseCase:
             )
 
             try:
-
                 self.s3_client.download_file(
                     s3_input_annotation.bucket,
                     s3_input_annotation.path,
@@ -142,7 +147,7 @@ class LabelStudioToBDConvertUseCase:
     ) -> str:
         return f"annotation/{importjob_id_created}/{file_id_in_assets}/{self.converted_annotations_filename}"
 
-    def make_upload_file_request_to_assets(self, pdf_path):
+    def make_upload_file_request_to_assets(self, pdf_path: Path) -> int:
         upload_file_to_assets_url = f"{settings.assets_service_url}"
         files = [
             (
@@ -159,17 +164,17 @@ class LabelStudioToBDConvertUseCase:
             request_to_post_assets.raise_for_status()
         except requests.exceptions.RequestException as e:
             LOGGER.exception(
-                "Failed request to 'assets' to post converted pdf-file - %s", e
+                "Failed request to 'assets' to post converted pdf-file"
             )
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail=f"Failed request to 'assets' to post converted pdf-file",
+                detail="Failed request to 'assets' to post converted pdf-file",
             ) from e
         return request_to_post_assets.json()[0]["id"]
 
     def upload_output_pdf_to_s3(self):
         with tempfile.TemporaryDirectory() as tmp_dirname:
-            pdf_path = tmp_dirname / Path("badgerdoc_render.pdf")
+            pdf_path = tmp_dirname / Path(self.output_pdf_filename)
             self.badgerdoc_format.export_pdf(pdf_path)
 
             file_id_in_assets = self.make_upload_file_request_to_assets(
@@ -187,7 +192,9 @@ class LabelStudioToBDConvertUseCase:
                 file_id_in_assets
             )
 
-            badgerdoc_tokens_path = tmp_dirname / Path("badgerdoc_tokens.json")
+            badgerdoc_tokens_path = tmp_dirname / Path(
+                self.badgerdoc_tokens_filename
+            )
             self.badgerdoc_format.export_tokens(badgerdoc_tokens_path)
             self.s3_client.upload_file(
                 str(badgerdoc_tokens_path),
@@ -196,7 +203,7 @@ class LabelStudioToBDConvertUseCase:
             )
 
             badgerdoc_annotations_path = tmp_dirname / Path(
-                "badgerdoc_annotations.json"
+                self.badgerdoc_annotations_filename
             )
             self.badgerdoc_format.export_annotations(
                 badgerdoc_annotations_path
@@ -212,13 +219,13 @@ class LabelStudioToBDConvertUseCase:
 
     def request_jobs_to_create_annotation_job(
         self,
-        file_id_in_assets,
-        owner,
-        validation_type,
-        deadline,
-        extensive_coverage,
-        annotators,
-        validators,
+        file_id_in_assets: int,
+        owner: str,
+        validation_type: ValidationType,
+        deadline: datetime,
+        extensive_coverage: int,
+        annotators: List[str],
+        validators: List[str],
     ) -> int:
         categories = self.request_annotations_to_post_categories()
         post_annotation_job_url = f"{settings.job_service_url}create_job/"
@@ -256,12 +263,10 @@ class LabelStudioToBDConvertUseCase:
             )
             request_to_post_annotation_job.raise_for_status()
         except requests.exceptions.RequestException as e:
-            LOGGER.exception(
-                "Failed request to 'jobs' to post AnnotationJob - %s", e
-            )
+            LOGGER.exception("Failed request to 'jobs' to post AnnotationJob")
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail=f"Failed request to 'jobs' to post AnnotationJob",
+                detail="Failed request to 'jobs' to post AnnotationJob",
             ) from e
 
         LOGGER.debug(
@@ -270,7 +275,7 @@ class LabelStudioToBDConvertUseCase:
         )
         return request_to_post_annotation_job.json()["id"]
 
-    def get_categories_of_links(self, pages_objs):
+    def get_categories_of_links(self, pages_objs: List[Any]):
         result = []
         for pages_obj in pages_objs:
             for link in pages_obj.links:
@@ -278,24 +283,23 @@ class LabelStudioToBDConvertUseCase:
 
         return result
 
-    def form_post_category_body(self, type_of_categories, category):
+    def form_post_category_body(self, type_of_categories: str, category: str):
         possible_categories_colors = (
-            "red",
-            "blue",
-            "green",
-            "purple",
-            "orange",
-            "grey",
+            "#FF0000",
+            "#FFFF00",
+            "#008000",
+            "#0000FF",
+            "#FF00FF",
+            "#808080",
+            "#800000",
         )
 
         result = {
-                "name": category,
-                "type": type_of_categories,
-                "id": category,
-                "metadata": {
-                    "color": random.choice(possible_categories_colors)
-                },
-            }
+            "name": category,
+            "type": type_of_categories,
+            "id": category,
+            "metadata": {"color": random.choice(possible_categories_colors)},
+        }
         return result
 
     def request_annotations_to_post_categories(self) -> List:
@@ -305,16 +309,23 @@ class LabelStudioToBDConvertUseCase:
             post_categories_url,
         )
         pages_objs = self.badgerdoc_format.badgerdoc_annotation.pages[0].objs
-        categories_of_type_box = {pages_obj.category for pages_obj in pages_objs}
+        categories_of_type_box = {
+            pages_obj.category for pages_obj in pages_objs
+        }
         categories_of_type_link = self.get_categories_of_links(pages_objs)
         all_categories = {
             "box": categories_of_type_box,
-            "link": categories_of_type_link
+            "link": categories_of_type_link,
         }
 
-        for type_of_categories, set_of_categories_names in all_categories.items():
+        for (
+            type_of_categories,
+            set_of_categories_names,
+        ) in all_categories.items():
             for category in set_of_categories_names:
-                post_categories_body = self.form_post_category_body(type_of_categories, category)
+                post_categories_body = self.form_post_category_body(
+                    type_of_categories, category
+                )
                 LOGGER.debug(
                     "Making request to post categories with this request body: %s",
                     post_categories_body,
@@ -338,12 +349,11 @@ class LabelStudioToBDConvertUseCase:
                         continue
 
                     LOGGER.exception(
-                        "Failed request to 'annotation' to post categories for converted annotations - %s",
-                        e,
+                        "Failed request to 'annotation' to post categories for converted annotations"
                     )
                     raise HTTPException(
                         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                        detail=f"Failed request to 'annotation' to post categories for converted annotations",
+                        detail="Failed request to 'annotation' to post categories for converted annotations",
                     ) from e
 
                 LOGGER.debug(
@@ -384,8 +394,7 @@ class LabelStudioToBDConvertUseCase:
             request_to_post_annotations.raise_for_status()
         except requests.exceptions.RequestException as e:
             LOGGER.exception(
-                "Failed request to 'annotation' to post converted annotations - %s",
-                e,
+                "Failed request to 'annotation' to post converted annotations"
             )
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -399,14 +408,14 @@ class LabelStudioToBDConvertUseCase:
 
     def import_annotations_to_annotation_microservice(
         self,
-        file_id_in_assets,
-        owner,
-        validation_type,
-        deadline,
-        extensive_coverage,
-        annotators,
-        validators,
-    ):
+        file_id_in_assets: int,
+        owner: str,
+        validation_type: ValidationType,
+        deadline: datetime,
+        extensive_coverage: int,
+        annotators: List[str],
+        validators: List[str],
+    ) -> int:
         annotation_job_id_created = self.request_jobs_to_create_annotation_job(
             file_id_in_assets,
             owner,

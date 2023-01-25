@@ -49,7 +49,7 @@ class BadgerdocFormat:
     def convert_from_text(self, text: str):
         self.tokens_page = self.text_converter.convert(text)
 
-    def export_tokens(self, path: Path):
+    def export_tokens(self, path: Path) -> None:
         if self.tokens_page:
             path.write_text(self.tokens_page.json(indent=4, by_alias=True))
 
