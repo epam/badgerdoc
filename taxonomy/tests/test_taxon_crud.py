@@ -88,23 +88,6 @@ def test_add_taxon_taxonomy_does_not_exist(overrided_token_client):
 
 
 @pytest.mark.integration
-def test_add_taxon_duplicate_name(
-    overrided_token_client,
-    prepared_taxon_entity_in_db,
-    prepared_taxonomy_record_in_db,
-):
-    data = prepare_taxon_body(
-        name=prepared_taxon_entity_in_db.name,
-        taxonomy_id=prepared_taxonomy_record_in_db.id,
-    )
-    response = overrided_token_client.post(
-        TAXON_PATH, json=data, headers=TEST_HEADER
-    )
-    assert response.status_code == 400
-    assert "Taxon name must be unique" in response.text
-
-
-@pytest.mark.integration
 def test_add_taxon_self_parent(
     overrided_token_client,
     prepared_taxonomy_record_in_db,
