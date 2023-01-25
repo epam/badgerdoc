@@ -146,13 +146,12 @@ class DocForSaveSchema(BaseModel):
         Arrays pages, validated, failed and categories
         should not be empty at the same time.
         """
-        pages, validated, failed, categories = (
+        pages, failed, categories = (
             values.get("pages"),
-            values.get("validated"),
             values.get("failed_validation_pages"),
             values.get("categories"),
         )
-        if not any((pages, validated, failed, categories)):
+        if not any((pages, failed, categories)):
             raise ValueError(
                 "Fields pages, "
                 "validated, failed validation pages "
