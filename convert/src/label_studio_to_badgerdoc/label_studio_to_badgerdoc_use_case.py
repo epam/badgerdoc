@@ -1,3 +1,4 @@
+import random
 import tempfile
 from pathlib import Path
 from typing import List
@@ -270,6 +271,14 @@ class LabelStudioToBDConvertUseCase:
         return request_to_post_annotation_job.json()["id"]
 
     def request_annotations_to_post_categories(self) -> List:
+        possible_categories_colors = [
+            "red",
+            "blue",
+            "green",
+            "purple",
+            "orange",
+            "grey",
+        ]
         post_categories_url = f"{settings.annotation_service_url}categories/"
         LOGGER.debug(
             "Making requests to url: %s to post annotations",
@@ -284,6 +293,9 @@ class LabelStudioToBDConvertUseCase:
                 "name": category,
                 "type": "box",
                 "id": category,
+                "metadata": {
+                    "color": random.choice(possible_categories_colors)
+                },
             }
             LOGGER.debug(
                 "Making request to post categories with this request body: %s",
