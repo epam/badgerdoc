@@ -1,7 +1,7 @@
 from typing import List, Optional, Tuple
 
 from .annotation_converter_practic import AnnotationConverterPractic
-from ..models.bd_annotation_model import BadgerdocAnnotation, Obj, Page, Size
+from ..models.bd_annotation_model import AnnotationLink, BadgerdocAnnotation, Obj, Page, Size
 from ..models import bd_annotation_model_practic
 from ..models.bd_tokens_model import Page as BadgerdocTokensPage
 from ..models.label_studio_models import LabelStudioModel, ModelItem, ResultItem
@@ -77,14 +77,24 @@ class AnnotationConverter:
     ):
         if not self._is_relation(labelstudio_item):
             return
-
+        if not labelstudio_item.from_id or not labelstudio_item.to_id:
+            raise KeyError("Bad relation id in a label_studio file")
         source_obj = self.find_badgerdoc_annotation(
             badgerdoc_annotations, labelstudio_item.from_id
         )
         target_obj = self.find_badgerdoc_annotation(
             badgerdoc_annotations, labelstudio_item.to_id
         )
-        source_obj.links.append(target_obj.id)
+        if not source_obj or not target_obj:
+            raise KeyError("Can't find tokens during creation links for badgerdoc annotations")
+
+        link_label = "Link"
+        if labelstudio_item.labels:
+            if len(labelstudio_item.labels) > 0:
+                link_label = labelstudio_item.labels[0]
+
+        link = AnnotationLink(category_id=link_label, to=target_obj.id, type="directional", page_num=1)
+        source_obj.links.append(link)
 
     def get_token_indexes_and_form_bbox(
         self,

@@ -1,7 +1,7 @@
 from typing import List
 
 from ..models import bd_annotation_model_practic
-from ..models.bd_annotation_model import BadgerdocAnnotation, Obj, Page
+from ..models.bd_annotation_model import AnnotationLink, BadgerdocAnnotation, Obj, Page
 from ..models.bd_tokens_model import Page as BadgerdocTokensPage
 
 FIRST_PAGE = 0
@@ -73,13 +73,13 @@ class AnnotationConverterPractic:
         return tokens
 
     def convert_links(
-        self, theoretic_links: List[int]
+        self, theoretic_links: List[bd_annotation_model_practic.AnnotationLink]
     ) -> List[bd_annotation_model_practic.AnnotationLink]:
         links = []
         for link_theoretic in theoretic_links:
             link = bd_annotation_model_practic.AnnotationLink(
                 category_id="Link",
-                to=link_theoretic,
+                to=link_theoretic.to,
                 type="directional",
                 page_num=1,
             )
@@ -144,5 +144,5 @@ class AnnotationConverterToTheory:
 
     def convert_links(
         self, practic_links: List[bd_annotation_model_practic.AnnotationLink]
-    ) -> List[int]:
-        return [practic_link.to for practic_link in practic_links]
+    ) -> List[AnnotationLink]:
+        return [AnnotationLink.parse_obj(practic_link.dict()) for practic_link in practic_links]

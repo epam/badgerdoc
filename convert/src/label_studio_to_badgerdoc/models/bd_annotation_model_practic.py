@@ -25,7 +25,7 @@ class AnnotationTokens(BaseModel):
 
 
 class AnnotationLink(BaseModel):
-    category_id: str
+    category_id: str = "Link"
     to: int
     type: str = "directional"
     page_num: int = 1

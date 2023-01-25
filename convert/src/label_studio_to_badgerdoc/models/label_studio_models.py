@@ -39,7 +39,7 @@ class Value(BaseModel):
 
 class ResultItem(BaseModel):
     value: Optional[Value] = None
-    id: str = None
+    id: Optional[str] = None
     from_name: Optional[str] = None
     to_name: Optional[str] = None
     type: str
@@ -92,8 +92,8 @@ class Annotation(BaseModel):
     prediction: Optional[Prediction] = None
     result_count: int = 0
     task: int = 3
-    parent_prediction: int = 10
-    parent_annotation: Any = None
+    parent_prediction: Optional[int] = 10
+    parent_annotation: Optional[Any] = None
 
 
 class Data(BaseModel):
@@ -105,21 +105,21 @@ class ModelItem(BaseModel):
     annotations: List[Annotation]
     file_upload: str = ""
     drafts: List = []
-    predictions: List[int]
+    predictions: List[int] = []
     data: Data
     meta: Dict[str, Any] = {}
-    created_at: str = "2022-12-13T09:57:08.451845Z"
-    updated_at: str = "2022-12-13T09:57:08.451845Z"
+    created_at: Optional[str] = "2022-12-13T09:57:08.451845Z"
+    updated_at: Optional[str] = "2022-12-13T09:57:08.451845Z"
     inner_id: int = 1
     total_annotations: int = 0
     cancelled_annotations: int = 0
     total_predictions: int = 0
-    comment_count: int = 0
-    unresolved_comment_count: int = 0
-    last_comment_updated_at: Any = ""
+    comment_count: Optional[int] = 0
+    unresolved_comment_count: Optional[int] = 0
+    last_comment_updated_at: Optional[Any] = ""
     project: int = 1
-    updated_by: int = 1
-    comment_authors: List = []
+    updated_by: Optional[int] = 1
+    comment_authors: Optional[List] = []
 
 
 class LabelStudioModel(BaseModel):

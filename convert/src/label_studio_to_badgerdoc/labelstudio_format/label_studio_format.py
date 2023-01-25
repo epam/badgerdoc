@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import List
 
-from ..models.bd_annotation_model import BadgerdocAnnotation
+from ..models.bd_annotation_model import AnnotationLink, BadgerdocAnnotation
 from ..models.bd_tokens_model import BadgerdocToken, Page
 from ..models.label_studio_models import (
     Annotation,
@@ -72,12 +72,17 @@ class LabelStudioFormat:
             for link in obj.links:
                 item = ResultItem(
                     from_id=obj.id,
-                    to_id=link,
+                    to_id=link.to,
                     type="relation",
-                    direction="right",
+                    direction=self.form_link_direction(link),
+                    labels=[link.category_id]
                 )
                 result_items.append(item)
         return result_items
+
+    def form_link_direction(self, link: AnnotationLink) -> str:
+        # TODO: add logic
+        return "right"
 
     def export_json(self, path: Path):
         path.write_text(self.labelstudio_data.json(indent=4))
