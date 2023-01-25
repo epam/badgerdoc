@@ -279,14 +279,14 @@ class LabelStudioToBDConvertUseCase:
         return result
 
     def form_post_category_body(self, type_of_categories, category):
-        possible_categories_colors = [
+        possible_categories_colors = (
             "red",
             "blue",
             "green",
             "purple",
             "orange",
             "grey",
-        ]
+        )
 
         result = {
                 "name": category,
@@ -314,14 +314,6 @@ class LabelStudioToBDConvertUseCase:
 
         for type_of_categories, set_of_categories_names in all_categories.items():
             for category in set_of_categories_names:
-                # post_categories_body = {
-                #     "name": category,
-                #     "type": "box",
-                #     "id": category,
-                #     "metadata": {
-                #         "color": random.choice(possible_categories_colors)
-                #     },
-                # }
                 post_categories_body = self.form_post_category_body(type_of_categories, category)
                 LOGGER.debug(
                     "Making request to post categories with this request body: %s",
@@ -359,7 +351,7 @@ class LabelStudioToBDConvertUseCase:
                     request_to_post_categories.json(),
                 )
 
-        return list(all_categories)
+        return list(categories_of_type_box) + list(categories_of_type_link)
 
     def request_annotation_to_post_annotations(
         self, importjob_id_created: int, file_id_in_assets: int
