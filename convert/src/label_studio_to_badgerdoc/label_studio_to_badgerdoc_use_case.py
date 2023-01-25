@@ -359,7 +359,7 @@ class LabelStudioToBDConvertUseCase:
                     request_to_post_categories.json(),
                 )
 
-        return list(categories_of_type_box)
+        return list(all_categories)
 
     def request_annotation_to_post_annotations(
         self, importjob_id_created: int, file_id_in_assets: int
