@@ -270,7 +270,15 @@ class LabelStudioToBDConvertUseCase:
         )
         return request_to_post_annotation_job.json()["id"]
 
-    def request_annotations_to_post_categories(self) -> List:
+    def get_categories_of_links(self, pages_objs):
+        result = []
+        for pages_obj in pages_objs:
+            for link in pages_obj.links:
+                result.append(link.category_id)
+
+        return result
+
+    def form_post_category_body(self, type_of_categories, category):
         possible_categories_colors = [
             "red",
             "blue",
@@ -279,61 +287,79 @@ class LabelStudioToBDConvertUseCase:
             "orange",
             "grey",
         ]
-        post_categories_url = f"{settings.annotation_service_url}categories/"
-        LOGGER.debug(
-            "Making requests to url: %s to post annotations",
-            post_categories_url,
-        )
 
-        pages_objs = self.badgerdoc_format.badgerdoc_annotation.pages[0].objs
-        categories = {pages_obj.category for pages_obj in pages_objs}
-
-        for category in categories:
-            post_categories_body = {
+        result = {
                 "name": category,
-                "type": "box",
+                "type": type_of_categories,
                 "id": category,
                 "metadata": {
                     "color": random.choice(possible_categories_colors)
                 },
             }
-            LOGGER.debug(
-                "Making request to post categories with this request body: %s",
-                post_categories_body,
-            )
+        return result
 
-            try:
-                request_to_post_categories = requests.post(
-                    url=post_categories_url,
-                    headers=self.request_headers,
-                    json=post_categories_body,
+    def request_annotations_to_post_categories(self) -> List:
+        post_categories_url = f"{settings.annotation_service_url}categories/"
+        LOGGER.debug(
+            "Making requests to url: %s to post annotations",
+            post_categories_url,
+        )
+        pages_objs = self.badgerdoc_format.badgerdoc_annotation.pages[0].objs
+        categories_of_type_box = {pages_obj.category for pages_obj in pages_objs}
+        categories_of_type_link = self.get_categories_of_links(pages_objs)
+        all_categories = {
+            "box": categories_of_type_box,
+            "link": categories_of_type_link
+        }
+
+        for type_of_categories, set_of_categories_names in all_categories.items():
+            for category in set_of_categories_names:
+                # post_categories_body = {
+                #     "name": category,
+                #     "type": "box",
+                #     "id": category,
+                #     "metadata": {
+                #         "color": random.choice(possible_categories_colors)
+                #     },
+                # }
+                post_categories_body = self.form_post_category_body(type_of_categories, category)
+                LOGGER.debug(
+                    "Making request to post categories with this request body: %s",
+                    post_categories_body,
                 )
-                request_to_post_categories.raise_for_status()
-            except requests.exceptions.RequestException as e:
-                if request_to_post_categories.status_code == 400 and request_to_post_categories.json() == {
-                    "detail": "Field constraint error. Category id must be unique."
-                }:
-                    LOGGER.warning(
-                        "Category %s already exists in annotation. Skipping this request",
-                        category,
+
+                try:
+                    request_to_post_categories = requests.post(
+                        url=post_categories_url,
+                        headers=self.request_headers,
+                        json=post_categories_body,
                     )
-                    continue
+                    request_to_post_categories.raise_for_status()
+                except requests.exceptions.RequestException as e:
+                    if request_to_post_categories.status_code == 400 and request_to_post_categories.json() == {
+                        "detail": "Field constraint error. Category id must be unique."
+                    }:
+                        LOGGER.warning(
+                            "Category %s already exists in annotation. Skipping this request",
+                            category,
+                        )
+                        continue
 
-                LOGGER.exception(
-                    "Failed request to 'annotation' to post categories for converted annotations - %s",
-                    e,
+                    LOGGER.exception(
+                        "Failed request to 'annotation' to post categories for converted annotations - %s",
+                        e,
+                    )
+                    raise HTTPException(
+                        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                        detail=f"Failed request to 'annotation' to post categories for converted annotations",
+                    ) from e
+
+                LOGGER.debug(
+                    "Got this response from annotation service: %s",
+                    request_to_post_categories.json(),
                 )
-                raise HTTPException(
-                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                    detail=f"Failed request to 'annotation' to post categories for converted annotations",
-                ) from e
 
-            LOGGER.debug(
-                "Got this response from annotation service: %s",
-                request_to_post_categories.json(),
-            )
-
-        return list(categories)
+        return list(categories_of_type_box)
 
     def request_annotation_to_post_annotations(
         self, importjob_id_created: int, file_id_in_assets: int
