@@ -67,17 +67,17 @@ class ResultItem1(BaseModel):
 
 
 class Prediction(BaseModel):
-    id: int
-    model_version: str
-    created_ago: str
-    result: List[ResultItem1]
-    score: float
-    cluster: Any
-    neighbors: Any
-    mislabeling: float
-    created_at: str
-    updated_at: str
-    task: int
+    id: Optional[int]
+    model_version: Optional[str]
+    created_ago: Optional[str]
+    result: Optional[List[ResultItem1]]
+    score: Optional[float]
+    cluster: Optional[Any]
+    neighbors: Optional[Any]
+    mislabeling: Optional[float]
+    created_at: Optional[str]
+    updated_at: Optional[str]
+    task: Optional[int]
 
 
 class Annotation(BaseModel):
