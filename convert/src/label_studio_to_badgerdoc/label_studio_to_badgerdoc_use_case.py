@@ -2,7 +2,7 @@ import random
 import tempfile
 from datetime import datetime
 from pathlib import Path
-from typing import Any, List
+from typing import Any, List, Dict
 from uuid import uuid4
 
 import requests
@@ -17,7 +17,7 @@ from src.label_studio_to_badgerdoc.badgerdoc_format.annotation_converter import 
     AnnotationConverter,
 )
 from src.label_studio_to_badgerdoc.badgerdoc_format.badgerdoc_format import (
-    BadgerdocFormat,
+    BadgerdocFormat
 )
 from src.label_studio_to_badgerdoc.badgerdoc_format.pdf_renderer import (
     PDFRenderer,
@@ -30,6 +30,7 @@ from src.label_studio_to_badgerdoc.models.label_studio_models import (
     S3Path,
     ValidationType,
 )
+from src.label_studio_to_badgerdoc.models import Page
 from src.logger import get_logger
 
 LOGGER = get_logger(__file__)
@@ -131,7 +132,6 @@ class LabelStudioToBDConvertUseCase:
                 ) from e
 
             result = LabelStudioModel.parse_file(input_file)
-            # result = LabelStudioModel.parse_file(Path("tests/test_label_studio/test_data/label_studio_format.json"))
             return result
 
     def get_output_tokens_path(self, file_id_in_assets: int) -> str:
@@ -172,7 +172,7 @@ class LabelStudioToBDConvertUseCase:
             ) from e
         return request_to_post_assets.json()[0]["id"]
 
-    def upload_output_pdf_to_s3(self):
+    def upload_output_pdf_to_s3(self) -> int:
         with tempfile.TemporaryDirectory() as tmp_dirname:
             pdf_path = tmp_dirname / Path(self.output_pdf_filename)
             self.badgerdoc_format.export_pdf(pdf_path)
@@ -275,7 +275,7 @@ class LabelStudioToBDConvertUseCase:
         )
         return request_to_post_annotation_job.json()["id"]
 
-    def get_categories_of_links(self, pages_objs: List[Any]):
+    def get_categories_of_links(self, pages_objs: List[Page.objs]) -> List[str]:
         result = []
         for pages_obj in pages_objs:
             for link in pages_obj.links:
@@ -283,15 +283,15 @@ class LabelStudioToBDConvertUseCase:
 
         return result
 
-    def form_post_category_body(self, type_of_categories: str, category: str):
+    def form_post_category_body(self, type_of_categories: str, category: str) -> Dict[str, Any]:
         possible_categories_colors = (
-            "#FF0000",
-            "#FFFF00",
-            "#008000",
-            "#0000FF",
-            "#FF00FF",
-            "#808080",
-            "#800000",
+            "#FF0000",  # red
+            "#FFFF00",  # yellow
+            "#008000",  # green
+            "#0000FF",  # blue
+            "#FF00FF",  # pyrple
+            "#808080",  # grey
+            "#800000",  # brown
         )
 
         result = {
@@ -366,7 +366,6 @@ class LabelStudioToBDConvertUseCase:
     def request_annotation_to_post_annotations(
         self, importjob_id_created: int, file_id_in_assets: int
     ) -> None:
-
         annotations_post_url = f"{settings.annotation_service_url}annotation/{importjob_id_created}/{file_id_in_assets}"
 
         pages = self.badgerdoc_format.badgerdoc_annotation.pages
