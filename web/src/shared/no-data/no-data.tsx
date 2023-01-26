@@ -7,7 +7,7 @@ interface NoDataProps {
 
 export const NoData = ({ title }: NoDataProps) => (
     <div className={styles.container}>
-        <img src="/svg/S_No_items_found.svg" alt="No items found" />
+        <img src="/svg/S_No_items_found.svg" alt="No items found" width={'calc(100% / 2)'} />
         <p>{title ?? 'Nothing was found'}</p>
     </div>
 );
