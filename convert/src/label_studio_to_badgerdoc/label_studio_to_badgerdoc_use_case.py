@@ -2,7 +2,7 @@ import random
 import tempfile
 from datetime import datetime
 from pathlib import Path
-from typing import Any, List, Dict
+from typing import Any, Dict, List
 from uuid import uuid4
 
 import requests
@@ -17,7 +17,7 @@ from src.label_studio_to_badgerdoc.badgerdoc_format.annotation_converter import 
     AnnotationConverter,
 )
 from src.label_studio_to_badgerdoc.badgerdoc_format.badgerdoc_format import (
-    BadgerdocFormat
+    BadgerdocFormat,
 )
 from src.label_studio_to_badgerdoc.badgerdoc_format.pdf_renderer import (
     PDFRenderer,
@@ -25,12 +25,12 @@ from src.label_studio_to_badgerdoc.badgerdoc_format.pdf_renderer import (
 from src.label_studio_to_badgerdoc.badgerdoc_format.plain_text_converter import (
     TextToBadgerdocTokensConverter,
 )
+from src.label_studio_to_badgerdoc.models import BadgerdocToken
 from src.label_studio_to_badgerdoc.models.label_studio_models import (
     LabelStudioModel,
     S3Path,
     ValidationType,
 )
-from src.label_studio_to_badgerdoc.models import Page
 from src.logger import get_logger
 
 LOGGER = get_logger(__file__)
@@ -275,7 +275,9 @@ class LabelStudioToBDConvertUseCase:
         )
         return request_to_post_annotation_job.json()["id"]
 
-    def get_categories_of_links(self, pages_objs: List[Page.objs]) -> List[str]:
+    def get_categories_of_links(
+        self, pages_objs: List[BadgerdocToken]
+    ) -> List[str]:
         result = []
         for pages_obj in pages_objs:
             for link in pages_obj.links:
@@ -283,7 +285,9 @@ class LabelStudioToBDConvertUseCase:
 
         return result
 
-    def form_post_category_body(self, type_of_categories: str, category: str) -> Dict[str, Any]:
+    def form_post_category_body(
+        self, type_of_categories: str, category: str
+    ) -> Dict[str, Any]:
         possible_categories_colors = (
             "#FF0000",  # red
             "#FFFF00",  # yellow
