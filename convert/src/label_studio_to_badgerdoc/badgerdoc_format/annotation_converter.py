@@ -54,7 +54,6 @@ class AnnotationConverter:
         start_id = len(badgerdoc_annotations.pages[0].objs)
         for id_, label in enumerate(value.labels, start=start_id):
             type_ = "text"
-            # TODO: check start, end
             data = {"source_id": labelstudio_item.id}
             tokens, bbox = self.get_token_indexes_and_form_bbox(
                 value.start, value.end, badgerdoc_tokens
@@ -103,7 +102,6 @@ class AnnotationConverter:
         badgerdoc_tokens: BadgerdocTokensPage,
     ) -> Tuple[List[int], List[float]]:
         badgerdoc_annotation_token_indexes = list(
-            # range(offset_begin, offset_end + 1)
             range(offset_begin, offset_end)
         )
         bbox = self.form_common_bbox(

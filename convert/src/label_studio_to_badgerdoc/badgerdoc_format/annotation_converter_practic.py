@@ -18,18 +18,12 @@ class AnnotationConverterPractic:
 
     def convert(self) -> bd_annotation_model_practic.BadgerdocAnnotation:
         page_theoretic = self.theoretic_annotation.pages[FIRST_PAGE]
-        page = bd_annotation_model_practic.Page(
-            size=page_theoretic.size,
-            page_num=page_theoretic.page_num,
-            objs=self.convert_objs(page_theoretic.objs),
-        )
 
-        annotation = bd_annotation_model_practic.BadgerdocAnnotation(
+        return bd_annotation_model_practic.BadgerdocAnnotation(
             size=page_theoretic.size,
             page_num=page_theoretic.page_num,
             objs=self.convert_objs(page_theoretic.objs),
         )
-        return annotation
 
     def convert_objs(
         self, objs_theoretic: List[Obj]
@@ -83,11 +77,10 @@ class AnnotationConverterPractic:
         return links
 
     def convert_text(self, theoretic_tokens: List[int]) -> str:
-        text = "".join(
+        return "".join(
             self.theoretic_tokens.objs[token_id_theoretic].text
             for token_id_theoretic in theoretic_tokens
         )
-        return text
 
 
 class AnnotationConverterToTheory:
@@ -106,10 +99,10 @@ class AnnotationConverterToTheory:
         )
 
         annotation = BadgerdocAnnotation(
-            revision="",  # self.practic_annotations.revision,
+            revision="",
             pages=[page],
-            validated=[],  # self.practic_annotations.validated,
-            failed_validation_pages=[]  # self.practic_annotations.failed_validation_pages,
+            validated=[],
+            failed_validation_pages=[]
         )
         return annotation
 

@@ -131,8 +131,7 @@ class LabelStudioToBDConvertUseCase:
                     detail="Error during file fetching: file not found",
                 ) from e
 
-            result = LabelStudioModel.parse_file(input_file)
-            return result
+            return LabelStudioModel.parse_file(input_file)
 
     def get_output_tokens_path(self, file_id_in_assets: int) -> str:
         return (
@@ -365,7 +364,7 @@ class LabelStudioToBDConvertUseCase:
                     request_to_post_categories.json(),
                 )
 
-        return list(categories_of_type_box) + list(categories_of_type_link)
+        return [*categories_of_type_box, *categories_of_type_link]
 
     def request_annotation_to_post_annotations(
         self, importjob_id_created: int, file_id_in_assets: int
