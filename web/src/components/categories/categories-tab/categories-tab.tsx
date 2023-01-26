@@ -64,7 +64,7 @@ export const CategoriesTab = ({ boundModeSwitch, setBoundModeSwitch }: Categorie
         return hotKeysMap;
     };
 
-    const { categoryNodes, isLoading } = useCategoriesTree({
+    const { categoryNodes, isFetched } = useCategoriesTree({
         searchText,
         boundModeSwitch,
         jobId: getJobId()
@@ -123,7 +123,7 @@ export const CategoriesTab = ({ boundModeSwitch, setBoundModeSwitch }: Categorie
                 <CategoriesTree
                     key={searchText}
                     categoriesHeight={categoriesHeight}
-                    isLoading={isLoading}
+                    isLoading={!isFetched}
                     categoryNodes={categoryNodes}
                     onCategorySelected={onCategorySelected}
                     selectedHotKeys={selectedKeys}

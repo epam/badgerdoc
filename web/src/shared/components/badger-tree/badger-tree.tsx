@@ -1,4 +1,4 @@
-import React, { FC, ReactElement } from 'react';
+import React, { FC, ReactElement, useMemo } from 'react';
 import { NoData } from 'shared/no-data';
 import { TreeNode } from 'api/typings';
 import { EventDataNode } from 'rc-tree/lib/interface';
@@ -43,13 +43,11 @@ export const BadgerTree: FC<Props> = ({
         />
     );
     const spinner = <Spinner color="sky" />;
-    const renderData = nodes.length ? data : <NoData />;
+    const renderData = useMemo(() => (nodes.length ? data : <NoData />), [nodes]);
 
     return (
-        <div>
-            <div className={styles.container}>
-                <div className={styles.data}>{isLoading ? spinner : renderData}</div>
-            </div>
+        <div className={styles.container}>
+            <div className={styles.data}>{isLoading ? spinner : renderData}</div>
         </div>
     );
 };
