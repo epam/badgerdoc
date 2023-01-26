@@ -306,7 +306,7 @@ class LabelStudioToBDConvertUseCase:
         }
         return result
 
-    def request_annotations_to_post_categories(self) -> List:
+    def request_annotations_to_post_categories(self) -> List[str]:
         post_categories_url = f"{settings.annotation_service_url}categories/"
         LOGGER.debug(
             "Making requests to url: %s to post annotations",
