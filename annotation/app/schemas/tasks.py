@@ -152,6 +152,7 @@ class AgreementScoreServiceInput(BaseModel):
     task_id: int = Field(..., example=1)
     s3_file_path: str = Field(...)
     s3_file_bucket: str = Field(...)
+    s3_tokens_path: str = Field(...)
     manifest_url: str = Field(...)
 
 
