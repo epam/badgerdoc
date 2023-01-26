@@ -114,12 +114,12 @@ class ModelItem(BaseModel):
     total_annotations: int = 0
     cancelled_annotations: int = 0
     total_predictions: int = 0
-    comment_count: Optional[int] = 0
-    unresolved_comment_count: Optional[int] = 0
+    comment_count: int = 0
+    unresolved_comment_count: int = 0
     last_comment_updated_at: Optional[Any] = None
     project: int = 1
-    updated_by: Optional[int] = 1
-    comment_authors: Optional[List[str]] = []
+    updated_by: int = 1
+    comment_authors: List[str] = []
 
 
 class LabelStudioModel(BaseModel):
