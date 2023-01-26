@@ -1,13 +1,13 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { FlexCell, MultiSwitch, SearchInput } from '@epam/loveship';
-import { useTaskAnnotatorContext } from 'connectors/task-annotator-connector/task-annotator-context';
-import styles from './categories-tab.module.scss';
-import { AnnotationBoundMode } from 'shared';
-import { Category, CategoryNode } from '../../../api/typings';
-import { CategoriesTree } from 'components/categories/categories-tree/categories-tree';
 import { useHeight } from 'shared/hooks/use-height';
+import { useTaskAnnotatorContext } from 'connectors/task-annotator-connector/task-annotator-context';
 import { useCategoriesTree } from '../categories-tree/use-categories-tree';
+import { AnnotationBoundMode } from 'shared';
+import { CategoriesTree } from 'components/categories/categories-tree/categories-tree';
+import { Category, CategoryNode } from '../../../api/typings';
 
+import { FlexCell, MultiSwitch, SearchInput } from '@epam/loveship';
+import styles from './categories-tab.module.scss';
 interface CategoriesTabProps {
     boundModeSwitch: AnnotationBoundMode;
     setBoundModeSwitch: (type: AnnotationBoundMode) => void;
@@ -64,7 +64,7 @@ export const CategoriesTab = ({ boundModeSwitch, setBoundModeSwitch }: Categorie
         return hotKeysMap;
     };
 
-    const { categoryNodes } = useCategoriesTree({
+    const { categoryNodes, isLoading } = useCategoriesTree({
         searchText,
         boundModeSwitch,
         jobId: getJobId()
@@ -123,6 +123,7 @@ export const CategoriesTab = ({ boundModeSwitch, setBoundModeSwitch }: Categorie
                 <CategoriesTree
                     key={searchText}
                     categoriesHeight={categoriesHeight}
+                    isLoading={isLoading}
                     categoryNodes={categoryNodes}
                     onCategorySelected={onCategorySelected}
                     selectedHotKeys={selectedKeys}

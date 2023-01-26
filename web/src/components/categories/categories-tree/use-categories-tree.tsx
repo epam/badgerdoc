@@ -31,7 +31,11 @@ export const useCategoriesTree = ({ searchText, boundModeSwitch, jobId }: Props)
         return filters;
     }, [boundModeSwitch]);
 
-    const searchResult = useCategoriesByJob(
+    const {
+        data: searchResult,
+        isLoading,
+        refetch
+    } = useCategoriesByJob(
         {
             jobId,
             page: 1,
@@ -45,13 +49,13 @@ export const useCategoriesTree = ({ searchText, boundModeSwitch, jobId }: Props)
 
     useEffect(() => {
         if (jobId) {
-            searchResult.refetch();
+            refetch();
         }
     }, [searchText, boundModeSwitch, jobId]);
 
     useEffect(() => {
-        if (jobId) setCategoryNodes(mapCategories(searchResult.data?.data));
-    }, [searchResult.data, searchText, boundModeSwitch]);
+        if (jobId) setCategoryNodes(mapCategories(searchResult?.data));
+    }, [searchResult, searchText, boundModeSwitch]);
 
-    return { categoryNodes };
+    return { categoryNodes, isLoading };
 };
