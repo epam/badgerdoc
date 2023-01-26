@@ -48,7 +48,10 @@ class Page(BaseModel):
 
 
 class BadgerdocAnnotation(BaseModel):
-    revision: Optional[str] = None
-    pages: List[Page] = []
-    validated: Optional[List] = None
-    failed_validation_pages: Optional[List] = None
+    size: Size
+    page_num: int
+    objs: List[Obj] = []
+#     revision: Optional[str] = None
+#     pages: List[Page] = []
+#     validated: Optional[List] = None
+#     failed_validation_pages: Optional[List] = None

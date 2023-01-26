@@ -1,7 +1,7 @@
 from typing import List
 
 from ..models import bd_annotation_model_practic
-from ..models.bd_annotation_model import AnnotationLink, BadgerdocAnnotation, Obj, Page
+from ..models.bd_annotation_model import AnnotationLink, BadgerdocAnnotation, Obj, Page, Size
 from ..models.bd_tokens_model import Page as BadgerdocTokensPage
 
 FIRST_PAGE = 0
@@ -25,10 +25,9 @@ class AnnotationConverterPractic:
         )
 
         annotation = bd_annotation_model_practic.BadgerdocAnnotation(
-            pages=[page],
-            revision=self.theoretic_annotation.revision,
-            validated=self.theoretic_annotation.validated,
-            failed_validation_pages=self.theoretic_annotation.failed_validation_pages,
+            size=page_theoretic.size,
+            page_num=page_theoretic.page_num,
+            objs=self.convert_objs(page_theoretic.objs),
         )
         return annotation
 
@@ -99,18 +98,18 @@ class AnnotationConverterToTheory:
         self.practic_annotations = practic_annotations
 
     def convert(self) -> BadgerdocAnnotation:
-        page_practic = self.practic_annotations.pages[FIRST_PAGE]
+        page_practic = self.practic_annotations
 
         objs = self.convert_objs(page_practic.objs)
         page = Page(
-            size=page_practic.size, page_num=page_practic.page_num, objs=objs
+            size=Size(**page_practic.size.dict()), page_num=page_practic.page_num, objs=objs
         )
 
         annotation = BadgerdocAnnotation(
-            revision=self.practic_annotations.revision,
+            revision="",  # self.practic_annotations.revision,
             pages=[page],
-            validated=self.practic_annotations.validated,
-            failed_validation_pages=self.practic_annotations.failed_validation_pages,
+            validated=[],  # self.practic_annotations.validated,
+            failed_validation_pages=[]  # self.practic_annotations.failed_validation_pages,
         )
         return annotation
 
