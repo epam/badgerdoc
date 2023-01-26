@@ -8,7 +8,7 @@ from ...config import (
     DEFAULT_PDF_LINE_SPACING,
     DEFAULT_PDF_PAGE_WIDTH,
 )
-from ..models.bd_annotation_model import BadgerdocAnnotation
+from ..models.bd_annotation_model_practic import BadgerdocAnnotation
 from ..models.bd_tokens_model import Page
 from ..models.label_studio_models import LabelStudioModel
 from .annotation_converter import AnnotationConverter
@@ -49,9 +49,9 @@ class BadgerdocFormat:
     def convert_from_text(self, text: str):
         self.tokens_page = self.text_converter.convert(text)
 
-    def export_tokens(self, path: Path):
+    def export_tokens(self, path: Path) -> None:
         if self.tokens_page:
-            path.write_text(self.tokens_page.json(indent=4))
+            path.write_text(self.tokens_page.json(indent=4, by_alias=True))
 
     def export_annotations(self, path: Path):
         if self.badgerdoc_annotation:
