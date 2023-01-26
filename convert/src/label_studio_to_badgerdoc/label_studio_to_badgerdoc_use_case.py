@@ -311,7 +311,7 @@ class LabelStudioToBDConvertUseCase:
             "Making requests to url: %s to post annotations",
             post_categories_url,
         )
-        pages_objs = self.badgerdoc_format.badgerdoc_annotation.pages[0].objs
+        pages_objs = self.badgerdoc_format.badgerdoc_annotation.objs
         categories_of_type_box = {
             pages_obj.category for pages_obj in pages_objs
         }
@@ -367,15 +367,15 @@ class LabelStudioToBDConvertUseCase:
         return [*categories_of_type_box, *categories_of_type_link]
 
     def request_annotation_to_post_annotations(
-        self, importjob_id_created: int, file_id_in_assets: int
+        self, annotation_job_id_created: int, file_id_in_assets: int
     ) -> None:
-        annotations_post_url = f"{settings.annotation_service_url}annotation/{importjob_id_created}/{file_id_in_assets}"
+        annotations_post_url = f"{settings.annotation_service_url}annotation/{annotation_job_id_created}/{file_id_in_assets}"
 
-        pages = self.badgerdoc_format.badgerdoc_annotation.pages
+        page = self.badgerdoc_format.badgerdoc_annotation
         annotations_post_body = {
             "base_revision": None,
             "pipeline": 0,
-            "pages": [page.dict() for page in pages],
+            "pages": [page.dict(),],
             "validated": [],
             "failed_validation_pages": [],
             "similar_revisions": [],  # TODO: 'simial_revisions' will be replaced with 'links' with unknown format
