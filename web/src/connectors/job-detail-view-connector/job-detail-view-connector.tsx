@@ -45,8 +45,14 @@ export const JobConnector: React.FC<JobDetailViewProps> = ({
     onEditJobClick,
     getActiveTab
 }) => {
-    const { pageConfig, onPageChange, totalCount, searchText, tableValue, onTableValueChange } =
-        usePageTable<FileDocument>('original_name');
+    const {
+        pageConfig: pageConfigForFiles,
+        onPageChange,
+        totalCount,
+        searchText,
+        tableValue,
+        onTableValueChange
+    } = usePageTable<FileDocument>('original_name');
 
     const history = useHistory();
 
@@ -75,13 +81,12 @@ export const JobConnector: React.FC<JobDetailViewProps> = ({
     };
 
     const {
+        pageConfig: pageConfigForTask,
         onPageChange: onTaskPageChange,
         totalCount: totalTaskCount,
         tableValue: taskTableValue,
         onTableValueChange: onTaskTableValueChange
     } = usePageTable<Task>('id');
-
-    const { page, pageSize } = pageConfig;
 
     const [filesIds, setFilesIds] = useState<Array<number>>([]);
     const [tabValue, onTabValueChange] = useState('Files');
@@ -99,9 +104,9 @@ export const JobConnector: React.FC<JobDetailViewProps> = ({
 
     const { data: files, isFetching: fetchingFiles } = useDocumentsInJob(
         {
-            page,
+            page: pageConfigForFiles.page,
             filesIds,
-            size: pageSize,
+            size: pageConfigForFiles.pageSize,
             searchText
         },
         { cacheTime: 0 }
@@ -114,8 +119,8 @@ export const JobConnector: React.FC<JobDetailViewProps> = ({
     } = useTasksForJob(
         {
             user_id: user?.id,
-            page,
-            size: pageSize,
+            page: pageConfigForTask.page,
+            size: pageConfigForTask.pageSize,
             jobId,
             jobType: job?.type
         },
@@ -133,8 +138,8 @@ export const JobConnector: React.FC<JobDetailViewProps> = ({
     const { dataSource: filesDataSource } = useAsyncSourceTable<FileDocument, number>(
         fetchingFiles,
         files?.data ?? [],
-        page,
-        pageSize,
+        pageConfigForFiles.page,
+        pageConfigForFiles.pageSize,
         filesIds,
         searchText
     );
@@ -142,8 +147,8 @@ export const JobConnector: React.FC<JobDetailViewProps> = ({
     const { dataSource: taskDataSource } = useAsyncSourceTable<ApiTask, number>(
         taskFetching,
         tasks?.data ?? [],
-        page,
-        pageSize,
+        pageConfigForTask.page,
+        pageConfigForTask.pageSize,
         jobId,
         user?.id,
         tasks
@@ -174,6 +179,7 @@ export const JobConnector: React.FC<JobDetailViewProps> = ({
     const columnsFiles: DataColumnProps<FileDocument>[] = useMemo(() => {
         return filesColumn;
     }, []);
+
     const columnsTasks: DataColumnProps<ApiTask>[] = useMemo(() => {
         return tasksColumn;
     }, []);
@@ -262,10 +268,10 @@ export const JobConnector: React.FC<JobDetailViewProps> = ({
                         false
                     )}
                 </FlexRow>
-                {tabValue === `Files` ? (
+                {tabValue === `Files` && (
                     <JobTable
-                        page={page}
-                        size={pageSize}
+                        page={pageConfigForFiles.page}
+                        size={pageConfigForFiles.pageSize}
                         view={filesView}
                         value={tableValue}
                         onValueChange={onTableValueChange}
@@ -273,10 +279,12 @@ export const JobConnector: React.FC<JobDetailViewProps> = ({
                         totalCount={totalCount}
                         onPageChange={onPageChange}
                     />
-                ) : (
+                )}
+
+                {tabValue === `Tasks` && (
                     <JobTable
-                        page={pageConfig.page}
-                        size={pageConfig.pageSize}
+                        page={pageConfigForTask.page}
+                        size={pageConfigForTask.pageSize}
                         view={taskView}
                         value={taskTableValue}
                         onValueChange={onTaskTableValueChange}

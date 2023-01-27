@@ -179,12 +179,45 @@ const MOCKS: Record<string, Record<string, BadgerFetch<any>>> = {
     },
     [`${CATEGORIES_NAMESPACE}/tasks?job_id=1&pagination_page_size=15&pagination_start_page=1`]: {
         get: async () => {
-            return {
+            const mock = {
                 current_page: 1,
                 page_size: 15,
-                total_objects: tasksMockData.filter((task) => task.job.id === 1).length,
-                annotation_tasks: tasksMockData.filter((task) => task.job.id === 1)
+                // uncomment it to get data for job 1 only
+                // total_objects: tasksMockData.filter((task) => task.job.id === 1).length,
+                // annotation_tasks: tasksMockData.filter((task) => task.job.id === 1)
+                total_objects: tasksMockData.length,
+                annotation_tasks: tasksMockData
             };
+
+            return mock;
+        }
+    },
+    [`${CATEGORIES_NAMESPACE}/tasks?job_id=1&pagination_page_size=15&pagination_start_page=2`]: {
+        get: async () => {
+            const mock = {
+                current_page: 2,
+                page_size: 15,
+                // uncomment it to get data for job 2 only
+                // total_objects: tasksMockData.filter((task) => task.job.id === 1).length,
+                // annotation_tasks: tasksMockData.filter((task) => task.job.id === 1)
+                total_objects: tasksMockData.length,
+                annotation_tasks: tasksMockData
+            };
+            return mock;
+        }
+    },
+    [`${CATEGORIES_NAMESPACE}/tasks?job_id=1&pagination_page_size=15&pagination_start_page=3`]: {
+        get: async () => {
+            const mock = {
+                current_page: 3,
+                page_size: 15,
+                // uncomment it to get data for job 3 only
+                // total_objects: tasksMockData.filter((task) => task.job.id === 1).length,
+                // annotation_tasks: tasksMockData.filter((task) => task.job.id === 1)
+                total_objects: tasksMockData.length,
+                annotation_tasks: tasksMockData
+            };
+            return mock;
         }
     },
     [`${CATEGORIES_NAMESPACE}/tasks/1/finish`]: {
@@ -200,7 +233,10 @@ const MOCKS: Record<string, Record<string, BadgerFetch<any>>> = {
         post: async () => taskStatsMockData
     },
     [`${JOBMANAGER_NAMESPACE}/jobs/1`]: {
-        get: async () => jobById[0]
+        get: async () => {
+            // console.log(jobById[0]);
+            return jobById[0];
+        }
     },
     [`${JOBMANAGER_NAMESPACE}/jobs/3`]: {
         get: async () => jobById[1]
