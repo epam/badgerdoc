@@ -140,25 +140,6 @@ class DocForSaveSchema(BaseModel):
             )
         return values
 
-    @root_validator
-    def pages_for_save_check(cls, values):
-        """
-        Arrays pages, validated, failed and categories
-        should not be empty at the same time.
-        """
-        pages, failed, categories = (
-            values.get("pages"),
-            values.get("failed_validation_pages"),
-            values.get("categories"),
-        )
-        if not any((pages, failed, categories)):
-            raise ValueError(
-                "Fields pages, "
-                "validated, failed validation pages "
-                "and categories are empty. Nothing to save."
-            )
-        return values
-
 
 class AnnotatedDocSchema(BaseModel):
     revision: str = Field(
