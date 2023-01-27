@@ -38,8 +38,10 @@ export const useAnnotationsLinks = (
             selectedAnn &&
             JSON.stringify(prevSelected) !== JSON.stringify(selectedAnn)
         ) {
+            const prevLinks = prevSelected.links ? prevSelected.links : [];
             let links = {
                 links: [
+                    ...prevLinks,
                     {
                         category_id: category?.id.toString(),
                         to: selectedAnn.id,

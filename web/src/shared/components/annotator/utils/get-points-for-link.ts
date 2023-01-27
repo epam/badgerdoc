@@ -31,6 +31,7 @@ interface DOMRectWithId extends DOMRect {
 }
 
 export type PointSet = {
+    from: string | number;
     start: PointWithId;
     finish: PointWithId;
     link: Link;
@@ -213,6 +214,7 @@ export const getPointsForLinks = (
             };
         }
         return {
+            from: id,
             start: linkPointA,
             finish: linkPointB,
             link: bound.link,

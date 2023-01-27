@@ -207,7 +207,7 @@ export const categories: Category[] = [
         name: 'doc1',
         parent: null,
         metadata: {
-            color: '#ffffff'
+            color: '#000000'
         },
         type: 'document',
         data_attributes: [],
@@ -219,11 +219,23 @@ export const categories: Category[] = [
         name: 'doc2',
         parent: null,
         metadata: {
-            color: '#ffffff'
+            color: '#000000'
         },
         type: 'document',
         data_attributes: [],
         id: 'doc2',
+        parents: [],
+        isLeaf: true
+    },
+    {
+        name: 'link',
+        parent: null,
+        metadata: {
+            color: '#000000'
+        },
+        type: 'link',
+        data_attributes: [],
+        id: 'link',
         parents: [],
         isLeaf: true
     }
