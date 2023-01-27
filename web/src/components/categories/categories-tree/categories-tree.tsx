@@ -8,6 +8,7 @@ import styles from './categories-tree.module.scss';
 interface CategoriesTreeProps {
     categoriesHeight: number;
     categoryNodes: CategoryNode[];
+    isLoading: boolean;
     selectedCategory?: Category;
     onCategorySelected: (category: Category) => void;
     selectedHotKeys: string[];
@@ -17,6 +18,7 @@ const itemHeight = 33;
 
 export const CategoriesTree: FC<CategoriesTreeProps> = ({
     categoriesHeight,
+    isLoading,
     categoryNodes,
     onCategorySelected,
     selectedHotKeys
@@ -60,7 +62,7 @@ export const CategoriesTree: FC<CategoriesTreeProps> = ({
 
     return (
         <BadgerTree
-            isLoading={categoryNodes.length <= 0}
+            isLoading={isLoading}
             nodes={categoryNodes}
             height={categoriesHeight}
             itemHeight={itemHeight}

@@ -19,7 +19,6 @@ import styles from './task-sidebar.module.scss';
 import { CategoriesSelectionModeToggle } from 'components/categories/categories-selection-mode-toggle/categories-selection-mode-toggle';
 import { useTableAnnotatorContext } from '../../../shared/components/annotator/context/table-annotator-context';
 import { TaskSidebarData } from '../task-sidebar-data/task-sidebar-data';
-import { TaskSidebarLabels } from '../task-sidebar-labels/task-sidebar-labels';
 import {
     AnnotationBoundMode,
     AnnotationBoundType,
