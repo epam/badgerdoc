@@ -38,6 +38,7 @@ import { ImageToolsParams } from './image-tools-params';
 import { CategoriesTab } from 'components/categories/categories-tab/categories-tab';
 import { useLinkTaxonomyByCategoryAndJobId } from 'api/hooks/taxons';
 import { TaskSidebarLabelsLinks } from './task-sidebar-labels-links/task-sidebar-labels-links';
+import { NoData } from 'shared/no-data';
 
 type TaskSidebarProps = {
     onRedirectAfterFinish: () => void;
@@ -573,7 +574,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
                         />
                     )}
                     {tabValue === 'Document' && categories === undefined && (
-                        <div> There are no categories</div>
+                        <NoData title="There are no categories" />
                     )}
 
                     {isValidation && !splitValidation && (

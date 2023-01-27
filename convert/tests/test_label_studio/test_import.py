@@ -1,6 +1,6 @@
 import json
-import pprint
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
 from src.config import (
     DEFAULT_PAGE_BORDER_OFFSET,
@@ -9,18 +9,17 @@ from src.config import (
     DEFAULT_PDF_LINE_SPACING,
     DEFAULT_PDF_PAGE_WIDTH,
 )
-from src.label_studio_to_badegerdoc.badgerdoc_format.badgerdoc_format import BadgerdocFormat
-from src.label_studio_to_badegerdoc.badgerdoc_format.plain_text_converter import (
+from src.label_studio_to_badgerdoc.badgerdoc_format.badgerdoc_format import BadgerdocFormat
+from src.label_studio_to_badgerdoc.badgerdoc_format.plain_text_converter import (
     TextToBadgerdocTokensConverter,
 )
-from src.label_studio_to_badegerdoc.models.label_studio_models import LabelStudioModel
+from src.label_studio_to_badgerdoc.models.label_studio_models import LabelStudioModel
 
 TEST_FILES_DIR = Path(__file__).parent / "test_data"
 
 INPUT_LABEL_STUDIO_FILE = TEST_FILES_DIR / "input_text_field.json"
 INPUT_LABELSTUDIO_FILE = TEST_FILES_DIR / "label_studio_format.json"
 BADGERDOC_TOKENS_FILE = TEST_FILES_DIR / "badgerdoc_tokens.json"
-BADGERDOC_ANNOTATIONS_FILE = TEST_FILES_DIR / "badgerdoc_annotation.json"
 TEST_PDF = TEST_FILES_DIR / "test.pdf"
 
 
@@ -62,8 +61,21 @@ def test_annotation_converter():
     badgerdoc_format.convert_from_labelstudio(
         LabelStudioModel.parse_file(INPUT_LABELSTUDIO_FILE)
     )
-    badgerdoc_format.export_tokens(Path("tokens_test.json"))
-    badgerdoc_format.export_annotations(Path("annotations_test.json"))
-    badgerdoc_format.export_pdf(Path("pdf_test.pdf"))
+    with TemporaryDirectory() as dir_name:
+        tokens_test_path = Path(dir_name) / "tokens_test.json"
+        annotations_test_path = Path(dir_name) / "annotations_test.json"
+        badgerdoc_format.export_tokens(tokens_test_path)
+        badgerdoc_format.export_annotations(annotations_test_path)
+        tokens_test = json.loads(tokens_test_path.read_text())
+        annotations_test = json.loads(annotations_test_path.read_text())
 
-    pprint.pprint(json.loads(Path("annotations_test.json").read_text()))
+        tokens_etalon_path = (
+            TEST_FILES_DIR / "badgerdoc_etalon" / "tokens_test.json"
+        )
+        annotations_etalon_path = (
+            TEST_FILES_DIR / "badgerdoc_etalon" / "annotations_test.json"
+        )
+        tokens_etalon = json.loads(tokens_etalon_path.read_text())
+        annotations_etalon = json.loads(annotations_etalon_path.read_text())
+        assert tokens_test == tokens_etalon
+        assert annotations_test == annotations_etalon

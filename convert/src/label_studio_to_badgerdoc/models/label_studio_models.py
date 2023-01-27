@@ -1,17 +1,27 @@
 from __future__ import annotations
-
+from datetime import datetime
 from typing import Any, Dict, List, Optional
-
+from enum import Enum
 from pydantic import BaseModel
 
 from .common import S3Path
 
 
+class ValidationType(str, Enum):
+    cross = "cross"
+    hierarchical = "hierarchical"
+    validation_only = "validation only"
+    extensive_coverage = "extensive_coverage"
+
+
 class LabelStudioRequest(BaseModel):
     input_annotation: S3Path
-    output_pdf: Optional[S3Path]
-    output_tokens: Optional[S3Path]
-    output_annotation: Optional[S3Path]
+    output_bucket: str
+    validation_type: ValidationType
+    deadline: Optional[datetime]
+    extensive_coverage: Optional[int] = None
+    annotators: List[str] = []
+    validators: List[str] = []
 
 
 class BadgerdocToLabelStudioRequest(BaseModel):
@@ -29,7 +39,7 @@ class Value(BaseModel):
 
 class ResultItem(BaseModel):
     value: Optional[Value] = None
-    id: str = None
+    id: Optional[str] = None
     from_name: Optional[str] = None
     to_name: Optional[str] = None
     type: str
@@ -57,17 +67,17 @@ class ResultItem1(BaseModel):
 
 
 class Prediction(BaseModel):
-    id: int
-    model_version: str
-    created_ago: str
-    result: List[ResultItem1]
-    score: float
-    cluster: Any
-    neighbors: Any
-    mislabeling: float
-    created_at: str
-    updated_at: str
-    task: int
+    id: Optional[int]
+    model_version: Optional[str]
+    created_ago: Optional[str]
+    result: Optional[List[ResultItem1]]
+    score: Optional[float]
+    cluster: Optional[Any]
+    neighbors: Optional[Any]
+    mislabeling: Optional[float]
+    created_at: Optional[str]
+    updated_at: Optional[str]
+    task: Optional[int]
 
 
 class Annotation(BaseModel):
@@ -82,8 +92,8 @@ class Annotation(BaseModel):
     prediction: Optional[Prediction] = None
     result_count: int = 0
     task: int = 3
-    parent_prediction: int = 10
-    parent_annotation: Any = None
+    parent_prediction: Optional[int] = 10
+    parent_annotation: Optional[Any] = None
 
 
 class Data(BaseModel):
@@ -95,21 +105,21 @@ class ModelItem(BaseModel):
     annotations: List[Annotation]
     file_upload: str = ""
     drafts: List = []
-    predictions: List[int]
+    predictions: List[int] = []
     data: Data
     meta: Dict[str, Any] = {}
-    created_at: str = "2022-12-13T09:57:08.451845Z"
-    updated_at: str = "2022-12-13T09:57:08.451845Z"
+    created_at: Optional[str] = "2022-12-13T09:57:08.451845Z"
+    updated_at: Optional[str] = "2022-12-13T09:57:08.451845Z"
     inner_id: int = 1
     total_annotations: int = 0
     cancelled_annotations: int = 0
     total_predictions: int = 0
     comment_count: int = 0
     unresolved_comment_count: int = 0
-    last_comment_updated_at: Any = ""
+    last_comment_updated_at: Optional[Any] = None
     project: int = 1
     updated_by: int = 1
-    comment_authors: List = []
+    comment_authors: List[str] = []
 
 
 class LabelStudioModel(BaseModel):

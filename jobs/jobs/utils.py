@@ -307,6 +307,7 @@ async def execute_in_annotation_microservice(
     }
     json = {
         "job_type": created_job.type,
+        "name": created_job.name,
         "callback_url": callback_url,
         "owners": created_job.owners,
         "annotators": created_job.annotators,
@@ -317,11 +318,9 @@ async def execute_in_annotation_microservice(
         "deadline": fastapi.encoders.jsonable_encoder(created_job.deadline),
         "extensive_coverage": created_job.extensive_coverage,
     }
-    is_optional_fields_set = (
-        created_job.validation_type and created_job.is_auto_distribution
-    )
-    if is_optional_fields_set:
+    if created_job.validation_type:
         json["validation_type"] = created_job.validation_type
+    if created_job.is_auto_distribution:
         json["is_auto_distribution"] = created_job.is_auto_distribution
     logger.info(
         f"Job id = {job_id}. Sending request to annotation manager. "

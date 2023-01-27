@@ -11,6 +11,10 @@ from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 
 from src import logger
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 logger_ = logger.get_logger(__name__)
 

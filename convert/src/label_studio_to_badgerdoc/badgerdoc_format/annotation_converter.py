@@ -1,6 +1,8 @@
 from typing import List, Optional, Tuple
 
-from ..models.bd_annotation_model import BadgerdocAnnotation, Obj, Page, Size
+from .annotation_converter_practic import AnnotationConverterPractic
+from ..models.bd_annotation_model import AnnotationLink, BadgerdocAnnotation, Obj, Page, Size
+from ..models import bd_annotation_model_practic
 from ..models.bd_tokens_model import Page as BadgerdocTokensPage
 from ..models.label_studio_models import LabelStudioModel, ModelItem, ResultItem
 
@@ -16,7 +18,7 @@ class AnnotationConverter:
     ):
         model_items: List[ModelItem] = annotations.__root__
         badgerdoc_annotations = BadgerdocAnnotation(
-            pages=[Page(page_num=1, size=Size(width=100, height=100))]
+            pages=[Page(page_num=1, size=Size(width=badgerdoc_tokens.size.width, height=badgerdoc_tokens.size.height))]
         )
         for model_item in model_items:
             for annotation in model_item.annotations:
@@ -30,7 +32,8 @@ class AnnotationConverter:
                     self.process_relations(
                         badgerdoc_annotations, labelstudio_item
                     )
-        return badgerdoc_annotations
+        badgerdoc_annotations_practic = AnnotationConverterPractic(badgerdoc_annotations, badgerdoc_tokens).convert()
+        return badgerdoc_annotations_practic
 
     def _is_labels(self, labelstudio_item: ResultItem) -> bool:
         return labelstudio_item.type == self.LABELS
@@ -51,7 +54,6 @@ class AnnotationConverter:
         start_id = len(badgerdoc_annotations.pages[0].objs)
         for id_, label in enumerate(value.labels, start=start_id):
             type_ = "text"
-            # TODO: check start, end
             data = {"source_id": labelstudio_item.id}
             tokens, bbox = self.get_token_indexes_and_form_bbox(
                 value.start, value.end, badgerdoc_tokens
@@ -74,14 +76,24 @@ class AnnotationConverter:
     ):
         if not self._is_relation(labelstudio_item):
             return
-
+        if not labelstudio_item.from_id or not labelstudio_item.to_id:
+            raise KeyError("Bad relation id in a label_studio file")
         source_obj = self.find_badgerdoc_annotation(
             badgerdoc_annotations, labelstudio_item.from_id
         )
         target_obj = self.find_badgerdoc_annotation(
             badgerdoc_annotations, labelstudio_item.to_id
         )
-        source_obj.links.append(target_obj.id)
+        if not source_obj or not target_obj:
+            raise KeyError("Can't find tokens during creation links for badgerdoc annotations")
+
+        link_label = "Link"
+        if labelstudio_item.labels:
+            if len(labelstudio_item.labels) > 0:
+                link_label = labelstudio_item.labels[0]
+
+        link = AnnotationLink(category_id=link_label, to=target_obj.id, type="directional", page_num=1)
+        source_obj.links.append(link)
 
     def get_token_indexes_and_form_bbox(
         self,
@@ -90,7 +102,7 @@ class AnnotationConverter:
         badgerdoc_tokens: BadgerdocTokensPage,
     ) -> Tuple[List[int], List[float]]:
         badgerdoc_annotation_token_indexes = list(
-            range(offset_begin, offset_end + 1)
+            range(offset_begin, offset_end)
         )
         bbox = self.form_common_bbox(
             [

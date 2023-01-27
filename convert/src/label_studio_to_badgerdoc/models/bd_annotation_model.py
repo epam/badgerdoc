@@ -14,6 +14,13 @@ class Entity(BaseModel):
     id: str
 
 
+class AnnotationLink(BaseModel):
+    category_id: str
+    to: int
+    type: str = "directional"
+    page_num: int = 1
+
+
 class Data(BaseModel):
     entity: Entity
 
@@ -25,7 +32,7 @@ class Obj(BaseModel):
     tokens: Optional[List[int]] = None
     category: str
     data: Optional[Any]
-    links: List[int] = []
+    links: List[AnnotationLink] = []
 
 
 class Page(BaseModel):
