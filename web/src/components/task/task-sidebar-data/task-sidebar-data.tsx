@@ -38,7 +38,7 @@ export const TaskSidebarData: FC<TaskSidebarDataProps> = ({
     const hightRef = useRef<HTMLDivElement>(null);
     const taxonomiesHeight = useHeight({ ref: hightRef });
 
-    const { taxonomyNodes, expandNode, onLoadData, isLoading, searchResult } = useTaxonomiesTree({
+    const { taxonomyNodes, expandNode, onLoadData, isFetched, searchResult } = useTaxonomiesTree({
         searchText,
         taxonomyId
     });
@@ -63,7 +63,7 @@ export const TaskSidebarData: FC<TaskSidebarDataProps> = ({
                                 />
                                 <div ref={hightRef} className={styles.tree}>
                                     <TaxonomiesTree
-                                        isLoading={searchResult.isLoading || isLoading}
+                                        isLoading={searchResult.isLoading || !isFetched}
                                         key={searchText}
                                         taxonomiesHeight={taxonomiesHeight}
                                         taxonomyNodes={taxonomyNodes}

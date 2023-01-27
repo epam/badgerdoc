@@ -19,7 +19,6 @@ import styles from './task-sidebar.module.scss';
 import { CategoriesSelectionModeToggle } from 'components/categories/categories-selection-mode-toggle/categories-selection-mode-toggle';
 import { useTableAnnotatorContext } from '../../../shared/components/annotator/context/table-annotator-context';
 import { TaskSidebarData } from '../task-sidebar-data/task-sidebar-data';
-import { TaskSidebarLabels } from '../task-sidebar-labels/task-sidebar-labels';
 import {
     AnnotationBoundMode,
     AnnotationBoundType,
@@ -39,6 +38,7 @@ import { ImageToolsParams } from './image-tools-params';
 import { CategoriesTab } from 'components/categories/categories-tab/categories-tab';
 import { useLinkTaxonomyByCategoryAndJobId } from 'api/hooks/taxons';
 import { TaskSidebarLabelsLinks } from './task-sidebar-labels-links/task-sidebar-labels-links';
+import { NoData } from 'shared/no-data';
 
 type TaskSidebarProps = {
     onRedirectAfterFinish: () => void;
@@ -574,7 +574,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
                         />
                     )}
                     {tabValue === 'Document' && categories === undefined && (
-                        <div> There are no categories</div>
+                        <NoData title="There are no categories" />
                     )}
 
                     {isValidation && !splitValidation && (

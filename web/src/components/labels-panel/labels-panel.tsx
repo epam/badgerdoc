@@ -23,7 +23,7 @@ export const LabelsPanel: FC<LabelsPanelProps> = ({ labels }) => {
                     color="sky"
                     size="24"
                     caption="+ Add Labels"
-                    onClick={() => setTabValue('Labels')}
+                    onClick={() => setTabValue('Document')}
                     cx={styles.button}
                 />
                 {labelsName.map((label) => (

@@ -1,13 +1,13 @@
-import { MultiSwitch, Text, Spinner } from '@epam/loveship';
-import { FlexCell } from '@epam/uui-components';
-import { DocumentLink, DocumentLinkWithName } from 'api/hooks/annotations';
-import { useCategoriesByJob } from 'api/hooks/categories';
-import { Category, FileDocument, Filter, Label, Operators, SortingDirection } from 'api/typings';
-import { TaskSidebarLabels } from 'components/task/task-sidebar-labels/task-sidebar-labels';
 import React, { FC, useEffect, useState } from 'react';
-import { useNotifications } from 'shared/components/notifications';
-import { getError } from 'shared/helpers/get-error';
+import { DocumentLinkWithName } from 'api/hooks/annotations';
+import { useCategoriesByJob } from 'api/hooks/categories';
+import { TaskSidebarLabels } from 'components/task/task-sidebar-labels/task-sidebar-labels';
 import { TaskSidebarLinks } from '../task-sidebar-links/task-sidebar-links';
+import { useNotifications } from 'shared/components/notifications';
+import { Category, FileDocument, Filter, Label, Operators, SortingDirection } from 'api/typings';
+import { getError } from 'shared/helpers/get-error';
+import { FlexCell } from '@epam/uui-components';
+import { MultiSwitch, Text } from '@epam/loveship';
 
 import styles from './task-sidebar-labels-links.module.scss';
 
