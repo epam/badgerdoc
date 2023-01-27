@@ -234,7 +234,6 @@ const MOCKS: Record<string, Record<string, BadgerFetch<any>>> = {
     },
     [`${JOBMANAGER_NAMESPACE}/jobs/1`]: {
         get: async () => {
-            // console.log(jobById[0]);
             return jobById[0];
         }
     },
@@ -454,7 +453,6 @@ const MOCKS: Record<string, Record<string, BadgerFetch<any>>> = {
                 const nameFilterValue = String(nameFilter?.value ?? '').slice(1, -1);
                 const typeFilter = filters.find((filter) => filter.field === 'type');
                 const treeFilter = filters.find((filter) => filter.field === 'tree');
-                console.log(typeFilter);
                 if (treeFilter) {
                     data = data.filter((cat) => cat.parent === treeFilter.value);
                 }
@@ -467,7 +465,6 @@ const MOCKS: Record<string, Record<string, BadgerFetch<any>>> = {
                 if (typeFilter) {
                     data = data.filter((cat) => cat.type === typeFilter.value);
                 }
-                console.log(data);
                 return {
                     data,
                     pagination
