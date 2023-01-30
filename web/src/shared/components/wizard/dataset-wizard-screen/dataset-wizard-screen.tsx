@@ -19,8 +19,8 @@ type DatasetWizardScreenProps = {
 export const DatasetWizardScreen: FC<DatasetWizardScreenProps> = ({ onChange }) => {
     const [selectedDataset, setDataset] = useState<Dataset>();
     const [datasetName, setDatasetName] = useState<string>();
-    const { dataSource } = useEntity<Dataset, Dataset>(datasetsFetcher);
     const [optionId, setOptionId] = useState<number>(1);
+    const { dataSource } = useEntity<Dataset, Dataset>(datasetsFetcher);
 
     useEffect(() => {
         onChange({ optionId, selectedDataset, datasetName });
