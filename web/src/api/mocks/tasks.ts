@@ -7,7 +7,7 @@ export const tasks: ApiTask[] = [...Array(N)].map((_, index) => {
         status: 'In Progress',
         file: {
             id: index + 1,
-            name: `test_file_${index + 1}.pdf`
+            name: `test_file_1.pdf`
         },
         pages: [1],
         job: {
