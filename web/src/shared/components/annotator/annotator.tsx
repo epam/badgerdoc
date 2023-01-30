@@ -50,7 +50,7 @@ import paper from 'paper';
 import { createImageTool } from './components/image-tools';
 import { removeAllSelections } from './components/image-tools/utils';
 import { ANNOTATION_RESIZER_CLASS } from './components/box-annotation';
-import { getPointsForLinks } from './utils/get-points-for-link';
+import { getPointsForLinks, PointSet } from './utils/get-points-for-link';
 import { LinkAnnotation } from './components/link-annotation';
 
 const resizeSelectionCast = {
@@ -598,12 +598,14 @@ export const Annotator: FC<AnnotatorProps> = ({
                 onLinkDeleted={onLinkDeleted}
                 onLinkSelected={onSplitLinkSelected}
                 pageNum={page}
+                scale={scale}
             />
         </div>
     );
 };
 
 interface LinksLayerProps {
+    scale: number;
     annotations: Annotation[];
     categories?: Category[];
     onLinkDeleted: (pageNum: number, annotationId: string | number, link: Link) => void;
@@ -611,42 +613,50 @@ interface LinksLayerProps {
     pageNum: number;
 }
 
-const LinksLayer = function LinksLayer({
+const LinksLayer = ({
     annotations,
     categories,
     onLinkDeleted,
     onLinkSelected,
-    pageNum
-}: LinksLayerProps) {
-    const ref = useRef<HTMLDivElement>(null);
+    pageNum,
+    scale
+}: LinksLayerProps) => {
+    const [pointSets, setPointSets] = useState<PointSet[]>([]);
+
+    useEffect(() => {
+        const newPointSets: PointSet[] = [];
+        for (let ann of annotations) {
+            if (!ann.links?.length) continue;
+
+            newPointSets.push(
+                ...getPointsForLinks(
+                    ann.id,
+                    ann.boundType,
+                    pageNum,
+                    ann.links,
+                    annotations,
+                    categories
+                )
+            );
+        }
+        setPointSets(newPointSets);
+    }, [annotations, pageNum, categories, scale]);
 
     return (
-        <div ref={ref}>
-            {annotations.map((ann: Annotation) => {
-                const points = ann.links?.length
-                    ? getPointsForLinks(
-                          ann.id,
-                          ann.boundType,
-                          pageNum,
-                          ann.links,
-                          annotations,
-                          categories
-                      )
-                    : [];
-                return points.map((pointSet) => {
-                    return (
-                        <LinkAnnotation
-                            key={ann.id}
-                            pointStart={pointSet.start}
-                            pointFinish={pointSet.finish}
-                            category={pointSet.category}
-                            linkType={pointSet.type}
-                            reversed={pointSet.finish.id === ann.id}
-                            onDeleteLink={() => onLinkDeleted(pageNum, ann.id, pointSet.link)}
-                            onLinkSelect={() => onLinkSelected(ann.id, pointSet.link)}
-                        />
-                    );
-                });
+        <div>
+            {pointSets.map((pointSet) => {
+                return (
+                    <LinkAnnotation
+                        key={`${pointSet.from}${pointSet.link.to}`}
+                        pointStart={pointSet.start}
+                        pointFinish={pointSet.finish}
+                        category={pointSet.category}
+                        linkType={pointSet.type}
+                        reversed={pointSet.finish.id === pointSet.from}
+                        onDeleteLink={() => onLinkDeleted(pageNum, pointSet.from, pointSet.link)}
+                        onLinkSelect={() => onLinkSelected(pointSet.from, pointSet.link)}
+                    />
+                );
             })}
         </div>
     );

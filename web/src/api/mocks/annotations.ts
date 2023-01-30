@@ -17,7 +17,10 @@ export const annotations: AnnotationsResponse = {
                     category: 'Child2',
                     data: {
                         dataAttributes: [{ name: 'dataAttr', type: 'text', value: 'dataAttr' }]
-                    }
+                    },
+                    links: [
+                        { to: 1642343249912, category_id: 'link', type: 'directional', page_num: 1 }
+                    ]
                 },
                 {
                     id: 1642343249912,
