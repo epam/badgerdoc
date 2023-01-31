@@ -6,4 +6,4 @@ export type FileInfo = {
     message: string;
 };
 
-export type BondToDatasetReponse = Array<FileInfo>;
+export type BondToDatasetResponse = FileInfo[];
