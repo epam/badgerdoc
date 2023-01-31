@@ -89,15 +89,7 @@ async def upload_files(
 
     """
     bucket_name = utils.s3_utils.get_bucket_name(x_current_tenant)
-
     utils.minio_utils.check_bucket(bucket_name, storage_)
-    try:
-        utils.common_utils.check_uploading_limit(files)
-
-    except exceptions.UploadLimitExceedError as e:
-        raise fastapi.HTTPException(
-            status_code=fastapi.status.HTTP_400_BAD_REQUEST, detail=str(e)
-        )
     upload_results = utils.common_utils.process_form_files(
         bucket_name, files, session, storage_
     )
