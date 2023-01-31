@@ -1,29 +1,30 @@
+import React, { useCallback, useState } from 'react';
+import { useHistory } from 'react-router';
 import Wizard, {
     renderWizardButtons,
     WizardPropsStep
 } from '../../shared/components/wizard/wizard/wizard';
-import { Text } from '@epam/loveship';
 
-import { DOCUMENTS_PAGE, JOBS_PAGE } from '../../shared/constants';
 import UploadWizardPreprocessor, {
     UploadWizardPreprocessorResult
 } from '../../components/upload-wizard/preprocessor/upload-wizard-preprocessor';
-import React, { useCallback, useState } from 'react';
-import { getError } from 'shared/helpers/get-error';
+import { DatasetWithFiles } from '../../components';
 import { UploadFilesControl } from '../../components/upload-files-control/upload-files-control';
 import { useUploadFilesMutation } from 'api/hooks/documents';
+import { bondToDataset } from 'api/hooks/bonds';
 import { useNotifications } from 'shared/components/notifications';
+import { useAddDatasetMutation, useAddFilesToDatasetMutation } from '../../api/hooks/datasets';
 import AddJobConnector from 'connectors/add-job-connector/add-job-connector';
 import {
     DatasetWizardScreen,
     DatasetWizardScreenResult
 } from '../../shared/components/wizard/dataset-wizard-screen/dataset-wizard-screen';
-import { useAddDatasetMutation, useAddFilesToDatasetMutation } from '../../api/hooks/datasets';
-import { DatasetWithFiles } from '../../components';
 import { runPreprocessing } from '../../api/hooks/models';
+import { getError } from 'shared/helpers/get-error';
+import { DOCUMENTS_PAGE, JOBS_PAGE } from '../../shared/constants';
 
 import wizardStyles from 'shared/components/wizard/wizard/wizard.module.scss';
-import { useHistory } from 'react-router';
+import { Text } from '@epam/loveship';
 
 export const UploadWizardPage = () => {
     const [files, setFiles] = useState<File[]>([]);
@@ -39,6 +40,7 @@ export const UploadWizardPage = () => {
     const uploadFilesMutation = useUploadFilesMutation();
     const addDatasetMutation = useAddDatasetMutation();
     const addFilesToDatasetMutation = useAddFilesToDatasetMutation();
+    const bondFilesToExistingDataset = bondToDataset;
 
     const history = useHistory();
 
@@ -57,7 +59,7 @@ export const UploadWizardPage = () => {
             // todo: put this inside <UploadFilesControl>
             setIsLoading(true);
             const responses = await uploadFilesMutation.mutateAsync(files);
-            const filesIds: Array<number> = [];
+            const filesIds: number[] = [];
             for (const response of responses) {
                 filesIds.push(response.id);
                 notifySuccess(<Text>{response.message}</Text>);
@@ -89,7 +91,14 @@ export const UploadWizardPage = () => {
             // new dataset
             case 3: {
                 // can also be saved to newDataset
-                await addDatasetMutation.mutateAsync(datasetStepData.datasetName || '');
+                await addDatasetMutation
+                    .mutateAsync(datasetStepData.datasetName || '')
+                    .finally(() =>
+                        bondFilesToExistingDataset(
+                            datasetStepData.datasetName || '',
+                            uploadedFilesIds
+                        )
+                    );
                 break;
             }
         }
