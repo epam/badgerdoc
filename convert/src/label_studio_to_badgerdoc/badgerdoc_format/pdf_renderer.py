@@ -41,7 +41,7 @@ class PDFRenderer:
 
             page = doc.new_page(height=height, width=width)
             font = fitz.Font(self.font_name)
-            page.insert_font(fontname="cjk", fontbuffer=font.buffer)
+            page.insert_font(fontname=self.font_name, fontbuffer=font.buffer)
             for token in tokens:
                 self._draw_token(token, page)
             doc.save(save_path)
@@ -51,6 +51,9 @@ class PDFRenderer:
         shape = page.new_shape()
         shape.draw_rect(rect)
         shape.insert_text(
-            token.bbox[:2], token.text, fontname="cjk", fontsize=self.font_size
+            token.bbox[:2],
+            token.text,
+            fontname=self.font_name,
+            fontsize=self.font_size,
         )
         shape.commit()
