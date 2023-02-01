@@ -156,5 +156,5 @@ def agreement_score_service_error_handler(
 ):
     return JSONResponse(
         status_code=400,
-        content={"detail": f"Agreement score service error. {exc.exc_info}"},
+        content={"detail": f"Agreement score service error. {exc}"},
     )

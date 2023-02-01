@@ -920,7 +920,11 @@ def finish_task(
 
             # TODO extensive coverage, annotators, manifest_url
             extensive_coverage = task.jobs.extensive_coverage
-            if extensive_coverage and extensive_coverage > 1:
+            if (
+                extensive_coverage
+                and extensive_coverage > 1
+                and AGREEMENT_SCORE_ENABLED == "true"
+            ):
                 compared_score = evaluate_agreement_score(
                     db=db,
                     task=task,

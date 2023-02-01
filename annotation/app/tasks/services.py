@@ -8,7 +8,7 @@ import dotenv
 import pydantic
 from fastapi import HTTPException
 from filter_lib import Page, form_query, map_request_to_filter, paginate
-from sqlalchemy import and_, asc
+from sqlalchemy import and_, asc, text
 from sqlalchemy.orm import Session
 from tenant_dependency import TenantData
 
@@ -476,6 +476,7 @@ def create_export_csv(
         task.id: {
             "score": getattr(task.agreement_score, "agreement_score", None),
             "annotator": getattr(task.agreement_score, "annotator_id", None),
+            "user_id": task.user,
         }
         for task in (
             db.query(ManualAnnotationTask)
@@ -493,7 +494,7 @@ def create_export_csv(
 
     annotation_stats = [
         {
-            "annotator_id": task_ids[stat.task_id]["annotator"],
+            "annotator_id": str(task_ids[stat.task_id]["user_id"].user_id),
             "task_id": stat.task_id,
             "task_status": stat.task.status.value,
             "file_id": stat.task.file_id,
@@ -539,21 +540,35 @@ def evaluate_agreement_score(
     tenant: str,
     token: TenantData,
 ) -> AgreementScoreComparingResult:
-    annotators = []
-    manifest_url = None
+    tasks_intersection_pages = (
+        db.query(ManualAnnotationTask)
+        .filter(
+            # Exclude current task for the different validation type
+            ManualAnnotationTask.id != task.id,
+            ManualAnnotationTask.job_id == task.job_id,
+            ManualAnnotationTask.file_id == task.file_id,
+            ManualAnnotationTask.is_validation == False,  # noqa E712
+        )
+        .filter(text(f"pages && '{set(task.pages)}'"))
+        .all()
+    )
+    tasks_intersection_pages.append(task)
+
     s3_file_path, s3_file_bucket = get_file_path_and_bucket(
         task.file_id, tenant, token.token
     )
     agreement_scores_input = [
         AgreementScoreServiceInput.construct(
-            annotator_id=annotator_id,
-            job_id=task.job_id,
-            task_id=task.id,
+            annotator_id=str(task_in.user_id),
+            job_id=task_in.job_id,
+            task_id=task_in.id,
             s3_file_path=s3_file_path,
             s3_file_bucket=s3_file_bucket,
-            manifest_url=manifest_url,
+            s3_tokens_path=f"files/{task_in.file_id}/ocr",
+            # Manifest name manifest.json, same dir for the annotations files.
+            manifest_url=f"annotation/{task_in.job_id}/{task_in.file_id}",
         )
-        for annotator_id in annotators
+        for task_in in tasks_intersection_pages
     ]
     agreement_scores: List[
         AgreementScoreServiceResponse
