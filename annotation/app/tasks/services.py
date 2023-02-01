@@ -494,7 +494,7 @@ def create_export_csv(
 
     annotation_stats = [
         {
-            "annotator_id": task_ids["user_id"],
+            "annotator_id": str(task_ids[stat.task_id]["user_id"].user_id),
             "task_id": stat.task_id,
             "task_status": stat.task.status.value,
             "file_id": stat.task.file_id,
