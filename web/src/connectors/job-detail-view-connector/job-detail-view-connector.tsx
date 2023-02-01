@@ -162,7 +162,23 @@ export const JobConnector: React.FC<JobDetailViewProps> = ({
                     handleTaskClick(item.id);
                 }
             }
-        })
+        }),
+        sortBy: (task, sorting) => {
+            switch (sorting.field) {
+                case 'id':
+                    return task.id;
+                case 'name':
+                    return task.user.name;
+                case 'file_name':
+                    return task.file.name;
+                case 'status':
+                    return task.status;
+                case 'is_validation':
+                    return task.is_validation;
+                case 'pages':
+                    return task.pages.length;
+            }
+        }
     });
 
     const filesView = filesDataSource.useView(tableValue, onTableValueChange, {
