@@ -476,6 +476,7 @@ def create_export_csv(
         task.id: {
             "score": getattr(task.agreement_score, "agreement_score", None),
             "annotator": getattr(task.agreement_score, "annotator_id", None),
+            "user_id": task.user,
         }
         for task in (
             db.query(ManualAnnotationTask)
@@ -493,7 +494,7 @@ def create_export_csv(
 
     annotation_stats = [
         {
-            "annotator_id": task_ids[stat.task_id]["annotator"],
+            "annotator_id": task_ids["user_id"],
             "task_id": stat.task_id,
             "task_status": stat.task.status.value,
             "file_id": stat.task.file_id,
