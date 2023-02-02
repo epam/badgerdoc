@@ -21,7 +21,6 @@ from app.microservice_communication.assets_communication import (
 from app.microservice_communication.task import get_agreement_score
 from app.models import (
     AgreementMetrics,
-    AgreementScore,
     AnnotatedDoc,
     AnnotationStatistics,
     File,
@@ -459,25 +458,13 @@ def add_task_stats_record(
     return stats_db
 
 
-def save_agreement_scores(
-    db: Session, agreement_scores: List[AgreementScoreServiceResponse]
-) -> None:
-    objects = [AgreementScore(**score.dict()) for score in agreement_scores]
-    db.bulk_save_objects(objects)
-    db.commit()
-
-
 def create_export_csv(
     db: Session,
     schema: ExportTaskStatsInput,
     tenant: str,
 ) -> Tuple[str, bytes]:
     task_ids = {
-        task.id: {
-            "score": getattr(task.agreement_score, "agreement_score", None),
-            "annotator": getattr(task.agreement_score, "annotator_id", None),
-            "user_id": task.user,
-        }
+        task.id: task
         for task in (
             db.query(ManualAnnotationTask)
             .filter(ManualAnnotationTask.user_id.in_(schema.user_ids))
@@ -494,7 +481,7 @@ def create_export_csv(
 
     annotation_stats = [
         {
-            "annotator_id": str(task_ids[stat.task_id]["user_id"].user_id),
+            "annotator_id": str(stat.task.user_id),
             "task_id": stat.task_id,
             "task_status": stat.task.status.value,
             "file_id": stat.task.file_id,
@@ -503,7 +490,14 @@ def create_export_csv(
             "time_finish": (
                 stat.updated.isoformat() if stat.updated else None
             ),
-            "agreement_score": task_ids[stat.task_id]["score"],
+            "agreement_score": [
+                {
+                    "task_from": metric.task_from,
+                    "task_to": metric.task_to,
+                    "agreement_metric": metric.agreement_metric,
+                }
+                for metric in stat.task.agreement_metrics
+            ],
         }
         for stat in (
             db.query(AnnotationStatistics)
@@ -557,6 +551,9 @@ def evaluate_agreement_score(
     s3_file_path, s3_file_bucket = get_file_path_and_bucket(
         task.file_id, tenant, token.token
     )
+    # s3_file_path, s3_file_bucket = (
+    #     f"files/{task.file_id}/{task.file_id}.pdf", tenant
+    # )
     agreement_scores_input = [
         AgreementScoreServiceInput.construct(
             annotator_id=str(task_in.user_id),
@@ -577,7 +574,6 @@ def evaluate_agreement_score(
         tenant=tenant,
         token=token.token,
     )
-    save_agreement_scores(db, agreement_scores)
     compared_score: AgreementScoreComparingResult = compare_agreement_scores(
         agreement_scores, AGREEMENT_SCORE_MIN_MATCH
     )

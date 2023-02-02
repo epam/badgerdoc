@@ -1119,19 +1119,15 @@ def test_finish_task_with_agreement_score_enabled_score_matched(
             "app.tasks.services.get_file_path_and_bucket",
             return_value=("", ""),
         ) as mock2:
-            with patch("app.tasks.services.save_agreement_scores") as mock3:
-                with patch("app.tasks.resources.update_job_status") as mock4:
-                    response = client.post(
-                        FINISH_TASK_PATH.format(
-                            task_id=annotation_tasks[2]["id"]
-                        ),
-                        headers=TEST_HEADERS,
-                    )
+            with patch("app.tasks.resources.update_job_status") as mock4:
+                response = client.post(
+                    FINISH_TASK_PATH.format(task_id=annotation_tasks[2]["id"]),
+                    headers=TEST_HEADERS,
+                )
     assert response
 
     mock1.assert_called_once()
     mock2.assert_called_once()
-    mock3.assert_called_once()
     mock4.assert_called_once()
     validation_task = (
         db.query(ManualAnnotationTask)
@@ -1173,19 +1169,15 @@ def test_finish_task_with_agreement_score_enabled_score_not_matched(
             "app.tasks.services.get_file_path_and_bucket",
             return_value=("", ""),
         ) as mock2:
-            with patch("app.tasks.services.save_agreement_scores") as mock3:
-                with patch("app.tasks.resources.update_job_status") as mock4:
-                    response = client.post(
-                        FINISH_TASK_PATH.format(
-                            task_id=annotation_tasks[2]["id"]
-                        ),
-                        headers=TEST_HEADERS,
-                    )
+            with patch("app.tasks.resources.update_job_status") as mock4:
+                response = client.post(
+                    FINISH_TASK_PATH.format(task_id=annotation_tasks[2]["id"]),
+                    headers=TEST_HEADERS,
+                )
     assert response
 
     mock1.assert_called_once()
     mock2.assert_called_once()
-    mock3.assert_called_once()
     mock4.assert_not_called()
     validation_task = (
         db.query(ManualAnnotationTask)
@@ -1226,19 +1218,15 @@ def test_finish_task_with_agreement_score_enabled_annotation_not_finished(
             "app.tasks.services.get_file_path_and_bucket",
             return_value=("", ""),
         ) as mock2:
-            with patch("app.tasks.services.save_agreement_scores") as mock3:
-                with patch("app.tasks.resources.update_job_status") as mock4:
-                    response = client.post(
-                        FINISH_TASK_PATH.format(
-                            task_id=annotation_tasks[2]["id"]
-                        ),
-                        headers=TEST_HEADERS,
-                    )
+            with patch("app.tasks.resources.update_job_status") as mock4:
+                response = client.post(
+                    FINISH_TASK_PATH.format(task_id=annotation_tasks[2]["id"]),
+                    headers=TEST_HEADERS,
+                )
     assert response
 
     mock1.assert_not_called()
     mock2.assert_not_called()
-    mock3.assert_not_called()
     mock4.assert_not_called()
     validation_task = (
         db.query(ManualAnnotationTask)
