@@ -11,13 +11,15 @@ from ..models import BadgerdocToken
 
 class Fonts(Enum):
     COURIER = "cour"
+    FIMO = "figo"
+    CJK = "cjk"
 
 
 class PDFRenderer:
     def __init__(
         self,
         page_border_offset: int = DEFAULT_PAGE_BORDER_OFFSET,
-        font_name: str = Fonts.COURIER.value,
+        font_name: str = Fonts.CJK.value,
         font_size: int = DEFAULT_PDF_FONT_HEIGHT,
     ):
         self.page_border_offset = page_border_offset
@@ -38,6 +40,8 @@ class PDFRenderer:
             )
 
             page = doc.new_page(height=height, width=width)
+            font = fitz.Font(self.font_name)
+            page.insert_font(fontname=self.font_name, fontbuffer=font.buffer)
             for token in tokens:
                 self._draw_token(token, page)
             doc.save(save_path)
@@ -46,7 +50,10 @@ class PDFRenderer:
         rect = fitz.Rect(token.bbox)
         shape = page.new_shape()
         shape.draw_rect(rect)
-        shape.insert_textbox(
-            rect, token.text, fontname=self.font_name, fontsize=self.font_size
+        shape.insert_text(
+            token.bbox[:2],
+            token.text,
+            fontname=self.font_name,
+            fontsize=self.font_size,
         )
         shape.commit()
