@@ -1060,8 +1060,11 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         onAnnotationEdited,
         onAddTouchedPage,
         setSelectedAnnotation,
+        validPages,
         setValidPages,
-        userId: task?.user_id
+        onAnnotationTaskFinish,
+        userId: task?.user_id,
+        task: task
     });
 
     const linksFromApi = latestAnnotationsResult.data?.links_json;

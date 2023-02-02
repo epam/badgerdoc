@@ -97,7 +97,8 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
         documentLinks,
         onRelatedDocClick,
         selectedRelatedDoc,
-        documentLinksChanged
+        documentLinksChanged,
+        onFinishSplitValidation
     } = useTaskAnnotatorContext();
     const {
         tableModeColumns,
@@ -689,7 +690,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
                         caption={'FINISH VALIDATION'}
                         isDisabled={!allValidated && !touchedPages.length}
                         captionCX
-                        onClick={splitValidation ? onAnnotationTaskFinish : onFinishValidation}
+                        onClick={splitValidation ? onFinishSplitValidation : onFinishValidation}
                     />
                 </Tooltip>
             )}
