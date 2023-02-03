@@ -551,9 +551,6 @@ def evaluate_agreement_score(
     s3_file_path, s3_file_bucket = get_file_path_and_bucket(
         task.file_id, tenant, token.token
     )
-    # s3_file_path, s3_file_bucket = (
-    #     f"files/{task.file_id}/{task.file_id}.pdf", tenant
-    # )
     agreement_scores_input = [
         AgreementScoreServiceInput.construct(
             annotator_id=str(task_in.user_id),
