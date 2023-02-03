@@ -1,6 +1,6 @@
 import { ILens } from '@epam/uui';
 import { Category, Pipeline, Taxonomy, User } from 'api/typings';
-import { JobValues } from 'connectors/add-job-connector/add-job-connector';
+import { JobValues } from 'connectors/edit-job-connector/edit-job-connector';
 import React, { FC, useContext } from 'react';
 import JobName from '../job-name/job-name';
 import styles from './automatic-manual-job.module.scss';

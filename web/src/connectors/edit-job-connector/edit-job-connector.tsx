@@ -1,7 +1,7 @@
 import React, { FC, ReactElement, useCallback, useContext, useMemo } from 'react';
-import AddJobSettings from 'components/job/add-job-settings/add-job-settings';
+import EditJobSettings from 'components/job/edit-job-settings/edit-job-settings';
 import { usePipelines } from 'api/hooks/pipelines';
-import { JobVariables, useAddJobMutation } from 'api/hooks/jobs';
+import { JobVariables, useAddJobMutation, useEditJobMutation } from 'api/hooks/jobs';
 import {
     Category,
     CategoryRelatedTaxonomies,
@@ -22,7 +22,7 @@ import { CurrentUser } from 'shared/contexts/current-user';
 import wizardStyles from '../../shared/components/wizard/wizard/wizard.module.scss';
 import { useAllTaxonomies } from 'api/hooks/taxons';
 
-type AddJobConnectorProps = {
+type EditJobConnectorProps = {
     renderWizardButtons: ({
         save,
         lens,
@@ -61,7 +61,7 @@ export type JobValues = {
     selected_taxonomies: CategoryRelatedTaxonomies | undefined;
 };
 
-const AddJobConnector: FC<AddJobConnectorProps> = ({
+const EditJobConnector: FC<EditJobConnectorProps> = ({
     renderWizardButtons,
     onJobAdded,
     onRedirectAfterFinish,
@@ -96,6 +96,7 @@ const AddJobConnector: FC<AddJobConnectorProps> = ({
     const { pipelines, categories, users, taxonomies } = useEntities();
 
     const addJobMutation = useAddJobMutation();
+    const editJobMutation = useEditJobMutation();
 
     const renderForm = useCallback(
         ({ lens, save }: IFormApi<JobValues>) => {
@@ -117,7 +118,7 @@ const AddJobConnector: FC<AddJobConnectorProps> = ({
             return (
                 <>
                     <div className={wizardStyles['content__body']}>
-                        <AddJobSettings
+                        <EditJobSettings
                             initialType={initialJob?.type}
                             pipelines={pipelines}
                             categories={categories}
@@ -204,6 +205,15 @@ const AddJobConnector: FC<AddJobConnectorProps> = ({
                 });
             }
             try {
+                if (initialJob?.id) {
+                    await editJobMutation.mutateAsync({
+                        id: initialJob?.id,
+                        data: jobProps
+                    });
+                    return {
+                        form: values
+                    };
+                }
                 const response = await addJobMutation.mutateAsync(jobProps);
                 values.addedJobId = response.id;
                 return {
@@ -246,7 +256,7 @@ const AddJobConnector: FC<AddJobConnectorProps> = ({
         [onJobAdded]
     );
 
-    const formValues = useAddJobFormValues({
+    const formValues = useEditJobFormValues({
         initialJob,
         pipelines,
         categories,
@@ -269,7 +279,7 @@ const AddJobConnector: FC<AddJobConnectorProps> = ({
     );
 };
 
-export default AddJobConnector;
+export default EditJobConnector;
 
 const useEntities = () => {
     const pipelinesResult = usePipelines(
@@ -325,7 +335,7 @@ interface Params {
     taxonomies?: Taxonomy[];
 }
 
-const useAddJobFormValues = ({
+const useEditJobFormValues = ({
     initialJob,
     pipelines,
     categories,
@@ -372,17 +382,27 @@ const useAddJobFormValues = ({
             deadline: initialJob.deadline,
             validationType: initialJob.validation_type,
             annotators:
-                initialJob.annotators?.map((el) => {
-                    const user = users?.find((elem) => elem.id === el);
-                    if (user) return user;
-                    return {} as User;
-                }) || [],
+                initialJob.validation_type !== 'cross'
+                    ? initialJob.annotators?.map((el) => {
+                          const user = users?.find((elem) => elem.id === el);
+                          if (user) return user;
+                          return {} as User;
+                      })
+                    : [],
             validators:
                 initialJob.validators?.map((el) => {
                     const user = users?.find((elem) => elem.id === el);
                     if (user) return user;
                     return {} as User;
                 }) || [],
+            annotators_validators:
+                initialJob.validation_type === 'cross'
+                    ? initialJob.annotators?.map((el) => {
+                          const user = users?.find((elem) => elem.id === el);
+                          if (user) return user;
+                          return {} as User;
+                      })
+                    : [],
             owners:
                 initialJob.owners?.map((el) => {
                     const user = users?.find((elem) => elem.id === el);

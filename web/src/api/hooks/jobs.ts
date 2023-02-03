@@ -33,6 +33,10 @@ type CategoryWithTaxonomy = {
 
 type JobVariablesCategory = string | number | CategoryWithTaxonomy;
 
+export type JobVariablesWithId = JobVariables & {
+    id: number;
+};
+
 export type JobVariables = {
     name: string | undefined;
     files: string[] | number[];
@@ -185,4 +189,23 @@ export const useJobById: QueryHookType<JobByIdParams, Job | undefined> = ({ jobI
                 : undefined,
         options
     );
+};
+type EditJobParams = { id: number; data: JobVariables };
+
+export function editJob({ id, data }: EditJobParams): Promise<Job> {
+    return useBadgerFetch<Job>({
+        url: `${namespace}/jobs/${id}`,
+        method: 'put',
+        withCredentials: true
+    })(JSON.stringify(data));
+}
+
+export const useEditJobMutation: MutationHookType<EditJobParams, Job> = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation(editJob, {
+        onSuccess: () => {
+            queryClient.invalidateQueries('jobs');
+        }
+    });
 };
