@@ -25,7 +25,6 @@ const makeItem = (taxonomy: Taxonomy): TaxonomyPickerItem => ({
 
 const TaxonomyPickers: FC<TaxonomiesPickersProps> = ({ categories, taxonomies, lens }) => {
     if (!categories?.length) return <></>;
-    console.log(taxonomies);
 
     const items = taxonomies?.map(makeItem);
     const taxonomiesDataSource = useArrayDataSource(
