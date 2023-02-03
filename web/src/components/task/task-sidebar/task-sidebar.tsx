@@ -565,6 +565,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
                     )}
                     {tabValue === 'Document' && categories !== undefined && (
                         <TaskSidebarLabelsLinks
+                            viewMode={viewMode}
                             jobId={jobId}
                             onLabelsSelected={onLabelsSelected}
                             selectedLabels={selectedLabels ?? []}
