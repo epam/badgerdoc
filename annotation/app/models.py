@@ -301,8 +301,12 @@ class ManualAnnotationTask(Base):
     jobs = relationship("Job", back_populates="tasks")
     docs = relationship("AnnotatedDoc", back_populates="tasks")
     stats = relationship("AnnotationStatistics", back_populates="task")
-    agreement_score = relationship(
-        "AgreementScore", uselist=False, back_populates="task"
+    agreement_metrics = relationship(
+        "AgreementMetrics",
+        primaryjoin=(
+            "or_(ManualAnnotationTask.id==AgreementMetrics.task_from, "
+            "ManualAnnotationTask.id==AgreementMetrics.task_to)"
+        ),
     )
 
 
@@ -328,39 +332,6 @@ class AnnotationStatistics(Base):
             "task_id": self.task_id,
             "event_type": self.event_type,
             "additional_data": self.additional_data,
-        }
-
-
-class AgreementScore(Base):
-    __tablename__ = "agreement_score"
-    annotator_id = Column(
-        UUID(as_uuid=True),
-        ForeignKey("users.user_id"),
-        nullable=False,
-    )
-    job_id = Column(
-        INTEGER,
-        ForeignKey("jobs.job_id", ondelete="cascade"),
-        nullable=False,
-    )
-    task_id = Column(
-        INTEGER,
-        ForeignKey("tasks.id", ondelete="cascade"),
-        primary_key=True,
-    )
-    task = relationship(
-        "ManualAnnotationTask", back_populates="agreement_score"
-    )
-    agreement_score = Column(JSONB, nullable=False)
-
-    def get_stats(self):
-        return {
-            "annotator_id": self.annotator_id,
-            "task_id": self.task_id,
-            "task_status": self.task.status,
-            "time_start": self.task.stats.created,
-            "time_finish": self.task.stats.updated,
-            "agreement_score": self.agreement_score,
         }
 
 
@@ -424,8 +395,8 @@ class DocumentLinks(Base):
 
 
 class AgreementMetrics(Base):
-
     __tablename__ = "agreement_metrics"
+
     task_from = Column(
         INTEGER,
         ForeignKey("tasks.id", ondelete="cascade"),
