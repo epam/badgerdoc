@@ -320,7 +320,8 @@ const useEntities = () => {
 let initialValues: JobValues = {
     jobName: undefined,
     pipeline: undefined,
-    jobType: 'ExtractionJob',
+    jobType:
+        process.env.REACT_APP_CONF === 'myConf' ? 'ExtractionWithAnnotationJob' : 'ExtractionJob',
     deadline: undefined,
     categories: undefined,
     validationType: undefined,

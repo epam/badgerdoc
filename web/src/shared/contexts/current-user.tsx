@@ -27,7 +27,13 @@ export type SubMenu = {
 
 type UserRole = 'annotator' | 'engineer' | 'viewer' | 'simple_flow';
 
-export const ML_MENU_ITEMS = ['pipelines', 'categories', 'models', 'basements', 'reports'];
+export const ML_MENU_ITEMS = ['pipelines', 'categories', 'models', 'basements', 'reports'].filter(
+    (el) => {
+        if (process.env.REACT_APP_CONF === 'myConf') {
+            return el !== 'pipelines' && el !== 'models';
+        } else return el;
+    }
+);
 
 export const UserContextProvider: FC<{ currentUser: User | null }> = ({
     currentUser,

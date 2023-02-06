@@ -203,5 +203,9 @@ export const UploadWizardPage = () => {
         }
     ];
 
-    return <Wizard steps={steps} returnUrl={DOCUMENTS_PAGE} stepIndex={stepIndex} />;
+    let myConfSteps;
+    if (process.env.REACT_APP_CONF === 'myConf')
+        myConfSteps = steps.filter((el) => el.title !== 'Preprocessor');
+
+    return <Wizard steps={myConfSteps ?? steps} returnUrl={DOCUMENTS_PAGE} stepIndex={stepIndex} />;
 };

@@ -1,6 +1,6 @@
+import React, { FC, useMemo } from 'react';
 import { PipelineData, Step } from 'api/typings';
 import { noop } from 'lodash';
-import React, { FC, useMemo } from 'react';
 import PipelineComponent from '../pipeline-component/pipeline-component';
 import { updatePipelineStep } from '../pipeline-utils/update-pipeline-step';
 

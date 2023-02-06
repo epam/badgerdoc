@@ -1,15 +1,16 @@
-import AddJobConnector from '../../connectors/add-job-connector/add-job-connector';
 import React, { useState } from 'react';
-import { Job } from '../../api/typings/jobs';
 import { useHistory } from 'react-router-dom';
-import { Button } from '@epam/loveship';
-import styles from '../../shared/components/wizard/wizard/wizard.module.scss';
+import { Job } from '../../api/typings/jobs';
 import Wizard, {
     renderWizardButtons,
     WizardPropsStep
 } from '../../shared/components/wizard/wizard/wizard';
 import { DocumentsTableConnector } from '../../connectors';
+import AddJobConnector from '../../connectors/add-job-connector/add-job-connector';
 import { DOCUMENTS_PAGE } from '../../shared/constants';
+
+import { Button } from '@epam/loveship';
+import styles from '../../shared/components/wizard/wizard/wizard.module.scss';
 import wizardStyles from '../../shared/components/wizard/wizard/wizard.module.scss';
 
 type HistoryState = {

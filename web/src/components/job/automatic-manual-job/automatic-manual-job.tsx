@@ -37,17 +37,19 @@ const AutomaticManualJob: FC<AutomaticManualJobProps> = ({
         .get()
         ?.filter((category) => (category.data_attributes || [])[0]?.type === 'taxonomy');
 
-    const vlidationType = lens.prop('validationType').get();
+    const validationType = lens.prop('validationType').get();
     return (
         <div className={styles.job}>
             <JobName lens={lens} />
-            <PipelinePicker lens={lens} pipelines={pipelines} />
+            {process.env.REACT_APP_CONF !== 'myConf' && (
+                <PipelinePicker lens={lens} pipelines={pipelines} />
+            )}
             <div className="flex">
                 <ValidationTypePicker lens={lens} />
                 <DeadlinePicker lens={lens} />
             </div>
             <UsersPickers lens={lens} users={users} />
-            {vlidationType === 'extensive_coverage' && <ExtensiveCoverageInput lens={lens} />}
+            {validationType === 'extensive_coverage' && <ExtensiveCoverageInput lens={lens} />}
 
             <div className="form-group">
                 <CategoriesPicker lens={lens} categories={categories} />

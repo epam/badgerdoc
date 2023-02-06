@@ -57,7 +57,8 @@
         "hooks:i": "npx simple-git-hooks",
         "build:info": "node ./src/setupEnvInfo.js",
         "postinstall": "npm run build:info",
-        "prettier": "prettier ./src/**/*.{ts,tsx,js} --write"
+        "prettier": "prettier ./src/**/*.{ts,tsx,js} --write",
+        "start:myConf": "set REACT_APP_CONF=myConf&& yarn start"
     },
     "browserslist": {
         "production": [
