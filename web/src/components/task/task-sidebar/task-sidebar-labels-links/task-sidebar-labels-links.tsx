@@ -12,6 +12,7 @@ import { MultiSwitch, Text } from '@epam/loveship';
 import styles from './task-sidebar-labels-links.module.scss';
 
 type TaskSidebarLabelsLinksProps = {
+    viewMode: boolean;
     jobId?: number;
     onLabelsSelected: (labels: Label[], pickedLabels: string[]) => void;
     selectedLabels: Label[];
@@ -28,6 +29,7 @@ const documentCategories = [
     { id: DocumentCategoryType.DocumentLabel, caption: 'Links', cx: `${styles.categoriesAndLinks}` }
 ];
 export const TaskSidebarLabelsLinks: FC<TaskSidebarLabelsLinksProps> = ({
+    viewMode = false,
     jobId,
     onLabelsSelected,
     selectedLabels,
@@ -88,6 +90,7 @@ export const TaskSidebarLabelsLinks: FC<TaskSidebarLabelsLinksProps> = ({
 
             {documentCategoryType === DocumentCategoryType.Document ? (
                 <TaskSidebarLabels
+                    viewMode={viewMode}
                     labels={categories?.data}
                     onLabelsSelected={onLabelsSelected}
                     selectedLabels={selectedLabels ?? []}
