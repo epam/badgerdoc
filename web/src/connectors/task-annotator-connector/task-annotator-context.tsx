@@ -13,7 +13,6 @@ import { Task } from 'api/typings/tasks';
 import { ApiError } from 'api/api-error';
 import {
     DocumentLink,
-    DocumentLinkWithName,
     useAddAnnotationsMutation,
     useLatestAnnotations
 } from 'api/hooks/annotations';
@@ -1003,6 +1002,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         if (!task || !latestAnnotationsResult.data || !tokenPages) return;
 
         let { revision } = latestAnnotationsResult.data;
+
         const pages = mapModifiedAnnotationPagesToApi(
             editedPages,
             allAnnotations,

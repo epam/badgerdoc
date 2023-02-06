@@ -12,10 +12,10 @@ import { Image } from '../image/image';
 import DocumentSinglePage from './document-single-page';
 import { IconButton, IconContainer, Spinner } from '@epam/loveship';
 import { LabelsPanel } from 'components/labels-panel';
+import { RelationsPanel } from '../annotator/components/relations-panel/relations-panel';
 import styles from './document-pages.module.scss';
 import cn from 'classnames';
 import './react-pdf.scss';
-import { RelationsPanel } from '../annotator/components/relations-panel/relations-panel';
 
 export interface PageSize {
     width: number;
@@ -66,6 +66,7 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
     onEmptyAreaClick
 }) => {
     const {
+        task,
         categories,
         SyncedContainer,
         annotationsByUserId,
@@ -147,7 +148,7 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                     onLinkChanged={onLinkChanged}
                 />
             ) : (
-                <LabelsPanel labels={selectedLabels} />
+                <LabelsPanel labels={selectedLabels} viewMode={!task} />
             )}
             <div className={styles['pdf-container']}>
                 {pageScale}

@@ -5,10 +5,11 @@ import { Label } from 'api/typings';
 import { useTaskAnnotatorContext } from 'connectors/task-annotator-connector/task-annotator-context';
 
 type LabelsPanelProps = {
+    viewMode: boolean;
     labels?: Label[];
 };
 
-export const LabelsPanel: FC<LabelsPanelProps> = ({ labels }) => {
+export const LabelsPanel: FC<LabelsPanelProps> = ({ labels, viewMode }) => {
     if (!labels) {
         return <div>Loading...</div>;
     }
@@ -22,7 +23,7 @@ export const LabelsPanel: FC<LabelsPanelProps> = ({ labels }) => {
                     fill="white"
                     color="sky"
                     size="24"
-                    caption="+ Add Labels"
+                    caption={viewMode ? 'Open Labels' : '+ Add Labels'}
                     onClick={() => setTabValue('Document')}
                     cx={styles.button}
                 />
