@@ -321,7 +321,7 @@ let initialValues: JobValues = {
     jobName: undefined,
     pipeline: undefined,
     jobType:
-        process.env.REACT_APP_CONF === 'myConf' ? 'ExtractionWithAnnotationJob' : 'ExtractionJob',
+        process.env.REACT_APP_CONF === 'trm_env' ? 'ExtractionWithAnnotationJob' : 'ExtractionJob',
     deadline: undefined,
     categories: undefined,
     validationType: undefined,

@@ -29,7 +29,7 @@ type UserRole = 'annotator' | 'engineer' | 'viewer' | 'simple_flow';
 
 export const ML_MENU_ITEMS = ['pipelines', 'categories', 'models', 'basements', 'reports'].filter(
     (el) => {
-        if (process.env.REACT_APP_CONF === 'myConf') {
+        if (process.env.REACT_APP_CONF === 'trm_env') {
             return el !== 'pipelines' && el !== 'models';
         } else return el;
     }

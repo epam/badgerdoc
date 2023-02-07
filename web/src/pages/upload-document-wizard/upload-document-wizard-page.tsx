@@ -203,9 +203,11 @@ export const UploadWizardPage = () => {
         }
     ];
 
-    let myConfSteps;
-    if (process.env.REACT_APP_CONF === 'myConf')
-        myConfSteps = steps.filter((el) => el.title !== 'Preprocessor');
+    let trm_envSteps;
+    if (process.env.REACT_APP_CONF === 'trm_env')
+        trm_envSteps = steps.filter((el) => el.title !== 'Preprocessor');
 
-    return <Wizard steps={myConfSteps ?? steps} returnUrl={DOCUMENTS_PAGE} stepIndex={stepIndex} />;
+    return (
+        <Wizard steps={trm_envSteps ?? steps} returnUrl={DOCUMENTS_PAGE} stepIndex={stepIndex} />
+    );
 };

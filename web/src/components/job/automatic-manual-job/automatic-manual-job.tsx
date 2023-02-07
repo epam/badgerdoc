@@ -41,7 +41,7 @@ const AutomaticManualJob: FC<AutomaticManualJobProps> = ({
     return (
         <div className={styles.job}>
             <JobName lens={lens} />
-            {process.env.REACT_APP_CONF !== 'myConf' && (
+            {process.env.REACT_APP_CONF !== 'trm_env' && (
                 <PipelinePicker lens={lens} pipelines={pipelines} />
             )}
             <div className="flex">
