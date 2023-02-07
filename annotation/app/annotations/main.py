@@ -877,22 +877,18 @@ def accumulate_pages_info(
             required_revision = revision
             break
 
-    # Extracting latest state for categories
-    for revision in reversed(
-        sorted(
-            revisions, key=lambda x : datetime.fromisoformat(x.date)
-        )
-    ):
-        if revision.categories:
-            categories = revision.categories
-            break
-
     else:
         if stop_revision == LATEST:
             required_revision = revisions[-1]
         elif stop_revision is not None:
             # required revision id was not found
             required_revision = None
+
+    # Extracting latest state for categories
+    for revision in sorted(revisions, key=lambda x: x.date, reverse=True):
+        if revision.categories:
+            categories = revision.categories
+            break
 
     if specific_pages:
         latest_status = {

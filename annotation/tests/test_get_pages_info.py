@@ -202,8 +202,6 @@ def test_accumulate_pages_info_can_extract_categories():
     assert categories == revisions[0].categories
 
 
-
-
 @pytest.mark.integration
 @pytest.mark.parametrize(
     [
