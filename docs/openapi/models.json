@@ -1,0 +1,3491 @@
+{
+  "openapi": "3.0.2",
+  "info": {
+    "title": "models",
+    "description": "This service implements CRUD operations for models, basements (docker images) and trainings. Also it has endpoints to deploy/undeploy models on Knative.",
+    "version": "0.1.3"
+  },
+  "paths": {
+    "/basements/create": {
+      "post": {
+        "tags": [
+          "basements"
+        ],
+        "summary": "Create New Basement",
+        "operationId": "create_new_basement_basements_create_post",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "name": "x-current-tenant",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BasementBase"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successfully created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Basement"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Request without header",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HeaderResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorisedResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Such id already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WrongResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/basements/search": {
+      "post": {
+        "tags": [
+          "basements"
+        ],
+        "summary": "Search Basements",
+        "operationId": "search_basements_basements_search_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/_BadgerdocSearch_basement_Basement_"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Search Basements Basements Search Post",
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Page_Basement_"
+                    },
+                    {
+                      "$ref": "#/components/schemas/Page_Any_"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/basements/{basements_id}": {
+      "get": {
+        "tags": [
+          "basements"
+        ],
+        "summary": "Get Basement By Id",
+        "operationId": "get_basement_by_id_basements__basements_id__get",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Basement Id",
+              "type": "string"
+            },
+            "name": "basement_id",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Basement by id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Basement"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Docker image was not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WrongResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/basements/update": {
+      "put": {
+        "tags": [
+          "basements"
+        ],
+        "summary": "Update Basement",
+        "operationId": "update_basement_basements_update_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BasementBase"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully modified",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Basement"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Docker image was not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WrongResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/basements/delete": {
+      "delete": {
+        "tags": [
+          "basements"
+        ],
+        "summary": "Delete Basement By Id",
+        "operationId": "delete_basement_by_id_basements_delete_delete",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BasementDelete"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MsgResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Docker image was not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WrongResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/basements/{basements_id}/files": {
+      "put": {
+        "tags": [
+          "basements"
+        ],
+        "summary": "Upload Files To Object Storage",
+        "operationId": "upload_files_to_object_storage_basements__basements_id__files_put",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Basement Id",
+              "type": "string"
+            },
+            "name": "basement_id",
+            "in": "query"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_files_to_object_storage_basements__basements_id__files_put"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Basement does not exist",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WrongResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/models/create": {
+      "post": {
+        "tags": [
+          "models"
+        ],
+        "summary": "Create New Model",
+        "description": "Successfully created",
+        "operationId": "create_new_model_models_create_post",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "name": "x-current-tenant",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModelWithId"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Model"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Request without header",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HeaderResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorisedResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Foreign key was not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WrongResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/models/search": {
+      "post": {
+        "tags": [
+          "models"
+        ],
+        "summary": "Search Models",
+        "operationId": "search_models_models_search_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/_BadgerdocSearch_model_Model_"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Search Models Models Search Post",
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Page_Model_"
+                    },
+                    {
+                      "$ref": "#/components/schemas/Page_Any_"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/models/{models_id}": {
+      "get": {
+        "tags": [
+          "models"
+        ],
+        "summary": "Get Model By Id",
+        "operationId": "get_model_by_id_models__models_id__get",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Model Id",
+              "type": "string"
+            },
+            "name": "model_id",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Model by id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Model"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Model was not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WrongResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/models/{model_id}/{version}": {
+      "get": {
+        "tags": [
+          "models"
+        ],
+        "summary": "Get Model By Id And Version",
+        "description": "Get model by id and version",
+        "operationId": "get_model_by_id_and_version_models__model_id___version__get",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Model Id",
+              "type": "string"
+            },
+            "example": "custom",
+            "name": "model_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "Version",
+              "type": "integer"
+            },
+            "example": 1,
+            "name": "version",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Model"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Model was not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WrongResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "models"
+        ],
+        "summary": "Update Model By Id And Version",
+        "description": "Successfully modified",
+        "operationId": "update_model_by_id_and_version_models__model_id___version__put",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Model Id",
+              "type": "string"
+            },
+            "example": "custom",
+            "name": "model_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "Version",
+              "type": "integer"
+            },
+            "example": 1,
+            "name": "version",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModelBase"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Model"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Model or foreign keys were not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WrongResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Such name already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WrongResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "models"
+        ],
+        "summary": "Delete Model By Id And Version",
+        "operationId": "delete_model_by_id_and_version_models__model_id___version__delete",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Model Id",
+              "type": "string"
+            },
+            "example": "custom",
+            "name": "model_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "Version",
+              "type": "integer"
+            },
+            "example": 1,
+            "name": "version",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MsgResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Model was not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WrongResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/models/update": {
+      "put": {
+        "tags": [
+          "models"
+        ],
+        "summary": "Update Model",
+        "operationId": "update_model_models_update_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModelWithId"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully modified",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Model"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Model or foreign keys were not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WrongResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Such name already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WrongResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/models/delete": {
+      "delete": {
+        "tags": [
+          "models"
+        ],
+        "summary": "Delete Model By Id",
+        "operationId": "delete_model_by_id_models_delete_delete",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModelId"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MsgResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Model was not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WrongResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/models/deploy": {
+      "post": {
+        "tags": [
+          "models"
+        ],
+        "summary": "Deploy Model",
+        "operationId": "deploy_model_models_deploy_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModelId"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MsgResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Model was not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WrongResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Already deployed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WrongResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/models/{model_id}/{version}/deploy": {
+      "post": {
+        "tags": [
+          "models"
+        ],
+        "summary": "Deploy Model By Id And Version",
+        "operationId": "deploy_model_by_id_and_version_models__model_id___version__deploy_post",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Model Id",
+              "type": "string"
+            },
+            "example": "custom",
+            "name": "model_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "Version",
+              "type": "integer"
+            },
+            "example": 1,
+            "name": "version",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MsgResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Model was not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WrongResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Already deployed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WrongResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/models/undeploy": {
+      "delete": {
+        "tags": [
+          "models"
+        ],
+        "summary": "Undeploy Model",
+        "operationId": "undeploy_model_models_undeploy_delete",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModelId"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully undeployed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MsgResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Model was not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WrongResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Fail to undeploy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WrongResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/models/{model_id}/{version}/undeploy": {
+      "post": {
+        "tags": [
+          "models"
+        ],
+        "summary": "Undeploy Model By Id And Version",
+        "operationId": "undeploy_model_by_id_and_version_models__model_id___version__undeploy_post",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Model Id",
+              "type": "string"
+            },
+            "example": "custom",
+            "name": "model_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "Version",
+              "type": "integer"
+            },
+            "example": 1,
+            "name": "version",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully undeployed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MsgResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Model was not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WrongResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Fail to undeploy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WrongResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trainings/create": {
+      "post": {
+        "tags": [
+          "trainings"
+        ],
+        "summary": "Create New Training",
+        "operationId": "create_new_training_trainings_create_post",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "name": "x-current-tenant",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrainingBase"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successfully created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Training"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Request without header",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HeaderResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorisedResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Foreign key was not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WrongResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/trainings/{training_id}/files": {
+      "put": {
+        "tags": [
+          "trainings"
+        ],
+        "summary": "Upload Files To Object Storage",
+        "operationId": "upload_files_to_object_storage_trainings__training_id__files_put",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Training Id",
+              "type": "string"
+            },
+            "example": 1,
+            "name": "training_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_files_to_object_storage_trainings__training_id__files_put"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "Training model was not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WrongResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trainings/search": {
+      "post": {
+        "tags": [
+          "trainings"
+        ],
+        "summary": "Search Training",
+        "operationId": "search_training_trainings_search_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/_BadgerdocSearch_training_Training_"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Search Training Trainings Search Post",
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Page_Training_"
+                    },
+                    {
+                      "$ref": "#/components/schemas/Page_Any_"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trainings/{trainings_id}": {
+      "get": {
+        "tags": [
+          "trainings"
+        ],
+        "summary": "Get Training By Id",
+        "operationId": "get_training_by_id_trainings__trainings_id__get",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Training Id",
+              "type": "integer"
+            },
+            "name": "training_id",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Training by id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Training"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Training was not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WrongResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trainings/update": {
+      "put": {
+        "tags": [
+          "trainings"
+        ],
+        "summary": "Update Training",
+        "operationId": "update_training_trainings_update_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrainingUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully modified",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Training"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Training or foreign key was not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WrongResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trainings/delete": {
+      "delete": {
+        "tags": [
+          "trainings"
+        ],
+        "summary": "Delete Training By Id",
+        "operationId": "delete_training_by_id_trainings_delete_delete",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrainingDelete"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MsgResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Training was not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WrongResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trainings/{training_id}/annotation_dataset": {
+      "post": {
+        "tags": [
+          "trainings"
+        ],
+        "summary": "Prepare Annotation Dataset",
+        "operationId": "prepare_annotation_dataset_trainings__training_id__annotation_dataset_post",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Training Id",
+              "type": "integer"
+            },
+            "name": "training_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConvertRequestSchema"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Dataset creation is started",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MsgResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Training was not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WrongResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Convert service connection error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/trainings/{training_id}/start": {
+      "post": {
+        "tags": [
+          "trainings"
+        ],
+        "summary": "Start Training",
+        "description": "Connects to Google Colab's session with provided credentials: user,\npassword, host and port. Copy training script and archive with additional\nfiles (if required for training) for training_id from minio storage into\nColab's file system. Files will be located in \"/content/training/\"\ndirectory. After that starts execution of training script.",
+        "operationId": "start_training_trainings__training_id__start_post",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Training Id",
+              "type": "integer"
+            },
+            "example": 1,
+            "name": "training_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "x-current-tenant",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrainingCredentials"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully started",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MsgResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Training has no training script yet",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WrongResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Training was not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WrongResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Connection Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/trainings/{training_id}/results": {
+      "post": {
+        "tags": [
+          "trainings"
+        ],
+        "summary": "Download Training Results",
+        "description": "Connects to Google Colab's session with provided credentials: user,\npassword, host and port and copy results of training into minio storage.\nResults should be located at in \"/content/training/results\" directory in\ncolab's file system.",
+        "operationId": "download_training_results_trainings__training_id__results_post",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Training Id",
+              "type": "integer"
+            },
+            "example": 1,
+            "name": "training_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "x-current-tenant",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrainingCredentials"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Get results files",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MsgResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Training was not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WrongResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Connection Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/deployed_models/search": {
+      "get": {
+        "tags": [
+          "deployed_models"
+        ],
+        "summary": "Get Deployed Model List",
+        "operationId": "get_deployed_model_list_deployed_models_search_get",
+        "responses": {
+          "200": {
+            "description": "Models list",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/deployed_models/{model_name}": {
+      "get": {
+        "tags": [
+          "deployed_models"
+        ],
+        "summary": "Get Deployed Model By Name",
+        "operationId": "get_deployed_model_by_name_deployed_models__model_name__get",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Model Name",
+              "type": "string"
+            },
+            "name": "model_name",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Models by id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeployedModelDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Model was not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WrongResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/deployed_models/pods/{model_name}": {
+      "get": {
+        "tags": [
+          "deployed_models"
+        ],
+        "summary": "Get Deployed Model Pods",
+        "operationId": "get_deployed_model_pods_deployed_models_pods__model_name__get",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Model Name",
+              "type": "string"
+            },
+            "name": "model_name",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pods of the model",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response 200 Get Deployed Model Pods Deployed Models Pods  Model Name  Get",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DeployedModelPod"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Pod initializing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WrongResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Model was not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WrongResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Basement": {
+        "title": "Basement",
+        "required": [
+          "id",
+          "name",
+          "limits",
+          "gpu_support",
+          "created_by",
+          "created_at",
+          "tenant"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "title": "Docker image's name",
+            "minLength": 1,
+            "type": "string",
+            "description": "Unique name of docker image to build and run",
+            "example": "custom:v1.1"
+          },
+          "name": {
+            "title": "Human readable name",
+            "type": "string",
+            "example": "some describing name"
+          },
+          "supported_args": {
+            "title": "Supported Args",
+            "type": "array",
+            "items": {
+              "type": "object"
+            },
+            "example": [
+              {
+                "name": "categories",
+                "type": "string",
+                "multiple": true,
+                "required": false
+              }
+            ]
+          },
+          "limits": {
+            "$ref": "#/components/schemas/BasementLimits"
+          },
+          "gpu_support": {
+            "title": "Is gpu supported",
+            "type": "boolean",
+            "example": false
+          },
+          "created_by": {
+            "title": "Created By",
+            "type": "string",
+            "description": "Author who has created docker image",
+            "example": "901"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string",
+            "format": "date-time",
+            "example": "2021-11-09T17:09:43.101004"
+          },
+          "tenant": {
+            "title": "Tenant",
+            "type": "string",
+            "description": "Author's tenant",
+            "example": "tenant1"
+          }
+        }
+      },
+      "BasementBase": {
+        "title": "BasementBase",
+        "required": [
+          "id",
+          "name",
+          "limits",
+          "gpu_support"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "title": "Docker image's name",
+            "minLength": 1,
+            "type": "string",
+            "description": "Unique name of docker image to build and run",
+            "example": "custom:v1.1"
+          },
+          "name": {
+            "title": "Human readable name",
+            "type": "string",
+            "example": "some describing name"
+          },
+          "supported_args": {
+            "title": "Supported Args",
+            "type": "array",
+            "items": {
+              "type": "object"
+            },
+            "example": [
+              {
+                "name": "categories",
+                "type": "string",
+                "multiple": true,
+                "required": false
+              }
+            ]
+          },
+          "limits": {
+            "$ref": "#/components/schemas/BasementLimits"
+          },
+          "gpu_support": {
+            "title": "Is gpu supported",
+            "type": "boolean",
+            "example": false
+          }
+        }
+      },
+      "BasementDelete": {
+        "title": "BasementDelete",
+        "required": [
+          "id"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "title": "Image's name",
+            "type": "string",
+            "description": "Unique name of the docker image to be deleted/deployed",
+            "example": "custom:v1.1"
+          }
+        }
+      },
+      "BasementLimits": {
+        "title": "BasementLimits",
+        "type": "object",
+        "properties": {
+          "pod_cpu": {
+            "title": "Pod Cpu",
+            "type": "string",
+            "default": "1000m",
+            "example": "1000m"
+          },
+          "pod_memory": {
+            "title": "Pod Memory",
+            "type": "string",
+            "default": "4Gi",
+            "example": "4Gi"
+          },
+          "concurrency_limit": {
+            "title": "Concurrency Limit",
+            "exclusiveMinimum": 0.0,
+            "type": "integer",
+            "default": 1,
+            "example": 1
+          }
+        }
+      },
+      "Body_upload_files_to_object_storage_basements__basements_id__files_put": {
+        "title": "Body_upload_files_to_object_storage_basements__basements_id__files_put",
+        "type": "object",
+        "properties": {
+          "script": {
+            "title": "Script",
+            "type": "string",
+            "format": "binary"
+          },
+          "archive": {
+            "title": "Archive",
+            "type": "string",
+            "format": "binary"
+          }
+        }
+      },
+      "Body_upload_files_to_object_storage_trainings__training_id__files_put": {
+        "title": "Body_upload_files_to_object_storage_trainings__training_id__files_put",
+        "required": [
+          "archive"
+        ],
+        "type": "object",
+        "properties": {
+          "archive": {
+            "title": "Archive",
+            "type": "string",
+            "format": "binary"
+          }
+        }
+      },
+      "ConnectionErrorResponse": {
+        "title": "ConnectionErrorResponse",
+        "required": [
+          "detail"
+        ],
+        "type": "object",
+        "properties": {
+          "detail": {
+            "title": "Detail",
+            "type": "string",
+            "example": "Could not connect to resource"
+          }
+        }
+      },
+      "ConvertRequestSchema": {
+        "title": "ConvertRequestSchema",
+        "required": [
+          "job_lst",
+          "export_format"
+        ],
+        "type": "object",
+        "properties": {
+          "job_lst": {
+            "title": "Job Lst",
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "description": "Array of job_ids to gather annotations.",
+            "example": [
+              1,
+              3,
+              5
+            ]
+          },
+          "export_format": {
+            "title": "Export Format",
+            "type": "string",
+            "description": "Annotation data conversion format.",
+            "example": "coco"
+          },
+          "validated_only": {
+            "title": "Validated Only",
+            "type": "boolean",
+            "description": "If true - export annotations for validated pages only.",
+            "default": false,
+            "example": false
+          }
+        }
+      },
+      "DeployedModelDetails": {
+        "title": "DeployedModelDetails",
+        "required": [
+          "apiVersion",
+          "datetime_creation",
+          "model_id",
+          "model_name",
+          "status",
+          "namespace",
+          "resourceVersion",
+          "uuid",
+          "image",
+          "container_name",
+          "ports",
+          "url"
+        ],
+        "type": "object",
+        "properties": {
+          "apiVersion": {
+            "title": "Apiversion",
+            "type": "string",
+            "description": "Version of the Kubernetes API used to create the object"
+          },
+          "datetime_creation": {
+            "title": "Datetime Creation",
+            "type": "string",
+            "example": "2021-11-09T17:09:43.101004"
+          },
+          "model_id": {
+            "title": "Model Id",
+            "exclusiveMinimum": 0.0,
+            "type": "integer",
+            "description": "Integer which is id of the model",
+            "example": 1
+          },
+          "model_name": {
+            "title": "Model Name",
+            "type": "string",
+            "example": "my-model"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string",
+            "description": "Model status, it's running or not",
+            "example": "False"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string",
+            "description": "The reason of failed status if it is false",
+            "example": "RevisionFailed"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string",
+            "description": "The error message if the status is false",
+            "example": "Revision failed with message: Unable to fetch image"
+          },
+          "namespace": {
+            "title": "Namespace",
+            "type": "string",
+            "description": "Name of the namespace, where the model was registered",
+            "example": "default"
+          },
+          "resourceVersion": {
+            "title": "Resourceversion",
+            "type": "string",
+            "example": "916741"
+          },
+          "uuid": {
+            "title": "Uuid",
+            "type": "string",
+            "description": "Unique model identifier",
+            "example": "e8d6a21c-801b-4ed9-bf1b-8c3df50beb5a"
+          },
+          "image": {
+            "title": "Image",
+            "type": "string",
+            "description": "Path to the docker image",
+            "example": "localhost:5000/dod:v2.1"
+          },
+          "container_name": {
+            "title": "Container Name",
+            "type": "string",
+            "example": "inferenceservice"
+          },
+          "ports": {
+            "title": "Ports",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "integer"
+                  }
+                ]
+              }
+            },
+            "description": "List container ports and protocols"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string",
+            "description": "Url of the deployed model",
+            "example": "http://dod.dev2.example.com"
+          }
+        }
+      },
+      "DeployedModelPod": {
+        "title": "DeployedModelPod",
+        "required": [
+          "name",
+          "status",
+          "failures",
+          "start_time",
+          "logs"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string",
+            "description": "Name of the pod",
+            "example": "dod-00001-deployment-7656b6dc95-hqwb5"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string",
+            "description": "status of the pod",
+            "example": "Running"
+          },
+          "failures": {
+            "title": "Failures",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Failures"
+            },
+            "description": "Can contains reasons and messages of any failures"
+          },
+          "start_time": {
+            "title": "Start Time",
+            "type": "string",
+            "example": "2022-01-27 14:26:25+00:00"
+          },
+          "logs": {
+            "title": "Logs",
+            "type": "string",
+            "description": "Recent pods of the model with their logs",
+            "example": "[2022-01-18 09:46:07,989] - [infer] - [INFO] - [Downloading]"
+          }
+        }
+      },
+      "Failures": {
+        "title": "Failures",
+        "type": "object",
+        "properties": {
+          "reason": {
+            "title": "Reason",
+            "type": "string",
+            "description": "Can point to the error",
+            "example": "Error"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string",
+            "description": "The error message, can duplicate logs",
+            "example": "NoSuchKey: message: The specified key doesn't exist"
+          }
+        }
+      },
+      "HTTPValidationError": {
+        "title": "HTTPValidationError",
+        "type": "object",
+        "properties": {
+          "detail": {
+            "title": "Detail",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            }
+          }
+        }
+      },
+      "HeaderResponse": {
+        "title": "HeaderResponse",
+        "required": [
+          "detail"
+        ],
+        "type": "object",
+        "properties": {
+          "detail": {
+            "title": "Detail",
+            "type": "string",
+            "example": "Header x-current-tenant is required"
+          }
+        }
+      },
+      "MinioPath": {
+        "title": "MinioPath",
+        "required": [
+          "file",
+          "bucket"
+        ],
+        "type": "object",
+        "properties": {
+          "file": {
+            "title": "Path inside the bucket",
+            "type": "string",
+            "description": "Path inside the bucket to model's config or checkpoint",
+            "example": "custom/1.1/config.py"
+          },
+          "bucket": {
+            "title": "Name of the bucket",
+            "type": "string",
+            "description": "Name of bucket where model's config/checkpoint is stored",
+            "example": "models"
+          }
+        }
+      },
+      "Model": {
+        "title": "Model",
+        "required": [
+          "name",
+          "basement",
+          "categories",
+          "id",
+          "status",
+          "created_by",
+          "created_at",
+          "tenant",
+          "latest",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "title": "Description of model name",
+            "type": "string",
+            "example": "custom model based on pytorch"
+          },
+          "basement": {
+            "title": "Docker image's name",
+            "type": "string",
+            "description": "Name of the docker image with model logic - foreign key",
+            "example": "custom:v1.1"
+          },
+          "data_path": {
+            "title": "Checkpoint path",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MinioPath"
+              }
+            ],
+            "description": "Json with the path to the model's checkpoint"
+          },
+          "configuration_path": {
+            "title": "Config path",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MinioPath"
+              }
+            ],
+            "description": "Json with the path to the model's config"
+          },
+          "training_id": {
+            "title": "Training id",
+            "exclusiveMinimum": 0.0,
+            "type": "integer",
+            "description": "Id of the training for that model. It's a foreign key",
+            "example": 3
+          },
+          "score": {
+            "title": "Score",
+            "type": "number",
+            "description": "Score of the model if it has one",
+            "example": 0.89
+          },
+          "categories": {
+            "title": "Categories",
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Names of supported categories",
+            "example": [
+              "string"
+            ]
+          },
+          "type": {
+            "title": "Type",
+            "type": "string",
+            "description": "Type of the model",
+            "example": "preprocessing"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string",
+            "description": "Description of the model",
+            "example": "New model"
+          },
+          "id": {
+            "title": "Model's name",
+            "minLength": 1,
+            "type": "string",
+            "description": "Model can be deploy and be accessible with this name. Should be unique, not longer than 15 symbol and not shorter than 1 symbol. Consist of latin lowercase letters, numbers and - only.",
+            "example": "custom"
+          },
+          "status": {
+            "title": "Status",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/StatusEnum"
+              }
+            ],
+            "description": "Show if this model is available to be deployed or it has been deployed already",
+            "example": "ready"
+          },
+          "created_by": {
+            "title": "Created By",
+            "type": "string",
+            "description": "Author who has created model",
+            "example": "901"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string",
+            "format": "date-time",
+            "example": "2021-11-09T17:09:43.101004"
+          },
+          "tenant": {
+            "title": "Tenant",
+            "type": "string",
+            "description": "Author's tenant",
+            "example": "tenant1"
+          },
+          "latest": {
+            "title": "Latest",
+            "type": "boolean",
+            "description": "Flag to show if version of model is latest",
+            "example": true
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer",
+            "description": "Version of model",
+            "example": 1
+          }
+        }
+      },
+      "ModelBase": {
+        "title": "ModelBase",
+        "required": [
+          "name",
+          "basement",
+          "categories"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "title": "Description of model name",
+            "type": "string",
+            "example": "custom model based on pytorch"
+          },
+          "basement": {
+            "title": "Docker image's name",
+            "type": "string",
+            "description": "Name of the docker image with model logic - foreign key",
+            "example": "custom:v1.1"
+          },
+          "data_path": {
+            "title": "Checkpoint path",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MinioPath"
+              }
+            ],
+            "description": "Json with the path to the model's checkpoint"
+          },
+          "configuration_path": {
+            "title": "Config path",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MinioPath"
+              }
+            ],
+            "description": "Json with the path to the model's config"
+          },
+          "training_id": {
+            "title": "Training id",
+            "exclusiveMinimum": 0.0,
+            "type": "integer",
+            "description": "Id of the training for that model. It's a foreign key",
+            "example": 3
+          },
+          "score": {
+            "title": "Score",
+            "type": "number",
+            "description": "Score of the model if it has one",
+            "example": 0.89
+          },
+          "categories": {
+            "title": "Categories",
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Names of supported categories",
+            "example": [
+              "string"
+            ]
+          },
+          "type": {
+            "title": "Type",
+            "type": "string",
+            "description": "Type of the model",
+            "example": "preprocessing"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string",
+            "description": "Description of the model",
+            "example": "New model"
+          }
+        }
+      },
+      "ModelId": {
+        "title": "ModelId",
+        "required": [
+          "id"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "title": "Model id",
+            "type": "string",
+            "description": "Model id which is the name of the model",
+            "example": "custom"
+          }
+        }
+      },
+      "ModelWithId": {
+        "title": "ModelWithId",
+        "required": [
+          "name",
+          "basement",
+          "categories",
+          "id"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "title": "Description of model name",
+            "type": "string",
+            "example": "custom model based on pytorch"
+          },
+          "basement": {
+            "title": "Docker image's name",
+            "type": "string",
+            "description": "Name of the docker image with model logic - foreign key",
+            "example": "custom:v1.1"
+          },
+          "data_path": {
+            "title": "Checkpoint path",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MinioPath"
+              }
+            ],
+            "description": "Json with the path to the model's checkpoint"
+          },
+          "configuration_path": {
+            "title": "Config path",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MinioPath"
+              }
+            ],
+            "description": "Json with the path to the model's config"
+          },
+          "training_id": {
+            "title": "Training id",
+            "exclusiveMinimum": 0.0,
+            "type": "integer",
+            "description": "Id of the training for that model. It's a foreign key",
+            "example": 3
+          },
+          "score": {
+            "title": "Score",
+            "type": "number",
+            "description": "Score of the model if it has one",
+            "example": 0.89
+          },
+          "categories": {
+            "title": "Categories",
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Names of supported categories",
+            "example": [
+              "string"
+            ]
+          },
+          "type": {
+            "title": "Type",
+            "type": "string",
+            "description": "Type of the model",
+            "example": "preprocessing"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string",
+            "description": "Description of the model",
+            "example": "New model"
+          },
+          "id": {
+            "title": "Model's name",
+            "minLength": 1,
+            "type": "string",
+            "description": "Model can be deploy and be accessible with this name. Should be unique, not longer than 15 symbol and not shorter than 1 symbol. Consist of latin lowercase letters, numbers and - only.",
+            "example": "custom"
+          }
+        }
+      },
+      "MsgResponse": {
+        "title": "MsgResponse",
+        "required": [
+          "msg"
+        ],
+        "type": "object",
+        "properties": {
+          "msg": {
+            "title": "Msg",
+            "type": "string",
+            "example": "Resource was created"
+          }
+        }
+      },
+      "Page_Any_": {
+        "title": "Page[Any]",
+        "required": [
+          "pagination",
+          "data"
+        ],
+        "type": "object",
+        "properties": {
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationOut"
+          },
+          "data": {
+            "title": "Data",
+            "type": "array",
+            "items": {}
+          }
+        },
+        "description": "Abstract base class for generic types.\n\nA generic type is typically declared by inheriting from\nthis class parameterized with one or more type variables.\nFor example, a generic mapping type might be defined as::\n\n  class Mapping(Generic[KT, VT]):\n      def __getitem__(self, key: KT) -> VT:\n          ...\n      # Etc.\n\nThis class can then be used as follows::\n\n  def lookup_name(mapping: Mapping[KT, VT], key: KT, default: VT) -> VT:\n      try:\n          return mapping[key]\n      except KeyError:\n          return default"
+      },
+      "Page_Basement_": {
+        "title": "Page[Basement]",
+        "required": [
+          "pagination",
+          "data"
+        ],
+        "type": "object",
+        "properties": {
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationOut"
+          },
+          "data": {
+            "title": "Data",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Basement"
+            }
+          }
+        },
+        "description": "Abstract base class for generic types.\n\nA generic type is typically declared by inheriting from\nthis class parameterized with one or more type variables.\nFor example, a generic mapping type might be defined as::\n\n  class Mapping(Generic[KT, VT]):\n      def __getitem__(self, key: KT) -> VT:\n          ...\n      # Etc.\n\nThis class can then be used as follows::\n\n  def lookup_name(mapping: Mapping[KT, VT], key: KT, default: VT) -> VT:\n      try:\n          return mapping[key]\n      except KeyError:\n          return default"
+      },
+      "Page_Model_": {
+        "title": "Page[Model]",
+        "required": [
+          "pagination",
+          "data"
+        ],
+        "type": "object",
+        "properties": {
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationOut"
+          },
+          "data": {
+            "title": "Data",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Model"
+            }
+          }
+        },
+        "description": "Abstract base class for generic types.\n\nA generic type is typically declared by inheriting from\nthis class parameterized with one or more type variables.\nFor example, a generic mapping type might be defined as::\n\n  class Mapping(Generic[KT, VT]):\n      def __getitem__(self, key: KT) -> VT:\n          ...\n      # Etc.\n\nThis class can then be used as follows::\n\n  def lookup_name(mapping: Mapping[KT, VT], key: KT, default: VT) -> VT:\n      try:\n          return mapping[key]\n      except KeyError:\n          return default"
+      },
+      "Page_Training_": {
+        "title": "Page[Training]",
+        "required": [
+          "pagination",
+          "data"
+        ],
+        "type": "object",
+        "properties": {
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationOut"
+          },
+          "data": {
+            "title": "Data",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Training"
+            }
+          }
+        },
+        "description": "Abstract base class for generic types.\n\nA generic type is typically declared by inheriting from\nthis class parameterized with one or more type variables.\nFor example, a generic mapping type might be defined as::\n\n  class Mapping(Generic[KT, VT]):\n      def __getitem__(self, key: KT) -> VT:\n          ...\n      # Etc.\n\nThis class can then be used as follows::\n\n  def lookup_name(mapping: Mapping[KT, VT], key: KT, default: VT) -> VT:\n      try:\n          return mapping[key]\n      except KeyError:\n          return default"
+      },
+      "Pagination": {
+        "title": "Pagination",
+        "required": [
+          "page_size"
+        ],
+        "type": "object",
+        "properties": {
+          "page_num": {
+            "title": "Page Num",
+            "exclusiveMinimum": 0.0,
+            "type": "integer",
+            "default": 1
+          },
+          "page_size": {
+            "$ref": "#/components/schemas/_FilterPagesize"
+          }
+        }
+      },
+      "PaginationOut": {
+        "title": "PaginationOut",
+        "required": [
+          "page_size",
+          "min_pages_left",
+          "total",
+          "has_more"
+        ],
+        "type": "object",
+        "properties": {
+          "page_num": {
+            "title": "Page Num",
+            "exclusiveMinimum": 0.0,
+            "type": "integer",
+            "default": 1
+          },
+          "page_size": {
+            "$ref": "#/components/schemas/_FilterPagesize"
+          },
+          "min_pages_left": {
+            "title": "Min Pages Left",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          },
+          "has_more": {
+            "title": "Has More",
+            "type": "boolean"
+          }
+        }
+      },
+      "StatusEnum": {
+        "title": "StatusEnum",
+        "enum": [
+          "ready",
+          "deployed"
+        ],
+        "type": "string",
+        "description": "An enumeration."
+      },
+      "Training": {
+        "title": "Training",
+        "required": [
+          "name",
+          "jobs",
+          "basement",
+          "epochs_count",
+          "id",
+          "created_by",
+          "created_at",
+          "tenant"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "title": "Training's name",
+            "type": "string",
+            "example": "training name"
+          },
+          "jobs": {
+            "title": "Jobs",
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "example": [
+              1,
+              3,
+              5
+            ]
+          },
+          "basement": {
+            "title": "Docker image's name",
+            "type": "string",
+            "description": "Name of the docker image for training (foreign key)",
+            "example": "custom:v1.1"
+          },
+          "epochs_count": {
+            "title": "Count of training epochs",
+            "type": "integer",
+            "example": 13
+          },
+          "kubeflow_pipeline_id": {
+            "title": "Kubeflow Pipeline Id",
+            "type": "string",
+            "example": "17208425-00e9-49a0-95e7-c99da8f3b053"
+          },
+          "id": {
+            "title": "Id",
+            "exclusiveMinimum": 0.0,
+            "type": "integer",
+            "description": "Integer which is training's id that should be modified",
+            "example": 3
+          },
+          "created_by": {
+            "title": "Created By",
+            "type": "string",
+            "description": "Author who has created training",
+            "example": "901"
+          },
+          "created_at": {
+            "title": "Created At",
+            "type": "string",
+            "format": "date-time",
+            "example": "2021-11-09T17:09:43.101004"
+          },
+          "tenant": {
+            "title": "Tenant",
+            "type": "string",
+            "description": "Author's tenant",
+            "example": "tenant1"
+          },
+          "key_archive": {
+            "title": "Key Archive",
+            "type": "string",
+            "example": "trainings/127/training_archive"
+          },
+          "key_annotation_dataset": {
+            "title": "Key Annotation Dataset",
+            "type": "string",
+            "example": "coco/dfedf2ed-1f11-4e44-bdbd-7c6c25111abc.zip"
+          }
+        }
+      },
+      "TrainingBase": {
+        "title": "TrainingBase",
+        "required": [
+          "name",
+          "jobs",
+          "basement",
+          "epochs_count"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "title": "Training's name",
+            "type": "string",
+            "example": "training name"
+          },
+          "jobs": {
+            "title": "Jobs",
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "example": [
+              1,
+              3,
+              5
+            ]
+          },
+          "basement": {
+            "title": "Docker image's name",
+            "type": "string",
+            "description": "Name of the docker image for training (foreign key)",
+            "example": "custom:v1.1"
+          },
+          "epochs_count": {
+            "title": "Count of training epochs",
+            "type": "integer",
+            "example": 13
+          },
+          "kubeflow_pipeline_id": {
+            "title": "Kubeflow Pipeline Id",
+            "type": "string",
+            "example": "17208425-00e9-49a0-95e7-c99da8f3b053"
+          }
+        }
+      },
+      "TrainingCredentials": {
+        "title": "TrainingCredentials",
+        "required": [
+          "user",
+          "password",
+          "host",
+          "port"
+        ],
+        "type": "object",
+        "properties": {
+          "user": {
+            "title": "User",
+            "type": "string",
+            "description": "Colab username",
+            "example": "root"
+          },
+          "password": {
+            "title": "Password",
+            "type": "string",
+            "description": "Colab user password",
+            "example": "SECRET"
+          },
+          "host": {
+            "title": "Host",
+            "type": "string",
+            "description": "Ngrok host to connect colab",
+            "example": "tcp.ngrok.io"
+          },
+          "port": {
+            "title": "Port",
+            "type": "integer",
+            "description": "Ngrok port to connect colab",
+            "example": "12345"
+          }
+        }
+      },
+      "TrainingDelete": {
+        "title": "TrainingDelete",
+        "required": [
+          "id"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "exclusiveMinimum": 0.0,
+            "type": "integer",
+            "description": "Integer 'id' of training that should be deleted/deployed",
+            "example": 2
+          }
+        }
+      },
+      "TrainingUpdate": {
+        "title": "TrainingUpdate",
+        "required": [
+          "name",
+          "jobs",
+          "basement",
+          "epochs_count",
+          "id"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "title": "Training's name",
+            "type": "string",
+            "example": "training name"
+          },
+          "jobs": {
+            "title": "Jobs",
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "example": [
+              1,
+              3,
+              5
+            ]
+          },
+          "basement": {
+            "title": "Docker image's name",
+            "type": "string",
+            "description": "Name of the docker image for training (foreign key)",
+            "example": "custom:v1.1"
+          },
+          "epochs_count": {
+            "title": "Count of training epochs",
+            "type": "integer",
+            "example": 13
+          },
+          "kubeflow_pipeline_id": {
+            "title": "Kubeflow Pipeline Id",
+            "type": "string",
+            "example": "17208425-00e9-49a0-95e7-c99da8f3b053"
+          },
+          "id": {
+            "title": "Id",
+            "exclusiveMinimum": 0.0,
+            "type": "integer",
+            "description": "Integer which is training's id that should be modified",
+            "example": 3
+          }
+        }
+      },
+      "UnauthorisedResponse": {
+        "title": "UnauthorisedResponse",
+        "required": [
+          "detail"
+        ],
+        "type": "object",
+        "properties": {
+          "detail": {
+            "title": "Detail",
+            "type": "string",
+            "example": "No authorization provided!"
+          }
+        }
+      },
+      "ValidationError": {
+        "title": "ValidationError",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "loc": {
+            "title": "Location",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        }
+      },
+      "WrongResponse": {
+        "title": "WrongResponse",
+        "required": [
+          "detail"
+        ],
+        "type": "object",
+        "properties": {
+          "detail": {
+            "title": "Detail",
+            "type": "string",
+            "example": "Not existing entity"
+          }
+        }
+      },
+      "_BadgerdocSearch_basement_Basement_": {
+        "title": "_BadgerdocSearch[basement_Basement]",
+        "type": "object",
+        "properties": {
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          },
+          "filters": {
+            "title": "Filters",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/_Filters_basement_Basement_"
+            }
+          },
+          "sorting": {
+            "title": "Sorting",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/_Sorts_basement_Basement_"
+            }
+          }
+        },
+        "description": "Abstract base class for generic types.\n\nA generic type is typically declared by inheriting from\nthis class parameterized with one or more type variables.\nFor example, a generic mapping type might be defined as::\n\n  class Mapping(Generic[KT, VT]):\n      def __getitem__(self, key: KT) -> VT:\n          ...\n      # Etc.\n\nThis class can then be used as follows::\n\n  def lookup_name(mapping: Mapping[KT, VT], key: KT, default: VT) -> VT:\n      try:\n          return mapping[key]\n      except KeyError:\n          return default"
+      },
+      "_BadgerdocSearch_model_Model_": {
+        "title": "_BadgerdocSearch[model_Model]",
+        "type": "object",
+        "properties": {
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          },
+          "filters": {
+            "title": "Filters",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/_Filters_model_Model_"
+            }
+          },
+          "sorting": {
+            "title": "Sorting",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/_Sorts_model_Model_"
+            }
+          }
+        },
+        "description": "Abstract base class for generic types.\n\nA generic type is typically declared by inheriting from\nthis class parameterized with one or more type variables.\nFor example, a generic mapping type might be defined as::\n\n  class Mapping(Generic[KT, VT]):\n      def __getitem__(self, key: KT) -> VT:\n          ...\n      # Etc.\n\nThis class can then be used as follows::\n\n  def lookup_name(mapping: Mapping[KT, VT], key: KT, default: VT) -> VT:\n      try:\n          return mapping[key]\n      except KeyError:\n          return default"
+      },
+      "_BadgerdocSearch_training_Training_": {
+        "title": "_BadgerdocSearch[training_Training]",
+        "type": "object",
+        "properties": {
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          },
+          "filters": {
+            "title": "Filters",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/_Filters_training_Training_"
+            }
+          },
+          "sorting": {
+            "title": "Sorting",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/_Sorts_training_Training_"
+            }
+          }
+        },
+        "description": "Abstract base class for generic types.\n\nA generic type is typically declared by inheriting from\nthis class parameterized with one or more type variables.\nFor example, a generic mapping type might be defined as::\n\n  class Mapping(Generic[KT, VT]):\n      def __getitem__(self, key: KT) -> VT:\n          ...\n      # Etc.\n\nThis class can then be used as follows::\n\n  def lookup_name(mapping: Mapping[KT, VT], key: KT, default: VT) -> VT:\n      try:\n          return mapping[key]\n      except KeyError:\n          return default"
+      },
+      "_FilterOperations": {
+        "title": "_FilterOperations",
+        "enum": [
+          "is_null",
+          "is_not_null",
+          "eq",
+          "ne",
+          "gt",
+          "lt",
+          "ge",
+          "le",
+          "like",
+          "ilike",
+          "not_ilike",
+          "in",
+          "not_in",
+          "any",
+          "not_any",
+          "match",
+          "distinct",
+          "parent",
+          "parents_recursive",
+          "children",
+          "children_recursive"
+        ],
+        "type": "string",
+        "description": "An enumeration."
+      },
+      "_FilterPagesize": {
+        "title": "_FilterPagesize",
+        "enum": [
+          15,
+          30,
+          50,
+          80,
+          100
+        ],
+        "type": "integer",
+        "description": "An enumeration."
+      },
+      "_Filters_basement_Basement_": {
+        "title": "_Filters[basement_Basement]",
+        "required": [
+          "field",
+          "operator"
+        ],
+        "type": "object",
+        "properties": {
+          "field": {
+            "$ref": "#/components/schemas/basement_Basement"
+          },
+          "operator": {
+            "$ref": "#/components/schemas/_FilterOperations"
+          },
+          "value": {
+            "title": "Value"
+          }
+        }
+      },
+      "_Filters_model_Model_": {
+        "title": "_Filters[model_Model]",
+        "required": [
+          "field",
+          "operator"
+        ],
+        "type": "object",
+        "properties": {
+          "field": {
+            "$ref": "#/components/schemas/model_Model"
+          },
+          "operator": {
+            "$ref": "#/components/schemas/_FilterOperations"
+          },
+          "value": {
+            "title": "Value"
+          }
+        }
+      },
+      "_Filters_training_Training_": {
+        "title": "_Filters[training_Training]",
+        "required": [
+          "field",
+          "operator"
+        ],
+        "type": "object",
+        "properties": {
+          "field": {
+            "$ref": "#/components/schemas/training_Training"
+          },
+          "operator": {
+            "$ref": "#/components/schemas/_FilterOperations"
+          },
+          "value": {
+            "title": "Value"
+          }
+        }
+      },
+      "_SortDirection": {
+        "title": "_SortDirection",
+        "enum": [
+          "asc",
+          "desc"
+        ],
+        "type": "string",
+        "description": "An enumeration."
+      },
+      "_Sorts_basement_Basement_": {
+        "title": "_Sorts[basement_Basement]",
+        "required": [
+          "field",
+          "direction"
+        ],
+        "type": "object",
+        "properties": {
+          "field": {
+            "$ref": "#/components/schemas/basement_Basement"
+          },
+          "direction": {
+            "$ref": "#/components/schemas/_SortDirection"
+          }
+        }
+      },
+      "_Sorts_model_Model_": {
+        "title": "_Sorts[model_Model]",
+        "required": [
+          "field",
+          "direction"
+        ],
+        "type": "object",
+        "properties": {
+          "field": {
+            "$ref": "#/components/schemas/model_Model"
+          },
+          "direction": {
+            "$ref": "#/components/schemas/_SortDirection"
+          }
+        }
+      },
+      "_Sorts_training_Training_": {
+        "title": "_Sorts[training_Training]",
+        "required": [
+          "field",
+          "direction"
+        ],
+        "type": "object",
+        "properties": {
+          "field": {
+            "$ref": "#/components/schemas/training_Training"
+          },
+          "direction": {
+            "$ref": "#/components/schemas/_SortDirection"
+          }
+        }
+      },
+      "basement_Basement": {
+        "title": "basement_Basement",
+        "enum": [
+          "id",
+          "name",
+          "supported_args",
+          "limits",
+          "gpu_support",
+          "created_by",
+          "created_at",
+          "tenant",
+          "key_script",
+          "key_archive",
+          "models.id",
+          "models.name",
+          "models.basement",
+          "models.data_path",
+          "models.configuration_path",
+          "models.training_id",
+          "models.status",
+          "models.score",
+          "models.categories",
+          "models.created_by",
+          "models.created_at",
+          "models.tenant",
+          "models.type",
+          "models.description",
+          "models.latest",
+          "models.version",
+          "training.id",
+          "training.name",
+          "training.jobs",
+          "training.basement",
+          "training.epochs_count",
+          "training.kubeflow_pipeline_id",
+          "training.created_by",
+          "training.created_at",
+          "training.tenant",
+          "training.key_archive",
+          "training.key_annotation_dataset"
+        ],
+        "type": "string",
+        "description": "An enumeration."
+      },
+      "model_Model": {
+        "title": "model_Model",
+        "enum": [
+          "id",
+          "name",
+          "basement",
+          "data_path",
+          "configuration_path",
+          "training_id",
+          "status",
+          "score",
+          "categories",
+          "created_by",
+          "created_at",
+          "tenant",
+          "type",
+          "description",
+          "latest",
+          "version",
+          "base.id",
+          "base.name",
+          "base.supported_args",
+          "base.limits",
+          "base.gpu_support",
+          "base.created_by",
+          "base.created_at",
+          "base.tenant",
+          "base.key_script",
+          "base.key_archive",
+          "training.id",
+          "training.name",
+          "training.jobs",
+          "training.basement",
+          "training.epochs_count",
+          "training.kubeflow_pipeline_id",
+          "training.created_by",
+          "training.created_at",
+          "training.tenant",
+          "training.key_archive",
+          "training.key_annotation_dataset"
+        ],
+        "type": "string",
+        "description": "An enumeration."
+      },
+      "training_Training": {
+        "title": "training_Training",
+        "enum": [
+          "id",
+          "name",
+          "jobs",
+          "basement",
+          "epochs_count",
+          "kubeflow_pipeline_id",
+          "created_by",
+          "created_at",
+          "tenant",
+          "key_archive",
+          "key_annotation_dataset",
+          "models.id",
+          "models.name",
+          "models.basement",
+          "models.data_path",
+          "models.configuration_path",
+          "models.training_id",
+          "models.status",
+          "models.score",
+          "models.categories",
+          "models.created_by",
+          "models.created_at",
+          "models.tenant",
+          "models.type",
+          "models.description",
+          "models.latest",
+          "models.version",
+          "bases.id",
+          "bases.name",
+          "bases.supported_args",
+          "bases.limits",
+          "bases.gpu_support",
+          "bases.created_by",
+          "bases.created_at",
+          "bases.tenant",
+          "bases.key_script",
+          "bases.key_archive"
+        ],
+        "type": "string",
+        "description": "An enumeration."
+      }
+    },
+    "securitySchemes": {
+      "TenantDependencyDocs": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  }
+}

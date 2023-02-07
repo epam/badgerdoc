@@ -1,12 +1,7 @@
 import os
 import pathlib
 
-from botocore.exceptions import BotoCoreError, ClientError
-from dotenv import find_dotenv, load_dotenv
-from fastapi import Depends, FastAPI
-from sqlalchemy.exc import DBAPIError, SQLAlchemyError
-from starlette.requests import Request
-
+from annotation import database
 from annotation import logger as app_logger
 from annotation.annotations import resources as annotations_resources
 from annotation.categories import resources as categories_resources
@@ -42,6 +37,11 @@ from annotation.revisions import resources as revision_resources
 from annotation.tags import TAGS
 from annotation.tasks import resources as task_resources
 from annotation.token_dependency import TOKEN
+from botocore.exceptions import BotoCoreError, ClientError
+from dotenv import find_dotenv, load_dotenv
+from fastapi import Depends, FastAPI
+from sqlalchemy.exc import DBAPIError, SQLAlchemyError
+from starlette.requests import Request
 
 load_dotenv(find_dotenv())
 
@@ -68,6 +68,11 @@ app = FastAPI(
 )
 
 logger = app_logger.Logger
+
+
+@app.on_event("startup")
+def setup_db():
+    database.install_ltree_extension()
 
 
 async def catch_exceptions_middleware(request: Request, call_next):

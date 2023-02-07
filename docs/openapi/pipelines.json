@@ -1,0 +1,1402 @@
+{
+  "openapi": "3.0.2",
+  "info": {
+    "title": "Pipelines",
+    "version": "0.1.4"
+  },
+  "paths": {
+    "/pipeline": {
+      "get": {
+        "tags": [
+          "pipelines"
+        ],
+        "summary": "Get Pipeline",
+        "description": "Get latest pipeline from DB by name (and version).",
+        "operationId": "get_pipeline_pipeline_get",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Name",
+              "type": "string"
+            },
+            "name": "name",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Version",
+              "type": "integer"
+            },
+            "name": "version",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PipelineOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "pipelines"
+        ],
+        "summary": "Add Pipeline",
+        "description": "Add pipeline to DB.",
+        "operationId": "add_pipeline_pipeline_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Pipeline"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PipelineOutId"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/pipelines": {
+      "get": {
+        "tags": [
+          "pipelines"
+        ],
+        "summary": "Get Pipelines",
+        "description": "Gets all versions of pipeline from the DB.\nIf 'name' is not specified, gets all pipelines.",
+        "operationId": "get_pipelines_pipelines_get",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "title": "Name",
+              "type": "string"
+            },
+            "name": "name",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Pipelines Pipelines Get",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PipelineOut"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "pipelines"
+        ],
+        "summary": "Delete Pipelines",
+        "description": "Delete pipelines from db by name. All versions if not provided.",
+        "operationId": "delete_pipelines_pipelines_delete",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Name",
+              "type": "string"
+            },
+            "name": "name",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Version",
+              "type": "integer"
+            },
+            "name": "version",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Delete Pipelines Pipelines Delete",
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/pipelines/search": {
+      "post": {
+        "tags": [
+          "pipelines"
+        ],
+        "summary": "Search Pipelines",
+        "description": "Returns a list of Jobs in line with filters specified",
+        "operationId": "search_pipelines_pipelines_search_post",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/_BadgerdocSearch_pipeline_Pipeline_"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Search Pipelines Pipelines Search Post",
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Page_PipelineOut_"
+                    },
+                    {
+                      "$ref": "#/components/schemas/Page_Any_"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/pipelines/{pipeline_id}": {
+      "get": {
+        "tags": [
+          "pipelines"
+        ],
+        "summary": "Get Pipeline By Id",
+        "description": "Get pipeline from DB by its id.",
+        "operationId": "get_pipeline_by_id_pipelines__pipeline_id__get",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Pipeline Id",
+              "type": "integer"
+            },
+            "name": "pipeline_id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PipelineOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "pipelines"
+        ],
+        "summary": "Delete Pipeline By Id",
+        "description": "Delete pipeline from db by its id.",
+        "operationId": "delete_pipeline_by_id_pipelines__pipeline_id__delete",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Pipeline Id",
+              "type": "integer"
+            },
+            "name": "pipeline_id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Delete Pipeline By Id Pipelines  Pipeline Id  Delete",
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/pipelines/tasks/{task_id}": {
+      "get": {
+        "tags": [
+          "tasks"
+        ],
+        "summary": "Get Task By Id",
+        "description": "Get task by its id.",
+        "operationId": "get_task_by_id_pipelines_tasks__task_id__get",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Task Id",
+              "type": "integer"
+            },
+            "name": "task_id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PipelineExecutionTaskOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "tasks"
+        ],
+        "summary": "Delete Task",
+        "description": "Delete task from db by its id.",
+        "operationId": "delete_task_pipelines_tasks__task_id__delete",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Task Id",
+              "type": "integer"
+            },
+            "name": "task_id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Delete Task Pipelines Tasks  Task Id  Delete",
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/pipelines/{pipeline_id}/task": {
+      "get": {
+        "tags": [
+          "tasks"
+        ],
+        "summary": "Get Task By Pipeline Id",
+        "description": "Get latest pipeline task by pipeline id.",
+        "operationId": "get_task_by_pipeline_id_pipelines__pipeline_id__task_get",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Pipeline Id",
+              "type": "integer"
+            },
+            "name": "pipeline_id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PipelineExecutionTaskOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/pipelines/{pipeline_id}/tasks": {
+      "get": {
+        "tags": [
+          "tasks"
+        ],
+        "summary": "Get Tasks By Pipeline Id",
+        "description": "Get pipeline tasks by pipeline id.",
+        "operationId": "get_tasks_by_pipeline_id_pipelines__pipeline_id__tasks_get",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Pipeline Id",
+              "type": "integer"
+            },
+            "name": "pipeline_id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Tasks By Pipeline Id Pipelines  Pipeline Id  Tasks Get",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PipelineExecutionTaskOut"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/pipelines/{pipeline_id}/execute": {
+      "post": {
+        "tags": [
+          "execution"
+        ],
+        "summary": "Execute Pipeline By Id",
+        "description": "Schedule pipeline execution n times for n-given args.",
+        "operationId": "execute_pipeline_by_id_pipelines__pipeline_id__execute_post",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Pipeline Id",
+              "type": "integer"
+            },
+            "name": "pipeline_id",
+            "in": "path"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Job Id",
+              "type": "integer"
+            },
+            "name": "job_id",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Task Name",
+              "type": "string"
+            },
+            "name": "task_name",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Webhook",
+              "maxLength": 65536,
+              "minLength": 1,
+              "type": "string",
+              "format": "uri"
+            },
+            "name": "webhook",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "Args",
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/InputArguments"
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Execute Pipeline By Id Pipelines  Pipeline Id  Execute Post",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PipelineExecutionTaskIdOut"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/pipelines/tasks/{task_id}/steps/": {
+      "get": {
+        "tags": [
+          "steps"
+        ],
+        "summary": "Get Task Steps By Id",
+        "description": "Get task steps by task id.",
+        "operationId": "get_task_steps_by_id_pipelines_tasks__task_id__steps__get",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Task Id",
+              "type": "integer"
+            },
+            "name": "task_id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Task Steps By Id Pipelines Tasks  Task Id  Steps  Get",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ExecutionStepOut"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/jobs/{job_id}/progress": {
+      "get": {
+        "tags": [
+          "jobs"
+        ],
+        "summary": "Get Job Progress By Job Id",
+        "description": "Get progress by job id: finished and total steps.",
+        "operationId": "get_job_progress_by_job_id_jobs__job_id__progress_get",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "integer"
+            },
+            "name": "job_id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobProgress"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ExecutionStepOut": {
+        "title": "ExecutionStepOut",
+        "required": [
+          "id",
+          "task_id",
+          "name",
+          "date",
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "task_id": {
+            "title": "Task Id",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "step_id": {
+            "title": "Step Id",
+            "type": "string"
+          },
+          "date": {
+            "title": "Date",
+            "type": "string",
+            "format": "date-time"
+          },
+          "init_args": {
+            "title": "Init Args",
+            "type": "object"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "result": {
+            "title": "Result",
+            "type": "object"
+          },
+          "args": {
+            "title": "Args",
+            "type": "object"
+          }
+        },
+        "description": "Model for FastAPI responses representing DB ExecutionStep model."
+      },
+      "HTTPValidationError": {
+        "title": "HTTPValidationError",
+        "type": "object",
+        "properties": {
+          "detail": {
+            "title": "Detail",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            }
+          }
+        }
+      },
+      "InputArguments": {
+        "title": "InputArguments",
+        "required": [
+          "file",
+          "bucket",
+          "output_path"
+        ],
+        "type": "object",
+        "properties": {
+          "input_path": {
+            "title": "Input Path",
+            "type": "string"
+          },
+          "input": {
+            "title": "Input",
+            "type": "object"
+          },
+          "file": {
+            "title": "File",
+            "type": "string"
+          },
+          "bucket": {
+            "title": "Bucket",
+            "type": "string"
+          },
+          "pages": {
+            "title": "Pages",
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "output_path": {
+            "title": "Output Path",
+            "type": "string"
+          },
+          "output_bucket": {
+            "title": "Output Bucket",
+            "type": "string"
+          }
+        },
+        "description": "Input arguments for any execution step."
+      },
+      "JobProgress": {
+        "title": "JobProgress",
+        "required": [
+          "finished",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "finished": {
+            "title": "Finished",
+            "type": "integer",
+            "example": 1
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer",
+            "example": 1
+          }
+        }
+      },
+      "Page_Any_": {
+        "title": "Page[Any]",
+        "required": [
+          "pagination",
+          "data"
+        ],
+        "type": "object",
+        "properties": {
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationOut"
+          },
+          "data": {
+            "title": "Data",
+            "type": "array",
+            "items": {}
+          }
+        },
+        "description": "Abstract base class for generic types.\n\nA generic type is typically declared by inheriting from\nthis class parameterized with one or more type variables.\nFor example, a generic mapping type might be defined as::\n\n  class Mapping(Generic[KT, VT]):\n      def __getitem__(self, key: KT) -> VT:\n          ...\n      # Etc.\n\nThis class can then be used as follows::\n\n  def lookup_name(mapping: Mapping[KT, VT], key: KT, default: VT) -> VT:\n      try:\n          return mapping[key]\n      except KeyError:\n          return default"
+      },
+      "Page_PipelineOut_": {
+        "title": "Page[PipelineOut]",
+        "required": [
+          "pagination",
+          "data"
+        ],
+        "type": "object",
+        "properties": {
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationOut"
+          },
+          "data": {
+            "title": "Data",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PipelineOut"
+            }
+          }
+        },
+        "description": "Abstract base class for generic types.\n\nA generic type is typically declared by inheriting from\nthis class parameterized with one or more type variables.\nFor example, a generic mapping type might be defined as::\n\n  class Mapping(Generic[KT, VT]):\n      def __getitem__(self, key: KT) -> VT:\n          ...\n      # Etc.\n\nThis class can then be used as follows::\n\n  def lookup_name(mapping: Mapping[KT, VT], key: KT, default: VT) -> VT:\n      try:\n          return mapping[key]\n      except KeyError:\n          return default"
+      },
+      "Pagination": {
+        "title": "Pagination",
+        "required": [
+          "page_size"
+        ],
+        "type": "object",
+        "properties": {
+          "page_num": {
+            "title": "Page Num",
+            "exclusiveMinimum": 0.0,
+            "type": "integer",
+            "default": 1
+          },
+          "page_size": {
+            "$ref": "#/components/schemas/_FilterPagesize"
+          }
+        }
+      },
+      "PaginationOut": {
+        "title": "PaginationOut",
+        "required": [
+          "page_size",
+          "min_pages_left",
+          "total",
+          "has_more"
+        ],
+        "type": "object",
+        "properties": {
+          "page_num": {
+            "title": "Page Num",
+            "exclusiveMinimum": 0.0,
+            "type": "integer",
+            "default": 1
+          },
+          "page_size": {
+            "$ref": "#/components/schemas/_FilterPagesize"
+          },
+          "min_pages_left": {
+            "title": "Min Pages Left",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          },
+          "has_more": {
+            "title": "Has More",
+            "type": "boolean"
+          }
+        }
+      },
+      "Pipeline": {
+        "title": "Pipeline",
+        "required": [
+          "meta",
+          "steps"
+        ],
+        "type": "object",
+        "properties": {
+          "meta": {
+            "$ref": "#/components/schemas/PipelineMeta"
+          },
+          "steps": {
+            "title": "Steps",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PipelineStep"
+            }
+          }
+        },
+        "description": "Class to store and execute pipeline."
+      },
+      "PipelineExecutionTaskIdOut": {
+        "title": "PipelineExecutionTaskIdOut",
+        "required": [
+          "id"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          }
+        }
+      },
+      "PipelineExecutionTaskOut": {
+        "title": "PipelineExecutionTaskOut",
+        "required": [
+          "id",
+          "name",
+          "date",
+          "pipeline_id",
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "date": {
+            "title": "Date",
+            "type": "string",
+            "format": "date-time"
+          },
+          "pipeline_id": {
+            "title": "Pipeline Id",
+            "type": "integer"
+          },
+          "job_id": {
+            "title": "Job Id",
+            "type": "integer"
+          },
+          "runner_id": {
+            "title": "Runner Id",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "webhook": {
+            "title": "Webhook",
+            "type": "string"
+          }
+        },
+        "description": "Model for FastAPI responses representing DB\nPipelineExecutionTask model."
+      },
+      "PipelineMeta": {
+        "title": "PipelineMeta",
+        "type": "object",
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer",
+            "default": 1
+          },
+          "original_pipeline_id": {
+            "title": "Original Pipeline Id",
+            "type": "integer"
+          },
+          "type": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PipelineTypes"
+              }
+            ],
+            "default": "inference"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          },
+          "categories": {
+            "title": "Categories",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "PipelineOut": {
+        "title": "PipelineOut",
+        "required": [
+          "id",
+          "name",
+          "version",
+          "original_pipeline_id",
+          "is_latest",
+          "type",
+          "date",
+          "meta",
+          "steps"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          },
+          "original_pipeline_id": {
+            "title": "Original Pipeline Id",
+            "type": "integer"
+          },
+          "is_latest": {
+            "title": "Is Latest",
+            "type": "boolean"
+          },
+          "type": {
+            "title": "Type",
+            "type": "string"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          },
+          "date": {
+            "title": "Date",
+            "type": "string",
+            "format": "date-time"
+          },
+          "meta": {
+            "title": "Meta",
+            "type": "object"
+          },
+          "steps": {
+            "title": "Steps",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/_PipelineStep"
+            }
+          }
+        },
+        "description": "Model for FastAPI responses representing DB Pipeline model."
+      },
+      "PipelineOutId": {
+        "title": "PipelineOutId",
+        "required": [
+          "id"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          }
+        }
+      },
+      "PipelineStep": {
+        "title": "PipelineStep",
+        "required": [
+          "model"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "model_url": {
+            "title": "Model Url",
+            "type": "string"
+          },
+          "categories": {
+            "title": "Categories",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "args": {
+            "title": "Args",
+            "type": "object"
+          },
+          "steps": {
+            "title": "Steps",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PipelineStep"
+            }
+          }
+        },
+        "description": "Class to store pipeline steps as a graph."
+      },
+      "PipelineTypes": {
+        "title": "PipelineTypes",
+        "enum": [
+          "preprocessing",
+          "inference"
+        ],
+        "type": "string",
+        "description": "An enumeration."
+      },
+      "ValidationError": {
+        "title": "ValidationError",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "loc": {
+            "title": "Location",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        }
+      },
+      "_BadgerdocSearch_pipeline_Pipeline_": {
+        "title": "_BadgerdocSearch[pipeline_Pipeline]",
+        "type": "object",
+        "properties": {
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          },
+          "filters": {
+            "title": "Filters",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/_Filters_pipeline_Pipeline_"
+            }
+          },
+          "sorting": {
+            "title": "Sorting",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/_Sorts_pipeline_Pipeline_"
+            }
+          }
+        },
+        "description": "Abstract base class for generic types.\n\nA generic type is typically declared by inheriting from\nthis class parameterized with one or more type variables.\nFor example, a generic mapping type might be defined as::\n\n  class Mapping(Generic[KT, VT]):\n      def __getitem__(self, key: KT) -> VT:\n          ...\n      # Etc.\n\nThis class can then be used as follows::\n\n  def lookup_name(mapping: Mapping[KT, VT], key: KT, default: VT) -> VT:\n      try:\n          return mapping[key]\n      except KeyError:\n          return default"
+      },
+      "_FilterOperations": {
+        "title": "_FilterOperations",
+        "enum": [
+          "is_null",
+          "is_not_null",
+          "eq",
+          "ne",
+          "gt",
+          "lt",
+          "ge",
+          "le",
+          "like",
+          "ilike",
+          "not_ilike",
+          "in",
+          "not_in",
+          "any",
+          "not_any",
+          "match",
+          "distinct",
+          "parent",
+          "parents_recursive",
+          "children",
+          "children_recursive"
+        ],
+        "type": "string",
+        "description": "An enumeration."
+      },
+      "_FilterPagesize": {
+        "title": "_FilterPagesize",
+        "enum": [
+          15,
+          30,
+          50,
+          80,
+          100
+        ],
+        "type": "integer",
+        "description": "An enumeration."
+      },
+      "_Filters_pipeline_Pipeline_": {
+        "title": "_Filters[pipeline_Pipeline]",
+        "required": [
+          "field",
+          "operator"
+        ],
+        "type": "object",
+        "properties": {
+          "field": {
+            "$ref": "#/components/schemas/pipeline_Pipeline"
+          },
+          "operator": {
+            "$ref": "#/components/schemas/_FilterOperations"
+          },
+          "value": {
+            "title": "Value"
+          }
+        }
+      },
+      "_PipelineStep": {
+        "title": "_PipelineStep",
+        "required": [
+          "id",
+          "model",
+          "model_url"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "model_url": {
+            "title": "Model Url",
+            "type": "string"
+          },
+          "categories": {
+            "title": "Categories",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "args": {
+            "title": "Args",
+            "type": "object"
+          },
+          "steps": {
+            "title": "Steps",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/_PipelineStep"
+            }
+          }
+        }
+      },
+      "_SortDirection": {
+        "title": "_SortDirection",
+        "enum": [
+          "asc",
+          "desc"
+        ],
+        "type": "string",
+        "description": "An enumeration."
+      },
+      "_Sorts_pipeline_Pipeline_": {
+        "title": "_Sorts[pipeline_Pipeline]",
+        "required": [
+          "field",
+          "direction"
+        ],
+        "type": "object",
+        "properties": {
+          "field": {
+            "$ref": "#/components/schemas/pipeline_Pipeline"
+          },
+          "direction": {
+            "$ref": "#/components/schemas/_SortDirection"
+          }
+        }
+      },
+      "pipeline_Pipeline": {
+        "title": "pipeline_Pipeline",
+        "enum": [
+          "id",
+          "name",
+          "version",
+          "original_pipeline_id",
+          "is_latest",
+          "type",
+          "description",
+          "summary",
+          "date",
+          "tasks.id",
+          "tasks.name",
+          "tasks.date",
+          "tasks.pipeline_id",
+          "tasks.job_id",
+          "tasks.runner_id",
+          "tasks.status",
+          "tasks.webhook"
+        ],
+        "type": "string",
+        "description": "An enumeration."
+      }
+    },
+    "securitySchemes": {
+      "TenantDependencyDocs": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  }
+}
