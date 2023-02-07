@@ -112,13 +112,21 @@ export default function useSplitValidation({
                 links: [],
                 originalAnnotationId: Number(originalAnn.id)
             };
+
             copy.id = Date.now();
+            if (
+                validatorAnnotations[currentPage]
+                    ?.map((el) => el.originalAnnotationId)
+                    .includes(Number(originalAnn.id))
+            ) {
+                return;
+            }
 
             const newAnn = onAnnotationCreated(currentPage, copy, category);
             setSelectedAnnotation(scaleAnnotation(newAnn, scale));
             onAddTouchedPage();
         },
-        [categories, onAnnotationCreated]
+        [categories, onAnnotationCreated, validatorAnnotations]
     );
 
     const onSplitLinkSelected = useCallback(
