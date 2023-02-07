@@ -844,7 +844,7 @@ def accumulate_pages_info(
     specific_pages: Set[int] = None,
     with_page_hash: bool = False,
     unique_status: bool = False,
-) -> Tuple[Set[int], Set[int], Set[int], Set[int], Optional[AnnotatedDoc]]:
+) -> Tuple[Set[int], Set[int], Set[int], Set[int], List[str], Optional[AnnotatedDoc]]:
     """
     Get pages, that have been validated, marked as failed, annotated and
     not processed in all given revisions (revisions are sorted in asc order).
@@ -855,6 +855,7 @@ def accumulate_pages_info(
     """
     all_annotated = {} if with_page_hash else set()
     required_revision = None
+    categories = None
     latest_status = {}
     attr_map = {
         "annotated": "pages",
@@ -874,6 +875,16 @@ def accumulate_pages_info(
         # we will stop here
         if stop_revision is not None and revision.revision == stop_revision:
             required_revision = revision
+            break
+
+    # Extracting latest state for categories
+    for revision in reversed(
+        sorted(
+            revisions, key=lambda x : datetime.fromisoformat(x.date)
+        )
+    ):
+        if revision.categories:
+            categories = revision.categories
             break
 
     else:
@@ -928,7 +939,14 @@ def accumulate_pages_info(
         .difference(validated)
     )
 
-    return validated, failed, annotated, not_processed, required_revision
+    return (
+        validated,
+        failed,
+        annotated,
+        not_processed,
+        categories,
+        required_revision,
+    )
 
 
 def check_task_pages(

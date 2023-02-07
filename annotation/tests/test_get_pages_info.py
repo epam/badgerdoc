@@ -129,6 +129,7 @@ DOCS_FOR_ACCUMULATE_PAGES_INFO = [
             failed_validation_pages=[],
             tenant=TEST_TENANT,
             task_id=TASKS[0].id,
+            categories={'some'}
         ),
         AnnotatedDoc(
             revision="2",
@@ -187,10 +188,20 @@ EXPECTED_ACCUMULATE_PAGES_INFO = ({1, 3}, {4, 2}, set(), {5, 6})
     ],
 )
 def test_accumulate_pages_info(revisions, task_pages, expected_result):
-    validated, failed, annotated, not_processed, _ = accumulate_pages_info(
+    validated, failed, annotated, not_processed, *_ = accumulate_pages_info(
         *task_pages, revisions
     )
     assert (validated, failed, annotated, not_processed) == expected_result
+
+
+def test_accumulate_pages_info_can_extract_categories():
+    revisions = DOCS_FOR_ACCUMULATE_PAGES_INFO[1]
+    _, _, _, _, categories, _ = accumulate_pages_info(
+        *(TASKS[0].pages,), revisions,
+    )
+    assert categories == revisions[0].categories
+
+
 
 
 @pytest.mark.integration
