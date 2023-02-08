@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useContext, useState } from 'react';
 import { useHistory } from 'react-router';
 import Wizard, {
     renderWizardButtons,
@@ -25,8 +25,11 @@ import { DOCUMENTS_PAGE, JOBS_PAGE } from '../../shared/constants';
 
 import wizardStyles from 'shared/components/wizard/wizard/wizard.module.scss';
 import { Text } from '@epam/loveship';
+import { CurrentUser } from 'shared/contexts/current-user';
 
 export const UploadWizardPage = () => {
+    const { isPipelinesDisabled } = useContext(CurrentUser);
+
     const [files, setFiles] = useState<File[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [uploadedFilesIds, setUploadedFilesIds] = useState<number[]>([]);
@@ -203,11 +206,9 @@ export const UploadWizardPage = () => {
         }
     ];
 
-    let trm_envSteps;
-    if (process.env.REACT_APP_CONF === 'trm_env')
-        trm_envSteps = steps.filter((el) => el.title !== 'Preprocessor');
-
+    let filteredSteps;
+    if (isPipelinesDisabled) filteredSteps = steps.filter((el) => el.title !== 'Preprocessor');
     return (
-        <Wizard steps={trm_envSteps ?? steps} returnUrl={DOCUMENTS_PAGE} stepIndex={stepIndex} />
+        <Wizard steps={filteredSteps ?? steps} returnUrl={DOCUMENTS_PAGE} stepIndex={stepIndex} />
     );
 };
