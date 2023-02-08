@@ -443,9 +443,7 @@ class LabelStudioToBDConvertUseCase:
         annotations_post_body = {
             "base_revision": None,
             "pipeline": 0,
-            "pages": [
-                page.dict(),
-            ],
+            "pages": [page.dict()],
             "validated": [],
             "failed_validation_pages": [],
             "similar_revisions": [],  # TODO: 'simial_revisions' will be replaced with 'links' with unknown format

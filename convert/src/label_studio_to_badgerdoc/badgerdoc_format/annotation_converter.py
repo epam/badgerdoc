@@ -17,12 +17,13 @@ from ..models.label_studio_models import (
 from .annotation_converter_practic import AnnotationConverterPractic
 
 
-def safe_list_get (l: List, idx: int, default: Any) -> Any:
-    if l:
+def safe_list_get(any_list: List, idx: int, default: Any = None) -> Any:
+    if any_list:
         try:
-          return l[idx]
+            return any_list[idx]
         except IndexError:
-          return default
+            return default
+    return default
 
 
 class AnnotationConverter:
@@ -36,7 +37,15 @@ class AnnotationConverter:
     ):
         model_items: List[ModelItem] = annotations.__root__
         badgerdoc_annotations = BadgerdocAnnotation(
-            pages=[Page(page_num=1, size=Size(width=badgerdoc_tokens.size.width, height=badgerdoc_tokens.size.height))]
+            pages=[
+                Page(
+                    page_num=1,
+                    size=Size(
+                        width=badgerdoc_tokens.size.width,
+                        height=badgerdoc_tokens.size.height,
+                    ),
+                )
+            ]
         )
         for model_item in model_items:
             for annotation in model_item.annotations:
@@ -50,7 +59,9 @@ class AnnotationConverter:
                     self.process_relations(
                         badgerdoc_annotations, labelstudio_item
                     )
-        badgerdoc_annotations_practic = AnnotationConverterPractic(badgerdoc_annotations, badgerdoc_tokens).convert()
+        badgerdoc_annotations_practic = AnnotationConverterPractic(
+            badgerdoc_annotations, badgerdoc_tokens
+        ).convert()
         return badgerdoc_annotations_practic
 
     def _is_labels(self, labelstudio_item: ResultItem) -> bool:
@@ -80,14 +91,10 @@ class AnnotationConverter:
             category = label
             data = {"source_id": labelstudio_item.id}
 
-            taxon = safe_list_get(value.taxons, _inner_index_of_iteration, None)
+            taxon = safe_list_get(value.taxons, _inner_index_of_iteration)
             if taxon:
-                data['dataAttributes'] = [
-                    {
-                        "name": "taxonomy",
-                        "type": "taxonomy",
-                        "value": taxon
-                    }
+                data["dataAttributes"] = [
+                    {"name": "taxonomy", "type": "taxonomy", "value": taxon}
                 ]
 
             bd_annotation = Obj(
@@ -116,14 +123,21 @@ class AnnotationConverter:
             badgerdoc_annotations, labelstudio_item.to_id
         )
         if not source_obj or not target_obj:
-            raise KeyError("Can't find tokens during creation links for badgerdoc annotations")
+            raise KeyError(
+                "Can't find tokens during creation links for badgerdoc annotations"
+            )
 
         link_label = "Link"
         if labelstudio_item.labels:
             if len(labelstudio_item.labels) > 0:
                 link_label = labelstudio_item.labels[0]
 
-        link = AnnotationLink(category_id=link_label, to=target_obj.id, type="directional", page_num=1)
+        link = AnnotationLink(
+            category_id=link_label,
+            to=target_obj.id,
+            type="directional",
+            page_num=1,
+        )
         source_obj.links.append(link)
 
     def get_token_indexes_and_form_bbox(
