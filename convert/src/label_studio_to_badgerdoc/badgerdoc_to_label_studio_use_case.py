@@ -2,18 +2,25 @@ import tempfile
 from pathlib import Path
 from typing import NamedTuple
 
+from src.label_studio_to_badgerdoc.badgerdoc_format.annotation_converter_practic import (
+    AnnotationConverterToTheory,
+)
 from src.label_studio_to_badgerdoc.labelstudio_format import LabelStudioFormat
-from src.label_studio_to_badgerdoc.badgerdoc_format.annotation_converter_practic import AnnotationConverterToTheory
+from src.logger import get_logger
 
-from .models import S3Path
+from .models import S3Path, bd_annotation_model_practic
 from .models.bd_annotation_model import BadgerdocAnnotation
-from .models import bd_annotation_model_practic
+from .models.bd_manifest_model_practic import Manifest
 from .models.bd_tokens_model import Page
+
+LOGGER = get_logger(__file__)
+LOGGER.setLevel("DEBUG")
 
 
 class BadgerdocData(NamedTuple):
     page: Page
     annotation: BadgerdocAnnotation
+    manifest: Manifest
 
 
 class BDToLabelStudioConvertUseCase:
@@ -28,45 +35,58 @@ class BDToLabelStudioConvertUseCase:
         self,
         s3_input_tokens: S3Path,
         s3_input_annotations: S3Path,
+        s3_input_manifest: S3Path,
         s3_output_annotation: S3Path,
     ) -> None:
         (
             badgerdoc_page,
             badgerdoc_annotations,
+            badgerdoc_manifest,
         ) = self.download_badgerdoc_from_s3(
-            s3_input_tokens,
-            s3_input_annotations,
+            s3_input_tokens, s3_input_annotations, s3_input_manifest
         )
         self.labelstudio_format.from_badgerdoc(
-            badgerdoc_page, badgerdoc_annotations
+            badgerdoc_page, badgerdoc_annotations, badgerdoc_manifest
         )
         self.upload_labelstudio_to_s3(s3_output_annotation)
 
     def download_badgerdoc_from_s3(
         self,
-        s3_input_tokens,
-        s3_input_annotations,
+        s3_input_tokens: S3Path,
+        s3_input_annotations: S3Path,
+        s3_input_manifest: S3Path,
     ) -> BadgerdocData:
         with tempfile.TemporaryDirectory() as tmp_dirname:
             tmp_dir = Path(tmp_dirname)
-            input_tokens = tmp_dir / Path(s3_input_tokens.path).name
 
-            self.s3_client.download_file(
-                s3_input_tokens.bucket,
-                s3_input_tokens.path,
-                str(input_tokens),
+            input_tokens = self.download_file_from_s3(s3_input_tokens, tmp_dir)
+            input_annotations = self.download_file_from_s3(
+                s3_input_annotations, tmp_dir
             )
-
-            input_annotations = tmp_dir / Path(s3_input_annotations.path).name
-            self.s3_client.download_file(
-                s3_input_annotations.bucket,
-                s3_input_annotations.path,
-                str(input_annotations),
+            input_manifest = self.download_file_from_s3(
+                s3_input_manifest, tmp_dir
             )
+            LOGGER.debug("input_manifest: %s", input_manifest.read_text())
 
             page = Page.parse_file(input_tokens)
-            annotation = AnnotationConverterToTheory(practic_annotations=bd_annotation_model_practic.BadgerdocAnnotation.parse_file(input_annotations)).convert()
-            return BadgerdocData(page=page, annotation=annotation)
+            annotation = AnnotationConverterToTheory(
+                practic_annotations=bd_annotation_model_practic.BadgerdocAnnotation.parse_file(
+                    input_annotations
+                )
+            ).convert()
+            manifest = Manifest.parse_file(input_manifest)
+            return BadgerdocData(
+                page=page, annotation=annotation, manifest=manifest
+            )
+
+    def download_file_from_s3(self, s3_path: S3Path, tmp_dir: Path) -> Path:
+        local_file_path = tmp_dir / Path(s3_path.path).name
+        self.s3_client.download_file(
+            s3_path.bucket,
+            s3_path.path,
+            str(local_file_path),
+        )
+        return local_file_path
 
     def upload_labelstudio_to_s3(
         self,

@@ -25,7 +25,7 @@ from src.label_studio_to_badgerdoc.badgerdoc_format.pdf_renderer import (
 from src.label_studio_to_badgerdoc.badgerdoc_format.plain_text_converter import (
     TextToBadgerdocTokensConverter,
 )
-from src.label_studio_to_badgerdoc.models import BadgerdocToken
+from src.label_studio_to_badgerdoc.models import BadgerdocToken, DocumentLink
 from src.label_studio_to_badgerdoc.models.label_studio_models import (
     LabelStudioModel,
     S3Path,
@@ -84,9 +84,7 @@ class LabelStudioToBDConvertUseCase:
     def parse_document_labels_from_labelstudio_format(
         self, label_studio_format: LabelStudioModel
     ) -> Set[str]:
-        document_labels = label_studio_format.__root__[0].meta.get(
-            "labels", []
-        )
+        document_labels = label_studio_format.__root__[0].meta.labels
         return {label["name"] for label in document_labels}
 
     def parse_categories_to_taxonomy_mapping_from_labelstudio_format(
@@ -94,8 +92,18 @@ class LabelStudioToBDConvertUseCase:
     ) -> Dict[str, Any]:
         categories_to_taxonomy_mapping = label_studio_format.__root__[
             0
-        ].meta.get("categories_to_taxonomy_mapping", {})
+        ].meta.categories_to_taxonomy_mapping
         return categories_to_taxonomy_mapping
+
+    def parse_document_links_from_labelstudio_format(
+        self, label_studio_format: LabelStudioModel
+    ) -> List[DocumentLink]:
+        return [
+            DocumentLink(
+                to=relation.to, category=relation.category, type=relation.type
+            )
+            for relation in label_studio_format.__root__[0].meta.relations
+        ]
 
     def execute(self) -> None:
         label_studio_format = self.download_label_studio_from_s3(
@@ -110,6 +118,10 @@ class LabelStudioToBDConvertUseCase:
                 label_studio_format
             )
         )
+        document_links = self.parse_document_links_from_labelstudio_format(
+            label_studio_format
+        )
+
         LOGGER.debug("document_labels parsed: %s", document_labels)
 
         self.badgerdoc_format.convert_from_labelstudio(label_studio_format)
@@ -126,6 +138,7 @@ class LabelStudioToBDConvertUseCase:
                 validators=self.validators,
                 document_labels=document_labels,
                 categories_to_taxonomy_mapping=categories_to_taxonomy_mapping,
+                document_links=document_links,
             )
         )
         self.upload_badgerdoc_annotations_and_tokens_to_s3(
@@ -272,6 +285,7 @@ class LabelStudioToBDConvertUseCase:
         validators: List[str],
         document_labels: Set[str],
         categories_to_taxonomy_mapping: Dict[str, Any],
+        document_links: List[DocumentLink],
     ) -> int:
         categories = self.request_annotations_to_post_categories(
             document_labels
@@ -281,6 +295,10 @@ class LabelStudioToBDConvertUseCase:
             categories, categories_to_taxonomy_mapping
         )
         LOGGER.debug("categories with taxonomy_objs: %s", categories)
+
+        categories_of_links = [link.category for link in document_links]
+        LOGGER.debug("categories of document links: %s", categories_of_links)
+        categories.extend(categories_of_links)
 
         post_annotation_job_url = f"{settings.job_service_url}create_job/"
         post_annotation_job_body = {
@@ -436,6 +454,7 @@ class LabelStudioToBDConvertUseCase:
         annotation_job_id_created: int,
         file_id_in_assets: int,
         document_labels: Set[str],
+        document_links: List[DocumentLink],
     ) -> None:
         annotations_post_url = f"{settings.annotation_service_url}annotation/{annotation_job_id_created}/{file_id_in_assets}"
 
@@ -448,6 +467,9 @@ class LabelStudioToBDConvertUseCase:
             "failed_validation_pages": [],
             "similar_revisions": [],  # TODO: 'simial_revisions' will be replaced with 'links' with unknown format
             "categories": list(document_labels),
+            "links_json": [
+                document_link.dict() for document_link in document_links
+            ],
         }
         LOGGER.debug(
             "Making request to annotation to post annotations to url: %s with request body: %s",
@@ -487,6 +509,7 @@ class LabelStudioToBDConvertUseCase:
         validators: List[str],
         document_labels: Set[str],
         categories_to_taxonomy_mapping: Dict[str, Any],
+        document_links: List[DocumentLink],
     ) -> int:
         annotation_job_id_created = self.request_jobs_to_create_annotation_job(
             file_id_in_assets,
@@ -498,9 +521,13 @@ class LabelStudioToBDConvertUseCase:
             validators,
             document_labels,
             categories_to_taxonomy_mapping,
+            document_links,
         )
         self.request_annotation_to_post_annotations(
-            annotation_job_id_created, file_id_in_assets, document_labels
+            annotation_job_id_created,
+            file_id_in_assets,
+            document_labels,
+            document_links,
         )
 
         return annotation_job_id_created
