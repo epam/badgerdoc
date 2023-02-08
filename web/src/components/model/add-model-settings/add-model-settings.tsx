@@ -23,6 +23,7 @@ export const AddModelSettings: FC<AddModelSettingsProps> = ({
 }) => {
     useEffect(() => {
         const baseModel = lens.prop('baseModel').toProps().value;
+
         if (baseModel) {
             const newCategories = categories?.filter((el) =>
                 baseModel.categories?.includes(el.name)

@@ -317,24 +317,6 @@ const useEntities = () => {
     };
 };
 
-let initialValues: JobValues = {
-    jobName: undefined,
-    pipeline: undefined,
-    jobType: 'ExtractionJob',
-    deadline: undefined,
-    categories: undefined,
-    validationType: undefined,
-    owners: undefined,
-    annotators: undefined,
-    validators: undefined,
-    annotators_validators: undefined,
-    is_draft: false,
-    is_auto_distribution: true,
-    start_manual_job_automatically: true,
-    extensive_coverage: undefined,
-    selected_taxonomies: undefined
-};
-
 interface Params {
     initialJob?: Job;
     pipelines?: Pipeline[];
@@ -350,7 +332,25 @@ const useAddJobFormValues = ({
     users,
     taxonomies
 }: Params): JobValues | null => {
-    const { currentUser } = useContext(CurrentUser);
+    const { currentUser, isPipelinesDisabled } = useContext(CurrentUser);
+
+    const initialValues: JobValues = {
+        jobName: undefined,
+        pipeline: undefined,
+        jobType: isPipelinesDisabled ? 'ExtractionWithAnnotationJob' : 'ExtractionJob',
+        deadline: undefined,
+        categories: undefined,
+        validationType: undefined,
+        owners: undefined,
+        annotators: undefined,
+        validators: undefined,
+        annotators_validators: undefined,
+        is_draft: false,
+        is_auto_distribution: true,
+        start_manual_job_automatically: true,
+        extensive_coverage: undefined,
+        selected_taxonomies: undefined
+    };
 
     return useMemo(() => {
         if (!initialJob) {

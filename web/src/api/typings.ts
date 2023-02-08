@@ -64,7 +64,6 @@ export type Dataset = {
     created: string;
     id: number;
     name: string;
-    // files: string[];
 };
 
 export type Preprocessor = {
