@@ -1,7 +1,13 @@
 from typing import List
 
 from ..models import bd_annotation_model_practic
-from ..models.bd_annotation_model import AnnotationLink, BadgerdocAnnotation, Obj, Page, Size
+from ..models.bd_annotation_model import (
+    AnnotationLink,
+    BadgerdocAnnotation,
+    Obj,
+    Page,
+    Size,
+)
 from ..models.bd_tokens_model import Page as BadgerdocTokensPage
 
 FIRST_PAGE = 0
@@ -33,7 +39,6 @@ class AnnotationConverterPractic:
             tokens = self.convert_tokens(obj_theoretic.tokens)
             links = self.convert_links(obj_theoretic.links)
             text = self.convert_text(obj_theoretic.tokens)
-
             obj = bd_annotation_model_practic.Obj(
                 id=obj_theoretic.id,
                 type=obj_theoretic.type,
@@ -41,7 +46,10 @@ class AnnotationConverterPractic:
                 category=obj_theoretic.category,
                 text=text,
                 data=bd_annotation_model_practic.AnnotationTokens(
-                    tokens=tokens
+                    tokens=tokens,
+                    dataAttributes=obj_theoretic.data.get(
+                        "dataAttributes", []
+                    ),
                 ),
                 links=links,
             )
@@ -95,14 +103,13 @@ class AnnotationConverterToTheory:
 
         objs = self.convert_objs(page_practic.objs)
         page = Page(
-            size=Size(**page_practic.size.dict()), page_num=page_practic.page_num, objs=objs
+            size=Size(**page_practic.size.dict()),
+            page_num=page_practic.page_num,
+            objs=objs,
         )
 
         annotation = BadgerdocAnnotation(
-            revision="",
-            pages=[page],
-            validated=[],
-            failed_validation_pages=[]
+            revision="", pages=[page], validated=[], failed_validation_pages=[]
         )
         return annotation
 
@@ -134,4 +141,7 @@ class AnnotationConverterToTheory:
     def convert_links(
         self, practic_links: List[bd_annotation_model_practic.AnnotationLink]
     ) -> List[AnnotationLink]:
-        return [AnnotationLink.parse_obj(practic_link.dict()) for practic_link in practic_links]
+        return [
+            AnnotationLink.parse_obj(practic_link.dict())
+            for practic_link in practic_links
+        ]

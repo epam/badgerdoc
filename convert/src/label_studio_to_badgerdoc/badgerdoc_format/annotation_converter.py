@@ -1,10 +1,28 @@
-from typing import List, Optional, Tuple
+from typing import Any, List, Optional, Tuple
 
-from .annotation_converter_practic import AnnotationConverterPractic
-from ..models.bd_annotation_model import AnnotationLink, BadgerdocAnnotation, Obj, Page, Size
 from ..models import bd_annotation_model_practic
+from ..models.bd_annotation_model import (
+    AnnotationLink,
+    BadgerdocAnnotation,
+    Obj,
+    Page,
+    Size,
+)
 from ..models.bd_tokens_model import Page as BadgerdocTokensPage
-from ..models.label_studio_models import LabelStudioModel, ModelItem, ResultItem
+from ..models.label_studio_models import (
+    LabelStudioModel,
+    ModelItem,
+    ResultItem,
+)
+from .annotation_converter_practic import AnnotationConverterPractic
+
+
+def safe_list_get (l: List, idx: int, default: Any) -> Any:
+    if l:
+        try:
+          return l[idx]
+        except IndexError:
+          return default
 
 
 class AnnotationConverter:
@@ -53,12 +71,25 @@ class AnnotationConverter:
         value = labelstudio_item.value
         start_id = len(badgerdoc_annotations.pages[0].objs)
         for id_, label in enumerate(value.labels, start=start_id):
+            _inner_index_of_iteration = start_id - id_
+
             type_ = "text"
-            data = {"source_id": labelstudio_item.id}
             tokens, bbox = self.get_token_indexes_and_form_bbox(
                 value.start, value.end, badgerdoc_tokens
             )
             category = label
+            data = {"source_id": labelstudio_item.id}
+
+            taxon = safe_list_get(value.taxons, _inner_index_of_iteration, None)
+            if taxon:
+                data['dataAttributes'] = [
+                    {
+                        "name": "taxonomy",
+                        "type": "taxonomy",
+                        "value": taxon
+                    }
+                ]
+
             bd_annotation = Obj(
                 id=id_,
                 type=type_,
