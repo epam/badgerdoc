@@ -1,7 +1,7 @@
 import { ILens } from '@epam/uui';
 import { Category, Pipeline, Taxonomy, User } from 'api/typings';
 import { JobValues } from 'connectors/add-job-connector/add-job-connector';
-import React, { FC } from 'react';
+import React, { FC, useContext } from 'react';
 import JobName from '../job-name/job-name';
 import styles from './automatic-manual-job.module.scss';
 import ValidationTypePicker from '../validation-type-picker/validation-type-picker';
@@ -12,6 +12,7 @@ import CategoriesPicker from 'shared/components/categories-picker/categories-pic
 import { Checkbox } from '@epam/loveship';
 import { ExtensiveCoverageInput } from './extensive-coverage-input/extensive-coverage-input';
 import TaxonomyPickers from 'shared/components/taxonomy-pickers/taxonomy-pickers';
+import { CurrentUser } from 'shared/contexts/current-user';
 
 type AutomaticManualJobProps = {
     categories: Category[] | undefined;
@@ -27,6 +28,7 @@ const AutomaticManualJob: FC<AutomaticManualJobProps> = ({
     taxonomies,
     pipelines
 }) => {
+    const { isPipelinesDisabled } = useContext(CurrentUser);
     const startManuallyProps = lens.prop('start_manual_job_automatically').toProps();
     if (startManuallyProps.isDisabled) {
         startManuallyProps.value = false;
@@ -37,17 +39,17 @@ const AutomaticManualJob: FC<AutomaticManualJobProps> = ({
         .get()
         ?.filter((category) => (category.data_attributes || [])[0]?.type === 'taxonomy');
 
-    const vlidationType = lens.prop('validationType').get();
+    const validationType = lens.prop('validationType').get();
     return (
         <div className={styles.job}>
             <JobName lens={lens} />
-            <PipelinePicker lens={lens} pipelines={pipelines} />
+            {!isPipelinesDisabled && <PipelinePicker lens={lens} pipelines={pipelines} />}
             <div className="flex">
                 <ValidationTypePicker lens={lens} />
                 <DeadlinePicker lens={lens} />
             </div>
             <UsersPickers lens={lens} users={users} />
-            {vlidationType === 'extensive_coverage' && <ExtensiveCoverageInput lens={lens} />}
+            {validationType === 'extensive_coverage' && <ExtensiveCoverageInput lens={lens} />}
 
             <div className="form-group">
                 <CategoriesPicker lens={lens} categories={categories} />
