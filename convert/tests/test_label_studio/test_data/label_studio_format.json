@@ -155,7 +155,21 @@
     "data": {
       "text": "All that changed when he was 27 and he came to Jerusalem. It was the weekend of both Easter and Passover, and the city was flooded with tourists."
     },
-    "meta": {},
+    "meta": {
+      "labels": [],
+      "relations": [
+        {
+          "category": "similar",
+          "to": "531",
+          "type": "undirectional"
+        },
+        {
+          "category": "similar",
+          "to": "533",
+          "type": "undirectional"
+        }
+      ]
+    },
     "created_at": "2022-12-13T09:46:18.136585Z",
     "updated_at": "2022-12-13T09:57:08.490846Z",
     "inner_id": 1,

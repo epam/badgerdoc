@@ -51,3 +51,10 @@ class BadgerdocAnnotation(BaseModel):
     size: Size
     page_num: int
     objs: List[Obj] = []
+
+
+class DocumentLink(BaseModel):
+    to: str
+    category: str
+    type: str
+

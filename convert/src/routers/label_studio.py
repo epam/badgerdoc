@@ -54,5 +54,6 @@ def export_label_studio(request: BadgerdocToLabelStudioRequest) -> None:
     bd_to_label_studio_use_case.execute(
         s3_input_tokens=request.input_tokens,
         s3_input_annotations=request.input_annotation,
+        s3_input_manifest=request.input_annotation,
         s3_output_annotation=request.output_annotation,
     )
