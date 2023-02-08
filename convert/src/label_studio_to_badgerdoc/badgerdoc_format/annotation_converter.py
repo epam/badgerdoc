@@ -1,10 +1,29 @@
-from typing import List, Optional, Tuple
+from typing import Any, List, Optional, Tuple
 
-from .annotation_converter_practic import AnnotationConverterPractic
-from ..models.bd_annotation_model import AnnotationLink, BadgerdocAnnotation, Obj, Page, Size
 from ..models import bd_annotation_model_practic
+from ..models.bd_annotation_model import (
+    AnnotationLink,
+    BadgerdocAnnotation,
+    Obj,
+    Page,
+    Size,
+)
 from ..models.bd_tokens_model import Page as BadgerdocTokensPage
-from ..models.label_studio_models import LabelStudioModel, ModelItem, ResultItem
+from ..models.label_studio_models import (
+    LabelStudioModel,
+    ModelItem,
+    ResultItem,
+)
+from .annotation_converter_practic import AnnotationConverterPractic
+
+
+def safe_list_get(any_list: List, idx: int, default: Any = None) -> Any:
+    if any_list:
+        try:
+            return any_list[idx]
+        except IndexError:
+            return default
+    return default
 
 
 class AnnotationConverter:
@@ -18,7 +37,15 @@ class AnnotationConverter:
     ):
         model_items: List[ModelItem] = annotations.__root__
         badgerdoc_annotations = BadgerdocAnnotation(
-            pages=[Page(page_num=1, size=Size(width=badgerdoc_tokens.size.width, height=badgerdoc_tokens.size.height))]
+            pages=[
+                Page(
+                    page_num=1,
+                    size=Size(
+                        width=badgerdoc_tokens.size.width,
+                        height=badgerdoc_tokens.size.height,
+                    ),
+                )
+            ]
         )
         for model_item in model_items:
             for annotation in model_item.annotations:
@@ -32,7 +59,9 @@ class AnnotationConverter:
                     self.process_relations(
                         badgerdoc_annotations, labelstudio_item
                     )
-        badgerdoc_annotations_practic = AnnotationConverterPractic(badgerdoc_annotations, badgerdoc_tokens).convert()
+        badgerdoc_annotations_practic = AnnotationConverterPractic(
+            badgerdoc_annotations, badgerdoc_tokens
+        ).convert()
         return badgerdoc_annotations_practic
 
     def _is_labels(self, labelstudio_item: ResultItem) -> bool:
@@ -53,12 +82,21 @@ class AnnotationConverter:
         value = labelstudio_item.value
         start_id = len(badgerdoc_annotations.pages[0].objs)
         for id_, label in enumerate(value.labels, start=start_id):
+            _inner_index_of_iteration = start_id - id_
+
             type_ = "text"
-            data = {"source_id": labelstudio_item.id}
             tokens, bbox = self.get_token_indexes_and_form_bbox(
                 value.start, value.end, badgerdoc_tokens
             )
             category = label
+            data = {"source_id": labelstudio_item.id}
+
+            taxon = safe_list_get(value.taxons, _inner_index_of_iteration)
+            if taxon:
+                data["dataAttributes"] = [
+                    {"name": "taxonomy", "type": "taxonomy", "value": taxon}
+                ]
+
             bd_annotation = Obj(
                 id=id_,
                 type=type_,
@@ -85,14 +123,21 @@ class AnnotationConverter:
             badgerdoc_annotations, labelstudio_item.to_id
         )
         if not source_obj or not target_obj:
-            raise KeyError("Can't find tokens during creation links for badgerdoc annotations")
+            raise KeyError(
+                "Can't find tokens during creation links for badgerdoc annotations"
+            )
 
         link_label = "Link"
         if labelstudio_item.labels:
             if len(labelstudio_item.labels) > 0:
                 link_label = labelstudio_item.labels[0]
 
-        link = AnnotationLink(category_id=link_label, to=target_obj.id, type="directional", page_num=1)
+        link = AnnotationLink(
+            category_id=link_label,
+            to=target_obj.id,
+            type="directional",
+            page_num=1,
+        )
         source_obj.links.append(link)
 
     def get_token_indexes_and_form_bbox(

@@ -35,6 +35,7 @@ class Value(BaseModel):
     end: int
     text: str
     labels: List[str]
+    taxons: Optional[List[Any]]
 
 
 class ResultItem(BaseModel):
