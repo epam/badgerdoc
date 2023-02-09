@@ -54,7 +54,7 @@ class BadgerdocAnnotation(BaseModel):
 
 
 class DocumentLink(BaseModel):
-    to: str
+    to: int
     category: str
     type: str
 

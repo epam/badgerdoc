@@ -104,7 +104,7 @@ class Data(BaseModel):
 
 class DocumentRelation(BaseModel):
     category: str
-    to: str
+    to: int
     type: str
     
 

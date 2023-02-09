@@ -160,12 +160,12 @@
       "relations": [
         {
           "category": "similar",
-          "to": "531",
+          "to": 531,
           "type": "undirectional"
         },
         {
           "category": "similar",
-          "to": "533",
+          "to": 533,
           "type": "undirectional"
         }
       ]
