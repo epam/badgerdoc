@@ -19,10 +19,10 @@
 }
 
 .picker_list {
-    height: calc(100% - 70px);
+    max-height: calc(100% - 100px);
+    overflow: auto;
     & > div {
         height: 100%;
-        overflow: auto;
         padding-left: 2px;
     }
 }
