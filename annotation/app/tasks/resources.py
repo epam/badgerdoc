@@ -678,7 +678,7 @@ def get_pages_info(
         db, x_current_tenant, task.job_id, task_id, task.file_id, task.pages
     )
 
-    validated, failed, annotated, not_processed, _ = accumulate_pages_info(
+    validated, failed, annotated, not_processed, *_ = accumulate_pages_info(
         task.pages, revisions, unique_status=True
     )
 
@@ -808,7 +808,7 @@ def finish_task(
         db, x_current_tenant, task.job_id, task_id, task.file_id, task.pages
     )
     # accumulate info about pages, validated/annotated by him
-    validated, failed, annotated, not_processed, _ = accumulate_pages_info(
+    validated, failed, annotated, not_processed, *_ = accumulate_pages_info(
         task.pages, revisions, unique_status=True
     )
     # if same pages were annotated and marked as failed

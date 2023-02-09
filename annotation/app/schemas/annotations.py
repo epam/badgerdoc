@@ -152,7 +152,7 @@ class DocForSaveSchema(BaseModel):
             values.get("failed_validation_pages"),
             values.get("categories"),
         )
-        if not any((pages, validated, failed, categories)):
+        if all(i is None for i in (pages, validated, failed, categories)):
             raise ValueError(
                 "Fields pages, "
                 "validated, failed validation pages "
