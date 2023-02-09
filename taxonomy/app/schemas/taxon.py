@@ -50,7 +50,3 @@ class ParentsConcatenateResponseSchema(BaseModel):
     parent_names_concat: Optional[str] = Field(
         ..., example="parent_name_1.parent_name_2"
     )
-
-    class Config:
-        allow_population_by_field_name = True
-        orm_mode = True
