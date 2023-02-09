@@ -23,4 +23,4 @@ class Manifest(BaseModel):
     links_json: List[DocumentLink]
     file: str
     bucket: str
-    categories: List[str] = []
+    categories: List[Any] = []
