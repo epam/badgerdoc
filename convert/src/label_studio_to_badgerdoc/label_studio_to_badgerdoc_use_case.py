@@ -283,6 +283,7 @@ class LabelStudioToBDConvertUseCase:
         validators: List[str],
         document_labels: Set[str],
         categories_to_taxonomy_mapping: Dict[str, Any],
+        document_links: List[DocumentLink],
     ) -> int:
         categories = self.request_annotations_to_post_categories(
             document_labels
@@ -292,6 +293,10 @@ class LabelStudioToBDConvertUseCase:
             categories, categories_to_taxonomy_mapping
         )
         LOGGER.debug("categories with taxonomy_objs: %s", categories)
+
+        categories_of_links = [link.category for link in document_links]
+        LOGGER.debug("categories of document links: %s", categories_of_links)
+        categories.extend(categories_of_links)
 
         post_annotation_job_url = f"{settings.job_service_url}create_job/"
         post_annotation_job_body = {
@@ -512,6 +517,7 @@ class LabelStudioToBDConvertUseCase:
             validators,
             document_labels,
             categories_to_taxonomy_mapping,
+            document_links
         )
         self.request_annotation_to_post_annotations(
             annotation_job_id_created, file_id_in_assets, document_labels, document_links
