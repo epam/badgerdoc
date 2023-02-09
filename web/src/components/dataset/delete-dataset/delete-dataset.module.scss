@@ -1,7 +1,6 @@
-.hide-delete {
+.deleteDataset {
     opacity: 0;
-}
-
-.show-delete {
-    opacity: 1;
+    &:hover {
+        opacity: 1;
+    }
 }
