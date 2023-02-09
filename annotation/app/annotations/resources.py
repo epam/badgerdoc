@@ -453,12 +453,14 @@ def get_annotations_up_to_given_revision(
             links_json=[],
         )
 
-    validated, failed, annotated, _, required_revision = accumulate_pages_info(
-        task_pages=[],
-        revisions=revisions,
-        stop_revision=revision,
-        specific_pages=page_numbers,
-        with_page_hash=True,
+    validated, failed, annotated, _, categories, required_revision = (
+        accumulate_pages_info(
+            task_pages=[],
+            revisions=revisions,
+            stop_revision=revision,
+            specific_pages=page_numbers,
+            with_page_hash=True,
+        )
     )
     # if revision with given id (hash) was not found,
     # response with empty revision will be returned
@@ -477,6 +479,7 @@ def get_annotations_up_to_given_revision(
     required_revision.pages = annotated
     required_revision.validated = validated
     required_revision.failed_validation_pages = failed
+    required_revision.categories = categories
 
     return construct_particular_rev_response(required_revision)
 
