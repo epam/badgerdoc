@@ -11,6 +11,11 @@ from .models.bd_manifest_model_practic import Manifest
 from .models import bd_annotation_model_practic
 from .models.bd_tokens_model import Page
 
+from src.logger import get_logger
+
+LOGGER = get_logger(__file__)
+LOGGER.setLevel("DEBUG")
+
 
 class BadgerdocData(NamedTuple):
     page: Page
@@ -59,6 +64,7 @@ class BDToLabelStudioConvertUseCase:
             input_tokens = self.download_file_from_s3(s3_input_tokens, tmp_dir)
             input_annotations = self.download_file_from_s3(s3_input_annotations, tmp_dir)
             input_manifest = self.download_file_from_s3(s3_input_manifest, tmp_dir)
+            LOGGER.debug("input_manifest: %s", input_manifest.read_text())
 
             page = Page.parse_file(input_tokens)
             annotation = AnnotationConverterToTheory(practic_annotations=bd_annotation_model_practic.BadgerdocAnnotation.parse_file(input_annotations)).convert()
