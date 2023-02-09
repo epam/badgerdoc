@@ -65,14 +65,14 @@ class BDToLabelStudioConvertUseCase:
             manifest = Manifest.parse_file(input_manifest)
             return BadgerdocData(page=page, annotation=annotation, manifest=manifest)
 
-    def download_file_from_s3(self, s3_path: S3Path, tmp_dir: Path):
-        local_file = tmp_dir / Path(s3_path.path).name
+    def download_file_from_s3(self, s3_path: S3Path, tmp_dir: Path) -> Path:
+        local_file_path = tmp_dir / Path(s3_path.path).name
         self.s3_client.download_file(
             s3_path.bucket,
             s3_path.path,
-            str(local_file),
+            str(local_file_path),
         )
-        return local_file
+        return local_file_path
 
     def upload_labelstudio_to_s3(
         self,

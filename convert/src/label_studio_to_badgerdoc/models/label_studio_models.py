@@ -120,7 +120,7 @@ class ModelItem(BaseModel):
     drafts: List = []
     predictions: List[int] = []
     data: Data
-    meta: Meta = Meta(labels=[], relations=[])
+    meta: Meta = Meta()
     created_at: Optional[str] = "2022-12-13T09:57:08.451845Z"
     updated_at: Optional[str] = "2022-12-13T09:57:08.451845Z"
     inner_id: int = 1

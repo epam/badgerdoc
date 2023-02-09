@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Set
 
 from pydantic import BaseModel
 
@@ -18,9 +18,9 @@ class Manifest(BaseModel):
     pipeline: Optional[Any]
     date: Optional[str]
     pages: Dict[str, str]
-    failed_validation_pages: List = []
-    validated: List = []
+    failed_validation_pages: List[int] = []
+    validated: List[int] = []
     links_json: List[DocumentLink]
     file: str
     bucket: str
-    categories: List = []
+    categories: List[str] = []

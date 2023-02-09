@@ -25,7 +25,7 @@ class LabelStudioFormat:
         self,
         badgerdoc_tokens: Page,
         badgerdoc_annotations: BadgerdocAnnotation,
-        badgerdoc_manifest: Optional[Manifest]
+        badgerdoc_manifest: Optional[Manifest],
     ):
         text = "".join([obj.text for obj in badgerdoc_tokens.objs])
         objs = self.convert_annotation_from_bd(
@@ -34,12 +34,16 @@ class LabelStudioFormat:
         relations = self.convert_relation_from_bd(
             badgerdoc_annotations, badgerdoc_tokens.objs
         )
-        document_links = self.convert_document_links_from_bd(badgerdoc_manifest) if badgerdoc_manifest else []
+        document_links = (
+            self.convert_document_links_from_bd(badgerdoc_manifest)
+            if badgerdoc_manifest
+            else []
+        )
         item = ModelItem(
             annotations=[Annotation(result=objs + relations)],
             predictions=[],
             data=Data(text=text),
-            meta=Meta(labels=[], relations=document_links)
+            meta=Meta(labels=[], relations=document_links),
         )
         self.labelstudio_data.__root__.append(item)
 
@@ -81,16 +85,20 @@ class LabelStudioFormat:
                     to_id=link.to,
                     type="relation",
                     direction=self.form_link_direction(link),
-                    labels=[link.category_id]
+                    labels=[link.category_id],
                 )
                 result_items.append(item)
         return result_items
 
-    def convert_document_links_from_bd(self, manifest: Manifest):
-        return [DocumentRelation(**document_link.dict()) for document_link in manifest.links_json]
+    def convert_document_links_from_bd(self, manifest: Manifest) -> List[DocumentRelation]:
+        return [
+            # converting from a model with same attributes
+            DocumentRelation(**document_link.dict())
+            for document_link in manifest.links_json
+        ]
 
     def form_link_direction(self, link: AnnotationLink) -> str:
-        # TODO: add logic
+        # TODO: add logic for transformation link from badgerdoc format
         return "right"
 
     def export_json(self, path: Path):
