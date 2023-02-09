@@ -4,6 +4,7 @@ from app.schemas.errors import (
     NotFoundErrorSchema,
 )
 from app.schemas.taxon import (
+    ParentsConcatenateResponseSchema,
     TaxonBaseSchema,
     TaxonInputSchema,
     TaxonResponseSchema,
@@ -24,6 +25,7 @@ __all__ = [
     TaxonInputSchema,
     TaxonResponseSchema,
     CategoryLinkSchema,
+    ParentsConcatenateResponseSchema,
     TaxonomyBaseSchema,
     TaxonomyInputSchema,
     TaxonomyResponseSchema,
