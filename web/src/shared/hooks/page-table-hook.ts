@@ -16,7 +16,7 @@ export const usePageTable = <T, TFilter = TableFilters<T>>(item: keyof T) => {
         field: item,
         direction: SortingDirection.DESC
     });
-    const [totalCount, onTotalCountChange] = useState<number>(0);
+    const [totalCount, onTotalCountChange] = useState<number>(1);
     const [searchText, setSearchText] = useState<string>('');
     const [tableValue, onTableValueChange] = useState<DataSourceState<TFilter>>({});
     const [filters, setF] = React.useState<Array<Filter<keyof T>>>([]);
