@@ -1,4 +1,3 @@
-import random
 import tempfile
 from datetime import datetime
 from pathlib import Path
@@ -287,9 +286,7 @@ class LabelStudioToBDConvertUseCase:
         categories_to_taxonomy_mapping: Dict[str, Any],
         document_links: List[DocumentLink],
     ) -> int:
-        categories = self.request_annotations_to_post_categories(
-            document_labels
-        )
+        categories = self.get_box_and_link_categories() + list(document_labels)
         LOGGER.debug("categories: %s", categories)
         categories = self.enrich_categories_with_taxonomies(
             categories, categories_to_taxonomy_mapping
@@ -357,97 +354,13 @@ class LabelStudioToBDConvertUseCase:
 
         return result
 
-    def form_post_category_body(
-        self, type_of_categories: str, category: str
-    ) -> Dict[str, Any]:
-        possible_categories_colors = (
-            "#FF0000",  # red
-            "#FFFF00",  # yellow
-            "#008000",  # green
-            "#0000FF",  # blue
-            "#FF00FF",  # pyrple
-            "#808080",  # grey
-            "#800000",  # brown
-        )
-
-        result = {
-            "name": category,
-            "type": type_of_categories,
-            "id": category,
-        }
-        if not type_of_categories == "document":
-            result["metadata"] = {
-                "color": random.choice(possible_categories_colors)
-            }
-        return result
-
-    def request_annotations_to_post_categories(
-        self, document_labels: Set[str]
-    ) -> List[str]:
-        post_categories_url = f"{settings.annotation_service_url}categories/"
-        LOGGER.debug(
-            "Making requests to url: %s to post annotations",
-            post_categories_url,
-        )
+    def get_box_and_link_categories(self) -> List[str]:
         pages_objs = self.badgerdoc_format.badgerdoc_annotation.objs
         categories_of_type_box = {
             pages_obj.category for pages_obj in pages_objs
         }
         categories_of_type_link = self.get_categories_of_links(pages_objs)
-        all_categories = {
-            "box": categories_of_type_box,
-            "link": categories_of_type_link,
-            "document": document_labels,
-        }
-
-        for (
-            type_of_categories,
-            set_of_categories_names,
-        ) in all_categories.items():
-            for category in set_of_categories_names:
-                post_categories_body = self.form_post_category_body(
-                    type_of_categories, category
-                )
-                LOGGER.debug(
-                    "Making request to post categories with this request body: %s",
-                    post_categories_body,
-                )
-
-                try:
-                    request_to_post_categories = requests.post(
-                        url=post_categories_url,
-                        headers=self.request_headers,
-                        json=post_categories_body,
-                    )
-                    request_to_post_categories.raise_for_status()
-                except requests.exceptions.RequestException as e:
-                    if request_to_post_categories.status_code == 400 and request_to_post_categories.json() == {
-                        "detail": "Field constraint error. Category id must be unique."
-                    }:
-                        LOGGER.warning(
-                            "Category %s already exists in annotation. Skipping this request",
-                            category,
-                        )
-                        continue
-
-                    LOGGER.exception(
-                        "Failed request to 'annotation' to post categories for converted annotations"
-                    )
-                    raise HTTPException(
-                        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                        detail="Failed request to 'annotation' to post categories for converted annotations",
-                    ) from e
-
-                LOGGER.debug(
-                    "Got this response from annotation service: %s",
-                    request_to_post_categories.json(),
-                )
-
-        return [
-            *categories_of_type_box,
-            *categories_of_type_link,
-            *document_labels,
-        ]
+        return [*categories_of_type_box, *categories_of_type_link]
 
     def request_annotation_to_post_annotations(
         self,
