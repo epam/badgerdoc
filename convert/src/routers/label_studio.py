@@ -1,17 +1,19 @@
-from fastapi import APIRouter
+from typing import Optional
 
+from fastapi import APIRouter, Depends, Header, status
+from tenant_dependency import TenantData, get_tenant_info
+
+from src.config import minio_client, settings
 from src.label_studio_to_badgerdoc.badgerdoc_to_label_studio_use_case import (
     BDToLabelStudioConvertUseCase,
 )
-from src.label_studio_to_badgerdoc.models import LabelStudioRequest
-from src.label_studio_to_badgerdoc.models.label_studio_models import BadgerdocToLabelStudioRequest
 from src.label_studio_to_badgerdoc.label_studio_to_badgerdoc_use_case import (
     LabelStudioToBDConvertUseCase,
 )
-from src.config import minio_client, settings
-from tenant_dependency import TenantData, get_tenant_info
-from typing import Optional
-from fastapi import Depends, Header, status
+from src.label_studio_to_badgerdoc.models import LabelStudioRequest
+from src.label_studio_to_badgerdoc.models.label_studio_models import (
+    BadgerdocToLabelStudioRequest,
+)
 
 router = APIRouter(prefix="/label_studio", tags=["label_studio"])
 tenant = get_tenant_info(
@@ -38,7 +40,7 @@ def import_label_studio(
         deadline=request.deadline,
         extensive_coverage=request.extensive_coverage,
         annotators=request.annotators,
-        validators=request.validators
+        validators=request.validators,
     )
     label_studio_to_bd_use_case.execute()
 
@@ -54,5 +56,6 @@ def export_label_studio(request: BadgerdocToLabelStudioRequest) -> None:
     bd_to_label_studio_use_case.execute(
         s3_input_tokens=request.input_tokens,
         s3_input_annotations=request.input_annotation,
+        s3_input_manifest=request.input_manifest,
         s3_output_annotation=request.output_annotation,
     )

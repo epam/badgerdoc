@@ -9,11 +9,15 @@ from src.config import (
     DEFAULT_PDF_LINE_SPACING,
     DEFAULT_PDF_PAGE_WIDTH,
 )
-from src.label_studio_to_badgerdoc.badgerdoc_format.badgerdoc_format import BadgerdocFormat
+from src.label_studio_to_badgerdoc.badgerdoc_format.badgerdoc_format import (
+    BadgerdocFormat,
+)
 from src.label_studio_to_badgerdoc.badgerdoc_format.plain_text_converter import (
     TextToBadgerdocTokensConverter,
 )
-from src.label_studio_to_badgerdoc.models.label_studio_models import LabelStudioModel
+from src.label_studio_to_badgerdoc.models.label_studio_models import (
+    LabelStudioModel,
+)
 
 TEST_FILES_DIR = Path(__file__).parent / "test_data"
 
@@ -50,6 +54,38 @@ def test_plain_text_converter():
 
 
 def test_annotation_converter():
+    badgerdoc_format = BadgerdocFormat(
+        page_width=595,
+        page_border_offset=15,
+        font_height=11,
+        font_width=7,
+        line_spacing=2,
+    )
+
+    badgerdoc_format.convert_from_labelstudio(
+        LabelStudioModel.parse_file(INPUT_LABELSTUDIO_FILE)
+    )
+    with TemporaryDirectory() as dir_name:
+        tokens_test_path = Path(dir_name) / "tokens_test.json"
+        annotations_test_path = Path(dir_name) / "annotations_test.json"
+        badgerdoc_format.export_tokens(tokens_test_path)
+        badgerdoc_format.export_annotations(annotations_test_path)
+        tokens_test = json.loads(tokens_test_path.read_text())
+        annotations_test = json.loads(annotations_test_path.read_text())
+
+        tokens_etalon_path = (
+            TEST_FILES_DIR / "badgerdoc_etalon" / "tokens_test.json"
+        )
+        annotations_etalon_path = (
+            TEST_FILES_DIR / "badgerdoc_etalon" / "annotations_test.json"
+        )
+        tokens_etalon = json.loads(tokens_etalon_path.read_text())
+        annotations_etalon = json.loads(annotations_etalon_path.read_text())
+        assert tokens_test == tokens_etalon
+        assert annotations_test == annotations_etalon
+
+
+def test_import_document_links():
     badgerdoc_format = BadgerdocFormat(
         page_width=595,
         page_border_offset=15,
