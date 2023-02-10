@@ -12,7 +12,6 @@ import { LoginPage } from 'pages/login/login-page';
 import { User } from 'api/typings';
 import { UserContextProvider } from 'shared/contexts/current-user';
 import { useCurrentUser } from 'api/hooks/auth';
-import { AdminPage } from 'pages/admin/admin';
 import TaskPage from 'pages/task/task-page';
 import ModelsPage from './pages/models/models-page';
 import BasementsPage from './pages/basements/basements-page';
@@ -63,7 +62,6 @@ export const App = () => {
                         <Route path={DASHBOARD_PAGE} component={DashboardPage} />
                         <Route path="/login" component={LoginPage} />
                         <Route path="/tasks/:taskId" component={TaskPage} />
-                        <Route path="/admin" component={AdminPage} />
                         <Route path="/categories" component={CategoriesTableConnector} />
                         <Route path={MODELS_PAGE} component={ModelsPage} />
                         <Route path={BASEMENTS_PAGE} component={BasementsPage} />
