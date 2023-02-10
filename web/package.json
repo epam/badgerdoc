@@ -55,7 +55,6 @@
         "lint:js": "eslint . --ext .js,.ts,.tsx",
         "lint:types": "tsc -p tsconfig.json --noEmit",
         "hooks:i": "npx simple-git-hooks",
-        "build:info": "node ./src/setupEnvInfo.js",
         "postinstall": "npm run build:info",
         "prettier": "prettier ./src/**/*.{ts,tsx,js} --write"
     },
