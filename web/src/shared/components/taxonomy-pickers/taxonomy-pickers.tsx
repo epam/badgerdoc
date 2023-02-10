@@ -18,8 +18,8 @@ type TaxonomyPickerItem = {
 };
 
 const makeItem = (taxonomy: Taxonomy): TaxonomyPickerItem => ({
-    id: `${taxonomy.id}${taxonomy.version}`,
-    name: `${taxonomy.name} - v.${taxonomy.version}`,
+    id: `${taxonomy?.id}${taxonomy?.version}`,
+    name: `${taxonomy?.name} - v.${taxonomy?.version}`,
     taxonomy
 });
 

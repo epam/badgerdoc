@@ -62,6 +62,7 @@ export default function useSplitValidation({
     task
 }: SplitValidationParams): SplitValidationValue {
     const isSplitValidation = isValidation && job?.validation_type === 'extensive_coverage';
+
     const { data: byUser } = useLatestAnnotationsByUser(
         {
             fileId,
@@ -149,15 +150,15 @@ export default function useSplitValidation({
         [validatorAnnotations]
     );
     const onFinishSplitValidation = () => {
-        if (!task) return;
+        if (!task || !isSplitValidation) return;
         setValidPages(task?.pages!);
     };
 
     useEffect(() => {
-        if (validPages.length) {
+        if (validPages.length && isSplitValidation) {
             onAnnotationTaskFinish();
         }
-    }, [validPages]);
+    }, [validPages, isSplitValidation]);
 
     return useMemo(
         () => ({
