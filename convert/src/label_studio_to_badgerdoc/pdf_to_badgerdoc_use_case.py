@@ -36,7 +36,6 @@ class PDFToBDConvertUseCase:
             tmp_dirname = Path(tmp_dirname)
             badgerdoc_tokens_path = tmp_dirname / Path("badgerdoc_tokens.json")
             self.badgerdoc_format.export_tokens(badgerdoc_tokens_path)
-            breakpoint()
             self.s3_client.upload_file(
                 str(badgerdoc_tokens_path),
                 s3_output_tokens.bucket,

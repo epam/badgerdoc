@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import List, Optional
 
-from dotenv import find_dotenv
+from dotenv.main import find_dotenv
 from pydantic import BaseSettings, Field
 
 
@@ -46,7 +46,8 @@ class Config(BaseSettings):
     gotenberg_formats: List[str]
     image_formats: List[str]
     aws_profile_name: Optional[str]
-    service_convert_uri: Optional[str]
+    service_convert_txt: Optional[str]
+    service_convert_pdf: Optional[str]
 
     class Config:
         env_file: str = find_dotenv(".env")
