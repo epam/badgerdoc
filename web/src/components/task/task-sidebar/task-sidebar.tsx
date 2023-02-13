@@ -87,6 +87,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
         selectedTool,
         onChangeSelectedTool,
         selectedToolParams,
+        selectedCategory,
         setSelectedToolParams,
         onLabelsSelected,
         setSelectedLabels,
@@ -268,10 +269,19 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
         }
     }, [categories, latestLabelsId]);
 
-    const taxonomy = useLinkTaxonomyByCategoryAndJobId({
-        jobId,
-        categoryId: selectedAnnotation?.category!
-    });
+    let taxonomy;
+    if (
+        selectedCategory &&
+        Array.isArray(selectedCategory.data_attributes) &&
+        selectedCategory.data_attributes.some((category) => category.type === 'taxonomy')
+    ) {
+        taxonomy = useLinkTaxonomyByCategoryAndJobId({
+            jobId,
+            categoryId: selectedAnnotation?.category!
+        });
+    } else {
+        taxonomy = undefined;
+    }
 
     const onFinishValidation = async () => {
         await svc.uuiModals.show<TaskValidationValues>((props) => (
