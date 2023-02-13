@@ -6,12 +6,12 @@ import {
     MultiSwitch,
     NumericInput,
     RadioGroup,
-    TabButton
+    TabButton,
+    Tooltip
 } from '@epam/loveship';
 import { useGetValidatedPages } from 'api/hooks/tasks';
 import { useTaskAnnotatorContext } from 'connectors/task-annotator-connector/task-annotator-context';
 
-import styles from './task-sidebar.module.scss';
 import { CategoriesSelectionModeToggle } from 'components/categories/categories-selection-mode-toggle/categories-selection-mode-toggle';
 import { useTableAnnotatorContext } from '../../../shared/components/annotator/context/table-annotator-context';
 import { TaskSidebarData } from '../task-sidebar-data/task-sidebar-data';
@@ -22,19 +22,19 @@ import {
     AnnotationLinksBoundType,
     Maybe
 } from 'shared';
-
 import { Status } from 'shared/components/status';
 import { mapStatusForValidationPage } from 'shared/helpers/map-statuses';
 import { ValidationPageStatus } from 'api/typings/tasks';
-import { ReactComponent as MergeIcon } from '@epam/assets/icons/common/editor-table_merge_cells-24.svg';
-import { ReactComponent as SplitIcon } from '@epam/assets/icons/common/editor-table_split_cells-24.svg';
-import { Tooltip } from '@epam/loveship';
 import { Category, Label } from '../../../api/typings';
 import { ImageToolsParams } from './image-tools-params';
 import { CategoriesTab } from 'components/categories/categories-tab/categories-tab';
 import { useLinkTaxonomyByCategoryAndJobId } from 'api/hooks/taxons';
 import { TaskSidebarLabelsLinks } from './task-sidebar-labels-links/task-sidebar-labels-links';
 import { NoData } from 'shared/no-data';
+import { ReactComponent as MergeIcon } from '@epam/assets/icons/common/editor-table_merge_cells-24.svg';
+import { ReactComponent as SplitIcon } from '@epam/assets/icons/common/editor-table_split_cells-24.svg';
+
+import styles from './task-sidebar.module.scss';
 
 type TaskSidebarProps = {
     jobSettings?: ReactElement;
@@ -57,7 +57,6 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode }) => {
         modifiedPages,
         tabValue,
         selectionType,
-        isDataTabDisabled,
         isCategoryDataEmpty,
         onValidClick,
         onInvalidClick,
@@ -266,37 +265,85 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode }) => {
         [categories]
     );
 
+    const tabs = ['Categories', 'Data', 'Information', 'Document'];
+
+    const renderTab = (tabName: string) => (
+        <TabButton
+            caption={tabName}
+            isLinkActive={tabValue === tabName}
+            onClick={() => setTabValue(tabName)}
+            size="36"
+        />
+    );
+
+    const taskInfo = (
+        <>
+            <div className={styles['metadata-item']}>
+                <span className={styles['metadata-item__name']}>Document:</span>
+                <span className={styles['metadata-item__value']}>{`${fileMetaInfo.name}`}</span>
+            </div>
+            <div className={styles['metadata-item']}>
+                <span className={styles['metadata-item__name']}>TaskId:</span>
+                <span className={styles['metadata-item__value']}>{`${task?.id}`}</span>
+            </div>
+            <div className={styles['metadata-item']}>
+                <span className={styles['metadata-item__name']}>Pages:</span>
+                <span className={styles['metadata-item__value']}>
+                    {`${task?.pages.join(', ')}`}
+                </span>
+            </div>
+            <div className={styles['metadata-item']}>
+                <span className={styles['metadata-item__name']}>Job Name:</span>
+                <span className={styles['metadata-item__value']}>{`${task?.job.name}`}</span>
+            </div>
+            <div className={styles['metadata-item']}>
+                <span className={styles['metadata-item__name']}>Deadline:</span>
+                <span className={styles['metadata-item__value']}>{`${task?.deadline}`}</span>
+            </div>
+            <div className={styles['metadata-item']}>
+                <span className={styles['metadata-item__name']}>Status:</span>
+                <span className={styles['metadata-item__value']}>{`${task?.status}`}</span>
+            </div>
+        </>
+    );
+    const docInfo = (
+        <>
+            {jobSettings}
+            <div className={styles['metadata-item']}>
+                <span className={styles['metadata-item__name']}>Document ID:</span>
+                <span className={styles['metadata-item__value']}>{`${fileMetaInfo.id}`}</span>
+            </div>
+            <div className={styles['metadata-item']}>
+                <span className={styles['metadata-item__name']}>Pages:</span>
+                <span className={styles['metadata-item__value']}>{fileMetaInfo.pages}</span>
+            </div>
+            <div className={styles['metadata-item']}>
+                <span className={styles['metadata-item__name']}>Time:</span>
+                <span className={styles['metadata-item__value']}>
+                    {fileMetaInfo.lastModified?.toString()}
+                </span>
+            </div>
+        </>
+    );
+
+    const handleSave = async () => {
+        await onSaveTask();
+        onClearTouchedPages();
+        onClearModifiedPages();
+        refetch();
+    };
+
+    const handleSaveEdits = async () => {
+        onAddTouchedPage();
+        await onSaveEditClick();
+        refetch();
+    };
+
     return (
         <div className={`${styles.container} flex-col`}>
             <div className={`${styles.main} flex-col`}>
                 <FlexRow borderBottom="night50" background="none" cx="justify-center">
-                    <TabButton
-                        caption={'Categories'}
-                        isLinkActive={tabValue === 'Categories'}
-                        onClick={() => setTabValue('Categories')}
-                        size="36"
-                    />
-
-                    <TabButton
-                        caption="Data"
-                        isDisabled={isDataTabDisabled}
-                        isLinkActive={tabValue === 'Data'}
-                        onClick={() => setTabValue('Data')}
-                        size="36"
-                    />
-
-                    <TabButton
-                        caption="Information"
-                        isLinkActive={tabValue === 'Information'}
-                        onClick={() => setTabValue('Information')}
-                        size="36"
-                    />
-                    <TabButton
-                        caption={'Document'}
-                        isLinkActive={tabValue === 'Document'}
-                        onClick={() => setTabValue('Document')}
-                        size="36"
-                    />
+                    {tabs.map((tab) => renderTab(tab))}
                 </FlexRow>
                 <div className={`${styles.tabs} flex-col flex-cell`}>
                     {!splitValidation && (isValid || isInvalid) ? (
@@ -424,86 +471,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode }) => {
                         />
                     )}
                     {tabValue === 'Information' && (
-                        <div className={styles.information}>
-                            {task ? (
-                                <>
-                                    <div className={styles['metadata-item']}>
-                                        <span className={styles['metadata-item__name']}>
-                                            Document:
-                                        </span>
-                                        <span className={styles['metadata-item__value']}>
-                                            {`${fileMetaInfo.name}`}
-                                        </span>
-                                    </div>
-                                    <div className={styles['metadata-item']}>
-                                        <span className={styles['metadata-item__name']}>
-                                            TaskId:
-                                        </span>
-                                        <span className={styles['metadata-item__value']}>
-                                            {`${task?.id}`}
-                                        </span>
-                                    </div>
-                                    <div className={styles['metadata-item']}>
-                                        <span className={styles['metadata-item__name']}>
-                                            Pages:
-                                        </span>
-                                        <span className={styles['metadata-item__value']}>
-                                            {`${task?.pages.join(', ')}`}
-                                        </span>
-                                    </div>
-                                    <div className={styles['metadata-item']}>
-                                        <span className={styles['metadata-item__name']}>
-                                            Job Name:
-                                        </span>
-                                        <span className={styles['metadata-item__value']}>
-                                            {`${task?.job.name}`}
-                                        </span>
-                                    </div>
-                                    <div className={styles['metadata-item']}>
-                                        <span className={styles['metadata-item__name']}>
-                                            Deadline:
-                                        </span>
-                                        <span className={styles['metadata-item__value']}>
-                                            {`${task?.deadline}`}
-                                        </span>
-                                    </div>
-                                    <div className={styles['metadata-item']}>
-                                        <span className={styles['metadata-item__name']}>
-                                            Status:
-                                        </span>
-                                        <span className={styles['metadata-item__value']}>
-                                            {`${task?.status}`}
-                                        </span>
-                                    </div>
-                                </>
-                            ) : (
-                                <>
-                                    {jobSettings}
-                                    <div className={styles['metadata-item']}>
-                                        <span className={styles['metadata-item__name']}>
-                                            Document ID:
-                                        </span>
-                                        <span className={styles['metadata-item__value']}>
-                                            {`${fileMetaInfo.id}`}
-                                        </span>
-                                    </div>
-                                    <div className={styles['metadata-item']}>
-                                        <span className={styles['metadata-item__name']}>
-                                            Pages:
-                                        </span>
-                                        <span className={styles['metadata-item__value']}>
-                                            {fileMetaInfo.pages}
-                                        </span>
-                                    </div>
-                                    <div className={styles['metadata-item']}>
-                                        <span className={styles['metadata-item__name']}>Time:</span>
-                                        <span className={styles['metadata-item__value']}>
-                                            {fileMetaInfo.lastModified?.toString()}
-                                        </span>
-                                    </div>
-                                </>
-                            )}
-                        </div>
+                        <div className={styles.information}>{task ? taskInfo : docInfo}</div>
                     )}
                     {tabValue === 'Document' && categories !== undefined && (
                         <TaskSidebarLabelsLinks
@@ -574,9 +542,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode }) => {
                                     caption="EDIT"
                                     fill="none"
                                     color="sky"
-                                    onClick={() => {
-                                        onEditClick();
-                                    }}
+                                    onClick={onEditClick}
                                     isDisabled={isValidationDisabled}
                                 />
                             )}
@@ -586,11 +552,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode }) => {
                                     caption="SAVE EDITS"
                                     fill="none"
                                     color="sky"
-                                    onClick={() => {
-                                        onAddTouchedPage();
-                                        onSaveEditClick();
-                                        refetch();
-                                    }}
+                                    onClick={handleSaveEdits}
                                     isDisabled={isValidationDisabled}
                                 />
                             )}
@@ -607,12 +569,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode }) => {
                     <Button
                         caption={SaveButton}
                         fill="white"
-                        onClick={async () => {
-                            await onSaveTask();
-                            onClearTouchedPages();
-                            onClearModifiedPages();
-                            refetch();
-                        }}
+                        onClick={handleSave}
                         cx={styles.button}
                         isDisabled={isSaveButtonDisabled}
                     />
