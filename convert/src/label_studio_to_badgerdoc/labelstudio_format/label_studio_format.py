@@ -153,7 +153,7 @@ class LabelStudioFormat:
         return "right"
 
     def export_json(self, path: Path):
-        path.write_text(self.labelstudio_data.json(indent=4))
+        path.write_text(self.labelstudio_data.json())
 
     def get_categories_linked_with_taxonomies(
         self, job_id: int, request_headers: Dict[str, str]

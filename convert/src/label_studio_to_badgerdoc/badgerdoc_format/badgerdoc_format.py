@@ -56,11 +56,11 @@ class BadgerdocFormat:
 
     def export_tokens(self, path: Path) -> None:
         if self.tokens_page:
-            path.write_text(self.tokens_page.json(indent=4, by_alias=True))
+            path.write_text(self.tokens_page.json(by_alias=True))
 
     def export_annotations(self, path: Path):
         if self.badgerdoc_annotation:
-            path.write_text(self.badgerdoc_annotation.json(indent=4))
+            path.write_text(self.badgerdoc_annotation.json())
 
     def export_pdf(self, path: Path):
         if not self.pdf_renderer:
