@@ -43,6 +43,7 @@ class Config(BaseSettings):
     keycloak_uri: Optional[str]
     gotenberg: Optional[str]
     gotenberg_libre_office_endpoint: Optional[str]
+    gotenberg_chromium_endpoint: Optional[str]
     gotenberg_formats: List[str]
     image_formats: List[str]
     aws_profile_name: Optional[str]

@@ -206,6 +206,36 @@ class FileConverter:
         self.conversion_status = "converted to PDF"
         return converted_file.content
 
+    def convert_html_to_pdf(self) -> bytes:
+        """
+        Converts html file to pdf format
+        """
+        buf = BytesIO(self.file_bytes)
+        buf.name = self.file_name
+        file_ = {"files": ("index.html", buf)}
+        try:
+            converted_file = requests.post(
+                settings.gotenberg_chromium_endpoint, files=file_
+            )
+        except requests.exceptions.ConnectionError as e:
+            self.conversion_status = "conversion error"
+            logger_.error("Gotenberg connection error - detail: %s", e)
+            raise requests.exceptions.ConnectionError(e)
+
+        if is_gotenberg_returns_file(converted_file.content) is False:
+            #  is_gotenberg_returns_file func checks if file was converted to pdf.  # noqa
+            #  In case of some error, the content of Gotenberg response is plain text.  # noqa
+            self.conversion_status = "conversion error"
+            logger_.error(
+                logger_.error(
+                    "%s with %s", self.conversion_status, self.file_name
+                )
+            )
+            raise exceptions.FileConversionError
+        self.converted_ext = ".pdf"
+        self.conversion_status = "converted to PDF"
+        return converted_file.content
+
     def convert_to_jpg(self) -> bytes:
         """
         Converts file to jpeg format
@@ -227,12 +257,8 @@ class FileConverter:
         return byte_im
 
     def convert_txt(self) -> bytes:
-        input_text_path = (
-            f"files/{self.new_file.id}/" f"{self.new_file.id}.txt"
-        )
-        output_pdf_path = (
-            f"files/{self.new_file.id}/" f"{self.new_file.id}.pdf"
-        )
+        input_text_path = f"files/{self.new_file.id}/{self.new_file.id}.txt"
+        output_pdf_path = f"files/{self.new_file.id}/{self.new_file.id}.pdf"
         output_tokens_path = f"files/{self.new_file.id}/ocr/1.json"
         post_txt_to_convert(
             self.bucket_storage,
@@ -250,19 +276,19 @@ class FileConverter:
             output_pdf_path,
             tmp_file_name,
         )
-        return open(tmp_file_name, "rb").read()
+        with open(tmp_file_name, "rb") as tmp_file:
+            return tmp_file.read()
 
     def convert_html(self) -> bytes:
         minio_config = create_minio_config()
         minio_client = minio.Minio(**minio_config)
-        pdf_from_html = self.convert_to_pdf()
-        output_pdf_path = (
-            f"files/{self.new_file.id}/" f"{self.new_file.id}.pdf"
-        )
+        pdf_from_html = self.convert_html_to_pdf()
+        output_pdf_path = f"files/{self.new_file.id}/{self.new_file.id}.pdf"
+        file_ = BytesIO(pdf_from_html)
         minio_client.put_object(
             bucket_name=self.bucket_storage,
             object_name=output_pdf_path,
-            data=pdf_from_html,
+            data=file_,
             length=len(pdf_from_html),
         )
         output_tokens_path = f"files/{self.new_file.id}/ocr/1.json"
@@ -279,7 +305,8 @@ class FileConverter:
             output_pdf_path,
             tmp_file_name,
         )
-        return open(tmp_file_name, "rb").read()
+        with open(tmp_file_name, "rb") as tmp_file:
+            return tmp_file.read()
 
     def convert(self) -> Union[bool]:
         """

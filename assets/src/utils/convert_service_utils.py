@@ -22,8 +22,8 @@ def post_txt_to_convert(
             },
         )
         if response.status_code != 201:
-            logger_.info(
-                f"File {input_text} failed to convert: " f"{response.text}"
+            logger_.error(
+                "File %s failed to convert: %s", input_text, response.text
             )
             return False
     except requests.exceptions.ConnectionError as e:
@@ -46,12 +46,12 @@ def post_pdf_to_convert(bucket: str, input_pdf, output_tokens) -> bool:
             },
         )
         if response.status_code != 201:
-            logger_.info(
-                f"File {input_pdf} failed to convert: " f"{response.text}"
+            logger_.error(
+                "File %s failed to convert: %s", input_pdf, response.text
             )
             return False
     except requests.exceptions.ConnectionError as e:
-        logger_.error(f"Connection error - detail: {e}")
+        logger_.error("Connection error - detail: %s", e)
         return False
-    logger_.info(f"File {input_pdf} successfully converted")
+    logger_.info("File %s successfully converted", {input_pdf})
     return True

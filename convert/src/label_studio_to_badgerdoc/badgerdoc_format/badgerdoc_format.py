@@ -56,10 +56,7 @@ class BadgerdocFormat:
 
     def export_tokens(self, path: Path) -> None:
         if self.tokens_page:
-            if isinstance(self.tokens_page, list):
-                path.write_text(self.tokens_page.json(indent=4, by_alias=True))
-            else:
-                path.write_text(self.tokens_page.json(indent=4, by_alias=True))
+            path.write_text(self.tokens_page.json(indent=4, by_alias=True))
 
     def export_annotations(self, path: Path):
         if self.badgerdoc_annotation:

@@ -13,8 +13,7 @@ from src.label_studio_to_badgerdoc.models.bd_tokens_model import Pages
 
 
 class PlainPDFToBadgerdocTokensConverter:
-    def __init__(self):
-        self.offset = 0
+    offset = 0
 
     @staticmethod
     def line_tokens_amount(line) -> int:
@@ -35,18 +34,20 @@ class PlainPDFToBadgerdocTokensConverter:
                 self.offset += 1
         return tokens
 
+    def convert_page(self, page):
+        tokens = []
+        for element in page:
+            if isinstance(element, LTTextBoxHorizontal):
+                for line in element:
+                    if isinstance(line, LTTextLineHorizontal):
+                        tokens.extend(self.convert_line(line))
+        page_size = PageSize(width=page.width, height=page.width)
+        return Page(page_num=page.pageid, size=page_size, objs=tokens)
+
     def convert(self, plain_pfd) -> Pages:
-        pages = []
         with open(plain_pfd, mode="rb") as pdf_obj:
-            for page in extract_pages(pdf_obj):
-                tokens = []
-                for element in page:
-                    if isinstance(element, LTTextBoxHorizontal):
-                        for line in element:
-                            if isinstance(line, LTTextLineHorizontal):
-                                tokens.extend(self.convert_line(line))
-                page_size = PageSize(width=page.width, height=page.width)
-                pages.append(
-                    Page(page_num=page.pageid, size=page_size, objs=tokens)
-                )
+            pages = [
+                self.convert_page(page) for page in extract_pages(pdf_obj)
+            ]
+
         return Pages(pages=pages)

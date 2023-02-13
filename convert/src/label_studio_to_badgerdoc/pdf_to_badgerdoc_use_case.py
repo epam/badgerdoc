@@ -8,8 +8,9 @@ from src.label_studio_to_badgerdoc.models import S3Path
 
 
 class PDFToBDConvertUseCase:
+    badgerdoc_format = BadgerdocFormat()
+
     def __init__(self, s3_client) -> None:
-        self.badgerdoc_format = BadgerdocFormat()
         self.s3_client = s3_client
 
     def execute(
