@@ -25,7 +25,7 @@ class TextWrapper:
     """
 
     # textwrap.TextWrapper is not suitable, because we need to convert
-    # it back to Vertex. Therefore, we need full control of process.
+    # it back to LabelStudio. Therefore, we need full control of process.
 
     def __init__(self, line_length: int) -> None:
         self.line_length = line_length
