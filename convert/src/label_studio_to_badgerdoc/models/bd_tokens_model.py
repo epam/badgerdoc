@@ -27,7 +27,3 @@ class Page(BaseModel):
     page_num: int = Field(..., example=1)
     size: PageSize
     objs: List[BadgerdocToken]
-
-
-class Pages(BaseModel):
-    pages: List[Page]

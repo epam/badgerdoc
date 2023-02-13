@@ -9,11 +9,11 @@ from src.label_studio_to_badgerdoc.models import (
     Page,
     PageSize,
 )
-from src.label_studio_to_badgerdoc.models.bd_tokens_model import Pages
 
 
 class PlainPDFToBadgerdocTokensConverter:
     offset = 0
+    page_size = None
 
     @staticmethod
     def line_tokens_amount(line) -> int:
@@ -36,18 +36,17 @@ class PlainPDFToBadgerdocTokensConverter:
 
     def convert_page(self, page):
         tokens = []
+        self.page_size = PageSize(width=page.width, height=page.height)
         for element in page:
             if isinstance(element, LTTextBoxHorizontal):
                 for line in element:
                     if isinstance(line, LTTextLineHorizontal):
                         tokens.extend(self.convert_line(line))
-        page_size = PageSize(width=page.width, height=page.width)
-        return Page(page_num=page.pageid, size=page_size, objs=tokens)
+        return tokens
 
-    def convert(self, plain_pfd) -> Pages:
+    def convert(self, plain_pfd) -> Page:
         with open(plain_pfd, mode="rb") as pdf_obj:
-            pages = [
-                self.convert_page(page) for page in extract_pages(pdf_obj)
-            ]
-
-        return Pages(pages=pages)
+            objs = []
+            for page in extract_pages(pdf_obj):
+                objs.extend(self.convert_page(page))
+            return Page(page_num=1, objs=objs, size=self.page_size)
