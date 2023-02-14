@@ -313,9 +313,7 @@ class FileConverter:
         Checks if file format is in the available conversion formats.
         """
         try:
-            if self.ext == ".txt":
-                self.converted_file = self.convert_txt()
-            if self.ext == ".html":
+            if self.ext in (".txt", ".html"):
                 self.converted_file = self.convert_html()
             if self.ext in settings.gotenberg_formats:
                 self.converted_file = self.convert_to_pdf()
