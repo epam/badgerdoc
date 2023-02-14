@@ -16,10 +16,13 @@ class PlainPDFToBadgerdocTokensConverter:
         self.offset = 0
         self.page_size = None
 
-    @staticmethod
-    def line_tokens_amount(line) -> int:
-        token_size = line.font_width
-        return (line.page_width - line.page_border_offset * 2) // token_size
+    def get_bbox(self, char: LTChar) -> tuple:
+        return (
+            char.x0,
+            self.page_size.height - char.y1,
+            char.x1,
+            self.page_size.height - char.y0,
+        )
 
     def convert_line(self, line: LTTextLineHorizontal) -> List[BadgerdocToken]:
         tokens = []
@@ -27,7 +30,7 @@ class PlainPDFToBadgerdocTokensConverter:
             if isinstance(char, LTChar):
                 tokens.append(
                     BadgerdocToken(
-                        bbox=char.bbox,
+                        bbox=self.get_bbox(char),
                         text=char.get_text(),
                         offset=Offset(begin=self.offset, end=self.offset + 1),
                     )
