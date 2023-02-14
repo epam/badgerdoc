@@ -12,8 +12,9 @@ from src.label_studio_to_badgerdoc.models import (
 
 
 class PlainPDFToBadgerdocTokensConverter:
-    offset = 0
-    page_size = None
+    def __init__(self):
+        self.offset = 0
+        self.page_size = None
 
     @staticmethod
     def line_tokens_amount(line) -> int:
