@@ -1,7 +1,9 @@
 import collections
 import string
 
-from src.vertex_to_bd.badgerdoc_format.plain_text_converter import TextWrapper
+from src.label_studio_to_badgerdoc.badgerdoc_format.plain_text_converter import (  # noqa: E501
+    TextWrapper,
+)
 
 
 def test_pop_beginning_whitespaces_text_begin_with_whitespaces():
