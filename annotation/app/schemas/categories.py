@@ -11,21 +11,8 @@ class CategoryTypeSchema(str, Enum):
 
 
 class CategoryDataAttributeNames(str, Enum):
-    taxonomy_id: str = "taxonomy_id"
-    taxonomy_version: Optional[str] = "taxonomy_version"
-
-    @classmethod
-    def validate_schema(cls, schema: dict) -> bool:
-        if not schema:
-            return False
-
-        for attr in schema:
-            if attr not in cls.__members__.keys():
-                return False
-
-        if not schema.get("taxonomy_id"):
-            return False
-        return True
+    taxonomy_id = 'taxonomy_id'
+    taxonomy_version = 'taxonomy_version'
 
 
 class CategoryBaseSchema(BaseModel):

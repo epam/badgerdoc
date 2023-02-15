@@ -18,11 +18,8 @@ from app.schemas import (
 )
 from app.tags import TAXONOMY_TAG
 from app.taxonomy.services import (
-    batch_latest_taxonomies,
-    batch_versioned_taxonomies,
-    bulk_create_relations_with_categories,
-    bulk_delete_category_association,
     create_new_relation_to_job,
+    create_new_relation_with_category,
     create_taxonomy_instance,
     delete_taxonomy_instance,
     get_latest_taxonomy,
@@ -158,61 +155,31 @@ def associate_taxonomy_to_job(
 @router.post(
     "/link_category",
     status_code=status.HTTP_201_CREATED,
-    response_model=List[CategoryLinkSchema],
+    response_model=TaxonomyResponseSchema,
     responses={
         400: {"model": BadRequestErrorSchema},
     },
     summary="Creates association between taxonomy and category.",
 )
 def associate_taxonomy_to_category(
-    category_links: List[CategoryLinkSchema],
+    query: CategoryLinkSchema,
     session: Session = Depends(get_db),
-) -> List[CategoryLinkSchema]:
-    versions = []
-    latests = []
-
-    for category_link in category_links:
-        if category_link.taxonomy_version:
-            versions.append(category_link)
-        else:
-            latests.append(category_link)
-
-    taxonomies: dict = batch_versioned_taxonomies(session, versions)
-    taxonomies.update(batch_latest_taxonomies(session, latests))
-
-    not_found_taxonomies = [
-        link.taxonomy_id
-        for link in versions + latests
-        if link.taxonomy_id not in taxonomies
-    ]
-    if not_found_taxonomies:
+):
+    if query.taxonomy_version:
+        taxonomy = get_taxonomy(
+            session, (query.taxonomy_id, query.taxonomy_version)
+        )
+    else:
+        taxonomy = get_latest_taxonomy(session, query.taxonomy_id)
+    if not taxonomy:
         LOGGER.error(
-            "associate_taxonomy_to_category get not existing ids %s",
-            not_found_taxonomies,
+            "associate_taxonomy_to_category get not existing id %s",
+            query.taxonomy_id,
         )
-        raise HTTPException(
-            status_code=404,
-            detail="Taxonomy does not exist.",
-        )
+        raise HTTPException(status_code=404, detail="Not existing taxonomy")
 
-    bulk_create_relations_with_categories(session, taxonomies, category_links)
-    return category_links
-
-
-@router.delete(
-    "/link_category/{category_id}",
-    status_code=status.HTTP_204_NO_CONTENT,
-    responses={
-        404: {"model": NotFoundErrorSchema},
-    },
-    summary="Deletes association between taxonomy and category.",
-)
-def delete_category_link(
-    category_id: str = Path(..., example="1"),
-    session: Session = Depends(get_db),
-) -> Response:
-    bulk_delete_category_association(session, category_id)
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
+    create_new_relation_with_category(session, taxonomy, query.category_id)
+    return TaxonomyResponseSchema.from_orm(taxonomy)
 
 
 @router.get(
