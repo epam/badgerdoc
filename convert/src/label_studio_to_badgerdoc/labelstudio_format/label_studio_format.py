@@ -108,8 +108,6 @@ class LabelStudioFormat:
                     labels=[obj.category],
                 ),
             )
-            # taxon_value = [taxon_attr['value'] for taxon_attr in obj.data.dataAttributes]
-            # item.value.taxons = [taxon_value[0] if taxon_value else None for label in item.value.labels]
             if obj.data.dataAttributes:
                 item.value.taxons = [
                     obj.data.dataAttributes[0]["value"],
