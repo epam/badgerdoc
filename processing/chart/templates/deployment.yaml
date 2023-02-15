@@ -72,7 +72,7 @@ spec:
               name: processing
               key: MINIO_ROOT_PASSWORD
         command: ["/bin/bash"]
-        args: ["-c", "alembic upgrade head && uvicorn src.main:app --host 0.0.0.0 --port 8080 --root-path /api/v1/processing"]
+        args: ["-c", "alembic upgrade head && uvicorn users.main:app --host 0.0.0.0 --port 8080 --root-path /api/v1/processing"]
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler

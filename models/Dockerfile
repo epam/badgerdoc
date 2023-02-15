@@ -48,11 +48,11 @@ RUN isort --profile=black --line-length=79 .
 
 RUN black --line-length=79 .
 
-RUN mypy --ignore-missing-imports --scripts-are-modules --allow-untyped-decorators --strict  --no-strict-optional src/
+RUN mypy --ignore-missing-imports --scripts-are-modules --allow-untyped-decorators --strict  --no-strict-optional users/
 
-RUN pylint --max-line-length=79 --errors-only --disable=E0401,E0611 src/
+RUN pylint --max-line-length=79 --errors-only --disable=E0401,E0611 users/
 
-RUN python3 -m pytest --cov=src tests/ -m "not integration"
+RUN python3 -m pytest --cov=users tests/ -m "not integration"
 
 FROM sonarsource/sonar-scanner-cli:4.6 AS sonar
 

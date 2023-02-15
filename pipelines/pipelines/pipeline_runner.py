@@ -5,8 +5,8 @@ from typing import Any
 import aiokafka
 from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
 
-from src import execution, schemas
-from src.log import get_logger
+from pipelines import execution, schemas
+from pipelines.log import get_logger
 
 logger = get_logger(__file__)
 

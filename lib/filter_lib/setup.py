@@ -21,7 +21,7 @@ setup(
     author="Roman Kuzianov",
     author_email="Roman_Kuzianov@epam.com",
     packages=["filter_lib"],
-    package_dir={"filter_lib": "src"},
+    package_dir={"filter_lib": "users"},
     install_requires=get_requirements("requirements.txt"),
     extras_require={"dev": get_requirements("requirements-dev.txt")},
 )

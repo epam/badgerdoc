@@ -3,7 +3,7 @@ FROM ${base_image} as build
 
 WORKDIR /opt/pipeline_executor
 
-COPY src src
+COPY pipelines src
 COPY alembic alembic
 COPY alembic.ini wait-for-it.sh .env requirements.txt version.txt setup.py ./
 
@@ -23,7 +23,7 @@ CMD isort src --check && black src -l 79 --check && mypy src && pylint --rcfile=
 
 FROM sonarsource/sonar-scanner-cli:4.6 AS sonar
 
-COPY src /sonar/src
+COPY pipelines /sonar/src
 COPY alembic /sonar/alembic
 COPY tests /sonar/tests
 COPY sonar-project.properties /sonar/sonar-project.properties

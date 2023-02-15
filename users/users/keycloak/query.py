@@ -1,11 +1,11 @@
 from typing import Any, Dict, List, TypedDict, Union
 
 import aiohttp
-import src.config as config
-import src.keycloak.resources as resources
-import src.keycloak.schemas as schemas
+import users.config as config
+import users.keycloak.resources as resources
+import users.keycloak.schemas as schemas
 from fastapi import HTTPException, status
-from src.logger import logger
+from users.logger import logger
 
 
 class AuthData(TypedDict):

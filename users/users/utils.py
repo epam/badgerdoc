@@ -1,8 +1,8 @@
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
-import src.minio_storage as ms
-from src.config import KEYCLOAK_ENDPOINT
+import users.minio_storage as ms
+from users.config import KEYCLOAK_ENDPOINT
 
 minio_client = ms.get_minio_client()
 

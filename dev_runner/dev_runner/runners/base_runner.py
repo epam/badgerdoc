@@ -6,6 +6,7 @@ from importlib import import_module
 from uvicorn.config import Config
 from uvicorn.server import Server
 from uvicorn.supervisors import ChangeReload, Multiprocess
+import logging
 
 ROOT_PATH = Path(__file__).parent.parent.parent.parent
 
@@ -85,11 +86,16 @@ class BaseRunner(metaclass=RunnerRegistry):
         os.environ.update(db_credentials)
 
     def create_server(self):
-        print(f"Starting {self.PACKAGE_NAME} on port {self.PORT}")
+        logging.debug(f"[{self.__class__.__name__}]Starting {self.PACKAGE_NAME} on port {self.PORT}")
         self.setup_env()
-        sys.path.append(str(ROOT_PATH / self.PACKAGE_NAME))
-        app = import_module(f"{self.APP_NAME}.{self.MODULE_NAME}").app
-        sys.path = sys.path[:-1]
+        package_path = str(ROOT_PATH / self.PACKAGE_NAME)
+        sys.path.append(package_path)
+        try:
+            app = import_module(f"{self.APP_NAME}.{self.MODULE_NAME}").app
+        except ModuleNotFoundError as e:
+            logging.error(f"[{self.__class__.__name__}]: Module {self.APP_NAME}.{self.MODULE_NAME} not found")
+            raise e
+        sys.path.remove(package_path)
 
         config = Config(app, host=self.HOST, port=self.PORT, reload=True)  # TODO: check additional folders for reloading
         server = Server(config=config)

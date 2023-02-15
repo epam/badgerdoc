@@ -21,7 +21,7 @@ setup(
     author="Roman Kuzianov",
     author_email="Roman_Kuzianov@epam.com",
     packages=["tenant_dependency"],
-    package_dir={"tenant_dependency": "src"},
+    package_dir={"tenant_dependency": "users"},
     install_requires=get_requirements("requirements.txt"),
     extras_require={"dev": get_requirements("requirements-dev.txt")},
 )

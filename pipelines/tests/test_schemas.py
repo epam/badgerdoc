@@ -1,4 +1,4 @@
-"""Testing src/schemas.py."""
+"""Testing users/schemas.py."""
 
 import pytest
 

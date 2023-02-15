@@ -7,8 +7,8 @@ from pydantic import AnyUrl
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
-import src.db.models as dbm
-from src import config, execution, log, schemas
+import pipelines.db.models as dbm
+from pipelines import config, execution, log, schemas
 
 logger = log.get_logger(__file__)
 

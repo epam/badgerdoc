@@ -26,10 +26,10 @@ RUN pip install poetry \
 COPY src/ src/
 COPY tests/ tests/
 RUN pytest -m "not integration" \
-    && black --check src/ && echo "black passed" \
-    && isort --check src/ && echo "isort passed" \
-    && pylint src/ && echo "pylint passed" \
-    && mypy src/ && echo "mypy passed"
+    && black --check users/ && echo "black passed" \
+    && isort --check users/ && echo "isort passed" \
+    && pylint users/ && echo "pylint passed" \
+    && mypy users/ && echo "mypy passed"
 CMD ["/bin/bash"]
 
 FROM sonarsource/sonar-scanner-cli:4.6 AS sonar

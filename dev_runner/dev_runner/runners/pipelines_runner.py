@@ -5,7 +5,7 @@ from dev_runner.conf import settings
 class PipelinesRunner(BaseRunner):
     PACKAGE_NAME = "pipelines"
     PORT = settings.PIPELINES_PORT
-    APP_NAME = "src"
+    APP_NAME = "pipelines"
     MODULE_NAME = "app"
     DB_CREDENTIALS = {
         "POSTGRES_DB": "pipelines",

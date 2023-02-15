@@ -1,6 +1,6 @@
 from typing import Optional
 
-import src.config as config
+import users.config as config
 from minio import Minio
 
 

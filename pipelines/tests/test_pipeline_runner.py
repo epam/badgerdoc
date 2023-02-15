@@ -1,4 +1,4 @@
-# """Testing src/pipeline_runner.py."""
+# """Testing users/pipeline_runner.py."""
 import logging
 from unittest.mock import patch
 
@@ -80,9 +80,9 @@ def test_response_message_incorrect(caplog):
     )
 
 
-@patch("src.execution.PipelineTask.get_by_id")
-@patch("src.execution.ExecutionStep.get_by_id")
-@patch("src.execution.ExecutionStep.process_next_steps")
+@patch("users.execution.PipelineTask.get_by_id")
+@patch("users.execution.ExecutionStep.get_by_id")
+@patch("users.execution.ExecutionStep.process_next_steps")
 @pytest.mark.asyncio
 async def test_process_message_task_not_finished(
     process_next_steps, get_step, get_task, testing_app
@@ -141,9 +141,9 @@ async def test_process_message_task_not_finished(
     assert process_next_steps.called
 
 
-@patch("src.execution.PipelineTask.get_by_id")
-@patch("src.execution.ExecutionStep.get_by_id")
-@patch("src.execution.PipelineTask.finish")
+@patch("users.execution.PipelineTask.get_by_id")
+@patch("users.execution.ExecutionStep.get_by_id")
+@patch("users.execution.PipelineTask.finish")
 @pytest.mark.asyncio
 async def test_process_message_task_finished(
     finish_task, get_step, get_task, testing_app
@@ -202,9 +202,9 @@ async def test_process_message_task_finished(
     assert finish_task.called
 
 
-@patch("src.execution.PipelineTask.get_by_id")
-@patch("src.execution.ExecutionStep.get_by_id")
-@patch("src.execution.PipelineTask.finish")
+@patch("users.execution.PipelineTask.get_by_id")
+@patch("users.execution.ExecutionStep.get_by_id")
+@patch("users.execution.PipelineTask.finish")
 @pytest.mark.asyncio
 async def test_process_message_task_failed(
     finish_task, get_step, get_task, testing_app, caplog
@@ -255,7 +255,7 @@ async def test_process_message_task_failed(
     assert finish_task.called
 
 
-@patch("src.pipeline_runner.process_message")
+@patch("users.pipeline_runner.process_message")
 @pytest.mark.asyncio
 async def test_run_pipeline(process_message, caplog):
     message_1 = KafkaMessage.parse_obj(

@@ -1,4 +1,4 @@
-"""Testing src/db/service.py."""
+"""Testing users/db/service.py."""
 
 import datetime
 import uuid

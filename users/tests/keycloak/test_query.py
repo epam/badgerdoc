@@ -1,4 +1,4 @@
-"""Testing src/keycloak/query.py."""
+"""Testing users/keycloak/query.py."""
 import json
 from unittest.mock import patch, create_autospec
 
@@ -10,7 +10,7 @@ import src.keycloak.schemas as schemas
 
 @pytest.fixture
 def request_mock():
-    with patch("src.keycloak.query.aiohttp.request") as mock:
+    with patch("users.keycloak.query.aiohttp.request") as mock:
         yield mock
 
 

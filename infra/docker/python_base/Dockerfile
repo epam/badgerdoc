@@ -12,15 +12,15 @@ RUN pip install virtualenv
 WORKDIR /opt/filter_lib
 RUN python3 -m venv env
 RUN . env/bin/activate && pip install -r requirements.txt \
-    && pip install -r requirements-dev.txt && isort src --check \
-    && black src --check && mypy src && pylint src \
+    && pip install -r requirements-dev.txt && isort users --check \
+    && black users --check && mypy users && pylint users \
     && pytest -vv --cov --cov-report=xml && deactivate
 
 WORKDIR /opt/tenant_dependency
 RUN python3 -m venv env
 RUN . env/bin/activate && pip install -r requirements.txt \
-    && pip install -r requirements-dev.txt && isort src --check \
-    && black src --check && mypy src && pylint src \
+    && pip install -r requirements-dev.txt && isort users --check \
+    && black users --check && mypy users && pylint users \
     && pytest -vv --cov --cov-report=xml && deactivate
 
 FROM base AS build

@@ -400,3 +400,1672 @@ asyncio.exceptions.CancelledError
 [15-02-2023 16:24:12] - [uvicorn.error] - [INFO] - Waiting for application shutdown.
 [15-02-2023 16:24:12] - [uvicorn.error] - [INFO] - Application shutdown complete.
 [15-02-2023 16:24:12] - [uvicorn.error] - [INFO] - Finished server process [[36m30491[0m]
+[15-02-2023 16:49:19] - [/Users/yarnaid/projects/badgerdoc/processing/src/utils/minio_utils.py] - [INFO] - MinIO client for localhost:9000 was created successfully
+[15-02-2023 16:49:19] - [uvicorn.error] - [INFO] - Started server process [[36m34908[0m]
+[15-02-2023 16:49:19] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 16:49:19] - [uvicorn.error] - [INFO] - Started server process [[36m34908[0m]
+[15-02-2023 16:49:19] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 16:49:19] - [uvicorn.error] - [INFO] - Started server process [[36m34908[0m]
+[15-02-2023 16:49:19] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 16:49:19] - [root] - [ERROR] - [PipelinesRunner]: Module src.app not found
+[15-02-2023 16:49:19] - [uvicorn.error] - [INFO] - Started server process [[36m34908[0m]
+[15-02-2023 16:49:19] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 16:49:19] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 16:49:19] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 16:49:19] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 16:49:19] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 16:49:19] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 16:49:19] - [asyncio] - [ERROR] - Task exception was never retrieved
+future: <Task finished name='Task-7' coro=<BaseRunner.run_app_async() done, defined at /Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py:118> exception=ModuleNotFoundError("No module named 'src.app'")>
+Traceback (most recent call last):
+  File "/Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py", line 119, in run_app_async
+    await self.create_server().serve()
+  File "/Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py", line 98, in create_server
+    raise e
+  File "/Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py", line 95, in create_server
+    app = import_module(f"{self.APP_NAME}.{self.MODULE_NAME}").app
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/importlib/__init__.py", line 127, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1030, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1007, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 984, in _find_and_load_unlocked
+ModuleNotFoundError: No module named 'src.app'
+[15-02-2023 16:49:19] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 16:49:19] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 16:49:19] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 16:49:19] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 16:49:19] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 16:49:19] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 16:49:46] - [/Users/yarnaid/projects/badgerdoc/processing/src/utils/minio_utils.py] - [INFO] - MinIO client for localhost:9000 was created successfully
+[15-02-2023 16:49:46] - [uvicorn.error] - [INFO] - Started server process [[36m35076[0m]
+[15-02-2023 16:49:46] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 16:49:46] - [uvicorn.error] - [INFO] - Started server process [[36m35076[0m]
+[15-02-2023 16:49:46] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 16:49:46] - [root] - [ERROR] - [PipelinesRunner]: Module src.app not found
+[15-02-2023 16:49:46] - [uvicorn.error] - [INFO] - Started server process [[36m35076[0m]
+[15-02-2023 16:49:46] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 16:49:46] - [uvicorn.error] - [INFO] - Started server process [[36m35076[0m]
+[15-02-2023 16:49:46] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 16:49:46] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 16:49:46] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 16:49:46] - [asyncio] - [ERROR] - Task exception was never retrieved
+future: <Task finished name='Task-4' coro=<BaseRunner.run_app_async() done, defined at /Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py:118> exception=ModuleNotFoundError("No module named 'src.app'")>
+Traceback (most recent call last):
+  File "/Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py", line 119, in run_app_async
+    await self.create_server().serve()
+  File "/Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py", line 98, in create_server
+    raise e
+  File "/Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py", line 95, in create_server
+    app = import_module(f"{self.APP_NAME}.{self.MODULE_NAME}").app
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/importlib/__init__.py", line 127, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1030, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1007, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 984, in _find_and_load_unlocked
+ModuleNotFoundError: No module named 'src.app'
+[15-02-2023 16:49:46] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 16:49:46] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 16:49:46] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 16:49:46] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 16:49:53] - [/Users/yarnaid/projects/badgerdoc/processing/src/utils/minio_utils.py] - [INFO] - MinIO client for localhost:9000 was created successfully
+[15-02-2023 16:49:53] - [uvicorn.error] - [INFO] - Started server process [[36m35124[0m]
+[15-02-2023 16:49:53] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 16:49:53] - [root] - [ERROR] - [PipelinesRunner]: Module src.app not found
+[15-02-2023 16:49:54] - [uvicorn.error] - [INFO] - Started server process [[36m35124[0m]
+[15-02-2023 16:49:54] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 16:49:54] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 16:49:54] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 16:49:54] - [asyncio] - [ERROR] - Task exception was never retrieved
+future: <Task finished name='Task-4' coro=<BaseRunner.run_app_async() done, defined at /Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py:118> exception=ModuleNotFoundError("No module named 'src.app'")>
+Traceback (most recent call last):
+  File "/Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py", line 119, in run_app_async
+    await self.create_server().serve()
+  File "/Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py", line 98, in create_server
+    raise e
+  File "/Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py", line 95, in create_server
+    app = import_module(f"{self.APP_NAME}.{self.MODULE_NAME}").app
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/importlib/__init__.py", line 127, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1030, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1007, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 984, in _find_and_load_unlocked
+ModuleNotFoundError: No module named 'src.app'
+[15-02-2023 16:49:54] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 16:49:54] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 16:49:54] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:10:13] - [/Users/yarnaid/projects/badgerdoc/processing/src/utils/minio_utils.py] - [INFO] - MinIO client for localhost:9000 was created successfully
+[15-02-2023 17:10:13] - [uvicorn.error] - [INFO] - Started server process [[36m38930[0m]
+[15-02-2023 17:10:13] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:10:13] - [uvicorn.error] - [INFO] - Started server process [[36m38930[0m]
+[15-02-2023 17:10:13] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:10:13] - [uvicorn.error] - [INFO] - Started server process [[36m38930[0m]
+[15-02-2023 17:10:13] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:10:14] - [aiocache.serializers.serializers] - [WARNING] - ujson module not found, using json
+[15-02-2023 17:10:14] - [uvicorn.error] - [INFO] - Started server process [[36m38930[0m]
+[15-02-2023 17:10:14] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:10:14] - [uvicorn.error] - [INFO] - Started server process [[36m38930[0m]
+[15-02-2023 17:10:14] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:10:14] - [uvicorn.error] - [INFO] - Started server process [[36m38930[0m]
+[15-02-2023 17:10:14] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:10:14] - [uvicorn.error] - [INFO] - Started server process [[36m38930[0m]
+[15-02-2023 17:10:14] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:10:14] - [uvicorn.error] - [INFO] - Started server process [[36m38930[0m]
+[15-02-2023 17:10:14] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:10:15] - [search] - [INFO] - Topic search already exists
+[15-02-2023 17:10:15] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 17:10:15] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 17:10:15] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 17:10:15] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 17:10:15] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 17:10:15] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 17:10:15] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 17:10:15] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 17:10:15] - [uvicorn.error] - [INFO] - Uvicorn running on [1mhttp://localhost:8006[0m (Press CTRL+C to quit)
+[15-02-2023 17:10:15] - [uvicorn.error] - [INFO] - Uvicorn running on [1mhttp://localhost:8003[0m (Press CTRL+C to quit)
+[15-02-2023 17:10:15] - [uvicorn.error] - [INFO] - Uvicorn running on [1mhttp://localhost:8008[0m (Press CTRL+C to quit)
+[15-02-2023 17:10:15] - [uvicorn.error] - [INFO] - Uvicorn running on [1mhttp://localhost:8004[0m (Press CTRL+C to quit)
+[15-02-2023 17:10:15] - [uvicorn.error] - [INFO] - Uvicorn running on [1mhttp://localhost:8001[0m (Press CTRL+C to quit)
+[15-02-2023 17:10:15] - [uvicorn.error] - [INFO] - Uvicorn running on [1mhttp://localhost:8002[0m (Press CTRL+C to quit)
+[15-02-2023 17:10:15] - [uvicorn.error] - [INFO] - Uvicorn running on [1mhttp://localhost:8009[0m (Press CTRL+C to quit)
+[15-02-2023 17:10:15] - [uvicorn.error] - [INFO] - Uvicorn running on [1mhttp://localhost:8000[0m (Press CTRL+C to quit)
+[15-02-2023 17:10:18] - [uvicorn.error] - [INFO] - Shutting down
+[15-02-2023 17:10:18] - [uvicorn.error] - [INFO] - Waiting for application shutdown.
+[15-02-2023 17:10:18] - [uvicorn.error] - [INFO] - Application shutdown complete.
+[15-02-2023 17:10:18] - [uvicorn.error] - [INFO] - Finished server process [[36m38930[0m]
+[15-02-2023 17:10:18] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:10:18] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:10:18] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:10:18] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:10:18] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:10:18] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:10:18] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:10:38] - [/Users/yarnaid/projects/badgerdoc/processing/src/utils/minio_utils.py] - [INFO] - MinIO client for localhost:9000 was created successfully
+[15-02-2023 17:10:38] - [uvicorn.error] - [INFO] - Started server process [[36m39370[0m]
+[15-02-2023 17:10:38] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:10:38] - [uvicorn.error] - [INFO] - Started server process [[36m39370[0m]
+[15-02-2023 17:10:38] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:10:38] - [uvicorn.error] - [INFO] - Started server process [[36m39370[0m]
+[15-02-2023 17:10:38] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:10:38] - [uvicorn.error] - [INFO] - Started server process [[36m39370[0m]
+[15-02-2023 17:10:38] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:10:38] - [root] - [ERROR] - [PipelinesRunner]: Module src.app not found
+[15-02-2023 17:10:38] - [uvicorn.error] - [INFO] - Started server process [[36m39370[0m]
+[15-02-2023 17:10:38] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:10:38] - [uvicorn.error] - [INFO] - Started server process [[36m39370[0m]
+[15-02-2023 17:10:38] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:10:38] - [aiocache.serializers.serializers] - [WARNING] - ujson module not found, using json
+[15-02-2023 17:10:38] - [uvicorn.error] - [INFO] - Started server process [[36m39370[0m]
+[15-02-2023 17:10:38] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:10:38] - [uvicorn.error] - [INFO] - Started server process [[36m39370[0m]
+[15-02-2023 17:10:38] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:10:39] - [search] - [INFO] - Topic search already exists
+[15-02-2023 17:10:39] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 17:10:39] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 17:10:39] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 17:10:39] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 17:10:39] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 17:10:39] - [asyncio] - [ERROR] - Task exception was never retrieved
+future: <Task finished name='Task-8' coro=<BaseRunner.run_app_async() done, defined at /Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py:117> exception=ModuleNotFoundError("No module named 'src.app'")>
+Traceback (most recent call last):
+  File "/Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py", line 118, in run_app_async
+    await self.create_server().serve()
+  File "/Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py", line 97, in create_server
+    raise e
+  File "/Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py", line 94, in create_server
+    app = import_module(f"{self.APP_NAME}.{self.MODULE_NAME}").app
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/importlib/__init__.py", line 127, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1030, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1007, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 984, in _find_and_load_unlocked
+ModuleNotFoundError: No module named 'src.app'
+[15-02-2023 17:10:39] - [asyncio] - [ERROR] - Task exception was never retrieved
+future: <Task finished name='Task-7' coro=<BaseRunner.run_app_async() done, defined at /Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py:117> exception=ValueError("Unknown level: '10'")>
+Traceback (most recent call last):
+  File "/Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py", line 118, in run_app_async
+    await self.create_server().serve()
+  File "/Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py", line 94, in create_server
+    app = import_module(f"{self.APP_NAME}.{self.MODULE_NAME}").app
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/importlib/__init__.py", line 127, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1030, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1007, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 986, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 680, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 850, in exec_module
+  File "<frozen importlib._bootstrap>", line 228, in _call_with_frames_removed
+  File "/Users/yarnaid/projects/badgerdoc/scheduler/scheduler/app.py", line 6, in <module>
+    from scheduler.db import service
+  File "/Users/yarnaid/projects/badgerdoc/scheduler/scheduler/db/service.py", line 8, in <module>
+    from scheduler import config, unit
+  File "/Users/yarnaid/projects/badgerdoc/scheduler/scheduler/unit.py", line 14, in <module>
+    logger = log.get_logger(__name__)
+  File "/Users/yarnaid/projects/badgerdoc/scheduler/scheduler/log.py", line 28, in get_logger
+    logger.addHandler(_get_stream_handler())
+  File "/Users/yarnaid/projects/badgerdoc/scheduler/scheduler/log.py", line 18, in _get_stream_handler
+    stream_handler.setLevel(config.LOG_LEVEL)
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/logging/__init__.py", line 914, in setLevel
+    self.level = _checkLevel(level)
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/logging/__init__.py", line 198, in _checkLevel
+    raise ValueError("Unknown level: %r" % level)
+ValueError: Unknown level: '10'
+[15-02-2023 17:10:39] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:10:39] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:10:39] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:10:39] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:10:39] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:10:39] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:10:39] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:10:39] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:10:39] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:10:39] - [asyncio] - [ERROR] - Unclosed AIOKafkaConsumer
+consumer: <aiokafka.consumer.consumer.AIOKafkaConsumer object at 0x108d6c310>
+[15-02-2023 17:19:39] - [/Users/yarnaid/projects/badgerdoc/processing/src/utils/minio_utils.py] - [INFO] - MinIO client for localhost:9000 was created successfully
+[15-02-2023 17:19:39] - [uvicorn.error] - [INFO] - Started server process [[36m41181[0m]
+[15-02-2023 17:19:39] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:19:39] - [uvicorn.error] - [INFO] - Started server process [[36m41181[0m]
+[15-02-2023 17:19:39] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:19:39] - [uvicorn.error] - [INFO] - Started server process [[36m41181[0m]
+[15-02-2023 17:19:39] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:19:39] - [uvicorn.error] - [INFO] - Started server process [[36m41181[0m]
+[15-02-2023 17:19:39] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:19:39] - [uvicorn.error] - [INFO] - Started server process [[36m41181[0m]
+[15-02-2023 17:19:39] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:19:39] - [uvicorn.error] - [INFO] - Started server process [[36m41181[0m]
+[15-02-2023 17:19:39] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:19:40] - [aiocache.serializers.serializers] - [WARNING] - ujson module not found, using json
+[15-02-2023 17:19:40] - [uvicorn.error] - [INFO] - Started server process [[36m41181[0m]
+[15-02-2023 17:19:40] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:19:40] - [uvicorn.error] - [INFO] - Started server process [[36m41181[0m]
+[15-02-2023 17:19:40] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:19:40] - [search] - [INFO] - Topic search already exists
+[15-02-2023 17:19:40] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 17:19:40] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 17:19:40] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 17:19:40] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 17:19:40] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 17:19:40] - [asyncio] - [ERROR] - Task exception was never retrieved
+future: <Task finished name='Task-8' coro=<BaseRunner.run_app_async() done, defined at /Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py:117> exception=ValueError("Unknown level: '10'")>
+Traceback (most recent call last):
+  File "/Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py", line 118, in run_app_async
+    await self.create_server().serve()
+  File "/Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py", line 94, in create_server
+    app = import_module(f"{self.APP_NAME}.{self.MODULE_NAME}").app
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/importlib/__init__.py", line 127, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1030, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1007, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 986, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 680, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 850, in exec_module
+  File "<frozen importlib._bootstrap>", line 228, in _call_with_frames_removed
+  File "/Users/yarnaid/projects/badgerdoc/pipelines/pipelines/app.py", line 12, in <module>
+    import pipelines.db.models as dbm
+  File "/Users/yarnaid/projects/badgerdoc/pipelines/pipelines/db/__init__.py", line 1, in <module>
+    import pipelines.db.logger
+  File "/Users/yarnaid/projects/badgerdoc/pipelines/pipelines/db/logger.py", line 8, in <module>
+    import pipelines.db.service as service
+  File "/Users/yarnaid/projects/badgerdoc/pipelines/pipelines/db/service.py", line 11, in <module>
+    from pipelines import config, execution, log, schemas
+  File "/Users/yarnaid/projects/badgerdoc/pipelines/pipelines/execution.py", line 19, in <module>
+    import pipelines.result_processing as postprocessing
+  File "/Users/yarnaid/projects/badgerdoc/pipelines/pipelines/result_processing.py", line 13, in <module>
+    from pipelines import config, http_utils, log
+  File "/Users/yarnaid/projects/badgerdoc/pipelines/pipelines/http_utils.py", line 6, in <module>
+    from pipelines import config, log, schemas, service_token
+  File "/Users/yarnaid/projects/badgerdoc/pipelines/pipelines/schemas.py", line 13, in <module>
+    logger = log.get_logger(__file__)
+  File "/Users/yarnaid/projects/badgerdoc/pipelines/pipelines/log.py", line 19, in get_logger
+    logger.setLevel(LOG_LEVEL)
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/logging/__init__.py", line 1421, in setLevel
+    self.level = _checkLevel(level)
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/logging/__init__.py", line 198, in _checkLevel
+    raise ValueError("Unknown level: %r" % level)
+ValueError: Unknown level: '10'
+[15-02-2023 17:19:40] - [asyncio] - [ERROR] - Task exception was never retrieved
+future: <Task finished name='Task-7' coro=<BaseRunner.run_app_async() done, defined at /Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py:117> exception=ValueError("Unknown level: '10'")>
+Traceback (most recent call last):
+  File "/Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py", line 118, in run_app_async
+    await self.create_server().serve()
+  File "/Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py", line 94, in create_server
+    app = import_module(f"{self.APP_NAME}.{self.MODULE_NAME}").app
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/importlib/__init__.py", line 127, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1030, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1007, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 986, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 680, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 850, in exec_module
+  File "<frozen importlib._bootstrap>", line 228, in _call_with_frames_removed
+  File "/Users/yarnaid/projects/badgerdoc/scheduler/scheduler/app.py", line 6, in <module>
+    from scheduler.db import service
+  File "/Users/yarnaid/projects/badgerdoc/scheduler/scheduler/db/service.py", line 8, in <module>
+    from scheduler import config, unit
+  File "/Users/yarnaid/projects/badgerdoc/scheduler/scheduler/unit.py", line 14, in <module>
+    logger = log.get_logger(__name__)
+  File "/Users/yarnaid/projects/badgerdoc/scheduler/scheduler/log.py", line 28, in get_logger
+    logger.addHandler(_get_stream_handler())
+  File "/Users/yarnaid/projects/badgerdoc/scheduler/scheduler/log.py", line 18, in _get_stream_handler
+    stream_handler.setLevel(config.LOG_LEVEL)
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/logging/__init__.py", line 914, in setLevel
+    self.level = _checkLevel(level)
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/logging/__init__.py", line 198, in _checkLevel
+    raise ValueError("Unknown level: %r" % level)
+ValueError: Unknown level: '10'
+[15-02-2023 17:19:40] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:19:40] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:19:40] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:19:40] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:19:40] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:19:40] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:19:40] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:19:40] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:19:40] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:19:40] - [asyncio] - [ERROR] - Unclosed AIOKafkaConsumer
+consumer: <aiokafka.consumer.consumer.AIOKafkaConsumer object at 0x112b24640>
+[15-02-2023 17:21:33] - [/Users/yarnaid/projects/badgerdoc/processing/src/utils/minio_utils.py] - [INFO] - MinIO client for localhost:9000 was created successfully
+[15-02-2023 17:21:33] - [uvicorn.error] - [INFO] - Started server process [[36m41382[0m]
+[15-02-2023 17:21:33] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:21:33] - [uvicorn.error] - [INFO] - Started server process [[36m41382[0m]
+[15-02-2023 17:21:33] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:21:33] - [uvicorn.error] - [INFO] - Started server process [[36m41382[0m]
+[15-02-2023 17:21:33] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:21:33] - [uvicorn.error] - [INFO] - Started server process [[36m41382[0m]
+[15-02-2023 17:21:33] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:21:34] - [uvicorn.error] - [INFO] - Started server process [[36m41382[0m]
+[15-02-2023 17:21:34] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:21:34] - [uvicorn.error] - [INFO] - Started server process [[36m41382[0m]
+[15-02-2023 17:21:34] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:21:34] - [aiocache.serializers.serializers] - [WARNING] - ujson module not found, using json
+[15-02-2023 17:21:34] - [uvicorn.error] - [INFO] - Started server process [[36m41382[0m]
+[15-02-2023 17:21:34] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:21:34] - [uvicorn.error] - [INFO] - Started server process [[36m41382[0m]
+[15-02-2023 17:21:34] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:21:35] - [search] - [INFO] - Topic search already exists
+[15-02-2023 17:21:35] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 17:21:35] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 17:21:35] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 17:21:35] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 17:21:35] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 17:21:35] - [asyncio] - [ERROR] - Task exception was never retrieved
+future: <Task finished name='Task-7' coro=<BaseRunner.run_app_async() done, defined at /Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py:117> exception=ValueError("Unknown level: '1'")>
+Traceback (most recent call last):
+  File "/Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py", line 118, in run_app_async
+    await self.create_server().serve()
+  File "/Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py", line 94, in create_server
+    app = import_module(f"{self.APP_NAME}.{self.MODULE_NAME}").app
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/importlib/__init__.py", line 127, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1030, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1007, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 986, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 680, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 850, in exec_module
+  File "<frozen importlib._bootstrap>", line 228, in _call_with_frames_removed
+  File "/Users/yarnaid/projects/badgerdoc/scheduler/scheduler/app.py", line 6, in <module>
+    from scheduler.db import service
+  File "/Users/yarnaid/projects/badgerdoc/scheduler/scheduler/db/service.py", line 8, in <module>
+    from scheduler import config, unit
+  File "/Users/yarnaid/projects/badgerdoc/scheduler/scheduler/unit.py", line 14, in <module>
+    logger = log.get_logger(__name__)
+  File "/Users/yarnaid/projects/badgerdoc/scheduler/scheduler/log.py", line 28, in get_logger
+    logger.addHandler(_get_stream_handler())
+  File "/Users/yarnaid/projects/badgerdoc/scheduler/scheduler/log.py", line 18, in _get_stream_handler
+    stream_handler.setLevel(config.LOG_LEVEL)
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/logging/__init__.py", line 914, in setLevel
+    self.level = _checkLevel(level)
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/logging/__init__.py", line 198, in _checkLevel
+    raise ValueError("Unknown level: %r" % level)
+ValueError: Unknown level: '1'
+[15-02-2023 17:21:35] - [asyncio] - [ERROR] - Task exception was never retrieved
+future: <Task finished name='Task-12' coro=<BaseRunner.run_app_async() done, defined at /Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py:117> exception=ValueError("Unknown level: '1'")>
+Traceback (most recent call last):
+  File "/Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py", line 118, in run_app_async
+    await self.create_server().serve()
+  File "/Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py", line 94, in create_server
+    app = import_module(f"{self.APP_NAME}.{self.MODULE_NAME}").app
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/importlib/__init__.py", line 127, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1030, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1007, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 986, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 680, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 850, in exec_module
+  File "<frozen importlib._bootstrap>", line 228, in _call_with_frames_removed
+  File "/Users/yarnaid/projects/badgerdoc/pipelines/pipelines/app.py", line 12, in <module>
+    import pipelines.db.models as dbm
+  File "/Users/yarnaid/projects/badgerdoc/pipelines/pipelines/db/__init__.py", line 1, in <module>
+    import pipelines.db.logger
+  File "/Users/yarnaid/projects/badgerdoc/pipelines/pipelines/db/logger.py", line 8, in <module>
+    import pipelines.db.service as service
+  File "/Users/yarnaid/projects/badgerdoc/pipelines/pipelines/db/service.py", line 11, in <module>
+    from pipelines import config, execution, log, schemas
+  File "/Users/yarnaid/projects/badgerdoc/pipelines/pipelines/execution.py", line 19, in <module>
+    import pipelines.result_processing as postprocessing
+  File "/Users/yarnaid/projects/badgerdoc/pipelines/pipelines/result_processing.py", line 13, in <module>
+    from pipelines import config, http_utils, log
+  File "/Users/yarnaid/projects/badgerdoc/pipelines/pipelines/http_utils.py", line 6, in <module>
+    from pipelines import config, log, schemas, service_token
+  File "/Users/yarnaid/projects/badgerdoc/pipelines/pipelines/schemas.py", line 13, in <module>
+    logger = log.get_logger(__file__)
+  File "/Users/yarnaid/projects/badgerdoc/pipelines/pipelines/log.py", line 19, in get_logger
+    logger.setLevel(LOG_LEVEL)
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/logging/__init__.py", line 1421, in setLevel
+    self.level = _checkLevel(level)
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/logging/__init__.py", line 198, in _checkLevel
+    raise ValueError("Unknown level: %r" % level)
+ValueError: Unknown level: '1'
+[15-02-2023 17:21:35] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:21:35] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:21:35] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:21:35] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:21:35] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:21:35] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:21:35] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:21:35] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:21:35] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:21:35] - [asyncio] - [ERROR] - Unclosed AIOKafkaConsumer
+consumer: <aiokafka.consumer.consumer.AIOKafkaConsumer object at 0x114aab2e0>
+[15-02-2023 17:21:51] - [/Users/yarnaid/projects/badgerdoc/processing/src/utils/minio_utils.py] - [INFO] - MinIO client for localhost:9000 was created successfully
+[15-02-2023 17:21:52] - [uvicorn.error] - [INFO] - Started server process [[36m41456[0m]
+[15-02-2023 17:21:52] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:21:52] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 17:21:52] - [uvicorn.error] - [INFO] - Uvicorn running on [1mhttp://localhost:8006[0m (Press CTRL+C to quit)
+[15-02-2023 17:22:05] - [uvicorn.error] - [INFO] - Shutting down
+[15-02-2023 17:22:05] - [uvicorn.error] - [INFO] - Waiting for application shutdown.
+[15-02-2023 17:22:05] - [uvicorn.error] - [INFO] - Application shutdown complete.
+[15-02-2023 17:22:05] - [uvicorn.error] - [INFO] - Finished server process [[36m41456[0m]
+[15-02-2023 17:22:11] - [/Users/yarnaid/projects/badgerdoc/processing/src/utils/minio_utils.py] - [INFO] - MinIO client for localhost:9000 was created successfully
+[15-02-2023 17:22:12] - [uvicorn.error] - [INFO] - Started server process [[36m41526[0m]
+[15-02-2023 17:22:12] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:22:12] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 17:22:12] - [uvicorn.error] - [INFO] - Uvicorn running on [1mhttp://localhost:8006[0m (Press CTRL+C to quit)
+[15-02-2023 17:22:14] - [uvicorn.error] - [INFO] - Shutting down
+[15-02-2023 17:22:14] - [uvicorn.error] - [INFO] - Waiting for application shutdown.
+[15-02-2023 17:22:14] - [uvicorn.error] - [INFO] - Application shutdown complete.
+[15-02-2023 17:22:14] - [uvicorn.error] - [INFO] - Finished server process [[36m41526[0m]
+[15-02-2023 17:22:20] - [/Users/yarnaid/projects/badgerdoc/processing/src/utils/minio_utils.py] - [INFO] - MinIO client for localhost:9000 was created successfully
+[15-02-2023 17:22:20] - [uvicorn.error] - [INFO] - Started server process [[36m41575[0m]
+[15-02-2023 17:22:20] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:22:20] - [uvicorn.error] - [INFO] - Started server process [[36m41575[0m]
+[15-02-2023 17:22:20] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:22:20] - [uvicorn.error] - [INFO] - Started server process [[36m41575[0m]
+[15-02-2023 17:22:20] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:22:20] - [uvicorn.error] - [INFO] - Started server process [[36m41575[0m]
+[15-02-2023 17:22:20] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:22:21] - [uvicorn.error] - [INFO] - Started server process [[36m41575[0m]
+[15-02-2023 17:22:21] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:22:21] - [uvicorn.error] - [INFO] - Started server process [[36m41575[0m]
+[15-02-2023 17:22:21] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:22:21] - [aiocache.serializers.serializers] - [WARNING] - ujson module not found, using json
+[15-02-2023 17:22:21] - [uvicorn.error] - [INFO] - Started server process [[36m41575[0m]
+[15-02-2023 17:22:21] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:22:21] - [uvicorn.error] - [INFO] - Started server process [[36m41575[0m]
+[15-02-2023 17:22:21] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:22:21] - [search] - [INFO] - Topic search already exists
+[15-02-2023 17:22:21] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 17:22:21] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 17:22:21] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 17:22:21] - [asyncio] - [ERROR] - Task exception was never retrieved
+future: <Task finished name='Task-8' coro=<BaseRunner.run_app_async() done, defined at /Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py:117> exception=ValueError("Unknown level: '10'")>
+Traceback (most recent call last):
+  File "/Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py", line 118, in run_app_async
+    await self.create_server().serve()
+  File "/Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py", line 94, in create_server
+    app = import_module(f"{self.APP_NAME}.{self.MODULE_NAME}").app
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/importlib/__init__.py", line 127, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1030, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1007, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 986, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 680, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 850, in exec_module
+  File "<frozen importlib._bootstrap>", line 228, in _call_with_frames_removed
+  File "/Users/yarnaid/projects/badgerdoc/scheduler/scheduler/app.py", line 6, in <module>
+    from scheduler.db import service
+  File "/Users/yarnaid/projects/badgerdoc/scheduler/scheduler/db/service.py", line 8, in <module>
+    from scheduler import config, unit
+  File "/Users/yarnaid/projects/badgerdoc/scheduler/scheduler/unit.py", line 14, in <module>
+    logger = log.get_logger(__name__)
+  File "/Users/yarnaid/projects/badgerdoc/scheduler/scheduler/log.py", line 28, in get_logger
+    logger.addHandler(_get_stream_handler())
+  File "/Users/yarnaid/projects/badgerdoc/scheduler/scheduler/log.py", line 18, in _get_stream_handler
+    stream_handler.setLevel(config.LOG_LEVEL)
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/logging/__init__.py", line 914, in setLevel
+    self.level = _checkLevel(level)
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/logging/__init__.py", line 198, in _checkLevel
+    raise ValueError("Unknown level: %r" % level)
+ValueError: Unknown level: '10'
+[15-02-2023 17:22:21] - [asyncio] - [ERROR] - Task exception was never retrieved
+future: <Task finished name='Task-5' coro=<BaseRunner.run_app_async() done, defined at /Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py:117> exception=ValueError("Unknown level: '10'")>
+Traceback (most recent call last):
+  File "/Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py", line 118, in run_app_async
+    await self.create_server().serve()
+  File "/Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py", line 94, in create_server
+    app = import_module(f"{self.APP_NAME}.{self.MODULE_NAME}").app
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/importlib/__init__.py", line 127, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1030, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1007, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 986, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 680, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 850, in exec_module
+  File "<frozen importlib._bootstrap>", line 228, in _call_with_frames_removed
+  File "/Users/yarnaid/projects/badgerdoc/pipelines/pipelines/app.py", line 12, in <module>
+    import pipelines.db.models as dbm
+  File "/Users/yarnaid/projects/badgerdoc/pipelines/pipelines/db/__init__.py", line 1, in <module>
+    import pipelines.db.logger
+  File "/Users/yarnaid/projects/badgerdoc/pipelines/pipelines/db/logger.py", line 8, in <module>
+    import pipelines.db.service as service
+  File "/Users/yarnaid/projects/badgerdoc/pipelines/pipelines/db/service.py", line 11, in <module>
+    from pipelines import config, execution, log, schemas
+  File "/Users/yarnaid/projects/badgerdoc/pipelines/pipelines/execution.py", line 19, in <module>
+    import pipelines.result_processing as postprocessing
+  File "/Users/yarnaid/projects/badgerdoc/pipelines/pipelines/result_processing.py", line 13, in <module>
+    from pipelines import config, http_utils, log
+  File "/Users/yarnaid/projects/badgerdoc/pipelines/pipelines/http_utils.py", line 6, in <module>
+    from pipelines import config, log, schemas, service_token
+  File "/Users/yarnaid/projects/badgerdoc/pipelines/pipelines/schemas.py", line 13, in <module>
+    logger = log.get_logger(__file__)
+  File "/Users/yarnaid/projects/badgerdoc/pipelines/pipelines/log.py", line 19, in get_logger
+    logger.setLevel(LOG_LEVEL)
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/logging/__init__.py", line 1421, in setLevel
+    self.level = _checkLevel(level)
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/logging/__init__.py", line 198, in _checkLevel
+    raise ValueError("Unknown level: %r" % level)
+ValueError: Unknown level: '10'
+[15-02-2023 17:22:21] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:22:21] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:22:21] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:22:21] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:22:21] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:22:21] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:22:21] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:22:21] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:22:21] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:22:21] - [asyncio] - [ERROR] - Unclosed AIOKafkaConsumer
+consumer: <aiokafka.consumer.consumer.AIOKafkaConsumer object at 0x112485df0>
+[15-02-2023 17:24:06] - [/Users/yarnaid/projects/badgerdoc/processing/src/utils/minio_utils.py] - [INFO] - MinIO client for localhost:9000 was created successfully
+[15-02-2023 17:24:06] - [uvicorn.error] - [INFO] - Started server process [[36m41764[0m]
+[15-02-2023 17:24:06] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:24:06] - [uvicorn.error] - [INFO] - Started server process [[36m41764[0m]
+[15-02-2023 17:24:06] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:24:06] - [uvicorn.error] - [INFO] - Started server process [[36m41764[0m]
+[15-02-2023 17:24:06] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:24:06] - [uvicorn.error] - [INFO] - Started server process [[36m41764[0m]
+[15-02-2023 17:24:06] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:24:06] - [uvicorn.error] - [INFO] - Started server process [[36m41764[0m]
+[15-02-2023 17:24:06] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:24:06] - [uvicorn.error] - [INFO] - Started server process [[36m41764[0m]
+[15-02-2023 17:24:06] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:24:07] - [aiocache.serializers.serializers] - [WARNING] - ujson module not found, using json
+[15-02-2023 17:24:07] - [uvicorn.error] - [INFO] - Started server process [[36m41764[0m]
+[15-02-2023 17:24:07] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:24:07] - [uvicorn.error] - [INFO] - Started server process [[36m41764[0m]
+[15-02-2023 17:24:07] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:24:07] - [search] - [INFO] - Topic search already exists
+[15-02-2023 17:24:07] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 17:24:07] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 17:24:07] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 17:24:07] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 17:24:07] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 17:24:07] - [asyncio] - [ERROR] - Task exception was never retrieved
+future: <Task finished name='Task-11' coro=<BaseRunner.run_app_async() done, defined at /Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py:117> exception=ValueError("Unknown level: '1'")>
+Traceback (most recent call last):
+  File "/Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py", line 118, in run_app_async
+    await self.create_server().serve()
+  File "/Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py", line 94, in create_server
+    app = import_module(f"{self.APP_NAME}.{self.MODULE_NAME}").app
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/importlib/__init__.py", line 127, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1030, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1007, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 986, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 680, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 850, in exec_module
+  File "<frozen importlib._bootstrap>", line 228, in _call_with_frames_removed
+  File "/Users/yarnaid/projects/badgerdoc/pipelines/pipelines/app.py", line 12, in <module>
+    import pipelines.db.models as dbm
+  File "/Users/yarnaid/projects/badgerdoc/pipelines/pipelines/db/__init__.py", line 1, in <module>
+    import pipelines.db.logger
+  File "/Users/yarnaid/projects/badgerdoc/pipelines/pipelines/db/logger.py", line 8, in <module>
+    import pipelines.db.service as service
+  File "/Users/yarnaid/projects/badgerdoc/pipelines/pipelines/db/service.py", line 11, in <module>
+    from pipelines import config, execution, log, schemas
+  File "/Users/yarnaid/projects/badgerdoc/pipelines/pipelines/execution.py", line 19, in <module>
+    import pipelines.result_processing as postprocessing
+  File "/Users/yarnaid/projects/badgerdoc/pipelines/pipelines/result_processing.py", line 13, in <module>
+    from pipelines import config, http_utils, log
+  File "/Users/yarnaid/projects/badgerdoc/pipelines/pipelines/http_utils.py", line 6, in <module>
+    from pipelines import config, log, schemas, service_token
+  File "/Users/yarnaid/projects/badgerdoc/pipelines/pipelines/schemas.py", line 13, in <module>
+    logger = log.get_logger(__file__)
+  File "/Users/yarnaid/projects/badgerdoc/pipelines/pipelines/log.py", line 19, in get_logger
+    logger.setLevel(LOG_LEVEL)
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/logging/__init__.py", line 1421, in setLevel
+    self.level = _checkLevel(level)
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/logging/__init__.py", line 198, in _checkLevel
+    raise ValueError("Unknown level: %r" % level)
+ValueError: Unknown level: '1'
+[15-02-2023 17:24:07] - [asyncio] - [ERROR] - Task exception was never retrieved
+future: <Task finished name='Task-7' coro=<BaseRunner.run_app_async() done, defined at /Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py:117> exception=ValueError("Unknown level: '1'")>
+Traceback (most recent call last):
+  File "/Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py", line 118, in run_app_async
+    await self.create_server().serve()
+  File "/Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py", line 94, in create_server
+    app = import_module(f"{self.APP_NAME}.{self.MODULE_NAME}").app
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/importlib/__init__.py", line 127, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1030, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1007, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 986, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 680, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 850, in exec_module
+  File "<frozen importlib._bootstrap>", line 228, in _call_with_frames_removed
+  File "/Users/yarnaid/projects/badgerdoc/scheduler/scheduler/app.py", line 6, in <module>
+    from scheduler.db import service
+  File "/Users/yarnaid/projects/badgerdoc/scheduler/scheduler/db/service.py", line 8, in <module>
+    from scheduler import config, unit
+  File "/Users/yarnaid/projects/badgerdoc/scheduler/scheduler/unit.py", line 14, in <module>
+    logger = log.get_logger(__name__)
+  File "/Users/yarnaid/projects/badgerdoc/scheduler/scheduler/log.py", line 28, in get_logger
+    logger.addHandler(_get_stream_handler())
+  File "/Users/yarnaid/projects/badgerdoc/scheduler/scheduler/log.py", line 18, in _get_stream_handler
+    stream_handler.setLevel(config.LOG_LEVEL)
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/logging/__init__.py", line 914, in setLevel
+    self.level = _checkLevel(level)
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/logging/__init__.py", line 198, in _checkLevel
+    raise ValueError("Unknown level: %r" % level)
+ValueError: Unknown level: '1'
+[15-02-2023 17:24:07] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:24:07] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:24:07] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:24:07] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:24:07] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:24:07] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:24:07] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:24:07] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:24:07] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:24:07] - [asyncio] - [ERROR] - Unclosed AIOKafkaConsumer
+consumer: <aiokafka.consumer.consumer.AIOKafkaConsumer object at 0x116c4b4f0>
+[15-02-2023 17:24:23] - [/Users/yarnaid/projects/badgerdoc/processing/src/utils/minio_utils.py] - [INFO] - MinIO client for localhost:9000 was created successfully
+[15-02-2023 17:24:23] - [uvicorn.error] - [INFO] - Started server process [[36m41830[0m]
+[15-02-2023 17:24:23] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:24:24] - [uvicorn.error] - [INFO] - Started server process [[36m41830[0m]
+[15-02-2023 17:24:24] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:24:24] - [uvicorn.error] - [INFO] - Started server process [[36m41830[0m]
+[15-02-2023 17:24:24] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:24:24] - [uvicorn.error] - [INFO] - Started server process [[36m41830[0m]
+[15-02-2023 17:24:24] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:24:24] - [uvicorn.error] - [INFO] - Started server process [[36m41830[0m]
+[15-02-2023 17:24:24] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:24:24] - [uvicorn.error] - [INFO] - Started server process [[36m41830[0m]
+[15-02-2023 17:24:24] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:24:24] - [aiocache.serializers.serializers] - [WARNING] - ujson module not found, using json
+[15-02-2023 17:24:24] - [uvicorn.error] - [INFO] - Started server process [[36m41830[0m]
+[15-02-2023 17:24:24] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:24:24] - [uvicorn.error] - [INFO] - Started server process [[36m41830[0m]
+[15-02-2023 17:24:24] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:24:25] - [search] - [INFO] - Topic search already exists
+[15-02-2023 17:24:25] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 17:24:25] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 17:24:25] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 17:24:25] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 17:24:25] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 17:24:25] - [asyncio] - [ERROR] - Task exception was never retrieved
+future: <Task finished name='Task-11' coro=<BaseRunner.run_app_async() done, defined at /Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py:117> exception=ValueError("Unknown level: '10'")>
+Traceback (most recent call last):
+  File "/Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py", line 118, in run_app_async
+    await self.create_server().serve()
+  File "/Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py", line 94, in create_server
+    app = import_module(f"{self.APP_NAME}.{self.MODULE_NAME}").app
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/importlib/__init__.py", line 127, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1030, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1007, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 986, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 680, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 850, in exec_module
+  File "<frozen importlib._bootstrap>", line 228, in _call_with_frames_removed
+  File "/Users/yarnaid/projects/badgerdoc/pipelines/pipelines/app.py", line 12, in <module>
+    import pipelines.db.models as dbm
+  File "/Users/yarnaid/projects/badgerdoc/pipelines/pipelines/db/__init__.py", line 1, in <module>
+    import pipelines.db.logger
+  File "/Users/yarnaid/projects/badgerdoc/pipelines/pipelines/db/logger.py", line 8, in <module>
+    import pipelines.db.service as service
+  File "/Users/yarnaid/projects/badgerdoc/pipelines/pipelines/db/service.py", line 11, in <module>
+    from pipelines import config, execution, log, schemas
+  File "/Users/yarnaid/projects/badgerdoc/pipelines/pipelines/execution.py", line 19, in <module>
+    import pipelines.result_processing as postprocessing
+  File "/Users/yarnaid/projects/badgerdoc/pipelines/pipelines/result_processing.py", line 13, in <module>
+    from pipelines import config, http_utils, log
+  File "/Users/yarnaid/projects/badgerdoc/pipelines/pipelines/http_utils.py", line 6, in <module>
+    from pipelines import config, log, schemas, service_token
+  File "/Users/yarnaid/projects/badgerdoc/pipelines/pipelines/schemas.py", line 13, in <module>
+    logger = log.get_logger(__file__)
+  File "/Users/yarnaid/projects/badgerdoc/pipelines/pipelines/log.py", line 19, in get_logger
+    logger.setLevel(LOG_LEVEL)
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/logging/__init__.py", line 1421, in setLevel
+    self.level = _checkLevel(level)
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/logging/__init__.py", line 198, in _checkLevel
+    raise ValueError("Unknown level: %r" % level)
+ValueError: Unknown level: '10'
+[15-02-2023 17:24:25] - [asyncio] - [ERROR] - Task exception was never retrieved
+future: <Task finished name='Task-7' coro=<BaseRunner.run_app_async() done, defined at /Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py:117> exception=ValueError("Unknown level: '10'")>
+Traceback (most recent call last):
+  File "/Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py", line 118, in run_app_async
+    await self.create_server().serve()
+  File "/Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py", line 94, in create_server
+    app = import_module(f"{self.APP_NAME}.{self.MODULE_NAME}").app
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/importlib/__init__.py", line 127, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1030, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1007, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 986, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 680, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 850, in exec_module
+  File "<frozen importlib._bootstrap>", line 228, in _call_with_frames_removed
+  File "/Users/yarnaid/projects/badgerdoc/scheduler/scheduler/app.py", line 6, in <module>
+    from scheduler.db import service
+  File "/Users/yarnaid/projects/badgerdoc/scheduler/scheduler/db/service.py", line 8, in <module>
+    from scheduler import config, unit
+  File "/Users/yarnaid/projects/badgerdoc/scheduler/scheduler/unit.py", line 14, in <module>
+    logger = log.get_logger(__name__)
+  File "/Users/yarnaid/projects/badgerdoc/scheduler/scheduler/log.py", line 28, in get_logger
+    logger.addHandler(_get_stream_handler())
+  File "/Users/yarnaid/projects/badgerdoc/scheduler/scheduler/log.py", line 18, in _get_stream_handler
+    stream_handler.setLevel(config.LOG_LEVEL)
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/logging/__init__.py", line 914, in setLevel
+    self.level = _checkLevel(level)
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/logging/__init__.py", line 198, in _checkLevel
+    raise ValueError("Unknown level: %r" % level)
+ValueError: Unknown level: '10'
+[15-02-2023 17:24:25] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:24:25] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:24:25] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:24:25] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:24:25] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:24:25] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:24:25] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:24:25] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:24:25] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:24:25] - [asyncio] - [ERROR] - Unclosed AIOKafkaConsumer
+consumer: <aiokafka.consumer.consumer.AIOKafkaConsumer object at 0x11017a3d0>
+[15-02-2023 17:24:36] - [/Users/yarnaid/projects/badgerdoc/processing/src/utils/minio_utils.py] - [INFO] - MinIO client for localhost:9000 was created successfully
+[15-02-2023 17:24:36] - [uvicorn.error] - [INFO] - Started server process [[36m41896[0m]
+[15-02-2023 17:24:36] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:24:36] - [uvicorn.error] - [INFO] - Started server process [[36m41896[0m]
+[15-02-2023 17:24:36] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:24:36] - [uvicorn.error] - [INFO] - Started server process [[36m41896[0m]
+[15-02-2023 17:24:36] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:24:36] - [uvicorn.error] - [INFO] - Started server process [[36m41896[0m]
+[15-02-2023 17:24:36] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:24:37] - [uvicorn.error] - [INFO] - Started server process [[36m41896[0m]
+[15-02-2023 17:24:37] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:24:37] - [uvicorn.error] - [INFO] - Started server process [[36m41896[0m]
+[15-02-2023 17:24:37] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:24:37] - [aiocache.serializers.serializers] - [WARNING] - ujson module not found, using json
+[15-02-2023 17:24:37] - [uvicorn.error] - [INFO] - Started server process [[36m41896[0m]
+[15-02-2023 17:24:37] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:24:37] - [uvicorn.error] - [INFO] - Started server process [[36m41896[0m]
+[15-02-2023 17:24:37] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:24:37] - [search] - [INFO] - Topic search already exists
+[15-02-2023 17:24:37] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 17:24:37] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 17:24:37] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 17:24:37] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 17:24:37] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 17:24:37] - [asyncio] - [ERROR] - Task exception was never retrieved
+future: <Task finished name='Task-8' coro=<BaseRunner.run_app_async() done, defined at /Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py:117> exception=ValueError("Unknown level: '20'")>
+Traceback (most recent call last):
+  File "/Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py", line 118, in run_app_async
+    await self.create_server().serve()
+  File "/Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py", line 94, in create_server
+    app = import_module(f"{self.APP_NAME}.{self.MODULE_NAME}").app
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/importlib/__init__.py", line 127, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1030, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1007, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 986, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 680, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 850, in exec_module
+  File "<frozen importlib._bootstrap>", line 228, in _call_with_frames_removed
+  File "/Users/yarnaid/projects/badgerdoc/pipelines/pipelines/app.py", line 12, in <module>
+    import pipelines.db.models as dbm
+  File "/Users/yarnaid/projects/badgerdoc/pipelines/pipelines/db/__init__.py", line 1, in <module>
+    import pipelines.db.logger
+  File "/Users/yarnaid/projects/badgerdoc/pipelines/pipelines/db/logger.py", line 8, in <module>
+    import pipelines.db.service as service
+  File "/Users/yarnaid/projects/badgerdoc/pipelines/pipelines/db/service.py", line 11, in <module>
+    from pipelines import config, execution, log, schemas
+  File "/Users/yarnaid/projects/badgerdoc/pipelines/pipelines/execution.py", line 19, in <module>
+    import pipelines.result_processing as postprocessing
+  File "/Users/yarnaid/projects/badgerdoc/pipelines/pipelines/result_processing.py", line 13, in <module>
+    from pipelines import config, http_utils, log
+  File "/Users/yarnaid/projects/badgerdoc/pipelines/pipelines/http_utils.py", line 6, in <module>
+    from pipelines import config, log, schemas, service_token
+  File "/Users/yarnaid/projects/badgerdoc/pipelines/pipelines/schemas.py", line 13, in <module>
+    logger = log.get_logger(__file__)
+  File "/Users/yarnaid/projects/badgerdoc/pipelines/pipelines/log.py", line 19, in get_logger
+    logger.setLevel(LOG_LEVEL)
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/logging/__init__.py", line 1421, in setLevel
+    self.level = _checkLevel(level)
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/logging/__init__.py", line 198, in _checkLevel
+    raise ValueError("Unknown level: %r" % level)
+ValueError: Unknown level: '20'
+[15-02-2023 17:24:37] - [asyncio] - [ERROR] - Task exception was never retrieved
+future: <Task finished name='Task-7' coro=<BaseRunner.run_app_async() done, defined at /Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py:117> exception=ValueError("Unknown level: '20'")>
+Traceback (most recent call last):
+  File "/Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py", line 118, in run_app_async
+    await self.create_server().serve()
+  File "/Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py", line 94, in create_server
+    app = import_module(f"{self.APP_NAME}.{self.MODULE_NAME}").app
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/importlib/__init__.py", line 127, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1030, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1007, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 986, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 680, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 850, in exec_module
+  File "<frozen importlib._bootstrap>", line 228, in _call_with_frames_removed
+  File "/Users/yarnaid/projects/badgerdoc/scheduler/scheduler/app.py", line 6, in <module>
+    from scheduler.db import service
+  File "/Users/yarnaid/projects/badgerdoc/scheduler/scheduler/db/service.py", line 8, in <module>
+    from scheduler import config, unit
+  File "/Users/yarnaid/projects/badgerdoc/scheduler/scheduler/unit.py", line 14, in <module>
+    logger = log.get_logger(__name__)
+  File "/Users/yarnaid/projects/badgerdoc/scheduler/scheduler/log.py", line 28, in get_logger
+    logger.addHandler(_get_stream_handler())
+  File "/Users/yarnaid/projects/badgerdoc/scheduler/scheduler/log.py", line 18, in _get_stream_handler
+    stream_handler.setLevel(config.LOG_LEVEL)
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/logging/__init__.py", line 914, in setLevel
+    self.level = _checkLevel(level)
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/logging/__init__.py", line 198, in _checkLevel
+    raise ValueError("Unknown level: %r" % level)
+ValueError: Unknown level: '20'
+[15-02-2023 17:24:37] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:24:37] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:24:37] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:24:37] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:24:37] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:24:37] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:24:37] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:24:37] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:24:37] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:24:37] - [asyncio] - [ERROR] - Unclosed AIOKafkaConsumer
+consumer: <aiokafka.consumer.consumer.AIOKafkaConsumer object at 0x10d7ac7f0>
+[15-02-2023 17:26:18] - [/Users/yarnaid/projects/badgerdoc/processing/src/utils/minio_utils.py] - [INFO] - MinIO client for localhost:9000 was created successfully
+[15-02-2023 17:26:18] - [uvicorn.error] - [INFO] - Started server process [[36m42458[0m]
+[15-02-2023 17:26:18] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:26:18] - [uvicorn.error] - [INFO] - Started server process [[36m42458[0m]
+[15-02-2023 17:26:18] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:26:18] - [uvicorn.error] - [INFO] - Started server process [[36m42458[0m]
+[15-02-2023 17:26:18] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:26:18] - [uvicorn.error] - [INFO] - Started server process [[36m42458[0m]
+[15-02-2023 17:26:18] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:26:18] - [uvicorn.error] - [INFO] - Started server process [[36m42458[0m]
+[15-02-2023 17:26:18] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:26:19] - [uvicorn.error] - [INFO] - Started server process [[36m42458[0m]
+[15-02-2023 17:26:19] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:26:19] - [uvicorn.error] - [INFO] - Started server process [[36m42458[0m]
+[15-02-2023 17:26:19] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:26:19] - [aiocache.serializers.serializers] - [WARNING] - ujson module not found, using json
+[15-02-2023 17:26:19] - [uvicorn.error] - [INFO] - Started server process [[36m42458[0m]
+[15-02-2023 17:26:19] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:26:19] - [uvicorn.error] - [INFO] - Started server process [[36m42458[0m]
+[15-02-2023 17:26:19] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:26:19] - [uvicorn.error] - [INFO] - Started server process [[36m42458[0m]
+[15-02-2023 17:26:19] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 17:26:19] - [scheduler.kafka_utils] - [INFO] - Consumer subscribed to topics ['pipelines']
+[15-02-2023 17:26:20] - [search] - [INFO] - Topic search already exists
+[15-02-2023 17:26:20] - [pipelines.kafka_utils] - [DEBUG] - Topic scheduler already exists.
+[15-02-2023 17:26:20] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 17:26:20] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 17:26:20] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 17:26:20] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 17:26:20] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 17:26:20] - [asyncio] - [ERROR] - Task exception was never retrieved
+future: <Task finished name='Task-24' coro=<heartbeat() done, defined at /Users/yarnaid/projects/badgerdoc/scheduler/scheduler/heartbeat.py:43> exception=AttributeError("'sessionmaker' object has no attribute 'begin'")>
+Traceback (most recent call last):
+  File "/Users/yarnaid/projects/badgerdoc/scheduler/scheduler/heartbeat.py", line 53, in heartbeat
+    with service.Session.begin() as session:
+AttributeError: 'sessionmaker' object has no attribute 'begin'
+[15-02-2023 17:26:20] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 17:26:20] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 17:26:20] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 17:26:20] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 17:26:20] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 17:26:20] - [pipelines.kafka_utils] - [INFO] - Consumer subscribed to topic scheduler
+[15-02-2023 17:26:20] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 17:26:20] - [uvicorn.error] - [INFO] - Uvicorn running on [1mhttp://localhost:8006[0m (Press CTRL+C to quit)
+[15-02-2023 17:26:20] - [uvicorn.error] - [INFO] - Uvicorn running on [1mhttp://localhost:8000[0m (Press CTRL+C to quit)
+[15-02-2023 17:26:20] - [uvicorn.error] - [INFO] - Uvicorn running on [1mhttp://localhost:8003[0m (Press CTRL+C to quit)
+[15-02-2023 17:26:20] - [uvicorn.error] - [INFO] - Uvicorn running on [1mhttp://localhost:8009[0m (Press CTRL+C to quit)
+[15-02-2023 17:26:20] - [uvicorn.error] - [INFO] - Uvicorn running on [1mhttp://localhost:8007[0m (Press CTRL+C to quit)
+[15-02-2023 17:26:20] - [uvicorn.error] - [INFO] - Uvicorn running on [1mhttp://localhost:8002[0m (Press CTRL+C to quit)
+[15-02-2023 17:26:20] - [uvicorn.error] - [INFO] - Uvicorn running on [1mhttp://localhost:8004[0m (Press CTRL+C to quit)
+[15-02-2023 17:26:20] - [uvicorn.error] - [INFO] - Uvicorn running on [1mhttp://localhost:8008[0m (Press CTRL+C to quit)
+[15-02-2023 17:26:20] - [uvicorn.error] - [INFO] - Uvicorn running on [1mhttp://localhost:8001[0m (Press CTRL+C to quit)
+[15-02-2023 17:26:20] - [uvicorn.error] - [INFO] - Uvicorn running on [1mhttp://localhost:8005[0m (Press CTRL+C to quit)
+[15-02-2023 17:26:20] - [uvicorn.error] - [INFO] - Uvicorn running on [1mhttp://localhost:8010[0m (Press CTRL+C to quit)
+[15-02-2023 17:26:20] - [scheduler.runner] - [INFO] - Start receiving messages.
+[15-02-2023 17:26:47] - [uvicorn.error] - [INFO] - Shutting down
+[15-02-2023 17:26:47] - [uvicorn.error] - [INFO] - Waiting for application shutdown.
+[15-02-2023 17:26:47] - [uvicorn.error] - [INFO] - Application shutdown complete.
+[15-02-2023 17:26:47] - [uvicorn.error] - [INFO] - Finished server process [[36m42458[0m]
+[15-02-2023 17:26:47] - [scheduler.runner] - [INFO] - Closing.
+
+[15-02-2023 17:26:47] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:26:47] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:26:47] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:26:47] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:26:47] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:26:47] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:26:47] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:26:47] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:26:47] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[15-02-2023 17:26:47] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+

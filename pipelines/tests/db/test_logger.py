@@ -1,4 +1,4 @@
-"""Testing src/db/logger.py."""
+"""Testing users/db/logger.py."""
 
 import sqlalchemy.event
 

@@ -4,7 +4,7 @@ from functools import reduce
 from string import Template
 from urllib.parse import urljoin
 
-from src.config import KEYCLOAK_ENDPOINT
+from users.config import KEYCLOAK_ENDPOINT
 
 
 def join_paths(*args: str) -> str:

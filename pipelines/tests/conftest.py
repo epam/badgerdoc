@@ -79,7 +79,7 @@ def testing_app(testing_engine, testing_session, setup_token):
     dbm.Base.metadata.create_all(bind=testing_engine)
     session = sessionmaker(bind=testing_engine)
     app.app.dependency_overrides[app.TOKEN] = lambda: setup_token
-    with patch("src.db.service.LocalSession", session):
+    with patch("users.db.service.LocalSession", session):
         app.app.dependency_overrides[
             service.get_session
         ] = lambda: testing_session
@@ -109,19 +109,19 @@ def testing_task(testing_pipeline):
 
 @pytest.fixture
 def session_mock():
-    with patch("src.db.service.LocalSession") as mock:
+    with patch("users.db.service.LocalSession") as mock:
         yield mock
 
 
 @pytest.fixture
 def request_mock():
-    with patch("src.http_utils.requests.request") as mock:
+    with patch("users.http_utils.requests.request") as mock:
         yield mock
 
 
 @pytest.fixture
 def run_in_session_mock():
-    with patch("src.db.service.run_in_session") as mock:
+    with patch("users.db.service.run_in_session") as mock:
         yield mock
 
 
@@ -131,7 +131,7 @@ def mock_preprocessing_file_status():
         return True
 
     with patch(
-        "src.execution.PipelineTask.check_preprocessing_status",
+        "users.execution.PipelineTask.check_preprocessing_status",
         check_preprocessing_status_mock,
     ) as mock:
         yield mock

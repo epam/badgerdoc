@@ -22,4 +22,5 @@ class SchedulerRunner(BaseRunner):
         "KAFKA_REPLICATION_FACTORS": "1",
         "HEARTBEAT_TIMEOUT": "10",
         "THRESHOLD_MUL": "3",
+        "LOG_LEVEL": "DEBUG",
     }

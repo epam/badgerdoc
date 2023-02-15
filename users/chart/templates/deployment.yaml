@@ -92,7 +92,7 @@ spec:
               name: users
               key: ADMIN_CLIENT_SECRET_DEV1
         command: ["/bin/sh"]
-        args: ["-c", "uvicorn src.main:app --host 0.0.0.0 --port 8080 --root-path /api/v1/users"]
+        args: ["-c", "uvicorn users.main:app --host 0.0.0.0 --port 8080 --root-path /api/v1/users"]
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler

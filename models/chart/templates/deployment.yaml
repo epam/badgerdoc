@@ -86,7 +86,7 @@ spec:
         - name: DOMAIN_NAME
           value: badgerdoc.com
         command: ["/bin/sh"]
-        args: ["-c", "alembic upgrade head && uvicorn src.main:app --host 0.0.0.0 --port 8080 --root-path /api/v1/models"]
+        args: ["-c", "alembic upgrade head && uvicorn users.main:app --host 0.0.0.0 --port 8080 --root-path /api/v1/models"]
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler

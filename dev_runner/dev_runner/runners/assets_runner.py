@@ -19,5 +19,5 @@ class AssetsRunner(BaseRunner):
         "S3_PREFIX": "",
         "TEST_REGION": "us-west-2",
         "MINIO_SECURE_CONNECTION": "False",
-        "SQLACLHEMY_POOL_SIZE": "20",
+        "SQLACLHEMY_POOL_SIZE": "DEBUG",
     }

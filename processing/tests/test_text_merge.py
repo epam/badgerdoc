@@ -223,7 +223,7 @@ class TestTextMerger:
             ),
         ]
 
-    @patch("src.text_merge.MinioCommunicator", return_value=MC())
+    @patch("users.text_merge.MinioCommunicator", return_value=MC())
     def test_download(self, _1, tmp_path):
         request_data = AnnotationData(
             file="some_path/some_file.pdf",

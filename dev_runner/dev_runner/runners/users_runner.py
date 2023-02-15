@@ -5,7 +5,7 @@ from dev_runner.conf import settings
 class UsersRunner(BaseRunner):
     PACKAGE_NAME = "users"
     PORT = settings.USERS_PORT
-    APP_NAME = "src"
+    APP_NAME = "users"
     DB_CREDENTIALS = {
         "POSTGRES_DB": "keycloak_db",
     }

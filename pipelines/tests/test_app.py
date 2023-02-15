@@ -1,4 +1,4 @@
-"""Testing src/app.py."""
+"""Testing users/app.py."""
 
 from copy import deepcopy
 from typing import Dict

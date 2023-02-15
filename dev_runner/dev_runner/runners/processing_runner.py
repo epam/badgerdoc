@@ -17,5 +17,5 @@ class ProcessingRunner(BaseRunner):
         "SERVICE_NAME": "processing",
         "HOST": "localhost",
         "PORT": str(PORT),
-        "LOG_LEVEL": str(logging.DEBUG),
+        "LOG_LEVEL": "10",
     }

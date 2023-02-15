@@ -26,7 +26,7 @@ def test_make_request(request_mock):
 def test_make_request_with_retry(s_effect, expected, call_count, request_mock):
     """Testing make_request_with_retry."""
     with patch(
-        "src.http_utils.make_request", side_effect=s_effect
+        "users.http_utils.make_request", side_effect=s_effect
     ) as req_mock:
         assert http_utils.make_request_with_retry("", {}, start=0) == expected
         assert req_mock.call_count == call_count

@@ -81,7 +81,7 @@ services:
       - badgerdoc-scheduler
     ports:
       - "8001:8001"
-    command: bash -c "./wait-for-it.sh -t 0 kafka:9092 && alembic upgrade head && uvicorn src.app:app --host 0.0.0.0 --port 8001 --reload"
+    command: bash -c "./wait-for-it.sh -t 0 kafka:9092 && alembic upgrade head && uvicorn users.app:app --host 0.0.0.0 --port 8001 --reload"
     depends_on:
       - minio
       - db
@@ -186,7 +186,7 @@ services:
       - HOST_ASSETS=//assets:8080
       - HOST_ANNOTATION=//annotation:8002
       - JOBS_HOST=//jobs:8005
-    command: bash -c "alembic upgrade head && uvicorn src.main:app --host 0.0.0.0 --port 8005"
+    command: bash -c "alembic upgrade head && uvicorn users.main:app --host 0.0.0.0 --port 8005"
     ports:
       - "8005:8005"
     depends_on:

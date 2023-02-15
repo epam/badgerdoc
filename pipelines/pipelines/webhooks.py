@@ -1,8 +1,8 @@
 import urllib.parse
 from typing import Any, Dict, Optional, Tuple, Union
 
-from src import http_utils, log, schemas, service_token
-from src.db import service
+from pipelines import http_utils, log, schemas, service_token
+from pipelines.db import service
 
 logger = log.get_logger(__file__)
 

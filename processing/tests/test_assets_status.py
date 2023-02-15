@@ -24,7 +24,7 @@ def mock_preprocessing_task():
 @pytest.mark.asyncio
 @pytest.mark.parametrize("status", ["failed", "in_progress", "preprocessed"])
 async def test_send_status_to_assets(mock_preprocessing_task, status):
-    with patch("src.tasks.send_request") as mock:
+    with patch("users.tasks.send_request") as mock:
         await mock_preprocessing_task.send_status_to_assets(status)
         mock.assert_awaited_once_with(
             method="PUT",

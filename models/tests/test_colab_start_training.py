@@ -32,7 +32,7 @@ TRAINING_ARCHIVE_DATA = "archive"
 def test_start_training_db_error(monkeypatch, overrided_token_client) -> None:
     """Test handling of db connection errors"""
     monkeypatch.setattr(
-        "src.crud.Session.query",
+        "users.crud.Session.query",
         Mock(side_effect=SQLAlchemyError("some error message")),
     )
     response = overrided_token_client.post(
@@ -89,7 +89,7 @@ def test_start_training_colab_connection_error(
     description in message.
     """
     monkeypatch.setattr(
-        "src.routers.training_routers.connect_colab",
+        "users.routers.training_routers.connect_colab",
         Mock(side_effect=SSHException("some ssh error")),
     )
     response = overrided_token_client.post(
@@ -127,11 +127,11 @@ def test_start_training_no_such_bucket_error(
     """
     other_tenant = TEST_TENANTS[1]
     monkeypatch.setattr(
-        "src.utils.boto3.resource",
+        "users.utils.boto3.resource",
         Mock(return_value=moto_minio),
     )
     monkeypatch.setattr(
-        "src.routers.training_routers.connect_colab", MockSSHContext
+        "users.routers.training_routers.connect_colab", MockSSHContext
     )
     response = overrided_token_client.post(
         START_TRAINING_PATH.format(EXIST_TRAINING_ID),
@@ -155,11 +155,11 @@ def test_start_training_boto3_error(
     return 500 status with error description in message.
     """
     monkeypatch.setattr(
-        "src.routers.training_routers.get_minio_object",
+        "users.routers.training_routers.get_minio_object",
         Mock(side_effect=BotoCoreError()),
     )
     monkeypatch.setattr(
-        "src.routers.training_routers.connect_colab", MockSSHContext
+        "users.routers.training_routers.connect_colab", MockSSHContext
     )
     response = overrided_token_client.post(
         START_TRAINING_PATH.format(EXIST_TRAINING_ID),
@@ -187,14 +187,14 @@ def test_start_training_integration(
     """
     mock_upload = Mock()
     monkeypatch.setattr(
-        "src.routers.training_routers.upload_file_to_colab", mock_upload
+        "users.routers.training_routers.upload_file_to_colab", mock_upload
     )
     monkeypatch.setattr(
-        "src.utils.boto3.resource",
+        "users.utils.boto3.resource",
         Mock(return_value=save_start_training_minio_objects),
     )
     monkeypatch.setattr(
-        "src.routers.training_routers.connect_colab", MockSSHContext
+        "users.routers.training_routers.connect_colab", MockSSHContext
     )
     response = overrided_token_client.post(
         START_TRAINING_PATH.format(EXIST_TRAINING_ID),

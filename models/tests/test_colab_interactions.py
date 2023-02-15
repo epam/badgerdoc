@@ -47,11 +47,11 @@ def test_connect_colab_called_with_credentials(monkeypatch) -> None:
     mock_ssh = mock.Mock(return_value=mock_client)
     mock_policy = mock.Mock()
     monkeypatch.setattr(
-        "src.colab_ssh_utils.SSHClient",
+        "users.colab_ssh_utils.SSHClient",
         mock_ssh,
     )
     monkeypatch.setattr(
-        "src.colab_ssh_utils.AutoAddPolicy",
+        "users.colab_ssh_utils.AutoAddPolicy",
         mock.Mock(return_value=mock_policy),
     )
     mock_client.connect = mock.Mock(return_value=1)

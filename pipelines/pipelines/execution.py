@@ -14,10 +14,10 @@ from fastapi import HTTPException, status
 from pydantic import BaseModel, Field
 from sqlalchemy import orm
 
-import src.db.models as dbm
-import src.db.service as service
-import src.result_processing as postprocessing
-from src import config, http_utils, log, schemas, service_token, webhooks
+import pipelines.db.models as dbm
+import pipelines.db.service as service
+import pipelines.result_processing as postprocessing
+from pipelines import config, http_utils, log, schemas, service_token, webhooks
 
 logger = log.get_logger(__file__)
 

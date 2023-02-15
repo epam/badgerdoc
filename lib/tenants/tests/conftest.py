@@ -26,7 +26,7 @@ public_key = get_key("public_key")
 @pytest.fixture
 def mock_jwk_client():
     with patch(
-        "src.dependency.jwt.PyJWKClient.__init__", return_value=None
+        "users.dependency.jwt.PyJWKClient.__init__", return_value=None
     ) as mock:
         yield mock
 
@@ -36,7 +36,7 @@ def mock_sig_key():
     m = MagicMock()
     m.key = public_key
     with patch(
-        "src.dependency.jwt.PyJWKClient.get_signing_key_from_jwt",
+        "users.dependency.jwt.PyJWKClient.get_signing_key_from_jwt",
         return_value=m,
     ) as mock:
         yield mock

@@ -28,7 +28,7 @@ COPY tests tests
 COPY src src
 
 
-RUN isort src --check && black src -l 79 --check && mypy src && pylint --rcfile=setup.cfg src && pytest -vv --cov --cov-report=xml
+RUN isort users --check && black users -l 79 --check && mypy users && pylint --rcfile=setup.cfg users && pytest -vv --cov --cov-report=xml
 
 FROM sonarsource/sonar-scanner-cli:4.6 AS sonar
 
@@ -37,7 +37,7 @@ COPY --from=test /opt/dataset_manager/src /opt/dataset_manager/src
 COPY --from=test /opt/dataset_manager/coverage.xml /opt/dataset_manager/coverage.xml
 COPY sonar-project.properties /opt/dataset_manager/sonar-project.properties
 
-RUN ls -la /opt/dataset_manager/tests && ls -la /opt/dataset_manager/src && cat /opt/dataset_manager/coverage.xml && cat /opt/dataset_manager/sonar-project.properties
+RUN ls -la /opt/dataset_manager/tests && ls -la /opt/dataset_manager/users && cat /opt/dataset_manager/coverage.xml && cat /opt/dataset_manager/sonar-project.properties
 
 CMD sonar-scanner \
   -Dsonar.projectKey=$SONAR_PROJECT_KEY_ASSETS \

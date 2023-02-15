@@ -1,8 +1,8 @@
 import json
 from typing import Optional
 
-from src import config, http_utils
-from src.log import get_logger
+from pipelines import config, http_utils
+from pipelines.log import get_logger
 
 ACCESS_TOKEN = "access_token"
 

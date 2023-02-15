@@ -8,13 +8,13 @@ from sqlalchemy.orm import Session
 from sqlalchemy_filters.exceptions import BadFilterFormat
 from tenant_dependency import TenantData, get_tenant_info
 
-import src.config as config
-import src.db.models as dbm
-import src.db.service as service
-import src.execution as execution
-import src.schemas as schemas
-from src.kafka_utils import Kafka
-from src.pipeline_runner import run_pipeline
+import pipelines.config as config
+import pipelines.db.models as dbm
+import pipelines.db.service as service
+import pipelines.execution as execution
+import pipelines.schemas as schemas
+from pipelines.kafka_utils import Kafka
+from pipelines.pipeline_runner import run_pipeline
 
 TOKEN = get_tenant_info(url=config.KEYCLOAK_URI, algorithm="RS256")
 
