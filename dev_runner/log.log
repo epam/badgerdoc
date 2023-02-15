@@ -391,3 +391,12 @@ asyncio.exceptions.CancelledError
     await getter
 asyncio.exceptions.CancelledError
 
+[15-02-2023 16:24:02] - [/Users/yarnaid/projects/badgerdoc/processing/src/utils/minio_utils.py] - [INFO] - MinIO client for localhost:9000 was created successfully
+[15-02-2023 16:24:03] - [uvicorn.error] - [INFO] - Started server process [[36m30491[0m]
+[15-02-2023 16:24:03] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[15-02-2023 16:24:03] - [uvicorn.error] - [INFO] - Application startup complete.
+[15-02-2023 16:24:03] - [uvicorn.error] - [INFO] - Uvicorn running on [1mhttp://localhost:8006[0m (Press CTRL+C to quit)
+[15-02-2023 16:24:12] - [uvicorn.error] - [INFO] - Shutting down
+[15-02-2023 16:24:12] - [uvicorn.error] - [INFO] - Waiting for application shutdown.
+[15-02-2023 16:24:12] - [uvicorn.error] - [INFO] - Application shutdown complete.
+[15-02-2023 16:24:12] - [uvicorn.error] - [INFO] - Finished server process [[36m30491[0m]

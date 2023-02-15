@@ -1,5 +1,6 @@
 from .base_runner import BaseRunner
 from dev_runner.conf import settings
+import logging
 
 
 class ProcessingRunner(BaseRunner):
@@ -12,8 +13,9 @@ class ProcessingRunner(BaseRunner):
     ENVIRONMENT = {
         "POSTGRES_DB": "processing",
         "MODELS_POSTFIX": "",
-        "LOCAL_RUN": 1,
+        "LOCAL_RUN": "1",
         "SERVICE_NAME": "processing",
         "HOST": "localhost",
         "PORT": str(PORT),
+        "LOG_LEVEL": str(logging.DEBUG),
     }

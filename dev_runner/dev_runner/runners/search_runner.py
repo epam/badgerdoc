@@ -5,7 +5,7 @@ from dev_runner.conf import settings
 class SearchRunner(BaseRunner):
     PACKAGE_NAME = "search"
     PORT = settings.SEARCH_PORT
-    APP_NAME = "src"
+    APP_NAME = "search"
     ENVIRONMENT = {
         "S3_START_PATH": "annotation",
         "APP_TITLE": "Badgerdoc Search",
