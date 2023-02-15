@@ -120,13 +120,12 @@ class AnnotationConverterToTheory:
         for obj_practic in objs_practic:
             token_ids = self.convert_tokens(obj_practic.data.tokens)
             links = self.convert_links(obj_practic.links)
-
             obj = Obj(
                 id=obj_practic.id,
                 type=obj_practic.type,
                 bbox=obj_practic.bbox,
                 category=obj_practic.category,
-                data=None,
+                data=obj_practic.data,
                 tokens=token_ids,
                 links=links,
             )

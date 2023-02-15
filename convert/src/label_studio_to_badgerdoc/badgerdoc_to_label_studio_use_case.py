@@ -2,6 +2,9 @@ import tempfile
 from pathlib import Path
 from typing import NamedTuple
 
+from botocore.client import BaseClient
+from tenant_dependency import TenantData
+
 from src.label_studio_to_badgerdoc.badgerdoc_format.annotation_converter_practic import (
     AnnotationConverterToTheory,
 )
@@ -24,12 +27,21 @@ class BadgerdocData(NamedTuple):
 
 
 class BDToLabelStudioConvertUseCase:
+    labelstudio_format = LabelStudioFormat()
+
     def __init__(
         self,
-        s3_client,
+        s3_client: BaseClient,
+        current_tenant: str,
+        token_data: TenantData,
     ) -> None:
         self.s3_client = s3_client
-        self.labelstudio_format = LabelStudioFormat()
+        self.current_tenant = current_tenant
+        self.token_data = token_data
+        self.request_headers = {
+            "X-Current-Tenant": self.current_tenant,
+            "Authorization": f"Bearer {self.token_data.token}",
+        }
 
     def execute(
         self,
@@ -46,7 +58,10 @@ class BDToLabelStudioConvertUseCase:
             s3_input_tokens, s3_input_annotations, s3_input_manifest
         )
         self.labelstudio_format.from_badgerdoc(
-            badgerdoc_page, badgerdoc_annotations, badgerdoc_manifest
+            badgerdoc_page,
+            badgerdoc_annotations,
+            badgerdoc_manifest,
+            self.request_headers,
         )
         self.upload_labelstudio_to_s3(s3_output_annotation)
 
