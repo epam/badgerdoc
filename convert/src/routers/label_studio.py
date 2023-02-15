@@ -49,9 +49,15 @@ def import_label_studio(
     "/export",
     status_code=status.HTTP_201_CREATED,
 )
-def export_label_studio(request: BadgerdocToLabelStudioRequest) -> None:
+def export_label_studio(
+    request: BadgerdocToLabelStudioRequest,
+    current_tenant: Optional[str] = Header(None, alias="X-Current-Tenant"),
+    token_data: TenantData = Depends(tenant),
+) -> None:
     bd_to_label_studio_use_case = BDToLabelStudioConvertUseCase(
         s3_client=minio_client,
+        current_tenant=current_tenant,
+        token_data=token_data,
     )
     bd_to_label_studio_use_case.execute(
         s3_input_tokens=request.input_tokens,

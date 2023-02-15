@@ -20,7 +20,7 @@ class Manifest(BaseModel):
     pages: Dict[str, str]
     failed_validation_pages: List[int] = []
     validated: List[int] = []
-    links_json: List[DocumentLink]
+    links_json: Optional[List[DocumentLink]]
     file: str
     bucket: str
     categories: List[Any] = []
