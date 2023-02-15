@@ -1,0 +1,393 @@
+[10-02-2023 15:49:56] - [/Users/yarnaid/projects/badgerdoc/processing/src/utils/minio_utils.py] - [INFO] - MinIO client for minio:9000 was created successfully
+[10-02-2023 15:49:56] - [uvicorn.error] - [INFO] - Started server process [[36m27679[0m]
+[10-02-2023 15:49:56] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[10-02-2023 15:49:56] - [uvicorn.error] - [INFO] - Application startup complete.
+[10-02-2023 15:49:56] - [uvicorn.error] - [INFO] - Uvicorn running on [1mhttp://localhost:8002[0m (Press CTRL+C to quit)
+[10-02-2023 15:51:15] - [uvicorn.error] - [INFO] - Shutting down
+[10-02-2023 15:51:15] - [uvicorn.error] - [INFO] - Waiting for application shutdown.
+[10-02-2023 15:51:15] - [uvicorn.error] - [INFO] - Application shutdown complete.
+[10-02-2023 15:51:15] - [uvicorn.error] - [INFO] - Finished server process [[36m27679[0m]
+[10-02-2023 17:55:17] - [/Users/yarnaid/projects/badgerdoc/processing/src/utils/minio_utils.py] - [INFO] - MinIO client for minio:9000 was created successfully
+[10-02-2023 17:55:17] - [uvicorn.error] - [INFO] - Started server process [[36m47487[0m]
+[10-02-2023 17:55:17] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[10-02-2023 17:55:17] - [uvicorn.error] - [INFO] - Started server process [[36m47487[0m]
+[10-02-2023 17:55:17] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[10-02-2023 17:55:18] - [uvicorn.error] - [INFO] - Started server process [[36m47487[0m]
+[10-02-2023 17:55:18] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[10-02-2023 17:55:18] - [uvicorn.error] - [INFO] - Started server process [[36m47487[0m]
+[10-02-2023 17:55:18] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[10-02-2023 17:55:18] - [uvicorn.error] - [INFO] - Started server process [[36m47487[0m]
+[10-02-2023 17:55:18] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[10-02-2023 17:55:18] - [uvicorn.error] - [INFO] - Started server process [[36m47487[0m]
+[10-02-2023 17:55:18] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[10-02-2023 17:55:18] - [uvicorn.error] - [INFO] - Started server process [[36m47487[0m]
+[10-02-2023 17:55:18] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[10-02-2023 17:55:18] - [kafka.conn] - [WARNING] - DNS lookup failed for kafka:9092, exception was [Errno 8] nodename nor servname provided, or not known. Is your advertised.listeners (called advertised.host.name before Kafka 9) correct and resolvable?
+[10-02-2023 17:55:18] - [kafka.conn] - [ERROR] - DNS lookup failed for kafka:9092 (AddressFamily.AF_UNSPEC)
+[10-02-2023 17:55:18] - [kafka.conn] - [WARNING] - DNS lookup failed for kafka:9092, exception was [Errno 8] nodename nor servname provided, or not known. Is your advertised.listeners (called advertised.host.name before Kafka 9) correct and resolvable?
+[10-02-2023 17:55:18] - [kafka.conn] - [ERROR] - DNS lookup failed for kafka:9092 (AddressFamily.AF_UNSPEC)
+[10-02-2023 17:55:18] - [root] - [WARNING] - Error occurred during kafka producer creating: NoBrokersAvailable
+[10-02-2023 17:55:18] - [kafka.conn] - [WARNING] - DNS lookup failed for kafka:9092, exception was [Errno 8] nodename nor servname provided, or not known. Is your advertised.listeners (called advertised.host.name before Kafka 9) correct and resolvable?
+[10-02-2023 17:55:18] - [kafka.conn] - [ERROR] - DNS lookup failed for kafka:9092 (AddressFamily.AF_UNSPEC)
+[10-02-2023 17:55:18] - [kafka.conn] - [WARNING] - DNS lookup failed for kafka:9092, exception was [Errno 8] nodename nor servname provided, or not known. Is your advertised.listeners (called advertised.host.name before Kafka 9) correct and resolvable?
+[10-02-2023 17:55:18] - [kafka.conn] - [ERROR] - DNS lookup failed for kafka:9092 (AddressFamily.AF_UNSPEC)
+[10-02-2023 17:55:18] - [root] - [WARNING] - Error occurred during kafka producer creating: NoBrokersAvailable
+[10-02-2023 17:55:18] - [uvicorn.error] - [INFO] - Application startup complete.
+[10-02-2023 17:55:18] - [uvicorn.error] - [INFO] - Application startup complete.
+[10-02-2023 17:55:18] - [uvicorn.error] - [INFO] - Application startup complete.
+[10-02-2023 17:55:18] - [uvicorn.error] - [INFO] - Application startup complete.
+[10-02-2023 17:55:18] - [asyncio] - [ERROR] - Task exception was never retrieved
+future: <Task finished name='Task-6' coro=<BaseRunner.run_app_async() done, defined at /Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py:111> exception=ModuleNotFoundError("No module named 'scheduler.main'")>
+Traceback (most recent call last):
+  File "/Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py", line 112, in run_app_async
+    await self.create_server().serve()
+  File "/Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py", line 91, in create_server
+    app = import_module(f"{self.APP_NAME}.{self.MODULE_NAME}").app
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/importlib/__init__.py", line 127, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1030, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1007, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 984, in _find_and_load_unlocked
+ModuleNotFoundError: No module named 'scheduler.main'
+[10-02-2023 17:55:18] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[10-02-2023 17:55:18] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[10-02-2023 17:55:18] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[10-02-2023 17:55:18] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[10-02-2023 17:55:18] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[10-02-2023 17:55:18] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[10-02-2023 17:55:18] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[10-02-2023 17:55:25] - [/Users/yarnaid/projects/badgerdoc/processing/src/utils/minio_utils.py] - [INFO] - MinIO client for minio:9000 was created successfully
+[10-02-2023 17:55:25] - [uvicorn.error] - [INFO] - Started server process [[36m47544[0m]
+[10-02-2023 17:55:25] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[10-02-2023 17:55:25] - [uvicorn.error] - [INFO] - Started server process [[36m47544[0m]
+[10-02-2023 17:55:25] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[10-02-2023 17:55:25] - [uvicorn.error] - [INFO] - Started server process [[36m47544[0m]
+[10-02-2023 17:55:25] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[10-02-2023 17:55:25] - [uvicorn.error] - [INFO] - Started server process [[36m47544[0m]
+[10-02-2023 17:55:25] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[10-02-2023 17:55:26] - [uvicorn.error] - [INFO] - Started server process [[36m47544[0m]
+[10-02-2023 17:55:26] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[10-02-2023 17:55:26] - [uvicorn.error] - [INFO] - Started server process [[36m47544[0m]
+[10-02-2023 17:55:26] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[10-02-2023 17:55:26] - [uvicorn.error] - [INFO] - Started server process [[36m47544[0m]
+[10-02-2023 17:55:26] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[10-02-2023 17:55:26] - [kafka.conn] - [WARNING] - DNS lookup failed for kafka:9092, exception was [Errno 8] nodename nor servname provided, or not known. Is your advertised.listeners (called advertised.host.name before Kafka 9) correct and resolvable?
+[10-02-2023 17:55:26] - [kafka.conn] - [ERROR] - DNS lookup failed for kafka:9092 (AddressFamily.AF_UNSPEC)
+[10-02-2023 17:55:26] - [kafka.conn] - [WARNING] - DNS lookup failed for kafka:9092, exception was [Errno 8] nodename nor servname provided, or not known. Is your advertised.listeners (called advertised.host.name before Kafka 9) correct and resolvable?
+[10-02-2023 17:55:26] - [kafka.conn] - [ERROR] - DNS lookup failed for kafka:9092 (AddressFamily.AF_UNSPEC)
+[10-02-2023 17:55:26] - [root] - [WARNING] - Error occurred during kafka producer creating: NoBrokersAvailable
+[10-02-2023 17:55:26] - [kafka.conn] - [WARNING] - DNS lookup failed for kafka:9092, exception was [Errno 8] nodename nor servname provided, or not known. Is your advertised.listeners (called advertised.host.name before Kafka 9) correct and resolvable?
+[10-02-2023 17:55:26] - [kafka.conn] - [ERROR] - DNS lookup failed for kafka:9092 (AddressFamily.AF_UNSPEC)
+[10-02-2023 17:55:26] - [kafka.conn] - [WARNING] - DNS lookup failed for kafka:9092, exception was [Errno 8] nodename nor servname provided, or not known. Is your advertised.listeners (called advertised.host.name before Kafka 9) correct and resolvable?
+[10-02-2023 17:55:26] - [kafka.conn] - [ERROR] - DNS lookup failed for kafka:9092 (AddressFamily.AF_UNSPEC)
+[10-02-2023 17:55:26] - [root] - [WARNING] - Error occurred during kafka producer creating: NoBrokersAvailable
+[10-02-2023 17:55:26] - [uvicorn.error] - [INFO] - Application startup complete.
+[10-02-2023 17:55:26] - [uvicorn.error] - [INFO] - Application startup complete.
+[10-02-2023 17:55:26] - [uvicorn.error] - [INFO] - Application startup complete.
+[10-02-2023 17:55:26] - [uvicorn.error] - [INFO] - Application startup complete.
+[10-02-2023 17:55:26] - [asyncio] - [ERROR] - Task exception was never retrieved
+future: <Task finished name='Task-6' coro=<BaseRunner.run_app_async() done, defined at /Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py:111> exception=ModuleNotFoundError("No module named 'scheduler.main'")>
+Traceback (most recent call last):
+  File "/Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py", line 112, in run_app_async
+    await self.create_server().serve()
+  File "/Users/yarnaid/projects/badgerdoc/dev_runner/dev_runner/runners/base_runner.py", line 91, in create_server
+    app = import_module(f"{self.APP_NAME}.{self.MODULE_NAME}").app
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/importlib/__init__.py", line 127, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1030, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1007, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 984, in _find_and_load_unlocked
+ModuleNotFoundError: No module named 'scheduler.main'
+[10-02-2023 17:55:26] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[10-02-2023 17:55:26] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[10-02-2023 17:55:26] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[10-02-2023 17:55:26] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[10-02-2023 17:55:26] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[10-02-2023 17:55:26] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[10-02-2023 17:55:26] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[10-02-2023 17:58:14] - [/Users/yarnaid/projects/badgerdoc/processing/src/utils/minio_utils.py] - [INFO] - MinIO client for minio:9000 was created successfully
+[10-02-2023 17:58:14] - [uvicorn.error] - [INFO] - Started server process [[36m47954[0m]
+[10-02-2023 17:58:14] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[10-02-2023 17:58:14] - [uvicorn.error] - [INFO] - Started server process [[36m47954[0m]
+[10-02-2023 17:58:14] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[10-02-2023 17:58:14] - [uvicorn.error] - [INFO] - Started server process [[36m47954[0m]
+[10-02-2023 17:58:14] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[10-02-2023 17:58:14] - [uvicorn.error] - [INFO] - Started server process [[36m47954[0m]
+[10-02-2023 17:58:14] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[10-02-2023 17:58:14] - [uvicorn.error] - [INFO] - Started server process [[36m47954[0m]
+[10-02-2023 17:58:14] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[10-02-2023 17:58:14] - [uvicorn.error] - [INFO] - Started server process [[36m47954[0m]
+[10-02-2023 17:58:14] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[10-02-2023 17:58:14] - [uvicorn.error] - [INFO] - Started server process [[36m47954[0m]
+[10-02-2023 17:58:14] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[10-02-2023 17:58:14] - [uvicorn.error] - [INFO] - Application startup complete.
+[10-02-2023 17:58:14] - [uvicorn.error] - [INFO] - Application startup complete.
+[10-02-2023 17:58:14] - [uvicorn.error] - [INFO] - Application startup complete.
+[10-02-2023 17:58:14] - [uvicorn.error] - [INFO] - Application startup complete.
+[10-02-2023 17:58:14] - [uvicorn.error] - [INFO] - Application startup complete.
+[10-02-2023 17:58:14] - [uvicorn.error] - [INFO] - Application startup complete.
+[10-02-2023 17:58:14] - [uvicorn.error] - [INFO] - Application startup complete.
+[10-02-2023 17:58:14] - [uvicorn.error] - [INFO] - Uvicorn running on [1mhttp://localhost:8006[0m (Press CTRL+C to quit)
+[10-02-2023 17:58:14] - [uvicorn.error] - [INFO] - Uvicorn running on [1mhttp://localhost:8003[0m (Press CTRL+C to quit)
+[10-02-2023 17:58:14] - [uvicorn.error] - [INFO] - Uvicorn running on [1mhttp://localhost:8010[0m (Press CTRL+C to quit)
+[10-02-2023 17:58:14] - [uvicorn.error] - [INFO] - Uvicorn running on [1mhttp://localhost:8009[0m (Press CTRL+C to quit)
+[10-02-2023 17:58:14] - [uvicorn.error] - [INFO] - Uvicorn running on [1mhttp://localhost:8001[0m (Press CTRL+C to quit)
+[10-02-2023 17:58:14] - [uvicorn.error] - [INFO] - Uvicorn running on [1mhttp://localhost:8000[0m (Press CTRL+C to quit)
+[10-02-2023 17:58:14] - [uvicorn.error] - [INFO] - Uvicorn running on [1mhttp://localhost:8004[0m (Press CTRL+C to quit)
+[10-02-2023 18:00:07] - [uvicorn.error] - [INFO] - Shutting down
+[10-02-2023 18:00:07] - [uvicorn.error] - [INFO] - Waiting for application shutdown.
+[10-02-2023 18:00:07] - [uvicorn.error] - [INFO] - Application shutdown complete.
+[10-02-2023 18:00:07] - [uvicorn.error] - [INFO] - Finished server process [[36m47954[0m]
+[10-02-2023 18:00:07] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[10-02-2023 18:00:07] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[10-02-2023 18:00:07] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[10-02-2023 18:00:07] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[10-02-2023 18:00:07] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[10-02-2023 18:00:07] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[10-02-2023 18:00:21] - [/Users/yarnaid/projects/badgerdoc/processing/src/utils/minio_utils.py] - [INFO] - MinIO client for minio:9000 was created successfully
+[10-02-2023 18:00:21] - [uvicorn.error] - [INFO] - Started server process [[36m48264[0m]
+[10-02-2023 18:00:21] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[10-02-2023 18:00:21] - [uvicorn.error] - [INFO] - Started server process [[36m48264[0m]
+[10-02-2023 18:00:21] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[10-02-2023 18:00:21] - [uvicorn.error] - [INFO] - Started server process [[36m48264[0m]
+[10-02-2023 18:00:21] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[10-02-2023 18:00:21] - [uvicorn.error] - [INFO] - Started server process [[36m48264[0m]
+[10-02-2023 18:00:21] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[10-02-2023 18:00:21] - [uvicorn.error] - [INFO] - Started server process [[36m48264[0m]
+[10-02-2023 18:00:21] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[10-02-2023 18:00:21] - [uvicorn.error] - [INFO] - Started server process [[36m48264[0m]
+[10-02-2023 18:00:21] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[10-02-2023 18:00:21] - [uvicorn.error] - [INFO] - Started server process [[36m48264[0m]
+[10-02-2023 18:00:21] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[10-02-2023 18:00:21] - [uvicorn.error] - [INFO] - Application startup complete.
+[10-02-2023 18:00:21] - [uvicorn.error] - [INFO] - Application startup complete.
+[10-02-2023 18:00:21] - [uvicorn.error] - [INFO] - Application startup complete.
+[10-02-2023 18:00:21] - [uvicorn.error] - [INFO] - Application startup complete.
+[10-02-2023 18:00:21] - [uvicorn.error] - [INFO] - Application startup complete.
+[10-02-2023 18:00:21] - [uvicorn.error] - [INFO] - Application startup complete.
+[10-02-2023 18:00:21] - [uvicorn.error] - [INFO] - Application startup complete.
+[10-02-2023 18:00:21] - [uvicorn.error] - [INFO] - Uvicorn running on [1mhttp://localhost:8000[0m (Press CTRL+C to quit)
+[10-02-2023 18:00:21] - [uvicorn.error] - [INFO] - Uvicorn running on [1mhttp://localhost:8001[0m (Press CTRL+C to quit)
+[10-02-2023 18:00:21] - [uvicorn.error] - [INFO] - Uvicorn running on [1mhttp://localhost:8003[0m (Press CTRL+C to quit)
+[10-02-2023 18:00:21] - [uvicorn.error] - [INFO] - Uvicorn running on [1mhttp://localhost:8006[0m (Press CTRL+C to quit)
+[10-02-2023 18:00:21] - [uvicorn.error] - [INFO] - Uvicorn running on [1mhttp://localhost:8009[0m (Press CTRL+C to quit)
+[10-02-2023 18:00:21] - [uvicorn.error] - [INFO] - Uvicorn running on [1mhttp://localhost:8010[0m (Press CTRL+C to quit)
+[10-02-2023 18:00:21] - [uvicorn.error] - [INFO] - Uvicorn running on [1mhttp://localhost:8004[0m (Press CTRL+C to quit)
+[10-02-2023 18:00:23] - [uvicorn.error] - [INFO] - Shutting down
+[10-02-2023 18:00:23] - [uvicorn.error] - [INFO] - Waiting for application shutdown.
+[10-02-2023 18:00:23] - [uvicorn.error] - [INFO] - Application shutdown complete.
+[10-02-2023 18:00:23] - [uvicorn.error] - [INFO] - Finished server process [[36m48264[0m]
+[10-02-2023 18:00:23] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[10-02-2023 18:00:23] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[10-02-2023 18:00:23] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[10-02-2023 18:00:23] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[10-02-2023 18:00:23] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+[10-02-2023 18:00:23] - [uvicorn.error] - [ERROR] - Traceback (most recent call last):
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/starlette/routing.py", line 674, in lifespan
+    await receive()
+  File "/Users/yarnaid/Library/Caches/pypoetry/virtualenvs/dev-runner-gqI23zM9-py3.9/lib/python3.9/site-packages/uvicorn/lifespan/on.py", line 135, in receive
+    return await self.receive_queue.get()
+  File "/Users/yarnaid/.pyenv/versions/3.9.12/lib/python3.9/asyncio/queues.py", line 166, in get
+    await getter
+asyncio.exceptions.CancelledError
+

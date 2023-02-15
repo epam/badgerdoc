@@ -31,6 +31,7 @@ router = APIRouter(prefix="/basements", tags=["basements"])
 @router.post(
     "/create",
     status_code=201,
+    response_model=None,
     responses={
         201: {
             "model": schemas.Basement,
@@ -94,6 +95,7 @@ def search_basements(
 
 @router.get(
     "/{basements_id}",
+    response_model=None,
     responses={
         200: {
             "model": schemas.Basement,
@@ -117,6 +119,7 @@ def get_basement_by_id(
 
 @router.put(
     "/update",
+    response_model=None,
     responses={
         200: {
             "model": schemas.Basement,

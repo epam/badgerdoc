@@ -38,7 +38,7 @@ class BBox(List[int]):
             raise ValueError(
                 "Bounding box must contains x, y, width and height"
             )
-        super().__init__()
+        super().__init__(iterable)
 
 
 class Image(BaseModel):

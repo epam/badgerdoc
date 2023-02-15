@@ -118,7 +118,7 @@ async def run_job(
     current_tenant: Optional[str] = Header(None, alias="X-Current-Tenant"),
     db: Session = Depends(db_service.get_session),
     token_data: TenantData = Depends(tenant),
-) -> Union[Dict[str, Any], HTTPException]:
+) -> Dict[str, Any]:
     """Runs any type of Job"""
     jw_token = token_data.token
     job_to_run = db_service.get_job_in_db_by_id(db, job_id)
@@ -183,7 +183,7 @@ async def change_job(
     token_data: TenantData = Depends(tenant),
     current_tenant: Optional[str] = Header(None, alias="X-Current-Tenant"),
     db: Session = Depends(db_service.get_session),
-) -> Union[Dict[str, Any], HTTPException]:
+) -> Dict[str, Any]:
     """Provides an ability to change any value of any field of any Job in the database"""
     job_to_change = db_service.get_job_in_db_by_id(db, job_id)
     if not job_to_change:
@@ -305,7 +305,7 @@ async def delete_job(
     job_id: int,
     current_tenant: Optional[str] = Header(None, alias="X-Current-Tenant"),
     db: Session = Depends(db_service.get_session),
-) -> Union[Dict[str, Any], HTTPException]:
+) -> Dict[str, Any]:
     """Deletes Job instance by its id"""
 
     job_to_delete = db_service.get_job_in_db_by_id(db, job_id)

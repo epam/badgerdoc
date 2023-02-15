@@ -50,6 +50,7 @@ router = APIRouter(prefix="/trainings", tags=["trainings"])
 @router.post(
     "/create",
     status_code=201,
+    response_model=None,
     responses={
         201: {
             "model": schemas.Training,
@@ -147,6 +148,7 @@ def search_training(
 
 @router.get(
     "/{trainings_id}",
+    response_model=None,
     responses={
         200: {
             "model": schemas.Training,
@@ -170,6 +172,7 @@ def get_training_by_id(
 
 @router.put(
     "/update",
+    response_model=None,
     responses={
         200: {
             "model": schemas.Training,

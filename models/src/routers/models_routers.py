@@ -117,6 +117,7 @@ def search_models(
 
 @router.get(
     "/{models_id}",
+    response_model=None,
     responses={
         200: {
             "model": schemas.Model,
@@ -169,6 +170,7 @@ def get_model_by_id_and_version(
 
 @router.put(
     "/update",
+    response_model=None,
     responses={
         200: {
             "model": schemas.Model,
