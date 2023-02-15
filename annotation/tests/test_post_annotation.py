@@ -1684,7 +1684,7 @@ def test_check_docs_identity(latest_doc, new_doc, expected_result):
                 "pipeline": None,
                 "job_id": 1,
                 "pages": {"2": "b922f25f41b0d7a0f3226f077ba0745e540818f7"},
-                "validated": [1, 2],
+                "validated": [1],
                 "failed_validation_pages": [],
                 "categories": [
                     {"type": "taxonomy", "value": "foo"},
@@ -1695,7 +1695,6 @@ def test_check_docs_identity(latest_doc, new_doc, expected_result):
         ),
     ],
 )
-@pytest.mark.skip
 def test_create_manifest_json_first_upload(
     mock_minio_empty_bucket,
     annotated_doc,
@@ -1756,7 +1755,7 @@ def test_create_manifest_json_first_upload(
                     "1": SHA_FIRST_PAGE,
                     "2": PAGES_SHA["2"],
                 },
-                "validated": [1, 2],
+                "validated": [1],
                 "failed_validation_pages": [],
                 "categories": [],
                 "links_json": [],
@@ -1800,7 +1799,7 @@ def test_create_manifest_json_first_upload(
                 "pipeline": None,
                 "job_id": POST_ANNOTATION_JOB_1.job_id,
                 "pages": {**POST_ANNOTATION_PG_DOC.pages, "2": PAGES_SHA["2"]},
-                "validated": [2],
+                "validated": [],
                 "failed_validation_pages": [1],
                 "categories": [],
                 "links_json": [],
@@ -1827,7 +1826,7 @@ def test_create_manifest_json_first_upload(
                     "2": PAGES_SHA["2"],
                     "3": PAGES_SHA["3"],
                 },
-                "validated": [2, 3],
+                "validated": [2],
                 "failed_validation_pages": [1],
                 "categories": [],
                 "links_json": [],
@@ -1850,7 +1849,7 @@ def test_create_manifest_json_first_upload(
                 "pipeline": None,
                 "job_id": POST_ANNOTATION_JOB_1.job_id,
                 "pages": {"1": HASH_OF_DIFF_FIRST_PAGE},
-                "validated": [1],
+                "validated": [],
                 "failed_validation_pages": [],
                 "categories": [],
                 "links_json": [],
@@ -1904,7 +1903,7 @@ def test_create_manifest_json_first_upload(
                 "pipeline": None,
                 "job_id": 1,
                 "pages": {"2": "b922f25f41b0d7a0f3226f077ba0745e540818f7"},
-                "validated": [2],
+                "validated": [],
                 "failed_validation_pages": [1],
                 "categories": [
                     {"type": "taxonomy", "value": "baz"},
@@ -1916,7 +1915,6 @@ def test_create_manifest_json_first_upload(
     ],
     indirect=["prepare_db_for_manifest_creation_with_several_records"],
 )
-@pytest.mark.skip
 def test_create_manifest_json_with_annotated_docs_and_manifest_in_minio(
     minio_with_manifest,
     annotated_doc,
