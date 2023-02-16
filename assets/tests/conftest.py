@@ -13,11 +13,11 @@ from sqlalchemy import Column, String
 from sqlalchemy.engine import create_engine
 from sqlalchemy.orm import sessionmaker
 
-import src.utils.minio_utils as minio_utils
-from src.db.models import Base
-from src.db.service import session_scope_for_dependency
-from src.main import app, tenant
-from src.utils.minio_utils import get_storage
+import assets.utils.minio_utils as minio_utils
+from assets.db.models import Base
+from assets.db.service import session_scope_for_dependency
+from assets.main import app, tenant
+from assets.utils.minio_utils import get_storage
 
 BUCKET_TESTS = "tests" + uuid.uuid4().hex
 

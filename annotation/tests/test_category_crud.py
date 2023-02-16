@@ -8,7 +8,7 @@ from fastapi.testclient import TestClient
 from pytest import fixture, mark
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
-from app.models import Category
+from annotation.models import Category
 from tests.consts import CATEGORIES_PATH
 from tests.override_app_dependency import TEST_HEADERS, app
 
@@ -155,7 +155,7 @@ def add_for_cascade_delete(
 
 
 @mark.integration
-@patch("app.categories.resources.add_category_db", side_effect=SQLAlchemyError)
+@patch("annotation.categories.resources.add_category_db", side_effect=SQLAlchemyError)
 def test_add_db_connection_error(prepare_db_categories_different_names):
     data = prepare_category_body()
     response = client.post(CATEGORIES_PATH, json=data, headers=TEST_HEADERS)

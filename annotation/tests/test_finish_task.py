@@ -9,8 +9,8 @@ from sqlalchemy import asc, not_
 from sqlalchemy.exc import DBAPIError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from app.annotations import accumulate_pages_info, row_to_dict
-from app.models import (
+from annotation.annotations import accumulate_pages_info, row_to_dict
+from annotation.models import (
     AnnotatedDoc,
     Category,
     File,
@@ -18,14 +18,14 @@ from app.models import (
     ManualAnnotationTask,
     User,
 )
-from app.schemas import (
+from annotation.schemas import (
     CategoryTypeSchema,
     FileStatusEnumSchema,
     JobStatusEnumSchema,
     TaskStatusEnumSchema,
     ValidationSchema,
 )
-from app.tasks import get_task_revisions
+from annotation.tasks import get_task_revisions
 from tests.consts import FINISH_TASK_PATH
 from tests.override_app_dependency import TEST_HEADERS, TEST_TENANT, app
 

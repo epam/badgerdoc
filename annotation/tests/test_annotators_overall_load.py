@@ -6,12 +6,12 @@ from pytest import mark, raises
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from app.jobs import update_user_overall_load
-from app.main import app
-from app.microservice_communication.assets_communication import (
+from annotation.jobs import update_user_overall_load
+from annotation.main import app
+from annotation.microservice_communication.assets_communication import (
     ASSETS_FILES_URL,
 )
-from app.models import (
+from annotation.models import (
     AnnotatedDoc,
     Category,
     File,
@@ -19,7 +19,7 @@ from app.models import (
     ManualAnnotationTask,
     User,
 )
-from app.schemas import (
+from annotation.schemas import (
     CategoryTypeSchema,
     FileStatusEnumSchema,
     JobStatusEnumSchema,

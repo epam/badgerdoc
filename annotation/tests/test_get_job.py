@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from app.jobs import collect_job_names
+from annotation.jobs import collect_job_names
 from app.microservice_communication.search import (
     AUTHORIZATION,
     BEARER,

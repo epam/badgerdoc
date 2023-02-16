@@ -9,22 +9,22 @@ from PIL import Image
 from requests import Response
 from sqlalchemy.orm import Session
 
-import src.utils.minio_utils as minio_utils
-from src.config import settings
-from src.exceptions import (
+import assets.utils.minio_utils as minio_utils
+from assets.config import settings
+from assets.exceptions import (
     BucketError,
     FileConversionError,
     FileKeyError,
     UploadLimitExceedError,
 )
-from src.schemas import ActionResponse
-from src.utils.common_utils import (
+from assets.schemas import ActionResponse
+from assets.utils.common_utils import (
     FileConverter,
     FileProcessor,
     check_uploading_limit,
     to_obj,
 )
-from src.utils.s3_utils import S3Manager
+from assets.utils.s3_utils import S3Manager
 
 ID_ = 12
 

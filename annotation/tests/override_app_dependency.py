@@ -11,13 +11,13 @@ there are necessary tenants in token.
 
 from tenant_dependency import TenantData
 
-from app.main import app
-from app.microservice_communication.search import (
+from annotation.main import app
+from annotation.microservice_communication.search import (
     AUTHORIZATION,
     BEARER,
     HEADER_TENANT,
 )
-from app.token_dependency import TOKEN
+from annotation.token_dependency import TOKEN
 
 TEST_TOKEN = "token"
 TEST_TENANT = "test"

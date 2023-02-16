@@ -21,7 +21,7 @@ def test_create_bucket(client_app_main_bucket_false):
 def test_bucket_name_on_create_bucket_with_prefix(client_app_main_bucket_false, monkeypatch):
     test_prefix = 'test_prefix'
 
-    from src.config import settings
+    from assets.config import settings
     monkeypatch.setattr(target=settings, name='s3_prefix', value=test_prefix)
 
     random_name = "tests" + uuid.uuid4().hex
@@ -37,7 +37,7 @@ def test_bucket_name_on_create_bucket_with_prefix(client_app_main_bucket_false, 
 def test_bucket_name_on_create_bucket_without_prefix(client_app_main_bucket_false, monkeypatch):
     test_prefix = None
 
-    from src.config import settings
+    from assets.config import settings
     monkeypatch.setattr(target=settings, name='s3_prefix', value=test_prefix)
 
     random_name = "tests" + uuid.uuid4().hex
