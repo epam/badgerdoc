@@ -4,6 +4,7 @@ from typing import Any, Callable, Dict, List, Optional
 
 import boto3
 from botocore.client import BaseClient
+from dotenv import load_dotenv
 from mypy_extensions import KwArg, VarArg
 from pydantic import BaseSettings, Field
 from requests import Session
@@ -11,7 +12,6 @@ from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 
 from src import logger
-from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -81,12 +81,12 @@ def get_request_session(*args: List[Any], **kwargs: Dict[str, Any]) -> Session:
     Return:
         session object
     """
-    s = Session()
+    session = Session()
     retries = Retry(
         total=3, backoff_factor=1, status_forcelist=[500, 501, 502, 503, 504]
     )
-    s.mount("http://", HTTPAdapter(max_retries=retries))
-    return s
+    session.mount("http://", HTTPAdapter(max_retries=retries))
+    return session
 
 
 settings = Settings()

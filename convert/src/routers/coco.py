@@ -7,17 +7,17 @@ from fastapi.responses import Response, StreamingResponse
 from requests import HTTPError
 from tenant_dependency import TenantData, get_tenant_info
 
-from src.coco_export.convert import ConvertToCoco, ExportBadgerdoc
-from src.coco_export.export_service import (
+from src.config import minio_client, settings
+from src.legacy.coco_export.convert import ConvertToCoco, ExportBadgerdoc
+from src.legacy.coco_export.export_service import (
     export_run,
     export_run_and_return_url,
 )
-from src.coco_import.convert import ConvertToBadgerdoc
-from src.coco_import.import_job import create_import_job
-from src.config import minio_client, settings
+from src.legacy.coco_import.convert import ConvertToBadgerdoc
+from src.legacy.coco_import.import_job import create_import_job
+from src.legacy.models import coco
+from src.legacy.utils.s3_utils import get_bucket_path
 from src.logger import get_logger
-from src.models import coco
-from src.utils.s3_utils import get_bucket_path
 
 router = APIRouter(prefix="/coco", tags=["coco"])
 LOGGER = get_logger(__file__)
