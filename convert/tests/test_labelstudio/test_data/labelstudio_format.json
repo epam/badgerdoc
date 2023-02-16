@@ -1,0 +1,192 @@
+[
+  {
+    "id": 3,
+    "annotations": [
+      {
+        "id": 7,
+        "completed_by": 1,
+        "result": [
+          {
+            "value": {
+              "start": 47,
+              "end": 56,
+              "text": "Jerusalem",
+              "labels": [
+                "Organization"
+              ],
+              "taxons": [
+                null
+              ]
+            },
+            "id": "RDQfNTDdix",
+            "from_name": "label",
+            "to_name": "text",
+            "type": "labels",
+            "origin": "manual"
+          },
+          {
+            "value": {
+              "start": 29,
+              "end": 32,
+              "text": "27 ",
+              "labels": [
+                "Datetime"
+              ],
+              "taxons": [
+                null
+              ]
+            },
+            "id": "i6mZKQ4DGD",
+            "from_name": "label",
+            "to_name": "text",
+            "type": "labels",
+            "origin": "manual"
+          },
+          {
+            "from_id": "RDQfNTDdix",
+            "to_id": "i6mZKQ4DGD",
+            "type": "relation",
+            "direction": "right",
+            "labels": [
+              "some_relation"
+            ]
+          }
+        ],
+        "was_cancelled": false,
+        "ground_truth": false,
+        "created_at": "2022-12-13T09:57:08.451845Z",
+        "updated_at": "2022-12-13T09:57:08.451875Z",
+        "lead_time": 121.434,
+        "prediction": {
+          "id": 10,
+          "model_version": "two",
+          "created_ago": "10 minutes",
+          "result": [
+            {
+              "id": "mno",
+              "from_name": "label",
+              "to_name": "text",
+              "type": "labels",
+              "value": {
+                "start": 29,
+                "end": 31,
+                "score": 0.55,
+                "text": "27",
+                "labels": [
+                  "Date"
+                ]
+              }
+            },
+            {
+              "id": "pqr",
+              "from_name": "label",
+              "to_name": "text",
+              "type": "labels",
+              "value": {
+                "start": 47,
+                "end": 56,
+                "score": 0.4,
+                "text": "Jerusalem",
+                "labels": [
+                  "Location"
+                ]
+              }
+            },
+            {
+              "id": "stu",
+              "from_name": "label",
+              "to_name": "text",
+              "type": "labels",
+              "value": {
+                "start": 65,
+                "end": 76,
+                "score": 0.32,
+                "text": "the weekend",
+                "labels": [
+                  "Time"
+                ]
+              }
+            },
+            {
+              "id": "vwx",
+              "from_name": "label",
+              "to_name": "text",
+              "type": "labels",
+              "value": {
+                "start": 85,
+                "end": 91,
+                "score": 0.22,
+                "text": "Easter",
+                "labels": [
+                  "Location"
+                ]
+              }
+            },
+            {
+              "id": "yz1",
+              "from_name": "label",
+              "to_name": "text",
+              "type": "labels",
+              "value": {
+                "start": 96,
+                "end": 104,
+                "score": 0.96,
+                "text": "Passover",
+                "labels": [
+                  "Date"
+                ]
+              }
+            }
+          ],
+          "score": 0.42,
+          "cluster": null,
+          "neighbors": null,
+          "mislabeling": 0.0,
+          "created_at": "2022-12-13T09:46:18.139591Z",
+          "updated_at": "2022-12-13T09:46:18.139601Z",
+          "task": 3
+        },
+        "result_count": 0,
+        "task": 3,
+        "parent_prediction": 10,
+        "parent_annotation": null
+      }
+    ],
+    "file_upload": "ff0e3b14-headinfo.json",
+    "drafts": [],
+    "predictions": [
+      9,
+      10
+    ],
+    "data": {
+      "text": "All that changed when he was 27 and he came to Jerusalem. It was the weekend of both Easter and Passover, and the city was flooded with tourists."
+    },
+    "meta": {
+      "labels": [],
+      "relations": [
+        {
+          "category": "similar",
+          "to": 531,
+          "type": "undirectional"
+        },
+        {
+          "category": "similar",
+          "to": 533,
+          "type": "undirectional"
+        }
+      ]
+    },
+    "created_at": "2022-12-13T09:46:18.136585Z",
+    "updated_at": "2022-12-13T09:57:08.490846Z",
+    "inner_id": 1,
+    "total_annotations": 1,
+    "cancelled_annotations": 0,
+    "total_predictions": 2,
+    "comment_count": 0,
+    "unresolved_comment_count": 0,
+    "last_comment_updated_at": null,
+    "project": 3,
+    "updated_by": 1,
+    "comment_authors": []
+  }
+]
