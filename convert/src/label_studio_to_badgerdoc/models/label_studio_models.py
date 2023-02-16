@@ -54,7 +54,7 @@ class ResultItem(BaseModel):
     labels: Optional[List] = None
 
 
-class Value1(BaseModel):
+class ValuePredictionItem(BaseModel):
     start: int
     end: int
     score: float
@@ -62,19 +62,19 @@ class Value1(BaseModel):
     labels: List[str]
 
 
-class ResultItem1(BaseModel):
+class ResultPredictionItem(BaseModel):
     id: str
     from_name: str
     to_name: str
     type: str
-    value: Value1
+    value: ValuePredictionItem
 
 
 class Prediction(BaseModel):
     id: Optional[int]
     model_version: Optional[str]
     created_ago: Optional[str]
-    result: Optional[List[ResultItem1]]
+    result: Optional[List[ResultPredictionItem]]
     score: Optional[float]
     cluster: Optional[Any]
     neighbors: Optional[Any]
@@ -85,18 +85,18 @@ class Prediction(BaseModel):
 
 
 class Annotation(BaseModel):
-    id: int = 7
+    id: int = 1
     completed_by: int = 1
     result: List[ResultItem]
     was_cancelled: bool = False
     ground_truth: bool = False
-    created_at: str = "2022-12-13T09:57:08.451845Z"
-    updated_at: str = "2022-12-13T09:57:08.451875Z"
-    lead_time: float = 121.434
+    created_at: str = ""
+    updated_at: str = ""
+    lead_time: float = 0
     prediction: Optional[Prediction] = None
     result_count: int = 0
-    task: int = 3
-    parent_prediction: Optional[int] = 10
+    task: int = 1
+    parent_prediction: Optional[int] = 1
     parent_annotation: Optional[Any] = None
 
 
@@ -124,8 +124,8 @@ class ModelItem(BaseModel):
     predictions: List[int] = []
     data: Data
     meta: Meta = Meta()
-    created_at: Optional[str] = "2022-12-13T09:57:08.451845Z"
-    updated_at: Optional[str] = "2022-12-13T09:57:08.451845Z"
+    created_at: Optional[str] = ""
+    updated_at: Optional[str] = ""
     inner_id: int = 1
     total_annotations: int = 0
     cancelled_annotations: int = 0

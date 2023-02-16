@@ -29,7 +29,7 @@ class Obj(BaseModel):
     id: int
     type: str
     bbox: List[float]
-    tokens: Optional[List[int]] = None
+    tokens: List[int] = []
     category: str
     data: Optional[Any]
     links: List[AnnotationLink] = []
@@ -43,6 +43,6 @@ class Page(BaseModel):
 
 class BadgerdocAnnotation(BaseModel):
     revision: Optional[str] = None
-    pages: Optional[List[Page]] = []
+    pages: List[Page] = []
     validated: Optional[List] = None
     failed_validation_pages: Optional[List] = None

@@ -10,6 +10,7 @@ from ..models.bd_annotation_model import (
 )
 from ..models.bd_tokens_model import Page as BadgerdocTokensPage
 from ..models.label_studio_models import (
+    Annotation,
     LabelStudioModel,
     ModelItem,
     ResultItem,
@@ -35,7 +36,7 @@ class AnnotationConverter:
         annotations: LabelStudioModel,
         badgerdoc_tokens: BadgerdocTokensPage,
     ):
-        model_items: List[ModelItem] = annotations.__root__
+        model_items = annotations.__root__
         badgerdoc_annotations = BadgerdocAnnotation(
             pages=[
                 Page(
@@ -49,16 +50,8 @@ class AnnotationConverter:
         )
         for model_item in model_items:
             for annotation in model_item.annotations:
-                for labelstudio_item in annotation.result:
-                    self.process_labels(
-                        badgerdoc_annotations,
-                        labelstudio_item,
-                        badgerdoc_tokens,
-                    )
-                for labelstudio_item in annotation.result:
-                    self.process_relations(
-                        badgerdoc_annotations, labelstudio_item
-                    )
+                self.process_annotation(annotation, badgerdoc_annotations, badgerdoc_tokens)
+
         badgerdoc_annotations_practic = AnnotationConverterPractic(
             badgerdoc_annotations, badgerdoc_tokens
         ).convert()
@@ -69,6 +62,20 @@ class AnnotationConverter:
 
     def _is_relation(self, labelstudio_item: ResultItem) -> bool:
         return labelstudio_item.type == self.RELATION
+
+    def process_annotation(self, annotation: Annotation,
+                           badgerdoc_annotations: BadgerdocAnnotation,
+                           badgerdoc_tokens: BadgerdocTokensPage) -> None:
+        for labelstudio_item in annotation.result:
+            self.process_labels(
+                badgerdoc_annotations,
+                labelstudio_item,
+                badgerdoc_tokens,
+            )
+        for labelstudio_item in annotation.result:
+            self.process_relations(
+                badgerdoc_annotations, labelstudio_item
+            )
 
     def process_labels(
         self,

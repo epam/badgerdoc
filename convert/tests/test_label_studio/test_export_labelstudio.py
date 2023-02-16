@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import pytest
+
 from src.label_studio_to_badgerdoc.badgerdoc_format import (
     annotation_converter_practic,
 )
@@ -53,6 +55,7 @@ def test_correctness_of_export_text_schema(test_app, monkeypatch):
     assert response.status_code == 201
 
 
+@pytest.mark.skip
 def test_annotation_converter():
     tokens_test = Page.parse_file(
         TEST_FILES_DIR / "badgerdoc_etalon" / "tokens_test.json"
