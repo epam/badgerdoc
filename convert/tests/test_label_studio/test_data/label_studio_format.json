@@ -13,6 +13,9 @@
               "text": "Jerusalem",
               "labels": [
                 "Organization"
+              ],
+              "taxons": [
+                null
               ]
             },
             "id": "RDQfNTDdix",
@@ -28,6 +31,9 @@
               "text": "27 ",
               "labels": [
                 "Datetime"
+              ],
+              "taxons": [
+                null
               ]
             },
             "id": "i6mZKQ4DGD",

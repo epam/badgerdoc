@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import pytest
+import responses
 
 from src.label_studio_to_badgerdoc.badgerdoc_format import (
     annotation_converter_practic,
@@ -55,8 +56,13 @@ def test_correctness_of_export_text_schema(test_app, monkeypatch):
     assert response.status_code == 201
 
 
-@pytest.mark.skip
-def test_annotation_converter():
+@responses.activate
+def test_annotation_converter_case_without_taxonomies_and_document_labels():
+    responses.post(
+        "http://dev2.badgerdoc.com/api/v1/annotation/jobs/1070/categories/search",
+        json={"data": []},
+    )
+
     tokens_test = Page.parse_file(
         TEST_FILES_DIR / "badgerdoc_etalon" / "tokens_test.json"
     )
@@ -77,6 +83,7 @@ def test_annotation_converter():
         badgerdoc_annotations=annotations_test,
         badgerdoc_tokens=tokens_test,
         badgerdoc_manifest=manifest_test,
+        request_headers={}
     )
     labelstudio_model_test = labelstudio_format_test.labelstudio_data
 
