@@ -3,12 +3,18 @@ import requests
 from src import logger
 from src.config import settings
 
-logger_ = logger.get_logger(__name__)
+LOGGER = logger.get_logger(__name__)
+
+
+class UploadError(Exception):
+    """
+    Raises when file were not uploaded
+    """
 
 
 def post_txt_to_convert(
     bucket: str, input_text, output_pdf, output_tokens
-) -> bool:
+) -> None:
     """
     Puts txt file into convert service
     """
@@ -22,18 +28,15 @@ def post_txt_to_convert(
             },
         )
         if response.status_code != 201:
-            logger_.error(
+            raise UploadError(
                 "File %s failed to convert: %s", input_text, response.text
             )
-            return False
     except requests.exceptions.ConnectionError as e:
-        logger_.error(f"Connection error - detail: {e}")
-        return False
-    logger_.info(f"File {input_text} successfully converted")
-    return True
+        LOGGER.error(f"Connection error - detail: {e}")
+    LOGGER.info(f"File {input_text} successfully converted")
 
 
-def post_pdf_to_convert(bucket: str, input_pdf, output_tokens) -> bool:
+def post_pdf_to_convert(bucket: str, input_pdf, output_tokens) -> None:
     """
     Puts pdf from html file into convert service
     """
@@ -46,12 +49,9 @@ def post_pdf_to_convert(bucket: str, input_pdf, output_tokens) -> bool:
             },
         )
         if response.status_code != 201:
-            logger_.error(
+            raise UploadError(
                 "File %s failed to convert: %s", input_pdf, response.text
             )
-            return False
     except requests.exceptions.ConnectionError as e:
-        logger_.error("Connection error - detail: %s", e)
-        return False
-    logger_.info("File %s successfully converted", {input_pdf})
-    return True
+        LOGGER.error("Connection error - detail: %s", e)
+    LOGGER.info("File %s successfully converted", {input_pdf})

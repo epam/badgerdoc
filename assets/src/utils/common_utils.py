@@ -196,11 +196,7 @@ class FileConverter:
             #  is_gotenberg_returns_file func checks if file was converted to pdf.  # noqa
             #  In case of some error, the content of Gotenberg response is plain text.  # noqa
             self.conversion_status = "conversion error"
-            logger_.error(
-                logger_.error(
-                    "%s with %s", self.conversion_status, self.file_name
-                )
-            )
+            logger_.error("%s with %s", self.conversion_status, self.file_name)
             raise exceptions.FileConversionError
         self.converted_ext = ".pdf"
         self.conversion_status = "converted to PDF"
@@ -219,18 +215,13 @@ class FileConverter:
             )
         except requests.exceptions.ConnectionError as e:
             self.conversion_status = "conversion error"
-            logger_.error("Gotenberg connection error - detail: %s", e)
             raise requests.exceptions.ConnectionError(e)
 
         if is_gotenberg_returns_file(converted_file.content) is False:
             #  is_gotenberg_returns_file func checks if file was converted to pdf.  # noqa
             #  In case of some error, the content of Gotenberg response is plain text.  # noqa
             self.conversion_status = "conversion error"
-            logger_.error(
-                logger_.error(
-                    "%s with %s", self.conversion_status, self.file_name
-                )
-            )
+            logger_.error("%s with %s", self.conversion_status, self.file_name)
             raise exceptions.FileConversionError
         self.converted_ext = ".pdf"
         self.conversion_status = "converted to PDF"

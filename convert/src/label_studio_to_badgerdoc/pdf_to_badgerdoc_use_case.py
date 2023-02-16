@@ -24,7 +24,7 @@ class PDFToBDConvertUseCase:
         )
 
     def download_pdf_from_s3(self, s3_input_pdf: S3Path):
-        with tempfile.TemporaryDirectory(dir="src") as tmp_dirname:
+        with tempfile.TemporaryDirectory() as tmp_dirname:
             tmp_dirname = Path(tmp_dirname)
             input_file = tmp_dirname / Path(s3_input_pdf.path).name
             self.s3_client.download_file(
