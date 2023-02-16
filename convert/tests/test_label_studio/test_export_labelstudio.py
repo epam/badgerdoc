@@ -3,6 +3,9 @@ from pathlib import Path
 from src.label_studio_to_badgerdoc.badgerdoc_format import (
     annotation_converter_practic,
 )
+from src.label_studio_to_badgerdoc.badgerdoc_to_label_studio_use_case import (
+    BDToLabelStudioConvertUseCase,
+)
 from src.label_studio_to_badgerdoc.labelstudio_format.label_studio_format import (
     LabelStudioFormat,
 )
@@ -18,6 +21,36 @@ from src.label_studio_to_badgerdoc.models.label_studio_models import (
 TEST_FILES_DIR = Path(__file__).parent / "test_data"
 
 INPUT_LABELSTUDIO_FILE = TEST_FILES_DIR / "label_studio_format.json"
+
+
+def test_correctness_of_export_text_schema(test_app, monkeypatch):
+    test_request_payload = {
+        "input_tokens": {"bucket": "test", "path": "files/926/ocr/1.json"},
+        "input_annotation": {
+            "bucket": "test",
+            "path": "annotation/1763/926/1ae7876fd4d777d5b4e6dbd338b230d74aa4ff8d.json",
+        },
+        "input_manifest": {
+            "bucket": "test",
+            "path": "annotation/1763/926/manifest.json",
+        },
+        "output_annotation": {
+            "bucket": "test",
+            "path": "test_converter/out.json",
+        },
+    }
+
+    def mock_execute(*args, **kwargs):
+        pass
+
+    monkeypatch.setattr(BDToLabelStudioConvertUseCase, "execute", mock_execute)
+
+    response = test_app.post(
+        "/label_studio/export",
+        json=test_request_payload,
+    )
+
+    assert response.status_code == 201
 
 
 def test_annotation_converter():

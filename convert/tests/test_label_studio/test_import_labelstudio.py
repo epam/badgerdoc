@@ -2,6 +2,8 @@ import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+import pytest
+
 from src.config import (
     DEFAULT_PAGE_BORDER_OFFSET,
     DEFAULT_PDF_FONT_HEIGHT,
@@ -15,6 +17,9 @@ from src.label_studio_to_badgerdoc.badgerdoc_format.badgerdoc_format import (
 from src.label_studio_to_badgerdoc.badgerdoc_format.plain_text_converter import (
     TextToBadgerdocTokensConverter,
 )
+from src.label_studio_to_badgerdoc.label_studio_to_badgerdoc_use_case import (
+    LabelStudioToBDConvertUseCase,
+)
 from src.label_studio_to_badgerdoc.models.label_studio_models import (
     LabelStudioModel,
 )
@@ -25,6 +30,51 @@ INPUT_LABEL_STUDIO_FILE = TEST_FILES_DIR / "input_text_field.json"
 INPUT_LABELSTUDIO_FILE = TEST_FILES_DIR / "label_studio_format.json"
 BADGERDOC_TOKENS_FILE = TEST_FILES_DIR / "badgerdoc_tokens.json"
 TEST_PDF = TEST_FILES_DIR / "test.pdf"
+
+
+def test_correctness_of_import_text_schema(test_app, monkeypatch):
+    test_request_payload = {
+        "input_annotation": {
+            "bucket": "test",
+            "path": "test_converter/label_studio_format_with_taxonomy.json",
+        },
+        "output_bucket": "test",
+        "validation_type": "cross",
+        "deadline": "2024-01-24T11:12:19.549Z",
+        "annotators": [
+            "a6511931-ddbc-4ea5-a885-5653773d5d48",
+            "c2a58313-cffa-4f97-bfcb-dc5aa470f3b7",
+        ],
+        "validators": [],
+    }
+
+    def mock_download_label_studio(*args, **kwargs):
+        return LabelStudioModel()
+
+    def mock_upload_text(*args, **kwargs):
+        pass
+
+    def mock_execute(*args, **kwargs):
+        pass
+
+    monkeypatch.setattr(
+        LabelStudioToBDConvertUseCase,
+        "download_label_studio_from_s3",
+        mock_download_label_studio,
+    )
+    monkeypatch.setattr(
+        LabelStudioToBDConvertUseCase,
+        "upload_badgerdoc_annotations_and_tokens_to_s3",
+        mock_upload_text,
+    )
+    monkeypatch.setattr(LabelStudioToBDConvertUseCase, "execute", mock_execute)
+
+    response = test_app.post(
+        "/label_studio/import",
+        json=test_request_payload,
+    )
+
+    assert response.status_code == 201
 
 
 def test_plain_text_converter():

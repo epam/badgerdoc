@@ -8,6 +8,8 @@ services:
       - "9001:9001"
     env_file:
       - src/.env
+    volumes:
+      - ./:/convert/
     command: server --console-address ":9001" /export
 
   web:

@@ -135,7 +135,12 @@ class TextToBadgerdocTokensConverter:
     def calculate_page_size(
         self, tokens: List[BadgerdocToken], page_border_offset
     ) -> PageSize:
+        if tokens:
+            return PageSize(
+                width=max(t.bbox[2] for t in tokens) + page_border_offset,
+                height=max(t.bbox[3] for t in tokens) + page_border_offset,
+            )
         return PageSize(
-            width=max(t.bbox[2] for t in tokens) + page_border_offset,
-            height=max(t.bbox[3] for t in tokens) + page_border_offset,
+            width=page_border_offset,
+            height=page_border_offset,
         )
