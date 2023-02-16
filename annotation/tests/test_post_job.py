@@ -7,13 +7,13 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.declarative.api import DeclarativeMeta
 from sqlalchemy.orm import Session
 
-from app.annotations import row_to_dict
-from app.jobs import get_job_attributes_for_post
-from app.microservice_communication.assets_communication import (
+from annotation.annotations import row_to_dict
+from annotation.jobs import get_job_attributes_for_post
+from annotation.microservice_communication.assets_communication import (
     ASSETS_FILES_URL,
     ASSETS_URL,
 )
-from app.models import (
+from annotation.models import (
     Category,
     File,
     Job,
@@ -21,7 +21,7 @@ from app.models import (
     User,
     association_job_annotator,
 )
-from app.schemas import (
+from annotation.schemas import (
     CategoryTypeSchema,
     JobStatusEnumSchema,
     JobTypeEnumSchema,

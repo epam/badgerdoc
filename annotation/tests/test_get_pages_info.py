@@ -5,15 +5,15 @@ from fastapi.testclient import TestClient
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from app.annotations import accumulate_pages_info
-from app.microservice_communication.search import (
+from annotation.annotations import accumulate_pages_info
+from annotation.microservice_communication.search import (
     AUTHORIZATION,
     BEARER,
     HEADER_TENANT,
 )
-from app.models import AnnotatedDoc, File, Job, ManualAnnotationTask, User
-from app.schemas import TaskStatusEnumSchema, ValidationSchema
-from app.tasks import get_task_revisions
+from annotation.models import AnnotatedDoc, File, Job, ManualAnnotationTask, User
+from annotation.schemas import TaskStatusEnumSchema, ValidationSchema
+from annotation.tasks import get_task_revisions
 from tests.consts import CRUD_TASKS_PATH
 from tests.override_app_dependency import TEST_TENANT, TEST_TOKEN, app
 

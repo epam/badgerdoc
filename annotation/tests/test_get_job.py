@@ -6,13 +6,13 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from annotation.jobs import collect_job_names
-from app.microservice_communication.search import (
+from annotation.microservice_communication.search import (
     AUTHORIZATION,
     BEARER,
     HEADER_TENANT,
 )
-from app.models import Category, File, Job, User
-from app.schemas import FileStatusEnumSchema, ValidationSchema
+from annotation.models import Category, File, Job, User
+from annotation.schemas import FileStatusEnumSchema, ValidationSchema
 from tests.consts import ANNOTATION_PATH
 from tests.override_app_dependency import TEST_TOKEN, app
 
@@ -252,7 +252,7 @@ def test_get_jobs_name(monkeypatch, prepare_db_for_get_job):
     session = prepare_db_for_get_job
     job_ids = [1, 2, 3]
     monkeypatch.setattr(
-        "app.jobs.services.get_job_names",
+        "annotation.jobs.services.get_job_names",
         Mock(return_value={3: "JobNameFromJobsMicroservice"}),
     )
     expected_result = {

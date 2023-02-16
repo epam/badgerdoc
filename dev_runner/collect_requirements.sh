@@ -13,6 +13,7 @@ DUPLICATED_DEPENDENCIES=(starlette fastapi aiohttp sqlalchemy_utils sqlalchemy)
 collect_poetry_dependencies() {
     for poetry_service in "${POETRY_SERVICES[@]}"; do
         cd "$ROOT_DIR/$poetry_service" || exit
+        # ensure that you have https://pypi.org/project/poetry-plugin-export/ installed
         poetry export -f requirements.txt --without-hashes | cut -d \; -f 1 >> "$TMP_REQUIREMENTS_FILE"
     done
 }

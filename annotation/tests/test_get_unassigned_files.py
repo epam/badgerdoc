@@ -5,8 +5,8 @@ from fastapi.testclient import TestClient
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from app.models import Category, File, Job, User
-from app.schemas import CategoryTypeSchema, ValidationSchema
+from annotation.models import Category, File, Job, User
+from annotation.schemas import CategoryTypeSchema, ValidationSchema
 from tests.override_app_dependency import TEST_HEADERS, TEST_TENANT, app
 
 client = TestClient(app)

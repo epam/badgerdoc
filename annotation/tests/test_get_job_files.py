@@ -5,13 +5,13 @@ from fastapi.testclient import TestClient
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from app.microservice_communication.search import (
+from annotation.microservice_communication.search import (
     AUTHORIZATION,
     BEARER,
     HEADER_TENANT,
 )
-from app.models import Category, File, Job, User
-from app.schemas import (
+from annotation.models import Category, File, Job, User
+from annotation.schemas import (
     CategoryTypeSchema,
     FileStatusEnumSchema,
     ValidationSchema,

@@ -312,7 +312,7 @@ def test_add_id_is_generated(prepare_db_categories_different_names):
 
 
 @mark.integration
-@patch("app.categories.resources.link_category_with_taxonomy")
+@patch("annotation.categories.resources.link_category_with_taxonomy")
 @patch("uuid.uuid4", return_value="fe857daa-8332-4a26-ab50-29be0a74477e")
 def test_should_send_link_request_taxonomy_service(
     uuid_mock,
@@ -340,7 +340,7 @@ def test_add_self_parent(prepare_db_categories_different_names):
 
 @mark.integration
 @patch(
-    "app.categories.resources.fetch_category_db", side_effect=SQLAlchemyError
+    "annotation.categories.resources.fetch_category_db", side_effect=SQLAlchemyError
 )
 def test_get_db_connection_error(prepare_db_categories_same_names):
     cat_id = 1
@@ -393,7 +393,7 @@ def test_get_no_tenant_specified(prepare_db_categories_same_names):
 
 @mark.integration
 @patch(
-    "app.categories.resources.filter_category_db", side_effect=SQLAlchemyError
+    "annotation.categories.resources.filter_category_db", side_effect=SQLAlchemyError
 )
 def test_search_db_connection_error(prepare_db_categories_for_filtration):
     data = prepare_filtration_body()
@@ -617,7 +617,7 @@ def test_search_wrong_parameters(
 
 @mark.integration
 @patch(
-    "app.categories.resources.update_category_db", side_effect=SQLAlchemyError
+    "annotation.categories.resources.update_category_db", side_effect=SQLAlchemyError
 )
 def test_update_db_connection_error(prepare_db_categories_different_names):
     cat_id = 1
@@ -777,7 +777,7 @@ def test_update_allowed_parent(
 
 @mark.integration
 @patch(
-    "app.categories.resources.delete_category_db", side_effect=SQLAlchemyError
+    "annotation.categories.resources.delete_category_db", side_effect=SQLAlchemyError
 )
 def test_delete_db_connection_error(prepare_db_categories_same_names):
     cat_id = "1"

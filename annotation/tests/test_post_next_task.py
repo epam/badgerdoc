@@ -7,16 +7,16 @@ from requests import ConnectionError, RequestException, Timeout
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from app.microservice_communication.assets_communication import (
+from annotation.microservice_communication.assets_communication import (
     ASSETS_FILES_URL,
 )
-from app.microservice_communication.search import (
+from annotation.microservice_communication.search import (
     AUTHORIZATION,
     BEARER,
     HEADER_TENANT,
 )
-from app.models import Category, File, Job, ManualAnnotationTask, User
-from app.schemas import (
+from annotation.models import Category, File, Job, ManualAnnotationTask, User
+from annotation.schemas import (
     CategoryTypeSchema,
     TaskStatusEnumSchema,
     ValidationSchema,

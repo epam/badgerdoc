@@ -7,12 +7,12 @@ from fastapi.testclient import TestClient
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from app.microservice_communication.assets_communication import (
+from annotation.microservice_communication.assets_communication import (
     ASSETS_FILES_URL,
 )
-from app.microservice_communication.jobs_communication import JOBS_SEARCH_URL
-from app.models import Category, File, Job, ManualAnnotationTask, User
-from app.schemas import CategoryTypeSchema, ValidationSchema
+from annotation.microservice_communication.jobs_communication import JOBS_SEARCH_URL
+from annotation.models import Category, File, Job, ManualAnnotationTask, User
+from annotation.schemas import CategoryTypeSchema, ValidationSchema
 from tests.consts import CRUD_TASKS_PATH
 from tests.override_app_dependency import TEST_HEADERS, TEST_TENANT, app
 from tests.test_post import check_files_distributed_pages
@@ -1011,7 +1011,7 @@ def prepare_filtration_body_double_filter(
 
 
 @pytest.mark.integration
-@patch("app.tasks.resources.filter_tasks_db", side_effect=SQLAlchemyError)
+@patch("annotation.tasks.resources.filter_tasks_db", side_effect=SQLAlchemyError)
 def test_search_tasks_500_error(prepare_db_for_cr_task):
     data = prepare_filtration_body()
     response = client.post(SEARCH_TASKS_PATH, json=data, headers=TEST_HEADERS)

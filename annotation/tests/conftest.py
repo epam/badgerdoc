@@ -14,11 +14,11 @@ from sqlalchemy.orm.exc import FlushError
 import tests.test_get_accumulated_revisions as accumulated_revs
 import tests.test_get_jobs_info_by_files as jobs_info_by_files
 import tests.test_validation as validation
-from app.annotations import MANIFEST, S3_START_PATH
-from app.categories import cache
-from app.database import Base, engine
-from app.jobs import update_user_overall_load
-from app.models import (
+from annotation.annotations import MANIFEST, S3_START_PATH
+from annotation.categories import cache
+from annotation.database import Base, engine
+from annotation.jobs import update_user_overall_load
+from annotation.models import (
     AnnotatedDoc,
     Category,
     File,
@@ -26,7 +26,7 @@ from app.models import (
     ManualAnnotationTask,
     User,
 )
-from app.schemas import ValidationSchema
+from annotation.schemas import ValidationSchema
 from tests.override_app_dependency import TEST_TENANT
 from tests.test_annotators_overall_load import (
     OVERALL_LOAD_CREATED_TASKS,
@@ -188,7 +188,7 @@ def update_annotators_overall_load(
 
 @pytest.fixture(scope="module")
 def db_session():
-    from app.database import get_db
+    from annotation.database import get_db
 
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
@@ -750,7 +750,7 @@ def mock_assets_communication(
     monkeypatch, prepare_db_categories_for_filtration
 ) -> Session:
     monkeypatch.setattr(
-        "app.jobs.resources.get_files_info",
+        "annotation.jobs.resources.get_files_info",
         Mock(return_value=[{"file_id": MOCK_ID, "pages_number": 2}]),
     )
     return prepare_db_categories_for_filtration
@@ -761,7 +761,7 @@ def mock_db_error_for_job_categories(
     monkeypatch, prepare_db_categories_for_filtration
 ) -> Session:
     monkeypatch.setattr(
-        "app.jobs.resources.fetch_bunch_categories_db",
+        "annotation.jobs.resources.fetch_bunch_categories_db",
         Mock(side_effect=SQLAlchemyError),
     )
     return prepare_db_categories_for_filtration
@@ -772,7 +772,7 @@ def mock_db_error_get_job_categories(
     monkeypatch, prepare_db_categories_for_filtration
 ) -> Session:
     monkeypatch.setattr(
-        "app.main.filter_job_categories",
+        "annotation.main.filter_job_categories",
         Mock(side_effect=SQLAlchemyError),
     )
     return prepare_db_categories_for_filtration
@@ -1065,7 +1065,7 @@ def db_errors(request, monkeypatch):
 @pytest.fixture
 def mock_minio_empty_bucket(monkeypatch, empty_bucket):
     monkeypatch.setattr(
-        "app.annotations.main.connect_s3",
+        "annotation.annotations.main.connect_s3",
         Mock(return_value=empty_bucket),
     )
     yield empty_bucket

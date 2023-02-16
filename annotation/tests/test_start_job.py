@@ -7,10 +7,10 @@ from requests.exceptions import RequestException
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from app.annotations import row_to_dict
-from app.jobs import update_inner_job_status
-from app.models import Category, File, Job, ManualAnnotationTask, User
-from app.schemas import (
+from annotation.annotations import row_to_dict
+from annotation.jobs import update_inner_job_status
+from annotation.models import Category, File, Job, ManualAnnotationTask, User
+from annotation.schemas import (
     CategoryTypeSchema,
     JobStatusEnumSchema,
     TaskStatusEnumSchema,

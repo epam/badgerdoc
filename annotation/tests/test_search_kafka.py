@@ -5,13 +5,13 @@ from fastapi.testclient import TestClient
 from kafka.errors import NoBrokersAvailable
 from pytest import mark
 
-from app.annotations import add_search_annotation_producer
-from app.kafka_client import producers
-from app.microservice_communication.assets_communication import (
+from annotation.annotations import add_search_annotation_producer
+from annotation.kafka_client import producers
+from annotation.microservice_communication.assets_communication import (
     ASSETS_FILES_URL,
 )
-from app.models import Category, File, Job, ManualAnnotationTask, User
-from app.schemas import (
+from annotation.models import Category, File, Job, ManualAnnotationTask, User
+from annotation.schemas import (
     CategoryTypeSchema,
     JobStatusEnumSchema,
     TaskStatusEnumSchema,
@@ -115,7 +115,7 @@ def test_kafka_connection_error(monkeypatch):
     is correctly handled and no producers added to KAFKA_PRODUCERS.
     """
     monkeypatch.setattr(
-        "app.annotations.main.KafkaProducer",
+        "annotation.annotations.main.KafkaProducer",
         mock.Mock(side_effect=NoBrokersAvailable()),
     )
     add_search_annotation_producer()
@@ -130,8 +130,8 @@ class MockProducer:
 
 
 @mark.unittest
-@mock.patch(target="app.annotations.main.KAFKA_BOOTSTRAP_SERVER", new="url_1")
-@mock.patch(target="app.annotations.main.KafkaProducer", new=MockProducer)
+@mock.patch(target="annotation.annotations.main.KAFKA_BOOTSTRAP_SERVER", new="url_1")
+@mock.patch(target="annotation.annotations.main.KafkaProducer", new=MockProducer)
 def test_add_search_annotation_producer(monkeypatch):
     """Checks that "add_search_annotation_producer" function calls
     "_init_search_annotation_producer" which creates KafkaProducer with
@@ -150,7 +150,7 @@ def test_producer_startup_creation(monkeypatch):
     """Checks that producer creation automatically called on app startup."""
     mock_startup = mock.Mock()
     monkeypatch.setattr(
-        "app.annotations.main._init_search_annotation_producer", mock_startup
+        "annotation.annotations.main._init_search_annotation_producer", mock_startup
     )
     with TestClient(app):
         mock_startup.assert_called_once()
@@ -168,8 +168,8 @@ def test_producer_startup_creation(monkeypatch):
         (f"{ANNOTATION_KAFKA_TASK_ID}", DOC_FOR_SAVE_BY_USER),
     ],
 )
-@mock.patch(target="app.annotations.main.KAFKA_SEARCH_TOPIC", new="test")
-@mock.patch(target="app.annotations.main.KafkaProducer", new=mock.Mock())
+@mock.patch(target="annotation.annotations.main.KAFKA_SEARCH_TOPIC", new="test")
+@mock.patch(target="annotation.annotations.main.KafkaProducer", new=mock.Mock())
 def test_post_annotation_send_message(
     monkeypatch,
     empty_bucket,
@@ -180,7 +180,7 @@ def test_post_annotation_send_message(
     """Tests that producer sent correct message when pipeline or user posts
     new annotation."""
     monkeypatch.setattr(
-        "app.annotations.main.connect_s3",
+        "annotation.annotations.main.connect_s3",
         mock.Mock(return_value=empty_bucket),
     )
     responses.add(

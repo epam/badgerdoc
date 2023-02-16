@@ -3,19 +3,19 @@ import responses
 from fastapi import HTTPException
 from requests import ConnectionError, RequestException, Timeout
 
-from app.microservice_communication.assets_communication import (
+from annotation.microservice_communication.assets_communication import (
     ASSETS_FILES_URL,
 )
-from app.microservice_communication.jobs_communication import JOBS_SEARCH_URL
-from app.microservice_communication.search import (
+from annotation.microservice_communication.jobs_communication import JOBS_SEARCH_URL
+from annotation.microservice_communication.search import (
     PAGE_SIZE,
     calculate_amount_of_pagination_pages,
     construct_search_params,
     expand_response,
     get_response,
 )
-from app.models import ManualAnnotationTask
-from app.schemas import (
+from annotation.models import ManualAnnotationTask
+from annotation.schemas import (
     ExpandedManualAnnotationTaskSchema,
     TaskStatusEnumSchema,
 )

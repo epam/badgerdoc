@@ -4,9 +4,9 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.exc import DBAPIError, SQLAlchemyError
 
-from app.jobs.services import get_jobs_by_files
-from app.models import File, Job, User
-from app.schemas import JobStatusEnumSchema, ValidationSchema
+from annotation.jobs.services import get_jobs_by_files
+from annotation.models import File, Job, User
+from annotation.schemas import JobStatusEnumSchema, ValidationSchema
 from tests.consts import POST_JOBS_PATH
 from tests.override_app_dependency import TEST_HEADERS, TEST_TENANT, app
 
@@ -209,7 +209,7 @@ def test_get_jobs_by_file(
 ):
     db = db_get_jobs_info_by_files
     monkeypatch.setattr(
-        "app.jobs.services.get_job_names",
+        "annotation.jobs.services.get_job_names",
         Mock(return_value=JOB_NAMES),
     )
 
@@ -286,7 +286,7 @@ def test_get_jobs_info_by_files(
     monkeypatch, db_get_jobs_info_by_files, file_ids, expected_result
 ):
     monkeypatch.setattr(
-        "app.jobs.services.get_job_names",
+        "annotation.jobs.services.get_job_names",
         Mock(return_value=JOB_NAMES),
     )
     response = client.get(
@@ -309,7 +309,7 @@ def test_get_jobs_info_by_files(
 )
 def test_get_jobs_info_by_files_db_errors(db_errors, monkeypatch):
     monkeypatch.setattr(
-        "app.jobs.services.get_job_names",
+        "annotation.jobs.services.get_job_names",
         Mock(return_value=JOB_NAMES),
     )
 

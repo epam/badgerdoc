@@ -805,7 +805,7 @@ def test_finish_tasks_failed_validation_statuses(
     }
     accumulate_pages = set(), failed, set(), set(), None
     monkeypatch.setattr(
-        "app.annotations.main.accumulate_pages_info",
+        "annotation.annotations.main.accumulate_pages_info",
         Mock(return_value=accumulate_pages),
     )
     responses.add(
@@ -852,7 +852,7 @@ def test_finish_tasks_reannotation_statuses(
     }
     accumulate_pages = set(), set(), annotated, set(), None
     monkeypatch.setattr(
-        "app.annotations.main.accumulate_pages_info",
+        "annotation.annotations.main.accumulate_pages_info",
         Mock(return_value=accumulate_pages),
     )
     responses.add(

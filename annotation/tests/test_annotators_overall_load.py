@@ -465,7 +465,7 @@ def test_overall_load_after_distribution(
     monkeypatch, prepare_db_for_overall_load
 ):
     monkeypatch.setattr(
-        "app.microservice_communication.assets_communication.get_response",
+        "annotation.microservice_communication.assets_communication.get_response",
         Mock(return_value=[{"id": 3, "pages": 4}]),
     )
     response = client.post(
@@ -617,7 +617,7 @@ def test_overall_load_recalculation_when_add_users(
     when adding or deleting users"""
     session = prepare_db_for_overall_load
     monkeypatch.setattr(
-        "app.jobs.services.get_job_names",
+        "annotation.jobs.services.get_job_names",
         Mock(return_value={job_id: "JobName"}),
     )
     response = client.patch(
@@ -669,7 +669,7 @@ def test_overall_load_recalculation_when_delete_users(
 ):
     session = prepare_db_for_overall_load
     monkeypatch.setattr(
-        "app.jobs.services.get_job_names",
+        "annotation.jobs.services.get_job_names",
         Mock(return_value={job_id: "JobName"}),
     )
     response = client.patch(
