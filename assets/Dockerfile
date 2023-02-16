@@ -14,7 +14,7 @@ RUN apt-get update -y && apt-get install -y poppler-utils \
     && pipenv install --system --deploy
 
 COPY alembic alembic
-COPY src src
+COPY assets assets
 
 
 CMD alembic upgrade afa33cc83d57 && alembic upgrade fe5926249504 && alembic upgrade 0f6c859c1d1c && alembic upgrade head && uvicorn src.main:app --host 0.0.0.0 --port 8080
@@ -25,7 +25,7 @@ RUN pipenv install --system --deploy --dev
 
 COPY setup.cfg ./
 COPY tests tests
-COPY src src
+COPY assets assets
 
 
 RUN isort users --check && black users -l 79 --check && mypy users && pylint --rcfile=setup.cfg users && pytest -vv --cov --cov-report=xml
@@ -33,7 +33,7 @@ RUN isort users --check && black users -l 79 --check && mypy users && pylint --r
 FROM sonarsource/sonar-scanner-cli:4.6 AS sonar
 
 COPY --from=test /opt/dataset_manager/tests /opt/dataset_manager/tests
-COPY --from=test /opt/dataset_manager/src /opt/dataset_manager/src
+COPY --from=test /opt/dataset_manager/assets /opt/dataset_manager/assets
 COPY --from=test /opt/dataset_manager/coverage.xml /opt/dataset_manager/coverage.xml
 COPY sonar-project.properties /opt/dataset_manager/sonar-project.properties
 

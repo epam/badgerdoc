@@ -5,7 +5,7 @@ from dev_runner.conf import settings
 class AssetsRunner(BaseRunner):
     PACKAGE_NAME = "assets"
     PORT = settings.ASSETS_PORT
-    APP_NAME = "src"
+    APP_NAME = "assets"
     DB_CREDENTIALS = {
         "POSTGRES_DB": "file_management"
     }

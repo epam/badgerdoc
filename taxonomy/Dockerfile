@@ -14,7 +14,7 @@ RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/inst
 # Copy using poetry.lock in case it doesn't exist yet
 COPY pyproject.toml poetry.lock .env alembic.ini version.txt ./
 COPY ./alembic ./alembic
-COPY ./app ./app
+COPY taxonomy ./taxonomy
 
 FROM base as build
 
@@ -28,7 +28,7 @@ RUN apt-get install -y make
 RUN poetry install --no-root
 COPY Makefile pytest.ini setup.cfg ./
 COPY ./tests ./tests
-COPY app app
+COPY taxonomy taxonomy
 COPY alembic alembic
 RUN make test_checks
 

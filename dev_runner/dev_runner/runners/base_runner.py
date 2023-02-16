@@ -91,7 +91,9 @@ class BaseRunner(metaclass=RunnerRegistry):
         package_path = str(ROOT_PATH / self.PACKAGE_NAME)
         sys.path.append(package_path)
         try:
-            app = import_module(f"{self.APP_NAME}.{self.MODULE_NAME}").app
+            module = import_module(f"{self.APP_NAME}.{self.MODULE_NAME}")
+            app = module.app
+            print(f"[{self.__class__.__name__}]: Module {module} is imported")
         except ModuleNotFoundError as e:
             logging.error(f"[{self.__class__.__name__}]: Module {self.APP_NAME}.{self.MODULE_NAME} not found")
             raise e

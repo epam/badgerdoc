@@ -2069,3 +2069,34 @@ asyncio.exceptions.CancelledError
     await getter
 asyncio.exceptions.CancelledError
 
+[16-02-2023 14:21:52] - [/Users/yarnaid/projects/badgerdoc/processing/processing/utils/minio_utils.py] - [INFO] - MinIO client for localhost:9000 was created successfully
+[16-02-2023 14:21:53] - [uvicorn.error] - [INFO] - Started server process [[36m85400[0m]
+[16-02-2023 14:21:53] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[16-02-2023 14:21:53] - [uvicorn.error] - [INFO] - Application startup complete.
+[16-02-2023 14:21:53] - [uvicorn.error] - [INFO] - Uvicorn running on [1mhttp://localhost:8006[0m (Press CTRL+C to quit)
+[16-02-2023 14:21:56] - [uvicorn.error] - [INFO] - Shutting down
+[16-02-2023 14:21:56] - [uvicorn.error] - [INFO] - Waiting for application shutdown.
+[16-02-2023 14:21:56] - [uvicorn.error] - [INFO] - Application shutdown complete.
+[16-02-2023 14:21:56] - [uvicorn.error] - [INFO] - Finished server process [[36m85400[0m]
+[16-02-2023 14:42:31] - [/Users/yarnaid/projects/badgerdoc/processing/processing/utils/minio_utils.py] - [INFO] - MinIO client for localhost:9000 was created successfully
+[16-02-2023 14:42:31] - [uvicorn.error] - [INFO] - Started server process [[36m88370[0m]
+[16-02-2023 14:42:31] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[16-02-2023 14:42:31] - [uvicorn.error] - [INFO] - Started server process [[36m88370[0m]
+[16-02-2023 14:42:31] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[16-02-2023 14:42:32] - [uvicorn.error] - [INFO] - Started server process [[36m88370[0m]
+[16-02-2023 14:42:32] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[16-02-2023 14:42:32] - [uvicorn.error] - [INFO] - Started server process [[36m88370[0m]
+[16-02-2023 14:42:32] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[16-02-2023 14:42:32] - [uvicorn.error] - [INFO] - Started server process [[36m88370[0m]
+[16-02-2023 14:42:32] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[16-02-2023 14:42:32] - [uvicorn.error] - [INFO] - Started server process [[36m88370[0m]
+[16-02-2023 14:42:32] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[16-02-2023 14:42:33] - [uvicorn.error] - [INFO] - Started server process [[36m88370[0m]
+[16-02-2023 14:42:33] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[16-02-2023 14:42:33] - [uvicorn.error] - [INFO] - Started server process [[36m88370[0m]
+[16-02-2023 14:42:33] - [uvicorn.error] - [INFO] - Waiting for application startup.
+[16-02-2023 14:42:33] - [aiocache.serializers.serializers] - [WARNING] - ujson module not found, using json
+[16-02-2023 14:42:33] - [aiocache] - [INFO] - aioredis not installed, RedisCache unavailable
+[16-02-2023 14:42:33] - [aiocache] - [INFO] - aiomcache not installed, Memcached unavailable
+[16-02-2023 14:42:34] - [uvicorn.error] - [INFO] - Started server process [[36m88370[0m]
+[16-02-2023 14:42:34] - [uvicorn.error] - [INFO] - Waiting for application startup.

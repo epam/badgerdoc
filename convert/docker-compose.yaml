@@ -16,7 +16,7 @@ services:
       context: .
       target: build
     env_file:
-      - src/.env
+      - convert/.env
     depends_on:
       - minio
     ports:

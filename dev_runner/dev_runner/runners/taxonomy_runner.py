@@ -5,7 +5,7 @@ from dev_runner.conf import settings
 class TaxonomyRunner(BaseRunner):
     PACKAGE_NAME = "taxonomy"
     PORT = settings.TAXONOMY_PORT
-    APP_NAME = "app"
+    APP_NAME = "taxonomy"
     DB_CREDENTIALS = {
         "POSTGRES_DB": "taxonomy",
     }

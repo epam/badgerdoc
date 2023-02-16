@@ -6,7 +6,7 @@ import logging
 class ProcessingRunner(BaseRunner):
     PACKAGE_NAME = "processing"
     PORT = settings.PROCESSING_PORT
-    APP_NAME = "src"
+    APP_NAME = "processing"
     DB_CREDENTIALS = {
         "POSTGRES_DB": "processing",
     }

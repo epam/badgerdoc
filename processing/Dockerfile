@@ -13,7 +13,7 @@ ENV PYTHONUNBUFFERED 1
 
 FROM base as build
 COPY alembic alembic
-COPY src src
+COPY processing processing
 CMD alembic upgrade head && uvicorn src.main:app --host 0.0.0.0 --port 8080
 
 
@@ -23,7 +23,7 @@ RUN pip install poetry \
     && poetry config virtualenvs.create false \
     && poetry install --no-interaction
 
-COPY src/ src/
+COPY processing/ processing/
 COPY tests/ tests/
 RUN pytest -m "not integration" \
     && black --check users/ && echo "black passed" \

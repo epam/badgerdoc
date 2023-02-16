@@ -5,7 +5,7 @@ from dev_runner.conf import settings
 class ModelsRunner(BaseRunner):
     PACKAGE_NAME = "models"
     PORT = settings.MODELS_PORT
-    APP_NAME = "src"
+    APP_NAME = "models"
     DB_CREDENTIALS = {
         "POSTGRES_DB": "models",
     }

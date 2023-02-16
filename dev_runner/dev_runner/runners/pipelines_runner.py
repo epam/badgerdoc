@@ -17,4 +17,5 @@ class PipelinesRunner(BaseRunner):
         "MAX_WORKERS": "20",
         "DEBUG_MERGE": "True",
         "SA_POOL_SIZE": "40",
+        "LOG_LEVEL": "DEBUG",
     }
