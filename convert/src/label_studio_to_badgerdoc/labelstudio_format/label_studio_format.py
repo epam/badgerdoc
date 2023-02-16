@@ -26,6 +26,7 @@ LOGGER.setLevel("DEBUG")
 
 
 class LabelStudioFormat:
+    DEFAULT_ID_FOR_ONE_ANNOTATION = 1
     # TODO: support more than 1 page
     def __init__(self) -> None:
         self.labelstudio_data = LabelStudioModel()
@@ -72,10 +73,10 @@ class LabelStudioFormat:
             categories_linked_with_taxonomies=categories_linked_with_taxonomies,
             request_headers=request_headers,
         )
-        annotations = Annotation(result=objs + relations)
+        annotation = Annotation(id=self.DEFAULT_ID_FOR_ONE_ANNOTATION , result=objs + relations)
 
         item = ModelItem(
-            annotations=[annotations],
+            annotations=[annotation],
             predictions=[],
             data=Data(text=text),
             meta=Meta(
