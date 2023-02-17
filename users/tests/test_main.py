@@ -96,7 +96,9 @@ def does_not_raise():
             roles=["admin"],
             tenants=["tenant"],
         ),
-        TenantData(token="token", user_id="user_id", roles=[], tenants=["tenant"]),
+        TenantData(
+            token="token", user_id="user_id", roles=[], tenants=["tenant"]
+        ),
     ],
 )
 def test_check_authorization_role_is_missing(mock_tenant_data):
@@ -210,7 +212,9 @@ def test_login_status_code(token_schema, request_body, status_code):
 class TestGetUserGWT:
     def test_get_user_jwt_body(self, mock_user, user_representation):
         response = client.get("/users/current")
-        assert response.json() == user_representation(user_id="1", user_name="user")
+        assert response.json() == user_representation(
+            user_id="1", user_name="user"
+        )
 
     def test_get_user_jwt_status_code(self, mock_user):
         response = client.get("/users/current")
@@ -221,16 +225,21 @@ class TestGetUserGWT:
 class TestGetUser:
     def test_get_user_body(self, mock_user, user_representation):
         response = client.get("/users/user-id")
-        assert response.json() == user_representation(user_id="1", user_name="user")
+        assert response.json() == user_representation(
+            user_id="1", user_name="user"
+        )
 
     def test_get_user_status_code(self, mock_user):
         response = client.get("/users/user-id")
         assert response.status_code == 200
 
 
-def test_get_user_info_from_token_introspection(mocked_token1, mocked_token1_data):
+def test_get_user_info_from_token_introspection(
+    mocked_token1, mocked_token1_data
+):
     with patch(
-        "users.keycloak.query.introspect_token", return_value=mocked_token1_data
+        "users.keycloak.query.introspect_token",
+        return_value=mocked_token1_data,
     ):
         response = client.get(
             "/users/current_v2",
@@ -335,7 +344,9 @@ class TestAddUserToTenant:
         ("group_1", {"detail": "User has been removed from the tenant"}),
     ],
 )
-def test_remove_user_from_tenant_body(mock_user, update_user, tenant, expected_result):
+def test_remove_user_from_tenant_body(
+    mock_user, update_user, tenant, expected_result
+):
     response = client.delete(f"/tenants/{tenant}/users/user_1")
     assert response.json() == expected_result
 
@@ -356,7 +367,9 @@ def test_remove_user_from_tenant_status_code(
 
 
 @patch("users.keycloak.query.get_users_v2", return_value=mock_all_users)
-@patch("users.keycloak.query.get_users_by_role", return_value=mock_users_with_role)
+@patch(
+    "users.keycloak.query.get_users_by_role", return_value=mock_users_with_role
+)
 class TestUsersSearch:
     @pytest.mark.parametrize("request_body", [{}, {"filters": []}])
     def test_get_all_users_body(
@@ -385,7 +398,11 @@ class TestUsersSearch:
     ):
         response = client.post(
             "/users/search",
-            json={"filters": [{"field": "name", "operator": "like", "value": "r"}]},
+            json={
+                "filters": [
+                    {"field": "name", "operator": "like", "value": "r"}
+                ]
+            },
         )
         assert response.json() == [
             user_representation(user_id="1", user_name="user"),
@@ -397,7 +414,11 @@ class TestUsersSearch:
     ):
         response = client.post(
             "/users/search",
-            json={"filters": [{"field": "name", "operator": "like", "value": "r"}]},
+            json={
+                "filters": [
+                    {"field": "name", "operator": "like", "value": "r"}
+                ]
+            },
         )
         assert response.status_code == 200
 
@@ -440,14 +461,20 @@ class TestUsersSearch:
     ):
         response = client.post(
             "/users/search",
-            json={"filters": [{"field": "name", "operator": "like", "value": ""}]},
+            json={
+                "filters": [{"field": "name", "operator": "like", "value": ""}]
+            },
         )
         assert response.status_code == 422
 
     @pytest.mark.parametrize(
         "request_body",
         [
-            {"filters": [{"field": "id", "operator": "in", "value": ["1", "2"]}]},
+            {
+                "filters": [
+                    {"field": "id", "operator": "in", "value": ["1", "2"]}
+                ]
+            },
             {
                 "filters": [
                     {
@@ -479,7 +506,11 @@ class TestUsersSearch:
     @pytest.mark.parametrize(
         "request_body",
         [
-            {"filters": [{"field": "id", "operator": "in", "value": ["1", "2"]}]},
+            {
+                "filters": [
+                    {"field": "id", "operator": "in", "value": ["1", "2"]}
+                ]
+            },
             {
                 "filters": [
                     {
@@ -508,7 +539,11 @@ class TestUsersSearch:
         "request_body",
         [
             {"filters": [{"field": "id", "operator": "in", "value": []}]},
-            {"filters": [{"field": "id", "operator": "in", "value": ["wrong_id"]}]},
+            {
+                "filters": [
+                    {"field": "id", "operator": "in", "value": ["wrong_id"]}
+                ]
+            },
         ],
     )
     def test_filter_users_by_wrong_or_empty_id_body(
@@ -528,7 +563,11 @@ class TestUsersSearch:
         "request_body",
         [
             {"filters": [{"field": "id", "operator": "in", "value": []}]},
-            {"filters": [{"field": "id", "operator": "in", "value": ["wrong_id"]}]},
+            {
+                "filters": [
+                    {"field": "id", "operator": "in", "value": ["wrong_id"]}
+                ]
+            },
         ],
     )
     def test_filter_users_by_wrong_or_empty_id_status_code(
@@ -541,7 +580,9 @@ class TestUsersSearch:
         response = client.post(
             "/users/search",
             json={
-                "filters": [{"field": "id", "operator": "in", "value": ["wrong_id"]}]
+                "filters": [
+                    {"field": "id", "operator": "in", "value": ["wrong_id"]}
+                ]
             },
         )
         assert response.status_code == 200
@@ -589,7 +630,9 @@ class TestUsersSearch:
         response = client.post(
             "/users/search",
             json={
-                "filters": [{"field": "role", "operator": "eq", "value": "wrong_role"}]
+                "filters": [
+                    {"field": "role", "operator": "eq", "value": "wrong_role"}
+                ]
             },
         )
         assert response.status_code == 422

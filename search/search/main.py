@@ -18,7 +18,9 @@ tags = [
     },
 ]
 
-TOKEN = get_tenant_info(url=settings.keycloak_url, algorithm=settings.jwt_algorithm)
+TOKEN = get_tenant_info(
+    url=settings.keycloak_url, algorithm=settings.jwt_algorithm
+)
 
 app = fastapi.FastAPI(
     title=settings.app_title,
@@ -59,7 +61,9 @@ def elastic_exception_handler_es_error(
 
 
 @app.exception_handler(BotoCoreError)
-def minio_exception_handler_bc_error(request: fastapi.Request, exc: BotoCoreError):
+def minio_exception_handler_bc_error(
+    request: fastapi.Request, exc: BotoCoreError
+):
     return fastapi.responses.JSONResponse(
         status_code=500,
         content={"detail": f"Error: connection error ({exc})"},
@@ -179,6 +183,8 @@ async def search_facets(
 ) -> schemas.facets.FacetsResponse:
     query = request.build_es_query()
     elastic_response = await es.ES.search(index=x_current_tenant, body=query)
-    response = schemas.facets.FacetsResponse.parse_es_response(elastic_response)
+    response = schemas.facets.FacetsResponse.parse_es_response(
+        elastic_response
+    )
     await response.adjust_facet_result(x_current_tenant, token.token)
     return response

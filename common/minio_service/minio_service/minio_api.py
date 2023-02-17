@@ -7,7 +7,9 @@ from mypy_extensions import VarArg
 
 from . import logger  # type: ignore
 
-LOGGER = logger.get_logger(__name__, "MINIO_COMMUNICATION_PATH", "minio_communication")
+LOGGER = logger.get_logger(
+    __name__, "MINIO_COMMUNICATION_PATH", "minio_communication"
+)
 
 
 class BucketExistsError(Exception):
@@ -74,10 +76,14 @@ class MinioCommunicator:
         self, minio_server: str, minio_root_user: str, minio_root_password: str
     ) -> None:
         if not MinioCommunicator.client:
-            self.create_client(minio_server, minio_root_user, minio_root_password)
+            self.create_client(
+                minio_server, minio_root_user, minio_root_password
+            )
 
     @classmethod
-    def create_client(cls, minio_server, minio_root_user, minio_root_password) -> None:
+    def create_client(
+        cls, minio_server, minio_root_user, minio_root_password
+    ) -> None:
         """
         Create connection with minio service.
         Returns:
@@ -130,7 +136,9 @@ class MinioCommunicator:
         )
         self.client.fget_object(bucket, path, str(local_path))
 
-    def download_directory(self, bucket: str, path: str, local_dir: Path) -> None:
+    def download_directory(
+        self, bucket: str, path: str, local_dir: Path
+    ) -> None:
         """
         Download directory from minio to indicated local directory.
         Args:
@@ -164,10 +172,16 @@ class MinioCommunicator:
         if not local_path.exists() or not local_path.suffix:
             LOGGER.error("file %s doesn't exist", local_path)
             raise FileExistsError(f"file {local_path} doesn't exist")
-        LOGGER.info("Uploading from file %s to %s/%s", local_path, bucket, path)
-        self.client.fput_object(bucket, os.path.join(path, local_path), local_path)
+        LOGGER.info(
+            "Uploading from file %s to %s/%s", local_path, bucket, path
+        )
+        self.client.fput_object(
+            bucket, os.path.join(path, local_path), local_path
+        )
 
-    def upload_directory(self, bucket: str, path: str, local_dir: Path) -> None:
+    def upload_directory(
+        self, bucket: str, path: str, local_dir: Path
+    ) -> None:
         """
         Upload directory to minio.
         Args:

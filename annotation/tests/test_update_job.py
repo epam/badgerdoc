@@ -352,7 +352,9 @@ def test_update_categories(category_ids, prepare_db_for_update_job, job_id):
         .order_by(asc("category_id"))
         .all()
     )
-    expected_categories = [(category_id, job_id) for category_id in category_ids]
+    expected_categories = [
+        (category_id, job_id) for category_id in category_ids
+    ]
     assert jobs_categories == expected_categories
     all_categories_after = session.query(Category).all()
     assert all_categories_before == all_categories_after
@@ -391,7 +393,9 @@ def test_update_wrong_categories(category_ids, prepare_db_for_update_job):
         ("files", UPDATE_JOB_IDS[7], [UPDATE_JOB_FILES_FROM_ASSETS[2]]),
     ],
 )
-def test_update_files(prepare_db_for_update_job, monkeypatch, field, job_id, new_files):
+def test_update_files(
+    prepare_db_for_update_job, monkeypatch, field, job_id, new_files
+):
     """Checks that files for job successfully update with 204 response both
     from 'files' and 'dataset' fields and that old job's files delete from
     'files' table. Also checks that files with same id as deleted/added for
@@ -411,7 +415,10 @@ def test_update_files(prepare_db_for_update_job, monkeypatch, field, job_id, new
     )
     assert response.status_code == 204
     job_files_db = (
-        session.query(File).filter_by(job_id=job_id).order_by(asc(File.file_id)).all()
+        session.query(File)
+        .filter_by(job_id=job_id)
+        .order_by(asc(File.file_id))
+        .all()
     )
     job_files = [
         {"file_id": job_file.file_id, "pages_number": job_file.pages_number}
@@ -456,7 +463,9 @@ def test_update_job_new_user(
     assert existing_users_count == 4
     association_table = ASSOCIATION_TABLES[user_type]
     old_association = (
-        session.query(association_table).filter_by(job_id=UPDATE_JOB_IDS[1]).first()
+        session.query(association_table)
+        .filter_by(job_id=UPDATE_JOB_IDS[1])
+        .first()
     )
     assert str(old_association.user_id) == old_user_id
     response = client.patch(
@@ -535,7 +544,8 @@ def test_update_job_new_user(
             [USER_IDS[1]],
             UPDATE_JOB_IDS[7],
             400,
-            "There should be no annotators or validators provided " "for ImportJob",
+            "There should be no annotators or validators provided "
+            "for ImportJob",
         ),
     ],
 )
@@ -574,7 +584,9 @@ def test_update_files_and_datasets_for_already_started_job(
     """Tests that update of job which in progress status
     with files or datasets is restricted"""
     expected_code = 422
-    error_message = "files and datasets can't be updated for already started job"
+    error_message = (
+        "files and datasets can't be updated for already started job"
+    )
     monkeypatch.setattr(
         "annotation.jobs.services.get_job_names",
         Mock(return_value={UPDATE_JOB_IDS[5]: "JobName"}),
@@ -622,7 +634,8 @@ def test_update_extraction_job_new_user(
     session = prepare_db_for_update_job
     job_id = UPDATE_JOB_IDS[6]
     existing_users_count = sum(
-        session.query(table).filter_by(job_id=job_id).count() for table in tables
+        session.query(table).filter_by(job_id=job_id).count()
+        for table in tables
     )
     assert existing_users_count == 1
     monkeypatch.setattr(
@@ -636,7 +649,8 @@ def test_update_extraction_job_new_user(
     )
     assert response.status_code == expected_code
     new_users_count = sum(
-        session.query(table).filter_by(job_id=job_id).count() for table in tables
+        session.query(table).filter_by(job_id=job_id).count()
+        for table in tables
     )
     assert new_users_count == expected_users_count
 
@@ -658,7 +672,9 @@ def test_delete_redundant_users(prepare_db_for_update_job):
     )
     prepare_db_for_update_job.commit()
     redundant_user = (
-        prepare_db_for_update_job.query(User).filter(User.user_id == USER_IDS[3]).all()
+        prepare_db_for_update_job.query(User)
+        .filter(User.user_id == USER_IDS[3])
+        .all()
     )
     assert not redundant_user
     assert response.status_code == 204
@@ -677,7 +693,9 @@ def test_not_delete_redundant_user_as_owner_of_another_job(
     )
     prepare_db_for_update_job.commit()
     redundant_user_owner = (
-        prepare_db_for_update_job.query(User).filter(User.user_id == USER_IDS[2]).all()
+        prepare_db_for_update_job.query(User)
+        .filter(User.user_id == USER_IDS[2])
+        .all()
     )
     assert redundant_user_owner
     assert response.status_code == 204

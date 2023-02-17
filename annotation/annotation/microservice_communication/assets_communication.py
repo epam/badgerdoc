@@ -2,6 +2,9 @@ import os
 from typing import Dict, List, Optional, Set, Tuple, Union
 
 import requests
+from dotenv import find_dotenv, load_dotenv
+from requests import ConnectionError, RequestException, Timeout
+
 from annotation.microservice_communication.search import (
     AUTHORIZATION,
     BEARER,
@@ -9,8 +12,6 @@ from annotation.microservice_communication.search import (
     get_response,
     raise_request_exception,
 )
-from dotenv import find_dotenv, load_dotenv
-from requests import ConnectionError, RequestException, Timeout
 
 load_dotenv(find_dotenv())
 ASSETS_FILES_URL = os.environ.get("ASSETS_FILES_URL")
@@ -53,9 +54,13 @@ def get_files_info(
             for f in dataset_files_info
             if f["id"] not in files
         ]
-        files.update({dataset_file["file_id"] for dataset_file in dataset_pages_info})
+        files.update(
+            {dataset_file["file_id"] for dataset_file in dataset_pages_info}
+        )
         datasets_pages_info.extend(dataset_pages_info)
-    return prepare_files_for_distribution(files_pages_info + datasets_pages_info)
+    return prepare_files_for_distribution(
+        files_pages_info + datasets_pages_info
+    )
 
 
 def get_dataset_info(dataset_id: int, tenant: str, token: str) -> List[dict]:
@@ -75,7 +80,9 @@ def get_dataset_info(dataset_id: int, tenant: str, token: str) -> List[dict]:
     return dataset_files_info.json()
 
 
-def get_file_names(file_ids: List[int], tenant: str, token: str) -> Dict[int, str]:
+def get_file_names(
+    file_ids: List[int], tenant: str, token: str
+) -> Dict[int, str]:
     """
     Return dict of file_id and its name for provided
     file_ids.

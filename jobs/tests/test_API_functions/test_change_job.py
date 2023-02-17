@@ -48,7 +48,9 @@ def test_change_job_status_with_validation_incorrect_job_owner(
 ):
 
     create_mock_extraction_job_in_db(testing_session)
-    create_mock_annotation_job_in_db(testing_session, mock_AnnotationJobParams2)
+    create_mock_annotation_job_in_db(
+        testing_session, mock_AnnotationJobParams2
+    )
     response2 = testing_app.put(
         "/jobs/2",
         json={"status": "Finished"},
@@ -59,7 +61,9 @@ def test_change_job_status_with_validation_incorrect_job_owner(
     }
 
 
-def test_change_job_pipeline_id(testing_app, testing_session, mock_AnnotationJobParams):
+def test_change_job_pipeline_id(
+    testing_app, testing_session, mock_AnnotationJobParams
+):
     create_mock_extraction_job_in_db(testing_session)
     response = testing_app.put("/jobs/1", json={"pipeline_id": 555})
     assert response.status_code == 200

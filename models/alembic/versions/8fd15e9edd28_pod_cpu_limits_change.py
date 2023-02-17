@@ -38,7 +38,8 @@ def upgrade():
 
     op.execute(f"UPDATE basement SET limits = '{dumps(default_limits)}'")
     op.execute(
-        f"UPDATE basement SET limits = " f"'{dumps(dod_limits)}' WHERE id LIKE '%dod%'"
+        f"UPDATE basement SET limits = "
+        f"'{dumps(dod_limits)}' WHERE id LIKE '%dod%'"
     )
     op.execute(
         f"UPDATE basement SET limits = "
@@ -75,7 +76,8 @@ def downgrade():
 
     op.execute(f"UPDATE basement SET limits = '{dumps(default_limits)}'")
     op.execute(
-        f"UPDATE basement SET limits =" f" '{dumps(dod_limits)}' WHERE id LIKE '%dod%'"
+        f"UPDATE basement SET limits ="
+        f" '{dumps(dod_limits)}' WHERE id LIKE '%dod%'"
     )
     op.execute(
         f"UPDATE basement SET limits ="

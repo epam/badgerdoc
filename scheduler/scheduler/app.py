@@ -8,7 +8,9 @@ from scheduler.db import service
 
 logger = log.get_logger(__name__)
 
-tenant = tenant_dependency.get_tenant_info(url=config.KEYCLOAK_URI, algorithm="RS256")
+tenant = tenant_dependency.get_tenant_info(
+    url=config.KEYCLOAK_URI, algorithm="RS256"
+)
 
 app = FastAPI(
     title="Scheduler",

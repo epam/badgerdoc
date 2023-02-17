@@ -228,8 +228,12 @@ def bulk_delete_category_association(
             AssociationTaxonomyCategory.category_id == category_id,
         )
     taxonomy_links.filter(
-        AssociationTaxonomyCategory.taxonomy_id.in_(tenant_taxonomy.subquery()),
-        AssociationTaxonomyCategory.taxonomy_version.in_(tenant_taxonomy.subquery()),
+        AssociationTaxonomyCategory.taxonomy_id.in_(
+            tenant_taxonomy.subquery()
+        ),
+        AssociationTaxonomyCategory.taxonomy_version.in_(
+            tenant_taxonomy.subquery()
+        ),
     )
     taxonomy_links.delete(synchronize_session=False)
     session.commit()
@@ -255,6 +259,8 @@ def filter_taxonomies(
     tenant: str,
     query: Optional[Query] = None,
 ) -> Page[Union[TaxonomyResponseSchema, str, dict]]:
-    taxonomies_request, pagination = _get_obj_from_request(db, request, tenant, query)
+    taxonomies_request, pagination = _get_obj_from_request(
+        db, request, tenant, query
+    )
 
     return paginate(taxonomies_request, pagination)

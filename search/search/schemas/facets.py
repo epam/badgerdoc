@@ -51,9 +51,13 @@ class FilterParams(BaseModel):
                 continue
 
             if self.operator == FacetOperator.IN:
-                facet_body["filter"]["bool"]["must"].append(self.filter_template)
+                facet_body["filter"]["bool"]["must"].append(
+                    self.filter_template
+                )
             if self.operator == FacetOperator.NOT_IN:
-                facet_body["filter"]["bool"]["must_not"].append(self.filter_template)
+                facet_body["filter"]["bool"]["must_not"].append(
+                    self.filter_template
+                )
 
         return query
 
@@ -76,7 +80,9 @@ class FacetParams(BaseModel):
             self.name: {
                 "filter": {"bool": {"must": [], "must_not": []}},
                 "aggs": {
-                    self.name: {"terms": {"field": self.name, "size": self.limit}}
+                    self.name: {
+                        "terms": {"field": self.name, "size": self.limit}
+                    }
                 },
             }
         }
@@ -88,8 +94,12 @@ class FacetsRequest(BaseModel):
         description="*Match query in a text type field*",
         example="Elasticsearch",
     )
-    facets: List[FacetParams] = Field(description="*An array for ES aggregations*")
-    filters: Optional[List[FilterParams]] = Field(description="*Filters for facets*")
+    facets: List[FacetParams] = Field(
+        description="*An array for ES aggregations*"
+    )
+    filters: Optional[List[FilterParams]] = Field(
+        description="*Filters for facets*"
+    )
 
     def _build_facets(self, query: Dict[str, Any]) -> Dict[str, Any]:
         for facet in self.facets:
@@ -126,18 +136,26 @@ class FacetsRequest(BaseModel):
 
 
 class AggResult(BaseModel):
-    id: Union[int, str] = Field(description="*Aggregation key id*", example="Header")
+    id: Union[int, str] = Field(
+        description="*Aggregation key id*", example="Header"
+    )
     count: int = Field(description="*Count of aggregated docs*", example=10)
     name: Optional[str] = Field(description="*A name of a category or a job*")
 
     @staticmethod
     def parse_es_agg_doc(es_doc: Dict[str, Any]) -> "AggResult":
-        return AggResult(id=es_doc.get("key", ""), count=es_doc.get("doc_count", 0))
+        return AggResult(
+            id=es_doc.get("key", ""), count=es_doc.get("doc_count", 0)
+        )
 
 
 class FacetBodyResponse(BaseModel):
-    name: str = Field(description="*A name of aggregation*", example="category")
-    values: List[AggResult] = Field(description="*An array aggregation results*")
+    name: str = Field(
+        description="*A name of aggregation*", example="category"
+    )
+    values: List[AggResult] = Field(
+        description="*An array aggregation results*"
+    )
 
     async def adjust_facet(self, tenant: str, token: str) -> None:
         if self.name not in settings.computed_fields:

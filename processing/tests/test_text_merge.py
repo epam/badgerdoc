@@ -74,7 +74,9 @@ class TestTextMerger:
                 {"type": "text", "bbox": (3, 3, 8, 8), "text": "1 2 3"},
             ],
         }
-        page = Page(page_num=1, size=PageSize(width=1000, height=1000), objs=[])
+        page = Page(
+            page_num=1, size=PageSize(width=1000, height=1000), objs=[]
+        )
         assert match_page(words=words, page=page) == MatchedPage(
             page_num=1, paragraph_bboxes={}
         )
@@ -228,8 +230,12 @@ class TestTextMerger:
             bucket="some_bucket",
             input=Input(
                 pages=[
-                    Page(page_num=1, size=PageSize(width=10, height=10), objs=[]),
-                    Page(page_num=2, size=PageSize(width=10, height=10), objs=[]),
+                    Page(
+                        page_num=1, size=PageSize(width=10, height=10), objs=[]
+                    ),
+                    Page(
+                        page_num=2, size=PageSize(width=10, height=10), objs=[]
+                    ),
                 ]
             ),
         )

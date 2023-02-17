@@ -15,7 +15,9 @@ def get_document(
     """Get a document from s3-storage."""
     logger.info("Get a document from minio")
     document_path = work_dir / request.file.name
-    loader.client.fget_object(request.bucket, str(request.file), str(document_path))
+    loader.client.fget_object(
+        request.bucket, str(request.file), str(document_path)
+    )
     return document_path
 
 
@@ -43,7 +45,9 @@ def put_annotation(
     """Put an annotation to s3-storage."""
     logger.info("Put an annotation to minio")
     updated_annotation_path = Path(work_dir) / f"out_{request.input_path.name}"
-    output_annotation = m.AnnotationFromS3(pages=annotation).json(by_alias=True)
+    output_annotation = m.AnnotationFromS3(pages=annotation).json(
+        by_alias=True
+    )
     updated_annotation_path.write_text(output_annotation)
     loader.client.fput_object(
         request.output_bucket,

@@ -1,7 +1,9 @@
 from typing import Any, Dict
 
 
-def map_request_to_filter(fields: Dict[str, Any], model: str) -> Dict[str, Any]:
+def map_request_to_filter(
+    fields: Dict[str, Any], model: str
+) -> Dict[str, Any]:
     result: Dict[str, Any] = {
         "pagination": {},
         "filters": [],

@@ -47,7 +47,9 @@ async def health_check_preprocessing(
     await asyncio.gather(
         *(run_preprocessing(model_url, file, languages) for file in file_ids)
     )
-    result = all(check_results(file, pages) for file, pages in file_ids.items())
+    result = all(
+        check_results(file, pages) for file, pages in file_ids.items()
+    )
     for file, pages in file_ids.items():
         clear_data(file, pages)
     return result
@@ -57,7 +59,9 @@ def is_data_prepared() -> bool:
     try:
         for file_id in file_ids:
             minio_client.stat_object(bucket, f"files/{file_id}/{file_id}.pdf")
-            minio_client.stat_object(bucket, f"files/{file_id}/expected/1.json")
+            minio_client.stat_object(
+                bucket, f"files/{file_id}/expected/1.json"
+            )
     except MinioException:
         return False
     return True
@@ -88,7 +92,9 @@ def check_results(file_id: str, pages: List[int]) -> bool:
                 logger.error("Preprocessing works incorrect")
                 return False
         except MinioException:
-            logger.error("MinioException had happened while checking easy-ocr health")
+            logger.error(
+                "MinioException had happened while checking easy-ocr health"
+            )
             return False
         finally:
             test_page.close()

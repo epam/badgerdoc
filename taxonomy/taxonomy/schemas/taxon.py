@@ -43,7 +43,9 @@ class TaxonResponseSchema(TaxonInputSchema):
 class ParentsConcatenateResponseSchema(BaseModel):
     taxon_id: str = Field(..., example="my_taxon_id")
     taxon_name: str = Field(..., example="taxon_name")
-    parent_ids_concat: Optional[str] = Field(..., example="parent_id_1.parent_id_2")
+    parent_ids_concat: Optional[str] = Field(
+        ..., example="parent_id_1.parent_id_2"
+    )
     parent_names_concat: Optional[str] = Field(
         ..., example="parent_name_1.parent_name_2"
     )

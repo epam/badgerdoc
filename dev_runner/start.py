@@ -26,7 +26,9 @@ def _info(message):
 
 @click.command()
 @click.argument(
-    "services", nargs=-1, type=click.Choice(RunnerRegistry.get_runners().keys())
+    "services",
+    nargs=-1,
+    type=click.Choice(RunnerRegistry.get_runners().keys()),
 )
 def cli(services):
     _info(

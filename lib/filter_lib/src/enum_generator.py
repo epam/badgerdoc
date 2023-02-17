@@ -15,7 +15,9 @@ class TempEnum(str, enum.Enum):
 def _get_model_fields(model: Type[DeclarativeMeta]) -> List[str]:
     mapper: Mapper = inspect(model)
     relations = [
-        attr for attr in inspect(model).attrs if isinstance(attr, RelationshipProperty)
+        attr
+        for attr in inspect(model).attrs
+        if isinstance(attr, RelationshipProperty)
     ]
     relation_fields = [
         rel.key + "." + col.key

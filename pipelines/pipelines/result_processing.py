@@ -143,7 +143,9 @@ class GeometryObject(BaseModel):
                 ]
             if unique_obj.links is not None:
                 for link in unique_obj.links:
-                    link.update({"category": unique_obj.category, "to": unique_obj.id})
+                    link.update(
+                        {"category": unique_obj.category, "to": unique_obj.id}
+                    )
 
     @staticmethod
     def group_objs_by_id(
@@ -156,7 +158,9 @@ class GeometryObject(BaseModel):
         return grouped_objs
 
     @staticmethod
-    def merge(objs: List[GeometryObject], id_: Union[str, int] = 0) -> GeometryObject:
+    def merge(
+        objs: List[GeometryObject], id_: Union[str, int] = 0
+    ) -> GeometryObject:
         """Merge Geometry Objects into one.
 
         :param objs: Geometry Objects to merge.
@@ -243,7 +247,9 @@ def get_pipeline_leaves_data(
     """
     try:
         path_objects = list_object_names(client, bucket, path_)
-        files_data = [get_file_data(client, bucket, path_) for path_ in path_objects]
+        files_data = [
+            get_file_data(client, bucket, path_) for path_ in path_objects
+        ]
     except (minioerr.S3Error, urllib3.exceptions.MaxRetryError) as err:
         logger.error("error %s", str(err))
         return None
@@ -357,7 +363,9 @@ def manage_result_for_annotator(
         "input": merged_data.dict(exclude_none=True),
     }
     headers = {"X-Current-Tenant": tenant, "Authorization": f"Bearer {token}"}
-    postprocessed_data = postprocess_result(data_for_postprocessor, headers=headers)
+    postprocessed_data = postprocess_result(
+        data_for_postprocessor, headers=headers
+    )
     if postprocessed_data is None:
         logger.info("result for postprocessing data is None")
         return False

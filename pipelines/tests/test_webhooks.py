@@ -12,7 +12,8 @@ def test_create_inference_url_and_body():
     task_status = schemas.Status.RUN
     status = schemas.JobStatus.RUN
     with patch(
-        "pipelines.webhooks.service.get_job_status_if_changed", return_value=status
+        "pipelines.webhooks.service.get_job_status_if_changed",
+        return_value=status,
     ):
         url, body = webhooks.create_inference_url_and_body(
             webhook=webhook, job_id=job_id, task_status=task_status

@@ -15,7 +15,9 @@ from fastapi import APIRouter, Depends, Header, status
 from tenant_dependency import TenantData, get_tenant_info
 
 router = APIRouter(prefix="/label_studio", tags=["label_studio"])
-tenant = get_tenant_info(url=settings.keycloak_url, algorithm="RS256", debug=True)
+tenant = get_tenant_info(
+    url=settings.keycloak_url, algorithm="RS256", debug=True
+)
 
 
 @router.post(

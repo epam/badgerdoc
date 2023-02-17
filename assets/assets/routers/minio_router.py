@@ -10,11 +10,15 @@ from assets.config import settings
 router = fastapi.APIRouter(tags=["minio"])
 
 
-@router.get("/download", name="gets file from minio with original content-type")
+@router.get(
+    "/download", name="gets file from minio with original content-type"
+)
 async def get_from_minio(
     file_id: int,
     background_tasks: fastapi.BackgroundTasks,
-    x_current_tenant: Optional[str] = fastapi.Header(None, alias="X-Current-Tenant"),
+    x_current_tenant: Optional[str] = fastapi.Header(
+        None, alias="X-Current-Tenant"
+    ),
     original: bool = False,
     session: sqlalchemy.orm.Session = fastapi.Depends(
         db.service.session_scope_for_dependency
@@ -44,14 +48,18 @@ async def get_from_minio(
     utils.minio_utils.check_bucket(f.bucket, storage)
     response = utils.minio_utils.stream_minio(f.path, f.bucket, storage)
     if original:
-        response = utils.minio_utils.stream_minio(f.origin_path, f.bucket, storage)
+        response = utils.minio_utils.stream_minio(
+            f.origin_path, f.bucket, storage
+        )
     background_tasks.add_task(utils.minio_utils.close_conn, response)
     return fastapi.responses.StreamingResponse(
         response.stream(), media_type=response.headers["Content-Type"]
     )
 
 
-@router.get("/download/thumbnail", name="get thumbnail of original file in jpg format")
+@router.get(
+    "/download/thumbnail", name="get thumbnail of original file in jpg format"
+)
 async def get_preview_from_minio(
     file_id: int,
     background_tasks: fastapi.BackgroundTasks,
@@ -59,7 +67,9 @@ async def get_preview_from_minio(
         db.service.session_scope_for_dependency
     ),
     storage: minio.Minio = fastapi.Depends(utils.minio_utils.get_storage),
-    x_current_tenant: Optional[str] = fastapi.Header(None, alias="X-Current-Tenant"),
+    x_current_tenant: Optional[str] = fastapi.Header(
+        None, alias="X-Current-Tenant"
+    ),
 ) -> fastapi.responses.StreamingResponse:
     f = db.service.get_file_by_id(session, file_id)
     if not f:
@@ -85,7 +95,9 @@ async def get_image_piece(
         ..., example=(100, 100, 200, 200)
     ),
     page_number: int = fastapi.Query(..., ge=1, example=1),
-    x_current_tenant: Optional[str] = fastapi.Header(None, alias="X-Current-Tenant"),
+    x_current_tenant: Optional[str] = fastapi.Header(
+        None, alias="X-Current-Tenant"
+    ),
     storage: minio.Minio = fastapi.Depends(utils.minio_utils.get_storage),
     session: sqlalchemy.orm.Session = fastapi.Depends(
         db.service.session_scope_for_dependency
@@ -104,7 +116,9 @@ async def get_image_piece(
         )
     piece_path = f"files/bbox/{f.id}/page{page_number}_bbox{bbox}_ext{settings.bbox_ext}.jpg"  # noqa
     if not utils.minio_utils.check_file_exist(piece_path, f.bucket, storage):
-        utils.minio_utils.make_pdf_piece(f, page_number, bbox, piece_path, storage)
+        utils.minio_utils.make_pdf_piece(
+            f, page_number, bbox, piece_path, storage
+        )
 
     response = utils.minio_utils.stream_minio(piece_path, f.bucket, storage)
     background_tasks.add_task(utils.minio_utils.close_conn, response)
@@ -121,7 +135,9 @@ async def get_image_piece(
 async def create_bucket(
     bucket: schemas.Bucket,
     storage: minio.Minio = fastapi.Depends(utils.minio_utils.get_storage),
-    x_current_tenant: Optional[str] = fastapi.Header(None, alias="X-Current-Tenant"),
+    x_current_tenant: Optional[str] = fastapi.Header(
+        None, alias="X-Current-Tenant"
+    ),
 ) -> Dict[str, str]:
     """
     Creates bucket into Minio. If bucket exists HTTPException will be

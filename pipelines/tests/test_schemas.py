@@ -29,7 +29,9 @@ def test_next_step_args_inference():
 def test_next_step_args_preprocessing():
     """Testing next_step_args of InputArguments."""
     args = td.input_args_1
-    res = args.next_step_args(schemas.PipelineTypes.PREPROCESSING, "zxc", {"c": 3})
+    res = args.next_step_args(
+        schemas.PipelineTypes.PREPROCESSING, "zxc", {"c": 3}
+    )
     assert res.input == {"c": 3}
     assert res.input_path == args.output_path
     assert res.output_path == args.output_path
@@ -38,7 +40,9 @@ def test_next_step_args_preprocessing():
 
 def test_prepare_for_init_inference():
     """Testing prepare_for_init of InputArguments."""
-    res = td.input_args_1.prepare_for_init(schemas.PipelineTypes.INFERENCE, "baz")
+    res = td.input_args_1.prepare_for_init(
+        schemas.PipelineTypes.INFERENCE, "baz"
+    )
     d = td.input_args_1.dict()
     d.update({"input_path": td.input_args_1.output_path})
     expected = {
@@ -50,7 +54,9 @@ def test_prepare_for_init_inference():
 
 def test_prepare_for_init_preprocessing():
     """Testing prepare_for_init of InputArguments."""
-    res = td.input_args_1.prepare_for_init(schemas.PipelineTypes.PREPROCESSING, "baz")
+    res = td.input_args_1.prepare_for_init(
+        schemas.PipelineTypes.PREPROCESSING, "baz"
+    )
     d = td.input_args_1.dict()
     d.update({"input_path": td.input_args_1.output_path})
     expected = {
@@ -170,4 +176,6 @@ def test_invalid_entity():
     ],
 )
 def test_filter_dict_by_categories(data, args, result):
-    assert schemas.InputArguments.filter_dict_by_categories(data, args) == result
+    assert (
+        schemas.InputArguments.filter_dict_by_categories(data, args) == result
+    )

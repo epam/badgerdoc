@@ -36,7 +36,9 @@ class S3Manager:
             region_name=region_name,
         )
 
-    def get_files(self, bucket_s3: str, files_keys: List[str]) -> Dict[str, BytesIO]:
+    def get_files(
+        self, bucket_s3: str, files_keys: List[str]
+    ) -> Dict[str, BytesIO]:
         """
         Downloads files from S3 storage
         """
@@ -52,7 +54,9 @@ class S3Manager:
         """
         Checks if required bucket exists in S3
         """
-        all_s3_buckets = [bucket.name for bucket in self.resource.buckets.all()]
+        all_s3_buckets = [
+            bucket.name for bucket in self.resource.buckets.all()
+        ]
         if bucket_s3 not in all_s3_buckets:
             raise exceptions.BucketError(f"bucket {bucket_s3} does not exist!")
 
@@ -62,11 +66,15 @@ class S3Manager:
         """
         all_files_in_bucket = [
             content["Key"]
-            for content in self.client.list_objects(Bucket=bucket_s3)["Contents"]
+            for content in self.client.list_objects(Bucket=bucket_s3)[
+                "Contents"
+            ]
         ]
         for file_key in files_keys:
             if file_key not in all_files_in_bucket:
-                raise exceptions.FileKeyError(f"file key {file_key} does not exist!")
+                raise exceptions.FileKeyError(
+                    f"file key {file_key} does not exist!"
+                )
 
     def check_s3(self, bucket_s3: str, files_keys: List[str]) -> Any:
         """

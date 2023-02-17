@@ -14,7 +14,9 @@ from model_api.utils import (
 # from model_api.inference import inference
 
 
-@pytest.mark.skip(reason="this is a test from a different, but similar service")
+@pytest.mark.skip(
+    reason="this is a test from a different, but similar service"
+)
 def test_inference(monkeypatch):
     model_mock = MagicMock()
     monkeypatch.setattr(
@@ -60,7 +62,9 @@ def test_update_annotation_categories_updating(monkeypatch):
     )
     pdf = MagicMock()
     setattr(pdf, "pages", [1])
-    update_annotation_categories(inference, None, page_dod, pdf, ["1", "3"], ...)
+    update_annotation_categories(
+        inference, None, page_dod, pdf, ["1", "3"], ...
+    )
 
     assert page_dod == m.PageDOD(
         page_num=1,
@@ -102,7 +106,9 @@ def test_update_annotation_categories_without_updating(monkeypatch):
     inference = MagicMock(return_value=[])
     pdf = MagicMock()
     setattr(pdf, "pages", [1])
-    update_annotation_categories(inference, None, page_dod, pdf, ["1", "3"], ...)
+    update_annotation_categories(
+        inference, None, page_dod, pdf, ["1", "3"], ...
+    )
 
     assert page_dod == m.PageDOD(
         page_num=1,

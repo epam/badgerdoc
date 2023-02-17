@@ -55,7 +55,9 @@ def upgrade() -> None:
         sa.Column(
             "ts_vector",
             TSVector(),
-            sa.Computed("to_tsvector('english', original_name)", persisted=True),
+            sa.Computed(
+                "to_tsvector('english', original_name)", persisted=True
+            ),
             nullable=True,
         ),
         sa.PrimaryKeyConstraint("id"),
@@ -68,7 +70,9 @@ def upgrade() -> None:
         sa.Column("dataset_id", sa.Integer(), nullable=False),
         sa.Column("file_id", sa.Integer(), nullable=False),
         sa.Column("created", sa.DateTime(), nullable=False),
-        sa.ForeignKeyConstraint(["dataset_id"], ["datasets.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+            ["dataset_id"], ["datasets.id"], ondelete="CASCADE"
+        ),
         sa.ForeignKeyConstraint(["file_id"], ["files.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("dataset_id", "file_id"),
     )

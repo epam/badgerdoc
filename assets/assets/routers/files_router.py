@@ -21,7 +21,9 @@ async def search_files(
     session: sqlalchemy.orm.Session = fastapi.Depends(
         db.service.session_scope_for_dependency
     ),
-    x_current_tenant: Optional[str] = fastapi.Header(None, alias="X-Current-Tenant"),
+    x_current_tenant: Optional[str] = fastapi.Header(
+        None, alias="X-Current-Tenant"
+    ),
 ) -> filter_lib.Page[schemas.FileResponse]:
     """
     Allows getting files metadata with filters, sorts and pagination.
@@ -91,7 +93,10 @@ async def upload_files(
         bucket_name, files, session, storage_
     )
 
-    return [schemas.ActionResponse.parse_obj(response) for response in upload_results]
+    return [
+        schemas.ActionResponse.parse_obj(response)
+        for response in upload_results
+    ]
 
 
 @router.delete(
@@ -106,7 +111,9 @@ async def delete_files(
         db.service.session_scope_for_dependency
     ),
     storage: minio.Minio = fastapi.Depends(utils.minio_utils.get_storage),
-    x_current_tenant: Optional[str] = fastapi.Header(None, alias="X-Current-Tenant"),
+    x_current_tenant: Optional[str] = fastapi.Header(
+        None, alias="X-Current-Tenant"
+    ),
 ) -> List[schemas.ActionResponse]:
     """
     Deletes objects from minio storage and then their metadata from database.
@@ -185,7 +192,9 @@ async def update_file(
     session: sqlalchemy.orm.Session = fastapi.Depends(
         db.service.session_scope_for_dependency
     ),
-    x_current_tenant: Optional[str] = fastapi.Header(None, alias="X-Current-Tenant"),
+    x_current_tenant: Optional[str] = fastapi.Header(
+        None, alias="X-Current-Tenant"
+    ),
 ) -> schemas.FileResponse:
     file_obj = db.service.get_file_by_id(session, request.file)
     if not file_obj:

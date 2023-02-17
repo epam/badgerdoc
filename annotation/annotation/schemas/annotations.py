@@ -7,7 +7,9 @@ from pydantic import BaseModel, Field, root_validator
 
 class PageSchema(BaseModel):
     page_num: int = Field(..., ge=1, example=2)
-    size: Dict[str, float] = Field(..., example={"width": 10.2, "height": 123.34})
+    size: Dict[str, float] = Field(
+        ..., example={"width": 10.2, "height": 123.34}
+    )
     objs: List[dict] = Field(
         ...,
         example=[
@@ -41,8 +43,12 @@ class PageSchema(BaseModel):
 
 
 class PageOutSchema(PageSchema):
-    revision: str = Field(..., example="20fe52cce6a632c6eb09fdc5b3e1594f926eea69")
-    user_id: Optional[UUID] = Field(..., example="c1c76433-5bfb-4c4a-a5b5-93c66fbfe376")
+    revision: str = Field(
+        ..., example="20fe52cce6a632c6eb09fdc5b3e1594f926eea69"
+    )
+    user_id: Optional[UUID] = Field(
+        ..., example="c1c76433-5bfb-4c4a-a5b5-93c66fbfe376"
+    )
     pipeline: Optional[int] = Field(..., example=2)
     date: datetime = Field(..., example="2021-10-19 01:01:01")
     is_validated: bool = Field(default=False, example=False)
@@ -61,12 +67,16 @@ class ParticularRevisionSchema(BaseModel):
     revision: Optional[str] = Field(
         ..., example="20fe52cce6a632c6eb09fdc5b3e1594f926eea69"
     )
-    user: Optional[UUID] = Field(..., example="c7311267-fdfd-4ef1-be44-160d3dd819ca")
+    user: Optional[UUID] = Field(
+        ..., example="c7311267-fdfd-4ef1-be44-160d3dd819ca"
+    )
     pipeline: Optional[int] = Field(..., example=1)
     date: Optional[datetime] = Field(..., example="2021-10-19 01:01:01")
     pages: List[PageSchema]
     validated: Optional[List[int]] = Field(None, ge=1, example=[2])
-    failed_validation_pages: Optional[List[int]] = Field(None, ge=1, example=[])
+    failed_validation_pages: Optional[List[int]] = Field(
+        None, ge=1, example=[]
+    )
     similar_revisions: Optional[List[RevisionLink]] = Field(None)
     categories: Optional[Set[str]] = Field(None, example=["1", "2"])
     links_json: Optional[List[dict]] = Field(None, example={})
@@ -76,11 +86,15 @@ class DocForSaveSchema(BaseModel):
     base_revision: Optional[str] = Field(
         None, example="20fe52cce6a632c6eb09fdc5b3e1594f926eea69"
     )
-    user: Optional[UUID] = Field(None, example="b0ac6d8c-7b31-4570-a634-c92b07c9e566")
+    user: Optional[UUID] = Field(
+        None, example="b0ac6d8c-7b31-4570-a634-c92b07c9e566"
+    )
     pipeline: Optional[int] = Field(None, example=1)
     pages: Optional[List[PageSchema]] = Field(None)
     validated: Optional[Set[int]] = Field(None, ge=1, example={1, 2, 10})
-    failed_validation_pages: Optional[Set[int]] = Field(None, ge=1, example={3, 4})
+    failed_validation_pages: Optional[Set[int]] = Field(
+        None, ge=1, example={3, 4}
+    )
     similar_revisions: Optional[List[RevisionLink]] = Field(None)
     categories: Optional[Set[str]] = Field(None, example=["1", "2"])
     links_json: Optional[List[dict]] = Field(None, example={})
@@ -148,8 +162,12 @@ class DocForSaveSchema(BaseModel):
 
 
 class AnnotatedDocSchema(BaseModel):
-    revision: str = Field(..., example="20fe52cce6a632c6eb09fdc5b3e1594f926eea69")
-    user: Optional[UUID] = Field(..., example="0b0ea570-e4e8-4664-84ac-dd1122471fc5")
+    revision: str = Field(
+        ..., example="20fe52cce6a632c6eb09fdc5b3e1594f926eea69"
+    )
+    user: Optional[UUID] = Field(
+        ..., example="0b0ea570-e4e8-4664-84ac-dd1122471fc5"
+    )
     pipeline: Optional[int] = Field(..., example=1)
     date: datetime = Field(..., example="2021-10-19 01:01:01")
     file_id: int = Field(..., example=1)

@@ -28,9 +28,15 @@ def pdf_page_to_jpg(
             if validated_pages and num not in validated_pages:
                 continue
             image = page.to_image(resolution=settings.dpi).original
-            image_path = output_path / f"{job_id}_{num}.{settings.coco_image_format}"
+            image_path = (
+                output_path / f"{job_id}_{num}.{settings.coco_image_format}"
+            )
             image.save(image_path)
-            LOGGER.info("Page %s was rendered and saved to %s", num, image_path)
-            LOGGER.info("Page %s was written to archive %s", num, zip_file.filename)
+            LOGGER.info(
+                "Page %s was rendered and saved to %s", num, image_path
+            )
+            LOGGER.info(
+                "Page %s was written to archive %s", num, zip_file.filename
+            )
             LOGGER.info("Page %s was removed", num)
             add_to_zip_and_local_remove(str(image_path), zip_file)

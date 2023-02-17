@@ -35,7 +35,9 @@ class BBox(List[int]):
                 "Bounding box should contains only numeric values"
             ) from err
         if len(tmp) != 4:
-            raise ValueError("Bounding box must contains x, y, width and height")
+            raise ValueError(
+                "Bounding box must contains x, y, width and height"
+            )
         super().__init__()
 
 

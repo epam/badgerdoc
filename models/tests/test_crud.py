@@ -30,7 +30,9 @@ def test_is_id_existing_queries_db_and_calls_filter():
 
 def test_create_instance_calls_add_and_commit_and_returns_id():
     session = Mock()
-    basement = BasementBase(id="id", name="name", gpu_support=True, limits=TEST_LIMITS)
+    basement = BasementBase(
+        id="id", name="name", gpu_support=True, limits=TEST_LIMITS
+    )
     crud.create_instance(session, Basement, basement, "author", "tenant")
     session.add.assert_called_once()
     session.commit.assert_called_once()
@@ -48,7 +50,9 @@ def test_get_instance_queries_db_calls_get_and_returns_result_of_get():
 
 def test_modify_instance_calls_commit():
     session = Mock()
-    basement = BasementBase(id="id", name="name", gpu_support=True, limits=TEST_LIMITS)
+    basement = BasementBase(
+        id="id", name="name", gpu_support=True, limits=TEST_LIMITS
+    )
     crud.get_instance = Mock(return_value="expected")
     crud.modify_instance(session, Basement, basement)
     session.commit.assert_called_once()

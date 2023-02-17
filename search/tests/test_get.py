@@ -382,7 +382,9 @@ def test_get_child_categories(
     expected_total_objects: int,
     expected_text_pieces: List[dict],
 ):
-    with patch("search.es.add_child_categories", return_value=annotation_response):
+    with patch(
+        "search.es.add_child_categories", return_value=annotation_response
+    ):
         response = client.get(
             settings.text_pieces_path,
             params=url_params,
@@ -415,7 +417,9 @@ def test_no_such_tenant_index(tenant: str):
 
 @pytest.mark.asyncio
 @pytest.mark.unittest
-@pytest.mark.parametrize("child_categories", [("category_1", "category_2"), tuple()])
+@pytest.mark.parametrize(
+    "child_categories", [("category_1", "category_2"), tuple()]
+)
 async def test_add_child_categories(child_categories):
     with patch(
         "search.es.fetch",
@@ -478,7 +482,8 @@ def test_requests_exception(monkeypatch):
     )
     assert response.status_code == 500
     expected_error_response = (
-        f"Can't get subcategories for {category_id} " f"due to error {error_message}"
+        f"Can't get subcategories for {category_id} "
+        f"due to error {error_message}"
     )
     assert expected_error_response in response.text
 
@@ -498,14 +503,18 @@ def test_facets_endpoint():
             }
         }
     }
-    with patch("search.main.es.ES.search", return_value=asyncio.Future()) as mock:
+    with patch(
+        "search.main.es.ES.search", return_value=asyncio.Future()
+    ) as mock:
         with patch(
             "search.main.schemas.facets.FacetsResponse.adjust_facet_result",
             return_value=asyncio.Future(),
         ) as mock1:
             mock.return_value.set_result(es_response)
             mock1.return_value.set_result(None)
-            resp = client.post("/facets", json=mock_es_query, headers=TEST_HEADERS)
+            resp = client.post(
+                "/facets", json=mock_es_query, headers=TEST_HEADERS
+            )
             assert resp.json() == {
                 "facets": [
                     {

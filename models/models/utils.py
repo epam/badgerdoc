@@ -140,7 +140,9 @@ def create_ksvc(
                                     "value": config_path["file"],
                                 },
                             ],
-                            "ports": [{"protocol": "TCP", "containerPort": 8000}],
+                            "ports": [
+                                {"protocol": "TCP", "containerPort": 8000}
+                            ],
                             "resources": {
                                 "limits": {
                                     "cpu": pod_cpu_limit,
@@ -373,7 +375,9 @@ def upload_to_object_storage(
         s3.upload_fileobj(Fileobj=obj, Key=file_path)
     except ClientError as err:
         if "404" in err.args[0]:
-            raise NoSuchTenant(f"Bucket for tenant {bucket_name} does not exist")
+            raise NoSuchTenant(
+                f"Bucket for tenant {bucket_name} does not exist"
+            )
         raise
 
 

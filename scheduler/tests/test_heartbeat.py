@@ -22,11 +22,15 @@ def test_expire_date():
 def test_manage_expired_runners(testing_session):
     """Testing manage_expired_runners."""
     id_ = str(uuid.uuid4())
-    unit_1 = models.Unit(id="unit_1_id", runner_id=id_, status=unit.UnitStatus.DONE)
+    unit_1 = models.Unit(
+        id="unit_1_id", runner_id=id_, status=unit.UnitStatus.DONE
+    )
     unit_2 = models.Unit(
         id="unit_2_id", runner_id=id_, status=unit.UnitStatus.IN_PROGRESS
     )
-    heartbeat_ = models.Heartbeat(id=id_, last_heartbeat=datetime.datetime(2022, 1, 1))
+    heartbeat_ = models.Heartbeat(
+        id=id_, last_heartbeat=datetime.datetime(2022, 1, 1)
+    )
 
     testing_session.add_all([unit_1, unit_2, heartbeat_])
     with mock.patch("scheduler.runner.run_orm_unit"):

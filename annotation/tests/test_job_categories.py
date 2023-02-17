@@ -425,7 +425,9 @@ def test_get_job_categories_pagination(
 
 @mark.integration
 @mark.parametrize("page_size", (20, 1, 10))
-def test_get_job_wrong_pagination(page_size, prepare_db_job_with_filter_categories):
+def test_get_job_wrong_pagination(
+    page_size, prepare_db_job_with_filter_categories
+):
     pagination_params = {"page_size": page_size, "page_num": 1}
     response = client.get(
         f"{JOBS_PATH}/{MOCK_ID}/categories",
@@ -526,7 +528,9 @@ def test_search_allowed_categories(
     )
     category = response.json()["data"][0]
     assert response.status_code == 200
-    assert prepare_expected_result(category) == prepare_category_response(expected)
+    assert prepare_expected_result(category) == prepare_category_response(
+        expected
+    )
 
 
 @mark.integration
@@ -563,7 +567,9 @@ def test_search_filter_name_like(
     prepare_db_categories_for_filtration,
     prepare_db_job_with_filter_categories,
 ):
-    data = prepare_filtration_body(field="name", operator=operator, value=value)
+    data = prepare_filtration_body(
+        field="name", operator=operator, value=value
+    )
     response = client.post(
         f"{POST_JOBS_PATH}/{MOCK_ID}/categories/search",
         json=data,
@@ -582,7 +588,9 @@ def test_search_filter_ordering(
     prepare_db_categories_for_filtration,
     prepare_db_job_with_filter_categories,
 ):
-    data = prepare_filtration_body(operator="lt", value="5", direction=direction)
+    data = prepare_filtration_body(
+        operator="lt", value="5", direction=direction
+    )
     response = client.post(
         f"{POST_JOBS_PATH}/{MOCK_ID}/categories/search",
         json=data,
@@ -598,7 +606,9 @@ def test_search_filter_distinct_id(
     prepare_db_categories_for_filtration,
     prepare_db_job_with_filter_categories,
 ):
-    data = prepare_filtration_body(page_size=30, field="id", operator="distinct")
+    data = prepare_filtration_body(
+        page_size=30, field="id", operator="distinct"
+    )
     response = client.post(
         f"{POST_JOBS_PATH}/{MOCK_ID}/categories/search",
         json=data,
@@ -664,7 +674,8 @@ def test_search_categories_400_error(
         headers=TEST_HEADERS,
     )
     error_message = (
-        "SELECT DISTINCT ON expressions must " "match initial ORDER BY expressions"
+        "SELECT DISTINCT ON expressions must "
+        "match initial ORDER BY expressions"
     )
     assert response.status_code == 400
     assert error_message in response.text

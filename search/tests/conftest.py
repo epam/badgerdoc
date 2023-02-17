@@ -23,7 +23,9 @@ BUCKET_NAME = INDEX_NAME
 
 @pytest_asyncio.fixture
 async def es():
-    es_ = AsyncElasticsearch(hosts=settings.es_host_test, port=settings.es_port_test)
+    es_ = AsyncElasticsearch(
+        hosts=settings.es_host_test, port=settings.es_port_test
+    )
     yield es_
     await es_.indices.delete(index=INDEX_NAME)
     await es_.close()
@@ -31,7 +33,9 @@ async def es():
 
 @pytest_asyncio.fixture
 async def index_test_data(monkeypatch) -> None:
-    es_ = AsyncElasticsearch(hosts=settings.es_host_test, port=settings.es_port_test)
+    es_ = AsyncElasticsearch(
+        hosts=settings.es_host_test, port=settings.es_port_test
+    )
     monkeypatch.setattr("search.main.ES", es_)
     await es_.indices.create(index=INDEX_NAME, ignore=400, body=INDEX_SETTINGS)
     for test_object in TEST_DATA + list(CHILD_CATEGORIES_DATA.values()):
@@ -133,8 +137,12 @@ def drop_es_index(moto_s3) -> boto3.resource:
 
 
 @pytest_asyncio.fixture
-async def drop_parametrized_index(moto_s3, request, monkeypatch) -> boto3.resource:
-    es_ = AsyncElasticsearch(hosts=settings.es_host_test, port=settings.es_port_test)
+async def drop_parametrized_index(
+    moto_s3, request, monkeypatch
+) -> boto3.resource:
+    es_ = AsyncElasticsearch(
+        hosts=settings.es_host_test, port=settings.es_port_test
+    )
     monkeypatch.setattr("search.harvester.ES", es_)
     yield moto_s3
     await es_.indices.delete(index=request.param)

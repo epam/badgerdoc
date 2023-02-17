@@ -48,7 +48,9 @@ class TestData:
     wrong_facet_request_2 = {
         "query": "some",
         "facets": [{"name": "some", "limit": 5}],
-        "filters": [{"field": "some", "operator": "in", "value": ["some1", "some2"]}],
+        "filters": [
+            {"field": "some", "operator": "in", "value": ["some1", "some2"]}
+        ],
     }
     agg_result_1 = {"key": "Header", "doc_count": 10}
     agg_result_2 = {"key": "Title", "doc_count": 10}
@@ -84,9 +86,9 @@ def test_filter_param_template():
     obj = facets.FilterParams.parse_obj(TestData.valid_filter_params_in)
     assert obj.filter_template == {
         "terms": {
-            TestData.valid_filter_params_in["field"]: TestData.valid_filter_params_in[
-                "value"
-            ]
+            TestData.valid_filter_params_in[
+                "field"
+            ]: TestData.valid_filter_params_in["value"]
         }
     }
 
@@ -144,7 +146,9 @@ def test_facet_request_build_es_query():
                         "must_not": [{"terms": {"job_id": [10, 100]}}],
                     }
                 },
-                "aggs": {"category": {"terms": {"field": "category", "size": 10}}},
+                "aggs": {
+                    "category": {"terms": {"field": "category", "size": 10}}
+                },
             },
             "job_id": {
                 "filter": {
@@ -182,7 +186,9 @@ def test_facet_request_build_es_query():
         "aggs": {
             "category": {
                 "filter": {"bool": {"must": [], "must_not": []}},
-                "aggs": {"category": {"terms": {"field": "category", "size": 5}}},
+                "aggs": {
+                    "category": {"terms": {"field": "category", "size": 5}}
+                },
             }
         },
         "size": 0,

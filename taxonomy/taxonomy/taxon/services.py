@@ -121,7 +121,9 @@ def insert_taxon_tree(
     taxon_response = TaxonResponseSchema.from_orm(taxon_db)
 
     if taxon_response.parent_id:
-        taxon_response.parents = [set_parents_is_leaf(taxon) for taxon in parents]
+        taxon_response.parents = [
+            set_parents_is_leaf(taxon) for taxon in parents
+        ]
     taxon_response.is_leaf = is_leaf
     return taxon_response
 
@@ -155,7 +157,9 @@ def update_taxon_db(
         raise SelfParentError("Taxon cannot be its own parent.")
 
     update_query["parent_id"] = (
-        update_query["parent_id"] if update_query["parent_id"] != "null" else None
+        update_query["parent_id"]
+        if update_query["parent_id"] != "null"
+        else None
     )
     ex_parent_id = taxon.parent_id
     new_parent_id = update_query["parent_id"]
@@ -239,8 +243,12 @@ def _get_obj_from_request(
     return taxon_query.all(), pagination
 
 
-def _extract_taxon(path: str, taxons: Dict[str, Taxon]) -> List[TaxonResponseSchema]:
-    return [set_parents_is_leaf(taxons[node]) for node in path.split(".")[0:-1]]
+def _extract_taxon(
+    path: str, taxons: Dict[str, Taxon]
+) -> List[TaxonResponseSchema]:
+    return [
+        set_parents_is_leaf(taxons[node]) for node in path.split(".")[0:-1]
+    ]
 
 
 def _get_parents(db: Session, taxons: List[Taxon], tenant: str) -> Parents:
@@ -261,7 +269,9 @@ def _get_parents(db: Session, taxons: List[Taxon], tenant: str) -> Parents:
     return path_to_taxon
 
 
-def fetch_bunch_taxons_db(db: Session, taxon_ids: Set[str], tenant: str) -> List[Taxon]:
+def fetch_bunch_taxons_db(
+    db: Session, taxon_ids: Set[str], tenant: str
+) -> List[Taxon]:
     taxons = (
         db.query(Taxon)
         .filter(
@@ -272,7 +282,9 @@ def fetch_bunch_taxons_db(db: Session, taxon_ids: Set[str], tenant: str) -> List
         )
         .all()
     )
-    taxons_not_exist = {taxon.id for taxon in taxons}.symmetric_difference(taxon_ids)
+    taxons_not_exist = {taxon.id for taxon in taxons}.symmetric_difference(
+        taxon_ids
+    )
     error_message = ", ".join(sorted(taxons_not_exist))
     if taxons_not_exist:
         raise NoTaxonError(f"No such taxons: {error_message}")
@@ -298,7 +310,9 @@ def filter_taxons(
     tenant: str,
     query: Optional[Query] = None,
 ) -> Page[Union[TaxonResponseSchema, str, dict]]:
-    taxons_request, pagination = _get_obj_from_request(db, request, tenant, query)
+    taxons_request, pagination = _get_obj_from_request(
+        db, request, tenant, query
+    )
 
     if request.filters and "distinct" in [
         item.operator.value for item in request.filters

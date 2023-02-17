@@ -7,7 +7,9 @@ from tests.test_utils import TEST_LIMITS
 
 def test_empty_id_in_modelbase_raises_error():
     minio_path = {"file": "file", "bucket": "bucket"}
-    with pytest.raises(ValidationError, match="this value has at least 1 characters"):
+    with pytest.raises(
+        ValidationError, match="this value has at least 1 characters"
+    ):
         schemas.ModelWithId(
             id="",
             name="name",
@@ -107,17 +109,23 @@ def test_validation_of_model_id():
 
 
 def test_empty_id_in_basementbase_raises_error():
-    with pytest.raises(ValidationError, match="this value has at least 1 characters"):
+    with pytest.raises(
+        ValidationError, match="this value has at least 1 characters"
+    ):
         schemas.BasementBase(id="", name="base", gpu_support=True)
 
 
 def test_not_empty_id_in_basementbase_does_not_raise_error():
-    schemas.BasementBase(id="1", name="base", gpu_support=True, limits=TEST_LIMITS)
+    schemas.BasementBase(
+        id="1", name="base", gpu_support=True, limits=TEST_LIMITS
+    )
 
 
 def test_validation_of_bucket_in_minio_path():
     underscore_bucket = "bucket_"
-    with pytest.raises(ValidationError, match="Bucket cannot contain underscores"):
+    with pytest.raises(
+        ValidationError, match="Bucket cannot contain underscores"
+    ):
         schemas.MinioPath(bucket=underscore_bucket, file="file")
     correct_bucket = "bucket"
     schemas.MinioPath(bucket=correct_bucket, file="file")

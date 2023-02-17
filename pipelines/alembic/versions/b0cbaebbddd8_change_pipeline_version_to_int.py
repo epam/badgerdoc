@@ -28,7 +28,11 @@ def upgrade() -> None:
     session.close()
 
     session = orm.Session(bind=op.get_bind())
-    rows = session.query(models.Pipeline).options(orm.load_only("id", "meta")).all()
+    rows = (
+        session.query(models.Pipeline)
+        .options(orm.load_only("id", "meta"))
+        .all()
+    )
     for row in rows:
         new_meta = dict(row.meta)
         new_meta["version"] = 1
@@ -79,7 +83,11 @@ def downgrade() -> None:
     session.close()
 
     session = orm.Session(bind=op.get_bind())
-    rows = session.query(models.Pipeline).options(orm.load_only("id", "meta")).all()
+    rows = (
+        session.query(models.Pipeline)
+        .options(orm.load_only("id", "meta"))
+        .all()
+    )
     for row in rows:
         new_meta = dict(row.meta)
         new_meta["version"] = "v1"

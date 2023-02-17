@@ -130,8 +130,12 @@ class MockProducer:
 
 
 @mark.unittest
-@mock.patch(target="annotation.annotations.main.KAFKA_BOOTSTRAP_SERVER", new="url_1")
-@mock.patch(target="annotation.annotations.main.KafkaProducer", new=MockProducer)
+@mock.patch(
+    target="annotation.annotations.main.KAFKA_BOOTSTRAP_SERVER", new="url_1"
+)
+@mock.patch(
+    target="annotation.annotations.main.KafkaProducer", new=MockProducer
+)
 def test_add_search_annotation_producer(monkeypatch):
     """Checks that "add_search_annotation_producer" function calls
     "_init_search_annotation_producer" which creates KafkaProducer with
@@ -150,7 +154,8 @@ def test_producer_startup_creation(monkeypatch):
     """Checks that producer creation automatically called on app startup."""
     mock_startup = mock.Mock()
     monkeypatch.setattr(
-        "annotation.annotations.main._init_search_annotation_producer", mock_startup
+        "annotation.annotations.main._init_search_annotation_producer",
+        mock_startup,
     )
     with TestClient(app):
         mock_startup.assert_called_once()
@@ -168,8 +173,12 @@ def test_producer_startup_creation(monkeypatch):
         (f"{ANNOTATION_KAFKA_TASK_ID}", DOC_FOR_SAVE_BY_USER),
     ],
 )
-@mock.patch(target="annotation.annotations.main.KAFKA_SEARCH_TOPIC", new="test")
-@mock.patch(target="annotation.annotations.main.KafkaProducer", new=mock.Mock())
+@mock.patch(
+    target="annotation.annotations.main.KAFKA_SEARCH_TOPIC", new="test"
+)
+@mock.patch(
+    target="annotation.annotations.main.KafkaProducer", new=mock.Mock()
+)
 def test_post_annotation_send_message(
     monkeypatch,
     empty_bucket,

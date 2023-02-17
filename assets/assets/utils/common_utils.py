@@ -193,7 +193,9 @@ class FileConverter:
             #  In case of some error, the content of Gotenberg response is plain text.  # noqa
             self.conversion_status = "conversion error"
             logger_.error(
-                logger_.error("%s with %s", self.conversion_status, self.file_name)
+                logger_.error(
+                    "%s with %s", self.conversion_status, self.file_name
+                )
             )
             raise exceptions.FileConversionError
         self.converted_ext = ".pdf"
@@ -221,8 +223,12 @@ class FileConverter:
         return byte_im
 
     def convert_txt(self):
-        input_text_path = f"files/{self.new_file.id}/" f"{self.new_file.id}.txt"
-        output_pdf_path = f"files/{self.new_file.id}/" f"{self.new_file.id}.pdf"
+        input_text_path = (
+            f"files/{self.new_file.id}/" f"{self.new_file.id}.txt"
+        )
+        output_pdf_path = (
+            f"files/{self.new_file.id}/" f"{self.new_file.id}.pdf"
+        )
         output_tokens_path = f"files/{self.new_file.id}/ocr/1.json"
         post_to_convert(
             self.bucket_storage,

@@ -27,7 +27,9 @@ class TenantDependencyBase:
         """
         self.key = key
         self.algorithm = self._check_algorithm(algorithm)
-        self.jwk_client: jwt.PyJWKClient = jwt.PyJWKClient(self._create_url(url))
+        self.jwk_client: jwt.PyJWKClient = jwt.PyJWKClient(
+            self._create_url(url)
+        )
 
     async def __call__(self, request: Request) -> TenantData:
         authorization: str = request.headers.get("Authorization")
@@ -57,7 +59,9 @@ class TenantDependencyBase:
         tenants = decoded.get("tenants")
 
         if decoded.get("clientId") == "pipelines":
-            return TenantData(token=token, user_id=sub, roles=roles, tenants=tenants)
+            return TenantData(
+                token=token, user_id=sub, roles=roles, tenants=tenants
+            )
 
         if not (sub and roles and tenants):
             raise HTTPException(
@@ -71,7 +75,9 @@ class TenantDependencyBase:
                 detail="X-Current-Tenant not in jwt tenants!",
             )
 
-        return TenantData(token=token, user_id=sub, roles=roles, tenants=tenants)
+        return TenantData(
+            token=token, user_id=sub, roles=roles, tenants=tenants
+        )
 
     def decode_hs256(self, token: str) -> Dict[str, Any]:
         try:
@@ -91,7 +97,9 @@ class TenantDependencyBase:
     def decode_rs256(self, token: str) -> Dict[str, Any]:
         try:
             signing_key = self.jwk_client.get_signing_key_from_jwt(token)
-            decoded = jwt.decode(token, signing_key.key, algorithms=[self.algorithm])
+            decoded = jwt.decode(
+                token, signing_key.key, algorithms=[self.algorithm]
+            )
         except jwt.ExpiredSignatureError:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -107,7 +115,9 @@ class TenantDependencyBase:
     @staticmethod
     def _check_algorithm(alg: str) -> str:
         if alg not in SupportedAlgorithms.members():
-            raise ValueError(f"Available algorithms {SupportedAlgorithms.members()}")
+            raise ValueError(
+                f"Available algorithms {SupportedAlgorithms.members()}"
+            )
         return alg
 
     @staticmethod
@@ -157,5 +167,7 @@ def get_tenant_info(
         debug: If True button 'Authorize' will be rendered on Swagger.
     """
     if debug:
-        return TenantDependencyDocs(key, algorithm, url, scheme_name, description)
+        return TenantDependencyDocs(
+            key, algorithm, url, scheme_name, description
+        )
     return TenantDependencyBase(key, algorithm, url)

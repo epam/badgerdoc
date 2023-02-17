@@ -34,7 +34,9 @@ def downgrade():
             nullable=False,
         ),
         sa.Column("job_id", sa.INTEGER(), autoincrement=False, nullable=False),
-        sa.Column("task_id", sa.INTEGER(), autoincrement=False, nullable=False),
+        sa.Column(
+            "task_id", sa.INTEGER(), autoincrement=False, nullable=False
+        ),
         sa.Column(
             "agreement_score",
             postgresql.JSONB(astext_type=sa.Text()),

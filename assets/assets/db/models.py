@@ -49,7 +49,9 @@ class Association(Base):  # type: ignore
         sa.ForeignKey("files.id", ondelete="CASCADE"),
         primary_key=True,
     )
-    created = sa.Column(sa.DateTime, nullable=False, default=datetime.datetime.utcnow())
+    created = sa.Column(
+        sa.DateTime, nullable=False, default=datetime.datetime.utcnow()
+    )
 
     @property
     def as_dict(self) -> Dict[str, Any]:
@@ -72,7 +74,9 @@ class Datasets(Base):  # type: ignore
     )
     name = sa.Column(sa.String(150), nullable=False, unique=True)
     count = sa.Column(sa.Integer, default=0)
-    created = sa.Column(sa.DateTime, nullable=False, default=datetime.datetime.utcnow())
+    created = sa.Column(
+        sa.DateTime, nullable=False, default=datetime.datetime.utcnow()
+    )
     ts_vector = sa.Column(
         TSVector(),
         sa.Computed(
@@ -81,7 +85,9 @@ class Datasets(Base):  # type: ignore
         ),
     )
 
-    __table_args__ = (sa.Index("ix_ds_name", ts_vector, postgresql_using="gin"),)
+    __table_args__ = (
+        sa.Index("ix_ds_name", ts_vector, postgresql_using="gin"),
+    )
 
     @property
     def as_dict(self) -> Dict[str, Any]:
@@ -122,7 +128,9 @@ class FileObject(Base):  # type: ignore
             persisted=True,
         ),
     )
-    datasets = relationship("Datasets", secondary="association", backref="files")
+    datasets = relationship(
+        "Datasets", secondary="association", backref="files"
+    )
 
     __table_args__ = (sa.Index("ix_name", ts_vector, postgresql_using="gin"),)
 

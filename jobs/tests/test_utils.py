@@ -75,7 +75,9 @@ async def test_positive_get_files_data_from_datasets(
         )
 
         assert (
-            await utils.get_files_data_from_datasets([1, 2], "test_tenant", jw_token)
+            await utils.get_files_data_from_datasets(
+                [1, 2], "test_tenant", jw_token
+            )
             == expected_result
         )
 
@@ -123,7 +125,9 @@ async def test_get_files_data_from_datasets_with_one_invalid_tag(
             [1],
         )
         assert (
-            await utils.get_files_data_from_datasets([1, 444], "test_tenant", jw_token)
+            await utils.get_files_data_from_datasets(
+                [1, 444], "test_tenant", jw_token
+            )
             == expected_result
         )
 
@@ -141,9 +145,13 @@ async def test_get_files_data_from_datasets_with_all_invalid_tags(jw_token):
 
 @pytest.mark.asyncio
 async def test_get_files_data_from_datasets_501_error(jw_token):
-    with patch("jobs.utils.fetch", side_effect=aiohttp.client_exceptions.ClientError()):
+    with patch(
+        "jobs.utils.fetch", side_effect=aiohttp.client_exceptions.ClientError()
+    ):
         with pytest.raises(HTTPException) as e_info:
-            await utils.get_files_data_from_datasets([121], "test_tenant", jw_token)
+            await utils.get_files_data_from_datasets(
+                [121], "test_tenant", jw_token
+            )
 
         assert e_info.value.status_code == 422
 
@@ -259,7 +267,9 @@ async def test_get_files_data_from_separate_files_100_elements(jw_token):
         ],
     }
 
-    with patch("jobs.utils.fetch", return_value=(200, large_mock_files_data)) as mock:
+    with patch(
+        "jobs.utils.fetch", return_value=(200, large_mock_files_data)
+    ) as mock:
         assert await utils.get_files_data_from_separate_files(
             list(range(1, 101)), "test_tenant", jw_token
         ) == (
@@ -321,7 +331,9 @@ async def test_get_files_data_from_separate_files_101_elements(jw_token):
             for i in range(101, 102)
         ],
     }
-    with patch("jobs.utils.fetch", side_effect=[(200, json_1), (200, json_2)]) as mock:
+    with patch(
+        "jobs.utils.fetch", side_effect=[(200, json_1), (200, json_2)]
+    ) as mock:
         expected_files_data = [
             {
                 "id": i,
@@ -415,7 +427,9 @@ async def test_get_files_data_from_separate_files_111_elements(jw_token):
             for i in range(101, 111)
         ],
     }
-    with patch("jobs.utils.fetch", side_effect=[(200, json_1), (200, json_2)]) as mock:
+    with patch(
+        "jobs.utils.fetch", side_effect=[(200, json_1), (200, json_2)]
+    ) as mock:
         assert await utils.get_files_data_from_separate_files(
             list(range(1, 111)), "test_tenant", jw_token
         ) == (
@@ -429,7 +443,9 @@ async def test_get_files_data_from_separate_files_111_elements(jw_token):
 async def test_get_files_data_from_separate_files_501_code(
     request_body_for_invalid_file, jw_token
 ):
-    with patch("jobs.utils.fetch", side_effect=aiohttp.client_exceptions.ClientError()):
+    with patch(
+        "jobs.utils.fetch", side_effect=aiohttp.client_exceptions.ClientError()
+    ):
         with pytest.raises(HTTPException) as e_info:
             await utils.get_files_data_from_separate_files(
                 [1234], "test_tenant", jw_token
@@ -492,7 +508,9 @@ async def test_get_pipeline_id_by_its_name_positive(jw_token):
 
 @pytest.mark.asyncio
 async def test_get_pipeline_id_by_its_name_negative(jw_token):
-    with patch("jobs.utils.fetch", side_effect=aiohttp.client_exceptions.ClientError()):
+    with patch(
+        "jobs.utils.fetch", side_effect=aiohttp.client_exceptions.ClientError()
+    ):
         with pytest.raises(HTTPException) as e_info:
             await utils.get_pipeline_instance_by_its_name(
                 "invalid_pipeline_name", "test_tenant", jw_token
@@ -505,7 +523,9 @@ async def test_get_pipeline_id_by_its_name_negative(jw_token):
 
 @pytest.mark.asyncio
 async def test_execute_pipeline_negative(jw_token):
-    with patch("jobs.utils.fetch", side_effect=aiohttp.client_exceptions.ClientError()):
+    with patch(
+        "jobs.utils.fetch", side_effect=aiohttp.client_exceptions.ClientError()
+    ):
         with pytest.raises(HTTPException) as e_info:
             await utils.execute_pipeline(
                 pipeline_id=2,

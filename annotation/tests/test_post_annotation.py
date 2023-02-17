@@ -68,8 +68,12 @@ CATEGORIES = [
         type=CategoryTypeSchema.box,
     ),
 ]
-POST_ANNOTATION_ANNOTATOR = User(user_id="6ffab2dd-3605-46d4-98a1-2d20011e132d")
-POST_ANNOTATION_VALIDATOR = User(user_id="6ffab2dd-3605-46d4-98a1-2d20011e132e")
+POST_ANNOTATION_ANNOTATOR = User(
+    user_id="6ffab2dd-3605-46d4-98a1-2d20011e132d"
+)
+POST_ANNOTATION_VALIDATOR = User(
+    user_id="6ffab2dd-3605-46d4-98a1-2d20011e132e"
+)
 
 
 FIRST_DATE = "2021-12-01T12:19:54.188831"
@@ -336,7 +340,9 @@ PAGES = [page.dict() for page in PAGES_SCHEMA]
 
 DIFF_FIRST_PAGE = copy.deepcopy(PAGES[1])
 DIFF_FIRST_PAGE["page_num"] = 1
-HASH_OF_DIFF_FIRST_PAGE = sha1(json.dumps(DIFF_FIRST_PAGE).encode()).hexdigest()
+HASH_OF_DIFF_FIRST_PAGE = sha1(
+    json.dumps(DIFF_FIRST_PAGE).encode()
+).hexdigest()
 
 DOC_FOR_FIRST_SAVE_BY_USER = {
     "user": POST_ANNOTATION_ANNOTATOR.user_id,
@@ -513,7 +519,9 @@ ANNOTATED_DOC_FIRST = {
     "revision": sha1(
         json.dumps(DOC_FOR_FIRST_SAVE_BY_USER["pages"][0]).encode()
         + json.dumps(DOC_FOR_FIRST_SAVE_BY_USER["validated"]).encode()
-        + json.dumps(DOC_FOR_FIRST_SAVE_BY_USER["failed_validation_pages"]).encode()
+        + json.dumps(
+            DOC_FOR_FIRST_SAVE_BY_USER["failed_validation_pages"]
+        ).encode()
     ).hexdigest(),
     "user": POST_ANNOTATION_ANNOTATOR.user_id,
     "pipeline": None,
@@ -534,7 +542,9 @@ ANNOTATED_DOC_FIRST = {
 ANNOTATED_DOC_PIPELINE_FIRST = {
     "revision": sha1(
         json.dumps(DOC_FOR_FIRST_SAVE_BY_PIPELINE["pages"][0]).encode()
-        + json.dumps(DOC_FOR_FIRST_SAVE_BY_PIPELINE.get("validated", [])).encode()
+        + json.dumps(
+            DOC_FOR_FIRST_SAVE_BY_PIPELINE.get("validated", [])
+        ).encode()
         + json.dumps(
             DOC_FOR_FIRST_SAVE_BY_PIPELINE.get("failed_validation_pages", [])
         ).encode()
@@ -554,9 +564,15 @@ ANNOTATED_DOC_PIPELINE_FIRST = {
 }
 
 ANNOTATED_DOC_WITH_DIFFERENT_JOB_AND_FILE = copy.deepcopy(ANNOTATED_DOC_FIRST)
-ANNOTATED_DOC_WITH_DIFFERENT_JOB_AND_FILE["file_id"] = POST_ANNOTATION_TASK_2["file_id"]
-ANNOTATED_DOC_WITH_DIFFERENT_JOB_AND_FILE["job_id"] = POST_ANNOTATION_TASK_2["job_id"]
-ANNOTATED_DOC_WITH_DIFFERENT_JOB_AND_FILE["task_id"] = POST_ANNOTATION_TASK_2["id"]
+ANNOTATED_DOC_WITH_DIFFERENT_JOB_AND_FILE["file_id"] = POST_ANNOTATION_TASK_2[
+    "file_id"
+]
+ANNOTATED_DOC_WITH_DIFFERENT_JOB_AND_FILE["job_id"] = POST_ANNOTATION_TASK_2[
+    "job_id"
+]
+ANNOTATED_DOC_WITH_DIFFERENT_JOB_AND_FILE["task_id"] = POST_ANNOTATION_TASK_2[
+    "id"
+]
 
 PAGES_SHA = {}
 B_PAGES = b""
@@ -603,7 +619,9 @@ ANNOTATED_DOC_WITH_BASE_REVISION = {
         DOC_FOR_SECOND_SAVE_BY_USER["base_revision"].encode()
         + json.dumps(DOC_FOR_SECOND_SAVE_BY_USER["pages"][0]).encode()
         + json.dumps(DOC_FOR_SECOND_SAVE_BY_USER["validated"]).encode()
-        + json.dumps(DOC_FOR_SECOND_SAVE_BY_USER["failed_validation_pages"]).encode()
+        + json.dumps(
+            DOC_FOR_SECOND_SAVE_BY_USER["failed_validation_pages"]
+        ).encode()
     ).hexdigest(),
     "user": POST_ANNOTATION_ANNOTATOR.user_id,
     "pipeline": None,
@@ -624,7 +642,9 @@ ANNOTATED_DOC_WITH_BASE_REVISION = {
 ANNOTATED_DOC_WITH_BOTH_TOKENS_AND_BBOX = {
     "revision": sha1(
         json.dumps(DOC_WITH_BBOX_AND_TOKENS_FIELDS["pages"][0]).encode()
-        + json.dumps(DOC_WITH_BBOX_AND_TOKENS_FIELDS.get("validated", [])).encode()
+        + json.dumps(
+            DOC_WITH_BBOX_AND_TOKENS_FIELDS.get("validated", [])
+        ).encode()
         + json.dumps(
             DOC_WITH_BBOX_AND_TOKENS_FIELDS.get("failed_validation_pages", [])
         ).encode()
@@ -851,7 +871,9 @@ ANNOTATED_DOC_WITH_MERGE_CONFLICT = {
         POST_ANNOTATION_PG_DOC.revision.encode()
         + json.dumps(DOC_FOR_CHECK_MERGE_CONFLICT["pages"][0]).encode()
         + json.dumps(DOC_FOR_CHECK_MERGE_CONFLICT["validated"]).encode()
-        + json.dumps(DOC_FOR_CHECK_MERGE_CONFLICT["failed_validation_pages"]).encode()
+        + json.dumps(
+            DOC_FOR_CHECK_MERGE_CONFLICT["failed_validation_pages"]
+        ).encode()
     ).hexdigest(),
     "user": POST_ANNOTATION_ANNOTATOR.user_id,
     "pipeline": None,
@@ -1182,7 +1204,8 @@ def test_post_annotation_by_pipeline_status_codes(
         response = client.post(
             construct_path(
                 ANNOTATION_PATH,
-                f"{POST_ANNOTATION_PG_DOC.job_id}/" f"{POST_ANNOTATION_PG_DOC.file_id}",
+                f"{POST_ANNOTATION_PG_DOC.job_id}/"
+                f"{POST_ANNOTATION_PG_DOC.file_id}",
             ),
             headers={
                 HEADER_TENANT: POST_ANNOTATION_PG_DOC.tenant,
@@ -1433,7 +1456,9 @@ def test_upload_json_to_minio(mock_minio_empty_bucket):
 def test_upload_pages_to_minio(mock_minio_empty_bucket):
     s3_resource = mock_minio_empty_bucket
 
-    upload_pages_to_minio(PAGES_SCHEMA, PAGES_SHA, S3_PATH, TEST_TENANT, s3_resource)
+    upload_pages_to_minio(
+        PAGES_SCHEMA, PAGES_SHA, S3_PATH, TEST_TENANT, s3_resource
+    )
 
     for page_obj in s3_resource.Bucket(TEST_TENANT).objects.filter(
         Delimiter="/", Prefix=S3_PATH + "/"
@@ -1614,7 +1639,9 @@ def test_check_docs_identity(latest_doc, new_doc, expected_result):
         # validated: empty
         # failed_validation_pages: empty
         (
-            ANNOTATED_DOCS_FOR_MANIFEST_CREATION.get("docs_with_categories")[0],
+            ANNOTATED_DOCS_FOR_MANIFEST_CREATION.get("docs_with_categories")[
+                0
+            ],
             "path/to/file",
             "bucket-of-phys-file",
             {
@@ -1661,7 +1688,9 @@ def test_create_manifest_json_first_upload(
         prepare_db_for_manifest_creation_with_one_record,
         s3_resource,
     )
-    man_obj = s3_resource.Object(POST_ANNOTATION_PG_DOC.tenant, f"{S3_PATH}/{MANIFEST}")
+    man_obj = s3_resource.Object(
+        POST_ANNOTATION_PG_DOC.tenant, f"{S3_PATH}/{MANIFEST}"
+    )
     actual_manifest = json.loads(man_obj.get()["Body"].read().decode("utf-8"))
     del actual_manifest["date"]
     assert actual_manifest == expected_manifest
@@ -1795,8 +1824,12 @@ def test_create_manifest_json_first_upload(
         # validated : from latest revision
         # failed_validation_pages: empty
         (
-            ANNOTATED_DOCS_FOR_MANIFEST_CREATION.get("same_pages_not_validated"),
-            ANNOTATED_DOCS_FOR_MANIFEST_CREATION.get("same_pages_not_validated")[1],
+            ANNOTATED_DOCS_FOR_MANIFEST_CREATION.get(
+                "same_pages_not_validated"
+            ),
+            ANNOTATED_DOCS_FOR_MANIFEST_CREATION.get(
+                "same_pages_not_validated"
+            )[1],
             "path/to/another/file",
             "another-bucket",
             {
@@ -1819,7 +1852,9 @@ def test_create_manifest_json_first_upload(
         # failed_validation_pages: empty
         (
             ANNOTATED_DOCS_FOR_MANIFEST_CREATION.get("docs_with_categories"),
-            ANNOTATED_DOCS_FOR_MANIFEST_CREATION.get("docs_with_categories")[1],
+            ANNOTATED_DOCS_FOR_MANIFEST_CREATION.get("docs_with_categories")[
+                1
+            ],
             "path/to/file",
             "bucket-of-phys-file",
             {
@@ -1868,7 +1903,9 @@ def test_create_manifest_json_with_annotated_docs_and_manifest_in_minio(
         prepare_db_for_manifest_creation_with_several_records,
         s3_resource,
     )
-    man_obj = s3_resource.Object(POST_ANNOTATION_PG_DOC.tenant, f"{S3_PATH}/{MANIFEST}")
+    man_obj = s3_resource.Object(
+        POST_ANNOTATION_PG_DOC.tenant, f"{S3_PATH}/{MANIFEST}"
+    )
     actual_manifest = json.loads(man_obj.get()["Body"].read().decode("utf-8"))
     delete_date_fields([actual_manifest])
     assert actual_manifest == expected_manifest
@@ -1897,7 +1934,9 @@ def test_create_manifest_json_date_field(
         )
     )
     prepare_db_for_manifest_creation_with_one_record.commit()
-    man_obj = s3_resource.Object(POST_ANNOTATION_PG_DOC.tenant, f"{S3_PATH}/{MANIFEST}")
+    man_obj = s3_resource.Object(
+        POST_ANNOTATION_PG_DOC.tenant, f"{S3_PATH}/{MANIFEST}"
+    )
     actual_manifest = json.loads(man_obj.get()["Body"].read().decode("utf-8"))
 
     assert annotated_doc["date"]
@@ -2020,7 +2059,9 @@ def test_construct_annotated_doc(
     )
     amount_of_docs_after_commit = db.query(AnnotatedDoc).count()
 
-    delete_date_fields([actual_doc, doc_in_db_after_commit, formatted_actual_doc])
+    delete_date_fields(
+        [actual_doc, doc_in_db_after_commit, formatted_actual_doc]
+    )
 
     assert doc_in_session_after_commit == []
     assert doc_in_db_after_commit == expected_result
@@ -2042,7 +2083,9 @@ def test_construct_annotated_doc_different_jobs_and_files(
     s3_resource = mock_minio_empty_bucket
 
     expected_result_1 = {
-        k: v for k, v in ANNOTATED_DOC_FIRST.items() if k not in ("similar_revisions",)
+        k: v
+        for k, v in ANNOTATED_DOC_FIRST.items()
+        if k not in ("similar_revisions",)
     }
     expected_result_2 = {
         k: v
@@ -2203,7 +2246,8 @@ def test_post_annotation_by_pipeline(
         actual_result = client.post(
             construct_path(
                 ANNOTATION_PATH,
-                f"{POST_ANNOTATION_PG_DOC.job_id}/" f"{POST_ANNOTATION_PG_DOC.file_id}",
+                f"{POST_ANNOTATION_PG_DOC.job_id}/"
+                f"{POST_ANNOTATION_PG_DOC.file_id}",
             ),
             headers={
                 HEADER_TENANT: POST_ANNOTATION_PG_DOC.tenant,

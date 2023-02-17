@@ -103,11 +103,15 @@ def inference_return(model, images):
     for image in images:
         if image == Path("aab83828-cd8b-41f7-a3c3-943f13e67c2c.png"):
             print("inference yield 1")
-            yield "aab83828-cd8b-41f7-a3c3-943f13e67c2c", {"chemical_formula": "31"}
+            yield "aab83828-cd8b-41f7-a3c3-943f13e67c2c", {
+                "chemical_formula": "31"
+            }
 
         if image == Path("732f2735-3369-4305-9d29-fa3be99d72dd.png"):
             print("inference yield 2")
-            yield "732f2735-3369-4305-9d29-fa3be99d72dd", {"chemical_formula": "31"}
+            yield "732f2735-3369-4305-9d29-fa3be99d72dd", {
+                "chemical_formula": "31"
+            }
 
 
 def crop_page_return(pdf_page, dod_page: m.PageDOD, categories, output_path):

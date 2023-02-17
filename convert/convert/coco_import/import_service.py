@@ -23,7 +23,9 @@ def download_coco_from_aws(s3_data: coco.DataS3) -> S3Manager:
     try:
         check_uploading_limit(s3_data.files_keys)
     except UploadLimitExceedError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
+        )
     s3 = S3Manager(s3_data.aws_access_key_id, s3_data.aws_secret_access_key)
     s3_download_files(s3, s3_data.bucket_s3, s3_data.files_keys)
     return s3
@@ -66,7 +68,9 @@ def import_run(
         json=body,
         headers={"X-Current-Tenant": current_tenant, "Authorization": token},
     )
-    converter.upload_annotations(job_id, s3_data.bucket_s3, annotation_by_image)
+    converter.upload_annotations(
+        job_id, s3_data.bucket_s3, annotation_by_image
+    )
     return {
         "msg": f"Dataset was converted to {import_format} "
         f"format and upload to bucket {current_tenant}"

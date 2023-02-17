@@ -1,5 +1,10 @@
 from typing import List, Union
 
+from fastapi import APIRouter, Depends, HTTPException, Path, Response, status
+from filter_lib import Page
+from sqlalchemy.orm import Session
+from sqlalchemy_filters.exceptions import BadFilterFormat
+
 from annotation.database import get_db
 from annotation.errors import NoSuchCategoryError
 from annotation.filters import CategoryFilter
@@ -16,10 +21,6 @@ from annotation.schemas import (
     SubCategoriesOutSchema,
 )
 from annotation.tags import CATEGORIES_TAG
-from fastapi import APIRouter, Depends, HTTPException, Path, Response, status
-from filter_lib import Page
-from sqlalchemy.orm import Session
-from sqlalchemy_filters.exceptions import BadFilterFormat
 
 from .services import (
     add_category_db,
@@ -73,7 +74,9 @@ def fetch_category(
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
 ) -> CategoryResponseSchema:
     category_db = fetch_category_db(db, category_id, x_current_tenant)
-    category_response = insert_category_tree(db, category_db, tenant=x_current_tenant)
+    category_response = insert_category_tree(
+        db, category_db, tenant=x_current_tenant
+    )
     return category_response
 
 
@@ -150,7 +153,9 @@ def update_category(
     """
     Updates category by id and returns updated category.
     """
-    category_db = update_category_db(db, category_id, query.dict(), x_current_tenant)
+    category_db = update_category_db(
+        db, category_id, query.dict(), x_current_tenant
+    )
     if not category_db:
         raise NoSuchCategoryError("Cannot update category parameters")
     return response_object_from_db(category_db)

@@ -58,7 +58,9 @@ class Page(BaseModel):
     size: PageSize
     objs: List[Dict[str, Any]] = Field(
         ...,
-        example=[{"id": 1, "bbox": [1, 2, 3, 4], "category": "1", "text": "string"}],
+        example=[
+            {"id": 1, "bbox": [1, 2, 3, 4], "category": "1", "text": "string"}
+        ],
     )
 
 

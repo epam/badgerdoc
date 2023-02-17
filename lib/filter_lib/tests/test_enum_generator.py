@@ -32,7 +32,9 @@ def test_exclude_fields():
     assert _exclude_fields(
         user_fields, ["id", "addresses.id", "addresses.location"]
     ) == ["name", "email", "addresses.owner"]
-    assert _exclude_fields(address_fields, ["id", "user.name", "user.email"]) == [
+    assert _exclude_fields(
+        address_fields, ["id", "user.name", "user.email"]
+    ) == [
         "location",
         "owner",
         "user.id",
@@ -56,5 +58,7 @@ def test_create_enum_model():
     assert user_enum.EMAIL.value == "email"
 
     address_enum = _create_enum_model(address_table_name, address_fields)
-    assert address_enum.ID.value == "id", address_enum.LOCATION.value == "location"
+    assert address_enum.ID.value == "id", (
+        address_enum.LOCATION.value == "location"
+    )
     assert address_enum.OWNER.value == "owner"

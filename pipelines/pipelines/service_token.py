@@ -33,10 +33,14 @@ def get_service_token() -> Optional[str]:
     try:
         response_json = response.json()
     except json.JSONDecodeError:
-        logger.exception(f"Response {response} from {url} cannot be converted to json.")
+        logger.exception(
+            f"Response {response} from {url} cannot be converted to json."
+        )
     try:
         token = response_json[ACCESS_TOKEN]
     except AttributeError:
-        logger.exception(f"Unable to extract token from response {response} from {url}")
+        logger.exception(
+            f"Unable to extract token from response {response} from {url}"
+        )
 
     return token

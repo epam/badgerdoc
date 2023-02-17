@@ -126,7 +126,9 @@ def search_models(
         },
     },
 )
-def get_model_by_id(model_id: str, session: Session = Depends(get_db)) -> Model:
+def get_model_by_id(
+    model_id: str, session: Session = Depends(get_db)
+) -> Model:
     query = crud.get_latest_model(session, model_id)
     if not query:
         LOGGER.error("Get_model_by_id get not existing id %s", model_id)
@@ -154,7 +156,8 @@ def get_model_by_id_and_version(
     model = crud.get_instance(session, Model, (model_id, version))
     if not model:
         LOGGER.error(
-            "Get_model_by_id get not existing model with " "id: %s, version: %d",
+            "Get_model_by_id get not existing model with "
+            "id: %s, version: %d",
             model_id,
             version,
         )
@@ -198,7 +201,9 @@ def update_model(
     if request.training_id and not crud.is_id_existing(
         session, Training, request.training_id
     ):
-        LOGGER.info("Update_model get not existing training id %s", request.training_id)
+        LOGGER.info(
+            "Update_model get not existing training id %s", request.training_id
+        )
         raise HTTPException(status_code=404, detail="Not existing training")
 
     modified_model = crud.modify_instance(session, model, request)
@@ -246,7 +251,9 @@ def update_model_by_id_and_version(
     if request.training_id and not crud.is_id_existing(
         session, Training, request.training_id
     ):
-        LOGGER.info("Update_model get not existing training id %s", request.training_id)
+        LOGGER.info(
+            "Update_model get not existing training id %s", request.training_id
+        )
         raise HTTPException(status_code=404, detail="Not existing training")
 
     modified_model = crud.modify_instance(session, model, request)
@@ -350,7 +357,9 @@ def deploy_model(
             schemas.StatusEnum.READY.value,
             schemas.StatusEnum.DEPLOYED.value,
         )
-        LOGGER.info("Deploy_model get id of already deployed model %s", model.id)
+        LOGGER.info(
+            "Deploy_model get id of already deployed model %s", model.id
+        )
         raise HTTPException(
             status_code=409,
             detail=f"Model {model.id} has already been deployed",
@@ -399,13 +408,17 @@ def deploy_model_by_id_and_version(
             schemas.StatusEnum.READY.value,
             schemas.StatusEnum.DEPLOYED.value,
         )
-        LOGGER.info("Deploy_model get id of already deployed model %s", model.id)
+        LOGGER.info(
+            "Deploy_model get id of already deployed model %s", model.id
+        )
         raise HTTPException(
             status_code=409,
             detail=f"Model {model.id} has already been deployed",
         )
 
-    LOGGER.info("Deploying model with " "id: %s, version: %d", model_id, version)
+    LOGGER.info(
+        "Deploying model with " "id: %s, version: %d", model_id, version
+    )
     utils.deploy(session, model)
     return {"msg": f"Model {model_id} with version {version} is deploying"}
 
@@ -446,7 +459,9 @@ def undeploy_model(
         return {"msg": f"Model {model.id} is undeployed"}
     if utils.undeploy(session, model):
         return {"msg": f"Model {model.id} is undeployed"}
-    raise HTTPException(status_code=409, detail=f"Failed to undeploy model {model.id}")
+    raise HTTPException(
+        status_code=409, detail=f"Failed to undeploy model {model.id}"
+    )
 
 
 @router.post(
@@ -475,7 +490,8 @@ def undeploy_model_by_id_and_version(
     model = crud.get_instance(session, Model, (model_id, version))
     if not model:
         LOGGER.info(
-            "Undeploy_model get not existing model with " "id: %s, version: %d",
+            "Undeploy_model get not existing model with "
+            "id: %s, version: %d",
             model_id,
             version,
         )
@@ -493,5 +509,6 @@ def undeploy_model_by_id_and_version(
         return {"msg": f"Model {model.id} is undeployed"}
     raise HTTPException(
         status_code=409,
-        detail=f"Failed to undeploy model {model_id} " f"with version {version}",
+        detail=f"Failed to undeploy model {model_id} "
+        f"with version {version}",
     )

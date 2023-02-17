@@ -18,7 +18,9 @@ PaginationParams = namedtuple(
 
 def pieces_condition(properties: Dict[str, Any]) -> List[str]:
     return [
-        el for el in properties if properties[el].get("type") not in __excluded_types
+        el
+        for el in properties
+        if properties[el].get("type") not in __excluded_types
     ]
 
 
@@ -31,7 +33,9 @@ class GeomObject(pydantic.BaseModel):
     content: str = pydantic.Field(..., example="ElasticSearch")
     document_id: pydantic.conint(ge=1) = pydantic.Field(..., example=1)  # type: ignore
     page_number: pydantic.conint(ge=1) = pydantic.Field(..., example=1)  # type: ignore
-    bbox: Optional[pydantic.conlist(float, min_items=4, max_items=4)] = pydantic.Field(
+    bbox: Optional[
+        pydantic.conlist(float, min_items=4, max_items=4)
+    ] = pydantic.Field(
         None, example=[1.5, 1.5, 1.5, 1.5]
     )  # type: ignore
     tokens: Optional[List[str]] = pydantic.Field(
@@ -83,12 +87,16 @@ class PieceFilter(pydantic.BaseModel):
     def is_include(self) -> bool:
         return self.operator in (PieceOperators.IN, PieceOperators.EQ)
 
-    async def adjust_for_child_categories(self, tenant: str, token: str) -> List[str]:
+    async def adjust_for_child_categories(
+        self, tenant: str, token: str
+    ) -> List[str]:
         if not isinstance(self.value, list):
             self.value = [self.value]
         tasks = []
         for category in self.value:
-            task = asyncio.create_task(es.add_child_categories(category, tenant, token))
+            task = asyncio.create_task(
+                es.add_child_categories(category, tenant, token)
+            )
             tasks.append(task)
         res = await asyncio.gather(*tasks)
         new_categories = list(reduce(lambda a, b: a & b, map(set, res)))
@@ -125,9 +133,13 @@ class PiecesRequest(pydantic.BaseModel):
     def _apply_filters(self, query: Dict[str, Any]) -> Dict[str, Any]:
         for filter_ in self.filters:
             if filter_.is_include:
-                query["query"]["bool"]["must"].append(filter_.get_filter_template())
+                query["query"]["bool"]["must"].append(
+                    filter_.get_filter_template()
+                )
             if not filter_.is_include:
-                query["query"]["bool"]["must_not"].append(filter_.get_filter_template())
+                query["query"]["bool"]["must_not"].append(
+                    filter_.get_filter_template()
+                )
         return query
 
     def _apply_sort(self, query: Dict[str, Any]) -> Dict[str, Any]:
@@ -140,7 +152,9 @@ class PiecesRequest(pydantic.BaseModel):
 
     def _apply_query(self, query: Dict[str, Any]) -> Dict[str, Any]:
         match = {
-            "match": {"content": {"query": self.query, "minimum_should_match": "81%"}}
+            "match": {
+                "content": {"query": self.query, "minimum_should_match": "81%"}
+            }
         }
         query["query"]["bool"]["must"].append(match)
         return query
@@ -196,7 +210,9 @@ class SearchResultSchema2(pydantic.BaseModel):
         pages = SearchResultSchema2.__calculate_num_pages(
             pag_in.page_size, total_results
         )
-        return PaginationParams(pag_in.page_num, pag_in.page_size, pages, total_results)
+        return PaginationParams(
+            pag_in.page_num, pag_in.page_size, pages, total_results
+        )
 
     @staticmethod
     def __calculate_num_pages(page_size: int, total_results: int) -> int:

@@ -18,7 +18,9 @@ from tests.test_tasks_crud_ud import BAD_ID, NOT_EXISTING_ID
 
 client = TestClient(app)
 
-DELETE_BATCH_TASKS_ANNOTATOR = User(user_id="18d3d189-e73a-4680-bfa7-7ba3fe6ebee5")
+DELETE_BATCH_TASKS_ANNOTATOR = User(
+    user_id="18d3d189-e73a-4680-bfa7-7ba3fe6ebee5"
+)
 CATEGORIES = [
     Category(
         id="18d3d189e73a4680bfa77ba3fe6ebee5",
@@ -123,7 +125,9 @@ PENDING_READY_IDS = [TASK_PENDING["id"], TASK_READY["id"]]
 def test_delete_batch_tasks_status_codes(
     prepare_db_for_batch_delete_tasks, tasks_id, job_id, expected_code
 ):
-    response = client.delete(CRUD_TASKS_PATH, json=tasks_id, headers=TEST_HEADERS)
+    response = client.delete(
+        CRUD_TASKS_PATH, json=tasks_id, headers=TEST_HEADERS
+    )
     assert response.status_code == expected_code
     check_files_distributed_pages(prepare_db_for_batch_delete_tasks, job_id)
 

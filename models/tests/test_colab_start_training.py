@@ -136,7 +136,9 @@ def test_start_training_no_such_bucket_error(
         "models.utils.boto3.resource",
         Mock(return_value=moto_minio),
     )
-    monkeypatch.setattr("models.routers.training_routers.connect_colab", MockSSHContext)
+    monkeypatch.setattr(
+        "models.routers.training_routers.connect_colab", MockSSHContext
+    )
     response = overrided_token_client.post(
         START_TRAINING_PATH.format(EXIST_TRAINING_ID),
         json=TEST_CREDENTIALS,
@@ -165,7 +167,9 @@ def test_start_training_boto3_error(
         "models.routers.training_routers.get_minio_object",
         Mock(side_effect=BotoCoreError()),
     )
-    monkeypatch.setattr("models.routers.training_routers.connect_colab", MockSSHContext)
+    monkeypatch.setattr(
+        "models.routers.training_routers.connect_colab", MockSSHContext
+    )
     response = overrided_token_client.post(
         START_TRAINING_PATH.format(EXIST_TRAINING_ID),
         json=TEST_CREDENTIALS,
@@ -201,7 +205,9 @@ def test_start_training_integration(
         "models.utils.boto3.resource",
         Mock(return_value=save_start_training_minio_objects),
     )
-    monkeypatch.setattr("models.routers.training_routers.connect_colab", MockSSHContext)
+    monkeypatch.setattr(
+        "models.routers.training_routers.connect_colab", MockSSHContext
+    )
     response = overrided_token_client.post(
         START_TRAINING_PATH.format(EXIST_TRAINING_ID),
         json=TEST_CREDENTIALS,

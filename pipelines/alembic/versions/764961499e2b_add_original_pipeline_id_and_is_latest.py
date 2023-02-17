@@ -23,7 +23,9 @@ def upgrade() -> None:
         "pipeline",
         sa.Column("original_pipeline_id", sa.Integer(), nullable=True),
     )
-    op.add_column("pipeline", sa.Column("is_latest", sa.Boolean(), nullable=True))
+    op.add_column(
+        "pipeline", sa.Column("is_latest", sa.Boolean(), nullable=True)
+    )
 
     session = orm.Session(bind=op.get_bind())
     rows = (

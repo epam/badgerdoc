@@ -54,7 +54,9 @@ def make_request_with_retry(
     return None
 
 
-def get_file_status(file_id: int, tenant: str) -> Optional[schemas.PreprocessingStatus]:
+def get_file_status(
+    file_id: int, tenant: str
+) -> Optional[schemas.PreprocessingStatus]:
     logger.info(f"Sending request to the assets to get file {file_id} status.")
     body = {"filters": [{"field": "id", "operator": "eq", "value": file_id}]}
     url = f"{config.ASSETS_URI}/files/search"
@@ -82,7 +84,9 @@ def get_model_types(model_ids: List[str]) -> Dict[str, str]:
         "filters": [{"field": "id", "operator": "in", "value": model_ids}],
     }
     model_search = config.MODELS_URI + config.MODELS_SEARCH_ENDPOINT
-    response = make_request_with_retry(url=model_search, body=body, method="POST")
+    response = make_request_with_retry(
+        url=model_search, body=body, method="POST"
+    )
     result = response.json()
     items = result.get("data")
     return {item.get("id"): item.get("type") for item in items}

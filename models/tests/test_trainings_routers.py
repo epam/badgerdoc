@@ -51,11 +51,13 @@ def test_create_training_in_positive_case(exist, create, _get):
     create.return_value = {"id": "id"}
     token = Mock()
     token.user_id.return_value = "token"
-    assert training_routers.create_new_training(data, "session", token, "tenant") == {
-        "id": "id"
-    }
+    assert training_routers.create_new_training(
+        data, "session", token, "tenant"
+    ) == {"id": "id"}
     exist.assert_called_once_with("session", Basement, "basement")
-    create.assert_called_once_with("session", Training, data, token.user_id, "tenant")
+    create.assert_called_once_with(
+        "session", Training, data, token.user_id, "tenant"
+    )
 
 
 @patch.object(training_routers.crud, "create_instance")

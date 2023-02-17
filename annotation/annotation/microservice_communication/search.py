@@ -90,11 +90,12 @@ Example of response for jobs:
 from typing import Dict, List
 
 import requests
+from fastapi import Header, HTTPException
+from requests.exceptions import ConnectionError, RequestException, Timeout
+
 from annotation.annotations import row_to_dict
 from annotation.models import ManualAnnotationTask
 from annotation.schemas import ExpandedManualAnnotationTaskSchema
-from fastapi import Header, HTTPException
-from requests.exceptions import ConnectionError, RequestException, Timeout
 
 PAGE_SIZE = 100  # max page size in assets
 HEADER_TENANT = "X-Current-Tenant"
@@ -137,7 +138,9 @@ def construct_search_params(page: int, ids: List[int]):
     }
 
 
-def get_response(ids: List[int], url: str, tenant: str, token: str) -> List[dict]:
+def get_response(
+    ids: List[int], url: str, tenant: str, token: str
+) -> List[dict]:
     """
     Request from jobs or assets microservices all elements,
     that have provided ids.

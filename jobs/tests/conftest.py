@@ -101,7 +101,9 @@ def setup_tenant():
 def testing_app(testing_engine, testing_session, setup_tenant):
     with patch("jobs.db_service.LocalSession", testing_session):
         main.app.dependency_overrides[main.tenant] = lambda: setup_tenant
-        main.app.dependency_overrides[service.get_session] = lambda: testing_session
+        main.app.dependency_overrides[
+            service.get_session
+        ] = lambda: testing_session
         client = TestClient(main.app)
         yield client
 
@@ -221,7 +223,9 @@ def mock_data_dataset22():
 def request_body_for_invalid_file():
     request_body = {
         "pagination": {"page_num": 1, "page_size": 15},
-        "filters": [{"field": "id", "operator": "eq", "value": "some invalid file id"}],
+        "filters": [
+            {"field": "id", "operator": "eq", "value": "some invalid file id"}
+        ],
         "sorting": [{"field": "id", "direction": "asc"}],
     }
     return request_body
@@ -258,7 +262,8 @@ def pipeline_info_from_pipeline_manager():
                     {
                         "id": "7571f17b-d9f1-4d31-af42-7f29fbfd0fb9",
                         "model": "ternary",
-                        "model_url": "http://ternary.dev1/v1/models/" "ternary:predict",
+                        "model_url": "http://ternary.dev1/v1/models/"
+                        "ternary:predict",
                         "categories": ["mrt"],
                         "steps": [],
                     }

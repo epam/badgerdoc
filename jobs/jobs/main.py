@@ -1,19 +1,18 @@
 import asyncio
 from typing import Any, Dict, List, Optional, Union
 
-from fastapi import Depends, FastAPI, Header, HTTPException, status
-from filter_lib import Page, form_query, map_request_to_filter, paginate
-from sqlalchemy.orm import Session
-from sqlalchemy_filters.exceptions import BadFilterFormat
-from tenant_dependency import TenantData, get_tenant_info
-
 import jobs.create_job_funcs as create_job_funcs
 import jobs.db_service as db_service
 import jobs.models as dbm
 import jobs.run_job_funcs as run_job_funcs
 import jobs.schemas as schemas
 import jobs.utils as utils
+from fastapi import Depends, FastAPI, Header, HTTPException, status
+from filter_lib import Page, form_query, map_request_to_filter, paginate
 from jobs.config import KEYCLOAK_HOST, ROOT_PATH, API_current_version
+from sqlalchemy.orm import Session
+from sqlalchemy_filters.exceptions import BadFilterFormat
+from tenant_dependency import TenantData, get_tenant_info
 
 tenant = get_tenant_info(url=KEYCLOAK_HOST, algorithm="RS256", debug=True)
 app = FastAPI(
@@ -218,7 +217,8 @@ async def change_job(
         if (owners := job_to_change.owners) and user_id not in owners:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Access denied. This user is not " "allowed to change the job",
+                detail="Access denied. This user is not "
+                "allowed to change the job",
             )
 
     if (
@@ -248,7 +248,9 @@ async def change_job(
         schemas.JobType.AnnotationJob,
         schemas.JobType.ExtractionWithAnnotationJob,
     ]:
-        new_job_params_for_annotation = utils.pick_params_for_annotation(new_job_params)
+        new_job_params_for_annotation = utils.pick_params_for_annotation(
+            new_job_params
+        )
         if new_job_params_for_annotation.dict(exclude_defaults=True):
             await utils.update_job_in_annotation(
                 job_id=job_id,

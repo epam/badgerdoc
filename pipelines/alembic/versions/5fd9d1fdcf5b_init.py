@@ -58,7 +58,9 @@ def upgrade() -> None:
         sa.Column("job_id", sa.Integer(), nullable=True),
         sa.Column("runner_id", postgresql.UUID(), nullable=True),
         sa.Column("status", sa.String(length=30), nullable=True),
-        sa.ForeignKeyConstraint(["pipeline_id"], ["pipeline.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+            ["pipeline_id"], ["pipeline.id"], ondelete="CASCADE"
+        ),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_table(

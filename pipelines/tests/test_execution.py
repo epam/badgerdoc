@@ -33,7 +33,10 @@ def uuid_mock():
         yield uuid_mock
 
 
-@patch("pipelines.execution.ExecutionStep.get_pipeline_step", new_callable=PropertyMock)
+@patch(
+    "pipelines.execution.ExecutionStep.get_pipeline_step",
+    new_callable=PropertyMock,
+)
 @patch("pipelines.execution.ExecutionStep.step_execution")
 @pytest.mark.asyncio
 async def test_step_execution_with_logging(
@@ -46,8 +49,12 @@ async def test_step_execution_with_logging(
     step_exec_mock.return_value = None
     pipeline_step.return_value = property_mock
     exec_step = td.test_exec_step
-    body = schemas.InputArguments.parse_obj({**td.exec_input_args, "result": "foo"})
-    await exec_step.step_execution_with_logging(body=body, producer=AIOKafkaProducer)
+    body = schemas.InputArguments.parse_obj(
+        {**td.exec_input_args, "result": "foo"}
+    )
+    await exec_step.step_execution_with_logging(
+        body=body, producer=AIOKafkaProducer
+    )
 
     assert step_exec_mock.call_count == 1
 
@@ -56,16 +63,25 @@ async def test_step_execution_with_logging(
     "Test should be fixed - it 'blinks'. "
     "It passes when run separately, but fails when all tests are run."
 )
-@patch("pipelines.execution.ExecutionStep.get_pipeline_step", new_callable=PropertyMock)
+@patch(
+    "pipelines.execution.ExecutionStep.get_pipeline_step",
+    new_callable=PropertyMock,
+)
 @patch("pipelines.execution.ExecutionStep.send")
 @pytest.mark.asyncio
-async def test_step_execution(mock_send, model_url, caplog, run_in_session_mock):
+async def test_step_execution(
+    mock_send, model_url, caplog, run_in_session_mock
+):
     """Testing step_execution."""
-    property_mock = ExecStepPropertyMock.parse_obj({"model_url": "https://foo.com/bar"})
+    property_mock = ExecStepPropertyMock.parse_obj(
+        {"model_url": "https://foo.com/bar"}
+    )
     model_url.return_value = property_mock
     mock_send.return_value = None
     exec_step = td.test_exec_step
-    await exec_step.step_execution(producer=AIOKafkaProducer, body=td.input_args_1)
+    await exec_step.step_execution(
+        producer=AIOKafkaProducer, body=td.input_args_1
+    )
     assert mock_send.called
     assert caplog.messages[0] == "Step with id = 58 sent."
 
@@ -216,7 +232,9 @@ def test_adjust_pipeline():
             return_value={"bar": "http://bar.dev1.gcov.ru"},
         ):
             td.pipeline.adjust_pipeline(td.pipeline.get_model_ids())
-            assert td.pipeline.meta.categories.sort() == ["text", "chart"].sort()
+            assert (
+                td.pipeline.meta.categories.sort() == ["text", "chart"].sort()
+            )
 
 
 @pytest.mark.skip(

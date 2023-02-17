@@ -29,7 +29,10 @@ async def test_send_status_to_assets(mock_preprocessing_task, status):
         mock.assert_awaited_once_with(
             method="PUT",
             url=settings.assets_url,
-            json={"file": int(mock_preprocessing_task.file_id), "status": status},
+            json={
+                "file": int(mock_preprocessing_task.file_id),
+                "status": status,
+            },
             headers={
                 "X-Current-Tenant": mock_preprocessing_task.tenant,
                 "Authorization": f"Bearer {mock_preprocessing_task.token}",

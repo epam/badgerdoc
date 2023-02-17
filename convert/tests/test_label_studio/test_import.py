@@ -73,7 +73,9 @@ def test_annotation_converter():
         tokens_test = json.loads(tokens_test_path.read_text())
         annotations_test = json.loads(annotations_test_path.read_text())
 
-        tokens_etalon_path = TEST_FILES_DIR / "badgerdoc_etalon" / "tokens_test.json"
+        tokens_etalon_path = (
+            TEST_FILES_DIR / "badgerdoc_etalon" / "tokens_test.json"
+        )
         annotations_etalon_path = (
             TEST_FILES_DIR / "badgerdoc_etalon" / "annotations_test.json"
         )
@@ -103,7 +105,9 @@ def test_import_document_links():
         tokens_test = json.loads(tokens_test_path.read_text())
         annotations_test = json.loads(annotations_test_path.read_text())
 
-        tokens_etalon_path = TEST_FILES_DIR / "badgerdoc_etalon" / "tokens_test.json"
+        tokens_etalon_path = (
+            TEST_FILES_DIR / "badgerdoc_etalon" / "tokens_test.json"
+        )
         annotations_etalon_path = (
             TEST_FILES_DIR / "badgerdoc_etalon" / "annotations_test.json"
         )

@@ -20,9 +20,9 @@ depends_on = None
 
 def upgrade() -> None:
     session = orm.Session(bind=op.get_bind())
-    session.query(models.Pipeline).filter(models.Pipeline.type.is_(None)).update(
-        {models.Pipeline.type: "inference"}, synchronize_session="fetch"
-    )
+    session.query(models.Pipeline).filter(
+        models.Pipeline.type.is_(None)
+    ).update({models.Pipeline.type: "inference"}, synchronize_session="fetch")
     session.commit()
     session.close()
 

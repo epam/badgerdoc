@@ -21,7 +21,9 @@ async def search_datasets(
     session: sqlalchemy.orm.Session = fastapi.Depends(
         db.service.session_scope_for_dependency
     ),
-    x_current_tenant: Optional[str] = fastapi.Header(None, alias="X-Current-Tenant"),
+    x_current_tenant: Optional[str] = fastapi.Header(
+        None, alias="X-Current-Tenant"
+    ),
 ) -> filter_lib.Page[schemas.DatasetResponse]:
     """
     Allows getting datasets data with filters, sorts and pagination.
@@ -52,7 +54,9 @@ async def create_dataset(
     session: sqlalchemy.orm.Session = fastapi.Depends(
         db.service.session_scope_for_dependency
     ),
-    x_current_tenant: Optional[str] = fastapi.Header(None, alias="X-Current-Tenant"),
+    x_current_tenant: Optional[str] = fastapi.Header(
+        None, alias="X-Current-Tenant"
+    ),
 ) -> Dict[str, Any]:
     """
     Creates a new dataset object in database. If dataset with given name is already exists
@@ -95,7 +99,9 @@ async def delete_dataset(
     session: sqlalchemy.orm.Session = fastapi.Depends(
         db.service.session_scope_for_dependency
     ),
-    x_current_tenant: Optional[str] = fastapi.Header(None, alias="X-Current-Tenant"),
+    x_current_tenant: Optional[str] = fastapi.Header(
+        None, alias="X-Current-Tenant"
+    ),
 ) -> Dict[str, Any]:
     """
     Deletes a dataset with a given name from a database. If that dataset does not exist
@@ -131,7 +137,9 @@ async def get_files_by_dataset(
     session: sqlalchemy.orm.Session = fastapi.Depends(
         db.service.session_scope_for_dependency
     ),
-    x_current_tenant: Optional[str] = fastapi.Header(None, alias="X-Current-Tenant"),
+    x_current_tenant: Optional[str] = fastapi.Header(
+        None, alias="X-Current-Tenant"
+    ),
 ) -> filter_lib.Page[schemas.FileResponse]:
     """
     Takes a dataset name and returns all files metadata with this dataset.
@@ -177,7 +185,9 @@ def get_all_files_by_dataset_id(
     session: sqlalchemy.orm.Session = fastapi.Depends(
         db.service.session_scope_for_dependency
     ),
-    x_current_tenant: Optional[str] = fastapi.Header(None, alias="X-Current-Tenant"),
+    x_current_tenant: Optional[str] = fastapi.Header(
+        None, alias="X-Current-Tenant"
+    ),
 ) -> Optional[List[schemas.FileResponse]]:
     if not db.service.get_all_files_by_ds_id(session, dataset_id):
         raise fastapi.HTTPException(

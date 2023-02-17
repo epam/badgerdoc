@@ -30,7 +30,9 @@ FILES_SECOND_JOB = [
     File(file_id=3, tenant=TEST_TENANT, job_id=2, pages_number=5),
     File(file_id=4, tenant=TEST_TENANT, job_id=2, pages_number=5),
 ]
-FILES_THIRD_JOB = [File(file_id=5, tenant=TEST_TENANT, job_id=3, pages_number=5)]
+FILES_THIRD_JOB = [
+    File(file_id=5, tenant=TEST_TENANT, job_id=3, pages_number=5)
+]
 
 JOBS = [
     # files with ids [1, 2, 3, 6] belong to this job

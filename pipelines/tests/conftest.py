@@ -73,7 +73,9 @@ def testing_app(testing_engine, testing_session, setup_token):
     session = sessionmaker(bind=testing_engine)
     app.app.dependency_overrides[app.TOKEN] = lambda: setup_token
     with patch("pipelines.db.service.LocalSession", session):
-        app.app.dependency_overrides[service.get_session] = lambda: testing_session
+        app.app.dependency_overrides[
+            service.get_session
+        ] = lambda: testing_session
         client = TestClient(app.app)
         yield client
 
@@ -130,6 +132,8 @@ def mock_preprocessing_file_status():
 
 @pytest.fixture
 def adjust_mock():
-    with patch.object(execution.Pipeline, "check_valid_ids", return_value={"a": True}):
+    with patch.object(
+        execution.Pipeline, "check_valid_ids", return_value={"a": True}
+    ):
         with patch.object(execution.Pipeline, "adjust_pipeline") as mock:
             yield mock

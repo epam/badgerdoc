@@ -99,7 +99,9 @@ def get_latest_model(session: Session, model_id: str) -> Optional[Model]:
     )
 
 
-def get_second_latest_model(session: Session, model_id: str) -> Optional[Model]:
+def get_second_latest_model(
+    session: Session, model_id: str
+) -> Optional[Model]:
     """
     Find second model by desc version
     """

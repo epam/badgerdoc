@@ -57,7 +57,9 @@ def preprocessing_url(module_scoped_container_getter):
     request_session = requests.Session()
     retries = Retry(total=5, backoff_factor=1)
     request_session.mount("http://", HTTPAdapter(max_retries=retries))
-    service = module_scoped_container_getter.get("preprocessing").network_info[0]
+    service = module_scoped_container_getter.get("preprocessing").network_info[
+        0
+    ]
     api_url = f"http://{service.hostname}:{service.host_port}"
     return api_url
 
@@ -99,7 +101,9 @@ def file_id(minio_client):
     "Fails with ValueError: Unable to find `/processing/docker-compose.yml` for integration tests."
 )
 def test_minio_ok(minio_url, minio_client, file_id):
-    objs = minio_client.list_objects(BUCKET, f"files/{file_id}", recursive=True)
+    objs = minio_client.list_objects(
+        BUCKET, f"files/{file_id}", recursive=True
+    )
     file_names = [i.object_name for i in objs]
     assert set(file_names) == {
         "files/52/52.pdf",
@@ -159,7 +163,9 @@ def test_send_request_to_preprocessing(
 
     assert response.status_code == 202
     sleep(1)
-    objs = set(minio_client.list_objects(BUCKET, "files/1/ocr", recursive=True))
+    objs = set(
+        minio_client.list_objects(BUCKET, "files/1/ocr", recursive=True)
+    )
     assert set((i.object_name for i in objs)) == {
         "files/1/ocr/2.json",
         "files/1/ocr/1.json",

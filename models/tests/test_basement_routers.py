@@ -27,11 +27,13 @@ def test_create_basement(exist, create):
     create.return_value = {"msg": "expected"}
     token = Mock()
     token.user_id.return_value = "token"
-    assert basements_routers.create_new_basement(data, "session", token, "tenant") == {
-        "msg": "expected"
-    }
+    assert basements_routers.create_new_basement(
+        data, "session", token, "tenant"
+    ) == {"msg": "expected"}
     exist.assert_called_once_with("session", Basement, "id")
-    create.assert_called_once_with("session", Basement, data, token.user_id, "tenant")
+    create.assert_called_once_with(
+        "session", Basement, data, token.user_id, "tenant"
+    )
 
 
 @patch.object(basements_routers.crud, "create_instance")
@@ -82,7 +84,9 @@ def test_get_basement_by_id_withot_basement(get):
 @patch.object(basements_routers.crud, "delete_instance")
 @patch.object(basements_routers.crud, "get_instance")
 def test_delete_basement_by_id(delete, get, client, monkeypatch):
-    monkeypatch.setattr("models.routers.basements_routers.get_minio_resource", Mock())
+    monkeypatch.setattr(
+        "models.routers.basements_routers.get_minio_resource", Mock()
+    )
     data = {"id": "id"}
     get.return_value = "expected"
     response = client.delete("/basements/delete", data=json.dumps(data))
@@ -93,7 +97,9 @@ def test_delete_basement_by_id(delete, get, client, monkeypatch):
 @patch.object(basements_routers.crud, "delete_instance")
 @patch.object(basements_routers.crud, "get_instance")
 def test_delete_basement_by_id_calls_crud(delete, get, monkeypatch):
-    monkeypatch.setattr("models.routers.basements_routers.get_minio_resource", Mock())
+    monkeypatch.setattr(
+        "models.routers.basements_routers.get_minio_resource", Mock()
+    )
     data = basements_routers.schemas.BasementDelete(id="id")
     get.return_value = "expected"
     basements_routers.delete_basement_by_id(data, "session")

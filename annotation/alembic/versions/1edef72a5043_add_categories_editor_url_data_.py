@@ -18,10 +18,14 @@ depends_on = None
 
 
 def upgrade():
-    op.add_column("categories", sa.Column("editor_url", sa.VARCHAR(), nullable=True))
+    op.add_column(
+        "categories", sa.Column("editor_url", sa.VARCHAR(), nullable=True)
+    )
     op.add_column(
         "categories",
-        sa.Column("data_attributes", postgresql.ARRAY(sa.VARCHAR()), nullable=True),
+        sa.Column(
+            "data_attributes", postgresql.ARRAY(sa.VARCHAR()), nullable=True
+        ),
     )
 
 

@@ -18,7 +18,9 @@ router = fastapi.APIRouter(prefix="/s3_upload", tags=["s_3"])
 async def download_s3_files(
     s3_data: schemas.S3Data,
     storage_url: Optional[str] = None,
-    x_current_tenant: Optional[str] = fastapi.Header(None, alias="X-Current-Tenant"),
+    x_current_tenant: Optional[str] = fastapi.Header(
+        None, alias="X-Current-Tenant"
+    ),
     session: sqlalchemy.orm.Session = fastapi.Depends(
         db.service.session_scope_for_dependency
     ),
@@ -68,5 +70,6 @@ async def download_s3_files(
     )
 
     return [
-        schemas.ActionResponse.parse_obj(response) for response in upload_results
+        schemas.ActionResponse.parse_obj(response)
+        for response in upload_results
     ]  # noqa

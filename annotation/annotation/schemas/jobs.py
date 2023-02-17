@@ -65,7 +65,9 @@ class JobInfoSchema(BaseModel):
     is_auto_distribution: bool = Field(default=False, example=False)
     categories: Set[str] = Field(..., example={"1", "2"})
     deadline: Optional[datetime] = Field(None, example="2021-10-19 01:01:01")
-    job_type: JobTypeEnumSchema = Field(..., example=JobTypeEnumSchema.ExtractionJob)
+    job_type: JobTypeEnumSchema = Field(
+        ..., example=JobTypeEnumSchema.ExtractionJob
+    )
     extensive_coverage: int = Field(
         1,
         example=1,
@@ -78,9 +80,12 @@ class JobInfoSchema(BaseModel):
         """
         files, datasets = values.get("files"), values.get("datasets")
         job_type = values.get("job_type")
-        if (not files and not datasets) and job_type != JobTypeEnumSchema.ImportJob:
+        if (
+            not files and not datasets
+        ) and job_type != JobTypeEnumSchema.ImportJob:
             raise ValueError(
-                "Fields files and datasets should " "not be empty at the same time."
+                "Fields files and datasets should "
+                "not be empty at the same time."
             )
         return values
 
@@ -158,7 +163,9 @@ class JobInfoSchema(BaseModel):
         job_type = values.get("job_type")
         categories = values.get("categories")
         if job_type != JobTypeEnumSchema.ImportJob and not categories:
-            raise ValueError("There should be not less than one category provided")
+            raise ValueError(
+                "There should be not less than one category provided"
+            )
         return values
 
 
@@ -196,7 +203,9 @@ class FileStatusEnumSchema(str, Enum):
 
 class FileInfoSchema(BaseModel):
     id: int = Field(..., example=1)
-    status: FileStatusEnumSchema = Field(..., example=FileStatusEnumSchema.pending)
+    status: FileStatusEnumSchema = Field(
+        ..., example=FileStatusEnumSchema.pending
+    )
 
 
 class JobFilesInfoSchema(BaseModel):

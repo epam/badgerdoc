@@ -184,7 +184,9 @@ def test_create_filter_ltree_not_supported_operation(get_session):
     # Act
     query = _create_filter(query, spec)
 
-    expected_sql_str = "SELECT categories.id, categories.tree \nFROM categories"
+    expected_sql_str = (
+        "SELECT categories.id, categories.tree \nFROM categories"
+    )
 
     compiled_statement = query.statement.compile()
 
@@ -342,7 +344,9 @@ def test_form_query_with_distincts_and_filters_and_sorting(get_session):
                 "value": "%or%",
             },
         ],
-        "sorting": [{"model": "User", "field": user_enum.NAME, "direction": "desc"}],
+        "sorting": [
+            {"model": "User", "field": user_enum.NAME, "direction": "desc"}
+        ],
     }
     query, pag = form_query(specs, query)
     assert query.all() == [("Grigoriy",), ("Fedor",)]

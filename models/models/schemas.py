@@ -106,7 +106,9 @@ class Model(ModelWithId):
         "it has been deployed already",
         example="ready",
     )
-    created_by: str = Field(description="Author who has created model", example="901")
+    created_by: str = Field(
+        description="Author who has created model", example="901"
+    )
     created_at: datetime = Field(example="2021-11-09T17:09:43.101004")
     tenant: str = Field(description="Author's tenant", example="tenant1")
     latest: bool = Field(
@@ -130,7 +132,9 @@ class BasementBase(BaseModel):
         description="Unique name of docker image to build and run",
         example="custom:v1.1",
     )
-    name: str = Field(title="Human readable name", example="some describing name")
+    name: str = Field(
+        title="Human readable name", example="some describing name"
+    )
     supported_args: Optional[List[Dict[str, Any]]] = Field(
         example=[
             {
@@ -229,7 +233,9 @@ class HeaderResponse(BaseModel):
 
 class DeployedModelMainData(BaseModel):
     datetime_creation: str = Field(example="2021-11-09T17:09:43.101004")
-    status: str = Field(description="Model status, it's running or not", example=True)
+    status: str = Field(
+        description="Model status, it's running or not", example=True
+    )
     name: str = Field(description="Name of the model", example="my_model")
     url: str = Field(description="Model url with details information")
 
@@ -329,8 +335,12 @@ class ConvertRequestSchema(BaseModel):
 
 class TrainingCredentials(BaseModel):
     user: str = Field(..., description="Colab username", example="root")
-    password: str = Field(..., description="Colab user password", example="SECRET")
+    password: str = Field(
+        ..., description="Colab user password", example="SECRET"
+    )
     host: str = Field(
         ..., description="Ngrok host to connect colab", example="tcp.ngrok.io"
     )
-    port: int = Field(..., description="Ngrok port to connect colab", example="12345")
+    port: int = Field(
+        ..., description="Ngrok port to connect colab", example="12345"
+    )

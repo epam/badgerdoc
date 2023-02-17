@@ -38,7 +38,8 @@ class RunnerRegistry(type):
                 service.__name__ = runner.PACKAGE_NAME
                 runners.append(service)
         done, pending = await asyncio.wait(
-            [service for service in runners], return_when=asyncio.FIRST_COMPLETED
+            [service for service in runners],
+            return_when=asyncio.FIRST_COMPLETED,
         )
         for task in pending:
             task.cancel()

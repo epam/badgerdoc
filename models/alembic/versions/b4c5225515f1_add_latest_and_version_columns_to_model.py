@@ -19,7 +19,9 @@ depends_on = None
 def upgrade():
     op.add_column(
         "model",
-        sa.Column("latest", sa.Boolean(), nullable=False, server_default="True"),
+        sa.Column(
+            "latest", sa.Boolean(), nullable=False, server_default="True"
+        ),
     )
     op.alter_column("model", "latest", server_default=None)
 

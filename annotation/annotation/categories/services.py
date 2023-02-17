@@ -1,6 +1,14 @@
 import uuid
 from typing import Dict, List, Optional, Set, Tuple, Union
 
+from cachetools import TTLCache, cached, keys
+from filter_lib import Page, form_query, map_request_to_filter, paginate
+from sqlalchemy import and_, null, or_
+from sqlalchemy.event import listens_for
+from sqlalchemy.orm import Session
+from sqlalchemy.sql.expression import func
+from sqlalchemy_utils import Ltree
+
 from annotation import logger as app_logger
 from annotation.errors import (
     CheckFieldError,
@@ -15,13 +23,6 @@ from annotation.schemas import (
     CategoryORMSchema,
     CategoryResponseSchema,
 )
-from cachetools import TTLCache, cached, keys
-from filter_lib import Page, form_query, map_request_to_filter, paginate
-from sqlalchemy import and_, null, or_
-from sqlalchemy.event import listens_for
-from sqlalchemy.orm import Session
-from sqlalchemy.sql.expression import func
-from sqlalchemy_utils import Ltree
 
 cache = TTLCache(maxsize=128, ttl=300)
 
@@ -113,7 +114,9 @@ def response_object_from_db(category_db: Category) -> CategoryResponseSchema:
     return CategoryResponseSchema.parse_obj(category_orm)
 
 
-def fetch_category_parents(db: Session, category_input: Category) -> List[Category]:
+def fetch_category_parents(
+    db: Session, category_input: Category
+) -> List[Category]:
     return (
         db.query(Category)
         .filter(Category.tree.ancestor_of(category_input.tree))
@@ -122,7 +125,9 @@ def fetch_category_parents(db: Session, category_input: Category) -> List[Catego
     )  # remove self item from result
 
 
-def fetch_category_children(db: Session, category_input: Category) -> List[Category]:
+def fetch_category_children(
+    db: Session, category_input: Category
+) -> List[Category]:
     return (
         db.query(Category)
         .filter(Category.tree.descendant_of(category_input.tree))
@@ -147,7 +152,9 @@ def check_unique_category_field(
 def fetch_category_db(db: Session, category_id: str, tenant: str) -> Category:
     category = db.query(Category).get(category_id)
     if not category or category.tenant and category.tenant != tenant:
-        raise NoSuchCategoryError(f"Category with id: {category_id} doesn't exist")
+        raise NoSuchCategoryError(
+            f"Category with id: {category_id} doesn't exist"
+        )
     return category
 
 
@@ -190,7 +197,9 @@ def recursive_subcategory_search(
     if child_ids:
         child_categories.update(child_ids)
         for child_id in child_ids:
-            recursive_subcategory_search(db, child_id, root_id, child_categories)
+            recursive_subcategory_search(
+                db, child_id, root_id, child_categories
+            )
     return child_categories
 
 
@@ -260,7 +269,9 @@ def _get_leaves(
     return leaves
 
 
-def _extract_category(path: str, categories: Dict[str, Category]) -> List[Category]:
+def _extract_category(
+    path: str, categories: Dict[str, Category]
+) -> List[Category]:
     return [categories[node] for node in path.split(".")[0:-1]]
 
 
@@ -281,7 +292,8 @@ def _get_parents(
             uniq_cats = uniq_cats.union({tree.path for tree in cat.tree})
 
     category_to_object = {
-        cat.id: cat for cat in fetch_bunch_categories_db(db, uniq_cats, tenant, job_id)
+        cat.id: cat
+        for cat in fetch_bunch_categories_db(db, uniq_cats, tenant, job_id)
     }
 
     for path in uniq_pathes:
@@ -309,7 +321,9 @@ def _compose_response(
             {
                 **CategoryORMSchema.from_orm(cat).dict(),
                 "is_leaf": leaves.get(cat.id, False),
-                "parents": converted_parents.get(cat.tree.path, []) if cat.tree else [],
+                "parents": converted_parents.get(cat.tree.path, [])
+                if cat.tree
+                else [],
             }
         )
         for cat in categories
@@ -343,7 +357,9 @@ def filter_category_db(
     tenant: str,
     job_id: Optional[int] = None,
 ) -> Page[Union[CategoryResponseSchema, str, dict]]:
-    child_categories, pagination = _get_child_categories(db, request, tenant, job_id)
+    child_categories, pagination = _get_child_categories(
+        db, request, tenant, job_id
+    )
 
     if request.filters and "distinct" in [
         item.operator.value for item in request.filters
@@ -391,7 +407,9 @@ def update_category_db(
     )
     ex_parent_id = category.parent
     new_parent_id = update_query["parent"]
-    parent_db = db.query(Category).get(new_parent_id) if new_parent_id else None
+    parent_db = (
+        db.query(Category).get(new_parent_id) if new_parent_id else None
+    )
 
     if parent_db and parent_db.tenant not in [tenant, None]:
         raise ForeignKeyError("Category with this id doesn't exist.")

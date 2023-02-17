@@ -24,10 +24,18 @@ class PDFRenderer:
         self.font_name = font_name
         self.font_size = font_size
 
-    def render_tokens(self, tokens: List[BadgerdocToken], save_path: Path) -> None:
+    def render_tokens(
+        self, tokens: List[BadgerdocToken], save_path: Path
+    ) -> None:
         with fitz.open() as doc:
-            width = max(token.bbox[2] for token in tokens) + self.page_border_offset
-            height = max(token.bbox[3] for token in tokens) + self.page_border_offset
+            width = (
+                max(token.bbox[2] for token in tokens)
+                + self.page_border_offset
+            )
+            height = (
+                max(token.bbox[3] for token in tokens)
+                + self.page_border_offset
+            )
 
             page = doc.new_page(height=height, width=width)
             for token in tokens:

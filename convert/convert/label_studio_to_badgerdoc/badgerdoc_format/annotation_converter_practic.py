@@ -47,7 +47,9 @@ class AnnotationConverterPractic:
                 text=text,
                 data=bd_annotation_model_practic.AnnotationTokens(
                     tokens=tokens,
-                    dataAttributes=obj_theoretic.data.get("dataAttributes", []),
+                    dataAttributes=obj_theoretic.data.get(
+                        "dataAttributes", []
+                    ),
                 ),
                 links=links,
             )
@@ -76,7 +78,9 @@ class AnnotationConverterPractic:
     ) -> List[bd_annotation_model_practic.AnnotationLink]:
         links = []
         for link_theoretic in theoretic_links:
-            link = bd_annotation_model_practic.AnnotationLink(**link_theoretic.dict())
+            link = bd_annotation_model_practic.AnnotationLink(
+                **link_theoretic.dict()
+            )
             links.append(link)
         return links
 

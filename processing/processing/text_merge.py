@@ -174,7 +174,9 @@ def merge_words_to_paragraph(request_data: AnnotationData) -> AnnotationData:
         matched_pages: List[MatchedPage] = []
         for page in request_data.input.pages:
             preprocessed_page = convert_points_to_pixels(
-                page=json.loads((ocr_path / f"{page.page_num}.json").read_text()),
+                page=json.loads(
+                    (ocr_path / f"{page.page_num}.json").read_text()
+                ),
                 new_width=page.size.width,
                 new_height=page.size.height,
             )

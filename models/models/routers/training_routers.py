@@ -238,7 +238,9 @@ def delete_training_by_id(
             bucket_name,
         )
         raise HTTPException(status_code=500, detail=str(err))
-    s3_resource.meta.client.delete_object(Bucket=bucket_name, Key=training.key_archive)
+    s3_resource.meta.client.delete_object(
+        Bucket=bucket_name, Key=training.key_archive
+    )
     crud.delete_instance(session, training)
     LOGGER.info("Training %d was deleted", request.id)
     return {"msg": "Training was deleted"}
@@ -272,7 +274,9 @@ def prepare_annotation_dataset(
     if not training:
         LOGGER.info("Prepare dataset get not existing id %s", training_id)
         raise HTTPException(status_code=404, detail="Not existing training")
-    minio_path = prepare_dataset_info(convert_request, x_current_tenant, token.token)
+    minio_path = prepare_dataset_info(
+        convert_request, x_current_tenant, token.token
+    )
     training.key_annotation_dataset = minio_path
     session.commit()
     LOGGER.info("Dataset creation for training %s is started", training_id)
@@ -339,7 +343,9 @@ def start_training(
     with connect_colab(credentials) as ssh_client:
         bucket = convert_bucket_name_if_s3prefix(x_current_tenant)
         file_script, size_script = get_minio_object(bucket, key_script)
-        upload_file_to_colab(ssh_client, file_script, size_script, TRAINING_SCRIPT_NAME)
+        upload_file_to_colab(
+            ssh_client, file_script, size_script, TRAINING_SCRIPT_NAME
+        )
         file_dataset, size_dataset = get_minio_object(bucket, key_dataset)
         upload_file_to_colab(
             ssh_client, file_dataset, size_dataset, ANNOTATION_DATASET_NAME
@@ -388,7 +394,9 @@ def download_training_results(
     bucket_name = convert_bucket_name_if_s3prefix(x_current_tenant)
     training_exists = crud.is_id_existing(session, Training, training_id)
     if not training_exists:
-        LOGGER.info("Download_training_results get not existing id %s", training_id)
+        LOGGER.info(
+            "Download_training_results get not existing id %s", training_id
+        )
         raise HTTPException(status_code=404, detail="Not existing training")
     home_directory = pathlib.Path.home()
     check_aws_credentials_file(home_directory)

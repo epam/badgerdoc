@@ -41,7 +41,9 @@ def test_change_extraction_job_to_extraction_with_annotation_job_and_run_it(
         job_id = int(response1.json()["id"])
 
         # --------- Changing Job Status to Finished - imitates callback from Pipeline Manager -------- #
-        response2 = testing_app.put(f"/jobs/{job_id}", json={"status": "Finished"})
+        response2 = testing_app.put(
+            f"/jobs/{job_id}", json={"status": "Finished"}
+        )
         assert response2.status_code == 200
         assert response2.json()["status"] == schemas.Status.finished
 
@@ -61,8 +63,13 @@ def test_change_extraction_job_to_extraction_with_annotation_job_and_run_it(
             },
         )
         assert response3.status_code == 200
-        assert response3.json()["type"] == schemas.JobType.ExtractionWithAnnotationJob
-        assert response3.json()["status"] == schemas.Status.ready_for_annotation
+        assert (
+            response3.json()["type"]
+            == schemas.JobType.ExtractionWithAnnotationJob
+        )
+        assert (
+            response3.json()["status"] == schemas.Status.ready_for_annotation
+        )
         assert response3.json()["mode"] == schemas.JobMode.Manual
 
         # ---------- Running ExtractionWithAnnotationJob - only manual part ------ #
@@ -123,9 +130,13 @@ def test_create_extraction_with_annotation_job_and_run_it(
 
         test_job_id = int(response.json()["id"])
         # --------- Changing Job Status to Finished - imitates callback from Pipeline Manager -------- #
-        response2 = testing_app.put(f"/jobs/{test_job_id}", json={"status": "Finished"})
+        response2 = testing_app.put(
+            f"/jobs/{test_job_id}", json={"status": "Finished"}
+        )
         assert response2.status_code == 200
-        assert response2.json()["status"] == schemas.Status.ready_for_annotation
+        assert (
+            response2.json()["status"] == schemas.Status.ready_for_annotation
+        )
         assert response2.json()["mode"] == schemas.JobMode.Manual
 
         # --------- Changing Job Status to In Progress - imitates callback from Annotation Manager -------- #
@@ -139,7 +150,9 @@ def test_create_extraction_with_annotation_job_and_run_it(
         # Then Manual Part executes from Annotation Microservice
 
         # --------- Changing Job Status to Finished - imitates callback from Annotation Manager -------- #
-        response5 = testing_app.put(f"/jobs/{test_job_id}", json={"status": "Finished"})
+        response5 = testing_app.put(
+            f"/jobs/{test_job_id}", json={"status": "Finished"}
+        )
         assert response5.status_code == 200
         assert response5.json()["status"] == schemas.Status.finished
 
@@ -192,7 +205,11 @@ def test_create_extraction_with_annotation_job_and_autostart_false(
 
         test_job_id = int(response.json()["id"])
         # --------- Changing Job Status to Finished - imitates callback from Pipeline Manager -------- #
-        response2 = testing_app.put(f"/jobs/{test_job_id}", json={"status": "Finished"})
+        response2 = testing_app.put(
+            f"/jobs/{test_job_id}", json={"status": "Finished"}
+        )
         assert response2.status_code == 200
-        assert response2.json()["status"] == schemas.Status.ready_for_annotation
+        assert (
+            response2.json()["status"] == schemas.Status.ready_for_annotation
+        )
         assert response2.json()["mode"] == schemas.JobMode.Manual

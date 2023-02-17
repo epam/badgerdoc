@@ -203,7 +203,9 @@ async def get_task_by_id(
     task_id: int, session: Session = Depends(service.get_session)
 ) -> Any:
     """Get task by its id."""
-    res = service.get_table_instance_by_id(session, dbm.PipelineExecutionTask, task_id)
+    res = service.get_table_instance_by_id(
+        session, dbm.PipelineExecutionTask, task_id
+    )
     if res:
         return res.as_dict()
     raise HTTPException(status_code=404, detail=NO_TASK)
@@ -294,7 +296,9 @@ async def delete_task(
     task_id: int, session: Session = Depends(service.get_session)
 ) -> Dict[str, str]:
     """Delete task from db by its id."""
-    res = service.get_table_instance_by_id(session, dbm.PipelineExecutionTask, task_id)
+    res = service.get_table_instance_by_id(
+        session, dbm.PipelineExecutionTask, task_id
+    )
     if res is None:
         raise HTTPException(status_code=404, detail=NO_TASK)
     service.delete_instances(session, [res])
@@ -312,7 +316,9 @@ async def get_task_steps_by_id(
     task_id: int, session: Session = Depends(service.get_session)
 ) -> List[Dict[str, str]]:
     """Get task steps by task id."""
-    res = service.get_table_instance_by_id(session, dbm.PipelineExecutionTask, task_id)
+    res = service.get_table_instance_by_id(
+        session, dbm.PipelineExecutionTask, task_id
+    )
     if res is None:
         raise HTTPException(status_code=404, detail=NO_TASK)
     return [step.as_dict() for step in res.steps]

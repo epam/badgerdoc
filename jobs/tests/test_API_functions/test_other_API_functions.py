@@ -7,7 +7,9 @@ from tests.test_db import (
 )
 
 
-def test_get_all_jobs_endpoint(testing_app, testing_session, mock_AnnotationJobParams):
+def test_get_all_jobs_endpoint(
+    testing_app, testing_session, mock_AnnotationJobParams
+):
     create_mock_extraction_job_in_db(testing_session)
     create_mock_annotation_job_in_db(testing_session, mock_AnnotationJobParams)
 
@@ -18,7 +20,9 @@ def test_get_all_jobs_endpoint(testing_app, testing_session, mock_AnnotationJobP
     assert response.json()[1]["name"] == "MockAnnotationJob"
 
 
-def test_get_job_by_id_positive(testing_app, testing_session, mock_AnnotationJobParams):
+def test_get_job_by_id_positive(
+    testing_app, testing_session, mock_AnnotationJobParams
+):
     create_mock_extraction_job_in_db(testing_session)
     create_mock_annotation_job_in_db(testing_session, mock_AnnotationJobParams)
     response = testing_app.get("/jobs/2")
@@ -26,7 +30,9 @@ def test_get_job_by_id_positive(testing_app, testing_session, mock_AnnotationJob
     assert response.json()["name"] == "MockAnnotationJob"
 
 
-def test_get_job_by_id_negative(testing_app, testing_session, mock_AnnotationJobParams):
+def test_get_job_by_id_negative(
+    testing_app, testing_session, mock_AnnotationJobParams
+):
     create_mock_extraction_job_in_db(
         testing_session,
     )
@@ -36,11 +42,15 @@ def test_get_job_by_id_negative(testing_app, testing_session, mock_AnnotationJob
     assert response.json()["detail"] == "Job with this id does not exist."
 
 
-def test_delete_job_positive(testing_app, testing_session, mock_AnnotationJobParams):
+def test_delete_job_positive(
+    testing_app, testing_session, mock_AnnotationJobParams
+):
     with patch("jobs.utils.fetch", return_value=asyncio.Future()) as mock:
         mock.side_effect = [(200, {})]
         create_mock_extraction_job_in_db(testing_session)
-        create_mock_annotation_job_in_db(testing_session, mock_AnnotationJobParams)
+        create_mock_annotation_job_in_db(
+            testing_session, mock_AnnotationJobParams
+        )
         response = testing_app.delete(
             "/jobs/2",
         )

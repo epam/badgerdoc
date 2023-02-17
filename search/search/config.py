@@ -68,7 +68,9 @@ class Settings(BaseSettings):
 
     @property
     def jobs_search_url(self) -> str:
-        return "/".join((self.jobs_url.rstrip("/"), self.jobs_search.lstrip("/")))
+        return "/".join(
+            (self.jobs_url.rstrip("/"), self.jobs_search.lstrip("/"))
+        )
 
     class Config:
         env_file: str = find_dotenv(".env")

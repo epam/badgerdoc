@@ -18,7 +18,9 @@ def test_search_class_creating():
     ]
 
     AddressFilter = create_filter_model(Address, exclude=["location"])
-    assert AddressFilter.schema()["definitions"]["addresses_Address"]["enum"] == [
+    assert AddressFilter.schema()["definitions"]["addresses_Address"][
+        "enum"
+    ] == [
         "id",
         "owner",
         "user.id",

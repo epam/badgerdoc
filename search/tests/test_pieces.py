@@ -83,7 +83,9 @@ def test_filter_eq():
 def test_filter_not_in():
     fil = pieces.PieceFilter.validate(TestData.filter_2)
     assert not fil.is_include
-    assert fil.get_filter_template() == {"terms": {"category": ["Header", "Table"]}}
+    assert fil.get_filter_template() == {
+        "terms": {"category": ["Header", "Table"]}
+    }
 
 
 @pytest.mark.unittest
@@ -116,8 +118,16 @@ def test_request_1():
         "from": 0,
         "size": 50,
         "sort": [
-            {pieces.PIECES_ENUM.CATEGORY: {"order": pieces.PieceSortDirections.ASC}},
-            {pieces.PIECES_ENUM.JOB_ID: {"order": pieces.PieceSortDirections.DESC}},
+            {
+                pieces.PIECES_ENUM.CATEGORY: {
+                    "order": pieces.PieceSortDirections.ASC
+                }
+            },
+            {
+                pieces.PIECES_ENUM.JOB_ID: {
+                    "order": pieces.PieceSortDirections.DESC
+                }
+            },
         ],
     }
 
@@ -149,15 +159,27 @@ def test_request_2():
                     },
                 ],
                 "must_not": [
-                    {"terms": {pieces.PIECES_ENUM.PAGE_NUMBER: [10000, 1000000]}}
+                    {
+                        "terms": {
+                            pieces.PIECES_ENUM.PAGE_NUMBER: [10000, 1000000]
+                        }
+                    }
                 ],
             }
         },
         "from": 0,
         "size": 50,
         "sort": [
-            {pieces.PIECES_ENUM.CATEGORY: {"order": pieces.PieceSortDirections.ASC}},
-            {pieces.PIECES_ENUM.JOB_ID: {"order": pieces.PieceSortDirections.DESC}},
+            {
+                pieces.PIECES_ENUM.CATEGORY: {
+                    "order": pieces.PieceSortDirections.ASC
+                }
+            },
+            {
+                pieces.PIECES_ENUM.JOB_ID: {
+                    "order": pieces.PieceSortDirections.DESC
+                }
+            },
         ],
     }
 
@@ -166,7 +188,9 @@ def test_request_2():
 @pytest.mark.unittest
 async def test_adjust_categories():
     filter_ = pieces.PieceFilter.validate(TestData.filter_1)
-    with patch("search.es.add_child_categories", return_value=["Table", "Cell"]):
+    with patch(
+        "search.es.add_child_categories", return_value=["Table", "Cell"]
+    ):
         await filter_.adjust_for_child_categories("foo", "bar")
         assert sorted(filter_.value) == sorted(["Header", "Table", "Cell"])
 
@@ -174,7 +198,9 @@ async def test_adjust_categories():
 @pytest.mark.unittest
 def test_parse_es_response():
     pag = pieces.PiecePagination(page_num=1, page_size=10)
-    resp = pieces.SearchResultSchema2.parse_es_response(TestData.es_response, pag)
+    resp = pieces.SearchResultSchema2.parse_es_response(
+        TestData.es_response, pag
+    )
     assert resp.dict() == {
         "pagination": {"page_num": 1, "page_size": 10, "total": 1, "pages": 1},
         "data": [

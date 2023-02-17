@@ -40,7 +40,9 @@ class BorderBox:
             bottom_right_y=max(self.bottom_right_y, bb.bottom_right_y),
         )
 
-    def box_is_inside_another(self, bb2: BorderBox, threshold: float = 0.9) -> bool:
+    def box_is_inside_another(
+        self, bb2: BorderBox, threshold: float = 0.9
+    ) -> bool:
         (
             intersection_area,
             bb1_area,
@@ -48,9 +50,13 @@ class BorderBox:
         ) = self.get_boxes_intersection_area(other_box=bb2)
         if intersection_area == 0:
             return False
-        return any((intersection_area / bb) > threshold for bb in (bb1_area, bb2_area))
+        return any(
+            (intersection_area / bb) > threshold for bb in (bb1_area, bb2_area)
+        )
 
-    def box_is_inside_box(self, bb2: BorderBox, threshold: float = 0.95) -> bool:
+    def box_is_inside_box(
+        self, bb2: BorderBox, threshold: float = 0.95
+    ) -> bool:
         (
             intersection_area,
             bb1_area,

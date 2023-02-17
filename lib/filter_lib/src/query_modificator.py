@@ -38,7 +38,9 @@ def get_distinct_columns(
     return result
 
 
-def form_query(args: Dict[str, Any], query: Query) -> Tuple[Query, PaginationParams]:
+def form_query(
+    args: Dict[str, Any], query: Query
+) -> Tuple[Query, PaginationParams]:
     filters = args.get("filters")
     sorting = args.get("sorting")
     pagination = args.get("pagination")
@@ -48,10 +50,14 @@ def form_query(args: Dict[str, Any], query: Query) -> Tuple[Query, PaginationPar
         filters with 'distinct' operator and others.
         It's being done because DISTINCT statements should only be applied
         to query all at once, rather than one by one"""
-        distinct_filters, non_distinct_filters = splint_to_distinct_and_not(filters)
+        distinct_filters, non_distinct_filters = splint_to_distinct_and_not(
+            filters
+        )
         if distinct_filters:
             distinct_columns = get_distinct_columns(query, distinct_filters)
-            query = query.with_entities(*distinct_columns).distinct(*distinct_columns)
+            query = query.with_entities(*distinct_columns).distinct(
+                *distinct_columns
+            )
 
         for fil in non_distinct_filters:
             query = _create_filter(query, fil)
@@ -123,7 +129,9 @@ def validate_filter_args(
             f"Field value should not be null for operator {operator.value}."
         )
     if _has_relation(model, field) and _op_is_match(fil):
-        raise BadFilterFormat("Operator 'match' shouldn't be used with relations")
+        raise BadFilterFormat(
+            "Operator 'match' shouldn't be used with relations"
+        )
 
 
 def _create_filter(query: Query, fil: Dict[str, Any]) -> Query:
@@ -217,13 +225,17 @@ def _make_ltree_query(
     :param value: Id of record
     :return: Query instance
     """
-    subquery = query.with_entities(model.tree).filter(model.id == value).subquery()
+    subquery = (
+        query.with_entities(model.tree).filter(model.id == value).subquery()
+    )
 
     if op == "parent":
         return (
             query.filter(
                 (
-                    func.subpath(model.tree, 0, func.nlevel(subquery.c.tree) - 1)
+                    func.subpath(
+                        model.tree, 0, func.nlevel(subquery.c.tree) - 1
+                    )
                     == model.tree
                 ),
                 func.index(subquery.c.tree, model.tree) != -1,
@@ -250,7 +262,9 @@ def _make_ltree_query(
     return query
 
 
-def _create_or_condition(fil: Dict[str, str]) -> Dict[str, List[Dict[str, str]]]:
+def _create_or_condition(
+    fil: Dict[str, str]
+) -> Dict[str, List[Dict[str, str]]]:
     fil_include_null = fil.copy()
     fil_include_null["op"] = "is_null"
     filter_args = {"or": [{**fil}, {**fil_include_null}]}

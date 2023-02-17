@@ -25,7 +25,9 @@ def upgrade() -> None:
         sa.Column("last_heartbeat", sa.DateTime(), nullable=False),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.add_column("units", sa.Column("runner_id", postgresql.UUID(), nullable=True))
+    op.add_column(
+        "units", sa.Column("runner_id", postgresql.UUID(), nullable=True)
+    )
     # ### end Alembic commands ###
 
 

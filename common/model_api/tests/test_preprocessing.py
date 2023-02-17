@@ -40,9 +40,15 @@ def test_calculate_dpi():
 
 
 def test_preprocessing(tmpdir, monkeypatch):
-    obj1 = GeometryObject(category="1", bbox=(300, 300, 800, 800), id="object_id")
-    obj2 = GeometryObject(category="100500", bbox=(0, 0, 0, 0), id="does not matter")
-    page_dod = PageDOD(page_num=1, size=Size(width=595, height=841), objs=[obj1, obj2])
+    obj1 = GeometryObject(
+        category="1", bbox=(300, 300, 800, 800), id="object_id"
+    )
+    obj2 = GeometryObject(
+        category="100500", bbox=(0, 0, 0, 0), id="does not matter"
+    )
+    page_dod = PageDOD(
+        page_num=1, size=Size(width=595, height=841), objs=[obj1, obj2]
+    )
 
     page_mock = MagicMock()
     image_mock = MagicMock()

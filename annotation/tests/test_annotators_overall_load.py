@@ -96,7 +96,9 @@ OVERALL_LOAD_JOBS = [
         annotators=[user for user in OVERALL_LOAD_USERS[:3]],
         validation_type=ValidationSchema.cross,
         is_auto_distribution=False,
-        categories=[Category(id="123", name="Title", type=CategoryTypeSchema.box)],
+        categories=[
+            Category(id="123", name="Title", type=CategoryTypeSchema.box)
+        ],
         deadline="2021-10-19T01:01:01",
         tenant=TEST_TENANT,
     ),
@@ -109,7 +111,9 @@ OVERALL_LOAD_JOBS = [
         validation_type=ValidationSchema.hierarchical,
         files=[TASK_FILES_OVERALL_LOAD[0]],
         is_auto_distribution=False,
-        categories=[Category(id="125", name="Paragraph", type=CategoryTypeSchema.box)],
+        categories=[
+            Category(id="125", name="Paragraph", type=CategoryTypeSchema.box)
+        ],
         deadline="2021-10-19T01:01:01",
         tenant=TEST_TENANT,
     ),
@@ -121,7 +125,9 @@ OVERALL_LOAD_JOBS = [
         validation_type=ValidationSchema.cross,
         files=[TASK_FILES_OVERALL_LOAD[2]],
         is_auto_distribution=False,
-        categories=[Category(id="126", name="Abstract", type=CategoryTypeSchema.box)],
+        categories=[
+            Category(id="126", name="Abstract", type=CategoryTypeSchema.box)
+        ],
         deadline="2021-10-19T01:01:01",
         tenant=TEST_TENANT,
     ),  # job for task distribution for particular job
@@ -133,7 +139,9 @@ OVERALL_LOAD_JOBS = [
         validation_type=ValidationSchema.hierarchical,
         files=[TASK_FILES_OVERALL_LOAD[5]],
         is_auto_distribution=False,
-        categories=[Category(id="127", name="Abstract", type=CategoryTypeSchema.box)],
+        categories=[
+            Category(id="127", name="Abstract", type=CategoryTypeSchema.box)
+        ],
         deadline="2021-10-19T01:01:01",
         tenant=TEST_TENANT,
     ),
@@ -145,7 +153,9 @@ OVERALL_LOAD_JOBS = [
         owners=[OVERALL_LOAD_USERS[14]],
         validation_type=ValidationSchema.hierarchical,
         is_auto_distribution=True,
-        categories=[Category(id="128", name="Abstract", type=CategoryTypeSchema.box)],
+        categories=[
+            Category(id="128", name="Abstract", type=CategoryTypeSchema.box)
+        ],
         deadline="2022-10-19T01:01:01",
         tenant=TEST_TENANT,
         status=JobStatusEnumSchema.in_progress,
@@ -364,7 +374,9 @@ def test_overall_load_after_update_task(
     )
     assert response.status_code == 200
 
-    for user_id, expected_overall_load in zip(users_id, expected_overall_loads):
+    for user_id, expected_overall_load in zip(
+        users_id, expected_overall_loads
+    ):
         user = prepare_db_for_overall_load.query(User).get(user_id)
         assert user.overall_load == expected_overall_load
 
@@ -395,9 +407,13 @@ def test_overall_load_after_delete_batch_tasks(prepare_db_for_overall_load):
         OVERALL_LOAD_CREATED_TASKS[5].user_id,
     ]
     expected_overall_loads = [4, 0]
-    response = client.delete(CRUD_TASKS_PATH, json=[4, 6], headers=TEST_HEADERS)
+    response = client.delete(
+        CRUD_TASKS_PATH, json=[4, 6], headers=TEST_HEADERS
+    )
     assert response.status_code == 204
-    for user_id, expected_overall_load in zip(user_ids, expected_overall_loads):
+    for user_id, expected_overall_load in zip(
+        user_ids, expected_overall_loads
+    ):
         user = prepare_db_for_overall_load.query(User).get(user_id)
         assert user.overall_load == expected_overall_load
 
@@ -414,7 +430,11 @@ def test_overall_load_after_delete_batch_tasks(prepare_db_for_overall_load):
         ),
         (  # validator with pages for reannotation
             7,
-            {"annotation_user_for_failed_pages": OVERALL_LOAD_USERS[4].user_id},
+            {
+                "annotation_user_for_failed_pages": OVERALL_LOAD_USERS[
+                    4
+                ].user_id
+            },
             [OVERALL_LOAD_USERS[5].user_id, OVERALL_LOAD_USERS[4].user_id],
             [1, 6],
         ),
@@ -433,22 +453,29 @@ def test_overall_load_after_finish_task(
         headers=TEST_HEADERS,
     )
     assert response.status_code == 200
-    for user_id, expected_overall_load in zip(users_id, expected_overall_loads):
+    for user_id, expected_overall_load in zip(
+        users_id, expected_overall_loads
+    ):
         user = prepare_db_for_overall_load.query(User).get(user_id)
         assert user.overall_load == expected_overall_load
 
 
 @mark.integration
-def test_overall_load_after_distribution(monkeypatch, prepare_db_for_overall_load):
+def test_overall_load_after_distribution(
+    monkeypatch, prepare_db_for_overall_load
+):
     monkeypatch.setattr(
-        "annotation.microservice_communication.assets_communication." "get_response",
+        "annotation.microservice_communication.assets_communication."
+        "get_response",
         Mock(return_value=[{"id": 3, "pages": 4}]),
     )
     response = client.post(
         "/distribution", json=OVERALL_LOAD_NEW_TASKS[2], headers=TEST_HEADERS
     )
     assert response.status_code == 201
-    user = prepare_db_for_overall_load.query(User).get(OVERALL_LOAD_USERS[6].user_id)
+    user = prepare_db_for_overall_load.query(User).get(
+        OVERALL_LOAD_USERS[6].user_id
+    )
     assert user.overall_load == 4
 
 

@@ -88,9 +88,9 @@ def test_log_after_update(testing_session):
     )
     testing_session.add(pipeline)
     testing_session.commit()
-    testing_session.query(models.Pipeline).filter(models.Pipeline.id == 1).update(
-        {models.Pipeline.version: 2}
-    )
+    testing_session.query(models.Pipeline).filter(
+        models.Pipeline.id == 1
+    ).update({models.Pipeline.version: 2})
     testing_session.commit()
     log = schemas.Log(
         entity="Pipeline", event_type=schemas.Event.UPD, data={"version": 2}

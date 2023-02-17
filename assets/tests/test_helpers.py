@@ -5,7 +5,11 @@ import pytest
 from fastapi import HTTPException
 
 from assets.db.models import FileObject
-from assets.db.service import delete_file_from_db, insert_file, update_file_status
+from assets.db.service import (
+    delete_file_from_db,
+    insert_file,
+    update_file_status,
+)
 from assets.schemas import FileProcessingStatus
 from assets.utils.minio_utils import check_bucket, delete_one_from_minio
 
@@ -60,7 +64,9 @@ def test_delete_one_from_minio(minio_mock_exists_bucket_true):
     with patch("tests.test_helpers.delete_one_from_minio") as mock_:
         mock_.side_effect = [True, False]
         random_name = uuid.uuid4().hex
-        minio_mock_exists_bucket_true.fput_object(random_name, "testfile", Mock())
+        minio_mock_exists_bucket_true.fput_object(
+            random_name, "testfile", Mock()
+        )
         x = delete_one_from_minio(
             random_name, "testfile", minio_mock_exists_bucket_true
         )
@@ -91,7 +97,11 @@ def test_put_to_db(setup_database):
 
 def test_update_file_status(file_):
     session = file_
-    f = session.query(FileObject).filter(FileObject.original_name == "testname").first()
+    f = (
+        session.query(FileObject)
+        .filter(FileObject.original_name == "testname")
+        .first()
+    )
     assert f
     fi = update_file_status(f.id, FileProcessingStatus.UPLOADED, file_)
     assert fi.status == "uploaded"

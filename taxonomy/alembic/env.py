@@ -2,9 +2,9 @@ import os
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config, pool
+from taxonomy.database import SQLALCHEMY_DATABASE_URL, get_test_db_url
 
 from alembic import context  # type: ignore
-from taxonomy.database import SQLALCHEMY_DATABASE_URL, get_test_db_url
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -21,7 +21,9 @@ target_metadata = Base.metadata
 if not os.getenv("USE_TEST_DB"):
     config.set_main_option("sqlalchemy.url", SQLALCHEMY_DATABASE_URL)
 else:
-    config.set_main_option("sqlalchemy.url", get_test_db_url(SQLALCHEMY_DATABASE_URL))
+    config.set_main_option(
+        "sqlalchemy.url", get_test_db_url(SQLALCHEMY_DATABASE_URL)
+    )
 
 
 def run_migrations_offline():

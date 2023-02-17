@@ -46,7 +46,8 @@ async def process_message(
     if received_step.status == schemas.Status.FAIL:
         error = received_step.result["error"]  # type: ignore
         logger.error(
-            f"Received failed step with id = {received_step.id}, " f"Error: {error}"
+            f"Received failed step with id = {received_step.id}, "
+            f"Error: {error}"
         )
         failed = True
     elif task.is_completed():
@@ -58,7 +59,9 @@ async def process_message(
     asyncio.create_task(task.finish(failed=failed))
 
 
-async def run_pipeline(consumer: AIOKafkaConsumer, producer: AIOKafkaProducer) -> None:
+async def run_pipeline(
+    consumer: AIOKafkaConsumer, producer: AIOKafkaProducer
+) -> None:
     """
     Launch Kafka consumer and process received pipeline steps
     """

@@ -29,7 +29,9 @@ PAGE_OBJECTS = [
         "original_annotation_id": 1,
         "links": ["link_1", "link_2", "link_3"],
         "category": "Paragraph",
-        "text": ("Elasticsearch is a search engine based on the Lucene library."),
+        "text": (
+            "Elasticsearch is a search engine based on the Lucene library."
+        ),
         "bbox": [20.2, 30.3, 145.5, 120.7],
         "tokens": None,
     },
@@ -230,7 +232,8 @@ DOCS_IN_ES = [
     {
         "document_id": 1,
         "page_number": 1,
-        "content": "Elasticsearch is a search engine " "based on the Lucene library.",
+        "content": "Elasticsearch is a search engine "
+        "based on the Lucene library.",
         "category": "Paragraph",
         "bbox": [20.2, 30.3, 145.5, 120.7],
         "job_id": 1,
@@ -286,7 +289,9 @@ async def test_start_harvester_total_amount(
     expected_result: int,
     es,
 ):
-    monkeypatch.setattr("search.harvester.connect_s3", Mock(return_value=moto_s3))
+    monkeypatch.setattr(
+        "search.harvester.connect_s3", Mock(return_value=moto_s3)
+    )
     monkeypatch.setattr("search.es.ES", es)
     for i in range(amount_of_uploads):
         await start_harvester(INDEX_NAME, **ids)
@@ -315,7 +320,9 @@ async def test_start_harvester_elastic_content(
     ids,
     expected_result,
 ):
-    monkeypatch.setattr("search.harvester.connect_s3", Mock(return_value=moto_s3))
+    monkeypatch.setattr(
+        "search.harvester.connect_s3", Mock(return_value=moto_s3)
+    )
     monkeypatch.setattr("search.es.ES", es)
     await start_harvester(INDEX_NAME, **ids)
     await es.indices.refresh(index=INDEX_NAME)
@@ -325,7 +332,9 @@ async def test_start_harvester_elastic_content(
 
 @pytest.mark.asyncio
 @pytest.mark.integration
-async def test_start_harvester_no_text_objects(monkeypatch, moto_s3_fail_cases, es):
+async def test_start_harvester_no_text_objects(
+    monkeypatch, moto_s3_fail_cases, es
+):
     monkeypatch.setattr(
         "search.harvester.connect_s3",
         Mock(return_value=moto_s3_fail_cases),

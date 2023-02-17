@@ -7,7 +7,9 @@ from sqlalchemy import not_
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from annotation.microservice_communication.assets_communication import ASSETS_URL
+from annotation.microservice_communication.assets_communication import (
+    ASSETS_URL,
+)
 from annotation.models import Category, File, Job, ManualAnnotationTask, User
 from annotation.schemas import CategoryTypeSchema, ValidationSchema
 from tests.override_app_dependency import TEST_HEADERS, TEST_TENANT, app
@@ -392,7 +394,9 @@ def check_files_distributed_pages(test_session: Session, job_id: int):
     )
     files = test_session.query(File).filter(File.job_id == job_id).all()
     validation_type = (
-        test_session.query(Job.validation_type).filter_by(job_id=job_id).first()
+        test_session.query(Job.validation_type)
+        .filter_by(job_id=job_id)
+        .first()
     )
     test_session.add_all(files)
     test_session.commit()
@@ -407,7 +411,8 @@ def check_files_distributed_pages(test_session: Session, job_id: int):
         distributed_annotating_pages = sorted(distributed_annotating_pages)
         if validation_type[0] != ValidationSchema.validation_only:
             assert (
-                task_file.distributed_annotating_pages == distributed_annotating_pages
+                task_file.distributed_annotating_pages
+                == distributed_annotating_pages
             )
 
         validating_tasks = tasks.filter(
@@ -418,7 +423,10 @@ def check_files_distributed_pages(test_session: Session, job_id: int):
         for validating_task in validating_tasks:
             distributed_validating_pages.update(validating_task.pages)
         distributed_validating_pages = sorted(distributed_validating_pages)
-        assert task_file.distributed_validating_pages == distributed_validating_pages
+        assert (
+            task_file.distributed_validating_pages
+            == distributed_validating_pages
+        )
 
 
 @pytest.mark.integration
@@ -506,8 +514,12 @@ def test_post_tasks_only_datasets(
 
 @pytest.mark.integration
 def test_post_tasks_new_user(monkeypatch, prepare_db_for_post):
-    assert not prepare_db_for_post.query(User).get(TASK_INFO_NEW_USER["user_ids"][0])
-    assert not prepare_db_for_post.query(User).get(TASK_INFO_NEW_USER["user_ids"][1])
+    assert not prepare_db_for_post.query(User).get(
+        TASK_INFO_NEW_USER["user_ids"][0]
+    )
+    assert not prepare_db_for_post.query(User).get(
+        TASK_INFO_NEW_USER["user_ids"][1]
+    )
     monkeypatch.setattr(
         "annotation.microservice_communication.assets_communication.get_response",
         Mock(return_value=FILES_FROM_ASSETS_FOR_TASK_INFO_NEW_USER),
@@ -525,9 +537,15 @@ def test_post_tasks_new_user(monkeypatch, prepare_db_for_post):
     for user in TASK_INFO_NEW_USER["user_ids"]:
         assert user in response.text
     assert expected_message in response.text
-    assert not prepare_db_for_post.query(User).get(TASK_INFO_NEW_USER["user_ids"][0])
-    assert not prepare_db_for_post.query(User).get(TASK_INFO_NEW_USER["user_ids"][1])
-    check_files_distributed_pages(prepare_db_for_post, TASK_INFO_NEW_USER["job_id"])
+    assert not prepare_db_for_post.query(User).get(
+        TASK_INFO_NEW_USER["user_ids"][0]
+    )
+    assert not prepare_db_for_post.query(User).get(
+        TASK_INFO_NEW_USER["user_ids"][1]
+    )
+    check_files_distributed_pages(
+        prepare_db_for_post, TASK_INFO_NEW_USER["job_id"]
+    )
 
 
 @pytest.mark.integration
@@ -568,7 +586,9 @@ def test_post_tasks_deadline(
         "annotation.microservice_communication.assets_communication.get_response",
         Mock(return_value=assets_files),
     )
-    response = client.post(f"{POST_TASKS_PATH}", json=task_info, headers=TEST_HEADERS)
+    response = client.post(
+        f"{POST_TASKS_PATH}", json=task_info, headers=TEST_HEADERS
+    )
     assert response.status_code == 201
     for task in response.json():
         assert task["deadline"] == expected_deadline
@@ -587,7 +607,9 @@ def test_post_tasks_validation_only(monkeypatch, prepare_db_for_post):
         "datasets": [],
         "job_id": JOBS_ID[3],
     }
-    response = client.post(f"{POST_TASKS_PATH}", json=tasks_info, headers=TEST_HEADERS)
+    response = client.post(
+        f"{POST_TASKS_PATH}", json=tasks_info, headers=TEST_HEADERS
+    )
     assert response.status_code == 201
     for task in response.json():
         assert task["is_validation"]

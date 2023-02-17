@@ -2,8 +2,6 @@ from typing import Any, Dict, Generator, List, Optional, Tuple, Union
 
 import aiohttp.client_exceptions
 import fastapi.encoders
-from sqlalchemy.orm import Session
-
 from jobs import db_service
 from jobs.config import (
     HOST_ANNOTATION,
@@ -23,6 +21,7 @@ from jobs.schemas import (
     JobMode,
     JobParamsToChange,
 )
+from sqlalchemy.orm import Session
 
 
 async def get_files_data_from_datasets(
@@ -49,7 +48,9 @@ async def get_files_data_from_datasets(
                 raise_for_status=True,
             )
             if status == 404:
-                logger.error(f"Failed request to the Dataset Manager: {response}")
+                logger.error(
+                    f"Failed request to the Dataset Manager: {response}"
+                )
                 continue
         except aiohttp.client_exceptions.ClientError as err:
             logger.error(f"Failed request to the Dataset Manager: {err}")
@@ -85,7 +86,8 @@ async def get_files_data_from_separate_files(
                 "filters": [{"field": "id", "operator": "in", "value": batch}],
             }
             logger.info(
-                "Sending request to the dataset manager " "to get info about files"
+                "Sending request to the dataset manager "
+                "to get info about files"
             )
             _, response = await fetch(
                 method="POST",
@@ -106,7 +108,9 @@ async def get_files_data_from_separate_files(
 
         all_files_data.extend(response["data"])
 
-    valid_separate_files_uuids = [file_data["id"] for file_data in all_files_data]
+    valid_separate_files_uuids = [
+        file_data["id"] for file_data in all_files_data
+    ]
 
     return all_files_data, valid_separate_files_uuids
 
@@ -173,7 +177,9 @@ def convert_files_data_for_inference(
                 )
             )
         else:
-            for batch_id, pages_list_chunk in enumerate(divided_pages_list, start=1):
+            for batch_id, pages_list_chunk in enumerate(
+                divided_pages_list, start=1
+            ):
                 converted_data.append(
                     generate_file_data(
                         file_data,
@@ -339,7 +345,9 @@ async def execute_in_annotation_microservice(
     return None
 
 
-def delete_duplicates(files_data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+def delete_duplicates(
+    files_data: List[Dict[str, Any]]
+) -> List[Dict[str, Any]]:
     """Delete duplicates"""
     used_file_ids = set()
 
@@ -355,7 +363,9 @@ def delete_duplicates(files_data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
 def pick_params_for_annotation(
     new_job_params: JobParamsToChange,
 ) -> AnnotationJobUpdateParamsInAnnotation:
-    picked_params = AnnotationJobUpdateParamsInAnnotation.parse_obj(new_job_params)
+    picked_params = AnnotationJobUpdateParamsInAnnotation.parse_obj(
+        new_job_params
+    )
     return picked_params
 
 
@@ -382,7 +392,9 @@ async def start_job_in_annotation(
             raise_for_status=True,
         )
     except aiohttp.client_exceptions.ClientError as err:
-        logger.error("Failed request to the Annotation Manager: {}".format(err))
+        logger.error(
+            "Failed request to the Annotation Manager: {}".format(err)
+        )
         raise fastapi.HTTPException(
             status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="Failed request to the Annotation Manager: {}".format(err),
@@ -541,7 +553,9 @@ def get_categories_ids(
     categories: List[Union[str, CategoryLinkInput]]
 ) -> Tuple[List[str], List[CategoryLinkInput]]:
     categories_ids = [
-        category_id for category_id in categories if isinstance(category_id, str)
+        category_id
+        for category_id in categories
+        if isinstance(category_id, str)
     ]
     categories_links = [
         category_link

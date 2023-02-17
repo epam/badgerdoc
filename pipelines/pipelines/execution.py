@@ -180,7 +180,9 @@ class ExecutionStep(BaseModel):
                 )
             )
 
-    def update(self, status: schemas.Status, result: Optional[Dict[str, Any]]) -> None:
+    def update(
+        self, status: schemas.Status, result: Optional[Dict[str, Any]]
+    ) -> None:
         """Updates step status and result."""
         self.status = status
         self.result = result
@@ -210,7 +212,9 @@ class ExecutionStep(BaseModel):
 
     def get_next_steps(self) -> List[ExecutionStep]:
         task = PipelineTask.get_by_id(self.task_id)
-        return [step for step in task.steps if step.parent_step == self.step_id]
+        return [
+            step for step in task.steps if step.parent_step == self.step_id
+        ]
 
     def get_pipeline_type(self) -> schemas.PipelineTypes:
         task = PipelineTask.get_by_id(self.task_id)
@@ -271,7 +275,9 @@ class PipelineTask(BaseModel):
         args = schemas.InputArguments.parse_obj(initial_step.init_args)
         tenant = s3.tenant_from_bucket(args.get_output_bucket())
         if pipeline_type == schemas.PipelineTypes.INFERENCE:
-            preprecessing_passed = await self.check_preprocessing_status(tenant)
+            preprecessing_passed = await self.check_preprocessing_status(
+                tenant
+            )
             if not preprecessing_passed:
                 return
         logger.info(f"Start executing task with id = {self.id}")
@@ -281,7 +287,9 @@ class PipelineTask(BaseModel):
             pipeline_type=pipeline_type, curr_step_id=str(initial_step.id)
         )
         asyncio.create_task(
-            initial_step.step_execution_with_logging(producer=producer, body=init_body)
+            initial_step.step_execution_with_logging(
+                producer=producer, body=init_body
+            )
         )
 
     async def finish(self, failed: bool) -> None:
@@ -291,7 +299,9 @@ class PipelineTask(BaseModel):
         Args:
             failed: whether the task have failed steps.
         """
-        initial_step = [step for step in self.steps if step.parent_step is None][0]
+        initial_step = [
+            step for step in self.steps if step.parent_step is None
+        ][0]
         token = service_token.get_service_token()
         args = schemas.InputArguments.parse_obj(initial_step.init_args)
         bucket = args.get_output_bucket()
@@ -299,7 +309,8 @@ class PipelineTask(BaseModel):
         pipeline_type = self.get_pipeline_type()
         if not failed and pipeline_type == schemas.PipelineTypes.INFERENCE:
             logger.info(
-                "preparing to merge results and " "send it to postprocessing/annotation"
+                "preparing to merge results and "
+                "send it to postprocessing/annotation"
             )
             path_ = args.get_path()
             filename = args.get_filename()
@@ -321,9 +332,13 @@ class PipelineTask(BaseModel):
 
         task_status = schemas.Status.FAIL if failed else schemas.Status.DONE
         self.change_status(task_status)
-        logger.info(f"Task with id = {self.id} finished with status = {task_status}")
+        logger.info(
+            f"Task with id = {self.id} finished with status = {task_status}"
+        )
         tenant = s3.tenant_from_bucket(bucket)
-        self.send_status(pipeline_type=pipeline_type, tenant=tenant, token=token)
+        self.send_status(
+            pipeline_type=pipeline_type, tenant=tenant, token=token
+        )
 
     def change_status(self, status: schemas.Status) -> None:
         """Changes status of the task in the db and in the instance."""
@@ -384,7 +399,9 @@ class PipelineTask(BaseModel):
         max_retries = config.MAX_FILE_STATUS_RETRIES
         timeout = config.FILE_STATUS_TIMEOUT
         for retry in range(1, int(max_retries) + 1):
-            file_status = http_utils.get_file_status(file_id=file_id, tenant=tenant)
+            file_status = http_utils.get_file_status(
+                file_id=file_id, tenant=tenant
+            )
             if file_status == schemas.PreprocessingStatus.PREPROCESSED:
                 return True
             elif file_status is None:
@@ -417,7 +434,9 @@ class PipelineTask(BaseModel):
         await self.finish(failed=True)
         return False
 
-    def update_steps(self, status: schemas.Status, result: Dict[str, Any]) -> None:
+    def update_steps(
+        self, status: schemas.Status, result: Dict[str, Any]
+    ) -> None:
         """Updates all steps in case of they all have one result.
         For instance, it occurs when preprocessing is failed for
         steps file."""
@@ -514,7 +533,9 @@ class Pipeline(BaseModel):
     def get_ids(self) -> Dict[str, List[str]]:
         """Return ids of all steps."""
         return {
-            k: v for step in self.steps for k, v in step.steps_identifiers().items()
+            k: v
+            for step in self.steps
+            for k, v in step.steps_identifiers().items()
         }
 
     def get_steps_dict(self) -> Dict[str, PipelineStep]:
@@ -524,7 +545,9 @@ class Pipeline(BaseModel):
 
         """
         steps_dict = {
-            k: v for step in self.steps for k, v in step.get_step_dict().items()
+            k: v
+            for step in self.steps
+            for k, v in step.get_step_dict().items()
         }
         if self.steps:
             for step in self.steps:
@@ -600,7 +623,8 @@ class Pipeline(BaseModel):
                 if mod.get("name") == id_:
                     if (
                         config.DIFFERENT_PREPROCESSING_URLS
-                        and model_types[id_] == schemas.ModelTypes.PREPROCESSING
+                        and model_types[id_]
+                        == schemas.ModelTypes.PREPROCESSING
                     ):
                         url_map[id_] = Pipeline._convert_preprocessing_uri(
                             mod.get("url")
@@ -648,7 +672,9 @@ class Pipeline(BaseModel):
     def check_name(self, session: orm.Session) -> None:
         """Checks if a pipeline with the same name already
         exists in the DB."""
-        pipelines_with_such_name = service.get_pipelines(session, name=self.meta.name)
+        pipelines_with_such_name = service.get_pipelines(
+            session, name=self.meta.name
+        )
         if pipelines_with_such_name:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT, detail=PIPELINE_EXISTS

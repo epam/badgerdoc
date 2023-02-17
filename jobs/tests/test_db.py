@@ -92,7 +92,9 @@ def test_create_extraction_job_in_db(testing_session):
     assert second_quantity_of_jobs - first_quantity_of_jobs == 1
 
 
-def test_create_annotation_job_in_db(testing_session, mock_AnnotationJobParams):
+def test_create_annotation_job_in_db(
+    testing_session, mock_AnnotationJobParams
+):
     first_quantity_of_jobs = len(db_service.get_all_jobs(testing_session))
     assert db_service.create_annotation_job(
         db=testing_session,
@@ -131,7 +133,9 @@ def create_mock_extraction_job_in_db_draft(testing_session):
     return result
 
 
-def create_mock_annotation_job_in_db(testing_session, mock_AnnotationJobParams):
+def create_mock_annotation_job_in_db(
+    testing_session, mock_AnnotationJobParams
+):
     result = db_service.create_annotation_job(
         db=testing_session,
         annotation_job_input=mock_AnnotationJobParams,
@@ -188,7 +192,9 @@ def test_create_ImportJob(testing_session):
         import_bucket="jpg",
     )
 
-    new_import_job = db_service.create_import_job(testing_session, mockImportJobParams)
+    new_import_job = db_service.create_import_job(
+        testing_session, mockImportJobParams
+    )
     assert new_import_job
     assert new_import_job.name == "MockImportJob"
     assert new_import_job.type == schemas.JobType.ImportJob

@@ -9,7 +9,9 @@ logger = log.get_logger(__name__)
 runner_id: str = str(uuid.uuid4())
 
 
-async def fetch_and_send(producer: aiokafka.AIOKafkaProducer, unit_: unit.Unit) -> None:
+async def fetch_and_send(
+    producer: aiokafka.AIOKafkaProducer, unit_: unit.Unit
+) -> None:
     """Perform request to the url and send the result to the response
     topic if the response topic is specified.
 
@@ -38,7 +40,9 @@ async def fetch_and_send(producer: aiokafka.AIOKafkaProducer, unit_: unit.Unit) 
         )
 
 
-def run_orm_unit(producer: aiokafka.AIOKafkaProducer, orm_unit: models.Unit) -> None:
+def run_orm_unit(
+    producer: aiokafka.AIOKafkaProducer, orm_unit: models.Unit
+) -> None:
     unit_ = unit.Unit.from_orm(orm_unit)
     asyncio.create_task(fetch_and_send(producer, unit_))
 

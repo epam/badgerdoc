@@ -185,7 +185,9 @@ def test_get_jobs_by_file_id_sql_connection_error(
         (FILE_TEST_IDS[0], JOB_TEST_TENANTS[1]),
     ],
 )
-def test_get_jobs_by_file_id_404_error(prepare_db_for_get_job, tenant, file_id):
+def test_get_jobs_by_file_id_404_error(
+    prepare_db_for_get_job, tenant, file_id
+):
     response = client.get(
         f"{ANNOTATION_PATH}/{file_id}",
         headers={
@@ -231,7 +233,9 @@ def test_get_jobs_by_file_id_404_error(prepare_db_for_get_job, tenant, file_id):
         ),
     ],
 )
-def test_get_jobs_by_file(prepare_db_for_get_job, file_id, tenant, expected_response):
+def test_get_jobs_by_file(
+    prepare_db_for_get_job, file_id, tenant, expected_response
+):
     response = client.get(
         f"{ANNOTATION_PATH}/{file_id}",
         headers={
@@ -256,7 +260,9 @@ def test_get_jobs_name(monkeypatch, prepare_db_for_get_job):
         2: "Job2name",
         3: "JobNameFromJobsMicroservice",
     }
-    result = collect_job_names(session, job_ids, JOB_TEST_TENANTS[0], TEST_TOKEN)
+    result = collect_job_names(
+        session, job_ids, JOB_TEST_TENANTS[0], TEST_TOKEN
+    )
     job_name_from_db = session.query(Job.name).filter(Job.job_id == 3).scalar()
     assert job_name_from_db == "JobNameFromJobsMicroservice"
     assert result == expected_result
