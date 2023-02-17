@@ -1,3 +1,4 @@
+import asyncio
 from typing import Any, Dict, Generator, List, Optional, Tuple, Union
 
 import aiohttp.client_exceptions
@@ -412,22 +413,22 @@ async def update_job_in_annotation(
         "X-Current-Tenant": current_tenant,
         "Authorization": f"Bearer: {jw_token}",
     }
-
+    json_data = new_job_params_for_annotation.dict(exclude_defaults=True)
     logger.info(
         f"Job id = {job_id}. Sending request to update "
         f"job in annotation manager. "
-        f" Headers={headers}, params sent = {new_job_params_for_annotation}"
+        f" Headers={headers}, params sent = {json_data}"
     )
     try:
         _, response = await fetch(
             method="PATCH",
             url=f"{HOST_ANNOTATION}/jobs/{job_id}",
             headers=headers,
-            body=new_job_params_for_annotation.dict(exclude_defaults=True),
+            body=json_data,
             raise_for_status=True,
         )
     except aiohttp.client_exceptions.ClientError as err:
-        logger.error(f"Failed request to the Annotation Manager: {err}")
+        logger.exception(f"Failed request to the Annotation Manager: {err}")
         raise fastapi.HTTPException(
             status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=f"Failed request to the Annotation Manager: {err}",
@@ -480,7 +481,9 @@ async def fetch(
         method=method, url=url, json=body, headers=headers, **kwargs
     ) as resp:
         status_ = resp.status
-        json = await resp.json()
+        json = {}
+        if status_ != fastapi.status.HTTP_204_NO_CONTENT:
+            json = await resp.json()
         return status_, json
 
 
