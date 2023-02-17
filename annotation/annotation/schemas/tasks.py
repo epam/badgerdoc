@@ -33,7 +33,9 @@ class TaskStatusSchema(BaseModel):
 
 class ManualAnnotationTaskInSchema(BaseModel):
     file_id: int = Field(..., example=2)
-    pages: Set[int] = Field(..., ge=1, min_items=1, example={1, 2, 3})  # type: ignore
+    pages: Set[int] = Field(
+        ..., ge=1, min_items=1, example={1, 2, 3}
+    )  # type: ignore
     job_id: int = Field(..., example=3)
     user_id: UUID = Field(..., example="4e9c5839-f63b-49c8-b918-614b87813e53")
     is_validation: bool = Field(default=False, example=False)
@@ -58,7 +60,9 @@ class UserSchema(BaseModel):
 
 
 class ExpandedManualAnnotationTaskSchema(TaskStatusSchema):
-    pages: Set[int] = Field(..., ge=1, min_items=1, example={1, 2, 3})  # type: ignore
+    pages: Set[int] = Field(
+        ..., ge=1, min_items=1, example={1, 2, 3}
+    )  # type: ignore
     user: UserSchema
     is_validation: bool = Field(default=False, example=False)
     deadline: Optional[datetime] = Field(None, example="2021-10-19 01:01:01")

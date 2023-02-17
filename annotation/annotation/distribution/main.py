@@ -100,8 +100,12 @@ def distribute(
     db.flush()
 
     annotated_files_pages = {}  # no pages distributed for annotation yet
-    annotators = [x.__dict__ for x in annotators if x.default_load]  # type: ignore
-    validators = [x.__dict__ for x in validators if x.default_load]  # type: ignore
+    annotators = [
+        x.__dict__ for x in annotators if x.default_load
+    ]  # type: ignore
+    validators = [
+        x.__dict__ for x in validators if x.default_load
+    ]  # type: ignore
     if annotators:
         if (
             validation_type == ValidationSchema.extensive_coverage
@@ -172,7 +176,6 @@ def distribute_tasks_extensively(
     extensive_coverage: int,
     deadline: Optional[datetime] = None,
 ) -> List[Task]:
-
     calculate_users_load(
         files=files,
         users=users,

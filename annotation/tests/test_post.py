@@ -474,7 +474,8 @@ def test_post_tasks_only_files(
     expected_tasks_number,
 ):
     monkeypatch.setattr(
-        "annotation.microservice_communication.assets_communication.get_response",
+        "annotation.microservice_communication.assets_communication."
+        "get_response",
         Mock(return_value=returned_files),
     )
     response = client.post(
@@ -521,7 +522,8 @@ def test_post_tasks_new_user(monkeypatch, prepare_db_for_post):
         TASK_INFO_NEW_USER["user_ids"][1]
     )
     monkeypatch.setattr(
-        "annotation.microservice_communication.assets_communication.get_response",
+        "annotation.microservice_communication.assets_communication."
+        "get_response",
         Mock(return_value=FILES_FROM_ASSETS_FOR_TASK_INFO_NEW_USER),
     )
     response = client.post(
@@ -583,7 +585,8 @@ def test_post_tasks_deadline(
     assets_files,
 ):
     monkeypatch.setattr(
-        "annotation.microservice_communication.assets_communication.get_response",
+        "annotation.microservice_communication.assets_communication."
+        "get_response",
         Mock(return_value=assets_files),
     )
     response = client.post(
@@ -598,7 +601,8 @@ def test_post_tasks_deadline(
 @pytest.mark.integration
 def test_post_tasks_validation_only(monkeypatch, prepare_db_for_post):
     monkeypatch.setattr(
-        "annotation.microservice_communication.assets_communication.get_response",
+        "annotation.microservice_communication.assets_communication."
+        "get_response",
         Mock(return_value=[FILES_FROM_ASSETS_FOR_TASK_INFO[2][0]]),
     )
     tasks_info = {
@@ -631,7 +635,8 @@ def test_post_tasks_wrong_files(
     returned_files,
 ):
     monkeypatch.setattr(
-        "annotation.microservice_communication.assets_communication.get_response",
+        "annotation.microservice_communication.assets_communication."
+        "get_response",
         Mock(return_value=returned_files),
     )
     response = client.post(
@@ -688,7 +693,8 @@ def test_post_tasks_users_validation_error(
     assets_files,
 ):
     monkeypatch.setattr(
-        "annotation.microservice_communication.assets_communication.get_response",
+        "annotation.microservice_communication.assets_communication."
+        "get_response",
         Mock(return_value=assets_files),
     )
     response = client.post(
