@@ -10,13 +10,13 @@ from zipfile import ZipFile
 import requests
 from botocore.exceptions import ClientError
 
-from src.config import minio_client, minio_resource, settings
-from src.logger import get_logger
-from src.models.coco import Annotation, Category, CocoDataset, Image
-from src.utils.common_utils import add_to_zip_and_local_remove, get_headers
-from src.utils.json_utils import export_save_to_json, load_from_json
-from src.utils.render_pdf_page import pdf_page_to_jpg
-from src.utils.s3_utils import convert_bucket_name_if_s3prefix
+from convert.config import minio_client, minio_resource, settings
+from convert.logger import get_logger
+from convert.models.coco import Annotation, Category, CocoDataset, Image
+from convert.utils.common_utils import add_to_zip_and_local_remove, get_headers
+from convert.utils.json_utils import export_save_to_json, load_from_json
+from convert.utils.render_pdf_page import pdf_page_to_jpg
+from convert.utils.s3_utils import convert_bucket_name_if_s3prefix
 
 LOGGER = get_logger(__file__)
 

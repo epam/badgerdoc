@@ -1,17 +1,17 @@
 from pathlib import Path
 
-from src.label_studio_to_badgerdoc.badgerdoc_format import (
+from convert.label_studio_to_badgerdoc.badgerdoc_format import (
     annotation_converter_practic,
 )
-from src.label_studio_to_badgerdoc.labelstudio_format.label_studio_format import (
+from convert.label_studio_to_badgerdoc.labelstudio_format.label_studio_format import (
     LabelStudioFormat,
 )
-from src.label_studio_to_badgerdoc.models import (
+from convert.label_studio_to_badgerdoc.models import (
     bd_annotation_model_practic,
     bd_manifest_model_practic,
 )
-from src.label_studio_to_badgerdoc.models.bd_tokens_model import Page
-from src.label_studio_to_badgerdoc.models.label_studio_models import (
+from convert.label_studio_to_badgerdoc.models.bd_tokens_model import Page
+from convert.label_studio_to_badgerdoc.models.label_studio_models import (
     LabelStudioModel,
 )
 

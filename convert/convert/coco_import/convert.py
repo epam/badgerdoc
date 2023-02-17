@@ -5,11 +5,11 @@ import os.path
 from pathlib import Path
 from typing import Any, Dict, Set
 
-from src.config import get_request_session, settings
-from src.logger import get_logger
-from src.models.coco import DataS3
-from src.utils.json_utils import import_save_to_json, load_from_json
-from src.utils.s3_utils import S3Manager, s3_download_files
+from convert.config import get_request_session, settings
+from convert.logger import get_logger
+from convert.models.coco import DataS3
+from convert.utils.json_utils import import_save_to_json, load_from_json
+from convert.utils.s3_utils import S3Manager, s3_download_files
 
 LOGGER = get_logger(__file__)
 SESSION = get_request_session()

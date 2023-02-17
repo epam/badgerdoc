@@ -3,15 +3,15 @@ from typing import Optional
 from fastapi import APIRouter, Depends, Header, status
 from tenant_dependency import TenantData, get_tenant_info
 
-from src.config import minio_client, settings
-from src.label_studio_to_badgerdoc.badgerdoc_to_label_studio_use_case import (
+from convert.config import minio_client, settings
+from convert.label_studio_to_badgerdoc.badgerdoc_to_label_studio_use_case import (
     BDToLabelStudioConvertUseCase,
 )
-from src.label_studio_to_badgerdoc.label_studio_to_badgerdoc_use_case import (
+from convert.label_studio_to_badgerdoc.label_studio_to_badgerdoc_use_case import (
     LabelStudioToBDConvertUseCase,
 )
-from src.label_studio_to_badgerdoc.models import LabelStudioRequest
-from src.label_studio_to_badgerdoc.models.label_studio_models import (
+from convert.label_studio_to_badgerdoc.models import LabelStudioRequest
+from convert.label_studio_to_badgerdoc.models.label_studio_models import (
     BadgerdocToLabelStudioRequest,
 )
 

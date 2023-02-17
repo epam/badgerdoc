@@ -2,8 +2,8 @@ import os
 from typing import Any, Dict, List
 from zipfile import ZipFile
 
-from src.config import minio_client, settings
-from src.exceptions import UploadLimitExceedError
+from convert.config import minio_client, settings
+from convert.exceptions import UploadLimitExceedError
 
 
 def check_uploading_limit(files_list: List[str]) -> Any:

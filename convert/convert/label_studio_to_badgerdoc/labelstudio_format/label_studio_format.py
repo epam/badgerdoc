@@ -4,8 +4,8 @@ from typing import Any, Dict, List, Optional
 import requests
 from fastapi import HTTPException, status
 
-from src.config import settings
-from src.logger import get_logger
+from convert.config import settings
+from convert.logger import get_logger
 
 from ..models.bd_annotation_model import AnnotationLink, BadgerdocAnnotation
 from ..models.bd_manifest_model_practic import Manifest

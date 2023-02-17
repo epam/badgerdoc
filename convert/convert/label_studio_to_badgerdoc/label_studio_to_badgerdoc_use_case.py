@@ -11,26 +11,26 @@ from fastapi import HTTPException, status
 from fastapi.encoders import jsonable_encoder
 from tenant_dependency import TenantData
 
-from src.config import DEFAULT_PAGE_BORDER_OFFSET, settings
-from src.label_studio_to_badgerdoc.badgerdoc_format.annotation_converter import (
+from convert.config import DEFAULT_PAGE_BORDER_OFFSET, settings
+from convert.label_studio_to_badgerdoc.badgerdoc_format.annotation_converter import (
     AnnotationConverter,
 )
-from src.label_studio_to_badgerdoc.badgerdoc_format.badgerdoc_format import (
+from convert.label_studio_to_badgerdoc.badgerdoc_format.badgerdoc_format import (
     BadgerdocFormat,
 )
-from src.label_studio_to_badgerdoc.badgerdoc_format.pdf_renderer import (
+from convert.label_studio_to_badgerdoc.badgerdoc_format.pdf_renderer import (
     PDFRenderer,
 )
-from src.label_studio_to_badgerdoc.badgerdoc_format.plain_text_converter import (
+from convert.label_studio_to_badgerdoc.badgerdoc_format.plain_text_converter import (
     TextToBadgerdocTokensConverter,
 )
-from src.label_studio_to_badgerdoc.models import BadgerdocToken, DocumentLink
-from src.label_studio_to_badgerdoc.models.label_studio_models import (
+from convert.label_studio_to_badgerdoc.models import BadgerdocToken, DocumentLink
+from convert.label_studio_to_badgerdoc.models.label_studio_models import (
     LabelStudioModel,
     S3Path,
     ValidationType,
 )
-from src.logger import get_logger
+from convert.logger import get_logger
 
 LOGGER = get_logger(__file__)
 LOGGER.setLevel("DEBUG")

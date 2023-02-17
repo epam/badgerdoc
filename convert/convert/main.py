@@ -1,8 +1,8 @@
 from fastapi import FastAPI  # type: ignore
 
-from src.config import API_NAME, API_VERSION, settings
-from src.logger import get_logger
-from src.routers import coco, text, label_studio
+from convert.config import API_NAME, API_VERSION, settings
+from convert.logger import get_logger
+from convert.routers import coco, text, label_studio
 
 LOGGER = get_logger(__file__)
 

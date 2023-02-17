@@ -4,9 +4,9 @@ from zipfile import ZipFile
 
 import pdfplumber
 
-from src.config import settings
-from src.logger import get_logger
-from src.utils.common_utils import add_to_zip_and_local_remove
+from convert.config import settings
+from convert.logger import get_logger
+from convert.utils.common_utils import add_to_zip_and_local_remove
 
 LOGGER = get_logger(__file__)
 
