@@ -1,10 +1,10 @@
-"""Testing src/result_processing.py."""
+"""Testing pipelines/result_processing.py."""
 from unittest.mock import MagicMock, patch
 
 import pytest
 from minio import S3Error
 
-import src.result_processing as processing
+import pipelines.result_processing as processing
 
 
 def test_merge_outputs():
@@ -185,7 +185,7 @@ def test_merge_geometry_objects_no_objects_provided():
 )
 def test_get_annotation_uri(job_id, file_id, expected):
     """Testing get_annotation_uri."""
-    with patch("src.result_processing.config.ANNOTATION_URI", "foobar/ann"):
+    with patch("pipelines.result_processing.config.ANNOTATION_URI", "foobar/ann"):
         assert processing.get_annotation_uri(job_id, file_id) == expected
 
 
@@ -232,7 +232,7 @@ def test_get_pipeline_leaves_data():
 def test_get_pipeline_leaves_data_minio_error():
     """Testing get_pipeline_leaves_data when S3Error occurred."""
     err = S3Error("", "", "", "", "", "")
-    with patch("src.result_processing.list_object_names", side_effect=err):
+    with patch("pipelines.result_processing.list_object_names", side_effect=err):
         res = processing.get_pipeline_leaves_data(MagicMock(), "", "")
         assert res is None
 
@@ -249,7 +249,7 @@ def test_merge_pipeline_leaves_data():
         b'{"id": 3, "bbox": [3, 3, 3, 3], "category": "some"}]}]}',
     ]
     with patch(
-        "src.result_processing.get_pipeline_leaves_data",
+        "pipelines.result_processing.get_pipeline_leaves_data",
         return_value=leaves_data,
     ):
         res = processing.merge_pipeline_leaves_data(MagicMock(), "", "")
@@ -295,7 +295,7 @@ def test_merge_pipeline_leaves_data():
 def test_merge_pipeline_leaves_data_no_files_data():
     """Testing merge_pipeline_leaves_data when there's no files data."""
     with patch(
-        "src.result_processing.get_pipeline_leaves_data", return_value=None
+        "pipelines.result_processing.get_pipeline_leaves_data", return_value=None
     ):
         assert (
             processing.merge_pipeline_leaves_data(MagicMock(), "", "") is None
@@ -305,9 +305,9 @@ def test_merge_pipeline_leaves_data_no_files_data():
 def test_merge_pipeline_leaves_data_cannot_parse_data():
     """Testing merge_pipeline_leaves_data when raw data cannot be parsed."""
     with patch(
-        "src.result_processing.ModelOutput.parse_models", return_value=None
+        "pipelines.result_processing.ModelOutput.parse_models", return_value=None
     ):
-        with patch("src.result_processing.get_pipeline_leaves_data"):
+        with patch("pipelines.result_processing.get_pipeline_leaves_data"):
             assert (
                 processing.merge_pipeline_leaves_data(MagicMock(), "", "")
                 is None
@@ -316,8 +316,8 @@ def test_merge_pipeline_leaves_data_cannot_parse_data():
 
 def test_merge_pipeline_leaves_data_cannot_merge_data():
     """Testing merge_pipeline_leaves_data when data cannot be merged."""
-    with patch("src.result_processing.get_pipeline_leaves_data"):
-        with patch("src.result_processing.ModelOutput.parse_models"):
+    with patch("pipelines.result_processing.get_pipeline_leaves_data"):
+        with patch("pipelines.result_processing.ModelOutput.parse_models"):
             assert (
                 processing.merge_pipeline_leaves_data(MagicMock(), "", "")
                 is None
@@ -327,7 +327,7 @@ def test_merge_pipeline_leaves_data_cannot_merge_data():
 def test_delete_objects():
     """Testing delete_objects."""
     with patch(
-        "src.result_processing.list_object_names", return_value=["f", "b"]
+        "pipelines.result_processing.list_object_names", return_value=["f", "b"]
     ):
         client_mock = MagicMock()
         assert processing.delete_objects(client_mock, "bucket", "")
@@ -340,7 +340,7 @@ def test_delete_objects():
 def test_delete_objects_minio_error():
     """Testing delete_objects when S3Error occurred."""
     err = S3Error("", "", "", "", "", "")
-    with patch("src.result_processing.list_object_names", side_effect=err):
+    with patch("pipelines.result_processing.list_object_names", side_effect=err):
         assert not processing.delete_objects(MagicMock(), "bucket", "")
 
 
@@ -349,11 +349,11 @@ def test_postprocess_result():
     m = MagicMock()
     m.content = b'{"foo": 42}'
     with patch(
-        "src.result_processing.http_utils.make_request_with_retry",
+        "pipelines.result_processing.http_utils.make_request_with_retry",
         return_value=m,
     ) as req_mock:
         with patch(
-            "src.result_processing.config.POSTPROCESSING_URI", "foo.com"
+            "pipelines.result_processing.config.POSTPROCESSING_URI", "foo.com"
         ):
             res = processing.postprocess_result({"foo": 1})
             assert res == {"foo": 42}
@@ -364,7 +364,7 @@ def test_postprocess_result():
 
 def test_postprocess_result_no_uri():
     """Testing postprocess_result when there's no uri."""
-    with patch("src.result_processing.config.POSTPROCESSING_URI", ""):
+    with patch("pipelines.result_processing.config.POSTPROCESSING_URI", ""):
         assert processing.postprocess_result({"a": 1}) is None
 
 
@@ -373,7 +373,7 @@ def test_postprocess_result_invalid_postprocessor_json_response():
     m = MagicMock
     m.content = b'{"asd":}'
     with patch(
-        "src.result_processing.http_utils.make_request_with_retry",
+        "pipelines.result_processing.http_utils.make_request_with_retry",
         return_value=m,
     ):
         assert processing.postprocess_result({"a": 1}) is None
@@ -382,9 +382,9 @@ def test_postprocess_result_invalid_postprocessor_json_response():
 @pytest.mark.skip("Test should be fixed - del_mock.assert_called_once() fails")
 def test_manage_result_for_annotator():
     """Testing manage_result_for_annotator."""
-    with patch("src.result_processing.merge_pipeline_leaves_data"):
+    with patch("pipelines.result_processing.merge_pipeline_leaves_data"):
         with patch(
-            "src.result_processing.postprocess_result",
+            "pipelines.result_processing.postprocess_result",
             return_value={
                 "file": "",
                 "bucket": "",
@@ -392,12 +392,12 @@ def test_manage_result_for_annotator():
             },
         ):
             with patch(
-                "src.result_processing.http_utils.make_request_with_retry"
+                "pipelines.result_processing.http_utils.make_request_with_retry"
             ) as req_mock:
-                with patch("src.result_processing.delete_objects") as del_mock:
-                    with patch("src.config.DEBUG_MERGE", False):
+                with patch("pipelines.result_processing.delete_objects") as del_mock:
+                    with patch("pipelines.config.DEBUG_MERGE", False):
                         with patch(
-                            "src.result_processing.config.ANNOTATION_URI",
+                            "pipelines.result_processing.config.ANNOTATION_URI",
                             "f.com/annotation",
                         ):
                             assert processing.manage_result_for_annotator(
@@ -417,7 +417,7 @@ def test_manage_result_for_annotator():
 
 def test_manage_result_for_annotator_no_annotator_uri():
     """Testing manage_result_for_annotator when there's no Annotator URI."""
-    with patch("src.result_processing.config.ANNOTATION_URI", ""):
+    with patch("pipelines.result_processing.config.ANNOTATION_URI", ""):
         assert not processing.manage_result_for_annotator(
             "", "", "", 0, "", "", "", 8, MagicMock(), ""
         )
@@ -426,7 +426,7 @@ def test_manage_result_for_annotator_no_annotator_uri():
 def test_manage_result_for_annotator_cannot_merge_data():
     """Testing manage_result_for_annotator when data cannot be merger."""
     with patch(
-        "src.result_processing.merge_pipeline_leaves_data", return_value=None
+        "pipelines.result_processing.merge_pipeline_leaves_data", return_value=None
     ):
         assert not processing.manage_result_for_annotator(
             "", "", "", 0, "", "", "", 8, MagicMock(), ""
@@ -435,10 +435,10 @@ def test_manage_result_for_annotator_cannot_merge_data():
 
 def test_manage_result_for_annotator_request_not_succeeded():
     """Testing manage_result_for_annotator when cannot connect to Annotator."""
-    with patch("src.result_processing.merge_pipeline_leaves_data"):
-        with patch("src.result_processing.postprocess_result"):
+    with patch("pipelines.result_processing.merge_pipeline_leaves_data"):
+        with patch("pipelines.result_processing.postprocess_result"):
             with patch(
-                "src.result_processing.http_utils.make_request_with_retry",
+                "pipelines.result_processing.http_utils.make_request_with_retry",
                 return_value=None,
             ):
                 assert not processing.manage_result_for_annotator(
@@ -448,14 +448,14 @@ def test_manage_result_for_annotator_request_not_succeeded():
 
 def test_manage_result_for_annotator_request_debug_merge():
     """Debug merge is True and data are not deleted."""
-    with patch("src.result_processing.merge_pipeline_leaves_data"):
-        with patch("src.result_processing.postprocess_result"):
+    with patch("pipelines.result_processing.merge_pipeline_leaves_data"):
+        with patch("pipelines.result_processing.postprocess_result"):
             with patch(
-                "src.result_processing.http_utils.make_request_with_retry"
+                "pipelines.result_processing.http_utils.make_request_with_retry"
             ):
-                with patch("src.result_processing.config.DEBUG_MERGE", True):
+                with patch("pipelines.result_processing.config.DEBUG_MERGE", True):
                     with patch(
-                        "src.result_processing.delete_objects"
+                        "pipelines.result_processing.delete_objects"
                     ) as del_mock:
                         assert processing.manage_result_for_annotator(
                             "", "", "", 0, "", "", "", 8, MagicMock(), ""

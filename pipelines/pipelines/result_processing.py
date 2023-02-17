@@ -10,7 +10,7 @@ from minio import Minio
 from minio import error as minioerr
 from pydantic import BaseModel, ValidationError
 
-from src import config, http_utils, log
+from pipelines import config, http_utils, log
 
 logger = log.get_logger(__file__)
 

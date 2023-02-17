@@ -7,8 +7,8 @@ from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field, PrivateAttr, root_validator, validator
 
-import src.db.models as dbm
-from src import log
+import pipelines.db.models as dbm
+from pipelines import log
 
 logger = log.get_logger(__file__)
 

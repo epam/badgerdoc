@@ -1,7 +1,7 @@
 import logging
 from typing import Any, Dict, Optional
 
-from src.config import LOG_LEVEL
+from pipelines.config import LOG_LEVEL
 
 _log_format = (
     "%(asctime)s - [%(levelname)s] - %(name)s - "

@@ -1,9 +1,9 @@
-"""Testing src/schemas.py."""
+"""Testing pipelines/schemas.py."""
 
 import pytest
 
-import src.db.models as dbm
-import src.schemas as schemas
+import pipelines.db.models as dbm
+import pipelines.schemas as schemas
 import tests.testing_data as td
 
 

@@ -3,10 +3,10 @@ from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config, pool
 
-import src.config as settings
+import pipelines.config as settings
 from alembic import context
-from src.db.models import Base
-from src.db.service import get_test_db_url
+from pipelines.db.models import Base
+from pipelines.db.service import get_test_db_url
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

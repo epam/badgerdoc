@@ -4,10 +4,10 @@ from sqlalchemy import event, insert
 from sqlalchemy.engine import Connection
 from sqlalchemy.orm import Mapper
 
-import src.db.models as models
-import src.db.service as service
-import src.pipeline_runner as runner
-import src.schemas as schemas
+import pipelines.db.models as models
+import pipelines.db.service as service
+import pipelines.pipeline_runner as runner
+import pipelines.schemas as schemas
 
 
 def create_log(event_type: str, entity: models.Table) -> schemas.Log:

@@ -1,15 +1,15 @@
-"""Testing src/app.py."""
+"""Testing pipelines/app.py."""
 
 from copy import deepcopy
 from typing import Dict
 
 import pytest
 
-import src.app as app
-import src.db.models as dbm
-import src.db.service as service
-import src.execution as execution
-import src.schemas as schemas
+import pipelines.app as app
+import pipelines.db.models as dbm
+import pipelines.db.service as service
+import pipelines.execution as execution
+import pipelines.schemas as schemas
 import tests.testing_data as td
 
 

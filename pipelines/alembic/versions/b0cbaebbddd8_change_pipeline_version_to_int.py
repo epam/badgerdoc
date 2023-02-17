@@ -9,7 +9,7 @@ import sqlalchemy as sa
 from sqlalchemy import orm
 
 from alembic import op
-from src.db import models
+from pipelines.db import models
 
 # revision identifiers, used by Alembic.
 revision = "b0cbaebbddd8"

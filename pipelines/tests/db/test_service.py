@@ -1,4 +1,4 @@
-"""Testing src/db/service.py."""
+"""Testing pipelines/db/service.py."""
 
 import datetime
 import uuid
@@ -9,10 +9,10 @@ import pytest
 from aiokafka import AIOKafkaProducer
 from freezegun import freeze_time
 
-import src.db.models as dbm
-import src.db.service as service
-import src.execution as execution
-import src.schemas as schemas
+import pipelines.db.models as dbm
+import pipelines.db.service as service
+import pipelines.execution as execution
+import pipelines.schemas as schemas
 import tests.testing_data as td
 
 pytest_plugins = ("pytest_asyncio",)
