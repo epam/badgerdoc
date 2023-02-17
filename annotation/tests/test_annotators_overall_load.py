@@ -465,7 +465,8 @@ def test_overall_load_after_distribution(
     monkeypatch, prepare_db_for_overall_load
 ):
     monkeypatch.setattr(
-        "annotation.microservice_communication.assets_communication.get_response",
+        "annotation.microservice_communication.assets_communication."
+        "get_response",
         Mock(return_value=[{"id": 3, "pages": 4}]),
     )
     response = client.post(
