@@ -12,10 +12,10 @@ from filter_lib import (
 from sqlalchemy.orm import Session
 from tenant_dependency import TenantData
 
-from src import crud, schemas
-from src.db import Basement, get_db
-from src.routers import tenant
-from src.utils import (
+from models import crud, schemas
+from models.db import Basement, get_db
+from models.routers import tenant
+from models.utils import (
     NoSuchTenant,
     convert_bucket_name_if_s3prefix,
     get_minio_resource,
@@ -32,6 +32,7 @@ router = APIRouter(prefix="/basements", tags=["basements"])
 @router.post(
     "/create",
     status_code=201,
+    response_model=None,
     responses={
         201: {
             "model": schemas.Basement,
@@ -95,6 +96,7 @@ def search_basements(
 
 @router.get(
     "/{basements_id}",
+    response_model=None,
     responses={
         200: {
             "model": schemas.Basement,
@@ -118,6 +120,7 @@ def get_basement_by_id(
 
 @router.put(
     "/update",
+    response_model=None,
     responses={
         200: {
             "model": schemas.Basement,

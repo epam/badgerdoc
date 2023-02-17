@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from src import schemas
+from models import schemas
 from tests.test_utils import TEST_LIMITS
 
 

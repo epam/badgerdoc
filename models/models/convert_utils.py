@@ -6,8 +6,8 @@ import requests
 from fastapi import HTTPException
 from requests import ConnectionError, RequestException, Timeout
 
-from src.constants import CONVERT_EXPORT_URL, HEADER_TENANT
-from src.schemas import ConvertRequestSchema
+from models.constants import CONVERT_EXPORT_URL, HEADER_TENANT
+from models.schemas import ConvertRequestSchema
 
 LOGGER = logging.getLogger(name="models")
 

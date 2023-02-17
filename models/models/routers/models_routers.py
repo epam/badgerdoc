@@ -12,10 +12,10 @@ from filter_lib import (
 from sqlalchemy.orm import Session
 from tenant_dependency import TenantData
 
-from src import crud, schemas, utils
-from src.crud import get_latest_model, get_second_latest_model
-from src.db import Basement, Model, Training, get_db
-from src.routers import tenant
+from models import crud, schemas, utils
+from models.crud import get_latest_model, get_second_latest_model
+from models.db import Basement, Model, Training, get_db
+from models.routers import tenant
 
 LOGGER = logging.getLogger(name="models")
 
@@ -117,6 +117,7 @@ def search_models(
 
 @router.get(
     "/{models_id}",
+    response_model=None,
     responses={
         200: {
             "model": schemas.Model,
@@ -169,6 +170,7 @@ def get_model_by_id_and_version(
 
 @router.put(
     "/update",
+    response_model=None,
     responses={
         200: {
             "model": schemas.Model,

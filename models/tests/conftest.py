@@ -16,16 +16,16 @@ from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy_utils import create_database, database_exists
 
 from alembic import command
-from src.constants import (
+from models.constants import (
     DATABASE_URL,
     MINIO_ACCESS_KEY,
     MINIO_HOST,
     MINIO_SECRET_KEY,
 )
-from src.db import Base, Basement, Training, get_db
-from src.main import app
-from src.routers import tenant
-from src.utils import get_test_db_url
+from models.db import Base, Basement, Training, get_db
+from models.main import app
+from models.routers import tenant
+from models.utils import get_test_db_url
 
 from .override_app_dependency import override
 from .test_colab_start_training import (

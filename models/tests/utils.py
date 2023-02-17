@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import List, Union
 from uuid import UUID
 
-from src.db import StatusEnum
+from models.db import StatusEnum
 
 
 def create_expected_models(

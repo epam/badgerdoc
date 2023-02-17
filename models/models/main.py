@@ -8,8 +8,8 @@ from fastapi import FastAPI
 from paramiko.ssh_exception import SSHException
 from sqlalchemy.exc import SQLAlchemyError
 
-from src.constants import API_NAME, API_VERSION, ROOT_PATH
-from src.errors import (
+from models.constants import API_NAME, API_VERSION, ROOT_PATH
+from models.errors import (
     ColabFileUploadError,
     NoSuchTenant,
     botocore_error_handler,
@@ -20,7 +20,7 @@ from src.errors import (
     ssh_connection_error_handler,
     subprocess_called_error_handler,
 )
-from src.routers import (
+from models.routers import (
     basements_routers,
     deployed_models_routers,
     models_routers,

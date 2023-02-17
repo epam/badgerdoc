@@ -3,7 +3,7 @@ from pathlib import Path
 
 from dotenv import find_dotenv, load_dotenv
 
-load_dotenv(find_dotenv("./src/.env"))
+load_dotenv(find_dotenv("./models/.env"))
 
 POSTGRES_USER = os.environ.get("POSTGRES_USER")
 POSTGRES_PASSWORD = os.environ.get("POSTGRES_PASSWORD")

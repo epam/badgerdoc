@@ -11,7 +11,7 @@ services:
       - '9000:9000'
       - '9001:9001'
     env_file:
-      - src/.env
+      - models/.env
     networks:
       - app-tier
 
@@ -20,7 +20,7 @@ services:
     ports:
       - 5432:5432
     env_file:
-      - src/.env
+      - models/.env
     networks:
       - app-tier
 
@@ -30,7 +30,7 @@ services:
       target: build
     container_name: models_web_app
     env_file:
-      - src/.env
+      - models/.env
     volumes:
       - .:/working
     ports:

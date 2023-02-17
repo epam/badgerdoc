@@ -8,9 +8,9 @@ from botocore.response import StreamingBody
 from paramiko import AutoAddPolicy, SSHClient
 from paramiko.ssh_exception import SSHException
 
-from src.constants import MINIO_ACCESS_KEY, MINIO_HOST, MINIO_SECRET_KEY
-from src.errors import ColabFileUploadError
-from src.schemas import TrainingCredentials
+from models.constants import MINIO_ACCESS_KEY, MINIO_HOST, MINIO_SECRET_KEY
+from models.errors import ColabFileUploadError
+from models.schemas import TrainingCredentials
 
 LOGGER = logging.getLogger(name="models")
 COLAB_TRAINING_DIRECTORY = "/content/training/"

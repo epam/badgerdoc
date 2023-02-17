@@ -8,10 +8,10 @@ import requests
 from botocore.exceptions import ClientError
 from kubernetes.client.rest import ApiException
 
-from src import utils
-from src.constants import MINIO_HOST
-from src.errors import NoSuchTenant
-from src.schemas import (
+from models import utils
+from models.constants import MINIO_HOST
+from models.errors import NoSuchTenant
+from models.schemas import (
     BasementBase,
     DeployedModelPod,
     MinioHTTPMethod,
@@ -34,7 +34,7 @@ def test_minio_no_such_bucket_error_handling(moto_minio, monkeypatch):
     wrong_tenant = "wrong_tenant"
     error_message = f"Bucket {wrong_tenant} does not exist"
     monkeypatch.setattr(
-        "src.utils.boto3.resource",
+        "models.utils.boto3.resource",
         Mock(return_value=moto_minio),
     )
     with pytest.raises(utils.NoSuchTenant, match=error_message):
@@ -68,7 +68,7 @@ def test_get_object_via_presigned_url(
 ):
     """Tests possibility to GET object via generated presigned URL."""
     monkeypatch.setattr(
-        "src.utils.get_minio_resource",
+        "models.utils.get_minio_resource",
         Mock(return_value=save_object_minio),
     )
     presigned_url = utils.generate_presigned_url(
@@ -101,7 +101,7 @@ def test_generate_presigned_url(
     URL with correct key, expiration time and signature-generating algorithm.
     """
     monkeypatch.setattr(
-        "src.utils.get_minio_resource",
+        "models.utils.get_minio_resource",
         Mock(return_value=moto_minio),
     )
     presigned_url = utils.generate_presigned_url(
@@ -116,7 +116,7 @@ def test_generate_presigned_url(
 
 
 @pytest.mark.skip("Fails in GitHub Actions for some reason")
-@patch("src.utils.MINIO_PUBLIC_HOST", MINIO_HOST)
+@patch("models.utils.MINIO_PUBLIC_HOST", MINIO_HOST)
 @pytest.mark.integration
 def test_expired_presigned_url(create_minio_bucket):
     """Tests that http_method actions for minio Object won't be applicable
@@ -142,7 +142,7 @@ def test_generate_presigned_url_error(moto_minio, monkeypatch):
     of boto3 errors.
     """
     monkeypatch.setattr(
-        "src.utils.get_minio_resource",
+        "models.utils.get_minio_resource",
         Mock(return_value=moto_minio),
     )
     presigned_url = utils.generate_presigned_url(
@@ -159,7 +159,7 @@ def test_put_object_via_presigned_url(moto_minio, monkeypatch):
     key = "test_file.json"
     test_data = {"file_id": 1}
     monkeypatch.setattr(
-        "src.utils.get_minio_resource",
+        "models.utils.get_minio_resource",
         Mock(return_value=moto_minio),
     )
     presigned_url = utils.generate_presigned_url(
@@ -521,7 +521,7 @@ def test_get_minio_object_wrong_tenant(monkeypatch, moto_minio) -> None:
     'NoSuchTenant' exception with 'Bucket for tenant does not exist' message.
     """
     monkeypatch.setattr(
-        "src.utils.boto3.resource",
+        "models.utils.boto3.resource",
         Mock(return_value=moto_minio),
     )
     wrong_tenant = "wrong_tenant"
@@ -539,7 +539,7 @@ def test_get_minio_object_wrong_key(monkeypatch, save_object_minio) -> None:
     'The specified key does not exist' in error message.
     """
     monkeypatch.setattr(
-        "src.utils.boto3.resource",
+        "models.utils.boto3.resource",
         Mock(return_value=save_object_minio),
     )
     with pytest.raises(ClientError, match=r"The specified key does not exist"):
@@ -553,7 +553,7 @@ def test_get_minio_object(monkeypatch, save_object_minio) -> None:
     """Tests that get_minio_object returns correct object with actual size."""
     expected_obj = json.dumps({"file_id": 1})
     monkeypatch.setattr(
-        "src.utils.boto3.resource",
+        "models.utils.boto3.resource",
         Mock(return_value=save_object_minio),
     )
     data, size = utils.get_minio_object(TEST_TENANT, "file_1.json")

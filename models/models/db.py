@@ -18,7 +18,7 @@ from sqlalchemy.ext.mutable import MutableDict, MutableList
 from sqlalchemy.orm import Session, relationship, sessionmaker
 from sqlalchemy.types import ARRAY
 
-from src.constants import DATABASE_URL
+from models.constants import DATABASE_URL
 
 Base = declarative_base()
 

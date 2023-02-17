@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional, Union
 
 from pydantic import BaseModel, ConstrainedStr, Field, PositiveInt, validator
 
-from src.db import StatusEnum
+from models.db import StatusEnum
 
 
 class AtLeastOneChar(ConstrainedStr):

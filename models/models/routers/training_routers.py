@@ -24,8 +24,8 @@ from filter_lib import (
 from sqlalchemy.orm import Session
 from tenant_dependency import TenantData
 
-from src import crud, schemas, utils
-from src.colab_ssh_utils import (
+from models import crud, schemas, utils
+from models.colab_ssh_utils import (
     COLAB_TRAINING_DIRECTORY,
     check_aws_credentials_file,
     connect_colab,
@@ -33,10 +33,10 @@ from src.colab_ssh_utils import (
     sync_colab_with_minio,
     upload_file_to_colab,
 )
-from src.convert_utils import prepare_dataset_info
-from src.db import Basement, Training, get_db
-from src.routers import tenant
-from src.utils import (
+from models.convert_utils import prepare_dataset_info
+from models.db import Basement, Training, get_db
+from models.routers import tenant
+from models.utils import (
     NoSuchTenant,
     convert_bucket_name_if_s3prefix,
     get_minio_object,
@@ -55,6 +55,7 @@ router = APIRouter(prefix="/trainings", tags=["trainings"])
 @router.post(
     "/create",
     status_code=201,
+    response_model=None,
     responses={
         201: {
             "model": schemas.Training,
@@ -153,6 +154,7 @@ def search_training(
 
 @router.get(
     "/{trainings_id}",
+    response_model=None,
     responses={
         200: {
             "model": schemas.Training,
@@ -176,6 +178,7 @@ def get_training_by_id(
 
 @router.put(
     "/update",
+    response_model=None,
     responses={
         200: {
             "model": schemas.Training,

@@ -6,8 +6,8 @@ from fastapi import APIRouter, HTTPException
 from kubernetes import client, config
 from kubernetes.client.exceptions import ApiException
 
-from src import schemas, utils
-from src.constants import MODELS_NAMESPACE
+from models import schemas, utils
+from models.constants import MODELS_NAMESPACE
 
 router = APIRouter(prefix="/deployed_models", tags=["deployed_models"])
 LOGGER = logging.getLogger(name="models")

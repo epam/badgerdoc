@@ -10,8 +10,8 @@ from kubernetes.config import ConfigException
 from sqlalchemy.orm import Session
 from starlette.datastructures import UploadFile
 
-import src.logger as logger
-from src.constants import (
+import models.logger as logger
+from models.constants import (
     CONTAINER_NAME,
     DOCKER_REGISTRY_URL,
     DOMAIN_NAME,
@@ -25,9 +25,9 @@ from src.constants import (
     S3_CREDENTIALS_PROVIDER,
     S3_PREFIX,
 )
-from src.db import Basement, Model
-from src.errors import NoSuchTenant
-from src.schemas import DeployedModelPod, MinioHTTPMethod
+from models.db import Basement, Model
+from models.errors import NoSuchTenant
+from models.schemas import DeployedModelPod, MinioHTTPMethod
 
 logger_ = logger.get_logger(__name__)
 

@@ -3,8 +3,8 @@ from typing import Dict, Optional, Tuple, Union
 from sqlalchemy import desc
 from sqlalchemy.orm import Session
 
-from src.db import Basement, Model, Training
-from src.schemas import BasementBase, ModelBase, TrainingBase, TrainingUpdate
+from models.db import Basement, Model, Training
+from models.schemas import BasementBase, ModelBase, TrainingBase, TrainingUpdate
 
 
 def is_id_existing(
