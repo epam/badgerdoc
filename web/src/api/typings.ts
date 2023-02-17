@@ -254,8 +254,6 @@ export interface Taxonomy {
     version?: number;
 }
 
-// export interface TaxonomyWithoutTaxons
-
 export type CategoryRelatedTaxonomies = {
     [key in string]: Taxonomy;
 };

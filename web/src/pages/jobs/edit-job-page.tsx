@@ -31,7 +31,6 @@ export const EditJobPage = () => {
     useEffect(() => {
         if (!job) return;
         setFiles(job.files);
-        console.log(files);
     }, [job]);
 
     const handleJobAdded = (id: number) => {
