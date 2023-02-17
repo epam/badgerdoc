@@ -39,8 +39,8 @@ export type JobVariablesWithId = JobVariables & {
 
 export type JobVariables = {
     name: string | undefined;
-    files: string[] | number[];
-    datasets: string[];
+    files?: string[] | number[];
+    datasets?: string[];
     pipeline_name?: string | undefined;
     pipeline_version?: number;
     type: JobType;
@@ -55,6 +55,9 @@ export type JobVariables = {
     owners?: string[];
     extensive_coverage?: number;
 };
+
+export type EditJobVariables = Omit<JobVariables, 'files' | 'datasets'>;
+
 const namespace = process.env.REACT_APP_JOBMANAGER_API_NAMESPACE;
 export const useJobs: QueryHookType<UseJobsParamsType, PagedResponse<Job>> = (
     { page, size, searchText, sortConfig, filters },
@@ -190,7 +193,7 @@ export const useJobById: QueryHookType<JobByIdParams, Job | undefined> = ({ jobI
         options
     );
 };
-type EditJobParams = { id: number; data: JobVariables };
+type EditJobParams = { id: number; data: EditJobVariables };
 
 export function editJob({ id, data }: EditJobParams): Promise<Job> {
     return useBadgerFetch<Job>({

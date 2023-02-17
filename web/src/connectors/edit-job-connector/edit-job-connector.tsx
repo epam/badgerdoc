@@ -1,4 +1,4 @@
-import React, { FC, ReactElement, useCallback, useContext, useMemo } from 'react';
+import React, { FC, ReactElement, useCallback, useContext, useMemo, useEffect } from 'react';
 import EditJobSettings from 'components/job/edit-job-settings/edit-job-settings';
 import { usePipelines } from 'api/hooks/pipelines';
 import { JobVariables, useAddJobMutation, useEditJobMutation } from 'api/hooks/jobs';
@@ -20,7 +20,7 @@ import { useUsers } from 'api/hooks/users';
 import { Job, JobType } from 'api/typings/jobs';
 import { CurrentUser } from 'shared/contexts/current-user';
 import wizardStyles from '../../shared/components/wizard/wizard/wizard.module.scss';
-import { useAllTaxonomies } from 'api/hooks/taxons';
+import { useAllTaxonomies, useTaxonomiesByJobId } from 'api/hooks/taxons';
 
 type EditJobConnectorProps = {
     renderWizardButtons: ({
@@ -204,11 +204,15 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
                     }
                 });
             }
+
             try {
                 if (initialJob?.id) {
+                    const editData = { ...jobProps };
+                    delete editData.files;
+                    delete editData.datasets;
                     await editJobMutation.mutateAsync({
                         id: initialJob?.id,
-                        data: jobProps
+                        data: editData
                     });
                     return {
                         form: values
@@ -362,6 +366,24 @@ const useEditJobFormValues = ({
         selected_taxonomies: undefined
     };
 
+    const { data: categoriesAndTaxonomies } = useTaxonomiesByJobId(
+        { jobId: initialJob?.id },
+        { enabled: !!initialJob }
+    );
+
+    let selectedTaxonomies: CategoryRelatedTaxonomies | undefined = useMemo(() => {
+        if (!categoriesAndTaxonomies) return;
+        const entries = categoriesAndTaxonomies.map((catAndTax) => [
+            catAndTax.category_id,
+            {
+                id: catAndTax.id,
+                name: catAndTax.name,
+                version: catAndTax.version
+            }
+        ]);
+        return Object.fromEntries(entries);
+    }, [categoriesAndTaxonomies]);
+
     return useMemo(() => {
         if (!initialJob) {
             return {
@@ -415,7 +437,8 @@ const useEditJobFormValues = ({
                     const category = categories?.find((elem) => elem.id === el.toString());
                     if (category) return category;
                     return {} as Category;
-                }) || []
+                }) || [],
+            selected_taxonomies: selectedTaxonomies
         };
     }, [currentUser, initialJob, pipelines, categories, users, taxonomies]);
 };

@@ -250,9 +250,11 @@ export interface Taxon extends BaseTaxon {
 export interface Taxonomy {
     id: string;
     name: string;
-    taxons: BaseTaxon[];
+    taxons?: BaseTaxon[];
     version?: number;
 }
+
+// export interface TaxonomyWithoutTaxons
 
 export type CategoryRelatedTaxonomies = {
     [key in string]: Taxonomy;

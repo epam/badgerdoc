@@ -46,6 +46,11 @@ export const EditJobPage = () => {
         history.push(`${id}`);
     };
 
+    useEffect(() => {
+        if (jobId) {
+            setStepIndex(1);
+        }
+    }, [jobId]);
     // let startStepId = 0;
     // if (checkedFiles?.length) {
     //     startStepId = 1;
