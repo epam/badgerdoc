@@ -8,8 +8,8 @@ import PIL.Image
 import urllib3.exceptions
 from minio.credentials import AWSConfigProvider, EnvAWSProvider, IamAwsProvider
 
-from src import db, logger
-from src.config import settings
+from assets import db, logger
+from assets.config import settings
 
 logger_ = logger.get_logger(__name__)
 

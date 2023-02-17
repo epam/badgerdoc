@@ -4,9 +4,9 @@ from filter_lib import PaginationParams, form_query, map_request_to_filter
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Query, Session, load_only, selectinload
 
-from src.db.models import Association, Datasets, FileObject, SessionLocal
-from src.logger import get_logger
-from src.schemas import FileProcessingStatusForUpdate
+from assets.db.models import Association, Datasets, FileObject, SessionLocal
+from assets.logger import get_logger
+from assets.schemas import FileProcessingStatusForUpdate
 
 logger = get_logger(__name__)
 

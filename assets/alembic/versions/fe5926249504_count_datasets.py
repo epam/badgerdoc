@@ -9,7 +9,7 @@ import sqlalchemy as sa
 from sqlalchemy.orm import Session
 
 from alembic import op
-from src.db.models import Association, Datasets, FileObject
+from assets.db.models import Association, Datasets, FileObject
 
 # revision identifiers, used by Alembic.
 revision = "fe5926249504"

@@ -3,8 +3,8 @@ import os
 from sqlalchemy import engine_from_config, pool
 
 from alembic import context
-from src.db.utils import get_test_db_url
-from src.config import settings
+from assets.db.utils import get_test_db_url
+from assets.config import settings
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -23,7 +23,7 @@ fileConfig(config.config_file_name)
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-from src.db.models import Base  # noqa
+from assets.db.models import Base  # noqa
 
 target_metadata = Base.metadata
 

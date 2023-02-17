@@ -1,8 +1,8 @@
 from fastapi import Depends, FastAPI
 from tenant_dependency import get_tenant_info
 
-from src import routers
-from src.config import settings
+from assets import routers
+from assets.config import settings
 
 tenant = get_tenant_info(url=settings.keycloak_uri, algorithm="RS256")
 

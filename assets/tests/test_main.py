@@ -23,7 +23,7 @@ def test_bucket_name_on_create_bucket_with_prefix(
 ):
     test_prefix = "test_prefix"
 
-    from src.config import settings
+    from assets.config import settings
 
     monkeypatch.setattr(target=settings, name="s3_prefix", value=test_prefix)
 
@@ -44,7 +44,7 @@ def test_bucket_name_on_create_bucket_without_prefix(
 ):
     test_prefix = None
 
-    from src.config import settings
+    from assets.config import settings
 
     monkeypatch.setattr(target=settings, name="s3_prefix", value=test_prefix)
 
@@ -75,8 +75,8 @@ def test_upload_and_delete_file_without_conversion(client_app_main):
     assert id_ == res.json()[0]["id"]
 
 
-@patch("src.utils.s3_utils.S3Manager.get_files")
-@patch("src.utils.s3_utils.S3Manager.check_s3")
+@patch("assets.utils.s3_utils.S3Manager.get_files")
+@patch("assets.utils.s3_utils.S3Manager.check_s3")
 def test_upload_and_delete_file_s3(
     check_s3, get_files, client_app_main, s3_retrieved_file
 ):
@@ -439,7 +439,7 @@ def test_download_negative(client_app_main):
 
 
 def test_download_positive(client_app_main):
-    with patch("src.routers.minio_router.fastapi.responses.StreamingResponse"):
+    with patch("assets.routers.minio_router.fastapi.responses.StreamingResponse"):
         with NamedTemporaryFile(suffix=".jpg") as file:
             data = {"files": file}
             res_upload = client_app_main.post(
@@ -455,14 +455,14 @@ def test_download_positive(client_app_main):
         assert res_download.status_code == 200
 
 
-@patch("src.utils.common_utils.requests.post")
+@patch("assets.utils.common_utils.requests.post")
 def test_download_positive_originals(
     gotenberg, pdf_file_bytes, client_app_main
 ):
     response = Response()
     response._content = pdf_file_bytes
     gotenberg.return_value = response
-    with patch("src.routers.minio_router.fastapi.responses.StreamingResponse"):
+    with patch("assets.routers.minio_router.fastapi.responses.StreamingResponse"):
         with NamedTemporaryFile(suffix=".doc", prefix="some_file") as file:
             data = {"files": file}
             res_upload = client_app_main.post(

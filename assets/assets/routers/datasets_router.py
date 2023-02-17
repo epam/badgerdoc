@@ -7,7 +7,7 @@ import sqlalchemy.exc
 import sqlalchemy.orm
 import sqlalchemy_filters.exceptions
 
-from src import db, schemas
+from assets import db, schemas
 
 router = fastapi.APIRouter(prefix="/datasets", tags=["datasets"])
 

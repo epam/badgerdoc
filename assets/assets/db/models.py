@@ -9,7 +9,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy.types import TypeDecorator
 
-from src.config import settings
+from assets.config import settings
 
 Base = declarative_base()
 engine = sa.create_engine(

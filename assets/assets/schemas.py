@@ -4,7 +4,7 @@ from typing import List, Optional
 
 from pydantic import BaseModel, validator
 
-from src.db.models import Datasets
+from assets.db.models import Datasets
 
 
 class MinioObjects(BaseModel):

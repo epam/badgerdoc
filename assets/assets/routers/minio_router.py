@@ -5,8 +5,8 @@ import minio
 import sqlalchemy.orm
 import urllib3.exceptions
 
-from src import db, schemas, utils
-from src.config import settings
+from assets import db, schemas, utils
+from assets.config import settings
 
 router = fastapi.APIRouter(tags=["minio"])
 

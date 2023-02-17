@@ -10,11 +10,11 @@ import requests
 import sqlalchemy.orm
 import starlette.datastructures
 
-from src import db, exceptions, logger, schemas
-from src.config import settings
-from src.utils import minio_utils
-from src.utils.convert_service_utils import post_to_convert
-from src.utils.minio_utils import create_minio_config
+from assets import db, exceptions, logger, schemas
+from assets.config import settings
+from assets.utils import minio_utils
+from assets.utils.convert_service_utils import post_to_convert
+from assets.utils.minio_utils import create_minio_config
 
 logger_ = logger.get_logger(__name__)
 

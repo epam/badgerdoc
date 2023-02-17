@@ -7,7 +7,7 @@ import minio
 import sqlalchemy.orm
 import sqlalchemy_filters.exceptions
 
-from src import db, exceptions, schemas, utils
+from assets import db, exceptions, schemas, utils
 
 router = fastapi.APIRouter(prefix="/files", tags=["files"])
 

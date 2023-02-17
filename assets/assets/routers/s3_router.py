@@ -5,7 +5,7 @@ import minio
 import sqlalchemy.orm
 import urllib3.exceptions
 
-from src import db, exceptions, schemas, utils
+from assets import db, exceptions, schemas, utils
 
 router = fastapi.APIRouter(prefix="/s3_upload", tags=["s_3"])
 

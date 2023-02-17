@@ -4,8 +4,8 @@ from typing import Any, Dict, List, Optional
 import boto3
 import urllib3.exceptions
 
-from src import exceptions, logger
-from src.config import settings
+from assets import exceptions, logger
+from assets.config import settings
 
 logger_ = logger.get_logger(__name__)
 

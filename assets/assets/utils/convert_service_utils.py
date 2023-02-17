@@ -1,7 +1,7 @@
 import requests
 
-from src import logger
-from src.config import settings
+from assets import logger
+from assets.config import settings
 
 logger_ = logger.get_logger(__name__)
 

@@ -1,6 +1,6 @@
 import logging
 
-from src.config import settings
+from assets.config import settings
 
 _log_format = f"%(asctime)s - [%(levelname)s] - %(name)s - (%(filename)s).%(funcName)s(%(lineno)d) - %(message)s"  # noqa
 _datefmt = "%d-%b-%y %H:%M:%S"
