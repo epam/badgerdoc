@@ -35,9 +35,7 @@ from src.schema import SupportedAlgorithms, TenantData
 )
 def test_tenant_data_positive(token, user_id, roles, tenants, expected_result):
     assert (
-        TenantData(
-            token=token, user_id=user_id, roles=roles, tenants=tenants
-        ).dict()
+        TenantData(token=token, user_id=user_id, roles=roles, tenants=tenants).dict()
         == expected_result
     )
 

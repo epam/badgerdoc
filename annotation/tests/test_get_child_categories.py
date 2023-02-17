@@ -39,9 +39,7 @@ CYCLIC_TENANT_CHILD_CATEGORIES = (
     Category(id="4", name="4", parent="2", tenant=TEST_TENANT, type=TEST_TYPE),
 )
 
-OTHER_TENANT_CHILD_CATEGORY = Category(
-    id="5", name="5", tenant="other", type=TEST_TYPE
-)
+OTHER_TENANT_CHILD_CATEGORY = Category(id="5", name="5", tenant="other", type=TEST_TYPE)
 NOT_EXIST_ID = "100"
 
 #  Common categories have tree hierarchical structure of ids:
@@ -120,9 +118,7 @@ def test_get_child_categories(
     ["category_id", "tenant"],
     [("1", "other"), ("5", TEST_TENANT), (NOT_EXIST_ID, TEST_TENANT)],
 )
-def test_get_wrong_categories(
-    prepare_db_child_categories, category_id, tenant
-):
+def test_get_wrong_categories(prepare_db_child_categories, category_id, tenant):
     response = client.get(
         f"{CATEGORIES_PATH}/{category_id}/child",
         headers={

@@ -269,9 +269,7 @@ def test_deploy_model_with_wrong_type(get, client):
 @patch.object(models_routers.crud, "modify_status")
 @patch.object(models_routers.utils, "is_model_deployed")
 @patch.object(models_routers.crud, "get_latest_model")
-def test_deploy_already_deployed_model_returns_409(
-    get, is_deployed, modify, client
-):
+def test_deploy_already_deployed_model_returns_409(get, is_deployed, modify, client):
     data = {"id": "id"}
     models_routers.get_db = Mock()
     query = models_routers.schemas.ModelId(id="id")
@@ -285,9 +283,7 @@ def test_deploy_already_deployed_model_returns_409(
 @patch.object(models_routers.crud, "modify_status")
 @patch.object(models_routers.utils, "is_model_deployed")
 @patch.object(models_routers.crud, "get_latest_model")
-def test_deploy_already_deployed_model_modifies_status(
-    get, is_deployed, modify
-):
+def test_deploy_already_deployed_model_modifies_status(get, is_deployed, modify):
     data = models_routers.schemas.ModelId(id="id")
     models_routers.get_db = Mock()
     get.return_value = data
@@ -316,9 +312,7 @@ def test_deploy_model_in_positive_case(get, is_deployed, deploy, client):
 @patch.object(models_routers.crud, "modify_status")
 @patch.object(models_routers.utils, "is_model_deployed")
 @patch.object(models_routers.crud, "get_latest_model")
-def test_deploy_model_without_modifying_status(
-    get, is_deployed, modify, deploy
-):
+def test_deploy_model_without_modifying_status(get, is_deployed, modify, deploy):
     data = models_routers.schemas.ModelId(id="id")
     models_routers.get_db = Mock()
     get.return_value = data
@@ -401,9 +395,7 @@ def test_undeploy_already_undeployed_model_modifies_status(
 @patch.object(models_routers.crud, "modify_status")
 @patch.object(models_routers.utils, "is_model_deployed")
 @patch.object(models_routers.crud, "get_latest_model")
-def test_undeploy_model_calls_undeploying_function(
-    get, is_deployed, modify, undeploy
-):
+def test_undeploy_model_calls_undeploying_function(get, is_deployed, modify, undeploy):
     data = models_routers.schemas.ModelId(id="id")
     models_routers.get_db = Mock()
     get.return_value = data

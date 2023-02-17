@@ -172,10 +172,7 @@ def test_put_object_via_presigned_url(moto_minio, monkeypatch):
     minio_response = requests.put(presigned_url, json=test_data)
     assert minio_response.status_code == 200
     minio_object = (
-        moto_minio.Object(TEST_TENANT, key)
-        .get()["Body"]
-        .read()
-        .decode("utf-8")
+        moto_minio.Object(TEST_TENANT, key).get()["Body"].read().decode("utf-8")
     )
     assert json.loads(minio_object) == test_data
 
@@ -459,9 +456,7 @@ def test_get_pods_with_terminating_status():
     utils.client = Mock()
     utils.client.CoreV1Api.return_value = api
     Pods = namedtuple("Pods", {"items"})
-    Metadata = namedtuple(
-        "Metadata", ("deletion_timestamp", "name", "namespace")
-    )
+    Metadata = namedtuple("Metadata", ("deletion_timestamp", "name", "namespace"))
     Status = namedtuple("Status", ("start_time", "container_statuses"))
     Container = namedtuple("Container", ("name"))
     container = Container("name")
@@ -489,12 +484,8 @@ def test_get_pods_with_running_status():
     utils.client = Mock()
     utils.client.CoreV1Api.return_value = api
     Pods = namedtuple("Pods", {"items"})
-    Metadata = namedtuple(
-        "Metadata", ("deletion_timestamp", "name", "namespace")
-    )
-    Status = namedtuple(
-        "Status", ("start_time", "container_statuses", "phase")
-    )
+    Metadata = namedtuple("Metadata", ("deletion_timestamp", "name", "namespace"))
+    Status = namedtuple("Status", ("start_time", "container_statuses", "phase"))
     Pod = namedtuple("Pod", ("metadata", "status"))
     Container = namedtuple("Container", ("name"))
     container = Container("name")
@@ -525,9 +516,7 @@ def test_get_minio_object_wrong_tenant(monkeypatch, moto_minio) -> None:
         Mock(return_value=moto_minio),
     )
     wrong_tenant = "wrong_tenant"
-    with pytest.raises(
-        NoSuchTenant, match=f"Bucket {wrong_tenant} does not exist"
-    ):
+    with pytest.raises(NoSuchTenant, match=f"Bucket {wrong_tenant} does not exist"):
         utils.get_minio_object(wrong_tenant, "file/file.txt")
 
 

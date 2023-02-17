@@ -6,14 +6,6 @@ from typing import Dict, List, Optional, Set, Tuple, Union
 from uuid import UUID
 
 import boto3
-from dotenv import find_dotenv, load_dotenv
-from fastapi import HTTPException
-from kafka import KafkaProducer
-from kafka.errors import KafkaError
-from sqlalchemy import asc
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
-
 from annotation import logger
 from annotation.kafka_client import KAFKA_BOOTSTRAP_SERVER, KAFKA_SEARCH_TOPIC
 from annotation.kafka_client import producers as kafka_producers
@@ -25,6 +17,13 @@ from annotation.schemas import (
     ParticularRevisionSchema,
     RevisionLink,
 )
+from dotenv import find_dotenv, load_dotenv
+from fastapi import HTTPException
+from kafka import KafkaProducer
+from kafka.errors import KafkaError
+from sqlalchemy import asc
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
 
 load_dotenv(find_dotenv())
 ENDPOINT_URL = os.environ.get("S3_ENDPOINT_URL")
@@ -135,9 +134,7 @@ def upload_pages_to_minio(
     for page in pages:
         json_page = json.dumps(page.dict())
         path_to_object = f"{s3_path}/{pages_sha[str(page.page_num)]}.json"
-        upload_json_to_minio(
-            json_page, path_to_object, bucket_name, s3_resource
-        )
+        upload_json_to_minio(json_page, path_to_object, bucket_name, s3_resource)
 
 
 def upload_json_to_minio(
@@ -237,9 +234,7 @@ def create_manifest_json(
     manifest = row_to_dict(doc)
     redundant_keys = ("task_id", "file_id", "tenant", "categories")
     manifest = {
-        key: value
-        for key, value in manifest.items()
-        if key not in redundant_keys
+        key: value for key, value in manifest.items() if key not in redundant_keys
     }
     manifest["pages"] = all_pages
     manifest["validated"] = list(validated)
@@ -254,9 +249,7 @@ def create_manifest_json(
     ]
 
     manifest_json = json.dumps(manifest)
-    upload_json_to_minio(
-        manifest_json, manifest_path, bucket_name, s3_resource
-    )
+    upload_json_to_minio(manifest_json, manifest_path, bucket_name, s3_resource)
 
 
 def construct_annotated_doc(
@@ -422,8 +415,7 @@ def check_docs_identity(
         latest_doc is not None
         and latest_doc.pages == new_doc.pages
         and set(latest_doc.validated) == new_doc.validated
-        and set(latest_doc.failed_validation_pages)
-        == new_doc.failed_validation_pages
+        and set(latest_doc.failed_validation_pages) == new_doc.failed_validation_pages
         and latest_doc.categories == new_doc.categories
     )
 
@@ -555,9 +547,7 @@ def find_all_revisions_pages(
     }
     """
     pages = {}
-    revisions = [
-        AnnotatedDocSchema.from_orm(revision) for revision in revisions
-    ]
+    revisions = [AnnotatedDocSchema.from_orm(revision) for revision in revisions]
     for revision in revisions:
         revision.pages = {
             int(key): value
@@ -606,9 +596,7 @@ def find_latest_revision_pages(
     }
     """
     pages = {}
-    revisions = [
-        AnnotatedDocSchema.from_orm(revision) for revision in revisions
-    ]
+    revisions = [AnnotatedDocSchema.from_orm(revision) for revision in revisions]
     for revision in revisions:
         revision.pages = {
             int(key): value
@@ -867,9 +855,7 @@ def accumulate_pages_info(
         all_annotated.update(revision.pages)
 
         for status, attr in attr_map.items():
-            latest_status.update(
-                {int(i): status for i in getattr(revision, attr)}
-            )
+            latest_status.update({int(i): status for i in getattr(revision, attr)})
 
         # if there is specific revision, where we need to stop,
         # we will stop here
@@ -917,9 +903,7 @@ def accumulate_pages_info(
         annotated_list = all_annotated
 
     if with_page_hash:
-        annotated = {
-            str(page): all_annotated[str(page)] for page in annotated_list
-        }
+        annotated = {str(page): all_annotated[str(page)] for page in annotated_list}
     else:
         annotated = set(map(int, annotated_list))
 
@@ -975,8 +959,7 @@ def check_task_pages(
     for array_name, pgs in error_mapping.items():
         if pgs:
             err_msg += (
-                f"Pages {pgs} from {array_name} array "
-                "do not belong to the task. "
+                f"Pages {pgs} from {array_name} array " "do not belong to the task. "
             )
 
     if err_msg:
@@ -995,9 +978,7 @@ def _init_search_annotation_producer():
         )
         return producer
     except KafkaError as error:  # KafkaError is parent of all kafka errors
-        logger_.warning(
-            f"Error occurred during kafka producer creating: {error}"
-        )
+        logger_.warning(f"Error occurred during kafka producer creating: {error}")
 
 
 def add_search_annotation_producer() -> KafkaProducer:
@@ -1006,13 +987,10 @@ def add_search_annotation_producer() -> KafkaProducer:
     return search_annotation_producer
 
 
-def send_annotation_kafka_message(
-    job_id: int, file_id: int, tenant: str
-) -> None:
+def send_annotation_kafka_message(job_id: int, file_id: int, tenant: str) -> None:
     # if startup failed, try to recreate it
     search_annotation_producer = (
-        kafka_producers.get("search_annotation")
-        or add_search_annotation_producer()
+        kafka_producers.get("search_annotation") or add_search_annotation_producer()
     )
     if search_annotation_producer:
         search_annotation_producer.send(

@@ -84,9 +84,7 @@ def update_annotation_categories(
     required_obj_ids: Optional[Tuple[str, ...]] = None,
 ) -> None:
     if page.page_num > len(pdf.pages):
-        logger.error(
-            "page %s in annotations doesn't exit in pdf", page.page_num
-        )
+        logger.error("page %s in annotations doesn't exit in pdf", page.page_num)
         return
     bboxes_inference_result = {
         (page.page_num, Path(image).stem): inference_result
@@ -114,9 +112,7 @@ def update_annotation_categories(
                 obj.data = {}
 
             inference_key = (page.page_num, obj.idx)
-            if (data_field := "data") in bboxes_inference_result[
-                inference_key
-            ].keys():
+            if (data_field := "data") in bboxes_inference_result[inference_key].keys():
                 obj.data = {
                     **obj.data,
                     **bboxes_inference_result[inference_key][data_field],
@@ -124,9 +120,7 @@ def update_annotation_categories(
             if (category_field := "category") in bboxes_inference_result[
                 inference_key
             ].keys():
-                obj.category = bboxes_inference_result[inference_key][
-                    category_field
-                ]
+                obj.category = bboxes_inference_result[inference_key][category_field]
 
             logger.info(
                 "An annotation of a page %s with %s updated",

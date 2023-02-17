@@ -47,9 +47,7 @@ class Args(BaseModel):
 class ClassifierRequest(BaseModel):
     """Request to classify DOD's bboxes."""
 
-    input_path: Path = Field(
-        example=Path("ternary_out/molecule_annotation.json")
-    )
+    input_path: Path = Field(example=Path("ternary_out/molecule_annotation.json"))
     input_field: Dict[str, Dict[str, List[str]]] = Field(
         alias="input",
         example={

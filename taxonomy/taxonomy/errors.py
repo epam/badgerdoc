@@ -54,9 +54,7 @@ def check_field_error_handler(request: Request, exc: CheckFieldError):
     )
 
 
-def field_constraint_error_handler(
-    request: Request, exc: FieldConstraintError
-):
+def field_constraint_error_handler(request: Request, exc: FieldConstraintError):
     return JSONResponse(
         status_code=400,
         content={"detail": f"Error: {exc.message}"},

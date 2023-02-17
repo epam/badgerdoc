@@ -1,6 +1,5 @@
 from minio import Minio
 from minio.credentials import AWSConfigProvider, EnvAWSProvider, IamAwsProvider
-
 from processing.config import settings
 from processing.utils.logger import get_logger
 
@@ -33,20 +32,14 @@ def create_minio_config():
     elif settings.s3_credentials_provider == "aws_config":
         # environmental variable AWS_PROFILE_NAME should be set
         minio_config.update(
-            {
-                "credentials": AWSConfigProvider(
-                    profile=settings.aws_profile_name
-                )
-            }
+            {"credentials": AWSConfigProvider(profile=settings.aws_profile_name)}
         )
     else:
         raise NotConfiguredException(
             "s3 connection is not properly configured - "
             "s3_credentials_provider is not set"
         )
-    logger.info(
-        f"S3_Credentials provider - {settings.s3_credentials_provider}"
-    )
+    logger.info(f"S3_Credentials provider - {settings.s3_credentials_provider}")
 
     return minio_config
 

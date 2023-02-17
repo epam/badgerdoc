@@ -381,9 +381,7 @@ def test_cross_distribution_small_files(
         ),
     ],
 )
-def test_cross_partial_files(
-    annotated_files_pages, files, annotators, expected_tasks
-):
+def test_cross_partial_files(annotated_files_pages, files, annotators, expected_tasks):
     assert (
         distribute_validation_partial_files(
             annotated_files_pages,

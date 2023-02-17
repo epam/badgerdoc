@@ -23,9 +23,7 @@ def upgrade() -> None:
         sa.Column("task_from", sa.INTEGER(), nullable=False),
         sa.Column("task_to", sa.INTEGER(), nullable=False),
         sa.Column("agreement_metric", sa.FLOAT(), nullable=False),
-        sa.ForeignKeyConstraint(
-            ["task_from"], ["tasks.id"], ondelete="cascade"
-        ),
+        sa.ForeignKeyConstraint(["task_from"], ["tasks.id"], ondelete="cascade"),
         sa.ForeignKeyConstraint(["task_to"], ["tasks.id"], ondelete="cascade"),
         sa.PrimaryKeyConstraint("task_from", "task_to"),
     )

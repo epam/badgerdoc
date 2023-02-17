@@ -430,10 +430,7 @@ def test_post_job_connection_exception(Session, prepare_db_for_post_job):
         (
             POST_JOB_NEW_JOBS[11],
             422,
-            (
-                "Fields files and datasets should not be empty "
-                "at the same time."
-            ),
+            ("Fields files and datasets should not be empty " "at the same time."),
         ),  # even in ExtractionJob must be either files or datasets
         (
             POST_JOB_NEW_JOBS[12],
@@ -725,9 +722,7 @@ def test_get_job_attributes_for_post(
     [(POST_JOB_NEW_JOBS[10], "ExtractionJob1"), (POST_JOB_NEW_JOBS[13], None)],
 )
 @responses.activate
-def test_post_extraction_job_saved(
-    prepare_db_for_post_job, job_info, expected_name
-):
+def test_post_extraction_job_saved(prepare_db_for_post_job, job_info, expected_name):
     """Tests that new ExtractionJob with valid user type fields will be
     created in db in default 'pending' status  and that values for
     not-provided optional fields 'validation_type', 'deadline', 'name' are
@@ -771,9 +766,7 @@ def test_post_import_job_saved(prepare_db_for_post_job):
     )
     assert response.status_code == expected_response_code
     saved_job = row_to_dict(session.query(Job).get(job_info["job_id"]))
-    assert (
-        not session.query(File).filter(File.job_id == job_info["job_id"]).all()
-    )
+    assert not session.query(File).filter(File.job_id == job_info["job_id"]).all()
     assert not saved_job.get("categories")
     assert not saved_job.get("deadline")
     assert saved_job.get("validation_type") == ValidationSchema.cross

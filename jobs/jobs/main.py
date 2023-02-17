@@ -218,8 +218,7 @@ async def change_job(
         if (owners := job_to_change.owners) and user_id not in owners:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Access denied. This user is not "
-                "allowed to change the job",
+                detail="Access denied. This user is not " "allowed to change the job",
             )
 
     if (
@@ -249,9 +248,7 @@ async def change_job(
         schemas.JobType.AnnotationJob,
         schemas.JobType.ExtractionWithAnnotationJob,
     ]:
-        new_job_params_for_annotation = utils.pick_params_for_annotation(
-            new_job_params
-        )
+        new_job_params_for_annotation = utils.pick_params_for_annotation(new_job_params)
         if new_job_params_for_annotation.dict(exclude_defaults=True):
             await utils.update_job_in_annotation(
                 job_id=job_id,

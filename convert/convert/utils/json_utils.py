@@ -24,9 +24,7 @@ def load_from_json(file_name: str) -> Any:
             return json.load(f_o)
     except FileNotFoundError:
         LOGGER.error(f"[Errno 2] No such file or directory: {file_name}")
-        raise FileNotFoundError(
-            f"[Errno 2] No such file or directory: {file_name}"
-        )
+        raise FileNotFoundError(f"[Errno 2] No such file or directory: {file_name}")
 
 
 def annotation_category_change(
@@ -72,9 +70,7 @@ def merge_jobs_annotation(
     last_annotation_id = file_annotation["annotations"][-1]["id"]
     last_image_id = file_annotation["images"][-1]["id"]
     last_category_id = file_annotation["categories"][-1]["id"]
-    file_categories = [
-        category["name"] for category in file_annotation["categories"]
-    ]
+    file_categories = [category["name"] for category in file_annotation["categories"]]
     for category_merge in merge_annotation["categories"]:
         if category_merge["name"] in file_categories:
             continue
@@ -116,9 +112,7 @@ def export_save_to_json(
         with open(file_name) as f_obr:
             annotations_in_file = json.load(f_obr)
         with open(file_name, "w") as f_obw:
-            annotation = merge_jobs_annotation(
-                annotations_in_file, annotations
-            )
+            annotation = merge_jobs_annotation(annotations_in_file, annotations)
             json.dump(annotation, f_obw, default=str)
 
 

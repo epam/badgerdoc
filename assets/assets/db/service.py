@@ -1,12 +1,11 @@
 from typing import Any, Dict, Optional, Tuple
 
-from filter_lib import PaginationParams, form_query, map_request_to_filter
-from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import Query, Session, load_only, selectinload
-
 from assets.db.models import Association, Datasets, FileObject, SessionLocal
 from assets.logger import get_logger
 from assets.schemas import FileProcessingStatusForUpdate
+from filter_lib import PaginationParams, form_query, map_request_to_filter
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Query, Session, load_only, selectinload
 
 logger = get_logger(__name__)
 
@@ -64,9 +63,7 @@ def update_file(
     file_status: str,
 ) -> Optional[FileObject]:
     file: Optional[FileObject] = (
-        session.query(FileObject)
-        .filter(FileObject.id == file_id)
-        .with_for_update()
+        session.query(FileObject).filter(FileObject.id == file_id).with_for_update()
     ).first()
     file.original_name = file_to_update
     file.bucket = (bucket_name,)
@@ -92,11 +89,7 @@ def insert_dataset(session: Session, dataset_name: str) -> None:
 
 
 def delete_file_from_db(session: Session, row_id: int) -> Any:
-    q = (
-        session.query(FileObject)
-        .filter(FileObject.id == row_id)
-        .with_for_update()
-    )
+    q = session.query(FileObject).filter(FileObject.id == row_id).with_for_update()
     decrease_count_in_bounded_datasets(session, row_id)
     res = q.delete()
     session.commit()
@@ -113,9 +106,7 @@ def update_file_status(
     file_id: int, file_status: FileProcessingStatusForUpdate, session: Session
 ) -> Optional[FileObject]:
     file: Optional[FileObject] = (
-        session.query(FileObject)
-        .filter(FileObject.id == file_id)
-        .with_for_update()
+        session.query(FileObject).filter(FileObject.id == file_id).with_for_update()
     ).first()
     file.status = file_status
     try:
@@ -139,9 +130,7 @@ def get_all_files_query(
     session: Session, request: Dict[str, Any]
 ) -> Tuple[Query, PaginationParams]:
     filter_args = map_request_to_filter(request, "FileObject")
-    query = session.query(FileObject).options(
-        selectinload(FileObject.datasets)
-    )
+    query = session.query(FileObject).options(selectinload(FileObject.datasets))
     query, pag = form_query(filter_args, query)
     return query, pag
 
@@ -181,9 +170,7 @@ def get_all_bonds_query(
     return query, pag
 
 
-def is_bounded(
-    session: Session, file_id: int, ds_name: str
-) -> Optional[FileObject]:
+def is_bounded(session: Session, file_id: int, ds_name: str) -> Optional[FileObject]:
     bond = (
         session.query(FileObject)
         .join(Association, Datasets)
@@ -194,12 +181,8 @@ def is_bounded(
     return bond
 
 
-def add_dataset_to_file(
-    session: Session, file: FileObject, ds: Datasets
-) -> None:
-    ds_query = (
-        session.query(Datasets).filter(Datasets.id == ds.id).with_for_update()
-    )
+def add_dataset_to_file(session: Session, file: FileObject, ds: Datasets) -> None:
+    ds_query = session.query(Datasets).filter(Datasets.id == ds.id).with_for_update()
     file_obj = (
         session.query(FileObject)
         .filter(FileObject.id == file.id)
@@ -212,12 +195,8 @@ def add_dataset_to_file(
     session.commit()
 
 
-def remove_dataset_from_file(
-    session: Session, file: FileObject, ds: Datasets
-) -> None:
-    ds_query = (
-        session.query(Datasets).filter(Datasets.id == ds.id).with_for_update()
-    )
+def remove_dataset_from_file(session: Session, file: FileObject, ds: Datasets) -> None:
+    ds_query = session.query(Datasets).filter(Datasets.id == ds.id).with_for_update()
     file_obj = (
         session.query(FileObject)
         .filter(FileObject.id == file.id)
@@ -237,9 +216,7 @@ def decrease_count_in_bounded_datasets(session: Session, file_id: int) -> None:
         .filter(FileObject.id == file_id)
     )
     ds_ids = [row.id for row in query]
-    session.query(Datasets).filter(
-        Datasets.id.in_(ds_ids)
-    ).with_for_update().update(
+    session.query(Datasets).filter(Datasets.id.in_(ds_ids)).with_for_update().update(
         {Datasets.count: Datasets.count - 1}, synchronize_session="fetch"
     )
     session.commit()

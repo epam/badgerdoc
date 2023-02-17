@@ -3,13 +3,14 @@ from pathlib import Path
 from typing import NamedTuple
 
 from botocore.client import BaseClient
-from tenant_dependency import TenantData
-
 from convert.label_studio_to_badgerdoc.badgerdoc_format.annotation_converter_practic import (
     AnnotationConverterToTheory,
 )
-from convert.label_studio_to_badgerdoc.labelstudio_format import LabelStudioFormat
+from convert.label_studio_to_badgerdoc.labelstudio_format import (
+    LabelStudioFormat,
+)
 from convert.logger import get_logger
+from tenant_dependency import TenantData
 
 from .models import S3Path, bd_annotation_model_practic
 from .models.bd_annotation_model import BadgerdocAnnotation
@@ -78,9 +79,7 @@ class BDToLabelStudioConvertUseCase:
             input_annotations = self.download_file_from_s3(
                 s3_input_annotations, tmp_dir
             )
-            input_manifest = self.download_file_from_s3(
-                s3_input_manifest, tmp_dir
-            )
+            input_manifest = self.download_file_from_s3(s3_input_manifest, tmp_dir)
             LOGGER.debug("input_manifest: %s", input_manifest.read_text())
 
             page = Page.parse_file(input_tokens)
@@ -90,9 +89,7 @@ class BDToLabelStudioConvertUseCase:
                 )
             ).convert()
             manifest = Manifest.parse_file(input_manifest)
-            return BadgerdocData(
-                page=page, annotation=annotation, manifest=manifest
-            )
+            return BadgerdocData(page=page, annotation=annotation, manifest=manifest)
 
     def download_file_from_s3(self, s3_path: S3Path, tmp_dir: Path) -> Path:
         local_file_path = tmp_dir / Path(s3_path.path).name
@@ -110,9 +107,7 @@ class BDToLabelStudioConvertUseCase:
         with tempfile.TemporaryDirectory() as tmp_dirname:
             tmp_dir = Path(tmp_dirname)
 
-            badgerdoc_annotations_path = tmp_dir / Path(
-                "labelstudio_format.json"
-            )
+            badgerdoc_annotations_path = tmp_dir / Path("labelstudio_format.json")
             self.labelstudio_format.export_json(badgerdoc_annotations_path)
             self.s3_client.upload_file(
                 str(badgerdoc_annotations_path),

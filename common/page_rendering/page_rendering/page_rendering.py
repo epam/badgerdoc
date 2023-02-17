@@ -44,9 +44,7 @@ class RenderImages:
                 page = pdf.pages[page_number - 1]
                 img = page.to_image(resolution=self.dpi)
                 file_name = full_file_name.name.split(".")[0]
-                filename = dir_with_images / self.name_image(
-                    file_name, page_number
-                )
+                filename = dir_with_images / self.name_image(file_name, page_number)
                 logger.info("Render page %s", page_number)
                 img.save(filename, format=self.image_format)
 

@@ -83,8 +83,7 @@ exec_task = execution.PipelineTask.parse_obj(
 heartbeat_db = dbm.ExecutorHeartbeat()
 
 pipeline_db_repr = (
-    "<Pipeline(id=None, name='foo', version=1, "
-    "type='inference', date=None)>"
+    "<Pipeline(id=None, name='foo', version=1, " "type='inference', date=None)>"
 )
 task_db_repr = (
     "<PipelineExecutionTask(id=None, name='foo', pipeline_id=None, job_id=1, "

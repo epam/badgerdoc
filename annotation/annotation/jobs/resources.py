@@ -1,34 +1,22 @@
 from typing import Dict, List, Optional, Set, Union
 from uuid import UUID
 
-from fastapi import (
-    APIRouter,
-    Depends,
-    HTTPException,
-    Path,
-    Query,
-    Response,
-    status,
-)
-from filter_lib import Page
-from sqlalchemy import and_
-from sqlalchemy.orm import Session
-from sqlalchemy.sql.expression import func, or_
-from sqlalchemy_filters.exceptions import BadFilterFormat
-from tenant_dependency import TenantData
-
 import annotation.categories.services
 from annotation import logger as app_logger
 from annotation.categories import fetch_bunch_categories_db
 from annotation.database import get_db
 from annotation.distribution import distribute
 from annotation.filters import CategoryFilter
-from annotation.microservice_communication.assets_communication import get_files_info
+from annotation.microservice_communication.assets_communication import (
+    get_files_info,
+)
 from annotation.microservice_communication.jobs_communication import (
     JobUpdateException,
     update_job_status,
 )
-from annotation.microservice_communication.search import X_CURRENT_TENANT_HEADER
+from annotation.microservice_communication.search import (
+    X_CURRENT_TENANT_HEADER,
+)
 from annotation.schemas import (
     BadRequestErrorSchema,
     CategoryResponseSchema,
@@ -48,6 +36,21 @@ from annotation.schemas import (
 )
 from annotation.tags import FILES_TAG, JOBS_TAG
 from annotation.token_dependency import TOKEN
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    Path,
+    Query,
+    Response,
+    status,
+)
+from filter_lib import Page
+from sqlalchemy import and_
+from sqlalchemy.orm import Session
+from sqlalchemy.sql.expression import func, or_
+from sqlalchemy_filters.exceptions import BadFilterFormat
+from tenant_dependency import TenantData
 
 from ..models import (
     AnnotatedDoc,
@@ -111,12 +114,8 @@ def post_job(
     )
     db.add_all(new_users)
     db_users = saved_users + new_users
-    annotators = [
-        user for user in db_users if user.user_id in job_info.annotators
-    ]
-    validators = [
-        user for user in db_users if user.user_id in job_info.validators
-    ]
+    annotators = [user for user in db_users if user.user_id in job_info.annotators]
+    validators = [user for user in db_users if user.user_id in job_info.validators]
     owners = [user for user in db_users if user.user_id in job_info.owners]
     categories = fetch_bunch_categories_db(
         db, job_info.categories, x_current_tenant, root_parents=True
@@ -160,9 +159,7 @@ def post_job(
                     tenant=x_current_tenant,
                     job_id=job_id,
                     pages_number=f["pages_number"],
-                    distributed_annotating_pages=list(
-                        range(1, f["pages_number"] + 1)
-                    ),
+                    distributed_annotating_pages=list(range(1, f["pages_number"] + 1)),
                     annotated_pages=list(range(1, f["pages_number"] + 1)),
                     status=FileStatusEnumSchema.pending,
                 )
@@ -354,10 +351,8 @@ def get_unassigned_files(
 
     job_undistributed_files = job_files.filter(
         or_(
-            func.cardinality(File.distributed_annotating_pages)
-            != File.pages_number,
-            func.cardinality(File.distributed_validating_pages)
-            != File.pages_number,
+            func.cardinality(File.distributed_annotating_pages) != File.pages_number,
+            func.cardinality(File.distributed_validating_pages) != File.pages_number,
         ),
     )
 
@@ -423,9 +418,7 @@ def start_job(
     job status to In Progress.
     """
     job = get_job(db, job_id, x_current_tenant)
-    annotation_tasks = (
-        db.query(ManualAnnotationTask).filter_by(job_id=job_id).all()
-    )
+    annotation_tasks = db.query(ManualAnnotationTask).filter_by(job_id=job_id).all()
     if not annotation_tasks:
         raise HTTPException(
             status_code=404,
@@ -494,10 +487,7 @@ def get_users_for_job(
         .filter(User.job_annotators.any(job_id=job_id))
         .all()
     )
-    return [
-        {"id": user.user_id, "overall_load": user.overall_load}
-        for user in users
-    ]
+    return [{"id": user.user_id, "overall_load": user.overall_load} for user in users]
 
 
 # Get categories for job_id, each entity requires children/parents
@@ -586,10 +576,7 @@ def get_jobs_info_by_files(
         db, file_ids, x_current_tenant, token.token
     )
 
-    return {
-        file_id: grouped_by_file_jobs_info.get(file_id, [])
-        for file_id in file_ids
-    }
+    return {file_id: grouped_by_file_jobs_info.get(file_id, []) for file_id in file_ids}
 
 
 @router.get(

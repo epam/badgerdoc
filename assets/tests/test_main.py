@@ -12,9 +12,7 @@ from .conftest import BUCKET_TESTS
 def test_create_bucket(client_app_main_bucket_false):
     random_name = "tests" + uuid.uuid4().hex
     bucket = {"name": random_name}
-    tests_bucket = client_app_main_bucket_false.post(
-        "/bucket", data=json.dumps(bucket)
-    )
+    tests_bucket = client_app_main_bucket_false.post("/bucket", data=json.dumps(bucket))
     assert tests_bucket.status_code == 201
 
 
@@ -29,9 +27,7 @@ def test_bucket_name_on_create_bucket_with_prefix(
 
     random_name = "tests" + uuid.uuid4().hex
     bucket = {"name": random_name}
-    response = client_app_main_bucket_false.post(
-        "/bucket", data=json.dumps(bucket)
-    )
+    response = client_app_main_bucket_false.post("/bucket", data=json.dumps(bucket))
     assert response.status_code == 201
     assert (
         response.json()["detail"]
@@ -50,14 +46,9 @@ def test_bucket_name_on_create_bucket_without_prefix(
 
     random_name = "tests" + uuid.uuid4().hex
     bucket = {"name": random_name}
-    response = client_app_main_bucket_false.post(
-        "/bucket", data=json.dumps(bucket)
-    )
+    response = client_app_main_bucket_false.post("/bucket", data=json.dumps(bucket))
     assert response.status_code == 201
-    assert (
-        response.json()["detail"]
-        == f"Bucket {random_name} successfully created!"
-    )
+    assert response.json()["detail"] == f"Bucket {random_name} successfully created!"
 
 
 def test_upload_and_delete_file_without_conversion(client_app_main):
@@ -145,12 +136,8 @@ def test_get_file_by_id(client_app_main):
         )
     file_id = response.json()[0]["id"]
 
-    search_body = {
-        "filters": [{"field": "id", "operator": "eq", "value": file_id}]
-    }
-    res_get_one = client_app_main.post(
-        "/files/search", data=json.dumps(search_body)
-    )
+    search_body = {"filters": [{"field": "id", "operator": "eq", "value": file_id}]}
+    res_get_one = client_app_main.post("/files/search", data=json.dumps(search_body))
     assert res_get_one.status_code == 200
     assert res_get_one.json()["data"][0]["id"] == file_id
 
@@ -187,9 +174,7 @@ def test_put_and_delete_dataset(client_app_main):
     body = {"name": random_name}
     res = client_app_main.post("/datasets", data=json.dumps(body))
     assert res.status_code == 201
-    assert res.json() == {
-        "detail": f"Dataset {random_name} successfully created!"
-    }
+    assert res.json() == {"detail": f"Dataset {random_name} successfully created!"}
 
     res_delete = client_app_main.delete("/datasets", data=json.dumps(body))
     assert res_delete.status_code == 201
@@ -222,21 +207,15 @@ def test_bound_and_unbound(client_app_main):
     count_body = {
         "filters": [{"field": "name", "operator": "eq", "value": dataset_name}]
     }
-    res_count = client_app_main.post(
-        "/datasets/search", data=json.dumps(count_body)
-    )
+    res_count = client_app_main.post("/datasets/search", data=json.dumps(count_body))
     assert res_count.json()["data"][0]["count"] == 1
 
-    res_unbound = client_app_main.delete(
-        "/datasets/bonds", data=json.dumps(data)
-    )
+    res_unbound = client_app_main.delete("/datasets/bonds", data=json.dumps(data))
     assert res_unbound.status_code == 201
     assert file_id == res_unbound.json()[0]["id"]
     assert res_unbound.json()[0]["status"]
 
-    res_delete_dataset = client_app_main.delete(
-        "/datasets", data=json.dumps(body)
-    )
+    res_delete_dataset = client_app_main.delete("/datasets", data=json.dumps(body))
     assert res_delete_dataset.status_code == 201
     assert res_delete_dataset.json() == {
         "detail": f"Dataset {dataset_name} successfully deleted!"
@@ -267,9 +246,7 @@ def test_get_files_by_dataset(client_app_main):
     assert res_put.status_code == 201
 
     bound_data = {"name": dataset_name, "objects": [file_id]}
-    res_bound = client_app_main.post(
-        "/datasets/bonds", data=json.dumps(bound_data)
-    )
+    res_bound = client_app_main.post("/datasets/bonds", data=json.dumps(bound_data))
     assert res_bound.status_code == 201
     assert file_id == res_bound.json()[0]["id"]
     assert res_bound.json()[0]["status"]
@@ -280,18 +257,14 @@ def test_get_files_by_dataset(client_app_main):
     assert res_get_by_dataset.status_code == 200
     assert res_get_by_dataset.json()["data"][0]["id"] == file_id
 
-    res_delete_dataset = client_app_main.delete(
-        "/datasets", data=json.dumps(body)
-    )
+    res_delete_dataset = client_app_main.delete("/datasets", data=json.dumps(body))
     assert res_delete_dataset.status_code == 201
     assert res_delete_dataset.json() == {
         "detail": f"Dataset {dataset_name} successfully deleted!"
     }
 
     file_body = {"objects": [file_id]}
-    res_delete_file = client_app_main.delete(
-        "/files", data=json.dumps(file_body)
-    )
+    res_delete_file = client_app_main.delete("/files", data=json.dumps(file_body))
     assert res_delete_file.status_code == 201
     assert file_id == res_delete_file.json()[0]["id"]
     assert res_delete_file.json()[0]["status"]
@@ -338,16 +311,12 @@ def test_get_dataset_by_name(client_app_main):
     body = {"name": random_name}
     res = client_app_main.post("/datasets", data=json.dumps(body))
     assert res.status_code == 201
-    assert res.json() == {
-        "detail": f"Dataset {random_name} successfully created!"
-    }
+    assert res.json() == {"detail": f"Dataset {random_name} successfully created!"}
 
     search_body = {
         "filters": [{"field": "name", "operator": "eq", "value": random_name}]
     }
-    res_id = client_app_main.post(
-        "/datasets/search", data=json.dumps(search_body)
-    )
+    res_id = client_app_main.post("/datasets/search", data=json.dumps(search_body))
     assert res_id.status_code == 200
     assert res_id.json()["data"][0]["id"] == 1
     assert res_id.json()["data"][0]["name"] == random_name
@@ -390,13 +359,9 @@ def test_get_files_by_filename_positive(client_app_main):
 
     file_name = res_upload_1.json()[0]["file_name"]
     search_body = {
-        "filters": [
-            {"field": "original_name", "operator": "eq", "value": file_name}
-        ]
+        "filters": [{"field": "original_name", "operator": "eq", "value": file_name}]
     }
-    get_by_name = client_app_main.post(
-        "/files/search", data=json.dumps(search_body)
-    )
+    get_by_name = client_app_main.post("/files/search", data=json.dumps(search_body))
     assert get_by_name.status_code == 200
 
     all_names = [el["original_name"] for el in get_by_name.json()["data"]]
@@ -418,12 +383,8 @@ def test_get_files_by_filename_empty_array(client_app_main):
     assert res_upload.status_code == 201
     assert res_upload.json()[0]["status"]
 
-    search_body = {
-        "filters": [{"field": "id", "operator": "eq", "value": id_ + 10111}]
-    }
-    get_by_name = client_app_main.post(
-        "/files/search", data=json.dumps(search_body)
-    )
+    search_body = {"filters": [{"field": "id", "operator": "eq", "value": id_ + 10111}]}
+    get_by_name = client_app_main.post("/files/search", data=json.dumps(search_body))
     assert get_by_name.status_code == 200
     assert get_by_name.json()["data"] == []
 
@@ -456,9 +417,7 @@ def test_download_positive(client_app_main):
 
 
 @patch("assets.utils.common_utils.requests.post")
-def test_download_positive_originals(
-    gotenberg, pdf_file_bytes, client_app_main
-):
+def test_download_positive_originals(gotenberg, pdf_file_bytes, client_app_main):
     response = Response()
     response._content = pdf_file_bytes
     gotenberg.return_value = response
@@ -474,9 +433,7 @@ def test_download_positive_originals(
         assert res_upload.status_code == 201
         assert res_upload.json()[0]["status"]
 
-        res_download = client_app_main.get(
-            f"/download?file_id={id_}&original=true"
-        )
+        res_download = client_app_main.get(f"/download?file_id={id_}&original=true")
         assert res_download.status_code == 200
 
 
@@ -504,9 +461,7 @@ def test_count_changing(client_app_main):
     count_body = {
         "filters": [{"field": "name", "operator": "eq", "value": dataset_name}]
     }
-    res_count = client_app_main.post(
-        "/datasets/search", data=json.dumps(count_body)
-    )
+    res_count = client_app_main.post("/datasets/search", data=json.dumps(count_body))
     assert res_count.json()["data"][0]["count"] == 1
 
     id_ = res_upload.json()[0]["id"]

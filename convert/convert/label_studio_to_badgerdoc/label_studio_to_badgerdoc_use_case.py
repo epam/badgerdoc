@@ -7,10 +7,6 @@ from uuid import uuid4
 import requests
 from botocore.client import BaseClient
 from botocore.exceptions import ClientError
-from fastapi import HTTPException, status
-from fastapi.encoders import jsonable_encoder
-from tenant_dependency import TenantData
-
 from convert.config import DEFAULT_PAGE_BORDER_OFFSET, settings
 from convert.label_studio_to_badgerdoc.badgerdoc_format.annotation_converter import (
     AnnotationConverter,
@@ -24,13 +20,19 @@ from convert.label_studio_to_badgerdoc.badgerdoc_format.pdf_renderer import (
 from convert.label_studio_to_badgerdoc.badgerdoc_format.plain_text_converter import (
     TextToBadgerdocTokensConverter,
 )
-from convert.label_studio_to_badgerdoc.models import BadgerdocToken, DocumentLink
+from convert.label_studio_to_badgerdoc.models import (
+    BadgerdocToken,
+    DocumentLink,
+)
 from convert.label_studio_to_badgerdoc.models.label_studio_models import (
     LabelStudioModel,
     S3Path,
     ValidationType,
 )
 from convert.logger import get_logger
+from fastapi import HTTPException, status
+from fastapi.encoders import jsonable_encoder
+from tenant_dependency import TenantData
 
 LOGGER = get_logger(__file__)
 LOGGER.setLevel("DEBUG")
@@ -98,9 +100,7 @@ class LabelStudioToBDConvertUseCase:
         self, label_studio_format: LabelStudioModel
     ) -> List[DocumentLink]:
         return [
-            DocumentLink(
-                to=relation.to, category=relation.category, type=relation.type
-            )
+            DocumentLink(to=relation.to, category=relation.category, type=relation.type)
             for relation in label_studio_format.__root__[0].meta.relations
         ]
 
@@ -126,19 +126,17 @@ class LabelStudioToBDConvertUseCase:
         self.badgerdoc_format.convert_from_labelstudio(label_studio_format)
         LOGGER.debug("Tokens and annotations are converted")
         file_id_in_assets = self.upload_output_pdf_to_s3()
-        annotation_job_id_created = (
-            self.import_annotations_to_annotation_microservice(
-                file_id_in_assets=file_id_in_assets,
-                owner=self.token_data.user_id,
-                validation_type=self.validation_type,
-                deadline=self.deadline,
-                extensive_coverage=self.extensive_coverage,
-                annotators=self.annotators,
-                validators=self.validators,
-                document_labels=document_labels,
-                categories_to_taxonomy_mapping=categories_to_taxonomy_mapping,
-                document_links=document_links,
-            )
+        annotation_job_id_created = self.import_annotations_to_annotation_microservice(
+            file_id_in_assets=file_id_in_assets,
+            owner=self.token_data.user_id,
+            validation_type=self.validation_type,
+            deadline=self.deadline,
+            extensive_coverage=self.extensive_coverage,
+            annotators=self.annotators,
+            validators=self.validators,
+            document_labels=document_labels,
+            categories_to_taxonomy_mapping=categories_to_taxonomy_mapping,
+            document_links=document_links,
         )
         self.upload_badgerdoc_annotations_and_tokens_to_s3(
             annotation_job_id_created, file_id_in_assets
@@ -150,9 +148,7 @@ class LabelStudioToBDConvertUseCase:
         s3_input_annotation: S3Path,
     ) -> LabelStudioModel:
         with tempfile.TemporaryDirectory() as tmp_dirname:
-            input_file = (
-                Path(tmp_dirname) / Path(s3_input_annotation.path).name
-            )
+            input_file = Path(tmp_dirname) / Path(s3_input_annotation.path).name
 
             try:
                 self.s3_client.download_file(
@@ -174,9 +170,7 @@ class LabelStudioToBDConvertUseCase:
             return LabelStudioModel.parse_file(input_file)
 
     def get_output_tokens_path(self, file_id_in_assets: int) -> str:
-        return (
-            f"files/{file_id_in_assets}/ocr/{self.converted_tokens_filename}"
-        )
+        return f"files/{file_id_in_assets}/ocr/{self.converted_tokens_filename}"
 
     def get_output_pdf_path(self, file_id_in_assets: int) -> str:
         return f"files/{file_id_in_assets}/{file_id_in_assets}.pdf"
@@ -202,9 +196,7 @@ class LabelStudioToBDConvertUseCase:
             )
             request_to_post_assets.raise_for_status()
         except requests.exceptions.RequestException as e:
-            LOGGER.exception(
-                "Failed request to 'assets' to post converted pdf-file"
-            )
+            LOGGER.exception("Failed request to 'assets' to post converted pdf-file")
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail="Failed request to 'assets' to post converted pdf-file",
@@ -216,9 +208,7 @@ class LabelStudioToBDConvertUseCase:
             pdf_path = tmp_dirname / Path(self.output_pdf_filename)
             self.badgerdoc_format.export_pdf(pdf_path)
 
-            file_id_in_assets = self.make_upload_file_request_to_assets(
-                pdf_path
-            )
+            file_id_in_assets = self.make_upload_file_request_to_assets(pdf_path)
             return file_id_in_assets
 
     def upload_badgerdoc_annotations_and_tokens_to_s3(
@@ -227,13 +217,9 @@ class LabelStudioToBDConvertUseCase:
         with tempfile.TemporaryDirectory() as tmp_dirname:
             tmp_dirname = Path(tmp_dirname)
 
-            s3_output_tokens_path = self.get_output_tokens_path(
-                file_id_in_assets
-            )
+            s3_output_tokens_path = self.get_output_tokens_path(file_id_in_assets)
 
-            badgerdoc_tokens_path = tmp_dirname / Path(
-                self.badgerdoc_tokens_filename
-            )
+            badgerdoc_tokens_path = tmp_dirname / Path(self.badgerdoc_tokens_filename)
             self.badgerdoc_format.export_tokens(badgerdoc_tokens_path)
             self.s3_client.upload_file(
                 str(badgerdoc_tokens_path),
@@ -244,9 +230,7 @@ class LabelStudioToBDConvertUseCase:
             badgerdoc_annotations_path = tmp_dirname / Path(
                 self.badgerdoc_annotations_filename
             )
-            self.badgerdoc_format.export_annotations(
-                badgerdoc_annotations_path
-            )
+            self.badgerdoc_format.export_annotations(badgerdoc_annotations_path)
             s3_output_annotations_path = self.get_output_annotations_path(
                 importjob_id_created, file_id_in_assets
             )
@@ -311,13 +295,9 @@ class LabelStudioToBDConvertUseCase:
             "validators": validators,
         }
         if deadline:
-            post_annotation_job_body.update(
-                {"deadline": jsonable_encoder(deadline)}
-            )
+            post_annotation_job_body.update({"deadline": jsonable_encoder(deadline)})
         if extensive_coverage is not None:
-            post_annotation_job_body.update(
-                {"extensive_coverage": extensive_coverage}
-            )
+            post_annotation_job_body.update({"extensive_coverage": extensive_coverage})
         LOGGER.debug(
             "Making a request to create an Annotation Job in 'jobs' to url: %s with request body: %s",
             post_annotation_job_url,
@@ -344,9 +324,7 @@ class LabelStudioToBDConvertUseCase:
         )
         return request_to_post_annotation_job.json()["id"]
 
-    def get_categories_of_links(
-        self, pages_objs: List[BadgerdocToken]
-    ) -> List[str]:
+    def get_categories_of_links(self, pages_objs: List[BadgerdocToken]) -> List[str]:
         result = []
         for pages_obj in pages_objs:
             for link in pages_obj.links:
@@ -356,9 +334,7 @@ class LabelStudioToBDConvertUseCase:
 
     def get_box_and_link_categories(self) -> List[str]:
         pages_objs = self.badgerdoc_format.badgerdoc_annotation.objs
-        categories_of_type_box = {
-            pages_obj.category for pages_obj in pages_objs
-        }
+        categories_of_type_box = {pages_obj.category for pages_obj in pages_objs}
         categories_of_type_link = self.get_categories_of_links(pages_objs)
         return [*categories_of_type_box, *categories_of_type_link]
 
@@ -380,9 +356,7 @@ class LabelStudioToBDConvertUseCase:
             "failed_validation_pages": [],
             "similar_revisions": [],  # TODO: 'simial_revisions' will be replaced with 'links' with unknown format
             "categories": list(document_labels),
-            "links_json": [
-                document_link.dict() for document_link in document_links
-            ],
+            "links_json": [document_link.dict() for document_link in document_links],
         }
         LOGGER.debug(
             "Making request to annotation to post annotations to url: %s with request body: %s",

@@ -14,9 +14,7 @@ def test_get_unit_by_id(testing_session, testing_unit_instance):
     testing_session.add(testing_unit_instance)
     testing_session.flush()
     testing_session.commit()
-    instance = service.get_unit_by_id(
-        testing_session, testing_unit_instance.id
-    )
+    instance = service.get_unit_by_id(testing_session, testing_unit_instance.id)
 
     assert isinstance(instance, models.Unit)
     assert instance.id == testing_unit_instance.id

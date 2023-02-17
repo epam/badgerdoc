@@ -45,8 +45,6 @@ from datetime import datetime
 from typing import Dict, Iterable, List, Optional, Set, Tuple, Union
 from uuid import UUID
 
-from sqlalchemy.orm import Session
-
 from annotation.jobs import create_user, read_user
 from annotation.microservice_communication.assets_communication import (
     FilesForDistribution,
@@ -54,6 +52,7 @@ from annotation.microservice_communication.assets_communication import (
 from annotation.models import File, User
 from annotation.schemas import TaskStatusEnumSchema, ValidationSchema
 from annotation.tasks import create_tasks as create_db_tasks
+from sqlalchemy.orm import Session
 
 MAX_PAGES = 50
 
@@ -100,12 +99,8 @@ def distribute(
     db.flush()
 
     annotated_files_pages = {}  # no pages distributed for annotation yet
-    annotators = [
-        x.__dict__ for x in annotators if x.default_load  # type: ignore
-    ]
-    validators = [
-        x.__dict__ for x in validators if x.default_load  # type: ignore
-    ]
+    annotators = [x.__dict__ for x in annotators if x.default_load]  # type: ignore
+    validators = [x.__dict__ for x in validators if x.default_load]  # type: ignore
     if annotators:
         if (
             validation_type == ValidationSchema.extensive_coverage
@@ -137,9 +132,7 @@ def distribute(
         tasks.extend(annotation_tasks)
         if validation_type == ValidationSchema.cross:
             annotated_files_pages = find_annotated_pages(tasks)
-    job_validators = choose_validators_users(
-        validation_type, annotators, validators
-    )
+    job_validators = choose_validators_users(validation_type, annotators, validators)
     if job_validators:
         validation_tasks = distribute_tasks(
             annotated_files_pages,
@@ -201,9 +194,7 @@ def distribute_tasks_extensively(
                 user_can_take_pages = min(len(pages), user_can_take_pages)
                 pages_not_seen_by_user = sorted(
                     set(pages).difference(
-                        users_seen_pages[annotators[0]["user_id"]][
-                            file["file_id"]
-                        ]
+                        users_seen_pages[annotators[0]["user_id"]][file["file_id"]]
                     )
                 )
 
@@ -223,9 +214,9 @@ def distribute_tasks_extensively(
                         "deadline": deadline,
                     }
                 )
-                users_seen_pages[annotators[0]["user_id"]][
-                    file["file_id"]
-                ].update(set(pages_for_user))
+                users_seen_pages[annotators[0]["user_id"]][file["file_id"]].update(
+                    set(pages_for_user)
+                )
                 pages = sorted(set(pages).difference(set(pages_for_user)))
                 annotators[0]["pages_number"] -= len(pages_for_user)
                 if annotators[0]["pages_number"] == 0:
@@ -360,9 +351,7 @@ def find_users_share_loads(
     """
     quantity = len(users)
     for user in users:
-        average_pages_deviation = (
-            users_overall_load - user["overall_load"] * quantity
-        )
+        average_pages_deviation = users_overall_load - user["overall_load"] * quantity
         average_deviation_coefficient = (
             average_pages_deviation / (users_overall_load * quantity)
             if users_overall_load
@@ -371,15 +360,11 @@ def find_users_share_loads(
         pages_deviation = average_deviation_coefficient * average_job_pages
         user_deviation_pages = average_job_pages + pages_deviation
         user["share_load"] = (
-            user_deviation_pages / all_job_pages_sum
-            if all_job_pages_sum
-            else 1
+            user_deviation_pages / all_job_pages_sum if all_job_pages_sum else 1
         )
         default_load_part = user["default_load"] / users_default_load
         user["share_load"] *= default_load_part
-    all_annotators_share_load = sum(
-        annotator["share_load"] for annotator in users
-    )
+    all_annotators_share_load = sum(annotator["share_load"] for annotator in users)
     return all_annotators_share_load
 
 
@@ -404,9 +389,7 @@ def distribute_whole_files(
         files_to_distribute = [
             item for item in files if item["file_id"] not in annotated_files
         ]
-        files_for_task = find_equal_files(
-            files_to_distribute, user["pages_number"]
-        )
+        files_for_task = find_equal_files(files_to_distribute, user["pages_number"])
         create_tasks(
             tasks,
             files_for_task,
@@ -416,9 +399,7 @@ def distribute_whole_files(
             tasks_status,
             deadline,
         )
-        files_for_task = find_small_files(
-            files_to_distribute, user["pages_number"]
-        )
+        files_for_task = find_small_files(files_to_distribute, user["pages_number"])
         create_tasks(
             tasks,
             files_for_task,
@@ -447,8 +428,7 @@ def find_files_for_task(
         file_for_task = next(
             x
             for x in files
-            if x["pages_number"] == pages
-            and x["file_id"] not in distributed_files
+            if x["pages_number"] == pages and x["file_id"] not in distributed_files
         )
         files_for_task.append(file_for_task)
         distributed_files.append(file_for_task["file_id"])
@@ -592,9 +572,7 @@ def distribute_annotation_partial_files(
             annotators[0]["pages_number"] -= 1
         if pages:
             full_tasks = len(pages) // MAX_PAGES
-            tasks_number = (
-                full_tasks + 1 if len(pages) % MAX_PAGES else full_tasks
-            )
+            tasks_number = full_tasks + 1 if len(pages) % MAX_PAGES else full_tasks
             for times in range(tasks_number):
                 annotation_tasks.append(
                     {
@@ -657,9 +635,7 @@ def filter_validation_files_pages(
                     if validator["pages_number"] > 0
                     else 0
                 )
-        files_all_pages[file_id].difference_update(
-            files_for_validation[file_id]
-        )
+        files_all_pages[file_id].difference_update(files_for_validation[file_id])
     return files_for_validation
 
 
@@ -689,9 +665,7 @@ def create_partial_validation_tasks(
         for file_id, pages in validation_files_pages.items():
             if pages:
                 full_tasks = len(pages) // MAX_PAGES
-                tasks_number = (
-                    full_tasks + 1 if len(pages) % MAX_PAGES else full_tasks
-                )
+                tasks_number = full_tasks + 1 if len(pages) % MAX_PAGES else full_tasks
                 for times in range(tasks_number):
                     validation_tasks.append(
                         {
@@ -811,9 +785,7 @@ def check_file_distribution(
         add_unassigned_file(files_to_distribute, file_id, pages_number)
     else:
         # file was partially distributed
-        unassigned_pages = find_unassigned_pages(
-            distributed_pages, pages_number
-        )
+        unassigned_pages = find_unassigned_pages(distributed_pages, pages_number)
         add_unassigned_file(
             files_to_distribute,
             file_id,
@@ -822,17 +794,11 @@ def check_file_distribution(
         )
 
 
-def find_unassigned_pages(
-    assigned_pages: list, pages_amount: int
-) -> List[int]:
+def find_unassigned_pages(assigned_pages: list, pages_amount: int) -> List[int]:
     """
     Get all pages, that were not distributed.
     """
-    return [
-        page
-        for page in range(1, pages_amount + 1)
-        if page not in assigned_pages
-    ]
+    return [page for page in range(1, pages_amount + 1) if page not in assigned_pages]
 
 
 def add_unassigned_file(

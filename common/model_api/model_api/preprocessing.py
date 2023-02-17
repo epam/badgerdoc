@@ -32,9 +32,7 @@ def crop_page_images(
         figure_image: Image = pdf_page.to_image(
             resolution=calculate_dpi(figure_bbox)
         ).original.crop(figure_bbox)
-        image_path = (
-            output_path / f"{obj.idx}.{settings.training_image_format}"
-        )
+        image_path = output_path / f"{obj.idx}.{settings.training_image_format}"
         figure_image.save(str(image_path))
         yield image_path
 
@@ -47,12 +45,8 @@ def convert_figure_bbox_in_points(
     page_width_inch = page_pdf_bbox[3] - page_pdf_bbox[1]
     page_height_inch = page_pdf_bbox[2] - page_pdf_bbox[0]
     try:
-        figure_to_page_w_points = page_width_inch / Decimal(
-            page_dod_size.width
-        )
-        figure_to_page_h_points = page_height_inch / Decimal(
-            page_dod_size.height
-        )
+        figure_to_page_w_points = page_width_inch / Decimal(page_dod_size.width)
+        figure_to_page_h_points = page_height_inch / Decimal(page_dod_size.height)
     except ZeroDivisionError as err:
         logger.error("Page size from DOD is wrong! %s", page_dod_size)
         raise err

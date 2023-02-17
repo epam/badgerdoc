@@ -33,18 +33,14 @@ class TaskStatusSchema(BaseModel):
 
 class ManualAnnotationTaskInSchema(BaseModel):
     file_id: int = Field(..., example=2)
-    pages: Set[int] = Field(
-        ..., ge=1, min_items=1, example={1, 2, 3}
-    )  # type: ignore
+    pages: Set[int] = Field(..., ge=1, min_items=1, example={1, 2, 3})  # type: ignore
     job_id: int = Field(..., example=3)
     user_id: UUID = Field(..., example="4e9c5839-f63b-49c8-b918-614b87813e53")
     is_validation: bool = Field(default=False, example=False)
     deadline: Optional[datetime] = Field(None, example="2021-10-19 01:01:01")
 
 
-class ManualAnnotationTaskSchema(
-    ManualAnnotationTaskInSchema, TaskStatusSchema
-):
+class ManualAnnotationTaskSchema(ManualAnnotationTaskInSchema, TaskStatusSchema):
     class Config:
         orm_mode = True
 
@@ -60,9 +56,7 @@ class UserSchema(BaseModel):
 
 
 class ExpandedManualAnnotationTaskSchema(TaskStatusSchema):
-    pages: Set[int] = Field(
-        ..., ge=1, min_items=1, example={1, 2, 3}
-    )  # type: ignore
+    pages: Set[int] = Field(..., ge=1, min_items=1, example={1, 2, 3})  # type: ignore
     user: UserSchema
     is_validation: bool = Field(default=False, example=False)
     deadline: Optional[datetime] = Field(None, example="2021-10-19 01:01:01")
@@ -93,8 +87,7 @@ class TaskInfoSchema(BaseModel):
         files, datasets = values.get("files"), values.get("datasets")
         if not files and not datasets:
             raise ValueError(
-                "Fields files and datasets should "
-                "not be empty at the same time."
+                "Fields files and datasets should " "not be empty at the same time."
             )
         return values
 
@@ -117,9 +110,7 @@ class ValidationEndSchema(BaseModel):
 
 class TaskPatchSchema(BaseModel):
     file_id: Optional[int] = Field(None, example=2)
-    pages: Optional[Set[int]] = Field(
-        None, ge=1, min_items=1, example={1, 2, 3}
-    )
+    pages: Optional[Set[int]] = Field(None, ge=1, min_items=1, example={1, 2, 3})
     job_id: Optional[int] = Field(None, example=3)
     user_id: Optional[UUID] = Field(
         None, example="4e9c5839-f63b-49c8-b918-614b87813e53"
@@ -145,9 +136,7 @@ class AnnotationStatisticsResponseSchema(AnnotationStatisticsInputSchema):
 
 
 class AgreementScoreServiceInput(BaseModel):
-    annotator_id: UUID = Field(
-        ..., example="f0474853-f733-41c0-b897-90b788b822e3"
-    )
+    annotator_id: UUID = Field(..., example="f0474853-f733-41c0-b897-90b788b822e3")
     job_id: int = Field(..., example=1)
     task_id: int = Field(..., example=1)
     s3_file_path: str = Field(..., example="files/1/1.pdf")
@@ -157,9 +146,7 @@ class AgreementScoreServiceInput(BaseModel):
 
 
 class ExportTaskStatsInput(BaseModel):
-    user_ids: List[UUID] = Field(
-        ..., example=["e20af190-0f05-4cd8-ad51-811bfb19ad71"]
-    )
+    user_ids: List[UUID] = Field(..., example=["e20af190-0f05-4cd8-ad51-811bfb19ad71"])
     date_from: datetime = Field(..., example="2020-12-20 01:01:01")
     date_to: Optional[datetime] = Field(None, example="2025-12-20 01:01:01")
 
@@ -170,9 +157,7 @@ class ResponseScore(BaseModel):
 
 
 class AgreementScoreServiceResponse(BaseModel):
-    annotator_id: UUID = Field(
-        ..., example="f0474853-f733-41c0-b897-90b788b822e3"
-    )
+    annotator_id: UUID = Field(..., example="f0474853-f733-41c0-b897-90b788b822e3")
     job_id: int = Field(..., example=1)
     task_id: int = Field(..., example=1)
     agreement_score: List[ResponseScore] = Field(...)

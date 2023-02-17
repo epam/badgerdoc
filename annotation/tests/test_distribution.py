@@ -944,9 +944,7 @@ EXPECTED_TASKS_LIMIT_50 = [
         ),
     ],
 )
-def test_distribute_annotation_limit_50_pages(
-    files, annotators, expected_tasks
-):
+def test_distribute_annotation_limit_50_pages(files, annotators, expected_tasks):
     assert (
         distribute_tasks(
             {},
@@ -1003,9 +1001,7 @@ def test_distribute_annotation_limit_50_pages(
     ],
 )
 @pytest.mark.unittest
-def test_distribution_with_extensive_coverage(
-    files, annotators, extensive_coverage
-):
+def test_distribution_with_extensive_coverage(files, annotators, extensive_coverage):
     tasks = distribute_tasks_extensively(
         files=files,
         users=annotators,
@@ -1075,9 +1071,7 @@ def test_add_unassigned_file(
     unassigned_pages,
     expected_result,
 ):
-    add_unassigned_file(
-        files_to_distribute, file_id, pages_number, unassigned_pages
-    )
+    add_unassigned_file(files_to_distribute, file_id, pages_number, unassigned_pages)
     assert files_to_distribute == expected_result
 
 

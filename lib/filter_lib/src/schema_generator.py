@@ -68,9 +68,7 @@ class BaseSearch(BaseModel):
     pagination: Optional[Pagination]
 
     @root_validator
-    def root_validate(  # pylint: disable=no-self-argument
-        cls, values: Any
-    ) -> Any:
+    def root_validate(cls, values: Any) -> Any:  # pylint: disable=no-self-argument
         if not values.get("pagination"):
             values["pagination"] = Pagination(page_num=1, page_size=15)
         return values
@@ -92,9 +90,7 @@ class Page(GenericModel, Generic[TypeC], BaseModel):
     data: Sequence[TypeC]
 
     @validator("data")
-    def custom_validator(  # pylint: disable=no-self-argument
-        cls, v: Any
-    ) -> Any:
+    def custom_validator(cls, v: Any) -> Any:  # pylint: disable=no-self-argument
         """Custom validator applied to data in case of using 'distinct'
         statement and getting result as 'sqlalchemy.util._collections.result'
         but not as model class object

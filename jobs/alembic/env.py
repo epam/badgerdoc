@@ -28,15 +28,11 @@ target_metadata = Base.metadata
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 
-main_database_url = os.environ.get(
-    "POSTGRESQL_JOBMANAGER_DATABASE_URI"
-)
+main_database_url = os.environ.get("POSTGRESQL_JOBMANAGER_DATABASE_URI")
 if not os.getenv("USE_TEST_DB"):
     config.set_main_option("sqlalchemy.url", main_database_url)
 else:
-    config.set_main_option(
-        "sqlalchemy.url", get_test_db_url(main_database_url)
-    )
+    config.set_main_option("sqlalchemy.url", get_test_db_url(main_database_url))
 
 
 def run_migrations_offline():
@@ -78,9 +74,7 @@ def run_migrations_online():
     )
 
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection, target_metadata=target_metadata
-        )
+        context.configure(connection=connection, target_metadata=target_metadata)
 
         with context.begin_transaction():
             context.run_migrations()

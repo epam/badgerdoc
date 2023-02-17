@@ -13,9 +13,7 @@ from ..models import BadgerdocToken, Offset, Page, PageSize
 
 
 def generate_chunks(obj_to_split: List[str], size: int) -> List[List[str]]:
-    return [
-        obj_to_split[i : i + size] for i in range(0, len(obj_to_split), size)
-    ]
+    return [obj_to_split[i : i + size] for i in range(0, len(obj_to_split), size)]
 
 
 class TextWrapper:

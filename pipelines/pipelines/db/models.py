@@ -15,9 +15,7 @@ class Pipeline(Base):  # type: ignore
     __tablename__ = "pipeline"
 
     id = sa.Column(sa.Integer, primary_key=True)
-    name = sa.Column(
-        sa.String(50), nullable=False, default=lambda: str(uuid.uuid4())
-    )
+    name = sa.Column(sa.String(50), nullable=False, default=lambda: str(uuid.uuid4()))
     version = sa.Column(sa.Integer, nullable=True)
     original_pipeline_id = sa.Column(sa.Integer, nullable=True)
     is_latest = sa.Column(sa.Boolean, default=True, nullable=True)
@@ -61,9 +59,7 @@ class PipelineExecutionTask(Base):  # type: ignore
     __tablename__ = "pipeline_execution_task"
 
     id = sa.Column(sa.Integer, primary_key=True)
-    name = sa.Column(
-        sa.String(50), nullable=False, default=lambda: str(uuid.uuid4())
-    )
+    name = sa.Column(sa.String(50), nullable=False, default=lambda: str(uuid.uuid4()))
     date = sa.Column(sa.DateTime, nullable=False, default=datetime.utcnow)
     pipeline_id = sa.Column(
         sa.Integer,
@@ -112,9 +108,7 @@ class ExecutionStep(Base):  # type: ignore
         index=True,
         nullable=False,
     )
-    name = sa.Column(
-        sa.String(50), nullable=False, default=lambda: str(uuid.uuid4())
-    )
+    name = sa.Column(sa.String(50), nullable=False, default=lambda: str(uuid.uuid4()))
     step_id = sa.Column(UUID())
     parent_step = sa.Column(UUID(), nullable=True)
     date = sa.Column(
@@ -155,9 +149,7 @@ class ExecutorHeartbeat(Base):  # type: ignore
     __tablename__ = "heartbeat"
 
     id = sa.Column(UUID(), primary_key=True, default=uuid.uuid4)
-    last_heartbeat = sa.Column(
-        sa.DateTime, nullable=False, default=datetime.utcnow
-    )
+    last_heartbeat = sa.Column(sa.DateTime, nullable=False, default=datetime.utcnow)
 
     def __repr__(self) -> str:
         return (

@@ -253,9 +253,7 @@ def use_temp_env_var():
 
 @pytest.fixture(scope="module")
 def db_session(setup_test_db):
-    session_local = sessionmaker(
-        autocommit=False, autoflush=False, bind=engine
-    )
+    session_local = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     session = session_local()
 
     yield session
@@ -451,9 +449,7 @@ def prepare_moto_s3_for_get_revisions():
 
 @pytest.fixture(name="expected_latest_revisions", scope="module")
 def load_expected_latest_revisions():
-    with open(
-        "tests/fixtures/expected_latest_revisions.json", "r"
-    ) as json_file:
+    with open("tests/fixtures/expected_latest_revisions.json", "r") as json_file:
         json_data = json.load(json_file)
     return json_data
 
@@ -592,16 +588,12 @@ def prepare_db_for_finish_task_check_deleted_annotators(db_session):
 
 @pytest.fixture
 def prepare_db_categories_same_names(db_session):
-    category_tenant = Category(
-        id="1", tenant=TEST_TENANT, name="Title", type="box"
-    )
+    category_tenant = Category(id="1", tenant=TEST_TENANT, name="Title", type="box")
     category_common = Category(id="2", tenant=None, name="Table", type="box")
     category_other_tenant = Category(
         id="3", tenant="other_tenant", name="Title", type="box"
     )
-    add_objects(
-        db_session, (category_tenant, category_common, category_other_tenant)
-    )
+    add_objects(db_session, (category_tenant, category_common, category_other_tenant))
 
     yield db_session
 
@@ -610,9 +602,7 @@ def prepare_db_categories_same_names(db_session):
 
 @pytest.fixture
 def prepare_db_categories_different_names(db_session):
-    category_tenant = Category(
-        id="1", tenant=TEST_TENANT, name="Title", type="box"
-    )
+    category_tenant = Category(id="1", tenant=TEST_TENANT, name="Title", type="box")
     category_common = Category(id="2", tenant=None, name="Table", type="box")
     category_other_tenant = Category(
         id="3", tenant="other_tenant", name="Header", type="box"
@@ -739,10 +729,7 @@ def prepare_db_for_cr_task(db_session):
 @pytest.fixture(scope="module")
 def prepare_db_update_stats(prepare_db_for_cr_task):
     for task_id in [
-        id_
-        for (id_,) in prepare_db_for_cr_task.query(
-            ManualAnnotationTask.id
-        ).all()
+        id_ for (id_,) in prepare_db_for_cr_task.query(ManualAnnotationTask.id).all()
     ]:
         add_task_stats_record(
             db=prepare_db_for_cr_task,
@@ -757,10 +744,7 @@ def prepare_db_update_stats(prepare_db_for_cr_task):
 @pytest.fixture(scope="module")
 def prepare_db_update_stats_already_updated(prepare_db_update_stats):
     for task_id in [
-        id_
-        for (id_,) in prepare_db_update_stats.query(
-            ManualAnnotationTask.id
-        ).all()
+        id_ for (id_,) in prepare_db_update_stats.query(ManualAnnotationTask.id).all()
     ]:
         add_task_stats_record(
             db=prepare_db_update_stats,
@@ -868,9 +852,7 @@ def prepare_db_for_get_next_task(db_session):
 @pytest.fixture(scope="function")
 def prepare_db_for_batch_delete_tasks(db_session):
     add_objects(db_session, [DELETE_BATCH_TASKS_JOB])
-    add_objects(
-        db_session, (DELETE_BATCH_TASKS_FILE, DELETE_BATCH_TASKS_ANNOTATOR)
-    )
+    add_objects(db_session, (DELETE_BATCH_TASKS_FILE, DELETE_BATCH_TASKS_ANNOTATOR))
     db_session.bulk_insert_mappings(ManualAnnotationTask, DIFF_STATUSES_TASKS)
     db_session.commit()
 
@@ -885,10 +867,7 @@ def minio_particular_revision():
         s3_resource = boto3.resource("s3", region_name=DEFAULT_REGION)
         s3_resource.create_bucket(Bucket=TEST_TENANT)
 
-        path = (
-            f"{S3_START_PATH}/{PART_REV_DOC.job_id}/"
-            f"{PART_REV_DOC.file_id}/"
-        )
+        path = f"{S3_START_PATH}/{PART_REV_DOC.job_id}/" f"{PART_REV_DOC.file_id}/"
 
         s3_resource.Bucket(TEST_TENANT).put_object(
             Body=json.dumps(PART_REV_PAGES[0]),
@@ -1104,9 +1083,7 @@ def db_get_unassigned_files(db_session):
 @pytest.fixture
 def db_validation_end(db_session):
     add_objects(db_session, [validation.JOBS[0]])
-    add_objects(
-        db_session, validation.FILES + validation.TASKS + validation.DOCS
-    )
+    add_objects(db_session, validation.FILES + validation.TASKS + validation.DOCS)
     update_annotators_overall_load(db_session, validation.ANNOTATORS)
 
     yield db_session
@@ -1127,9 +1104,9 @@ def prepare_db_find_annotators_for_failed_pages(db_validation_end):
         ManualAnnotationTask.user_id == annotator_for_delete
     ).delete(synchronize_session=False)
     db_validation_end.commit()
-    db_validation_end.query(User).filter(
-        User.user_id == annotator_for_delete
-    ).delete(synchronize_session=False)
+    db_validation_end.query(User).filter(User.user_id == annotator_for_delete).delete(
+        synchronize_session=False
+    )
     db_validation_end.commit()
 
     yield db_validation_end

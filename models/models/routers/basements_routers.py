@@ -9,9 +9,6 @@ from filter_lib import (
     map_request_to_filter,
     paginate,
 )
-from sqlalchemy.orm import Session
-from tenant_dependency import TenantData
-
 from models import crud, schemas
 from models.db import Basement, get_db
 from models.routers import tenant
@@ -21,6 +18,8 @@ from models.utils import (
     get_minio_resource,
     upload_to_object_storage,
 )
+from sqlalchemy.orm import Session
+from tenant_dependency import TenantData
 
 LOGGER = logging.getLogger(name="models")
 
@@ -199,9 +198,7 @@ def upload_files_to_object_storage(
     bucket_name = convert_bucket_name_if_s3prefix(x_current_tenant)
     basement = crud.get_instance(session, Basement, basement_id)
     if not basement:
-        LOGGER.info(
-            "upload_script_to_minio got not existing id %s", basement_id
-        )
+        LOGGER.info("upload_script_to_minio got not existing id %s", basement_id)
         raise HTTPException(status_code=404, detail="Not existing basement")
     try:
         s3_resource = get_minio_resource(tenant=bucket_name)

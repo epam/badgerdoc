@@ -20,9 +20,7 @@ categories_id_seq = sa.Sequence("categories_id_seq")
 
 
 def upgrade():
-    op.drop_constraint(
-        "categories_parent_fkey", "categories", type_="foreignkey"
-    )
+    op.drop_constraint("categories_parent_fkey", "categories", type_="foreignkey")
     op.drop_constraint(
         "association_jobs_categories_category_id_fkey",
         "association_jobs_categories",
@@ -85,18 +83,14 @@ def upgrade():
         new_column_name="parent",
         server_default="null",
     )
-    op.alter_column(
-        "categories", "id_temp", new_column_name="id", nullable=False
-    )
+    op.alter_column("categories", "id_temp", new_column_name="id", nullable=False)
     op.alter_column(
         "association_jobs_categories",
         "category_id_temp",
         new_column_name="category_id",
         nullable=False,
     )
-    op.create_check_constraint(
-        "is_not_self_parent", "categories", "id != parent"
-    )
+    op.create_check_constraint("is_not_self_parent", "categories", "id != parent")
     op.create_index(
         op.f("ix_categories_parent"),
         "categories",
@@ -114,9 +108,7 @@ def check_exist_sequence():
 def clear_tables():
     conn = op.get_bind()
     inspector = Inspector.from_engine(conn)
-    tables = [
-        data[0] for data in inspector.get_sorted_table_and_fkc_names()[-2::-1]
-    ]
+    tables = [data[0] for data in inspector.get_sorted_table_and_fkc_names()[-2::-1]]
     tables.remove("alembic_version")
     for table in tables:
         conn.execute(f"DELETE FROM {table}")
@@ -126,9 +118,7 @@ def downgrade():
     clear_tables()
     if not check_exist_sequence():
         op.execute(sa.schema.CreateSequence(categories_id_seq))
-    op.drop_constraint(
-        "categories_parent_fkey", "categories", type_="foreignkey"
-    )
+    op.drop_constraint("categories_parent_fkey", "categories", type_="foreignkey")
     op.drop_constraint(
         "association_jobs_categories_category_id_fkey",
         "association_jobs_categories",
@@ -185,18 +175,14 @@ def downgrade():
         "parent_temp",
         new_column_name="parent",
     )
-    op.alter_column(
-        "categories", "id_temp", new_column_name="id", nullable=False
-    )
+    op.alter_column("categories", "id_temp", new_column_name="id", nullable=False)
     op.alter_column(
         "association_jobs_categories",
         "category_id_temp",
         new_column_name="category_id",
         nullable=False,
     )
-    op.create_check_constraint(
-        "is_not_self_parent", "categories", "id != parent"
-    )
+    op.create_check_constraint("is_not_self_parent", "categories", "id != parent")
     op.create_index(
         op.f("ix_categories_parent"),
         "categories",

@@ -56,9 +56,7 @@ class AnnotationConverter:
                         badgerdoc_tokens,
                     )
                 for labelstudio_item in annotation.result:
-                    self.process_relations(
-                        badgerdoc_annotations, labelstudio_item
-                    )
+                    self.process_relations(badgerdoc_annotations, labelstudio_item)
         badgerdoc_annotations_practic = AnnotationConverterPractic(
             badgerdoc_annotations, badgerdoc_tokens
         ).convert()
@@ -146,14 +144,9 @@ class AnnotationConverter:
         offset_end: int,
         badgerdoc_tokens: BadgerdocTokensPage,
     ) -> Tuple[List[int], List[float]]:
-        badgerdoc_annotation_token_indexes = list(
-            range(offset_begin, offset_end)
-        )
+        badgerdoc_annotation_token_indexes = list(range(offset_begin, offset_end))
         bbox = self.form_common_bbox(
-            [
-                badgerdoc_tokens.objs[t].bbox
-                for t in badgerdoc_annotation_token_indexes
-            ]
+            [badgerdoc_tokens.objs[t].bbox for t in badgerdoc_annotation_token_indexes]
         )
         return badgerdoc_annotation_token_indexes, bbox
 

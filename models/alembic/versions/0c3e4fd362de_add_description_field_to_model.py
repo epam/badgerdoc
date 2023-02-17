@@ -19,9 +19,7 @@ depends_on = None
 def upgrade():
     op.add_column(
         "model",
-        sa.Column(
-            "description", sa.VARCHAR(), server_default="", nullable=False
-        ),
+        sa.Column("description", sa.VARCHAR(), server_default="", nullable=False),
     )
 
 

@@ -2,11 +2,10 @@ import json
 from typing import Iterator, Optional
 
 import boto3
-from botocore.errorfactory import ClientError
-from elasticsearch import helpers
-
 import search.es as es
 import search.schemas as schemas
+from botocore.errorfactory import ClientError
+from elasticsearch import helpers
 from search.config import settings
 from search.logger import logger
 
@@ -40,8 +39,7 @@ def create_boto3_config():
             "s3 connection is not properly configured "
             "- s3_credentials_provider is not set"
         )
-    logger.info(
-        f"S3_Credentials provider - {settings.s3_credentials_provider}")
+    logger.info(f"S3_Credentials provider - {settings.s3_credentials_provider}")
     return boto3_config
 
 
@@ -89,9 +87,7 @@ def prepare_es_document(
     es_document["category"] = document["category"]
     es_document["bbox"] = document.get("bbox")
     es_document["tokens"] = document.get("tokens")
-    return schemas.pieces.GeomObject.parse_obj(
-        es_document
-    )  # for input data validation
+    return schemas.pieces.GeomObject.parse_obj(es_document)  # for input data validation
 
 
 def extract_manifest_data(
@@ -171,7 +167,5 @@ async def old_pieces_cleaner(
 async def start_harvester(
     tenant: str, job_id: int, file_id: Optional[int] = None
 ) -> None:
-    await helpers.async_bulk(
-        es.ES, old_pieces_cleaner(tenant, job_id, file_id)
-    )
+    await helpers.async_bulk(es.ES, old_pieces_cleaner(tenant, job_id, file_id))
     await helpers.async_bulk(es.ES, harvester(tenant, job_id, file_id))

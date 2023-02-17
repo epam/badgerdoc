@@ -3,7 +3,6 @@ from typing import Any, Dict, List, Optional, Tuple
 import aiohttp
 from elasticsearch import AsyncElasticsearch
 from elasticsearch.exceptions import NotFoundError, RequestError
-
 from search.config import settings
 
 INDEX_SETTINGS = {
@@ -42,14 +41,10 @@ class NoCategory(NoSuchTenant):
     pass
 
 
-async def prepare_index(
-    es_instance: AsyncElasticsearch, index_name: str
-) -> None:
+async def prepare_index(es_instance: AsyncElasticsearch, index_name: str) -> None:
     if not await es_instance.indices.exists(index=index_name):
         try:
-            await es_instance.indices.create(
-                index=index_name, body=INDEX_SETTINGS
-            )
+            await es_instance.indices.create(index=index_name, body=INDEX_SETTINGS)
         except RequestError as exc:
             if exc.error == "resource_already_exists_exception":
                 pass
@@ -135,22 +130,16 @@ async def build_query(
         terms_filter = {"terms": {"category": categories_ids}}
         query["query"]["bool"]["filter"].append(terms_filter)
     for parameter, value in search_parameters.items():
-        query["query"]["bool"]["filter"].append(
-            {"term": {parameter: {"value": value}}}
-        )
+        query["query"]["bool"]["filter"].append({"term": {parameter: {"value": value}}})
     return query
 
 
-async def add_child_categories(
-    category_id: str, tenant: str, token: str
-) -> List[str]:
+async def add_child_categories(category_id: str, tenant: str, token: str) -> List[str]:
     """Helper function which makes GET request into "annotation" service
     endpoint and returns list of provided category_id with ids of all
     subcategories from endpoint's response.
     """
-    child_category_url = (
-        f"{settings.annotation_categories_url}/{category_id}/child"
-    )
+    child_category_url = f"{settings.annotation_categories_url}/{category_id}/child"
     header = {"X-Current-Tenant": tenant, "Authorization": f"Bearer {token}"}
 
     try:

@@ -38,7 +38,5 @@ token_introspection_uri = Template(
     join_paths(_base_uri, _oidc_uri, "token", "introspect")
 )
 identity_providers_uri = Template(
-    join_paths(
-        _base_uri, "admin", _realm_uri, "identity-provider", "instances"
-    )
+    join_paths(_base_uri, "admin", _realm_uri, "identity-provider", "instances")
 )

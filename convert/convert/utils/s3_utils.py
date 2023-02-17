@@ -3,13 +3,16 @@ from typing import Any, List, Optional, Tuple
 
 import boto3
 import urllib3
-from fastapi import HTTPException, status
-
 from convert.config import settings
-from convert.exceptions import BucketError, FileKeyError, UploadLimitExceedError
+from convert.exceptions import (
+    BucketError,
+    FileKeyError,
+    UploadLimitExceedError,
+)
 from convert.logger import get_logger
 from convert.models import coco
 from convert.utils.common_utils import check_uploading_limit
+from fastapi import HTTPException, status
 
 logger = get_logger(__name__)
 
@@ -56,9 +59,7 @@ class S3Manager:
         """
         Checks if required bucket exists in S3
         """
-        all_s3_buckets = [
-            bucket.name for bucket in self.resource.buckets.all()
-        ]
+        all_s3_buckets = [bucket.name for bucket in self.resource.buckets.all()]
         if bucket_s3 not in all_s3_buckets:
             raise BucketError(f"bucket {bucket_s3} does not exist!")
 
@@ -68,9 +69,7 @@ class S3Manager:
         """
         all_files_in_bucket = [
             content["Key"]
-            for content in self.client.list_objects(Bucket=bucket_s3)[
-                "Contents"
-            ]
+            for content in self.client.list_objects(Bucket=bucket_s3)["Contents"]
         ]
         for file_key in files_keys:
             if file_key not in all_files_in_bucket:
@@ -94,9 +93,7 @@ class S3Manager:
             raise urllib3.exceptions.MaxRetryError
 
 
-def s3_download_files(
-    s3: S3Manager, bucket_s3: str, files_keys: List[str]
-) -> None:
+def s3_download_files(s3: S3Manager, bucket_s3: str, files_keys: List[str]) -> None:
     """
     Tue function downloads list of the files from s3 storage
     Args:
@@ -108,9 +105,7 @@ def s3_download_files(
         s3.check_s3(bucket_s3, files_keys)
 
     except (FileKeyError, BucketError) as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
 
     except urllib3.exceptions.MaxRetryError as e:
         raise HTTPException(
@@ -126,9 +121,7 @@ def download_file_from_aws(s3_data: coco.DataS3) -> S3Manager:
     try:
         check_uploading_limit(s3_data.files_keys)
     except UploadLimitExceedError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     s3 = S3Manager(s3_data.aws_access_key_id, s3_data.aws_secret_access_key)
     s3_download_files(s3, s3_data.bucket_s3, s3_data.files_keys)
     return s3

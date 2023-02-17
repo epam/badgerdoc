@@ -5,12 +5,11 @@ from pathlib import Path
 from typing import BinaryIO, Iterator, Union
 
 from botocore.response import StreamingBody
-from paramiko import AutoAddPolicy, SSHClient
-from paramiko.ssh_exception import SSHException
-
 from models.constants import MINIO_ACCESS_KEY, MINIO_HOST, MINIO_SECRET_KEY
 from models.errors import ColabFileUploadError
 from models.schemas import TrainingCredentials
+from paramiko import AutoAddPolicy, SSHClient
+from paramiko.ssh_exception import SSHException
 
 LOGGER = logging.getLogger(name="models")
 COLAB_TRAINING_DIRECTORY = "/content/training/"
@@ -98,9 +97,7 @@ def local_mount_colab_drive(
     )
 
 
-def sync_colab_with_minio(
-    temp_directory: str, tenant: str, training_id: int
-) -> None:
+def sync_colab_with_minio(temp_directory: str, tenant: str, training_id: int) -> None:
     syn_command = (
         f"aws --endpoint-url http://{MINIO_HOST} s3 sync {temp_directory} "
         f"s3://{tenant}/trainings/{training_id}/results/ --delete"

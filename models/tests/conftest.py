@@ -61,9 +61,7 @@ def overrided_token_client(client, db_session) -> TestClient:
 def moto_minio() -> boto3.resource:
     """Creates and returns moto resource for s3 (minio) with test Bucket."""
     with mock_s3():
-        minio_resource = boto3.resource(
-            "s3", config=Config(signature_version="s3v4")
-        )
+        minio_resource = boto3.resource("s3", config=Config(signature_version="s3v4"))
         minio_resource.create_bucket(Bucket=TEST_TENANT)
 
         yield minio_resource
@@ -156,9 +154,7 @@ def setup_test_db(use_temp_env_var):
 @pytest.fixture(scope="module")
 def db_session(setup_test_db) -> Session:
     """yields SQLAlchemy session"""
-    session_local = sessionmaker(
-        autocommit=False, autoflush=False, bind=engine
-    )
+    session_local = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     session = session_local()
 
     yield session

@@ -3,10 +3,6 @@ from datetime import datetime
 from typing import Dict, List, Optional, Set, Union
 from uuid import UUID
 
-from fastapi import HTTPException
-from sqlalchemy import and_, asc, null, or_
-from sqlalchemy.orm import Session
-
 from annotation.distribution import prepare_response
 from annotation.microservice_communication.assets_communication import (
     FilesForDistribution,
@@ -17,6 +13,9 @@ from annotation.schemas import (
     TaskStatusEnumSchema,
     ValidationSchema,
 )
+from fastapi import HTTPException
+from sqlalchemy import and_, asc, null, or_
+from sqlalchemy.orm import Session
 
 from .services import create_tasks
 
@@ -117,9 +116,7 @@ def create_tasks_initial_users(
     Create validation tasks with 'pending' status automatically.
     """
     # revisions for job_id and file_id, made by annotators
-    annotators_revisions = get_annotators_revisions(
-        db, file_id, job.job_id, task_id
-    )
+    annotators_revisions = get_annotators_revisions(db, file_id, job.job_id, task_id)
     # find annotators, who made annotation for each page
     initial_annotators = find_initial_annotators(annotators_revisions, failed)
     # create tasks for annotation with 'ready' status
@@ -157,12 +154,8 @@ def create_annotation_tasks_specific_user(
     Create validation tasks with 'pending' status automatically.
     """
     # check, that string is valid uuid
-    annotation_user_for_failed_pages = check_uuid(
-        annotation_user_for_failed_pages
-    )
-    check_user_job_action(
-        db, annotation_user_for_failed_pages, job.job_id, False
-    )
+    annotation_user_for_failed_pages = check_uuid(annotation_user_for_failed_pages)
+    check_user_job_action(db, annotation_user_for_failed_pages, job.job_id, False)
     # create annotation task for specific user with 'ready' status
     # and tasks for validation with 'pending' status
     prepare_response(
@@ -223,9 +216,7 @@ def _find_annotators_for_failed_pages(
 
     for revision in revisions:
         rev_pages = set(map(int, revision.pages))  # take unique pages
-        for page in rev_pages.intersection(
-            pages
-        ):  # take only failed by val pages
+        for page in rev_pages.intersection(pages):  # take only failed by val pages
             pages_user[page] = revision.user
 
     if None in pages_user.values():
@@ -382,9 +373,7 @@ def create_validation_tasks_specific_user(
         validation_user_for_reannotated_pages
     )
 
-    check_user_job_action(
-        db, validation_user_for_reannotated_pages, job.job_id, False
-    )
+    check_user_job_action(db, validation_user_for_reannotated_pages, job.job_id, False)
 
     if (
         validator_id == validation_user_for_reannotated_pages
@@ -444,8 +433,7 @@ def check_user_job_action(
         if not check_user_job_belonging(db, user_id, job_id, only_owner=True):
             raise HTTPException(
                 status_code=400,
-                detail="Only owner may not request "
-                "validation of edited pages.",
+                detail="Only owner may not request " "validation of edited pages.",
             )
     else:
         if not check_user_job_belonging(db, user_id, job_id, only_owner=False):
@@ -472,12 +460,8 @@ def check_user_job_belonging(
     if not only_owner:
         filters.extend(
             [
-                and_(
-                    Job.annotators.any(user_id=user_id), Job.job_id == job_id
-                ),
-                and_(
-                    Job.validators.any(user_id=user_id), Job.job_id == job_id
-                ),
+                and_(Job.annotators.any(user_id=user_id), Job.job_id == job_id),
+                and_(Job.validators.any(user_id=user_id), Job.job_id == job_id),
             ]
         )
     return bool(db.query(User).filter(or_(*filters)).first())

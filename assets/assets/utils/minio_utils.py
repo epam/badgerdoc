@@ -6,10 +6,9 @@ import minio.error
 import pdf2image.exceptions
 import PIL.Image
 import urllib3.exceptions
-from minio.credentials import AWSConfigProvider, EnvAWSProvider, IamAwsProvider
-
 from assets import db, logger
 from assets.config import settings
+from minio.credentials import AWSConfigProvider, EnvAWSProvider, IamAwsProvider
 
 logger_ = logger.get_logger(__name__)
 
@@ -40,20 +39,14 @@ def create_minio_config():
     elif settings.s3_credentials_provider == "aws_config":
         # environmental variable AWS_PROFILE_NAME should be set
         minio_config.update(
-            {
-                "credentials": AWSConfigProvider(
-                    profile=settings.aws_profile_name
-                )
-            }
+            {"credentials": AWSConfigProvider(profile=settings.aws_profile_name)}
         )
     else:
         raise NotConfiguredException(
             "s3 connection is not properly configured - "
             "s3_credentials_provider is not set"
         )
-    logger_.debug(
-        f"S3_Credentials provider - {settings.s3_credentials_provider}"
-    )
+    logger_.debug(f"S3_Credentials provider - {settings.s3_credentials_provider}")
 
     return minio_config
 
@@ -75,37 +68,25 @@ def upload_in_minio(
     """
     pdf_bytes = make_thumbnail_pdf(file)
     if pdf_bytes and isinstance(pdf_bytes, bytes):
-        upload_thumbnail(
-            file_obj.bucket, pdf_bytes, client, file_obj.thumb_path
-        )
+        upload_thumbnail(file_obj.bucket, pdf_bytes, client, file_obj.thumb_path)
 
     image_bytes = make_thumbnail_images(file)
     if image_bytes and isinstance(image_bytes, bytes):
-        upload_thumbnail(
-            file_obj.bucket, image_bytes, client, file_obj.thumb_path
-        )
-    return put_file_to_minio(
-        client, file, file_obj, file_obj.content_type, "converted"
-    )
+        upload_thumbnail(file_obj.bucket, image_bytes, client, file_obj.thumb_path)
+    return put_file_to_minio(client, file, file_obj, file_obj.content_type, "converted")
 
 
-def remake_thumbnail(
-    file_obj: db.models.FileObject, storage: minio.Minio
-) -> bool:
+def remake_thumbnail(file_obj: db.models.FileObject, storage: minio.Minio) -> bool:
     obj: urllib3.response.HTTPResponse = storage.get_object(
         file_obj.bucket, file_obj.path
     )
     pdf_bytes = make_thumbnail_pdf(obj.data)
     if pdf_bytes and isinstance(pdf_bytes, bytes):
-        upload_thumbnail(
-            file_obj.bucket, pdf_bytes, storage, file_obj.thumb_path
-        )
+        upload_thumbnail(file_obj.bucket, pdf_bytes, storage, file_obj.thumb_path)
 
     image_bytes = make_thumbnail_images(obj.data)
     if image_bytes and isinstance(image_bytes, bytes):
-        upload_thumbnail(
-            file_obj.bucket, image_bytes, storage, file_obj.thumb_path
-        )
+        upload_thumbnail(file_obj.bucket, image_bytes, storage, file_obj.thumb_path)
     obj.close()
     if not pdf_bytes and not image_bytes:
         logger_.error("File is not an image")
@@ -346,9 +327,7 @@ def get_size_ratio(width: int, height: int) -> float:
     try:
         r = width / height
         if r <= 0:
-            logger_.error(
-                "Current size raio <= 0! w = %s , h = %s", width, height
-            )
+            logger_.error("Current size raio <= 0! w = %s , h = %s", width, height)
             r = 1.0
         return r
     except ZeroDivisionError:

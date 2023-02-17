@@ -4,9 +4,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-KEYCLOAK_ENDPOINT = os.getenv(
-    "KEYCLOAK_DIRECT_ENDPOINT", "http://dev2.badgerdoc.com"
-)
+KEYCLOAK_ENDPOINT = os.getenv("KEYCLOAK_DIRECT_ENDPOINT", "http://dev2.badgerdoc.com")
 KEYCLOAK_REALM = os.getenv("KEYCLOAK_REALM", "master")
 KEYCLOAK_ROLE_ADMIN = os.getenv("KEYCLOAK_ROLE_ADMIN", "")
 KEYCLOAK_USERS_PUBLIC_KEY = os.getenv("KEYCLOAK_USERS_PUBLIC_KEY", "")

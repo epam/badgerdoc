@@ -99,9 +99,7 @@ def test_unite_geometry_objects():
         category=2,
         children=["some_uiid_3"],
     )
-    obj_3 = processing.GeometryObject(
-        id="some_uiid_3", bbox=(1, 1, 1, 1), category=3
-    )
+    obj_3 = processing.GeometryObject(id="some_uiid_3", bbox=(1, 1, 1, 1), category=3)
     res = obj_1.unite_geometry_objects([obj_1, obj_2, obj_3], id_start=1)
     assert res == [r_obj_1, r_obj_2, r_obj_3]
 
@@ -130,15 +128,9 @@ def test_group_objs_by_id():
     """Testing group_objs_by_id of GeometryObject."""
     obj_1 = processing.GeometryObject(id=1, bbox=(1, 1, 1, 1), category="some")
     obj_2 = processing.GeometryObject(id=1, bbox=(1, 1, 1, 1), category="some")
-    obj_3 = processing.GeometryObject(
-        id="asd", bbox=(1, 1, 1, 1), category="some"
-    )
-    obj_4 = processing.GeometryObject(
-        id="asd", bbox=(1, 1, 1, 1), category="some"
-    )
-    res = processing.GeometryObject.group_objs_by_id(
-        [obj_1, obj_2, obj_3, obj_4]
-    )
+    obj_3 = processing.GeometryObject(id="asd", bbox=(1, 1, 1, 1), category="some")
+    obj_4 = processing.GeometryObject(id="asd", bbox=(1, 1, 1, 1), category="some")
+    res = processing.GeometryObject.group_objs_by_id([obj_1, obj_2, obj_3, obj_4])
     assert len(res) == 2
     assert res[1] == [obj_1, obj_2]
     assert res["asd"] == [obj_3, obj_4]
@@ -297,9 +289,7 @@ def test_merge_pipeline_leaves_data_no_files_data():
     with patch(
         "pipelines.result_processing.get_pipeline_leaves_data", return_value=None
     ):
-        assert (
-            processing.merge_pipeline_leaves_data(MagicMock(), "", "") is None
-        )
+        assert processing.merge_pipeline_leaves_data(MagicMock(), "", "") is None
 
 
 def test_merge_pipeline_leaves_data_cannot_parse_data():
@@ -308,20 +298,14 @@ def test_merge_pipeline_leaves_data_cannot_parse_data():
         "pipelines.result_processing.ModelOutput.parse_models", return_value=None
     ):
         with patch("pipelines.result_processing.get_pipeline_leaves_data"):
-            assert (
-                processing.merge_pipeline_leaves_data(MagicMock(), "", "")
-                is None
-            )
+            assert processing.merge_pipeline_leaves_data(MagicMock(), "", "") is None
 
 
 def test_merge_pipeline_leaves_data_cannot_merge_data():
     """Testing merge_pipeline_leaves_data when data cannot be merged."""
     with patch("pipelines.result_processing.get_pipeline_leaves_data"):
         with patch("pipelines.result_processing.ModelOutput.parse_models"):
-            assert (
-                processing.merge_pipeline_leaves_data(MagicMock(), "", "")
-                is None
-            )
+            assert processing.merge_pipeline_leaves_data(MagicMock(), "", "") is None
 
 
 def test_delete_objects():
@@ -352,9 +336,7 @@ def test_postprocess_result():
         "pipelines.result_processing.http_utils.make_request_with_retry",
         return_value=m,
     ) as req_mock:
-        with patch(
-            "pipelines.result_processing.config.POSTPROCESSING_URI", "foo.com"
-        ):
+        with patch("pipelines.result_processing.config.POSTPROCESSING_URI", "foo.com"):
             res = processing.postprocess_result({"foo": 1})
             assert res == {"foo": 42}
             req_mock.assert_called_once_with(

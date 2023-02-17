@@ -6,10 +6,10 @@ Create Date: 2022-04-27 18:30:19.533396
 
 """
 import sqlalchemy as sa
+from pipelines.db import models
 from sqlalchemy import orm
 
 from alembic import op
-from pipelines.db import models
 
 # revision identifiers, used by Alembic.
 revision = "b0cbaebbddd8"
@@ -28,11 +28,7 @@ def upgrade() -> None:
     session.close()
 
     session = orm.Session(bind=op.get_bind())
-    rows = (
-        session.query(models.Pipeline)
-        .options(orm.load_only("id", "meta"))
-        .all()
-    )
+    rows = session.query(models.Pipeline).options(orm.load_only("id", "meta")).all()
     for row in rows:
         new_meta = dict(row.meta)
         new_meta["version"] = 1
@@ -83,11 +79,7 @@ def downgrade() -> None:
     session.close()
 
     session = orm.Session(bind=op.get_bind())
-    rows = (
-        session.query(models.Pipeline)
-        .options(orm.load_only("id", "meta"))
-        .all()
-    )
+    rows = session.query(models.Pipeline).options(orm.load_only("id", "meta")).all()
     for row in rows:
         new_meta = dict(row.meta)
         new_meta["version"] = "v1"

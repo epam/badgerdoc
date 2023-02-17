@@ -2,14 +2,11 @@ import datetime
 from typing import Any, Dict, List, Union
 
 import sqlalchemy
-from sqlalchemy import orm
-
 from scheduler import config, unit
 from scheduler.db import models
+from sqlalchemy import orm
 
-engine = sqlalchemy.create_engine(
-    config.DB_URL, pool_size=int(config.POOL_SIZE)
-)
+engine = sqlalchemy.create_engine(config.DB_URL, pool_size=int(config.POOL_SIZE))
 Session = orm.sessionmaker(bind=engine, expire_on_commit=False)
 
 
@@ -51,9 +48,7 @@ def get_expired_heartbeats(
     )
 
 
-def get_not_finished_units(
-    session: orm.Session, runner_id: str
-) -> List[models.Unit]:
+def get_not_finished_units(session: orm.Session, runner_id: str) -> List[models.Unit]:
     """Get units with statuses 'RECEIVED' and 'IN_PROGRESS'
     with the given runner_id.
     """
@@ -75,9 +70,9 @@ def change_unit_runner_id_in_lock(session: orm.Session, id_: str) -> None:
     change status to 'RECEIVED' with 'for update' statement.
     """
     args = {"runner_id": None, "status": unit.UnitStatus.RECEIVED}
-    session.query(models.Unit).filter(
-        models.Unit.id == id_
-    ).with_for_update().update(args)
+    session.query(models.Unit).filter(models.Unit.id == id_).with_for_update().update(
+        args
+    )
 
 
 def delete_instances(session: orm.Session, objs: models.TablesList) -> None:

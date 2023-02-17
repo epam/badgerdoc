@@ -117,10 +117,7 @@ def test_wrap_single_paragraph_text():
 
 def test_wrap_text_with_several_paragraphs():
     tw = TextWrapper(line_length=20)
-    text = (
-        "Text which contains more then one paragraph\n"
-        "It is the second paragraph"
-    )
+    text = "Text which contains more then one paragraph\n" "It is the second paragraph"
 
     result = tw.wrap(text)
     assert result == [

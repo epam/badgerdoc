@@ -62,9 +62,7 @@ class AnnotationJobParams(BaseModel):
     extensive_coverage: int = 1
 
 
-class ExtractionWithAnnotationJobParams(
-    ExtractionJobParams, AnnotationJobParams
-):
+class ExtractionWithAnnotationJobParams(ExtractionJobParams, AnnotationJobParams):
     start_manual_job_automatically: Optional[bool] = True
 
 
@@ -117,9 +115,7 @@ class JobParams(BaseModel):
     ) -> List[int]:
         if not values.get("type") == JobType.ImportJob:
             if not v and not values.get("files"):
-                raise ValueError(
-                    "files and datasets cannot be empty at the same time"
-                )
+                raise ValueError("files and datasets cannot be empty at the same time")
         return v
 
     # ---- AnnotationJob and ExtractionWithAnnotationJob attributes ---- #
@@ -128,9 +124,7 @@ class JobParams(BaseModel):
         cls, v: bool, values: Dict[str, Any]
     ) -> bool:
         if values.get("type") == JobType.ExtractionJob and v:
-            raise ValueError(
-                "is_auto_distribution cannot be assigned to ExtractionJob"
-            )
+            raise ValueError("is_auto_distribution cannot be assigned to ExtractionJob")
         return v
 
     @validator(
@@ -148,9 +142,7 @@ class JobParams(BaseModel):
         job_type = values.get("type")
         if v:
             if job_type == JobType.ExtractionJob:
-                raise ValueError(
-                    f"{field.name} cannot be assigned to ExtractionJob"
-                )
+                raise ValueError(f"{field.name} cannot be assigned to ExtractionJob")
         elif job_type == JobType.AnnotationJob:
             raise ValueError(f"{field.name} cannot be empty for {job_type}")
 
@@ -163,23 +155,17 @@ class JobParams(BaseModel):
         job_type = values.get("type")
         validation_type = values.get("validation_type")
         if job_type == JobType.ExtractionJob:
-            raise ValueError(
-                f"{field.name} cannot be assigned to ExtractionJob"
-            )
+            raise ValueError(f"{field.name} cannot be assigned to ExtractionJob")
 
         require_annotators = {
             ValidationType.hierarchical,
             ValidationType.cross,
         }
         if v and validation_type == ValidationType.validation_only:
-            raise ValueError(
-                f"{field.name} should be empty with {validation_type=}"
-            )
+            raise ValueError(f"{field.name} should be empty with {validation_type=}")
 
         elif not v and validation_type in require_annotators:
-            raise ValueError(
-                f"{field.name} cannot be empty with {validation_type=}"
-            )
+            raise ValueError(f"{field.name} cannot be empty with {validation_type=}")
 
         elif len(v) < 2 and validation_type == ValidationType.cross:
             raise ValueError(
@@ -197,23 +183,17 @@ class JobParams(BaseModel):
         validation_type = values.get("validation_type")
 
         if job_type == JobType.ExtractionJob:
-            raise ValueError(
-                f"{field.name} cannot be assigned to ExtractionJob"
-            )
+            raise ValueError(f"{field.name} cannot be assigned to ExtractionJob")
 
         if (
             validation_type
             in [ValidationType.hierarchical, ValidationType.validation_only]
             and not v
         ):
-            raise ValueError(
-                f"{field.name} cannot be empty with {validation_type=}"
-            )
+            raise ValueError(f"{field.name} cannot be empty with {validation_type=}")
 
         if validation_type == ValidationType.cross and v:
-            raise ValueError(
-                f"{field.name} should be empty with {validation_type=}"
-            )
+            raise ValueError(f"{field.name} should be empty with {validation_type=}")
 
         return v
 
@@ -225,9 +205,7 @@ class JobParams(BaseModel):
         if job_type != JobType.ImportJob and v:
             raise ValueError(f"{field.name} cannot be assigned to {job_type}")
         if job_type == JobType.ImportJob and not v:
-            raise ValueError(
-                f"{field.name} cannot be empty in {JobType.ImportJob}"
-            )
+            raise ValueError(f"{field.name} cannot be empty in {JobType.ImportJob}")
         return v
 
     @validator("extensive_coverage")
@@ -236,18 +214,12 @@ class JobParams(BaseModel):
     ):
         validation_type = values.get("validation_type")
         if validation_type != ValidationType.extensive_coverage and v:
-            raise ValueError(
-                f"{field.name} cannot be assigned to {validation_type}."
-            )
+            raise ValueError(f"{field.name} cannot be assigned to {validation_type}.")
         if validation_type != ValidationType.extensive_coverage and not v:
-            raise ValueError(
-                f"{field.name} cannot be empty with {validation_type=}."
-            )
+            raise ValueError(f"{field.name} cannot be empty with {validation_type=}.")
         annotators = values.get("annotators")
         if v > len(annotators):
-            raise ValueError(
-                f"{field.name} cannot be less then number of annotators."
-            )
+            raise ValueError(f"{field.name} cannot be less then number of annotators.")
         return v
 
     # ---- ExtractionJob and ExtractionWithAnnotationJob attributes ---- #
@@ -256,16 +228,12 @@ class JobParams(BaseModel):
         cls, v: str, values: Dict[str, Any]
     ) -> str:
         if values.get("type") == JobType.AnnotationJob and v:
-            raise ValueError(
-                "pipeline_name cannot be assigned to AnnotationJob"
-            )
+            raise ValueError("pipeline_name cannot be assigned to AnnotationJob")
         if (
             values.get("type") == JobType.ExtractionJob
             or values.get("type") == JobType.ExtractionWithAnnotationJob
         ) and not v:
-            raise ValueError(
-                f'pipeline cannot be empty for {values.get("type")}'
-            )
+            raise ValueError(f'pipeline cannot be empty for {values.get("type")}')
         return v
 
 

@@ -3,7 +3,6 @@ from typing import Optional
 
 import aiokafka
 from kafka import admin, errors
-
 from pipelines import config, log
 
 logger = log.get_logger(__name__)
@@ -31,9 +30,7 @@ class Kafka:
             logger.exception("Failed to initialize consumer.")
             raise
         self.consumer.subscribe(topics=[config.KAFKA_CONSUME_TOPIC])
-        logger.info(
-            f"Consumer subscribed to topic {config.KAFKA_CONSUME_TOPIC}"
-        )
+        logger.info(f"Consumer subscribed to topic {config.KAFKA_CONSUME_TOPIC}")
         return self._consumer
 
     @property

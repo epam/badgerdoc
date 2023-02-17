@@ -4,14 +4,13 @@ from typing import Any, Callable, Dict, List, Optional
 
 import boto3
 from botocore.client import BaseClient
+from convert import logger
+from dotenv import load_dotenv
 from mypy_extensions import KwArg, VarArg
 from pydantic import BaseSettings, Field
 from requests import Session
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
-
-from convert import logger
-from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -115,9 +114,7 @@ def create_boto3_config():
             "s3 connection is not properly configured - "
             "s3_credentials_provider is not set"
         )
-    logger_.info(
-        f"S3_Credentials provider - {settings.s3_credentials_provider}"
-    )
+    logger_.info(f"S3_Credentials provider - {settings.s3_credentials_provider}")
     return boto3_config
 
 

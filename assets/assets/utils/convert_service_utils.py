@@ -1,14 +1,11 @@
 import requests
-
 from assets import logger
 from assets.config import settings
 
 logger_ = logger.get_logger(__name__)
 
 
-def post_to_convert(
-    bucket: str, input_text, output_pdf, output_tokens
-) -> bool:
+def post_to_convert(bucket: str, input_text, output_pdf, output_tokens) -> bool:
     """
     Puts file into convert service
     """
@@ -22,9 +19,7 @@ def post_to_convert(
             },
         )
         if response.status_code != 201:
-            logger_.info(
-                f"File {input_text} failed to convert: " f"{response.text}"
-            )
+            logger_.info(f"File {input_text} failed to convert: " f"{response.text}")
             return False
     except requests.exceptions.ConnectionError as e:
         logger_.error(f"Connection error - detail: {e}")

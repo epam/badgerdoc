@@ -27,9 +27,7 @@ class JobStatusEnumSchema(str, Enum):
 
 
 def upgrade():
-    job_status = postgresql.ENUM(
-        JobStatusEnumSchema, name="jobstatusenumschema"
-    )
+    job_status = postgresql.ENUM(JobStatusEnumSchema, name="jobstatusenumschema")
     job_status.create(op.get_bind(), checkfirst=True)
     op.add_column(
         "jobs",

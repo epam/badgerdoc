@@ -53,9 +53,7 @@ def setup_database(use_temp_env_var):
     except SQLAlchemyError as e:
         raise SQLAlchemyError(f"Got an Exception during migrations - {e}")
 
-    session_local = sessionmaker(
-        autocommit=False, autoflush=False, bind=engine
-    )
+    session_local = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     session = session_local()
     yield session
     session.close()
@@ -89,21 +87,11 @@ def setup_tenant():
 
 
 @pytest.fixture
-def client_app_main(
-    setup_database, minio_mock_exists_bucket_true, setup_tenant
-):
-    minio_mock_exists_bucket_true.get_object.return_value = (
-        urllib3.HTTPResponse()
-    )
-    minio_mock_exists_bucket_true.get_object.return_value.headers[
-        "Content-Type"
-    ] = ""
-    app.dependency_overrides[
-        get_storage
-    ] = lambda: minio_mock_exists_bucket_true
-    app.dependency_overrides[
-        session_scope_for_dependency
-    ] = lambda: setup_database
+def client_app_main(setup_database, minio_mock_exists_bucket_true, setup_tenant):
+    minio_mock_exists_bucket_true.get_object.return_value = urllib3.HTTPResponse()
+    minio_mock_exists_bucket_true.get_object.return_value.headers["Content-Type"] = ""
+    app.dependency_overrides[get_storage] = lambda: minio_mock_exists_bucket_true
+    app.dependency_overrides[session_scope_for_dependency] = lambda: setup_database
     app.dependency_overrides[tenant] = lambda: setup_tenant
 
     with patch.object(minio_utils, "delete_one_from_minio", return_value=True):
@@ -115,12 +103,8 @@ def client_app_main(
 def client_app_main_bucket_false(
     setup_database, minio_mock_exists_bucket_false, setup_tenant
 ):
-    app.dependency_overrides[
-        get_storage
-    ] = lambda: minio_mock_exists_bucket_false
-    app.dependency_overrides[
-        session_scope_for_dependency
-    ] = lambda: setup_database
+    app.dependency_overrides[get_storage] = lambda: minio_mock_exists_bucket_false
+    app.dependency_overrides[session_scope_for_dependency] = lambda: setup_database
     app.dependency_overrides[tenant] = lambda: setup_tenant
     client = TestClient(app)
     yield client

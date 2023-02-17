@@ -24,9 +24,7 @@ public_key = get_key("public_key")
 
 @pytest.fixture
 def mock_jwk_client():
-    with patch(
-        "src.dependency.jwt.PyJWKClient.__init__", return_value=None
-    ) as mock:
+    with patch("src.dependency.jwt.PyJWKClient.__init__", return_value=None) as mock:
         yield mock
 
 
@@ -141,9 +139,7 @@ def token_mock_hs256():
         "realm_access": {"roles": ["role-annotator"]},
         "tenants": ["tenant1", "epam"],
     }
-    token = create_access_token(
-        data=payload, secret=SECRET_KEY, expires_delta=15
-    )
+    token = create_access_token(data=payload, secret=SECRET_KEY, expires_delta=15)
     yield token
 
 
@@ -154,9 +150,7 @@ def expired_token_mock_hs256():
         "realm_access": {"roles": ["role-annotator"]},
         "tenants": ["tenant1", "epam"],
     }
-    token = create_access_token(
-        data=payload, secret=SECRET_KEY, expires_delta=-15
-    )
+    token = create_access_token(data=payload, secret=SECRET_KEY, expires_delta=-15)
     yield token
 
 
@@ -167,9 +161,7 @@ def wrong_data_token_mock_hs256():
         "realm_access": {"roles": ["role-annotator"]},
         "qtenants": ["tenant1"],
     }
-    token = create_access_token(
-        data=payload, secret=SECRET_KEY, expires_delta=15
-    )
+    token = create_access_token(data=payload, secret=SECRET_KEY, expires_delta=15)
     yield token
 
 

@@ -132,9 +132,7 @@ def test_get_annotation_for_particular_revision_status_codes(
         Mock(return_value=minio_particular_revision),
     )
     response = client.get(
-        construct_part_rev_path(
-            PART_REV_DOC.job_id, file_id, PART_REV_DOC.revision
-        ),
+        construct_part_rev_path(PART_REV_DOC.job_id, file_id, PART_REV_DOC.revision),
         headers={
             HEADER_TENANT: tenant,
             AUTHORIZATION: f"{BEARER} {TEST_TOKEN}",
@@ -153,9 +151,7 @@ def test_get_annotation_for_particular_revision_status_codes(
     ],
     indirect=["db_errors"],
 )
-def test_get_annotation_for_particular_revision_db_exceptions(
-    monkeypatch, db_errors
-):
+def test_get_annotation_for_particular_revision_db_exceptions(monkeypatch, db_errors):
     response = client.get(
         construct_part_rev_path(
             PART_REV_DOC.job_id,

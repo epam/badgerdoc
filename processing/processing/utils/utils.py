@@ -2,12 +2,11 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple, TypeVar
 from urllib.parse import urljoin
 
 from cache import AsyncTTL
-from sqlalchemy.orm import Session
-
 from processing import db, schema
 from processing.config import settings
 from processing.utils.aiohttp_utils import send_request
 from processing.utils.logger import get_log_exception_msg, get_logger
+from sqlalchemy.orm import Session
 
 logger = get_logger(__name__)
 T = TypeVar("T")
@@ -19,9 +18,7 @@ def get_internal_url(url: str) -> str:
 
 def split_iterable(list_a: List[T], chunk_size: int) -> List[List[T]]:
     """Splits a list passed in chunks with no more, than elements"""
-    return [
-        list_a[x : chunk_size + x] for x in range(0, len(list_a), chunk_size)
-    ]
+    return [list_a[x : chunk_size + x] for x in range(0, len(list_a), chunk_size)]
 
 
 @AsyncTTL(time_to_live=60 * 5, maxsize=8)
@@ -52,16 +49,12 @@ async def get_files_data(
     Returns list of dictionaries with data for each file
     with ids passed in request_body"""
     elements_per_page_in_dataset_manager = 100
-    splatted_files_ids = split_iterable(
-        files_ids, elements_per_page_in_dataset_manager
-    )
+    splatted_files_ids = split_iterable(files_ids, elements_per_page_in_dataset_manager)
     all_files_data = []
     for batch in splatted_files_ids:
         params = {
             "pagination": {
-                "page_num": len(files_ids)
-                // elements_per_page_in_dataset_manager
-                + 1,
+                "page_num": len(files_ids) // elements_per_page_in_dataset_manager + 1,
                 "page_size": elements_per_page_in_dataset_manager,
             },
             "filters": [{"field": "id", "operator": "in", "value": batch}],

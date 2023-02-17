@@ -5,10 +5,9 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, Field, PrivateAttr, root_validator, validator
-
 import pipelines.db.models as dbm
 from pipelines import log
+from pydantic import BaseModel, Field, PrivateAttr, root_validator, validator
 
 logger = log.get_logger(__file__)
 
@@ -108,9 +107,7 @@ class InputArguments(BaseModel):
         return values
 
     @validator("input_path", "output_path")
-    def path_validator(  # pylint: disable=E0213
-        cls, v: Optional[str]
-    ) -> Optional[str]:
+    def path_validator(cls, v: Optional[str]) -> Optional[str]:  # pylint: disable=E0213
         """Path validator."""
         if v is None:
             return v
@@ -127,9 +124,7 @@ class InputArguments(BaseModel):
         """File path validator."""
         mod_v = v.strip().rstrip("/")
         if mod_v.count("/") != 2:
-            raise ValueError(
-                "File path should be like 'files/fileId/fileId.fileExt'"
-            )
+            raise ValueError("File path should be like 'files/fileId/fileId.fileExt'")
         return mod_v
 
     def next_step_args(
@@ -164,15 +159,11 @@ class InputArguments(BaseModel):
     ) -> InputArguments:
         """Prepare args as init by creating copy with modified output path."""
         if pipeline_type == PipelineTypes.INFERENCE:
-            output_path = self.append_path(
-                curr_step_id, self.output_path, ext=".json"
-            )
+            output_path = self.append_path(curr_step_id, self.output_path, ext=".json")
         elif pipeline_type == PipelineTypes.PREPROCESSING:
             output_path = self.output_path
         return InputArguments(
-            input_path=self.input_path
-            if self.input_path
-            else self.output_path,
+            input_path=self.input_path if self.input_path else self.output_path,
             input=self.input if self.input else {},
             file=self.file,
             bucket=self.bucket,
@@ -181,9 +172,7 @@ class InputArguments(BaseModel):
             output_bucket=self.output_bucket,
         )
 
-    def append_path(
-        self, stem: str, path_: Optional[str] = None, ext: str = ""
-    ) -> str:
+    def append_path(self, stem: str, path_: Optional[str] = None, ext: str = "") -> str:
         """Join path_ and stem. Takes self._path if not provided"""
         return urllib.parse.urljoin((path_ or self._path) + "/", stem) + ext
 
@@ -208,9 +197,7 @@ class InputArguments(BaseModel):
         """Get filename without extension."""
         return self.file.strip("/").rsplit("/", 1)[-1].split(".", 1)[0]
 
-    def create_input_by_label(
-        self, label: Optional[List[str]]
-    ) -> InputArguments:
+    def create_input_by_label(self, label: Optional[List[str]]) -> InputArguments:
         """Return copy of the instance with changed input."""
         if not self.input or self._is_init or not label:
             return self.copy(deep=True)

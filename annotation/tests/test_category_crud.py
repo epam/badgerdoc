@@ -161,14 +161,10 @@ def add_for_cascade_delete(
     parent_id = request.param
     session = prepare_db_categories_different_names
     data_1 = prepare_category_body(name="Title1", parent=parent_id)
-    response_1 = client.post(
-        CATEGORIES_PATH, json=data_1, headers=TEST_HEADERS
-    )
+    response_1 = client.post(CATEGORIES_PATH, json=data_1, headers=TEST_HEADERS)
     cat_id_1 = response_1.json()["id"]
     data_2 = prepare_category_body(name="Title3", parent=cat_id_1)
-    response_2 = client.post(
-        CATEGORIES_PATH, json=data_2, headers=TEST_HEADERS
-    )
+    response_2 = client.post(CATEGORIES_PATH, json=data_2, headers=TEST_HEADERS)
     cat_id_2 = response_2.json()["id"]
     common_cat = session.query(Category).get("2")
     session.delete(common_cat)
@@ -211,9 +207,7 @@ def test_add_unique_name(prepare_db_categories_different_names, category_name):
     data = prepare_category_body(name=category_name)
     response = client.post(CATEGORIES_PATH, json=data, headers=TEST_HEADERS)
     assert response.status_code == 201
-    assert prepare_expected_result(response.text) == prepare_category_response(
-        data
-    )
+    assert prepare_expected_result(response.text) == prepare_category_response(data)
 
 
 @mark.integration
@@ -235,9 +229,7 @@ def test_add_unique_name_custom_fields(
     data = prepare_category_body(**field_value_pairs)
     response = client.post(CATEGORIES_PATH, json=data, headers=TEST_HEADERS)
     assert response.status_code == 201
-    assert prepare_expected_result(response.text) == prepare_category_response(
-        data
-    )
+    assert prepare_expected_result(response.text) == prepare_category_response(data)
 
 
 @mark.integration
@@ -261,9 +253,7 @@ def test_add_wrong_field_types(db_session, wrong_field, wrong_value):
         "data_attributes": None,
         wrong_field: wrong_value,  # rewrite default value with parametrized
     }
-    response = client.post(
-        CATEGORIES_PATH, json=wrong_body, headers=TEST_HEADERS
-    )
+    response = client.post(CATEGORIES_PATH, json=wrong_body, headers=TEST_HEADERS)
     assert response.status_code == 422
 
 
@@ -338,9 +328,7 @@ def test_add_id_is_generated(prepare_db_categories_different_names):
     "category_id",
     ("1Category123", "second_category", "3rd_category"),
 )
-def test_add_id_numbers_underscore(
-    category_id, prepare_db_categories_different_names
-):
+def test_add_id_numbers_underscore(category_id, prepare_db_categories_different_names):
     data = prepare_category_body(id_=category_id, name=str(uuid.uuid4()))
     response = client.post(CATEGORIES_PATH, json=data, headers=TEST_HEADERS)
     assert response.status_code == 201
@@ -354,9 +342,7 @@ def test_add_id_numbers_underscore(
     "category_id",
     ("1st!-category1", "2nd%category", "3rd:.category"),
 )
-def test_add_id_special_chars(
-    category_id, prepare_db_categories_different_names
-):
+def test_add_id_special_chars(category_id, prepare_db_categories_different_names):
     data = prepare_category_body(id_=category_id, name=str(uuid.uuid4()))
     response = client.post(CATEGORIES_PATH, json=data, headers=TEST_HEADERS)
     assert response.status_code == 400
@@ -372,9 +358,7 @@ def test_add_self_parent(prepare_db_categories_different_names):
 
 
 @mark.integration
-@patch(
-    "annotation.categories.resources.fetch_category_db", side_effect=SQLAlchemyError
-)
+@patch("annotation.categories.resources.fetch_category_db", side_effect=SQLAlchemyError)
 def test_get_db_connection_error(prepare_db_categories_same_names):
     cat_id = 1
     response = client.get(f"{CATEGORIES_PATH}/{cat_id}", headers=TEST_HEADERS)
@@ -388,9 +372,7 @@ def test_get_db_connection_error(prepare_db_categories_same_names):
     ("3", "100"),  # other tenant category and category that doesn't exist
 )
 def test_get_wrong_category(category_id, prepare_db_categories_same_names):
-    response = client.get(
-        f"{CATEGORIES_PATH}/{category_id}", headers=TEST_HEADERS
-    )
+    response = client.get(f"{CATEGORIES_PATH}/{category_id}", headers=TEST_HEADERS)
     assert response.status_code == 404
     assert f"Category with id: {category_id} doesn't exist" in response.text
 
@@ -407,13 +389,9 @@ def test_get_allowed_category(
     category_id, category_name, prepare_db_categories_same_names
 ):
     data = prepare_category_body(name=category_name)
-    response = client.get(
-        f"{CATEGORIES_PATH}/{category_id}", headers=TEST_HEADERS
-    )
+    response = client.get(f"{CATEGORIES_PATH}/{category_id}", headers=TEST_HEADERS)
     assert response.status_code == 200
-    assert prepare_expected_result(response.text) == prepare_category_response(
-        data
-    )
+    assert prepare_expected_result(response.text) == prepare_category_response(data)
 
 
 @mark.integration
@@ -430,9 +408,7 @@ def test_get_no_tenant_specified(prepare_db_categories_same_names):
 )
 def test_search_db_connection_error(prepare_db_categories_for_filtration):
     data = prepare_filtration_body()
-    response = client.post(
-        f"{CATEGORIES_PATH}/search", json=data, headers=TEST_HEADERS
-    )
+    response = client.post(f"{CATEGORIES_PATH}/search", json=data, headers=TEST_HEADERS)
     assert response.status_code == 500
     assert "Error: connection error" in response.text
 
@@ -448,9 +424,7 @@ def test_search_pagination(
     data = prepare_filtration_body(
         page_num=page_num, page_size=page_size, no_filtration=True
     )
-    response = client.post(
-        f"{CATEGORIES_PATH}/search", json=data, headers=TEST_HEADERS
-    )
+    response = client.post(f"{CATEGORIES_PATH}/search", json=data, headers=TEST_HEADERS)
     categories = response.json()["data"]
     pagination = response.json()["pagination"]
     assert response.status_code == 200
@@ -463,9 +437,7 @@ def test_search_pagination(
 @mark.integration
 def test_search_no_filtration(prepare_db_categories_for_filtration):
     data = prepare_filtration_body(page_size=30, no_filtration=True)
-    response = client.post(
-        f"{CATEGORIES_PATH}/search", json=data, headers=TEST_HEADERS
-    )
+    response = client.post(f"{CATEGORIES_PATH}/search", json=data, headers=TEST_HEADERS)
     categories = response.json()["data"]
     assert response.status_code == 200
     assert len(categories) == 16
@@ -476,13 +448,9 @@ def test_search_no_filtration(prepare_db_categories_for_filtration):
     "category_id",
     ("2", "100"),  # other tenant category and category that doesn't exist
 )
-def test_search_wrong_category(
-    category_id, prepare_db_categories_for_filtration
-):
+def test_search_wrong_category(category_id, prepare_db_categories_for_filtration):
     data = prepare_filtration_body(value=category_id)
-    response = client.post(
-        f"{CATEGORIES_PATH}/search", json=data, headers=TEST_HEADERS
-    )
+    response = client.post(f"{CATEGORIES_PATH}/search", json=data, headers=TEST_HEADERS)
     categories = response.json()["data"]
     total = response.json()["pagination"]["total"]
     assert response.status_code == 200
@@ -505,9 +473,7 @@ def test_search_allowed_categories(
 ):
     expected = prepare_category_body(name=category_name)
     data = prepare_filtration_body(value=category_id)
-    response = client.post(
-        f"{CATEGORIES_PATH}/search", json=data, headers=TEST_HEADERS
-    )
+    response = client.post(f"{CATEGORIES_PATH}/search", json=data, headers=TEST_HEADERS)
     category = response.json()["data"][0]
     assert response.status_code == 200
 
@@ -526,9 +492,7 @@ def test_search_filter_gt_lt(
     operator, value, expected, prepare_db_categories_for_filtration
 ):
     data = prepare_filtration_body(operator=operator, value=value)
-    response = client.post(
-        f"{CATEGORIES_PATH}/search", json=data, headers=TEST_HEADERS
-    )
+    response = client.post(f"{CATEGORIES_PATH}/search", json=data, headers=TEST_HEADERS)
     categories = response.json()["data"]
     assert response.status_code == 200
     assert len(categories) == expected
@@ -542,12 +506,8 @@ def test_search_filter_gt_lt(
 def test_search_filter_name_like(
     operator, value, expected, prepare_db_categories_for_filtration
 ):
-    data = prepare_filtration_body(
-        field="name", operator=operator, value=value
-    )
-    response = client.post(
-        f"{CATEGORIES_PATH}/search", json=data, headers=TEST_HEADERS
-    )
+    data = prepare_filtration_body(field="name", operator=operator, value=value)
+    response = client.post(f"{CATEGORIES_PATH}/search", json=data, headers=TEST_HEADERS)
     categories = response.json()["data"]
     assert response.status_code == 200
     assert len(categories) == expected
@@ -558,12 +518,8 @@ def test_search_filter_name_like(
 def test_search_filter_ordering(
     direction, expected, prepare_db_categories_for_filtration
 ):
-    data = prepare_filtration_body(
-        operator="lt", value="5", direction=direction
-    )
-    response = client.post(
-        f"{CATEGORIES_PATH}/search", json=data, headers=TEST_HEADERS
-    )
+    data = prepare_filtration_body(operator="lt", value="5", direction=direction)
+    response = client.post(f"{CATEGORIES_PATH}/search", json=data, headers=TEST_HEADERS)
     categories = response.json()["data"][0]
     assert response.status_code == 200
     assert categories["id"] == expected
@@ -571,12 +527,8 @@ def test_search_filter_ordering(
 
 @mark.integration
 def test_search_filter_distinct_id(prepare_db_categories_for_filtration):
-    data = prepare_filtration_body(
-        page_size=30, field="id", operator="distinct"
-    )
-    response = client.post(
-        f"{CATEGORIES_PATH}/search", json=data, headers=TEST_HEADERS
-    )
+    data = prepare_filtration_body(page_size=30, field="id", operator="distinct")
+    response = client.post(f"{CATEGORIES_PATH}/search", json=data, headers=TEST_HEADERS)
     result_data = response.json()["data"]
     assert response.status_code == 200
     assert len(result_data) == 16
@@ -592,14 +544,10 @@ def test_search_two_filters_different_distinct_order(
         second_operator="is_not_null",
         sorting_field="type",
     )
-    response = client.post(
-        f"{CATEGORIES_PATH}/search", json=data, headers=TEST_HEADERS
-    )
+    response = client.post(f"{CATEGORIES_PATH}/search", json=data, headers=TEST_HEADERS)
     first_result_data = response.json()["data"]
     data = prepare_filtration_body_double_filter(first_operator="is_not_null")
-    response = client.post(
-        f"{CATEGORIES_PATH}/search", json=data, headers=TEST_HEADERS
-    )
+    response = client.post(f"{CATEGORIES_PATH}/search", json=data, headers=TEST_HEADERS)
     second_result_data = response.json()["data"]
     assert first_result_data == second_result_data
 
@@ -609,9 +557,7 @@ def test_search_two_filters_both_distinct(
     prepare_db_categories_for_distinct_filtration,
 ):
     data = prepare_filtration_body_double_filter()
-    response = client.post(
-        f"{CATEGORIES_PATH}/search", json=data, headers=TEST_HEADERS
-    )
+    response = client.post(f"{CATEGORIES_PATH}/search", json=data, headers=TEST_HEADERS)
     result_data = response.json()["data"]
     assert response.status_code == 200
     assert len(result_data) == 3
@@ -620,12 +566,9 @@ def test_search_two_filters_both_distinct(
 @mark.integration
 def test_search_categories_400_error(prepare_db_categories_for_filtration):
     data = prepare_filtration_body(field="parent", operator="distinct")
-    response = client.post(
-        f"{CATEGORIES_PATH}/search", json=data, headers=TEST_HEADERS
-    )
+    response = client.post(f"{CATEGORIES_PATH}/search", json=data, headers=TEST_HEADERS)
     error_message = (
-        "SELECT DISTINCT ON expressions must "
-        "match initial ORDER BY expressions"
+        "SELECT DISTINCT ON expressions must " "match initial ORDER BY expressions"
     )
     assert response.status_code == 400
     assert error_message in response.text
@@ -644,9 +587,7 @@ def test_search_wrong_parameters(
     wrong_parameter, value, prepare_db_categories_for_filtration
 ):
     data = prepare_filtration_body(**{wrong_parameter: value})
-    response = client.post(
-        f"{CATEGORIES_PATH}/search", json=data, headers=TEST_HEADERS
-    )
+    response = client.post(f"{CATEGORIES_PATH}/search", json=data, headers=TEST_HEADERS)
     assert response.status_code == 422
     assert "value is not a valid enumeration member" in response.text
 
@@ -710,9 +651,7 @@ def test_update_category_custom_fields(
         f"{CATEGORIES_PATH}/{cat_id}", json=data, headers=TEST_HEADERS
     )
     assert response.status_code == 200
-    assert prepare_expected_result(response.text) == prepare_category_response(
-        data
-    )
+    assert prepare_expected_result(response.text) == prepare_category_response(data)
 
 
 @mark.integration
@@ -743,9 +682,7 @@ def test_update_other_tenant_exist_name(prepare_db_categories_different_names):
         f"{CATEGORIES_PATH}/{cat_id}", json=data, headers=TEST_HEADERS
     )
     assert response.status_code == 200
-    assert prepare_expected_result(response.text) == prepare_category_response(
-        data
-    )
+    assert prepare_expected_result(response.text) == prepare_category_response(data)
 
 
 @mark.integration
@@ -793,15 +730,11 @@ def test_update_other_tenant_parent(prepare_db_categories_different_names):
     "category_parent",
     ("2", "4"),  # parent from commons and this tenant other category as parent
 )
-def test_update_allowed_parent(
-    category_parent, prepare_db_categories_different_names
-):
+def test_update_allowed_parent(category_parent, prepare_db_categories_different_names):
     cat_id = "1"
     data_add = prepare_category_body(name="Footer")
     data_add["id"] = category_parent
-    prepare_db_categories_different_names.merge(
-        Category(**clean_data_for_db(data_add))
-    )
+    prepare_db_categories_different_names.merge(Category(**clean_data_for_db(data_add)))
     prepare_db_categories_different_names.commit()
     data_update = prepare_category_body(parent=category_parent)
     response = client.put(
@@ -819,9 +752,7 @@ def test_update_allowed_parent(
 )
 def test_delete_db_connection_error(prepare_db_categories_same_names):
     cat_id = "1"
-    response = client.delete(
-        f"{CATEGORIES_PATH}/{cat_id}", headers=TEST_HEADERS
-    )
+    response = client.delete(f"{CATEGORIES_PATH}/{cat_id}", headers=TEST_HEADERS)
     assert response.status_code == 500
     assert "Error: connection error" in response.text
 
@@ -836,9 +767,7 @@ def test_delete_wrong_category(
     prepare_db_categories_same_names,
 ):
     cat_id = "100"
-    response = client.delete(
-        f"{CATEGORIES_PATH}/{cat_id}", headers=TEST_HEADERS
-    )
+    response = client.delete(f"{CATEGORIES_PATH}/{cat_id}", headers=TEST_HEADERS)
     assert response.status_code == 404
     assert "Cannot delete category that doesn't exist" in response.text
 
@@ -846,9 +775,7 @@ def test_delete_wrong_category(
 @mark.integration
 def test_delete_common_category(prepare_db_categories_same_names):
     cat_id = "2"
-    response = client.delete(
-        f"{CATEGORIES_PATH}/{cat_id}", headers=TEST_HEADERS
-    )
+    response = client.delete(f"{CATEGORIES_PATH}/{cat_id}", headers=TEST_HEADERS)
     assert response.status_code == 400
     assert "Cannot delete default category" in response.text
 
@@ -856,14 +783,10 @@ def test_delete_common_category(prepare_db_categories_same_names):
 @mark.integration
 def test_delete_tenant_category(prepare_db_categories_same_names):
     cat_id = "1"
-    response = client.delete(
-        f"{CATEGORIES_PATH}/{cat_id}", headers=TEST_HEADERS
-    )
+    response = client.delete(f"{CATEGORIES_PATH}/{cat_id}", headers=TEST_HEADERS)
     assert response.status_code == 204
     assert (
-        client.get(
-            f"{CATEGORIES_PATH}/{cat_id}", headers=TEST_HEADERS
-        ).status_code
+        client.get(f"{CATEGORIES_PATH}/{cat_id}", headers=TEST_HEADERS).status_code
         == 404
     )
 
@@ -873,26 +796,18 @@ def test_delete_tenant_category(prepare_db_categories_same_names):
 def test_cascade_delete_tenant_parent(add_for_cascade_delete):
     cat_id = "1"
     child_1, child_2 = add_for_cascade_delete
-    response = client.delete(
-        f"{CATEGORIES_PATH}/{cat_id}", headers=TEST_HEADERS
-    )
+    response = client.delete(f"{CATEGORIES_PATH}/{cat_id}", headers=TEST_HEADERS)
     assert response.status_code == 204
     assert (
-        client.get(
-            f"{CATEGORIES_PATH}/{cat_id}", headers=TEST_HEADERS
-        ).status_code
+        client.get(f"{CATEGORIES_PATH}/{cat_id}", headers=TEST_HEADERS).status_code
         == 404
     )
     assert (
-        client.get(
-            f"{CATEGORIES_PATH}/{child_1}", headers=TEST_HEADERS
-        ).status_code
+        client.get(f"{CATEGORIES_PATH}/{child_1}", headers=TEST_HEADERS).status_code
         == 404
     )
     assert (
-        client.get(
-            f"{CATEGORIES_PATH}/{child_2}", headers=TEST_HEADERS
-        ).status_code
+        client.get(f"{CATEGORIES_PATH}/{child_2}", headers=TEST_HEADERS).status_code
         == 404
     )
 
@@ -903,20 +818,14 @@ def test_cascade_delete_common_parent(add_for_cascade_delete):
     common_id = "2"
     child_1, child_2 = add_for_cascade_delete
     assert (
-        client.get(
-            f"{CATEGORIES_PATH}/{common_id}", headers=TEST_HEADERS
-        ).status_code
+        client.get(f"{CATEGORIES_PATH}/{common_id}", headers=TEST_HEADERS).status_code
         == 404
     )
     assert (
-        client.get(
-            f"{CATEGORIES_PATH}/{child_1}", headers=TEST_HEADERS
-        ).status_code
+        client.get(f"{CATEGORIES_PATH}/{child_1}", headers=TEST_HEADERS).status_code
         == 404
     )
     assert (
-        client.get(
-            f"{CATEGORIES_PATH}/{child_2}", headers=TEST_HEADERS
-        ).status_code
+        client.get(f"{CATEGORIES_PATH}/{child_2}", headers=TEST_HEADERS).status_code
         == 404
     )

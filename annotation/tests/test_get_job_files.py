@@ -200,9 +200,7 @@ def test_get_job_files_404_error(
         ),
     ],
 )
-def test_get_job_files(
-    prepare_db_for_get_job_files, job_id, tenant, expected_files
-):
+def test_get_job_files(prepare_db_for_get_job_files, job_id, tenant, expected_files):
     response = client.get(
         GET_JOB_FILES_PATH.format(job_id=job_id),
         headers={
@@ -237,8 +235,7 @@ def test_get_job_files(
                 "current_page": 1,
                 "page_size": 50,
                 "files": [
-                    {"id": f.file_id, "status": f.status}
-                    for f in GET_JOB_FILES[:3]
+                    {"id": f.file_id, "status": f.status} for f in GET_JOB_FILES[:3]
                 ],
             },
         ),
@@ -271,8 +268,7 @@ def test_get_job_files(
                 "current_page": 1,
                 "page_size": 2,
                 "files": [
-                    {"id": f.file_id, "status": f.status}
-                    for f in GET_JOB_FILES[:2]
+                    {"id": f.file_id, "status": f.status} for f in GET_JOB_FILES[:2]
                 ],
             },
         ),

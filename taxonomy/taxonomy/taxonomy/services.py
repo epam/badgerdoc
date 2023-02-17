@@ -3,7 +3,6 @@ from typing import Dict, List, Optional, Tuple, Union
 from filter_lib import Page, form_query, map_request_to_filter, paginate
 from sqlalchemy import and_, desc, null, or_
 from sqlalchemy.orm import Query, Session
-
 from taxonomy.errors import CheckFieldError
 from taxonomy.filters import TaxonomyFilter
 from taxonomy.models import AssociationTaxonomyCategory, Taxonomy
@@ -229,12 +228,8 @@ def bulk_delete_category_association(
             AssociationTaxonomyCategory.category_id == category_id,
         )
     taxonomy_links.filter(
-        AssociationTaxonomyCategory.taxonomy_id.in_(
-            tenant_taxonomy.subquery()
-        ),
-        AssociationTaxonomyCategory.taxonomy_version.in_(
-            tenant_taxonomy.subquery()
-        ),
+        AssociationTaxonomyCategory.taxonomy_id.in_(tenant_taxonomy.subquery()),
+        AssociationTaxonomyCategory.taxonomy_version.in_(tenant_taxonomy.subquery()),
     )
     taxonomy_links.delete(synchronize_session=False)
     session.commit()
@@ -260,8 +255,6 @@ def filter_taxonomies(
     tenant: str,
     query: Optional[Query] = None,
 ) -> Page[Union[TaxonomyResponseSchema, str, dict]]:
-    taxonomies_request, pagination = _get_obj_from_request(
-        db, request, tenant, query
-    )
+    taxonomies_request, pagination = _get_obj_from_request(db, request, tenant, query)
 
     return paginate(taxonomies_request, pagination)

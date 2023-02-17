@@ -3,15 +3,12 @@ from typing import Dict, Optional
 
 import tenant_dependency
 from fastapi import Depends, FastAPI, Header, HTTPException, status
-
 from scheduler import config, heartbeat, kafka_utils, log, runner, schemas
 from scheduler.db import service
 
 logger = log.get_logger(__name__)
 
-tenant = tenant_dependency.get_tenant_info(
-    url=config.KEYCLOAK_URI, algorithm="RS256"
-)
+tenant = tenant_dependency.get_tenant_info(url=config.KEYCLOAK_URI, algorithm="RS256")
 
 app = FastAPI(
     title="Scheduler",

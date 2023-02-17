@@ -12,9 +12,7 @@ def test_create_annotation_job_lack_of_data(testing_app):
             "datasets": [1, 2],
             "files": [],
             "is_auto_distribution": False,
-            "deadline": str(
-                datetime.datetime.utcnow() + datetime.timedelta(days=1)
-            ),
+            "deadline": str(datetime.datetime.utcnow() + datetime.timedelta(days=1)),
             "is_draft": False,
         },
     )
@@ -54,9 +52,7 @@ def test_create_annotation_job_excessive_data(testing_app):
             "validators": ["validator1", "validator2"],
             "categories": ["category1", "category2"],
             "is_auto_distribution": False,
-            "deadline": str(
-                datetime.datetime.utcnow() + datetime.timedelta(days=1)
-            ),
+            "deadline": str(datetime.datetime.utcnow() + datetime.timedelta(days=1)),
             "pipeline_name": "pipeline",
         },
     )
@@ -128,9 +124,7 @@ def test_create_extraction_with_annotation_job_lack_of_data(testing_app):
             "users": [1, 2],
             "files": [1, 2],
             "is_auto_distribution": False,
-            "deadline": str(
-                datetime.datetime.utcnow() + datetime.timedelta(days=1)
-            ),
+            "deadline": str(datetime.datetime.utcnow() + datetime.timedelta(days=1)),
             "is_draft": False,
         },
     )
@@ -163,9 +157,7 @@ def test_create_annotation_job_cross_validation_with_validators(testing_app):
             "validators": ["validator1"],
             "categories": ["category1", "category2"],
             "is_auto_distribution": False,
-            "deadline": str(
-                datetime.datetime.utcnow() + datetime.timedelta(days=1)
-            ),
+            "deadline": str(datetime.datetime.utcnow() + datetime.timedelta(days=1)),
         },
     )
     assert response.status_code == 422
@@ -197,9 +189,7 @@ def test_create_annotation_job_cross_validation_without_annotators(
             "validators": [],
             "categories": ["category1", "category2"],
             "is_auto_distribution": False,
-            "deadline": str(
-                datetime.datetime.utcnow() + datetime.timedelta(days=1)
-            ),
+            "deadline": str(datetime.datetime.utcnow() + datetime.timedelta(days=1)),
         },
     )
     assert response.status_code == 422
@@ -231,9 +221,7 @@ def test_create_annotation_job_cross_validation_annotators_not_enough(
             "validators": [],
             "categories": ["category1", "category2"],
             "is_auto_distribution": False,
-            "deadline": str(
-                datetime.datetime.utcnow() + datetime.timedelta(days=1)
-            ),
+            "deadline": str(datetime.datetime.utcnow() + datetime.timedelta(days=1)),
         },
     )
     assert response.status_code == 422
@@ -265,9 +253,7 @@ def test_create_annotation_job_hierarchichal_validation_without_validators(
             "validators": [],
             "categories": ["category1", "category2"],
             "is_auto_distribution": False,
-            "deadline": str(
-                datetime.datetime.utcnow() + datetime.timedelta(days=1)
-            ),
+            "deadline": str(datetime.datetime.utcnow() + datetime.timedelta(days=1)),
         },
     )
     assert response.status_code == 422
@@ -324,9 +310,7 @@ def test_create_annotationjob_validation_only_validation_type_with_annotators(
             "validators": ["validator1"],
             "categories": ["category1", "category2"],
             "is_auto_distribution": False,
-            "deadline": str(
-                datetime.datetime.utcnow() + datetime.timedelta(days=1)
-            ),
+            "deadline": str(datetime.datetime.utcnow() + datetime.timedelta(days=1)),
         },
     )
     assert response.status_code == 422
@@ -359,9 +343,7 @@ def test_create_annotationjob_validation_only_validation_type_without_validators
             "validators": [],
             "categories": ["category1", "category2"],
             "is_auto_distribution": False,
-            "deadline": str(
-                datetime.datetime.utcnow() + datetime.timedelta(days=1)
-            ),
+            "deadline": str(datetime.datetime.utcnow() + datetime.timedelta(days=1)),
         },
     )
     assert response.status_code == 422

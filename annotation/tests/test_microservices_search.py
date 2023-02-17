@@ -235,9 +235,7 @@ EXPANDED_TASKS = [
 @pytest.mark.parametrize(
     ["elem_amount", "expected_amount_of_pages"], [(50, 1), (100, 1), (101, 2)]
 )
-def test_calculate_amount_of_pagination_pages(
-    elem_amount, expected_amount_of_pages
-):
+def test_calculate_amount_of_pagination_pages(elem_amount, expected_amount_of_pages):
     actual_result = calculate_amount_of_pagination_pages(elem_amount)
     assert actual_result == expected_amount_of_pages
 
@@ -298,9 +296,7 @@ def test_expand_response():
     ],
 )
 @responses.activate
-def test_get_response(
-    ids, url, is_assets, microservice_response, expected_response
-):
+def test_get_response(ids, url, is_assets, microservice_response, expected_response):
     responses.add(
         responses.POST,
         url,

@@ -75,9 +75,7 @@ def upgrade():
         ondelete="cascade",
     )
 
-    op.drop_constraint(
-        JOB_OWNER_JOB_ID_FK, "association_job_owner", type_="foreignkey"
-    )
+    op.drop_constraint(JOB_OWNER_JOB_ID_FK, "association_job_owner", type_="foreignkey")
     op.drop_constraint(
         JOB_OWNER_USER_ID_FK, "association_job_owner", type_="foreignkey"
     )
@@ -148,9 +146,7 @@ def downgrade():
     Remove validation_only job type and
     rollback fk constraints
     """
-    op.alter_column(
-        "jobs", "validation_type", type_=sa.VARCHAR(), server_default=None
-    )
+    op.alter_column("jobs", "validation_type", type_=sa.VARCHAR(), server_default=None)
     op.execute("DROP TYPE validation_type;")
 
     op.execute("DELETE FROM jobs " "WHERE validation_type = 'validation_only'")
@@ -165,9 +161,7 @@ def downgrade():
     )
 
     op.drop_constraint(TASKS_JOB_ID_FK, "tasks", type_="foreignkey")
-    op.create_foreign_key(
-        TASKS_JOB_ID_FK, "tasks", "jobs", ["job_id"], ["job_id"]
-    )
+    op.create_foreign_key(TASKS_JOB_ID_FK, "tasks", "jobs", ["job_id"], ["job_id"])
 
     op.drop_constraint(
         JOB_VALIDATOR_USER_ID_FK,
@@ -197,9 +191,7 @@ def downgrade():
     op.drop_constraint(
         JOB_OWNER_USER_ID_FK, "association_job_owner", type_="foreignkey"
     )
-    op.drop_constraint(
-        JOB_OWNER_JOB_ID_FK, "association_job_owner", type_="foreignkey"
-    )
+    op.drop_constraint(JOB_OWNER_JOB_ID_FK, "association_job_owner", type_="foreignkey")
     op.create_foreign_key(
         JOB_OWNER_USER_ID_FK,
         "association_job_owner",

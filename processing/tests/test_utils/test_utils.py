@@ -125,10 +125,7 @@ def test_positive_get_files_data_from_separate_files(jw_token):
         [1, 2],
     )
 
-    assert (
-        utils.get_files_data([1, 2], "test_tenant", jw_token)
-        == expected_result
-    )
+    assert utils.get_files_data([1, 2], "test_tenant", jw_token) == expected_result
 
 
 @pytest.mark.skip
@@ -177,9 +174,7 @@ def test_get_files_data_from_separate_files_100_elements(jw_token):
         json=large_mock_files_data,
         status=200,
     )
-    assert utils.get_files_data(
-        list(range(1, 101)), "test_tenant", jw_token
-    ) == (
+    assert utils.get_files_data(list(range(1, 101)), "test_tenant", jw_token) == (
         large_mock_files_data["data"],
         list(range(1, 101)),
     )
@@ -288,9 +283,7 @@ def test_get_files_data_from_separate_files_101_elements(jw_token):
         }
         for i in range(1, 102)
     ]
-    assert utils.get_files_data(
-        list(range(1, 102)), "test_tenant", jw_token
-    ) == (
+    assert utils.get_files_data(list(range(1, 102)), "test_tenant", jw_token) == (
         expected_files_data,
         list(range(1, 102)),
     )
@@ -400,9 +393,7 @@ def test_get_files_data_from_separate_files_111_elements(jw_token):
         },
         status=200,
     )
-    assert utils.get_files_data(
-        list(range(1, 111)), "test_tenant", jw_token
-    ) == (
+    assert utils.get_files_data(list(range(1, 111)), "test_tenant", jw_token) == (
         expected_files_data,
         list(range(1, 111)),
     )
@@ -414,9 +405,7 @@ def test_get_files_data_from_separate_files_111_elements(jw_token):
 def test_get_files_data_from_separate_files_501_code(jw_token):
     request_body = {
         "pagination": {"page_num": 1, "page_size": 15},
-        "filters": [
-            {"field": "id", "operator": "eq", "value": "some invalid file id"}
-        ],
+        "filters": [{"field": "id", "operator": "eq", "value": "some invalid file id"}],
         "sorting": [{"field": "id", "direction": "asc"}],
     }
     responses.add(
@@ -436,9 +425,7 @@ def test_get_files_data_from_separate_files_501_code(jw_token):
 # --------------------- TESTING execute_pipeline -------------------------
 @pytest.mark.skip
 @responses.activate
-def test_execute_pipeline_negative(
-    jw_token, files_data_for_pipeline, db_test_session
-):
+def test_execute_pipeline_negative(jw_token, files_data_for_pipeline, db_test_session):
 
     responses.add(
         responses.POST,

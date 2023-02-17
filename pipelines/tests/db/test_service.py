@@ -64,19 +64,14 @@ def test_get_table_instance_by_id(testing_session):
     """Testing get_table_instance_by_id."""
     testing_session.add(dbm.Pipeline(type="inference"))
     obj = service.get_table_instance_by_id(testing_session, dbm.Pipeline, 1)
-    none_obj = service.get_table_instance_by_id(
-        testing_session, dbm.Pipeline, 2
-    )
+    none_obj = service.get_table_instance_by_id(testing_session, dbm.Pipeline, 2)
     assert obj
     assert none_obj is None
 
 
 def test_get_table_instance_by_id_not_found(testing_session):
     """Testing get_table_instance_by_id when instance not found."""
-    assert (
-        service.get_table_instance_by_id(testing_session, dbm.Pipeline, 1)
-        is None
-    )
+    assert service.get_table_instance_by_id(testing_session, dbm.Pipeline, 1) is None
 
 
 def test_get_pipelines(testing_session):
@@ -112,9 +107,7 @@ def test_get_task_not_found(testing_session):
 
 def test_get_task_job_id(testing_session):
     """Testing get_task_job_id."""
-    task = dbm.PipelineExecutionTask(
-        pipeline=dbm.Pipeline(type="inference"), job_id=42
-    )
+    task = dbm.PipelineExecutionTask(pipeline=dbm.Pipeline(type="inference"), job_id=42)
     testing_session.add(task)
     assert service.get_task_job_id(testing_session, 1) == 42
 
@@ -165,9 +158,7 @@ def test_update_table_instance_fields(testing_session):
         1,
         {dbm.PipelineExecutionTask.name: "bar"},
     )
-    assert (
-        testing_session.query(dbm.PipelineExecutionTask).get(1).name == "bar"
-    )
+    assert testing_session.query(dbm.PipelineExecutionTask).get(1).name == "bar"
 
 
 def test_update_status(testing_session):
@@ -177,9 +168,7 @@ def test_update_status(testing_session):
     )
     testing_session.add(task)
     service.update_status(testing_session, dbm.PipelineExecutionTask, 1, PEND)
-    assert (
-        testing_session.query(dbm.PipelineExecutionTask).get(1).status == PEND
-    )
+    assert testing_session.query(dbm.PipelineExecutionTask).get(1).status == PEND
 
 
 def test_update_statuses(testing_session):
@@ -188,15 +177,9 @@ def test_update_statuses(testing_session):
     task_1 = dbm.PipelineExecutionTask(pipeline=pipeline, status=PEND)
     task_2 = dbm.PipelineExecutionTask(pipeline=pipeline, status=RUN)
     testing_session.add_all([task_1, task_2])
-    service.update_statuses(
-        testing_session, dbm.PipelineExecutionTask, [1, 2], DONE
-    )
-    assert (
-        testing_session.query(dbm.PipelineExecutionTask).get(1).status == DONE
-    )
-    assert (
-        testing_session.query(dbm.PipelineExecutionTask).get(2).status == DONE
-    )
+    service.update_statuses(testing_session, dbm.PipelineExecutionTask, [1, 2], DONE)
+    assert testing_session.query(dbm.PipelineExecutionTask).get(1).status == DONE
+    assert testing_session.query(dbm.PipelineExecutionTask).get(2).status == DONE
 
 
 def test_get_pending_tasks(testing_session):
@@ -259,7 +242,9 @@ def test_get_expired_heartbeats(testing_session):
     """Testing get_expired_heartbeats."""
     eff_date = datetime.datetime.utcnow()
     last_heartbeat = eff_date - datetime.timedelta(minutes=1)
-    testing_session.add(dbm.ExecutorHeartbeat(id=str(uuid.uuid4()), last_heartbeat=last_heartbeat))
+    testing_session.add(
+        dbm.ExecutorHeartbeat(id=str(uuid.uuid4()), last_heartbeat=last_heartbeat)
+    )
     result = service.get_expired_heartbeats(testing_session, eff_date)
     assert result[0].last_heartbeat == last_heartbeat
 
@@ -289,9 +274,7 @@ def test_task_runner_id_status_in_lock(testing_session):
 @pytest.mark.asyncio
 async def test_initialize(testing_session):
     """Testing initialize_execution."""
-    with patch.object(
-        execution.Pipeline, "from_orm", return_value=td.pipeline
-    ):
+    with patch.object(execution.Pipeline, "from_orm", return_value=td.pipeline):
         pipeline_db_ = td.pipeline.to_orm()
         testing_session.add(pipeline_db_)
         result = await service.initialize_execution(
@@ -308,12 +291,8 @@ async def test_initialize(testing_session):
         task = testing_session.query(dbm.PipelineExecutionTask).get(1)
         assert task.name == "f"
         assert task.job_id == 1
-        assert testing_session.query(dbm.ExecutionStep).get(1).init_args == {
-            "a": 1
-        }
-        assert (
-            testing_session.query(dbm.ExecutionStep).get(2).init_args is None
-        )
+        assert testing_session.query(dbm.ExecutionStep).get(1).init_args == {"a": 1}
+        assert testing_session.query(dbm.ExecutionStep).get(2).init_args is None
 
 
 @pytest.mark.parametrize(

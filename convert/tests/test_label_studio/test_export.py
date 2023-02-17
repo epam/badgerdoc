@@ -28,13 +28,11 @@ def test_annotation_converter():
         TEST_FILES_DIR / "badgerdoc_etalon" / "manifest.json"
     )
     page_annotation_file_name = f"{manifest_test.pages['1']}.json"
-    annotations_test = (
-        annotation_converter_practic.AnnotationConverterToTheory(
-            bd_annotation_model_practic.BadgerdocAnnotation.parse_file(
-                TEST_FILES_DIR / "badgerdoc_etalon" / page_annotation_file_name
-            )
-        ).convert()
-    )
+    annotations_test = annotation_converter_practic.AnnotationConverterToTheory(
+        bd_annotation_model_practic.BadgerdocAnnotation.parse_file(
+            TEST_FILES_DIR / "badgerdoc_etalon" / page_annotation_file_name
+        )
+    ).convert()
 
     labelstudio_format_test = LabelStudioFormat()
     labelstudio_format_test.from_badgerdoc(
@@ -63,6 +61,5 @@ def test_annotation_converter():
         str(relation)
         for relation in labelstudio_model_etalon.__root__[0].meta.relations
     ) == set(
-        str(relation)
-        for relation in labelstudio_model_test.__root__[0].meta.relations
+        str(relation) for relation in labelstudio_model_test.__root__[0].meta.relations
     )

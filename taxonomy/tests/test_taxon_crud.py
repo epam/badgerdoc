@@ -81,12 +81,9 @@ def prepare_parents_concatenate_expected_response(taxons: List[Taxon]) -> dict:
             {
                 "taxon_id": taxon.id,
                 "taxon_name": taxon.name,
-                "parent_ids_concat": ".".join(taxon.tree.path.split(".")[:-1])
-                or None,
+                "parent_ids_concat": ".".join(taxon.tree.path.split(".")[:-1]) or None,
                 # Names equal to ids in this test
-                "parent_names_concat": ".".join(
-                    taxon.tree.path.split(".")[:-1]
-                )
+                "parent_names_concat": ".".join(taxon.tree.path.split(".")[:-1])
                 or None,
             }
             for taxon in taxons
@@ -101,9 +98,7 @@ def test_add_taxon_taxonomy_does_not_exist(overrided_token_client):
         name=uuid.uuid4().hex,
         taxonomy_id=uuid.uuid4().hex,
     )
-    response = overrided_token_client.post(
-        TAXON_PATH, json=data, headers=TEST_HEADER
-    )
+    response = overrided_token_client.post(TAXON_PATH, json=data, headers=TEST_HEADER)
     assert response.status_code == 400
     assert "Taxonomy with this id doesn't exist" in response.text
 
@@ -120,9 +115,7 @@ def test_add_taxon_self_parent(
         taxonomy_id=prepared_taxonomy_record_in_db.id,
         parent_id=taxon_id,
     )
-    response = overrided_token_client.post(
-        TAXON_PATH, json=data, headers=TEST_HEADER
-    )
+    response = overrided_token_client.post(TAXON_PATH, json=data, headers=TEST_HEADER)
     assert response.status_code == 400
     assert "Taxon cannot be its own parent" in response.text
 
@@ -154,9 +147,7 @@ def test_add_taxon_name_empty_string(
         name="",
         taxonomy_id=prepared_taxonomy_record_in_db.id,
     )
-    response = overrided_token_client.post(
-        TAXON_PATH, json=data, headers=TEST_HEADER
-    )
+    response = overrided_token_client.post(TAXON_PATH, json=data, headers=TEST_HEADER)
     assert response.status_code == 400
     assert "Taxon name can not be empty" in response.text
 
@@ -172,9 +163,7 @@ def test_add_taxon_specify_version(
         taxonomy_id=prepared_taxonomy_record_in_db.id,
         taxonomy_version=prepared_taxonomy_record_in_db.version,
     )
-    response = overrided_token_client.post(
-        TAXON_PATH, json=data, headers=TEST_HEADER
-    )
+    response = overrided_token_client.post(TAXON_PATH, json=data, headers=TEST_HEADER)
     assert response.status_code == 201
     assert response_schema_from_request(data) == response.json()
 
@@ -194,9 +183,7 @@ def test_add_unique_name(
         taxonomy_id=prepared_taxonomy_record_in_db.id,
         taxonomy_version=prepared_taxonomy_record_in_db.version,
     )
-    response = overrided_token_client.post(
-        TAXON_PATH, json=data, headers=TEST_HEADER
-    )
+    response = overrided_token_client.post(TAXON_PATH, json=data, headers=TEST_HEADER)
     assert response.status_code == 201
     assert response_schema_from_request(data) == response.json()
 
@@ -211,9 +198,7 @@ def test_add_taxon_id_exists(
         id_=prepared_taxon_entity_in_db.id,
         taxonomy_id=prepared_taxonomy_record_in_db.id,
     )
-    response = overrided_token_client.post(
-        TAXON_PATH, json=data, headers=TEST_HEADER
-    )
+    response = overrided_token_client.post(TAXON_PATH, json=data, headers=TEST_HEADER)
     assert response.status_code == 400
     assert "Taxon id must be unique" in response.text
 
@@ -269,9 +254,7 @@ def test_get_taxon_parents_isleaf(
 @pytest.mark.integration
 def test_get_taxon_does_not_exist(overrided_token_client):
     id_ = uuid.uuid4().hex
-    response = overrided_token_client.get(
-        f"{TAXON_PATH}/{id_}", headers=TEST_HEADER
-    )
+    response = overrided_token_client.get(f"{TAXON_PATH}/{id_}", headers=TEST_HEADER)
     assert response.status_code == 404
     assert f"Taxon with id: {id_} doesn't exist" in response.text
 
@@ -295,9 +278,7 @@ def test_update_taxon_duplicate_name(
     prepare_two_taxons_different_names,
 ):
     id_ = prepare_two_taxons_different_names[1].id
-    taxon_update = prepare_taxon_body(
-        name=prepare_two_taxons_different_names[0].name
-    )
+    taxon_update = prepare_taxon_body(name=prepare_two_taxons_different_names[0].name)
     taxon_update.pop("id")
 
     response = overrided_token_client.put(
@@ -411,10 +392,7 @@ def test_delete_taxon_does_not_exist(
         f"{TAXON_PATH}/{uuid.uuid4().hex}", headers=TEST_HEADER
     )
     assert delete_response.status_code == 404
-    assert (
-        "Cannot delete taxon that doesn't exist"
-        in delete_response.json()["detail"]
-    )
+    assert "Cannot delete taxon that doesn't exist" in delete_response.json()["detail"]
 
 
 @pytest.mark.integration
@@ -618,9 +596,7 @@ def test_search_parents_recursive_tree(
 
     assert len(taxons) == 2
 
-    assert parent_1 == response_schema_from_request(
-        root.to_dict(), is_leaf=False
-    )
+    assert parent_1 == response_schema_from_request(root.to_dict(), is_leaf=False)
     assert parent_2 == response_schema_from_request(
         second.to_dict(),
         parents=[response_schema_from_request(root.to_dict(), is_leaf=False)],
@@ -645,9 +621,7 @@ def test_get_parents_concatenated_not_found(
 
 
 @pytest.mark.integration
-def test_get_parents_concatenated(
-    overrided_token_client, prepared_taxon_hierarchy
-):
+def test_get_parents_concatenated(overrided_token_client, prepared_taxon_hierarchy):
     taxons_search_from = prepared_taxon_hierarchy[:5]
     taxon_ids = [taxon.id for taxon in taxons_search_from]
 
@@ -661,6 +635,6 @@ def test_get_parents_concatenated(
     taxons = response.json()
 
     assert len(taxons) == 5
-    assert prepare_parents_concatenate_expected_response(
-        taxons_search_from
-    ) == sorted(response.json(), key=lambda x: x["taxon_id"])
+    assert prepare_parents_concatenate_expected_response(taxons_search_from) == sorted(
+        response.json(), key=lambda x: x["taxon_id"]
+    )

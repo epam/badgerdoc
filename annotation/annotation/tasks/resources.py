@@ -5,25 +5,6 @@ from typing import Any, Dict, List, Optional, Union
 from uuid import UUID
 
 import dotenv
-from fastapi import (
-    APIRouter,
-    Body,
-    Depends,
-    Header,
-    HTTPException,
-    Path,
-    Query,
-    Response,
-    status,
-)
-from fastapi.responses import JSONResponse, StreamingResponse
-from filter_lib import Page
-from sqlalchemy import and_, not_
-from sqlalchemy.exc import IntegrityError, SQLAlchemyError
-from sqlalchemy.orm import Session
-from sqlalchemy_filters.exceptions import BadFilterFormat
-from tenant_dependency import TenantData
-
 from annotation.annotations import accumulate_pages_info, row_to_dict
 from annotation.database import get_db
 from annotation.filters import TaskFilter
@@ -38,7 +19,9 @@ from annotation.jobs import (
     update_user_overall_load,
 )
 from annotation.logger import Logger
-from annotation.microservice_communication.assets_communication import get_file_names
+from annotation.microservice_communication.assets_communication import (
+    get_file_names,
+)
 from annotation.microservice_communication.jobs_communication import (
     JobUpdateException,
     update_job_status,
@@ -75,6 +58,24 @@ from annotation.tasks.validation import (
     create_validation_tasks,
 )
 from annotation.token_dependency import TOKEN
+from fastapi import (
+    APIRouter,
+    Body,
+    Depends,
+    Header,
+    HTTPException,
+    Path,
+    Query,
+    Response,
+    status,
+)
+from fastapi.responses import JSONResponse, StreamingResponse
+from filter_lib import Page
+from sqlalchemy import and_, not_
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+from sqlalchemy.orm import Session
+from sqlalchemy_filters.exceptions import BadFilterFormat
+from tenant_dependency import TenantData
 
 from ..models import File, Job, ManualAnnotationTask
 from .services import (
@@ -123,8 +124,7 @@ def _prepare_expanded_tasks_response(
         user_logins = get_user_logins(tasks, tenant, token)
     except GetUserInfoAccessDenied:
         Logger.info(
-            "Trying to get users logins with non-admin jwt. "
-            "Getting empty dict"
+            "Trying to get users logins with non-admin jwt. " "Getting empty dict"
         )
         user_logins = {}
 
@@ -298,9 +298,7 @@ def get_task(
     if not annotation_task:
         return JSONResponse(
             status_code=404,
-            content={
-                "detail": "Task with id {0} was not found.".format(task_id)
-            },
+            content={"detail": "Task with id {0} was not found.".format(task_id)},
         )
     annotation_task = _prepare_expanded_tasks_response(
         db,
@@ -316,14 +314,11 @@ def get_task(
 @router.get(
     "",
     status_code=status.HTTP_200_OK,
-    response_model=Dict[
-        str, Union[int, List[ExpandedManualAnnotationTaskSchema]]
-    ],
+    response_model=Dict[str, Union[int, List[ExpandedManualAnnotationTaskSchema]]],
     responses={
         404: {"model": NotFoundErrorSchema},
     },
-    summary="Get a list of manual annotation tasks based "
-    "on search parameters.",
+    summary="Get a list of manual annotation tasks based " "on search parameters.",
 )
 def get_tasks(
     file_id: Optional[int] = Query(None, example=5),
@@ -332,9 +327,7 @@ def get_tasks(
         None, example="2016a913-47f2-417d-afdb-032165b9330d"
     ),
     deadline: Optional[datetime] = Query(None, example="2021-10-19 01:01:01"),
-    task_status: Optional[str] = Query(
-        None, example=TaskStatusEnumSchema.ready
-    ),
+    task_status: Optional[str] = Query(None, example=TaskStatusEnumSchema.ready),
     pagination_page_size: Optional[int] = Query(50, gt=0, le=100, example=25),
     pagination_start_page: Optional[int] = Query(1, gt=0, example=1),
     db: Session = Depends(get_db),
@@ -487,8 +480,7 @@ def update_task(
         if task.status != TaskStatusEnumSchema.pending:
             raise HTTPException(
                 status_code=400,
-                detail="Error: only tasks in 'Pending' status could "
-                "be updated",
+                detail="Error: only tasks in 'Pending' status could " "be updated",
             )
 
         task_info_dict = row_to_dict(task)
@@ -526,9 +518,7 @@ def update_task(
 
         if old_task_file:
             recalculate_file_pages(db, old_task_file)
-        if not (
-            old_task_job_id == task.job_id and old_task_file_id == task.file_id
-        ):
+        if not (old_task_job_id == task.job_id and old_task_file_id == task.file_id):
             update_files(db, [row_to_dict(task)], task.job_id)
 
         db.flush()
@@ -785,9 +775,7 @@ def finish_task(
 
     # if there is user for annotation
     # param will be True, otherwise False
-    annotation_user = bool(
-        validation_info.annotation_user_for_failed_pages is not None
-    )
+    annotation_user = bool(validation_info.annotation_user_for_failed_pages is not None)
 
     # if there is user for validation
     # param will be True, otherwise False
@@ -986,9 +974,7 @@ def finish_task(
                         status_code=500,
                         detail=f"Error: connection error ({exc.exc_info})",
                     )
-                update_inner_job_status(
-                    db, task.job_id, JobStatusEnumSchema.finished
-                )
+                update_inner_job_status(db, task.job_id, JobStatusEnumSchema.finished)
             # store metrics in db
             save_agreement_metrics(db=db, scores=compared_score)
 

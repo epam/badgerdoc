@@ -336,18 +336,14 @@ AGREEMENT_SCORE_RESPONSE = [
 ]
 
 
-def check_files_finished_pages(
-    test_session: Session, job_id: int, tenant: str
-):
+def check_files_finished_pages(test_session: Session, job_id: int, tenant: str):
     finished_tasks = test_session.query(ManualAnnotationTask).filter(
         ManualAnnotationTask.job_id == job_id,
         ManualAnnotationTask.status == TaskStatusEnumSchema.finished,
     )
     files = test_session.query(File).filter(File.job_id == job_id).all()
     validation_type = (
-        test_session.query(Job.validation_type)
-        .filter_by(job_id=job_id)
-        .first()
+        test_session.query(Job.validation_type).filter_by(job_id=job_id).first()
     )
 
     for task_file in files:
@@ -550,9 +546,7 @@ def test_finish_not_all_tasks_db_contain(
         status=500,
         headers=TEST_HEADERS,
     )
-    client.post(
-        FINISH_TASK_PATH.format(task_id=FINISH_TASK_ID), headers=TEST_HEADERS
-    )
+    client.post(FINISH_TASK_PATH.format(task_id=FINISH_TASK_ID), headers=TEST_HEADERS)
     task = prepare_db_for_finish_task_status_two_tasks_same_job.query(
         ManualAnnotationTask
     ).get(FINISH_TASK_ID)
@@ -831,9 +825,7 @@ def test_finish_task_pending_validation_unblocking(
         headers=TEST_HEADERS,
     )
     session = prepare_db_for_finish_task_change_validation_status
-    annotation_finish_task = ManualAnnotationTask(
-        **ANNOTATION_TASKS_TO_FINISH[0]
-    )
+    annotation_finish_task = ManualAnnotationTask(**ANNOTATION_TASKS_TO_FINISH[0])
     session.add(annotation_finish_task)
     session.commit()
     client.post(
@@ -879,9 +871,7 @@ def test_finish_tasks_failed_validation_statuses(
         status=200,
         headers=TEST_HEADERS,
     )
-    validation_finish_task = ManualAnnotationTask(
-        **VALIDATION_TASKS_TO_FINISH[0]
-    )
+    validation_finish_task = ManualAnnotationTask(**VALIDATION_TASKS_TO_FINISH[0])
     session.add(validation_finish_task)
     session.commit()
     client.post(
@@ -926,9 +916,7 @@ def test_finish_tasks_reannotation_statuses(
         status=200,
         headers=TEST_HEADERS,
     )
-    validation_finish_task = ManualAnnotationTask(
-        **VALIDATION_TASKS_TO_FINISH[1]
-    )
+    validation_finish_task = ManualAnnotationTask(**VALIDATION_TASKS_TO_FINISH[1])
     session.add(validation_finish_task)
     session.commit()
     client.post(
@@ -950,22 +938,17 @@ def test_finish_task_initial_annotator_deleted(
 ):
     session = prepare_db_for_finish_task_check_deleted_annotators
     session.query(ManualAnnotationTask).filter(
-        ManualAnnotationTask.id
-        == FINISH_TASK_CHECK_DELETE_USER_ANNOTATOR_2["id"]
+        ManualAnnotationTask.id == FINISH_TASK_CHECK_DELETE_USER_ANNOTATOR_2["id"]
     ).delete()
     session.commit()
-    session.query(User).filter(
-        User.user_id == FINISH_TASK_USER_2.user_id
-    ).delete()
+    session.query(User).filter(User.user_id == FINISH_TASK_USER_2.user_id).delete()
     session.commit()
 
     end_task_schema = {
         "annotation_user_for_failed_pages": "initial",
     }
     response = client.post(
-        FINISH_TASK_PATH.format(
-            task_id=FINISH_TASK_CHECK_DELETE_USER_VALIDATOR["id"]
-        ),
+        FINISH_TASK_PATH.format(task_id=FINISH_TASK_CHECK_DELETE_USER_VALIDATOR["id"]),
         headers=TEST_HEADERS,
         json=end_task_schema,
     )

@@ -1,12 +1,7 @@
 import os
 import pathlib
 
-from botocore.exceptions import BotoCoreError, ClientError
-from dotenv import find_dotenv, load_dotenv
-from fastapi import Depends, FastAPI
-from sqlalchemy.exc import DBAPIError, SQLAlchemyError
-from starlette.requests import Request
-
+from annotation import logger as app_logger
 from annotation.annotations import resources as annotations_resources
 from annotation.categories import resources as categories_resources
 from annotation.distribution import resources as distribution_resources
@@ -36,12 +31,16 @@ from annotation.errors import (
     wrong_job_error_handler,
 )
 from annotation.jobs import resources as jobs_resources
-from annotation import logger as app_logger
 from annotation.metadata import resources as metadata_resources
 from annotation.revisions import resources as revision_resources
 from annotation.tags import TAGS
 from annotation.tasks import resources as task_resources
 from annotation.token_dependency import TOKEN
+from botocore.exceptions import BotoCoreError, ClientError
+from dotenv import find_dotenv, load_dotenv
+from fastapi import Depends, FastAPI
+from sqlalchemy.exc import DBAPIError, SQLAlchemyError
+from starlette.requests import Request
 
 load_dotenv(find_dotenv())
 
@@ -77,7 +76,8 @@ async def catch_exceptions_middleware(request: Request, call_next):
         logger.exception(exception)
         raise exception
 
-app.middleware('http')(catch_exceptions_middleware)
+
+app.middleware("http")(catch_exceptions_middleware)
 app.include_router(annotations_resources.router)
 app.include_router(task_resources.router)
 app.include_router(distribution_resources.router)
@@ -89,9 +89,7 @@ app.include_router(revision_resources.router)
 app.add_exception_handler(
     AgreementScoreServiceException, agreement_score_service_error_handler
 )
-app.add_exception_handler(
-    NoSuchRevisionsError, no_such_revisions_error_handler
-)
+app.add_exception_handler(NoSuchRevisionsError, no_such_revisions_error_handler)
 app.add_exception_handler(CheckFieldError, category_unique_field_error_handler)
 app.add_exception_handler(EnumValidationError, enum_validation_error_handler)
 app.add_exception_handler(FieldConstraintError, field_constraint_error_handler)

@@ -2,9 +2,6 @@ from typing import Optional, Set
 
 from db_example import Address, User, get_db
 from fastapi import Depends, FastAPI
-from pydantic import BaseModel
-from sqlalchemy.orm import Session
-
 from filter_lib import (  # type: ignore
     Page,
     create_filter_model,
@@ -12,6 +9,8 @@ from filter_lib import (  # type: ignore
     map_request_to_filter,
     paginate,
 )
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
 
 app = FastAPI()
 
@@ -71,17 +70,13 @@ def search_users(
 def create_new_address(
     request: AddressCreate, session: Session = Depends(get_db)
 ) -> Set[str]:
-    new_address = Address(
-        email_address=request.email_address, user_id=request.user_id
-    )
+    new_address = Address(email_address=request.email_address, user_id=request.user_id)
     session.add(new_address)
     session.commit()
     return {"New address created"}
 
 
-@app.post(
-    "/addresses/search", tags=["addresses"], response_model=Page[AddressOut]
-)
+@app.post("/addresses/search", tags=["addresses"], response_model=Page[AddressOut])
 def search_address(
     request: AddressFilterModel, session: Session = Depends(get_db)  # type: ignore # noqa
 ) -> Page[UserOut]:

@@ -10,9 +10,7 @@ def test_search_job_positive(testing_app, testing_session):
         "/jobs/search",
         json={
             "pagination": {"page_num": 1, "page_size": 15},
-            "filters": [
-                {"field": "id", "operator": "is_not_null", "value": "string"}
-            ],
+            "filters": [{"field": "id", "operator": "is_not_null", "value": "string"}],
             "sorting": [{"field": "id", "direction": "asc"}],
         },
     )
@@ -37,7 +35,7 @@ def test_search_job_invalid_field(testing_app, testing_session):
         },
     )
     assert response.status_code == 422
-    response_message = response.json()['detail'][0]['msg']
+    response_message = response.json()["detail"][0]["msg"]
     assert response_message.startswith("value is not a valid enumeration member")
 
 
@@ -73,17 +71,13 @@ def test_search_job_has_pagination(
 ):
     for _ in range(25):
         create_mock_extraction_job_in_db(testing_session)
-        create_mock_annotation_job_in_db(
-            testing_session, mock_AnnotationJobParams
-        )
+        create_mock_annotation_job_in_db(testing_session, mock_AnnotationJobParams)
 
     response1 = testing_app.post(
         "/jobs/search",
         json={
             "pagination": {"page_num": 1, "page_size": 15},
-            "filters": [
-                {"field": "id", "operator": "is_not_null", "value": "string"}
-            ],
+            "filters": [{"field": "id", "operator": "is_not_null", "value": "string"}],
             "sorting": [{"field": "id", "direction": "asc"}],
         },
     )
@@ -100,9 +94,7 @@ def test_search_job_has_pagination(
         "/jobs/search",
         json={
             "pagination": {"page_num": 2, "page_size": 15},
-            "filters": [
-                {"field": "id", "operator": "is_not_null", "value": "string"}
-            ],
+            "filters": [{"field": "id", "operator": "is_not_null", "value": "string"}],
             "sorting": [{"field": "id", "direction": "asc"}],
         },
     )

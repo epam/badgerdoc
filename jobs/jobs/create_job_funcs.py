@@ -57,9 +57,7 @@ async def create_extraction_job(
     )
 
     pipeline_id = pipeline_instance.get("id")
-    pipeline_categories = pipeline_instance.get("meta", {}).get(
-        "categories", []
-    )
+    pipeline_categories = pipeline_instance.get("meta", {}).get("categories", [])
 
     (
         files_data,
@@ -151,9 +149,7 @@ async def create_extraction_annotation_job(
             detail="No valid data (files, datasets) provided",
         )
 
-    pipeline_categories = pipeline_instance.get("meta", {}).get(
-        "categories", []
-    )
+    pipeline_categories = pipeline_instance.get("meta", {}).get("categories", [])
     manual_categories = extraction_annotation_job_input.categories
     categories = list(
         set(

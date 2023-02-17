@@ -1,5 +1,6 @@
-from .base_runner import BaseRunner
 from dev_runner.conf import settings
+
+from .base_runner import BaseRunner
 
 
 class SchedulerRunner(BaseRunner):
@@ -7,9 +8,7 @@ class SchedulerRunner(BaseRunner):
     PORT = settings.SCHEDULER_PORT
     APP_NAME = "scheduler"
     MODULE_NAME = "app"
-    DB_CREDENTIALS = {
-        "POSTGRES_DB": "scheduler"
-    }
+    DB_CREDENTIALS = {"POSTGRES_DB": "scheduler"}
     ENVIRONMENT = {
         "DB_NAME": "scheduler",
         "DB_URL": "postgresql+psycopg2://postgres:postgres@localhost:5432/scheduler",

@@ -1,6 +1,18 @@
 from datetime import datetime
 from typing import Callable
 
+from annotation.database import Base
+from annotation.errors import CheckFieldError
+from annotation.schemas import (
+    DEFAULT_LOAD,
+    AnnotationStatisticsEventEnumSchema,
+    CategoryTypeSchema,
+    FileStatusEnumSchema,
+    JobStatusEnumSchema,
+    JobTypeEnumSchema,
+    TaskStatusEnumSchema,
+    ValidationSchema,
+)
 from sqlalchemy import (
     BOOLEAN,
     FLOAT,
@@ -20,19 +32,6 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import ARRAY, ENUM, JSON, JSONB, UUID
 from sqlalchemy.orm import relationship, validates
 from sqlalchemy_utils import Ltree, LtreeType
-
-from annotation.database import Base
-from annotation.errors import CheckFieldError
-from annotation.schemas import (
-    DEFAULT_LOAD,
-    AnnotationStatisticsEventEnumSchema,
-    CategoryTypeSchema,
-    FileStatusEnumSchema,
-    JobStatusEnumSchema,
-    JobTypeEnumSchema,
-    TaskStatusEnumSchema,
-    ValidationSchema,
-)
 
 association_job_annotator = Table(
     "association_job_annotator",
@@ -90,9 +89,7 @@ class AnnotatedDoc(Base):
     revision = Column(VARCHAR, primary_key=True)
     file_id = Column(INTEGER, primary_key=True)
     job_id = Column(INTEGER, primary_key=True)
-    user = Column(
-        UUID(as_uuid=True), ForeignKey("users.user_id", ondelete="SET NULL")
-    )
+    user = Column(UUID(as_uuid=True), ForeignKey("users.user_id", ondelete="SET NULL"))
     pipeline = Column(INTEGER)
     date = Column(TIMESTAMP, server_default=func.now(), nullable=False)
     pages = Column(JSON, nullable=False, server_default="{}")
@@ -286,9 +283,7 @@ class ManualAnnotationTask(Base):
     job_id = Column(
         INTEGER, ForeignKey("jobs.job_id", ondelete="cascade"), nullable=False
     )
-    user_id = Column(
-        UUID(as_uuid=True), ForeignKey("users.user_id"), nullable=False
-    )
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.user_id"), nullable=False)
     is_validation = Column(BOOLEAN, nullable=False)
     status = Column(
         ENUM(TaskStatusEnumSchema),

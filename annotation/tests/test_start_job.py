@@ -180,9 +180,7 @@ JOB_WITHOUT_TASKS = CHANGE_STATUSES_JOBS[2].job_id
         (CHANGE_STATUSES_JOBS[0].job_id, JobStatusEnumSchema.failed),
     ],
 )
-def test_update_inner_job_status(
-    job_id, status, prepare_db_for_update_job_status
-):
+def test_update_inner_job_status(job_id, status, prepare_db_for_update_job_status):
     update_inner_job_status(prepare_db_for_update_job_status, job_id, status)
     prepare_db_for_update_job_status.commit()
     db_job = prepare_db_for_update_job_status.query(Job).get(job_id)
@@ -197,9 +195,7 @@ def test_post_start_job_500_response(
     job_id=CHANGE_STATUSES_TASKS[0].job_id,
 ):
     Session.side_effect = Mock(side_effect=SQLAlchemyError())
-    response = client.post(
-        START_JOB_PATH.format(job_id=job_id), headers=TEST_HEADERS
-    )
+    response = client.post(START_JOB_PATH.format(job_id=job_id), headers=TEST_HEADERS)
     assert response.status_code == 500
     assert "Error: connection error" in response.text
 
@@ -246,9 +242,7 @@ def test_post_start_job_bad_job_response(
         status=job_response_status,
         headers=TEST_HEADERS,
     )
-    response = client.post(
-        START_JOB_PATH.format(job_id=job_id), headers=TEST_HEADERS
-    )
+    response = client.post(START_JOB_PATH.format(job_id=job_id), headers=TEST_HEADERS)
     assert response.status_code == 500
     assert expected_response in response.text
     saved_tasks = (
@@ -295,9 +289,7 @@ def test_post_start_job_tasks_statuses(
         status=200,
         headers=TEST_HEADERS,
     )
-    response = client.post(
-        START_JOB_PATH.format(job_id=job_id), headers=TEST_HEADERS
-    )
+    response = client.post(START_JOB_PATH.format(job_id=job_id), headers=TEST_HEADERS)
     prepare_db_for_change_statuses.commit()
     assert response.status_code == 200
     assert response.json() == expected_response

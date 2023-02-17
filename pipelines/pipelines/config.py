@@ -62,8 +62,7 @@ KEYCLOAK_URI = os.getenv("KEYCLOAK_URI", "http://dev1.badgerdoc.com")
 KEYCLOAK_REALM = os.getenv("KEYCLOAK_REALM", "master")
 CLIENT_SECRET = os.getenv("CLIENT_SECRET", "")
 KEYCLOAK_TOKEN_URI = (
-    f"{KEYCLOAK_URI}/auth/realms/{KEYCLOAK_REALM}"
-    f"/protocol/openid-connect/token"
+    f"{KEYCLOAK_URI}/auth/realms/{KEYCLOAK_REALM}" f"/protocol/openid-connect/token"
 )
 
 # Kafka settings

@@ -1,9 +1,8 @@
 from enum import Enum
 from typing import List, Optional
 
-from pydantic import BaseModel, Field, validator
-
 from annotation.errors import CheckFieldError
+from pydantic import BaseModel, Field, validator
 
 
 class CategoryTypeSchema(str, Enum):
@@ -62,9 +61,7 @@ class SubCategoriesOutSchema(BaseModel):
 
 
 class CategoryORMSchema(CategoryInputSchema):
-    metadata: Optional[dict] = Field(
-        None, example={"color": "blue"}, alias="metadata_"
-    )
+    metadata: Optional[dict] = Field(None, example={"color": "blue"}, alias="metadata_")
 
     class Config:
         orm_mode = True

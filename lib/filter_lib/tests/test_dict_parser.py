@@ -3,9 +3,7 @@ from ..src.dict_parser import map_request_to_filter
 
 example_1 = {
     "pagination": {"page_num": 1, "page_size": 50},
-    "filters": [
-        {"field": "ts_vector", "operator": "match", "value": "kubeflow"}
-    ],
+    "filters": [{"field": "ts_vector", "operator": "match", "value": "kubeflow"}],
     "sorting": [{"field": "id", "direction": "desc"}],
 }
 
@@ -48,9 +46,7 @@ def test_positive_standard_structure():
                 "value": "kubeflow",
             }
         ],
-        "sorting": [
-            {"model": "test_model", "field": "id", "direction": "desc"}
-        ],
+        "sorting": [{"model": "test_model", "field": "id", "direction": "desc"}],
     }
 
 
@@ -77,9 +73,7 @@ def test_positive_many_nested_structures():
                 "value": 100,
             },
         ],
-        "sorting": [
-            {"model": "test_model", "field": "created", "direction": "desc"}
-        ],
+        "sorting": [{"model": "test_model", "field": "created", "direction": "desc"}],
     }
 
 

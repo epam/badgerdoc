@@ -283,6 +283,7 @@ class TokenResponse(BaseModel):
 
 class OAuthRequest(BaseModel):
     """Base class for authorization requests"""
+
     client_id: Optional[str]
     grant_type: str
     client_secret: Optional[str]
@@ -317,6 +318,7 @@ class TokenRequest(OAuthRequest):
 
 class RefreshTokenRequest(OAuthRequest):
     """Represents Keycloak token refreshment request"""
+
     client_id: str = "admin-cli"
     grant_type: str = "refresh_token"
     refresh_token: str

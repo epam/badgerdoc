@@ -19,9 +19,7 @@ def upgrade():
     op.drop_constraint(
         "annotated_docs_task_id_fkey", "annotated_docs", type_="foreignkey"
     )
-    op.drop_constraint(
-        "annotated_docs_user_fkey", "annotated_docs", type_="foreignkey"
-    )
+    op.drop_constraint("annotated_docs_user_fkey", "annotated_docs", type_="foreignkey")
     op.create_foreign_key(
         None,
         "annotated_docs",
@@ -41,18 +39,14 @@ def upgrade():
 
 
 def downgrade():
-    op.execute(
-        'DELETE FROM annotated_docs WHERE "user" IS NULL AND pipeline IS NULL'
-    )
+    op.execute('DELETE FROM annotated_docs WHERE "user" IS NULL AND pipeline IS NULL')
     op.create_check_constraint(
         "annotated_docs_check",
         "annotated_docs",
         '("user" IS NULL AND pipeline IS NOT NULL) OR '
         '("user" IS NOT NULL AND pipeline IS NULL)',
     )
-    op.drop_constraint(
-        "annotated_docs_user_fkey", "annotated_docs", type_="foreignkey"
-    )
+    op.drop_constraint("annotated_docs_user_fkey", "annotated_docs", type_="foreignkey")
     op.drop_constraint(
         "annotated_docs_task_id_fkey", "annotated_docs", type_="foreignkey"
     )

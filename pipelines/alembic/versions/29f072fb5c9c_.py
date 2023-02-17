@@ -39,7 +39,5 @@ def downgrade() -> None:
         op.f("ix_pipeline_execution_task_job_id"),
         table_name="pipeline_execution_task",
     )
-    op.drop_index(
-        op.f("ix_execution_step_task_id"), table_name="execution_step"
-    )
+    op.drop_index(op.f("ix_execution_step_task_id"), table_name="execution_step")
     # ### end Alembic commands ###

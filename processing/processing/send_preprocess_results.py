@@ -4,7 +4,6 @@ from typing import Iterator, Optional, Set
 
 from fastapi import HTTPException
 from minio.error import MinioException
-
 from processing.utils.logger import get_logger
 from processing.utils.minio_utils import MinioCommunicator
 
@@ -41,10 +40,7 @@ def get_pages(bucket: str, path: str, pages: Optional[Set[int]]) -> Set[int]:
         raise HTTPException(status_code=400, detail=str(err))
 
     return set(
-        (
-            page.object_name.rsplit("/", maxsplit=1)[-1][:-5]
-            for page in pages_in_minio
-        )
+        (page.object_name.rsplit("/", maxsplit=1)[-1][:-5] for page in pages_in_minio)
     )
 
 

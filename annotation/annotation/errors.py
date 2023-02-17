@@ -1,9 +1,8 @@
+from annotation import logger as app_logger
 from botocore.exceptions import BotoCoreError, ClientError
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import DBAPIError, SQLAlchemyError
-
-from annotation import logger as app_logger
 
 logger = app_logger.Logger
 
@@ -52,9 +51,7 @@ class AgreementScoreServiceException(Exception):
         self.exc = exc
 
 
-def no_such_revisions_error_handler(
-    request: Request, exc: NoSuchRevisionsError
-):
+def no_such_revisions_error_handler(request: Request, exc: NoSuchRevisionsError):
     return JSONResponse(
         status_code=404,
         content={"detail": "Cannot find such revision(s)."},
@@ -75,9 +72,7 @@ def no_such_category_error_handler(request: Request, exc: NoSuchCategoryError):
     )
 
 
-def category_unique_field_error_handler(
-    request: Request, exc: CheckFieldError
-):
+def category_unique_field_error_handler(request: Request, exc: CheckFieldError):
     return JSONResponse(
         status_code=400,
         content={"detail": f"Field constraint error. {exc.message}"},
@@ -119,9 +114,7 @@ def minio_no_such_bucket_error_handler(request: Request, exc: ClientError):
     )
 
 
-def field_constraint_error_handler(
-    request: Request, exc: FieldConstraintError
-):
+def field_constraint_error_handler(request: Request, exc: FieldConstraintError):
     return JSONResponse(
         status_code=400,
         content={"detail": f"Error: {exc.message}"},
@@ -135,9 +128,7 @@ def enum_validation_error_handler(request: Request, exc: EnumValidationError):
     )
 
 
-def category_parent_child_error_handler(
-    request: Request, exc: SelfParentError
-):
+def category_parent_child_error_handler(request: Request, exc: SelfParentError):
     return JSONResponse(
         status_code=400,
         content={"detail": f"Self parent error. {exc.message}"},

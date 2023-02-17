@@ -1,12 +1,13 @@
 import asyncio
-from pathlib import Path
+import logging
 import os
 import sys
 from importlib import import_module
+from pathlib import Path
+
 from uvicorn.config import Config
 from uvicorn.server import Server
 from uvicorn.supervisors import ChangeReload, Multiprocess
-import logging
 
 ROOT_PATH = Path(__file__).parent.parent.parent.parent
 
@@ -36,7 +37,9 @@ class RunnerRegistry(type):
                 service = runner().run_app_async()
                 service.__name__ = runner.PACKAGE_NAME
                 runners.append(service)
-        done, pending = await asyncio.wait([service for service in runners], return_when=asyncio.FIRST_COMPLETED)
+        done, pending = await asyncio.wait(
+            [service for service in runners], return_when=asyncio.FIRST_COMPLETED
+        )
         for task in pending:
             task.cancel()
 
@@ -68,7 +71,7 @@ class BaseRunner(metaclass=RunnerRegistry):
             "POSTGRES_PASSWORD": "postgres",
             "POSTGRES_HOST": "localhost",
             "POSTGRES_PORT": "5432",
-            "POSTGRES_DB": "postgres"
+            "POSTGRES_DB": "postgres",
         }
 
     @staticmethod
@@ -86,7 +89,9 @@ class BaseRunner(metaclass=RunnerRegistry):
         os.environ.update(db_credentials)
 
     def create_server(self):
-        logging.debug(f"[{self.__class__.__name__}]Starting {self.PACKAGE_NAME} on port {self.PORT}")
+        logging.debug(
+            f"[{self.__class__.__name__}]Starting {self.PACKAGE_NAME} on port {self.PORT}"
+        )
         self.setup_env()
         package_path = str(ROOT_PATH / self.PACKAGE_NAME)
         sys.path.append(package_path)
@@ -95,11 +100,15 @@ class BaseRunner(metaclass=RunnerRegistry):
             app = module.app
             print(f"[{self.__class__.__name__}]: Module {module} is imported")
         except ModuleNotFoundError as e:
-            logging.error(f"[{self.__class__.__name__}]: Module {self.APP_NAME}.{self.MODULE_NAME} not found")
+            logging.error(
+                f"[{self.__class__.__name__}]: Module {self.APP_NAME}.{self.MODULE_NAME} not found"
+            )
             raise e
         sys.path.remove(package_path)
 
-        config = Config(app, host=self.HOST, port=self.PORT, reload=True)  # TODO: check additional folders for reloading
+        config = Config(
+            app, host=self.HOST, port=self.PORT, reload=True
+        )  # TODO: check additional folders for reloading
         server = Server(config=config)
 
         if config.should_reload:

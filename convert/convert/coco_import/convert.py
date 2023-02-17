@@ -101,17 +101,11 @@ class ImportConvertBase:
                 "metadata": {"color": category["color"]},
                 "is_link": False,
             }
-            get_category_details_url = (
-                f"{categories_services_url}{category['id']}"
-            )
-            response = SESSION.get(
-                url=get_category_details_url, headers=headers
-            )
+            get_category_details_url = f"{categories_services_url}{category['id']}"
+            response = SESSION.get(url=get_category_details_url, headers=headers)
             category_id = response.json().get("id", None)
             if not category_id:
-                SESSION.post(
-                    url=categories_services_url, json=body, headers=headers
-                )
+                SESSION.post(url=categories_services_url, json=body, headers=headers)
                 LOGGER.info("Created category %s", category["name"])
             LOGGER.info(response.json())
         LOGGER.info("Checking categories has been finished")
@@ -134,9 +128,7 @@ class ConvertToBadgerdoc(ImportConvertBase):
                 annotation["page_num"] = 1
                 pages["pages"].append(annotation)
                 import_save_to_json(
-                    os.path.join(
-                        Path(self.s3_data.bucket_s3).stem, str(image_id)
-                    ),
+                    os.path.join(Path(self.s3_data.bucket_s3).stem, str(image_id)),
                     str(obj["id"]),
                     annotation,
                     file_id=image_id,

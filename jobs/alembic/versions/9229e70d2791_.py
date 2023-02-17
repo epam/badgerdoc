@@ -25,17 +25,11 @@ def upgrade():
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("name", sa.String(length=250), nullable=True),
         sa.Column("status", sa.String(length=250), nullable=True),
-        sa.Column(
-            "files", postgresql.JSONB(astext_type=sa.Text()), nullable=True
-        ),
-        sa.Column(
-            "datasets", postgresql.JSONB(astext_type=sa.Text()), nullable=True
-        ),
+        sa.Column("files", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
+        sa.Column("datasets", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
         sa.Column("creation_datetime", sa.DateTime(), nullable=True),
         sa.Column("type", sa.String(length=20), nullable=True),
-        sa.Column(
-            "users", postgresql.JSONB(astext_type=sa.Text()), nullable=True
-        ),
+        sa.Column("users", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
         sa.Column(
             "categories",
             postgresql.JSONB(astext_type=sa.Text()),

@@ -18,9 +18,7 @@ import pytest
     ],
 )
 def test_pag_params(page_num, page_size, min_pages_left, total, has_more):
-    res = PaginationParams(
-        page_num, page_size, min_pages_left, total, has_more
-    )
+    res = PaginationParams(page_num, page_size, min_pages_left, total, has_more)
     assert (
         res.page_num,
         res.page_size,

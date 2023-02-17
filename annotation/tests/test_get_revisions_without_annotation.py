@@ -204,9 +204,7 @@ def test_get_revisions_without_annotation_status_codes(
     ],
     indirect=["db_errors"],
 )
-def test_get_revisions_without_annotation_db_exceptions(
-    monkeypatch, db_errors
-):
+def test_get_revisions_without_annotation_db_exceptions(monkeypatch, db_errors):
     response = client.get(
         construct_rev_without_annotation_path(JOB_ID, FILE_ID_1),
         headers={"X-Current-Tenant": TEST_TENANT},

@@ -6,9 +6,9 @@ Create Date: 2022-12-12 13:36:08.659682
 
 """
 import sqlalchemy as sa
+from annotation.models import ValidationSchema
 
 from alembic import op
-from annotation.models import ValidationSchema
 
 # revision identifiers, used by Alembic.
 revision = "71095b8e6343"
@@ -25,9 +25,7 @@ def upgrade():
     for v in enum_keys_to_add:
         op.execute(f"ALTER TYPE {enum_name} ADD VALUE '{v}'")
 
-    op.add_column(
-        "jobs", sa.Column("extensive_coverage", sa.INTEGER(), nullable=True)
-    )
+    op.add_column("jobs", sa.Column("extensive_coverage", sa.INTEGER(), nullable=True))
     # ### end Alembic commands ###
 
 

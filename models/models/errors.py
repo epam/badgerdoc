@@ -17,18 +17,14 @@ class ColabFileUploadError(Exception):
         self.message = message
 
 
-def botocore_error_handler(
-    request: Request, exc: BotoCoreError
-) -> JSONResponse:
+def botocore_error_handler(request: Request, exc: BotoCoreError) -> JSONResponse:
     return JSONResponse(
         status_code=500,
         content={"detail": f"Error: connection error ({exc})"},
     )
 
 
-def minio_client_error_handler(
-    request: Request, exc: ClientError
-) -> JSONResponse:
+def minio_client_error_handler(request: Request, exc: ClientError) -> JSONResponse:
     return JSONResponse(
         status_code=500,
         content={"detail": f"Error: client error ({exc})"},
@@ -44,9 +40,7 @@ def minio_no_such_bucket_error_handler(
     )
 
 
-def ssh_connection_error_handler(
-    request: Request, exc: SSHException
-) -> JSONResponse:
+def ssh_connection_error_handler(request: Request, exc: SSHException) -> JSONResponse:
     return JSONResponse(
         status_code=500,
         content={"detail": f"Error: ssh connection error ({exc})"},
@@ -62,9 +56,7 @@ def colab_execution_error_handler(
     )
 
 
-def sqlalchemy_db_error_handler(
-    request: Request, exc: SQLAlchemyError
-) -> JSONResponse:
+def sqlalchemy_db_error_handler(request: Request, exc: SQLAlchemyError) -> JSONResponse:
     return JSONResponse(
         status_code=500,
         content={"detail": f"Error: connection error ({exc})"},

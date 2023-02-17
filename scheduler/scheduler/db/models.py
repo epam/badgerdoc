@@ -23,9 +23,7 @@ class Unit(Base):  # type: ignore
     created = sqlalchemy.Column(
         sqlalchemy.DateTime, nullable=False, default=datetime.datetime.utcnow
     )
-    updated = sqlalchemy.Column(
-        sqlalchemy.DateTime, onupdate=datetime.datetime.utcnow
-    )
+    updated = sqlalchemy.Column(sqlalchemy.DateTime, onupdate=datetime.datetime.utcnow)
 
     def __repr__(self) -> str:
         return (
@@ -49,9 +47,7 @@ class Unit(Base):  # type: ignore
 class Heartbeat(Base):  # type: ignore
     __tablename__ = "heartbeat"
 
-    id = sqlalchemy.Column(
-        postgresql.UUID(), primary_key=True, default=uuid.uuid4
-    )
+    id = sqlalchemy.Column(postgresql.UUID(), primary_key=True, default=uuid.uuid4)
     last_heartbeat = sqlalchemy.Column(
         sqlalchemy.DateTime, nullable=False, default=datetime.datetime.utcnow
     )

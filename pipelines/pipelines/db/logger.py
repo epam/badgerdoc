@@ -1,13 +1,12 @@
 import datetime
 
-from sqlalchemy import event, insert
-from sqlalchemy.engine import Connection
-from sqlalchemy.orm import Mapper
-
 import pipelines.db.models as models
 import pipelines.db.service as service
 import pipelines.pipeline_runner as runner
 import pipelines.schemas as schemas
+from sqlalchemy import event, insert
+from sqlalchemy.engine import Connection
+from sqlalchemy.orm import Mapper
 
 
 def create_log(event_type: str, entity: models.Table) -> schemas.Log:
@@ -32,9 +31,7 @@ def log_after_insert(
 ) -> None:
     """Listen for the insert event and log to MainEventLog."""
     log_ = create_log(schemas.Event.INS, target).dict()
-    stmt = insert(models.MainEventLog).values(
-        runner_id=runner.runner_id, event=log_
-    )
+    stmt = insert(models.MainEventLog).values(runner_id=runner.runner_id, event=log_)
     connection.execute(stmt)
 
 
@@ -46,9 +43,7 @@ def log_after_delete(
 ) -> None:
     """Listen for the insert event and log to MainEventLog."""
     log_ = create_log(schemas.Event.DEL, target).dict()
-    stmt = insert(models.MainEventLog).values(
-        runner_id=runner.runner_id, event=log_
-    )
+    stmt = insert(models.MainEventLog).values(runner_id=runner.runner_id, event=log_)
     connection.execute(stmt)
 
 
@@ -62,10 +57,6 @@ def log_after_update(update_context) -> None:  # type: ignore
         k.key: v.isoformat() if isinstance(v, datetime.datetime) else v
         for k, v in update_context.values.items()
     }
-    log_ = schemas.Log(
-        entity=entity, event_type=schemas.Event.UPD, data=data
-    ).dict()
-    stmt = insert(models.MainEventLog).values(
-        runner_id=runner.runner_id, event=log_
-    )
+    log_ = schemas.Log(entity=entity, event_type=schemas.Event.UPD, data=data).dict()
+    stmt = insert(models.MainEventLog).values(runner_id=runner.runner_id, event=log_)
     update_context.session.execute(stmt)

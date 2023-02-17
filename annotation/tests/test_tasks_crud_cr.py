@@ -577,13 +577,9 @@ USERS_SEARCH_RESPONSE = {
         "view": True,
         "mapRoles": True,
         "impersonate": True,
-        "manage": True
+        "manage": True,
     },
-    "attributes": {
-        "tenants": [
-            "test"
-        ]
-    },
+    "attributes": {"tenants": ["test"]},
     "clientConsents": None,
     "clientRoles": None,
     "createdTimestamp": 1638362379072,
@@ -604,7 +600,7 @@ USERS_SEARCH_RESPONSE = {
     "requiredActions": [],
     "self": None,
     "serviceAccountClientId": None,
-    "username": "admin"
+    "username": "admin",
 }
 
 
@@ -658,18 +654,14 @@ def prepare_stats_export_body(
 @patch.object(Session, "query")
 def test_post_task_500_response(Session, prepare_db_for_cr_task):
     Session.side_effect = Mock(side_effect=SQLAlchemyError())
-    response = client.post(
-        CRUD_TASKS_PATH, json=NEW_TASKS[0], headers=TEST_HEADERS
-    )
+    response = client.post(CRUD_TASKS_PATH, json=NEW_TASKS[0], headers=TEST_HEADERS)
     assert response.status_code == 500
     assert "Error: " in response.text
 
 
 @pytest.mark.integration
 def test_post_task_wrong_job(prepare_db_for_cr_task):
-    response = client.post(
-        CRUD_TASKS_PATH, json=TASK_WRONG_JOB, headers=TEST_HEADERS
-    )
+    response = client.post(CRUD_TASKS_PATH, json=TASK_WRONG_JOB, headers=TEST_HEADERS)
     assert response.status_code == 400
     assert "Error: wrong job_id" in response.text
 
@@ -705,12 +697,8 @@ def test_post_task_wrong_job(prepare_db_for_cr_task):
         ),  # ExtractionJob
     ],
 )
-def test_post_task_wrong_users_errors(
-    prepare_db_for_cr_task, task_info, error_message
-):
-    response = client.post(
-        CRUD_TASKS_PATH, json=task_info, headers=TEST_HEADERS
-    )
+def test_post_task_wrong_users_errors(prepare_db_for_cr_task, task_info, error_message):
+    response = client.post(CRUD_TASKS_PATH, json=task_info, headers=TEST_HEADERS)
     assert response.status_code == 400
     assert error_message in response.text
 
@@ -724,9 +712,7 @@ def test_post_task_wrong_users_errors(
     ],
 )
 def test_post_task_422_pages_response(prepare_db_for_cr_task, task_info):
-    response = client.post(
-        CRUD_TASKS_PATH, json=task_info, headers=TEST_HEADERS
-    )
+    response = client.post(CRUD_TASKS_PATH, json=task_info, headers=TEST_HEADERS)
     assert response.status_code == 422
 
 
@@ -757,18 +743,10 @@ def test_post_task_422_pages_response(prepare_db_for_cr_task, task_info):
     ],
 )
 def test_post_task(prepare_db_for_cr_task, task_info, expected_response):
-    response = client.post(
-        CRUD_TASKS_PATH, json=task_info, headers=TEST_HEADERS
-    )
+    response = client.post(CRUD_TASKS_PATH, json=task_info, headers=TEST_HEADERS)
     assert response.status_code == 201
-    assert [
-        value
-        for key, value in response.json().items()
-        if key == "id" and value
-    ]
-    response = {
-        key: value for key, value in response.json().items() if key != "id"
-    }
+    assert [value for key, value in response.json().items() if key == "id" and value]
+    response = {key: value for key, value in response.json().items() if key != "id"}
     assert response == expected_response
     check_files_distributed_pages(prepare_db_for_cr_task, task_info["job_id"])
 
@@ -883,20 +861,15 @@ def test_update_task_already_updated_change_event(
 
     assert response.status_code == 201
     assert validate_datetime(content, is_updated=True)
-    assert (
-        prepare_task_stats_expected_response(
-            task_id=task_id,
-            event_type="closed",
-        )
-        == prepare_task_stats_expected_response(**content)
-    )
+    assert prepare_task_stats_expected_response(
+        task_id=task_id,
+        event_type="closed",
+    ) == prepare_task_stats_expected_response(**content)
 
 
 @pytest.mark.integration
 def test_create_export_data_not_found(prepare_db_update_stats):
-    body = prepare_stats_export_body(
-        user_ids=[f"{uuid4()}" for _ in range(10)]
-    )
+    body = prepare_stats_export_body(user_ids=[f"{uuid4()}" for _ in range(10)])
 
     response = client.post(
         f"{CRUD_TASKS_PATH}/export",
@@ -921,9 +894,7 @@ def test_create_export_data_not_found(prepare_db_update_stats):
 def test_create_export_invalid_datetime_format(
     prepare_db_for_cr_task, date_from, date_to
 ):
-    body = prepare_stats_export_body(
-        user_ids=[f"{uuid4()}" for _ in range(10)]
-    )
+    body = prepare_stats_export_body(user_ids=[f"{uuid4()}" for _ in range(10)])
     body["date_from"] = date_from
     body["date_to"] = date_to
 
@@ -939,9 +910,7 @@ def test_create_export_invalid_datetime_format(
 
 @pytest.mark.integration
 def test_create_export_return_csv(prepare_db_update_stats_already_updated):
-    body = prepare_stats_export_body(
-        user_ids=[str(ann.user_id) for ann in ANNOTATORS]
-    )
+    body = prepare_stats_export_body(user_ids=[str(ann.user_id) for ann in ANNOTATORS])
 
     response = client.post(
         f"{CRUD_TASKS_PATH}/export",
@@ -951,10 +920,7 @@ def test_create_export_return_csv(prepare_db_update_stats_already_updated):
 
     assert response.status_code == 200
     assert "text/csv" in response.headers["content-type"]
-    assert (
-        "filename=annotator_stats_export"
-        in response.headers["content-disposition"]
-    )
+    assert "filename=annotator_stats_export" in response.headers["content-disposition"]
     assert len(response.content) > 0
 
 
@@ -1090,9 +1056,7 @@ def test_get_tasks(
         status=200,
         headers=TEST_HEADERS,
     )
-    response = client.get(
-        CRUD_TASKS_PATH, params=url_params, headers=TEST_HEADERS
-    )
+    response = client.get(CRUD_TASKS_PATH, params=url_params, headers=TEST_HEADERS)
     assert response.status_code == 200
     response = [
         {key: value for key, value in x.items() if key != "id"}
@@ -1194,9 +1158,7 @@ def test_get_tasks_pagination(
         status=200,
         headers=TEST_HEADERS,
     )
-    response = client.get(
-        CRUD_TASKS_PATH, params=url_params, headers=TEST_HEADERS
-    )
+    response = client.get(CRUD_TASKS_PATH, params=url_params, headers=TEST_HEADERS)
     assert response.status_code == 200
     response = {
         key: value
@@ -1215,12 +1177,8 @@ def test_get_tasks_pagination(
         (NEW_TASKS[3], CRUD_CR_JOBS[3].deadline),
     ],
 )
-def test_post_task_deadline(
-    prepare_db_for_cr_task, task_info, expected_deadline
-):
-    response = client.post(
-        CRUD_TASKS_PATH, json=task_info, headers=TEST_HEADERS
-    )
+def test_post_task_deadline(prepare_db_for_cr_task, task_info, expected_deadline):
+    response = client.post(CRUD_TASKS_PATH, json=task_info, headers=TEST_HEADERS)
     assert response.status_code == 201
     assert response.json()["deadline"] == expected_deadline
     check_files_distributed_pages(prepare_db_for_cr_task, task_info["job_id"])
@@ -1312,13 +1270,10 @@ def test_search_tasks_500_error(prepare_db_for_cr_task):
 
 @pytest.mark.integration
 def test_search_tasks_400_error(prepare_db_for_cr_task):
-    data = prepare_filtration_body(
-        ordering_field="status", operator="distinct"
-    )
+    data = prepare_filtration_body(ordering_field="status", operator="distinct")
     response = client.post(SEARCH_TASKS_PATH, json=data, headers=TEST_HEADERS)
     error_message = (
-        "SELECT DISTINCT ON expressions must "
-        "match initial ORDER BY expressions"
+        "SELECT DISTINCT ON expressions must " "match initial ORDER BY expressions"
     )
     assert response.status_code == 400
     assert error_message in response.text
@@ -1505,9 +1460,7 @@ def tests_search_tasks_ordering(
     ],
 )
 @responses.activate
-def test_search_tasks_wrong_parameters(
-    wrong_parameter, value, prepare_db_for_cr_task
-):
+def test_search_tasks_wrong_parameters(wrong_parameter, value, prepare_db_for_cr_task):
     responses.add(
         responses.POST,
         ASSETS_FILES_URL,
@@ -1544,9 +1497,7 @@ def test_search_tasks_wrong_parameters(
 def test_post_task_validation_only(
     prepare_db_for_cr_task, task_info, expected_status_code, expected_response
 ):
-    response = client.post(
-        CRUD_TASKS_PATH, json=task_info, headers=TEST_HEADERS
-    )
+    response = client.post(CRUD_TASKS_PATH, json=task_info, headers=TEST_HEADERS)
     assert response.status_code == expected_status_code
     response = (
         {key: value for key, value in response.json().items() if key != "id"}
@@ -1560,9 +1511,7 @@ def test_post_task_validation_only(
 @pytest.mark.integration
 @pytest.mark.parametrize("task_info", (NEW_TASKS[9], NEW_TASKS[10]))
 def test_post_task_wrong_file_error(prepare_db_for_cr_task, task_info):
-    response = client.post(
-        CRUD_TASKS_PATH, json=task_info, headers=TEST_HEADERS
-    )
+    response = client.post(CRUD_TASKS_PATH, json=task_info, headers=TEST_HEADERS)
     error_message = (
         f"{task_info['file_id']} is not assigned for job {task_info['job_id']}"
     )
@@ -1572,11 +1521,7 @@ def test_post_task_wrong_file_error(prepare_db_for_cr_task, task_info):
 
 @pytest.mark.integration
 def test_post_task_wrong_file_pages(prepare_db_for_cr_task):
-    response = client.post(
-        CRUD_TASKS_PATH, json=NEW_TASKS[11], headers=TEST_HEADERS
-    )
-    error_message = "({101, 102}) do not belong to file %s" % (
-        NEW_TASKS[11]["file_id"]
-    )
+    response = client.post(CRUD_TASKS_PATH, json=NEW_TASKS[11], headers=TEST_HEADERS)
+    error_message = "({101, 102}) do not belong to file %s" % (NEW_TASKS[11]["file_id"])
     assert response.status_code == 400
     assert error_message in response.text

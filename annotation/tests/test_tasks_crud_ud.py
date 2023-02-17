@@ -549,14 +549,12 @@ def test_delete_task(
         (
             CRUD_UD_CONSTRAINTS_TASKS[6],
             {"is_validation": False},
-            f"{CRUD_UD_CONSTRAINTS_TASKS[6].user_id} is not assigned "
-            f"as annotator",
+            f"{CRUD_UD_CONSTRAINTS_TASKS[6].user_id} is not assigned " f"as annotator",
         ),  # same job validator but not annotator
         (
             CRUD_UD_CONSTRAINTS_TASKS[6],
             {"user_id": CRUD_UD_CONSTRAINTS_USERS[0].user_id},
-            f"{CRUD_UD_CONSTRAINTS_USERS[0].user_id} is not assigned "
-            f"as validator",
+            f"{CRUD_UD_CONSTRAINTS_USERS[0].user_id} is not assigned " f"as validator",
         ),  # same job annotator but not validator
         (
             CRUD_UD_CONSTRAINTS_TASKS[0],
@@ -564,8 +562,7 @@ def test_delete_task(
                 "job_id": CRUD_UD_CONSTRAINTS_JOBS[2].job_id,
                 "is_validation": True,
             },
-            f"{CRUD_UD_CONSTRAINTS_USERS[0].user_id} is not assigned "
-            f"as validator",
+            f"{CRUD_UD_CONSTRAINTS_USERS[0].user_id} is not assigned " f"as validator",
         ),  # same user not from new job
     ],
 )
@@ -736,9 +733,7 @@ def test_update_task_empty_request(prepare_db_for_ud_task_constrains, task):
 
 @pytest.mark.integration
 @pytest.mark.parametrize("task", CRUD_UD_CONSTRAINTS_TASKS[0:2])
-def test_update_task_deadline_with_none_value(
-    prepare_db_for_ud_task_constrains, task
-):
+def test_update_task_deadline_with_none_value(prepare_db_for_ud_task_constrains, task):
     """Checks if task deadline can be updated with None value"""
     response = client.patch(
         construct_path(CRUD_TASKS_PATH, task.id),

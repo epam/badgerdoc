@@ -80,9 +80,7 @@ def setup_test_db(use_temp_env_var, db_test_engine):
 
     # 3. Install 'ltree' extension
     with db_test_engine.connect() as conn:
-        conn.execute(
-            sqlalchemy.sql.text("CREATE EXTENSION IF NOT EXISTS ltree")
-        )
+        conn.execute(sqlalchemy.sql.text("CREATE EXTENSION IF NOT EXISTS ltree"))
 
     # 4. run 'alembic upgrade head'
     alembic_cfg = Config("alembic.ini")
@@ -96,9 +94,7 @@ def setup_test_db(use_temp_env_var, db_test_engine):
 
 
 @pytest.fixture
-def db_session(
-    db_test_engine, setup_test_db
-) -> Generator[Session, None, None]:
+def db_session(db_test_engine, setup_test_db) -> Generator[Session, None, None]:
     """Creates all tables on setUp, yields SQLAlchemy session and removes
     tables on tearDown.
     """
@@ -132,9 +128,7 @@ def taxon_input_data(prepared_taxonomy_record_in_db):
 
 
 @pytest.fixture
-def prepared_taxonomy_record_in_db(
-    taxonomy_input_data, db_session
-) -> Taxonomy:
+def prepared_taxonomy_record_in_db(taxonomy_input_data, db_session) -> Taxonomy:
     return taxonomy_services.create_taxonomy_instance(
         db_session,
         TEST_TENANTS[0],
@@ -240,9 +234,7 @@ def prepare_two_taxons_different_names(
 
 
 @pytest.fixture
-def prepare_three_taxons_parent_each_other(
-    db_session, taxon_input_data
-) -> List[Taxon]:
+def prepare_three_taxons_parent_each_other(db_session, taxon_input_data) -> List[Taxon]:
 
     first_taxon = deepcopy(taxon_input_data)
     first_id = uuid4().hex
@@ -352,9 +344,7 @@ def common_taxon(db_session, prepare_common_tenant_taxonomy):
 
 
 @pytest.fixture
-def overrided_token_client(
-    client, db_session
-) -> Generator[TestClient, None, None]:
+def overrided_token_client(client, db_session) -> Generator[TestClient, None, None]:
 
     app.dependency_overrides[TOKEN] = override
     app.dependency_overrides[get_db] = lambda: db_session

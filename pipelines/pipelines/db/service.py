@@ -2,13 +2,12 @@ import asyncio
 import datetime
 from typing import Any, Callable, Dict, Generator, List, Optional, Type, Union
 
+import pipelines.db.models as dbm
 from aiokafka import AIOKafkaProducer
+from pipelines import config, execution, log, schemas
 from pydantic import AnyUrl
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
-
-import pipelines.db.models as dbm
-from pipelines import config, execution, log, schemas
 
 logger = log.get_logger(__file__)
 
@@ -69,9 +68,7 @@ add_pipeline = add_step = add_task = add_heartbeat = _add_instance
 add_pipelines = add_steps = add_tasks = _add_instances
 
 
-def get_all_table_instances(
-    session: Session, table: dbm.TableType
-) -> dbm.TablesList:
+def get_all_table_instances(session: Session, table: dbm.TableType) -> dbm.TablesList:
     """Get list of all table instances from the db.
 
     :param session: DB session.
@@ -119,9 +116,7 @@ def get_pipelines(
     return query.all()  # type: ignore
 
 
-def get_task(
-    session: Session, name: str
-) -> Optional[dbm.PipelineExecutionTask]:
+def get_task(session: Session, name: str) -> Optional[dbm.PipelineExecutionTask]:
     """Get task by its name. Latest if multiple tasks found.
 
     :param session: DB session.
@@ -144,9 +139,7 @@ def get_task_job_id(session: Session, task_id: int) -> Optional[int]:
     :param task_id: Task id.
     :return: Task job_id if found.
     """
-    task = get_table_instance_by_id(
-        session, dbm.PipelineExecutionTask, task_id
-    )
+    task = get_table_instance_by_id(session, dbm.PipelineExecutionTask, task_id)
     return task.job_id if task else None
 
 
@@ -157,9 +150,7 @@ def get_webhook(session: Session, task_id: int) -> Optional[str]:
     :param task_id: Task id.
     :return: webhook
     """
-    task = get_table_instance_by_id(
-        session, dbm.PipelineExecutionTask, task_id
-    )
+    task = get_table_instance_by_id(session, dbm.PipelineExecutionTask, task_id)
     return task.webhook if task else None
 
 
@@ -215,9 +206,7 @@ def update_table_instance_fields(
     :param id_: Instance id.
     :param args: Args to update.
     """
-    session.query(table).filter(table.id == id_).update(
-        args, synchronize_session=False
-    )
+    session.query(table).filter(table.id == id_).update(args, synchronize_session=False)
     session.commit()
 
 
@@ -276,9 +265,7 @@ def get_pending_tasks(
     )
 
 
-def update_task_in_lock(
-    session: Session, task_id: int, runner_id: str
-) -> None:
+def update_task_in_lock(session: Session, task_id: int, runner_id: str) -> None:
     """Update task runner_id with 'for update' statement.
 
     :param session: DB session.
@@ -314,9 +301,7 @@ def get_not_finished_tasks(
     )
 
 
-def get_heartbeat(
-    session: Session, id_: str
-) -> Optional[dbm.ExecutorHeartbeat]:
+def get_heartbeat(session: Session, id_: str) -> Optional[dbm.ExecutorHeartbeat]:
     """Return heartbeat with the given id.
 
     :param session: DB session.
@@ -424,9 +409,7 @@ async def initialize_execution(
     return task_id  # type: ignore
 
 
-async def get_step_parent(
-    step_id: str, ids: Dict[str, List[str]]
-) -> Optional[str]:
+async def get_step_parent(step_id: str, ids: Dict[str, List[str]]) -> Optional[str]:
     """
     Finds if step has any dependant steps
     """

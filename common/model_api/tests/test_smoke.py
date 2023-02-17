@@ -184,8 +184,12 @@ def mock_put_annotation(loader, work_dir, annotation, request):
 #     ]
 # )
 response = {
-    "0": {"1": ["30e4d539-8e90-49c7-b49c-883073e2b8c8",
-                "aab83828-cd8b-41f7-a3c3-943f13e67c2c"]},
+    "0": {
+        "1": [
+            "30e4d539-8e90-49c7-b49c-883073e2b8c8",
+            "aab83828-cd8b-41f7-a3c3-943f13e67c2c",
+        ]
+    },
     "3": {
         "2": [
             "44d94e31-7079-470a-b8b5-74ce365353f7",
@@ -235,6 +239,6 @@ def test_form_response(monkeypatch):
         inference=inference_return,
         request=request,
         loader=None,
-        work_dir=None
+        work_dir=None,
     )
     assert m.ClassifierResponse(__root__=response) == inference_and_save_result

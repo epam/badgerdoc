@@ -6,12 +6,6 @@ from typing import List, NamedTuple, Optional, Set, Tuple
 
 import dotenv
 import pydantic
-from fastapi import HTTPException
-from filter_lib import Page, form_query, map_request_to_filter, paginate
-from sqlalchemy import and_, asc, text
-from sqlalchemy.orm import Session
-from tenant_dependency import TenantData
-
 from annotation.errors import CheckFieldError, FieldConstraintError
 from annotation.filters import TaskFilter
 from annotation.jobs import update_files, update_user_overall_load
@@ -40,6 +34,11 @@ from annotation.schemas import (
     TaskStatusEnumSchema,
     ValidationSchema,
 )
+from fastapi import HTTPException
+from filter_lib import Page, form_query, map_request_to_filter, paginate
+from sqlalchemy import and_, asc, text
+from sqlalchemy.orm import Session
+from tenant_dependency import TenantData
 
 dotenv.load_dotenv(dotenv.find_dotenv())
 AGREEMENT_SCORE_MIN_MATCH = float(os.getenv("AGREEMENT_SCORE_MIN_MATCH"))
@@ -68,10 +67,7 @@ def validate_users_info(
     for new/updated task. Raises FieldConstraintError in case of any
     validation fails.
     """
-    if (
-        validation_type == ValidationSchema.cross
-        and task_info["is_validation"]
-    ):
+    if validation_type == ValidationSchema.cross and task_info["is_validation"]:
         check_cross_annotating_pages(db, task_info)
     if task_info["is_validation"]:
         job_task_validator = (
@@ -80,9 +76,7 @@ def validate_users_info(
                 if validation_type == ValidationSchema.cross
                 else association_job_validator
             )
-            .filter_by(
-                user_id=task_info["user_id"], job_id=task_info["job_id"]
-            )
+            .filter_by(user_id=task_info["user_id"], job_id=task_info["job_id"])
             .first()
         )
         if not job_task_validator:
@@ -93,9 +87,7 @@ def validate_users_info(
     else:
         job_task_annotator = (
             db.query(association_job_annotator)
-            .filter_by(
-                user_id=task_info["user_id"], job_id=task_info["job_id"]
-            )
+            .filter_by(user_id=task_info["user_id"], job_id=task_info["job_id"])
             .first()
         )
         if not job_task_annotator:
@@ -208,9 +200,7 @@ def validate_user_actions(
         )
 
 
-def create_annotation_task(
-    db: Session, annotation_task: ManualAnnotationTaskInSchema
-):
+def create_annotation_task(db: Session, annotation_task: ManualAnnotationTaskInSchema):
     annotation_task = ManualAnnotationTask(**annotation_task.dict())
 
     db.add(annotation_task)
@@ -255,9 +245,7 @@ def filter_tasks_db(
     filter_query = db.query(ManualAnnotationTask).filter(
         ManualAnnotationTask.jobs.has(tenant=tenant)
     )
-    filter_args = map_request_to_filter(
-        request.dict(), ManualAnnotationTask.__name__
-    )
+    filter_args = map_request_to_filter(request.dict(), ManualAnnotationTask.__name__)
     task_query, pagination = form_query(filter_args, filter_query)
     return paginate(task_query.all(), pagination)
 
@@ -314,9 +302,7 @@ def finish_validation_task(db: Session, task: ManualAnnotationTask) -> None:
         ManualAnnotationTask.file_id == task.file_id,
         ManualAnnotationTask.is_validation.is_(True),
     ).with_for_update().update(
-        {
-            ManualAnnotationTask.status: TaskStatusEnumSchema.finished  # noqa: E501
-        },
+        {ManualAnnotationTask.status: TaskStatusEnumSchema.finished},  # noqa: E501
         synchronize_session="fetch",
     )
     db.commit()
@@ -361,13 +347,9 @@ def get_task_revisions(
             if int(key) in task_pages
         }
         revision.failed_validation_pages = [
-            page
-            for page in revision.failed_validation_pages
-            if page in task_pages
+            page for page in revision.failed_validation_pages if page in task_pages
         ]
-        revision.validated = [
-            page for page in revision.validated if page in task_pages
-        ]
+        revision.validated = [page for page in revision.validated if page in task_pages]
 
     return [
         revision
@@ -382,9 +364,7 @@ def get_task_revisions(
     ]
 
 
-def get_task_info(
-    db: Session, task_id: int, tenant: str
-) -> ManualAnnotationTask:
+def get_task_info(db: Session, task_id: int, tenant: str) -> ManualAnnotationTask:
     return (
         db.query(ManualAnnotationTask)
         .filter(
@@ -418,9 +398,7 @@ def unblock_validation_tasks(
                 ManualAnnotationTask.pages.contained_by(annotated_file_pages),
             )
         )
-        .update(
-            {"status": TaskStatusEnumSchema.ready}, synchronize_session=False
-        )
+        .update({"status": TaskStatusEnumSchema.ready}, synchronize_session=False)
     )
 
 
@@ -448,9 +426,7 @@ def add_task_stats_record(
         stats_db.updated = datetime.utcnow()
     else:
         if stats.event_type == "closed":
-            raise CheckFieldError(
-                "Attribute event_type can not start from closed."
-            )
+            raise CheckFieldError("Attribute event_type can not start from closed.")
         stats_db = AnnotationStatistics(task_id=task_id, **stats.dict())
 
     db.add(stats_db)
@@ -487,9 +463,7 @@ def create_export_csv(
             "file_id": stat.task.file_id,
             "pages": stat.task.pages,
             "time_start": stat.created.isoformat(),
-            "time_finish": (
-                stat.updated.isoformat() if stat.updated else None
-            ),
+            "time_finish": (stat.updated.isoformat() if stat.updated else None),
             "agreement_score": [
                 {
                     "task_from": metric.task_from,
@@ -564,9 +538,7 @@ def evaluate_agreement_score(
         )
         for task_in in tasks_intersection_pages
     ]
-    agreement_scores: List[
-        AgreementScoreServiceResponse
-    ] = get_agreement_score(
+    agreement_scores: List[AgreementScoreServiceResponse] = get_agreement_score(
         agreement_scores_input=agreement_scores_input,
         tenant=tenant,
         token=token.token,
@@ -617,9 +589,7 @@ def compare_agreement_scores(
         get_unique_scores(task_from_id, scores, unique_scores)
 
     # check is every annotator reached min match score and return result
-    agreement_reached: bool = all(
-        map(lambda a: a.score >= min_match, unique_scores)
-    )
+    agreement_reached: bool = all(map(lambda a: a.score >= min_match, unique_scores))
     metrics: List[TaskMetric] = list(
         sorted(
             map(
@@ -638,9 +608,7 @@ def compare_agreement_scores(
     )
 
 
-def save_agreement_metrics(
-    db: Session, scores: AgreementScoreComparingResult
-) -> None:
+def save_agreement_metrics(db: Session, scores: AgreementScoreComparingResult) -> None:
     metrics: List[AgreementMetrics] = [
         AgreementMetrics(
             task_from=el.task_from_id,

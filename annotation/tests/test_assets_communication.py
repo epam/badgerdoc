@@ -122,12 +122,9 @@ ASSETS_COMPLETE_URL = ASSETS_URL + "/{dataset_id}/files"
         (FILE_IDS, [], {}),
     ],
 )
-def test_get_file_names(
-    monkeypatch, file_ids, parsed_response, expected_result
-):
+def test_get_file_names(monkeypatch, file_ids, parsed_response, expected_result):
     monkeypatch.setattr(
-        "annotation.microservice_communication.assets_communication."
-        "get_response",
+        "annotation.microservice_communication.assets_communication." "get_response",
         Mock(return_value=parsed_response),
     )
 
@@ -216,8 +213,7 @@ def test_get_files_info(
     expected_result,
 ):
     monkeypatch.setattr(
-        "annotation.microservice_communication.assets_communication."
-        "get_response",
+        "annotation.microservice_communication.assets_communication." "get_response",
         Mock(return_value=mocked_files),
     )
     for i, dataset_id in enumerate(dataset_ids):
@@ -228,9 +224,7 @@ def test_get_files_info(
             headers=TEST_HEADERS,
             status=200,
         )
-    actual_result = get_files_info(
-        file_ids, dataset_ids, TEST_TENANT, TEST_TOKEN
-    )
+    actual_result = get_files_info(file_ids, dataset_ids, TEST_TENANT, TEST_TOKEN)
     assert actual_result == expected_result
 
 

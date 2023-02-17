@@ -136,9 +136,7 @@ def get_all_jobs(db: Session) -> List[Dict[str, Any]]:
     return [job.as_dict for job in db.query(dbm.CombinedJob)]
 
 
-def get_job_in_db_by_id(
-    db: Session, job_id: int
-) -> Union[dbm.CombinedJob, Any]:
+def get_job_in_db_by_id(db: Session, job_id: int) -> Union[dbm.CombinedJob, Any]:
     """Getting hold on a job in the database by its id"""
     job_needed = db.query(dbm.CombinedJob).get(job_id)
     return job_needed

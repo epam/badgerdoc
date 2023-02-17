@@ -24,9 +24,7 @@ def test_create_annotation_job_draft(testing_app, jw_token):
             "categories": ["category1", "category2"],
             "validation_type": schemas.ValidationType.hierarchical,
             "is_auto_distribution": False,
-            "deadline": str(
-                datetime.datetime.utcnow() + datetime.timedelta(days=1)
-            ),
+            "deadline": str(datetime.datetime.utcnow() + datetime.timedelta(days=1)),
             "is_draft": True,
         },
     )
@@ -194,9 +192,7 @@ def test_schedule_manual_job_valid_datasets(
         assert response.json()["name"] == "MockAnnotationJob"
 
 
-def test_schedule_manual_job_one_invalid_dataset(
-    testing_app, mock_data_dataset11
-):
+def test_schedule_manual_job_one_invalid_dataset(testing_app, mock_data_dataset11):
     with patch("jobs.utils.fetch", return_value=asyncio.Future()) as mock:
         mock.side_effect = [
             (200, mock_data_dataset11),

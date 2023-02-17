@@ -2,10 +2,9 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import requests
-from fastapi import HTTPException, status
-
 from convert.config import settings
 from convert.logger import get_logger
+from fastapi import HTTPException, status
 
 from ..models.bd_annotation_model import AnnotationLink, BadgerdocAnnotation
 from ..models.bd_manifest_model_practic import Manifest
@@ -59,8 +58,8 @@ class LabelStudioFormat:
         ]
 
         job_id = badgerdoc_manifest.job_id
-        categories_linked_with_taxonomies = (
-            self.get_categories_linked_with_taxonomies(job_id, request_headers)
+        categories_linked_with_taxonomies = self.get_categories_linked_with_taxonomies(
+            job_id, request_headers
         )
         LOGGER.debug(
             "Got there categories linked to taxonomies: %s",
@@ -222,9 +221,7 @@ class LabelStudioFormat:
                 detail="Failed request to 'taxonomy' to get corresponding taxonomy",
             ) from e
         response_content = request_to_get_taxonomy.json()
-        LOGGER.debug(
-            "Got this response from taxonomy service: %s", response_content
-        )
+        LOGGER.debug("Got this response from taxonomy service: %s", response_content)
 
         return [
             {"taxonomy_id": element["id"], "version": element["version"]}
@@ -280,9 +277,7 @@ class LabelStudioFormat:
                 detail="Failed request to 'taxonomy' to get taxons_used",
             ) from e
         response_content = request_to_get_taxons_used.json()
-        LOGGER.debug(
-            "Got this response from taxonomy service: %s", response_content
-        )
+        LOGGER.debug("Got this response from taxonomy service: %s", response_content)
 
         result = {taxonomy_id: [] for taxonomy_id in all_taxonomies_ids_used}
         for taxon_obj in response_content["data"]:

@@ -97,9 +97,7 @@ def test_client_token_positive(client_token_mock_rs256, test_app_rs256):
     assert res.json() == response_body
 
 
-def test_wrong_client_token_data(
-    wrong_client_token_mock_rs256, test_app_rs256
-):
+def test_wrong_client_token_data(wrong_client_token_mock_rs256, test_app_rs256):
     headers = {
         "Authorization": f"Bearer {wrong_client_token_mock_rs256}",
         "X-Current-Tenant": CURRENT_TENANT,

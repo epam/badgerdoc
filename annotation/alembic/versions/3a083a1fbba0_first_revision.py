@@ -29,9 +29,7 @@ def upgrade():
     if "annotators" not in tables:
         op.create_table(
             "annotators",
-            sa.Column(
-                "user_id", postgresql.UUID(as_uuid=True), nullable=False
-            ),
+            sa.Column("user_id", postgresql.UUID(as_uuid=True), nullable=False),
             sa.Column("default_load", sa.INTEGER(), nullable=False),
             sa.PrimaryKeyConstraint("user_id"),
         )  # Here and below this 'if' condition creates tables only for new db
@@ -48,9 +46,7 @@ def upgrade():
                 nullable=True,
             ),
             sa.Column("is_link", sa.BOOLEAN(), nullable=False),
-            sa.ForeignKeyConstraint(
-                ["parent"], ["categories.id"], ondelete="cascade"
-            ),
+            sa.ForeignKeyConstraint(["parent"], ["categories.id"], ondelete="cascade"),
             sa.PrimaryKeyConstraint("id"),
         )
         op.create_check_constraint(
@@ -91,12 +87,8 @@ def upgrade():
             ),
             sa.Column("file_id", sa.INTEGER(), nullable=False),
             sa.Column("job_id", sa.INTEGER(), nullable=False),
-            sa.Column(
-                "pages", postgresql.JSON(astext_type=sa.Text()), nullable=False
-            ),
-            sa.Column(
-                "validated", postgresql.ARRAY(sa.INTEGER()), nullable=False
-            ),
+            sa.Column("pages", postgresql.JSON(astext_type=sa.Text()), nullable=False),
+            sa.Column("validated", postgresql.ARRAY(sa.INTEGER()), nullable=False),
             sa.Column("tenant", sa.VARCHAR(), nullable=False),
             sa.CheckConstraint(
                 '("user" IS NULL AND pipeline IS NOT NULL) OR '
@@ -111,9 +103,7 @@ def upgrade():
     if "association_job_annotator" not in tables:
         op.create_table(
             "association_job_annotator",
-            sa.Column(
-                "user_id", postgresql.UUID(as_uuid=True), nullable=False
-            ),
+            sa.Column("user_id", postgresql.UUID(as_uuid=True), nullable=False),
             sa.Column("job_id", sa.INTEGER(), nullable=False),
             sa.ForeignKeyConstraint(
                 ["job_id"],
@@ -160,9 +150,7 @@ def upgrade():
             sa.Column("file_id", sa.INTEGER(), nullable=False),
             sa.Column("pages", postgresql.ARRAY(sa.INTEGER()), nullable=False),
             sa.Column("job_id", sa.INTEGER(), nullable=False),
-            sa.Column(
-                "user_id", postgresql.UUID(as_uuid=True), nullable=False
-            ),
+            sa.Column("user_id", postgresql.UUID(as_uuid=True), nullable=False),
             sa.Column("is_validation", sa.BOOLEAN(), nullable=False),
             sa.Column(
                 "status",

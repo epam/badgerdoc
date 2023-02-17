@@ -137,9 +137,7 @@ def construct_search_params(page: int, ids: List[int]):
     }
 
 
-def get_response(
-    ids: List[int], url: str, tenant: str, token: str
-) -> List[dict]:
+def get_response(ids: List[int], url: str, tenant: str, token: str) -> List[dict]:
     """
     Request from jobs or assets microservices all elements,
     that have provided ids.

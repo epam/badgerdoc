@@ -1,16 +1,13 @@
 from typing import Dict, List, Optional, Tuple
 
 import boto3
+import models.logger as logger
 from botocore.client import Config
 from botocore.exceptions import BotoCoreError, ClientError
 from botocore.response import StreamingBody
 from kubernetes import client, config
 from kubernetes.client.rest import ApiException
 from kubernetes.config import ConfigException
-from sqlalchemy.orm import Session
-from starlette.datastructures import UploadFile
-
-import models.logger as logger
 from models.constants import (
     CONTAINER_NAME,
     DOCKER_REGISTRY_URL,
@@ -28,6 +25,8 @@ from models.constants import (
 from models.db import Basement, Model
 from models.errors import NoSuchTenant
 from models.schemas import DeployedModelPod, MinioHTTPMethod
+from sqlalchemy.orm import Session
+from starlette.datastructures import UploadFile
 
 logger_ = logger.get_logger(__name__)
 
@@ -141,9 +140,7 @@ def create_ksvc(
                                     "value": config_path["file"],
                                 },
                             ],
-                            "ports": [
-                                {"protocol": "TCP", "containerPort": 8000}
-                            ],
+                            "ports": [{"protocol": "TCP", "containerPort": 8000}],
                             "resources": {
                                 "limits": {
                                     "cpu": pod_cpu_limit,
@@ -376,9 +373,7 @@ def upload_to_object_storage(
         s3.upload_fileobj(Fileobj=obj, Key=file_path)
     except ClientError as err:
         if "404" in err.args[0]:
-            raise NoSuchTenant(
-                f"Bucket for tenant {bucket_name} does not exist"
-            )
+            raise NoSuchTenant(f"Bucket for tenant {bucket_name} does not exist")
         raise
 
 

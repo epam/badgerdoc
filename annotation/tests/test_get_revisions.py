@@ -363,9 +363,7 @@ def test_get_latest_revision_by_user_s3_connection_error(
 
 @pytest.mark.integration
 @patch.object(Session, "query")
-def test_get_all_revisions_sql_connection_error(
-    Session, prepare_db_for_get_revisions
-):
+def test_get_all_revisions_sql_connection_error(Session, prepare_db_for_get_revisions):
     Session.side_effect = Mock(side_effect=SQLAlchemyError())
     response = client.get(
         f"{ANNOTATION_PATH}/{JOBS_IDS[0]}/{FILES_IDS[0]}",

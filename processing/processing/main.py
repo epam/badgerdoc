@@ -11,9 +11,6 @@ from fastapi import (
     Response,
     status,
 )
-from sqlalchemy.orm import Session
-from tenant_dependency import TenantData, get_tenant_info
-
 from processing import db, schema
 from processing.config import settings
 from processing.health_check_easy_ocr import health_check_preprocessing
@@ -23,6 +20,8 @@ from processing.text_merge import merge_words_to_paragraph
 from processing.utils.logger import get_logger
 from processing.utils.minio_utils import convert_bucket_name_if_s3prefix
 from processing.utils.utils import map_finish_status_for_assets
+from sqlalchemy.orm import Session
+from tenant_dependency import TenantData, get_tenant_info
 
 logger = get_logger(__name__)
 app = FastAPI(
@@ -62,12 +61,8 @@ def run_text_matching(
 )
 def get_preprocessing_result(
     file_id: int = Path(..., example=4),
-    pages: Optional[Set[int]] = Query(
-        None, min_items=1, ge=1, example={3, 4, 1}
-    ),
-    current_tenant: str = Header(
-        ..., example="tenant", alias="X-Current-Tenant"
-    ),
+    pages: Optional[Set[int]] = Query(None, min_items=1, ge=1, example={3, 4, 1}),
+    current_tenant: str = Header(..., example="tenant", alias="X-Current-Tenant"),
 ) -> Response:
     """
     Take preprocess data from MinIO for `file_id`, and return it as
@@ -136,9 +131,9 @@ async def update_task_status(
     current_tenant: str = Header(..., alias="X-Current-Tenant"),
     session: Session = Depends(db.service.session_scope),
 ) -> Dict[str, str]:
-    task: Optional[
-        db.models.DbPreprocessingTask
-    ] = db.service.get_task_by_execution_id(task_id, session)
+    task: Optional[db.models.DbPreprocessingTask] = db.service.get_task_by_execution_id(
+        task_id, session
+    )
     if task is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="No such task"
@@ -149,8 +144,8 @@ async def update_task_status(
         task.file_id, task.batch_id, session
     )
     if finished:
-        assets_status: schema.PreprocessingStatus = (
-            map_finish_status_for_assets(file_status)
+        assets_status: schema.PreprocessingStatus = map_finish_status_for_assets(
+            file_status
         )
         await PreprocessingTask.update_file_statuses(
             [task.file_id], assets_status, current_tenant, token_data.token

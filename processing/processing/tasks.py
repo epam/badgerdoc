@@ -8,8 +8,6 @@ from uuid import uuid4
 
 from cache import AsyncTTL
 from fastapi import HTTPException, status
-from sqlalchemy.orm import Session
-
 from processing.config import settings
 from processing.schema import PreprocessingStatus, Status
 from processing.utils.aiohttp_utils import send_request
@@ -20,6 +18,7 @@ from processing.utils.utils import (
     get_model_url,
     split_iterable,
 )
+from sqlalchemy.orm import Session
 
 logger = get_logger(__name__)
 
@@ -95,9 +94,7 @@ class PreprocessingTask(BaseTask[None]):
 
     async def _execute(self) -> None:
         logger.info("Fetch data from assets %s", self)
-        files_data, _ = await get_files_data(
-            self.file_ids, self.tenant, self.jw_token
-        )
+        files_data, _ = await get_files_data(self.file_ids, self.tenant, self.jw_token)
         logger.debug(files_data)
         logger.info("Execute pipeline %s", self)
         await execute_pipeline(
@@ -125,9 +122,7 @@ class PreprocessingTask(BaseTask[None]):
         for id_ in ids:
             body = {"file": id_, "status": task_status}
             task = asyncio.create_task(
-                send_request(
-                    "PUT", url=settings.assets_url, json=body, headers=headers
-                )
+                send_request("PUT", url=settings.assets_url, json=body, headers=headers)
             )
             tasks.append(task)
 
@@ -139,9 +134,7 @@ class PreprocessingTask(BaseTask[None]):
     ) -> Iterator[FilesData]:
 
         for file_data in files_data:
-            file_data["output_path"] = str(
-                Path(file_data["path"]).parent / "ocr"
-            )
+            file_data["output_path"] = str(Path(file_data["path"]).parent / "ocr")
 
             if file_data["pages"] <= settings.pages_per_batch:
                 file_data["pages"] = list(range(1, file_data["pages"] + 1))

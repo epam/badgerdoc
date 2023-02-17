@@ -46,9 +46,7 @@ def upgrade() -> None:
         sa.Column("created_by", sa.String()),
         sa.Column("created_at", sa.DateTime()),
         sa.Column("tenant", sa.String(length=100)),
-        sa.ForeignKeyConstraint(
-            ["basement"], ["basement.id"], ondelete="CASCADE"
-        ),
+        sa.ForeignKeyConstraint(["basement"], ["basement.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_table(
@@ -77,9 +75,7 @@ def upgrade() -> None:
         sa.Column("created_by", sa.String()),
         sa.Column("created_at", sa.DateTime()),
         sa.Column("tenant", sa.String(length=100)),
-        sa.ForeignKeyConstraint(
-            ["basement"], ["basement.id"], ondelete="CASCADE"
-        ),
+        sa.ForeignKeyConstraint(["basement"], ["basement.id"], ondelete="CASCADE"),
         sa.ForeignKeyConstraint(
             ["training_id"],
             ["training.id"],

@@ -2,11 +2,6 @@ from typing import Any
 from urllib.parse import urlparse
 
 import requests
-from fastapi import APIRouter, BackgroundTasks, Depends, Header, status
-from fastapi.responses import Response, StreamingResponse
-from requests import HTTPError
-from tenant_dependency import TenantData, get_tenant_info
-
 from convert.coco_export.convert import ConvertToCoco, ExportBadgerdoc
 from convert.coco_export.export_service import (
     export_run,
@@ -18,12 +13,14 @@ from convert.config import minio_client, settings
 from convert.logger import get_logger
 from convert.models import coco
 from convert.utils.s3_utils import get_bucket_path
+from fastapi import APIRouter, BackgroundTasks, Depends, Header, status
+from fastapi.responses import Response, StreamingResponse
+from requests import HTTPError
+from tenant_dependency import TenantData, get_tenant_info
 
 router = APIRouter(prefix="/coco", tags=["coco"])
 LOGGER = get_logger(__file__)
-tenant = get_tenant_info(
-    url=settings.keycloak_url, algorithm="RS256", debug=True
-)
+tenant = get_tenant_info(url=settings.keycloak_url, algorithm="RS256", debug=True)
 
 
 @router.post(
@@ -139,9 +136,7 @@ def download_dataset(
     parsed = urlparse(url)
     minio_path = parsed.path[1:].split("/")
     bucket, key = minio_path[0], str.join("/", minio_path[1:-1])
-    zip_file = minio_client.get_object(
-        Bucket=bucket, Key=str.join("/", minio_path[1:])
-    )
+    zip_file = minio_client.get_object(Bucket=bucket, Key=str.join("/", minio_path[1:]))
     background.add_task(
         minio_client.delete_object,
         Bucket=bucket,

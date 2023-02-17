@@ -4,7 +4,6 @@ from typing import Any, Dict, List, Optional
 import fastapi
 import filter_lib
 import sqlalchemy.orm
-
 from assets import db, schemas, utils
 
 router = fastapi.APIRouter(prefix="/datasets/bonds", tags=["bonds"])
@@ -20,9 +19,7 @@ async def search_bonds(
     session: sqlalchemy.orm.Session = fastapi.Depends(
         db.service.session_scope_for_dependency
     ),
-    x_current_tenant: Optional[str] = fastapi.Header(
-        None, alias="X-Current-Tenant"
-    ),
+    x_current_tenant: Optional[str] = fastapi.Header(None, alias="X-Current-Tenant"),
 ) -> filter_lib.Page[Dict[str, Any]]:
     """
     Takes every bounded pair dataset-file and returns them.
@@ -52,9 +49,7 @@ async def bound_files_to_dataset(
     session: sqlalchemy.orm.Session = fastapi.Depends(
         db.service.session_scope_for_dependency
     ),
-    x_current_tenant: Optional[str] = fastapi.Header(
-        None, alias="X-Current-Tenant"
-    ),
+    x_current_tenant: Optional[str] = fastapi.Header(None, alias="X-Current-Tenant"),
 ) -> List[schemas.ActionResponse]:
     """
     Bounds file objects to a given dataset. If dataset does not exist HTTPException
@@ -130,9 +125,7 @@ async def unbound_files_from_dataset(
     session: sqlalchemy.orm.Session = fastapi.Depends(
         db.service.session_scope_for_dependency
     ),
-    x_current_tenant: Optional[str] = fastapi.Header(
-        None, alias="X-Current-Tenant"
-    ),
+    x_current_tenant: Optional[str] = fastapi.Header(None, alias="X-Current-Tenant"),
 ) -> List[schemas.ActionResponse]:
     """
     Unbound file objects with a given dataset. If dataset does not exist HTTPException

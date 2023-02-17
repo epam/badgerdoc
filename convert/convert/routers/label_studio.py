@@ -1,8 +1,5 @@
 from typing import Optional
 
-from fastapi import APIRouter, Depends, Header, status
-from tenant_dependency import TenantData, get_tenant_info
-
 from convert.config import minio_client, settings
 from convert.label_studio_to_badgerdoc.badgerdoc_to_label_studio_use_case import (
     BDToLabelStudioConvertUseCase,
@@ -14,11 +11,11 @@ from convert.label_studio_to_badgerdoc.models import LabelStudioRequest
 from convert.label_studio_to_badgerdoc.models.label_studio_models import (
     BadgerdocToLabelStudioRequest,
 )
+from fastapi import APIRouter, Depends, Header, status
+from tenant_dependency import TenantData, get_tenant_info
 
 router = APIRouter(prefix="/label_studio", tags=["label_studio"])
-tenant = get_tenant_info(
-    url=settings.keycloak_url, algorithm="RS256", debug=True
-)
+tenant = get_tenant_info(url=settings.keycloak_url, algorithm="RS256", debug=True)
 
 
 @router.post(

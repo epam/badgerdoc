@@ -5,7 +5,6 @@ from typing import Any, List
 from fastapi import APIRouter, HTTPException
 from kubernetes import client, config
 from kubernetes.client.exceptions import ApiException
-
 from models import schemas, utils
 from models.constants import MODELS_NAMESPACE
 
@@ -93,9 +92,7 @@ def get_deployed_model_by_name(
     return schemas.DeployedModelDetails(
         apiVersion=model["apiVersion"],
         datetime_creation=str(
-            datetime.strptime(
-                metadata["creationTimestamp"], "%Y-%m-%dT%H:%M:%SZ"
-            )
+            datetime.strptime(metadata["creationTimestamp"], "%Y-%m-%dT%H:%M:%SZ")
         ),
         model_id=metadata["generation"],
         model_name=metadata["name"],

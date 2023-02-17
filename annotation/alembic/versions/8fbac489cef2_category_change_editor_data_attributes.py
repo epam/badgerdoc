@@ -35,9 +35,7 @@ def downgrade():
     op.alter_column(
         "categories",
         "data_attributes",
-        existing_type=postgresql.ARRAY(
-            postgresql.JSONB(astext_type=sa.Text())
-        ),
+        existing_type=postgresql.ARRAY(postgresql.JSONB(astext_type=sa.Text())),
         type_=postgresql.ARRAY(sa.VARCHAR()),
         existing_nullable=True,
     )

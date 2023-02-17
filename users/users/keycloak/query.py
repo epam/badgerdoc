@@ -38,9 +38,7 @@ def create_bearer_header(token: str) -> Dict[str, str]:
     return {"Authorization": f"Bearer {token}"}
 
 
-async def create_user(
-    token: str, realm: str, username: str, email: str
-) -> None:
+async def create_user(token: str, realm: str, username: str, email: str) -> None:
     """Create user"""
     url = resources.users_uri.substitute(realm=realm)
     method = "POST"
@@ -56,9 +54,7 @@ async def create_user(
         return
 
 
-async def get_users_by_role(
-    token: str, realm: str, role: str
-) -> List[schemas.User]:
+async def get_users_by_role(token: str, realm: str, role: str) -> List[schemas.User]:
     """Get list of users from keycloak by role"""
 
     url = resources.users_by_role_uri.substitute(realm=realm, role=role)
@@ -97,9 +93,7 @@ async def get_token_v2(
         return schemas.TokenResponse.parse_obj(await resp.json())
 
 
-async def get_users_v2(
-    realm: str, token: str, **filters: Any
-) -> List[schemas.User]:
+async def get_users_v2(realm: str, token: str, **filters: Any) -> List[schemas.User]:
     """Get users from realm, filtered according to filters.
 
     :param realm: Keycloak realm.
@@ -178,9 +172,7 @@ async def introspect_token(token: str) -> Token_Data:
         )
 
 
-async def get_groups(
-    realm: str, token: str, name: str = None
-) -> List[schemas.Group]:
+async def get_groups(realm: str, token: str, name: str = None) -> List[schemas.Group]:
     """Get group from realm by its name.
 
     :param realm: Keycloak realm.
@@ -224,9 +216,7 @@ async def create_group(realm: str, token: str, group: schemas.Group) -> None:
         return
 
 
-async def update_user(
-    realm: str, token: str, user_id: str, upd: schemas.User
-) -> None:
+async def update_user(realm: str, token: str, user_id: str, upd: schemas.User) -> None:
     """Update user.
 
     :param realm: Keycloak realm.
@@ -250,9 +240,7 @@ async def update_user(
 
 async def execute_action_email(token: str, realm: str, user_id: str) -> None:
     """Send email to user for updating user profile"""
-    url = resources.execute_actions_email_uri.substitute(
-        realm=realm, id=user_id
-    )
+    url = resources.execute_actions_email_uri.substitute(realm=realm, id=user_id)
     method = "PUT"
     headers = create_bearer_header(token)
     payload = ["UPDATE_PROFILE", "UPDATE_PASSWORD"]
@@ -289,9 +277,7 @@ async def get_master_realm_auth_data() -> AuthData:
             data=payload,
         ) as resp:
             data = await resp.json()
-            data_to_return: AuthData = (
-                data  # casting into TypedDict for linter checks
-            )
+            data_to_return: AuthData = data  # casting into TypedDict for linter checks
             return data_to_return
 
     except aiohttp.ClientConnectionError as e:

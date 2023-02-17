@@ -9,7 +9,6 @@ from zipfile import ZipFile
 
 import requests
 from botocore.exceptions import ClientError
-
 from convert.config import minio_client, minio_resource, settings
 from convert.logger import get_logger
 from convert.models.coco import Annotation, Category, CocoDataset, Image
@@ -53,9 +52,7 @@ class DatasetFetch:
         image_folder = f"{Path(file_path).parent.parent}/"
         if not os.path.exists(image_folder):
             os.makedirs(image_folder, exist_ok=True)
-        image_local_path = (
-            f"{image_folder}/{self.job_id}_{Path(file_path).name}"
-        )
+        image_local_path = f"{image_folder}/{self.job_id}_{Path(file_path).name}"
         minio_resource.meta.client.download_file(
             self.bucket_name, file_path, image_local_path
         )
@@ -110,9 +107,7 @@ class DatasetFetch:
                 f"{work_dir}/{page_name}.json",
                 f"{local_path}/{page_name}.json",
             )
-            add_to_zip_and_local_remove(
-                f"{local_path}/{page_name}.json", zip_file
-            )
+            add_to_zip_and_local_remove(f"{local_path}/{page_name}.json", zip_file)
 
     def get_annotation_body(
         self,
@@ -149,9 +144,7 @@ class DatasetFetch:
         """
         work_dir = Path(manifest).parent
         manifest_content = json.loads(
-            minio_client.get_object(Bucket=self.bucket_name, Key=manifest)[
-                "Body"
-            ]
+            minio_client.get_object(Bucket=self.bucket_name, Key=manifest)["Body"]
             .read()
             .decode("utf-8")
         )
@@ -283,8 +276,7 @@ class ConvertToCoco(ExportConvertBase):
         annotation_num = 1
         categories = loader.get_categories(self.token)
         category_names = {
-            category.lower(): number
-            for number, category in enumerate(categories)
+            category.lower(): number for number, category in enumerate(categories)
         }
         for page in file_id:
             files = minio_client.list_objects(
@@ -317,9 +309,7 @@ class ConvertToCoco(ExportConvertBase):
             key=lambda x: x["id"],  # type: ignore
         )
         export_save_to_json("coco", coco_annotation.dict())
-        LOGGER.info(
-            "Converting of the job %s to coco has been finished", self.job_id
-        )
+        LOGGER.info("Converting of the job %s to coco has been finished", self.job_id)
         self.zip_file.close()
         return self.zip_file
 
@@ -414,9 +404,7 @@ class ExportBadgerdoc(ExportConvertBase):
             minio_client.download_file(
                 self.bucket_name, manifest_path, annotation_local_path
             )
-            LOGGER.info(
-                "manifest.json was downloaded for the job %s", self.job_id
-            )
+            LOGGER.info("manifest.json was downloaded for the job %s", self.job_id)
             add_to_zip_and_local_remove(annotation_local_path, self.zip_file)
             loader.fetch(
                 manifest_path,

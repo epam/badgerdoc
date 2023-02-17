@@ -129,7 +129,7 @@ DOCS_FOR_ACCUMULATE_PAGES_INFO = [
             failed_validation_pages=[],
             tenant=TEST_TENANT,
             task_id=TASKS[0].id,
-            categories={'some'}
+            categories={"some"},
         ),
         AnnotatedDoc(
             revision="2",
@@ -197,7 +197,8 @@ def test_accumulate_pages_info(revisions, task_pages, expected_result):
 def test_accumulate_pages_info_can_extract_categories():
     revisions = DOCS_FOR_ACCUMULATE_PAGES_INFO[1]
     _, _, _, _, categories, _ = accumulate_pages_info(
-        *(TASKS[0].pages,), revisions,
+        *(TASKS[0].pages,),
+        revisions,
     )
     assert categories == revisions[0].categories
 

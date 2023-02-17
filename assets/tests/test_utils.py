@@ -186,9 +186,7 @@ def test_file_processor_is_file_updated_status_not_updated(update_file_status):
 
 @patch("assets.utils.common_utils.FileProcessor.is_file_updated")
 @patch("assets.utils.common_utils.FileProcessor.is_blank_is_created")
-@patch(
-    "assets.utils.common_utils.FileProcessor.is_original_file_uploaded_to_storage"
-)
+@patch("assets.utils.common_utils.FileProcessor.is_original_file_uploaded_to_storage")
 @patch("assets.utils.common_utils.FileProcessor.is_uploaded_to_storage")
 @patch("assets.utils.common_utils.FileProcessor.is_inserted_to_database")
 @patch("assets.utils.common_utils.FileProcessor.is_converted_file")
@@ -430,9 +428,7 @@ def test_s3_manager_get_files():
 
 @patch("assets.utils.s3_utils.S3Manager._check_bucket_exist")
 @patch("assets.utils.s3_utils.S3Manager._check_files_exist")
-def test_s3_manager_check_s3_buckets_and_files_exist(
-    check_buckets, check_files
-):
+def test_s3_manager_check_s3_buckets_and_files_exist(check_buckets, check_files):
     s3 = S3Manager("a", "b", endpoint_url=None)
     check_buckets.return_value = None
     check_files.return_value = None
@@ -478,9 +474,7 @@ def test_check_uploading_limit_not_exceed():
 
 @patch("assets.utils.common_utils.get_mimetype")
 @patch("assets.utils.common_utils.requests.post")
-def test_file_processor_conversion_error(
-    gotenberg, get_mimetype, pdf_file_bytes
-):
+def test_file_processor_conversion_error(gotenberg, get_mimetype, pdf_file_bytes):
     response = Response()
     response._content = pdf_file_bytes
     gotenberg.return_value = response
@@ -530,9 +524,7 @@ def test_file_converted_converted_to_pdf_side_effect(
 
 def test_file_converted_converted_to_jpg(png_bytes):
     new_db_file = FileObject()
-    converter = FileConverter(
-        png_bytes, "some_file.png", ".png", "test", new_db_file
-    )
+    converter = FileConverter(png_bytes, "some_file.png", ".png", "test", new_db_file)
     assert converter.convert() is True
 
 
@@ -629,8 +621,6 @@ def test_get_pixel_bbox_size(
     current_pixel_size, original_pts_size, bbox, expected_result
 ):
     assert (
-        minio_utils.get_pixel_bbox_size(
-            current_pixel_size, original_pts_size, bbox
-        )
+        minio_utils.get_pixel_bbox_size(current_pixel_size, original_pts_size, bbox)
         == expected_result
     )

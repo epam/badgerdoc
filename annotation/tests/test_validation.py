@@ -1417,9 +1417,7 @@ def test_create_validation_tasks_exceptions(db_validation_end, user):
             TASKS[8].id,
             {
                 "annotation_user_for_failed_pages": AnnotationAndValidationActionsSchema.auto.value,  # noqa E501
-                "validation_user_for_reannotated_pages": str(
-                    ANNOTATORS[3].user_id
-                ),
+                "validation_user_for_reannotated_pages": str(ANNOTATORS[3].user_id),
             },
             400,
             "does not belong",
@@ -1477,11 +1475,7 @@ def test_create_validation_tasks_exceptions(db_validation_end, user):
         ),
         (
             TASKS[4].id,
-            {
-                "validation_user_for_reannotated_pages": str(
-                    ANNOTATORS[1].user_id
-                )
-            },
+            {"validation_user_for_reannotated_pages": str(ANNOTATORS[1].user_id)},
             400,
             "Missing `annotation_user",
         ),
@@ -1665,9 +1659,7 @@ def test_check_delete_user_from_annotated_doc(db_validation_end):
         ManualAnnotationTask.id.in_([100, 102, 103, 107, 111])
     ).delete(synchronize_session=False)
     db_validation_end.commit()
-    db_validation_end.query(User).filter(
-        User.user_id == ANNOTATORS[0].user_id
-    ).delete()
+    db_validation_end.query(User).filter(User.user_id == ANNOTATORS[0].user_id).delete()
     db_validation_end.commit()
 
     deleted_user = db_validation_end.query(

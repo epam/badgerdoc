@@ -9,9 +9,7 @@ def test_change_annotation_job_with_request_to_annotation(
 ):
     with patch("jobs.utils.fetch", return_value=asyncio.Future()) as mock:
         mock.side_effect = [(200, {})]
-        create_mock_annotation_job_in_db(
-            testing_session, mock_AnnotationJobParams2
-        )
+        create_mock_annotation_job_in_db(testing_session, mock_AnnotationJobParams2)
         response = testing_app.put(
             "/jobs/1",
             json={
@@ -33,9 +31,7 @@ def test_change_annotation_job_without_request_to_annotation(
     testing_app, testing_session, mock_AnnotationJobParams2
 ):
     with patch("jobs.utils.fetch", return_value=asyncio.Future()) as mock:
-        create_mock_annotation_job_in_db(
-            testing_session, mock_AnnotationJobParams2
-        )
+        create_mock_annotation_job_in_db(testing_session, mock_AnnotationJobParams2)
         response = testing_app.put("/jobs/1", json={"status": "Finished"})
         assert response.status_code == 200
         assert response.json()["status"] == "Finished"
@@ -48,9 +44,7 @@ def test_change_annotation_job_with_partial_request_to_annotation(
 ):
     with patch("jobs.utils.fetch", return_value=asyncio.Future()) as mock:
         mock.side_effect = [(200, {})]
-        create_mock_annotation_job_in_db(
-            testing_session, mock_AnnotationJobParams2
-        )
+        create_mock_annotation_job_in_db(testing_session, mock_AnnotationJobParams2)
         response = testing_app.put(
             "/jobs/1",
             json={

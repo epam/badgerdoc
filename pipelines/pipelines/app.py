@@ -1,20 +1,19 @@
 import asyncio
 from typing import Any, Dict, List, Optional, Union
 
-from fastapi import Depends, FastAPI, Header, HTTPException, status
-from filter_lib import Page, form_query, map_request_to_filter, paginate
-from pydantic import AnyUrl
-from sqlalchemy.orm import Session
-from sqlalchemy_filters.exceptions import BadFilterFormat
-from tenant_dependency import TenantData, get_tenant_info
-
 import pipelines.config as config
 import pipelines.db.models as dbm
 import pipelines.db.service as service
 import pipelines.execution as execution
 import pipelines.schemas as schemas
+from fastapi import Depends, FastAPI, Header, HTTPException, status
+from filter_lib import Page, form_query, map_request_to_filter, paginate
 from pipelines.kafka_utils import Kafka
 from pipelines.pipeline_runner import run_pipeline
+from pydantic import AnyUrl
+from sqlalchemy.orm import Session
+from sqlalchemy_filters.exceptions import BadFilterFormat
+from tenant_dependency import TenantData, get_tenant_info
 
 TOKEN = get_tenant_info(url=config.KEYCLOAK_URI, algorithm="RS256")
 
@@ -204,9 +203,7 @@ async def get_task_by_id(
     task_id: int, session: Session = Depends(service.get_session)
 ) -> Any:
     """Get task by its id."""
-    res = service.get_table_instance_by_id(
-        session, dbm.PipelineExecutionTask, task_id
-    )
+    res = service.get_table_instance_by_id(session, dbm.PipelineExecutionTask, task_id)
     if res:
         return res.as_dict()
     raise HTTPException(status_code=404, detail=NO_TASK)
@@ -297,9 +294,7 @@ async def delete_task(
     task_id: int, session: Session = Depends(service.get_session)
 ) -> Dict[str, str]:
     """Delete task from db by its id."""
-    res = service.get_table_instance_by_id(
-        session, dbm.PipelineExecutionTask, task_id
-    )
+    res = service.get_table_instance_by_id(session, dbm.PipelineExecutionTask, task_id)
     if res is None:
         raise HTTPException(status_code=404, detail=NO_TASK)
     service.delete_instances(session, [res])
@@ -317,9 +312,7 @@ async def get_task_steps_by_id(
     task_id: int, session: Session = Depends(service.get_session)
 ) -> List[Dict[str, str]]:
     """Get task steps by task id."""
-    res = service.get_table_instance_by_id(
-        session, dbm.PipelineExecutionTask, task_id
-    )
+    res = service.get_table_instance_by_id(session, dbm.PipelineExecutionTask, task_id)
     if res is None:
         raise HTTPException(status_code=404, detail=NO_TASK)
     return [step.as_dict() for step in res.steps]

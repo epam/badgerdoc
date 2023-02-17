@@ -63,9 +63,7 @@ def test_add_pipeline_autogen_ids(testing_app, adjust_mock):
         ({"name": "bar", "version": 2}, td.pipeline_dict_2),
     ],
 )
-def test_get_pipeline(
-    q_params: Dict[str, str], testing_app, adjust_mock, pipeline
-):
+def test_get_pipeline(q_params: Dict[str, str], testing_app, adjust_mock, pipeline):
     """Testing get_pipeline."""
     testing_app.post("/pipeline", json=pipeline)
     response = testing_app.get("/pipeline", params=q_params)
@@ -99,9 +97,7 @@ def test_get_pipelines(testing_app, adjust_mock):
         ({"name": "bar", "version": 2}, td.pipeline_dict_2),
     ],
 )
-def test_delete_pipelines(
-    q_params: Dict[str, str], pipeline, testing_app, adjust_mock
-):
+def test_delete_pipelines(q_params: Dict[str, str], pipeline, testing_app, adjust_mock):
     """Testing delete_pipelines."""
     testing_app.post("/pipeline", json=pipeline)
     response = testing_app.delete("/pipelines", params=q_params)
@@ -263,9 +259,7 @@ def test_get_task_steps_by_id(testing_task, testing_app, testing_session):
     assert response.json()[0]["status"] == "pending"
 
 
-def test_get_task_steps_by_id_not_found(
-    testing_task, testing_app, testing_session
-):
+def test_get_task_steps_by_id_not_found(testing_task, testing_app, testing_session):
     """Testing get_task_steps_by_id when there's no such task."""
     step = dbm.ExecutionStep(task=testing_task, name="bar", status="pending")
     service.add_step(testing_session, step)

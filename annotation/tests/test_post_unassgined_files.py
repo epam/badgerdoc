@@ -328,9 +328,7 @@ def test_post_tasks_for_unassigned_files(
         db_post_unassigned_files.query(ManualAnnotationTask)
         .filter(
             ManualAnnotationTask.job_id == job_id,
-            not_(
-                ManualAnnotationTask.status == TaskStatusEnumSchema.in_progress
-            ),
+            not_(ManualAnnotationTask.status == TaskStatusEnumSchema.in_progress),
         )
         .all()
     )
@@ -343,9 +341,7 @@ def test_post_tasks_for_unassigned_files(
         del task["id"]
 
     files_in_db = (
-        db_post_unassigned_files.query(File)
-        .filter(File.job_id == job_id)
-        .all()
+        db_post_unassigned_files.query(File).filter(File.job_id == job_id).all()
     )
     files_in_db = [row_to_dict(f) for f in files_in_db]
 

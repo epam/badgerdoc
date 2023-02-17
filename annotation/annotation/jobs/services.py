@@ -2,18 +2,20 @@ from collections import defaultdict
 from typing import Any, DefaultDict, Dict, List, Optional, Set, Tuple, Union
 from uuid import UUID
 
-from filter_lib import Page, form_query, map_request_to_filter, paginate
-from pydantic import ValidationError
-from sqlalchemy import and_, desc, not_
-from sqlalchemy.orm import Session, query
-from sqlalchemy.orm.attributes import InstrumentedAttribute
-
 from annotation.categories import fetch_bunch_categories_db
 from annotation.categories.services import response_object_from_db
 from annotation.database import Base
-from annotation.errors import EnumValidationError, FieldConstraintError, WrongJobError
-from annotation.microservice_communication.assets_communication import get_files_info
-from annotation.microservice_communication.jobs_communication import get_job_names
+from annotation.errors import (
+    EnumValidationError,
+    FieldConstraintError,
+    WrongJobError,
+)
+from annotation.microservice_communication.assets_communication import (
+    get_files_info,
+)
+from annotation.microservice_communication.jobs_communication import (
+    get_job_names,
+)
 from annotation.models import (
     Category,
     File,
@@ -33,11 +35,14 @@ from annotation.schemas import (
     TaskStatusEnumSchema,
     ValidationSchema,
 )
+from filter_lib import Page, form_query, map_request_to_filter, paginate
+from pydantic import ValidationError
+from sqlalchemy import and_, desc, not_
+from sqlalchemy.orm import Session, query
+from sqlalchemy.orm.attributes import InstrumentedAttribute
 
 
-def update_inner_job_status(
-    db: Session, job_id: int, status: JobStatusEnumSchema
-):
+def update_inner_job_status(db: Session, job_id: int, status: JobStatusEnumSchema):
     """Updates job status in db"""
     db.query(Job).filter(Job.job_id == job_id).update({"status": status})
 
@@ -124,9 +129,7 @@ def get_job_attributes_for_post(
     return job_attributes
 
 
-def check_annotators(
-    annotators: Set[UUID], validation_type: ValidationSchema
-) -> None:
+def check_annotators(annotators: Set[UUID], validation_type: ValidationSchema) -> None:
     annotators_validation_mapping = {
         ValidationSchema.cross: (
             len(annotators) < CROSS_MIN_ANNOTATORS_NUMBER,
@@ -151,9 +154,7 @@ def check_annotators(
         raise FieldConstraintError(error_message)
 
 
-def check_validators(
-    validators: Set[UUID], validation_type: ValidationSchema
-) -> None:
+def check_validators(validators: Set[UUID], validation_type: ValidationSchema) -> None:
     validators_validation_mapping = {
         ValidationSchema.cross: (
             validators,
@@ -162,8 +163,7 @@ def check_validators(
         ),
         ValidationSchema.hierarchical: (
             not validators,
-            "If the validation type is hierarchical, validators should "
-            "be provided.",
+            "If the validation type is hierarchical, validators should " "be provided.",
         ),
         ValidationSchema.validation_only: (
             not validators,
@@ -278,8 +278,7 @@ def find_users(db: Session, users_ids: Set[UUID]):
     saved_users = db.query(User).filter(User.user_id.in_(users_ids)).all()
     saved_users_ids = {user.user_id for user in saved_users}
     new_users = [
-        User(user_id=user_id)
-        for user_id in users_ids.difference(saved_users_ids)
+        User(user_id=user_id) for user_id in users_ids.difference(saved_users_ids)
     ]
     return saved_users, new_users
 
