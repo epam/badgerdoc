@@ -6,15 +6,15 @@ from fastapi import HTTPException
 from fastapi.testclient import TestClient
 from sqlalchemy import or_
 
-from app.annotations import row_to_dict
-from app.models import AnnotatedDoc, File, Job, ManualAnnotationTask, User
-from app.schemas import (
+from annotation.annotations import row_to_dict
+from annotation.models import AnnotatedDoc, File, Job, ManualAnnotationTask, User
+from annotation.schemas import (
     AnnotationAndValidationActionsSchema,
     FileStatusEnumSchema,
     TaskStatusEnumSchema,
     ValidationSchema,
 )
-from app.tasks.validation import (
+from annotation.tasks.validation import (
     _find_annotators_for_failed_pages,
     check_user_job_action,
     check_user_job_belonging,

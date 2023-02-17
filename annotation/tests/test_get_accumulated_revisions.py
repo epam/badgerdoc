@@ -4,13 +4,13 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.exc import DBAPIError, SQLAlchemyError
 
-from app.annotations import LATEST
-from app.microservice_communication.search import (
+from annotation.annotations import LATEST
+from annotation.microservice_communication.search import (
     AUTHORIZATION,
     BEARER,
     HEADER_TENANT,
 )
-from app.models import AnnotatedDoc, User
+from annotation.models import AnnotatedDoc, User
 from tests.consts import ANNOTATION_PATH
 from tests.override_app_dependency import TEST_TOKEN, app
 from tests.test_post_annotation import POST_ANNOTATION_PG_DOC
@@ -341,7 +341,7 @@ def test_get_annotation_for_latest_revision_status_codes(
     expected_response,
 ):
     monkeypatch.setattr(
-        "app.annotations.main.connect_s3",
+        "annotation.annotations.main.connect_s3",
         Mock(return_value=minio_accumulate_revisions),
     )
     params = {"page_numbers": page_numbers}

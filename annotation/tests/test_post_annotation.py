@@ -12,7 +12,7 @@ from requests import RequestException
 from sqlalchemy.exc import DBAPIError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from app.annotations import (
+from annotation.annotations import (
     MANIFEST,
     check_task_pages,
     construct_annotated_doc,
@@ -20,21 +20,21 @@ from app.annotations import (
     get_pages_sha,
     row_to_dict,
 )
-from app.annotations.main import (
+from annotation.annotations.main import (
     check_docs_identity,
     upload_json_to_minio,
     upload_pages_to_minio,
 )
-from app.kafka_client import producers
-from app.microservice_communication.assets_communication import (
+from annotation.kafka_client import producers
+from annotation.microservice_communication.assets_communication import (
     ASSETS_FILES_URL,
 )
-from app.microservice_communication.search import (
+from annotation.microservice_communication.search import (
     AUTHORIZATION,
     BEARER,
     HEADER_TENANT,
 )
-from app.models import (
+from annotation.models import (
     AnnotatedDoc,
     Category,
     File,
@@ -42,7 +42,7 @@ from app.models import (
     ManualAnnotationTask,
     User,
 )
-from app.schemas import (
+from annotation.schemas import (
     CategoryTypeSchema,
     DocForSaveSchema,
     JobTypeEnumSchema,
@@ -1066,7 +1066,7 @@ def delete_date_fields(annotated_docs: List[dict]) -> None:
         # in annotation task
     ],
 )
-@patch("app.annotations.main.KafkaProducer", Mock)
+@patch("annotation.annotations.main.KafkaProducer", Mock)
 @responses.activate
 def test_post_annotation_by_user_status_codes(
     mock_minio_empty_bucket,
@@ -1181,7 +1181,7 @@ def test_post_annotation_by_user_status_codes(
         ),  # if something wrong with assets
     ],
 )
-@patch("app.annotations.main.KafkaProducer", Mock)
+@patch("annotation.annotations.main.KafkaProducer", Mock)
 @responses.activate
 def test_post_annotation_by_pipeline_status_codes(
     mock_minio_empty_bucket,
@@ -1240,7 +1240,7 @@ def test_post_annotation_by_pipeline_status_codes(
         ),  # if pages, failed and validated not provided
     ],
 )
-@patch("app.annotations.main.KafkaProducer", Mock)
+@patch("annotation.annotations.main.KafkaProducer", Mock)
 @responses.activate
 def test_post_annotation_by_user_status_codes_with_existing_doc(
     mock_minio_empty_bucket,
@@ -2190,7 +2190,7 @@ def test_construct_annotated_doc_different_jobs_and_files(
     ],
 )
 @pytest.mark.skip
-@patch("app.annotations.main.KafkaProducer", Mock)
+@patch("annotation.annotations.main.KafkaProducer", Mock)
 @responses.activate
 def test_post_annotation_by_user(
     mock_minio_empty_bucket,
@@ -2223,7 +2223,7 @@ def test_post_annotation_by_user(
 
 @pytest.mark.skip
 @pytest.mark.integration
-@patch("app.annotations.main.KafkaProducer", Mock)
+@patch("annotation.annotations.main.KafkaProducer", Mock)
 @responses.activate
 def test_post_annotation_by_pipeline(
     mock_minio_empty_bucket,
@@ -2260,7 +2260,7 @@ def test_post_annotation_by_pipeline(
 
 
 @pytest.mark.integration
-@patch("app.annotations.main.KafkaProducer", Mock)
+@patch("annotation.annotations.main.KafkaProducer", Mock)
 @responses.activate
 def test_post_annotation_by_pipeline_two_eq_revs_in_a_row(
     mock_minio_empty_bucket, prepare_db_for_post_annotation
@@ -2342,7 +2342,7 @@ def test_check_task_pages(pages, validated, failed, task_pages):
 
 @pytest.mark.skip
 @pytest.mark.integration
-@patch("app.annotations.main.KafkaProducer", Mock)
+@patch("annotation.annotations.main.KafkaProducer", Mock)
 @responses.activate
 def test_post_annotation_by_user_assign_similar_doc(
     mock_minio_empty_bucket,
@@ -2399,7 +2399,7 @@ def test_post_annotation_by_user_assign_similar_doc(
 
 @pytest.mark.skip
 @pytest.mark.integration
-@patch("app.annotations.main.KafkaProducer", Mock)
+@patch("annotation.annotations.main.KafkaProducer", Mock)
 @responses.activate
 @pytest.mark.parametrize(
     ("revision", "label"),
@@ -2474,7 +2474,7 @@ def test_post_annotation_by_user_similar_doc_no_category(
         (ANNOTATION_VALIDATION_TASKS[5], DOC_FOR_SAVE_USER_ONLY_VALIDATED),
     ],
 )
-@patch("app.annotations.main.KafkaProducer", Mock)
+@patch("annotation.annotations.main.KafkaProducer", Mock)
 @responses.activate
 def test_post_user_annotation_change_task_statuses(
     mock_minio_empty_bucket,
