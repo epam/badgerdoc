@@ -67,12 +67,14 @@ export const TaxonomiesTree: FC<TaxonomiesTreeProps> = ({
 
                 const changedLabel: AnnotationLabel = {
                     ...selectedAnnotation?.labels[labelToChangeIdx],
-                    label: info.node.title
+                    label: info.node.taxon.name
                 };
 
                 selectedAnnotation.labels[labelToChangeIdx] = changedLabel;
             }
-            onAnnotationEdited(currentPage, selectedAnnotation?.id!, { label: info.node.title });
+            onAnnotationEdited(currentPage, selectedAnnotation?.id!, {
+                label: info.node.taxon.name
+            });
             onDataAttributesChange(elementIndex, info.node.key);
         },
         [selectedKeys]
