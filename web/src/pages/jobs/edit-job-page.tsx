@@ -14,11 +14,6 @@ import { DOCUMENTS_PAGE } from '../../shared/constants';
 import wizardStyles from '../../shared/components/wizard/wizard/wizard.module.scss';
 import { useJobById } from 'api/hooks/jobs';
 
-type HistoryState = {
-    files?: number[];
-    job?: Job;
-};
-
 export const EditJobPage = () => {
     const history = useHistory();
     const { jobId } = useParams() as any;
@@ -38,9 +33,6 @@ export const EditJobPage = () => {
         setFiles(job.files);
         console.log(files);
     }, [job]);
-    // const historyState = history.location.state as HistoryState;
-    // const checkedFiles = historyState?.files;
-    // const initialJob = historyState?.job;
 
     const handleJobAdded = (id: number) => {
         history.push(`${id}`);
@@ -51,10 +43,7 @@ export const EditJobPage = () => {
             setStepIndex(1);
         }
     }, [jobId]);
-    // let startStepId = 0;
-    // if (checkedFiles?.length) {
-    //     startStepId = 1;
-    // }
+
     const handleNext = () => {
         setStepIndex(stepIndex + 1);
     };
@@ -62,7 +51,8 @@ export const EditJobPage = () => {
         setStepIndex(stepIndex - 1);
     };
 
-    const finishButtonCaption = 'Add Extraction';
+    const finishButtonCaption = jobId ? 'Save Edits' : 'Add Extraction';
+    const isDisabled = !!jobId;
 
     const steps: WizardPropsStep[] = [
         {
@@ -102,10 +92,12 @@ export const EditJobPage = () => {
                                     cx={styles.button}
                                     caption="Previous"
                                     onClick={handlePrev}
+                                    isDisabled={isDisabled}
                                 />
                                 <Button
                                     cx={styles.button}
                                     caption="Save as Draft"
+                                    isDisabled={isDisabled}
                                     fill="none"
                                     onClick={() => {
                                         lens.prop('is_draft').set(true);

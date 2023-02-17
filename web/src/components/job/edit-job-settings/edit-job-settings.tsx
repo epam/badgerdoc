@@ -32,7 +32,10 @@ const EditJobSettings: FC<EditJobSettingsProps> = ({
     let job;
     if (currentJobType === 'ExtractionJob') {
         job = <AutomaticJob pipelines={pipelines} lens={lens} />;
-    } else if (currentJobType == 'ExtractionWithAnnotationJob') {
+    } else if (
+        currentJobType == 'ExtractionWithAnnotationJob' ||
+        currentJobType == 'AnnotationJob'
+    ) {
         job = (
             <AutomaticManualJob
                 categories={categories}
@@ -73,7 +76,12 @@ const EditJobSettings: FC<EditJobSettingsProps> = ({
     return (
         <div className={`${styles.container} flex flex-col`}>
             <div className={styles.tabs}>
-                <MultiSwitch size="42" items={tabs} {...lens.prop('jobType').toProps()} />
+                <MultiSwitch
+                    size="42"
+                    items={tabs}
+                    {...lens.prop('jobType').toProps()}
+                    value={'ExtractionWithAnnotationJob'}
+                />
                 <InfoIcon
                     title="Select annotation type"
                     description={

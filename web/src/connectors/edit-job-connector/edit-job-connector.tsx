@@ -440,5 +440,5 @@ const useEditJobFormValues = ({
                 }) || [],
             selected_taxonomies: selectedTaxonomies
         };
-    }, [currentUser, initialJob, pipelines, categories, users, taxonomies]);
+    }, [currentUser, initialJob, pipelines, categories, users, taxonomies, selectedTaxonomies]);
 };
