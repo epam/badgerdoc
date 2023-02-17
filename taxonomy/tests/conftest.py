@@ -15,13 +15,13 @@ from sqlalchemy_utils import create_database, database_exists, drop_database
 
 from alembic import command
 from alembic.config import Config
-from app.database import SQLALCHEMY_DATABASE_URL, Base, get_db, get_test_db_url
-from app.main import app
-from app.models import Taxon, Taxonomy
-from app.schemas import CategoryLinkSchema, TaxonInputSchema, TaxonomyInputSchema
-from app.taxon import services as taxon_services
-from app.taxonomy import services as taxonomy_services
-from app.token_dependency import TOKEN
+from taxonomy.database import SQLALCHEMY_DATABASE_URL, Base, get_db, get_test_db_url
+from taxonomy.main import app
+from taxonomy.models import Taxon, Taxonomy
+from taxonomy.schemas import CategoryLinkSchema, TaxonInputSchema, TaxonomyInputSchema
+from taxonomy.taxon import services as taxon_services
+from taxonomy.taxonomy import services as taxonomy_services
+from taxonomy.token_dependency import TOKEN
 from tests.override_app_dependency import TEST_TENANTS, override
 
 

@@ -1,5 +1,5 @@
-import src.keycloak.utils as kc_utils
-import src.keycloak.schemas as kc_schemas
+import users.keycloak.utils as kc_utils
+import users.keycloak.schemas as kc_schemas
 import pytest
 
 user_1 = kc_schemas.User(username="user", id="1")

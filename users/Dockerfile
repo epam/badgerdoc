@@ -3,7 +3,7 @@ FROM ${base_image} as build
 
 WORKDIR /opt/users_filter
 
-COPY src /opt/users_filter/src
+COPY users /opt/users_filter/src
 COPY requirements.txt /opt/users_filter
 COPY .env /opt/users_filter
 
@@ -22,7 +22,7 @@ CMD pytest -vvv
 
 FROM sonarsource/sonar-scanner-cli:4.6 AS sonar
 
-COPY src /sonar/src
+COPY users /sonar/src
 COPY tests /sonar/tests
 COPY sonar-project.properties /sonar/sonar-project.properties
 

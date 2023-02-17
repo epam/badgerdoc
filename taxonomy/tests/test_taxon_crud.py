@@ -4,7 +4,7 @@ from typing import Any, List, Optional
 
 import pytest
 
-from app.models import Taxon
+from taxonomy.models import Taxon
 from tests.override_app_dependency import TEST_HEADER
 
 TAXON_PATH = "/taxons"

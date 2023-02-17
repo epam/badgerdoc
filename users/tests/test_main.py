@@ -6,8 +6,8 @@ from fastapi import HTTPException
 from fastapi.testclient import TestClient
 from tenant_dependency import TenantData
 
-import src.keycloak.schemas as kc_schemas
-from src.main import app, check_authorization, tenant
+import users.keycloak.schemas as kc_schemas
+from users.main import app, check_authorization, tenant
 
 client = TestClient(app)
 
@@ -140,7 +140,7 @@ def test_check_authorization_role_is_right(mock_tenant_data):
         check_authorization(token=mock_tenant_data, role="role")
 
 
-@patch("src.keycloak.query.get_token_v2", return_value=token_schema)
+@patch("users.keycloak.query.get_token_v2", return_value=token_schema)
 def test_login_body(token_schema):
     response = client.post(
         "/token",
@@ -153,7 +153,7 @@ def test_login_body(token_schema):
     assert response.json() == token_representation
 
 
-@patch("src.keycloak.query.get_token_v2", return_value=token_schema)
+@patch("users.keycloak.query.get_token_v2", return_value=token_schema)
 @pytest.mark.parametrize(
     ("request_body", "status_code"),
     [
@@ -208,7 +208,7 @@ def test_login_status_code(token_schema, request_body, status_code):
     assert response.status_code == status_code
 
 
-@patch("src.keycloak.query.get_user", return_value=user_1)
+@patch("users.keycloak.query.get_user", return_value=user_1)
 class TestGetUserGWT:
     def test_get_user_jwt_body(self, mock_user, user_representation):
         response = client.get("/users/current")
@@ -221,7 +221,7 @@ class TestGetUserGWT:
         assert response.status_code == 200
 
 
-@patch("src.keycloak.query.get_user", return_value=user_1)
+@patch("users.keycloak.query.get_user", return_value=user_1)
 class TestGetUser:
     def test_get_user_body(self, mock_user, user_representation):
         response = client.get("/users/user-id")
@@ -238,7 +238,7 @@ def test_get_user_info_from_token_introspection(
     mocked_token1, mocked_token1_data
 ):
     with patch(
-        "src.keycloak.query.introspect_token", return_value=mocked_token1_data
+        "users.keycloak.query.introspect_token", return_value=mocked_token1_data
     ):
         response = client.get(
             "/users/current_v2",
@@ -252,7 +252,7 @@ group_2 = kc_schemas.Group(name="group_2")
 mock_all_groups = [group_1, group_2]
 
 
-@patch("src.keycloak.query.get_groups", return_value=mock_all_groups)
+@patch("users.keycloak.query.get_groups", return_value=mock_all_groups)
 class TestGetTenants:
     def test_get_tenants_body(self, mock_groups):
         response = client.get("/tenants")
@@ -263,8 +263,8 @@ class TestGetTenants:
         assert response.status_code == 200
 
 
-@patch("src.keycloak.query.create_group", return_value=None)
-@patch("src.s3.create_bucket", return_value=None)
+@patch("users.keycloak.query.create_group", return_value=None)
+@patch("users.s3.create_bucket", return_value=None)
 class TestCreateTenant:
     def test_create_tenant_body(self, mock_group, mock_bucket):
         response = client.post("/tenants?tenant=tenant")
@@ -291,10 +291,10 @@ class TestCreateTenant:
         assert response.status_code == response_status_code
 
 
-@patch("src.keycloak.query.get_groups", return_value=mock_all_groups)
-@patch("src.keycloak.query.get_user", return_value=user_1)
-@patch("src.keycloak.schemas.User.add_tenant", return_value=None)
-@patch("src.keycloak.query.update_user", return_value=None)
+@patch("users.keycloak.query.get_groups", return_value=mock_all_groups)
+@patch("users.keycloak.query.get_user", return_value=user_1)
+@patch("users.keycloak.schemas.User.add_tenant", return_value=None)
+@patch("users.keycloak.query.update_user", return_value=None)
 class TestAddUserToTenant:
     @pytest.mark.parametrize(
         ("tenant", "expected_result"),
@@ -335,8 +335,8 @@ class TestAddUserToTenant:
         assert response.status_code == expected_result
 
 
-@patch("src.keycloak.query.get_user", return_value=user_1)
-@patch("src.keycloak.query.update_user", return_value=None)
+@patch("users.keycloak.query.get_user", return_value=user_1)
+@patch("users.keycloak.query.update_user", return_value=None)
 @pytest.mark.parametrize(
     ("tenant", "expected_result"),
     [
@@ -350,8 +350,8 @@ def test_remove_user_from_tenant_body(
     assert response.json() == expected_result
 
 
-@patch("src.keycloak.query.get_user", return_value=user_1)
-@patch("src.keycloak.query.update_user", return_value=None)
+@patch("users.keycloak.query.get_user", return_value=user_1)
+@patch("users.keycloak.query.update_user", return_value=None)
 @pytest.mark.parametrize(
     ("tenant", "expected_result"),
     [
@@ -365,9 +365,9 @@ def test_remove_user_from_tenant_status_code(
     assert response.status_code == 200
 
 
-@patch("src.keycloak.query.get_users_v2", return_value=mock_all_users)
+@patch("users.keycloak.query.get_users_v2", return_value=mock_all_users)
 @patch(
-    "src.keycloak.query.get_users_by_role", return_value=mock_users_with_role
+    "users.keycloak.query.get_users_by_role", return_value=mock_users_with_role
 )
 class TestUsersSearch:
     @pytest.mark.parametrize("request_body", [{}, {"filters": []}])
@@ -769,9 +769,9 @@ user = kc_schemas.User(email="mail@mail.ru", id="1", username="user")
 mock_users = [user]
 
 
-@patch("src.keycloak.query.create_user", return_value=None)
-@patch("src.keycloak.query.get_users_v2", return_value=mock_all_users)
-@patch("src.keycloak.query.execute_action_email", return_value=None)
+@patch("users.keycloak.query.create_user", return_value=None)
+@patch("users.keycloak.query.get_users_v2", return_value=mock_all_users)
+@patch("users.keycloak.query.execute_action_email", return_value=None)
 class TestUserRegistration:
     def test_user_registration_body(self, user, mock_all_users, action_email):
         response = client.post("/users/registration?email=mail@mail.ru")
@@ -802,10 +802,10 @@ def test_get_idp_names_and_SSOauth_links(
     mocked_admin_auth_data, mocked_identity_providers_data
 ):
     with patch(
-        "src.keycloak.query.get_master_realm_auth_data",
+        "users.keycloak.query.get_master_realm_auth_data",
         return_value=mocked_admin_auth_data,
     ), patch(
-        "src.keycloak.query.get_identity_providers_data",
+        "users.keycloak.query.get_identity_providers_data",
         return_value=mocked_identity_providers_data,
     ):
         response = client.get("/identity_providers_data")
