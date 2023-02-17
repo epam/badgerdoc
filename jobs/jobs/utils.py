@@ -1,4 +1,3 @@
-import asyncio
 from typing import Any, Dict, Generator, List, Optional, Tuple, Union
 
 import aiohttp.client_exceptions
@@ -55,7 +54,7 @@ async def get_files_data_from_datasets(
                 )
                 continue
         except aiohttp.client_exceptions.ClientError as err:
-            logger.error(f"Failed request to the Dataset Manager: {err}")
+            logger.exception(f"Failed request to the Dataset Manager: {err}")
             raise fastapi.HTTPException(
                 status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail=f"Failed request to the Dataset Manager: {err}",
@@ -102,7 +101,7 @@ async def get_files_data_from_separate_files(
                 raise_for_status=True,
             )
         except aiohttp.client_exceptions.ClientError as err:
-            logger.error(f"Failed request to the Dataset Manager: {err}")
+            logger.exception(f"Failed request to the Dataset Manager: {err}")
             raise fastapi.HTTPException(
                 status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail=f"Failed request to the Dataset Manager: {err}",
@@ -237,7 +236,7 @@ async def get_pipeline_instance_by_its_name(
             raise_for_status=True,
         )
     except aiohttp.client_exceptions.ClientError as err:
-        logger.error(f"Failed request to the Pipeline Manager: {err}")
+        logger.exception(f"Failed request to the Pipeline Manager: {err}")
         raise fastapi.HTTPException(
             status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=f"Failed request to the Pipeline Manager: {err}",
@@ -279,7 +278,7 @@ async def execute_pipeline(
             raise_for_status=True,
         )
     except aiohttp.client_exceptions.ClientError as err:
-        logger.error(f"Failed request to the Pipeline Manager: {err}")
+        logger.exception(f"Failed request to the Pipeline Manager: {err}")
         raise fastapi.HTTPException(
             status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=f"Failed request to the Pipeline Manager: {err}",
@@ -338,7 +337,7 @@ async def execute_in_annotation_microservice(
             raise_for_status=True,
         )
     except aiohttp.client_exceptions.ClientError as err:
-        logger.error(f"Failed request to the Annotation Manager: {err}")
+        logger.exception(f"Failed request to the Annotation Manager: {err}")
         raise fastapi.HTTPException(
             status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=f"Failed request to the Annotation Manager: {err}",
@@ -394,7 +393,7 @@ async def start_job_in_annotation(
             raise_for_status=True,
         )
     except aiohttp.client_exceptions.ClientError as err:
-        logger.error(
+        logger.exception(
             "Failed request to the Annotation Manager: {}".format(err)
         )
         raise fastapi.HTTPException(
@@ -460,7 +459,7 @@ async def get_job_progress(
             method="GET", url=url, headers=headers, timeout=timeout
         )
     except aiohttp.client_exceptions.ClientError as err:
-        logger.error(f"Failed request url = {url}, error = {err}")
+        logger.exception(f"Failed request url = {url}, error = {err}")
         raise fastapi.HTTPException(
             status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=f"Failed request to the Annotation Manager: {err}",
