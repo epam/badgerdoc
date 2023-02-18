@@ -2,7 +2,7 @@ from fastapi import APIRouter, status
 
 from src.config import minio_client
 from src.labelstudio_to_badgerdoc.models.text_model import TextRequest
-from src.labelstudio_to_badgerdoc.text_to_badgerdoc_use_case import TextToBDConvertUseCase
+from src.labelstudio_to_badgerdoc.text_to_badgerdoc_converter import TextToBadgerdocConverter
 
 router = APIRouter(prefix="/text", tags=["text"])
 
@@ -12,7 +12,7 @@ router = APIRouter(prefix="/text", tags=["text"])
     status_code=status.HTTP_201_CREATED,
 )
 def import_text(request: TextRequest) -> None:
-    text_to_bd_use_case = TextToBDConvertUseCase(
+    text_to_bd_use_case = TextToBadgerdocConverter(
         s3_client=minio_client,
     )
     text_to_bd_use_case.execute(

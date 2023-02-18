@@ -10,7 +10,7 @@ from .badgerdoc_format.plain_text_converter import (
 from .models.common import S3Path
 
 
-class TextToBDConvertUseCase:
+class TextToBadgerdocConverter:
     def __init__(
         self,
         s3_client,

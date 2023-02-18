@@ -5,8 +5,8 @@ import pytest
 from src.labelstudio_to_badgerdoc.badgerdoc_format.badgerdoc_format import (
     BadgerdocFormat,
 )
-from src.labelstudio_to_badgerdoc.text_to_badgerdoc_use_case import (
-    TextToBDConvertUseCase,
+from src.labelstudio_to_badgerdoc.text_to_badgerdoc_converter import (
+    TextToBadgerdocConverter,
 )
 
 
@@ -24,10 +24,10 @@ def test_correctness_of_import_text_schema(test_app, monkeypatch):
         pass
 
     monkeypatch.setattr(
-        TextToBDConvertUseCase, "download_text_from_s3", mock_download_text
+        TextToBadgerdocConverter, "download_text_from_s3", mock_download_text
     )
     monkeypatch.setattr(
-        TextToBDConvertUseCase, "upload_badgerdoc_to_s3", mock_upload_text
+        TextToBadgerdocConverter, "upload_badgerdoc_to_s3", mock_upload_text
     )
 
     response = test_app.post(
