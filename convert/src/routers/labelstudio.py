@@ -10,8 +10,7 @@ from src.labelstudio_to_badgerdoc.badgerdoc_to_labelstudio_converter import (
 from src.labelstudio_to_badgerdoc.labelstudio_to_badgerdoc_converter import (
     LabelstudioToBadgerdocConverter,
 )
-from src.labelstudio_to_badgerdoc.models import LabelStudioRequest
-from src.labelstudio_to_badgerdoc.models.labelstudio_models import (
+from src.labelstudio_to_badgerdoc.models.labelstudio import (LabelStudioRequest, 
     BadgerdocToLabelStudioRequest,
 )
 

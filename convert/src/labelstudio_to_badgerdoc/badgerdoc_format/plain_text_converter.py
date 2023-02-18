@@ -9,7 +9,7 @@ from ...config import (
     DEFAULT_PDF_LINE_SPACING,
     DEFAULT_PDF_PAGE_WIDTH,
 )
-from ..models import BadgerdocToken, Offset, Page, PageSize
+from .bd_tokens_model import BadgerdocToken, Offset, Page, PageSize
 
 
 def generate_chunks(obj_to_split: List[str], size: int) -> List[List[str]]:

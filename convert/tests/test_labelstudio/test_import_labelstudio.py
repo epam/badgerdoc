@@ -20,7 +20,7 @@ from src.labelstudio_to_badgerdoc.badgerdoc_format.plain_text_converter import (
 from src.labelstudio_to_badgerdoc.labelstudio_to_badgerdoc_converter import (
     LabelstudioToBadgerdocConverter,
 )
-from src.labelstudio_to_badgerdoc.models.labelstudio_models import (
+from src.labelstudio_to_badgerdoc.labelstudio_format.labelstudio_models import (
     LabelStudioModel,
 )
 
@@ -59,12 +59,12 @@ def test_correctness_of_import_text_schema(test_app, monkeypatch):
 
     monkeypatch.setattr(
         LabelstudioToBadgerdocConverter,
-        "download_labelstudio_from_s3",
+        "download",
         mock_download_labelstudio,
     )
     monkeypatch.setattr(
         LabelstudioToBadgerdocConverter,
-        "upload_badgerdoc_annotations_and_tokens_to_s3",
+        "upload",
         mock_upload_text,
     )
     monkeypatch.setattr(LabelstudioToBadgerdocConverter, "execute", mock_execute)

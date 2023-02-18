@@ -6,7 +6,7 @@ from urllib.parse import urljoin
 import requests
 from fastapi import HTTPException, status
 
-from src.coco_import.convert import ConvertToBadgerdoc
+from .convert import ConvertToBadgerdoc
 from src.config import settings
 from src.exceptions import UploadLimitExceedError
 from src.logger import get_logger

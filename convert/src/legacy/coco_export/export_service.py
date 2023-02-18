@@ -5,7 +5,7 @@ from zipfile import ZipFile
 
 from fastapi import BackgroundTasks
 
-from src.coco_export.convert import ConvertToCoco, ExportConvertBase
+from .convert import ConvertToCoco, ExportConvertBase
 from src.config import minio_client
 from src.logger import get_logger
 from src.utils.s3_utils import convert_bucket_name_if_s3prefix

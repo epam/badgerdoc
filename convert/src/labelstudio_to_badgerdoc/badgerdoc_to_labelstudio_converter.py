@@ -11,10 +11,11 @@ from src.labelstudio_to_badgerdoc.badgerdoc_format.annotation_converter_practic 
 from src.labelstudio_to_badgerdoc.labelstudio_format import LabelStudioFormat
 from src.logger import get_logger
 
-from .models import S3Path, bd_annotation_model_practic
-from .models.bd_annotation_model import BadgerdocAnnotation
-from .models.bd_manifest_model_practic import Manifest
-from .models.bd_tokens_model import Page
+from .models.common  import S3Path 
+from .badgerdoc_format import bd_annotation_model_practic
+from .badgerdoc_format.bd_annotation_model import BadgerdocAnnotation
+from .badgerdoc_format.bd_manifest_model_practic import Manifest
+from .badgerdoc_format.bd_tokens_model import Page
 
 LOGGER = get_logger(__file__)
 LOGGER.setLevel("DEBUG")
@@ -55,7 +56,7 @@ class BadgerdocToLabelstudioConverter:
             badgerdoc_page,
             badgerdoc_annotations,
             badgerdoc_manifest,
-        ) = self.download_badgerdoc_from_s3(
+        ) = self.download(
             s3_input_tokens, s3_input_annotations, s3_input_manifest
         )
         self.labelstudio_format.from_badgerdoc(
@@ -64,9 +65,9 @@ class BadgerdocToLabelstudioConverter:
             badgerdoc_manifest,
             self.request_headers,
         )
-        self.upload_labelstudio_to_s3(s3_output_annotation)
+        self.upload(s3_output_annotation)
 
-    def download_badgerdoc_from_s3(
+    def download(
         self,
         s3_input_tokens: S3Path,
         s3_input_annotations: S3Path,
@@ -104,7 +105,7 @@ class BadgerdocToLabelstudioConverter:
         )
         return local_file_path
 
-    def upload_labelstudio_to_s3(
+    def upload(
         self,
         s3_output_annotation: S3Path,
     ):

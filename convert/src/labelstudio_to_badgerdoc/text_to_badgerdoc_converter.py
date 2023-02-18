@@ -30,14 +30,14 @@ class TextToBadgerdocConverter:
         s3_output_pdf: S3Path,
         s3_output_tokens: S3Path,
     ) -> None:
-        text = self.download_text_from_s3(s3_input_text)
+        text = self.download(s3_input_text)
         self.badgerdoc_format.convert_from_text(text)
-        self.upload_badgerdoc_to_s3(
+        self.upload(
             s3_output_tokens,
             s3_output_pdf,
         )
 
-    def download_text_from_s3(
+    def download(
         self,
         s3_input_text: S3Path,
     ) -> str:
@@ -52,7 +52,7 @@ class TextToBadgerdocConverter:
             )
             return input_file.read_text()
 
-    def upload_badgerdoc_to_s3(
+    def upload(
         self,
         s3_output_tokens,
         s3_output_pdf,

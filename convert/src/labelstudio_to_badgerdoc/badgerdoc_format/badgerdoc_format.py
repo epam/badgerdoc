@@ -8,9 +8,9 @@ from ...config import (
     DEFAULT_PDF_LINE_SPACING,
     DEFAULT_PDF_PAGE_WIDTH,
 )
-from ..models.bd_annotation_model_practic import BadgerdocAnnotation
-from ..models.bd_tokens_model import Page
-from ..models.labelstudio_models import LabelStudioModel
+from .bd_annotation_model_practic import BadgerdocAnnotation
+from .bd_tokens_model import Page
+from src.labelstudio_to_badgerdoc.labelstudio_format.labelstudio_models import LabelStudioModel
 from .annotation_converter import AnnotationConverter
 from .pdf_renderer import PDFRenderer
 from .plain_text_converter import TextToBadgerdocTokensConverter

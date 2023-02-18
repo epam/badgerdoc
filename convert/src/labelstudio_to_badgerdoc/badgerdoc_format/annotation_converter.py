@@ -1,18 +1,17 @@
 from typing import Any, List, Optional, Tuple
 
-from ..models import bd_annotation_model_practic
-from ..models.bd_annotation_model import (
+from . import bd_annotation_model_practic
+from .bd_annotation_model import (
     AnnotationLink,
     BadgerdocAnnotation,
     Obj,
     Page,
     Size,
 )
-from ..models.bd_tokens_model import Page as BadgerdocTokensPage
-from ..models.labelstudio_models import (
+from .bd_tokens_model import Page as BadgerdocTokensPage
+from src.labelstudio_to_badgerdoc.labelstudio_format.labelstudio_models import (
     Annotation,
     LabelStudioModel,
-    ModelItem,
     ResultItem,
 )
 from .annotation_converter_practic import AnnotationConverterPractic

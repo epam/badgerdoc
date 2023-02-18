@@ -12,12 +12,14 @@ from src.labelstudio_to_badgerdoc.badgerdoc_to_labelstudio_converter import (
 from src.labelstudio_to_badgerdoc.labelstudio_format.labelstudio_format import (
     LabelStudioFormat,
 )
-from src.labelstudio_to_badgerdoc.models import (
-    bd_annotation_model_practic,
+from src.labelstudio_to_badgerdoc.badgerdoc_format import (
     bd_manifest_model_practic,
 )
-from src.labelstudio_to_badgerdoc.models.bd_tokens_model import Page
-from src.labelstudio_to_badgerdoc.models.labelstudio_models import (
+from src.labelstudio_to_badgerdoc.badgerdoc_format import (
+    bd_annotation_model_practic,
+)
+from src.labelstudio_to_badgerdoc.badgerdoc_format.bd_tokens_model import Page
+from src.labelstudio_to_badgerdoc.labelstudio_format.labelstudio_models import (
     LabelStudioModel,
 )
 

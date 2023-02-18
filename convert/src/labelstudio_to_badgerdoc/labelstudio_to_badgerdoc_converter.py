@@ -24,11 +24,14 @@ from src.labelstudio_to_badgerdoc.badgerdoc_format.pdf_renderer import (
 from src.labelstudio_to_badgerdoc.badgerdoc_format.plain_text_converter import (
     TextToBadgerdocTokensConverter,
 )
-from src.labelstudio_to_badgerdoc.models import BadgerdocToken, DocumentLink
-from src.labelstudio_to_badgerdoc.models.labelstudio_models import (
+from src.labelstudio_to_badgerdoc.badgerdoc_format.bd_tokens_model import BadgerdocToken
+from src.labelstudio_to_badgerdoc.badgerdoc_format.bd_annotation_model_practic import DocumentLink
+from src.labelstudio_to_badgerdoc.labelstudio_format.labelstudio_models import (
     LabelStudioModel,
-    S3Path,
     ValidationType,
+)
+from src.labelstudio_to_badgerdoc.models.common import (
+    S3Path,
 )
 from src.logger import get_logger
 
@@ -105,7 +108,7 @@ class LabelstudioToBadgerdocConverter:
         ]
 
     def execute(self) -> None:
-        labelstudio_format = self.download_labelstudio_from_s3(
+        labelstudio_format = self.download(
             self.s3_input_annotation
         )
         LOGGER.debug("label studio format: %s", labelstudio_format)
@@ -140,12 +143,12 @@ class LabelstudioToBadgerdocConverter:
                 document_links=document_links,
             )
         )
-        self.upload_badgerdoc_annotations_and_tokens_to_s3(
+        self.upload(
             annotation_job_id_created, file_id_in_assets
         )
         LOGGER.debug("Tokens and annotations uploaded")
 
-    def download_labelstudio_from_s3(
+    def download(
         self,
         s3_input_annotation: S3Path,
     ) -> LabelStudioModel:
@@ -221,7 +224,7 @@ class LabelstudioToBadgerdocConverter:
             )
             return file_id_in_assets
 
-    def upload_badgerdoc_annotations_and_tokens_to_s3(
+    def upload(
         self, importjob_id_created: int, file_id_in_assets: int
     ) -> None:
         with tempfile.TemporaryDirectory() as tmp_dirname:

@@ -24,10 +24,10 @@ def test_correctness_of_import_text_schema(test_app, monkeypatch):
         pass
 
     monkeypatch.setattr(
-        TextToBadgerdocConverter, "download_text_from_s3", mock_download_text
+        TextToBadgerdocConverter, "download", mock_download_text
     )
     monkeypatch.setattr(
-        TextToBadgerdocConverter, "upload_badgerdoc_to_s3", mock_upload_text
+        TextToBadgerdocConverter, "upload", mock_upload_text
     )
 
     response = test_app.post(

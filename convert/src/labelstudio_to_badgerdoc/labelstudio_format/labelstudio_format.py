@@ -7,10 +7,10 @@ from fastapi import HTTPException, status
 from src.config import settings
 from src.logger import get_logger
 
-from ..models.bd_annotation_model import AnnotationLink, BadgerdocAnnotation
-from ..models.bd_manifest_model_practic import Manifest
-from ..models.bd_tokens_model import BadgerdocToken, Page
-from ..models.labelstudio_models import (
+from ..badgerdoc_format.bd_annotation_model import AnnotationLink, BadgerdocAnnotation
+from ..badgerdoc_format.bd_manifest_model_practic import Manifest
+from ..badgerdoc_format.bd_tokens_model import BadgerdocToken, Page
+from .labelstudio_models import (
     Annotation,
     Data,
     DocumentRelation,

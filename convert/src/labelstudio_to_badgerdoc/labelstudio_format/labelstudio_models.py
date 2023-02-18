@@ -6,31 +6,11 @@ from typing import Any, List, Optional
 
 from pydantic import BaseModel
 
-from .common import S3Path
-
-
 class ValidationType(str, Enum):
     cross = "cross"
     hierarchical = "hierarchical"
     validation_only = "validation only"
     extensive_coverage = "extensive_coverage"
-
-
-class LabelStudioRequest(BaseModel):
-    input_annotation: S3Path
-    output_bucket: str
-    validation_type: ValidationType
-    deadline: Optional[datetime] = None
-    extensive_coverage: Optional[int] = None
-    annotators: List[str] = []
-    validators: List[str] = []
-
-
-class BadgerdocToLabelStudioRequest(BaseModel):
-    input_tokens: S3Path
-    input_annotation: S3Path
-    input_manifest: S3Path
-    output_annotation: S3Path
 
 
 class Value(BaseModel):
