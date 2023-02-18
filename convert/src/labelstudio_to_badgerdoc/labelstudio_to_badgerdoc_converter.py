@@ -38,11 +38,11 @@ LOGGER.setLevel("DEBUG")
 
 class LabelstudioToBadgerdocConverter:
 
-    converted_annotations_filename = "annotations.json"
-    converted_tokens_filename = "1.json"
-    output_pdf_filename = "badgerdoc_render.pdf"
-    badgerdoc_tokens_filename = "badgerdoc_tokens.json"
-    badgerdoc_annotations_filename = "badgerdoc_annotations.json"
+    CONVERTED_ANNOTATIONS_FILENAME = "annotations.json"
+    CONVERTED_TOKENS_FILENAME = "1.json"
+    OUTPUT_PDF_FILENAME = "badgerdoc_render.pdf"
+    BADGERDOC_TOKENS_FILename = "badgerdoc_tokens.json"
+    BADGERDOC_ANNOTATIONS_FILENAME = "badgerdoc_annotations.json"
 
     def __init__(
         self,
@@ -175,7 +175,7 @@ class LabelstudioToBadgerdocConverter:
 
     def get_output_tokens_path(self, file_id_in_assets: int) -> str:
         return (
-            f"files/{file_id_in_assets}/ocr/{self.converted_tokens_filename}"
+            f"files/{file_id_in_assets}/ocr/{self.CONVERTED_TOKENS_FILENAME}"
         )
 
     def get_output_pdf_path(self, file_id_in_assets: int) -> str:
@@ -184,7 +184,7 @@ class LabelstudioToBadgerdocConverter:
     def get_output_annotations_path(
         self, importjob_id_created: int, file_id_in_assets: int
     ) -> str:
-        return f"annotation/{importjob_id_created}/{file_id_in_assets}/{self.converted_annotations_filename}"
+        return f"annotation/{importjob_id_created}/{file_id_in_assets}/{self.CONVERTED_ANNOTATIONS_FILENAME}"
 
     def make_upload_file_request_to_assets(self, pdf_path: Path) -> int:
         upload_file_to_assets_url = f"{settings.assets_service_url}"
@@ -213,7 +213,7 @@ class LabelstudioToBadgerdocConverter:
 
     def upload_output_pdf_to_s3(self) -> int:
         with tempfile.TemporaryDirectory() as tmp_dirname:
-            pdf_path = tmp_dirname / Path(self.output_pdf_filename)
+            pdf_path = tmp_dirname / Path(self.OUTPUT_PDF_FILENAME)
             self.badgerdoc_format.export_pdf(pdf_path)
 
             file_id_in_assets = self.make_upload_file_request_to_assets(
@@ -232,7 +232,7 @@ class LabelstudioToBadgerdocConverter:
             )
 
             badgerdoc_tokens_path = tmp_dirname / Path(
-                self.badgerdoc_tokens_filename
+                self.BADGERDOC_TOKENS_FILename
             )
             self.badgerdoc_format.export_tokens(badgerdoc_tokens_path)
             self.s3_client.upload_file(
@@ -242,7 +242,7 @@ class LabelstudioToBadgerdocConverter:
             )
 
             badgerdoc_annotations_path = tmp_dirname / Path(
-                self.badgerdoc_annotations_filename
+                self.BADGERDOC_ANNOTATIONS_FILENAME
             )
             self.badgerdoc_format.export_annotations(
                 badgerdoc_annotations_path

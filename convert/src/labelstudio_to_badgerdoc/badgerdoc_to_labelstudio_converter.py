@@ -27,6 +27,7 @@ class BadgerdocData(NamedTuple):
 
 
 class BadgerdocToLabelstudioConverter:
+    LABELSTUDIO_FILENAME = "labelstudio_format.json" 
     labelstudio_format = LabelStudioFormat()
 
     def __init__(
@@ -111,7 +112,7 @@ class BadgerdocToLabelstudioConverter:
             tmp_dir = Path(tmp_dirname)
 
             badgerdoc_annotations_path = tmp_dir / Path(
-                "labelstudio_format.json"
+                self.LABELSTUDIO_FILENAME 
             )
             self.labelstudio_format.export_json(badgerdoc_annotations_path)
             self.s3_client.upload_file(
