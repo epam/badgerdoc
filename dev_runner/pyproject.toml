@@ -104,7 +104,6 @@ aiosignal = "*"
 alembic = "*"
 tenant-dependency = {path = "../lib/tenants"}
 filter-lib = {path = "../lib/filter_lib"}
-python-magic-bin = "^0.4.14"
 
 
 [build-system]
