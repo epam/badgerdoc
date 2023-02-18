@@ -3,27 +3,27 @@ from pathlib import Path
 import pytest
 import responses
 
-from src.label_studio_to_badgerdoc.badgerdoc_format import (
+from src.labelstudio_to_badgerdoc.badgerdoc_format import (
     annotation_converter_practic,
 )
-from src.label_studio_to_badgerdoc.badgerdoc_to_labelstudio_converter import (
+from src.labelstudio_to_badgerdoc.badgerdoc_to_labelstudio_converter import (
     BadgerdocToLabelstudioConverter,
 )
-from src.label_studio_to_badgerdoc.labelstudio_format.label_studio_format import (
+from src.labelstudio_to_badgerdoc.labelstudio_format.labelstudio_format import (
     LabelStudioFormat,
 )
-from src.label_studio_to_badgerdoc.models import (
+from src.labelstudio_to_badgerdoc.models import (
     bd_annotation_model_practic,
     bd_manifest_model_practic,
 )
-from src.label_studio_to_badgerdoc.models.bd_tokens_model import Page
-from src.label_studio_to_badgerdoc.models.label_studio_models import (
+from src.labelstudio_to_badgerdoc.models.bd_tokens_model import Page
+from src.labelstudio_to_badgerdoc.models.labelstudio_models import (
     LabelStudioModel,
 )
 
 TEST_FILES_DIR = Path(__file__).parent / "test_data"
 
-INPUT_LABELSTUDIO_FILE = TEST_FILES_DIR / "label_studio_format.json"
+INPUT_LABELSTUDIO_FILE = TEST_FILES_DIR / "labelstudio_format.json"
 
 
 def test_correctness_of_export_text_schema(test_app, monkeypatch):
@@ -49,7 +49,7 @@ def test_correctness_of_export_text_schema(test_app, monkeypatch):
     monkeypatch.setattr(BadgerdocToLabelstudioConverter, "execute", mock_execute)
 
     response = test_app.post(
-        "/label_studio/export",
+        "/labelstudio/export",
         json=test_request_payload,
     )
 
@@ -88,7 +88,7 @@ def test_annotation_converter_case_without_taxonomies_and_document_labels():
     labelstudio_model_test = labelstudio_format_test.labelstudio_data
 
     labelstudio_model_etalon = LabelStudioModel.parse_file(
-        TEST_FILES_DIR / "label_studio_format.json"
+        TEST_FILES_DIR / "labelstudio_format.json"
     )
     assert (
         labelstudio_model_etalon.__root__[0].annotations[0].result[0].value

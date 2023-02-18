@@ -12,20 +12,20 @@ from fastapi.encoders import jsonable_encoder
 from tenant_dependency import TenantData
 
 from src.config import DEFAULT_PAGE_BORDER_OFFSET, settings
-from src.label_studio_to_badgerdoc.badgerdoc_format.annotation_converter import (
+from src.labelstudio_to_badgerdoc.badgerdoc_format.annotation_converter import (
     AnnotationConverter,
 )
-from src.label_studio_to_badgerdoc.badgerdoc_format.badgerdoc_format import (
+from src.labelstudio_to_badgerdoc.badgerdoc_format.badgerdoc_format import (
     BadgerdocFormat,
 )
-from src.label_studio_to_badgerdoc.badgerdoc_format.pdf_renderer import (
+from src.labelstudio_to_badgerdoc.badgerdoc_format.pdf_renderer import (
     PDFRenderer,
 )
-from src.label_studio_to_badgerdoc.badgerdoc_format.plain_text_converter import (
+from src.labelstudio_to_badgerdoc.badgerdoc_format.plain_text_converter import (
     TextToBadgerdocTokensConverter,
 )
-from src.label_studio_to_badgerdoc.models import BadgerdocToken, DocumentLink
-from src.label_studio_to_badgerdoc.models.label_studio_models import (
+from src.labelstudio_to_badgerdoc.models import BadgerdocToken, DocumentLink
+from src.labelstudio_to_badgerdoc.models.labelstudio_models import (
     LabelStudioModel,
     S3Path,
     ValidationType,
@@ -81,49 +81,49 @@ class LabelStudioToBDConvertUseCase:
         self.validators = validators
 
     def parse_document_labels_from_labelstudio_format(
-        self, label_studio_format: LabelStudioModel
+        self, labelstudio_format: LabelStudioModel
     ) -> Set[str]:
-        document_labels = label_studio_format.__root__[0].meta.labels
+        document_labels = labelstudio_format.__root__[0].meta.labels
         return {label["name"] for label in document_labels}
 
     def parse_categories_to_taxonomy_mapping_from_labelstudio_format(
-        self, label_studio_format: LabelStudioModel
+        self, labelstudio_format: LabelStudioModel
     ) -> Dict[str, Any]:
-        categories_to_taxonomy_mapping = label_studio_format.__root__[
+        categories_to_taxonomy_mapping = labelstudio_format.__root__[
             0
         ].meta.categories_to_taxonomy_mapping
         return categories_to_taxonomy_mapping
 
     def parse_document_links_from_labelstudio_format(
-        self, label_studio_format: LabelStudioModel
+        self, labelstudio_format: LabelStudioModel
     ) -> List[DocumentLink]:
         return [
             DocumentLink(
                 to=relation.to, category=relation.category, type=relation.type
             )
-            for relation in label_studio_format.__root__[0].meta.relations
+            for relation in labelstudio_format.__root__[0].meta.relations
         ]
 
     def execute(self) -> None:
-        label_studio_format = self.download_label_studio_from_s3(
+        labelstudio_format = self.download_labelstudio_from_s3(
             self.s3_input_annotation
         )
-        LOGGER.debug("label studio format: %s", label_studio_format)
+        LOGGER.debug("label studio format: %s", labelstudio_format)
         document_labels = self.parse_document_labels_from_labelstudio_format(
-            label_studio_format
+            labelstudio_format
         )
         categories_to_taxonomy_mapping = (
             self.parse_categories_to_taxonomy_mapping_from_labelstudio_format(
-                label_studio_format
+                labelstudio_format
             )
         )
         document_links = self.parse_document_links_from_labelstudio_format(
-            label_studio_format
+            labelstudio_format
         )
 
         LOGGER.debug("document_labels parsed: %s", document_labels)
 
-        self.badgerdoc_format.convert_from_labelstudio(label_studio_format)
+        self.badgerdoc_format.convert_from_labelstudio(labelstudio_format)
         LOGGER.debug("Tokens and annotations are converted")
         file_id_in_assets = self.upload_output_pdf_to_s3()
         annotation_job_id_created = (
@@ -145,7 +145,7 @@ class LabelStudioToBDConvertUseCase:
         )
         LOGGER.debug("Tokens and annotations uploaded")
 
-    def download_label_studio_from_s3(
+    def download_labelstudio_from_s3(
         self,
         s3_input_annotation: S3Path,
     ) -> LabelStudioModel:
@@ -299,7 +299,7 @@ class LabelStudioToBDConvertUseCase:
 
         post_annotation_job_url = f"{settings.job_service_url}create_job/"
         post_annotation_job_body = {
-            "name": f"import_label_studio_job_{uuid4()}",
+            "name": f"import_labelstudio_job_{uuid4()}",
             "type": "AnnotationJob",
             "files": [file_id_in_assets],
             "datasets": [],

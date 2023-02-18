@@ -9,7 +9,7 @@ from ..models.bd_annotation_model import (
     Size,
 )
 from ..models.bd_tokens_model import Page as BadgerdocTokensPage
-from ..models.label_studio_models import (
+from ..models.labelstudio_models import (
     Annotation,
     LabelStudioModel,
     ModelItem,
@@ -122,7 +122,7 @@ class AnnotationConverter:
         if not self._is_relation(labelstudio_item):
             return
         if not labelstudio_item.from_id or not labelstudio_item.to_id:
-            raise KeyError("Bad relation id in a label_studio file")
+            raise KeyError("Bad relation id in a labelstudio file")
         source_obj = self.find_badgerdoc_annotation(
             badgerdoc_annotations, labelstudio_item.from_id
         )

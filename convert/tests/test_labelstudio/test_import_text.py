@@ -2,10 +2,10 @@ import json
 
 import pytest
 
-from src.label_studio_to_badgerdoc.badgerdoc_format.badgerdoc_format import (
+from src.labelstudio_to_badgerdoc.badgerdoc_format.badgerdoc_format import (
     BadgerdocFormat,
 )
-from src.label_studio_to_badgerdoc.text_to_badgerdoc_use_case import (
+from src.labelstudio_to_badgerdoc.text_to_badgerdoc_use_case import (
     TextToBDConvertUseCase,
 )
 

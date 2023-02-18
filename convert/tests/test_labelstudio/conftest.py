@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from starlette.testclient import TestClient
 
 from src import main
-from src.routers import label_studio
+from src.routers import labelstudio
 
 
 class TenantData(BaseModel):
@@ -28,6 +28,6 @@ def setup_tenant():
 
 @pytest.fixture
 def test_app(setup_tenant):
-    main.app.dependency_overrides[label_studio.tenant] = lambda: setup_tenant
+    main.app.dependency_overrides[labelstudio.tenant] = lambda: setup_tenant
     client = TestClient(main.app)
     yield client
