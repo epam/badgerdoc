@@ -41,7 +41,7 @@ class LabelstudioToBadgerdocConverter:
     CONVERTED_ANNOTATIONS_FILENAME = "annotations.json"
     CONVERTED_TOKENS_FILENAME = "1.json"
     OUTPUT_PDF_FILENAME = "badgerdoc_render.pdf"
-    BADGERDOC_TOKENS_FILename = "badgerdoc_tokens.json"
+    BADGERDOC_TOKENS_FILENAME = "badgerdoc_tokens.json"
     BADGERDOC_ANNOTATIONS_FILENAME = "badgerdoc_annotations.json"
 
     def __init__(
@@ -232,7 +232,7 @@ class LabelstudioToBadgerdocConverter:
             )
 
             badgerdoc_tokens_path = tmp_dirname / Path(
-                self.BADGERDOC_TOKENS_FILename
+                self.BADGERDOC_TOKENS_FILENAME
             )
             self.badgerdoc_format.export_tokens(badgerdoc_tokens_path)
             self.s3_client.upload_file(
