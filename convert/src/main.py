@@ -2,7 +2,7 @@ from fastapi import FastAPI  # type: ignore
 
 from src.config import API_NAME, API_VERSION, settings
 from src.logger import get_logger
-from src.routers import coco, text, labelstudio
+from src.routers import coco, labelstudio, text
 
 LOGGER = get_logger(__file__)
 

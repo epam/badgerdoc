@@ -73,7 +73,9 @@ class LabelStudioFormat:
             categories_linked_with_taxonomies=categories_linked_with_taxonomies,
             request_headers=request_headers,
         )
-        annotation = Annotation(id=self.DEFAULT_ID_FOR_ONE_ANNOTATION , result=objs + relations)
+        annotation = Annotation(
+            id=self.DEFAULT_ID_FOR_ONE_ANNOTATION, result=objs + relations
+        )
 
         item = ModelItem(
             annotations=[annotation],
