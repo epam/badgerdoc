@@ -17,8 +17,8 @@ from src.labelstudio_to_badgerdoc.badgerdoc_format.badgerdoc_format import (
 from src.labelstudio_to_badgerdoc.badgerdoc_format.plain_text_converter import (
     TextToBadgerdocTokensConverter,
 )
-from src.labelstudio_to_badgerdoc.labelstudio_to_badgerdoc_use_case import (
-    LabelStudioToBDConvertUseCase,
+from src.labelstudio_to_badgerdoc.labelstudio_to_badgerdoc_converter import (
+    LabelstudioToBadgerdocConverter,
 )
 from src.labelstudio_to_badgerdoc.models.labelstudio_models import (
     LabelStudioModel,
@@ -58,16 +58,16 @@ def test_correctness_of_import_text_schema(test_app, monkeypatch):
         pass
 
     monkeypatch.setattr(
-        LabelStudioToBDConvertUseCase,
+        LabelstudioToBadgerdocConverter,
         "download_labelstudio_from_s3",
         mock_download_labelstudio,
     )
     monkeypatch.setattr(
-        LabelStudioToBDConvertUseCase,
+        LabelstudioToBadgerdocConverter,
         "upload_badgerdoc_annotations_and_tokens_to_s3",
         mock_upload_text,
     )
-    monkeypatch.setattr(LabelStudioToBDConvertUseCase, "execute", mock_execute)
+    monkeypatch.setattr(LabelstudioToBadgerdocConverter, "execute", mock_execute)
 
     response = test_app.post(
         "/labelstudio/import",

@@ -7,8 +7,8 @@ from src.config import minio_client, settings
 from src.labelstudio_to_badgerdoc.badgerdoc_to_labelstudio_converter import (
     BadgerdocToLabelstudioConverter,
 )
-from src.labelstudio_to_badgerdoc.labelstudio_to_badgerdoc_use_case import (
-    LabelStudioToBDConvertUseCase,
+from src.labelstudio_to_badgerdoc.labelstudio_to_badgerdoc_converter import (
+    LabelstudioToBadgerdocConverter,
 )
 from src.labelstudio_to_badgerdoc.models import LabelStudioRequest
 from src.labelstudio_to_badgerdoc.models.labelstudio_models import (
@@ -30,7 +30,7 @@ def import_labelstudio(
     current_tenant: Optional[str] = Header(None, alias="X-Current-Tenant"),
     token_data: TenantData = Depends(tenant),
 ) -> None:
-    labelstudio_to_bd_use_case = LabelStudioToBDConvertUseCase(
+    labelstudio_to_bd_use_case = LabelstudioToBadgerdocConverter(
         s3_client=minio_client,
         current_tenant=current_tenant,
         token_data=token_data,

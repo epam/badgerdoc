@@ -36,7 +36,7 @@ LOGGER = get_logger(__file__)
 LOGGER.setLevel("DEBUG")
 
 
-class LabelStudioToBDConvertUseCase:
+class LabelstudioToBadgerdocConverter:
 
     converted_annotations_filename = "annotations.json"
     converted_tokens_filename = "1.json"
