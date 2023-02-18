@@ -26,7 +26,7 @@ class BadgerdocData(NamedTuple):
     manifest: Manifest
 
 
-class BDToLabelStudioConvertUseCase:
+class BadgerdocToLabelstudioConverter:
     labelstudio_format = LabelStudioFormat()
 
     def __init__(

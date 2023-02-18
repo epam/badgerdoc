@@ -4,8 +4,8 @@ from fastapi import APIRouter, Depends, Header, status
 from tenant_dependency import TenantData, get_tenant_info
 
 from src.config import minio_client, settings
-from src.label_studio_to_badgerdoc.badgerdoc_to_label_studio_use_case import (
-    BDToLabelStudioConvertUseCase,
+from src.label_studio_to_badgerdoc.badgerdoc_to_labelstudio_converter import (
+    BadgerdocToLabelstudioConverter,
 )
 from src.label_studio_to_badgerdoc.label_studio_to_badgerdoc_use_case import (
     LabelStudioToBDConvertUseCase,
@@ -54,7 +54,7 @@ def export_label_studio(
     current_tenant: Optional[str] = Header(None, alias="X-Current-Tenant"),
     token_data: TenantData = Depends(tenant),
 ) -> None:
-    bd_to_label_studio_use_case = BDToLabelStudioConvertUseCase(
+    bd_to_label_studio_use_case = BadgerdocToLabelstudioConverter(
         s3_client=minio_client,
         current_tenant=current_tenant,
         token_data=token_data,

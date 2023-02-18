@@ -6,8 +6,8 @@ import responses
 from src.label_studio_to_badgerdoc.badgerdoc_format import (
     annotation_converter_practic,
 )
-from src.label_studio_to_badgerdoc.badgerdoc_to_label_studio_use_case import (
-    BDToLabelStudioConvertUseCase,
+from src.label_studio_to_badgerdoc.badgerdoc_to_labelstudio_converter import (
+    BadgerdocToLabelstudioConverter,
 )
 from src.label_studio_to_badgerdoc.labelstudio_format.label_studio_format import (
     LabelStudioFormat,
@@ -46,7 +46,7 @@ def test_correctness_of_export_text_schema(test_app, monkeypatch):
     def mock_execute(*args, **kwargs):
         pass
 
-    monkeypatch.setattr(BDToLabelStudioConvertUseCase, "execute", mock_execute)
+    monkeypatch.setattr(BadgerdocToLabelstudioConverter, "execute", mock_execute)
 
     response = test_app.post(
         "/label_studio/export",
