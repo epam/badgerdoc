@@ -34,7 +34,10 @@ There is a row of external dependencies, to run them you need to use docker-comp
 
 ### Run the BadgerDoc
 
-> TODO: DB migrations
+To run the migration for all services you need to run external dependencies first and then run following command:
+```bash
+bash ./migration.sh
+```
 
 To run the all the services you need to run the following command:
  ```bash
