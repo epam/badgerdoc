@@ -28,7 +28,6 @@ class BadgerdocData(NamedTuple):
 
 class BadgerdocToLabelstudioConverter:
     LABELSTUDIO_FILENAME = "labelstudio_format.json" 
-    labelstudio_format = LabelStudioFormat()
 
     def __init__(
         self,
@@ -43,6 +42,7 @@ class BadgerdocToLabelstudioConverter:
             "X-Current-Tenant": self.current_tenant,
             "Authorization": f"Bearer {self.token_data.token}",
         }
+        self.labelstudio_format = LabelStudioFormat()
 
     def execute(
         self,
