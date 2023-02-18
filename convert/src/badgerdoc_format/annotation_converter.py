@@ -9,7 +9,7 @@ from .bd_annotation_model import (
     Size,
 )
 from .bd_tokens_model import Page as BadgerdocTokensPage
-from src.labelstudio_to_badgerdoc.labelstudio_format.labelstudio_models import (
+from src.labelstudio_format.labelstudio_models import (
     Annotation,
     LabelStudioModel,
     ResultItem,

@@ -3,23 +3,23 @@ from pathlib import Path
 import pytest
 import responses
 
-from src.labelstudio_to_badgerdoc.badgerdoc_format import (
+from src.badgerdoc_format import (
     annotation_converter_practic,
 )
-from src.labelstudio_to_badgerdoc.badgerdoc_to_labelstudio_converter import (
+from src.badgerdoc_to_labelstudio_converter import (
     BadgerdocToLabelstudioConverter,
 )
-from src.labelstudio_to_badgerdoc.labelstudio_format.labelstudio_format import (
+from src.labelstudio_format.labelstudio_format import (
     LabelStudioFormat,
 )
-from src.labelstudio_to_badgerdoc.badgerdoc_format import (
+from src.badgerdoc_format import (
     bd_manifest_model_practic,
 )
-from src.labelstudio_to_badgerdoc.badgerdoc_format import (
+from src.badgerdoc_format import (
     bd_annotation_model_practic,
 )
-from src.labelstudio_to_badgerdoc.badgerdoc_format.bd_tokens_model import Page
-from src.labelstudio_to_badgerdoc.labelstudio_format.labelstudio_models import (
+from src.badgerdoc_format.bd_tokens_model import Page
+from src.labelstudio_format.labelstudio_models import (
     LabelStudioModel,
 )
 

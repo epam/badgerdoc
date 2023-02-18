@@ -3,7 +3,7 @@ from typing import Any, Dict, List
 from zipfile import ZipFile
 
 from src.config import minio_client, settings
-from src.exceptions import UploadLimitExceedError
+from ..exceptions import UploadLimitExceedError
 
 
 def check_uploading_limit(files_list: List[str]) -> Any:

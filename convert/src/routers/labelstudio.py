@@ -4,13 +4,13 @@ from fastapi import APIRouter, Depends, Header, status
 from tenant_dependency import TenantData, get_tenant_info
 
 from src.config import minio_client, settings
-from src.labelstudio_to_badgerdoc.badgerdoc_to_labelstudio_converter import (
+from src.badgerdoc_to_labelstudio_converter import (
     BadgerdocToLabelstudioConverter,
 )
-from src.labelstudio_to_badgerdoc.labelstudio_to_badgerdoc_converter import (
+from src.labelstudio_to_badgerdoc_converter import (
     LabelstudioToBadgerdocConverter,
 )
-from src.labelstudio_to_badgerdoc.models.labelstudio import (LabelStudioRequest, 
+from src.models.labelstudio import (LabelStudioRequest, 
     BadgerdocToLabelStudioRequest,
 )
 

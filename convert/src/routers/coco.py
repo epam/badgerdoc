@@ -16,8 +16,8 @@ from src.legacy.coco_import.convert import ConvertToBadgerdoc
 from src.legacy.coco_import.import_job import create_import_job
 from src.config import minio_client, settings
 from src.logger import get_logger
-from src.models import coco
-from src.utils.s3_utils import get_bucket_path
+from src.legacy.models import coco
+from src.legacy.utils.s3_utils import get_bucket_path
 
 router = APIRouter(prefix="/coco", tags=["coco"])
 LOGGER = get_logger(__file__)

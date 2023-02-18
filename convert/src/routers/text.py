@@ -1,8 +1,8 @@
 from fastapi import APIRouter, status
 
 from src.config import minio_client
-from src.labelstudio_to_badgerdoc.models.text_model import TextRequest
-from src.labelstudio_to_badgerdoc.text_to_badgerdoc_converter import (
+from src.models.text import TextRequest
+from src.text_to_badgerdoc_converter import (
     TextToBadgerdocConverter,
 )
 

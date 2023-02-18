@@ -2,7 +2,7 @@ import collections
 import string
 from typing import Deque, List
 
-from ...config import (
+from ..config import (
     DEFAULT_PAGE_BORDER_OFFSET,
     DEFAULT_PDF_FONT_HEIGHT,
     DEFAULT_PDF_FONT_WIDTH,

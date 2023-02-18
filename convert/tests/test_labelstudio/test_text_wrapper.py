@@ -1,7 +1,7 @@
 import collections
 import string
 
-from src.labelstudio_to_badgerdoc.badgerdoc_format.plain_text_converter import (  # noqa: E501
+from src.badgerdoc_format.plain_text_converter import (  # noqa: E501
     TextWrapper,
 )
 

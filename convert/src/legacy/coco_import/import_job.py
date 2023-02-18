@@ -6,7 +6,7 @@ from uuid import uuid4
 from .import_service import import_run
 from src.config import get_request_session, settings
 from src.logger import get_logger
-from src.models.coco import DataS3
+from ..models.coco import DataS3
 
 LOGGER = get_logger(__file__)
 

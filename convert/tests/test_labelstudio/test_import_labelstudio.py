@@ -11,16 +11,16 @@ from src.config import (
     DEFAULT_PDF_LINE_SPACING,
     DEFAULT_PDF_PAGE_WIDTH,
 )
-from src.labelstudio_to_badgerdoc.badgerdoc_format.badgerdoc_format import (
+from src.badgerdoc_format.badgerdoc_format import (
     BadgerdocFormat,
 )
-from src.labelstudio_to_badgerdoc.badgerdoc_format.plain_text_converter import (
+from src.badgerdoc_format.plain_text_converter import (
     TextToBadgerdocTokensConverter,
 )
-from src.labelstudio_to_badgerdoc.labelstudio_to_badgerdoc_converter import (
+from src.labelstudio_to_badgerdoc_converter import (
     LabelstudioToBadgerdocConverter,
 )
-from src.labelstudio_to_badgerdoc.labelstudio_format.labelstudio_models import (
+from src.labelstudio_format.labelstudio_models import (
     LabelStudioModel,
 )
 

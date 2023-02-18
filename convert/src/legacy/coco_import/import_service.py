@@ -8,11 +8,11 @@ from fastapi import HTTPException, status
 
 from .convert import ConvertToBadgerdoc
 from src.config import settings
-from src.exceptions import UploadLimitExceedError
+from ..exceptions import UploadLimitExceedError
 from src.logger import get_logger
-from src.models import coco
-from src.utils.common_utils import check_uploading_limit
-from src.utils.s3_utils import S3Manager, s3_download_files
+from ..models import coco
+from ..utils.common_utils import check_uploading_limit
+from ..utils.s3_utils import S3Manager, s3_download_files
 
 LOGGER = get_logger(__file__)
 

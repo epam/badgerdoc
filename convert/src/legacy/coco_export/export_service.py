@@ -8,7 +8,7 @@ from fastapi import BackgroundTasks
 from .convert import ConvertToCoco, ExportConvertBase
 from src.config import minio_client
 from src.logger import get_logger
-from src.utils.s3_utils import convert_bucket_name_if_s3prefix
+from ..utils.s3_utils import convert_bucket_name_if_s3prefix
 
 LOGGER = get_logger(__file__)
 

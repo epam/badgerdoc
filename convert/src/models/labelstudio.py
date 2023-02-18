@@ -1,13 +1,12 @@
 from __future__ import annotations
 
 from datetime import datetime
-from enum import Enum
-from typing import Any, List, Optional
+from typing import List, Optional
 
 from pydantic import BaseModel
 
 from .common import S3Path
-from src.labelstudio_to_badgerdoc.labelstudio_format.labelstudio_models import ValidationType
+from src.labelstudio_format.labelstudio_models import ValidationType
 
 
 class LabelStudioRequest(BaseModel):

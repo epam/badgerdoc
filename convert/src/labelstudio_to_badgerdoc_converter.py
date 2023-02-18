@@ -12,25 +12,25 @@ from fastapi.encoders import jsonable_encoder
 from tenant_dependency import TenantData
 
 from src.config import DEFAULT_PAGE_BORDER_OFFSET, settings
-from src.labelstudio_to_badgerdoc.badgerdoc_format.annotation_converter import (
+from src.badgerdoc_format.annotation_converter import (
     AnnotationConverter,
 )
-from src.labelstudio_to_badgerdoc.badgerdoc_format.badgerdoc_format import (
+from src.badgerdoc_format.badgerdoc_format import (
     BadgerdocFormat,
 )
-from src.labelstudio_to_badgerdoc.badgerdoc_format.pdf_renderer import (
+from src.badgerdoc_format.pdf_renderer import (
     PDFRenderer,
 )
-from src.labelstudio_to_badgerdoc.badgerdoc_format.plain_text_converter import (
+from src.badgerdoc_format.plain_text_converter import (
     TextToBadgerdocTokensConverter,
 )
-from src.labelstudio_to_badgerdoc.badgerdoc_format.bd_tokens_model import BadgerdocToken
-from src.labelstudio_to_badgerdoc.badgerdoc_format.bd_annotation_model_practic import DocumentLink
-from src.labelstudio_to_badgerdoc.labelstudio_format.labelstudio_models import (
+from src.badgerdoc_format.bd_tokens_model import BadgerdocToken
+from src.badgerdoc_format.bd_annotation_model_practic import DocumentLink
+from src.labelstudio_format.labelstudio_models import (
     LabelStudioModel,
     ValidationType,
 )
-from src.labelstudio_to_badgerdoc.models.common import (
+from src.models.common import (
     S3Path,
 )
 from src.logger import get_logger
