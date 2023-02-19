@@ -26,7 +26,7 @@ from src.badgerdoc_format.plain_text_converter import (
 )
 from src.badgerdoc_format.bd_tokens_model import BadgerdocToken
 from src.badgerdoc_format.bd_annotation_model_practic import DocumentLink
-from src.labelstudio_format.labelstudio_models import (
+from src.labelstudio_format.ls_models import (
     LabelStudioModel,
     ValidationType,
 )
@@ -83,50 +83,50 @@ class LabelstudioToBadgerdocConverter:
         self.annotators = annotators
         self.validators = validators
 
-    def parse_document_labels_from_labelstudio_format(
-        self, labelstudio_format: LabelStudioModel
+    def parse_document_labels_from_ls_format(
+        self, ls_format: LabelStudioModel
     ) -> Set[str]:
-        document_labels = labelstudio_format.__root__[0].meta.labels
+        document_labels = ls_format.__root__[0].meta.labels
         return {label["name"] for label in document_labels}
 
-    def parse_categories_to_taxonomy_mapping_from_labelstudio_format(
-        self, labelstudio_format: LabelStudioModel
+    def parse_categories_to_taxonomy_mapping_from_ls_format(
+        self, ls_format: LabelStudioModel
     ) -> Dict[str, Any]:
-        categories_to_taxonomy_mapping = labelstudio_format.__root__[
+        categories_to_taxonomy_mapping = ls_format.__root__[
             0
         ].meta.categories_to_taxonomy_mapping
         return categories_to_taxonomy_mapping
 
-    def parse_document_links_from_labelstudio_format(
-        self, labelstudio_format: LabelStudioModel
+    def parse_document_links_from_ls_format(
+        self, ls_format: LabelStudioModel
     ) -> List[DocumentLink]:
         return [
             DocumentLink(
                 to=relation.to, category=relation.category, type=relation.type
             )
-            for relation in labelstudio_format.__root__[0].meta.relations
+            for relation in ls_format.__root__[0].meta.relations
         ]
 
     def execute(self) -> None:
-        labelstudio_format = self.download(
+        ls_format = self.download(
             self.s3_input_annotation
         )
-        LOGGER.debug("label studio format: %s", labelstudio_format)
-        document_labels = self.parse_document_labels_from_labelstudio_format(
-            labelstudio_format
+        LOGGER.debug("label studio format: %s", ls_format)
+        document_labels = self.parse_document_labels_from_ls_format(
+            ls_format
         )
         categories_to_taxonomy_mapping = (
-            self.parse_categories_to_taxonomy_mapping_from_labelstudio_format(
-                labelstudio_format
+            self.parse_categories_to_taxonomy_mapping_from_ls_format(
+                ls_format
             )
         )
-        document_links = self.parse_document_links_from_labelstudio_format(
-            labelstudio_format
+        document_links = self.parse_document_links_from_ls_format(
+            ls_format
         )
 
         LOGGER.debug("document_labels parsed: %s", document_labels)
 
-        self.badgerdoc_format.convert_from_labelstudio(labelstudio_format)
+        self.badgerdoc_format.convert_from_labelstudio(ls_format)
         LOGGER.debug("Tokens and annotations are converted")
         file_id_in_assets = self.upload_output_pdf_to_s3()
         annotation_job_id_created = (
@@ -259,8 +259,8 @@ class LabelstudioToBadgerdocConverter:
                 s3_output_annotations_path,
             )
 
-    def enrich_categories_with_taxonomies(
         self,
+    def enrich_categories_with_taxonomies(
         categories: List[str],
         categories_to_taxonomy_mapping: Dict[str, Any],
     ) -> List[Union[str, Dict[str, Any]]]:

@@ -1,1 +1,1 @@
-from .labelstudio_format import LabelStudioFormat
+from .ls_format import LabelStudioFormat

@@ -6,7 +6,7 @@ from typing import List, Optional
 from pydantic import BaseModel
 
 from .common import S3Path
-from src.labelstudio_format.labelstudio_models import ValidationType
+from src.labelstudio_format.ls_models import ValidationType
 
 
 class LabelStudioRequest(BaseModel):

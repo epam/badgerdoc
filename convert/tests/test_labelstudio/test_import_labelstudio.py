@@ -20,7 +20,7 @@ from src.badgerdoc_format.plain_text_converter import (
 from src.labelstudio_to_badgerdoc_converter import (
     LabelstudioToBadgerdocConverter,
 )
-from src.labelstudio_format.labelstudio_models import (
+from src.labelstudio_format.ls_models import (
     LabelStudioModel,
 )
 
@@ -36,7 +36,7 @@ def test_correctness_of_import_text_schema(test_app, monkeypatch):
     test_request_payload = {
         "input_annotation": {
             "bucket": "test",
-            "path": "test_converter/labelstudio_format_with_taxonomy.json",
+            "path": "test_converter/ls_format_with_taxonomy.json",
         },
         "output_bucket": "test",
         "validation_type": "cross",

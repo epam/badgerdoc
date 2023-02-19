@@ -9,7 +9,7 @@ from src.badgerdoc_format import (
 from src.badgerdoc_to_labelstudio_converter import (
     BadgerdocToLabelstudioConverter,
 )
-from src.labelstudio_format.labelstudio_format import (
+from src.labelstudio_format.ls_format import (
     LabelStudioFormat,
 )
 from src.badgerdoc_format import (
@@ -19,7 +19,7 @@ from src.badgerdoc_format import (
     bd_annotation_model_practic,
 )
 from src.badgerdoc_format.bd_tokens_model import Page
-from src.labelstudio_format.labelstudio_models import (
+from src.labelstudio_format.ls_models import (
     LabelStudioModel,
 )
 
@@ -80,14 +80,14 @@ def test_annotation_converter_case_without_taxonomies_and_document_labels():
         ).convert()
     )
 
-    labelstudio_format_test = LabelStudioFormat()
-    labelstudio_format_test.from_badgerdoc(
+    ls_format_test = LabelStudioFormat()
+    ls_format_test.from_badgerdoc(
         badgerdoc_annotations=annotations_test,
         badgerdoc_tokens=tokens_test,
         badgerdoc_manifest=manifest_test,
         request_headers={}
     )
-    labelstudio_model_test = labelstudio_format_test.labelstudio_data
+    labelstudio_model_test = ls_format_test.labelstudio_data
 
     labelstudio_model_etalon = LabelStudioModel.parse_file(
         TEST_FILES_DIR / "labelstudio_format.json"

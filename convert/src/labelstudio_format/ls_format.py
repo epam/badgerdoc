@@ -10,7 +10,7 @@ from src.logger import get_logger
 from ..badgerdoc_format.bd_annotation_model import AnnotationLink, BadgerdocAnnotation
 from ..badgerdoc_format.bd_manifest_model_practic import Manifest
 from ..badgerdoc_format.bd_tokens_model import BadgerdocToken, Page
-from .labelstudio_models import (
+from .ls_models import (
     Annotation,
     Data,
     DocumentRelation,

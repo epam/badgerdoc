@@ -10,7 +10,7 @@ from ..config import (
 )
 from .bd_annotation_model_practic import BadgerdocAnnotation
 from .bd_tokens_model import Page
-from src.labelstudio_format.labelstudio_models import LabelStudioModel
+from src.labelstudio_format.ls_models import LabelStudioModel
 from .annotation_converter import AnnotationConverter
 from .pdf_renderer import PDFRenderer
 from .plain_text_converter import TextToBadgerdocTokensConverter

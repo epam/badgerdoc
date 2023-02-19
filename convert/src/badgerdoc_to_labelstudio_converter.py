@@ -8,7 +8,7 @@ from tenant_dependency import TenantData
 from src.badgerdoc_format.annotation_converter_practic import (
     AnnotationConverterToTheory,
 )
-from src.labelstudio_format import LabelStudioFormat
+from src.labelstudio_format.ls_format import LabelStudioFormat
 from src.logger import get_logger
 
 from .models.common  import S3Path 
@@ -28,7 +28,7 @@ class BadgerdocData(NamedTuple):
 
 
 class BadgerdocToLabelstudioConverter:
-    LABELSTUDIO_FILENAME = "labelstudio_format.json"
+    LABELSTUDIO_FILENAME = "ls_format.json"
 
     def __init__(
         self,
@@ -43,7 +43,7 @@ class BadgerdocToLabelstudioConverter:
             "X-Current-Tenant": self.current_tenant,
             "Authorization": f"Bearer {self.token_data.token}",
         }
-        self.labelstudio_format = LabelStudioFormat()
+        self.ls_format = LabelStudioFormat()
 
     def execute(
         self,
@@ -59,7 +59,7 @@ class BadgerdocToLabelstudioConverter:
         ) = self.download(
             s3_input_tokens, s3_input_annotations, s3_input_manifest
         )
-        self.labelstudio_format.from_badgerdoc(
+        self.ls_format.from_badgerdoc(
             badgerdoc_page,
             badgerdoc_annotations,
             badgerdoc_manifest,
@@ -115,7 +115,7 @@ class BadgerdocToLabelstudioConverter:
             badgerdoc_annotations_path = tmp_dir / Path(
                 self.LABELSTUDIO_FILENAME
             )
-            self.labelstudio_format.export_json(badgerdoc_annotations_path)
+            self.ls_format.export_json(badgerdoc_annotations_path)
             self.s3_client.upload_file(
                 str(badgerdoc_annotations_path),
                 s3_output_annotation.bucket,
