@@ -86,6 +86,7 @@ PART_REV_RESPONSE = {
     "failed_validation_pages": PART_REV_DOC.failed_validation_pages,
     "categories": [],
     "similar_revisions": None,
+    "links_json": {},
 }
 
 
@@ -117,7 +118,6 @@ def construct_part_rev_path(job_id: str, file_id: str, revision: str) -> str:
         ),  # given tenant does not match with revision`s
     ],
 )
-@pytest.mark.skip
 def test_get_annotation_for_particular_revision_status_codes(
     monkeypatch,
     minio_particular_revision,

@@ -421,9 +421,9 @@ def check_docs_identity(
     return (
         latest_doc is not None
         and latest_doc.pages == new_doc.pages
-        and set(latest_doc.validated) == new_doc.validated
+        and set(latest_doc.validated) == set(new_doc.validated)
         and set(latest_doc.failed_validation_pages)
-        == new_doc.failed_validation_pages
+        == set(new_doc.failed_validation_pages)
         and latest_doc.categories == new_doc.categories
     )
 
@@ -844,7 +844,9 @@ def accumulate_pages_info(
     specific_pages: Set[int] = None,
     with_page_hash: bool = False,
     unique_status: bool = False,
-) -> Tuple[Set[int], Set[int], Set[int], Set[int], List[str], Optional[AnnotatedDoc]]:
+) -> Tuple[
+    Set[int], Set[int], Set[int], Set[int], List[str], Optional[AnnotatedDoc]
+]:
     """
     Get pages, that have been validated, marked as failed, annotated and
     not processed in all given revisions (revisions are sorted in asc order).
