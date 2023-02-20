@@ -57,7 +57,7 @@ class BadgerdocFormat:
     def export_tokens(self, tokens_path: Path) -> None:
         if self.tokens_page:
             if isinstance(self.tokens_page, list):
-                for i, part in enumerate(self.tokens_page):
+                for i, part in enumerate(self.tokens_page, start=1):
                     path_file = tokens_path / Path(f"{i}.json")
                     path_file.write_text(part.json(by_alias=True))
             else:

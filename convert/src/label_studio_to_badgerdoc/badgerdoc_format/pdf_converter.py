@@ -59,5 +59,5 @@ class PlainPDFToBadgerdocTokensConverter:
                     objs=self.convert_page(page),
                     size=self.page_size,
                 )
-                for i, page in enumerate(extract_pages(pdf_obj))
+                for i, page in enumerate(extract_pages(pdf_obj), start=1)
             ]
