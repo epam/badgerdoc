@@ -1,3 +1,4 @@
+import { DependencyList, useCallback, useMemo } from 'react';
 import {
     Category,
     CategoryDataAttributeWithLabel,
@@ -6,7 +7,6 @@ import {
     Taxon
 } from 'api/typings';
 import { mapAnnotationFromApi } from 'connectors/task-annotator-connector/task-annotator-utils';
-import { DependencyList, useCallback, useMemo } from 'react';
 import { Annotation, AnnotationLabel, PageToken } from 'shared';
 
 interface AnnotationsMapperValue {
@@ -111,6 +111,7 @@ export default function useAnnotationsMapper(
                 );
                 result[pageKey] = [...(result[pageKey] ?? []), ...filteredAnnotations];
             });
+
             return result;
         },
         [getAnnotationLabels]

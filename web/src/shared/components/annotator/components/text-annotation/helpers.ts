@@ -1,5 +1,5 @@
-import { AnnotationLabel, Bound, PageToken } from '../../typings';
 import React from 'react';
+import { AnnotationLabel, Bound, PageToken } from '../../typings';
 
 const MIN_GAP_INTER_LINES_TO_SHOW_LABEL = 10;
 const MIN_GAP_BETWEEN_START_END_LABELS = 250;
