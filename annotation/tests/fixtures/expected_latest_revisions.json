@@ -32,7 +32,8 @@
           "revision": "cdb6e03f11490153e043057edd8d6c0ec2da26c4",
           "size": {"height": 1.0, "width": 1.0},
           "pipeline": null,
-          "user_id": "e4090c2d-a6e3-4c49-bf44-cab41fcfb477"
+          "user_id": "e4090c2d-a6e3-4c49-bf44-cab41fcfb477",
+          "categories": []
         },
         {
           "date": "2021-10-01T01:06:01",
@@ -65,7 +66,8 @@
           "revision": "4b8cf2f79b5dbbedf6a7b90c87f6c8a1c6b9d28b",
           "size": {"height": 1.0, "width": 1.0},
           "pipeline": null,
-          "user_id": "709011b6-37fd-40d4-b39a-5aa2cbe292ab"
+          "user_id": "709011b6-37fd-40d4-b39a-5aa2cbe292ab",
+          "categories": []
         }
       ]
     },
@@ -102,7 +104,8 @@
           "revision": "93a79659cb6cd74407d6bd611b38f7a94973b7a8",
           "size": {"height": 1.0, "width": 1.0},
           "pipeline": null,
-          "user_id": "709011b6-37fd-40d4-b39a-5aa2cbe292ab"
+          "user_id": "709011b6-37fd-40d4-b39a-5aa2cbe292ab",
+          "categories": []
         },
         {
           "date": "2021-10-01T01:03:01",
@@ -135,7 +138,8 @@
           "revision": "cdb6e03f11490153e043057edd8d6c0ec2da26c4",
           "size": {"height": 1.0, "width": 1.0},
           "pipeline": null,
-          "user_id": "e4090c2d-a6e3-4c49-bf44-cab41fcfb477"
+          "user_id": "e4090c2d-a6e3-4c49-bf44-cab41fcfb477",
+          "categories": []
         }
       ]
     },
@@ -172,7 +176,8 @@
           "revision": "cdb6e03f11490153e043057edd8d6c0ec2da26c4",
           "size": {"height": 1.0, "width": 1.0},
           "pipeline": null,
-          "user_id": "e4090c2d-a6e3-4c49-bf44-cab41fcfb477"
+          "user_id": "e4090c2d-a6e3-4c49-bf44-cab41fcfb477",
+          "categories": []
         },
         {
           "date": "2021-10-01T01:06:01",
@@ -205,7 +210,8 @@
           "revision": "4b8cf2f79b5dbbedf6a7b90c87f6c8a1c6b9d28b",
           "size": {"height": 1.0, "width": 1.0},
           "pipeline": null,
-          "user_id": "709011b6-37fd-40d4-b39a-5aa2cbe292ab"
+          "user_id": "709011b6-37fd-40d4-b39a-5aa2cbe292ab",
+          "categories": []
         }
       ],
       "2": [
@@ -240,7 +246,8 @@
           "revision": "93a79659cb6cd74407d6bd611b38f7a94973b7a8",
           "size": {"height": 1.0, "width": 1.0},
           "pipeline": null,
-          "user_id": "709011b6-37fd-40d4-b39a-5aa2cbe292ab"
+          "user_id": "709011b6-37fd-40d4-b39a-5aa2cbe292ab",
+          "categories": []
         },
         {
           "date": "2021-10-01T01:03:01",
@@ -273,7 +280,8 @@
           "revision": "cdb6e03f11490153e043057edd8d6c0ec2da26c4",
           "size": {"height": 1.0, "width": 1.0},
           "pipeline": null,
-          "user_id": "e4090c2d-a6e3-4c49-bf44-cab41fcfb477"
+          "user_id": "e4090c2d-a6e3-4c49-bf44-cab41fcfb477",
+          "categories": []
         }
       ]
     },
@@ -287,7 +295,8 @@
           "revision": "06535d71000ce6df1f2574df489be0b9a8efade8",
           "size": {"height": 0.0, "width": 0.0},
           "pipeline": null,
-          "user_id": "e4090c2d-a6e3-4c49-bf44-cab41fcfb477"
+          "user_id": "e4090c2d-a6e3-4c49-bf44-cab41fcfb477",
+          "categories": []
         }
       ]
     },
@@ -324,7 +333,8 @@
           "revision": "cc0c49b892596477fed97c868daa895d0798ce76",
           "size": {"height": 1.0, "width": 1.0},
           "pipeline": null,
-          "user_id": "709011b6-37fd-40d4-b39a-5aa2cbe292ab"
+          "user_id": "709011b6-37fd-40d4-b39a-5aa2cbe292ab",
+          "categories": []
         }
       ],
       "2": [
@@ -359,7 +369,8 @@
           "revision": "cc0c49b892596477fed97c868daa895d0798ce76",
           "size": {"height": 1.0, "width": 1.0},
           "pipeline": null,
-          "user_id": "709011b6-37fd-40d4-b39a-5aa2cbe292ab"
+          "user_id": "709011b6-37fd-40d4-b39a-5aa2cbe292ab",
+          "categories": []
         }
       ]
     },
@@ -396,7 +407,8 @@
           "revision": "7a3258fc75fb595c190405d8163b5b8472cb021c",
           "size": {"height": 1.0, "width": 1.0},
           "pipeline": null,
-          "user_id": "e4090c2d-a6e3-4c49-bf44-cab41fcfb477"
+          "user_id": "e4090c2d-a6e3-4c49-bf44-cab41fcfb477",
+          "categories": []
         }
       ],
       "2": [
@@ -431,7 +443,8 @@
           "revision": "7a3258fc75fb595c190405d8163b5b8472cb021c",
           "size": {"height": 1.0, "width": 1.0},
           "pipeline": null,
-          "user_id": "e4090c2d-a6e3-4c49-bf44-cab41fcfb477"
+          "user_id": "e4090c2d-a6e3-4c49-bf44-cab41fcfb477",
+          "categories": []
         }
       ]
     },
@@ -468,7 +481,8 @@
           "revision": "cdb6e03f11490153e043057edd8d6c0ec2da26c4",
           "size": {"height": 1.0, "width": 1.0},
           "pipeline": null,
-          "user_id": "e4090c2d-a6e3-4c49-bf44-cab41fcfb477"
+          "user_id": "e4090c2d-a6e3-4c49-bf44-cab41fcfb477",
+          "categories": []
         }
       ]
     },
@@ -505,7 +519,8 @@
           "revision": "cdb6e03f11490153e043057edd8d6c0ec2da26c4",
           "size": {"height": 1.0, "width": 1.0},
           "pipeline": null,
-          "user_id": "e4090c2d-a6e3-4c49-bf44-cab41fcfb477"
+          "user_id": "e4090c2d-a6e3-4c49-bf44-cab41fcfb477",
+          "categories": []
         }
       ]
     },
@@ -542,7 +557,8 @@
           "revision": "cdb6e03f11490153e043057edd8d6c0ec2da26c4",
           "size": {"height": 1.0, "width": 1.0},
           "pipeline": null,
-          "user_id": "e4090c2d-a6e3-4c49-bf44-cab41fcfb477"
+          "user_id": "e4090c2d-a6e3-4c49-bf44-cab41fcfb477",
+          "categories": []
         }
       ],
       "2": [
@@ -577,7 +593,8 @@
           "revision": "cdb6e03f11490153e043057edd8d6c0ec2da26c4",
           "size": {"height": 1.0, "width": 1.0},
           "pipeline": null,
-          "user_id": "e4090c2d-a6e3-4c49-bf44-cab41fcfb477"
+          "user_id": "e4090c2d-a6e3-4c49-bf44-cab41fcfb477",
+          "categories": []
         }
       ]
     },
@@ -591,7 +608,8 @@
           "revision": "06535d71000ce6df1f2574df489be0b9a8efade8",
           "size": {"height": 0.0, "width": 0.0},
           "pipeline": null,
-          "user_id": "e4090c2d-a6e3-4c49-bf44-cab41fcfb477"
+          "user_id": "e4090c2d-a6e3-4c49-bf44-cab41fcfb477",
+          "categories": []
         }
       ]
     },
@@ -628,7 +646,8 @@
           "revision": "7a3258fc75fb595c190405d8163b5b8472cb021c",
           "size": {"height": 1.0, "width": 1.0},
           "pipeline": null,
-          "user_id": "e4090c2d-a6e3-4c49-bf44-cab41fcfb477"
+          "user_id": "e4090c2d-a6e3-4c49-bf44-cab41fcfb477",
+          "categories": []
         }
       ],
       "2": [
@@ -663,7 +682,8 @@
           "revision": "7a3258fc75fb595c190405d8163b5b8472cb021c",
           "size": {"height": 1.0, "width": 1.0},
           "pipeline": null,
-          "user_id": "e4090c2d-a6e3-4c49-bf44-cab41fcfb477"
+          "user_id": "e4090c2d-a6e3-4c49-bf44-cab41fcfb477",
+          "categories": []
         }
       ]
     },
@@ -700,7 +720,8 @@
           "revision": "4b8cf2f79b5dbbedf6a7b90c87f6c8a1c6b9d28b",
           "size": {"height": 1.0, "width": 1.0},
           "pipeline": null,
-          "user_id": "709011b6-37fd-40d4-b39a-5aa2cbe292ab"
+          "user_id": "709011b6-37fd-40d4-b39a-5aa2cbe292ab",
+          "categories": []
         }
       ]
     },
@@ -737,7 +758,8 @@
           "revision": "93a79659cb6cd74407d6bd611b38f7a94973b7a8",
           "size": {"height": 1.0, "width": 1.0},
           "pipeline": null,
-          "user_id": "709011b6-37fd-40d4-b39a-5aa2cbe292ab"
+          "user_id": "709011b6-37fd-40d4-b39a-5aa2cbe292ab",
+          "categories": []
         }
       ]
     },
@@ -774,7 +796,8 @@
           "revision": "4b8cf2f79b5dbbedf6a7b90c87f6c8a1c6b9d28b",
           "size": {"height": 1.0, "width": 1.0},
           "pipeline": null,
-          "user_id": "709011b6-37fd-40d4-b39a-5aa2cbe292ab"
+          "user_id": "709011b6-37fd-40d4-b39a-5aa2cbe292ab",
+          "categories": []
         }
       ],
       "2": [
@@ -809,7 +832,8 @@
           "revision": "93a79659cb6cd74407d6bd611b38f7a94973b7a8",
           "size": {"height": 1.0, "width": 1.0},
           "pipeline": null,
-          "user_id": "709011b6-37fd-40d4-b39a-5aa2cbe292ab"
+          "user_id": "709011b6-37fd-40d4-b39a-5aa2cbe292ab",
+          "categories": []
         }
       ]
     },
@@ -846,7 +870,8 @@
           "revision": "cc0c49b892596477fed97c868daa895d0798ce76",
           "size": {"height": 1.0, "width": 1.0},
           "pipeline": null,
-          "user_id": "709011b6-37fd-40d4-b39a-5aa2cbe292ab"
+          "user_id": "709011b6-37fd-40d4-b39a-5aa2cbe292ab",
+          "categories": []
         }
       ],
       "2": [
@@ -881,7 +906,8 @@
           "revision": "cc0c49b892596477fed97c868daa895d0798ce76",
           "size": {"height": 1.0, "width": 1.0},
           "pipeline": null,
-          "user_id": "709011b6-37fd-40d4-b39a-5aa2cbe292ab"
+          "user_id": "709011b6-37fd-40d4-b39a-5aa2cbe292ab",
+          "categories": []
         }
       ]
     },
@@ -919,7 +945,8 @@
           "pipeline": 3,
           "revision": "9a3258fc75fb595c190405d8163b5b8472cb023c",
           "size": {"height": 1.0, "width": 1.0},
-          "user_id": null
+          "user_id": null,
+          "categories": []
         }
       ]
     },
