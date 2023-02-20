@@ -80,6 +80,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode }) => {
         selectedTool,
         onChangeSelectedTool,
         selectedToolParams,
+        selectedCategory,
         setSelectedToolParams,
         onLabelsSelected,
         setSelectedLabels,
@@ -218,10 +219,17 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode }) => {
         }
     }, [categories, latestLabelsId]);
 
-    const taxonomy = useLinkTaxonomyByCategoryAndJobId({
-        jobId,
-        categoryId: selectedAnnotation?.category!
-    });
+    let taxonomy;
+    if (
+        selectedCategory &&
+        Array.isArray(selectedCategory.data_attributes) &&
+        selectedCategory.data_attributes.some((category) => category.type === 'taxonomy')
+    ) {
+        taxonomy = useLinkTaxonomyByCategoryAndJobId({
+            jobId,
+            categoryId: selectedAnnotation?.category!
+        });
+    }
 
     const cellsItems: {
         id: string;
