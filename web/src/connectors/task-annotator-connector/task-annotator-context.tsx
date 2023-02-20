@@ -14,7 +14,8 @@ import { ApiError } from 'api/api-error';
 import {
     DocumentLink,
     useAddAnnotationsMutation,
-    useLatestAnnotations
+    useLatestAnnotations,
+    useLatestAnnotationsByUser
 } from 'api/hooks/annotations';
 import { useSetTaskFinishedMutation, useSetTaskState, useTaskById } from 'api/hooks/tasks';
 import { useCategoriesByJob } from 'api/hooks/categories';
@@ -328,14 +329,26 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         },
         { enabled: false }
     );
-    const latestAnnotationsResult = useLatestAnnotations(
+    const { data: latestAnnotationsResult, refetch: latestAnnotationsResultRefetch } =
+        useLatestAnnotations(
+            {
+                jobId: getJobId(),
+                fileId: getFileId(),
+                revisionId,
+                pageNumbers: pageNumbers,
+                userId:
+                    job?.validation_type === 'extensive_coverage' && !revisionId
+                        ? task?.user_id
+                        : ''
+            },
+            { enabled: !!(task || job) }
+        );
+
+    const { data: latestAnnotationsByUser } = useLatestAnnotationsByUser(
         {
             jobId: getJobId(),
             fileId: getFileId(),
-            revisionId,
-            pageNumbers: pageNumbers,
-            userId:
-                job?.validation_type === 'extensive_coverage' && !revisionId ? task?.user_id : ''
+            pageNumbers: pageNumbers
         },
         { enabled: !!(task || job) }
     );
@@ -363,15 +376,15 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         if (task || job || revisionId) {
             setCurrentPage(pageNumbers[0]);
             documentsResult.refetch();
-            latestAnnotationsResult.refetch();
+            latestAnnotationsResultRefetch();
             tokenRes.refetch();
         }
     }, [task, job, revisionId]);
 
-    const taxonLabels = useAnnotationsTaxons(latestAnnotationsResult.data?.pages);
+    const taxonLabels = useAnnotationsTaxons(latestAnnotationsByUser?.[currentPage]);
 
     const { getAnnotationLabels, mapAnnotationPagesFromApi } = useAnnotationsMapper(taxonLabels, [
-        latestAnnotationsResult.data?.pages,
+        latestAnnotationsResult?.pages,
         taxonLabels
     ]);
 
@@ -578,7 +591,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
 
     const setAnnotationDataAttrs = (annotation: Annotation) => {
         const foundCategoryDataAttrs = getCategoryDataAttrs(
-            annotation.category ? annotation.category : annotation.label,
+            annotation.category ?? annotation.label,
             categories?.data
         );
         if (foundCategoryDataAttrs && foundCategoryDataAttrs.length) {
@@ -857,9 +870,9 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         onExternalViewerClose();
     };
     const onSaveTask = async () => {
-        if (!task || !latestAnnotationsResult.data) return;
+        if (!task || !latestAnnotationsResult) return;
 
-        let { revision, pages } = latestAnnotationsResult.data;
+        let { revision, pages } = latestAnnotationsResult;
 
         const selectedLabelsId: string[] = selectedLabels.map((obj) => obj.id) ?? [];
 
@@ -896,7 +909,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
                 links: documentLinksValues.linksToApi
             });
             onSaveTaskSuccess();
-            latestAnnotationsResult.refetch();
+            latestAnnotationsResultRefetch();
             refetchTask();
             documentLinksValues?.setDocumentLinksChanged?.(false);
         } catch (error) {
@@ -921,34 +934,32 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
     };
 
     useEffect(() => {
-        if (!latestAnnotationsResult.data || !categories?.data) return;
-        const latestLabelIds = latestAnnotationsResult.data.categories;
+        if (!latestAnnotationsResult || !categories?.data) return;
+        const latestLabelIds = latestAnnotationsResult.categories;
 
         setLatestLabelsId(latestLabelIds);
-        setValidPages(latestAnnotationsResult.data.validated);
-        setInvalidPages(latestAnnotationsResult.data.failed_validation_pages);
+        setValidPages(latestAnnotationsResult.validated);
+        setInvalidPages(latestAnnotationsResult.failed_validation_pages);
 
         const result = mapAnnotationPagesFromApi(
             (page: PageInfo) => page.page_num.toString(),
-            latestAnnotationsResult.data.pages,
+            latestAnnotationsResult.pages,
             categories?.data
         );
         setAllAnnotations(result);
 
-        const annDataAttrsResult = mapAnnotationDataAttrsFromApi(
-            latestAnnotationsResult.data.pages
-        );
+        const annDataAttrsResult = mapAnnotationDataAttrsFromApi(latestAnnotationsResult.pages);
         setAnnDataAttrs(annDataAttrsResult);
 
         if (
-            latestAnnotationsResult.data.pages.length === 0 ||
-            !latestAnnotationsResult.data.pages[0].size ||
-            latestAnnotationsResult.data.pages[0].size.width === 0 ||
-            latestAnnotationsResult.data.pages[0].size.height === 0
+            latestAnnotationsResult.pages.length === 0 ||
+            !latestAnnotationsResult.pages[0].size ||
+            latestAnnotationsResult.pages[0].size.width === 0 ||
+            latestAnnotationsResult.pages[0].size.height === 0
         )
             return;
-        setPageSize(latestAnnotationsResult.data.pages[0].size);
-    }, [latestAnnotationsResult.data, categories?.data, mapAnnotationPagesFromApi]);
+        setPageSize(latestAnnotationsResult.pages[0].size);
+    }, [latestAnnotationsResult, categories?.data, mapAnnotationPagesFromApi]);
 
     const onValidClick = useCallback(() => {
         if (invalidPages.includes(currentPage)) {
@@ -999,9 +1010,9 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
     }, [editedPages, invalidPages, currentPage]);
 
     const onSaveEditClick = useCallback(async () => {
-        if (!task || !latestAnnotationsResult.data || !tokenPages) return;
+        if (!task || !latestAnnotationsResult || !tokenPages) return;
 
-        let { revision } = latestAnnotationsResult.data;
+        let { revision } = latestAnnotationsResult;
 
         const pages = mapModifiedAnnotationPagesToApi(
             editedPages,
@@ -1011,7 +1022,6 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             annDataAttrs,
             pageSize
         );
-
         onCloseDataTab();
 
         if (!taskId) {
@@ -1030,7 +1040,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             onCancelClick();
             onSaveTaskSuccess();
 
-            latestAnnotationsResult.refetch();
+            latestAnnotationsResultRefetch();
         } catch (error) {
             onSaveTaskError(error as ApiError);
         }
@@ -1067,7 +1077,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         task: task
     });
 
-    const linksFromApi = latestAnnotationsResult.data?.links_json;
+    const linksFromApi = latestAnnotationsResult?.links_json;
 
     const documentLinksValues = useDocumentLinks(linksFromApi);
 
@@ -1184,7 +1194,8 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         selectedLabels,
         latestLabelsId,
         linksFromApi,
-        documentLinksValues
+        documentLinksValues,
+        latestAnnotationsResult
     ]);
 
     return <TaskAnnotatorContext.Provider value={value}>{children}</TaskAnnotatorContext.Provider>;

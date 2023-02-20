@@ -101,7 +101,12 @@ const mapAnnotationToApi = (
     annotationDataAttrs: Record<number, Array<CategoryDataAttributeWithValue>>,
     tokens: PageToken[]
 ): PageInfoObjs[] => {
-    const annDataAttrsItem = annotationDataAttrs[+ann.id];
+    const annDataAttrsItem = annotationDataAttrs[+ann.id]?.map((annotation, i) => {
+        if (!annotation.value && ann.data?.dataAttributes[i]?.value) {
+            annotation.value = ann.data?.dataAttributes[i]?.value;
+        }
+        return annotation;
+    });
     const filteredDataAttrs = annDataAttrsItem
         ? annDataAttrsItem.filter(({ value }) => value.trim() !== '')
         : [];
@@ -225,21 +230,25 @@ export const mapModifiedAnnotationPagesToApi = (
     annotationDataAttrs: Record<number, Array<CategoryDataAttributeWithValue>>,
     defaultPageSize: { width: number; height: number }
 ): PageInfo[] => {
-    return modifiedPagesNums.map((page_num) => {
+    const res = modifiedPagesNums.map((page_num) => {
         const annotations = annotationsByPageNum[page_num];
         const tokens = tokensByPages[page_num];
         const pageSize = pages.find((page) => page.page_num === page_num)?.size;
         const annotationWithChildren = annotations.map((el) =>
             addChildrenToAnnotation(el, annotations)
         );
+        const dataAttributes = annotationDataAttrs;
+
         return {
             page_num,
             size: pageSize ?? defaultPageSize,
             objs: annotationWithChildren
-                .map((annotation) => mapAnnotationToApi(annotation, annotationDataAttrs, tokens))
+                .map((annotation) => mapAnnotationToApi(annotation, dataAttributes, tokens))
                 .flat()
         };
     });
+
+    return res;
 };
 
 const formatTable = (table: TableApi): AnnotationTable => {
@@ -269,13 +278,18 @@ export const mapAnnotationFromApi = (
     category?: Category,
     taxonLabels?: Map<string, Taxon>
 ): Annotation => {
-    let dataAttr: CategoryDataAttributeWithValue | null = null;
+    let taxonName: string | undefined;
+
     if (obj.data.dataAttributes) {
-        dataAttr = obj.data.dataAttributes.find(
+        const dataAttr: CategoryDataAttributeWithValue = obj.data.dataAttributes.find(
             (attr: CategoryDataAttributeWithValue) => attr.type === 'taxonomy'
         );
+
+        if (taxonLabels && dataAttr) {
+            taxonName = taxonLabels?.get(dataAttr.value)?.name;
+        }
     }
-    const taxonName = dataAttr && dataAttr.value ? taxonLabels?.get(dataAttr.value)?.name : null;
+
     return {
         id: obj.id!,
         boundType: (obj.type as AnnotationBoundType) || 'box',
