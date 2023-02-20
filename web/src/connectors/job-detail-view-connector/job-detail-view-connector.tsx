@@ -51,7 +51,8 @@ export const JobConnector: React.FC<JobDetailViewProps> = ({
         totalCount,
         searchText,
         tableValue,
-        onTableValueChange
+        onTableValueChange,
+        onTotalCountChange
     } = usePageTable<FileDocument>('original_name');
 
     const history = useHistory();
@@ -98,6 +99,12 @@ export const JobConnector: React.FC<JobDetailViewProps> = ({
     }, [tabValue]);
 
     const { data: job, refetch: refetchJob } = useJobById({ jobId }, { refetchInterval: 10000 });
+
+    useEffect(() => {
+        if (job?.files.length !== undefined) {
+            onTotalCountChange(job.files.length);
+        }
+    }, [job]);
 
     const svc = useUuiContext();
     const { notifyError, notifySuccess } = useNotifications();
