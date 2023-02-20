@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 import responses
 
-from src.badgerdoc_format import (
+from src.labelstudio_format import (
     annotation_converter_practic,
 )
 from src.badgerdoc_to_labelstudio_converter import (

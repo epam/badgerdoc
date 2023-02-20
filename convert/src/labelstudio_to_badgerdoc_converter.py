@@ -12,7 +12,7 @@ from fastapi.encoders import jsonable_encoder
 from tenant_dependency import TenantData
 
 from src.config import DEFAULT_PAGE_BORDER_OFFSET, settings
-from src.badgerdoc_format.annotation_converter import (
+from src.labelstudio_format.annotation_converter import (
     AnnotationConverter,
 )
 from src.badgerdoc_format.badgerdoc_format import (

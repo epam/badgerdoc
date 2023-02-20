@@ -5,7 +5,7 @@ from typing import NamedTuple
 from botocore.client import BaseClient
 from tenant_dependency import TenantData
 
-from src.badgerdoc_format.annotation_converter_practic import (
+from src.labelstudio_format.annotation_converter_practic import (
     AnnotationConverterToTheory,
 )
 from src.labelstudio_format.ls_format import LabelStudioFormat

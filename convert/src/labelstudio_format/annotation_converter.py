@@ -1,14 +1,13 @@
 from typing import Any, List, Optional, Tuple
 
-from . import bd_annotation_model_practic
-from .bd_annotation_model import (
+from src.badgerdoc_format.bd_annotation_model import (
     AnnotationLink,
     BadgerdocAnnotation,
     Obj,
     Page,
     Size,
 )
-from .bd_tokens_model import Page as BadgerdocTokensPage
+from src.badgerdoc_format.bd_tokens_model import Page as BadgerdocTokensPage
 from src.labelstudio_format.ls_models import (
     Annotation,
     LabelStudioModel,

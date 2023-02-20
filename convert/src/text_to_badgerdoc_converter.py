@@ -31,7 +31,7 @@ class TextToBadgerdocConverter:
         s3_output_tokens: S3Path,
     ) -> None:
         text = self.download(s3_input_text)
-        self.badgerdoc_format.convert_from_text(text)
+        self.badgerdoc_format.tokens_page = self.plain_text_converter.convert(text)
         self.upload(
             s3_output_tokens,
             s3_output_pdf,

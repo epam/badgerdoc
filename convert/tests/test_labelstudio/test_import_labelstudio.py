@@ -23,6 +23,7 @@ from src.labelstudio_to_badgerdoc_converter import (
 from src.labelstudio_format.ls_models import (
     LabelStudioModel,
 )
+from src.labelstudio_format.converter import Converter
 
 TEST_FILES_DIR = Path(__file__).parent / "test_data"
 
@@ -111,13 +112,16 @@ def test_annotation_converter():
         font_width=7,
         line_spacing=2,
     )
+    labelstudio_format = Converter()
 
-    badgerdoc_format.convert_from_labelstudio(
+    labelstudio_format.convert_from_labelstudio(
         LabelStudioModel.parse_file(INPUT_LABELSTUDIO_FILE)
     )
     with TemporaryDirectory() as dir_name:
         tokens_test_path = Path(dir_name) / "tokens_test.json"
         annotations_test_path = Path(dir_name) / "annotations_test.json"
+        badgerdoc_format.tokens_page = labelstudio_format.tokens_page
+        badgerdoc_format.badgerdoc_annotation = labelstudio_format.badgerdoc_annotation
         badgerdoc_format.export_tokens(tokens_test_path)
         badgerdoc_format.export_annotations(annotations_test_path)
         tokens_test = json.loads(tokens_test_path.read_text())
@@ -144,9 +148,12 @@ def test_import_document_links():
         line_spacing=2,
     )
 
-    badgerdoc_format.convert_from_labelstudio(
+    labelstudio_format = Converter()
+    labelstudio_format .convert_from_labelstudio(
         LabelStudioModel.parse_file(INPUT_LABELSTUDIO_FILE)
     )
+    badgerdoc_format.tokens_page = labelstudio_format.tokens_page
+    badgerdoc_format.badgerdoc_annotation = labelstudio_format.badgerdoc_annotation
     with TemporaryDirectory() as dir_name:
         tokens_test_path = Path(dir_name) / "tokens_test.json"
         annotations_test_path = Path(dir_name) / "annotations_test.json"

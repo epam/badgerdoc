@@ -1,10 +1,6 @@
-import json
-
 import pytest
 
-from src.badgerdoc_format.badgerdoc_format import (
-    BadgerdocFormat,
-)
+from src.plain_text_format.plain_text_converter import TextToBadgerdocTokensConverter
 from src.text_to_badgerdoc_converter import (
     TextToBadgerdocConverter,
 )
@@ -38,5 +34,5 @@ def test_correctness_of_import_text_schema(test_app, monkeypatch):
 
 
 def test_import_empty_text():
-    badgerdoc_format = BadgerdocFormat()
-    badgerdoc_format.convert_from_text("")
+    converter =  TextToBadgerdocTokensConverter()
+    converter.convert("")
