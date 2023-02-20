@@ -5,8 +5,8 @@ import sqlalchemy.event
 
 import pipelines.db.logger as logger
 import pipelines.db.models as models
-import pipelines.schemas as schemas
 import pipelines.pipeline_runner as runner
+import pipelines.schemas as schemas
 
 
 def test_create_log(testing_session):

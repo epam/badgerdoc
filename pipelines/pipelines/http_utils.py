@@ -2,6 +2,7 @@ import time
 from typing import Any, Dict, List, Optional
 
 import requests
+
 from pipelines import config, log, schemas, service_token
 
 logger = log.get_logger(__file__)

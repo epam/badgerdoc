@@ -2,12 +2,13 @@ import asyncio
 import datetime
 from typing import Any, Callable, Dict, Generator, List, Optional, Type, Union
 
-import pipelines.db.models as dbm
 from aiokafka import AIOKafkaProducer
-from pipelines import config, execution, log, schemas
 from pydantic import AnyUrl
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
+
+import pipelines.db.models as dbm
+from pipelines import config, execution, log, schemas
 
 logger = log.get_logger(__file__)
 

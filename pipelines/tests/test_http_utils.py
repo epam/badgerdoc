@@ -1,8 +1,8 @@
 from unittest.mock import patch
 
+import pytest
 import requests
 
-import pytest
 from pipelines import http_utils, schemas
 
 

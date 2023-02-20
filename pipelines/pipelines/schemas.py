@@ -5,9 +5,10 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
+from pydantic import BaseModel, Field, PrivateAttr, root_validator, validator
+
 import pipelines.db.models as dbm
 from pipelines import log
-from pydantic import BaseModel, Field, PrivateAttr, root_validator, validator
 
 logger = log.get_logger(__file__)
 

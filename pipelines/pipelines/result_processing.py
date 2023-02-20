@@ -8,8 +8,9 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 import urllib3.exceptions
 from minio import Minio
 from minio import error as minioerr
-from pipelines import config, http_utils, log
 from pydantic import BaseModel, ValidationError
+
+from pipelines import config, http_utils, log
 
 logger = log.get_logger(__file__)
 

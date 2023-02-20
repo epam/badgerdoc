@@ -3,6 +3,7 @@ from typing import Optional
 
 import aiokafka
 from kafka import admin, errors
+
 from pipelines import config, log
 
 logger = log.get_logger(__name__)

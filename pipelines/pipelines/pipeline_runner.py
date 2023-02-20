@@ -4,6 +4,7 @@ from typing import Any
 
 import aiokafka
 from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
+
 from pipelines import execution, schemas
 from pipelines.log import get_logger
 

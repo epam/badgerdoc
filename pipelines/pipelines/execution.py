@@ -8,12 +8,15 @@ from itertools import chain
 from typing import Any, DefaultDict, Dict, List, Optional, Union
 from uuid import uuid4
 
-import pipelines.db.models as dbm
-import pipelines.db.service as service
-import pipelines.result_processing as postprocessing
 import requests
 from aiokafka import AIOKafkaProducer
 from fastapi import HTTPException, status
+from pydantic import BaseModel, Field
+from sqlalchemy import orm
+
+import pipelines.db.models as dbm
+import pipelines.db.service as service
+import pipelines.result_processing as postprocessing
 from pipelines import (
     config,
     http_utils,
@@ -23,8 +26,6 @@ from pipelines import (
     service_token,
     webhooks,
 )
-from pydantic import BaseModel, Field
-from sqlalchemy import orm
 
 logger = log.get_logger(__file__)
 minio_client = s3.get_minio_client()

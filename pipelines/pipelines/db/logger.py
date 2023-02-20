@@ -1,12 +1,13 @@
 import datetime
 
+from sqlalchemy import event, insert
+from sqlalchemy.engine import Connection
+from sqlalchemy.orm import Mapper
+
 import pipelines.db.models as models
 import pipelines.db.service as service
 import pipelines.pipeline_runner as runner
 import pipelines.schemas as schemas
-from sqlalchemy import event, insert
-from sqlalchemy.engine import Connection
-from sqlalchemy.orm import Mapper
 
 
 def create_log(event_type: str, entity: models.Table) -> schemas.Log:
