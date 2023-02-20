@@ -1,9 +1,8 @@
 """Testing users/keycloak/query.py."""
 import json
-from unittest.mock import patch, create_autospec
+from unittest.mock import create_autospec, patch
 
 import pytest
-
 import users.keycloak.query as query
 import users.keycloak.schemas as schemas
 

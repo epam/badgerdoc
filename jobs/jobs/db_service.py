@@ -1,11 +1,12 @@
 from datetime import datetime
 from typing import Any, Dict, Generator, List, Union
 
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session, sessionmaker
+
 import jobs.config as config
 import jobs.models as dbm
 import jobs.schemas as schemas
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session, sessionmaker
 
 engine = create_engine(config.POSTGRESQL_JOBMANAGER_DATABASE_URI)
 LocalSession = sessionmaker(autocommit=False, autoflush=False, bind=engine)

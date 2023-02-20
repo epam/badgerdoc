@@ -8,17 +8,14 @@ from uuid import uuid4
 
 from cache import AsyncTTL
 from fastapi import HTTPException, status
+from sqlalchemy.orm import Session
+
 from processing.config import settings
 from processing.schema import PreprocessingStatus, Status
 from processing.utils.aiohttp_utils import send_request
 from processing.utils.logger import get_log_exception_msg, get_logger
-from processing.utils.utils import (
-    execute_pipeline,
-    get_files_data,
-    get_model_url,
-    split_iterable,
-)
-from sqlalchemy.orm import Session
+from processing.utils.utils import (execute_pipeline, get_files_data,
+                                    get_model_url, split_iterable)
 
 logger = get_logger(__name__)
 

@@ -1,19 +1,11 @@
 from typing import Any, List, Optional, Tuple
 
 from ..models import bd_annotation_model_practic
-from ..models.bd_annotation_model import (
-    AnnotationLink,
-    BadgerdocAnnotation,
-    Obj,
-    Page,
-    Size,
-)
+from ..models.bd_annotation_model import (AnnotationLink, BadgerdocAnnotation,
+                                          Obj, Page, Size)
 from ..models.bd_tokens_model import Page as BadgerdocTokensPage
-from ..models.label_studio_models import (
-    LabelStudioModel,
-    ModelItem,
-    ResultItem,
-)
+from ..models.label_studio_models import (LabelStudioModel, ModelItem,
+                                          ResultItem)
 from .annotation_converter_practic import AnnotationConverterPractic
 
 

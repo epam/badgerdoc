@@ -2,13 +2,8 @@ from typing import Optional, Set
 
 from db_example import Address, User, get_db
 from fastapi import Depends, FastAPI
-from filter_lib import (  # type: ignore
-    Page,
-    create_filter_model,
-    form_query,
-    map_request_to_filter,
-    paginate,
-)
+from filter_lib import (Page, create_filter_model, form_query,  # type: ignore
+                        map_request_to_filter, paginate)
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 

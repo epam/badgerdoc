@@ -5,9 +5,9 @@ from unittest import mock
 
 import pytest
 from freezegun import freeze_time
+from scheduler.db import models
 
 from scheduler import heartbeat, unit
-from scheduler.db import models
 
 
 @freeze_time("2020-01-01")

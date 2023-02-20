@@ -6,9 +6,9 @@ Create Date: 2022-05-17 16:28:24.508699
 
 """
 import sqlalchemy as sa
+from alembic import op
 from sqlalchemy import orm
 
-from alembic import op
 from pipelines.db import models
 
 # revision identifiers, used by Alembic.

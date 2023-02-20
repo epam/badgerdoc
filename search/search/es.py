@@ -3,6 +3,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import aiohttp
 from elasticsearch import AsyncElasticsearch
 from elasticsearch.exceptions import NotFoundError, RequestError
+
 from search.config import settings
 
 INDEX_SETTINGS = {

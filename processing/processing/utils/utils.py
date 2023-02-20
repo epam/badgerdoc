@@ -2,11 +2,12 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple, TypeVar
 from urllib.parse import urljoin
 
 from cache import AsyncTTL
+from sqlalchemy.orm import Session
+
 from processing import db, schema
 from processing.config import settings
 from processing.utils.aiohttp_utils import send_request
 from processing.utils.logger import get_log_exception_msg, get_logger
-from sqlalchemy.orm import Session
 
 logger = get_logger(__name__)
 T = TypeVar("T")

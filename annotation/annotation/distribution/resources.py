@@ -6,31 +6,18 @@ from sqlalchemy.orm import Session
 from tenant_dependency import TenantData
 
 from annotation.database import get_db
-from annotation.distribution import (
-    distribute,
-    find_unassigned_files,
-    prepare_response,
-)
+from annotation.distribution import (distribute, find_unassigned_files,
+                                     prepare_response)
 from annotation.errors import FieldConstraintError
-from annotation.jobs import (
-    check_annotators,
-    check_validators,
-    get_job_attributes_for_post,
-)
+from annotation.jobs import (check_annotators, check_validators,
+                             get_job_attributes_for_post)
 from annotation.microservice_communication.assets_communication import (
-    get_files_info,
-    prepare_files_for_distribution,
-)
-from annotation.microservice_communication.search import (
-    X_CURRENT_TENANT_HEADER,
-)
+    get_files_info, prepare_files_for_distribution)
+from annotation.microservice_communication.search import \
+    X_CURRENT_TENANT_HEADER
 from annotation.models import File, Job, User
-from annotation.schemas import (
-    BadRequestErrorSchema,
-    ConnectionErrorSchema,
-    ManualAnnotationTaskSchema,
-    TaskInfoSchema,
-)
+from annotation.schemas import (BadRequestErrorSchema, ConnectionErrorSchema,
+                                ManualAnnotationTaskSchema, TaskInfoSchema)
 from annotation.tags import TASKS_TAG
 from annotation.token_dependency import TOKEN
 

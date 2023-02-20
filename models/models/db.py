@@ -1,17 +1,8 @@
 import datetime
 import enum
 
-from sqlalchemy import (
-    VARCHAR,
-    Boolean,
-    Column,
-    DateTime,
-    Enum,
-    ForeignKey,
-    Integer,
-    String,
-    create_engine,
-)
+from sqlalchemy import (VARCHAR, Boolean, Column, DateTime, Enum, ForeignKey,
+                        Integer, String, create_engine)
 from sqlalchemy.dialects.postgresql import DOUBLE_PRECISION, JSON
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.mutable import MutableDict, MutableList

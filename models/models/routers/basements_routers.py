@@ -2,24 +2,16 @@ import logging
 from typing import Any, Dict, Optional, Union
 
 from fastapi import APIRouter, Depends, File, Header, HTTPException, UploadFile
-from filter_lib import (
-    Page,
-    create_filter_model,
-    form_query,
-    map_request_to_filter,
-    paginate,
-)
+from filter_lib import (Page, create_filter_model, form_query,
+                        map_request_to_filter, paginate)
+from sqlalchemy.orm import Session
+from tenant_dependency import TenantData
+
 from models import crud, schemas
 from models.db import Basement, get_db
 from models.routers import tenant
-from models.utils import (
-    NoSuchTenant,
-    convert_bucket_name_if_s3prefix,
-    get_minio_resource,
-    upload_to_object_storage,
-)
-from sqlalchemy.orm import Session
-from tenant_dependency import TenantData
+from models.utils import (NoSuchTenant, convert_bucket_name_if_s3prefix,
+                          get_minio_resource, upload_to_object_storage)
 
 LOGGER = logging.getLogger(name="models")
 

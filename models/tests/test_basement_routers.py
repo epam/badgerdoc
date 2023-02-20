@@ -4,11 +4,11 @@ from unittest.mock import Mock, patch
 import pytest
 from fastapi.exceptions import HTTPException
 from fastapi.testclient import TestClient
+from tests.test_utils import TEST_LIMITS
 
 from models.db import Basement
 from models.main import app
 from models.routers import basements_routers
-from tests.test_utils import TEST_LIMITS
 
 
 @pytest.fixture(scope="function")

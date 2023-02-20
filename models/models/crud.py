@@ -1,14 +1,11 @@
 from typing import Dict, Optional, Tuple, Union
 
-from models.db import Basement, Model, Training
-from models.schemas import (
-    BasementBase,
-    ModelBase,
-    TrainingBase,
-    TrainingUpdate,
-)
 from sqlalchemy import desc
 from sqlalchemy.orm import Session
+
+from models.db import Basement, Model, Training
+from models.schemas import (BasementBase, ModelBase, TrainingBase,
+                            TrainingUpdate)
 
 
 def is_id_existing(

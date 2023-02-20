@@ -2,6 +2,7 @@ import enum
 from typing import Any, Dict, Optional
 
 from minio import Minio, credentials
+
 from users import config, logger
 
 

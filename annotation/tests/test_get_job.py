@@ -4,17 +4,15 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
-
-from annotation.jobs import collect_job_names
-from annotation.microservice_communication.search import (
-    AUTHORIZATION,
-    BEARER,
-    HEADER_TENANT,
-)
-from annotation.models import Category, File, Job, User
-from annotation.schemas import FileStatusEnumSchema, ValidationSchema
 from tests.consts import ANNOTATION_PATH
 from tests.override_app_dependency import TEST_TOKEN, app
+
+from annotation.jobs import collect_job_names
+from annotation.microservice_communication.search import (AUTHORIZATION,
+                                                          BEARER,
+                                                          HEADER_TENANT)
+from annotation.models import Category, File, Job, User
+from annotation.schemas import FileStatusEnumSchema, ValidationSchema
 
 client = TestClient(app)
 

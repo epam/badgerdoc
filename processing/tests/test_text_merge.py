@@ -1,19 +1,9 @@
 from unittest.mock import patch
 
-from processing.schema import (
-    AnnotationData,
-    MatchedPage,
-    Page,
-    ParagraphBbox,
-    PageSize,
-    Input,
-)
-from processing.text_merge import (
-    convert_points_to_pixels,
-    match_page,
-    download_files,
-    stitch_boxes,
-)
+from processing.schema import (AnnotationData, Input, MatchedPage, Page,
+                               PageSize, ParagraphBbox)
+from processing.text_merge import (convert_points_to_pixels, download_files,
+                                   match_page, stitch_boxes)
 
 
 class ClientObj:

@@ -3,14 +3,13 @@ from pathlib import Path
 from typing import NamedTuple
 
 from botocore.client import BaseClient
-from convert.label_studio_to_badgerdoc.badgerdoc_format.annotation_converter_practic import (
-    AnnotationConverterToTheory,
-)
-from convert.label_studio_to_badgerdoc.labelstudio_format import (
-    LabelStudioFormat,
-)
-from convert.logger import get_logger
 from tenant_dependency import TenantData
+
+from convert.label_studio_to_badgerdoc.badgerdoc_format.annotation_converter_practic import \
+    AnnotationConverterToTheory
+from convert.label_studio_to_badgerdoc.labelstudio_format import \
+    LabelStudioFormat
+from convert.logger import get_logger
 
 from .models import S3Path, bd_annotation_model_practic
 from .models.bd_annotation_model import BadgerdocAnnotation

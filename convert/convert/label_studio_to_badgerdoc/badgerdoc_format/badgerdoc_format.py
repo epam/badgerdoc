@@ -1,13 +1,9 @@
 from pathlib import Path
 from typing import Optional
 
-from ...config import (
-    DEFAULT_PAGE_BORDER_OFFSET,
-    DEFAULT_PDF_FONT_HEIGHT,
-    DEFAULT_PDF_FONT_WIDTH,
-    DEFAULT_PDF_LINE_SPACING,
-    DEFAULT_PDF_PAGE_WIDTH,
-)
+from ...config import (DEFAULT_PAGE_BORDER_OFFSET, DEFAULT_PDF_FONT_HEIGHT,
+                       DEFAULT_PDF_FONT_WIDTH, DEFAULT_PDF_LINE_SPACING,
+                       DEFAULT_PDF_PAGE_WIDTH)
 from ..models.bd_annotation_model_practic import BadgerdocAnnotation
 from ..models.bd_tokens_model import Page
 from ..models.label_studio_models import LabelStudioModel

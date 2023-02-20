@@ -6,10 +6,10 @@ from typing import Any, Dict
 
 import aiohttp
 import aiokafka
+from scheduler.db import models, service
 from sqlalchemy import exc
 
 from scheduler import config, exceptions, log
-from scheduler.db import models, service
 
 logger = log.get_logger(__name__)
 

@@ -8,42 +8,27 @@ from tenant_dependency import TenantData
 
 from annotation.database import get_db
 from annotation.errors import NoSuchRevisionsError
-from annotation.microservice_communication.assets_communication import (
-    get_file_path_and_bucket,
-)
-from annotation.microservice_communication.search import (
-    X_CURRENT_TENANT_HEADER,
-)
-from annotation.schemas import (
-    AnnotatedDocSchema,
-    BadRequestErrorSchema,
-    ConnectionErrorSchema,
-    DocForSaveSchema,
-    JobOutSchema,
-    NotFoundErrorSchema,
-    PageOutSchema,
-    ParticularRevisionSchema,
-    ValidationSchema,
-)
+from annotation.microservice_communication.assets_communication import \
+    get_file_path_and_bucket
+from annotation.microservice_communication.search import \
+    X_CURRENT_TENANT_HEADER
+from annotation.schemas import (AnnotatedDocSchema, BadRequestErrorSchema,
+                                ConnectionErrorSchema, DocForSaveSchema,
+                                JobOutSchema, NotFoundErrorSchema,
+                                PageOutSchema, ParticularRevisionSchema,
+                                ValidationSchema)
 from annotation.tags import ANNOTATION_TAG, JOBS_TAG, REVISION_TAG
 from annotation.tasks import update_task_status
 
 from ..models import AnnotatedDoc, File, Job, ManualAnnotationTask
 from ..token_dependency import TOKEN
-from .main import (
-    LATEST,
-    accumulate_pages_info,
-    add_search_annotation_producer,
-    check_if_kafka_message_is_needed,
-    check_null_fields,
-    check_task_pages,
-    construct_annotated_doc,
-    construct_particular_rev_response,
-    find_all_revisions_pages,
-    find_latest_revision_pages,
-    load_all_revisions_pages,
-    load_latest_revision_pages,
-)
+from .main import (LATEST, accumulate_pages_info,
+                   add_search_annotation_producer,
+                   check_if_kafka_message_is_needed, check_null_fields,
+                   check_task_pages, construct_annotated_doc,
+                   construct_particular_rev_response, find_all_revisions_pages,
+                   find_latest_revision_pages, load_all_revisions_pages,
+                   load_latest_revision_pages)
 
 router = APIRouter(
     prefix="/annotation",

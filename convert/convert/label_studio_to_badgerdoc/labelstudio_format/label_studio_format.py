@@ -2,23 +2,17 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import requests
+from fastapi import HTTPException, status
+
 from convert.config import settings
 from convert.logger import get_logger
-from fastapi import HTTPException, status
 
 from ..models.bd_annotation_model import AnnotationLink, BadgerdocAnnotation
 from ..models.bd_manifest_model_practic import Manifest
 from ..models.bd_tokens_model import BadgerdocToken, Page
-from ..models.label_studio_models import (
-    Annotation,
-    Data,
-    DocumentRelation,
-    LabelStudioModel,
-    Meta,
-    ModelItem,
-    ResultItem,
-    Value,
-)
+from ..models.label_studio_models import (Annotation, Data, DocumentRelation,
+                                          LabelStudioModel, Meta, ModelItem,
+                                          ResultItem, Value)
 
 LOGGER = get_logger(__file__)
 LOGGER.setLevel("DEBUG")

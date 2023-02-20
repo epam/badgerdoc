@@ -9,23 +9,16 @@ from paramiko.ssh_exception import SSHException
 from sqlalchemy.exc import SQLAlchemyError
 
 from models.constants import API_NAME, API_VERSION, ROOT_PATH
-from models.errors import (
-    ColabFileUploadError,
-    NoSuchTenant,
-    botocore_error_handler,
-    colab_execution_error_handler,
-    minio_client_error_handler,
-    minio_no_such_bucket_error_handler,
-    sqlalchemy_db_error_handler,
-    ssh_connection_error_handler,
-    subprocess_called_error_handler,
-)
-from models.routers import (
-    basements_routers,
-    deployed_models_routers,
-    models_routers,
-    training_routers,
-)
+from models.errors import (ColabFileUploadError, NoSuchTenant,
+                           botocore_error_handler,
+                           colab_execution_error_handler,
+                           minio_client_error_handler,
+                           minio_no_such_bucket_error_handler,
+                           sqlalchemy_db_error_handler,
+                           ssh_connection_error_handler,
+                           subprocess_called_error_handler)
+from models.routers import (basements_routers, deployed_models_routers,
+                            models_routers, training_routers)
 
 LOGGER = logging.getLogger(name=API_NAME)
 LOGGING_FORMAT = "[%(asctime)s] - [%(name)s] - [%(levelname)s] - [%(message)s]"

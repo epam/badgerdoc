@@ -12,19 +12,11 @@ from sqlalchemy.orm import Session
 import assets.utils.minio_utils as minio_utils
 from assets.config import settings
 from assets.db.models import FileObject
-from assets.exceptions import (
-    BucketError,
-    FileConversionError,
-    FileKeyError,
-    UploadLimitExceedError,
-)
+from assets.exceptions import (BucketError, FileConversionError, FileKeyError,
+                               UploadLimitExceedError)
 from assets.schemas import ActionResponse
-from assets.utils.common_utils import (
-    FileConverter,
-    FileProcessor,
-    check_uploading_limit,
-    to_obj,
-)
+from assets.utils.common_utils import (FileConverter, FileProcessor,
+                                       check_uploading_limit, to_obj)
 from assets.utils.s3_utils import S3Manager
 
 ID_ = 12

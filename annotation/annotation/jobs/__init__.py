@@ -1,19 +1,11 @@
-from annotation.jobs.services import (
-    check_annotators,
-    check_validators,
-    clean_tasks_before_jobs_update,
-    collect_job_names,
-    create_user,
-    delete_redundant_users,
-    delete_tasks,
-    get_job,
-    get_job_attributes_for_post,
-    read_user,
-    recalculate_file_pages,
-    update_files,
-    update_inner_job_status,
-    update_user_overall_load,
-)
+from annotation.jobs.services import (check_annotators, check_validators,
+                                      clean_tasks_before_jobs_update,
+                                      collect_job_names, create_user,
+                                      delete_redundant_users, delete_tasks,
+                                      get_job, get_job_attributes_for_post,
+                                      read_user, recalculate_file_pages,
+                                      update_files, update_inner_job_status,
+                                      update_user_overall_load)
 
 __all__ = [
     update_inner_job_status,

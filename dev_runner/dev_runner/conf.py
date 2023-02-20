@@ -1,6 +1,6 @@
 import os
-from pydantic import BaseSettings
 
+from pydantic import BaseSettings
 
 BASE_PORT = os.environ.get("BD_BASE_PORT", 8000)
 

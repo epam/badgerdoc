@@ -1,6 +1,8 @@
-from .base_runner import BaseRunner
-from dev_runner.conf import settings
 import logging
+
+from dev_runner.conf import settings
+
+from .base_runner import BaseRunner
 
 
 class ProcessingRunner(BaseRunner):

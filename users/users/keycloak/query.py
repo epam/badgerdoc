@@ -5,6 +5,7 @@ import users.config as config
 import users.keycloak.resources as resources
 import users.keycloak.schemas as schemas
 from fastapi import HTTPException, status
+
 from users import logger
 
 

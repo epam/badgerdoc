@@ -5,17 +5,8 @@ from typing import Any, Dict, List, Optional, Union
 from uuid import UUID
 
 import dotenv
-from fastapi import (
-    APIRouter,
-    Body,
-    Depends,
-    Header,
-    HTTPException,
-    Path,
-    Query,
-    Response,
-    status,
-)
+from fastapi import (APIRouter, Body, Depends, Header, HTTPException, Path,
+                     Query, Response, status)
 from fastapi.responses import JSONResponse, StreamingResponse
 from filter_lib import Page
 from sqlalchemy import and_, not_
@@ -27,75 +18,44 @@ from tenant_dependency import TenantData
 from annotation.annotations import accumulate_pages_info, row_to_dict
 from annotation.database import get_db
 from annotation.filters import TaskFilter
-from annotation.jobs import (
-    collect_job_names,
-    delete_tasks,
-    get_job,
-    get_job_attributes_for_post,
-    recalculate_file_pages,
-    update_files,
-    update_inner_job_status,
-    update_user_overall_load,
-)
+from annotation.jobs import (collect_job_names, delete_tasks, get_job,
+                             get_job_attributes_for_post,
+                             recalculate_file_pages, update_files,
+                             update_inner_job_status, update_user_overall_load)
 from annotation.logger import Logger
-from annotation.microservice_communication.assets_communication import (
-    get_file_names,
-)
+from annotation.microservice_communication.assets_communication import \
+    get_file_names
 from annotation.microservice_communication.jobs_communication import (
-    JobUpdateException,
-    update_job_status,
-)
+    JobUpdateException, update_job_status)
 from annotation.microservice_communication.search import (
-    X_CURRENT_TENANT_HEADER,
-    expand_response,
-)
+    X_CURRENT_TENANT_HEADER, expand_response)
 from annotation.microservice_communication.user import (
-    GetUserInfoAccessDenied,
-    get_user_logins,
-)
-from annotation.schemas import (
-    AnnotationStatisticsInputSchema,
-    AnnotationStatisticsResponseSchema,
-    BadRequestErrorSchema,
-    ConnectionErrorSchema,
-    ExpandedManualAnnotationTaskSchema,
-    ExportTaskStatsInput,
-    FileStatusEnumSchema,
-    JobStatusEnumSchema,
-    ManualAnnotationTaskInSchema,
-    ManualAnnotationTaskSchema,
-    NotFoundErrorSchema,
-    PagesInfoSchema,
-    TaskPatchSchema,
-    TaskStatusEnumSchema,
-    ValidationEndSchema,
-    ValidationSchema,
-)
+    GetUserInfoAccessDenied, get_user_logins)
+from annotation.schemas import (AnnotationStatisticsInputSchema,
+                                AnnotationStatisticsResponseSchema,
+                                BadRequestErrorSchema, ConnectionErrorSchema,
+                                ExpandedManualAnnotationTaskSchema,
+                                ExportTaskStatsInput, FileStatusEnumSchema,
+                                JobStatusEnumSchema,
+                                ManualAnnotationTaskInSchema,
+                                ManualAnnotationTaskSchema,
+                                NotFoundErrorSchema, PagesInfoSchema,
+                                TaskPatchSchema, TaskStatusEnumSchema,
+                                ValidationEndSchema, ValidationSchema)
 from annotation.tags import REVISION_TAG, TASKS_TAG
-from annotation.tasks.validation import (
-    create_annotation_tasks,
-    create_validation_tasks,
-)
+from annotation.tasks.validation import (create_annotation_tasks,
+                                         create_validation_tasks)
 from annotation.token_dependency import TOKEN
 
 from ..models import File, Job, ManualAnnotationTask
-from .services import (
-    add_task_stats_record,
-    count_annotation_tasks,
-    create_annotation_task,
-    create_export_csv,
-    evaluate_agreement_score,
-    filter_tasks_db,
-    finish_validation_task,
-    get_task_info,
-    get_task_revisions,
-    read_annotation_task,
-    read_annotation_tasks,
-    save_agreement_metrics,
-    unblock_validation_tasks,
-    validate_task_info,
-    validate_user_actions,
-)
+from .services import (add_task_stats_record, count_annotation_tasks,
+                       create_annotation_task, create_export_csv,
+                       evaluate_agreement_score, filter_tasks_db,
+                       finish_validation_task, get_task_info,
+                       get_task_revisions, read_annotation_task,
+                       read_annotation_tasks, save_agreement_metrics,
+                       unblock_validation_tasks, validate_task_info,
+                       validate_user_actions)
 
 dotenv.load_dotenv(dotenv.find_dotenv())
 AGREEMENT_SCORE_ENABLED = os.getenv("AGREEMENT_SCORE_ENABLED", "false")

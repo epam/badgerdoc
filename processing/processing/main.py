@@ -1,16 +1,10 @@
 from typing import Dict, List, Optional, Set
 
-from fastapi import (
-    Body,
-    Depends,
-    FastAPI,
-    Header,
-    HTTPException,
-    Path,
-    Query,
-    Response,
-    status,
-)
+from fastapi import (Body, Depends, FastAPI, Header, HTTPException, Path,
+                     Query, Response, status)
+from sqlalchemy.orm import Session
+from tenant_dependency import TenantData, get_tenant_info
+
 from processing import db, schema
 from processing.config import settings
 from processing.health_check_easy_ocr import health_check_preprocessing
@@ -20,8 +14,6 @@ from processing.text_merge import merge_words_to_paragraph
 from processing.utils.logger import get_logger
 from processing.utils.minio_utils import convert_bucket_name_if_s3prefix
 from processing.utils.utils import map_finish_status_for_assets
-from sqlalchemy.orm import Session
-from tenant_dependency import TenantData, get_tenant_info
 
 logger = get_logger(__name__)
 app = FastAPI(

@@ -12,53 +12,29 @@ from fastapi.testclient import TestClient
 from requests import RequestException
 from sqlalchemy.exc import DBAPIError, SQLAlchemyError
 from sqlalchemy.orm import Session
-
-from annotation.annotations import (
-    MANIFEST,
-    check_task_pages,
-    construct_annotated_doc,
-    create_manifest_json,
-    get_pages_sha,
-    row_to_dict,
-)
-from annotation.annotations.main import (
-    check_docs_identity,
-    upload_json_to_minio,
-    upload_pages_to_minio,
-)
-from annotation.kafka_client import producers
-from annotation.microservice_communication.assets_communication import (
-    ASSETS_FILES_URL,
-)
-from annotation.microservice_communication.search import (
-    AUTHORIZATION,
-    BEARER,
-    HEADER_TENANT,
-)
-from annotation.models import (
-    AnnotatedDoc,
-    Category,
-    File,
-    Job,
-    ManualAnnotationTask,
-    User,
-)
-from annotation.schemas import (
-    CategoryTypeSchema,
-    DocForSaveSchema,
-    JobTypeEnumSchema,
-    PageSchema,
-    TaskStatusEnumSchema,
-    ValidationSchema,
-)
 from tests.consts import ANNOTATION_PATH
-from tests.override_app_dependency import (
-    TEST_HEADERS,
-    TEST_TENANT,
-    TEST_TOKEN,
-    app,
-)
+from tests.override_app_dependency import (TEST_HEADERS, TEST_TENANT,
+                                           TEST_TOKEN, app)
 from tests.test_tasks_crud_ud import construct_path
+
+from annotation.annotations import (MANIFEST, check_task_pages,
+                                    construct_annotated_doc,
+                                    create_manifest_json, get_pages_sha,
+                                    row_to_dict)
+from annotation.annotations.main import (check_docs_identity,
+                                         upload_json_to_minio,
+                                         upload_pages_to_minio)
+from annotation.kafka_client import producers
+from annotation.microservice_communication.assets_communication import \
+    ASSETS_FILES_URL
+from annotation.microservice_communication.search import (AUTHORIZATION,
+                                                          BEARER,
+                                                          HEADER_TENANT)
+from annotation.models import (AnnotatedDoc, Category, File, Job,
+                               ManualAnnotationTask, User)
+from annotation.schemas import (CategoryTypeSchema, DocForSaveSchema,
+                                JobTypeEnumSchema, PageSchema,
+                                TaskStatusEnumSchema, ValidationSchema)
 
 client = TestClient(app)
 

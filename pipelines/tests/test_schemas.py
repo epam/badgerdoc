@@ -1,10 +1,10 @@
 """Testing pipelines/schemas.py."""
 
 import pytest
+import tests.testing_data as td
 
 import pipelines.db.models as dbm
 import pipelines.schemas as schemas
-import tests.testing_data as td
 
 
 def test_init_input_args():

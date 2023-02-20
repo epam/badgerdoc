@@ -1,19 +1,14 @@
 from pathlib import Path
 
-from convert.label_studio_to_badgerdoc.badgerdoc_format import (
-    annotation_converter_practic,
-)
-from convert.label_studio_to_badgerdoc.labelstudio_format.label_studio_format import (
-    LabelStudioFormat,
-)
+from convert.label_studio_to_badgerdoc.badgerdoc_format import \
+    annotation_converter_practic
+from convert.label_studio_to_badgerdoc.labelstudio_format.label_studio_format import \
+    LabelStudioFormat
 from convert.label_studio_to_badgerdoc.models import (
-    bd_annotation_model_practic,
-    bd_manifest_model_practic,
-)
+    bd_annotation_model_practic, bd_manifest_model_practic)
 from convert.label_studio_to_badgerdoc.models.bd_tokens_model import Page
-from convert.label_studio_to_badgerdoc.models.label_studio_models import (
-    LabelStudioModel,
-)
+from convert.label_studio_to_badgerdoc.models.label_studio_models import \
+    LabelStudioModel
 
 TEST_FILES_DIR = Path(__file__).parent / "test_data"
 

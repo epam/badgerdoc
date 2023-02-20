@@ -1,16 +1,8 @@
 from typing import Callable
 from uuid import uuid4
 
-from sqlalchemy import (
-    VARCHAR,
-    Boolean,
-    CheckConstraint,
-    Column,
-    ForeignKey,
-    ForeignKeyConstraint,
-    Index,
-    Integer,
-)
+from sqlalchemy import (VARCHAR, Boolean, CheckConstraint, Column, ForeignKey,
+                        ForeignKeyConstraint, Index, Integer)
 from sqlalchemy.orm import relationship, validates
 from sqlalchemy_utils import Ltree, LtreeType
 

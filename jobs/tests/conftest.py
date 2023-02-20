@@ -4,24 +4,21 @@ import time
 from typing import List
 from unittest.mock import patch
 
-import jobs.db_service as service
-import jobs.main as main
-import jobs.schemas as schemas
 import pytest
+from alembic import command
+from alembic.config import Config
 from fastapi.testclient import TestClient
-from jobs.utils import get_test_db_url
 from pydantic import BaseModel
 from sqlalchemy import create_engine  # type: ignore
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import sessionmaker  # type: ignore
-from sqlalchemy_utils import (  # type: ignore
-    create_database,
-    database_exists,
-    drop_database,
-)
+from sqlalchemy_utils import (create_database, database_exists,  # type: ignore
+                              drop_database)
 
-from alembic import command
-from alembic.config import Config
+import jobs.db_service as service
+import jobs.main as main
+import jobs.schemas as schemas
+from jobs.utils import get_test_db_url
 
 main_database_url = os.environ.get("POSTGRESQL_JOBMANAGER_DATABASE_URI")
 test_db_url = get_test_db_url(main_database_url)

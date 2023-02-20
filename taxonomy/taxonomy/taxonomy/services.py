@@ -3,16 +3,13 @@ from typing import Dict, List, Optional, Tuple, Union
 from filter_lib import Page, form_query, map_request_to_filter, paginate
 from sqlalchemy import and_, desc, null, or_
 from sqlalchemy.orm import Query, Session
+
 from taxonomy.errors import CheckFieldError
 from taxonomy.filters import TaxonomyFilter
 from taxonomy.models import AssociationTaxonomyCategory, Taxonomy
-from taxonomy.schemas import (
-    CategoryLinkSchema,
-    JobTaxonomySchema,
-    TaxonomyBaseSchema,
-    TaxonomyInputSchema,
-    TaxonomyResponseSchema,
-)
+from taxonomy.schemas import (CategoryLinkSchema, JobTaxonomySchema,
+                              TaxonomyBaseSchema, TaxonomyInputSchema,
+                              TaxonomyResponseSchema)
 
 
 def create_taxonomy_instance(

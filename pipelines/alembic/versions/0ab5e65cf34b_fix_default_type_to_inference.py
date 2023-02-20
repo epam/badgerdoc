@@ -5,9 +5,9 @@ Revises: 8a589dda3869
 Create Date: 2022-04-26 19:37:27.263471
 
 """
+from alembic import op
 from sqlalchemy import orm
 
-from alembic import op
 from pipelines.db import models
 
 # revision identifiers, used by Alembic.

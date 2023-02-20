@@ -3,16 +3,14 @@ from typing import Any, List, Optional, Tuple
 
 import boto3
 import urllib3
+from fastapi import HTTPException, status
+
 from convert.config import settings
-from convert.exceptions import (
-    BucketError,
-    FileKeyError,
-    UploadLimitExceedError,
-)
+from convert.exceptions import (BucketError, FileKeyError,
+                                UploadLimitExceedError)
 from convert.logger import get_logger
 from convert.models import coco
 from convert.utils.common_utils import check_uploading_limit
-from fastapi import HTTPException, status
 
 logger = get_logger(__name__)
 

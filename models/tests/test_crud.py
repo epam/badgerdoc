@@ -1,13 +1,13 @@
 from unittest.mock import Mock
 
 from pytest import mark
+from tests.test_utils import TEST_LIMITS
+from tests.utils import create_expected_models, delete_date_field, row_to_dict
 
 from models import crud
 from models.crud import get_instance, get_latest_model
 from models.db import Basement, Model, StatusEnum, Training
 from models.schemas import BasementBase
-from tests.test_utils import TEST_LIMITS
-from tests.utils import create_expected_models, delete_date_field, row_to_dict
 
 GET_BASEMENT = Basement(
     id="base_id", name="basement_name", gpu_support=True, limits=TEST_LIMITS

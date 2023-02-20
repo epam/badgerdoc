@@ -6,9 +6,10 @@ import minio.error
 import pdf2image.exceptions
 import PIL.Image
 import urllib3.exceptions
+from minio.credentials import AWSConfigProvider, EnvAWSProvider, IamAwsProvider
+
 from assets import db, logger
 from assets.config import settings
-from minio.credentials import AWSConfigProvider, EnvAWSProvider, IamAwsProvider
 
 logger_ = logger.get_logger(__name__)
 

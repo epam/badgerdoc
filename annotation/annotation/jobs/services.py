@@ -11,36 +11,20 @@ from sqlalchemy.orm.attributes import InstrumentedAttribute
 from annotation.categories import fetch_bunch_categories_db
 from annotation.categories.services import response_object_from_db
 from annotation.database import Base
-from annotation.errors import (
-    EnumValidationError,
-    FieldConstraintError,
-    WrongJobError,
-)
-from annotation.microservice_communication.assets_communication import (
-    get_files_info,
-)
-from annotation.microservice_communication.jobs_communication import (
-    get_job_names,
-)
-from annotation.models import (
-    Category,
-    File,
-    Job,
-    ManualAnnotationTask,
-    User,
-    association_job_annotator,
-    association_job_owner,
-    association_job_validator,
-)
-from annotation.schemas import (
-    CROSS_MIN_ANNOTATORS_NUMBER,
-    CategoryResponseSchema,
-    FileStatusEnumSchema,
-    JobInfoSchema,
-    JobStatusEnumSchema,
-    TaskStatusEnumSchema,
-    ValidationSchema,
-)
+from annotation.errors import (EnumValidationError, FieldConstraintError,
+                               WrongJobError)
+from annotation.microservice_communication.assets_communication import \
+    get_files_info
+from annotation.microservice_communication.jobs_communication import \
+    get_job_names
+from annotation.models import (Category, File, Job, ManualAnnotationTask, User,
+                               association_job_annotator,
+                               association_job_owner,
+                               association_job_validator)
+from annotation.schemas import (CROSS_MIN_ANNOTATORS_NUMBER,
+                                CategoryResponseSchema, FileStatusEnumSchema,
+                                JobInfoSchema, JobStatusEnumSchema,
+                                TaskStatusEnumSchema, ValidationSchema)
 
 
 def update_inner_job_status(

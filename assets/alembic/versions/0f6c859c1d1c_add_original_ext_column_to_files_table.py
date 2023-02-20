@@ -7,11 +7,10 @@ Create Date: 2022-01-31 17:03:20.077985
 
 """
 import sqlalchemy as sa
-
+from alembic import op
 # revision identifiers, used by Alembic.
 from sqlalchemy.orm import Session  # noqa
 
-from alembic import op
 from assets.db.models import FileObject  # noqa
 
 revision = "0f6c859c1d1c"

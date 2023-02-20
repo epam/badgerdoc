@@ -10,11 +10,8 @@ import pdfplumber
 from .common import models as m
 from .common.minio_utils import MinioCommunicator
 from .storage_exchange import get_annotation, get_document, put_annotation
-from .utils import (
-    form_response,
-    get_needs_from_request_and_annotation,
-    update_annotation_categories,
-)
+from .utils import (form_response, get_needs_from_request_and_annotation,
+                    update_annotation_categories)
 
 logger = logging.getLogger(__name__)
 

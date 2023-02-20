@@ -2,7 +2,7 @@ from fastapi import FastAPI  # type: ignore
 
 from convert.config import API_NAME, API_VERSION, settings
 from convert.logger import get_logger
-from convert.routers import coco, text, label_studio
+from convert.routers import coco, label_studio, text
 
 LOGGER = get_logger(__file__)
 

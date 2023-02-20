@@ -3,11 +3,8 @@ from unittest import mock
 
 import pytest
 
-from models.colab_ssh_utils import (
-    COLAB_TRAINING_DIRECTORY,
-    connect_colab,
-    upload_file_to_colab,
-)
+from models.colab_ssh_utils import (COLAB_TRAINING_DIRECTORY, connect_colab,
+                                    upload_file_to_colab)
 from models.errors import ColabFileUploadError
 
 TEST_FILE_NAME = "test_file.py"

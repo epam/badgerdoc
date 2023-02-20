@@ -2,14 +2,15 @@ import asyncio
 from typing import Optional
 
 import fastapi
+from botocore.exceptions import BotoCoreError
+from elasticsearch.exceptions import ElasticsearchException
+from tenant_dependency import TenantData, get_tenant_info
+
 import search.es as es
 import search.harvester as harvester
 import search.kafka_listener as kafka_listener
 import search.schemas as schemas
-from botocore.exceptions import BotoCoreError
-from elasticsearch.exceptions import ElasticsearchException
 from search.config import settings
-from tenant_dependency import TenantData, get_tenant_info
 
 tags = [
     {

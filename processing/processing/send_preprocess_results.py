@@ -4,6 +4,7 @@ from typing import Iterator, Optional, Set
 
 from fastapi import HTTPException
 from minio.error import MinioException
+
 from processing.utils.logger import get_logger
 from processing.utils.minio_utils import MinioCommunicator
 

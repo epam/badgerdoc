@@ -17,15 +17,8 @@ from sqlalchemy import orm
 import pipelines.db.models as dbm
 import pipelines.db.service as service
 import pipelines.result_processing as postprocessing
-from pipelines import (
-    config,
-    http_utils,
-    log,
-    s3,
-    schemas,
-    service_token,
-    webhooks,
-)
+from pipelines import (config, http_utils, log, s3, schemas, service_token,
+                       webhooks)
 
 logger = log.get_logger(__file__)
 minio_client = s3.get_minio_client()

@@ -10,28 +10,17 @@ from requests.exceptions import ConnectionError, RequestException, Timeout
 from sqlalchemy import asc, not_
 from sqlalchemy.exc import DBAPIError, SQLAlchemyError
 from sqlalchemy.orm import Session
-
-from annotation.annotations import accumulate_pages_info, row_to_dict
-from annotation.models import (
-    AgreementMetrics,
-    AnnotatedDoc,
-    Category,
-    File,
-    Job,
-    ManualAnnotationTask,
-    User,
-)
-from annotation.schemas import (
-    AgreementScoreServiceResponse,
-    CategoryTypeSchema,
-    FileStatusEnumSchema,
-    JobStatusEnumSchema,
-    TaskStatusEnumSchema,
-    ValidationSchema,
-)
-from annotation.tasks import get_task_revisions
 from tests.consts import FINISH_TASK_PATH
 from tests.override_app_dependency import TEST_HEADERS, TEST_TENANT, app
+
+from annotation.annotations import accumulate_pages_info, row_to_dict
+from annotation.models import (AgreementMetrics, AnnotatedDoc, Category, File,
+                               Job, ManualAnnotationTask, User)
+from annotation.schemas import (AgreementScoreServiceResponse,
+                                CategoryTypeSchema, FileStatusEnumSchema,
+                                JobStatusEnumSchema, TaskStatusEnumSchema,
+                                ValidationSchema)
+from annotation.tasks import get_task_revisions
 
 client = TestClient(app)
 

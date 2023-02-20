@@ -1,38 +1,21 @@
 from datetime import datetime
 from typing import Callable
 
-from sqlalchemy import (
-    BOOLEAN,
-    FLOAT,
-    INTEGER,
-    TIMESTAMP,
-    VARCHAR,
-    CheckConstraint,
-    Column,
-    DateTime,
-    ForeignKey,
-    ForeignKeyConstraint,
-    Index,
-    PrimaryKeyConstraint,
-    Table,
-    func,
-)
+from sqlalchemy import (BOOLEAN, FLOAT, INTEGER, TIMESTAMP, VARCHAR,
+                        CheckConstraint, Column, DateTime, ForeignKey,
+                        ForeignKeyConstraint, Index, PrimaryKeyConstraint,
+                        Table, func)
 from sqlalchemy.dialects.postgresql import ARRAY, ENUM, JSON, JSONB, UUID
 from sqlalchemy.orm import relationship, validates
 from sqlalchemy_utils import Ltree, LtreeType
 
 from annotation.database import Base
 from annotation.errors import CheckFieldError
-from annotation.schemas import (
-    DEFAULT_LOAD,
-    AnnotationStatisticsEventEnumSchema,
-    CategoryTypeSchema,
-    FileStatusEnumSchema,
-    JobStatusEnumSchema,
-    JobTypeEnumSchema,
-    TaskStatusEnumSchema,
-    ValidationSchema,
-)
+from annotation.schemas import (DEFAULT_LOAD,
+                                AnnotationStatisticsEventEnumSchema,
+                                CategoryTypeSchema, FileStatusEnumSchema,
+                                JobStatusEnumSchema, JobTypeEnumSchema,
+                                TaskStatusEnumSchema, ValidationSchema)
 
 association_job_annotator = Table(
     "association_job_annotator",

@@ -9,26 +9,16 @@ from taxonomy.database import get_db
 from taxonomy.errors import NoTaxonError
 from taxonomy.filters import TaxonFilter
 from taxonomy.microservice_communication.search import X_CURRENT_TENANT_HEADER
-from taxonomy.schemas import (
-    BadRequestErrorSchema,
-    ConnectionErrorSchema,
-    NotFoundErrorSchema,
-    ParentsConcatenateResponseSchema,
-    TaxonBaseSchema,
-    TaxonInputSchema,
-    TaxonResponseSchema,
-)
+from taxonomy.schemas import (BadRequestErrorSchema, ConnectionErrorSchema,
+                              NotFoundErrorSchema,
+                              ParentsConcatenateResponseSchema,
+                              TaxonBaseSchema, TaxonInputSchema,
+                              TaxonResponseSchema)
 from taxonomy.tags import TAXON_TAG
-from taxonomy.taxon.services import (
-    add_taxon_db,
-    concatenated_parents_list,
-    delete_taxon_db,
-    fetch_bunch_taxons_db,
-    fetch_taxon_db,
-    filter_taxons,
-    insert_taxon_tree,
-    update_taxon_db,
-)
+from taxonomy.taxon.services import (add_taxon_db, concatenated_parents_list,
+                                     delete_taxon_db, fetch_bunch_taxons_db,
+                                     fetch_taxon_db, filter_taxons,
+                                     insert_taxon_tree, update_taxon_db)
 
 router = APIRouter(
     prefix="/taxons",

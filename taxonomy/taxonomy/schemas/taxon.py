@@ -1,6 +1,7 @@
 from typing import List, Optional
 
 from pydantic import BaseModel, Field, validator
+
 from taxonomy.errors import CheckFieldError
 
 

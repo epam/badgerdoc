@@ -4,6 +4,8 @@ from typing import Any, Dict
 from urllib.parse import urljoin
 
 import requests
+from fastapi import HTTPException, status
+
 from convert.coco_import.convert import ConvertToBadgerdoc
 from convert.config import settings
 from convert.exceptions import UploadLimitExceedError
@@ -11,7 +13,6 @@ from convert.logger import get_logger
 from convert.models import coco
 from convert.utils.common_utils import check_uploading_limit
 from convert.utils.s3_utils import S3Manager, s3_download_files
-from fastapi import HTTPException, status
 
 LOGGER = get_logger(__file__)
 

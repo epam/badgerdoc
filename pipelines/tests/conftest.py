@@ -2,6 +2,9 @@ import os
 from unittest.mock import patch
 
 import pytest
+import tests.testing_data as td
+from alembic import command
+from alembic.config import Config
 from fastapi.testclient import TestClient
 from pydantic import BaseModel
 from sqlalchemy import create_engine
@@ -13,9 +16,6 @@ import pipelines.app as app
 import pipelines.db.models as dbm
 import pipelines.db.service as service
 import pipelines.execution as execution
-import tests.testing_data as td
-from alembic import command
-from alembic.config import Config
 from pipelines.config import DB_URI
 
 test_db_url = service.get_test_db_url(DB_URI)

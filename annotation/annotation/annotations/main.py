@@ -18,13 +18,9 @@ from annotation import logger
 from annotation.kafka_client import KAFKA_BOOTSTRAP_SERVER, KAFKA_SEARCH_TOPIC
 from annotation.kafka_client import producers as kafka_producers
 from annotation.models import AnnotatedDoc, DocumentLinks
-from annotation.schemas import (
-    AnnotatedDocSchema,
-    DocForSaveSchema,
-    PageSchema,
-    ParticularRevisionSchema,
-    RevisionLink,
-)
+from annotation.schemas import (AnnotatedDocSchema, DocForSaveSchema,
+                                PageSchema, ParticularRevisionSchema,
+                                RevisionLink)
 
 load_dotenv(find_dotenv())
 ENDPOINT_URL = os.environ.get("S3_ENDPOINT_URL")

@@ -4,36 +4,27 @@ from fastapi import APIRouter, Depends, HTTPException, Path, Response, status
 from filter_lib import Page
 from sqlalchemy.orm import Session
 from sqlalchemy_filters.exceptions import BadFilterFormat
+
 from taxonomy.database import get_db
 from taxonomy.filters import TaxonomyFilter
 from taxonomy.logging_setup import LOGGER
 from taxonomy.microservice_communication.search import X_CURRENT_TENANT_HEADER
-from taxonomy.schemas import (
-    BadRequestErrorSchema,
-    CategoryLinkSchema,
-    ConnectionErrorSchema,
-    JobTaxonomySchema,
-    NotFoundErrorSchema,
-    TaxonomyBaseSchema,
-    TaxonomyInputSchema,
-    TaxonomyResponseSchema,
-)
+from taxonomy.schemas import (BadRequestErrorSchema, CategoryLinkSchema,
+                              ConnectionErrorSchema, JobTaxonomySchema,
+                              NotFoundErrorSchema, TaxonomyBaseSchema,
+                              TaxonomyInputSchema, TaxonomyResponseSchema)
 from taxonomy.tags import TAXONOMY_TAG
-from taxonomy.taxonomy.services import (
-    batch_latest_taxonomies,
-    batch_versioned_taxonomies,
-    bulk_create_relations_with_categories,
-    bulk_delete_category_association,
-    create_taxonomy_instance,
-    delete_taxonomy_instance,
-    filter_taxonomies,
-    get_latest_taxonomy,
-    get_linked_taxonomies,
-    get_second_latest_taxonomy,
-    get_taxonomies_by_job_id,
-    get_taxonomy,
-    update_taxonomy_instance,
-)
+from taxonomy.taxonomy.services import (batch_latest_taxonomies,
+                                        batch_versioned_taxonomies,
+                                        bulk_create_relations_with_categories,
+                                        bulk_delete_category_association,
+                                        create_taxonomy_instance,
+                                        delete_taxonomy_instance,
+                                        filter_taxonomies, get_latest_taxonomy,
+                                        get_linked_taxonomies,
+                                        get_second_latest_taxonomy,
+                                        get_taxonomies_by_job_id, get_taxonomy,
+                                        update_taxonomy_instance)
 
 router = APIRouter(
     prefix="/taxonomy",

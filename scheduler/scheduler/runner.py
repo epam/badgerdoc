@@ -2,8 +2,9 @@ import asyncio
 import uuid
 
 import aiokafka
-from scheduler import exceptions, log, unit
 from scheduler.db import models
+
+from scheduler import exceptions, log, unit
 
 logger = log.get_logger(__name__)
 runner_id: str = str(uuid.uuid4())

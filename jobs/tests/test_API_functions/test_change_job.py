@@ -1,12 +1,11 @@
 import asyncio
-import pytest
 from unittest.mock import patch
 
+import pytest
+from tests.test_db import (create_mock_annotation_job_in_db,
+                           create_mock_extraction_job_in_db)
+
 import jobs.schemas as schemas
-from tests.test_db import (
-    create_mock_annotation_job_in_db,
-    create_mock_extraction_job_in_db,
-)
 
 
 def test_change_job_status_with_validation_correct_jwt_provided(

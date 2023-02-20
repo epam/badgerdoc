@@ -11,6 +11,7 @@ from typing import Any, Dict, List, Optional
 
 from fastapi import HTTPException
 from minio.error import MinioException
+
 from processing import schema
 from processing.schema import AnnotationData, MatchedPage, Page, ParagraphBbox
 from processing.third_party_code.box_util import stitch_boxes_into_lines

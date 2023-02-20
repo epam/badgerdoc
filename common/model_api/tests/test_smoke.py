@@ -1,9 +1,9 @@
 from pathlib import Path
-from unittest.mock import MagicMock
 from pprint import pprint
-import pytest
+from unittest.mock import MagicMock
 
 import model_api
+import pytest
 from model_api.common import models as m
 from model_api.pipeline import pipeline
 

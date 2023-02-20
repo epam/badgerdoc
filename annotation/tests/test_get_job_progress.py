@@ -1,20 +1,14 @@
 import pytest
 from fastapi.testclient import TestClient
-
-from annotation.microservice_communication.search import (
-    AUTHORIZATION,
-    BEARER,
-    HEADER_TENANT,
-)
-from annotation.models import Category, File, Job, User
-from annotation.schemas import (
-    CategoryTypeSchema,
-    FileStatusEnumSchema,
-    TaskStatusEnumSchema,
-    ValidationSchema,
-)
 from tests.consts import POST_JOBS_PATH
 from tests.override_app_dependency import TEST_TOKEN, app
+
+from annotation.microservice_communication.search import (AUTHORIZATION,
+                                                          BEARER,
+                                                          HEADER_TENANT)
+from annotation.models import Category, File, Job, User
+from annotation.schemas import (CategoryTypeSchema, FileStatusEnumSchema,
+                                TaskStatusEnumSchema, ValidationSchema)
 
 client = TestClient(app)
 

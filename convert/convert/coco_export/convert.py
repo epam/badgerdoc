@@ -9,6 +9,7 @@ from zipfile import ZipFile
 
 import requests
 from botocore.exceptions import ClientError
+
 from convert.config import minio_client, minio_resource, settings
 from convert.logger import get_logger
 from convert.models.coco import Annotation, Category, CocoDataset, Image

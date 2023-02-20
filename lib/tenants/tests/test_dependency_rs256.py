@@ -1,8 +1,5 @@
-from src.dependency import (
-    TenantDependencyBase,
-    TenantDependencyDocs,
-    get_tenant_info,
-)
+from src.dependency import (TenantDependencyBase, TenantDependencyDocs,
+                            get_tenant_info)
 
 CURRENT_TENANT = "tenant1"
 

@@ -6,32 +6,18 @@ from fastapi.testclient import TestClient
 from pytest import mark
 from sqlalchemy import asc
 from sqlalchemy.exc import SQLAlchemyError
+from tests.consts import POST_JOBS_PATH
+from tests.override_app_dependency import (TEST_HEADERS, TEST_TENANT,
+                                           TEST_TOKEN, app)
 
 from annotation.annotations import row_to_dict
-from annotation.models import (
-    Category,
-    File,
-    Job,
-    User,
-    association_job_annotator,
-    association_job_category,
-    association_job_owner,
-    association_job_validator,
-)
-from annotation.schemas import (
-    CategoryTypeSchema,
-    FileStatusEnumSchema,
-    JobStatusEnumSchema,
-    JobTypeEnumSchema,
-    ValidationSchema,
-)
-from tests.consts import POST_JOBS_PATH
-from tests.override_app_dependency import (
-    TEST_HEADERS,
-    TEST_TENANT,
-    TEST_TOKEN,
-    app,
-)
+from annotation.models import (Category, File, Job, User,
+                               association_job_annotator,
+                               association_job_category, association_job_owner,
+                               association_job_validator)
+from annotation.schemas import (CategoryTypeSchema, FileStatusEnumSchema,
+                                JobStatusEnumSchema, JobTypeEnumSchema,
+                                ValidationSchema)
 
 JOBS_SEARCH_URL = os.environ.get("JOBS_SEARCH_URL")
 

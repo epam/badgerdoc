@@ -1,6 +1,6 @@
+import pytest
 import users.keycloak.utils as kc_utils
 from users.schemas import Users
-import pytest
 
 
 @pytest.fixture

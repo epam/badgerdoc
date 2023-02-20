@@ -9,19 +9,17 @@ import responses
 from fastapi.testclient import TestClient
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
-
-from annotation.microservice_communication.assets_communication import (
-    ASSETS_FILES_URL,
-)
-from annotation.microservice_communication.jobs_communication import (
-    JOBS_SEARCH_URL,
-)
-from annotation.microservice_communication.user import USERS_SEARCH_URL
-from annotation.models import Category, File, Job, ManualAnnotationTask, User
-from annotation.schemas import CategoryTypeSchema, ValidationSchema
 from tests.consts import CRUD_TASKS_PATH
 from tests.override_app_dependency import TEST_HEADERS, TEST_TENANT, app
 from tests.test_post import check_files_distributed_pages
+
+from annotation.microservice_communication.assets_communication import \
+    ASSETS_FILES_URL
+from annotation.microservice_communication.jobs_communication import \
+    JOBS_SEARCH_URL
+from annotation.microservice_communication.user import USERS_SEARCH_URL
+from annotation.models import Category, File, Job, ManualAnnotationTask, User
+from annotation.schemas import CategoryTypeSchema, ValidationSchema
 
 client = TestClient(app)
 

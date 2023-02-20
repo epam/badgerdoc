@@ -6,6 +6,7 @@ from functools import reduce
 from typing import Any, Dict, List, Optional, Union
 
 import pydantic
+
 import search.common_utils as utils
 import search.es as es
 

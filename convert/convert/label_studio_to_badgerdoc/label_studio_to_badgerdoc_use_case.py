@@ -7,32 +7,24 @@ from uuid import uuid4
 import requests
 from botocore.client import BaseClient
 from botocore.exceptions import ClientError
-from convert.config import DEFAULT_PAGE_BORDER_OFFSET, settings
-from convert.label_studio_to_badgerdoc.badgerdoc_format.annotation_converter import (
-    AnnotationConverter,
-)
-from convert.label_studio_to_badgerdoc.badgerdoc_format.badgerdoc_format import (
-    BadgerdocFormat,
-)
-from convert.label_studio_to_badgerdoc.badgerdoc_format.pdf_renderer import (
-    PDFRenderer,
-)
-from convert.label_studio_to_badgerdoc.badgerdoc_format.plain_text_converter import (
-    TextToBadgerdocTokensConverter,
-)
-from convert.label_studio_to_badgerdoc.models import (
-    BadgerdocToken,
-    DocumentLink,
-)
-from convert.label_studio_to_badgerdoc.models.label_studio_models import (
-    LabelStudioModel,
-    S3Path,
-    ValidationType,
-)
-from convert.logger import get_logger
 from fastapi import HTTPException, status
 from fastapi.encoders import jsonable_encoder
 from tenant_dependency import TenantData
+
+from convert.config import DEFAULT_PAGE_BORDER_OFFSET, settings
+from convert.label_studio_to_badgerdoc.badgerdoc_format.annotation_converter import \
+    AnnotationConverter
+from convert.label_studio_to_badgerdoc.badgerdoc_format.badgerdoc_format import \
+    BadgerdocFormat
+from convert.label_studio_to_badgerdoc.badgerdoc_format.pdf_renderer import \
+    PDFRenderer
+from convert.label_studio_to_badgerdoc.badgerdoc_format.plain_text_converter import \
+    TextToBadgerdocTokensConverter
+from convert.label_studio_to_badgerdoc.models import (BadgerdocToken,
+                                                      DocumentLink)
+from convert.label_studio_to_badgerdoc.models.label_studio_models import (
+    LabelStudioModel, S3Path, ValidationType)
+from convert.logger import get_logger
 
 LOGGER = get_logger(__file__)
 LOGGER.setLevel("DEBUG")

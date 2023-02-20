@@ -6,15 +6,11 @@ from dotenv import find_dotenv, load_dotenv
 from requests import RequestException
 
 from annotation.errors import AgreementScoreServiceException
-from annotation.microservice_communication.search import (
-    AUTHORIZATION,
-    BEARER,
-    HEADER_TENANT,
-)
-from annotation.schemas import (
-    AgreementScoreServiceInput,
-    AgreementScoreServiceResponse,
-)
+from annotation.microservice_communication.search import (AUTHORIZATION,
+                                                          BEARER,
+                                                          HEADER_TENANT)
+from annotation.schemas import (AgreementScoreServiceInput,
+                                AgreementScoreServiceResponse)
 
 load_dotenv(find_dotenv())
 AGREEMENT_SCORE_SERVICE_URL = os.environ.get("AGREEMENT_SCORE_SERVICE_URL")

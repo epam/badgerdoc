@@ -6,12 +6,8 @@ from dotenv import find_dotenv, load_dotenv
 from requests import ConnectionError, RequestException, Timeout
 
 from annotation.microservice_communication.search import (
-    AUTHORIZATION,
-    BEARER,
-    HEADER_TENANT,
-    get_response,
-    raise_request_exception,
-)
+    AUTHORIZATION, BEARER, HEADER_TENANT, get_response,
+    raise_request_exception)
 
 load_dotenv(find_dotenv())
 ASSETS_FILES_URL = os.environ.get("ASSETS_FILES_URL")

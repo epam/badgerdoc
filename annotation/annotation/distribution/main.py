@@ -48,9 +48,8 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from annotation.jobs import create_user, read_user
-from annotation.microservice_communication.assets_communication import (
-    FilesForDistribution,
-)
+from annotation.microservice_communication.assets_communication import \
+    FilesForDistribution
 from annotation.models import File, User
 from annotation.schemas import TaskStatusEnumSchema, ValidationSchema
 from annotation.tasks import create_tasks as create_db_tasks

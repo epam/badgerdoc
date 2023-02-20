@@ -2,11 +2,10 @@ from contextlib import contextmanager
 from unittest.mock import patch
 
 import pytest
+import users.keycloak.schemas as kc_schemas
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
 from tenant_dependency import TenantData
-
-import users.keycloak.schemas as kc_schemas
 from users.main import app, check_authorization, tenant
 
 client = TestClient(app)

@@ -10,7 +10,6 @@ from minio import Minio, S3Error
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-
 pytestmark = pytest.mark.integration
 
 load_dotenv("./.env")

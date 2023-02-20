@@ -5,12 +5,10 @@ import requests
 from dotenv import find_dotenv, load_dotenv
 from requests import RequestException
 
-from annotation.microservice_communication.search import (
-    AUTHORIZATION,
-    BEARER,
-    HEADER_TENANT,
-    get_response,
-)
+from annotation.microservice_communication.search import (AUTHORIZATION,
+                                                          BEARER,
+                                                          HEADER_TENANT,
+                                                          get_response)
 
 load_dotenv(find_dotenv())
 JOBS_SEARCH_URL = os.environ.get("JOBS_SEARCH_URL")

@@ -5,6 +5,7 @@ from typing import Optional
 from unittest.mock import PropertyMock, patch
 
 import pytest
+import tests.testing_data as td
 from aiokafka import AIOKafkaProducer
 from fastapi import HTTPException
 from pydantic import BaseModel
@@ -12,7 +13,6 @@ from pydantic import BaseModel
 import pipelines.db.models as dbm
 import pipelines.execution as execution
 import pipelines.schemas as schemas
-import tests.testing_data as td
 
 LOGGER = logging.getLogger(__name__)
 

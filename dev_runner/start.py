@@ -2,6 +2,8 @@ import asyncio
 from pathlib import Path
 
 import click
+from dotenv import load_dotenv
+
 from dev_runner.runners.annotation_runner import AnnotationRunner
 from dev_runner.runners.assets_runner import AssetsRunner
 from dev_runner.runners.base_runner import RunnerRegistry
@@ -14,7 +16,6 @@ from dev_runner.runners.scheduler_runner import SchedulerRunner
 from dev_runner.runners.search_runner import SearchRunner
 from dev_runner.runners.taxonomy_runner import TaxonomyRunner
 from dev_runner.runners.users_runner import UsersRunner
-from dotenv import load_dotenv
 
 ROOT_DIR = Path(__file__).parent
 SHARED_DOT_ENV = ROOT_DIR / "conf" / "shared.env"

@@ -13,17 +13,13 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from tenant_dependency import TenantData
 
-from annotation.database import get_db
+from annotation.database import SQLALCHEMY_DATABASE_URL, get_db
 from annotation.main import app
-from annotation.microservice_communication.search import (
-    AUTHORIZATION,
-    BEARER,
-    HEADER_TENANT,
-)
+from annotation.microservice_communication.search import (AUTHORIZATION,
+                                                          BEARER,
+                                                          HEADER_TENANT)
 from annotation.token_dependency import TOKEN
 from annotation.utils import get_test_db_url
-from annotation.database import SQLALCHEMY_DATABASE_URL
-
 
 TEST_TOKEN = "token"
 TEST_TENANT = "test"

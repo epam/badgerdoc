@@ -1,20 +1,15 @@
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.exc import DBAPIError, SQLAlchemyError
-
-from annotation.microservice_communication.search import (
-    AUTHORIZATION,
-    BEARER,
-    HEADER_TENANT,
-)
-from annotation.models import Category, File, Job, ManualAnnotationTask, User
-from annotation.schemas import (
-    CategoryTypeSchema,
-    TaskStatusEnumSchema,
-    ValidationSchema,
-)
 from tests.consts import ANNOTATION_PATH
 from tests.override_app_dependency import TEST_TENANT, TEST_TOKEN, app
+
+from annotation.microservice_communication.search import (AUTHORIZATION,
+                                                          BEARER,
+                                                          HEADER_TENANT)
+from annotation.models import Category, File, Job, ManualAnnotationTask, User
+from annotation.schemas import (CategoryTypeSchema, TaskStatusEnumSchema,
+                                ValidationSchema)
 
 client = TestClient(app)
 

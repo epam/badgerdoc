@@ -4,16 +4,11 @@ import pytest
 import responses
 from fastapi import HTTPException
 from requests import ConnectionError, RequestException, Timeout
+from tests.override_app_dependency import TEST_HEADERS, TEST_TENANT, TEST_TOKEN
 
 from annotation.microservice_communication.assets_communication import (
-    ASSETS_FILES_URL,
-    ASSETS_URL,
-    get_dataset_info,
-    get_file_names,
-    get_file_path_and_bucket,
-    get_files_info,
-)
-from tests.override_app_dependency import TEST_HEADERS, TEST_TENANT, TEST_TOKEN
+    ASSETS_FILES_URL, ASSETS_URL, get_dataset_info, get_file_names,
+    get_file_path_and_bucket, get_files_info)
 
 FILES = [
     {

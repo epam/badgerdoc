@@ -9,6 +9,8 @@ from unittest.mock import create_autospec, patch
 
 import pytest
 import urllib3
+from alembic import command
+from alembic.config import Config
 from fastapi.testclient import TestClient
 from minio import Minio
 from sqlalchemy.engine import create_engine
@@ -17,14 +19,12 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy_utils import create_database, database_exists
 
 import assets.utils.minio_utils as minio_utils
-from alembic import command
-from alembic.config import Config
 from assets.config import settings
 from assets.db.models import Base
 from assets.db.service import session_scope_for_dependency
+from assets.db.utils import get_test_db_url
 from assets.main import app, tenant
 from assets.utils.minio_utils import get_storage
-from assets.db.utils import get_test_db_url
 
 BUCKET_TESTS = "tests" + uuid.uuid4().hex
 

@@ -1,7 +1,5 @@
-from tests.test_db import (
-    create_mock_annotation_job_in_db,
-    create_mock_extraction_job_in_db,
-)
+from tests.test_db import (create_mock_annotation_job_in_db,
+                           create_mock_extraction_job_in_db)
 
 
 def test_search_job_positive(testing_app, testing_session):

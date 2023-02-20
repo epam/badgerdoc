@@ -1,4 +1,5 @@
 import requests
+
 from assets import logger
 from assets.config import settings
 

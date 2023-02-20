@@ -6,9 +6,9 @@ Create Date: 2021-10-28 18:28:20.687405
 
 """
 import sqlalchemy as sa
+from alembic import op
 from sqlalchemy.orm import Session
 
-from alembic import op
 from assets.db.models import Association, Datasets, FileObject
 
 # revision identifiers, used by Alembic.

@@ -4,13 +4,13 @@ from copy import deepcopy
 from typing import Dict
 
 import pytest
+import tests.testing_data as td
 
 import pipelines.app as app
 import pipelines.db.models as dbm
 import pipelines.db.service as service
 import pipelines.execution as execution
 import pipelines.schemas as schemas
-import tests.testing_data as td
 
 
 def test_add_pipeline(testing_app, adjust_mock):

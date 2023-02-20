@@ -14,14 +14,12 @@ from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from tenant_dependency import TenantData, get_tenant_info
 from urllib3.exceptions import MaxRetryError
-from users import s3, utils
-from users.config import (
-    KEYCLOAK_ROLE_ADMIN,
-    KEYCLOAK_USERS_PUBLIC_KEY,
-    ROOT_PATH,
-)
+from users.config import (KEYCLOAK_ROLE_ADMIN, KEYCLOAK_USERS_PUBLIC_KEY,
+                          ROOT_PATH)
 from users.logger import Logger
 from users.schemas import Users
+
+from users import s3, utils
 
 app = FastAPI(title="users", root_path=ROOT_PATH, version="0.1.2")
 realm = conf.KEYCLOAK_REALM

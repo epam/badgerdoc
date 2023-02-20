@@ -1,13 +1,8 @@
 from typing import List
 
 from ..models import bd_annotation_model_practic
-from ..models.bd_annotation_model import (
-    AnnotationLink,
-    BadgerdocAnnotation,
-    Obj,
-    Page,
-    Size,
-)
+from ..models.bd_annotation_model import (AnnotationLink, BadgerdocAnnotation,
+                                          Obj, Page, Size)
 from ..models.bd_tokens_model import Page as BadgerdocTokensPage
 
 FIRST_PAGE = 0

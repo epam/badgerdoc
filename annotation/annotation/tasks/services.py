@@ -15,31 +15,21 @@ from tenant_dependency import TenantData
 from annotation.errors import CheckFieldError, FieldConstraintError
 from annotation.filters import TaskFilter
 from annotation.jobs import update_files, update_user_overall_load
-from annotation.microservice_communication.assets_communication import (
-    get_file_path_and_bucket,
-)
+from annotation.microservice_communication.assets_communication import \
+    get_file_path_and_bucket
 from annotation.microservice_communication.task import get_agreement_score
-from annotation.models import (
-    AgreementMetrics,
-    AnnotatedDoc,
-    AnnotationStatistics,
-    File,
-    ManualAnnotationTask,
-    association_job_annotator,
-    association_job_validator,
-)
-from annotation.schemas import (
-    AgreementScoreComparingResult,
-    AgreementScoreServiceInput,
-    AgreementScoreServiceResponse,
-    AnnotationStatisticsInputSchema,
-    ExportTaskStatsInput,
-    ManualAnnotationTaskInSchema,
-    ResponseScore,
-    TaskMetric,
-    TaskStatusEnumSchema,
-    ValidationSchema,
-)
+from annotation.models import (AgreementMetrics, AnnotatedDoc,
+                               AnnotationStatistics, File,
+                               ManualAnnotationTask, association_job_annotator,
+                               association_job_validator)
+from annotation.schemas import (AgreementScoreComparingResult,
+                                AgreementScoreServiceInput,
+                                AgreementScoreServiceResponse,
+                                AnnotationStatisticsInputSchema,
+                                ExportTaskStatsInput,
+                                ManualAnnotationTaskInSchema, ResponseScore,
+                                TaskMetric, TaskStatusEnumSchema,
+                                ValidationSchema)
 
 dotenv.load_dotenv(dotenv.find_dotenv())
 AGREEMENT_SCORE_MIN_MATCH = float(os.getenv("AGREEMENT_SCORE_MIN_MATCH"))

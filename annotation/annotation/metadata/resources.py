@@ -1,8 +1,7 @@
 from fastapi import APIRouter, status
 
-from annotation.microservice_communication.search import (
-    X_CURRENT_TENANT_HEADER,
-)
+from annotation.microservice_communication.search import \
+    X_CURRENT_TENANT_HEADER
 from annotation.schemas import EntitiesStatusesSchema
 from annotation.tags import METADATA_TAG, TASKS_TAG
 

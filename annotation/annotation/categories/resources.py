@@ -8,30 +8,18 @@ from sqlalchemy_filters.exceptions import BadFilterFormat
 from annotation.database import get_db
 from annotation.errors import NoSuchCategoryError
 from annotation.filters import CategoryFilter
-from annotation.microservice_communication.search import (
-    X_CURRENT_TENANT_HEADER,
-)
-from annotation.schemas import (
-    BadRequestErrorSchema,
-    CategoryBaseSchema,
-    CategoryInputSchema,
-    CategoryResponseSchema,
-    ConnectionErrorSchema,
-    NotFoundErrorSchema,
-    SubCategoriesOutSchema,
-)
+from annotation.microservice_communication.search import \
+    X_CURRENT_TENANT_HEADER
+from annotation.schemas import (BadRequestErrorSchema, CategoryBaseSchema,
+                                CategoryInputSchema, CategoryResponseSchema,
+                                ConnectionErrorSchema, NotFoundErrorSchema,
+                                SubCategoriesOutSchema)
 from annotation.tags import CATEGORIES_TAG
 
-from .services import (
-    add_category_db,
-    delete_category_db,
-    fetch_category_db,
-    filter_category_db,
-    insert_category_tree,
-    recursive_subcategory_search,
-    response_object_from_db,
-    update_category_db,
-)
+from .services import (add_category_db, delete_category_db, fetch_category_db,
+                       filter_category_db, insert_category_tree,
+                       recursive_subcategory_search, response_object_from_db,
+                       update_category_db)
 
 router = APIRouter(
     prefix="/categories",

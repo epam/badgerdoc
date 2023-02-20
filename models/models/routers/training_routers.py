@@ -3,44 +3,24 @@ import pathlib
 import tempfile
 from typing import Any, Dict, Union
 
-from fastapi import (
-    APIRouter,
-    Depends,
-    File,
-    Header,
-    HTTPException,
-    Path,
-    Response,
-    UploadFile,
-    status,
-)
-from filter_lib import (
-    Page,
-    create_filter_model,
-    form_query,
-    map_request_to_filter,
-    paginate,
-)
+from fastapi import (APIRouter, Depends, File, Header, HTTPException, Path,
+                     Response, UploadFile, status)
+from filter_lib import (Page, create_filter_model, form_query,
+                        map_request_to_filter, paginate)
+from sqlalchemy.orm import Session
+from tenant_dependency import TenantData
+
 from models import crud, schemas, utils
-from models.colab_ssh_utils import (
-    COLAB_TRAINING_DIRECTORY,
-    check_aws_credentials_file,
-    connect_colab,
-    local_mount_colab_drive,
-    sync_colab_with_minio,
-    upload_file_to_colab,
-)
+from models.colab_ssh_utils import (COLAB_TRAINING_DIRECTORY,
+                                    check_aws_credentials_file, connect_colab,
+                                    local_mount_colab_drive,
+                                    sync_colab_with_minio,
+                                    upload_file_to_colab)
 from models.convert_utils import prepare_dataset_info
 from models.db import Basement, Training, get_db
 from models.routers import tenant
-from models.utils import (
-    NoSuchTenant,
-    convert_bucket_name_if_s3prefix,
-    get_minio_object,
-    get_minio_resource,
-)
-from sqlalchemy.orm import Session
-from tenant_dependency import TenantData
+from models.utils import (NoSuchTenant, convert_bucket_name_if_s3prefix,
+                          get_minio_object, get_minio_resource)
 
 LOGGER = logging.getLogger(name="models")
 TRAINING_SCRIPT_NAME = "training_script.py"

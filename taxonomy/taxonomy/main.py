@@ -5,22 +5,14 @@ from dotenv import find_dotenv, load_dotenv
 from fastapi import Depends, FastAPI
 from sqlalchemy.exc import DBAPIError, SQLAlchemyError
 
-from taxonomy.errors import (
-    CheckFieldError,
-    FieldConstraintError,
-    ForeignKeyError,
-    NoTaxonError,
-    NoTaxonomyError,
-    SelfParentError,
-    check_field_error_handler,
-    db_dbapi_error_handler,
-    db_sa_error_handler,
-    field_constraint_error_handler,
-    foreign_key_error_handler,
-    no_taxon_error_handler,
-    no_taxonomy_error_handler,
-    taxon_parent_child_error_handler,
-)
+from taxonomy.errors import (CheckFieldError, FieldConstraintError,
+                             ForeignKeyError, NoTaxonError, NoTaxonomyError,
+                             SelfParentError, check_field_error_handler,
+                             db_dbapi_error_handler, db_sa_error_handler,
+                             field_constraint_error_handler,
+                             foreign_key_error_handler, no_taxon_error_handler,
+                             no_taxonomy_error_handler,
+                             taxon_parent_child_error_handler)
 from taxonomy.tags import TAGS
 from taxonomy.taxon import resources as taxon_resources
 from taxonomy.taxonomy import resources as taxonomy_resources

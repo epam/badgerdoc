@@ -5,11 +5,8 @@ from botocore.exceptions import BotoCoreError
 from paramiko.ssh_exception import SSHException
 from sqlalchemy.exc import SQLAlchemyError
 
-from .override_app_dependency import (
-    OTHER_TENANT_HEADER,
-    TEST_HEADER,
-    TEST_TENANTS,
-)
+from .override_app_dependency import (OTHER_TENANT_HEADER, TEST_HEADER,
+                                      TEST_TENANTS)
 
 TEST_CREDENTIALS = {
     "host": "test_host",

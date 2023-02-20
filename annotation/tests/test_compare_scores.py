@@ -2,11 +2,9 @@ import uuid
 
 import pytest
 
-from annotation.schemas.tasks import (
-    AgreementScoreComparingResult,
-    AgreementScoreServiceResponse,
-    TaskMetric,
-)
+from annotation.schemas.tasks import (AgreementScoreComparingResult,
+                                      AgreementScoreServiceResponse,
+                                      TaskMetric)
 from annotation.tasks.services import compare_agreement_scores
 
 min_match_1 = 0.8

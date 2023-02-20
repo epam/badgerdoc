@@ -1,9 +1,5 @@
-from .conftest import User, Address
-from ..src.schema_generator import (
-    create_filter_model,
-    Page,
-    PaginationOut,
-)
+from ..src.schema_generator import Page, PaginationOut, create_filter_model
+from .conftest import Address, User
 
 
 def test_search_class_creating():

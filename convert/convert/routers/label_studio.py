@@ -1,18 +1,16 @@
 from typing import Optional
 
-from convert.config import minio_client, settings
-from convert.label_studio_to_badgerdoc.badgerdoc_to_label_studio_use_case import (
-    BDToLabelStudioConvertUseCase,
-)
-from convert.label_studio_to_badgerdoc.label_studio_to_badgerdoc_use_case import (
-    LabelStudioToBDConvertUseCase,
-)
-from convert.label_studio_to_badgerdoc.models import LabelStudioRequest
-from convert.label_studio_to_badgerdoc.models.label_studio_models import (
-    BadgerdocToLabelStudioRequest,
-)
 from fastapi import APIRouter, Depends, Header, status
 from tenant_dependency import TenantData, get_tenant_info
+
+from convert.config import minio_client, settings
+from convert.label_studio_to_badgerdoc.badgerdoc_to_label_studio_use_case import \
+    BDToLabelStudioConvertUseCase
+from convert.label_studio_to_badgerdoc.label_studio_to_badgerdoc_use_case import \
+    LabelStudioToBDConvertUseCase
+from convert.label_studio_to_badgerdoc.models import LabelStudioRequest
+from convert.label_studio_to_badgerdoc.models.label_studio_models import \
+    BadgerdocToLabelStudioRequest
 
 router = APIRouter(prefix="/label_studio", tags=["label_studio"])
 tenant = get_tenant_info(

@@ -1,32 +1,24 @@
 from typing import Dict, List, Optional, Tuple
 
 import boto3
-import models.logger as logger
 from botocore.client import Config
 from botocore.exceptions import BotoCoreError, ClientError
 from botocore.response import StreamingBody
 from kubernetes import client, config
 from kubernetes.client.rest import ApiException
 from kubernetes.config import ConfigException
-from models.constants import (
-    CONTAINER_NAME,
-    DOCKER_REGISTRY_URL,
-    DOMAIN_NAME,
-    INFERENCE_HOST,
-    INFERENCE_PORT,
-    MINIO_ACCESS_KEY,
-    MINIO_HOST,
-    MINIO_PUBLIC_HOST,
-    MINIO_SECRET_KEY,
-    MODELS_NAMESPACE,
-    S3_CREDENTIALS_PROVIDER,
-    S3_PREFIX,
-)
+from sqlalchemy.orm import Session
+from starlette.datastructures import UploadFile
+
+import models.logger as logger
+from models.constants import (CONTAINER_NAME, DOCKER_REGISTRY_URL, DOMAIN_NAME,
+                              INFERENCE_HOST, INFERENCE_PORT, MINIO_ACCESS_KEY,
+                              MINIO_HOST, MINIO_PUBLIC_HOST, MINIO_SECRET_KEY,
+                              MODELS_NAMESPACE, S3_CREDENTIALS_PROVIDER,
+                              S3_PREFIX)
 from models.db import Basement, Model
 from models.errors import NoSuchTenant
 from models.schemas import DeployedModelPod, MinioHTTPMethod
-from sqlalchemy.orm import Session
-from starlette.datastructures import UploadFile
 
 logger_ = logger.get_logger(__name__)
 

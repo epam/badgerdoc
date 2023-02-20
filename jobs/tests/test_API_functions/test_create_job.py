@@ -4,9 +4,10 @@ from unittest.mock import patch
 
 import aiohttp.client_exceptions
 import freezegun
+import pytest
+
 import jobs.create_job_funcs as create_job_funcs
 import jobs.schemas as schemas
-import pytest
 
 
 # ----------- Create Job Drafts ------------- #

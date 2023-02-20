@@ -6,14 +6,12 @@ from sqlalchemy import and_, func, null, or_
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.query import Query
 from sqlalchemy_utils import Ltree
+
 from taxonomy.errors import CheckFieldError, NoTaxonError, SelfParentError
 from taxonomy.filters import TaxonFilter
 from taxonomy.models import Taxon
-from taxonomy.schemas import (
-    ParentsConcatenateResponseSchema,
-    TaxonInputSchema,
-    TaxonResponseSchema,
-)
+from taxonomy.schemas import (ParentsConcatenateResponseSchema,
+                              TaxonInputSchema, TaxonResponseSchema)
 from taxonomy.taxonomy.services import get_latest_taxonomy, get_taxonomy
 
 TaxonIdT = str

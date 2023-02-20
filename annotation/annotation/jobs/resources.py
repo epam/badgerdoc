@@ -1,15 +1,8 @@
 from typing import Dict, List, Optional, Set, Union
 from uuid import UUID
 
-from fastapi import (
-    APIRouter,
-    Depends,
-    HTTPException,
-    Path,
-    Query,
-    Response,
-    status,
-)
+from fastapi import (APIRouter, Depends, HTTPException, Path, Query, Response,
+                     status)
 from filter_lib import Page
 from sqlalchemy import and_
 from sqlalchemy.orm import Session
@@ -23,57 +16,30 @@ from annotation.categories import fetch_bunch_categories_db
 from annotation.database import get_db
 from annotation.distribution import distribute
 from annotation.filters import CategoryFilter
-from annotation.microservice_communication.assets_communication import (
-    get_files_info,
-)
+from annotation.microservice_communication.assets_communication import \
+    get_files_info
 from annotation.microservice_communication.jobs_communication import (
-    JobUpdateException,
-    update_job_status,
-)
-from annotation.microservice_communication.search import (
-    X_CURRENT_TENANT_HEADER,
-)
-from annotation.schemas import (
-    BadRequestErrorSchema,
-    CategoryResponseSchema,
-    ConnectionErrorSchema,
-    FileStatusEnumSchema,
-    JobFilesInfoSchema,
-    JobInfoSchema,
-    JobPatchSchema,
-    JobProgressSchema,
-    JobStatusEnumSchema,
-    JobTypeEnumSchema,
-    ManualAnnotationTaskSchema,
-    NotFoundErrorSchema,
-    TaskStatusEnumSchema,
-    UnassignedFilesInfoSchema,
-    ValidationSchema,
-)
+    JobUpdateException, update_job_status)
+from annotation.microservice_communication.search import \
+    X_CURRENT_TENANT_HEADER
+from annotation.schemas import (BadRequestErrorSchema, CategoryResponseSchema,
+                                ConnectionErrorSchema, FileStatusEnumSchema,
+                                JobFilesInfoSchema, JobInfoSchema,
+                                JobPatchSchema, JobProgressSchema,
+                                JobStatusEnumSchema, JobTypeEnumSchema,
+                                ManualAnnotationTaskSchema,
+                                NotFoundErrorSchema, TaskStatusEnumSchema,
+                                UnassignedFilesInfoSchema, ValidationSchema)
 from annotation.tags import FILES_TAG, JOBS_TAG
 from annotation.token_dependency import TOKEN
 
-from ..models import (
-    AnnotatedDoc,
-    Category,
-    File,
-    Job,
-    ManualAnnotationTask,
-    User,
-)
-from .services import (
-    clean_tasks_before_jobs_update,
-    collect_job_names,
-    delete_redundant_users,
-    filter_job_categories,
-    find_users,
-    get_job,
-    get_jobs_by_files,
-    update_inner_job_status,
-    update_job_categories,
-    update_job_files,
-    update_jobs_users,
-)
+from ..models import (AnnotatedDoc, Category, File, Job, ManualAnnotationTask,
+                      User)
+from .services import (clean_tasks_before_jobs_update, collect_job_names,
+                       delete_redundant_users, filter_job_categories,
+                       find_users, get_job, get_jobs_by_files,
+                       update_inner_job_status, update_job_categories,
+                       update_job_files, update_jobs_users)
 
 logger = app_logger.Logger
 

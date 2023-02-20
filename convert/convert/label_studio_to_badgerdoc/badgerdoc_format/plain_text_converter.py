@@ -2,13 +2,9 @@ import collections
 import string
 from typing import Deque, List
 
-from ...config import (
-    DEFAULT_PAGE_BORDER_OFFSET,
-    DEFAULT_PDF_FONT_HEIGHT,
-    DEFAULT_PDF_FONT_WIDTH,
-    DEFAULT_PDF_LINE_SPACING,
-    DEFAULT_PDF_PAGE_WIDTH,
-)
+from ...config import (DEFAULT_PAGE_BORDER_OFFSET, DEFAULT_PDF_FONT_HEIGHT,
+                       DEFAULT_PDF_FONT_WIDTH, DEFAULT_PDF_LINE_SPACING,
+                       DEFAULT_PDF_PAGE_WIDTH)
 from ..models import BadgerdocToken, Offset, Page, PageSize
 
 

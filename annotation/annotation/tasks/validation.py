@@ -8,15 +8,11 @@ from sqlalchemy import and_, asc, null, or_
 from sqlalchemy.orm import Session
 
 from annotation.distribution import prepare_response
-from annotation.microservice_communication.assets_communication import (
-    FilesForDistribution,
-)
+from annotation.microservice_communication.assets_communication import \
+    FilesForDistribution
 from annotation.models import AnnotatedDoc, Job, User
-from annotation.schemas import (
-    AnnotationAndValidationActionsSchema,
-    TaskStatusEnumSchema,
-    ValidationSchema,
-)
+from annotation.schemas import (AnnotationAndValidationActionsSchema,
+                                TaskStatusEnumSchema, ValidationSchema)
 
 from .services import create_tasks
 

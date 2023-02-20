@@ -1,5 +1,6 @@
-from .base_runner import BaseRunner
 from dev_runner.conf import settings
+
+from .base_runner import BaseRunner
 
 
 class PipelinesRunner(BaseRunner):

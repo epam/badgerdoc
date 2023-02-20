@@ -1,12 +1,7 @@
 from filter_lib import create_filter_model
 
-from annotation.models import (
-    AnnotatedDoc,
-    Category,
-    Job,
-    ManualAnnotationTask,
-    User,
-)
+from annotation.models import (AnnotatedDoc, Category, Job,
+                               ManualAnnotationTask, User)
 
 CategoryFilter = create_filter_model(
     Category,

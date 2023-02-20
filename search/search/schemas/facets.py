@@ -2,8 +2,9 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import aiocache.serializers
-import search.common_utils as utils
 from pydantic import BaseModel, Field
+
+import search.common_utils as utils
 from search.config import settings
 from search.es import INDEX_SETTINGS, fetch
 

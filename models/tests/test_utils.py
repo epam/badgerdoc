@@ -11,13 +11,8 @@ from kubernetes.client.rest import ApiException
 from models import utils
 from models.constants import MINIO_HOST
 from models.errors import NoSuchTenant
-from models.schemas import (
-    BasementBase,
-    DeployedModelPod,
-    MinioHTTPMethod,
-    MinioPath,
-    Model,
-)
+from models.schemas import (BasementBase, DeployedModelPod, MinioHTTPMethod,
+                            MinioPath, Model)
 
 TEST_TENANT = "test"
 TEST_LIMITS = {

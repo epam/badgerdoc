@@ -5,36 +5,25 @@ import pytest
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
 from sqlalchemy import or_
-
-from annotation.annotations import row_to_dict
-from annotation.models import (
-    AnnotatedDoc,
-    File,
-    Job,
-    ManualAnnotationTask,
-    User,
-)
-from annotation.schemas import (
-    AnnotationAndValidationActionsSchema,
-    FileStatusEnumSchema,
-    TaskStatusEnumSchema,
-    ValidationSchema,
-)
-from annotation.tasks.validation import (
-    _find_annotators_for_failed_pages,
-    check_user_job_action,
-    check_user_job_belonging,
-    check_uuid,
-    construct_tasks,
-    create_annotation_tasks,
-    create_validation_tasks,
-    find_initial_annotators,
-    get_annotators_revisions,
-)
 from tests.consts import FINISH_TASK_PATH
 from tests.override_app_dependency import TEST_HEADERS, TEST_TENANT, app
 from tests.test_finish_task import check_files_finished_pages
 from tests.test_post import check_files_distributed_pages
+
+from annotation.annotations import row_to_dict
+from annotation.models import (AnnotatedDoc, File, Job, ManualAnnotationTask,
+                               User)
+from annotation.schemas import (AnnotationAndValidationActionsSchema,
+                                FileStatusEnumSchema, TaskStatusEnumSchema,
+                                ValidationSchema)
+from annotation.tasks.validation import (_find_annotators_for_failed_pages,
+                                         check_user_job_action,
+                                         check_user_job_belonging, check_uuid,
+                                         construct_tasks,
+                                         create_annotation_tasks,
+                                         create_validation_tasks,
+                                         find_initial_annotators,
+                                         get_annotators_revisions)
 
 client = TestClient(app)
 

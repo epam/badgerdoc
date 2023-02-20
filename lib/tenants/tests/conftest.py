@@ -4,10 +4,9 @@ from unittest.mock import MagicMock, patch
 import pytest
 from fastapi import Depends, FastAPI
 from fastapi.testclient import TestClient
-from usage_example.jwt_generator import create_access_token
-
 from src import TenantData
 from src.dependency import get_tenant_info
+from usage_example.jwt_generator import create_access_token
 
 SECRET_KEY = "test_secret_key"
 

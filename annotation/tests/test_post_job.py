@@ -6,30 +6,18 @@ from fastapi.testclient import TestClient
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.declarative.api import DeclarativeMeta
 from sqlalchemy.orm import Session
+from tests.consts import POST_JOBS_PATH
+from tests.override_app_dependency import TEST_HEADERS, TEST_TENANT, app
+from tests.test_post import check_files_distributed_pages
 
 from annotation.annotations import row_to_dict
 from annotation.jobs import get_job_attributes_for_post
 from annotation.microservice_communication.assets_communication import (
-    ASSETS_FILES_URL,
-    ASSETS_URL,
-)
-from annotation.models import (
-    Category,
-    File,
-    Job,
-    ManualAnnotationTask,
-    User,
-    association_job_annotator,
-)
-from annotation.schemas import (
-    CategoryTypeSchema,
-    JobStatusEnumSchema,
-    JobTypeEnumSchema,
-    ValidationSchema,
-)
-from tests.consts import POST_JOBS_PATH
-from tests.override_app_dependency import TEST_HEADERS, TEST_TENANT, app
-from tests.test_post import check_files_distributed_pages
+    ASSETS_FILES_URL, ASSETS_URL)
+from annotation.models import (Category, File, Job, ManualAnnotationTask, User,
+                               association_job_annotator)
+from annotation.schemas import (CategoryTypeSchema, JobStatusEnumSchema,
+                                JobTypeEnumSchema, ValidationSchema)
 
 client = TestClient(app)
 

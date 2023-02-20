@@ -1,5 +1,6 @@
 from minio import Minio
 from minio.credentials import AWSConfigProvider, EnvAWSProvider, IamAwsProvider
+
 from processing.config import settings
 from processing.utils.logger import get_logger
 

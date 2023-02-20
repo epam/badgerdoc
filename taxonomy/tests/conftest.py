@@ -7,31 +7,24 @@ from uuid import uuid4
 
 import pytest
 import sqlalchemy
+from alembic import command
+from alembic.config import Config
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy_utils import create_database, database_exists, drop_database
+from tests.override_app_dependency import TEST_TENANTS, override
 
-from alembic import command
-from alembic.config import Config
-from taxonomy.database import (
-    SQLALCHEMY_DATABASE_URL,
-    Base,
-    get_db,
-    get_test_db_url,
-)
+from taxonomy.database import (SQLALCHEMY_DATABASE_URL, Base, get_db,
+                               get_test_db_url)
 from taxonomy.main import app
 from taxonomy.models import Taxon, Taxonomy
-from taxonomy.schemas import (
-    CategoryLinkSchema,
-    TaxonInputSchema,
-    TaxonomyInputSchema,
-)
+from taxonomy.schemas import (CategoryLinkSchema, TaxonInputSchema,
+                              TaxonomyInputSchema)
 from taxonomy.taxon import services as taxon_services
 from taxonomy.taxonomy import services as taxonomy_services
 from taxonomy.token_dependency import TOKEN
-from tests.override_app_dependency import TEST_TENANTS, override
 
 
 @pytest.fixture

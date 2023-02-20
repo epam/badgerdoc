@@ -6,6 +6,7 @@ from typing import List
 from unittest.mock import patch
 
 import pytest
+import tests.testing_data as td
 from aiokafka import AIOKafkaProducer
 from freezegun import freeze_time
 
@@ -13,7 +14,6 @@ import pipelines.db.models as dbm
 import pipelines.db.service as service
 import pipelines.execution as execution
 import pipelines.schemas as schemas
-import tests.testing_data as td
 
 pytest_plugins = ("pytest_asyncio",)
 

@@ -3,12 +3,11 @@ from typing import List, Optional, Set
 
 from fastapi import HTTPException
 from minio.error import MinioException
+
 from processing.utils.aiohttp_utils import send_request
 from processing.utils.logger import get_logger
-from processing.utils.minio_utils import (
-    MinioCommunicator,
-    convert_bucket_name_if_s3prefix,
-)
+from processing.utils.minio_utils import (MinioCommunicator,
+                                          convert_bucket_name_if_s3prefix)
 
 logger = get_logger(__name__)
 minio_client = MinioCommunicator().client

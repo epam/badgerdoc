@@ -10,19 +10,12 @@ from sqlalchemy.sql.expression import func
 from sqlalchemy_utils import Ltree
 
 from annotation import logger as app_logger
-from annotation.errors import (
-    CheckFieldError,
-    ForeignKeyError,
-    NoSuchCategoryError,
-    SelfParentError,
-)
+from annotation.errors import (CheckFieldError, ForeignKeyError,
+                               NoSuchCategoryError, SelfParentError)
 from annotation.filters import CategoryFilter
 from annotation.models import Category, Job
-from annotation.schemas import (
-    CategoryInputSchema,
-    CategoryORMSchema,
-    CategoryResponseSchema,
-)
+from annotation.schemas import (CategoryInputSchema, CategoryORMSchema,
+                                CategoryResponseSchema)
 
 cache = TTLCache(maxsize=128, ttl=300)
 

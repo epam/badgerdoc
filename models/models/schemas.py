@@ -3,8 +3,9 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional, Union
 
-from models.db import StatusEnum
 from pydantic import BaseModel, ConstrainedStr, Field, PositiveInt, validator
+
+from models.db import StatusEnum
 
 
 class AtLeastOneChar(ConstrainedStr):

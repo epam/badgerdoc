@@ -1,15 +1,12 @@
-import pytest
-
 from pathlib import Path
 from unittest.mock import MagicMock
 
 import model_api.pipeline
+import pytest
 from model_api.common import models as m
-from model_api.utils import (
-    update_annotation_categories,
-    form_response,
-    get_needs_from_request_and_annotation,
-)
+from model_api.utils import (form_response,
+                             get_needs_from_request_and_annotation,
+                             update_annotation_categories)
 
 # from model_api.inference import inference
 

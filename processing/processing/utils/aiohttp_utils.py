@@ -4,6 +4,7 @@ from typing import Any, Dict, NamedTuple
 import aiohttp
 from aiohttp import ContentTypeError
 from fastapi import HTTPException
+
 from processing.config import settings
 from processing.utils.logger import get_logger
 

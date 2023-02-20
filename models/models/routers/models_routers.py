@@ -2,19 +2,15 @@ import logging
 from typing import Any, Dict, Union
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Path
-from filter_lib import (
-    Page,
-    create_filter_model,
-    form_query,
-    map_request_to_filter,
-    paginate,
-)
+from filter_lib import (Page, create_filter_model, form_query,
+                        map_request_to_filter, paginate)
+from sqlalchemy.orm import Session
+from tenant_dependency import TenantData
+
 from models import crud, schemas, utils
 from models.crud import get_latest_model, get_second_latest_model
 from models.db import Basement, Model, Training, get_db
 from models.routers import tenant
-from sqlalchemy.orm import Session
-from tenant_dependency import TenantData
 
 LOGGER = logging.getLogger(name="models")
 
