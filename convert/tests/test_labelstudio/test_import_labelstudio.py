@@ -14,7 +14,7 @@ from src.config import (
 from src.badgerdoc_format.badgerdoc_format import (
     BadgerdocFormat,
 )
-from src.badgerdoc_format.plain_text_converter import (
+from src.plain_text_format.plain_text_converter import (
     TextToBadgerdocTokensConverter,
 )
 from src.labelstudio_to_badgerdoc_converter import (

@@ -21,7 +21,7 @@ from src.badgerdoc_format.badgerdoc_format import (
 from src.badgerdoc_format.pdf_renderer import (
     PDFRenderer,
 )
-from src.badgerdoc_format.plain_text_converter import (
+from src.plain_text_format.plain_text_converter import (
     TextToBadgerdocTokensConverter,
 )
 from src.badgerdoc_format.bd_tokens_model import BadgerdocToken

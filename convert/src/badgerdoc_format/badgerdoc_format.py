@@ -13,7 +13,7 @@ from .bd_tokens_model import Page
 from src.labelstudio_format.ls_models import LabelStudioModel
 from .annotation_converter import AnnotationConverter
 from .pdf_renderer import PDFRenderer
-from .plain_text_converter import TextToBadgerdocTokensConverter
+from src.plain_text_format.plain_text_converter import TextToBadgerdocTokensConverter
 
 
 class BadgerdocFormat:

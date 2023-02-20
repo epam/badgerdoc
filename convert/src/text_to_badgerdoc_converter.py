@@ -4,7 +4,7 @@ from pathlib import Path
 from .config import DEFAULT_PAGE_BORDER_OFFSET
 from .badgerdoc_format.badgerdoc_format import BadgerdocFormat
 from .badgerdoc_format.pdf_renderer import PDFRenderer
-from .badgerdoc_format.plain_text_converter import (
+from src.plain_text_format.plain_text_converter import (
     TextToBadgerdocTokensConverter,
 )
 from .models.common import S3Path
