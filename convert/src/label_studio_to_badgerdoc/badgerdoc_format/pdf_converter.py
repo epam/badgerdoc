@@ -26,7 +26,7 @@ class PlainPDFToBadgerdocTokensConverter:
 
     def convert_line(self, line: LTTextLineHorizontal) -> List[BadgerdocToken]:
         tokens = []
-        for i, char in enumerate(line):
+        for char in line:
             if not isinstance(char, LTChar):
                 continue
             tokens.append(
@@ -51,9 +51,13 @@ class PlainPDFToBadgerdocTokensConverter:
                 tokens.extend(self.convert_line(line))
         return tokens
 
-    def convert(self, plain_pfd) -> Page:
+    def convert(self, plain_pfd) -> List[Page]:
         with open(plain_pfd, mode="rb") as pdf_obj:
-            objs = []
-            for page in extract_pages(pdf_obj):
-                objs.extend(self.convert_page(page))
-            return Page(page_num=1, objs=objs, size=self.page_size)
+            return [
+                Page(
+                    page_num=i,
+                    objs=self.convert_page(page),
+                    size=self.page_size,
+                )
+                for i, page in enumerate(extract_pages(pdf_obj))
+            ]

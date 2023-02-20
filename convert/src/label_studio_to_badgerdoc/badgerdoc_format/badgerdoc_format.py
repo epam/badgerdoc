@@ -54,9 +54,15 @@ class BadgerdocFormat:
     def convert_from_pdf(self, pdf):
         self.tokens_page = self.pdf_converter.convert(pdf)
 
-    def export_tokens(self, path: Path) -> None:
+    def export_tokens(self, tokens_path: Path) -> None:
         if self.tokens_page:
-            path.write_text(self.tokens_page.json(by_alias=True))
+            if isinstance(self.tokens_page, list):
+                for i, part in enumerate(self.tokens_page):
+                    path_file = tokens_path / Path(f"{i}.json")
+                    path_file.write_text(part.json(by_alias=True))
+            else:
+                path_file = tokens_path / Path("1.json")
+                path_file.write_text(self.tokens_page.json(by_alias=True))
 
     def export_annotations(self, path: Path):
         if self.badgerdoc_annotation:

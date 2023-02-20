@@ -1,3 +1,4 @@
+import os
 import tempfile
 from pathlib import Path
 
@@ -35,10 +36,12 @@ class PDFToBDConvertUseCase:
     def upload_badgerdoc_to_s3(self, s3_output_tokens) -> None:
         with tempfile.TemporaryDirectory() as tmp_dirname:
             tmp_dirname = Path(tmp_dirname)
-            badgerdoc_tokens_path = tmp_dirname / Path("badgerdoc_tokens.json")
+            badgerdoc_tokens_path = tmp_dirname
             self.badgerdoc_format.export_tokens(badgerdoc_tokens_path)
-            self.s3_client.upload_file(
-                str(badgerdoc_tokens_path),
-                s3_output_tokens.bucket,
-                s3_output_tokens.path,
-            )
+            s3_output_tokens_dir = os.path.dirname(Path(s3_output_tokens.path))
+            for file in Path.iterdir(tmp_dirname):
+                self.s3_client.upload_file(
+                    str(badgerdoc_tokens_path) + f"/{file.name}",
+                    s3_output_tokens.bucket,
+                    s3_output_tokens_dir + f"/{file.name}",
+                )
