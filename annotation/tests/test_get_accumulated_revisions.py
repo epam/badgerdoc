@@ -123,6 +123,7 @@ EMPTY_RESPONSE = dict(
     failed_validation_pages=[],
     categories=None,
     similar_revisions=None,
+    links_json={},
 )
 LATEST_WITH_ALL_PAGES = dict(
     revision=DOCS[2].revision,
@@ -147,6 +148,7 @@ LATEST_WITH_ALL_PAGES = dict(
     failed_validation_pages=[5],
     categories=DOCS[2].categories,
     similar_revisions=None,
+    links_json={},
 )
 
 
@@ -191,6 +193,7 @@ LATEST_WITH_ALL_PAGES = dict(
                 failed_validation_pages=[5],
                 categories=DOCS[2].categories,
                 similar_revisions=None,
+                links_json={},
             ),
         ),
         # find first revision and accumulate
@@ -218,8 +221,9 @@ LATEST_WITH_ALL_PAGES = dict(
                 ],
                 validated=[3],
                 failed_validation_pages=[4],
-                categories=DOCS[0].categories,
+                categories=DOCS[2].categories,
                 similar_revisions=None,
+                links_json={},
             ),
         ),
         # find first revision and accumulate
@@ -246,8 +250,9 @@ LATEST_WITH_ALL_PAGES = dict(
                 ],
                 validated=[3],
                 failed_validation_pages=[],
-                categories=DOCS[0].categories,
+                categories=DOCS[2].categories,
                 similar_revisions=None,
+                links_json={},
             ),
         ),
         # find second revision and accumulate
@@ -266,8 +271,9 @@ LATEST_WITH_ALL_PAGES = dict(
                 pages=LATEST_WITH_ALL_PAGES["pages"],
                 validated=[4],
                 failed_validation_pages=[1],
-                categories=DOCS[1].categories,
+                categories=DOCS[2].categories,
                 similar_revisions=None,
+                links_json={},
             ),
         ),
         # find second revision and accumulate
@@ -288,6 +294,7 @@ LATEST_WITH_ALL_PAGES = dict(
                 failed_validation_pages=[5],
                 categories=DOCS[2].categories,
                 similar_revisions=None,
+                links_json={},
             ),
         ),
         # TODO: rework test for 404 case
@@ -328,7 +335,6 @@ LATEST_WITH_ALL_PAGES = dict(
         ),
     ],
 )
-@pytest.mark.skip
 def test_get_annotation_for_latest_revision_status_codes(
     monkeypatch,
     minio_accumulate_revisions,
