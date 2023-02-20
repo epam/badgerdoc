@@ -1,11 +1,11 @@
 from typing import Tuple
 
 import pytest
-
-from app.models import Taxonomy
-from app.schemas import CategoryLinkSchema
-from app.taxonomy import services
 from tests.override_app_dependency import TEST_HEADER, TEST_TENANTS
+
+from taxonomy.models import Taxonomy
+from taxonomy.schemas import CategoryLinkSchema
+from taxonomy.taxonomy import services
 
 
 @pytest.mark.integration

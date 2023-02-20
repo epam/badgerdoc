@@ -2,15 +2,13 @@ from copy import copy
 from uuid import UUID
 
 import pytest
-
-from app.distribution import (
-    distribute_validation_partial_files,
-    distribute_whole_files,
-)
-from app.errors import FieldConstraintError
-from app.jobs import check_annotators, check_validators
-from app.schemas import TaskStatusEnumSchema, ValidationSchema
 from tests.test_distribution import JOB_ID
+
+from annotation.distribution import (distribute_validation_partial_files,
+                                     distribute_whole_files)
+from annotation.errors import FieldConstraintError
+from annotation.jobs import check_annotators, check_validators
+from annotation.schemas import TaskStatusEnumSchema, ValidationSchema
 
 TASKS_STATUS = TaskStatusEnumSchema.pending
 VALIDATION_TYPE = ValidationSchema.cross

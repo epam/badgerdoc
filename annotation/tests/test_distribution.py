@@ -2,25 +2,19 @@ from collections import defaultdict
 from copy import copy
 
 import pytest
-
-from app.distribution import (
-    add_unassigned_file,
-    calculate_users_load,
-    distribute_annotation_partial_files,
-    distribute_tasks,
-    distribute_whole_files,
-    find_annotated_pages,
-    find_files_for_task,
-    find_unassigned_files,
-    find_unassigned_pages,
-)
-from app.distribution.main import distribute_tasks_extensively
-from app.microservice_communication.assets_communication import (
-    prepare_files_for_distribution,
-)
-from app.models import File
-from app.schemas import FileStatusEnumSchema, TaskStatusEnumSchema
 from tests.override_app_dependency import TEST_TENANT
+
+from annotation.distribution import (add_unassigned_file, calculate_users_load,
+                                     distribute_annotation_partial_files,
+                                     distribute_tasks, distribute_whole_files,
+                                     find_annotated_pages, find_files_for_task,
+                                     find_unassigned_files,
+                                     find_unassigned_pages)
+from annotation.distribution.main import distribute_tasks_extensively
+from annotation.microservice_communication.assets_communication import \
+    prepare_files_for_distribution
+from annotation.models import File
+from annotation.schemas import FileStatusEnumSchema, TaskStatusEnumSchema
 
 JOB_ID = 1
 ANNOTATORS = [

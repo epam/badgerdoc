@@ -3,14 +3,14 @@ FROM ${base_image} as build
 
 WORKDIR /opt/pipeline_executor
 
-COPY src src
+COPY pipelines pipelines
 COPY alembic alembic
 COPY alembic.ini wait-for-it.sh .env requirements.txt version.txt setup.py ./
 
 RUN python3 -m pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt && pip install .
 
 ENV PYTHONPATH /opt/pipeline_executor
-CMD alembic upgrade head && uvicorn src.app:app --host 0.0.0.0 --port 8080
+CMD alembic upgrade head && uvicorn pipelines.app:app --host 0.0.0.0 --port 8080
 
 FROM build AS development
 
@@ -21,7 +21,7 @@ RUN pip install --no-cache-dir -r requirements_dev.txt && python3 -m pip install
 
 FROM sonarsource/sonar-scanner-cli:4.6 AS sonar
 
-COPY src /sonar/src
+COPY pipelines /sonar/pipelines
 COPY alembic /sonar/alembic
 COPY tests /sonar/tests
 COPY sonar-project.properties /sonar/sonar-project.properties

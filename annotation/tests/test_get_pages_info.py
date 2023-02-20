@@ -4,18 +4,17 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
-
-from app.annotations import accumulate_pages_info
-from app.microservice_communication.search import (
-    AUTHORIZATION,
-    BEARER,
-    HEADER_TENANT,
-)
-from app.models import AnnotatedDoc, File, Job, ManualAnnotationTask, User
-from app.schemas import TaskStatusEnumSchema, ValidationSchema
-from app.tasks import get_task_revisions
 from tests.consts import CRUD_TASKS_PATH
 from tests.override_app_dependency import TEST_TENANT, TEST_TOKEN, app
+
+from annotation.annotations import accumulate_pages_info
+from annotation.microservice_communication.search import (AUTHORIZATION,
+                                                          BEARER,
+                                                          HEADER_TENANT)
+from annotation.models import (AnnotatedDoc, File, Job, ManualAnnotationTask,
+                               User)
+from annotation.schemas import TaskStatusEnumSchema, ValidationSchema
+from annotation.tasks import get_task_revisions
 
 client = TestClient(app)
 
@@ -129,7 +128,7 @@ DOCS_FOR_ACCUMULATE_PAGES_INFO = [
             failed_validation_pages=[],
             tenant=TEST_TENANT,
             task_id=TASKS[0].id,
-            categories={'some'}
+            categories={"some"},
         ),
         AnnotatedDoc(
             revision="2",
@@ -197,7 +196,8 @@ def test_accumulate_pages_info(revisions, task_pages, expected_result):
 def test_accumulate_pages_info_can_extract_categories():
     revisions = DOCS_FOR_ACCUMULATE_PAGES_INFO[1]
     _, _, _, _, categories, _ = accumulate_pages_info(
-        *(TASKS[0].pages,), revisions,
+        *(TASKS[0].pages,),
+        revisions,
     )
     assert categories == revisions[0].categories
 

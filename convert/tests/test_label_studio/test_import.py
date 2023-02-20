@@ -2,22 +2,15 @@ import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from src.config import (
-    DEFAULT_PAGE_BORDER_OFFSET,
-    DEFAULT_PDF_FONT_HEIGHT,
-    DEFAULT_PDF_FONT_WIDTH,
-    DEFAULT_PDF_LINE_SPACING,
-    DEFAULT_PDF_PAGE_WIDTH,
-)
-from src.label_studio_to_badgerdoc.badgerdoc_format.badgerdoc_format import (
-    BadgerdocFormat,
-)
-from src.label_studio_to_badgerdoc.badgerdoc_format.plain_text_converter import (
-    TextToBadgerdocTokensConverter,
-)
-from src.label_studio_to_badgerdoc.models.label_studio_models import (
-    LabelStudioModel,
-)
+from convert.config import (DEFAULT_PAGE_BORDER_OFFSET,
+                            DEFAULT_PDF_FONT_HEIGHT, DEFAULT_PDF_FONT_WIDTH,
+                            DEFAULT_PDF_LINE_SPACING, DEFAULT_PDF_PAGE_WIDTH)
+from convert.label_studio_to_badgerdoc.badgerdoc_format.badgerdoc_format import \
+    BadgerdocFormat
+from convert.label_studio_to_badgerdoc.badgerdoc_format.plain_text_converter import \
+    TextToBadgerdocTokensConverter
+from convert.label_studio_to_badgerdoc.models.label_studio_models import \
+    LabelStudioModel
 
 TEST_FILES_DIR = Path(__file__).parent / "test_data"
 

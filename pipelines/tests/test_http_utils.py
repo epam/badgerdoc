@@ -1,9 +1,9 @@
 from unittest.mock import patch
 
+import pytest
 import requests
 
-import pytest
-from src import http_utils, schemas
+from pipelines import http_utils, schemas
 
 
 def test_make_request(request_mock):
@@ -26,7 +26,7 @@ def test_make_request(request_mock):
 def test_make_request_with_retry(s_effect, expected, call_count, request_mock):
     """Testing make_request_with_retry."""
     with patch(
-        "src.http_utils.make_request", side_effect=s_effect
+        "pipelines.http_utils.make_request", side_effect=s_effect
     ) as req_mock:
         assert http_utils.make_request_with_retry("", {}, start=0) == expected
         assert req_mock.call_count == call_count

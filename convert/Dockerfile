@@ -20,7 +20,7 @@ RUN poetry config virtualenvs.create false \
 FROM base as build
 #ENV ROOT_PATH="/api/v1/convert"
 WORKDIR /convert
-COPY src/ /convert/src
+COPY convert/ /convert/convert
 CMD uvicorn src.main:app --host 0.0.0.0 --port 8080
 
 
@@ -31,7 +31,7 @@ CMD ["python", "-m", "pytest", "--cov=app"]
 FROM sonarsource/sonar-scanner-cli:4.6 AS sonar
 
 COPY tests /working/tests
-COPY src /working/src
+COPY convert /working/convert
 COPY sonar-project.properties /working/sonar-project.properties
 
 CMD sonar-scanner \

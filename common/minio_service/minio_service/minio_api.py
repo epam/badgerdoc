@@ -72,12 +72,18 @@ class MinioCommunicator:
 
     client = None
 
-    def __init__(self, minio_server: str, minio_root_user: str, minio_root_password: str) -> None:
+    def __init__(
+        self, minio_server: str, minio_root_user: str, minio_root_password: str
+    ) -> None:
         if not MinioCommunicator.client:
-            self.create_client(minio_server, minio_root_user, minio_root_password)
+            self.create_client(
+                minio_server, minio_root_user, minio_root_password
+            )
 
     @classmethod
-    def create_client(cls, minio_server, minio_root_user, minio_root_password) -> None:
+    def create_client(
+        cls, minio_server, minio_root_user, minio_root_password
+    ) -> None:
         """
         Create connection with minio service.
         Returns:

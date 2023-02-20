@@ -20,7 +20,7 @@ FROM base AS build
 
 WORKDIR /working
 
-COPY src /working/src
+COPY models /working/models
 COPY alembic /working/alembic
 COPY alembic.ini /working
 
@@ -56,7 +56,7 @@ RUN python3 -m pytest --cov=src tests/ -m "not integration"
 FROM sonarsource/sonar-scanner-cli:4.6 AS sonar
 
 COPY tests /working/tests
-COPY src /working/src
+COPY models /working/models
 COPY sonar-project.properties /working/sonar-project.properties
 
 CMD sonar-scanner \

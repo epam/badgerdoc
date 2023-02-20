@@ -1,4 +1,4 @@
-"""Testing src/db/models.py."""
+"""Testing pipelines/db/models.py."""
 
 import tests.testing_data as td
 

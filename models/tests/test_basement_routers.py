@@ -4,11 +4,11 @@ from unittest.mock import Mock, patch
 import pytest
 from fastapi.exceptions import HTTPException
 from fastapi.testclient import TestClient
-
-from src.db import Basement
-from src.main import app
-from src.routers import basements_routers
 from tests.test_utils import TEST_LIMITS
+
+from models.db import Basement
+from models.main import app
+from models.routers import basements_routers
 
 
 @pytest.fixture(scope="function")
@@ -85,7 +85,7 @@ def test_get_basement_by_id_withot_basement(get):
 @patch.object(basements_routers.crud, "get_instance")
 def test_delete_basement_by_id(delete, get, client, monkeypatch):
     monkeypatch.setattr(
-        "src.routers.basements_routers.get_minio_resource", Mock()
+        "models.routers.basements_routers.get_minio_resource", Mock()
     )
     data = {"id": "id"}
     get.return_value = "expected"
@@ -98,7 +98,7 @@ def test_delete_basement_by_id(delete, get, client, monkeypatch):
 @patch.object(basements_routers.crud, "get_instance")
 def test_delete_basement_by_id_calls_crud(delete, get, monkeypatch):
     monkeypatch.setattr(
-        "src.routers.basements_routers.get_minio_resource", Mock()
+        "models.routers.basements_routers.get_minio_resource", Mock()
     )
     data = basements_routers.schemas.BasementDelete(id="id")
     get.return_value = "expected"

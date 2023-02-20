@@ -3,12 +3,9 @@ from unittest import mock
 
 import pytest
 
-from src.colab_ssh_utils import (
-    COLAB_TRAINING_DIRECTORY,
-    connect_colab,
-    upload_file_to_colab,
-)
-from src.errors import ColabFileUploadError
+from models.colab_ssh_utils import (COLAB_TRAINING_DIRECTORY, connect_colab,
+                                    upload_file_to_colab)
+from models.errors import ColabFileUploadError
 
 TEST_FILE_NAME = "test_file.py"
 TEST_CREDENTIALS = {
@@ -47,11 +44,11 @@ def test_connect_colab_called_with_credentials(monkeypatch) -> None:
     mock_ssh = mock.Mock(return_value=mock_client)
     mock_policy = mock.Mock()
     monkeypatch.setattr(
-        "src.colab_ssh_utils.SSHClient",
+        "models.colab_ssh_utils.SSHClient",
         mock_ssh,
     )
     monkeypatch.setattr(
-        "src.colab_ssh_utils.AutoAddPolicy",
+        "models.colab_ssh_utils.AutoAddPolicy",
         mock.Mock(return_value=mock_policy),
     )
     mock_client.connect = mock.Mock(return_value=1)

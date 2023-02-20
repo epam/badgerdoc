@@ -8,10 +8,10 @@ import pytest
 from fastapi.testclient import TestClient
 from pytest import fixture, mark
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
-
-from app.models import Category
 from tests.consts import CATEGORIES_PATH
 from tests.override_app_dependency import TEST_HEADERS, app
+
+from annotation.models import Category
 
 client = TestClient(app)
 
@@ -177,7 +177,10 @@ def add_for_cascade_delete(
 
 
 @mark.integration
-@patch("app.categories.resources.add_category_db", side_effect=SQLAlchemyError)
+@patch(
+    "annotation.categories.resources.add_category_db",
+    side_effect=SQLAlchemyError,
+)
 def test_add_db_connection_error(prepare_db_categories_different_names):
     data = prepare_category_body()
     response = client.post(CATEGORIES_PATH, json=data, headers=TEST_HEADERS)
@@ -373,7 +376,8 @@ def test_add_self_parent(prepare_db_categories_different_names):
 
 @mark.integration
 @patch(
-    "app.categories.resources.fetch_category_db", side_effect=SQLAlchemyError
+    "annotation.categories.resources.fetch_category_db",
+    side_effect=SQLAlchemyError,
 )
 def test_get_db_connection_error(prepare_db_categories_same_names):
     cat_id = 1
@@ -426,7 +430,8 @@ def test_get_no_tenant_specified(prepare_db_categories_same_names):
 
 @mark.integration
 @patch(
-    "app.categories.resources.filter_category_db", side_effect=SQLAlchemyError
+    "annotation.categories.resources.filter_category_db",
+    side_effect=SQLAlchemyError,
 )
 def test_search_db_connection_error(prepare_db_categories_for_filtration):
     data = prepare_filtration_body()
@@ -653,7 +658,8 @@ def test_search_wrong_parameters(
 
 @mark.integration
 @patch(
-    "app.categories.resources.update_category_db", side_effect=SQLAlchemyError
+    "annotation.categories.resources.update_category_db",
+    side_effect=SQLAlchemyError,
 )
 def test_update_db_connection_error(prepare_db_categories_different_names):
     cat_id = 1
@@ -815,7 +821,8 @@ def test_update_allowed_parent(
 
 @mark.integration
 @patch(
-    "app.categories.resources.delete_category_db", side_effect=SQLAlchemyError
+    "annotation.categories.resources.delete_category_db",
+    side_effect=SQLAlchemyError,
 )
 def test_delete_db_connection_error(prepare_db_categories_same_names):
     cat_id = "1"

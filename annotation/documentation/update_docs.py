@@ -1,5 +1,4 @@
 import yaml
-
 from app.main import app
 
 

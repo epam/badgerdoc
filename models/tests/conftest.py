@@ -6,6 +6,7 @@ from unittest.mock import patch
 
 import boto3
 import pytest
+from alembic import command
 from botocore.config import Config
 from botocore.exceptions import ClientError
 from fastapi.testclient import TestClient
@@ -15,27 +16,19 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy_utils import create_database, database_exists
 
-from alembic import command
-from src.constants import (
-    DATABASE_URL,
-    MINIO_ACCESS_KEY,
-    MINIO_HOST,
-    MINIO_SECRET_KEY,
-)
-from src.db import Base, Basement, Training, get_db
-from src.main import app
-from src.routers import tenant
-from src.utils import get_test_db_url
+from models.constants import (DATABASE_URL, MINIO_ACCESS_KEY, MINIO_HOST,
+                              MINIO_SECRET_KEY)
+from models.db import Base, Basement, Training, get_db
+from models.main import app
+from models.routers import tenant
+from models.utils import get_test_db_url
 
 from .override_app_dependency import override
-from .test_colab_start_training import (
-    BASEMENT_ID,
-    EXIST_TRAINING_ID,
-    TRAINING_ARCHIVE_DATA,
-    TRAINING_ARCHIVE_KEY,
-    TRAINING_SCRIPT_DATA,
-    TRAINING_SCRIPT_KEY,
-)
+from .test_colab_start_training import (BASEMENT_ID, EXIST_TRAINING_ID,
+                                        TRAINING_ARCHIVE_DATA,
+                                        TRAINING_ARCHIVE_KEY,
+                                        TRAINING_SCRIPT_DATA,
+                                        TRAINING_SCRIPT_KEY)
 from .test_crud import GET_BASEMENT, GET_LATEST_MODELS, GET_TRAINING
 from .test_utils import TEST_LIMITS, TEST_TENANT
 

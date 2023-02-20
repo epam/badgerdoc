@@ -1,6 +1,6 @@
 import yaml
 
-from app.main import app
+from taxonomy.main import app
 
 
 def str_presenter(dumper, data):

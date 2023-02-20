@@ -13,7 +13,7 @@ ENV PYTHONUNBUFFERED 1
 
 FROM base as build
 COPY alembic alembic
-COPY src src
+COPY processing src
 CMD alembic upgrade head && uvicorn src.main:app --host 0.0.0.0 --port 8080
 
 FROM build as development

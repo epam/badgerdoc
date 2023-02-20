@@ -3,9 +3,9 @@ from copy import deepcopy
 from typing import Any, List, Optional
 
 import pytest
-
-from app.models import Taxon
 from tests.override_app_dependency import TEST_HEADER
+
+from taxonomy.models import Taxon
 
 TAXON_PATH = "/taxons"
 

@@ -5,24 +5,14 @@ import fastapi.encoders
 from sqlalchemy.orm import Session
 
 from jobs import db_service
-from jobs.config import (
-    HOST_ANNOTATION,
-    HOST_ASSETS,
-    HOST_PIPELINES,
-    HOST_TAXONOMY,
-    JOBS_HOST,
-    PAGINATION_THRESHOLD,
-    ROOT_PATH,
-)
+from jobs.config import (HOST_ANNOTATION, HOST_ASSETS, HOST_PIPELINES,
+                         HOST_TAXONOMY, JOBS_HOST, PAGINATION_THRESHOLD,
+                         ROOT_PATH)
 from jobs.logger import logger
 from jobs.models import CombinedJob
-from jobs.schemas import (
-    AnnotationJobUpdateParamsInAnnotation,
-    CategoryLinkInput,
-    CategoryLinkParams,
-    JobMode,
-    JobParamsToChange,
-)
+from jobs.schemas import (AnnotationJobUpdateParamsInAnnotation,
+                          CategoryLinkInput, CategoryLinkParams, JobMode,
+                          JobParamsToChange)
 
 
 async def get_files_data_from_datasets(

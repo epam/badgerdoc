@@ -1,5 +1,6 @@
-from logging import config as logging_config
 import os
+from logging import config as logging_config
+
 import sqlalchemy
 from alembic import context
 from scheduler.db import models

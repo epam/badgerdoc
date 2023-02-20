@@ -1,6 +1,6 @@
+import pytest
 from tests import testing_data
 
-import pytest
 from scheduler import exceptions, unit
 
 

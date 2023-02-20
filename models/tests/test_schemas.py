@@ -1,8 +1,8 @@
 import pytest
 from pydantic import ValidationError
-
-from src import schemas
 from tests.test_utils import TEST_LIMITS
+
+from models import schemas
 
 
 def test_empty_id_in_modelbase_raises_error():

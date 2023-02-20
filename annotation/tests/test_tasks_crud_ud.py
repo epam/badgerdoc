@@ -1,17 +1,14 @@
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.exc import DBAPIError, SQLAlchemyError
-
-from app.annotations import row_to_dict
-from app.models import Category, File, Job, ManualAnnotationTask, User
-from app.schemas import (
-    CategoryTypeSchema,
-    TaskStatusEnumSchema,
-    ValidationSchema,
-)
 from tests.consts import CRUD_TASKS_PATH
 from tests.override_app_dependency import TEST_HEADERS, TEST_TENANT, app
 from tests.test_post import check_files_distributed_pages
+
+from annotation.annotations import row_to_dict
+from annotation.models import Category, File, Job, ManualAnnotationTask, User
+from annotation.schemas import (CategoryTypeSchema, TaskStatusEnumSchema,
+                                ValidationSchema)
 
 client = TestClient(app)
 

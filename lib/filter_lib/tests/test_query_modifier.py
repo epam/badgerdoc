@@ -1,12 +1,7 @@
 from ..src.enum_generator import get_enum_from_orm
-from ..src.query_modificator import (
-    _create_filter,
-    _create_or_condition,
-    _get_column,
-    _get_entity,
-    _op_is_not,
-    form_query,
-)
+from ..src.query_modificator import (_create_filter, _create_or_condition,
+                                     _get_column, _get_entity, _op_is_not,
+                                     form_query)
 from .conftest import Address, Category, User
 
 

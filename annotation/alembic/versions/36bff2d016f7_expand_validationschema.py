@@ -8,9 +8,8 @@ Create Date: 2021-12-28 15:09:23.826747
 from enum import Enum
 
 import sqlalchemy as sa
-from sqlalchemy.dialects import postgresql
-
 from alembic import op
+from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision = "36bff2d016f7"
@@ -135,7 +134,9 @@ def upgrade():
         ondelete="cascade",
     )
 
-    op.execute("ALTER TYPE validation_type ADD VALUE IF NOT EXISTS 'validation_only'")
+    op.execute(
+        "ALTER TYPE validation_type ADD VALUE IF NOT EXISTS 'validation_only'"
+    )
 
 
 class ValidationSchema(str, Enum):

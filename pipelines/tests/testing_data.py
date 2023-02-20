@@ -1,8 +1,8 @@
 import json
 
-import src.db.models as dbm
-import src.execution as execution
-import src.schemas as schemas
+import pipelines.db.models as dbm
+import pipelines.execution as execution
+import pipelines.schemas as schemas
 
 steps_dict = {
     "model": "bar",

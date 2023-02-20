@@ -9,167 +9,105 @@ import boto3
 import pytest
 import sqlalchemy
 import sqlalchemy_utils
-from moto import mock_s3
-from sqlalchemy.engine import create_engine
-from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import Session, sessionmaker
-from sqlalchemy.orm.exc import FlushError
-
 import tests.test_get_accumulated_revisions as accumulated_revs
 import tests.test_get_jobs_info_by_files as jobs_info_by_files
 import tests.test_validation as validation
 from alembic import command
 from alembic.config import Config
-from app.annotations import MANIFEST, S3_START_PATH
-from app.categories import cache
-from app.database import SQLALCHEMY_DATABASE_URL, Base
-from app.jobs import update_user_overall_load
-from app.models import (
-    AnnotatedDoc,
-    Category,
-    DocumentLinks,
-    File,
-    Job,
-    ManualAnnotationTask,
-    User,
-)
-from app.schemas import (
-    AnnotationStatisticsInputSchema,
-    CategoryTypeSchema,
-    FileStatusEnumSchema,
-    JobStatusEnumSchema,
-    TaskStatusEnumSchema,
-    ValidationSchema,
-)
-from app.tasks import add_task_stats_record
-from app.utils import get_test_db_url
+from moto import mock_s3
+from sqlalchemy.engine import create_engine
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.orm.exc import FlushError
 from tests.override_app_dependency import TEST_TENANT
-from tests.test_annotators_overall_load import (
-    OVERALL_LOAD_CREATED_TASKS,
-    OVERALL_LOAD_JOBS,
-    OVERALL_LOAD_USERS,
-    TASK_FILES_OVERALL_LOAD,
-    VALIDATED_DOC_OVERALL_LOAD,
-)
-from tests.test_delete_batch_tasks import (
-    DELETE_BATCH_TASKS_ANNOTATOR,
-    DELETE_BATCH_TASKS_FILE,
-    DELETE_BATCH_TASKS_JOB,
-    DIFF_STATUSES_TASKS,
-)
-from tests.test_finish_task import (
-    CATEGORIES,
-    CATEGORIES_2,
-    FINISH_DOCS,
-    FINISH_DOCS_CHECK_DELETED_ANNOTATOR,
-    FINISH_TASK_1,
-    FINISH_TASK_1_SAME_JOB,
-    FINISH_TASK_2,
-    FINISH_TASK_2_SAME_JOB,
-    FINISH_TASK_CHECK_DELETE_USER_ANNOTATOR_1,
-    FINISH_TASK_CHECK_DELETE_USER_ANNOTATOR_2,
-    FINISH_TASK_CHECK_DELETE_USER_VALIDATOR,
-    FINISH_TASK_FILE_1,
-    FINISH_TASK_FILE_2,
-    FINISH_TASK_FILE_3,
-    FINISH_TASK_FILE_4,
-    FINISH_TASK_JOB_1,
-    FINISH_TASK_JOB_2,
-    FINISH_TASK_JOB_3,
-    FINISH_TASK_JOB_4,
-    FINISH_TASK_USER_1,
-    FINISH_TASK_USER_2,
-    FINISH_TASK_USER_3,
-    TASK_NOT_IN_PROGRESS_STATUS,
-    VALIDATION_TASKS_TO_READY,
-)
+from tests.test_annotators_overall_load import (OVERALL_LOAD_CREATED_TASKS,
+                                                OVERALL_LOAD_JOBS,
+                                                OVERALL_LOAD_USERS,
+                                                TASK_FILES_OVERALL_LOAD,
+                                                VALIDATED_DOC_OVERALL_LOAD)
+from tests.test_delete_batch_tasks import (DELETE_BATCH_TASKS_ANNOTATOR,
+                                           DELETE_BATCH_TASKS_FILE,
+                                           DELETE_BATCH_TASKS_JOB,
+                                           DIFF_STATUSES_TASKS)
+from tests.test_finish_task import (CATEGORIES, CATEGORIES_2, FINISH_DOCS,
+                                    FINISH_DOCS_CHECK_DELETED_ANNOTATOR,
+                                    FINISH_TASK_1, FINISH_TASK_1_SAME_JOB,
+                                    FINISH_TASK_2, FINISH_TASK_2_SAME_JOB,
+                                    FINISH_TASK_CHECK_DELETE_USER_ANNOTATOR_1,
+                                    FINISH_TASK_CHECK_DELETE_USER_ANNOTATOR_2,
+                                    FINISH_TASK_CHECK_DELETE_USER_VALIDATOR,
+                                    FINISH_TASK_FILE_1, FINISH_TASK_FILE_2,
+                                    FINISH_TASK_FILE_3, FINISH_TASK_FILE_4,
+                                    FINISH_TASK_JOB_1, FINISH_TASK_JOB_2,
+                                    FINISH_TASK_JOB_3, FINISH_TASK_JOB_4,
+                                    FINISH_TASK_USER_1, FINISH_TASK_USER_2,
+                                    FINISH_TASK_USER_3,
+                                    TASK_NOT_IN_PROGRESS_STATUS,
+                                    VALIDATION_TASKS_TO_READY)
 from tests.test_get_annotation_for_particular_revision import (
-    PART_REV_ANNOTATOR,
-    PART_REV_DOC,
-    PART_REV_PAGES,
-)
-from tests.test_get_child_categories import (
-    COMMON_CHILD_CATEGORIES,
-    CYCLIC_TENANT_CHILD_CATEGORIES,
-    OTHER_TENANT_CHILD_CATEGORY,
-)
-from tests.test_get_job import (
-    GET_FILES,
-    GET_JOBS,
-    JOB_TEST_ANNOTATORS,
-    JOB_TEST_REVISIONS,
-)
+    PART_REV_ANNOTATOR, PART_REV_DOC, PART_REV_PAGES)
+from tests.test_get_child_categories import (COMMON_CHILD_CATEGORIES,
+                                             CYCLIC_TENANT_CHILD_CATEGORIES,
+                                             OTHER_TENANT_CHILD_CATEGORY)
+from tests.test_get_job import (GET_FILES, GET_JOBS, JOB_TEST_ANNOTATORS,
+                                JOB_TEST_REVISIONS)
 from tests.test_get_job_files import GET_JOB_FILES, GET_JOB_FILES_JOBS
-from tests.test_get_job_progress import (
-    FILE_TEST_PROGRESS,
-    JOBS_TO_TEST_PROGRESS,
-    TASKS_TEST_PROGRESS,
-)
+from tests.test_get_job_progress import (FILE_TEST_PROGRESS,
+                                         JOBS_TO_TEST_PROGRESS,
+                                         TASKS_TEST_PROGRESS)
 from tests.test_get_pages_info import PAGES_INFO_ENTITIES
-from tests.test_get_revisions import (
-    JOBS_IDS,
-    PAGE,
-    PAGES_PATHS,
-    REVISIONS,
-    USERS_IDS,
-)
+from tests.test_get_revisions import (JOBS_IDS, PAGE, PAGES_PATHS, REVISIONS,
+                                      USERS_IDS)
 from tests.test_get_revisions_without_annotation import (
-    REV_WITHOUT_ANNOTATION_DOC_1,
-    REV_WITHOUT_ANNOTATION_DOC_2,
-    REV_WITHOUT_ANNOTATION_DOC_3,
-    REV_WITHOUT_ANNOTATION_JOB,
-    REV_WITHOUT_ANNOTATION_TASK,
-)
+    REV_WITHOUT_ANNOTATION_DOC_1, REV_WITHOUT_ANNOTATION_DOC_2,
+    REV_WITHOUT_ANNOTATION_DOC_3, REV_WITHOUT_ANNOTATION_JOB,
+    REV_WITHOUT_ANNOTATION_TASK)
 from tests.test_get_unassigned_files import UNASSIGNED_FILES_ENTITIES
-from tests.test_get_users_for_job import (
-    USERS_FOR_JOB_ANNOTATORS,
-    USERS_FOR_JOB_JOBS,
-)
+from tests.test_get_users_for_job import (USERS_FOR_JOB_ANNOTATORS,
+                                          USERS_FOR_JOB_JOBS)
 from tests.test_job_categories import CATEGORIES_USERS, MOCK_ID
 from tests.test_post import POST_JOBS, TEST_POST_USERS
-from tests.test_post_annotation import (
-    ANNOTATION_VALIDATION_TASKS_PG,
-    MANIFEST_IN_MINIO,
-    POST_ANNOTATION_ANNOTATOR,
-    POST_ANNOTATION_FILE_1,
-    POST_ANNOTATION_JOB_1,
-    POST_ANNOTATION_PG_DOC,
-    POST_ANNOTATION_PG_TASK_1,
-    POST_ANNOTATION_PG_TASK_2,
-    POST_ANNOTATION_VALIDATION_JOB,
-    POST_ANNOTATION_VALIDATOR,
-    S3_PATH,
-)
+from tests.test_post_annotation import (ANNOTATION_VALIDATION_TASKS_PG,
+                                        MANIFEST_IN_MINIO,
+                                        POST_ANNOTATION_ANNOTATOR,
+                                        POST_ANNOTATION_FILE_1,
+                                        POST_ANNOTATION_JOB_1,
+                                        POST_ANNOTATION_PG_DOC,
+                                        POST_ANNOTATION_PG_TASK_1,
+                                        POST_ANNOTATION_PG_TASK_2,
+                                        POST_ANNOTATION_VALIDATION_JOB,
+                                        POST_ANNOTATION_VALIDATOR, S3_PATH)
 from tests.test_post_job import POST_JOB_EXISTING_JOB
 from tests.test_post_next_task import NEXT_TASK_ANNOTATION_TASKS, NEXT_TASK_JOB
-from tests.test_post_unassgined_files import (
-    ANNOTATORS_POST_UN_FILES,
-    JOBS_FILES_TASKS_POST_UN_FILES,
-)
-from tests.test_search_kafka import (
-    ANNOTATION_KAFKA_FILE,
-    ANNOTATION_KAFKA_JOB,
-    ANNOTATION_KAFKA_TASK,
-)
+from tests.test_post_unassgined_files import (ANNOTATORS_POST_UN_FILES,
+                                              JOBS_FILES_TASKS_POST_UN_FILES)
+from tests.test_search_kafka import (ANNOTATION_KAFKA_FILE,
+                                     ANNOTATION_KAFKA_JOB,
+                                     ANNOTATION_KAFKA_TASK)
 from tests.test_start_job import CHANGE_STATUSES_JOBS, CHANGE_STATUSES_TASKS
 from tests.test_tasks_crud_cr import CRUD_CR_ANNOTATION_TASKS, CRUD_CR_JOBS
 from tests.test_tasks_crud_cr import FILES as CRUD_CR_FILES
-from tests.test_tasks_crud_ud import (
-    CRUD_UD_CONSTRAINTS_FILES,
-    CRUD_UD_CONSTRAINTS_JOBS,
-    CRUD_UD_CONSTRAINTS_TASKS,
-    CRUD_UD_CONSTRAINTS_USERS,
-    CRUD_UD_JOB_1,
-    CRUD_UD_JOB_2,
-    CRUD_UD_TASK,
-)
-from tests.test_update_job import (
-    UPDATE_JOB_CATEGORIES,
-    UPDATE_JOB_FILES,
-    UPDATE_JOB_USERS,
-    UPDATE_JOBS,
-    UPDATE_USER_NO_JOBS,
-)
+from tests.test_tasks_crud_ud import (CRUD_UD_CONSTRAINTS_FILES,
+                                      CRUD_UD_CONSTRAINTS_JOBS,
+                                      CRUD_UD_CONSTRAINTS_TASKS,
+                                      CRUD_UD_CONSTRAINTS_USERS, CRUD_UD_JOB_1,
+                                      CRUD_UD_JOB_2, CRUD_UD_TASK)
+from tests.test_update_job import (UPDATE_JOB_CATEGORIES, UPDATE_JOB_FILES,
+                                   UPDATE_JOB_USERS, UPDATE_JOBS,
+                                   UPDATE_USER_NO_JOBS)
+
+from annotation.annotations import MANIFEST, S3_START_PATH
+from annotation.categories import cache
+from annotation.database import SQLALCHEMY_DATABASE_URL, Base
+from annotation.jobs import update_user_overall_load
+from annotation.models import (AnnotatedDoc, Category, DocumentLinks, File,
+                               Job, ManualAnnotationTask, User)
+from annotation.schemas import (AnnotationStatisticsInputSchema,
+                                CategoryTypeSchema, FileStatusEnumSchema,
+                                JobStatusEnumSchema, TaskStatusEnumSchema,
+                                ValidationSchema)
+from annotation.tasks import add_task_stats_record
+from annotation.utils import get_test_db_url
 
 DEFAULT_REGION = "us-east-1"
 
@@ -958,7 +896,7 @@ def mock_assets_communication(
     monkeypatch, prepare_db_categories_for_filtration
 ) -> Session:
     monkeypatch.setattr(
-        "app.jobs.resources.get_files_info",
+        "annotation.jobs.resources.get_files_info",
         Mock(return_value=[{"file_id": MOCK_ID, "pages_number": 2}]),
     )
     return prepare_db_categories_for_filtration
@@ -969,7 +907,7 @@ def mock_db_error_for_job_categories(
     monkeypatch, prepare_db_categories_for_filtration
 ) -> Session:
     monkeypatch.setattr(
-        "app.jobs.resources.fetch_bunch_categories_db",
+        "annotation.jobs.resources.fetch_bunch_categories_db",
         Mock(side_effect=SQLAlchemyError),
     )
     return prepare_db_categories_for_filtration
@@ -980,7 +918,7 @@ def mock_db_error_get_job_categories(
     monkeypatch, prepare_db_categories_for_filtration
 ) -> Session:
     monkeypatch.setattr(
-        "app.main.filter_job_categories",
+        "annotation.main.filter_job_categories",
         Mock(side_effect=SQLAlchemyError),
     )
     return prepare_db_categories_for_filtration
@@ -1273,7 +1211,7 @@ def db_errors(request, monkeypatch):
 @pytest.fixture
 def mock_minio_empty_bucket(monkeypatch, empty_bucket):
     monkeypatch.setattr(
-        "app.annotations.main.connect_s3",
+        "annotation.annotations.main.connect_s3",
         Mock(return_value=empty_bucket),
     )
     yield empty_bucket

@@ -1,11 +1,11 @@
 import os
 from logging.config import fileConfig
 
+from alembic import context  # type: ignore
 from sqlalchemy import engine_from_config, pool
 
-from alembic import context  # type: ignore
-from app.database import SQLALCHEMY_DATABASE_URL
-from app.utils import get_test_db_url
+from annotation.database import SQLALCHEMY_DATABASE_URL
+from annotation.utils import get_test_db_url
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -19,7 +19,7 @@ fileConfig(config.config_file_name)
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-from app.models import Base  # noqa E402
+from annotation.models import Base  # noqa E402
 
 target_metadata = Base.metadata
 

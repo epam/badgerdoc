@@ -41,7 +41,8 @@ def create_boto3_config():
             "- s3_credentials_provider is not set"
         )
     logger.info(
-        f"S3_Credentials provider - {settings.s3_credentials_provider}")
+        f"S3_Credentials provider - {settings.s3_credentials_provider}"
+    )
     return boto3_config
 
 

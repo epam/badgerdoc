@@ -14,7 +14,7 @@ RUN apt-get update -y && apt-get install -y poppler-utils \
     && pipenv install --system --deploy
 
 COPY alembic alembic
-COPY src src
+COPY assets assets
 
 CMD alembic upgrade afa33cc83d57 && alembic upgrade fe5926249504 && alembic upgrade 0f6c859c1d1c && alembic upgrade head && uvicorn src.main:app --host 0.0.0.0 --port 8080
 

@@ -4,10 +4,11 @@ from unittest.mock import Mock, patch
 import pytest
 from fastapi import HTTPException
 
-from src.db.models import FileObject
-from src.db.service import delete_file_from_db, insert_file, update_file_status
-from src.schemas import FileProcessingStatus
-from src.utils.minio_utils import check_bucket, delete_one_from_minio
+from assets.db.models import FileObject
+from assets.db.service import (delete_file_from_db, insert_file,
+                               update_file_status)
+from assets.schemas import FileProcessingStatus
+from assets.utils.minio_utils import check_bucket, delete_one_from_minio
 
 
 @pytest.fixture

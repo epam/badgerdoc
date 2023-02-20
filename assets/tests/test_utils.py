@@ -9,23 +9,15 @@ from PIL import Image
 from requests import Response
 from sqlalchemy.orm import Session
 
-import src.utils.minio_utils as minio_utils
-from src.config import settings
-from src.db.models import FileObject
-from src.exceptions import (
-    BucketError,
-    FileConversionError,
-    FileKeyError,
-    UploadLimitExceedError,
-)
-from src.schemas import ActionResponse
-from src.utils.common_utils import (
-    FileConverter,
-    FileProcessor,
-    check_uploading_limit,
-    to_obj,
-)
-from src.utils.s3_utils import S3Manager
+import assets.utils.minio_utils as minio_utils
+from assets.config import settings
+from assets.db.models import FileObject
+from assets.exceptions import (BucketError, FileConversionError, FileKeyError,
+                               UploadLimitExceedError)
+from assets.schemas import ActionResponse
+from assets.utils.common_utils import (FileConverter, FileProcessor,
+                                       check_uploading_limit, to_obj)
+from assets.utils.s3_utils import S3Manager
 
 ID_ = 12
 
@@ -82,7 +74,7 @@ def test_file_processor_is_extension_correct_without_extension():
     assert mock_instance.is_extension_correct() is False
 
 
-# @patch("src.utils.common_utils.db.service.insert_file")
+# @patch("assets.utils.common_utils.db.service.insert_file")
 # def test_file_processor_is_inserted_to_database_file_inserted(
 #     insert_file, pdf_file_bytes
 # ):
@@ -99,7 +91,7 @@ def test_file_processor_is_extension_correct_without_extension():
 #     insert_file.assert_called()
 
 
-# @patch("src.utils.common_utils.db.service.insert_file")
+# @patch("assets.utils.common_utils.db.service.insert_file")
 # def test_file_processor_is_inserted_to_database_file_not_inserted(
 #     insert_file, pdf_file_bytes
 # ):
@@ -117,7 +109,7 @@ def test_file_processor_is_extension_correct_without_extension():
 #     insert_file.assert_called()
 
 
-@patch("src.utils.minio_utils.upload_in_minio")
+@patch("assets.utils.minio_utils.upload_in_minio")
 def test_file_processor_is_uploaded_to_storage_file_uploaded(upload_in_minio):
     file_processor = FileProcessor(
         file=BytesIO(),
@@ -131,8 +123,8 @@ def test_file_processor_is_uploaded_to_storage_file_uploaded(upload_in_minio):
     upload_in_minio.assert_called()
 
 
-@patch("src.utils.common_utils.db.service.update_file_status")
-@patch("src.utils.minio_utils.upload_in_minio")
+@patch("assets.utils.common_utils.db.service.update_file_status")
+@patch("assets.utils.minio_utils.upload_in_minio")
 def test_file_processor_is_uploaded_to_storage_not_uploaded(
     upload_in_minio, update_file_status
 ):
@@ -152,7 +144,7 @@ def test_file_processor_is_uploaded_to_storage_not_uploaded(
     update_file_status.assert_called()
 
 
-@patch("src.utils.common_utils.db.service.update_file_status")
+@patch("assets.utils.common_utils.db.service.update_file_status")
 def test_file_processor_is_file_updated_status_updated(update_file_status):
     file_processor = FileProcessor(
         file=BytesIO(),
@@ -168,7 +160,7 @@ def test_file_processor_is_file_updated_status_updated(update_file_status):
     update_file_status.assert_called()
 
 
-@patch("src.utils.common_utils.db.service.update_file_status")
+@patch("assets.utils.common_utils.db.service.update_file_status")
 def test_file_processor_is_file_updated_status_not_updated(update_file_status):
     file_processor = FileProcessor(
         file=BytesIO(),
@@ -184,15 +176,16 @@ def test_file_processor_is_file_updated_status_not_updated(update_file_status):
     update_file_status.assert_called()
 
 
-@patch("src.utils.common_utils.FileProcessor.is_file_updated")
-@patch("src.utils.common_utils.FileProcessor.is_blank_is_created")
+@patch("assets.utils.common_utils.FileProcessor.is_file_updated")
+@patch("assets.utils.common_utils.FileProcessor.is_blank_is_created")
 @patch(
-    "src.utils.common_utils.FileProcessor.is_original_file_uploaded_to_storage"
+    "assets.utils.common_utils.FileProcessor."
+    "is_original_file_uploaded_to_storage"
 )
-@patch("src.utils.common_utils.FileProcessor.is_uploaded_to_storage")
-@patch("src.utils.common_utils.FileProcessor.is_inserted_to_database")
-@patch("src.utils.common_utils.FileProcessor.is_converted_file")
-@patch("src.utils.common_utils.FileProcessor.is_extension_correct")
+@patch("assets.utils.common_utils.FileProcessor.is_uploaded_to_storage")
+@patch("assets.utils.common_utils.FileProcessor.is_inserted_to_database")
+@patch("assets.utils.common_utils.FileProcessor.is_converted_file")
+@patch("assets.utils.common_utils.FileProcessor.is_extension_correct")
 def test_file_processor_run_all_stages_passed(
     is_blank_is_created,
     is_extension_correct,
@@ -228,10 +221,10 @@ def test_file_processor_run_all_stages_passed(
     is_file_updated.assert_called()
 
 
-@patch("src.utils.common_utils.FileProcessor.is_file_updated")
-@patch("src.utils.common_utils.FileProcessor.is_uploaded_to_storage")
-@patch("src.utils.common_utils.FileProcessor.is_inserted_to_database")
-@patch("src.utils.common_utils.FileProcessor.is_extension_correct")
+@patch("assets.utils.common_utils.FileProcessor.is_file_updated")
+@patch("assets.utils.common_utils.FileProcessor.is_uploaded_to_storage")
+@patch("assets.utils.common_utils.FileProcessor.is_inserted_to_database")
+@patch("assets.utils.common_utils.FileProcessor.is_extension_correct")
 def test_file_processor_run_extension_check_failed(
     is_extension_correct,
     is_inserted_to_database,
@@ -258,7 +251,7 @@ def test_file_processor_run_extension_check_failed(
     is_file_updated.assert_not_called()
 
 
-@patch("src.utils.common_utils.requests.post")
+@patch("assets.utils.common_utils.requests.post")
 def test_file_processor_is_converted_file_converted(gotenberg, pdf_file_bytes):
     response = Response()
     response._content = pdf_file_bytes
@@ -274,8 +267,8 @@ def test_file_processor_is_converted_file_converted(gotenberg, pdf_file_bytes):
         assert file_processor.is_converted_file()
 
 
-@patch("src.utils.common_utils.get_mimetype")
-@patch("src.utils.common_utils.requests.post")
+@patch("assets.utils.common_utils.get_mimetype")
+@patch("assets.utils.common_utils.requests.post")
 def test_file_processor_is_converted_file_conversion_error(
     gotenberg, get_mimetype, pdf_file_bytes
 ):
@@ -296,7 +289,7 @@ def test_file_processor_is_converted_file_conversion_error(
         assert file_processor.conversion_status == "conversion error"
 
 
-@patch("src.utils.common_utils.requests.post")
+@patch("assets.utils.common_utils.requests.post")
 def test_file_processor_is_converted_file_conversion_not_in_formats(
     gotenberg, pdf_file_bytes
 ):
@@ -316,14 +309,14 @@ def test_file_processor_is_converted_file_conversion_not_in_formats(
         assert file_processor.conversion_status is None
 
 
-# @patch("src.utils.common_utils.FileProcessor.is_file_updated")
+# @patch("assets.utils.common_utils.FileProcessor.is_file_updated")
 # @patch(
-#     "src.utils.common_utils.FileProcessor.is_original_file_uploaded_to_storage"
+#     "assets.utils.common_utils.FileProcessor.is_original_file_uploaded_to_storage"
 # )
-# @patch("src.utils.common_utils.FileProcessor.is_uploaded_to_storage")
-# @patch("src.utils.common_utils.FileProcessor.is_inserted_to_database")
-# @patch("src.utils.common_utils.FileProcessor.is_converted_file")
-# @patch("src.utils.common_utils.FileProcessor.is_extension_correct")
+# @patch("assets.utils.common_utils.FileProcessor.is_uploaded_to_storage")
+# @patch("assets.utils.common_utils.FileProcessor.is_inserted_to_database")
+# @patch("assets.utils.common_utils.FileProcessor.is_converted_file")
+# @patch("assets.utils.common_utils.FileProcessor.is_extension_correct")
 # def test_file_processor_run_database_insert_failed(
 #     is_extension_correct,
 #     is_converted_file,
@@ -356,10 +349,10 @@ def test_file_processor_is_converted_file_conversion_not_in_formats(
 #     is_file_updated.assert_not_called()
 
 
-# @patch("src.utils.common_utils.FileProcessor.is_file_updated")
-# @patch("src.utils.common_utils.FileProcessor.is_uploaded_to_storage")
-# @patch("src.utils.common_utils.FileProcessor.is_inserted_to_database")
-# @patch("src.utils.common_utils.FileProcessor.is_extension_correct")
+# @patch("assets.utils.common_utils.FileProcessor.is_file_updated")
+# @patch("assets.utils.common_utils.FileProcessor.is_uploaded_to_storage")
+# @patch("assets.utils.common_utils.FileProcessor.is_inserted_to_database")
+# @patch("assets.utils.common_utils.FileProcessor.is_extension_correct")
 # def test_file_processor_run_storage_upload_failed(
 #     is_extension_correct,
 #     is_inserted_to_database,
@@ -386,10 +379,10 @@ def test_file_processor_is_converted_file_conversion_not_in_formats(
 #     is_file_updated.assert_not_called()
 
 
-# @patch("src.utils.common_utils.FileProcessor.is_file_updated")
-# @patch("src.utils.common_utils.FileProcessor.is_uploaded_to_storage")
-# @patch("src.utils.common_utils.FileProcessor.is_inserted_to_database")
-# @patch("src.utils.common_utils.FileProcessor.is_extension_correct")
+# @patch("assets.utils.common_utils.FileProcessor.is_file_updated")
+# @patch("assets.utils.common_utils.FileProcessor.is_uploaded_to_storage")
+# @patch("assets.utils.common_utils.FileProcessor.is_inserted_to_database")
+# @patch("assets.utils.common_utils.FileProcessor.is_extension_correct")
 # def test_file_processor_run_status_update_failed(
 #     is_extension_correct,
 #     is_inserted_to_database,
@@ -428,8 +421,8 @@ def test_s3_manager_get_files():
         assert file_key in file_keys
 
 
-@patch("src.utils.s3_utils.S3Manager._check_bucket_exist")
-@patch("src.utils.s3_utils.S3Manager._check_files_exist")
+@patch("assets.utils.s3_utils.S3Manager._check_bucket_exist")
+@patch("assets.utils.s3_utils.S3Manager._check_files_exist")
 def test_s3_manager_check_s3_buckets_and_files_exist(
     check_buckets, check_files
 ):
@@ -441,8 +434,8 @@ def test_s3_manager_check_s3_buckets_and_files_exist(
     check_files.assert_called()
 
 
-@patch("src.utils.s3_utils.S3Manager._check_bucket_exist")
-@patch("src.utils.s3_utils.S3Manager._check_files_exist")
+@patch("assets.utils.s3_utils.S3Manager._check_bucket_exist")
+@patch("assets.utils.s3_utils.S3Manager._check_files_exist")
 def test_s3_manager_check_s3_buckets_not_exist(check_files, check_buckets):
     s3 = S3Manager("a", "b", endpoint_url=None)
     check_buckets.side_effect = BucketError
@@ -453,8 +446,8 @@ def test_s3_manager_check_s3_buckets_not_exist(check_files, check_buckets):
     check_files.assert_not_called()
 
 
-@patch("src.utils.s3_utils.S3Manager._check_bucket_exist")
-@patch("src.utils.s3_utils.S3Manager._check_files_exist")
+@patch("assets.utils.s3_utils.S3Manager._check_bucket_exist")
+@patch("assets.utils.s3_utils.S3Manager._check_files_exist")
 def test_s3_manager_check_s3_file_not_exist(check_files, check_buckets):
     s3 = S3Manager("a", "b", endpoint_url=None)
     check_buckets.return_value = None
@@ -476,8 +469,8 @@ def test_check_uploading_limit_not_exceed():
     assert check_uploading_limit(uploading_list) is None
 
 
-@patch("src.utils.common_utils.get_mimetype")
-@patch("src.utils.common_utils.requests.post")
+@patch("assets.utils.common_utils.get_mimetype")
+@patch("assets.utils.common_utils.requests.post")
 def test_file_processor_conversion_error(
     gotenberg, get_mimetype, pdf_file_bytes
 ):
@@ -494,7 +487,7 @@ def test_file_processor_conversion_error(
         assert converter.conversion_status == "conversion error"
 
 
-@patch("src.utils.common_utils.requests.post")
+@patch("assets.utils.common_utils.requests.post")
 def test_file_converted_converted_to_pdf(gotenberg, pdf_file_bytes):
     response = Response()
     response._content = pdf_file_bytes
@@ -508,8 +501,8 @@ def test_file_converted_converted_to_pdf(gotenberg, pdf_file_bytes):
         assert converter.conversion_status == "converted to PDF"
 
 
-@patch("src.utils.common_utils.get_mimetype")
-@patch("src.utils.common_utils.requests.post")
+@patch("assets.utils.common_utils.get_mimetype")
+@patch("assets.utils.common_utils.requests.post")
 def test_file_converted_converted_to_pdf_side_effect(
     gotenberg, get_mimetype, pdf_file_bytes
 ):
@@ -593,7 +586,7 @@ def test_extend_bbox(bbox, page_size, ext, expected_result):
 )
 def test_get_pdf_page_size(file, return_value, expected_result):
     with patch(
-        "src.utils.minio_utils.pdf2image.pdfinfo_from_bytes",
+        "assets.utils.minio_utils.pdf2image.pdfinfo_from_bytes",
         return_value=return_value,
     ):
         assert minio_utils.get_pdf_pts_page_size(file) == expected_result

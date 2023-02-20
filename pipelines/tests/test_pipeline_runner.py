@@ -1,4 +1,4 @@
-# """Testing src/pipeline_runner.py."""
+# """Testing pipelines/pipeline_runner.py."""
 import logging
 from unittest.mock import patch
 
@@ -6,8 +6,8 @@ import pytest
 from aiokafka import AIOKafkaProducer
 from pydantic import BaseModel
 
-import src.execution as execution
-import src.pipeline_runner as runner
+import pipelines.execution as execution
+import pipelines.pipeline_runner as runner
 
 LOGGER = logging.getLogger(__name__)
 
@@ -84,9 +84,9 @@ def test_response_message_incorrect(caplog):
     )
 
 
-@patch("src.execution.PipelineTask.get_by_id")
-@patch("src.execution.ExecutionStep.get_by_id")
-@patch("src.execution.ExecutionStep.process_next_steps")
+@patch("pipelines.execution.PipelineTask.get_by_id")
+@patch("pipelines.execution.ExecutionStep.get_by_id")
+@patch("pipelines.execution.ExecutionStep.process_next_steps")
 @pytest.mark.asyncio
 async def test_process_message_task_not_finished(
     process_next_steps, get_step, get_task, testing_app
@@ -145,9 +145,9 @@ async def test_process_message_task_not_finished(
     assert process_next_steps.called
 
 
-@patch("src.execution.PipelineTask.get_by_id")
-@patch("src.execution.ExecutionStep.get_by_id")
-@patch("src.execution.PipelineTask.finish")
+@patch("pipelines.execution.PipelineTask.get_by_id")
+@patch("pipelines.execution.ExecutionStep.get_by_id")
+@patch("pipelines.execution.PipelineTask.finish")
 @pytest.mark.asyncio
 async def test_process_message_task_finished(
     finish_task, get_step, get_task, testing_app
@@ -210,9 +210,9 @@ async def test_process_message_task_finished(
     "Test should be fixed - it 'blinks'. "
     "It passes when run separately, but fails when all tests are run."
 )
-@patch("src.execution.PipelineTask.get_by_id")
-@patch("src.execution.ExecutionStep.get_by_id")
-@patch("src.execution.PipelineTask.finish")
+@patch("pipelines.execution.PipelineTask.get_by_id")
+@patch("pipelines.execution.ExecutionStep.get_by_id")
+@patch("pipelines.execution.PipelineTask.finish")
 @pytest.mark.asyncio
 async def test_process_message_task_failed(
     finish_task, get_step, get_task, testing_app, caplog
@@ -267,7 +267,7 @@ async def test_process_message_task_failed(
     "Test should be fixed - it 'blinks'. "
     "It passes when run separately, but fails when all tests are run."
 )
-@patch("src.pipeline_runner.process_message")
+@patch("pipelines.pipeline_runner.process_message")
 @pytest.mark.asyncio
 async def test_run_pipeline(process_message, caplog):
     message_1 = KafkaMessage.parse_obj(

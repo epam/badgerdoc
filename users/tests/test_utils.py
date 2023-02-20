@@ -1,7 +1,8 @@
 from unittest.mock import patch
 
 import pytest
-from src import utils
+
+from users import utils
 
 
 def test_extract_idp_data_needed():
@@ -53,5 +54,5 @@ def test_extract_idp_data_needed():
     ("prefix", "expected"), (("", "tenant"), ("prefix", "prefix-tenant"))
 )
 def test_bucket_dependency(prefix: str, expected: str) -> None:
-    with patch("src.config.S3_PREFIX", prefix):
+    with patch("users.config.S3_PREFIX", prefix):
         assert utils.get_bucket_name("tenant") == expected

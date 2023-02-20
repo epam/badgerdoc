@@ -2,16 +2,10 @@ from typing import Optional, Set
 
 from db_example import Address, User, get_db
 from fastapi import Depends, FastAPI
+from filter_lib import (Page, create_filter_model, form_query,  # type: ignore
+                        map_request_to_filter, paginate)
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-
-from filter_lib import (  # type: ignore
-    Page,
-    create_filter_model,
-    form_query,
-    map_request_to_filter,
-    paginate,
-)
 
 app = FastAPI()
 
@@ -58,9 +52,7 @@ def create_new_user(
 
 
 @app.post("/users/search", tags=["users"], response_model=Page[UserOut])
-def search_users(
-    request: UserFilterModel, session: Session = Depends(get_db)  # type: ignore # noqa
-) -> Page[UserOut]:
+def search_users(request: UserFilterModel, session: Session = Depends(get_db)) -> Page[UserOut]:  # type: ignore # noqa
     query = session.query(User)
     filter_args = map_request_to_filter(request.dict(), "User")  # type: ignore
     query, pagination = form_query(filter_args, query)

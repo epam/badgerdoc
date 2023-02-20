@@ -1,16 +1,15 @@
-"""Testing src/keycloak/query.py."""
+"""Testing users/keycloak/query.py."""
 import json
-from unittest.mock import patch, create_autospec
+from unittest.mock import create_autospec, patch
 
 import pytest
-
-import src.keycloak.query as query
-import src.keycloak.schemas as schemas
+import users.keycloak.query as query
+import users.keycloak.schemas as schemas
 
 
 @pytest.fixture
 def request_mock():
-    with patch("src.keycloak.query.aiohttp.request") as mock:
+    with patch("users.keycloak.query.aiohttp.request") as mock:
         yield mock
 
 

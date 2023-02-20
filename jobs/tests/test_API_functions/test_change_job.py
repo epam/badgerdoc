@@ -1,12 +1,11 @@
 import asyncio
-import pytest
 from unittest.mock import patch
 
+import pytest
+from tests.test_db import (create_mock_annotation_job_in_db,
+                           create_mock_extraction_job_in_db)
+
 import jobs.schemas as schemas
-from tests.test_db import (
-    create_mock_annotation_job_in_db,
-    create_mock_extraction_job_in_db,
-)
 
 
 def test_change_job_status_with_validation_correct_jwt_provided(
@@ -76,10 +75,17 @@ def test_change_job_linked_taxonomy(
     create_mock_extraction_job_in_db(testing_session)
     with patch("jobs.utils.fetch", return_value=asyncio.Future()) as mock:
         mock.side_effect = [(204, {}), (200, {})]
-        response = testing_app.put("/jobs/1", json={"categories": [{
-            "category_id": "category2",
-            "taxonomy_id": "my_taxonomy_id",
-            "taxonomy_version": 1
-        }]})
+        response = testing_app.put(
+            "/jobs/1",
+            json={
+                "categories": [
+                    {
+                        "category_id": "category2",
+                        "taxonomy_id": "my_taxonomy_id",
+                        "taxonomy_version": 1,
+                    }
+                ]
+            },
+        )
         assert response.status_code == 200
         assert response.json()["categories"] == ["category2"]

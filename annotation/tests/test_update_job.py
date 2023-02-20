@@ -6,32 +6,18 @@ from fastapi.testclient import TestClient
 from pytest import mark
 from sqlalchemy import asc
 from sqlalchemy.exc import SQLAlchemyError
-
-from app.annotations import row_to_dict
-from app.models import (
-    Category,
-    File,
-    Job,
-    User,
-    association_job_annotator,
-    association_job_category,
-    association_job_owner,
-    association_job_validator,
-)
-from app.schemas import (
-    CategoryTypeSchema,
-    FileStatusEnumSchema,
-    JobStatusEnumSchema,
-    JobTypeEnumSchema,
-    ValidationSchema,
-)
 from tests.consts import POST_JOBS_PATH
-from tests.override_app_dependency import (
-    TEST_HEADERS,
-    TEST_TENANT,
-    TEST_TOKEN,
-    app,
-)
+from tests.override_app_dependency import (TEST_HEADERS, TEST_TENANT,
+                                           TEST_TOKEN, app)
+
+from annotation.annotations import row_to_dict
+from annotation.models import (Category, File, Job, User,
+                               association_job_annotator,
+                               association_job_category, association_job_owner,
+                               association_job_validator)
+from annotation.schemas import (CategoryTypeSchema, FileStatusEnumSchema,
+                                JobStatusEnumSchema, JobTypeEnumSchema,
+                                ValidationSchema)
 
 JOBS_SEARCH_URL = os.environ.get("JOBS_SEARCH_URL")
 
@@ -243,7 +229,7 @@ ASSOCIATION_TABLES = {
 
 
 @mark.integration
-@patch("app.jobs.resources.get_job", side_effect=SQLAlchemyError)
+@patch("annotation.jobs.resources.get_job", side_effect=SQLAlchemyError)
 def test_update_job_connection_exception(prepare_db_for_update_job):
     """Tests error handling for SQLAlchemy errors."""
     response = client.patch(
@@ -405,7 +391,7 @@ def test_update_files(
     expected_result = new_files
     new_ids = [new_id["file_id"] for new_id in new_files]
     monkeypatch.setattr(
-        "app.jobs.services.get_files_info",
+        "annotation.jobs.services.get_files_info",
         Mock(return_value=new_files),
     )
     response = client.patch(
@@ -564,7 +550,7 @@ def test_update_user_constraints(
     was added into database).
     """
     monkeypatch.setattr(
-        "app.jobs.services.get_job_names",
+        "annotation.jobs.services.get_job_names",
         Mock(return_value={job_id: "JobName"}),
     )
     response = client.patch(
@@ -588,7 +574,7 @@ def test_update_files_and_datasets_for_already_started_job(
         "files and datasets can't be updated for already started job"
     )
     monkeypatch.setattr(
-        "app.jobs.services.get_job_names",
+        "annotation.jobs.services.get_job_names",
         Mock(return_value={UPDATE_JOB_IDS[5]: "JobName"}),
     )
     response = client.patch(
@@ -639,7 +625,7 @@ def test_update_extraction_job_new_user(
     )
     assert existing_users_count == 1
     monkeypatch.setattr(
-        "app.jobs.services.get_job_names",
+        "annotation.jobs.services.get_job_names",
         Mock(return_value={job_id: "JobName"}),
     )
     response = client.patch(
@@ -725,7 +711,7 @@ def test_update_jobs_name_from_db_or_microservice(
     """
     session = prepare_db_for_update_job
     monkeypatch.setattr(
-        "app.jobs.services.get_job_names",
+        "annotation.jobs.services.get_job_names",
         Mock(return_value={3: "JobName3"}),
     )
     response = client.patch(

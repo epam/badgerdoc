@@ -2,26 +2,17 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.exc import DBAPIError, SQLAlchemyError
 from sqlalchemy.sql.elements import not_
-
-from app.annotations import row_to_dict
-from app.microservice_communication.search import (
-    AUTHORIZATION,
-    BEARER,
-    HEADER_TENANT,
-)
-from app.models import File, Job, ManualAnnotationTask, User
-from app.schemas import (
-    FileStatusEnumSchema,
-    TaskStatusEnumSchema,
-    ValidationSchema,
-)
-from tests.override_app_dependency import (
-    TEST_HEADERS,
-    TEST_TENANT,
-    TEST_TOKEN,
-    app,
-)
+from tests.override_app_dependency import (TEST_HEADERS, TEST_TENANT,
+                                           TEST_TOKEN, app)
 from tests.test_post import check_files_distributed_pages
+
+from annotation.annotations import row_to_dict
+from annotation.microservice_communication.search import (AUTHORIZATION,
+                                                          BEARER,
+                                                          HEADER_TENANT)
+from annotation.models import File, Job, ManualAnnotationTask, User
+from annotation.schemas import (FileStatusEnumSchema, TaskStatusEnumSchema,
+                                ValidationSchema)
 
 client = TestClient(app)
 

@@ -32,12 +32,8 @@ PIECES_ENUM = utils.enum_generator(fields, "PIECES_ENUM")
 class GeomObject(pydantic.BaseModel):
     category: str = pydantic.Field(..., example="Header")
     content: str = pydantic.Field(..., example="ElasticSearch")
-    document_id: pydantic.conint(ge=1) = pydantic.Field(
-        ..., example=1
-    )  # type: ignore
-    page_number: pydantic.conint(ge=1) = pydantic.Field(
-        ..., example=1
-    )  # type: ignore
+    document_id: pydantic.conint(ge=1) = pydantic.Field(..., example=1)  # type: ignore
+    page_number: pydantic.conint(ge=1) = pydantic.Field(..., example=1)  # type: ignore
     bbox: Optional[
         pydantic.conlist(float, min_items=4, max_items=4)
     ] = pydantic.Field(
@@ -46,9 +42,7 @@ class GeomObject(pydantic.BaseModel):
     tokens: Optional[List[str]] = pydantic.Field(
         None, example=["token1", "token2", "token3"]
     )
-    job_id: pydantic.conint(ge=1) = pydantic.Field(
-        ..., example=1
-    )  # type: ignore
+    job_id: pydantic.conint(ge=1) = pydantic.Field(..., example=1)  # type: ignore
 
 
 class SearchResultSchema(pydantic.BaseModel):

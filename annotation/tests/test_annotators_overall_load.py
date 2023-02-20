@@ -5,30 +5,19 @@ from fastapi.testclient import TestClient
 from pytest import mark, raises
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
-
-from app.jobs import update_user_overall_load
-from app.main import app
-from app.microservice_communication.assets_communication import (
-    ASSETS_FILES_URL,
-)
-from app.models import (
-    AnnotatedDoc,
-    Category,
-    File,
-    Job,
-    ManualAnnotationTask,
-    User,
-)
-from app.schemas import (
-    CategoryTypeSchema,
-    FileStatusEnumSchema,
-    JobStatusEnumSchema,
-    JobTypeEnumSchema,
-    ValidationSchema,
-)
 from tests.consts import CRUD_TASKS_PATH, FINISH_TASK_PATH
 from tests.override_app_dependency import TEST_HEADERS, TEST_TENANT
 from tests.test_tasks_crud_ud import construct_path
+
+from annotation.jobs import update_user_overall_load
+from annotation.main import app
+from annotation.microservice_communication.assets_communication import \
+    ASSETS_FILES_URL
+from annotation.models import (AnnotatedDoc, Category, File, Job,
+                               ManualAnnotationTask, User)
+from annotation.schemas import (CategoryTypeSchema, FileStatusEnumSchema,
+                                JobStatusEnumSchema, JobTypeEnumSchema,
+                                ValidationSchema)
 
 client = TestClient(app)
 
@@ -465,7 +454,8 @@ def test_overall_load_after_distribution(
     monkeypatch, prepare_db_for_overall_load
 ):
     monkeypatch.setattr(
-        "app.microservice_communication.assets_communication.get_response",
+        "annotation.microservice_communication.assets_communication."
+        "get_response",
         Mock(return_value=[{"id": 3, "pages": 4}]),
     )
     response = client.post(
@@ -617,7 +607,7 @@ def test_overall_load_recalculation_when_add_users(
     when adding or deleting users"""
     session = prepare_db_for_overall_load
     monkeypatch.setattr(
-        "app.jobs.services.get_job_names",
+        "annotation.jobs.services.get_job_names",
         Mock(return_value={job_id: "JobName"}),
     )
     response = client.patch(
@@ -669,7 +659,7 @@ def test_overall_load_recalculation_when_delete_users(
 ):
     session = prepare_db_for_overall_load
     monkeypatch.setattr(
-        "app.jobs.services.get_job_names",
+        "annotation.jobs.services.get_job_names",
         Mock(return_value={job_id: "JobName"}),
     )
     response = client.patch(

@@ -3,15 +3,15 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
+from alembic import command
+from alembic.config import Config
 from sqlalchemy import create_engine
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy_utils import create_database, database_exists, drop_database
 
-from alembic import command
-from alembic.config import Config
-from src.config import settings
-from src.db.service import get_test_db_url
+from processing.config import settings
+from processing.db.service import get_test_db_url
 
 pytest_plugins = ["docker_compose"]
 

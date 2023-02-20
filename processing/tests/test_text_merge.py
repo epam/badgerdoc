@@ -1,19 +1,9 @@
 from unittest.mock import patch
 
-from src.schema import (
-    AnnotationData,
-    MatchedPage,
-    Page,
-    ParagraphBbox,
-    PageSize,
-    Input,
-)
-from src.text_merge import (
-    convert_points_to_pixels,
-    match_page,
-    download_files,
-    stitch_boxes,
-)
+from processing.schema import (AnnotationData, Input, MatchedPage, Page,
+                               PageSize, ParagraphBbox)
+from processing.text_merge import (convert_points_to_pixels, download_files,
+                                   match_page, stitch_boxes)
 
 
 class ClientObj:
@@ -223,7 +213,7 @@ class TestTextMerger:
             ),
         ]
 
-    @patch("src.text_merge.MinioCommunicator", return_value=MC())
+    @patch("processing.text_merge.MinioCommunicator", return_value=MC())
     def test_download(self, _1, tmp_path):
         request_data = AnnotationData(
             file="some_path/some_file.pdf",

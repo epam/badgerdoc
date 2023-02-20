@@ -1,9 +1,9 @@
-"""Testing src/webhooks.py."""
+"""Testing pipelines/webhooks.py."""
 
 from unittest.mock import patch
 
-import src.schemas as schemas
-import src.webhooks as webhooks
+import pipelines.schemas as schemas
+import pipelines.webhooks as webhooks
 
 
 def test_create_inference_url_and_body():
@@ -12,7 +12,8 @@ def test_create_inference_url_and_body():
     task_status = schemas.Status.RUN
     status = schemas.JobStatus.RUN
     with patch(
-        "src.webhooks.service.get_job_status_if_changed", return_value=status
+        "pipelines.webhooks.service.get_job_status_if_changed",
+        return_value=status,
     ):
         url, body = webhooks.create_inference_url_and_body(
             webhook=webhook, job_id=job_id, task_status=task_status

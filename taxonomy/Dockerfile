@@ -14,7 +14,7 @@ RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/inst
 # Copy using poetry.lock in case it doesn't exist yet
 COPY pyproject.toml poetry.lock .env alembic.ini version.txt ./
 COPY ./alembic ./alembic
-COPY ./app ./app
+COPY taxonomy ./app
 
 FROM base as build
 
