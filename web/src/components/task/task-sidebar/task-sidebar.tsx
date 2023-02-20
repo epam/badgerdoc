@@ -279,8 +279,6 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
             jobId,
             categoryId: selectedAnnotation?.category!
         });
-    } else {
-        taxonomy = undefined;
     }
 
     const onFinishValidation = async () => {
