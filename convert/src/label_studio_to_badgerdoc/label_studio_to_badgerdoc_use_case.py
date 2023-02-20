@@ -1,4 +1,3 @@
-import random
 import tempfile
 from datetime import datetime
 from pathlib import Path
@@ -25,7 +24,7 @@ from src.label_studio_to_badgerdoc.badgerdoc_format.pdf_renderer import (
 from src.label_studio_to_badgerdoc.badgerdoc_format.plain_text_converter import (
     TextToBadgerdocTokensConverter,
 )
-from src.label_studio_to_badgerdoc.models import BadgerdocToken
+from src.label_studio_to_badgerdoc.models import BadgerdocToken, DocumentLink
 from src.label_studio_to_badgerdoc.models.label_studio_models import (
     LabelStudioModel,
     S3Path,
@@ -84,9 +83,7 @@ class LabelStudioToBDConvertUseCase:
     def parse_document_labels_from_labelstudio_format(
         self, label_studio_format: LabelStudioModel
     ) -> Set[str]:
-        document_labels = label_studio_format.__root__[0].meta.get(
-            "labels", []
-        )
+        document_labels = label_studio_format.__root__[0].meta.labels
         return {label["name"] for label in document_labels}
 
     def parse_categories_to_taxonomy_mapping_from_labelstudio_format(
@@ -94,8 +91,18 @@ class LabelStudioToBDConvertUseCase:
     ) -> Dict[str, Any]:
         categories_to_taxonomy_mapping = label_studio_format.__root__[
             0
-        ].meta.get("categories_to_taxonomy_mapping", {})
+        ].meta.categories_to_taxonomy_mapping
         return categories_to_taxonomy_mapping
+
+    def parse_document_links_from_labelstudio_format(
+        self, label_studio_format: LabelStudioModel
+    ) -> List[DocumentLink]:
+        return [
+            DocumentLink(
+                to=relation.to, category=relation.category, type=relation.type
+            )
+            for relation in label_studio_format.__root__[0].meta.relations
+        ]
 
     def execute(self) -> None:
         label_studio_format = self.download_label_studio_from_s3(
@@ -110,6 +117,10 @@ class LabelStudioToBDConvertUseCase:
                 label_studio_format
             )
         )
+        document_links = self.parse_document_links_from_labelstudio_format(
+            label_studio_format
+        )
+
         LOGGER.debug("document_labels parsed: %s", document_labels)
 
         self.badgerdoc_format.convert_from_labelstudio(label_studio_format)
@@ -126,6 +137,7 @@ class LabelStudioToBDConvertUseCase:
                 validators=self.validators,
                 document_labels=document_labels,
                 categories_to_taxonomy_mapping=categories_to_taxonomy_mapping,
+                document_links=document_links,
             )
         )
         self.upload_badgerdoc_annotations_and_tokens_to_s3(
@@ -272,15 +284,18 @@ class LabelStudioToBDConvertUseCase:
         validators: List[str],
         document_labels: Set[str],
         categories_to_taxonomy_mapping: Dict[str, Any],
+        document_links: List[DocumentLink],
     ) -> int:
-        categories = self.request_annotations_to_post_categories(
-            document_labels
-        )
+        categories = self.get_box_and_link_categories() + list(document_labels)
         LOGGER.debug("categories: %s", categories)
         categories = self.enrich_categories_with_taxonomies(
             categories, categories_to_taxonomy_mapping
         )
         LOGGER.debug("categories with taxonomy_objs: %s", categories)
+
+        categories_of_links = [link.category for link in document_links]
+        LOGGER.debug("categories of document links: %s", categories_of_links)
+        categories.extend(categories_of_links)
 
         post_annotation_job_url = f"{settings.job_service_url}create_job/"
         post_annotation_job_body = {
@@ -339,103 +354,20 @@ class LabelStudioToBDConvertUseCase:
 
         return result
 
-    def form_post_category_body(
-        self, type_of_categories: str, category: str
-    ) -> Dict[str, Any]:
-        possible_categories_colors = (
-            "#FF0000",  # red
-            "#FFFF00",  # yellow
-            "#008000",  # green
-            "#0000FF",  # blue
-            "#FF00FF",  # pyrple
-            "#808080",  # grey
-            "#800000",  # brown
-        )
-
-        result = {
-            "name": category,
-            "type": type_of_categories,
-            "id": category,
-        }
-        if not type_of_categories == "document":
-            result["metadata"] = {
-                "color": random.choice(possible_categories_colors)
-            }
-        return result
-
-    def request_annotations_to_post_categories(
-        self, document_labels: Set[str]
-    ) -> List[str]:
-        post_categories_url = f"{settings.annotation_service_url}categories/"
-        LOGGER.debug(
-            "Making requests to url: %s to post annotations",
-            post_categories_url,
-        )
+    def get_box_and_link_categories(self) -> List[str]:
         pages_objs = self.badgerdoc_format.badgerdoc_annotation.objs
         categories_of_type_box = {
             pages_obj.category for pages_obj in pages_objs
         }
         categories_of_type_link = self.get_categories_of_links(pages_objs)
-        all_categories = {
-            "box": categories_of_type_box,
-            "link": categories_of_type_link,
-            "document": document_labels,
-        }
-
-        for (
-            type_of_categories,
-            set_of_categories_names,
-        ) in all_categories.items():
-            for category in set_of_categories_names:
-                post_categories_body = self.form_post_category_body(
-                    type_of_categories, category
-                )
-                LOGGER.debug(
-                    "Making request to post categories with this request body: %s",
-                    post_categories_body,
-                )
-
-                try:
-                    request_to_post_categories = requests.post(
-                        url=post_categories_url,
-                        headers=self.request_headers,
-                        json=post_categories_body,
-                    )
-                    request_to_post_categories.raise_for_status()
-                except requests.exceptions.RequestException as e:
-                    if request_to_post_categories.status_code == 400 and request_to_post_categories.json() == {
-                        "detail": "Field constraint error. Category id must be unique."
-                    }:
-                        LOGGER.warning(
-                            "Category %s already exists in annotation. Skipping this request",
-                            category,
-                        )
-                        continue
-
-                    LOGGER.exception(
-                        "Failed request to 'annotation' to post categories for converted annotations"
-                    )
-                    raise HTTPException(
-                        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                        detail="Failed request to 'annotation' to post categories for converted annotations",
-                    ) from e
-
-                LOGGER.debug(
-                    "Got this response from annotation service: %s",
-                    request_to_post_categories.json(),
-                )
-
-        return [
-            *categories_of_type_box,
-            *categories_of_type_link,
-            *document_labels,
-        ]
+        return [*categories_of_type_box, *categories_of_type_link]
 
     def request_annotation_to_post_annotations(
         self,
         annotation_job_id_created: int,
         file_id_in_assets: int,
         document_labels: Set[str],
+        document_links: List[DocumentLink],
     ) -> None:
         annotations_post_url = f"{settings.annotation_service_url}annotation/{annotation_job_id_created}/{file_id_in_assets}"
 
@@ -448,6 +380,9 @@ class LabelStudioToBDConvertUseCase:
             "failed_validation_pages": [],
             "similar_revisions": [],  # TODO: 'simial_revisions' will be replaced with 'links' with unknown format
             "categories": list(document_labels),
+            "links_json": [
+                document_link.dict() for document_link in document_links
+            ],
         }
         LOGGER.debug(
             "Making request to annotation to post annotations to url: %s with request body: %s",
@@ -487,6 +422,7 @@ class LabelStudioToBDConvertUseCase:
         validators: List[str],
         document_labels: Set[str],
         categories_to_taxonomy_mapping: Dict[str, Any],
+        document_links: List[DocumentLink],
     ) -> int:
         annotation_job_id_created = self.request_jobs_to_create_annotation_job(
             file_id_in_assets,
@@ -498,9 +434,13 @@ class LabelStudioToBDConvertUseCase:
             validators,
             document_labels,
             categories_to_taxonomy_mapping,
+            document_links,
         )
         self.request_annotation_to_post_annotations(
-            annotation_job_id_created, file_id_in_assets, document_labels
+            annotation_job_id_created,
+            file_id_in_assets,
+            document_labels,
+            document_links,
         )
 
         return annotation_job_id_created

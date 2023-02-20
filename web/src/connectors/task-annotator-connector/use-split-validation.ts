@@ -62,6 +62,7 @@ export default function useSplitValidation({
     task
 }: SplitValidationParams): SplitValidationValue {
     const isSplitValidation = isValidation && job?.validation_type === 'extensive_coverage';
+
     const { data: byUser } = useLatestAnnotationsByUser(
         {
             fileId,
@@ -112,13 +113,21 @@ export default function useSplitValidation({
                 links: [],
                 originalAnnotationId: Number(originalAnn.id)
             };
+
             copy.id = Date.now();
+            if (
+                validatorAnnotations[currentPage]
+                    ?.map((el) => el.originalAnnotationId)
+                    .includes(Number(originalAnn.id))
+            ) {
+                return;
+            }
 
             const newAnn = onAnnotationCreated(currentPage, copy, category);
             setSelectedAnnotation(scaleAnnotation(newAnn, scale));
             onAddTouchedPage();
         },
-        [categories, onAnnotationCreated]
+        [categories, onAnnotationCreated, validatorAnnotations]
     );
 
     const onSplitLinkSelected = useCallback(
@@ -141,15 +150,15 @@ export default function useSplitValidation({
         [validatorAnnotations]
     );
     const onFinishSplitValidation = () => {
-        if (!task) return;
+        if (!task || !isSplitValidation) return;
         setValidPages(task?.pages!);
     };
 
     useEffect(() => {
-        if (validPages.length) {
+        if (validPages.length && isSplitValidation) {
             onAnnotationTaskFinish();
         }
-    }, [validPages]);
+    }, [validPages, isSplitValidation]);
 
     return useMemo(
         () => ({

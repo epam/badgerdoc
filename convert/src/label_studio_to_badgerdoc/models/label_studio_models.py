@@ -1,7 +1,9 @@
 from __future__ import annotations
+
 from datetime import datetime
-from typing import Any, Dict, List, Optional
 from enum import Enum
+from typing import Any, Dict, List, Optional
+
 from pydantic import BaseModel
 
 from .common import S3Path
@@ -27,6 +29,7 @@ class LabelStudioRequest(BaseModel):
 class BadgerdocToLabelStudioRequest(BaseModel):
     input_tokens: S3Path
     input_annotation: S3Path
+    input_manifest: S3Path
     output_annotation: S3Path
 
 
@@ -101,6 +104,18 @@ class Data(BaseModel):
     text: str
 
 
+class DocumentRelation(BaseModel):
+    category: str
+    to: int
+    type: str
+
+
+class Meta(BaseModel):
+    labels: List[Any] = []
+    relations: List[DocumentRelation] = []
+    categories_to_taxonomy_mapping = {}
+
+
 class ModelItem(BaseModel):
     id: int = 1
     annotations: List[Annotation]
@@ -108,7 +123,7 @@ class ModelItem(BaseModel):
     drafts: List = []
     predictions: List[int] = []
     data: Data
-    meta: Dict[str, Any] = {}
+    meta: Meta = Meta()
     created_at: Optional[str] = "2022-12-13T09:57:08.451845Z"
     updated_at: Optional[str] = "2022-12-13T09:57:08.451845Z"
     inner_id: int = 1

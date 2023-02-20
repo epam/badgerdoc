@@ -47,10 +47,10 @@ interface IProps extends IModal<TaskValidationValues> {
     };
     currentUser: string;
     isOwner: boolean;
+    onRedirectAfterFinish: () => void;
 }
 
 export const FinishTaskValidationModal: FC<IProps> = (modalProps) => {
-    const svc = useUuiContext();
     const [validatorUserId, onValidatorUserIdChange] = useState(
         modalProps.allUsers.validators[0]?.id || modalProps.allUsers.annotators[0]?.id
     );
@@ -58,7 +58,6 @@ export const FinishTaskValidationModal: FC<IProps> = (modalProps) => {
         modalProps.allUsers.annotators[0]?.id
     );
 
-    const handleLeave = () => svc.uuiLocks.acquire(() => Promise.resolve());
     const [formOption] = useState<TaskValidationValues>({
         option_invalid: null,
         option_edited: null
@@ -173,7 +172,7 @@ export const FinishTaskValidationModal: FC<IProps> = (modalProps) => {
                     <Button
                         color="sky"
                         fill="white"
-                        onClick={() => handleLeave().then(modalProps.abort)}
+                        onClick={modalProps.abort}
                         caption="Return to validation"
                     />
                     <Button
@@ -186,11 +185,7 @@ export const FinishTaskValidationModal: FC<IProps> = (modalProps) => {
         );
     };
     return (
-        <ModalBlocker
-            blockerShadow="dark"
-            {...modalProps}
-            abort={() => handleLeave().then(modalProps.abort)}
-        >
+        <ModalBlocker blockerShadow="dark" {...modalProps} abort={modalProps.abort}>
             <ModalWindow>
                 <Panel background="white">
                     <ModalHeader title="Assign" onClose={modalProps.abort} />
@@ -201,17 +196,14 @@ export const FinishTaskValidationModal: FC<IProps> = (modalProps) => {
                                 <Text size="36"> {'All pages valid'} </Text>
                             </FlexRow>
                             <ModalFooter>
-                                <Button
-                                    fill="white"
-                                    caption="Cancel"
-                                    onClick={() => modalProps.abort()}
-                                />
+                                <Button fill="white" caption="Cancel" onClick={modalProps.abort} />
                                 <Button
                                     caption="Confirm validation"
                                     size={'36'}
                                     onClick={async () => {
                                         await modalProps.validSave();
                                         modalProps.success({ option_invalid: null });
+                                        modalProps.onRedirectAfterFinish();
                                     }}
                                 />
                             </ModalFooter>
@@ -221,7 +213,10 @@ export const FinishTaskValidationModal: FC<IProps> = (modalProps) => {
                         <Form<TaskValidationValues>
                             value={formOption}
                             onSave={modalProps.onSaveForm}
-                            onSuccess={(formOption) => modalProps.success(formOption)}
+                            onSuccess={(formOption) => {
+                                modalProps.success(formOption);
+                                modalProps.onRedirectAfterFinish();
+                            }}
                             renderForm={renderForm}
                             getMetadata={getMetaData}
                         />

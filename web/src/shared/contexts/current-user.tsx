@@ -9,7 +9,10 @@ type UserContext = {
     isAnnotator: boolean;
     isSimple: boolean;
     menu: (string | SubMenu)[];
+    isPipelinesDisabled: boolean;
 };
+
+const isPipelinesDisabled = process.env.REACT_APP_PIPELINES_DISABLED === 'true';
 
 export const CurrentUser = React.createContext<UserContext>({
     currentUser: null,
@@ -17,7 +20,8 @@ export const CurrentUser = React.createContext<UserContext>({
     isAnnotator: false,
     isEngineer: false,
     isSimple: false,
-    menu: []
+    menu: [],
+    isPipelinesDisabled: isPipelinesDisabled
 });
 
 export type SubMenu = {
@@ -27,7 +31,13 @@ export type SubMenu = {
 
 type UserRole = 'annotator' | 'engineer' | 'viewer' | 'simple_flow';
 
-export const ML_MENU_ITEMS = ['pipelines', 'categories', 'models', 'basements', 'reports'];
+export const ML_MENU_ITEMS = ['pipelines', 'categories', 'models', 'basements', 'reports'].filter(
+    (el) => {
+        if (isPipelinesDisabled) {
+            return el !== 'pipelines' && el !== 'models';
+        } else return el;
+    }
+);
 
 export const UserContextProvider: FC<{ currentUser: User | null }> = ({
     currentUser,
@@ -77,7 +87,8 @@ export const UserContextProvider: FC<{ currentUser: User | null }> = ({
             isAnnotator,
             isEngineer,
             isSimple,
-            menu
+            menu,
+            isPipelinesDisabled
         };
     }, [currentUser, isAnnotator, isEngineer, menu]);
     return <CurrentUser.Provider value={value}> {children}</CurrentUser.Provider>;

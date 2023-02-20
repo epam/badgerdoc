@@ -1,6 +1,7 @@
 import { useTaxons } from 'api/hooks/taxons';
 import { Operators, PageInfo, SortingDirection, Taxon } from 'api/typings';
 import { useEffect, useMemo, useState } from 'react';
+import { getTaxonFullName } from 'shared/helpers/get-taxon-full-name';
 
 export default function useAnnotationsTaxons(annotationsByPages?: PageInfo[]): Map<string, Taxon> {
     const [taxonLabels, setTaxonLabels] = useState(new Map<string, Taxon>());
@@ -48,7 +49,14 @@ export default function useAnnotationsTaxons(annotationsByPages?: PageInfo[]): M
 
     useEffect(() => {
         if (taxons?.data) {
-            setTaxonLabels(new Map(taxons.data.map((taxon) => [taxon.id, taxon])));
+            setTaxonLabels(
+                new Map(
+                    taxons.data.map((taxon) => [
+                        taxon.id,
+                        { ...taxon, name: getTaxonFullName(taxon) }
+                    ])
+                )
+            );
         }
     }, [taxons?.data]);
 

@@ -1,4 +1,4 @@
-from typing import Union
+from typing import List, Union
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Response, status
 from filter_lib import Page
@@ -13,6 +13,7 @@ from app.schemas import (
     BadRequestErrorSchema,
     ConnectionErrorSchema,
     NotFoundErrorSchema,
+    ParentsConcatenateResponseSchema,
     TaxonBaseSchema,
     TaxonInputSchema,
     TaxonResponseSchema,
@@ -20,7 +21,9 @@ from app.schemas import (
 from app.tags import TAXON_TAG
 from app.taxon.services import (
     add_taxon_db,
+    concatenated_parents_list,
     delete_taxon_db,
+    fetch_bunch_taxons_db,
     fetch_taxon_db,
     filter_taxons,
     insert_taxon_tree,
@@ -93,6 +96,28 @@ def search_categories(
             status_code=400,
             detail=f"{error}",
         )
+    return response
+
+
+@router.post(
+    "/parents_concatenate",
+    status_code=status.HTTP_200_OK,
+    response_model=List[ParentsConcatenateResponseSchema],
+    responses={
+        404: {"model": NotFoundErrorSchema},
+    },
+    summary="Get concatenated list of ids and names for taxon's parents.",
+)
+def parents_concatenate(
+    request: List[str],
+    db: Session = Depends(get_db),
+    x_current_tenant: str = X_CURRENT_TENANT_HEADER,
+) -> List[ParentsConcatenateResponseSchema]:
+    """
+    Get concatenated list of ids and names for taxon's parents.
+    """
+    taxons = fetch_bunch_taxons_db(db, request, x_current_tenant)
+    response = concatenated_parents_list(db, taxons, x_current_tenant)
     return response
 
 

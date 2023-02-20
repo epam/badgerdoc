@@ -1,5 +1,6 @@
+import collections
 import string
-from typing import List
+from typing import Deque, List
 
 from ...config import (
     DEFAULT_PAGE_BORDER_OFFSET,
@@ -11,8 +12,72 @@ from ...config import (
 from ..models import BadgerdocToken, Offset, Page, PageSize
 
 
-def generate_chunks(text: str, size: int = 70) -> List[str]:
-    return [text[i : i + size] for i in range(0, len(text), size)]
+def generate_chunks(obj_to_split: List[str], size: int) -> List[List[str]]:
+    return [
+        obj_to_split[i : i + size] for i in range(0, len(obj_to_split), size)
+    ]
+
+
+class TextWrapper:
+    """
+    Split text to a separate lines. All whitespaces (including `\n`)
+    recognized as a ` ` and require one place.
+    """
+
+    # textwrap.TextWrapper is not suitable, because we need to convert
+    # it back to LabelStudio. Therefore, we need full control of process.
+
+    def __init__(self, line_length: int) -> None:
+        self.line_length = line_length
+
+    def pop_beginning_whitespaces(self, text: Deque[str]) -> List[str]:
+        wsp = []
+        while text and text[0] in string.whitespace:
+            wsp.append(text.popleft())
+        return wsp
+
+    def pop_next_word(self, text: Deque[str]) -> List[str]:
+        word = []
+        while text and text[0] not in string.whitespace:
+            word.append(text.popleft())
+        return word
+
+    def wrap_paragraph(self, text: str) -> List[str]:
+        chars = collections.deque(text)
+        lines: List[List[str]] = []
+        line: List[str] = self.pop_beginning_whitespaces(chars)
+
+        while chars:
+            if len(line) >= self.line_length:
+                lines.append(line)
+                line = []
+
+            word = self.pop_next_word(chars)
+
+            if len(word) + len(line) <= self.line_length:
+                line.extend(word)
+            else:
+                if line:
+                    lines.append(line)
+
+                if len(word) <= self.line_length:
+                    line = word
+                else:
+                    word_parts = generate_chunks(word, size=self.line_length)
+                    line = word_parts.pop()
+                    lines.extend(word_parts)
+
+            line.extend(self.pop_beginning_whitespaces(chars))
+
+        lines.append(line)
+        return ["".join(line_) for line_ in lines]
+
+    def wrap(self, text: str) -> List[str]:
+        paragraphs = text.splitlines(keepends=True)
+        lines = []
+        for paragraph in paragraphs:
+            lines.extend(self.wrap_paragraph(paragraph))
+        return lines
 
 
 class TextToBadgerdocTokensConverter:
@@ -32,27 +97,21 @@ class TextToBadgerdocTokensConverter:
         self.font_width = font_width
         self.line_spacing = line_spacing
 
-    def convert(self, text: str) -> Page:
-        paragraphs = self._get_paragraphs(text)
+        self.text_wrapper = TextWrapper(line_length=self.line_tokens_amount)
 
+    def convert(self, text: str) -> Page:
         tokens = []
         line_offset = 0
         y = self.page_border_offset
-        for paragraph in paragraphs:
-            lines = generate_chunks(paragraph, self.line_tokens_amount)
-            for line in lines:
-                self.convert_line(line, tokens, y, line_offset=line_offset)
-                y += self.font_height * self.line_spacing
-                line_offset += len(line)
-            y += self.font_height
+        for line in self.text_wrapper.wrap(text):
+            self.convert_line(line, tokens, y, line_offset=line_offset)
+            y += self.font_height * self.line_spacing
+            line_offset += len(line)
+            if line.endswith("\n"):
+                y += self.font_height
 
         page_size = self.calculate_page_size(tokens, self.page_border_offset)
         return Page(page_num=1, size=page_size, objs=tokens)
-
-    def _get_paragraphs(self, text: str) -> List[str]:
-        paragraphs = [paragraph + "\n" for paragraph in text.split("\n")]
-        paragraphs[-1] = paragraphs[-1][:-1]
-        return paragraphs
 
     @property
     def line_tokens_amount(self) -> int:

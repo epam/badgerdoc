@@ -4,6 +4,7 @@ from typing import Any, List, Optional
 
 import pytest
 
+from app.models import Taxon
 from tests.override_app_dependency import TEST_HEADER
 
 TAXON_PATH = "/taxons"
@@ -72,6 +73,26 @@ def response_schema_from_request(
     taxon_response["parents"] = parents
     taxon_response["is_leaf"] = is_leaf
     return taxon_response
+
+
+def prepare_parents_concatenate_expected_response(taxons: List[Taxon]) -> dict:
+    return sorted(
+        [
+            {
+                "taxon_id": taxon.id,
+                "taxon_name": taxon.name,
+                "parent_ids_concat": ".".join(taxon.tree.path.split(".")[:-1])
+                or None,
+                # Names equal to ids in this test
+                "parent_names_concat": ".".join(
+                    taxon.tree.path.split(".")[:-1]
+                )
+                or None,
+            }
+            for taxon in taxons
+        ],
+        key=lambda x: x["taxon_id"],
+    )
 
 
 @pytest.mark.integration
@@ -605,3 +626,41 @@ def test_search_parents_recursive_tree(
         parents=[response_schema_from_request(root.to_dict(), is_leaf=False)],
         is_leaf=False,
     )
+
+
+@pytest.mark.integration
+def test_get_parents_concatenated_not_found(
+    overrided_token_client, prepared_taxon_hierarchy
+):
+    taxon_ids = [taxon.id for taxon in prepared_taxon_hierarchy][:5]
+    # add not existing taxon
+    taxon_ids.append(uuid.uuid4().hex)
+
+    response = overrided_token_client.post(
+        f"{TAXON_PATH}/parents_concatenate",
+        headers=TEST_HEADER,
+        json=taxon_ids,
+    )
+    assert response.status_code == 404
+
+
+@pytest.mark.integration
+def test_get_parents_concatenated(
+    overrided_token_client, prepared_taxon_hierarchy
+):
+    taxons_search_from = prepared_taxon_hierarchy[:5]
+    taxon_ids = [taxon.id for taxon in taxons_search_from]
+
+    response = overrided_token_client.post(
+        f"{TAXON_PATH}/parents_concatenate",
+        headers=TEST_HEADER,
+        json=taxon_ids,
+    )
+    assert response.status_code == 200
+
+    taxons = response.json()
+
+    assert len(taxons) == 5
+    assert prepare_parents_concatenate_expected_response(
+        taxons_search_from
+    ) == sorted(response.json(), key=lambda x: x["taxon_id"])

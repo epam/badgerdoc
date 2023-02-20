@@ -1,11 +1,12 @@
 import React, { FC, useState } from 'react';
-import { LabeledInput, PickerInput, TextInput, Checkbox } from '@epam/loveship';
-import { ILens, useArrayDataSource } from '@epam/uui';
-import styles from './add-pipeline-settings.module.scss';
 import { PipelineValues } from 'components/pipeline/add-pipeline-form';
 import { pipelinesFetcher } from 'api/hooks/pipelines';
 import { useEntity } from 'shared/hooks/use-entity';
 import { Pipeline } from 'api/typings';
+
+import { LabeledInput, PickerInput, TextInput, Checkbox } from '@epam/loveship';
+import { ILens, useArrayDataSource } from '@epam/uui';
+import styles from './add-pipeline-settings.module.scss';
 
 export type AddPipelineSettingsProps = {
     lens: ILens<PipelineValues>;

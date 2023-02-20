@@ -1,9 +1,10 @@
-import { FlexCell, LabeledInput, PickerInput } from '@epam/loveship';
-import { useArrayDataSource } from '@epam/uui';
-import { Pipeline } from 'api/typings';
 import React, { FC, useState } from 'react';
+import { Pipeline } from 'api/typings';
 import { InfoIcon } from '../../../shared/components/info-icon/info-icon';
 import { AutomaticJobProps } from '../automatic-job/automatic-job';
+
+import { FlexCell, LabeledInput, PickerInput } from '@epam/loveship';
+import { useArrayDataSource } from '@epam/uui';
 import styles from './pipeline-picker.module.scss';
 
 type PipelineName = {

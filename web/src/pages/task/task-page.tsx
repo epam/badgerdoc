@@ -69,10 +69,7 @@ const TaskPage: FC = () => {
                 <div className={`${styles.content}`}>
                     <TableAnnotatorContextProvider>
                         <TaskDocumentPages viewMode={false} />
-                        <TaskSidebar
-                            onRedirectAfterFinish={handleRedirectAfterFinish}
-                            viewMode={false}
-                        />
+                        <TaskSidebar viewMode={false} />
                     </TableAnnotatorContextProvider>
                 </div>
             </div>
