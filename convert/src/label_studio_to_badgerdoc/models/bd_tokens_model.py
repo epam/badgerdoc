@@ -13,6 +13,7 @@ class BadgerdocToken(BaseModel):
     bbox: List[float]
     text: str
     offset: Offset
+    is_whitespace: bool = Field(default=False)
 
 
 class PageSize(BaseModel):

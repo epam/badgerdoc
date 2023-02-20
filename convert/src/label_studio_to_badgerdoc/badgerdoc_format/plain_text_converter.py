@@ -1,3 +1,4 @@
+import string
 from typing import List
 
 from ...config import (
@@ -66,8 +67,7 @@ class TextToBadgerdocTokensConverter:
             offset = Offset(begin=begin, end=end)
             token = BadgerdocToken(
                 bbox=[x, y, x + self.font_width, y + self.font_height],
-                text=char,
-                offset=offset,
+                text=char, offset=offset, is_whitespace=(char in string.whitespace)
             )
             tokens.append(token)
             x += self.font_width
