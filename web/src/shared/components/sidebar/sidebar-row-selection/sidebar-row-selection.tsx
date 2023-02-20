@@ -11,7 +11,7 @@ export const SidebarRowSelection = <T extends { id: string | number }>({
     children,
     entity,
     activeEntity,
-    onEntitySelect,
+    onEntitySelect
 }: SidebarRowSelectionProps<T>) => (
     <div
         key={entity.id}
