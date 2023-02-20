@@ -20,6 +20,8 @@ jobs:
          run: cd infra/docker/python_base && make build image_name=818863528939.dkr.ecr.eu-central-1.amazonaws.com/badgerdoc/python_base:0.1.7
        - name: run docker-compose up
          run: cd processing && docker-compose up -d --build
+       - name: install pytest
+         run: docker exec processing_web_app bash -c "pip install pytest"
        - name: run tests
          run: docker exec processing_web_app bash -c "pytest"
        - name: check with flake8

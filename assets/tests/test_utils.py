@@ -187,7 +187,8 @@ def test_file_processor_is_file_updated_status_not_updated(update_file_status):
 @patch("assets.utils.common_utils.FileProcessor.is_file_updated")
 @patch("assets.utils.common_utils.FileProcessor.is_blank_is_created")
 @patch(
-    "assets.utils.common_utils.FileProcessor.is_original_file_uploaded_to_storage"
+    "assets.utils.common_utils.FileProcessor."
+    "is_original_file_uploaded_to_storage"
 )
 @patch("assets.utils.common_utils.FileProcessor.is_uploaded_to_storage")
 @patch("assets.utils.common_utils.FileProcessor.is_inserted_to_database")

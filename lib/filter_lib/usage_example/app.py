@@ -57,9 +57,7 @@ def create_new_user(
 
 
 @app.post("/users/search", tags=["users"], response_model=Page[UserOut])
-def search_users(
-    request: UserFilterModel, session: Session = Depends(get_db)  # type: ignore # noqa
-) -> Page[UserOut]:
+def search_users(request: UserFilterModel, session: Session = Depends(get_db)) -> Page[UserOut]:  # type: ignore # noqa
     query = session.query(User)
     filter_args = map_request_to_filter(request.dict(), "User")  # type: ignore
     query, pagination = form_query(filter_args, query)
