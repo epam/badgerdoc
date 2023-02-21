@@ -8,7 +8,7 @@ LOGGER = logger.get_logger(__name__)
 
 class UploadError(Exception):
     """
-    Raises when file were not uploaded
+    Raises when file was not uploaded
     """
 
 

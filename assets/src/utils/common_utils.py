@@ -217,7 +217,7 @@ class FileConverter:
             self.conversion_status = "conversion error"
             raise requests.exceptions.ConnectionError(e)
 
-        if is_gotenberg_returns_file(converted_file.content) is False:
+        if not is_gotenberg_returns_file(converted_file.content):
             #  is_gotenberg_returns_file func checks if file was converted to pdf.  # noqa
             #  In case of some error, the content of Gotenberg response is plain text.  # noqa
             self.conversion_status = "conversion error"
