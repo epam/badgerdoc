@@ -276,53 +276,39 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode }) => {
         />
     );
 
+    const taskInfoElements = [
+        { name: 'Document:', value: `${fileMetaInfo.name}` },
+        { name: 'TaskId:', value: `${task?.id}` },
+        { name: 'Pages:', value: `${task?.pages.join(', ')}` },
+        { name: 'Job Name:', value: `${task?.job.name}` },
+        { name: 'Deadline:', value: `${task?.deadline ?? ''}` },
+        { name: 'Status:', value: `${task?.status}` }
+    ];
     const taskInfo = (
         <>
-            <div className={styles['metadata-item']}>
-                <span className={styles['metadata-item__name']}>Document:</span>
-                <span className={styles['metadata-item__value']}>{`${fileMetaInfo.name}`}</span>
-            </div>
-            <div className={styles['metadata-item']}>
-                <span className={styles['metadata-item__name']}>TaskId:</span>
-                <span className={styles['metadata-item__value']}>{`${task?.id}`}</span>
-            </div>
-            <div className={styles['metadata-item']}>
-                <span className={styles['metadata-item__name']}>Pages:</span>
-                <span className={styles['metadata-item__value']}>
-                    {`${task?.pages.join(', ')}`}
-                </span>
-            </div>
-            <div className={styles['metadata-item']}>
-                <span className={styles['metadata-item__name']}>Job Name:</span>
-                <span className={styles['metadata-item__value']}>{`${task?.job.name}`}</span>
-            </div>
-            <div className={styles['metadata-item']}>
-                <span className={styles['metadata-item__name']}>Deadline:</span>
-                <span className={styles['metadata-item__value']}>{`${task?.deadline}`}</span>
-            </div>
-            <div className={styles['metadata-item']}>
-                <span className={styles['metadata-item__name']}>Status:</span>
-                <span className={styles['metadata-item__value']}>{`${task?.status}`}</span>
-            </div>
+            {taskInfoElements.map((el) => (
+                <div className={styles['metadata-item']} key={el.name}>
+                    <span className={styles['metadata-item__name']}>{el.name}</span>
+                    <span className={styles['metadata-item__value']}>{el.value}</span>
+                </div>
+            ))}
         </>
     );
+
+    const docInfoElements = [
+        { name: 'Document ID:', value: `${fileMetaInfo.id}` },
+        { name: 'Pages:', value: `${fileMetaInfo.pages}` },
+        { name: 'Time:', value: `${fileMetaInfo.lastModified?.toString()}` }
+    ];
     const docInfo = (
         <>
             {jobSettings}
-            <div className={styles['metadata-item']}>
-                <span className={styles['metadata-item__name']}>Document ID:</span>
-                <span className={styles['metadata-item__value']}>{`${fileMetaInfo.id}`}</span>
-            </div>
-            <div className={styles['metadata-item']}>
-                <span className={styles['metadata-item__name']}>Pages:</span>
-                <span className={styles['metadata-item__value']}>{fileMetaInfo.pages}</span>
-            </div>
-            <div className={styles['metadata-item']}>
-                <span className={styles['metadata-item__name']}>Time:</span>
-                <span className={styles['metadata-item__value']}>
-                    {fileMetaInfo.lastModified?.toString()}
-                </span>
-            </div>
+            {docInfoElements.map((el) => (
+                <div className={styles['metadata-item']} key={el.name}>
+                    <span className={styles['metadata-item__name']}>{el.name}</span>
+                    <span className={styles['metadata-item__value']}>{el.value}</span>
+                </div>
+            ))}
         </>
     );
 
