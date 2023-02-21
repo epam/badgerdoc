@@ -52,6 +52,7 @@ class PageOutSchema(PageSchema):
     pipeline: Optional[int] = Field(..., example=2)
     date: datetime = Field(..., example="2021-10-19 01:01:01")
     is_validated: bool = Field(default=False, example=False)
+    categories: Optional[Set[str]] = Field(None, example=["1", "2"])
 
 
 class RevisionLink(BaseModel):
