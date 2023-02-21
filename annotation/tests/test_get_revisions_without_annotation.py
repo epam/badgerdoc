@@ -80,7 +80,7 @@ REV_WITHOUT_ANNOTATION_DOC_1 = {
     "tenant": TEST_TENANT,
     "task_id": REV_WITHOUT_ANNOTATION_TASK.id,
     "failed_validation_pages": [],
-    "links_json": {},
+    "links_json": [],
 }
 REV_WITHOUT_ANNOTATION_DOC_2 = {
     "revision": "20fe52cce6a632c6eb09fdc5b3e1594f926eea69",
@@ -94,7 +94,7 @@ REV_WITHOUT_ANNOTATION_DOC_2 = {
     "tenant": TEST_TENANT,
     "task_id": None,
     "failed_validation_pages": [],
-    "links_json": {},
+    "links_json": [],
 }
 REV_WITHOUT_ANNOTATION_DOC_3 = {
     "revision": "20fe52cce6a632c6eb09fdc5b3e1594f926eea69",
@@ -108,7 +108,7 @@ REV_WITHOUT_ANNOTATION_DOC_3 = {
     "tenant": DIFF_TENANT,
     "task_id": None,
     "failed_validation_pages": [],
-    "links_json": {},
+    "links_json": [],
 }
 REV_WITHOUT_ANNOTATION_RESPONSE = [
     {

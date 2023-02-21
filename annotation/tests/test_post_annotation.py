@@ -272,7 +272,7 @@ POST_ANNOTATION_PG_DOC = AnnotatedDoc(
     tenant=POST_ANNOTATION_FILE_1.tenant,
     task_id=POST_ANNOTATION_PG_TASK_1.id,
     categories=[],
-    links_json={},
+    links_json=[],
 )
 
 S3_PATH = (
@@ -368,7 +368,7 @@ DOC_FOR_FIRST_SAVE_BY_USER = {
     ],
     "validated": [],
     "failed_validation_pages": [],
-    "links_json": {},
+    "links_json": [],
 }
 
 DOC_WITH_BBOX_AND_TOKENS_FIELDS = copy.deepcopy(DOC_FOR_FIRST_SAVE_BY_USER)
@@ -453,7 +453,7 @@ DOC_FOR_SECOND_SAVE_BY_USER = {
     "validated": [],
     "failed_validation_pages": [],
     "task_id": TASK_ID,
-    "links_json": {},
+    "links_json": [],
 }
 BASE_REVISION = DOC_FOR_SECOND_SAVE_BY_USER["base_revision"]
 
@@ -483,21 +483,21 @@ DOC_FOR_CHECK_MERGE_CONFLICT = {
     "validated": [3],
     "failed_validation_pages": [],
     "task_id": TASK_ID,
-    "links_json": {},
+    "links_json": [],
 }
 
 DOC_FOR_SAVE_WITH_MANY_PAGES = {
     "user": POST_ANNOTATION_ANNOTATOR.user_id,
     "pages": PAGES,
     "task_id": TASK_ID,
-    "links_json": {},
+    "links_json": [],
 }
 
 DOC_FOR_SAVE_WITHOUT_PAGES_AND_VALIDATED = {
     "base_revision": None,
     "user": POST_ANNOTATION_ANNOTATOR.user_id,
     "task_id": TASK_ID,
-    "links_json": {},
+    "links_json": [],
 }  # doc for test, when nothing to save
 
 DOC_FOR_SAVE_NOT_TASK_PAGES = copy.deepcopy(DOC_FOR_FIRST_SAVE_BY_USER)
@@ -545,7 +545,7 @@ ANNOTATED_DOC_FIRST = {
     "task_id": POST_ANNOTATION_PG_TASK_1.id,
     "similar_revisions": None,
     "categories": [],
-    "links_json": {},
+    "links_json": [],
 }
 ANNOTATED_DOC_PIPELINE_FIRST = {
     "revision": sha1(
@@ -569,7 +569,7 @@ ANNOTATED_DOC_PIPELINE_FIRST = {
     "tenant": POST_ANNOTATION_PG_DOC.tenant,
     "similar_revisions": None,
     "categories": [],
-    "links_json": {},
+    "links_json": [],
 }
 
 ANNOTATED_DOC_WITH_DIFFERENT_JOB_AND_FILE = copy.deepcopy(ANNOTATED_DOC_FIRST)
@@ -621,7 +621,7 @@ ANNOTATED_DOC_WITH_MANY_PAGES = {
     "task_id": POST_ANNOTATION_PG_DOC.task_id,
     "similar_revisions": None,
     "categories": [],
-    "links_json": {},
+    "links_json": [],
 }
 
 ANNOTATED_DOC_WITH_BASE_REVISION = {
@@ -647,7 +647,7 @@ ANNOTATED_DOC_WITH_BASE_REVISION = {
     "tenant": POST_ANNOTATION_PG_DOC.tenant,
     "task_id": POST_ANNOTATION_PG_DOC.task_id,
     "categories": [],
-    "links_json": {},
+    "links_json": [],
 }
 
 ANNOTATED_DOC_WITH_BOTH_TOKENS_AND_BBOX = {
@@ -674,7 +674,7 @@ ANNOTATED_DOC_WITH_BOTH_TOKENS_AND_BBOX = {
     "tenant": POST_ANNOTATION_PG_DOC.tenant,
     "task_id": POST_ANNOTATION_PG_DOC.task_id,
     "categories": [],
-    "links_json": {},
+    "links_json": [],
 }
 
 ANNOTATED_DOC_WITHOUT_BOTH_TOKENS_AND_BBOX = {
@@ -699,7 +699,7 @@ ANNOTATED_DOC_WITHOUT_BOTH_TOKENS_AND_BBOX = {
     "tenant": POST_ANNOTATION_PG_DOC.tenant,
     "task_id": POST_ANNOTATION_PG_DOC.task_id,
     "categories": [],
-    "links_json": {},
+    "links_json": [],
 }
 
 ANNOTATED_DOCS_FOR_MANIFEST_CREATION = {
@@ -716,7 +716,7 @@ ANNOTATED_DOCS_FOR_MANIFEST_CREATION = {
             validated=[1],
             failed_validation_pages=[],
             tenant=POST_ANNOTATION_PG_DOC.tenant,
-            links_json={},
+            links_json=[],
         ),
     ),
     "two_docs_2": (
@@ -732,7 +732,7 @@ ANNOTATED_DOCS_FOR_MANIFEST_CREATION = {
             validated=[],
             failed_validation_pages=[1],
             tenant=POST_ANNOTATION_PG_DOC.tenant,
-            links_json={},
+            links_json=[],
         ),
     ),
     "two_docs_3": (
@@ -748,7 +748,7 @@ ANNOTATED_DOCS_FOR_MANIFEST_CREATION = {
             validated=[],
             failed_validation_pages=[1],
             tenant=POST_ANNOTATION_PG_DOC.tenant,
-            links_json={},
+            links_json=[],
         ),
     ),
     "two_docs_4": (
@@ -763,7 +763,7 @@ ANNOTATED_DOCS_FOR_MANIFEST_CREATION = {
             validated=[],
             failed_validation_pages=[],
             tenant=POST_ANNOTATION_PG_DOC.tenant,
-            links_json={},
+            links_json=[],
         ),
         AnnotatedDoc(
             revision="23fe52cce6a632c6eb09fdc5b3e1594f926eea69",
@@ -776,7 +776,7 @@ ANNOTATED_DOCS_FOR_MANIFEST_CREATION = {
             validated=[2],
             failed_validation_pages=[1],
             tenant=POST_ANNOTATION_PG_DOC.tenant,
-            links_json={},
+            links_json=[],
         ),
     ),
     "first_upload_without_pages_with_validated": AnnotatedDoc(
@@ -788,7 +788,7 @@ ANNOTATED_DOCS_FOR_MANIFEST_CREATION = {
         validated=[1],
         failed_validation_pages=[],
         tenant="test-tenant",
-        links_json={},
+        links_json=[],
     ),
     "first_upload_with_pages_without_validated_and_failed": (
         AnnotatedDoc(
@@ -801,7 +801,7 @@ ANNOTATED_DOCS_FOR_MANIFEST_CREATION = {
             validated=[],
             failed_validation_pages=[],
             tenant=POST_ANNOTATION_PG_DOC.tenant,
-            links_json={},
+            links_json=[],
         ),  # from user
         AnnotatedDoc(
             revision=None,
@@ -813,7 +813,7 @@ ANNOTATED_DOCS_FOR_MANIFEST_CREATION = {
             validated=[],
             failed_validation_pages=[],
             tenant=POST_ANNOTATION_PG_DOC.tenant,
-            links_json={},
+            links_json=[],
         ),  # from pipeline
     ),
     "same_pages": (
@@ -829,7 +829,7 @@ ANNOTATED_DOCS_FOR_MANIFEST_CREATION = {
             validated=[],
             failed_validation_pages=[],
             tenant=POST_ANNOTATION_PG_DOC.tenant,
-            links_json={},
+            links_json=[],
         ),
     ),
     "same_pages_not_validated": (
@@ -844,7 +844,7 @@ ANNOTATED_DOCS_FOR_MANIFEST_CREATION = {
             validated=[],
             failed_validation_pages=[],
             tenant=POST_ANNOTATION_PG_DOC.tenant,
-            links_json={},
+            links_json=[],
         ),
         AnnotatedDoc(
             revision="20fe52cce6a632c6eb09fdc5b3e1594f926eea69",
@@ -857,7 +857,7 @@ ANNOTATED_DOCS_FOR_MANIFEST_CREATION = {
             validated=[],
             failed_validation_pages=[],
             tenant=POST_ANNOTATION_PG_DOC.tenant,
-            links_json={},
+            links_json=[],
         ),
     ),
     "docs_with_categories": (
@@ -873,7 +873,7 @@ ANNOTATED_DOCS_FOR_MANIFEST_CREATION = {
             failed_validation_pages=[],
             tenant=POST_ANNOTATION_PG_DOC.tenant,
             categories=["foo", "bar"],
-            links_json={},
+            links_json=[],
         ),
         AnnotatedDoc(
             revision="21fe52cce6a632c6eb09fdc5b3e1594f926eea69",
@@ -887,7 +887,7 @@ ANNOTATED_DOCS_FOR_MANIFEST_CREATION = {
             failed_validation_pages=[1],
             tenant=POST_ANNOTATION_PG_DOC.tenant,
             categories=["baz", "42"],
-            links_json={},
+            links_json=[],
         ),
     ),
 }
@@ -916,7 +916,7 @@ ANNOTATED_DOC_WITH_MERGE_CONFLICT = {
     "tenant": POST_ANNOTATION_PG_DOC.tenant,
     "task_id": POST_ANNOTATION_PG_DOC.task_id,
     "categories": [],
-    "links_json": {},
+    "links_json": [],
 }
 
 
@@ -1593,7 +1593,7 @@ def test_check_docs_identity(latest_doc, new_doc, expected_result):
                 "validated": [1],
                 "failed_validation_pages": [],
                 "categories": [],
-                "links_json": {},
+                "links_json": [],
             },
         ),  # revision contains only validated page.
         # manifest will be like:
@@ -1613,7 +1613,7 @@ def test_check_docs_identity(latest_doc, new_doc, expected_result):
                 "validated": POST_ANNOTATION_PG_DOC.validated,
                 "failed_validation_pages": [],
                 "categories": [],
-                "links_json": {},
+                "links_json": [],
             },
         ),  # revision contains pages, that have been validated
         # manifest will be like:
@@ -1635,7 +1635,7 @@ def test_check_docs_identity(latest_doc, new_doc, expected_result):
                 "validated": [],
                 "failed_validation_pages": [],
                 "categories": [],
-                "links_json": {},
+                "links_json": [],
             },
         ),  # user's revision contains pages, that have not been validated yet
         # validated and failed_validations_pages are empty
@@ -1658,7 +1658,7 @@ def test_check_docs_identity(latest_doc, new_doc, expected_result):
                 "validated": [],
                 "failed_validation_pages": [],
                 "categories": [],
-                "links_json": {},
+                "links_json": [],
             },
         ),  # pipeline's revision contains pages, that have not been validated
         # manifest will be like:
@@ -1683,7 +1683,7 @@ def test_check_docs_identity(latest_doc, new_doc, expected_result):
                     {"type": "taxonomy", "value": "foo"},
                     {"type": "taxonomy", "value": "bar"},
                 ],
-                "links_json": {},
+                "links_json": [],
             },
         ),
     ],
@@ -1751,7 +1751,7 @@ def test_create_manifest_json_first_upload(
                 "validated": [1],
                 "failed_validation_pages": [],
                 "categories": [],
-                "links_json": {},
+                "links_json": [],
             },
         ),  # 1st and 2nd revisions contains pages, that have been validated
         # failed_validation array is empty
@@ -1773,7 +1773,7 @@ def test_create_manifest_json_first_upload(
                 "validated": [],
                 "failed_validation_pages": [1],
                 "categories": [],
-                "links_json": {},
+                "links_json": [],
             },
         ),  # 1st revision contains page "1" in 2nd revision no pages provided
         # but page from 1st revision in 2nd revision's failed list
@@ -1795,7 +1795,7 @@ def test_create_manifest_json_first_upload(
                 "validated": [],
                 "failed_validation_pages": [1],
                 "categories": [],
-                "links_json": {},
+                "links_json": [],
             },
         ),  # 1st revision contains page and validated page
         # 2nd contains page, validated page, but in failed_validation_pages
@@ -1822,7 +1822,7 @@ def test_create_manifest_json_first_upload(
                 "validated": [2],
                 "failed_validation_pages": [1],
                 "categories": [],
-                "links_json": {},
+                "links_json": [],
             },
         ),  # 1st revision contains two pages and validated page
         # 2nd contains page, validated page, and
@@ -1845,7 +1845,7 @@ def test_create_manifest_json_first_upload(
                 "validated": [],
                 "failed_validation_pages": [],
                 "categories": [],
-                "links_json": {},
+                "links_json": [],
             },
         ),  # 1st revision contains page and validated page
         # failed_validation_pages is empty
@@ -1873,7 +1873,7 @@ def test_create_manifest_json_first_upload(
                 "validated": [],
                 "failed_validation_pages": [],
                 "categories": [],
-                "links_json": {},
+                "links_json": [],
             },
         ),  # 1st revision contains page, that have not been validated yet
         # failed_validations_pages is empty
@@ -1902,7 +1902,7 @@ def test_create_manifest_json_first_upload(
                     {"type": "taxonomy", "value": "baz"},
                     {"type": "taxonomy", "value": "42"},
                 ],
-                "links_json": {},
+                "links_json": [],
             },
         ),
     ],
@@ -2041,7 +2041,7 @@ def test_create_manifest_json_date_field(
                 "tenant": POST_ANNOTATION_FILE_1.tenant,
                 "task_id": POST_ANNOTATION_PG_TASK_1.id,
                 "categories": [],
-                "links_json": {},
+                "links_json": [],
             },
         ),  # if new revision has same pages, validated and
         # failed validation arrays as latest revision,
