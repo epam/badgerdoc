@@ -37,7 +37,9 @@ class PDFToBDConvertUseCase:
         with tempfile.TemporaryDirectory() as tmp_dirname:
             tmp_dirname = Path(tmp_dirname)
             badgerdoc_tokens_path = tmp_dirname
-            self.badgerdoc_format.export_tokens(badgerdoc_tokens_path)
+            self.badgerdoc_format.export_tokens_to_folder(
+                badgerdoc_tokens_path
+            )
             s3_output_tokens_dir = os.path.dirname(Path(s3_output_tokens.path))
             for file in Path.iterdir(tmp_dirname):
                 self.s3_client.upload_file(
