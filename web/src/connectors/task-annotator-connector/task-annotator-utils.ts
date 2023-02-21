@@ -10,8 +10,8 @@ import {
 } from 'api/typings';
 
 import { Annotation, AnnotationBoundType, AnnotationTable, PageToken, TableApi } from 'shared';
-import { isIntersected, isR2InsideR1 } from 'shared/components/annotator/utils/is-intersected';
-import { annotationToRect, tokenToRect } from 'shared/components/annotator/utils/to-rect-utils';
+import { isR2InsideR1 } from 'shared/components/annotator/utils/is-intersected';
+import { tokenToRect } from 'shared/components/annotator/utils/to-rect-utils';
 import { bboxToBound } from 'shared/helpers/bbox-to-bound';
 import { boundToBBox } from 'shared/helpers/bound-to-bbox';
 import { boundToRect } from '../../shared/components/annotator/utils/rect-to-bound';
@@ -98,20 +98,12 @@ const addTableValues = (ann: Annotation): TableApi => {
 
 const mapAnnotationToApi = (
     ann: Annotation,
-    annotationDataAttrs: Record<number, Array<CategoryDataAttributeWithValue>>,
-    tokens: PageToken[]
+    annotationDataAttrs: Record<number, Array<CategoryDataAttributeWithValue>>
 ): PageInfoObjs[] => {
     const annDataAttrsItem = annotationDataAttrs[+ann.id];
     const filteredDataAttrs = annDataAttrsItem
         ? annDataAttrsItem.filter(({ value }) => value.trim() !== '')
         : [];
-    // TODO: if no tokens are available, inform user?
-    const tokensByAnnotation = ann.tokens
-        ? ann.tokens?.map((token) => token.text).join(' ')
-        : (tokens ?? [])
-              .filter((token) => isIntersected(tokenToRect(token), annotationToRect(ann)))
-              .map((token) => token?.text)
-              .join(' ');
 
     if (ann.boundType === 'table') {
         const cells: PageInfoObjs[] = [...(ann.tableCells as Annotation[])].map((el) => ({
@@ -169,7 +161,6 @@ const mapAnnotationToApi = (
                 colspan: ann.data?.colspan
             },
             children: ann.children,
-            text: tokensByAnnotation,
             links: ann.links,
             segments: ann.segments
         }
@@ -227,7 +218,6 @@ export const mapModifiedAnnotationPagesToApi = (
 ): PageInfo[] => {
     return modifiedPagesNums.map((page_num) => {
         const annotations = annotationsByPageNum[page_num];
-        const tokens = tokensByPages[page_num];
         const pageSize = pages.find((page) => page.page_num === page_num)?.size;
         const annotationWithChildren = annotations.map((el) =>
             addChildrenToAnnotation(el, annotations)
@@ -236,7 +226,7 @@ export const mapModifiedAnnotationPagesToApi = (
             page_num,
             size: pageSize ?? defaultPageSize,
             objs: annotationWithChildren
-                .map((annotation) => mapAnnotationToApi(annotation, annotationDataAttrs, tokens))
+                .map((annotation) => mapAnnotationToApi(annotation, annotationDataAttrs))
                 .flat()
         };
     });
