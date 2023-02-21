@@ -73,8 +73,9 @@ class AnnotationConverterPractic:
             tokens.append(token)
         return tokens
 
+    @staticmethod
     def convert_links(
-        self, theoretic_links: List[bd_annotation_model_practic.AnnotationLink]
+        theoretic_links: List[bd_annotation_model_practic.AnnotationLink],
     ) -> List[bd_annotation_model_practic.AnnotationLink]:
         links = []
         for link_theoretic in theoretic_links:
@@ -132,13 +133,15 @@ class AnnotationConverterToTheory:
             objs.append(obj)
         return objs
 
+    @staticmethod
     def convert_tokens(
-        self, practic_tokens: List[bd_annotation_model_practic.AnnotationToken]
+        practic_tokens: List[bd_annotation_model_practic.AnnotationToken],
     ) -> List[int]:
         return [practic_token.id for practic_token in practic_tokens]
 
+    @staticmethod
     def convert_links(
-        self, practic_links: List[bd_annotation_model_practic.AnnotationLink]
+        practic_links: List[bd_annotation_model_practic.AnnotationLink],
     ) -> List[AnnotationLink]:
         return [
             AnnotationLink.parse_obj(practic_link.dict())

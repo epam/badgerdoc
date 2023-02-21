@@ -114,7 +114,7 @@ def test_annotation_converter():
     )
     labelstudio_format = Converter()
 
-    labelstudio_format.convert_from_labelstudio(
+    labelstudio_format.to_badgerdoc(
         LabelStudioModel.parse_file(INPUT_LABELSTUDIO_FILE)
     )
     with TemporaryDirectory() as dir_name:
@@ -149,7 +149,7 @@ def test_import_document_links():
     )
 
     labelstudio_format = Converter()
-    labelstudio_format .convert_from_labelstudio(
+    labelstudio_format .to_badgerdoc(
         LabelStudioModel.parse_file(INPUT_LABELSTUDIO_FILE)
     )
     badgerdoc_format.tokens_page = labelstudio_format.tokens_page

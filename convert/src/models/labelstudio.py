@@ -5,8 +5,9 @@ from typing import List, Optional
 
 from pydantic import BaseModel
 
-from .common import S3Path
 from src.labelstudio_format.ls_models import ValidationType
+
+from .common import S3Path
 
 
 class LabelStudioRequest(BaseModel):
@@ -24,5 +25,3 @@ class BadgerdocToLabelStudioRequest(BaseModel):
     input_annotation: S3Path
     input_manifest: S3Path
     output_annotation: S3Path
-
-

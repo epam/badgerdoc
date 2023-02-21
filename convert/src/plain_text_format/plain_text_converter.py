@@ -2,14 +2,19 @@ import collections
 import string
 from typing import Deque, List
 
-from ..config import (
+from src.badgerdoc_format.bd_tokens_model import (
+    BadgerdocToken,
+    Offset,
+    Page,
+    PageSize,
+)
+from src.config import (
     DEFAULT_PAGE_BORDER_OFFSET,
     DEFAULT_PDF_FONT_HEIGHT,
     DEFAULT_PDF_FONT_WIDTH,
     DEFAULT_PDF_LINE_SPACING,
     DEFAULT_PDF_PAGE_WIDTH,
 )
-from src.badgerdoc_format.bd_tokens_model import BadgerdocToken, Offset, Page, PageSize
 
 
 def generate_chunks(obj_to_split: List[str], size: int) -> List[List[str]]:
@@ -30,13 +35,15 @@ class TextWrapper:
     def __init__(self, line_length: int) -> None:
         self.line_length = line_length
 
-    def pop_beginning_whitespaces(self, text: Deque[str]) -> List[str]:
+    @staticmethod
+    def pop_beginning_whitespaces(text: Deque[str]) -> List[str]:
         wsp = []
         while text and text[0] in string.whitespace:
             wsp.append(text.popleft())
         return wsp
 
-    def pop_next_word(self, text: Deque[str]) -> List[str]:
+    @staticmethod
+    def pop_next_word(text: Deque[str]) -> List[str]:
         word = []
         while text and text[0] not in string.whitespace:
             word.append(text.popleft())
@@ -102,13 +109,13 @@ class TextToBadgerdocTokensConverter:
     def convert(self, text: str) -> Page:
         tokens = []
         line_offset = 0
-        y = self.page_border_offset
+        y_axis = self.page_border_offset
         for line in self.text_wrapper.wrap(text):
-            self.convert_line(line, tokens, y, line_offset=line_offset)
-            y += self.font_height * self.line_spacing
+            self.convert_line(line, tokens, y_axis, line_offset=line_offset)
+            y_axis += self.font_height * self.line_spacing
             line_offset += len(line)
             if line.endswith("\n"):
-                y += self.font_height
+                y_axis += self.font_height
 
         page_size = self.calculate_page_size(tokens, self.page_border_offset)
         return Page(page_num=1, size=page_size, objs=tokens)
@@ -118,22 +125,28 @@ class TextToBadgerdocTokensConverter:
         token_size = self.font_width
         return (self.page_width - self.page_border_offset * 2) // token_size
 
-    def convert_line(self, line, tokens, y, line_offset: int):
-        x = self.page_border_offset
+    def convert_line(self, line, tokens, y_axis, line_offset: int):
+        x_axis = self.page_border_offset
         for i, char in enumerate(line):
             begin = line_offset + i
             end = begin + 1
             offset = Offset(begin=begin, end=end)
             token = BadgerdocToken(
-                bbox=[x, y, x + self.font_width, y + self.font_height],
+                bbox=[
+                    x_axis,
+                    y_axis,
+                    x_axis + self.font_width,
+                    y_axis + self.font_height,
+                ],
                 text=char,
                 offset=offset,
             )
             tokens.append(token)
-            x += self.font_width
+            x_axis += self.font_width
 
+    @staticmethod
     def calculate_page_size(
-        self, tokens: List[BadgerdocToken], page_border_offset
+        tokens: List[BadgerdocToken], page_border_offset
     ) -> PageSize:
         if tokens:
             return PageSize(

@@ -5,7 +5,8 @@ from typing import List
 import fitz
 from fitz import Page
 
-from ..config import DEFAULT_PAGE_BORDER_OFFSET, DEFAULT_PDF_FONT_HEIGHT
+from src.config import DEFAULT_PAGE_BORDER_OFFSET, DEFAULT_PDF_FONT_HEIGHT
+
 from .bd_tokens_model import BadgerdocToken
 
 

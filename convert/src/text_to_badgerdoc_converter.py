@@ -1,13 +1,13 @@
 import tempfile
 from pathlib import Path
 
-from .config import DEFAULT_PAGE_BORDER_OFFSET
-from .badgerdoc_format.badgerdoc_format import BadgerdocFormat
-from .badgerdoc_format.pdf_renderer import PDFRenderer
+from src.badgerdoc_format.badgerdoc_format import BadgerdocFormat
+from src.badgerdoc_format.pdf_renderer import PDFRenderer
+from src.config import DEFAULT_PAGE_BORDER_OFFSET
+from src.models.common import S3Path
 from src.plain_text_format.plain_text_converter import (
     TextToBadgerdocTokensConverter,
 )
-from .models.common import S3Path
 
 
 class TextToBadgerdocConverter:
@@ -31,7 +31,9 @@ class TextToBadgerdocConverter:
         s3_output_tokens: S3Path,
     ) -> None:
         text = self.download(s3_input_text)
-        self.badgerdoc_format.tokens_page = self.plain_text_converter.convert(text)
+        self.badgerdoc_format.tokens_page = self.plain_text_converter.convert(
+            text
+        )
         self.upload(
             s3_output_tokens,
             s3_output_pdf,

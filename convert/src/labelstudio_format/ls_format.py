@@ -4,12 +4,12 @@ from typing import Any, Dict, List, Optional
 import requests
 from fastapi import HTTPException, status
 
+from src.badgerdoc_format.bd_annotation_model import BadgerdocAnnotation
+from src.badgerdoc_format.bd_manifest_model_practic import Manifest
+from src.badgerdoc_format.bd_tokens_model import BadgerdocToken, Page
 from src.config import settings
 from src.logger import get_logger
 
-from ..badgerdoc_format.bd_annotation_model import AnnotationLink, BadgerdocAnnotation
-from ..badgerdoc_format.bd_manifest_model_practic import Manifest
-from ..badgerdoc_format.bd_tokens_model import BadgerdocToken, Page
 from .ls_models import (
     Annotation,
     Data,
@@ -42,9 +42,7 @@ class LabelStudioFormat:
         objs = self.convert_annotation_from_bd(
             badgerdoc_annotations, badgerdoc_tokens.objs
         )
-        relations = self.convert_relation_from_bd(
-            badgerdoc_annotations, badgerdoc_tokens.objs
-        )
+        relations = self.convert_relation_from_bd(badgerdoc_annotations)
         document_links = (
             self.convert_document_links_from_bd(badgerdoc_manifest)
             if badgerdoc_manifest
@@ -90,8 +88,9 @@ class LabelStudioFormat:
 
         self.labelstudio_data.__root__.append(item)
 
+    @staticmethod
     def convert_annotation_from_bd(
-        self, annotations: BadgerdocAnnotation, tokens: List[BadgerdocToken]
+        annotations: BadgerdocAnnotation, tokens: List[BadgerdocToken]
     ) -> List[ResultItem]:
         objs = annotations.pages[0].objs
         result_items = []
@@ -124,7 +123,7 @@ class LabelStudioFormat:
         return result_items
 
     def convert_relation_from_bd(
-        self, annotations: BadgerdocAnnotation, tokens: List[BadgerdocToken]
+        self, annotations: BadgerdocAnnotation
     ) -> List[ResultItem]:
         objs = annotations.pages[0].objs
         result_items = []
@@ -136,14 +135,15 @@ class LabelStudioFormat:
                     from_id=obj.id,
                     to_id=link.to,
                     type="relation",
-                    direction=self.form_link_direction(link),
+                    direction=self.form_link_direction(),
                     labels=[link.category_id],
                 )
                 result_items.append(item)
         return result_items
 
+    @staticmethod
     def convert_document_links_from_bd(
-        self, manifest: Manifest
+        manifest: Manifest,
     ) -> List[DocumentRelation]:
         return [
             # converting from a model with same attributes
@@ -151,15 +151,17 @@ class LabelStudioFormat:
             for document_link in manifest.links_json
         ]
 
-    def form_link_direction(self, link: AnnotationLink) -> str:
+    @staticmethod
+    def form_link_direction() -> str:
         # TODO: add logic for transformation link from badgerdoc format
         return "right"
 
     def export_json(self, path: Path):
         path.write_text(self.labelstudio_data.json(indent=4))
 
+    @staticmethod
     def get_categories_linked_with_taxonomies(
-        self, job_id: int, request_headers: Dict[str, str]
+        job_id: int, request_headers: Dict[str, str]
     ) -> List[str]:
         annotations_get_categories_url = (
             f"{settings.annotation_service_url}jobs/{job_id}/categories/search"
@@ -180,14 +182,14 @@ class LabelStudioFormat:
                 json=annotations_get_categories_body,
             )
             request_to_get_categories.raise_for_status()
-        except requests.exceptions.RequestException as e:
+        except requests.exceptions.RequestException as exception:
             LOGGER.exception(
                 "Failed request to 'annotation' to get all categories for specific job"
             )
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail="Failed request to 'annotation' to get all categories for specific job",
-            ) from e
+            ) from exception
 
         LOGGER.debug(
             "Got this response from annotation service: %s",
@@ -201,8 +203,9 @@ class LabelStudioFormat:
         ]
         return categories_linked_with_taxonomies
 
+    @staticmethod
     def get_corresponding_taxonomy_obj(
-        self, job_id: int, category_id: str, request_headers: Dict[str, str]
+        job_id: int, category_id: str, request_headers: Dict[str, str]
     ) -> List[Dict[str, str]]:
         get_taxonomy_url = f"{settings.taxonomy_service_url}taxonomy/link_category/{job_id}/{category_id}"
         LOGGER.debug(
@@ -216,14 +219,14 @@ class LabelStudioFormat:
                 headers=request_headers,
             )
             request_to_get_taxonomy.raise_for_status()
-        except requests.exceptions.RequestException as e:
+        except requests.exceptions.RequestException as exception:
             LOGGER.exception(
                 "Failed request to 'taxonomy' to get corresponding taxonomy"
             )
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail="Failed request to 'taxonomy' to get corresponding taxonomy",
-            ) from e
+            ) from exception
         response_content = request_to_get_taxonomy.json()
         LOGGER.debug(
             "Got this response from taxonomy service: %s", response_content
@@ -248,8 +251,8 @@ class LabelStudioFormat:
                 result.update({category_id: taxonomy_obj})
         return result
 
+    @staticmethod
     def get_taxonomy_to_taxons_mapping(
-        self,
         all_taxonomies_ids_used: List[str],
         request_headers: Dict[str, str],
     ) -> Dict[str, Any]:
@@ -276,12 +279,12 @@ class LabelStudioFormat:
                 headers=request_headers,
             )
             request_to_get_taxons_used.raise_for_status()
-        except requests.exceptions.RequestException as e:
+        except requests.exceptions.RequestException as exception:
             LOGGER.exception("Failed request to 'taxonomy' to get taxons_used")
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail="Failed request to 'taxonomy' to get taxons_used",
-            ) from e
+            ) from exception
         response_content = request_to_get_taxons_used.json()
         LOGGER.debug(
             "Got this response from taxonomy service: %s", response_content

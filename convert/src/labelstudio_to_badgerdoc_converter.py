@@ -11,29 +11,18 @@ from fastapi import HTTPException, status
 from fastapi.encoders import jsonable_encoder
 from tenant_dependency import TenantData
 
+from src.badgerdoc_format.badgerdoc_format import BadgerdocFormat
+from src.badgerdoc_format.bd_annotation_model_practic import DocumentLink
+from src.badgerdoc_format.bd_tokens_model import BadgerdocToken
+from src.badgerdoc_format.pdf_renderer import PDFRenderer
 from src.config import DEFAULT_PAGE_BORDER_OFFSET, settings
-from src.labelstudio_format.annotation_converter import (
-    AnnotationConverter,
-)
-from src.badgerdoc_format.badgerdoc_format import (
-    BadgerdocFormat,
-)
-from src.badgerdoc_format.pdf_renderer import (
-    PDFRenderer,
-)
+from src.labelstudio_format.annotation_converter import AnnotationConverter
+from src.labelstudio_format.ls_models import LabelStudioModel, ValidationType
+from src.logger import get_logger
+from src.models.common import S3Path
 from src.plain_text_format.plain_text_converter import (
     TextToBadgerdocTokensConverter,
 )
-from src.badgerdoc_format.bd_tokens_model import BadgerdocToken
-from src.badgerdoc_format.bd_annotation_model_practic import DocumentLink
-from src.labelstudio_format.ls_models import (
-    LabelStudioModel,
-    ValidationType,
-)
-from src.models.common import (
-    S3Path,
-)
-from src.logger import get_logger
 
 LOGGER = get_logger(__file__)
 LOGGER.setLevel("DEBUG")
@@ -89,16 +78,18 @@ class LabelstudioToBadgerdocConverter:
         document_labels = ls_format.__root__[0].meta.labels
         return {label["name"] for label in document_labels}
 
+    @staticmethod
     def parse_categories_to_taxonomy_mapping_from_ls_format(
-        self, ls_format: LabelStudioModel
+        ls_format: LabelStudioModel,
     ) -> Dict[str, Any]:
         categories_to_taxonomy_mapping = ls_format.__root__[
             0
         ].meta.categories_to_taxonomy_mapping
         return categories_to_taxonomy_mapping
 
+    @staticmethod
     def parse_document_links_from_ls_format(
-        self, ls_format: LabelStudioModel
+        ls_format: LabelStudioModel,
     ) -> List[DocumentLink]:
         return [
             DocumentLink(
@@ -108,25 +99,17 @@ class LabelstudioToBadgerdocConverter:
         ]
 
     def execute(self) -> None:
-        ls_format = self.download(
-            self.s3_input_annotation
-        )
+        ls_format = self.download(self.s3_input_annotation)
         LOGGER.debug("label studio format: %s", ls_format)
-        document_labels = self.parse_document_labels_from_ls_format(
-            ls_format
-        )
+        document_labels = self.parse_document_labels_from_ls_format(ls_format)
         categories_to_taxonomy_mapping = (
-            self.parse_categories_to_taxonomy_mapping_from_ls_format(
-                ls_format
-            )
+            self.parse_categories_to_taxonomy_mapping_from_ls_format(ls_format)
         )
-        document_links = self.parse_document_links_from_ls_format(
-            ls_format
-        )
+        document_links = self.parse_document_links_from_ls_format(ls_format)
 
         LOGGER.debug("document_labels parsed: %s", document_labels)
 
-        self.badgerdoc_format.convert_from_labelstudio(ls_format)
+        self.badgerdoc_format.to_badgerdoc(ls_format)
         LOGGER.debug("Tokens and annotations are converted")
         file_id_in_assets = self.upload_output_pdf_to_s3()
         annotation_job_id_created = (
@@ -143,9 +126,7 @@ class LabelstudioToBadgerdocConverter:
                 document_links=document_links,
             )
         )
-        self.upload(
-            annotation_job_id_created, file_id_in_assets
-        )
+        self.upload(annotation_job_id_created, file_id_in_assets)
         LOGGER.debug("Tokens and annotations uploaded")
 
     def download(
@@ -260,6 +241,7 @@ class LabelstudioToBadgerdocConverter:
             )
 
         self,
+
     def enrich_categories_with_taxonomies(
         categories: List[str],
         categories_to_taxonomy_mapping: Dict[str, Any],

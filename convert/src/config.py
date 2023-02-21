@@ -81,12 +81,12 @@ def get_request_session(*args: List[Any], **kwargs: Dict[str, Any]) -> Session:
     Return:
         session object
     """
-    s = Session()
+    session = Session()
     retries = Retry(
         total=3, backoff_factor=1, status_forcelist=[500, 501, 502, 503, 504]
     )
-    s.mount("http://", HTTPAdapter(max_retries=retries))
-    return s
+    session.mount("http://", HTTPAdapter(max_retries=retries))
+    return session
 
 
 settings = Settings()

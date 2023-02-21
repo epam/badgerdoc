@@ -13,6 +13,7 @@ from src.labelstudio_format.ls_models import (
     LabelStudioModel,
     ResultItem,
 )
+
 from .annotation_converter_practic import AnnotationConverterPractic
 
 
@@ -165,7 +166,8 @@ class AnnotationConverter:
         )
         return badgerdoc_annotation_token_indexes, bbox
 
-    def form_common_bbox(self, bboxes: List[List[float]]) -> List[float]:
+    @staticmethod
+    def form_common_bbox(bboxes: List[List[float]]) -> List[float]:
         return [
             min([bbox[0] for bbox in bboxes]),
             min([bbox[1] for bbox in bboxes]),
@@ -173,8 +175,8 @@ class AnnotationConverter:
             max([bbox[3] for bbox in bboxes]),
         ]
 
+    @staticmethod
     def find_badgerdoc_annotation(
-        self,
         badgerdoc_annotations: BadgerdocAnnotation,
         source_id: str,
     ) -> Optional[Obj]:

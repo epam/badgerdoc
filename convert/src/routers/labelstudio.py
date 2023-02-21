@@ -3,15 +3,16 @@ from typing import Optional
 from fastapi import APIRouter, Depends, Header, status
 from tenant_dependency import TenantData, get_tenant_info
 
-from src.config import minio_client, settings
 from src.badgerdoc_to_labelstudio_converter import (
     BadgerdocToLabelstudioConverter,
 )
+from src.config import minio_client, settings
 from src.labelstudio_to_badgerdoc_converter import (
     LabelstudioToBadgerdocConverter,
 )
-from src.models.labelstudio import (LabelStudioRequest, 
+from src.models.labelstudio import (
     BadgerdocToLabelStudioRequest,
+    LabelStudioRequest,
 )
 
 router = APIRouter(prefix="/labelstudio", tags=["labelstudio"])

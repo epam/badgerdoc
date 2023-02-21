@@ -6,6 +6,7 @@ import pdfplumber
 
 from src.config import settings
 from src.logger import get_logger
+
 from .common_utils import add_to_zip_and_local_remove
 
 LOGGER = get_logger(__file__)

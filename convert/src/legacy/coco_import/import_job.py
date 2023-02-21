@@ -3,10 +3,11 @@ from typing import Any, Dict
 from urllib.error import HTTPError
 from uuid import uuid4
 
-from .import_service import import_run
 from src.config import get_request_session, settings
 from src.logger import get_logger
+
 from ..models.coco import DataS3
+from .import_service import import_run
 
 LOGGER = get_logger(__file__)
 
