@@ -1,22 +1,22 @@
-import EditJobConnector from '../../connectors/edit-job-connector/edit-job-connector';
 import React, { useEffect, useState } from 'react';
-import { Job } from '../../api/typings/jobs';
+
 import { useHistory, useParams } from 'react-router-dom';
 import { Button } from '@epam/loveship';
-import styles from '../../shared/components/wizard/wizard/wizard.module.scss';
 import Wizard, {
     renderWizardButtons,
     WizardPropsStep
 } from '../../shared/components/wizard/wizard/wizard';
 import { DocumentsTableConnector } from '../../connectors';
 import { DOCUMENTS_PAGE } from '../../shared/constants';
+import { useJobById } from 'api/hooks/jobs';
+import EditJobConnector from '../../connectors/edit-job-connector/edit-job-connector';
 
 import wizardStyles from '../../shared/components/wizard/wizard/wizard.module.scss';
-import { useJobById } from 'api/hooks/jobs';
+import styles from '../../shared/components/wizard/wizard/wizard.module.scss';
 
 export const EditJobPage = () => {
     const history = useHistory();
-    const { jobId } = useParams() as any;
+    const { jobId } = useParams() as { jobId: string };
 
     const [files, setFiles] = useState<number[]>([]);
     const [stepIndex, setStepIndex] = useState(0);
