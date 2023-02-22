@@ -49,5 +49,5 @@ jobs:
           python -m pip install --upgrade pip
           cd convert
           pip install poetry
-          poetry install --dev-dependency
+          poetry install --all-extras
           poetry run pytest
