@@ -35,6 +35,7 @@ import { ReactComponent as MergeIcon } from '@epam/assets/icons/common/editor-ta
 import { ReactComponent as SplitIcon } from '@epam/assets/icons/common/editor-table_split_cells-24.svg';
 
 import styles from './task-sidebar.module.scss';
+import { getCategoryDataAttrs } from 'connectors/task-annotator-connector/task-annotator-utils';
 
 type TaskSidebarProps = {
     jobSettings?: ReactElement;
@@ -218,17 +219,24 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode }) => {
         }
     }, [categories, latestLabelsId]);
 
-    let taxonomy;
-    if (
-        selectedCategory &&
-        Array.isArray(selectedCategory.data_attributes) &&
-        selectedCategory.data_attributes.some((category) => category.type === 'taxonomy')
-    ) {
-        taxonomy = useLinkTaxonomyByCategoryAndJobId({
+    const dataAttrsWithTaxonomy = useMemo(() => {
+        if (!selectedCategory || !categories) return;
+        return getCategoryDataAttrs(selectedCategory.id, categories);
+    }, [selectedCategory, categories]);
+
+    // if (
+    //     selectedCategory &&
+    //     Array.isArray(selectedCategory.data_attributes) &&
+    //     selectedCategory.data_attributes.some((category) => category.type === 'taxonomy')
+    // ) {
+    const { data: taxonomy } = useLinkTaxonomyByCategoryAndJobId(
+        {
             jobId,
             categoryId: selectedAnnotation?.category!
-        });
-    }
+        },
+        { enabled: !!dataAttrsWithTaxonomy }
+    );
+    // }
 
     const cellsItems: {
         id: string;
@@ -453,7 +461,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode }) => {
                             viewMode={viewMode}
                             onAnnotationEdited={onAnnotationEdited}
                             currentPage={currentPage}
-                            taxonomyId={(taxonomy?.data || [])[0]?.id}
+                            taxonomyId={(taxonomy || [])[0]?.id}
                         />
                     )}
                     {tabValue === 'Information' && (
