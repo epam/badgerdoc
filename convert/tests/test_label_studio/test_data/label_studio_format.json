@@ -13,7 +13,8 @@
               "text": "Jerusalem",
               "labels": [
                 "Organization"
-              ]
+              ],
+              "taxons": [null]
             },
             "id": "RDQfNTDdix",
             "from_name": "label",
@@ -28,7 +29,8 @@
               "text": "27 ",
               "labels": [
                 "Datetime"
-              ]
+              ],
+              "taxons": [null]
             },
             "id": "i6mZKQ4DGD",
             "from_name": "label",
@@ -68,7 +70,8 @@
                 "text": "27",
                 "labels": [
                   "Date"
-                ]
+                ],
+                "taxons": [null]
               }
             },
             {
@@ -83,7 +86,8 @@
                 "text": "Jerusalem",
                 "labels": [
                   "Location"
-                ]
+                ],
+                "taxons": [null]
               }
             },
             {
@@ -98,7 +102,8 @@
                 "text": "the weekend",
                 "labels": [
                   "Time"
-                ]
+                ],
+                "taxons": [null]
               }
             },
             {
@@ -113,7 +118,8 @@
                 "text": "Easter",
                 "labels": [
                   "Location"
-                ]
+                ],
+                "taxons": [null]
               }
             },
             {
@@ -128,7 +134,8 @@
                 "text": "Passover",
                 "labels": [
                   "Date"
-                ]
+                ],
+                "taxons": [null]
               }
             }
           ],

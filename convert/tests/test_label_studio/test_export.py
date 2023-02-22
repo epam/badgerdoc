@@ -1,4 +1,6 @@
 from pathlib import Path
+from unittest import mock
+from unittest.mock import MagicMock
 
 from src.label_studio_to_badgerdoc.badgerdoc_format import (
     annotation_converter_practic,
@@ -20,7 +22,10 @@ TEST_FILES_DIR = Path(__file__).parent / "test_data"
 INPUT_LABELSTUDIO_FILE = TEST_FILES_DIR / "label_studio_format.json"
 
 
-def test_annotation_converter():
+@mock.patch("requests.post")
+def test_annotation_converter(post_mock):
+    post_mock.raise_for_status = MagicMock()
+
     tokens_test = Page.parse_file(
         TEST_FILES_DIR / "badgerdoc_etalon" / "tokens_test.json"
     )
