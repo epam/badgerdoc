@@ -80,7 +80,10 @@ class ParticularRevisionSchema(BaseModel):
     )
     similar_revisions: Optional[List[RevisionLink]] = Field(None)
     categories: Optional[Set[str]] = Field(None, example=["1", "2"])
-    links_json: Optional[dict] = Field(None, example={})
+    links_json: Optional[List[dict]] = Field(
+        None,
+        example=[{"to": 2, "category": "my_category", "type": "directional"}],
+    )
 
 
 class DocForSaveSchema(BaseModel):
@@ -98,7 +101,10 @@ class DocForSaveSchema(BaseModel):
     )
     similar_revisions: Optional[List[RevisionLink]] = Field(None)
     categories: Optional[Set[str]] = Field(None, example=["1", "2"])
-    links_json: Optional[dict] = Field(None, example={})
+    links_json: Optional[List[dict]] = Field(
+        None,
+        example=[{"to": 2, "category": "my_category", "type": "directional"}],
+    )
 
     @root_validator
     def one_field_empty_other_filled_check(cls, values):
@@ -186,7 +192,10 @@ class AnnotatedDocSchema(BaseModel):
     task_id: int = Field(None, example=2)
     similar_revisions: Optional[List[RevisionLink]] = Field(None)
     categories: Optional[Set[str]] = Field(None, example=["1", "2"])
-    links_json: Optional[dict] = Field(None, example={})
+    links_json: Optional[List[dict]] = Field(
+        None,
+        example=[{"to": 2, "category": "my_category", "type": "directional"}],
+    )
 
     @classmethod
     def from_orm(cls, obj):
