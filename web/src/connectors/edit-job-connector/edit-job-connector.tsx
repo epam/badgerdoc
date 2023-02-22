@@ -21,6 +21,7 @@ import { Job, JobType } from 'api/typings/jobs';
 import { CurrentUser } from 'shared/contexts/current-user';
 import wizardStyles from '../../shared/components/wizard/wizard/wizard.module.scss';
 import { useAllTaxonomies, useTaxonomiesByJobId } from 'api/hooks/taxons';
+import { cloneDeep } from 'lodash';
 
 type EditJobConnectorProps = {
     renderWizardButtons: ({
@@ -207,7 +208,7 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
 
             try {
                 if (initialJob?.id) {
-                    const editData = { ...jobProps };
+                    const editData = cloneDeep(jobProps);
                     delete editData.files;
                     delete editData.datasets;
                     await editJobMutation.mutateAsync({
@@ -438,7 +439,8 @@ const useEditJobFormValues = ({
                     if (category) return category;
                     return {} as Category;
                 }) || [],
-            selected_taxonomies: selectedTaxonomies
+            selected_taxonomies: selectedTaxonomies,
+            extensive_coverage: initialJob.extensive_coverage
         };
     }, [currentUser, initialJob, pipelines, categories, users, taxonomies, selectedTaxonomies]);
 };
