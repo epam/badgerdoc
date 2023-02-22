@@ -6,8 +6,8 @@ import urllib3
 from fastapi import HTTPException, status
 
 from src.config import settings
-from src.legacy.models import coco
-from src.legacy.utils.common_utils import check_uploading_limit
+from ..models import coco
+from .common_utils import check_uploading_limit
 from src.logger import get_logger
 
 from ..exceptions import BucketError, FileKeyError, UploadLimitExceedError
