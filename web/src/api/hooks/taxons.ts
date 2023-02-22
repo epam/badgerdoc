@@ -163,14 +163,15 @@ async function getLinkedTaxonomyByCategoryAndJobId(
     })();
 }
 
-export const useAllTaxonomiesByJobId: QueryHookType<
-    TaxonomyByJobIdParams,
-    TaxonomyByJobIdResponse
-> = ({ jobId }) => {
-    return useQuery(['taxonomy/all', jobId], async () => jobId && fetchAllTaxonomyByJobId(jobId));
-};
+export const useTaxonomiesByJobId: QueryHookType<TaxonomyByJobIdParams, TaxonomyByJobIdResponse> =
+    ({ jobId }) => {
+        return useQuery(
+            ['taxonomiesByJob', jobId],
+            async () => jobId && fetchTaxonomiesByJobId(jobId)
+        );
+    };
 
-async function fetchAllTaxonomyByJobId(jobId: number): Promise<any> {
+async function fetchTaxonomiesByJobId(jobId: number): Promise<any> {
     if (!jobId) return;
     return useBadgerFetch({
         url: `${namespace}/taxonomy?job_id=${jobId}`,

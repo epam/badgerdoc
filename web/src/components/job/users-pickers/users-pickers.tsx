@@ -1,6 +1,6 @@
 import { ILens } from '@epam/uui';
 import { User, ValidationType } from 'api/typings';
-import { JobValues } from 'connectors/add-job-connector/add-job-connector';
+import { JobValues } from 'connectors/edit-job-connector/edit-job-connector';
 import React, { FC } from 'react';
 import UsersPicker from '../users-picker/users-picker';
 

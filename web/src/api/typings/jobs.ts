@@ -41,6 +41,7 @@ export type Job = {
     deadline?: string;
     // TODO: create enum or type with defined value
     validation_type: ValidationType;
+    extensive_coverage: number | undefined;
     // TODO: check pipeline property
 };
 

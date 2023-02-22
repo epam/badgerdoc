@@ -1,1 +1,1 @@
-export * from './add-job-settings/add-job-settings';
+export * from './edit-job-settings/edit-job-settings';
