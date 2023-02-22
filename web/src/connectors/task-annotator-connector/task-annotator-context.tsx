@@ -32,6 +32,7 @@ import {
     Operators,
     PageInfo,
     SortingDirection,
+    Taxon,
     User
 } from 'api/typings';
 import { Job } from 'api/typings/jobs';
@@ -354,13 +355,6 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             tokenRes.refetch();
         }
     }, [task, job, revisionId]);
-
-    const taxonLabels = useAnnotationsTaxons(latestAnnotationsResult.data?.pages);
-
-    const { getAnnotationLabels, mapAnnotationPagesFromApi } = useAnnotationsMapper(taxonLabels, [
-        latestAnnotationsResult.data?.pages,
-        taxonLabels
-    ]);
 
     useAnnotationsLinks(
         selectedAnnotation,
@@ -942,7 +936,32 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
     const onCurrentPageChange = (page: number) => {
         setCurrentPage(page);
     };
-
+    const splitValidation = useSplitValidation({
+        categories: categories?.data,
+        currentPage,
+        fileId: getFileId(),
+        isValidation: task?.is_validation,
+        job,
+        validatorAnnotations: allAnnotations,
+        onAnnotationCreated,
+        onAnnotationEdited,
+        onAddTouchedPage: validationValues.onAddTouchedPage,
+        setSelectedAnnotation,
+        validPages: validationValues.validPages,
+        setValidPages: validationValues.setValidPages,
+        onAnnotationTaskFinish,
+        userId: task?.user_id,
+        task: task
+    });
+    const taxonLabels = useAnnotationsTaxons(latestAnnotationsResult.data?.pages);
+    const mixTaxonLabels: Map<string, Taxon> = useMemo(
+        () => new Map([...taxonLabels, ...splitValidation.taxonLabels]),
+        [taxonLabels, splitValidation.taxonLabels]
+    );
+    const { getAnnotationLabels, mapAnnotationPagesFromApi } = useAnnotationsMapper(
+        mixTaxonLabels,
+        [latestAnnotationsResult.data?.pages, mixTaxonLabels]
+    );
     useEffect(() => {
         if (!latestAnnotationsResult.data || !categories?.data) return;
         const latestLabelIds = latestAnnotationsResult.data.categories;
@@ -976,24 +995,6 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
     }, []);
 
     const syncScroll = useSycnScroll();
-
-    const splitValidation = useSplitValidation({
-        categories: categories?.data,
-        currentPage,
-        fileId: getFileId(),
-        isValidation: task?.is_validation,
-        job,
-        validatorAnnotations: allAnnotations,
-        onAnnotationCreated,
-        onAnnotationEdited,
-        onAddTouchedPage: validationValues.onAddTouchedPage,
-        setSelectedAnnotation,
-        validPages: validationValues.validPages,
-        setValidPages: validationValues.setValidPages,
-        onAnnotationTaskFinish,
-        userId: task?.user_id,
-        task: task
-    });
 
     const linksFromApi = latestAnnotationsResult.data?.links_json;
 
