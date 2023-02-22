@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from convert.src.label_studio_to_badgerdoc.badgerdoc_format.pdf_converter import (  # noqa
+from src.label_studio_to_badgerdoc.badgerdoc_format.pdf_converter import (  # noqa
     PlainPDFToBadgerdocTokensConverter,
 )
 from src.label_studio_to_badgerdoc.models import BadgerdocToken, Offset, Page
