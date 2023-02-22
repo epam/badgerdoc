@@ -21,6 +21,7 @@ import { ApiError } from 'api/api-error';
 import { mapModifiedAnnotationPagesToApi } from './task-annotator-utils';
 import { Annotation, PageToken } from 'shared';
 import { PageSize } from 'shared/components/document-pages/document-pages';
+import { isEmpty } from 'lodash';
 
 export type ValidationParams = {
     latestAnnotationsResult: UseQueryResult<AnnotationsResponse, unknown>;
@@ -78,8 +79,6 @@ export const useValidation = ({
     onSaveTaskSuccess,
     onSaveTaskError
 }: ValidationParams) => {
-    const [allValid, setAllvalid] = useState(true);
-    const [allValidated, setAllValidated] = useState(true);
     const [validPages, setValidPages] = useState<number[]>([]);
     const [invalidPages, setInvalidPages] = useState<number[]>([]);
     const [editedPages, setEditedPages] = useState<number[]>([]);
@@ -124,42 +123,39 @@ export const useValidation = ({
         }
     }, [pages]);
 
-    useEffect(() => {
-        if (invalidPages || editedPages || notProcessedPages) {
-            setAllvalid(false);
-            if (
-                invalidPages?.length === 0 &&
-                editedPages?.length === 0 &&
-                notProcessedPages?.length === 0 &&
-                validPages?.length
-            ) {
-                setAllvalid(true);
-            }
-        }
-        if (notProcessedPages?.length !== 0) {
-            setAllValidated(false);
-            return;
-        }
-        setAllValidated(true);
-    }, [validPages, invalidPages, notProcessedPages, editedPages]);
+    const allValid =
+        isEmpty(invalidPages) &&
+        isEmpty(editedPages) &&
+        isEmpty(notProcessedPages) &&
+        !isEmpty(validPages);
+
+    const allValidated = isEmpty(notProcessedPages);
 
     const onValidClick = useCallback(() => {
         if (invalidPages.includes(currentPage)) {
             const newInvalidPages = invalidPages.filter((page) => page !== currentPage);
             setInvalidPages(newInvalidPages);
         }
+        if (notProcessedPages.includes(currentPage)) {
+            const newNotProcessedPages = notProcessedPages.filter((page) => page !== currentPage);
+            setInvalidPages(newNotProcessedPages);
+        }
         setValidPages([...validPages, currentPage]);
         setAnnotationSaved(false);
-    }, [invalidPages, validPages, currentPage]);
+    }, [invalidPages, validPages, currentPage, notProcessedPages]);
 
     const onInvalidClick = useCallback(() => {
         if (validPages.includes(currentPage)) {
             const newValidPages = validPages.filter((page) => page !== currentPage);
             setValidPages(newValidPages);
         }
+        if (notProcessedPages.includes(currentPage)) {
+            const newNotProcessedPages = notProcessedPages.filter((page) => page !== currentPage);
+            setInvalidPages(newNotProcessedPages);
+        }
         setInvalidPages([...invalidPages, currentPage]);
         setAnnotationSaved(false);
-    }, [invalidPages, validPages, currentPage]);
+    }, [invalidPages, validPages, currentPage, notProcessedPages]);
 
     const onClearTouchedPages = useCallback(async () => {
         setTouchedPages([]);
