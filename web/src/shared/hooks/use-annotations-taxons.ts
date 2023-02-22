@@ -24,8 +24,7 @@ export default function useAnnotationsTaxons(annotationsByPages?: PageInfo[]): M
         }
     }, [annotationsByPages]);
 
-    console.log({ annotationsByPages });
-    const { data: taxons, refetch } = useTaxons(
+    const { data: taxons } = useTaxons(
         {
             page: 1,
             size: 100,
@@ -41,12 +40,6 @@ export default function useAnnotationsTaxons(annotationsByPages?: PageInfo[]): M
         },
         { enabled: !!taxonIds?.length }
     );
-
-    // useEffect(() => {
-    //     if (taxonIds && taxonIds.length) {
-    //         refetch();
-    //     }
-    // }, [taxonIds]);
 
     useEffect(() => {
         if (taxons?.data) {

@@ -40,7 +40,7 @@ export const isValidCategoryType = (type: CategoryDataAttrType) => {
 export const getCategoryDataAttrs = (
     annotationCategory: string | number | undefined,
     categories: Category[] | undefined
-) => {
+): CategoryDataAttribute[] => {
     /**
      * @param annotationLabel - The category name
      * @param categories - The array of categories

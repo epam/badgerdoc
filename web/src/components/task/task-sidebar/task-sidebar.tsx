@@ -221,7 +221,9 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode }) => {
 
     const dataAttrsWithTaxonomy = useMemo(() => {
         if (!selectedCategory || !categories) return;
-        return getCategoryDataAttrs(selectedCategory.id, categories);
+        return getCategoryDataAttrs(selectedCategory.id, categories).filter(
+            (dataAttr) => dataAttr.type === 'taxonomy'
+        );
     }, [selectedCategory, categories]);
 
     const { data: taxonomy } = useLinkTaxonomyByCategoryAndJobId(
