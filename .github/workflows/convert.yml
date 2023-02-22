@@ -1,10 +1,10 @@
 name: convert precommit and test
 run-name: convert precommit and test
 on:
-  push: []
-#    paths:
-#      - convert/**
-#      - .github/worlflows/convert.yml
+  push:
+    paths:
+      - convert/**
+      - .github/worlflows/convert.yml
 jobs:
   convert-pre-commit-actions:
     strategy:
