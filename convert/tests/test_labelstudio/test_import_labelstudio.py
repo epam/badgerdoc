@@ -106,11 +106,6 @@ def test_plain_text_converter():
 
 def test_annotation_converter():
     badgerdoc_format = BadgerdocFormat(
-        page_width=595,
-        page_border_offset=15,
-        font_height=11,
-        font_width=7,
-        line_spacing=2,
     )
     labelstudio_format = Converter()
 
@@ -141,11 +136,6 @@ def test_annotation_converter():
 
 def test_import_document_links():
     badgerdoc_format = BadgerdocFormat(
-        page_width=595,
-        page_border_offset=15,
-        font_height=11,
-        font_width=7,
-        line_spacing=2,
     )
 
     labelstudio_format = Converter()

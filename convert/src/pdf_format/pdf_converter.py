@@ -3,7 +3,7 @@ from typing import List
 from pdfminer.high_level import extract_pages
 from pdfminer.layout import LTChar, LTTextBoxHorizontal, LTTextLineHorizontal
 
-from src.label_studio_to_badgerdoc.models import (
+from src.badgerdoc_format.bd_tokens_model import (
     BadgerdocToken,
     Offset,
     Page,

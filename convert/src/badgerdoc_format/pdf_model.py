@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-from src.label_studio_to_badgerdoc.models import S3Path
+from src.models.common import S3Path
 
 
 class PdfRequest(BaseModel):

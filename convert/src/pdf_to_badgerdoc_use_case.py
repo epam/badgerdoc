@@ -2,10 +2,10 @@ import os
 import tempfile
 from pathlib import Path
 
-from src.label_studio_to_badgerdoc.badgerdoc_format.badgerdoc_format import (
+from src.badgerdoc_format.badgerdoc_format import (
     BadgerdocFormat,
 )
-from src.label_studio_to_badgerdoc.models import S3Path
+from src.models.common import S3Path
 
 
 class PDFToBDConvertUseCase:

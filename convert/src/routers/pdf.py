@@ -1,8 +1,8 @@
 from fastapi import APIRouter, status
 
 from src.config import minio_client
-from src.label_studio_to_badgerdoc.models.pdf_model import PdfRequest
-from src.label_studio_to_badgerdoc.pdf_to_badgerdoc_use_case import (
+from src.badgerdoc_format.pdf_model import PdfRequest
+from src.pdf_to_badgerdoc_use_case import (
     PDFToBDConvertUseCase,
 )
 

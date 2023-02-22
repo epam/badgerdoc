@@ -6,14 +6,11 @@ import responses
 from src.labelstudio_format import (
     annotation_converter_practic,
 )
-<<<<<<< HEAD:convert/tests/test_label_studio/test_export.py
-from src.label_studio_to_badgerdoc.labelstudio_format.label_studio_format import (  # noqa
-=======
+
 from src.badgerdoc_to_labelstudio_converter import (
     BadgerdocToLabelstudioConverter,
 )
 from src.labelstudio_format.ls_format import (
->>>>>>> b7a4b44 (test: Add tests):convert/tests/test_labelstudio/test_export_labelstudio.py
     LabelStudioFormat,
 )
 from src.badgerdoc_format import (
@@ -89,11 +86,7 @@ def test_annotation_converter_case_without_taxonomies_and_document_labels():
         badgerdoc_annotations=annotations_test,
         badgerdoc_tokens=tokens_test,
         badgerdoc_manifest=manifest_test,
-<<<<<<< HEAD:convert/tests/test_label_studio/test_export.py
-        request_headers={},
-=======
         request_headers={}
->>>>>>> b7a4b44 (test: Add tests):convert/tests/test_labelstudio/test_export_labelstudio.py
     )
     labelstudio_model_test = ls_format_test.labelstudio_data
 
