@@ -4,6 +4,7 @@ from typing import Any, Callable, Dict, List, Optional
 
 import boto3
 from botocore.client import BaseClient
+from dotenv import load_dotenv
 from mypy_extensions import KwArg, VarArg
 from pydantic import BaseSettings, Field
 from requests import Session
@@ -11,7 +12,6 @@ from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 
 from src import logger
-from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -66,7 +66,7 @@ def singleton(
     instances = {}
 
     def getinstance(*args: List[Any], **kwargs: Dict[str, Any]) -> Any:
-        """Sets the possibility of creating an instance of the class in the singular"""
+        """Sets the possibility of creating an instance of the class in the singular"""  # noqa
         if class_ not in instances:
             instances[class_] = class_(*args, **kwargs)
         return instances[class_]
