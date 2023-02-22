@@ -70,8 +70,10 @@ spec:
             secretKeyRef:
               name: assets
               key: S3_SECRET_KEY
-        - name: SERVICE_CONVERT_URI
+        - name: SERVICE_CONVERT_TXT
           value: "http://convert/text/import"
+        - name: SERVICE_CONVERT_PDF
+          value: "http://convert/pdf/import"
         - name: JWT_SECRET
           valueFrom:
             secretKeyRef:

@@ -8,13 +8,9 @@ import {
     RadioGroup,
     TabButton
 } from '@epam/loveship';
-import { useUuiContext } from '@epam/uui';
-import { useSetTaskFinishedMutation, useGetValidatedPages, useSetTaskState } from 'api/hooks/tasks';
+import { useGetValidatedPages } from 'api/hooks/tasks';
 import { useTaskAnnotatorContext } from 'connectors/task-annotator-connector/task-annotator-context';
-import {
-    FinishTaskValidationModal,
-    TaskValidationValues
-} from '../task-modal/task-validation-modal';
+
 import styles from './task-sidebar.module.scss';
 import { CategoriesSelectionModeToggle } from 'components/categories/categories-selection-mode-toggle/categories-selection-mode-toggle';
 import { useTableAnnotatorContext } from '../../../shared/components/annotator/context/table-annotator-context';
@@ -41,12 +37,11 @@ import { TaskSidebarLabelsLinks } from './task-sidebar-labels-links/task-sidebar
 import { NoData } from 'shared/no-data';
 
 type TaskSidebarProps = {
-    onRedirectAfterFinish: () => void;
     jobSettings?: ReactElement;
     viewMode: boolean;
 };
 
-const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings, viewMode }) => {
+const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode }) => {
     const {
         annDataAttrs,
         task,
@@ -61,8 +56,6 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
         touchedPages,
         modifiedPages,
         tabValue,
-        sortedUsers,
-        isOwner,
         selectionType,
         isDataTabDisabled,
         isCategoryDataEmpty,
@@ -87,6 +80,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
         selectedTool,
         onChangeSelectedTool,
         selectedToolParams,
+        selectedCategory,
         setSelectedToolParams,
         onLabelsSelected,
         setSelectedLabels,
@@ -98,7 +92,11 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
         onRelatedDocClick,
         selectedRelatedDoc,
         documentLinksChanged,
-        onFinishSplitValidation
+        onFinishSplitValidation,
+        allValidated,
+        annotationSaved,
+        onFinishValidation,
+        notProcessedPages
     } = useTaskAnnotatorContext();
     const {
         tableModeColumns,
@@ -121,36 +119,10 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
 
     const isValidationDisabled = !currentPage && !isAnnotatable && !splitValidation;
 
-    const svc = useUuiContext();
-    const finishTaskMutation = useSetTaskFinishedMutation();
-    const onSaveForm = async (formOptions: TaskValidationValues) => {
-        if (task && (formOptions.option_invalid || formOptions.option_edited)) {
-            await finishTaskMutation.mutateAsync({
-                taskId: task?.id,
-                options: {
-                    option_edited: formOptions.option_edited,
-                    option_invalid: formOptions.option_invalid
-                }
-            });
-
-            await useSetTaskState({ id: task?.id, eventType: 'closed' });
-        }
-    };
-
-    const onSaveValidForm = () => {
-        if (task) {
-            finishTaskMutation.mutateAsync({ taskId: task?.id });
-            useSetTaskState({ id: task?.id, eventType: 'closed' });
-        }
-    };
-    const [allValid, setAllvalid] = useState(true);
-    const [allValidated, setAllValidated] = useState(true);
-    const [invalidPageCount, setInvalidPageCount] = useState(0);
-    const [editedPageCount, setEditedPageCount] = useState(0);
     const [boundModeSwitch, setBoundModeSwitch] = useState<AnnotationBoundMode>('box');
     const [tableModeValues, setTableModeValues] = useState<string>('');
 
-    const { data: pages, refetch } = useGetValidatedPages(
+    const { refetch } = useGetValidatedPages(
         { taskId: task?.id, taskType: task?.is_validation },
         {}
     );
@@ -187,29 +159,6 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
     }, [boundModeSwitch]);
 
     useEffect(() => {
-        if (task?.is_validation && pages) {
-            if (pages?.failed_validation_pages || pages?.annotated_pages || pages?.not_processed) {
-                setAllvalid(false);
-                setInvalidPageCount(pages.failed_validation_pages.length);
-                setEditedPageCount(pages?.annotated_pages.length);
-                if (
-                    pages?.failed_validation_pages.length === 0 &&
-                    pages?.not_processed.length === 0 &&
-                    pages?.annotated_pages.length === 0 &&
-                    pages.validated
-                ) {
-                    setAllvalid(true);
-                }
-            }
-            if (pages?.not_processed.length !== 0) {
-                setAllValidated(false);
-                return;
-            }
-            setAllValidated(true);
-        }
-    }, [pages, validPages, invalidPages]);
-
-    useEffect(() => {
         if (tableMode) setTabValue('Data');
     }, [tableMode]);
 
@@ -218,7 +167,8 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
         return (
             (isValidation && !splitValidation && touchedPages.length === 0) ||
             ((!isValidation || splitValidation) && modifiedPages.length === 0) ||
-            !isAnnotatable
+            !isAnnotatable ||
+            annotationSaved
         );
     }, [
         validPages,
@@ -227,7 +177,8 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
         modifiedPages,
         editedPages,
         isDocLabelsModified,
-        documentLinksChanged
+        documentLinksChanged,
+        annotationSaved
     ]);
 
     useEffect(() => {
@@ -268,27 +219,17 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
         }
     }, [categories, latestLabelsId]);
 
-    const taxonomy = useLinkTaxonomyByCategoryAndJobId({
-        jobId,
-        categoryId: selectedAnnotation?.category!
-    });
-
-    const onFinishValidation = async () => {
-        await svc.uuiModals.show<TaskValidationValues>((props) => (
-            <FinishTaskValidationModal
-                onSaveForm={onSaveForm}
-                allValid={allValid}
-                allUsers={sortedUsers.current}
-                currentUser={task?.user_id || ''}
-                isOwner={isOwner}
-                invalidPages={invalidPageCount}
-                editedPageCount={editedPageCount}
-                validSave={onSaveValidForm}
-                {...props}
-            />
-        ));
-        onRedirectAfterFinish();
-    };
+    let taxonomy;
+    if (
+        selectedCategory &&
+        Array.isArray(selectedCategory.data_attributes) &&
+        selectedCategory.data_attributes.some((category) => category.type === 'taxonomy')
+    ) {
+        taxonomy = useLinkTaxonomyByCategoryAndJobId({
+            jobId,
+            categoryId: selectedAnnotation?.category!
+        });
+    }
 
     const cellsItems: {
         id: string;
@@ -617,7 +558,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
                                     isDisabled={isValidationDisabled}
                                 />
                             )}
-                            {editPage && (
+                            {!annotationSaved && editPage && (
                                 <Button
                                     cx={styles.validation}
                                     caption="CANCEL"
@@ -639,7 +580,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
                                     isDisabled={isValidationDisabled}
                                 />
                             )}
-                            {editPage && (
+                            {!annotationSaved && editPage && (
                                 <Button
                                     cx={styles.validation}
                                     caption="SAVE EDITS"
@@ -683,13 +624,13 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ onRedirectAfterFinish, jobSettings,
                         allValidated && !splitValidation
                             ? ''
                             : 'Please validate all page to finish task. Remaining pages: ' +
-                              pages?.not_processed?.join(', ')
+                              notProcessedPages?.join(', ')
                     }
                 >
                     <Button
                         cx={styles['button-finish']}
                         caption={'FINISH VALIDATION'}
-                        isDisabled={!allValidated && !touchedPages.length}
+                        isDisabled={!allValidated && !touchedPages.length && !editedPages.length}
                         captionCX
                         onClick={splitValidation ? onFinishSplitValidation : onFinishValidation}
                     />

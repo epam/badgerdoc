@@ -1,11 +1,12 @@
-import { BaseTaxon, Taxon, TaxonomyNode } from 'api/typings';
+import { Taxon, TaxonomyNode } from 'api/typings';
+import { getTaxonFullName } from 'shared/helpers/get-taxon-full-name';
 
-export const mapTaxon = (taxon: BaseTaxon): TaxonomyNode => ({
+export const mapTaxon = (taxon: Taxon): TaxonomyNode => ({
     key: taxon.id,
     title: taxon.name,
     isLeaf: taxon.is_leaf,
     children: [],
-    taxon
+    taxon: { ...taxon, name: getTaxonFullName(taxon) }
 });
 
 export const mapTaxons = (taxonomies?: Taxon[]): TaxonomyNode[] => {
@@ -15,7 +16,7 @@ export const mapTaxons = (taxonomies?: Taxon[]): TaxonomyNode[] => {
     const nodeById = new Map<string, TaxonomyNode>();
     const rootNodes = [];
 
-    const setNode = (taxonomy: BaseTaxon) => {
+    const setNode = (taxonomy: Taxon) => {
         const taxonomyNode = mapTaxon(taxonomy);
         if (!nodeById.has(taxonomy.id)) {
             nodeById.set(taxonomy.id, taxonomyNode);

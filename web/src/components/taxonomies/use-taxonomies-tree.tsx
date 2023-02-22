@@ -68,6 +68,8 @@ export const useTaxonomiesTree = ({ searchText, taxonomyId, taxonomyFilter }: Pr
     }, [rootCategories, searchResult.data, searchText]);
 
     const onLoadData = async (node: TaxonomyNode) => {
+        if (searchText) return;
+
         if (!isEmpty(node.children)) {
             return node.children;
         }

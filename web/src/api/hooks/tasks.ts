@@ -275,8 +275,6 @@ export const useGetValidatedPages: QueryHookType<UseTaskForValidatedPagesParams,
                     url: `${namespace}/tasks/${taskId}/pages_summary`,
                     method: 'get'
                 })();
-            } else {
-                return {};
             }
         });
 

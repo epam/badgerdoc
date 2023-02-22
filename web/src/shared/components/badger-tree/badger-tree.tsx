@@ -43,7 +43,7 @@ export const BadgerTree: FC<Props> = ({
         />
     );
     const spinner = <Spinner color="sky" />;
-    const renderData = useMemo(() => (nodes.length ? data : <NoData />), [nodes]);
+    const renderData = useMemo(() => (nodes.length ? data : <NoData />), [nodes, data]);
 
     return (
         <div className={styles.container}>

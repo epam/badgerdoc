@@ -10,7 +10,11 @@ from sqlalchemy_utils import Ltree
 from app.errors import CheckFieldError, NoTaxonError, SelfParentError
 from app.filters import TaxonFilter
 from app.models import Taxon
-from app.schemas import TaxonInputSchema, TaxonResponseSchema
+from app.schemas import (
+    ParentsConcatenateResponseSchema,
+    TaxonInputSchema,
+    TaxonResponseSchema,
+)
 from app.taxonomy.services import get_latest_taxonomy, get_taxonomy
 
 TaxonIdT = str
@@ -324,3 +328,24 @@ def filter_taxons(
         ),
         pagination,
     )
+
+
+def concatenated_parents_list(
+    db: Session, taxons: List[Taxon], tenant: str
+) -> List[ParentsConcatenateResponseSchema]:
+    parents_dict = _get_parents(db, taxons, tenant)
+    return [
+        ParentsConcatenateResponseSchema(
+            taxon_id=taxon.id,
+            taxon_name=taxon.name,
+            parent_ids_concat=".".join(
+                [parent.id for parent in parents_dict[taxon.tree.path]]
+            )
+            or None,
+            parent_names_concat=".".join(
+                [parent.name for parent in parents_dict[taxon.tree.path]]
+            )
+            or None,
+        )
+        for taxon in taxons
+    ]

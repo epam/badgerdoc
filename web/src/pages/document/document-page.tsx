@@ -71,7 +71,6 @@ export function DocumentPage(props: DocumentPageProps) {
                         <TaskDocumentPages viewMode={true} />
                         <TaskSidebar
                             viewMode={true}
-                            onRedirectAfterFinish={() => {}}
                             jobSettings={
                                 <DocumentPageSidebarContent
                                     fileMetaInfo={fileMetaInfo}
