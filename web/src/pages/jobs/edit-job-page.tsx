@@ -1,47 +1,57 @@
-import React, { useState } from 'react';
-import { useHistory } from 'react-router-dom';
-import { Job } from '../../api/typings/jobs';
+import React, { useEffect, useState } from 'react';
+
+import { useHistory, useParams } from 'react-router-dom';
+import { Button } from '@epam/loveship';
 import Wizard, {
     renderWizardButtons,
     WizardPropsStep
 } from '../../shared/components/wizard/wizard/wizard';
 import { DocumentsTableConnector } from '../../connectors';
-import AddJobConnector from '../../connectors/add-job-connector/add-job-connector';
 import { DOCUMENTS_PAGE } from '../../shared/constants';
+import { useJobById } from 'api/hooks/jobs';
+import EditJobConnector from '../../connectors/edit-job-connector/edit-job-connector';
 
-import { Button } from '@epam/loveship';
-import styles from '../../shared/components/wizard/wizard/wizard.module.scss';
 import wizardStyles from '../../shared/components/wizard/wizard/wizard.module.scss';
+import styles from '../../shared/components/wizard/wizard/wizard.module.scss';
 
-type HistoryState = {
-    files?: number[];
-    job?: Job;
-};
-
-export const AddJobPage = () => {
+export const EditJobPage = () => {
     const history = useHistory();
-    const historyState = history.location.state as HistoryState;
-    const checkedFiles = historyState?.files;
-    const initialJob = historyState?.job;
+    const { jobId } = useParams() as { jobId: string };
+
+    const [files, setFiles] = useState<number[]>([]);
+    const [stepIndex, setStepIndex] = useState(0);
+
+    const { data: job } = useJobById(
+        { jobId: Number(jobId) },
+        {
+            enabled: !!jobId
+        }
+    );
+
+    useEffect(() => {
+        if (!job) return;
+        setFiles(job.files);
+    }, [job]);
 
     const handleJobAdded = (id: number) => {
         history.push(`${id}`);
     };
 
-    const [files, setFiles] = useState<number[]>(checkedFiles || initialJob?.files || []);
+    useEffect(() => {
+        if (jobId) {
+            setStepIndex(1);
+        }
+    }, [jobId]);
 
-    let startStepId = 0;
-    if (checkedFiles?.length) {
-        startStepId = 1;
-    }
-    const [stepIndex, setStepIndex] = useState(startStepId);
     const handleNext = () => {
         setStepIndex(stepIndex + 1);
     };
     const handlePrev = () => {
         setStepIndex(stepIndex - 1);
     };
-    const finishButtonCaption = 'Add Extraction';
+
+    const finishButtonCaption = jobId ? 'Save Edits' : 'Add Extraction';
+    const isDisabled = !!jobId;
 
     const steps: WizardPropsStep[] = [
         {
@@ -69,9 +79,9 @@ export const AddJobPage = () => {
         {
             title: 'Settings',
             content: (
-                <AddJobConnector
+                <EditJobConnector
                     onJobAdded={handleJobAdded}
-                    initialJob={historyState?.job}
+                    initialJob={job}
                     files={files}
                     renderWizardButtons={({ save, lens }) => {
                         return (
@@ -81,10 +91,12 @@ export const AddJobPage = () => {
                                     cx={styles.button}
                                     caption="Previous"
                                     onClick={handlePrev}
+                                    isDisabled={isDisabled}
                                 />
                                 <Button
                                     cx={styles.button}
                                     caption="Save as Draft"
+                                    isDisabled={isDisabled}
                                     fill="none"
                                     onClick={() => {
                                         lens.prop('is_draft').set(true);

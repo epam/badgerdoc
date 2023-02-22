@@ -2,14 +2,14 @@ import React, { FC } from 'react';
 import { MultiSwitch } from '@epam/loveship';
 import { ILens } from '@epam/uui';
 import { Category, Pipeline, Taxonomy, User } from 'api/typings';
-import { JobValues } from 'connectors/add-job-connector/add-job-connector';
+import { JobValues } from 'connectors/edit-job-connector/edit-job-connector';
 import AutomaticJob from '../automatic-job/automatic-job';
-import styles from './add-job-settings.module.scss';
+import styles from './edit-job-settings.module.scss';
 import AutomaticManualJob from '../automatic-manual-job/automatic-manual-job';
 import { JobType } from 'api/typings/jobs';
 import { InfoIcon } from '../../../shared/components/info-icon/info-icon';
 
-export type AddJobSettingsProps = {
+export type EditJobSettingsProps = {
     pipelines: Pipeline[] | undefined;
     categories: Category[] | undefined;
     users: User[] | undefined;
@@ -19,7 +19,7 @@ export type AddJobSettingsProps = {
     showNoExtractionTab?: boolean;
 };
 
-const AddJobSettings: FC<AddJobSettingsProps> = ({
+const EditJobSettings: FC<EditJobSettingsProps> = ({
     pipelines,
     categories,
     users,
@@ -32,7 +32,10 @@ const AddJobSettings: FC<AddJobSettingsProps> = ({
     let job;
     if (currentJobType === 'ExtractionJob') {
         job = <AutomaticJob pipelines={pipelines} lens={lens} />;
-    } else if (currentJobType == 'ExtractionWithAnnotationJob') {
+    } else if (
+        currentJobType == 'ExtractionWithAnnotationJob' ||
+        currentJobType == 'AnnotationJob'
+    ) {
         job = (
             <AutomaticManualJob
                 categories={categories}
@@ -73,7 +76,12 @@ const AddJobSettings: FC<AddJobSettingsProps> = ({
     return (
         <div className={`${styles.container} flex flex-col`}>
             <div className={styles.tabs}>
-                <MultiSwitch size="42" items={tabs} {...lens.prop('jobType').toProps()} />
+                <MultiSwitch
+                    size="42"
+                    items={tabs}
+                    {...lens.prop('jobType').toProps()}
+                    value={'ExtractionWithAnnotationJob'}
+                />
                 <InfoIcon
                     title="Select annotation type"
                     description={
@@ -100,4 +108,4 @@ const AddJobSettings: FC<AddJobSettingsProps> = ({
     );
 };
 
-export default AddJobSettings;
+export default EditJobSettings;

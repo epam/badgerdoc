@@ -33,10 +33,7 @@ export function JobPage() {
 
     const handleEditJobClick = (job: Job) => {
         history.push({
-            pathname: `${JOBS_PAGE}/add`,
-            state: {
-                job
-            }
+            pathname: `${JOBS_PAGE}/edit/${job.id}`
         });
     };
 

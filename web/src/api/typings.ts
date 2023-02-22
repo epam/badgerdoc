@@ -250,7 +250,7 @@ export interface Taxon extends BaseTaxon {
 export interface Taxonomy {
     id: string;
     name: string;
-    taxons: BaseTaxon[];
+    taxons?: BaseTaxon[];
     version?: number;
 }
 
