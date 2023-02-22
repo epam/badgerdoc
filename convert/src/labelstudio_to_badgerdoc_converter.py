@@ -18,6 +18,7 @@ from src.badgerdoc_format.pdf_renderer import PDFRenderer
 from src.config import DEFAULT_PAGE_BORDER_OFFSET, settings
 from src.labelstudio_format.annotation_converter import AnnotationConverter
 from src.labelstudio_format.ls_models import LabelStudioModel, ValidationType
+from src.labelstudio_format.converter import Converter
 from src.logger import get_logger
 from src.models.common import S3Path
 from src.plain_text_format.plain_text_converter import (
@@ -109,7 +110,11 @@ class LabelstudioToBadgerdocConverter:
 
         LOGGER.debug("document_labels parsed: %s", document_labels)
 
-        self.badgerdoc_format.to_badgerdoc(ls_format)
+        ls_converter = Converter()
+        ls_converter.to_badgerdoc(ls_format)
+        self.badgerdoc_format.tokens_page = ls_converter.tokens_page
+        self.badgerdoc_format.badgerdoc_annotation = ls_converter.badgerdoc_annotation
+
         LOGGER.debug("Tokens and annotations are converted")
         file_id_in_assets = self.upload_output_pdf_to_s3()
         annotation_job_id_created = (
@@ -240,8 +245,7 @@ class LabelstudioToBadgerdocConverter:
                 s3_output_annotations_path,
             )
 
-        self,
-
+    @staticmethod
     def enrich_categories_with_taxonomies(
         categories: List[str],
         categories_to_taxonomy_mapping: Dict[str, Any],

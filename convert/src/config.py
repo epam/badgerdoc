@@ -39,7 +39,7 @@ class Settings(BaseSettings):
     uploading_limit: int = Field(100, env="UPLOADING_LIMIT")
     coco_image_format: str = "jpg"
     dpi: int = 300
-    root_path: Optional[str] = os.getenv("ROOT_PATH")
+    root_path: str = os.environ.get("ROOT_PATH", "")
     assets_service_url: Optional[str] = os.getenv("ASSETS_SERVICE_URL")
     category_service_url: Optional[str] = os.getenv("CATEGORY_SERVICE_URL")
     import_coco_url: Optional[str] = os.getenv("IMPORT_COCO_URL")
