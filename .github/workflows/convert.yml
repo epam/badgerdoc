@@ -1,7 +1,7 @@
 name: convert precommit and test
 run-name: convert precommit and test
 on:
-#  push:
+  push: []
 #    paths:
 #      - lib/convert/**
 #      - .github/worlflows/convert.yml
