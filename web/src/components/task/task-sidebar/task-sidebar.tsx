@@ -224,11 +224,6 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode }) => {
         return getCategoryDataAttrs(selectedCategory.id, categories);
     }, [selectedCategory, categories]);
 
-    // if (
-    //     selectedCategory &&
-    //     Array.isArray(selectedCategory.data_attributes) &&
-    //     selectedCategory.data_attributes.some((category) => category.type === 'taxonomy')
-    // ) {
     const { data: taxonomy } = useLinkTaxonomyByCategoryAndJobId(
         {
             jobId,
@@ -236,7 +231,6 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode }) => {
         },
         { enabled: !!dataAttrsWithTaxonomy }
     );
-    // }
 
     const cellsItems: {
         id: string;
