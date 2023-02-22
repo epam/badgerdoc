@@ -570,7 +570,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
 
     const setAnnotationDataAttrs = (annotation: Annotation) => {
         const foundCategoryDataAttrs = getCategoryDataAttrs(
-            annotation.label ? annotation.label : annotation.category,
+            annotation.category ? annotation.category : annotation.label,
             categories?.data
         );
         if (foundCategoryDataAttrs && foundCategoryDataAttrs.length) {

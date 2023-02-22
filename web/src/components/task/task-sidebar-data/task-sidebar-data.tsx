@@ -45,9 +45,6 @@ export const TaskSidebarData: FC<TaskSidebarDataProps> = ({
 
     return (
         <div className={styles['task-sidebar-data']}>
-            {isCategoryDataEmpty && (
-                <Text>{`The selected category doesn't have data attributes`}</Text>
-            )}
             {annDataAttrs &&
                 selectedAnnotation &&
                 annDataAttrs[+selectedAnnotation.id] &&
