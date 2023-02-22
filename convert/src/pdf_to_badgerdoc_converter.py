@@ -2,9 +2,7 @@ import os
 import tempfile
 from pathlib import Path
 
-from src.badgerdoc_format.badgerdoc_format import (
-    BadgerdocFormat,
-)
+from src.badgerdoc_format.badgerdoc_format import BadgerdocFormat
 from src.models.common import S3Path
 
 

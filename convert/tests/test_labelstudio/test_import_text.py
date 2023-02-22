@@ -1,9 +1,9 @@
 import pytest
 
-from src.plain_text_format.plain_text_converter import TextToBadgerdocTokensConverter
-from src.text_to_badgerdoc_converter import (
-    TextToBadgerdocConverter,
+from src.plain_text_format.plain_text_converter import (
+    TextToBadgerdocTokensConverter,
 )
+from src.text_to_badgerdoc_converter import TextToBadgerdocConverter
 
 
 def test_correctness_of_import_text_schema(test_app, monkeypatch):
@@ -22,9 +22,7 @@ def test_correctness_of_import_text_schema(test_app, monkeypatch):
     monkeypatch.setattr(
         TextToBadgerdocConverter, "download", mock_download_text
     )
-    monkeypatch.setattr(
-        TextToBadgerdocConverter, "upload", mock_upload_text
-    )
+    monkeypatch.setattr(TextToBadgerdocConverter, "upload", mock_upload_text)
 
     response = test_app.post(
         "/text/import",
@@ -34,5 +32,5 @@ def test_correctness_of_import_text_schema(test_app, monkeypatch):
 
 
 def test_import_empty_text():
-    converter =  TextToBadgerdocTokensConverter()
+    converter = TextToBadgerdocTokensConverter()
     converter.convert("")

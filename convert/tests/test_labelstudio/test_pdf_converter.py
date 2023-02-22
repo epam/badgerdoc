@@ -1,9 +1,9 @@
 from pathlib import Path
 
+from src.badgerdoc_format.bd_tokens_model import BadgerdocToken, Offset, Page
 from src.pdf_format.pdf_converter import (  # noqa
     PlainPDFToBadgerdocTokensConverter,
 )
-from src.badgerdoc_format.bd_tokens_model import BadgerdocToken, Offset, Page
 
 TEST_FILES_DIR = Path(__file__).parent / "test_data"
 TEST_PDF = TEST_FILES_DIR / "test.pdf"

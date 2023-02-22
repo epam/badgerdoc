@@ -3,26 +3,17 @@ from pathlib import Path
 import pytest
 import responses
 
-from src.labelstudio_format import (
-    annotation_converter_practic,
+from src.badgerdoc_format import (
+    bd_annotation_model_practic,
+    bd_manifest_model_practic,
 )
-
+from src.badgerdoc_format.bd_tokens_model import Page
 from src.badgerdoc_to_labelstudio_converter import (
     BadgerdocToLabelstudioConverter,
 )
-from src.labelstudio_format.ls_format import (
-    LabelStudioFormat,
-)
-from src.badgerdoc_format import (
-    bd_manifest_model_practic,
-)
-from src.badgerdoc_format import (
-    bd_annotation_model_practic,
-)
-from src.badgerdoc_format.bd_tokens_model import Page
-from src.labelstudio_format.ls_models import (
-    LabelStudioModel,
-)
+from src.labelstudio_format import annotation_converter_practic
+from src.labelstudio_format.ls_format import LabelStudioFormat
+from src.labelstudio_format.ls_models import LabelStudioModel
 
 TEST_FILES_DIR = Path(__file__).parent / "test_data"
 
@@ -49,7 +40,9 @@ def test_correctness_of_export_text_schema(test_app, monkeypatch):
     def mock_execute(*args, **kwargs):
         pass
 
-    monkeypatch.setattr(BadgerdocToLabelstudioConverter, "execute", mock_execute)
+    monkeypatch.setattr(
+        BadgerdocToLabelstudioConverter, "execute", mock_execute
+    )
 
     response = test_app.post(
         "/labelstudio/export",
@@ -86,7 +79,7 @@ def test_annotation_converter_case_without_taxonomies_and_document_labels():
         badgerdoc_annotations=annotations_test,
         badgerdoc_tokens=tokens_test,
         badgerdoc_manifest=manifest_test,
-        request_headers={}
+        request_headers={},
     )
     labelstudio_model_test = ls_format_test.labelstudio_data
 

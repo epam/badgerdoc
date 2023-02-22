@@ -1,10 +1,11 @@
 from pathlib import Path
 from typing import Optional
 
+from src.pdf_format.pdf_converter import PlainPDFToBadgerdocTokensConverter
+
 from .bd_annotation_model_practic import BadgerdocAnnotation
 from .bd_tokens_model import Page
 from .pdf_renderer import PDFRenderer
-from src.pdf_format.pdf_converter import PlainPDFToBadgerdocTokensConverter
 
 
 class BadgerdocFormat:
@@ -25,6 +26,7 @@ class BadgerdocFormat:
     def export_tokens(self, path: Path) -> None:
         if self.tokens_page:
             path.write_text(self.tokens_page.json(by_alias=True))
+
     def export_annotations(self, path: Path):
         if self.badgerdoc_annotation:
             path.write_text(self.badgerdoc_annotation.json(indent=4))

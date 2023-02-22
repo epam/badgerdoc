@@ -7,7 +7,6 @@ from fastapi.responses import Response, StreamingResponse
 from requests import HTTPError
 from tenant_dependency import TenantData, get_tenant_info
 
-from src.config import minio_client, settings
 from src.coco_format.coco_export.convert import ConvertToCoco, ExportBadgerdoc
 from src.coco_format.coco_export.export_service import (
     export_run,
@@ -17,6 +16,7 @@ from src.coco_format.coco_import.convert import ConvertToBadgerdoc
 from src.coco_format.coco_import.import_job import create_import_job
 from src.coco_format.models import coco
 from src.coco_format.utils.s3_utils import get_bucket_path
+from src.config import minio_client, settings
 from src.logger import get_logger
 
 router = APIRouter(prefix="/coco", tags=["coco"])

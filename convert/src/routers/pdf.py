@@ -2,9 +2,7 @@ from fastapi import APIRouter, status
 
 from src.config import minio_client
 from src.models.pdf import PdfRequest
-from src.pdf_to_badgerdoc_converter import (
-    PDFToBDConvertUseCase,
-)
+from src.pdf_to_badgerdoc_converter import PDFToBDConvertUseCase
 
 router = APIRouter(prefix="/pdf", tags=["pdf"])
 
