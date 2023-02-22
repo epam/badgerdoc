@@ -329,15 +329,6 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         { enabled: !!(task || job) }
     );
 
-    const { data: latestAnnotationsByUser } = useLatestAnnotationsByUser(
-        {
-            jobId: getJobId(),
-            fileId: getFileId(),
-            pageNumbers: pageNumbers
-        },
-        { enabled: !!(task || job) }
-    );
-
     const tokenRes = useTokens(
         {
             fileId: getFileId(),
@@ -366,12 +357,12 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         }
     }, [task, job, revisionId]);
 
-    const taxonLabels = useAnnotationsTaxons(latestAnnotationsByUser?.[currentPage]);
+    const latestTaxonLabels = useAnnotationsTaxons(latestAnnotationsResult.data?.pages);
 
-    const { getAnnotationLabels, mapAnnotationPagesFromApi } = useAnnotationsMapper(taxonLabels, [
-        latestAnnotationsResult.data?.pages,
-        taxonLabels
-    ]);
+    const { getAnnotationLabels, mapAnnotationPagesFromApi } = useAnnotationsMapper(
+        latestTaxonLabels,
+        [latestAnnotationsResult.data?.pages, latestTaxonLabels]
+    );
 
     useAnnotationsLinks(
         selectedAnnotation,
@@ -387,13 +378,14 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         category: Category | undefined = selectedCategory
     ): Annotation => {
         const pageAnnotations = allAnnotations[pageNum] ?? [];
-        const dataAttr: CategoryDataAttributeWithValue = annData.data?.dataAttributes.find(
+        const hasTaxonomy = !!annData.data?.dataAttributes.find(
             (attr: CategoryDataAttributeWithValue) => attr.type === 'taxonomy'
         );
+
         const newAnnotation = {
             ...annData,
             color: category?.metadata?.color,
-            label: dataAttr ? dataAttr.value : category?.name,
+            label: hasTaxonomy ? annData.label : category?.name,
             labels: getAnnotationLabels(pageNum.toString(), annData, category)
         };
         setAllAnnotations((prevState) => ({
