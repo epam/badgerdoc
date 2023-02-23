@@ -167,20 +167,13 @@ export const useValidation = ({
 
     const onEditClick = useCallback(() => {
         setEditedPages([...editedPages, currentPage]);
-        if (invalidPages.includes(currentPage)) {
-            const newInvalidPages = invalidPages.filter((page) => page !== currentPage);
-            setInvalidPages(newInvalidPages);
-        }
+        setPages(invalidPages, setInvalidPages);
         setAnnotationSaved(false);
     }, [editedPages, invalidPages, currentPage]);
 
     const onCancelClick = useCallback(() => {
         onCloseDataTab();
-
-        if (editedPages.includes(currentPage)) {
-            const newEditedPages = editedPages.filter((page) => page !== currentPage);
-            setEditedPages(newEditedPages);
-        }
+        setPages(editedPages, setEditedPages);
         setInvalidPages([...invalidPages, currentPage]);
     }, [editedPages, invalidPages, currentPage]);
 
@@ -188,15 +181,8 @@ export const useValidation = ({
 
     const onSaveEditClick = async () => {
         if (!task || !latestAnnotationsResult.data || !tokenPages) return;
-
-        if (invalidPages.includes(currentPage)) {
-            const newInvalidPages = invalidPages.filter((page) => page !== currentPage);
-            setInvalidPages(newInvalidPages);
-        }
-        if (validPages.includes(currentPage)) {
-            const newValidPages = validPages.filter((page) => page !== currentPage);
-            setValidPages(newValidPages);
-        }
+        setPages(invalidPages, setInvalidPages);
+        setPages(validPages, setValidPages);
 
         let { revision } = latestAnnotationsResult.data;
         const pages = mapModifiedAnnotationPagesToApi(
