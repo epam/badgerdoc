@@ -1,7 +1,7 @@
 import { LabeledInput, PickerInput } from '@epam/loveship';
 import { ILens, useArrayDataSource } from '@epam/uui';
 import { Category } from 'api/typings';
-import { JobValues } from 'connectors/add-job-connector/add-job-connector';
+import { JobValues } from 'connectors/edit-job-connector/edit-job-connector';
 import { ModelValues } from 'connectors/add-model-connector/add-model-connector';
 import React, { FC } from 'react';
 import { InfoIcon } from '../info-icon/info-icon';

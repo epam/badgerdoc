@@ -1,6 +1,6 @@
 import { DatePicker, LabeledInput } from '@epam/loveship';
 import { ILens } from '@epam/uui';
-import { JobValues } from 'connectors/add-job-connector/add-job-connector';
+import { JobValues } from 'connectors/edit-job-connector/edit-job-connector';
 import React, { FC } from 'react';
 import styles from './deadline-picker.module.scss';
 

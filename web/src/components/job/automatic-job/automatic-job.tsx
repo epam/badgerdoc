@@ -1,6 +1,6 @@
 import React, { FC, useContext } from 'react';
 import { Pipeline } from 'api/typings';
-import { JobValues } from 'connectors/add-job-connector/add-job-connector';
+import { JobValues } from 'connectors/edit-job-connector/edit-job-connector';
 import JobName from '../job-name/job-name';
 import PipelinePicker from '../pipeline-picker/pipeline-picker';
 

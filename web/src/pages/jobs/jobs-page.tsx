@@ -4,7 +4,7 @@ import { JobPage } from '../job/job-page';
 
 import { JobsTableConnector } from 'connectors/jobs-table-connector';
 
-import { AddJobPage } from './add-job-page';
+import { EditJobPage } from './edit-job-page';
 
 const JobsPage = () => {
     const history = useHistory();
@@ -23,8 +23,9 @@ const JobsPage = () => {
             <Route exact path={path}>
                 <JobsTableConnector onRowClick={handleNameClick} onAddJob={handleAddJob} />
             </Route>
-            <Route path={`${path}/add`} component={AddJobPage} />
-            <Route component={JobPage} path={`${path}/:jobId`} />
+            <Route path={`${path}/add`} component={EditJobPage} />
+            <Route path={`${path}/edit/:jobId`} component={EditJobPage} />
+            <Route path={`${path}/:jobId`} component={JobPage} />
             <Redirect to={path} />
         </Switch>
     );

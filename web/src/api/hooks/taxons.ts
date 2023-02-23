@@ -146,12 +146,13 @@ export const useLinkTaxonomyByCategoryAndJobId: QueryHookType<
 > = ({ jobId, categoryId }, options) => {
     return useQuery(
         ['taxonomy', jobId, categoryId],
-        async () => (jobId && categoryId ? linkTaxonomyByCategoryAndJobId(jobId, categoryId) : []),
+        async () =>
+            jobId && categoryId ? getLinkedTaxonomyByCategoryAndJobId(jobId, categoryId) : [],
         options
     );
 };
 
-async function linkTaxonomyByCategoryAndJobId(
+async function getLinkedTaxonomyByCategoryAndJobId(
     jobId?: number,
     categoryId?: string | number
 ): Promise<any> {
@@ -162,14 +163,15 @@ async function linkTaxonomyByCategoryAndJobId(
     })();
 }
 
-export const useAllTaxonomiesByJobId: QueryHookType<
-    TaxonomyByJobIdParams,
-    TaxonomyByJobIdResponse
-> = ({ jobId }) => {
-    return useQuery(['taxonomy/all', jobId], async () => jobId && fetchAllTaxonomyByJobId(jobId));
-};
+export const useTaxonomiesByJobId: QueryHookType<TaxonomyByJobIdParams, TaxonomyByJobIdResponse> =
+    ({ jobId }) => {
+        return useQuery(
+            ['taxonomiesByJob', jobId],
+            async () => jobId && fetchTaxonomiesByJobId(jobId)
+        );
+    };
 
-async function fetchAllTaxonomyByJobId(jobId: number): Promise<any> {
+async function fetchTaxonomiesByJobId(jobId: number): Promise<any> {
     if (!jobId) return;
     return useBadgerFetch({
         url: `${namespace}/taxonomy?job_id=${jobId}`,

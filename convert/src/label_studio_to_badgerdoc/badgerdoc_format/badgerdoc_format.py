@@ -12,6 +12,7 @@ from ..models.bd_annotation_model_practic import BadgerdocAnnotation
 from ..models.bd_tokens_model import Page
 from ..models.label_studio_models import LabelStudioModel
 from .annotation_converter import AnnotationConverter
+from .pdf_converter import PlainPDFToBadgerdocTokensConverter
 from .pdf_renderer import PDFRenderer
 from .plain_text_converter import TextToBadgerdocTokensConverter
 
@@ -35,6 +36,7 @@ class BadgerdocFormat:
         self.badgerdoc_annotation: Optional[BadgerdocAnnotation] = None
         self.pdf_renderer: Optional[PDFRenderer] = PDFRenderer()
         self.text_converter = TextToBadgerdocTokensConverter()
+        self.pdf_converter = PlainPDFToBadgerdocTokensConverter()
 
     def convert_from_labelstudio(self, labelstudio_data: LabelStudioModel):
         # TODO: process several root elements
@@ -49,13 +51,22 @@ class BadgerdocFormat:
     def convert_from_text(self, text: str):
         self.tokens_page = self.text_converter.convert(text)
 
+    def convert_from_pdf(self, pdf):
+        self.tokens_page = self.pdf_converter.convert(pdf)
+
+    def export_tokens_to_folder(self, tokens_path: Path) -> None:
+        if self.tokens_page:
+            for i, part in enumerate(self.tokens_page, start=1):
+                path_file = tokens_path / Path(f"{i}.json")
+                path_file.write_text(part.json(by_alias=True))
+
     def export_tokens(self, path: Path) -> None:
         if self.tokens_page:
-            path.write_text(self.tokens_page.json(indent=4, by_alias=True))
+            path.write_text(self.tokens_page.json(by_alias=True))
 
     def export_annotations(self, path: Path):
         if self.badgerdoc_annotation:
-            path.write_text(self.badgerdoc_annotation.json(indent=4))
+            path.write_text(self.badgerdoc_annotation.json())
 
     def export_pdf(self, path: Path):
         if not self.pdf_renderer:

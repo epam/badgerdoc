@@ -14,7 +14,7 @@ import { useUploadFilesMutation } from 'api/hooks/documents';
 import { bondToDataset } from 'api/hooks/bonds';
 import { useNotifications } from 'shared/components/notifications';
 import { useAddDatasetMutation, useAddFilesToDatasetMutation } from '../../api/hooks/datasets';
-import AddJobConnector from 'connectors/add-job-connector/add-job-connector';
+import EditJobConnector from 'connectors/edit-job-connector/edit-job-connector';
 import {
     DatasetWizardScreen,
     DatasetWizardScreenResult
@@ -189,7 +189,7 @@ export const UploadWizardPage = () => {
         {
             title: 'Extraction and Annotation',
             content: (
-                <AddJobConnector
+                <EditJobConnector
                     onJobAdded={handleJobAdded}
                     onRedirectAfterFinish={handleRedirectAfterFinish}
                     files={uploadedFilesIds}

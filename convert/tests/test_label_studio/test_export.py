@@ -3,7 +3,7 @@ from pathlib import Path
 from src.label_studio_to_badgerdoc.badgerdoc_format import (
     annotation_converter_practic,
 )
-from src.label_studio_to_badgerdoc.labelstudio_format.label_studio_format import (
+from src.label_studio_to_badgerdoc.labelstudio_format.label_studio_format import (  # noqa
     LabelStudioFormat,
 )
 from src.label_studio_to_badgerdoc.models import (
@@ -41,6 +41,7 @@ def test_annotation_converter():
         badgerdoc_annotations=annotations_test,
         badgerdoc_tokens=tokens_test,
         badgerdoc_manifest=manifest_test,
+        request_headers={},
     )
     labelstudio_model_test = labelstudio_format_test.labelstudio_data
 

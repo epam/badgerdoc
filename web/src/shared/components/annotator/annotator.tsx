@@ -507,6 +507,7 @@ export const Annotator: FC<AnnotatorProps> = ({
                     renderAnnotation={({ annotation }) => {
                         const isSelected = annotation.id === selectedAnnotation?.id;
                         const isHovered = annotation.id === hoveredAnnotation?.id;
+
                         return editableAnnotationRenderer({
                             annotation,
                             cells: annotation.tableCells,

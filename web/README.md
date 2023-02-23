@@ -131,3 +131,7 @@ To learn React, check out the [React documentation](https://reactjs.org/).
 To work in local environment you need to start up the **_local backend_** and configure env variables for correct connection.
 For that you need to copy content of `.env.example` file to `.env.local` and specify provided variables.
 
+## Test 
+Libraries for testing:
+- React testing library 
+- Jest 
