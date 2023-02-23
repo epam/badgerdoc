@@ -165,6 +165,8 @@ type UndoListAction = 'edit' | 'delete' | 'add';
 
 const TaskAnnotatorContext = createContext<ContextValue | undefined>(undefined);
 const dataTabDefaultDisableState = true;
+const defaultPageWidth: number = 0;
+const defaultPageHeight: number = 0;
 
 export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
     jobId,
@@ -182,16 +184,10 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
     const [isDocLabelsModified, setIsDocLabelsModified] = useState<boolean>(false);
     const [selectedLink, setSelectedLink] = useState<Link>();
     const [allAnnotations, setAllAnnotations] = useState<Record<number, Annotation[]>>({});
-
-    const [copiedAnnotation, setCopiedAnnotation] = useState<Annotation>();
-    const copiedAnnotationReference = useRef<Annotation | undefined>();
-    copiedAnnotationReference.current = copiedAnnotation;
-
     const [undoList, setUndoList] = useState<
         { action: UndoListAction; annotation: Annotation; pageNumber: number }[]
     >([]);
     const [undoPointer, setUndoPointer] = useState<number>(-1);
-
     const [selectedToolParams, setSelectedToolParams] = useState<PaperToolParams>(
         {} as PaperToolParams
     );
@@ -236,20 +232,23 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         wand: undefined
     });
 
-    const defaultPageWidth: number = 0;
-    const defaultPageHeight: number = 0;
-    let fileMetaInfo: FileMetaInfo = fileMetaInfoParam!;
-
     const [pageSize, setPageSize] = useState<{ width: number; height: number }>({
         width: defaultPageWidth,
         height: defaultPageHeight
     });
+
+    const [copiedAnnotation, setCopiedAnnotation] = useState<Annotation>();
+    const copiedAnnotationReference = useRef<Annotation | undefined>();
+    copiedAnnotationReference.current = copiedAnnotation;
+
+    let fileMetaInfo: FileMetaInfo = fileMetaInfoParam!;
 
     let task: Task | undefined;
     let isTaskLoading: boolean = false;
     let refetchTask: (
         options?: (RefetchOptions & RefetchQueryFilters<Task>) | undefined
     ) => Promise<QueryObserverResult<Task, unknown>>;
+
     if (taskId) {
         const result = useTaskById({ taskId }, {});
         task = result.data;
@@ -273,11 +272,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             pageNumbers.push(i + 1);
         }
     }
-    const {
-        data: categories,
-        refetch: refetchCategories,
-        isLoading: categoriesLoading
-    } = useCategoriesByJob(
+    const { data: categories, isLoading: categoriesLoading } = useCategoriesByJob(
         {
             jobId: getJobId(),
             page: 1,
@@ -287,12 +282,6 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         },
         { enabled: false }
     );
-
-    useEffect(() => {
-        if (task?.job.id || jobId) {
-            refetchCategories();
-        }
-    }, [task, jobId]);
 
     const taskHasTaxonomies = useMemo(() => {
         if (categories) {
@@ -355,14 +344,6 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             tokenRes.refetch();
         }
     }, [task, job, revisionId]);
-
-    // const latestTaxonLabels = useAnnotationsTaxons(latestAnnotationsResult.data?.pages);
-
-    // const { getAnnotationLabels, mapAnnotationPagesFromApi } = useAnnotationsMapper(
-    //     latestTaxonLabels,
-    //     [latestAnnotationsResult.data?.pages, latestTaxonLabels]
-    // );
-
     useAnnotationsLinks(
         selectedAnnotation,
         selectedCategory,
@@ -961,14 +942,15 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         userId: task?.user_id,
         task: task
     });
+
     const taxonLabels = useAnnotationsTaxons(latestAnnotationsResult.data?.pages);
-    const mixTaxonLabels: Map<string, Taxon> = useMemo(
+    const comparedTaxonLabels: Map<string, Taxon> = useMemo(
         () => new Map([...taxonLabels, ...splitValidation.taxonLabels]),
         [taxonLabels, splitValidation.taxonLabels]
     );
     const { getAnnotationLabels, mapAnnotationPagesFromApi } = useAnnotationsMapper(
-        mixTaxonLabels,
-        [latestAnnotationsResult.data?.pages, mixTaxonLabels]
+        comparedTaxonLabels,
+        [latestAnnotationsResult.data?.pages, comparedTaxonLabels]
     );
     useEffect(() => {
         if (!latestAnnotationsResult.data || !categories?.data) return;
