@@ -1,5 +1,5 @@
 import { AnnotationsByUserObj, useLatestAnnotationsByUser } from 'api/hooks/annotations';
-import { Category, Link } from 'api/typings';
+import { Category, Label, Link } from 'api/typings';
 import { Job } from 'api/typings/jobs';
 import { cloneDeep } from 'lodash';
 import { useCallback, useEffect, useMemo } from 'react';
@@ -39,6 +39,7 @@ export interface SplitValidationValue {
     isSplitValidation?: boolean;
     userPages: AnnotationsByUserObj[];
     annotationsByUserId: Record<string, Annotation[]>;
+    categoriesByUserId: Record<string, Label[]>;
     onSplitAnnotationSelected: (scale: number, userId: string, annotation?: Annotation) => void;
     onSplitLinkSelected: (fromOriginalAnnotationId: string | number, originalLink: Link) => void;
     onFinishSplitValidation: () => void;
@@ -90,6 +91,31 @@ export default function useSplitValidation({
             categories
         );
     }, [categories, mapAnnotationPagesFromApi]);
+
+    const getCategoryById = useCallback(
+        (categoryId: string): Label | undefined => {
+            const category = categories!.find(({ id }) => id === categoryId);
+
+            if (!category) return;
+
+            const { id, name } = category;
+
+            return { id, name };
+        },
+        [categories]
+    );
+
+    const categoriesByUserId: Record<string, Label[]> = useMemo(() => {
+        if (!categories?.length) return {};
+
+        return userPages.reduce(
+            (acc, { user_id, categories: categoriesId }) => ({
+                ...acc,
+                [user_id]: categoriesId.map(getCategoryById) as Label[]
+            }),
+            {} as Record<string, Label[]>
+        );
+    }, [userPages, categories, getCategoryById]);
 
     const onSplitAnnotationSelected = useCallback(
         (scale: number, userId: string, scaledAnn?: Annotation) => {
@@ -163,6 +189,7 @@ export default function useSplitValidation({
     return useMemo(
         () => ({
             annotationsByUserId,
+            categoriesByUserId,
             isSplitValidation,
             job,
             onSplitAnnotationSelected,
@@ -172,6 +199,7 @@ export default function useSplitValidation({
         }),
         [
             annotationsByUserId,
+            categoriesByUserId,
             isSplitValidation,
             job,
             onSplitAnnotationSelected,

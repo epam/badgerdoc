@@ -382,7 +382,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         const newAnnotation = {
             ...annData,
             color: category?.metadata?.color,
-            label: dataAttr ? dataAttr.value : category?.name,
+            label: annData.label ? annData.label : dataAttr ? dataAttr.value : category?.name,
             labels: getAnnotationLabels(pageNum.toString(), annData, category)
         };
         setAllAnnotations((prevState) => ({

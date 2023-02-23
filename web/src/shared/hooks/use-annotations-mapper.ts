@@ -59,10 +59,11 @@ export default function useAnnotationsMapper(
 
             const label = {
                 annotationId: ann.id,
-                label:
-                    dataAttr && dataAttr.value
-                        ? taxonLabels.get(dataAttr.value)?.name
-                        : category?.name,
+                label: ann.label
+                    ? ann.label
+                    : dataAttr && dataAttr.value
+                    ? taxonLabels.get(dataAttr.value)?.name
+                    : category?.name,
                 color: category?.metadata?.color
             };
             const topRightToken: PageToken | null | undefined = getTopRightToken(ann?.tokens);

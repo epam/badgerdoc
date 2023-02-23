@@ -38,7 +38,8 @@ export const annotationsByUser: AnnotationsByUserResponse = {
                 }
             ],
             revision: '23d9fcf082df38f0811eb17cf125052e5e595f8a',
-            user_id: '345'
+            user_id: '345',
+            categories: []
         },
         {
             page_num: 1,
@@ -76,7 +77,8 @@ export const annotationsByUser: AnnotationsByUserResponse = {
                 }
             ],
             revision: '23d9fcf082df38f0811eb17cf125052e5e595f8a',
-            user_id: '123'
+            user_id: '123',
+            categories: []
         }
     ]
 };
