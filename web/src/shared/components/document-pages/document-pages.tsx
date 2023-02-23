@@ -199,7 +199,7 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                                 />
                             </SyncedContainer>
                             {userPages.map(({ user_id, page_num }) => (
-                                <React.Fragment key={user_id}>
+                                <Fragment key={user_id}>
                                     <SplitAnnotatorInfo
                                         annotatorName={getAnnotatorName(user_id)}
                                         labels={categoriesByUserId[user_id]}
@@ -216,7 +216,7 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                                             }
                                         />
                                     </SyncedContainer>
-                                </React.Fragment>
+                                </Fragment>
                             ))}
                         </Document>
                     ) : selectedRelatedDoc ? (

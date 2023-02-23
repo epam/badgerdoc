@@ -7,6 +7,7 @@ import { Annotation } from 'shared';
 import { isEmpty } from 'lodash';
 import { SearchInput, Text, TextArea } from '@epam/loveship';
 import styles from './task-sidebar-data.module.scss';
+import { NoData } from 'shared/no-data';
 
 type TaskSidebarDataProps = {
     isCategoryDataEmpty: boolean;
@@ -46,7 +47,9 @@ export const TaskSidebarData: FC<TaskSidebarDataProps> = ({
     return (
         <div className={styles['task-sidebar-data']}>
             {isCategoryDataEmpty && (
-                <Text cx={styles.text}>{`The selected category doesn't have data attributes`}</Text>
+                <div className={styles['no-data']}>
+                    <NoData title="The selected category doesn't have data attributes" />
+                </div>
             )}
             {annDataAttrs &&
                 selectedAnnotation &&

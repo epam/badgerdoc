@@ -1,9 +1,8 @@
 import React, { FC } from 'react';
-import { Tag } from '@epam/loveship';
+import { Tag, Spinner } from '@epam/loveship';
 import styles from './split-labels-panel.module.scss';
 import { Label } from 'api/typings';
 import { useTaskAnnotatorContext } from 'connectors/task-annotator-connector/task-annotator-context';
-
 type SplitLabelsPanelProps = {
     labels: Label[];
     selectedLabelsId: string[];
@@ -13,7 +12,7 @@ export const SplitLabelsPanel: FC<SplitLabelsPanelProps> = ({ labels, selectedLa
     const { setTabValue, onLabelsSelected } = useTaskAnnotatorContext();
 
     if (!labels) {
-        return <div>Loading...</div>;
+        return <Spinner color="sky" />;
     }
 
     const onClick = (id: string) => () => {
