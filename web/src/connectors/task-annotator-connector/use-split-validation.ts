@@ -1,5 +1,5 @@
 import { AnnotationsByUserObj, useLatestAnnotationsByUser } from 'api/hooks/annotations';
-import { Category, Link } from 'api/typings';
+import { Category, Link, Taxon } from 'api/typings';
 import { Job } from 'api/typings/jobs';
 import { cloneDeep } from 'lodash';
 import { useCallback, useEffect, useMemo } from 'react';
@@ -39,6 +39,7 @@ export interface SplitValidationValue {
     isSplitValidation?: boolean;
     userPages: AnnotationsByUserObj[];
     annotationsByUserId: Record<string, Annotation[]>;
+    taxonLabels: Map<string, Taxon>;
     onSplitAnnotationSelected: (scale: number, userId: string, annotation?: Annotation) => void;
     onSplitLinkSelected: (fromOriginalAnnotationId: string | number, originalLink: Link) => void;
     onFinishSplitValidation: () => void;
@@ -168,7 +169,8 @@ export default function useSplitValidation({
             onSplitAnnotationSelected,
             onSplitLinkSelected,
             onFinishSplitValidation,
-            userPages
+            userPages,
+            taxonLabels
         }),
         [
             annotationsByUserId,
@@ -178,7 +180,8 @@ export default function useSplitValidation({
             onSplitLinkSelected,
             onAddTouchedPage,
             userPages,
-            validatorAnnotations
+            validatorAnnotations,
+            taxonLabels
         ]
     );
 }
