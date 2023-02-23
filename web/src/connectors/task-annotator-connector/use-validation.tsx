@@ -86,6 +86,16 @@ export const useValidation = ({
     const [touchedPages, setTouchedPages] = useState<number[]>([]);
     const [annotationSaved, setAnnotationSaved] = useState(false);
 
+    const setPages = (
+        pagesArr: number[],
+        setPagesState: React.Dispatch<React.SetStateAction<number[]>>
+    ) => {
+        if (pagesArr.includes(currentPage)) {
+            const newIPages = pagesArr.filter((page) => page !== currentPage);
+            setPagesState(newIPages);
+        }
+    };
+
     const svc = useUuiContext();
 
     const { data: pages } = useGetValidatedPages(
@@ -132,27 +142,15 @@ export const useValidation = ({
     const allValidated = isEmpty(notProcessedPages);
 
     const onValidClick = useCallback(() => {
-        if (invalidPages.includes(currentPage)) {
-            const newInvalidPages = invalidPages.filter((page) => page !== currentPage);
-            setInvalidPages(newInvalidPages);
-        }
-        if (notProcessedPages.includes(currentPage)) {
-            const newNotProcessedPages = notProcessedPages.filter((page) => page !== currentPage);
-            setInvalidPages(newNotProcessedPages);
-        }
+        setPages(invalidPages, setInvalidPages);
+        setPages(notProcessedPages, setNotProcessedPages);
         setValidPages([...validPages, currentPage]);
         setAnnotationSaved(false);
     }, [invalidPages, validPages, currentPage, notProcessedPages]);
 
     const onInvalidClick = useCallback(() => {
-        if (validPages.includes(currentPage)) {
-            const newValidPages = validPages.filter((page) => page !== currentPage);
-            setValidPages(newValidPages);
-        }
-        if (notProcessedPages.includes(currentPage)) {
-            const newNotProcessedPages = notProcessedPages.filter((page) => page !== currentPage);
-            setInvalidPages(newNotProcessedPages);
-        }
+        setPages(validPages, setValidPages);
+        setPages(notProcessedPages, setNotProcessedPages);
         setInvalidPages([...invalidPages, currentPage]);
         setAnnotationSaved(false);
     }, [invalidPages, validPages, currentPage, notProcessedPages]);
