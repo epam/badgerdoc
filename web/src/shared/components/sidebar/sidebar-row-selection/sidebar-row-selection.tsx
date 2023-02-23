@@ -6,24 +6,18 @@ type SidebarRowSelectionProps<T> = {
     entity: T;
     activeEntity?: T | null;
     onEntitySelect: (entity: T) => void;
-    onMouseEnter?: () => void;
-    onMouseLeave?: () => void;
 };
 export const SidebarRowSelection = <T extends { id: string | number }>({
     children,
     entity,
     activeEntity,
-    onEntitySelect,
-    onMouseEnter,
-    onMouseLeave
+    onEntitySelect
 }: SidebarRowSelectionProps<T>) => (
     <div
         key={entity.id}
         role="none"
         className={`${entity.id === activeEntity?.id ? styles.selected : styles.row}`}
         onClick={() => onEntitySelect(entity)}
-        onMouseEnter={onMouseEnter}
-        onMouseLeave={onMouseLeave}
     >
         {children}
     </div>

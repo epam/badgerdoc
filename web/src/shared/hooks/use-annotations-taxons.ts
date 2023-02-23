@@ -5,6 +5,9 @@ import { getTaxonFullName } from 'shared/helpers/get-taxon-full-name';
 
 export default function useAnnotationsTaxons(annotationsByPages?: PageInfo[]): Map<string, Taxon> {
     const [taxonLabels, setTaxonLabels] = useState(new Map<string, Taxon>());
+    const updateMap = (key: string, value: Taxon) => {
+        setTaxonLabels(new Map(taxonLabels.set(key, value)));
+    };
 
     let taxonIds: string[] | undefined = useMemo(() => {
         let taxonIdArr: string[] = [];
@@ -43,16 +46,11 @@ export default function useAnnotationsTaxons(annotationsByPages?: PageInfo[]): M
 
     useEffect(() => {
         if (taxons?.data) {
-            setTaxonLabels(
-                new Map(
-                    taxons.data.map((taxon) => [
-                        taxon.id,
-                        { ...taxon, name: getTaxonFullName(taxon) }
-                    ])
-                )
-            );
+            taxons.data.forEach((taxon: Taxon) => {
+                updateMap(taxon.id, { ...taxon, name: getTaxonFullName(taxon) });
+            });
         }
-    }, [taxons?.data]);
+    }, [taxons]);
 
     return taxonLabels;
 }

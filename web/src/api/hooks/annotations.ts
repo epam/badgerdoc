@@ -139,7 +139,7 @@ type addAnnotationsParams = {
     links?: DocumentLink[];
 };
 
-export const addAnnotations = async (data: addAnnotationsParams) => {
+const addAnnotations = async (data: addAnnotationsParams) => {
     const body = {
         user: data.userId,
         pages: data.pages,

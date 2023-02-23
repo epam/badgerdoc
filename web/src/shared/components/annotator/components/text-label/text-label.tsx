@@ -1,7 +1,7 @@
-import noop from 'lodash/noop';
-import { IconButton } from '@epam/loveship';
 import React from 'react';
+import noop from 'lodash/noop';
 import { ReactComponent as closeIcon } from '@epam/assets/icons/common/navigation-close-12.svg';
+import { IconButton } from '@epam/loveship';
 import styles from './text-label.module.scss';
 
 type TextLabelProps = {

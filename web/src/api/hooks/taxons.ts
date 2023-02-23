@@ -146,12 +146,13 @@ export const useLinkTaxonomyByCategoryAndJobId: QueryHookType<
 > = ({ jobId, categoryId }, options) => {
     return useQuery(
         ['taxonomy', jobId, categoryId],
-        async () => (jobId && categoryId ? linkTaxonomyByCategoryAndJobId(jobId, categoryId) : []),
+        async () =>
+            jobId && categoryId ? getLinkedTaxonomyByCategoryAndJobId(jobId, categoryId) : [],
         options
     );
 };
 
-async function linkTaxonomyByCategoryAndJobId(
+async function getLinkedTaxonomyByCategoryAndJobId(
     jobId?: number,
     categoryId?: string | number
 ): Promise<any> {

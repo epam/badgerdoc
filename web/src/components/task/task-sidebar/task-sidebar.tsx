@@ -220,11 +220,11 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode }) => {
     }, [categories, latestLabelsId]);
 
     const dataAttrsWithTaxonomy = useMemo(() => {
-        if (!selectedCategory || !categories) return;
-        return getCategoryDataAttrs(selectedCategory.id, categories).filter(
+        if (!selectedAnnotation || !categories) return;
+        return getCategoryDataAttrs(selectedAnnotation?.category, categories).filter(
             (dataAttr) => dataAttr.type === 'taxonomy'
         );
-    }, [selectedCategory, categories]);
+    }, [selectedAnnotation, categories]);
 
     const { data: taxonomy } = useLinkTaxonomyByCategoryAndJobId(
         {

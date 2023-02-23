@@ -48,6 +48,7 @@ export const SelectionLayer: FC<SelectionLayerProps> = ({
                     color={multilineTextProps.color}
                     label={multilineTextProps.label}
                     page={page}
+                    labels={[{ label: multilineTextProps.label }]}
                 />
             );
         }
