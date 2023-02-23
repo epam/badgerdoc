@@ -165,6 +165,8 @@ type UndoListAction = 'edit' | 'delete' | 'add';
 
 const TaskAnnotatorContext = createContext<ContextValue | undefined>(undefined);
 const dataTabDefaultDisableState = true;
+const defaultPageWidth: number = 0;
+const defaultPageHeight: number = 0;
 
 export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
     jobId,
@@ -236,8 +238,6 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         wand: undefined
     });
 
-    const defaultPageWidth: number = 0;
-    const defaultPageHeight: number = 0;
     let fileMetaInfo: FileMetaInfo = fileMetaInfoParam!;
 
     const [pageSize, setPageSize] = useState<{ width: number; height: number }>({
@@ -355,14 +355,6 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             tokenRes.refetch();
         }
     }, [task, job, revisionId]);
-
-    // const latestTaxonLabels = useAnnotationsTaxons(latestAnnotationsResult.data?.pages);
-
-    // const { getAnnotationLabels, mapAnnotationPagesFromApi } = useAnnotationsMapper(
-    //     latestTaxonLabels,
-    //     [latestAnnotationsResult.data?.pages, latestTaxonLabels]
-    // );
-
     useAnnotationsLinks(
         selectedAnnotation,
         selectedCategory,
@@ -962,13 +954,13 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         task: task
     });
     const taxonLabels = useAnnotationsTaxons(latestAnnotationsResult.data?.pages);
-    const mixTaxonLabels: Map<string, Taxon> = useMemo(
+    const comparedTaxonLabels: Map<string, Taxon> = useMemo(
         () => new Map([...taxonLabels, ...splitValidation.taxonLabels]),
         [taxonLabels, splitValidation.taxonLabels]
     );
     const { getAnnotationLabels, mapAnnotationPagesFromApi } = useAnnotationsMapper(
-        mixTaxonLabels,
-        [latestAnnotationsResult.data?.pages, mixTaxonLabels]
+        comparedTaxonLabels,
+        [latestAnnotationsResult.data?.pages, comparedTaxonLabels]
     );
     useEffect(() => {
         if (!latestAnnotationsResult.data || !categories?.data) return;
