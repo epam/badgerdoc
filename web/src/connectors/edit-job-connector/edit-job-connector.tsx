@@ -152,12 +152,12 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
                 jobName,
                 jobType,
                 deadline: jobDeadline,
-                categories,
+                categories = [],
                 validationType,
-                owners,
-                annotators: jobAnnotator,
-                validators: jobValidators,
-                annotators_validators,
+                owners = [],
+                annotators: jobAnnotator = [],
+                validators: jobValidators = [],
+                annotators_validators = [],
                 is_draft,
                 is_auto_distribution,
                 start_manual_job_automatically,
@@ -171,7 +171,7 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
                 return;
             }
 
-            const deadline = jobDeadline ? new Date(jobDeadline).toISOString() : jobDeadline;
+            const deadline = jobDeadline ? new Date(jobDeadline).toISOString() : undefined;
             const annotators = validationType === 'cross' ? annotators_validators : jobAnnotator;
             const validators = validationType === 'cross' ? [] : jobValidators;
 
@@ -185,17 +185,17 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
                         : pipeline
                         ? 'ExtractionWithAnnotationJob'
                         : 'AnnotationJob',
-                is_draft: is_draft,
-                is_auto_distribution: jobType === 'ExtractionJob' ? false : is_auto_distribution,
+                is_draft,
+                is_auto_distribution: jobType !== 'ExtractionJob' && is_auto_distribution,
                 start_manual_job_automatically:
-                    jobType === 'ExtractionJob' ? false : start_manual_job_automatically,
-                extensive_coverage: extensive_coverage,
-                categories: categories?.map((category) => category.id),
-                deadline: deadline,
+                    jobType !== 'ExtractionJob' && start_manual_job_automatically,
+                extensive_coverage,
+                categories: categories.map((category) => category.id),
+                deadline,
                 validation_type: validationType,
-                owners: owners?.map((owner) => owner.id),
-                annotators: annotators?.map((annotator) => annotator.id) ?? [],
-                validators: validators?.map((validator) => validator.id),
+                owners: owners.map((owner) => owner.id),
+                annotators: annotators.map((annotator) => annotator.id),
+                validators: validators.map((validator) => validator.id),
                 pipeline_name: pipeline?.name,
                 pipeline_version: pipeline?.version
             };
@@ -203,16 +203,18 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
             if (!pipeline) {
                 delete jobProps.start_manual_job_automatically;
             }
+
             if (selected_taxonomies) {
-                jobProps.categories?.forEach((categoryId, index) => {
-                    const currentTaxonomy = selected_taxonomies![categoryId as string | number];
+                jobProps.categories = jobProps.categories?.map((categoryId) => {
+                    const currentTaxonomy = selected_taxonomies[categoryId as string | number];
                     if (currentTaxonomy) {
-                        jobProps.categories![index] = {
+                        return {
                             category_id: categoryId?.toString(),
                             taxonomy_id: currentTaxonomy.id,
                             taxonomy_version: currentTaxonomy.version!
                         };
                     }
+                    return categoryId;
                 });
             }
 
@@ -222,18 +224,15 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
                     delete editData.files;
                     delete editData.datasets;
                     await editJobMutation.mutateAsync({
-                        id: initialJob?.id,
+                        id: initialJob.id,
                         data: editData
                     });
-                    return {
-                        form: values
-                    };
+                    return { form: values };
                 }
+
                 const response = await addJobMutation.mutateAsync(jobProps);
                 values.addedJobId = response.id;
-                return {
-                    form: values
-                };
+                return { form: values };
             } catch (err: any) {
                 svc.uuiNotifications.show(
                     (props: INotification) => (
@@ -251,7 +250,7 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
                 };
             }
         },
-        [files]
+        [files, addJobMutation, editJobMutation, initialJob, onRedirectAfterFinish]
     );
 
     const handleSuccess = useCallback(
