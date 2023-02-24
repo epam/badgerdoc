@@ -1,4 +1,4 @@
-import React, { FC, ReactElement, useCallback, useContext, useMemo, useEffect } from 'react';
+import React, { FC, ReactElement, useCallback, useContext, useMemo } from 'react';
 import EditJobSettings from 'components/job/edit-job-settings/edit-job-settings';
 import { usePipelines } from 'api/hooks/pipelines';
 import { JobVariables, useAddJobMutation, useEditJobMutation } from 'api/hooks/jobs';
@@ -71,21 +71,23 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
     showNoExtractionTab
 }) => {
     const getMetadata = (state: JobValues) => {
+        const { jobType, validationType, annotators_validators, pipeline } = state;
+
         // TODO add proper typing for validators
         const metadata: any = {
             props: {
-                jobName: { isRequired: state.jobType !== 'NoExtraction' },
-                pipeline: { isRequired: state.jobType === 'ExtractionJob' },
-                start_manual_job_automatically: { isDisabled: !state.pipeline },
-                validationType: { isRequired: state.jobType === 'ExtractionWithAnnotationJob' },
-                categories: { isRequired: state.jobType === 'ExtractionWithAnnotationJob' },
-                extensive_coverage: { isRequired: state.validationType === 'extensive_coverage' }
+                jobName: { isRequired: jobType !== 'NoExtraction' },
+                pipeline: { isRequired: jobType === 'ExtractionJob' },
+                start_manual_job_automatically: { isDisabled: !pipeline },
+                validationType: { isRequired: jobType === 'ExtractionWithAnnotationJob' },
+                categories: { isRequired: jobType === 'ExtractionWithAnnotationJob' },
+                extensive_coverage: { isRequired: validationType === 'extensive_coverage' }
             }
         };
 
-        if (state.jobType === 'ExtractionWithAnnotationJob') {
+        if (jobType === 'ExtractionWithAnnotationJob') {
             metadata.props['annotators_validators'] = {
-                isInvalid: (state.annotators_validators?.length || 0) < 2,
+                isInvalid: (annotators_validators?.length || 0) < 2,
                 validationMessage:
                     'For Cross validation at least 2 annotators or validators are required'
             };
@@ -146,56 +148,64 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
 
     const handleSave = useCallback(
         async (values: JobValues) => {
-            if (values.jobType === 'NoExtraction') {
+            const {
+                jobName,
+                jobType,
+                deadline: jobDeadline,
+                categories,
+                validationType,
+                owners,
+                annotators: jobAnnotator,
+                validators: jobValidators,
+                annotators_validators,
+                is_draft,
+                is_auto_distribution,
+                start_manual_job_automatically,
+                extensive_coverage,
+                selected_taxonomies,
+                pipeline
+            } = values;
+
+            if (jobType === 'NoExtraction') {
                 onRedirectAfterFinish?.();
                 return;
             }
 
+            const deadline = jobDeadline ? new Date(jobDeadline).toISOString() : jobDeadline;
+            const annotators = validationType === 'cross' ? annotators_validators : jobAnnotator;
+            const validators = validationType === 'cross' ? [] : jobValidators;
+
             const jobProps: JobVariables = {
-                name: values.jobName,
+                name: jobName,
                 files,
                 datasets: [],
                 type:
-                    values.jobType === 'ExtractionJob'
+                    jobType === 'ExtractionJob'
                         ? 'ExtractionJob'
-                        : values.pipeline
+                        : pipeline
                         ? 'ExtractionWithAnnotationJob'
                         : 'AnnotationJob',
-                is_draft: values.is_draft,
-                is_auto_distribution: values.is_auto_distribution,
-                start_manual_job_automatically: values.start_manual_job_automatically,
-                extensive_coverage: values.extensive_coverage
+                is_draft: is_draft,
+                is_auto_distribution: jobType === 'ExtractionJob' ? false : is_auto_distribution,
+                start_manual_job_automatically:
+                    jobType === 'ExtractionJob' ? false : start_manual_job_automatically,
+                extensive_coverage: extensive_coverage,
+                categories: categories?.map((category) => category.id),
+                deadline: deadline,
+                validation_type: validationType,
+                owners: owners?.map((owner) => owner.id),
+                annotators: annotators?.map((annotator) => annotator.id) ?? [],
+                validators: validators?.map((validator) => validator.id),
+                pipeline_name: pipeline?.name,
+                pipeline_version: pipeline?.version
             };
 
-            const deadline = values.deadline
-                ? new Date(values.deadline).toISOString()
-                : values.deadline;
-
-            const annotators =
-                values.validationType === 'cross'
-                    ? values.annotators_validators
-                    : values.annotators;
-            const validators = values.validationType === 'cross' ? [] : values.validators;
-            jobProps.pipeline_name = values.pipeline?.name;
-            jobProps.pipeline_version = values.pipeline?.version;
-            if (values.jobType === 'ExtractionJob') {
-                jobProps.is_auto_distribution = false;
-                jobProps.start_manual_job_automatically = false;
-            } else if (values.jobType === 'ExtractionWithAnnotationJob') {
-                jobProps.categories = values?.categories?.map((category) => category.id);
-                jobProps.deadline = deadline;
-                jobProps.validation_type = values.validationType;
-                jobProps.owners = values.owners?.map((owner) => owner.id);
-                jobProps.annotators = annotators?.map((annotator) => annotator.id) ?? [];
-                jobProps.validators = validators?.map((validator) => validator.id);
-            }
-            if (!values.pipeline) {
+            if (!pipeline) {
                 delete jobProps.start_manual_job_automatically;
             }
-            if (values.selected_taxonomies) {
+            if (selected_taxonomies) {
                 jobProps.categories?.forEach((categoryId, index) => {
-                    const currentTaxonomy =
-                        values.selected_taxonomies![categoryId as string | number];
+                    const currentTaxonomy = selected_taxonomies![categoryId as string | number];
                     if (currentTaxonomy) {
                         jobProps.categories![index] = {
                             category_id: categoryId?.toString(),
@@ -245,7 +255,7 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
     );
 
     const handleSuccess = useCallback(
-        (values: JobValues) => {
+        ({ addedJobId }: JobValues) => {
             svc.uuiNotifications.show(
                 (props: INotification) => (
                     <SuccessNotification {...props}>
@@ -254,8 +264,8 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
                 ),
                 { duration: 2 }
             );
-            if (values.addedJobId) {
-                onJobAdded(values.addedJobId);
+            if (addedJobId) {
+                onJobAdded(addedJobId);
             }
         },
         [onJobAdded]

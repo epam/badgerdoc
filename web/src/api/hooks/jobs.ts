@@ -195,7 +195,7 @@ export const useJobById: QueryHookType<JobByIdParams, Job | undefined> = ({ jobI
 };
 type EditJobParams = { id: number; data: EditJobVariables };
 
-export function editJob({ id, data }: EditJobParams): Promise<Job> {
+function editJob({ id, data }: EditJobParams): Promise<Job> {
     return useBadgerFetch<Job>({
         url: `${namespace}/jobs/${id}`,
         method: 'put',

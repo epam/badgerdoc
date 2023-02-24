@@ -1,10 +1,11 @@
 import { ApiError } from 'api/api-error';
 import { applyMocks } from 'api/mocks';
+import { HTTPRequestMethod } from 'api/typings';
 import { getAuthHeaders, refetchToken } from 'shared/helpers/auth-tools';
 
 type BadgerFetchOptions = {
     url: string;
-    method?: 'post' | 'get' | 'delete' | 'put';
+    method?: HTTPRequestMethod;
     headers?: string[][] | Record<string, string> | Headers;
     withCredentials?: boolean;
     plainHeaders?: boolean;
