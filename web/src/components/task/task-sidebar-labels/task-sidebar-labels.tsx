@@ -1,12 +1,13 @@
-import React, { useState, FC, useMemo } from 'react';
+import React, { useState, FC, useMemo, ReactNode } from 'react';
 import { noop } from 'lodash';
 
-import { useArrayDataSource } from '@epam/uui';
+import { DataRowProps, useArrayDataSource } from '@epam/uui';
 import { SearchInput, PickerList, Spinner, Checkbox, FlexCell } from '@epam/loveship';
 
 import { Label, Category } from 'api/typings';
 
 import styles from './task-sidebar-labels.module.scss';
+import { useTaskAnnotatorContext } from 'connectors/task-annotator-connector/task-annotator-context';
 
 type TaskSidebarLabelsViewProps = {
     viewMode: boolean;
@@ -23,18 +24,29 @@ const TaskSidebarLabelsView: FC<TaskSidebarLabelsViewProps> = ({
     onValueChange,
     selectedLabels
 }) => {
+    const { task } = useTaskAnnotatorContext();
+    const isDisabled = !(task?.status === 'In Progress' || task?.status === 'Ready');
+    console.log('isDisabled: ', isDisabled);
     if (!labels) {
         return <Spinner color="sky" />;
     }
+
     const labelsArr = useMemo(
         () =>
-            labels.map((el: { name: string; id: string }) => {
-                return { name: el.name, id: el.id };
+            labels.map((el: { name: string; id: string; value?: string }) => {
+                return { name: el.name, id: el.id, value: el.name };
             }),
         [labels]
     );
+    const item = (props: DataRowProps<Label, unknown>): ReactNode => {
+        console.log('props: ', props);
+        return <div />;
+    };
 
-    const dataSource = useArrayDataSource({ items: [...selectedLabels, ...labelsArr] }, [labels]);
+    const dataSource = useArrayDataSource<Label, unknown, unknown>(
+        { items: [...selectedLabels, ...labelsArr] },
+        [labels]
+    );
 
     const renderData = viewMode ? (
         <FlexCell width="auto">
@@ -45,20 +57,20 @@ const TaskSidebarLabelsView: FC<TaskSidebarLabelsViewProps> = ({
                     key={el.id}
                     value={pickerValue.includes(el.name)}
                     onValueChange={noop}
+                    isDisabled={isDisabled}
                 />
             ))}
         </FlexCell>
     ) : (
         <PickerList<Label, Label | unknown>
             dataSource={dataSource}
-            value={pickerValue}
+            renderRow={item}
             onValueChange={(e) => onValueChange(e ?? [], labelsArr)}
-            entityName="location"
             selectionMode="multi"
             valueType="id"
             maxDefaultItems={100}
             maxTotalItems={100}
-            sorting={{ field: 'name', direction: 'asc' }}
+            sorting={{ field: 'value', direction: 'asc' }}
         />
     );
 

@@ -111,13 +111,16 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode }) => {
         selectedCellsCanBeSplitted
     } = useTableAnnotatorContext();
     const isValidation = task?.is_validation;
+    console.log('task: ', task);
     const isAnnotatable = task?.status === 'In Progress' || task?.status === 'Ready';
+    console.log('isAnnotatable: ', isAnnotatable);
     const isValid = validPages.includes(currentPage);
     const isInvalid = invalidPages.includes(currentPage);
     const editPage = editedPages.includes(currentPage);
     const splitValidation = isValidation && job?.validation_type === 'extensive_coverage';
 
     const isValidationDisabled = !currentPage && !isAnnotatable && !splitValidation;
+    console.log('isValidationDisabled: ', isValidationDisabled);
 
     const [boundModeSwitch, setBoundModeSwitch] = useState<AnnotationBoundMode>('box');
     const [tableModeValues, setTableModeValues] = useState<string>('');
@@ -180,6 +183,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode }) => {
         documentLinksChanged,
         annotationSaved
     ]);
+    console.log('isSaveButtonDisabled: ', isSaveButtonDisabled);
 
     useEffect(() => {
         if (tableModeValues === 'cells') setIsCellMode(true);
@@ -219,17 +223,10 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode }) => {
         }
     }, [categories, latestLabelsId]);
 
-    let taxonomy;
-    if (
-        selectedCategory &&
-        Array.isArray(selectedCategory.data_attributes) &&
-        selectedCategory.data_attributes.some((category) => category.type === 'taxonomy')
-    ) {
-        taxonomy = useLinkTaxonomyByCategoryAndJobId({
-            jobId,
-            categoryId: selectedAnnotation?.category!
-        });
-    }
+    const taxonomy = useLinkTaxonomyByCategoryAndJobId({
+        jobId,
+        categoryId: selectedAnnotation?.category!
+    });
 
     const cellsItems: {
         id: string;
@@ -333,6 +330,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode }) => {
                                     fileMetaInfo={fileMetaInfo}
                                     selectedTool={selectedTool}
                                     onChangeSelectedTool={onChangeSelectedTool}
+                                    isDisabled={!isAnnotatable}
                                 />
                             )}
                         </>
@@ -630,7 +628,10 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode }) => {
                     <Button
                         cx={styles['button-finish']}
                         caption={'FINISH VALIDATION'}
-                        isDisabled={!allValidated && !touchedPages.length && !editedPages.length}
+                        isDisabled={
+                            (!allValidated && !touchedPages.length && !editedPages.length) ||
+                            !isAnnotatable
+                        }
                         captionCX
                         onClick={splitValidation ? onFinishSplitValidation : onFinishValidation}
                     />
