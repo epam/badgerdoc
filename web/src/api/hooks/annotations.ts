@@ -61,6 +61,7 @@ export type AnnotationsResponse = {
 };
 
 export type AnnotationsByUserObj = PageInfo & {
+    categories: string[];
     revision: string;
     user_id: string;
     data?: { dataAttributes: CategoryDataAttrType[] };
