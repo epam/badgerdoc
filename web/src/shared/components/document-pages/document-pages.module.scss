@@ -3,7 +3,7 @@
 .pdf-container {
     display: grid;
     grid-template-columns: 2.5rem 1fr;
-    height: 100%;
+    height: calc(100% - 40px);
     gap: 0.5rem;
 }
 
@@ -61,15 +61,15 @@
 }
 
 .split-document-wrapper--pages-2 {
-    grid-template-rows: 1fr max-content 1fr;
+    grid-template-rows: max-content max-content max-content 1fr;
 }
 
 .split-document-wrapper--pages-3 {
-    grid-template-rows: 1fr max-content 1fr max-content 1fr;
+    grid-template-rows: max-content max-content max-content 1fr max-content 1fr;
 }
 
 .split-document-wrapper--pages-4 {
-    grid-template-rows: 1fr max-content 1fr max-content 1fr max-content 1fr;
+    grid-template-rows: max-content max-content max-content 1fr max-content 1fr max-content 1fr;
 }
 
 .split-document-page {

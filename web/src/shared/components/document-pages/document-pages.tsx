@@ -157,6 +157,15 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
         </div>
     );
 
+    const [height, setHeight] = useState<number>(300);
+
+    const increaseHeight = () => {
+        setHeight((prev) => prev + 50);
+    };
+    const decreaseHeight = () => {
+        setHeight((prev) => prev - 50);
+    };
+
     return (
         <>
             {selectedRelatedDoc ? (
@@ -182,7 +191,10 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                                 styles[`split-document-wrapper--pages-${userPages.length + 1}`]
                             )}
                         >
-                            <SyncedContainer className={styles['split-document-page']}>
+                            <SyncedContainer
+                                className={styles['split-document-page']}
+                                height={height}
+                            >
                                 <DocumentSinglePage
                                     scale={scale}
                                     pageSize={apiPageSize}
@@ -198,6 +210,10 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                                     onEmptyAreaClick={onEmptyAreaClick}
                                 />
                             </SyncedContainer>
+                            <div style={{ display: 'flex' }}>
+                                <button onClick={increaseHeight}>+</button>
+                                <button onClick={decreaseHeight}>-</button>
+                            </div>
                             {userPages.map(({ user_id, page_num }) => (
                                 <Fragment key={user_id}>
                                     <SplitAnnotatorInfo
