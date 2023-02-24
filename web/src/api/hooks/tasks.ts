@@ -342,3 +342,12 @@ export const useDownloadTaskReport = async (params: TaskReportRequestParams) => 
 
     return response;
 };
+
+export const useNextTask: QueryHookType<string, { next: string }> = (taskId) =>
+    useQuery(['nextTask'], async () => {
+        return useBadgerFetch<{ next: string }>({
+            url: `${namespace}/tasks/${taskId}/next`,
+            method: 'get',
+            withCredentials: true
+        })();
+    });

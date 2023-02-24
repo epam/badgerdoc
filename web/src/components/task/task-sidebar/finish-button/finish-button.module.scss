@@ -1,0 +1,15 @@
+.button-finish {
+    width: 100%;
+}
+
+.button-finish-control-group {
+    flex-wrap: unset;
+}
+
+.redirect-options-button {
+    margin-left: 0;
+    padding-left: 36px;
+    &:hover {
+        background-color: #e1e3eb;
+    }
+}

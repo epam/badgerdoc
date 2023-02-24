@@ -16,7 +16,6 @@ export const usePageTable = <T, TFilter = TableFilters<T>>(item: keyof T) => {
         page: 1,
         pageSize: pageSizes._15
     });
-    // eslint-disable-next-line no-undef
     const [sortConfig, setSortConfig] = useState<Sorting<keyof T>>({
         field: item,
         direction: SortingDirection.DESC
