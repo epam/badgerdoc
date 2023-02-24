@@ -1,7 +1,7 @@
 import React, { useState, FC, useMemo, ReactNode } from 'react';
 import { noop } from 'lodash';
 
-import { DataRowProps, useArrayDataSource } from '@epam/uui';
+import { useArrayDataSource } from '@epam/uui';
 import { SearchInput, PickerList, Spinner, Checkbox, FlexCell } from '@epam/loveship';
 
 import { Label, Category } from 'api/typings';
@@ -26,7 +26,6 @@ const TaskSidebarLabelsView: FC<TaskSidebarLabelsViewProps> = ({
 }) => {
     const { task } = useTaskAnnotatorContext();
     const isDisabled = !(task?.status === 'In Progress' || task?.status === 'Ready');
-    console.log('isDisabled: ', isDisabled);
     if (!labels) {
         return <Spinner color="sky" />;
     }
@@ -38,10 +37,6 @@ const TaskSidebarLabelsView: FC<TaskSidebarLabelsViewProps> = ({
             }),
         [labels]
     );
-    const item = (props: DataRowProps<Label, unknown>): ReactNode => {
-        console.log('props: ', props);
-        return <div />;
-    };
 
     const dataSource = useArrayDataSource<Label, unknown, unknown>(
         { items: [...selectedLabels, ...labelsArr] },
@@ -63,8 +58,8 @@ const TaskSidebarLabelsView: FC<TaskSidebarLabelsViewProps> = ({
         </FlexCell>
     ) : (
         <PickerList<Label, Label | unknown>
+            value={selectedLabels.map((label) => label.id) ?? []}
             dataSource={dataSource}
-            renderRow={item}
             onValueChange={(e) => onValueChange(e ?? [], labelsArr)}
             selectionMode="multi"
             valueType="id"
