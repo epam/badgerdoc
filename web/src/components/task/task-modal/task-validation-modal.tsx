@@ -16,14 +16,7 @@ import {
     RadioGroup,
     Text
 } from '@epam/loveship';
-import {
-    FormSaveResponse,
-    IFormApi,
-    IModal,
-    Metadata,
-    useArrayDataSource,
-    useUuiContext
-} from '@epam/uui';
+import { FormSaveResponse, IFormApi, IModal, Metadata, useArrayDataSource } from '@epam/uui';
 
 import { User } from '../../../api/typings';
 import styles from './task-modal.module.scss';
@@ -51,12 +44,22 @@ interface IProps extends IModal<TaskValidationValues> {
 }
 
 export const FinishTaskValidationModal: FC<IProps> = (modalProps) => {
+    const {
+        allUsers,
+        invalidPages,
+        editedPageCount,
+        isOwner,
+        allValid,
+        abort,
+        validSave,
+        success,
+        onRedirectAfterFinish,
+        onSaveForm
+    } = modalProps;
     const [validatorUserId, onValidatorUserIdChange] = useState(
-        modalProps.allUsers.validators[0]?.id || modalProps.allUsers.annotators[0]?.id
+        allUsers.validators[0]?.id || allUsers.annotators[0]?.id
     );
-    const [annotatorUserId, onAnnotatorUserIdChange] = useState(
-        modalProps.allUsers.annotators[0]?.id
-    );
+    const [annotatorUserId, onAnnotatorUserIdChange] = useState(allUsers.annotators[0]?.id);
 
     const [formOption] = useState<TaskValidationValues>({
         option_invalid: null,
@@ -65,28 +68,39 @@ export const FinishTaskValidationModal: FC<IProps> = (modalProps) => {
 
     const annotatorsDataSource = useArrayDataSource<User, string, any>(
         {
-            items: modalProps.allUsers.annotators ?? []
+            items: allUsers.annotators ?? []
         },
         []
     );
 
     const getMetaData = (): Metadata<TaskValidationValues> => ({
         props: {
-            option_invalid: { isRequired: !!modalProps.invalidPages },
-            option_edited: { isRequired: !!modalProps.editedPageCount }
+            option_invalid: { isRequired: !!invalidPages },
+            option_edited: { isRequired: !!editedPageCount }
         }
     });
+
+    const handleConfirmValidation = async () => {
+        await validSave();
+        success({ option_invalid: null });
+        onRedirectAfterFinish();
+    };
+
+    const handleSuccess = (formOption: TaskValidationValues) => {
+        success(formOption);
+        onRedirectAfterFinish();
+    };
 
     const renderForm = ({ lens, save }: IFormApi<TaskValidationValues>): ReactNode => {
         return (
             <>
                 <Panel>
-                    {!!modalProps.invalidPages && (
+                    {!!invalidPages && (
                         <>
                             <FlexRow padding="24" vPadding="12">
                                 <FlexCell grow={1}>
                                     <LabeledInput
-                                        label={`Validation of invalid pages (${modalProps.invalidPages})`}
+                                        label={`Validation of invalid pages (${invalidPages})`}
                                         {...lens.prop('option_invalid').toProps()}
                                     >
                                         <ControlWrapper size="36">
@@ -122,12 +136,12 @@ export const FinishTaskValidationModal: FC<IProps> = (modalProps) => {
                             </FlexRow>
                         </>
                     )}
-                    {!!modalProps.editedPageCount && (
+                    {!!editedPageCount && (
                         <>
                             <FlexRow padding="24" vPadding="12">
                                 <FlexCell grow={1}>
                                     <LabeledInput
-                                        label={`Validation of edited pages (${modalProps.editedPageCount})`}
+                                        label={`Validation of edited pages (${editedPageCount})`}
                                         {...lens.prop('option_edited').toProps()}
                                     >
                                         <ControlWrapper size="36">
@@ -136,7 +150,7 @@ export const FinishTaskValidationModal: FC<IProps> = (modalProps) => {
                                                     {
                                                         id: 'not_required',
                                                         name: `Does not required`,
-                                                        isDisabled: !modalProps.isOwner
+                                                        isDisabled: !isOwner
                                                     },
                                                     { id: 'auto', name: 'Automatically' },
                                                     {
@@ -172,7 +186,7 @@ export const FinishTaskValidationModal: FC<IProps> = (modalProps) => {
                     <Button
                         color="sky"
                         fill="white"
-                        onClick={modalProps.abort}
+                        onClick={abort}
                         caption="Return to validation"
                     />
                     <Button
@@ -185,38 +199,31 @@ export const FinishTaskValidationModal: FC<IProps> = (modalProps) => {
         );
     };
     return (
-        <ModalBlocker blockerShadow="dark" {...modalProps} abort={modalProps.abort}>
+        <ModalBlocker blockerShadow="dark" {...modalProps} abort={abort}>
             <ModalWindow>
                 <Panel background="white">
-                    <ModalHeader title="Assign" onClose={modalProps.abort} />
+                    <ModalHeader title="Assign" onClose={abort} />
 
-                    {modalProps.allValid && (
+                    {allValid && (
                         <>
                             <FlexRow padding="24">
                                 <Text size="36"> {'All pages valid'} </Text>
                             </FlexRow>
                             <ModalFooter>
-                                <Button fill="white" caption="Cancel" onClick={modalProps.abort} />
+                                <Button fill="white" caption="Cancel" onClick={abort} />
                                 <Button
                                     caption="Confirm validation"
                                     size={'36'}
-                                    onClick={async () => {
-                                        await modalProps.validSave();
-                                        modalProps.success({ option_invalid: null });
-                                        modalProps.onRedirectAfterFinish();
-                                    }}
+                                    onClick={handleConfirmValidation}
                                 />
                             </ModalFooter>
                         </>
                     )}
-                    {!modalProps.allValid && (
+                    {!allValid && (
                         <Form<TaskValidationValues>
                             value={formOption}
-                            onSave={modalProps.onSaveForm}
-                            onSuccess={(formOption) => {
-                                modalProps.success(formOption);
-                                modalProps.onRedirectAfterFinish();
-                            }}
+                            onSave={onSaveForm}
+                            onSuccess={handleSuccess}
                             renderForm={renderForm}
                             getMetadata={getMetaData}
                         />

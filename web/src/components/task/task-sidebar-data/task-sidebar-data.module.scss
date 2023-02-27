@@ -3,6 +3,10 @@
     flex-direction: column;
     flex: 1;
     max-height: 100%;
+
+    .no-data {
+        padding: 1rem;
+    }
 }
 
 .tree {

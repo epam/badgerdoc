@@ -61,6 +61,7 @@ export type AnnotationsResponse = {
 };
 
 export type AnnotationsByUserObj = PageInfo & {
+    categories: string[];
     revision: string;
     user_id: string;
     data?: { dataAttributes: CategoryDataAttrType[] };
@@ -139,7 +140,7 @@ type addAnnotationsParams = {
     links?: DocumentLink[];
 };
 
-export const addAnnotations = async (data: addAnnotationsParams) => {
+const addAnnotations = async (data: addAnnotationsParams) => {
     const body = {
         user: data.userId,
         pages: data.pages,

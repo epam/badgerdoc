@@ -1,6 +1,6 @@
 import { ILens } from '@epam/uui';
 import { LabeledInput, TextInput } from '@epam/loveship';
-import { JobValues } from 'connectors/add-job-connector/add-job-connector';
+import { JobValues } from 'connectors/edit-job-connector/edit-job-connector';
 import React, { FC } from 'react';
 import styles from './job-name.module.scss';
 import { InfoIcon } from '../../../shared/components/info-icon/info-icon';

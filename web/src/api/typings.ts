@@ -250,7 +250,7 @@ export interface Taxon extends BaseTaxon {
 export interface Taxonomy {
     id: string;
     name: string;
-    taxons: BaseTaxon[];
+    taxons?: BaseTaxon[];
     version?: number;
 }
 
@@ -330,7 +330,7 @@ export type QueryHookParamsType<T> = {
         field: keyof T;
         direction: SortingDirection;
     };
-    filters?: Array<Filter<keyof T>>;
+    filters?: Array<FilterWithDocumentExtraOption<keyof T>>;
 };
 
 export type MutationHookType<PT, RT> = () => UseMutationResult<RT, any, PT>;
@@ -377,10 +377,17 @@ export type DocumentExtraOption = {
     'datasets.name': string;
 };
 export type Filter<TField> = {
-    field: TField | keyof DocumentExtraOption;
+    field: TField;
     operator: Operators;
     value?: string | Array<string> | number | Array<number> | boolean | Array<boolean>;
 };
+
+export type FilterWithDocumentExtraOption<TField> = {
+    field: TField | keyof DocumentExtraOption;
+    operator: Filter<TField>['operator'];
+    value?: Filter<TField>['value'];
+};
+
 export enum SortingDirection {
     ASC = 'asc',
     DESC = 'desc'
@@ -391,7 +398,7 @@ export type Sorting<TField> = {
 };
 export type SearchBody<TItem> = {
     pagination: Pagination;
-    filters: Filter<keyof TItem | string>[];
+    filters: FilterWithDocumentExtraOption<keyof TItem | string>[];
     sorting: Sorting<keyof TItem>[];
 };
 

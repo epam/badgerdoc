@@ -9,7 +9,13 @@ import {
     SuccessNotification,
     Text
 } from '@epam/loveship';
-import { Dataset, FileDocument, Filter, Operators, SortingDirection } from '../../api/typings';
+import {
+    Dataset,
+    FileDocument,
+    FilterWithDocumentExtraOption,
+    Operators,
+    SortingDirection
+} from '../../api/typings';
 import { useDeleteFilesMutation, useDocuments } from '../../api/hooks/documents';
 
 import { TableWrapper, usePageTable } from 'shared';
@@ -112,7 +118,7 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
     }, [dataset]);
 
     useEffect(() => {
-        let filtersToSet: Filter<keyof FileDocument>[] = [];
+        let filtersToSet: FilterWithDocumentExtraOption<keyof FileDocument>[] = [];
         if (tableValue.filter) {
             const filters = Object.keys(tableValue.filter);
             filtersToSet = filters.flatMap((item) => {

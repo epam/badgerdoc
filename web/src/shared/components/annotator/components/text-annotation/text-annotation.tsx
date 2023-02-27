@@ -1,6 +1,6 @@
-import noop from 'lodash/noop';
 import React, { Fragment, useMemo } from 'react';
-import styles from './text-annotation.module.scss';
+import noop from 'lodash/noop';
+
 import { hexToRGBA } from '../../utils/hex-to-rgba';
 import {
     createBoundsFromTokens,
@@ -8,8 +8,9 @@ import {
     TextAnnotationLabelProps,
     TextAnnotationProps
 } from './helpers';
-import { TextLabel } from '../text-label';
 import { getAnnotationElementId } from '../../utils/use-annotation-links';
+import { TextLabel } from '../text-label';
+import styles from './text-annotation.module.scss';
 
 const TextAnnotationLabel = ({
     color,
@@ -43,8 +44,8 @@ export const TextAnnotation = ({
     labels = [
         {
             annotationId: id,
-            color: color,
-            label: label
+            color,
+            label
         }
     ],
     tokens,
@@ -77,6 +78,7 @@ export const TextAnnotation = ({
         >
             {bounds.map((singleBound, index) => {
                 const { bound } = singleBound;
+
                 return (
                     <div
                         key={index}

@@ -1,7 +1,7 @@
 import { PickerInput, LabeledInput } from '@epam/loveship';
 import { ILens, useArrayDataSource } from '@epam/uui';
 import { ValidationType } from 'api/typings';
-import { JobValues } from 'connectors/add-job-connector/add-job-connector';
+import { JobValues } from 'connectors/edit-job-connector/edit-job-connector';
 import React, { FC } from 'react';
 import styles from './validation-type-picker.module.scss';
 import { InfoIcon } from '../../../shared/components/info-icon/info-icon';

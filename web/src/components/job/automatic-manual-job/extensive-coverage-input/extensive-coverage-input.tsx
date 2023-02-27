@@ -1,7 +1,7 @@
 import React, { FC } from 'react';
 import { LabeledInput, NumericInput } from '@epam/loveship';
 import { ILens } from '@epam/uui';
-import { JobValues } from 'connectors/add-job-connector/add-job-connector';
+import { JobValues } from 'connectors/edit-job-connector/edit-job-connector';
 import styles from './extensive-coverage-input.module.scss';
 
 interface Props {

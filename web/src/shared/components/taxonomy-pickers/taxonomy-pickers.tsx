@@ -1,8 +1,8 @@
 import { LabeledInput, PickerInput } from '@epam/loveship';
 import { ILens, useArrayDataSource } from '@epam/uui';
 import { Category, Taxonomy } from 'api/typings';
-import { JobValues } from 'connectors/add-job-connector/add-job-connector';
-import React, { FC, Fragment } from 'react';
+import { JobValues } from 'connectors/edit-job-connector/edit-job-connector';
+import React, { FC, Fragment, useCallback } from 'react';
 import { InfoIcon } from '../info-icon/info-icon';
 
 type TaxonomiesPickersProps = {

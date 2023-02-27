@@ -1,13 +1,13 @@
 import React from 'react';
-import { Filter, Operators, TableFilters } from '../../api/typings';
+import { Operators, TableFilters, FilterWithDocumentExtraOption } from '../../api/typings';
 import { DataSourceState } from '@epam/uui';
 
 export function getFiltersSetter<T>(
-    filtersState: Filter<keyof T>[],
-    setFiltersState: React.Dispatch<React.SetStateAction<Filter<keyof T>[]>>
+    filtersState: FilterWithDocumentExtraOption<keyof T>[],
+    setFiltersState: React.Dispatch<React.SetStateAction<FilterWithDocumentExtraOption<keyof T>[]>>
 ) {
-    return (filtersToAdd: (Filter<keyof T> | null)[]) => {
-        let resultFilters: Filter<keyof T>[] = [...filtersState];
+    return (filtersToAdd: (FilterWithDocumentExtraOption<keyof T> | null)[]) => {
+        let resultFilters: FilterWithDocumentExtraOption<keyof T>[] = [...filtersState];
 
         if (filtersToAdd.length === 0) {
             setFiltersState([]);
@@ -69,7 +69,9 @@ export function saveFiltersToStorage(filters: any, field: string) {
     sessionStorage.setItem('filters', JSON.stringify(localFilters));
 }
 
-export function getFiltersFromStorage(field: string) {
+// We have "any" here as this function has returned "any" before became a generic function
+// Need to check all places where this function is calling in case of removing "any" from here
+export function getFiltersFromStorage<TLocalFilter = any>(field: string): null | TLocalFilter {
     const localString = sessionStorage.getItem('filters');
     if (localString) {
         const localFilters = JSON.parse(localString);

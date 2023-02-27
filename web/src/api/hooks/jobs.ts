@@ -3,10 +3,10 @@ import {
     SortingDirection,
     SearchBody,
     QueryHookType,
-    Filter,
     Operators,
     MutationHookType,
-    ValidationType
+    ValidationType,
+    FilterWithDocumentExtraOption
 } from 'api/typings';
 import { Job, JobMode, JobType } from 'api/typings/jobs';
 import { useQueryClient, useMutation, useQuery } from 'react-query';
@@ -22,7 +22,7 @@ type UseJobsParamsType = {
         field: keyof Job;
         direction: SortingDirection;
     };
-    filters?: Array<Filter<keyof Job>>;
+    filters?: Array<FilterWithDocumentExtraOption<keyof Job>>;
 };
 
 type CategoryWithTaxonomy = {
@@ -33,10 +33,14 @@ type CategoryWithTaxonomy = {
 
 type JobVariablesCategory = string | number | CategoryWithTaxonomy;
 
+export type JobVariablesWithId = JobVariables & {
+    id: number;
+};
+
 export type JobVariables = {
     name: string | undefined;
-    files: string[] | number[];
-    datasets: string[];
+    files?: string[] | number[];
+    datasets?: string[];
     pipeline_name?: string | undefined;
     pipeline_version?: number;
     type: JobType;
@@ -51,6 +55,9 @@ export type JobVariables = {
     owners?: string[];
     extensive_coverage?: number;
 };
+
+export type EditJobVariables = Omit<JobVariables, 'files' | 'datasets'>;
+
 const namespace = process.env.REACT_APP_JOBMANAGER_API_NAMESPACE;
 export const useJobs: QueryHookType<UseJobsParamsType, PagedResponse<Job>> = (
     { page, size, searchText, sortConfig, filters },
@@ -73,7 +80,7 @@ export function jobsFetcher(
         field: 'name',
         direction: SortingDirection.ASC
     },
-    filters: Filter<keyof Job>[] = []
+    filters: FilterWithDocumentExtraOption<keyof Job>[] = []
 ): Promise<PagedResponse<Job>> {
     if (searchText) {
         filters.push({
@@ -105,7 +112,7 @@ export function jobPropFetcher(
         field: propName,
         direction: SortingDirection.ASC
     };
-    const filters: Filter<keyof Job>[] = [];
+    const filters: FilterWithDocumentExtraOption<keyof Job>[] = [];
     filters.push({
         field: propName,
         operator: Operators.DISTINCT
@@ -185,4 +192,23 @@ export const useJobById: QueryHookType<JobByIdParams, Job | undefined> = ({ jobI
                 : undefined,
         options
     );
+};
+type EditJobParams = { id: number; data: EditJobVariables };
+
+export function editJob({ id, data }: EditJobParams): Promise<Job> {
+    return useBadgerFetch<Job>({
+        url: `${namespace}/jobs/${id}`,
+        method: 'put',
+        withCredentials: true
+    })(JSON.stringify(data));
+}
+
+export const useEditJobMutation: MutationHookType<EditJobParams, Job> = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation(editJob, {
+        onSuccess: () => {
+            queryClient.invalidateQueries('jobs');
+        }
+    });
 };

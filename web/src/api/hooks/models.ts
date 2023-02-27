@@ -1,6 +1,5 @@
 import {
     Basement,
-    Filter,
     Model,
     ModelDeployment,
     MutationHookType,
@@ -10,7 +9,8 @@ import {
     SearchBody,
     Sorting,
     SortingDirection,
-    Training
+    Training,
+    FilterWithDocumentExtraOption
 } from 'api/typings';
 import { useBadgerFetch } from './api';
 import { useMutation, useQuery, useQueryClient } from 'react-query';
@@ -24,7 +24,7 @@ type UseModelsParamsType = {
     searchText: string;
     userId?: string | null;
     sortConfig: Sorting<keyof Model>;
-    filters: Array<Filter<keyof Model>>;
+    filters: Array<FilterWithDocumentExtraOption<keyof Model>>;
 };
 
 export function runPreprocessing(
@@ -110,7 +110,7 @@ export function modelsFetcher(
         field: 'name',
         direction: SortingDirection.ASC
     },
-    filters: Filter<keyof Model>[] = []
+    filters: FilterWithDocumentExtraOption<keyof Model>[] = []
 ): Promise<PagedResponse<Model>> {
     if (searchText) {
         filters.push({
@@ -200,7 +200,7 @@ type UseBasementParamsType = {
     searchText: string;
     userId?: string | null;
     sortConfig: Sorting<keyof Basement>;
-    filters: Array<Filter<keyof Basement>>;
+    filters: Array<FilterWithDocumentExtraOption<keyof Basement>>;
 };
 export const useBasements: QueryHookType<UseBasementParamsType, PagedResponse<Basement>> = (
     { page, size, searchText, sortConfig, filters },
@@ -224,7 +224,7 @@ function basementsFetcher(
         field: 'name',
         direction: SortingDirection.ASC
     },
-    filters: Filter<keyof Basement>[] = []
+    filters: FilterWithDocumentExtraOption<keyof Basement>[] = []
 ): Promise<PagedResponse<Basement>> {
     if (searchText) {
         filters.push({
