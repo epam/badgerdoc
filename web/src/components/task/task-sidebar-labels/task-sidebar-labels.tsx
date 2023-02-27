@@ -1,4 +1,4 @@
-import React, { useState, FC, useMemo, ReactNode } from 'react';
+import React, { useState, FC, useMemo } from 'react';
 import { noop } from 'lodash';
 
 import { useArrayDataSource } from '@epam/uui';
@@ -32,8 +32,8 @@ const TaskSidebarLabelsView: FC<TaskSidebarLabelsViewProps> = ({
 
     const labelsArr = useMemo(
         () =>
-            labels.map((el: { name: string; id: string; value?: string }) => {
-                return { name: el.name, id: el.id, value: el.name };
+            labels.map((el: { name: string; id: string }) => {
+                return { name: el.name, id: el.id };
             }),
         [labels]
     );
