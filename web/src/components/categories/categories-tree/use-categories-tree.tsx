@@ -1,5 +1,11 @@
 import { useCategoriesByJob } from 'api/hooks/categories';
-import { CategoryNode, Operators, SortingDirection, Category, Filter } from 'api/typings';
+import {
+    CategoryNode,
+    Operators,
+    SortingDirection,
+    Category,
+    FilterWithDocumentExtraOption
+} from 'api/typings';
 import { useMemo, useState, useEffect } from 'react';
 import { AnnotationBoundMode } from 'shared';
 import { mapCategories } from './map-categories';
@@ -13,7 +19,7 @@ interface Props {
 export const useCategoriesTree = ({ searchText, boundModeSwitch, jobId }: Props) => {
     const [categoryNodes, setCategoryNodes] = useState<CategoryNode[]>([]);
 
-    const boundModeFilter: Filter<keyof Category> = useMemo(
+    const boundModeFilter: FilterWithDocumentExtraOption<keyof Category> = useMemo(
         () => ({
             field: 'type',
             operator: Operators.EQ,
@@ -22,8 +28,8 @@ export const useCategoriesTree = ({ searchText, boundModeSwitch, jobId }: Props)
         [boundModeSwitch]
     );
 
-    const searchFilters: Filter<keyof Category>[] = useMemo(() => {
-        const filters: Filter<keyof Category>[] = [];
+    const searchFilters: FilterWithDocumentExtraOption<keyof Category>[] = useMemo(() => {
+        const filters: FilterWithDocumentExtraOption<keyof Category>[] = [];
 
         if (boundModeSwitch) {
             filters.push(boundModeFilter);

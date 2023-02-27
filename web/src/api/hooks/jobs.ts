@@ -3,10 +3,10 @@ import {
     SortingDirection,
     SearchBody,
     QueryHookType,
-    Filter,
     Operators,
     MutationHookType,
-    ValidationType
+    ValidationType,
+    FilterWithDocumentExtraOption
 } from 'api/typings';
 import { Job, JobMode, JobType } from 'api/typings/jobs';
 import { useQueryClient, useMutation, useQuery } from 'react-query';
@@ -22,7 +22,7 @@ type UseJobsParamsType = {
         field: keyof Job;
         direction: SortingDirection;
     };
-    filters?: Array<Filter<keyof Job>>;
+    filters?: Array<FilterWithDocumentExtraOption<keyof Job>>;
 };
 
 type CategoryWithTaxonomy = {
@@ -80,7 +80,7 @@ export function jobsFetcher(
         field: 'name',
         direction: SortingDirection.ASC
     },
-    filters: Filter<keyof Job>[] = []
+    filters: FilterWithDocumentExtraOption<keyof Job>[] = []
 ): Promise<PagedResponse<Job>> {
     if (searchText) {
         filters.push({
@@ -112,7 +112,7 @@ export function jobPropFetcher(
         field: propName,
         direction: SortingDirection.ASC
     };
-    const filters: Filter<keyof Job>[] = [];
+    const filters: FilterWithDocumentExtraOption<keyof Job>[] = [];
     filters.push({
         field: propName,
         operator: Operators.DISTINCT

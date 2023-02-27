@@ -4,7 +4,7 @@ import noop from 'lodash/noop';
 import styles from './documents-sidebar-connector.module.scss';
 
 import {
-    Filter,
+    FilterWithDocumentExtraOption,
     PagedResponse,
     QueryHookParamsType,
     QueryHookType,
@@ -22,7 +22,7 @@ type DocumentsSidebarConnectorProps<T> = {
     rowRender: (entity: T) => React.ReactNode;
     renderCreateBtn?: RenderCreateBtn;
     sortField: keyof T;
-    filters?: Array<Filter<keyof T>>;
+    filters?: Array<FilterWithDocumentExtraOption<keyof T>>;
 };
 export type RenderCreateBtn = (params: { onCreated: () => void }) => React.ReactNode;
 
