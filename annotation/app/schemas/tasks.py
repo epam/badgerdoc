@@ -70,6 +70,11 @@ class ExpandedManualAnnotationTaskSchema(TaskStatusSchema):
     job: NameSchema
 
 
+class PreviousAndNextTasksSchema(BaseModel):
+    previous_task: Optional[ManualAnnotationTaskSchema]
+    next_task: Optional[ManualAnnotationTaskSchema]
+
+
 class TaskInfoSchema(BaseModel):
     user_ids: Set[UUID] = Field(
         ...,
