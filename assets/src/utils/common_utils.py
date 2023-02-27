@@ -13,10 +13,7 @@ import starlette.datastructures
 from src import db, exceptions, logger, schemas
 from src.config import settings
 from src.utils import minio_utils
-from src.utils.convert_service_utils import (
-    post_pdf_to_convert,
-    post_txt_to_convert,
-)
+from src.utils.convert_service_utils import post_pdf_to_convert
 from src.utils.minio_utils import create_minio_config
 
 logger_ = logger.get_logger(__name__)
@@ -176,6 +173,9 @@ class FileConverter:
         self.converted_file: Optional[bytes] = None
         self.converted_ext: Optional[str] = None
 
+        minio_config = create_minio_config()
+        self.minio_client = minio.Minio(**minio_config)
+
     def convert_to_pdf(self) -> bytes:
         """
         Converts file to pdf format
@@ -248,21 +248,25 @@ class FileConverter:
         return byte_im
 
     def convert_txt(self) -> bytes:
-        input_text_path = f"files/{self.new_file.id}/{self.new_file.id}.txt"
+        pdf_from_txt = self.convert_to_pdf()
         output_pdf_path = f"files/{self.new_file.id}/{self.new_file.id}.pdf"
+        file_ = BytesIO(pdf_from_txt)
+        self.minio_client.put_object(
+            bucket_name=self.bucket_storage,
+            object_name=output_pdf_path,
+            data=file_,
+            length=len(pdf_from_txt),
+        )
         output_tokens_path = f"files/{self.new_file.id}/ocr/1.json"
-        post_txt_to_convert(
+        post_pdf_to_convert(
             self.bucket_storage,
-            input_text_path,
             output_pdf_path,
             output_tokens_path,
         )
         self.converted_ext = ".pdf"
         self.conversion_status = "converted to PDF"
-        minio_config = create_minio_config()
-        minio_client = minio.Minio(**minio_config)
         tmp_file_name = f"{self.new_file.id}.pdf"
-        converted_file = minio_client.fget_object(  # noqa
+        converted_file = self.minio_client.fget_object(  # noqa
             self.bucket_storage,
             output_pdf_path,
             tmp_file_name,
@@ -271,12 +275,10 @@ class FileConverter:
             return tmp_file.read()
 
     def convert_html(self) -> bytes:
-        minio_config = create_minio_config()
-        minio_client = minio.Minio(**minio_config)
         pdf_from_html = self.convert_html_to_pdf()
         output_pdf_path = f"files/{self.new_file.id}/{self.new_file.id}.pdf"
         file_ = BytesIO(pdf_from_html)
-        minio_client.put_object(
+        self.minio_client.put_object(
             bucket_name=self.bucket_storage,
             object_name=output_pdf_path,
             data=file_,
@@ -291,7 +293,7 @@ class FileConverter:
         self.converted_ext = ".pdf"
         self.conversion_status = "converted to PDF"
         tmp_file_name = f"{self.new_file.id}.pdf"
-        converted_file = minio_client.fget_object(  # noqa
+        converted_file = self.minio_client.fget_object(  # noqa
             self.bucket_storage,
             output_pdf_path,
             tmp_file_name,
@@ -304,8 +306,10 @@ class FileConverter:
         Checks if file format is in the available conversion formats.
         """
         try:
-            if self.ext in (".txt", ".html"):
+            if self.ext == ".html":
                 self.converted_file = self.convert_html()
+            if self.ext == ".txt":
+                self.converted_file = self.convert_txt()
             if self.ext in settings.gotenberg_formats:
                 self.converted_file = self.convert_to_pdf()
             if self.ext in settings.image_formats:
