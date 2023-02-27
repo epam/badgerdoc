@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from 'react-query';
 import {
     FileDocument,
-    Filter,
+    FilterWithDocumentExtraOption,
     MutationHookType,
     Operators,
     PagedResponse,
@@ -20,7 +20,7 @@ const namespace = process.env.REACT_APP_FILEMANAGEMENT_API_NAMESPACE;
 type UseDocumentsParamsType = {
     page?: number;
     size?: number;
-    filters?: Filter<keyof FileDocument>[];
+    filters?: FilterWithDocumentExtraOption<keyof FileDocument>[];
     searchText?: string;
     sortConfig?: {
         field: keyof FileDocument;
@@ -43,7 +43,7 @@ export function documentsFetcher(
     page = 1,
     size = pageSizes._15,
     searchText: string = '',
-    filters: Filter<keyof FileDocument>[] = [],
+    filters: FilterWithDocumentExtraOption<keyof FileDocument>[] = [],
     sortConfig: {
         field: keyof FileDocument;
         direction: SortingDirection;
@@ -52,7 +52,7 @@ export function documentsFetcher(
         direction: SortingDirection.ASC
     }
 ): Promise<PagedResponse<FileDocument>> {
-    const searchFilter: Filter<keyof FileDocument> = {
+    const searchFilter: FilterWithDocumentExtraOption<keyof FileDocument> = {
         field: 'original_name',
         operator: Operators.ILIKE,
         value: `%${searchText.trim().toLowerCase()}%`

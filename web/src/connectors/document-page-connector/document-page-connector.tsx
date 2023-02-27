@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { DocumentPage } from '../../pages';
 import { useDocuments } from '../../api/hooks/documents';
-import { Filter, Operators } from '../../api/typings';
+import { FilterWithDocumentExtraOption, Operators } from '../../api/typings';
 import { documentSearchResultMapper } from '../../shared/helpers/document-search-result-mapper';
 import { documentJobsFetcher, useDocumentJobsRevisions } from '../../api/hooks/document';
 import { useHistory } from 'react-router';
@@ -36,7 +36,7 @@ export const DocumentPageConnector = () => {
         isLoading: documentSearchResult.isLoading
     };
 
-    const documentJobsFilters: Filter<keyof DocumentJob>[] = [
+    const documentJobsFilters: FilterWithDocumentExtraOption<keyof DocumentJob>[] = [
         { value: [Number(documentId || '')], operator: Operators.EQ, field: 'files' }
     ];
 

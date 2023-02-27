@@ -37,5 +37,5 @@ export const useAsyncSourceTable = <TData, TId>(
         deps
     );
 
-    return useMemo(() => ({ dataSource }), [deps]);
+    return useMemo(() => ({ dataSource }), deps);
 };

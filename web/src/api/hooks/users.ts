@@ -3,7 +3,7 @@ import {
     PagedResponse,
     QueryHookParamsType,
     QueryHookType,
-    Filter,
+    FilterWithDocumentExtraOption,
     Operators
 } from 'api/typings';
 import { useQuery } from 'react-query';
@@ -23,7 +23,7 @@ export async function usersFetcher(
     page = 1,
     size = pageSizes._15,
     search: string = '',
-    filters: Array<Filter<keyof User>> = []
+    filters: Array<FilterWithDocumentExtraOption<keyof User>> = []
 ): Promise<PagedResponse<User>> {
     const body = {
         filters: [...filters]

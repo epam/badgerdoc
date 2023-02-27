@@ -1,5 +1,11 @@
 import { taxonsFetcher, useTaxons } from 'api/hooks/taxons';
-import { Operators, SortingDirection, Filter, TaxonomyNode, Taxon } from 'api/typings';
+import {
+    Operators,
+    SortingDirection,
+    FilterWithDocumentExtraOption,
+    TaxonomyNode,
+    Taxon
+} from 'api/typings';
 import { isEmpty } from 'lodash';
 import { useState, useEffect } from 'react';
 import { updateTreeData } from 'shared/components/badger-tree/update-tree-data';
@@ -8,7 +14,7 @@ import { mapTaxons, mapTaxon } from './map-taxonomies';
 interface Props {
     searchText: string;
     taxonomyId?: string;
-    taxonomyFilter?: Filter<keyof Taxon>;
+    taxonomyFilter?: FilterWithDocumentExtraOption<keyof Taxon>;
 }
 
 export const useTaxonomiesTree = ({ searchText, taxonomyId, taxonomyFilter }: Props) => {
@@ -74,7 +80,7 @@ export const useTaxonomiesTree = ({ searchText, taxonomyId, taxonomyFilter }: Pr
             return node.children;
         }
         setExpandNode(node.key);
-        const parentFilter: Filter<keyof Taxon> = {
+        const parentFilter: FilterWithDocumentExtraOption<keyof Taxon> = {
             field: 'parent_id',
             operator: Operators.EQ,
             value: node.key

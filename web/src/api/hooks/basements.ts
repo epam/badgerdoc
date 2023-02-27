@@ -1,5 +1,4 @@
 import {
-    Filter,
     HTTPRequestMethod,
     MutationHookType,
     Operators,
@@ -8,7 +7,8 @@ import {
     SearchBody,
     Sorting,
     SortingDirection,
-    Basement
+    Basement,
+    FilterWithDocumentExtraOption
 } from 'api/typings';
 import { useMutation, useQuery, useQueryClient } from 'react-query';
 import { pageSizes } from 'shared';
@@ -22,7 +22,7 @@ type UseBasementsParamsType = {
     searchText: string;
     userId?: string | null;
     sortConfig: Sorting<keyof Basement>;
-    filters?: Array<Filter<keyof Basement>>;
+    filters?: Array<FilterWithDocumentExtraOption<keyof Basement>>;
 };
 
 export const useBasements: QueryHookType<UseBasementsParamsType, PagedResponse<Basement>> = (
@@ -63,7 +63,7 @@ export async function basementsFetcher(
         direction: SortingDirection.ASC
     }
 ): Promise<PagedResponse<Basement>> {
-    const filters: Filter<keyof Basement>[] = [];
+    const filters: FilterWithDocumentExtraOption<keyof Basement>[] = [];
     if (searchText) {
         filters.push({
             field: 'name',

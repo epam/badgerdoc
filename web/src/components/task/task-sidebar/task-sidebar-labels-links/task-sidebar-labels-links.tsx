@@ -4,7 +4,14 @@ import { useCategoriesByJob } from 'api/hooks/categories';
 import { TaskSidebarLabels } from 'components/task/task-sidebar-labels/task-sidebar-labels';
 import { TaskSidebarLinks } from '../task-sidebar-links/task-sidebar-links';
 import { useNotifications } from 'shared/components/notifications';
-import { Category, FileDocument, Filter, Label, Operators, SortingDirection } from 'api/typings';
+import {
+    Category,
+    FileDocument,
+    FilterWithDocumentExtraOption,
+    Label,
+    Operators,
+    SortingDirection
+} from 'api/typings';
 import { getError } from 'shared/helpers/get-error';
 import { FlexCell } from '@epam/uui-components';
 import { MultiSwitch, Text } from '@epam/loveship';
@@ -43,7 +50,7 @@ export const TaskSidebarLabelsLinks: FC<TaskSidebarLabelsLinksProps> = ({
 
     const [searchText, setSearchText] = useState('');
 
-    const categoryTypeFilter: Filter<keyof Category> = {
+    const categoryTypeFilter: FilterWithDocumentExtraOption<keyof Category> = {
         field: 'type',
         operator: Operators.EQ,
         value: documentCategoryType

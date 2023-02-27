@@ -3,7 +3,13 @@ import React, { FC, useCallback } from 'react';
 import { IModal } from '@epam/uui';
 import { ModalBlocker, ModalWindow, Text } from '@epam/loveship';
 import { TaskModel } from 'api/typings/tasks';
-import { FileDocument, Filter, Operators, ResponseError, User } from 'api/typings';
+import {
+    FileDocument,
+    FilterWithDocumentExtraOption,
+    Operators,
+    ResponseError,
+    User
+} from 'api/typings';
 import { documentsFetcher } from 'api/hooks/documents';
 import { useEntity } from '../../../shared/hooks/use-entity';
 import { usersFetcher } from 'api/hooks/users';
@@ -30,11 +36,11 @@ export const CreateTask: FC<ICreateNewTaskProps> = ({
     const mutation = useCreateNewTaskMutation();
     const { notifySuccess, notifyError } = useNotifications();
 
-    const fileFilters: Filter<keyof FileDocument>[] = [
+    const fileFilters: FilterWithDocumentExtraOption<keyof FileDocument>[] = [
         { value: fileIds, operator: Operators.IN, field: 'id' }
     ];
 
-    const annotatorsFilters: Filter<keyof User>[] = [
+    const annotatorsFilters: FilterWithDocumentExtraOption<keyof User>[] = [
         { value: annotatorIds, operator: Operators.IN, field: 'id' }
     ];
 

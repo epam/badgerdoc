@@ -4,16 +4,18 @@ import { useArrayDataSource } from '@epam/uui';
 import { TableWrapper, usePageTable } from 'shared';
 import { useTaskForDashboard } from 'api/hooks/tasks';
 import { Task, TaskStatus } from 'api/typings/tasks';
-import { tasksColumns } from './tasks-columns';
+import { COLUMNS } from './constants';
 import { CurrentUser } from '../../shared/contexts/current-user';
 import { useAsyncSourceTable } from 'shared/hooks/async-source-table';
-import { Filter, Operators, SortingDirection, TableFilters } from 'api/typings';
+import { Filter, FilterWithDocumentExtraOption, SortingDirection, TableFilters } from 'api/typings';
 import { useColumnPickerFilter, useDateRangeFilter } from 'shared/components/filters/column-picker';
 import {
     getFiltersFromStorage,
     prepareFiltersToSet,
     saveFiltersToStorage
 } from '../../shared/helpers/set-filters';
+import { DEFAULT_TABLE_FILTER } from './constants';
+import { getTableFilter } from './utils';
 
 type TaskTableConnectorProps = {
     onRowClick: (id: number) => void;
@@ -69,34 +71,36 @@ export const TasksTableConnector: FC<TaskTableConnectorProps> = ({ onRowClick })
     const renderDeadlineFilter = useDateRangeFilter('deadline');
 
     const columns = useMemo(() => {
-        const statusColumn = tasksColumns.find(({ key }) => key === 'status');
+        const statusColumn = COLUMNS.find(({ key }) => key === 'status');
         statusColumn!.isFilterActive = (filter) =>
             (filter.status && filter.status.in && !!filter.status.in.length) ?? false;
         statusColumn!.renderFilter = renderStatusFilter;
 
-        const typeColumn = tasksColumns.find(({ key }) => key === 'is_validation');
+        const typeColumn = COLUMNS.find(({ key }) => key === 'is_validation');
         typeColumn!.isFilterActive = (filter) =>
             (filter.is_validation && filter.is_validation.in && !!filter.is_validation.in.length) ??
             false;
         typeColumn!.renderFilter = renderTypeFilter;
 
-        const deadlineColumn = tasksColumns.find(({ key }) => key === 'deadline');
+        const deadlineColumn = COLUMNS.find(({ key }) => key === 'deadline');
         deadlineColumn!.renderFilter = renderDeadlineFilter;
 
-        return tasksColumns;
+        return COLUMNS;
     }, []);
 
     useEffect(() => {
-        const localFilter = getFiltersFromStorage('tasks');
-        if (localFilter) setFilters(localFilter);
-        else
-            onTableValueChange({
-                ...tableValue,
-                filter: {
-                    status: { [Operators.IN]: ['Ready', 'In Progress'] },
-                    is_validation: { [Operators.IN]: [true, false] }
-                }
-            });
+        let filter = DEFAULT_TABLE_FILTER;
+        const localFilter = getFiltersFromStorage<Filter<keyof Task>[]>('tasks');
+
+        if (localFilter) {
+            setFilters(localFilter);
+            filter = getTableFilter(localFilter);
+        }
+
+        onTableValueChange({
+            ...tableValue,
+            filter
+        });
 
         return () => {
             dataSource.unsubscribeView(onTableValueChange);
@@ -124,7 +128,7 @@ export const TasksTableConnector: FC<TaskTableConnectorProps> = ({ onRowClick })
         if (tableValue.filter) {
             const filtersToSet = prepareFiltersToSet<Task, TaskStatus[] | boolean[]>(tableValue);
             saveFiltersToStorage(filtersToSet, 'tasks');
-            setFilters(filtersToSet as (Filter<keyof Task> | null)[]);
+            setFilters(filtersToSet as (FilterWithDocumentExtraOption<keyof Task> | null)[]);
         }
     }, [tableValue.filter, tableValue.sorting, sortConfig]);
 
@@ -158,7 +162,7 @@ export const TasksTableConnector: FC<TaskTableConnectorProps> = ({ onRowClick })
                 rawProps={{
                     role: 'table',
                     'aria-rowcount': view.getListProps().rowsCount,
-                    'aria-colcount': tasksColumns.length
+                    'aria-colcount': COLUMNS.length
                 }}
             >
                 <TableWrapper

@@ -3,7 +3,7 @@ import { useAsyncSourceTable } from 'shared/hooks/async-source-table';
 import {
     SortingDirection,
     Model,
-    Filter,
+    FilterWithDocumentExtraOption,
     PagedResponse,
     Sorting,
     TableFilters
@@ -22,7 +22,7 @@ export const getSource = <DataSourceType>(
     page: number,
     pageSize: number,
     searchText: string,
-    filters: Filter<keyof Model>[]
+    filters: FilterWithDocumentExtraOption<keyof Model>[]
 ) => {
     const { dataSource } = useAsyncSourceTable<DataSourceType, any>(
         isFetching,

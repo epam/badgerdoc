@@ -10,7 +10,7 @@ import {
     SearchInput,
     VirtualList
 } from '@epam/loveship';
-import { Filter, Operators, User } from '../../api/typings';
+import { FilterWithDocumentExtraOption, Operators, User } from '../../api/typings';
 import { VirtualListState } from '@epam/uui';
 import { JobSidebarHeader } from '../../shared/components/job/job-sidebar-header';
 import { ReactComponent as closeIcon } from '@epam/assets/icons/common/navigation-back-18.svg';
@@ -36,7 +36,7 @@ export const JobSidebarConnector: React.FC<JobDetailViewSideBarProps> = ({
     const [listState, setListState] = useState<VirtualListState>({});
     const [usersRows, setUsersRows] = useState<any>();
     const [searchText, setSearchText] = useState('');
-    const filtersRef = useRef<Filter<keyof User>[]>([]);
+    const filtersRef = useRef<FilterWithDocumentExtraOption<keyof User>[]>([]);
 
     const onSearchChange = (text: string) => {
         setSearchText(text);

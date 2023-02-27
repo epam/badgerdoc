@@ -26,7 +26,7 @@ import {
     CategoryDataAttributeWithValue,
     ExternalViewerState,
     FileDocument,
-    Filter,
+    FilterWithDocumentExtraOption,
     Label,
     Link,
     Operators,
@@ -302,7 +302,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         }
     }, [categories]);
 
-    const documentFilters: Filter<keyof FileDocument>[] = [];
+    const documentFilters: FilterWithDocumentExtraOption<keyof FileDocument>[] = [];
 
     documentFilters.push({
         field: 'id',

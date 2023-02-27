@@ -1,5 +1,5 @@
 import { getFiltersSetter } from '../set-filters';
-import { Filter, Operators } from '../../../api/typings';
+import { FilterWithDocumentExtraOption, Operators } from '../../../api/typings';
 
 describe('TableHook filters setter', () => {
     type TestJob = {
@@ -10,9 +10,9 @@ describe('TableHook filters setter', () => {
     const setFiltersStateMock = jest.fn();
 
     test('should add filter to list if filter passed as argument', () => {
-        const filtersState: Filter<keyof TestJob>[] = [];
+        const filtersState: FilterWithDocumentExtraOption<keyof TestJob>[] = [];
 
-        const filtersToSet: Filter<keyof TestJob>[] = [
+        const filtersToSet: FilterWithDocumentExtraOption<keyof TestJob>[] = [
             {
                 field: 'type',
                 operator: Operators.IN,
@@ -33,7 +33,7 @@ describe('TableHook filters setter', () => {
     });
 
     test('should set new value list if filter with the same name was passed as argument', () => {
-        const filtersState: Filter<keyof TestJob>[] = [
+        const filtersState: FilterWithDocumentExtraOption<keyof TestJob>[] = [
             {
                 field: 'name',
                 operator: Operators.IN,
@@ -41,7 +41,7 @@ describe('TableHook filters setter', () => {
             }
         ];
 
-        const filtersToSet: Filter<keyof TestJob>[] = [
+        const filtersToSet: FilterWithDocumentExtraOption<keyof TestJob>[] = [
             {
                 field: 'name',
                 operator: Operators.IN,
@@ -62,7 +62,7 @@ describe('TableHook filters setter', () => {
     });
 
     test('should add new filter to list if new filter passed as argument', () => {
-        const filtersState: Filter<keyof TestJob>[] = [
+        const filtersState: FilterWithDocumentExtraOption<keyof TestJob>[] = [
             {
                 field: 'name',
                 operator: Operators.IN,
@@ -70,7 +70,7 @@ describe('TableHook filters setter', () => {
             }
         ];
 
-        const filtersToSet: Filter<keyof TestJob>[] = [
+        const filtersToSet: FilterWithDocumentExtraOption<keyof TestJob>[] = [
             {
                 field: 'type',
                 operator: Operators.IN,
@@ -96,7 +96,7 @@ describe('TableHook filters setter', () => {
     });
 
     test('should remove filter from list (and this way have empty filter) if empty value was passed as argument', () => {
-        const filtersState: Filter<keyof TestJob>[] = [
+        const filtersState: FilterWithDocumentExtraOption<keyof TestJob>[] = [
             {
                 field: 'name',
                 operator: Operators.IN,
@@ -104,7 +104,7 @@ describe('TableHook filters setter', () => {
             }
         ];
 
-        const filtersToSet: Filter<keyof TestJob>[] = [
+        const filtersToSet: FilterWithDocumentExtraOption<keyof TestJob>[] = [
             {
                 field: 'name',
                 operator: Operators.IN
@@ -118,7 +118,7 @@ describe('TableHook filters setter', () => {
     });
 
     test('should remove filter from list (and keep filter with other name) if empty value was passed as argument', () => {
-        const filtersState: Filter<keyof TestJob>[] = [
+        const filtersState: FilterWithDocumentExtraOption<keyof TestJob>[] = [
             {
                 field: 'name',
                 operator: Operators.IN,
@@ -131,7 +131,7 @@ describe('TableHook filters setter', () => {
             }
         ];
 
-        const filtersToSet: Filter<keyof TestJob>[] = [
+        const filtersToSet: FilterWithDocumentExtraOption<keyof TestJob>[] = [
             {
                 field: 'name',
                 operator: Operators.IN
@@ -156,7 +156,7 @@ describe('TableHook filters setter', () => {
     });
 
     test('should remove all filters from list which were passed with empty values', () => {
-        const filtersState: Filter<keyof TestJob>[] = [
+        const filtersState: FilterWithDocumentExtraOption<keyof TestJob>[] = [
             {
                 field: 'name',
                 operator: Operators.IN,
@@ -169,7 +169,7 @@ describe('TableHook filters setter', () => {
             }
         ];
 
-        const filtersToSet: Filter<keyof TestJob>[] = [
+        const filtersToSet: FilterWithDocumentExtraOption<keyof TestJob>[] = [
             {
                 field: 'name',
                 operator: Operators.IN
@@ -187,7 +187,7 @@ describe('TableHook filters setter', () => {
     });
 
     test('should set new value if filter with the same name was passed as argument', () => {
-        const filtersState: Filter<keyof TestJob>[] = [
+        const filtersState: FilterWithDocumentExtraOption<keyof TestJob>[] = [
             {
                 field: 'name',
                 operator: Operators.IN,
@@ -195,7 +195,7 @@ describe('TableHook filters setter', () => {
             }
         ];
 
-        const filtersToSet: Filter<keyof TestJob>[] = [
+        const filtersToSet: FilterWithDocumentExtraOption<keyof TestJob>[] = [
             {
                 field: 'name',
                 operator: Operators.IN,
@@ -216,7 +216,7 @@ describe('TableHook filters setter', () => {
     });
 
     test('should set new value list for each filter if several filters with new values were passed as argument', () => {
-        const filtersState: Filter<keyof TestJob>[] = [
+        const filtersState: FilterWithDocumentExtraOption<keyof TestJob>[] = [
             {
                 field: 'name',
                 operator: Operators.IN,
@@ -229,7 +229,7 @@ describe('TableHook filters setter', () => {
             }
         ];
 
-        const filtersToSet: Filter<keyof TestJob>[] = [
+        const filtersToSet: FilterWithDocumentExtraOption<keyof TestJob>[] = [
             {
                 field: 'name',
                 operator: Operators.IN,
@@ -260,7 +260,7 @@ describe('TableHook filters setter', () => {
     });
 
     test('should remove one value and replace another when two filters (with new and absent values respectively) were passed as argument', () => {
-        const filtersState: Filter<keyof TestJob>[] = [
+        const filtersState: FilterWithDocumentExtraOption<keyof TestJob>[] = [
             {
                 field: 'name',
                 operator: Operators.IN,
@@ -273,7 +273,7 @@ describe('TableHook filters setter', () => {
             }
         ];
 
-        const filtersToSet: Filter<keyof TestJob>[] = [
+        const filtersToSet: FilterWithDocumentExtraOption<keyof TestJob>[] = [
             {
                 field: 'name',
                 operator: Operators.IN,

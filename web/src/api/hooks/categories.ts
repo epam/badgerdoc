@@ -1,7 +1,7 @@
 import {
     Category,
     CreateCategory,
-    Filter,
+    FilterWithDocumentExtraOption,
     HTTPRequestMethod,
     MutationHookType,
     Operators,
@@ -94,13 +94,15 @@ async function categoriesByJobFetcher(
     page = 1,
     size = pageSizes._15,
     searchText?: string | null,
-    filters?: Filter<keyof Category | string>[],
+    filters?: FilterWithDocumentExtraOption<keyof Category | string>[],
     sortConfig: Sorting<keyof Category> = {
         field: 'name',
         direction: SortingDirection.ASC
     }
 ): Promise<PagedResponse<Category>> {
-    const filtersArr: Filter<keyof Category | string>[] = filters ? [...filters] : [];
+    const filtersArr: FilterWithDocumentExtraOption<keyof Category | string>[] = filters
+        ? [...filters]
+        : [];
 
     if (searchText) {
         filtersArr.push({
@@ -121,13 +123,15 @@ export async function categoriesFetcher(
     page = 1,
     size = pageSizes._15,
     searchText?: string | null,
-    filters?: Filter<keyof Category | string>[],
+    filters?: FilterWithDocumentExtraOption<keyof Category | string>[],
     sortConfig: Sorting<keyof Category> = {
         field: 'name',
         direction: SortingDirection.ASC
     }
 ): Promise<PagedResponse<Category>> {
-    const filtersArr: Filter<keyof Category | string>[] = filters ? [...filters] : [];
+    const filtersArr: FilterWithDocumentExtraOption<keyof Category | string>[] = filters
+        ? [...filters]
+        : [];
     if (searchText) {
         filtersArr.push({
             field: 'name',
@@ -214,7 +218,7 @@ export async function fetchInfiniteCategories(
 type DocumentCategoriesByJobProps = {
     searchText: string;
     jobId?: number;
-    filters?: Filter<keyof Category>[];
+    filters?: FilterWithDocumentExtraOption<keyof Category>[];
 };
 
 export type DocumentCategoriesByJobResponse = {
@@ -228,7 +232,7 @@ export const useDocumentCategoriesByJob = ({
     jobId,
     filters
 }: DocumentCategoriesByJobProps): DocumentCategoriesByJobResponse => {
-    const categoriesFilter: Filter<keyof Category> = {
+    const categoriesFilter: FilterWithDocumentExtraOption<keyof Category> = {
         field: 'type',
         operator: Operators.EQ,
         value: 'document'
