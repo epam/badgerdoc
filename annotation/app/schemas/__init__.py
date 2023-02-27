@@ -51,6 +51,7 @@ from app.schemas.tasks import (
     ManualAnnotationTaskSchema,
     NameSchema,
     PagesInfoSchema,
+    PreviousAndNextTasksSchema,
     ResponseScore,
     TaskInfoSchema,
     TaskMetric,
@@ -112,4 +113,5 @@ __all__ = [
     NotFoundErrorSchema,
     JobProgressSchema,
     TaskMetric,
+    PreviousAndNextTasksSchema
 ]
