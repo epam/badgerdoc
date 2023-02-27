@@ -6,7 +6,7 @@ export type LinkAnnotationProps = {
     pointFinish: Point;
     category: Category;
     linkType: string;
-    onDeleteLink: () => void;
+    onDeleteLink: (e: Event) => void;
     onLinkSelect: () => void;
     reversed: boolean;
 };
