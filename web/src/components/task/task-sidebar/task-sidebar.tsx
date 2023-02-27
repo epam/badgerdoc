@@ -80,7 +80,6 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode }) => {
         selectedTool,
         onChangeSelectedTool,
         selectedToolParams,
-        selectedCategory,
         setSelectedToolParams,
         onLabelsSelected,
         setSelectedLabels,
@@ -111,16 +110,13 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode }) => {
         selectedCellsCanBeSplitted
     } = useTableAnnotatorContext();
     const isValidation = task?.is_validation;
-    console.log('task: ', task);
     const isAnnotatable = task?.status === 'In Progress' || task?.status === 'Ready';
-    console.log('isAnnotatable: ', isAnnotatable);
     const isValid = validPages.includes(currentPage);
     const isInvalid = invalidPages.includes(currentPage);
     const editPage = editedPages.includes(currentPage);
     const splitValidation = isValidation && job?.validation_type === 'extensive_coverage';
 
     const isValidationDisabled = !currentPage && !isAnnotatable && !splitValidation;
-    console.log('isValidationDisabled: ', isValidationDisabled);
 
     const [boundModeSwitch, setBoundModeSwitch] = useState<AnnotationBoundMode>('box');
     const [tableModeValues, setTableModeValues] = useState<string>('');
@@ -183,7 +179,6 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode }) => {
         documentLinksChanged,
         annotationSaved
     ]);
-    console.log('isSaveButtonDisabled: ', isSaveButtonDisabled);
 
     useEffect(() => {
         if (tableModeValues === 'cells') setIsCellMode(true);
@@ -642,6 +637,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode }) => {
                     cx={styles['button-finish']}
                     caption={'FINISH LABELING'}
                     onClick={onAnnotationTaskFinish}
+                    isDisabled={!isAnnotatable}
                 />
             )}
         </div>
