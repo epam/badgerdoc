@@ -1,5 +1,5 @@
 import { Job } from '../../api/typings/jobs';
-import { Filter, Operators, PagedResponse, User } from '../../api/typings';
+import { FilterWithDocumentExtraOption, Operators, PagedResponse, User } from '../../api/typings';
 import { useJobById } from '../../api/hooks/jobs';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useUserByForJob } from '../../api/hooks/users';
@@ -15,7 +15,7 @@ export const useUsersDataFromTask = (task: Task | undefined) => {
         annotators: [],
         validators: []
     });
-    const usersFilters = useRef<Filter<keyof User>[]>([]);
+    const usersFilters = useRef<FilterWithDocumentExtraOption<keyof User>[]>([]);
 
     const { data: job, refetch: refetchJob } = useJobById(
         { jobId: task?.job?.id || 0 },

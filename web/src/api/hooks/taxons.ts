@@ -1,5 +1,5 @@
 import {
-    Filter,
+    FilterWithDocumentExtraOption,
     HTTPRequestMethod,
     Operators,
     PagedResponse,
@@ -43,14 +43,14 @@ export async function taxonsFetcher(
     page = 1,
     size = pageSizes._15,
     searchText?: string | null,
-    filters?: Filter<keyof Taxon>[],
+    filters?: FilterWithDocumentExtraOption<keyof Taxon>[],
     sortConfig: Sorting<keyof Taxon> = {
         field: 'name',
         direction: SortingDirection.ASC
     },
     searchField: keyof Taxon | undefined = 'name'
 ): Promise<PagedResponse<Taxon>> {
-    const filtersArr: Filter<keyof Taxon>[] = filters ? [...filters] : [];
+    const filtersArr: FilterWithDocumentExtraOption<keyof Taxon>[] = filters ? [...filters] : [];
     if (searchText) {
         filtersArr.push({
             field: searchField,
@@ -71,13 +71,13 @@ export async function taxonomiesFetcher(
     page = 1,
     size = pageSizes._15,
     searchText?: string | null,
-    filters?: Filter<keyof Taxonomy>[],
+    filters?: FilterWithDocumentExtraOption<keyof Taxonomy>[],
     sortConfig: Sorting<keyof Taxonomy> = {
         field: 'name',
         direction: SortingDirection.ASC
     }
 ): Promise<PagedResponse<Taxonomy>> {
-    const filtersArr: Filter<keyof Taxonomy>[] = filters ? [...filters] : [];
+    const filtersArr: FilterWithDocumentExtraOption<keyof Taxonomy>[] = filters ? [...filters] : [];
     if (searchText) {
         filtersArr.push({
             field: 'name',

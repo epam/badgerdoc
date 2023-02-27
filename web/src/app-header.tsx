@@ -48,6 +48,7 @@ export const AppHeader = () => {
         clearAuthDetails();
         setCurrentUser(null);
         location.reload();
+        sessionStorage.removeItem('filters');
     }, []);
 
     const getLogoLink = () => {
