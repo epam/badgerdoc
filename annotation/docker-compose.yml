@@ -20,9 +20,12 @@ services:
       retries: 5
 
   annotation:
+    build:
+      context: .
+      target: build
     working_dir: /opt/annotation/application
-    image: annotation
     container_name: annotation
+    command: bash -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8080 --reload"
     ports:
       - ${APP_PORT}:${APP_PORT}
     networks:

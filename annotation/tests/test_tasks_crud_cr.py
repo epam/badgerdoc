@@ -1001,6 +1001,60 @@ def test_get_task(prepare_db_for_cr_task):
     assert response == EXPANDED_TASKS_RESPONSE[3]
 
 
+@pytest.mark.integration
+@responses.activate
+def test_get_previous_and_next_tasks_case1(prepare_db_for_cr_task):
+    user_uuid = "9eace50e-613e-4352-b287-85fd91c88b51"
+    headers = {**TEST_HEADERS, "user": user_uuid}
+    task_id = 5
+    response = client.get(
+        f"{CRUD_TASKS_PATH}/get_previous_and_next_tasks?task_id={task_id}",
+        headers=headers,
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "previous_task": None,
+        "next_task": {
+            "id": 6,
+            "status": "Ready",
+            "file_id": 3,
+            "pages": [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+            "job_id": 2,
+            "user_id": "9eace50e-613e-4352-b287-85fd91c88b51",
+            "is_validation": True,
+            "deadline": "2021-10-19T01:01:01",
+        },
+    }
+
+
+@pytest.mark.integration
+@responses.activate
+def test_get_previous_and_next_tasks_case2(prepare_db_for_cr_task):
+    user_uuid = "9eace50e-613e-4352-b287-85fd91c88b51"
+    headers = {**TEST_HEADERS, "user": user_uuid}
+    task_id = 6
+    response = client.get(
+        f"{CRUD_TASKS_PATH}/get_previous_and_next_tasks?task_id={task_id}",
+        headers=headers,
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "previous_task": {
+            "id": 5,
+            "status": "In Progress",
+            "file_id": 3,
+            "pages": [1, 2, 3, 4, 5],
+            "job_id": 2,
+            "user_id": "9eace50e-613e-4352-b287-85fd91c88b51",
+            "is_validation": True,
+            "deadline": "2021-10-19T01:01:01",
+        },
+        "next_task": None,
+    }
+
+
 @pytest.mark.unittest
 @patch.object(Session, "query")
 def test_get_tasks_500_response(Session):
