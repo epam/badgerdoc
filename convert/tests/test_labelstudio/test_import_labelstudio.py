@@ -4,7 +4,7 @@ from tempfile import TemporaryDirectory
 
 import pytest
 
-from src.badgerdoc_format.badgerdoc_format import BadgerdocFormat
+from src.badgerdoc.badgerdoc import Badgerdoc
 from src.config import (
     DEFAULT_PAGE_BORDER_OFFSET,
     DEFAULT_PDF_FONT_HEIGHT,
@@ -12,12 +12,12 @@ from src.config import (
     DEFAULT_PDF_LINE_SPACING,
     DEFAULT_PDF_PAGE_WIDTH,
 )
-from src.labelstudio_format.converter import Converter
-from src.labelstudio_format.ls_models import LabelStudioModel
+from src.labelstudio.converter import Converter
+from src.labelstudio.ls_models import LabelStudioModel
 from src.labelstudio_to_badgerdoc_converter import (
     LabelstudioToBadgerdocConverter,
 )
-from src.plain_text_format.plain_text_converter import (
+from src.plain_text.plain_text_converter import (
     TextToBadgerdocTokensConverter,
 )
 
@@ -103,7 +103,7 @@ def test_plain_text_converter():
 
 
 def test_annotation_converter():
-    badgerdoc_format = BadgerdocFormat()
+    badgerdoc_format = Badgerdoc()
     labelstudio_format = Converter()
 
     labelstudio_format.to_badgerdoc(
@@ -134,7 +134,7 @@ def test_annotation_converter():
 
 
 def test_import_document_links():
-    badgerdoc_format = BadgerdocFormat()
+    badgerdoc_format = Badgerdoc()
 
     labelstudio_format = Converter()
     labelstudio_format.to_badgerdoc(

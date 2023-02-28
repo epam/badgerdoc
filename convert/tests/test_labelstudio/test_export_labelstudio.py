@@ -3,17 +3,17 @@ from pathlib import Path
 import pytest
 import responses
 
-from src.badgerdoc_format import (
+from src.badgerdoc import (
     bd_annotation_model_practic,
     bd_manifest_model_practic,
 )
-from src.badgerdoc_format.bd_tokens_model import Page
+from src.badgerdoc.bd_tokens_model import Page
 from src.badgerdoc_to_labelstudio_converter import (
     BadgerdocToLabelstudioConverter,
 )
-from src.labelstudio_format import annotation_converter_practic
-from src.labelstudio_format.ls_format import LabelStudioFormat
-from src.labelstudio_format.ls_models import LabelStudioModel
+from src.labelstudio import annotation_converter_practic
+from src.labelstudio.ls_format import LabelStudioFormat
+from src.labelstudio.ls_models import LabelStudioModel
 
 TEST_FILES_DIR = Path(__file__).parent / "test_data"
 

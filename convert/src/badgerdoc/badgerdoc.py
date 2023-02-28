@@ -1,14 +1,14 @@
 from pathlib import Path
 from typing import Optional
 
-from src.pdf_format.pdf_converter import PlainPDFToBadgerdocTokensConverter
+from src.pdf.pdf_converter import PlainPDFToBadgerdocTokensConverter
 
 from .bd_annotation_model_practic import BadgerdocAnnotation
 from .bd_tokens_model import Page
 from .pdf_renderer import PDFRenderer
 
 
-class BadgerdocFormat:
+class Badgerdoc:
     def __init__(
         self,
     ) -> None:

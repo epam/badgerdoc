@@ -2,12 +2,12 @@ import os
 import tempfile
 from pathlib import Path
 
-from src.badgerdoc_format.badgerdoc_format import BadgerdocFormat
+from src.badgerdoc.badgerdoc import Badgerdoc
 from src.models.common import S3Path
 
 
 class PDFToBDConvertUseCase:
-    badgerdoc_format = BadgerdocFormat()
+    badgerdoc_format = Badgerdoc()
 
     def __init__(self, s3_client) -> None:
         self.s3_client = s3_client

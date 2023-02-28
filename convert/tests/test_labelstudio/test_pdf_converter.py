@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from src.badgerdoc_format.bd_tokens_model import BadgerdocToken, Offset, Page
-from src.pdf_format.pdf_converter import (  # noqa
+from src.badgerdoc.bd_tokens_model import BadgerdocToken, Offset, Page
+from src.pdf.pdf_converter import (  # noqa
     PlainPDFToBadgerdocTokensConverter,
 )
 

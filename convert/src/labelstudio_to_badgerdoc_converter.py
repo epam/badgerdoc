@@ -11,17 +11,17 @@ from fastapi import HTTPException, status
 from fastapi.encoders import jsonable_encoder
 from tenant_dependency import TenantData
 
-from src.badgerdoc_format.badgerdoc_format import BadgerdocFormat
-from src.badgerdoc_format.bd_annotation_model_practic import DocumentLink
-from src.badgerdoc_format.bd_tokens_model import BadgerdocToken
-from src.badgerdoc_format.pdf_renderer import PDFRenderer
+from src.badgerdoc.badgerdoc import Badgerdoc
+from src.badgerdoc.bd_annotation_model_practic import DocumentLink
+from src.badgerdoc.bd_tokens_model import BadgerdocToken
+from src.badgerdoc.pdf_renderer import PDFRenderer
 from src.config import DEFAULT_PAGE_BORDER_OFFSET, settings
-from src.labelstudio_format.annotation_converter import AnnotationConverter
-from src.labelstudio_format.ls_models import LabelStudioModel, ValidationType
-from src.labelstudio_format.converter import Converter
+from src.labelstudio.annotation_converter import AnnotationConverter
+from src.labelstudio.ls_models import LabelStudioModel, ValidationType
+from src.labelstudio.converter import Converter
 from src.logger import get_logger
 from src.models.common import S3Path
-from src.plain_text_format.plain_text_converter import (
+from src.plain_text.plain_text_converter import (
     TextToBadgerdocTokensConverter,
 )
 
@@ -56,7 +56,7 @@ class LabelstudioToBadgerdocConverter:
         )
         self.pdf_renderer = PDFRenderer(page_border_offset=page_border_offset)
         self.annotation_converter = AnnotationConverter()
-        self.badgerdoc_format = BadgerdocFormat()
+        self.badgerdoc_format = Badgerdoc()
         self.s3_client = s3_client
 
         self.current_tenant = current_tenant

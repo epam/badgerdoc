@@ -4,9 +4,9 @@ from typing import Any, Dict, List, Optional
 import requests
 from fastapi import HTTPException, status
 
-from src.badgerdoc_format.bd_annotation_model import BadgerdocAnnotation
-from src.badgerdoc_format.bd_manifest_model_practic import Manifest
-from src.badgerdoc_format.bd_tokens_model import BadgerdocToken, Page
+from src.badgerdoc.bd_annotation_model import BadgerdocAnnotation
+from src.badgerdoc.bd_manifest_model_practic import Manifest
+from src.badgerdoc.bd_tokens_model import BadgerdocToken, Page
 from src.config import settings
 from src.logger import get_logger
 

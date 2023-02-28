@@ -1,13 +1,13 @@
 from typing import Optional
 
-from src.badgerdoc_format.bd_annotation_model_practic import (
+from src.badgerdoc.bd_annotation_model_practic import (
     BadgerdocAnnotation,
 )
-from src.badgerdoc_format.bd_tokens_model import Page
-from src.badgerdoc_format.pdf_renderer import PDFRenderer
-from src.labelstudio_format.annotation_converter import AnnotationConverter
-from src.labelstudio_format.ls_models import LabelStudioModel
-from src.plain_text_format.plain_text_converter import (
+from src.badgerdoc.bd_tokens_model import Page
+from src.badgerdoc.pdf_renderer import PDFRenderer
+from src.labelstudio.annotation_converter import AnnotationConverter
+from src.labelstudio.ls_models import LabelStudioModel
+from src.plain_text.plain_text_converter import (
     TextToBadgerdocTokensConverter,
 )
 

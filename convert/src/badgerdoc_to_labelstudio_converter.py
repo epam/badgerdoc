@@ -5,14 +5,14 @@ from typing import NamedTuple
 from botocore.client import BaseClient
 from tenant_dependency import TenantData
 
-from src.badgerdoc_format import bd_annotation_model_practic
-from src.badgerdoc_format.bd_annotation_model import BadgerdocAnnotation
-from src.badgerdoc_format.bd_manifest_model_practic import Manifest
-from src.badgerdoc_format.bd_tokens_model import Page
-from src.labelstudio_format.annotation_converter_practic import (
+from src.badgerdoc import bd_annotation_model_practic
+from src.badgerdoc.bd_annotation_model import BadgerdocAnnotation
+from src.badgerdoc.bd_manifest_model_practic import Manifest
+from src.badgerdoc.bd_tokens_model import Page
+from src.labelstudio.annotation_converter_practic import (
     AnnotationConverterToTheory,
 )
-from src.labelstudio_format.ls_format import LabelStudioFormat
+from src.labelstudio.ls_format import LabelStudioFormat
 from src.logger import get_logger
 from src.models.common import S3Path
 

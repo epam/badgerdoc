@@ -1,6 +1,6 @@
 import pytest
 
-from src.plain_text_format.plain_text_converter import (
+from src.plain_text.plain_text_converter import (
     TextToBadgerdocTokensConverter,
 )
 from src.text_to_badgerdoc_converter import TextToBadgerdocConverter

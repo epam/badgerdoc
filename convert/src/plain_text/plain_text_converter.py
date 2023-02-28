@@ -2,7 +2,7 @@ import collections
 import string
 from typing import Deque, List
 
-from src.badgerdoc_format.bd_tokens_model import (
+from src.badgerdoc.bd_tokens_model import (
     BadgerdocToken,
     Offset,
     Page,

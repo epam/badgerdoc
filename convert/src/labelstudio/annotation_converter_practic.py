@@ -1,14 +1,14 @@
 from typing import List
 
-from src.badgerdoc_format import bd_annotation_model_practic
-from src.badgerdoc_format.bd_annotation_model import (
+from src.badgerdoc import bd_annotation_model_practic
+from src.badgerdoc.bd_annotation_model import (
     AnnotationLink,
     BadgerdocAnnotation,
     Obj,
     Page,
     Size,
 )
-from src.badgerdoc_format.bd_tokens_model import Page as BadgerdocTokensPage
+from src.badgerdoc.bd_tokens_model import Page as BadgerdocTokensPage
 
 FIRST_PAGE = 0
 

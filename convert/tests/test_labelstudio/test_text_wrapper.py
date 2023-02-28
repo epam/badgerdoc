@@ -1,7 +1,7 @@
 import collections
 import string
 
-from src.plain_text_format.plain_text_converter import (  # noqa: E501
+from src.plain_text.plain_text_converter import (  # noqa: E501
     TextWrapper,
 )
 
