@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -13,6 +13,8 @@ class BadgerdocToken(BaseModel):
     bbox: List[float]
     text: str
     offset: Offset
+    previous: Optional[str] = None
+    after: Optional[str] = None
 
 
 class PageSize(BaseModel):

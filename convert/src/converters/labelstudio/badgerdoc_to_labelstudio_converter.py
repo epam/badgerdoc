@@ -141,6 +141,11 @@ class LabelStudioFormat:
     def __init__(self) -> None:
         self.labelstudio_data = LabelStudioModel()
 
+    @staticmethod
+    def form_token_text(token: BadgerdocToken) -> str:
+        text = f"{token.previous or ''}{token.text}{token.after or ''}"
+        return text
+
     def from_badgerdoc(
         self,
         badgerdoc_tokens: Page,
@@ -148,7 +153,10 @@ class LabelStudioFormat:
         badgerdoc_manifest: Optional[Manifest],
         request_headers: Dict[str, str],
     ):
-        text = "".join([obj.text for obj in badgerdoc_tokens.objs])
+        text = "".join(
+            [self.form_token_text(obj) for obj in badgerdoc_tokens.objs]
+        )
+
         objs = self.convert_annotation_from_bd(
             badgerdoc_annotations, badgerdoc_tokens.objs
         )
@@ -166,7 +174,6 @@ class LabelStudioFormat:
             }
             for document_label in badgerdoc_manifest.categories
         ]
-
         job_id = badgerdoc_manifest.job_id
         categories_linked_with_taxonomies = (
             self.get_categories_linked_with_taxonomies(job_id, request_headers)
@@ -198,9 +205,9 @@ class LabelStudioFormat:
 
         self.labelstudio_data.__root__.append(item)
 
-    @staticmethod
+    @classmethod
     def convert_annotation_from_bd(
-        annotations: BadgerdocAnnotation, tokens: List[BadgerdocToken]
+        cls, annotations: BadgerdocAnnotation, tokens: List[BadgerdocToken]
     ) -> List[ResultItem]:
         objs = annotations.pages[0].objs
         result_items = []
@@ -216,7 +223,10 @@ class LabelStudioFormat:
                 value=Value(
                     start=min(obj.tokens),
                     end=max(obj.tokens) + 1,
-                    text="".join(tokens[index].text for index in obj.tokens),
+                    text="".join(
+                        cls.form_token_text(tokens[index])
+                        for index in obj.tokens
+                    ),
                     labels=[obj.category],
                 ),
             )

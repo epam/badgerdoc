@@ -8,7 +8,9 @@ from src.converters.base_format.models.annotation import (
     Page,
     Size,
 )
-from src.converters.base_format.models.tokens import Page as BadgerdocTokensPage
+from src.converters.base_format.models.tokens import (
+    Page as BadgerdocTokensPage,
+)
 
 FIRST_PAGE = 0
 
