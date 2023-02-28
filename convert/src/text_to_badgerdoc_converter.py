@@ -56,8 +56,8 @@ class TextToBadgerdocConverter:
 
     def upload(
         self,
-        s3_output_tokens,
-        s3_output_pdf,
+            s3_output_tokens: S3Path,
+        s3_output_pdf: S3Path,
     ) -> None:
         with tempfile.TemporaryDirectory() as tmp_dirname:
             tmp_dirname = Path(tmp_dirname)

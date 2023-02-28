@@ -45,29 +45,19 @@ def test_correctness_of_import_text_schema(test_app, monkeypatch):
         "validators": [],
     }
 
-    def mock_download_labelstudio(*args, **kwargs):
-        return LabelStudioModel()
-
-    def mock_upload_text(*args, **kwargs):
-        pass
-
-    def mock_execute(*args, **kwargs):
-        pass
-
     monkeypatch.setattr(
         LabelstudioToBadgerdocConverter,
         "download",
-        mock_download_labelstudio,
+        lambda *args, **kw: LabelStudioModel(),
     )
     monkeypatch.setattr(
         LabelstudioToBadgerdocConverter,
         "upload",
-        mock_upload_text,
+        lambda *args, **kw: ...,
     )
     monkeypatch.setattr(
-        LabelstudioToBadgerdocConverter, "execute", mock_execute
+        LabelstudioToBadgerdocConverter, "execute", lambda *args, **kw: ...
     )
-
     response = test_app.post(
         "/labelstudio/import",
         json=test_request_payload,
@@ -76,7 +66,7 @@ def test_correctness_of_import_text_schema(test_app, monkeypatch):
     assert response.status_code == 201
 
 
-def test_plain_text_converter():
+def test_plain_text_converter() -> None:
     labelstudio_data = json.loads(INPUT_labelstudio_FILE.read_text())
     converter = TextToBadgerdocTokensConverter(
         page_width=DEFAULT_PDF_PAGE_WIDTH,
@@ -102,7 +92,7 @@ def test_plain_text_converter():
 #         )
 
 
-def test_annotation_converter():
+def test_annotation_converter() -> None:
     badgerdoc_format = Badgerdoc()
     labelstudio_format = Converter()
 
@@ -133,7 +123,7 @@ def test_annotation_converter():
         assert annotations_test == annotations_etalon
 
 
-def test_import_document_links():
+def test_import_document_links() -> None:
     badgerdoc_format = Badgerdoc()
 
     labelstudio_format = Converter()

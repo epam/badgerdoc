@@ -27,20 +27,20 @@ class Badgerdoc:
         if self.tokens_page:
             path.write_text(self.tokens_page.json(by_alias=True))
 
-    def export_annotations(self, path: Path):
+    def export_annotations(self, path: Path) -> None:
         if self.badgerdoc_annotation:
             path.write_text(self.badgerdoc_annotation.json(indent=4))
 
-    def export_pdf(self, path: Path):
+    def export_pdf(self, path: Path) -> None:
         if not self.pdf_renderer:
             return
         self.pdf_renderer.render_tokens(self.tokens_page.objs, path)
 
-    def import_tokens(self, path: Path):
+    def import_tokens(self, path: Path) -> None:
         self.tokens_page = Page.parse_file(path)
 
-    def import_annotations(self, path: Path):
+    def import_annotations(self, path: Path) -> None:
         self.badgerdoc_annotation = BadgerdocAnnotation.parse_file(path)
 
-    def convert_from_pdf(self, pdf):
+    def convert_from_pdf(self, pdf) -> None:
         self.tokens_page = self.pdf_converter.convert(pdf)

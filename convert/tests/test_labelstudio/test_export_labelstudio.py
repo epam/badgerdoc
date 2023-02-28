@@ -20,7 +20,7 @@ TEST_FILES_DIR = Path(__file__).parent / "test_data"
 INPUT_LABELSTUDIO_FILE = TEST_FILES_DIR / "labelstudio_format.json"
 
 
-def test_correctness_of_export_text_schema(test_app, monkeypatch):
+def test_correctness_of_export_text_schema(test_app, monkeypatch) -> None:
     test_request_payload = {
         "input_tokens": {"bucket": "test", "path": "files/926/ocr/1.json"},
         "input_annotation": {
@@ -37,11 +37,8 @@ def test_correctness_of_export_text_schema(test_app, monkeypatch):
         },
     }
 
-    def mock_execute(*args, **kwargs):
-        pass
-
     monkeypatch.setattr(
-        BadgerdocToLabelstudioConverter, "execute", mock_execute
+        BadgerdocToLabelstudioConverter, "execute", lambda *args, **kw: ...
     )
 
     response = test_app.post(
@@ -53,7 +50,7 @@ def test_correctness_of_export_text_schema(test_app, monkeypatch):
 
 
 @responses.activate
-def test_annotation_converter_case_without_taxonomies_and_document_labels():
+def test_annotation_converter_case_without_taxonomies_and_document_labels() -> None:
     responses.post(
         "http://dev2.badgerdoc.com/api/v1/annotation/jobs/1070/categories/search",
         json={"data": []},

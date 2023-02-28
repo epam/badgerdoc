@@ -125,7 +125,7 @@ class TextToBadgerdocTokensConverter:
         token_size = self.font_width
         return (self.page_width - self.page_border_offset * 2) // token_size
 
-    def convert_line(self, line, tokens, y_axis, line_offset: int):
+    def convert_line(self, line: str, tokens: List[BadgerdocToken], y_axis: float, line_offset: int):
         x_axis = self.page_border_offset
         for i, char in enumerate(line):
             begin = line_offset + i
@@ -146,7 +146,7 @@ class TextToBadgerdocTokensConverter:
 
     @staticmethod
     def calculate_page_size(
-        tokens: List[BadgerdocToken], page_border_offset
+            tokens: List[BadgerdocToken], page_border_offset: float
     ) -> PageSize:
         if tokens:
             return PageSize(

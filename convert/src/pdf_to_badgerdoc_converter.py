@@ -6,7 +6,7 @@ from src.badgerdoc.badgerdoc import Badgerdoc
 from src.models.common import S3Path
 
 
-class PDFToBDConvertUseCase:
+class PDFToBadgerdocConverter:
     badgerdoc_format = Badgerdoc()
 
     def __init__(self, s3_client) -> None:

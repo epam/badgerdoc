@@ -2,7 +2,7 @@ from fastapi import APIRouter, status
 
 from src.config import minio_client
 from src.models.pdf import PdfRequest
-from src.pdf_to_badgerdoc_converter import PDFToBDConvertUseCase
+from src.pdf_to_badgerdoc_converter import PDFToBadgerdocConverter
 
 router = APIRouter(prefix="/pdf", tags=["pdf"])
 
@@ -12,7 +12,7 @@ router = APIRouter(prefix="/pdf", tags=["pdf"])
     status_code=status.HTTP_201_CREATED,
 )
 def import_pdf(request: PdfRequest) -> None:
-    pdf_to_bd_use_case = PDFToBDConvertUseCase(
+    pdf_to_bd_use_case = PDFToBadgerdocConverter(
         s3_client=minio_client,
     )
     pdf_to_bd_use_case.execute(

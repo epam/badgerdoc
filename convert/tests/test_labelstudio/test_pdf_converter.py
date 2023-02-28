@@ -16,7 +16,7 @@ CONVERT_RESULT_FIRST_LETTER = BadgerdocToken(
 )
 
 
-def test_convert():
+def test_convert() -> None:
     test_converter = PlainPDFToBadgerdocTokensConverter()
     result = test_converter.convert(TEST_PDF)
     assert isinstance(result[0], Page)

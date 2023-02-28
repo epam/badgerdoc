@@ -17,17 +17,15 @@ class TenantData(BaseModel):
 
 @pytest.fixture()
 def setup_tenant():
-    mock_tenant_data = TenantData(
+    return TenantData(
         token="token",
         user_id="owner1",
         roles=["admin"],
         tenants=["tenant", "test"],
     )
-    return mock_tenant_data
 
 
 @pytest.fixture
 def test_app(setup_tenant):
     main.app.dependency_overrides[labelstudio.tenant] = lambda: setup_tenant
-    client = TestClient(main.app)
-    yield client
+    yield TestClient(main.app)
