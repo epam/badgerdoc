@@ -19,7 +19,7 @@ const TaskPage: FC = () => {
     const { taskId } = useParams<{ taskId: string }>();
     const history = useHistory<Record<string, string | undefined>>();
     const { notifySuccess, notifyError } = useNotifications();
-    const { data: { next: nextTaskId } = {} } = useNextTask(taskId);
+    const nextTaskId = useNextTask(taskId).data?.next_task?.id;
 
     useEffect(() => {
         useSetTaskState({ id: Number(taskId), eventType: 'opened' });

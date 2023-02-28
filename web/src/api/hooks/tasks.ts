@@ -1,3 +1,4 @@
+import { useContext } from 'react';
 import {
     Dataset,
     MutationHookType,
@@ -17,6 +18,7 @@ import { useMutation, useQuery, useQueryClient } from 'react-query';
 import { ApiTask, Task, TaskModel, ValidationPages } from '../typings/tasks';
 import { useBadgerFetch } from './api';
 import { pageSizes } from '../../shared';
+import { CurrentUser } from 'shared/contexts/current-user';
 
 type UseTasksParamsType = {
     page: number;
@@ -343,11 +345,20 @@ export const useDownloadTaskReport = async (params: TaskReportRequestParams) => 
     return response;
 };
 
-export const useNextTask: QueryHookType<string, { next: string }> = (taskId) =>
-    useQuery(['nextTask'], async () => {
-        return useBadgerFetch<{ next: string }>({
-            url: `${namespace}/tasks/${taskId}/next`,
-            method: 'get',
-            withCredentials: true
-        })();
-    });
+export const useNextTask: QueryHookType<string, { next_task: Task }> = (taskId) => {
+    const userId = useContext(CurrentUser).currentUser?.id ?? '';
+
+    return useQuery(
+        ['nextAndPreviousTask', taskId],
+        async () =>
+            useBadgerFetch({
+                url: `${namespace}/tasks/get_previous_and_next_tasks?task_id=${taskId}`,
+                method: 'get',
+                withCredentials: true,
+                headers: {
+                    user: userId
+                }
+            })(),
+        { enabled: Boolean(userId) }
+    );
+};
