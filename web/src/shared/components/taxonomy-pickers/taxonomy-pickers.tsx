@@ -37,7 +37,7 @@ const TaxonomyPickers: FC<TaxonomiesPickersProps> = ({ categories, taxonomies, l
     const extractValue = (categoryId: string): TaxonomyPickerItem | undefined => {
         const taxonomies = lens.prop('selected_taxonomies').get();
 
-        if (taxonomies) {
+        if (taxonomies?.[categoryId]) {
             return makeItem(taxonomies[categoryId]);
         }
     };
