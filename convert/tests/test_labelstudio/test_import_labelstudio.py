@@ -77,7 +77,7 @@ def test_plain_text_converter() -> None:
     )
     tokens = converter.convert(labelstudio_data["text"])
     expected_bd_tokens = json.loads(Path(BADGERDOC_TOKENS_FILE).read_text())
-    assert tokens.dict(by_alias=True) == expected_bd_tokens
+    assert tokens.dict(by_alias=True, exclude_none=True) == expected_bd_tokens
 
 
 # def test_render_pdf():
