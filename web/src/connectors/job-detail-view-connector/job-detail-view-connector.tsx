@@ -48,11 +48,11 @@ export const JobConnector: React.FC<JobDetailViewProps> = ({
     const {
         pageConfig: pageConfigForFiles,
         onPageChange,
-        totalCount,
+        totalCount: totalFilesCount,
         searchText,
         tableValue,
         onTableValueChange,
-        onTotalCountChange
+        onTotalCountChange: onTotalFilesCountChange
     } = usePageTable<FileDocument>('original_name');
 
     const history = useHistory();
@@ -86,7 +86,8 @@ export const JobConnector: React.FC<JobDetailViewProps> = ({
         onPageChange: onTaskPageChange,
         totalCount: totalTaskCount,
         tableValue: taskTableValue,
-        onTableValueChange: onTaskTableValueChange
+        onTableValueChange: onTaskTableValueChange,
+        onTotalCountChange: onTotalTaskCountChange
     } = usePageTable<Task>('id');
 
     const [filesIds, setFilesIds] = useState<Array<number>>([]);
@@ -100,12 +101,6 @@ export const JobConnector: React.FC<JobDetailViewProps> = ({
 
     const { data: job, refetch: refetchJob } = useJobById({ jobId }, { refetchInterval: 10000 });
 
-    useEffect(() => {
-        if (job?.files.length !== undefined) {
-            onTotalCountChange(job.files.length);
-        }
-    }, [job]);
-
     const svc = useUuiContext();
     const { notifyError, notifySuccess } = useNotifications();
 
@@ -118,6 +113,12 @@ export const JobConnector: React.FC<JobDetailViewProps> = ({
         },
         { cacheTime: 0 }
     );
+
+    useEffect(() => {
+        if (files?.pagination.total) {
+            onTotalFilesCountChange(files?.pagination.total);
+        }
+    }, [files]);
 
     const {
         data: tasks,
@@ -133,6 +134,12 @@ export const JobConnector: React.FC<JobDetailViewProps> = ({
         },
         { cacheTime: 0 }
     );
+
+    useEffect(() => {
+        if (tasks?.pagination.total) {
+            onTotalTaskCountChange(tasks?.pagination.total);
+        }
+    }, [tasks]);
 
     const startJobMutation = useStartJobMutation();
 
@@ -299,7 +306,7 @@ export const JobConnector: React.FC<JobDetailViewProps> = ({
                         value={tableValue}
                         onValueChange={onTableValueChange}
                         columns={columnsFiles}
-                        totalCount={totalCount}
+                        totalCount={totalFilesCount}
                         onPageChange={onPageChange}
                     />
                 )}
