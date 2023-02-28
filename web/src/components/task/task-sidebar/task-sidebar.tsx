@@ -80,7 +80,6 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode }) => {
         selectedTool,
         onChangeSelectedTool,
         selectedToolParams,
-        selectedCategory,
         setSelectedToolParams,
         onLabelsSelected,
         setSelectedLabels,
@@ -370,6 +369,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode }) => {
                                     fileMetaInfo={fileMetaInfo}
                                     selectedTool={selectedTool}
                                     onChangeSelectedTool={onChangeSelectedTool}
+                                    isDisabled={!isAnnotatable}
                                 />
                             )}
                         </>
@@ -577,7 +577,10 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode }) => {
                     <Button
                         cx={styles['button-finish']}
                         caption={'FINISH VALIDATION'}
-                        isDisabled={!allValidated && !touchedPages.length && !editedPages.length}
+                        isDisabled={
+                            (!allValidated && !touchedPages.length && !editedPages.length) ||
+                            !isAnnotatable
+                        }
                         captionCX
                         onClick={splitValidation ? onFinishSplitValidation : onFinishValidation}
                     />
@@ -588,6 +591,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode }) => {
                     cx={styles['button-finish']}
                     caption={'FINISH LABELING'}
                     onClick={onAnnotationTaskFinish}
+                    isDisabled={!isAnnotatable}
                 />
             )}
         </div>
