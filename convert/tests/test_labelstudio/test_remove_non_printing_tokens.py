@@ -2,8 +2,8 @@ from pathlib import Path
 
 import pytest
 
-from src.badgerdoc_format.badgerdoc_format import BadgerdocFormat
-from src.badgerdoc_format.bd_tokens_model import Page
+from src.badgerdoc.badgerdoc import Badgerdoc
+from src.badgerdoc.bd_tokens_model import Page
 from src.config import (
     DEFAULT_PAGE_BORDER_OFFSET,
     DEFAULT_PDF_FONT_HEIGHT,
@@ -11,7 +11,7 @@ from src.config import (
     DEFAULT_PDF_LINE_SPACING,
     DEFAULT_PDF_PAGE_WIDTH,
 )
-from src.plain_text_format.plain_text_converter import (
+from src.plain_text.plain_text_converter import (
     TextToBadgerdocTokensConverter,
 )
 
@@ -157,7 +157,7 @@ def test_plain_text_converter(test_input: str, expected: Page, tmp_path):
     )
     tokens = converter.convert(test_input)
 
-    bd_format = BadgerdocFormat()
+    bd_format = Badgerdoc()
     bd_format.tokens_page = tokens
     bd_format.export_pdf(tmp_path / "tmp.pdf")
     bd_format.remove_non_printing_tokens()
