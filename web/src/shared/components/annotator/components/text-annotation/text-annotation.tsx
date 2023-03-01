@@ -1,6 +1,6 @@
-import noop from 'lodash/noop';
 import React, { Fragment, useMemo } from 'react';
-import styles from './text-annotation.module.scss';
+import noop from 'lodash/noop';
+
 import { hexToRGBA } from '../../utils/hex-to-rgba';
 import {
     createBoundsFromTokens,
@@ -8,8 +8,9 @@ import {
     TextAnnotationLabelProps,
     TextAnnotationProps
 } from './helpers';
-import { TextLabel } from '../text-label';
 import { getAnnotationElementId } from '../../utils/use-annotation-links';
+import { TextLabel } from '../text-label';
+import styles from './text-annotation.module.scss';
 
 const TextAnnotationLabel = ({
     color,
@@ -43,8 +44,8 @@ export const TextAnnotation = ({
     labels = [
         {
             annotationId: id,
-            color: color,
-            label: label
+            color,
+            label
         }
     ],
     tokens,
@@ -63,6 +64,7 @@ export const TextAnnotation = ({
     taskHasTaxonomies
 }: TextAnnotationProps) => {
     const bounds = useMemo(() => createBoundsFromTokens(tokens, scale), [tokens, scale]);
+    const isActive = isSelected || isHovered;
 
     return (
         <div
@@ -76,20 +78,24 @@ export const TextAnnotation = ({
             className={styles.annotation}
         >
             {bounds.map((singleBound, index) => {
-                const { bound } = singleBound;
+                const {
+                    bound: { width, height, y, x }
+                } = singleBound;
+
                 return (
                     <div
                         key={index}
                         className={styles.textAnnotation}
                         style={{
-                            background: hexToRGBA(color, isSelected || isHovered ? 0.3 : 0.2),
+                            background: hexToRGBA(color, isActive ? 0.4 : 0.2),
                             position: 'absolute',
-                            width: (bound.width ?? 0) * scale,
-                            height: (bound.height ?? 0) * scale,
-                            top: (bound.y ?? 0) * scale,
-                            left: (bound.x ?? 0) * scale,
+                            width: (width ?? 0) * scale,
+                            height: (height ?? 0) * scale,
+                            top: (y ?? 0) * scale,
+                            left: (x ?? 0) * scale,
                             boxShadow: getBorders(singleBound, color),
-                            zIndex: isSelected ? 10 : 1
+                            zIndex: isSelected ? 10 : 1,
+                            borderBottom: isActive ? `2px solid ${color}` : 'unset'
                         }}
                     >
                         <div className={styles.annLabel}>
@@ -103,11 +109,11 @@ export const TextAnnotation = ({
                                             onCloseIconClick={() => {
                                                 onAnnotationDelete(annLabel.annotationId!);
                                             }}
-                                            onContextMenu={(e) => {
-                                                e.stopPropagation();
-                                                e.preventDefault();
+                                            onContextMenu={(event) => {
+                                                event.stopPropagation();
+                                                event.preventDefault();
                                                 onAnnotationContextMenu(
-                                                    e,
+                                                    event,
                                                     annLabel.annotationId!,
                                                     labels
                                                 );

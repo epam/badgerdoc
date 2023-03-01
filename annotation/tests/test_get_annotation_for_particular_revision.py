@@ -86,7 +86,7 @@ PART_REV_RESPONSE = {
     "failed_validation_pages": PART_REV_DOC.failed_validation_pages,
     "categories": [],
     "similar_revisions": None,
-    "links_json": {},
+    "links_json": [],
 }
 
 

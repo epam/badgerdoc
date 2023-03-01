@@ -500,6 +500,7 @@ def mark_all_revisions_validated_pages(
                     "page_id": None,
                     "date": revision.date,
                     "is_validated": True,
+                    "categories": revision.categories,
                 }
             )
 
@@ -527,6 +528,7 @@ def mark_latest_revision_validated_pages(
                 "page_id": None,
                 "date": revision.date,
                 "is_validated": True,
+                "categories": revision.categories,
             }
 
 
@@ -575,6 +577,7 @@ def find_all_revisions_pages(
                     "page_id": page_id,
                     "date": revision.date,
                     "is_validated": False,
+                    "categories": revision.categories,
                 }
             )
         mark_all_revisions_validated_pages(pages, revision, page_numbers)
@@ -624,6 +627,7 @@ def find_latest_revision_pages(
                 "page_id": page_id,
                 "date": revision.date,
                 "is_validated": False,
+                "categories": revision.categories,
             }
         mark_latest_revision_validated_pages(pages, revision, page_numbers)
     return pages
@@ -672,6 +676,7 @@ def load_page(
         loaded_page["pipeline"] = page_revision["pipeline"]
         loaded_page["date"] = page_revision["date"]
         loaded_page["is_validated"] = page_revision["is_validated"]
+        loaded_page["categories"] = page_revision["categories"]
     loaded_pages.append(loaded_page)
 
 

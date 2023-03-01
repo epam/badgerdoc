@@ -507,6 +507,7 @@ export const Annotator: FC<AnnotatorProps> = ({
                     renderAnnotation={({ annotation }) => {
                         const isSelected = annotation.id === selectedAnnotation?.id;
                         const isHovered = annotation.id === hoveredAnnotation?.id;
+
                         return editableAnnotationRenderer({
                             annotation,
                             cells: annotation.tableCells,
@@ -609,7 +610,11 @@ interface LinksLayerProps {
     annotations: Annotation[];
     categories?: Category[];
     onLinkDeleted: (pageNum: number, annotationId: string | number, link: Link) => void;
-    onLinkSelected: (fromOriginalAnnotationId: string | number, originalLink: Link) => void;
+    onLinkSelected: (
+        fromOriginalAnnotationId: string | number,
+        originalLink: Link,
+        annotations: Annotation[]
+    ) => void;
     pageNum: number;
 }
 
@@ -622,6 +627,21 @@ const LinksLayer = ({
     scale
 }: LinksLayerProps) => {
     const [pointSets, setPointSets] = useState<PointSet[]>([]);
+
+    const onDeleteLink = useCallback(
+        (pageNum: number, from: string | number, link: Link) => (e: Event) => {
+            e.stopPropagation();
+            onLinkDeleted(pageNum, from, link);
+        },
+        [onLinkDeleted]
+    );
+
+    const onLinkSelect = useCallback(
+        (from: string | number, link: Link, annotations: Annotation[]) => () => {
+            onLinkSelected(from, link, annotations);
+        },
+        [onLinkSelected]
+    );
 
     useEffect(() => {
         const newPointSets: PointSet[] = [];
@@ -644,17 +664,17 @@ const LinksLayer = ({
 
     return (
         <div>
-            {pointSets.map((pointSet) => {
+            {pointSets.map(({ from, start, finish, category, type, link }) => {
                 return (
                     <LinkAnnotation
-                        key={`${pointSet.from}${pointSet.link.to}`}
-                        pointStart={pointSet.start}
-                        pointFinish={pointSet.finish}
-                        category={pointSet.category}
-                        linkType={pointSet.type}
-                        reversed={pointSet.finish.id === pointSet.from}
-                        onDeleteLink={() => onLinkDeleted(pageNum, pointSet.from, pointSet.link)}
-                        onLinkSelect={() => onLinkSelected(pointSet.from, pointSet.link)}
+                        key={`${from}${link.to}`}
+                        pointStart={start}
+                        pointFinish={finish}
+                        category={category}
+                        linkType={type}
+                        reversed={finish.id === from}
+                        onDeleteLink={onDeleteLink(pageNum, from, link)}
+                        onLinkSelect={onLinkSelect(from, link, annotations)}
                     />
                 );
             })}

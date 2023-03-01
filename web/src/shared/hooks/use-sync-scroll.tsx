@@ -8,7 +8,7 @@ export interface SyncScrollValue {
     SyncedContainer: React.FC<SyncedContainerProps>;
 }
 
-export default function useSycnScroll(): SyncScrollValue {
+export default function useSyncScroll(): SyncScrollValue {
     const syncedElements = useMemo(() => new Set<HTMLElement>(), []);
 
     const handleScroll = useCallback((event: Event) => {

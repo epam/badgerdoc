@@ -18,6 +18,7 @@ type SelectionModeSelectorProps = {
     fileMetaInfo: FileMetaInfo;
     selectedTool: AnnotationImageToolType;
     onChangeSelectedTool: (newTool: AnnotationImageToolType) => void;
+    isDisabled?: boolean;
 };
 
 export const CategoriesSelectionModeToggle: React.FC<SelectionModeSelectorProps> = ({
@@ -26,7 +27,8 @@ export const CategoriesSelectionModeToggle: React.FC<SelectionModeSelectorProps>
     onChangeSelectionType,
     fileMetaInfo,
     selectedTool,
-    onChangeSelectedTool
+    onChangeSelectedTool,
+    isDisabled = false
 }: SelectionModeSelectorProps) => {
     const regularSelectionTypes = [
         { id: 'box', name: 'box' },
@@ -82,6 +84,7 @@ export const CategoriesSelectionModeToggle: React.FC<SelectionModeSelectorProps>
                         onValueChange={onChangeSelectedTool}
                         direction="horizontal"
                         cx="selection-mode-toggle"
+                        isDisabled={isDisabled}
                     />
                 ) : (
                     <RadioGroup
@@ -90,6 +93,7 @@ export const CategoriesSelectionModeToggle: React.FC<SelectionModeSelectorProps>
                         onValueChange={onChangeSelectionType}
                         direction="horizontal"
                         cx="selection-mode-toggle"
+                        isDisabled={isDisabled}
                     />
                 )}
             </FlexCell>

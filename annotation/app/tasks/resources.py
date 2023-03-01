@@ -64,6 +64,7 @@ from app.schemas import (
     ManualAnnotationTaskSchema,
     NotFoundErrorSchema,
     PagesInfoSchema,
+    PreviousAndNextTasksSchema,
     TaskPatchSchema,
     TaskStatusEnumSchema,
     ValidationEndSchema,
@@ -198,6 +199,64 @@ def get_next_annotation_task(
     raise HTTPException(
         status_code=404,
         detail=f"Can't find working tasks for user {user}.",
+    )
+
+
+@router.get(
+    "/get_previous_and_next_tasks",
+    status_code=status.HTTP_200_OK,
+    summary="Get one previous and one next tasks from the one passed in",
+    response_model=PreviousAndNextTasksSchema,
+)
+def get_next_and_previous_annotation_tasks(
+    user: UUID = Header(..., example="40b6b526-d6f4-45e8-8af3-d26b5a404018"),
+    task_id: int = Query(..., example=1, gt=0),
+    db: Session = Depends(get_db),
+    x_current_tenant: str = X_CURRENT_TENANT_HEADER,
+):
+
+    active_tasks_states = (
+        TaskStatusEnumSchema.ready,
+        TaskStatusEnumSchema.in_progress,
+    )
+
+    previous_task_query = (
+            db.query(ManualAnnotationTask)
+            .filter(
+                ManualAnnotationTask.user_id == user,
+                ManualAnnotationTask.jobs.has(tenant=x_current_tenant),
+                ManualAnnotationTask.id < task_id,
+                ManualAnnotationTask.status.in_(active_tasks_states),
+            )
+            .order_by(ManualAnnotationTask.id.desc())
+            .limit(1))
+
+    try:
+        previous_task = previous_task_query.first()
+    except AttributeError:
+        """AttributeError is raised when the previous task cannot be found"""
+        previous_task = None
+
+    next_task_query = (
+        db.query(ManualAnnotationTask)
+        .filter(
+            ManualAnnotationTask.user_id == user,
+            ManualAnnotationTask.jobs.has(tenant=x_current_tenant),
+            ManualAnnotationTask.id > task_id,
+            ManualAnnotationTask.status.in_(active_tasks_states),
+        )
+        .order_by(ManualAnnotationTask.id)
+        .limit(1)
+    )
+
+    try:
+        next_task = next_task_query.first()
+    except AttributeError:
+        """AttributeError is raised when the next task cannot be found"""
+        next_task = None
+
+    return PreviousAndNextTasksSchema(
+        previous_task=previous_task, next_task=next_task
     )
 
 

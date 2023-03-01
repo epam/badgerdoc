@@ -218,7 +218,7 @@ export const JobConnector: React.FC<JobDetailViewProps> = ({
 
     const distributeTaskMutation = useDistributeTasksMutation();
 
-    const onDistributeTaskClick = useCallback(async () => {
+    const onDistributeTaskClick = async () => {
         try {
             if (job && users) {
                 await distributeTaskMutation.mutateAsync({ job, datasets, users });
@@ -227,7 +227,7 @@ export const JobConnector: React.FC<JobDetailViewProps> = ({
         } catch (error) {
             notifyError(<Text>{getError(error)}</Text>);
         }
-    }, [job]);
+    };
 
     const onCreateNewTaskClick = useCallback(async () => {
         svc.uuiModals

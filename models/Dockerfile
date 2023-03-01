@@ -4,7 +4,7 @@ FROM ${base_image} as base
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-RUN pip install poetry
+RUN pip install poetry==1.1.13
 
 COPY pyproject.toml /
 

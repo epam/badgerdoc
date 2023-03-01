@@ -1,7 +1,7 @@
 import {
     Dataset,
     FileDocument,
-    Filter,
+    FilterWithDocumentExtraOption,
     MutationHookType,
     Operators,
     PagedResponse,
@@ -40,7 +40,7 @@ export function datasetsFetcher(
         direction: SortingDirection.ASC
     }
 ): Promise<PagedResponse<Dataset>> {
-    const filters: Filter<keyof Dataset>[] = [];
+    const filters: FilterWithDocumentExtraOption<keyof Dataset>[] = [];
     if (searchText) {
         filters.push({
             field: 'name',

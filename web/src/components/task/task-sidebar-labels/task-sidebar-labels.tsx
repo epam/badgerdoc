@@ -7,6 +7,7 @@ import { SearchInput, PickerList, Spinner, Checkbox, FlexCell } from '@epam/love
 import { Label, Category } from 'api/typings';
 
 import styles from './task-sidebar-labels.module.scss';
+import { useTaskAnnotatorContext } from 'connectors/task-annotator-connector/task-annotator-context';
 
 type TaskSidebarLabelsViewProps = {
     viewMode: boolean;
@@ -23,9 +24,12 @@ const TaskSidebarLabelsView: FC<TaskSidebarLabelsViewProps> = ({
     onValueChange,
     selectedLabels
 }) => {
+    const { task } = useTaskAnnotatorContext();
+    const isDisabled = !(task?.status === 'In Progress' || task?.status === 'Ready');
     if (!labels) {
         return <Spinner color="sky" />;
     }
+
     const labelsArr = useMemo(
         () =>
             labels.map((el: { name: string; id: string }) => {
@@ -34,33 +38,38 @@ const TaskSidebarLabelsView: FC<TaskSidebarLabelsViewProps> = ({
         [labels]
     );
 
-    const dataSource = useArrayDataSource({ items: [...selectedLabels, ...labelsArr] }, [labels]);
-
-    const renderData = viewMode ? (
-        <FlexCell width="auto">
-            {labelsArr.map((el) => (
-                <Checkbox
-                    cx={styles.checkbox}
-                    label={el.name}
-                    key={el.id}
-                    value={pickerValue.includes(el.name)}
-                    onValueChange={noop}
-                />
-            ))}
-        </FlexCell>
-    ) : (
-        <PickerList<Label, Label | unknown>
-            dataSource={dataSource}
-            value={pickerValue}
-            onValueChange={(e) => onValueChange(e ?? [], labelsArr)}
-            entityName="location"
-            selectionMode="multi"
-            valueType="id"
-            maxDefaultItems={100}
-            maxTotalItems={100}
-            sorting={{ field: 'name', direction: 'asc' }}
-        />
+    const dataSource = useArrayDataSource<Label, unknown, unknown>(
+        { items: [...selectedLabels, ...labelsArr] },
+        [labels]
     );
+
+    const renderData =
+        viewMode || isDisabled ? (
+            <FlexCell width="auto">
+                {labelsArr.map((el) => (
+                    <Checkbox
+                        cx={styles.checkbox}
+                        label={el.name}
+                        key={el.id}
+                        value={pickerValue.includes(el.name)}
+                        onValueChange={noop}
+                        isDisabled={isDisabled}
+                    />
+                ))}
+            </FlexCell>
+        ) : (
+            <PickerList<Label, Label | unknown>
+                dataSource={dataSource}
+                value={pickerValue}
+                onValueChange={(e) => onValueChange(e ?? [], labelsArr)}
+                entityName="location"
+                selectionMode="multi"
+                valueType="id"
+                maxDefaultItems={100}
+                maxTotalItems={100}
+                sorting={{ field: 'name', direction: 'asc' }}
+            />
+        );
 
     return (
         <div className={`${styles.picker_list} ${viewMode && styles.disabled}`}>{renderData}</div>

@@ -1,4 +1,12 @@
-import React, { CSSProperties, Fragment, ReactNode, useEffect, useState, useRef } from 'react';
+import React, {
+    CSSProperties,
+    Fragment,
+    ReactNode,
+    useEffect,
+    useState,
+    useRef,
+    useCallback
+} from 'react';
 import { ReactComponent as increaseIcon } from '@epam/assets/icons/common/action-add-24.svg';
 import { ReactComponent as searchIcon } from '@epam/assets/icons/common/action-search-18.svg';
 import { ReactComponent as decreaseIcon } from '@epam/assets/icons/common/content-minus-24.svg';
@@ -12,6 +20,7 @@ import { Image } from '../image/image';
 import DocumentSinglePage from './document-single-page';
 import { IconButton, IconContainer, Spinner } from '@epam/loveship';
 import { LabelsPanel } from 'components/labels-panel';
+import { SplitAnnotatorInfo } from 'components/split-annotator-info';
 import { RelationsPanel } from '../annotator/components/relations-panel/relations-panel';
 import styles from './document-pages.module.scss';
 import cn from 'classnames';
@@ -70,6 +79,7 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
         categories,
         SyncedContainer,
         annotationsByUserId,
+        categoriesByUserId,
         currentPage,
         isSplitValidation,
         onSplitAnnotationSelected,
@@ -77,7 +87,8 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
         selectedLabels,
         documentLinks,
         onLinkChanged,
-        selectedRelatedDoc
+        selectedRelatedDoc,
+        sortedUsers
     } = useTaskAnnotatorContext();
 
     const containerRef = useRef<HTMLDivElement>(null);
@@ -85,6 +96,14 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
     const [scale, setScale] = useState(0);
     const [initialScale, setInitialScale] = useState(0);
     const [originalPageSize, setOriginalPageSize] = useState<PageSize>();
+
+    const selectedLabelsId = selectedLabels?.map(({ id }) => id) || [];
+
+    const getAnnotatorName = useCallback(
+        (annotatorId: string): string =>
+            sortedUsers.current.annotators.find(({ id }) => id === annotatorId)?.username || '',
+        [sortedUsers]
+    );
 
     useEffect(() => {
         const newPageSize = apiPageSize && apiPageSize.height > 0 ? apiPageSize : originalPageSize;
@@ -179,25 +198,25 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                                     onEmptyAreaClick={onEmptyAreaClick}
                                 />
                             </SyncedContainer>
-                            {userPages.map((userPage) => (
-                                <SyncedContainer
-                                    key={userPage.user_id}
-                                    className={styles['split-document-page']}
-                                >
-                                    <DocumentSinglePage
-                                        annotations={annotationsByUserId[userPage.user_id]}
-                                        scale={scale}
-                                        pageSize={apiPageSize}
-                                        pageNum={userPage.page_num}
-                                        onAnnotationSelected={(scaledAnn?: Annotation) =>
-                                            onSplitAnnotationSelected(
-                                                scale,
-                                                userPage.user_id,
-                                                scaledAnn
-                                            )
-                                        }
+                            {userPages.map(({ user_id, page_num }) => (
+                                <Fragment key={user_id}>
+                                    <SplitAnnotatorInfo
+                                        annotatorName={getAnnotatorName(user_id)}
+                                        labels={categoriesByUserId[user_id]}
+                                        selectedLabelsId={selectedLabelsId}
                                     />
-                                </SyncedContainer>
+                                    <SyncedContainer className={styles['split-document-page']}>
+                                        <DocumentSinglePage
+                                            annotations={annotationsByUserId[user_id]}
+                                            scale={scale}
+                                            pageSize={apiPageSize}
+                                            pageNum={page_num}
+                                            onAnnotationSelected={(scaledAnn?: Annotation) =>
+                                                onSplitAnnotationSelected(scale, user_id, scaledAnn)
+                                            }
+                                        />
+                                    </SyncedContainer>
+                                </Fragment>
                             ))}
                         </Document>
                     ) : selectedRelatedDoc ? (

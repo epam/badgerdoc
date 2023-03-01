@@ -1,12 +1,12 @@
 import {
-    Filter,
     MutationHookType,
     Operators,
     PagedResponse,
     Pipeline,
     QueryHookType,
     SearchBody,
-    SortingDirection
+    SortingDirection,
+    FilterWithDocumentExtraOption
 } from 'api/typings';
 import { useMutation, useQuery, useQueryClient } from 'react-query';
 import { useBadgerFetch } from './api';
@@ -22,7 +22,7 @@ type UsePipelineParamsType = {
         field: keyof Pipeline;
         direction: SortingDirection;
     };
-    filters?: Array<Filter<keyof Pipeline>>;
+    filters?: Array<FilterWithDocumentExtraOption<keyof Pipeline>>;
 };
 
 export const usePipelines: QueryHookType<UsePipelineParamsType, PagedResponse<Pipeline>> = (
@@ -47,7 +47,7 @@ export function pipelinesFetcher(
         field: 'name',
         direction: SortingDirection.ASC
     },
-    filters: Filter<keyof Pipeline>[] = []
+    filters: FilterWithDocumentExtraOption<keyof Pipeline>[] = []
 ): Promise<PagedResponse<Pipeline>> {
     if (searchText) {
         filters.push({

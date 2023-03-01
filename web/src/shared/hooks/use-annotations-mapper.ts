@@ -1,3 +1,4 @@
+import { DependencyList, useCallback, useMemo } from 'react';
 import {
     Category,
     CategoryDataAttributeWithLabel,
@@ -6,13 +7,12 @@ import {
     Taxon
 } from 'api/typings';
 import { mapAnnotationFromApi } from 'connectors/task-annotator-connector/task-annotator-utils';
-import { DependencyList, useCallback, useMemo } from 'react';
 import { Annotation, AnnotationLabel, PageToken } from 'shared';
 
 interface AnnotationsMapperValue {
     getAnnotationLabels: (
         pageKey: string,
-        ann: Annotation,
+        annotation: Annotation,
         category?: Category
     ) => AnnotationLabel[];
     mapAnnotationPagesFromApi: <PageType extends PageInfo>(
@@ -47,25 +47,24 @@ export default function useAnnotationsMapper(
     const tokenLabelsMap = useMemo(() => new Map<string, AnnotationLabel[]>(), deps);
 
     const getAnnotationLabels = useCallback(
-        (pageKey: string, ann: Annotation, category?: Category): AnnotationLabel[] => {
-            if (ann.boundType !== 'text') {
+        (pageKey: string, annotation: Annotation, category?: Category): AnnotationLabel[] => {
+            if (annotation.boundType !== 'text') {
                 return [];
             }
-            const dataAttr: CategoryDataAttributeWithLabel = ann.data?.dataAttributes
-                ? ann.data?.dataAttributes.find(
+            const dataAttr: CategoryDataAttributeWithLabel = annotation.data?.dataAttributes
+                ? annotation.data?.dataAttributes.find(
                       (attr: CategoryDataAttributeWithValue) => attr.type === 'taxonomy'
                   )
                 : null;
 
             const label = {
-                annotationId: ann.id,
-                label:
-                    dataAttr && dataAttr.value
-                        ? taxonLabels.get(dataAttr.value)?.name
-                        : category?.name,
+                annotationId: annotation.id,
+                label: dataAttr && dataAttr.value ? annotation.label : category?.name,
                 color: category?.metadata?.color
             };
-            const topRightToken: PageToken | null | undefined = getTopRightToken(ann?.tokens);
+            const topRightToken: PageToken | null | undefined = getTopRightToken(
+                annotation?.tokens
+            );
             if (!topRightToken) {
                 return [label];
             }
@@ -90,10 +89,10 @@ export default function useAnnotationsMapper(
                 const pageKey = getPageKey(page);
                 const pageAnnotations = page.objs.map((obj) => {
                     const category = categories?.find((category) => category.id == obj.category);
-                    const ann = mapAnnotationFromApi(obj, category, taxonLabels);
+                    const annotation = mapAnnotationFromApi(obj, category, taxonLabels);
                     return {
-                        ...ann,
-                        labels: getAnnotationLabels(pageKey, ann, category)
+                        ...annotation,
+                        labels: getAnnotationLabels(pageKey, annotation, category)
                     };
                 });
                 /* Merge cells into tables */
@@ -111,6 +110,7 @@ export default function useAnnotationsMapper(
                 );
                 result[pageKey] = [...(result[pageKey] ?? []), ...filteredAnnotations];
             });
+
             return result;
         },
         [getAnnotationLabels]

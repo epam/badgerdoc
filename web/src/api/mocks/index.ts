@@ -9,7 +9,7 @@ import {
     PagedResponse,
     FileDocument,
     Dataset,
-    Filter,
+    FilterWithDocumentExtraOption,
     Pipeline,
     Category,
     SearchBody,
@@ -711,7 +711,8 @@ const MOCKS: Record<string, Record<string, BadgerFetch<any>>> = {
     [`${FILEMANAGEMENT_NAMESPACE}/files/search`]: {
         post: async (body) => {
             const datasetId = JSON.parse(body as string)?.filters?.find(
-                (filter: Filter<keyof FileDocument>) => filter.field === 'datasets.id'
+                (filter: FilterWithDocumentExtraOption<keyof FileDocument>) =>
+                    filter.field === 'datasets.id'
             )?.value;
             return {
                 data: datasetId

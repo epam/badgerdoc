@@ -1,6 +1,5 @@
 import {
     Dataset,
-    Filter,
     MutationHookType,
     Operators,
     PagedResponse,
@@ -10,7 +9,8 @@ import {
     SortingDirection,
     UseTasksResponseObj,
     User,
-    DocumentExtraOption
+    DocumentExtraOption,
+    FilterWithDocumentExtraOption
 } from 'api/typings';
 import { Job } from 'api/typings/jobs';
 import { useMutation, useQuery, useQueryClient } from 'react-query';
@@ -23,7 +23,7 @@ type UseTasksParamsType = {
     size: number;
     user_id?: string | null;
     sortConfig: Sorting<keyof Task>;
-    filters: Array<Filter<keyof Task>>;
+    filters: Array<FilterWithDocumentExtraOption<keyof Task>>;
 };
 
 type UseTasksForJobParamsType = {
@@ -121,7 +121,7 @@ export function taskPropFetcher(
         field: propName,
         direction: SortingDirection.ASC
     };
-    const filters: Filter<keyof Task>[] = [];
+    const filters: FilterWithDocumentExtraOption<keyof Task>[] = [];
     filters.push({
         field: propName,
         operator: Operators.DISTINCT

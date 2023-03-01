@@ -1,7 +1,8 @@
 import { AnnotationsByUserObj, useLatestAnnotationsByUser } from 'api/hooks/annotations';
-import { Category, Link } from 'api/typings';
+import { Category, Label, Link, Taxon } from 'api/typings';
 import { Job } from 'api/typings/jobs';
-import { cloneDeep } from 'lodash';
+import cloneDeep from 'lodash/cloneDeep';
+import isEqual from 'lodash/isEqual';
 import { useCallback, useEffect, useMemo } from 'react';
 import { Annotation } from 'shared';
 import { scaleAnnotation } from 'shared/components/annotator/utils/scale-annotation';
@@ -39,8 +40,14 @@ export interface SplitValidationValue {
     isSplitValidation?: boolean;
     userPages: AnnotationsByUserObj[];
     annotationsByUserId: Record<string, Annotation[]>;
+    categoriesByUserId: Record<string, Label[]>;
+    taxonLabels: Map<string, Taxon>;
     onSplitAnnotationSelected: (scale: number, userId: string, annotation?: Annotation) => void;
-    onSplitLinkSelected: (fromOriginalAnnotationId: string | number, originalLink: Link) => void;
+    onSplitLinkSelected: (
+        fromOriginalAnnotationId: string | number,
+        originalLink: Link,
+        annotations: Annotation[]
+    ) => void;
     onFinishSplitValidation: () => void;
 }
 
@@ -91,6 +98,31 @@ export default function useSplitValidation({
         );
     }, [categories, mapAnnotationPagesFromApi]);
 
+    const getCategoryById = useCallback(
+        (categoryId: string): Label | undefined => {
+            const category = categories!.find(({ id }) => id === categoryId);
+
+            if (!category) return;
+
+            const { id, name } = category;
+
+            return { id, name };
+        },
+        [categories]
+    );
+
+    const categoriesByUserId: Record<string, Label[]> = useMemo(() => {
+        if (!categories?.length) return {};
+
+        return userPages.reduce(
+            (acc, { user_id, categories: categoriesId }) => ({
+                ...acc,
+                [user_id]: categoriesId.map(getCategoryById) as Label[]
+            }),
+            {} as Record<string, Label[]>
+        );
+    }, [userPages, categories, getCategoryById]);
+
     const onSplitAnnotationSelected = useCallback(
         (scale: number, userId: string, scaledAnn?: Annotation) => {
             if (!scaledAnn) {
@@ -131,19 +163,43 @@ export default function useSplitValidation({
     );
 
     const onSplitLinkSelected = useCallback(
-        (fromOriginalAnnotationId: string | number, originalLink: Link) => {
-            const fromUserAnnotation = validatorAnnotations[currentPage].find(
-                (annotation) => annotation.originalAnnotationId === fromOriginalAnnotationId
+        (
+            fromOriginalAnnotationId: string | number,
+            originalLink: Link,
+            annotations: Annotation[]
+        ) => {
+            const fromOriginalAnnotation =
+                annotations.find(({ id }) => id === fromOriginalAnnotationId) || ({} as Annotation);
+            const toOriginalAnnotation =
+                annotations.find(({ id }) => id === originalLink.to) || ({} as Annotation);
+
+            const fromUserAnnotation = validatorAnnotations[currentPage]?.find((annotation) =>
+                fromOriginalAnnotation.boundType === 'text'
+                    ? isEqual(annotation.tokens, fromOriginalAnnotation.tokens)
+                    : isEqual(annotation.bound, fromOriginalAnnotation.bound)
             );
-            const toUserAnnotation = validatorAnnotations[currentPage].find(
-                (annotation) => annotation.originalAnnotationId === originalLink.to
+
+            const toUserAnnotation = validatorAnnotations[currentPage]?.find((annotation) =>
+                toOriginalAnnotation.boundType === 'text'
+                    ? isEqual(annotation.tokens, toOriginalAnnotation.tokens)
+                    : isEqual(annotation.bound, toOriginalAnnotation.bound)
             );
 
             if (fromUserAnnotation && toUserAnnotation) {
                 const fromUserLinks = fromUserAnnotation.links ?? [];
+                const updatedLink = { ...originalLink, to: toUserAnnotation.id };
+
+                const currentLinks = validatorAnnotations[currentPage]?.reduce(
+                    (acc, { links = [] }) => [...acc, ...links],
+                    [] as Link[]
+                );
+
+                const isExist = currentLinks.find((link) => isEqual(link, updatedLink));
+
+                if (isExist) return;
 
                 onAnnotationEdited(currentPage, fromUserAnnotation.id, {
-                    links: [...fromUserLinks, { ...originalLink, to: toUserAnnotation.id }]
+                    links: [...fromUserLinks, updatedLink]
                 });
             }
         },
@@ -163,22 +219,26 @@ export default function useSplitValidation({
     return useMemo(
         () => ({
             annotationsByUserId,
+            categoriesByUserId,
             isSplitValidation,
             job,
             onSplitAnnotationSelected,
             onSplitLinkSelected,
             onFinishSplitValidation,
-            userPages
+            userPages,
+            taxonLabels
         }),
         [
             annotationsByUserId,
+            categoriesByUserId,
             isSplitValidation,
             job,
             onSplitAnnotationSelected,
             onSplitLinkSelected,
             onAddTouchedPage,
             userPages,
-            validatorAnnotations
+            validatorAnnotations,
+            taxonLabels
         ]
     );
 }

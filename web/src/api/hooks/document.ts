@@ -1,6 +1,6 @@
 import {
     FileDocument,
-    Filter,
+    FilterWithDocumentExtraOption,
     Operators,
     PagedResponse,
     QueryHookType,
@@ -21,9 +21,9 @@ export async function documentJobsFetcher(
     page: number = 1,
     size = pageSizes._15,
     search: string = '',
-    filterById: Filter<keyof DocumentJob>[] = []
+    filterById: FilterWithDocumentExtraOption<keyof DocumentJob>[] = []
 ): Promise<PagedResponse<DocumentJob>> {
-    const filters: Filter<keyof DocumentJob>[] = [...filterById];
+    const filters: FilterWithDocumentExtraOption<keyof DocumentJob>[] = [...filterById];
     if (search) {
         filters.push({
             field: 'name',
@@ -74,7 +74,7 @@ export async function documentJobsRevisionsFetcher(
 export function documentNamesFetcher(
     pageNumber = 1,
     pageSize = pageSizes._100,
-    filters: Filter<keyof FileDocument>[],
+    filters: FilterWithDocumentExtraOption<keyof FileDocument>[],
     keyword: string = ''
 ): Promise<PagedResponse<string>> {
     const nameFieldName = 'original_name';
@@ -82,7 +82,7 @@ export function documentNamesFetcher(
         field: nameFieldName,
         direction: SortingDirection.ASC
     };
-    const extraFilters: Filter<keyof FileDocument>[] = [];
+    const extraFilters: FilterWithDocumentExtraOption<keyof FileDocument>[] = [];
     extraFilters.push({
         field: nameFieldName,
         operator: Operators.DISTINCT

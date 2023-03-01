@@ -1,0 +1,10 @@
+.container {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-left: 20px;
+
+  .annotatorName {
+    font-weight: bold;
+  }
+}
