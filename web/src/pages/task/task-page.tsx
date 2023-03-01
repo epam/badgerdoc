@@ -10,7 +10,7 @@ import { useNotifications } from 'shared/components/notifications';
 import { TableAnnotatorContextProvider } from '../../shared/components/annotator/context/table-annotator-context';
 import { DASHBOARD_PAGE, JOBS_PAGE, PREVIOUS_PAGE_JOB } from '../../shared/constants';
 import { BreadcrumbNavigation } from '../../shared/components/breadcrumb';
-import { useNextTask, useSetTaskState } from 'api/hooks/tasks';
+import { useNextAndPreviousTask, useSetTaskState } from 'api/hooks/tasks';
 import { getError } from 'shared/helpers/get-error';
 import { ANNOTATION_PAGE } from 'shared/constants';
 
@@ -19,7 +19,7 @@ const TaskPage: FC = () => {
     const { taskId } = useParams<{ taskId: string }>();
     const history = useHistory<Record<string, string | undefined>>();
     const { notifySuccess, notifyError } = useNotifications();
-    const nextTaskId = useNextTask(taskId).data?.next_task?.id;
+    const nextTaskId = useNextAndPreviousTask(taskId).data?.next_task?.id;
 
     useEffect(() => {
         useSetTaskState({ id: Number(taskId), eventType: 'opened' });

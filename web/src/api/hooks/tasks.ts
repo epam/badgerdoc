@@ -345,7 +345,10 @@ export const useDownloadTaskReport = async (params: TaskReportRequestParams) => 
     return response;
 };
 
-export const useNextTask: QueryHookType<string, { next_task: Task }> = (taskId) => {
+export const useNextAndPreviousTask: QueryHookType<
+    string,
+    { next_task: Task; previous_task: Task }
+> = (taskId) => {
     const userId = useContext(CurrentUser).currentUser?.id ?? '';
 
     return useQuery(
