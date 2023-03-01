@@ -4,6 +4,7 @@ from typing import Any, Callable, Dict, List, Optional
 
 import boto3
 from botocore.client import BaseClient
+from dotenv import load_dotenv
 from mypy_extensions import KwArg, VarArg
 from pydantic import BaseSettings, Field
 from requests import Session
@@ -11,7 +12,6 @@ from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 
 from src import logger
-from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -39,7 +39,7 @@ class Settings(BaseSettings):
     uploading_limit: int = Field(100, env="UPLOADING_LIMIT")
     coco_image_format: str = "jpg"
     dpi: int = 300
-    root_path: Optional[str] = os.getenv("ROOT_PATH")
+    root_path: str = os.environ.get("ROOT_PATH", "")
     assets_service_url: Optional[str] = os.getenv("ASSETS_SERVICE_URL")
     category_service_url: Optional[str] = os.getenv("CATEGORY_SERVICE_URL")
     import_coco_url: Optional[str] = os.getenv("IMPORT_COCO_URL")
@@ -81,12 +81,12 @@ def get_request_session(*args: List[Any], **kwargs: Dict[str, Any]) -> Session:
     Return:
         session object
     """
-    s = Session()
+    session = Session()
     retries = Retry(
         total=3, backoff_factor=1, status_forcelist=[500, 501, 502, 503, 504]
     )
-    s.mount("http://", HTTPAdapter(max_retries=retries))
-    return s
+    session.mount("http://", HTTPAdapter(max_retries=retries))
+    return session
 
 
 settings = Settings()
