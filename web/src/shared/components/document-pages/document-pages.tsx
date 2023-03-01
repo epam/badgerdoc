@@ -25,6 +25,7 @@ import { RelationsPanel } from '../annotator/components/relations-panel/relation
 import styles from './document-pages.module.scss';
 import cn from 'classnames';
 import './react-pdf.scss';
+import ResizableSyncedContainer from './components/ResizableSyncedContainer';
 
 export interface PageSize {
     width: number;
@@ -157,15 +158,6 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
         </div>
     );
 
-    const [height, setHeight] = useState<number>(300);
-
-    const increaseHeight = () => {
-        setHeight((prev) => prev + 50);
-    };
-    const decreaseHeight = () => {
-        setHeight((prev) => prev - 50);
-    };
-
     return (
         <>
             {selectedRelatedDoc ? (
@@ -191,10 +183,7 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                                 styles[`split-document-wrapper--pages-${userPages.length + 1}`]
                             )}
                         >
-                            <SyncedContainer
-                                className={styles['split-document-page']}
-                                height={height}
-                            >
+                            <ResizableSyncedContainer className={styles['split-document-page']}>
                                 <DocumentSinglePage
                                     scale={scale}
                                     pageSize={apiPageSize}
@@ -209,11 +198,7 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                                     onAnnotationRedoPress={onAnnotationRedoPress}
                                     onEmptyAreaClick={onEmptyAreaClick}
                                 />
-                            </SyncedContainer>
-                            <div style={{ display: 'flex' }}>
-                                <button onClick={increaseHeight}>+</button>
-                                <button onClick={decreaseHeight}>-</button>
-                            </div>
+                            </ResizableSyncedContainer>
                             {userPages.map(({ user_id, page_num }) => (
                                 <Fragment key={user_id}>
                                     <SplitAnnotatorInfo
