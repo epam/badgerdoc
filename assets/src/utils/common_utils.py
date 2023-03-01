@@ -308,10 +308,10 @@ class FileConverter:
         try:
             if self.ext == ".html":
                 self.converted_file = self.convert_html()
-            # if self.ext == ".txt":
-            #     self.converted_file = self.convert_txt()
-            if self.ext in settings.gotenberg_formats:
+            if self.ext == ".txt":
                 self.converted_file = self.convert_txt()
+            if self.ext in settings.gotenberg_formats:
+                self.converted_file = self.convert_to_pdf()
             if self.ext in settings.image_formats:
                 self.converted_file = self.convert_to_jpg()
         except exceptions.FileConversionError:
