@@ -48,10 +48,11 @@ export const JobConnector: React.FC<JobDetailViewProps> = ({
     const {
         pageConfig: pageConfigForFiles,
         onPageChange,
-        totalCount,
+        totalCount: totalFilesCount,
         searchText,
         tableValue,
-        onTableValueChange
+        onTableValueChange,
+        onTotalCountChange: onTotalFilesCountChange
     } = usePageTable<FileDocument>('original_name');
 
     const history = useHistory();
@@ -85,7 +86,8 @@ export const JobConnector: React.FC<JobDetailViewProps> = ({
         onPageChange: onTaskPageChange,
         totalCount: totalTaskCount,
         tableValue: taskTableValue,
-        onTableValueChange: onTaskTableValueChange
+        onTableValueChange: onTaskTableValueChange,
+        onTotalCountChange: onTotalTaskCountChange
     } = usePageTable<Task>('id');
 
     const [filesIds, setFilesIds] = useState<Array<number>>([]);
@@ -112,6 +114,12 @@ export const JobConnector: React.FC<JobDetailViewProps> = ({
         { cacheTime: 0 }
     );
 
+    useEffect(() => {
+        if (files?.pagination.total) {
+            onTotalFilesCountChange(files?.pagination.total);
+        }
+    }, [files]);
+
     const {
         data: tasks,
         refetch: refetchTasks,
@@ -126,6 +134,12 @@ export const JobConnector: React.FC<JobDetailViewProps> = ({
         },
         { cacheTime: 0 }
     );
+
+    useEffect(() => {
+        if (tasks?.pagination.total) {
+            onTotalTaskCountChange(tasks?.pagination.total);
+        }
+    }, [tasks]);
 
     const startJobMutation = useStartJobMutation();
 
@@ -292,7 +306,7 @@ export const JobConnector: React.FC<JobDetailViewProps> = ({
                         value={tableValue}
                         onValueChange={onTableValueChange}
                         columns={columnsFiles}
-                        totalCount={totalCount}
+                        totalCount={totalFilesCount}
                         onPageChange={onPageChange}
                     />
                 )}

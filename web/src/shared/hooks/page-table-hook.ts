@@ -21,7 +21,7 @@ export const usePageTable = <T, TFilter = TableFilters<T>>(item: keyof T) => {
         field: item,
         direction: SortingDirection.DESC
     });
-    const [totalCount, onTotalCountChange] = useState<number>(1);
+    const [totalCount, setTotalCount] = useState<number>(1);
     const [searchText, setSearchText] = useState<string>('');
     const [tableValue, onTableValueChange] = useState<DataSourceState<TFilter>>({});
     const [filters, setF] = React.useState<Array<FilterWithDocumentExtraOption<keyof T>>>([]);
@@ -34,6 +34,14 @@ export const usePageTable = <T, TFilter = TableFilters<T>>(item: keyof T) => {
     );
 
     const setFilters = useCallback(getFiltersSetter<T>(filters, setF), [filters]);
+
+    const onTotalCountChange = (value: number | undefined) => {
+        if (value && value >= 1) {
+            setTotalCount(value);
+        } else {
+            setTotalCount(1);
+        }
+    };
 
     return useMemo(
         () => ({
