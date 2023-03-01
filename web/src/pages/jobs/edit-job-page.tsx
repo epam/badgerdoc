@@ -7,7 +7,7 @@ import Wizard, {
     WizardPropsStep
 } from '../../shared/components/wizard/wizard/wizard';
 import { DocumentsTableConnector } from '../../connectors';
-import { DOCUMENTS_PAGE } from '../../shared/constants';
+import { JOBS_PAGE } from '../../shared/constants';
 import { useJobById } from 'api/hooks/jobs';
 import EditJobConnector from '../../connectors/edit-job-connector/edit-job-connector';
 
@@ -34,7 +34,7 @@ export const EditJobPage = () => {
     }, [job]);
 
     const handleJobAdded = (id: number) => {
-        history.push(`${id}`);
+        history.push(`${JOBS_PAGE}/${id}`);
     };
 
     useEffect(() => {
@@ -115,5 +115,5 @@ export const EditJobPage = () => {
             )
         }
     ];
-    return <Wizard steps={steps} returnUrl={DOCUMENTS_PAGE} stepIndex={stepIndex} />;
+    return <Wizard steps={steps} returnUrl={`${JOBS_PAGE}/${jobId}`} stepIndex={stepIndex} />;
 };
