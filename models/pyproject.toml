@@ -36,8 +36,8 @@ SQLAlchemy-Utils = "0.39.0"
 [tool.isort]
 profile = "black"
 
-#[build-system]
-#requires = ["poetry-core>=1.0.0"]
-#build-backend = "poetry.core.masonry.api"
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
