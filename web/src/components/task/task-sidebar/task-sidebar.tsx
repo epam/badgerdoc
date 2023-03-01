@@ -230,7 +230,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode }) => {
             jobId,
             categoryId: selectedAnnotation?.category!
         },
-        { enabled: !!dataAttrsWithTaxonomy }
+        { enabled: !!dataAttrsWithTaxonomy?.length }
     );
 
     const cellsItems: {
