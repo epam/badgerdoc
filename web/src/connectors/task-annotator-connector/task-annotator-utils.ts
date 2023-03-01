@@ -8,6 +8,7 @@ import {
     ExternalViewerState,
     Taxon
 } from 'api/typings';
+import { AnnotationAllUsersObject } from 'api/hooks/annotations';
 
 import { Annotation, AnnotationBoundType, AnnotationTable, PageToken, TableApi } from 'shared';
 import { isIntersected, isR2InsideR1 } from 'shared/components/annotator/utils/is-intersected';
@@ -340,4 +341,16 @@ export const mapTokenPagesFromApi = (
         });
     });
     return res;
+};
+
+export const mapAnnotationsByUsers = (annotations?: AnnotationAllUsersObject) => {
+    if (annotations) {
+        const userAnnotationResult = new Map();
+        Object.values(annotations).map((annotationData) => {
+            annotationData?.map((annotation) => {
+                userAnnotationResult.set(annotation.page_num, annotation.user_id);
+            });
+        });
+        return userAnnotationResult;
+    }
 };

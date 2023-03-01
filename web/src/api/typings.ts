@@ -473,3 +473,15 @@ export type Report = {
     to: string;
     validationType: ValidationType | undefined;
 };
+
+export type AnnotationUserRevision = {
+    categories: string[];
+    date: string;
+    is_validated: boolean;
+    objs: PageInfoObjs;
+    page_num: number;
+    pipeline: number | null;
+    revision: string;
+    size: { width: number; height: number };
+    user_id?: string | null;
+};

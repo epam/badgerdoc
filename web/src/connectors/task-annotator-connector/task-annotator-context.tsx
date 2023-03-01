@@ -14,6 +14,7 @@ import { ApiError } from 'api/api-error';
 import {
     DocumentLink,
     useAddAnnotationsMutation,
+    useAnnotationsAllUsers,
     useLatestAnnotations
 } from 'api/hooks/annotations';
 import { useSetTaskFinishedMutation, useSetTaskState, useTaskById } from 'api/hooks/tasks';
@@ -61,6 +62,7 @@ import {
     getCategoryDataAttrs,
     isValidCategoryType,
     mapAnnDataAttrs,
+    mapAnnotationsByUsers,
     mapAnnotationDataAttrsFromApi,
     mapModifiedAnnotationPagesToApi,
     mapTokenPagesFromApi
@@ -149,6 +151,7 @@ type ContextValue = SplitValidationValue &
         isDocLabelsModified: boolean;
         getJobId: () => number | undefined;
         linksFromApi?: DocumentLink[];
+        allUsersAnnotation?: Map<number, string> | undefined;
     };
 
 type ProviderProps = {
@@ -326,6 +329,14 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
                 job?.validation_type === 'extensive_coverage' && !revisionId ? task?.user_id : ''
         },
         { enabled: !!(task || job) }
+    );
+
+    const allUsersAnnotation = mapAnnotationsByUsers(
+        useAnnotationsAllUsers({
+            jobId: getJobId(),
+            fileId: getFileId(),
+            pageNumbers: pageNumbers
+        })?.data
     );
 
     const tokenRes = useTokens(
@@ -1066,6 +1077,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             latestLabelsId,
             setLatestLabelsId,
             linksFromApi,
+            allUsersAnnotation,
             ...splitValidation,
             ...syncScroll,
             ...documentLinksValues,

@@ -88,7 +88,8 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
         documentLinks,
         onLinkChanged,
         selectedRelatedDoc,
-        sortedUsers
+        allUsersAnnotation,
+        job
     } = useTaskAnnotatorContext();
 
     const containerRef = useRef<HTMLDivElement>(null);
@@ -100,9 +101,8 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
     const selectedLabelsId = selectedLabels?.map(({ id }) => id) || [];
 
     const getAnnotatorName = useCallback(
-        (annotatorId: string): string =>
-            sortedUsers.current.annotators.find(({ id }) => id === annotatorId)?.username || '',
-        [sortedUsers]
+        (annotatorId: string): string => job?.annotators.find((el) => el === annotatorId) || '',
+        [job]
     );
 
     useEffect(() => {
@@ -157,6 +157,15 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
         </div>
     );
 
+    const displayAnnotatorInfo = (userId?: string) =>
+        task?.is_validation && (
+            <SplitAnnotatorInfo
+                annotatorName={getAnnotatorName(userId || '')}
+                labels={categoriesByUserId?.userId}
+                selectedLabelsId={selectedLabelsId}
+            />
+        );
+
     return (
         <>
             {selectedRelatedDoc ? (
@@ -200,11 +209,7 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                             </SyncedContainer>
                             {userPages.map(({ user_id, page_num }) => (
                                 <Fragment key={user_id}>
-                                    <SplitAnnotatorInfo
-                                        annotatorName={getAnnotatorName(user_id)}
-                                        labels={categoriesByUserId[user_id]}
-                                        selectedLabelsId={selectedLabelsId}
-                                    />
+                                    {displayAnnotatorInfo(user_id)}
                                     <SyncedContainer className={styles['split-document-page']}>
                                         <DocumentSinglePage
                                             annotations={annotationsByUserId[user_id]}
@@ -289,6 +294,9 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                                         {pageNumbers.map((pageNum) => {
                                             return (
                                                 <Fragment key={pageNum}>
+                                                    {displayAnnotatorInfo(
+                                                        allUsersAnnotation?.get(pageNum)
+                                                    )}
                                                     <DocumentSinglePage
                                                         scale={scale}
                                                         pageSize={apiPageSize}
@@ -322,6 +330,9 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                                     {pageNumbers.map((pageNum) => {
                                         return (
                                             <Fragment key={pageNum}>
+                                                {displayAnnotatorInfo(
+                                                    allUsersAnnotation?.get(pageNum)
+                                                )}
                                                 <DocumentSinglePage
                                                     scale={scale}
                                                     pageSize={apiPageSize}
