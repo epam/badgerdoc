@@ -188,6 +188,7 @@ class JobPatchSchema(BaseModel):
     datasets: Set[int] = Field(None, example={1, 2, 3})
     categories: Set[str] = Field(None, example={"1", "2"})
     deadline: datetime = Field(None, example="2021-10-19 01:01:01")
+    extensive_coverage: int = Field(None, example=1)
 
 
 class JobOutSchema(BaseModel):
