@@ -14,9 +14,11 @@ TEST_PDF = TEST_FILES_DIR / "test.pdf"
 
 CONVERT_RESULT_FIRST_LETTER = BadgerdocToken(
     type_="text",
-    bbox=[15.0, 16.386000000000003, 21.6, 27.386000000000003],
-    text="w",
-    offset=Offset(begin=0, end=1),
+    bbox=[65.8, 58.49276377952799, 71.8, 70.49276377952799],
+    text="1",
+    offset=Offset(begin=3, end=4),
+    previous="   ",
+    after=" ",
 )
 
 
