@@ -410,6 +410,8 @@ export type PageInfoObjs = {
     bbox: number[];
     category?: number | string;
     text?: string;
+    previous?: string;
+    after?: string;
     data?: any;
     links?: Link[];
     children?: number[] | string[];

@@ -129,6 +129,8 @@ export type EditableAnnotationRenderer = (
 export type PageToken = {
     id?: number;
     text: string;
+    previous?: string;
+    after?: string;
     style?: Pick<React.CSSProperties, 'background' | 'opacity'>;
 } & Bound;
 

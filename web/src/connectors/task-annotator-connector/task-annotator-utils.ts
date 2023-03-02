@@ -96,6 +96,13 @@ const addTableValues = (ann: Annotation): TableApi => {
     };
 };
 
+const createText = (token: PageInfoObjs | PageToken) => {
+    const previousSymbol = token?.previous || '';
+    const afterSymbol = token?.after || '';
+    const text = token?.text || '';
+    return previousSymbol + text + afterSymbol;
+};
+
 const mapAnnotationToApi = (
     ann: Annotation,
     annotationDataAttrs: Record<number, Array<CategoryDataAttributeWithValue>>,
@@ -112,11 +119,11 @@ const mapAnnotationToApi = (
         : [];
     // TODO: if no tokens are available, inform user?
     const tokensByAnnotation = ann.tokens
-        ? ann.tokens?.map((token) => token.text).join(' ')
+        ? ann.tokens?.map(createText).join('')
         : (tokens ?? [])
               .filter((token) => isIntersected(tokenToRect(token), annotationToRect(ann)))
-              .map((token) => token?.text)
-              .join(' ');
+              .map(createText)
+              .join('');
 
     if (ann.boundType === 'table') {
         const cells: PageInfoObjs[] = [...(ann.tableCells as Annotation[])].map((el) => ({
@@ -324,7 +331,7 @@ export const mapAnnotationDataAttrsFromApi = (annotationsPages: PageInfo[]) => {
 const mapTokenFromApi = (obj: PageInfoObjs, id: number, scale: number): PageToken => {
     return {
         id,
-        text: obj.text!,
+        text: createText(obj),
         ...bboxToBound(obj.bbox, scale)
     };
 };
