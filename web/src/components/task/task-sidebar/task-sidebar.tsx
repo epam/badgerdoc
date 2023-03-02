@@ -36,13 +36,15 @@ import { ReactComponent as SplitIcon } from '@epam/assets/icons/common/editor-ta
 
 import styles from './task-sidebar.module.scss';
 import { getCategoryDataAttrs } from 'connectors/task-annotator-connector/task-annotator-utils';
+import { FinishButton } from './finish-button';
 
 type TaskSidebarProps = {
     jobSettings?: ReactElement;
     viewMode: boolean;
+    isNextTaskPresented?: boolean;
 };
 
-const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode }) => {
+const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPresented }) => {
     const {
         annDataAttrs,
         task,
@@ -565,35 +567,20 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode }) => {
                     />
                 </Tooltip>
             )}
-            {isValidation && (
-                <Tooltip
-                    content={
-                        allValidated && !splitValidation
-                            ? ''
-                            : 'Please validate all page to finish task. Remaining pages: ' +
-                              notProcessedPages?.join(', ')
-                    }
-                >
-                    <Button
-                        cx={styles['button-finish']}
-                        caption={'FINISH VALIDATION'}
-                        isDisabled={
-                            (!allValidated && !touchedPages.length && !editedPages.length) ||
-                            !isAnnotatable
-                        }
-                        captionCX
-                        onClick={splitValidation ? onFinishSplitValidation : onFinishValidation}
-                    />
-                </Tooltip>
-            )}
-            {!viewMode && !isValidation && (
-                <Button
-                    cx={styles['button-finish']}
-                    caption={'FINISH LABELING'}
-                    onClick={onAnnotationTaskFinish}
-                    isDisabled={!isAnnotatable}
-                />
-            )}
+            <FinishButton
+                viewMode={viewMode}
+                isAnnotatable={isAnnotatable}
+                allValidated={allValidated}
+                isNextTaskPresented={isNextTaskPresented}
+                isValidation={Boolean(isValidation)}
+                isSplitValidation={Boolean(splitValidation)}
+                editedPagesCount={editedPages.length}
+                touchedPagesCount={touchedPages.length}
+                notProcessedPages={notProcessedPages}
+                onFinishValidation={onFinishValidation}
+                onAnnotationTaskFinish={onAnnotationTaskFinish}
+                onFinishSplitValidation={onFinishSplitValidation}
+            />
         </div>
     );
 };
