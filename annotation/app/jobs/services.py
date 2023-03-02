@@ -234,6 +234,24 @@ def update_job_categories(
         patch_data["categories"] = new_categories
 
 
+def validate_job_extensive_coverage(
+    patch_data: dict,
+    job: Job,
+) -> None:
+    extensive_coverage = patch_data.get('extensive_coverage')
+    if extensive_coverage:
+        if patch_data['annotators']:
+            annotators = patch_data['annotators']
+        else:
+            annotators = job.annotators
+        if len(annotators) < extensive_coverage:
+            raise FieldConstraintError(
+                "If the validation type is extensive_coverage number of "
+                "annotators should equal or less then provided "
+                "extensive_coverage number."
+            )
+
+
 def update_job_files(
     db: Session, patch_data: dict, job_id: int, tenant: str, token: str
 ) -> None:

@@ -69,6 +69,7 @@ from .services import (
     update_job_categories,
     update_job_files,
     update_jobs_users,
+    validate_job_extensive_coverage,
 )
 
 logger = app_logger.Logger
@@ -254,6 +255,7 @@ def update_job(
         is_manual,
     )
     update_job_categories(db, patch_data, x_current_tenant)
+    validate_job_extensive_coverage(patch_data, job)
     for field, value in patch_data.items():
         setattr(job, field, value)
     db.flush()

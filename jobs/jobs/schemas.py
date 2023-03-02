@@ -285,6 +285,7 @@ class JobParamsToChange(BaseModel):
     categories: Optional[List[Union[str, CategoryLinkInput]]]
     deadline: Optional[datetime]
     validation_type: Optional[ValidationType]
+    extensive_coverage: Optional[int]
     # ---- ExtractionJob and ExtractionWithAnnotationJob attributes ---- #
     pipeline_id: Optional[int]
     # ----- ImportJob attributes ---- #
@@ -300,6 +301,7 @@ class AnnotationJobUpdateParamsInAnnotation(BaseModel):
     owners: Optional[List[str]]
     categories: Optional[List[str]]
     deadline: Optional[datetime]
+    extensive_coverage: Optional[int]
 
 
 class JobProgress(BaseModel):
