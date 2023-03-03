@@ -7,7 +7,9 @@ from src.converters.base_format.models.annotation import (
     Page,
     Size,
 )
-from src.converters.base_format.models.tokens import Page as BadgerdocTokensPage
+from src.converters.base_format.models.tokens import (
+    Page as BadgerdocTokensPage,
+)
 
 from .annotation_converter_practic import AnnotationConverterPractic
 from .models.annotation import Annotation, LabelStudioModel, ResultItem

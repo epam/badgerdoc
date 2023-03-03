@@ -103,3 +103,38 @@ def test_annotation_converter_case_without_taxonomies_and_document_labels() -> N
         str(relation)
         for relation in labelstudio_model_test.__root__[0].meta.relations
     )
+
+
+@responses.activate
+def test_annotation_converter_case_without_export_labelstudio():
+    responses.post(
+        "http://dev2.badgerdoc.com/api/v1/annotation/jobs/1070/categories/search",
+        json={"data": []},
+    )
+    tokens_test = Page.parse_file(
+        TEST_FILES_DIR
+        / "badgerdoc_etalon"
+        / "tokens_test_without_whitespaces.json"
+    )
+    manifest_test = manifest.Manifest.parse_file(
+        TEST_FILES_DIR / "badgerdoc_etalon" / "manifest.json"
+    )
+    annotations_test = (
+        annotation_converter_practic.AnnotationConverterToTheory(
+            annotation_practic.BadgerdocAnnotation.parse_file(
+                TEST_FILES_DIR
+                / "badgerdoc_etalon"
+                / "annotations_test_empty.json"
+            )
+        ).convert()
+    )
+
+    ls_format_test = LabelStudioFormat()
+    ls_format_test.from_badgerdoc(
+        badgerdoc_annotations=annotations_test,
+        badgerdoc_tokens=tokens_test,
+        badgerdoc_manifest=manifest_test,
+        request_headers={},
+    )
+    labelstudio_model_test = ls_format_test.labelstudio_data
+    assert ls_format_test.labelstudio_data.__root__[0].data.text == "All "

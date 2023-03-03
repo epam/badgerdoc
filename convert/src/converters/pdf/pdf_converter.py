@@ -9,6 +9,7 @@ from src.converters.base_format.models.tokens import (
     Page,
     PageSize,
 )
+from src.converters.utils import filter_printing_tokens
 
 
 class PlainPDFToBadgerdocTokensConverter:
@@ -39,7 +40,7 @@ class PlainPDFToBadgerdocTokensConverter:
             self.offset += 1
         return tokens
 
-    def convert_page(self, page):
+    def convert_page(self, page: Page) -> List[BadgerdocToken]:
         tokens = []
         self.page_size = PageSize(width=page.width, height=page.height)
         for element in page:
@@ -49,7 +50,7 @@ class PlainPDFToBadgerdocTokensConverter:
                 if not isinstance(line, LTTextLineHorizontal):
                     continue
                 tokens.extend(self.convert_line(line))
-        return tokens
+        return filter_printing_tokens(tokens)
 
     def convert(self, plain_pfd) -> List[Page]:
         with open(plain_pfd, mode="rb") as pdf_obj:
