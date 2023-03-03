@@ -53,7 +53,8 @@ class ImportConvertBase:
                 pages = [json.load(f_o)]
             body = {"pages": pages, "pipeline": 1, "validated": [1]}
             response = SESSION.post(
-                url=f"{settings.annotation_service_url}annotation/{job_id}/{annotation_by_image[file_id]}",
+                url=f"{settings.annotation_service_url}annotation/{job_id}/"
+                f"{annotation_by_image[file_id]}",
                 headers=headers,
                 json=body,
             )

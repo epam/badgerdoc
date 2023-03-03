@@ -131,7 +131,8 @@ class AnnotationConverter:
         )
         if not source_obj or not target_obj:
             raise KeyError(
-                "Can't find tokens during creation links for badgerdoc annotations"
+                "Can't find tokens during creation links for badgerdoc "
+                "annotations"
             )
 
         link_label = "Link"

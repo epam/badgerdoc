@@ -9,7 +9,8 @@ class Info(BaseModel):
     year: int = datetime.now().year
     version: str = Field(description="Version of the dataset")
     description: str = Field(
-        default=f"This dataset was created by BadgerDoc team in {datetime.now().year}",
+        default=f"This dataset was created by BadgerDoc "
+        f"team in {datetime.now().year}",
         description="The description of the dataset",
     )
     contributor: str = "EPAM Systems, BadgerDoc"

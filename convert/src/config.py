@@ -66,7 +66,10 @@ def singleton(
     instances = {}
 
     def getinstance(*args: List[Any], **kwargs: Dict[str, Any]) -> Any:
-        """Sets the possibility of creating an instance of the class in the singular"""
+        """
+        Sets the possibility of creating an instance of the
+        class in the singular
+        """
         if class_ not in instances:
             instances[class_] = class_(*args, **kwargs)
         return instances[class_]
