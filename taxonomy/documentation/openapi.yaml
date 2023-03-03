@@ -48,6 +48,57 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+  /taxons/batch:
+    post:
+      tags:
+      - Taxon
+      summary: Save several taxons and return saved.
+      operationId: save_taxons_taxons_batch_post
+      parameters:
+      - required: true
+        schema:
+          title: X-Current-Tenant
+          type: string
+        example: test
+        name: X-Current-Tenant
+        in: header
+      requestBody:
+        content:
+          application/json:
+            schema:
+              title: Taxons
+              type: array
+              items:
+                $ref: '#/components/schemas/TaxonInputSchema'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                title: Response Save Taxons Taxons Batch Post
+                type: array
+                items:
+                  $ref: '#/components/schemas/TaxonResponseSchema'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectionErrorSchema'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestErrorSchema'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
   /taxons/{taxon_id}:
     get:
       tags:

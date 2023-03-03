@@ -664,3 +664,122 @@ def test_get_parents_concatenated(
     assert prepare_parents_concatenate_expected_response(
         taxons_search_from
     ) == sorted(response.json(), key=lambda x: x["taxon_id"])
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize(
+    ["taxons", "expected"],
+    [
+        pytest.param(
+            (
+                # taxon name, taxon id, parent id
+                ("name_1", "id_1", None),
+                ("name_2", "id_2", "id_1"),
+                ("name_3", "id_3", "id_2"),
+            ),
+            (
+                # taxon name, taxon id
+                ("name_1", "id_1"),
+                ("name_2", "id_2"),
+                ("name_3", "id_3"),
+            ),
+            id="taxons with normal order",
+        ),
+        pytest.param(
+            (
+                ("name_3", "id_3", "id_2"),
+                ("name_2", "id_2", "id_1"),
+                ("name_1", "id_1", None),
+            ),
+            (
+                ("name_1", "id_1"),
+                ("name_2", "id_2"),
+                ("name_3", "id_3"),
+            ),
+            id="taxons with missing order",
+        ),
+        pytest.param(
+            (
+                ("name_1", "id_1", None),
+                ("name_2", "id_2", None),
+                ("name_3", "id_3", None),
+            ),
+            (
+                ("name_1", "id_1"),
+                ("name_2", "id_2"),
+                ("name_3", "id_3"),
+            ),
+            id="taxons without parents",
+        ),
+        pytest.param(
+            (
+                ("name_1", "id_1", "australia"),
+                ("name_2", "id_2", None),
+                ("name_3", "id_3", None),
+            ),
+            (
+                ("name_1", "id_1"),
+                ("name_2", "id_2"),
+                ("name_3", "id_3"),
+            ),
+            id="taxon whose parent is off the list",
+        ),
+        pytest.param(
+            (
+                ("name_1", "id_1", None),
+                ("name_2", "id_2", None),
+                ("name_1", "id_1", None),
+            ),
+            (
+                ("name_1", "id_1"),
+                ("name_2", "id_2"),
+            ),
+            id="two identical taxons",
+        ),
+        pytest.param(
+            (
+                ("name_1", "id_1", "id_2"),
+                ("name_2", "id_2", "id_1"),
+                ("name_3", "id_3", None),
+            ),
+            (("name_3", "id_3"),),
+            id="taxons with cycle hierarchy",
+        ),
+    ],
+)
+def test_save_taxons(
+    overrided_token_client,
+    prepared_taxonomy_record_in_db,
+    common_taxon,
+    taxons,
+    expected,
+):
+    data = [
+        prepare_taxon_body(
+            name=taxon[0],
+            id_=taxon[1],
+            parent_id=taxon[2],
+            taxonomy_id=prepared_taxonomy_record_in_db.id,
+            taxonomy_version=prepared_taxonomy_record_in_db.version,
+        )
+        for taxon in taxons
+    ]
+
+    response = overrided_token_client.post(
+        f"{TAXON_PATH}/batch", json=data, headers=TEST_HEADER
+    )
+
+    assert response.status_code == 201
+
+    result = response.json()
+    for result_taxon in result:
+        result_taxon.pop("taxonomy_id")
+        result_taxon.pop("parent_id")
+        result_taxon.pop("taxonomy_version")
+        result_taxon.pop("parents")
+        result_taxon.pop("is_leaf")
+    expected_taxons = [
+        {"name": taxon_name, "id": taxon_id}
+        for taxon_name, taxon_id in expected
+    ]
+    assert result == expected_taxons

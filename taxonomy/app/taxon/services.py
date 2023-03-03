@@ -1,4 +1,5 @@
 import uuid
+from copy import deepcopy
 from typing import Dict, List, Optional, Set, Tuple, Union
 
 from filter_lib import Page, form_query, map_request_to_filter, paginate
@@ -9,6 +10,7 @@ from sqlalchemy_utils import Ltree
 
 from app.errors import CheckFieldError, NoTaxonError, SelfParentError
 from app.filters import TaxonFilter
+from app.logging_setup import LOGGER
 from app.models import Taxon
 from app.schemas import (
     ParentsConcatenateResponseSchema,
@@ -349,3 +351,58 @@ def concatenated_parents_list(
         )
         for taxon in taxons
     ]
+
+
+def sort_taxons(taxons: List[TaxonInputSchema]) -> List[TaxonInputSchema]:
+    unsorted_taxons = deepcopy(taxons)
+    sorted_taxons = []
+    used_taxons = set()
+    taxon_dict = {taxon.id: taxon for taxon in taxons}
+
+    is_sort_nedeed = True
+    while is_sort_nedeed:
+        is_sort_nedeed = False
+        for taxon in unsorted_taxons:
+            if taxon.id in used_taxons:
+                continue
+
+            parent_taxon = taxon_dict.get(taxon.parent_id)
+            if not parent_taxon:
+                sorted_taxons.append(taxon)
+                used_taxons.add(taxon.id)
+                continue
+
+            if parent_taxon.parent_id == taxon.id:
+                LOGGER.error(
+                    f"Taxons id '{taxon.id}' and id '{parent_taxon.id}' "
+                    "have cycle in hierarchy"
+                )
+                used_taxons.add(parent_taxon.id)
+                used_taxons.add(taxon.id)
+                continue
+
+            sorted_taxons.append(parent_taxon)
+            used_taxons.add(parent_taxon.id)
+            sorted_taxons.append(taxon)
+            used_taxons.add(taxon.id)
+            if (
+                taxon_dict.get(parent_taxon.parent_id)
+                and taxon_dict.get(parent_taxon.parent_id).id
+                in taxon_dict.keys()
+                and taxon_dict.get(parent_taxon.parent_id).id
+                not in used_taxons
+            ):
+                is_sort_nedeed = True
+                sorted_taxons.extend(
+                    [
+                        left_taxon
+                        for left_taxon in unsorted_taxons
+                        if left_taxon.id not in used_taxons
+                    ]
+                )
+                unsorted_taxons = deepcopy(sorted_taxons)
+                sorted_taxons = []
+                used_taxons = set()
+                break
+
+    return sorted_taxons

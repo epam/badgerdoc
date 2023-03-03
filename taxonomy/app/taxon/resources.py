@@ -6,8 +6,9 @@ from sqlalchemy.orm import Session
 from sqlalchemy_filters.exceptions import BadFilterFormat
 
 from app.database import get_db
-from app.errors import NoTaxonError
+from app.errors import CheckFieldError, NoTaxonError, SelfParentError
 from app.filters import TaxonFilter
+from app.logging_setup import LOGGER
 from app.microservice_communication.search import X_CURRENT_TENANT_HEADER
 from app.schemas import (
     BadRequestErrorSchema,
@@ -27,6 +28,7 @@ from app.taxon.services import (
     fetch_taxon_db,
     filter_taxons,
     insert_taxon_tree,
+    sort_taxons,
     update_taxon_db,
 )
 
@@ -53,6 +55,37 @@ def save_taxon(
 ) -> TaxonResponseSchema:
     taxon_db = add_taxon_db(db, taxon, x_current_tenant)
     return TaxonResponseSchema.from_orm(taxon_db)
+
+
+@router.post(
+    "/batch",
+    status_code=status.HTTP_201_CREATED,
+    response_model=List[TaxonResponseSchema],
+    responses={
+        400: {"model": BadRequestErrorSchema},
+    },
+    summary="Save several taxons and return saved.",
+)
+def save_taxons(
+    taxons: List[TaxonInputSchema],
+    db: Session = Depends(get_db),
+    x_current_tenant: str = X_CURRENT_TENANT_HEADER,
+) -> List[TaxonResponseSchema]:
+    taxons_db = []
+
+    sorted_taxons = sort_taxons(taxons)
+
+    for taxon in sorted_taxons:
+        try:
+            taxon_db = add_taxon_db(db, taxon, x_current_tenant)
+        except (CheckFieldError, SelfParentError):
+            LOGGER.exception(
+                f"Failed to save taxon '{taxon.name}' with id {taxon.id}"
+            )
+        else:
+            taxons_db.append(taxon_db)
+
+    return [TaxonResponseSchema.from_orm(taxon_db) for taxon_db in taxons_db]
 
 
 @router.get(
