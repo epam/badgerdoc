@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 
 interface SyncedContainerProps {
     className?: string;
+    height?: number;
 }
 
 export interface SyncScrollValue {
@@ -37,13 +38,13 @@ export default function useSyncScroll(): SyncScrollValue {
     }, []);
 
     const SyncedContainer = useCallback<React.FC<SyncedContainerProps>>(
-        ({ children, className }) => {
+        ({ children, className, height }) => {
             const ref = useRef<HTMLDivElement | null>(null);
 
             useEffect(() => syncScroll(ref.current), []);
 
             return (
-                <div ref={ref} className={className}>
+                <div ref={ref} className={className} style={{ height: `${height}px` }}>
                     {children}
                 </div>
             );
