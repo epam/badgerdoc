@@ -4,7 +4,7 @@ on:
   pull_request:
     paths:
       - convert/**
-      - .github/worlflows/convert.yml
+      - .github/workflows/convert.yml
 jobs:
   convert-pre-commit-actions:
     strategy:
