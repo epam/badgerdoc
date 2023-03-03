@@ -51,7 +51,7 @@ def test_correctness_of_export_text_schema(
 
 
 @responses.activate
-def test_annotation_converter_case_without_taxonomies_and_document_labels() -> None:  # noqa
+def test_annotation_converter_without_taxonomies_and_document_labels() -> None:
     responses.post(
         "http://dev2.badgerdoc.com/api/v1/annotation/jobs/1070/categories/search",  # noqa
         json={"data": []},

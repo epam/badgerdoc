@@ -51,4 +51,6 @@ jobs:
           python -m pip install --upgrade pip
           cd convert
           poetry install --all-extras
+          poetry add --editable ../lib/filter_lib
+          poetry add --editable ../lib/tenants
           poetry run pytest
