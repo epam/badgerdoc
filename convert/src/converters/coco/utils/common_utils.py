@@ -2,9 +2,8 @@ import os
 from typing import Any, Dict, List
 from zipfile import ZipFile
 
-from exceptions import UploadLimitExceedError
-
 from src.config import settings
+from src.converters.coco.exceptions import UploadLimitExceedError
 
 
 def check_uploading_limit(files_list: List[str]) -> Any:

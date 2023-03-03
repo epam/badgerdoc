@@ -4,10 +4,10 @@ from typing import Any, Dict, List, Type
 from zipfile import ZipFile
 
 from fastapi import BackgroundTasks
-from utils.s3_utils import convert_bucket_name_if_s3prefix
 
-from convert import ExportConvertBase
 from src.config import minio_client
+from src.converters.coco.coco_export.convert import ExportConvertBase
+from src.converters.coco.utils.s3_utils import convert_bucket_name_if_s3prefix
 from src.logger import get_logger
 
 LOGGER = get_logger(__file__)
