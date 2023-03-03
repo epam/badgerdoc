@@ -166,6 +166,7 @@ def validate_user_actions(
     failed: Set[int],
     annotated: Set[int],
     not_processed: Set[int],
+    categories: List[str],
     annotation_user: bool,
     validation_user: bool,
 ):
@@ -191,7 +192,7 @@ def validate_user_actions(
             "should be null.",
         )
 
-    if is_validation and not annotated and validation_user:
+    if is_validation and not (annotated or categories) and validation_user:
         raise HTTPException(
             status_code=400,
             detail="Validator did not edit any pages, "

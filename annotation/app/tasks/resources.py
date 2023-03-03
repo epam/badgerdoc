@@ -867,8 +867,10 @@ def finish_task(
         db, x_current_tenant, task.job_id, task_id, task.file_id, task.pages
     )
     # accumulate info about pages, validated/annotated by him
-    validated, failed, annotated, not_processed, *_ = accumulate_pages_info(
-        task.pages, revisions, unique_status=True
+    validated, failed, annotated, not_processed, categories, _ = (
+        accumulate_pages_info(
+            task.pages, revisions, unique_status=True
+        )
     )
     # if same pages were annotated and marked as failed
     # it means, that these pages are edited by validator
@@ -881,12 +883,13 @@ def finish_task(
     annotated = annotated.difference(validated)
 
     validate_user_actions(
-        task.is_validation,
-        failed,
-        annotated,
-        not_processed,
-        annotation_user,
-        validation_user,
+        is_validation=task.is_validation,
+        failed=failed,
+        annotated=annotated,
+        not_processed=not_processed,
+        categories=categories,
+        annotation_user=annotation_user,
+        validation_user=validation_user,
     )
     job = get_job(db, task.job_id, x_current_tenant)
     if task.is_validation:
