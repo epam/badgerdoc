@@ -297,6 +297,7 @@ def test_file_processor_is_converted_file_conversion_error(
 
 
 @patch("src.utils.common_utils.requests.post")
+@patch("src.utils.common_utils.FileConverter.convert")
 def test_file_processor_is_converted_file_conversion_not_in_formats(
     gotenberg, pdf_file_bytes
 ):
