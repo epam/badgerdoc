@@ -1,4 +1,3 @@
-import pytest
 from _pytest.monkeypatch import MonkeyPatch
 from starlette.testclient import TestClient
 

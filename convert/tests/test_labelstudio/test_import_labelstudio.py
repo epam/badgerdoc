@@ -2,7 +2,6 @@ import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-import pytest
 from _pytest.monkeypatch import MonkeyPatch
 from starlette.testclient import TestClient
 

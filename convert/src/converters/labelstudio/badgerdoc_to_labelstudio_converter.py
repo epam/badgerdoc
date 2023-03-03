@@ -99,7 +99,7 @@ class BadgerdocToLabelstudioConverter:
 
             page = Page.parse_file(input_tokens)
             annotation = AnnotationConverterToTheory(
-                practic_annotations=annotation_practic.BadgerdocAnnotation.parse_file(
+                practic_annotations=annotation_practic.BadgerdocAnnotation.parse_file(  # noqa
                     input_annotations
                 )
             ).convert()
@@ -137,6 +137,7 @@ class BadgerdocToLabelstudioConverter:
 
 class LabelStudioFormat:
     DEFAULT_ID_FOR_ONE_ANNOTATION = 1
+
     # TODO: support more than 1 page
     def __init__(self) -> None:
         self.labelstudio_data = LabelStudioModel()
@@ -183,9 +184,9 @@ class LabelStudioFormat:
             categories_linked_with_taxonomies,
         )
 
-        categories_to_taxonomy_mapping = self.create_categories_to_taxonomy_mapping(
+        categories_to_taxonomy_mapping = self.create_categories_to_taxonomy_mapping(  # noqa
             job_id=job_id,
-            categories_linked_with_taxonomies=categories_linked_with_taxonomies,
+            categories_linked_with_taxonomies=categories_linked_with_taxonomies,  # noqa
             request_headers=request_headers,
         )
         annotation = Annotation(
@@ -304,11 +305,13 @@ class LabelStudioFormat:
             request_to_get_categories.raise_for_status()
         except requests.exceptions.RequestException as exception:
             LOGGER.exception(
-                "Failed request to 'annotation' to get all categories for specific job"
+                "Failed request to 'annotation' to get all categories for "
+                "specific job"
             )
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail="Failed request to 'annotation' to get all categories for specific job",
+                detail="Failed request to 'annotation' to get all categories "
+                "for specific job",
             ) from exception
 
         LOGGER.debug(
@@ -327,7 +330,10 @@ class LabelStudioFormat:
     def get_corresponding_taxonomy_obj(
         job_id: int, category_id: str, request_headers: Dict[str, str]
     ) -> List[Dict[str, str]]:
-        get_taxonomy_url = f"{settings.taxonomy_service_url}taxonomy/link_category/{job_id}/{category_id}"
+        get_taxonomy_url = (
+            f"{settings.taxonomy_service_url}taxonomy/"
+            f"link_category/{job_id}/{category_id}"
+        )
         LOGGER.debug(
             "Making request to url %s to get corresponding taxonomy",
             get_taxonomy_url,
@@ -345,7 +351,8 @@ class LabelStudioFormat:
             )
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail="Failed request to 'taxonomy' to get corresponding taxonomy",
+                detail="Failed request to 'taxonomy' to get corresponding "
+                "taxonomy",
             ) from exception
         response_content = request_to_get_taxonomy.json()
         LOGGER.debug(

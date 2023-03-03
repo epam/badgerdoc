@@ -1,23 +1,21 @@
 import abc
-import copy
 import json
 import os
 import zipfile
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 from zipfile import ZipFile
 
 import requests
 from botocore.exceptions import ClientError
+from utils.common_utils import add_to_zip_and_local_remove, get_headers
+from utils.json_utils import export_save_to_json
+from utils.render_pdf_page import pdf_page_to_jpg
+from utils.s3_utils import convert_bucket_name_if_s3prefix
 
+from models.coco import Annotation, Category, CocoDataset, Image
 from src.config import minio_client, minio_resource, settings
 from src.logger import get_logger
-
-from ..models.coco import Annotation, Category, CocoDataset, Image
-from ..utils.common_utils import add_to_zip_and_local_remove, get_headers
-from ..utils.json_utils import export_save_to_json, load_from_json
-from ..utils.render_pdf_page import pdf_page_to_jpg
-from ..utils.s3_utils import convert_bucket_name_if_s3prefix
 
 LOGGER = get_logger(__file__)
 
@@ -218,7 +216,7 @@ class DatasetFetch:
                 Delimiter="/",
             )["CommonPrefixes"]
             return file_id
-        except KeyError as ex:
+        except KeyError as ex:  # noqa
             LOGGER.error("Job doesn't exist")
             raise ClientError(
                 operation_name="NuSuchPath.NotJob",
@@ -312,7 +310,8 @@ class ConvertToCoco(ExportConvertBase):
         coco_annotation.categories = sorted(
             list(
                 {
-                    v.dict()["name"]: v.dict() for v in coco_annotation.categories  # type: ignore
+                    v.dict()["name"]: v.dict()
+                    for v in coco_annotation.categories  # type: ignore
                 }.values()
             ),
             key=lambda x: x["id"],  # type: ignore
@@ -385,7 +384,8 @@ class ConvertToCoco(ExportConvertBase):
             annotation.images.append(
                 Image(
                     id=image_id,
-                    file_name=f"{self.job_id}_{image_id}.{settings.coco_image_format}",
+                    file_name=f"{self.job_id}_{image_id}."
+                    f"{settings.coco_image_format}",
                     width=page["size"]["width"],
                     height=page["size"]["height"],
                 )

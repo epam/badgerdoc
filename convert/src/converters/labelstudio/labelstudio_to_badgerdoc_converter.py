@@ -30,9 +30,6 @@ from src.converters.text.text_to_tokens_converter import (
 from src.logger import get_logger
 from src.models.common import S3Path
 
-from .annotation_converter import AnnotationConverter
-from .models.annotation import LabelStudioModel
-
 LOGGER = get_logger(__file__)
 LOGGER.setLevel("DEBUG")
 
@@ -184,7 +181,10 @@ class LabelstudioToBadgerdocConverter:
     def get_output_annotations_path(
         self, importjob_id_created: int, file_id_in_assets: int
     ) -> str:
-        return f"annotation/{importjob_id_created}/{file_id_in_assets}/{self.CONVERTED_ANNOTATIONS_FILENAME}"
+        return (
+            f"annotation/{importjob_id_created}/{file_id_in_assets}/"
+            f"{self.CONVERTED_ANNOTATIONS_FILENAME}"
+        )
 
     def make_upload_file_request_to_assets(self, pdf_path: Path) -> int:
         upload_file_to_assets_url = f"{settings.assets_service_url}"
@@ -321,7 +321,8 @@ class LabelstudioToBadgerdocConverter:
                 {"extensive_coverage": extensive_coverage}
             )
         LOGGER.debug(
-            "Making a request to create an Annotation Job in 'jobs' to url: %s with request body: %s",
+            "Making a request to create an Annotation Job in 'jobs' "
+            "to url: %s with request body: %s",
             post_annotation_job_url,
             post_annotation_job_body,
         )
@@ -371,7 +372,11 @@ class LabelstudioToBadgerdocConverter:
         document_labels: Set[str],
         document_links: List[DocumentLink],
     ) -> None:
-        annotations_post_url = f"{settings.annotation_service_url}annotation/{annotation_job_id_created}/{file_id_in_assets}"
+        annotations_post_url = (
+            f"{settings.annotation_service_url}"
+            f"annotation/{annotation_job_id_created}/"
+            f"{file_id_in_assets}"
+        )
 
         page = self.badgerdoc_format.badgerdoc_annotation
         annotations_post_body = {
@@ -380,14 +385,15 @@ class LabelstudioToBadgerdocConverter:
             "pages": [page.dict()],
             "validated": [],
             "failed_validation_pages": [],
-            "similar_revisions": [],  # TODO: 'simial_revisions' will be replaced with 'links' with unknown format
+            "similar_revisions": [],  # TODO: 'simial_revisions' will be replaced with 'links' with unknown format  # noqa
             "categories": list(document_labels),
             "links_json": [
                 document_link.dict() for document_link in document_links
             ],
         }
         LOGGER.debug(
-            "Making request to annotation to post annotations to url: %s with request body: %s",
+            "Making request to annotation to post annotations to url: "
+            "%s with request body: %s",
             annotations_post_url,
             annotations_post_body,
         )
@@ -405,7 +411,8 @@ class LabelstudioToBadgerdocConverter:
             )
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail="Failed request to 'annotation' to post converted annotations",
+                detail="Failed request to 'annotation' to post converted "
+                "annotations",
             ) from e
 
         LOGGER.debug(

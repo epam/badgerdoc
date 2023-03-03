@@ -13,7 +13,6 @@ from src.converters.coco.coco_export.convert import (
     ExportBadgerdoc,
 )
 from src.converters.coco.coco_export.export_service import (
-    export_run,
     export_run_and_return_url,
 )
 from src.converters.coco.coco_import.convert import ConvertToBadgerdoc
@@ -141,7 +140,7 @@ def download_dataset(
         return Response(status_code=status.HTTP_204_NO_CONTENT)
     parsed = urlparse(url)
     minio_path = parsed.path[1:].split("/")
-    bucket, key = minio_path[0], str.join("/", minio_path[1:-1])
+    bucket, key = minio_path[0], str.join("/", minio_path[1:-1])  # noqa
     zip_file = minio_client.get_object(
         Bucket=bucket, Key=str.join("/", minio_path[1:])
     )

@@ -60,18 +60,19 @@ def merge_jobs_annotation(
     """
     Merge annotation two jobs
     Extend lists with annotations, images, categories
-    Find the last id of the object(annotation, image, category) and continue to extend list from the next id
-    If image_id or category_id has been changed, then check bboxes this job and change this field to right
+    Find the last id of the object(annotation, image, category) and continue to
+    extend list from the next id. If image_id or category_id has been changed,
+    then check bboxes this job and change this field to right
     Args:
         file_annotation: coco annotation, which is in the file
         merge_annotation: coco annotation for merging
     """
     annotation_idx = 1
     image_idx = 1
-    category_idx = 1
+    category_idx = 1  # noqa
     last_annotation_id = file_annotation["annotations"][-1]["id"]
     last_image_id = file_annotation["images"][-1]["id"]
-    last_category_id = file_annotation["categories"][-1]["id"]
+    last_category_id = file_annotation["categories"][-1]["id"]  # noqa
     file_categories = [
         category["name"] for category in file_annotation["categories"]
     ]

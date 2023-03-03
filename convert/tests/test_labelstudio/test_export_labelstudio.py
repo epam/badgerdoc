@@ -1,6 +1,5 @@
 from pathlib import Path
 
-import pytest
 import responses
 from _pytest.monkeypatch import MonkeyPatch
 from starlette.testclient import TestClient
@@ -26,7 +25,8 @@ def test_correctness_of_export_text_schema(
         "input_tokens": {"bucket": "test", "path": "files/926/ocr/1.json"},
         "input_annotation": {
             "bucket": "test",
-            "path": "annotation/1763/926/1ae7876fd4d777d5b4e6dbd338b230d74aa4ff8d.json",
+            "path": "annotation/1763/926/"
+            "1ae7876fd4d777d5b4e6dbd338b230d74aa4ff8d.json",
         },
         "input_manifest": {
             "bucket": "test",
@@ -51,9 +51,9 @@ def test_correctness_of_export_text_schema(
 
 
 @responses.activate
-def test_annotation_converter_case_without_taxonomies_and_document_labels() -> None:
+def test_annotation_converter_case_without_taxonomies_and_document_labels() -> None:  # noqa
     responses.post(
-        "http://dev2.badgerdoc.com/api/v1/annotation/jobs/1070/categories/search",
+        "http://dev2.badgerdoc.com/api/v1/annotation/jobs/1070/categories/search",  # noqa
         json={"data": []},
     )
 
@@ -108,13 +108,13 @@ def test_annotation_converter_case_without_taxonomies_and_document_labels() -> N
 @responses.activate
 def test_annotation_converter_case_without_export_labelstudio():
     responses.post(
-        "http://dev2.badgerdoc.com/api/v1/annotation/jobs/1070/categories/search",
+        "http://dev2.badgerdoc.com/api/v1/annotation/jobs/"
+        "1070/categories/search",
         json={"data": []},
     )
     tokens_test = Page.parse_file(
-        TEST_FILES_DIR
-        / "badgerdoc_etalon"
-        / "tokens_test_without_whitespaces.json"
+        TEST_FILES_DIR / "badgerdoc_etalon" / "tokens_test_without_"
+        "whitespaces.json"
     )
     manifest_test = manifest.Manifest.parse_file(
         TEST_FILES_DIR / "badgerdoc_etalon" / "manifest.json"
@@ -122,9 +122,8 @@ def test_annotation_converter_case_without_export_labelstudio():
     annotations_test = (
         annotation_converter_practic.AnnotationConverterToTheory(
             annotation_practic.BadgerdocAnnotation.parse_file(
-                TEST_FILES_DIR
-                / "badgerdoc_etalon"
-                / "annotations_test_empty.json"
+                TEST_FILES_DIR / "badgerdoc_etalon" / "annotations_test_"
+                "empty.json"
             )
         ).convert()
     )
@@ -136,5 +135,4 @@ def test_annotation_converter_case_without_export_labelstudio():
         badgerdoc_manifest=manifest_test,
         request_headers={},
     )
-    labelstudio_model_test = ls_format_test.labelstudio_data
     assert ls_format_test.labelstudio_data.__root__[0].data.text == "All "

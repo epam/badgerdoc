@@ -1,6 +1,5 @@
 from threading import Thread
 from typing import Any, Dict
-from urllib.error import HTTPError
 from uuid import uuid4
 
 from src.config import get_request_session, settings

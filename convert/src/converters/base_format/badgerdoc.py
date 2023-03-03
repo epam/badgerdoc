@@ -1,12 +1,12 @@
 from pathlib import Path
 from typing import List, Optional
 
+from pdf_renderer import PDFRenderer
+
+from models.annotation_practic import BadgerdocAnnotation
+from models.tokens import Page
 from src.converters.pdf.pdf_converter import PlainPDFToBadgerdocTokensConverter
 from src.converters.utils import filter_printing_tokens
-
-from .models.annotation_practic import BadgerdocAnnotation
-from .models.tokens import BadgerdocToken, Page
-from .pdf_renderer import PDFRenderer
 
 
 class Badgerdoc:
