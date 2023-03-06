@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useState } from 'react';
+import React, { FC, useCallback, useEffect, useState } from 'react';
 import { DocumentLinkWithName } from 'api/hooks/annotations';
 import { useCategoriesByJob } from 'api/hooks/categories';
 import { TaskSidebarLabels } from 'components/task/task-sidebar-labels/task-sidebar-labels';
@@ -57,19 +57,21 @@ export const TaskSidebarLabelsLinks: FC<TaskSidebarLabelsLinksProps> = ({
     };
 
     const {
-        data: categories,
+        data: { pages: categories } = {},
         isError,
+        isFetching,
+        hasNextPage,
+        fetchNextPage,
         refetch: refetchCategories
     } = useCategoriesByJob(
         {
-            page: 1,
             size: 100,
             sortConfig: { field: 'name', direction: SortingDirection.ASC },
             searchText,
             filters: [categoryTypeFilter],
             jobId
         },
-        { enabled: !!jobId }
+        { enabled: Boolean(jobId) }
     );
     const { notifyError } = useNotifications();
     if (isError) {
@@ -80,6 +82,12 @@ export const TaskSidebarLabelsLinks: FC<TaskSidebarLabelsLinksProps> = ({
         setDocumentCategoryType(type);
         setSearchText('');
     };
+
+    const handleLoadNextPage = useCallback(() => {
+        if (!isFetching) {
+            fetchNextPage();
+        }
+    }, [isFetching, fetchNextPage]);
 
     useEffect(() => {
         if (searchText || documentCategoryType) {
@@ -97,8 +105,11 @@ export const TaskSidebarLabelsLinks: FC<TaskSidebarLabelsLinksProps> = ({
 
             {documentCategoryType === DocumentCategoryType.Document ? (
                 <TaskSidebarLabels
+                    isLoading={isFetching}
+                    hasNextPage={Boolean(hasNextPage)}
+                    onFetchNext={handleLoadNextPage}
                     viewMode={viewMode}
-                    labels={categories?.data}
+                    labels={categories}
                     onLabelsSelected={onLabelsSelected}
                     selectedLabels={selectedLabels ?? []}
                     searchText={searchText}
@@ -106,7 +117,7 @@ export const TaskSidebarLabelsLinks: FC<TaskSidebarLabelsLinksProps> = ({
                 />
             ) : (
                 <TaskSidebarLinks
-                    categories={categories?.data}
+                    categories={categories}
                     documentLinks={documentLinks}
                     onRelatedDocClick={onRelatedDocClick}
                     selectedRelatedDoc={selectedRelatedDoc}

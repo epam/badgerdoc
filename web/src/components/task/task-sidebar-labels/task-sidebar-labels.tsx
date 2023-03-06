@@ -1,4 +1,4 @@
-import React, { useState, FC, useMemo } from 'react';
+import React, { useState, FC, useMemo, useRef } from 'react';
 import { noop } from 'lodash';
 
 import { useArrayDataSource } from '@epam/uui';
@@ -8,13 +8,17 @@ import { Label, Category } from 'api/typings';
 
 import styles from './task-sidebar-labels.module.scss';
 import { useTaskAnnotatorContext } from 'connectors/task-annotator-connector/task-annotator-context';
+import { useLazyLoading } from 'shared/hooks/lazy-loading';
 
 type TaskSidebarLabelsViewProps = {
     viewMode: boolean;
     labels?: Category[];
     pickerValue: string[];
-    onValueChange: (e: any, labelsArr: Label[]) => void;
+    onValueChange: (value: string[], labelsArr: Label[]) => void;
     selectedLabels: Label[];
+    hasNextPage: boolean;
+    onFetchNext: () => void;
+    isLoading: boolean;
 };
 
 const TaskSidebarLabelsView: FC<TaskSidebarLabelsViewProps> = ({
@@ -22,57 +26,66 @@ const TaskSidebarLabelsView: FC<TaskSidebarLabelsViewProps> = ({
     labels,
     pickerValue,
     onValueChange,
-    selectedLabels
+    selectedLabels,
+    hasNextPage,
+    onFetchNext,
+    isLoading
 }) => {
+    const bottomLineRef = useRef(null);
+    const containerRef = useRef(null);
+
     const { task } = useTaskAnnotatorContext();
-    const isDisabled = !(task?.status === 'In Progress' || task?.status === 'Ready');
+    const isDisabled = task?.status !== 'In Progress' && task?.status !== 'Ready';
+
     if (!labels) {
         return <Spinner color="sky" />;
     }
 
-    const labelsArr = useMemo(
-        () =>
-            labels.map((el: { name: string; id: string }) => {
-                return { name: el.name, id: el.id };
-            }),
-        [labels]
-    );
+    const labelsArr = useMemo(() => labels.map(({ name, id }) => ({ name, id })), [labels]);
 
-    const dataSource = useArrayDataSource<Label, unknown, unknown>(
+    const dataSource = useArrayDataSource<Label, string, unknown>(
         { items: [...selectedLabels, ...labelsArr] },
         [labels]
     );
 
+    useLazyLoading(bottomLineRef, containerRef, onFetchNext);
+
     const renderData =
         viewMode || isDisabled ? (
-            <FlexCell width="auto">
-                {labelsArr.map((el) => (
+            <FlexCell width="auto" style={{ overflow: 'hidden' }}>
+                {labelsArr.map(({ id, name }) => (
                     <Checkbox
                         cx={styles.checkbox}
-                        label={el.name}
-                        key={el.id}
-                        value={pickerValue.includes(el.name)}
+                        label={name}
+                        key={id}
+                        value={pickerValue.includes(name)}
                         onValueChange={noop}
                         isDisabled={isDisabled}
                     />
                 ))}
             </FlexCell>
         ) : (
-            <PickerList<Label, Label | unknown>
-                dataSource={dataSource}
-                value={pickerValue}
-                onValueChange={(e) => onValueChange(e ?? [], labelsArr)}
-                entityName="location"
-                selectionMode="multi"
-                valueType="id"
-                maxDefaultItems={100}
-                maxTotalItems={100}
-                sorting={{ field: 'name', direction: 'asc' }}
-            />
+            <>
+                <PickerList<Label, string>
+                    dataSource={dataSource}
+                    value={pickerValue}
+                    onValueChange={(value) => onValueChange(value ?? [], labelsArr)}
+                    entityName="location"
+                    selectionMode="multi"
+                    valueType="id"
+                    maxDefaultItems={100}
+                    maxTotalItems={100}
+                    sorting={{ field: 'name', direction: 'asc' }}
+                />
+            </>
         );
 
     return (
-        <div className={`${styles.picker_list} ${viewMode && styles.disabled}`}>{renderData}</div>
+        <div ref={containerRef} className={`${styles.picker_list} ${viewMode && styles.disabled}`}>
+            {renderData}
+            {isLoading && <Spinner color="sky" />}
+            {hasNextPage && <div ref={bottomLineRef} />}
+        </div>
     );
 };
 
@@ -83,6 +96,9 @@ type TaskSidebarLabelsProps = {
     selectedLabels: Label[];
     searchText: string;
     setSearchText: (text: string) => void;
+    hasNextPage: boolean;
+    onFetchNext: () => void;
+    isLoading: boolean;
 };
 
 export const TaskSidebarLabels = ({
@@ -91,28 +107,23 @@ export const TaskSidebarLabels = ({
     onLabelsSelected,
     selectedLabels = [],
     searchText,
-    setSearchText
+    setSearchText,
+    hasNextPage,
+    onFetchNext,
+    isLoading
 }: TaskSidebarLabelsProps) => {
-    const latestLabelsId = selectedLabels.map((label) => label.id);
-    const [pickerValue, setPickerValue] = useState<string[]>(latestLabelsId);
+    const [pickerValue, setPickerValue] = useState(() => selectedLabels.map(({ id }) => id));
 
-    const handleOnValueChange = (e: string[], labelsArr: Label[]) => {
-        const selectedLabels = labelsArr.filter((label) => {
-            if (e.includes(label.id)) {
-                return label;
-            }
-        });
-        let labelsId: string[] = [];
-        if (Array.isArray(e)) {
-            labelsId = e;
-        }
-        setPickerValue(labelsId);
-        onLabelsSelected(selectedLabels, labelsId);
+    const handleOnValueChange = (value: string[], labelsArr: Label[]) => {
+        const selectedLabels = labelsArr.filter(({ id }) => value.includes(id));
+
+        setPickerValue(value);
+        onLabelsSelected(selectedLabels, value);
     };
 
     return (
-        <div className={`${styles.container}`}>
-            <p className={`${styles.header}`}> Add labels for the entire document</p>
+        <div className={styles.container}>
+            <p className={styles.header}> Add labels for the entire document</p>
             <SearchInput
                 value={searchText}
                 onValueChange={(text) => setSearchText(text ? text : '')}
@@ -125,6 +136,9 @@ export const TaskSidebarLabels = ({
                 <TaskSidebarLabelsView
                     viewMode={viewMode}
                     labels={labels}
+                    isLoading={isLoading}
+                    hasNextPage={hasNextPage}
+                    onFetchNext={onFetchNext}
                     pickerValue={pickerValue}
                     onValueChange={handleOnValueChange}
                     selectedLabels={selectedLabels}
