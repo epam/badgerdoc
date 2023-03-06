@@ -3,6 +3,7 @@ import { UseInfiniteQueryResult } from 'react-query/types/react/types';
 import { ModelStatus } from 'api/typings/models';
 import { Task } from './typings/tasks';
 import React from 'react';
+import { BasicDataNode } from 'rc-tree';
 
 export type Credentials = {
     username: string;
@@ -218,19 +219,21 @@ export interface Category extends BaseCategory {
     parents?: BaseCategory[] | null;
 }
 
-export interface TreeNode {
-    title: string;
+export interface TTreeNode {
+    title: string | Element | ((data: BasicDataNode) => React.ReactNode);
     key: string;
     isLeaf: boolean;
     children: CategoryNode[];
+    selectable?: boolean;
+    checkable?: boolean;
 }
-export interface CategoryNode extends TreeNode {
+export interface CategoryNode extends TTreeNode {
     category?: BaseCategory;
     hotKey?: string;
     style?: React.CSSProperties;
 }
 
-export interface TaxonomyNode extends TreeNode {
+export interface TaxonomyNode extends TTreeNode {
     dataAttributes?: string;
     taxon?: BaseTaxon;
 }
