@@ -18,7 +18,7 @@ COPY minio_service/ /common/minio_service
 ARG ARTIFACTORY_USER
 ARG ARTIFACTORY_PASS
 
-RUN pip install poetry
+RUN pip install poetry==1.1.13
 
 COPY minio_service/pyproject.toml /common/minio_service
 COPY minio_service/poetry.lock /common/minio_service
