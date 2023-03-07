@@ -10,7 +10,7 @@ RUN apt-get update \
 COPY policy.xml  /etc/ImageMagick-6/policy.xml
 
 
-RUN pip install poetry
+RUN pip install poetry==1.1.13
 COPY poetry.lock pyproject.toml /
 RUN poetry config virtualenvs.create false \
     && poetry install --no-interaction --no-dev\

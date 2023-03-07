@@ -33,7 +33,7 @@ CMD alembic upgrade head && uvicorn src.main:app --host 0.0.0.0 --port 8080
 
 FROM build AS test
 
-RUN pip install poetry
+RUN pip install poetry==1.1.13
 
 COPY pyproject.toml /
 
