@@ -61,8 +61,8 @@ jobs:
           cd annotation
           pip install poetry==1.1.13
           poetry install --no-root
-          poetry add --editable ../lib/filter_lib
-          poetry add --editable ../lib/tenants
+          poetry add ../lib/filter_lib
+          poetry add ../lib/tenants
           poetry run alembic upgrade head
           poetry run pytest
         env:
