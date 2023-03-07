@@ -4,11 +4,11 @@ on:
   push:
     paths:
       - assets/**
-      - .github/worlflows/assets.yml
+      - .github/workflows/assets.yml
   pull_request:
     paths:
       - assets/**
-      - .github/worlflows/assets.yml
+      - .github/workflows/assets.yml
 jobs:
   assets-pre-commit-actions:
     strategy:
