@@ -1,7 +1,7 @@
 from io import BytesIO
 from tempfile import NamedTemporaryFile
 from types import SimpleNamespace
-from unittest.mock import Mock, create_autospec, patch
+from unittest.mock import Mock, PropertyMock, create_autospec, patch
 
 import pytest
 from minio import Minio
@@ -10,6 +10,7 @@ from requests import Response
 from sqlalchemy.orm import Session
 
 import src.utils.minio_utils as minio_utils
+from src import schemas
 from src.config import settings
 from src.db.models import FileObject
 from src.exceptions import (
@@ -495,18 +496,25 @@ def test_file_processor_conversion_error(
         assert converter.conversion_status == "conversion error"
 
 
-@patch("src.utils.common_utils.requests.post")
-def test_file_converted_converted_to_pdf(gotenberg, pdf_file_bytes):
-    response = Response()
-    response._content = pdf_file_bytes
-    gotenberg.return_value = response
-    with NamedTemporaryFile(suffix=".doc", prefix="some_file") as file:
-        new_db_file = FileObject()
-        converter = FileConverter(
-            file.read(), "some_file.doc", ".doc", "test", new_db_file
+def test_convert_pdf(file_converter_service):
+    with NamedTemporaryFile(suffix=".pdf", prefix="123") as tmp_file:
+        tmp_file.write(b"sample_fetched_pdf_content")
+        mock_path = PropertyMock(return_value=tmp_file.name)
+        file_converter_service.new_file.id = 123
+        with patch(
+            "src.utils.common_utils.FileConverter._tmp_file_name", mock_path
+        ) as mock_:  # noqa
+            file_converter_service.convert_pdf()
+        assert file_converter_service.converted_ext == ".pdf"
+        assert (
+            file_converter_service.conversion_status
+            == schemas.ConvertionStatus.CONVERTED_TO_PDF
         )
-        assert converter.convert() is True
-        assert converter.conversion_status == "converted to PDF"
+        file_converter_service.minio_client.fget_object.assert_called_once_with(  # noqa
+            "sample_bucket_storage",
+            "files/123/123.pdf",
+            tmp_file.name,
+        )
 
 
 @patch("src.utils.common_utils.get_mimetype")

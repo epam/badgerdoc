@@ -78,7 +78,11 @@ def test_upload_and_delete_file_without_conversion(client_app_main):
 @patch("src.utils.s3_utils.S3Manager.get_files")
 @patch("src.utils.s3_utils.S3Manager.check_s3")
 def test_upload_and_delete_file_s3(
-    check_s3, get_files, client_app_main, s3_retrieved_file
+    check_s3,
+    get_files,
+    client_app_main,
+    s3_retrieved_file,
+    create_minio_bucket,
 ):
     check_s3.return_value = None
     get_files.return_value = s3_retrieved_file
@@ -117,7 +121,7 @@ def test_upload_negative(client_app_main):
     assert response.status_code == 201
 
 
-def test_get_files(client_app_main):
+def test_get_files(client_app_main, create_minio_bucket):
     with NamedTemporaryFile(suffix=".pdf") as file:
         data = {"files": file}
         response = client_app_main.post(
@@ -297,7 +301,7 @@ def test_get_files_by_dataset(client_app_main):
     assert res_delete_file.json()[0]["status"]
 
 
-def test_get_bonds(client_app_main):
+def test_get_bonds(client_app_main, create_minio_bucket):
     with NamedTemporaryFile(suffix=".pdf") as file:
         data = {"files": file}
         res_upload = client_app_main.post(
@@ -457,7 +461,10 @@ def test_download_positive(client_app_main):
 
 @patch("src.utils.common_utils.requests.post")
 def test_download_positive_originals(
-    gotenberg, pdf_file_bytes, client_app_main
+    gotenberg,
+    pdf_file_bytes,
+    client_app_main,
+    create_minio_bucket,
 ):
     response = Response()
     response._content = pdf_file_bytes
