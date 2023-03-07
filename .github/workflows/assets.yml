@@ -56,8 +56,8 @@ jobs:
         ports:
           - '9000:9000'
         env:
-          - MINIO_ROOT_USER=minioadmin
-          - MINIO_ROOT_PASSWORD=minioadmin
+          MINIO_ROOT_USER: minioadmin
+          MINIO_ROOT_PASSWORD: minioadmin
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
