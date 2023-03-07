@@ -1,5 +1,5 @@
-import { Category } from 'api/typings';
 import React, { FC, useMemo } from 'react';
+import { Category } from 'api/typings';
 import { AnnotationRenderer, AnnotationsStyle, Annotation } from '../../typings';
 import { scaleAnnotation } from '../../utils/scale-annotation';
 import { defaultAnnotationRenderer } from './annotations-default-renderer';

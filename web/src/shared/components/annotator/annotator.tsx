@@ -165,7 +165,7 @@ export const Annotator: FC<AnnotatorProps> = ({
     const panoRef = useRef<HTMLDivElement>(null);
 
     const unSelectAnnotation = () => {
-        if (!isStarted) return;
+        if (!isSelectionStarted) return;
         onEmptyAreaClick && onEmptyAreaClick();
         handleAnnotationSelected(undefined);
     };
@@ -180,7 +180,7 @@ export const Annotator: FC<AnnotatorProps> = ({
 
     const {
         coords: selectionCoords,
-        isStarted,
+        isStarted: isSelectionStarted,
         isEnded: isSelectionEnded
     } = useSelection(panoRef, selectionType, isCellMode, editable && !!selectedCategory);
 

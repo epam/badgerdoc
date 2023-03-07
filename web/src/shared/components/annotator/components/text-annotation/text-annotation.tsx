@@ -98,7 +98,7 @@ export const TextAnnotation = ({
                             borderBottom: isActive ? `2px solid ${color}` : 'unset'
                         }}
                     >
-                        <div className={styles.annLabel}>
+                        <div className={styles.annLabel} key={`div-${index}`}>
                             {singleBound.params.labelPosition != 'no_label' &&
                                 labels.map((annLabel) => (
                                     <Fragment key={annLabel.annotationId}>
