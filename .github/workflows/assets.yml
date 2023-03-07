@@ -3,12 +3,12 @@ run-name: assets precommit and test
 on:
   push:
     paths:
-      - 'assets/**'
-      - '.github/worlflows/assets.yml'
+      - assets/**
+      - .github/worlflows/assets.yml
   pull_request:
     paths:
-      - 'assets/**'
-      - '.github/worlflows/assets.yml'
+      - assets/**
+      - .github/worlflows/assets.yml
 jobs:
   assets-pre-commit-actions:
     strategy:
