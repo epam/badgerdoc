@@ -13,16 +13,3 @@
     padding: 10px 0 5px;
     font-weight: 500;
 }
-
-.checkbox {
-    margin: 9px 0;
-}
-
-.picker_list {
-    max-height: calc(100% - 100px);
-    overflow: auto;
-    & > div {
-        height: 100%;
-        padding-left: 2px;
-    }
-}
