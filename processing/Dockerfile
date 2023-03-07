@@ -5,7 +5,7 @@ WORKDIR /processing
 
 COPY poetry.lock pyproject.toml .env alembic.ini version.txt ./
 
-RUN pip install poetry \
+RUN pip install poetry==1.1.13 \
     && poetry config virtualenvs.create false \
     && poetry install --no-interaction --no-dev
 
@@ -18,7 +18,7 @@ CMD alembic upgrade head && uvicorn src.main:app --host 0.0.0.0 --port 8080
 
 FROM build as development
 
-RUN pip install poetry \
+RUN pip install poetry==1.1.13 \
     && poetry config virtualenvs.create false \
     && poetry install --no-interaction
 

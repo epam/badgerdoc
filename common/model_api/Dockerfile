@@ -12,7 +12,7 @@ RUN apt-get update \
 WORKDIR /model_api
 
 COPY ["pyproject.toml", "/model_api/"]
-RUN pip install poetry \
+RUN pip install poetry==1.1.13 \
     && poetry config virtualenvs.create false \
     && poetry install --no-root --no-interaction
 
