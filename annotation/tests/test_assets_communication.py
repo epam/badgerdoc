@@ -2,7 +2,10 @@ from unittest.mock import Mock
 
 import pytest
 import responses
-from app.microservice_communication.assets_communication import (
+from fastapi import HTTPException
+from requests import ConnectionError, RequestException, Timeout
+
+from annotation.microservice_communication.assets_communication import (
     ASSETS_FILES_URL,
     ASSETS_URL,
     get_dataset_info,
@@ -10,9 +13,6 @@ from app.microservice_communication.assets_communication import (
     get_file_path_and_bucket,
     get_files_info,
 )
-from fastapi import HTTPException
-from requests import ConnectionError, RequestException, Timeout
-
 from tests.override_app_dependency import TEST_HEADERS, TEST_TENANT, TEST_TOKEN
 
 FILES = [
@@ -126,7 +126,7 @@ def test_get_file_names(
     monkeypatch, file_ids, parsed_response, expected_result
 ):
     monkeypatch.setattr(
-        "app.microservice_communication.assets_communication.get_response",
+        "annotation.microservice_communication.assets_communication.get_response",  # noqa
         Mock(return_value=parsed_response),
     )
 
@@ -215,7 +215,7 @@ def test_get_files_info(
     expected_result,
 ):
     monkeypatch.setattr(
-        "app.microservice_communication.assets_communication.get_response",
+        "annotation.microservice_communication.assets_communication.get_response",  # noqa
         Mock(return_value=mocked_files),
     )
     for i, dataset_id in enumerate(dataset_ids):

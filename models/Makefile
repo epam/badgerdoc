@@ -63,4 +63,4 @@ commit:
 	poetry run cz commit
 
 run:
-	poetry run uvicorn src.main:app --reload
+	poetry run uvicorn models.main:app --reload

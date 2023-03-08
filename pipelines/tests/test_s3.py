@@ -2,8 +2,7 @@ from unittest.mock import patch
 
 import minio
 import pytest
-
-from src import s3
+from pipelines import s3
 
 
 def test_get_minio_client():
@@ -21,5 +20,5 @@ def test_get_minio_client():
     ),
 )
 def test_tenant_from_bucket(prefix: str, bucket: str, expected: str) -> None:
-    with patch("src.config.S3_PREFIX", prefix):
+    with patch("pipelines.config.S3_PREFIX", prefix):
         assert s3.tenant_from_bucket(bucket) == expected

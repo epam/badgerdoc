@@ -5,7 +5,7 @@ Gives the id and username of all found users
 
 ## Setup
 `$ docker-compose up`
-`$ uvicorn src.main:app`
+`$ uvicorn users.main:app`
 
 ## Endpoint
 `/users/search`

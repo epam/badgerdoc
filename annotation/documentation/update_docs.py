@@ -1,6 +1,6 @@
 import yaml
 
-from app.main import app
+from annotation.main import app
 
 
 def str_presenter(dumper, data):

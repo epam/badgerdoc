@@ -70,13 +70,14 @@ jobs:
           python -m pip install --upgrade pip
           cd assets
           sudo apt-get update && sudo apt-get -y install poppler-utils
-          pip install -r requirements.txt
-          pip install -e ../lib/filter_lib
-          pip install -e ../lib/tenants
+          pip install poetry>=1.1.13
+          poetry install --no-root --no-interaction
+          poetry add ../lib/filter_lib
+          poetry add ../lib/tenants
       - name: Test with pytest
         run: |
           cd assets
-          pytest
+          poetry run pytest
         env:
           POSTGRES_HOST: localhost
           POSTGRES_PORT: 5432

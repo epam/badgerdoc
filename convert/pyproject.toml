@@ -1,11 +1,11 @@
 [tool.poetry]
 name = "convert"
 version = "0.1.0"
-description = ""
-authors = ["Artem Potashov <Artem_Potashov@epam.com>"]
+description = "Convert microservice for BadgerDoc project"
+authors = ["BadgerDoc team"]
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.8.0"
 pdfplumber = "^0.5.28"
 minio = "^7.1.2"
 fastapi = "^0.70.0"
@@ -17,16 +17,16 @@ click = "^8.1.2"
 aiohttp = "^3.8.1"
 PyMuPDF = "^1.21.1"
 requests = "^2.28.1"
-python-dotenv = "0.21.0"
+python-dotenv = "^0.21.0"
 pymupdf-fonts = "^1.0.5"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.5"
 pytest-cov = "^3.0.0"
 pytest-testinfra = "^6.4.0"
-isort = "5.9.1"
-mypy = "0.910"
-pylint = "2.8.1"
+isort = "^5.9.1"
+mypy = "^0.910"
+pylint = "^2.8.1"
 black = "^22.3"
 datamodel-code-generator = "^0.17.1"
 responses = "^0.22.0"
@@ -54,7 +54,6 @@ errors-only = "True"
 disable = "E0401,E0611"
 max-line-length = "79"
 
-
 [build-system]
-requires = ["poetry-core>=1.0.0"]
+requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

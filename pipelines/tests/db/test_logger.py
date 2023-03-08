@@ -1,12 +1,11 @@
 """Testing src/db/logger.py."""
 import uuid
 
+import pipelines.db.logger as logger
+import pipelines.db.models as models
+import pipelines.pipeline_runner as runner
+import pipelines.schemas as schemas
 import sqlalchemy.event
-
-import src.db.logger as logger
-import src.db.models as models
-import src.schemas as schemas
-import src.pipeline_runner as runner
 
 
 def test_create_log(testing_session):

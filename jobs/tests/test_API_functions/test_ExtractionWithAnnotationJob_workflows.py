@@ -40,14 +40,16 @@ def test_change_extraction_job_to_extraction_with_annotation_job_and_run_it(
         assert response1.json()["mode"] == schemas.JobMode.Automatic
         job_id = int(response1.json()["id"])
 
-        # --------- Changing Job Status to Finished - imitates callback from Pipeline Manager -------- #
+        # Changing Job Status to Finished - imitates
+        # callback from pipelines service
         response2 = testing_app.put(
             f"/jobs/{job_id}", json={"status": "Finished"}
         )
         assert response2.status_code == 200
         assert response2.json()["status"] == schemas.Status.finished
 
-        # -------- Changing JobType to ExtractionWithAnnotationJob and adding necessary fields --- #
+        # Changing JobType to ExtractionWithAnnotationJob
+        # and adding necessary fields
 
         response3 = testing_app.put(
             f"/jobs/{job_id}",
@@ -72,13 +74,14 @@ def test_change_extraction_job_to_extraction_with_annotation_job_and_run_it(
         )
         assert response3.json()["mode"] == schemas.JobMode.Manual
 
-        # ---------- Running ExtractionWithAnnotationJob - only manual part ------ #
+        # Running ExtractionWithAnnotationJob - only manual part
         response4 = testing_app.post("/start/1")
         assert response4.status_code == 200
         assert response4.json()["status"] == schemas.Status.pending
         assert response4.json()["mode"] == schemas.JobMode.Manual
 
-        # --------- Changing Job Status to Finished - imitates callback from Annotation Manager -------- #
+        # Changing Job Status to Finished - imitates
+        # callback from annotation service
         response5 = testing_app.put("/jobs/1", json={"status": "Finished"})
         assert response5.status_code == 200
         assert response5.json()["status"] == schemas.Status.finished
@@ -129,7 +132,8 @@ def test_create_extraction_with_annotation_job_and_run_it(
         assert response.json()["status"] == schemas.Status.pending
 
         test_job_id = int(response.json()["id"])
-        # --------- Changing Job Status to Finished - imitates callback from Pipeline Manager -------- #
+        # Changing Job Status to Finished - imitates
+        # callback from pipelines service
         response2 = testing_app.put(
             f"/jobs/{test_job_id}", json={"status": "Finished"}
         )
@@ -139,7 +143,8 @@ def test_create_extraction_with_annotation_job_and_run_it(
         )
         assert response2.json()["mode"] == schemas.JobMode.Manual
 
-        # --------- Changing Job Status to In Progress - imitates callback from Annotation Manager -------- #
+        # Changing Job Status to In Progress - imitates
+        # callback from annotation service
         response3 = testing_app.put(
             f"/jobs/{test_job_id}", json={"status": "In Progress"}
         )
@@ -147,9 +152,10 @@ def test_create_extraction_with_annotation_job_and_run_it(
         assert response3.json()["status"] == schemas.Status.in_progress
         assert response3.json()["mode"] == schemas.JobMode.Manual
 
-        # Then Manual Part executes from Annotation Microservice
+        # Then Manual Part executes from annotation service
 
-        # --------- Changing Job Status to Finished - imitates callback from Annotation Manager -------- #
+        # Changing Job Status to Finished - imitates
+        # callback from annotation service
         response5 = testing_app.put(
             f"/jobs/{test_job_id}", json={"status": "Finished"}
         )
@@ -164,7 +170,7 @@ def test_create_extraction_with_annotation_job_and_autostart_false(
     separate_files_1_2_data_from_dataset_manager,
     pipeline_info_from_pipeline_manager,
 ):
-    # ---------- Creating ExtractionWithAnnotationJob and running it --------- #
+    # Creating ExtractionWithAnnotationJob and running it
     with patch("jobs.utils.fetch", return_value=asyncio.Future()) as mock:
         mock.side_effect = [
             (200, pipeline_info_from_pipeline_manager),
@@ -204,7 +210,8 @@ def test_create_extraction_with_annotation_job_and_autostart_false(
         assert response.json()["status"] == schemas.Status.pending
 
         test_job_id = int(response.json()["id"])
-        # --------- Changing Job Status to Finished - imitates callback from Pipeline Manager -------- #
+        # Changing Job Status to Finished - imitates
+        # callback from pipelines service
         response2 = testing_app.put(
             f"/jobs/{test_job_id}", json={"status": "Finished"}
         )

@@ -2,26 +2,24 @@ import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-import pytest
 from _pytest.monkeypatch import MonkeyPatch
-from starlette.testclient import TestClient
-
-from src.config import (
+from assets.config import (
     DEFAULT_PAGE_BORDER_OFFSET,
     DEFAULT_PDF_FONT_HEIGHT,
     DEFAULT_PDF_FONT_WIDTH,
     DEFAULT_PDF_LINE_SPACING,
     DEFAULT_PDF_PAGE_WIDTH,
 )
-from src.converters.base_format.badgerdoc import Badgerdoc
-from src.converters.labelstudio.labelstudio_to_badgerdoc_converter import (
+from assets.converters.base_format.badgerdoc import Badgerdoc
+from assets.converters.labelstudio.labelstudio_to_badgerdoc_converter import (
     ConverterToBadgerdoc,
     LabelstudioToBadgerdocConverter,
 )
-from src.converters.labelstudio.models.annotation import LabelStudioModel
-from src.converters.text.text_to_tokens_converter import (
+from assets.converters.labelstudio.models.annotation import LabelStudioModel
+from assets.converters.text.text_to_tokens_converter import (
     TextToBadgerdocTokensConverter,
 )
+from starlette.testclient import TestClient
 
 TEST_FILES_DIR = Path(__file__).parent / "test_data"
 

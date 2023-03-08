@@ -1,29 +1,30 @@
 ARG base_image=818863528939.dkr.ecr.eu-central-1.amazonaws.com/badgerdoc/python_base:0.1.7
 FROM ${base_image} as base
 
-ENV PYTHONPATH /opt
+ENV PYTHONPATH /opt/search
 WORKDIR /opt/search
-
-RUN apt-get update && apt-get -y install curl
-RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | \
-    POETRY_HOME=/opt/search/poetry python && cd /usr/local/bin && \
-    ln -s /opt/search/poetry/bin/poetry && poetry config virtualenvs.create false
 
 COPY pyproject.toml poetry.lock .env version.txt ./
 COPY search search
 
+RUN : \
+    && python3 -m pip install --upgrade pip \
+    && pip install poetry>=1.1.13 \
+    && poetry config virtualenvs.create false \
+    && :
+
 FROM base as build
 
-RUN poetry install --no-root --no-dev
 COPY documentation documentation
+RUN poetry install --no-root --only main
 CMD ["uvicorn", "search.main:app", "--host", "0.0.0.0", "--port", "8080"]
 
 FROM base as test
 
-RUN apt-get install -y make
-RUN poetry install --no-root
 COPY Makefile pytest.ini setup.cfg ./
 COPY tests tests
+RUN apt-get install -y make
+RUN poetry install --no-root
 RUN make test_checks
 
 FROM sonarsource/sonar-scanner-cli:4.6 AS sonar
@@ -40,6 +41,6 @@ CMD sonar-scanner \
 
 FROM base as build-dev
 
-RUN poetry install --no-root --no-dev
+RUN poetry install --no-root
 COPY documentation documentation
 CMD ["uvicorn", "search.main:app", "--host", "0.0.0.0", "--port", "8080", "--reload"]

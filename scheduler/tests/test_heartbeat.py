@@ -5,7 +5,6 @@ from unittest import mock
 
 import pytest
 from freezegun import freeze_time
-
 from scheduler import heartbeat, unit
 from scheduler.db import models
 

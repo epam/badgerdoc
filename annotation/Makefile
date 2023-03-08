@@ -21,16 +21,16 @@ refactor:
 test_checks: check_sort format lint unit_tests
 
 all_test:
-	poetry run pytest --cov-report term --cov=app tests
+	poetry run pytest --cov-report term --cov=annotation tests
 
 unit_tests:
-	poetry run pytest --cov-report= --cov=app tests -m unittest
+	poetry run pytest --cov-report= --cov=annotation tests -m unittest
 
 integration_tests:
 	poetry run pytest tests -m integration
 
 docker_test:
-	docker exec annotation pytest --cov-report term --cov=app tests
+	docker exec annotation pytest --cov-report term --cov=annotation tests
 
 check: sort refactor lint all_test
 
@@ -41,7 +41,7 @@ pre-commit:
 	poetry run pre-commit install
 
 run:
-	poetry run uvicorn app.main:app --reload
+	poetry run uvicorn annotation.main:app --reload
 
 update_docs:
 	poetry run python -m documentation.update_docs

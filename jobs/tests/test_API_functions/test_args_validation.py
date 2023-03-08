@@ -139,7 +139,8 @@ def test_create_extraction_with_annotation_job_lack_of_data(testing_app):
         "detail": [
             {
                 "loc": ["body", "pipeline_name"],
-                "msg": "pipeline cannot be empty for ExtractionWithAnnotationJob",
+                "msg": "pipeline cannot be empty for "
+                "ExtractionWithAnnotationJob",
                 "type": "value_error",
             }
         ]
@@ -343,7 +344,7 @@ def test_create_annotationjob_validation_only_validation_type_with_annotators(
     }
 
 
-def test_create_annotationjob_validation_only_validation_type_without_validators(
+def test_create_annotationjob_validation_only_validation_type_no_validators(
     testing_app,
 ):
     response = testing_app.post(

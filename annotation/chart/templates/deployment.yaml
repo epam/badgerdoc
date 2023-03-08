@@ -72,7 +72,7 @@ spec:
               name: annotation
               key: S3_PASS  
         command: ["/bin/sh"]
-        args: ["-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8080 --root-path /api/v1/annotation"]
+        args: ["-c", "alembic upgrade head && uvicorn annotation.main:app --host 0.0.0.0 --port 8080 --root-path /api/v1/annotation"]
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler

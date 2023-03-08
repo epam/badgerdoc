@@ -22,7 +22,7 @@ class MinioCommunicator:
             secure=False,
         )
         logger.info(
-            "MinIO client for %s was created successfully. There are buckets:%s",
+            "MinIO client for %s was created successfully. Buckets: %s",
             settings.minio_host,
             cls.client.list_buckets(),
         )

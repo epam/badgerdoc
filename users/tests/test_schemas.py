@@ -1,4 +1,4 @@
-from src.schemas import Users
+from users.schemas import Users
 
 
 def test_users_schemas():

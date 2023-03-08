@@ -2,10 +2,11 @@
 import os
 from logging.config import fileConfig
 
+from jobs.models import Base
+from jobs.utils import get_test_db_url
 from sqlalchemy import engine_from_config, pool
 
 from alembic import context
-from jobs.utils import get_test_db_url
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -19,7 +20,6 @@ fileConfig(config.config_file_name)
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-from jobs.models import Base
 
 target_metadata = Base.metadata
 
@@ -28,9 +28,7 @@ target_metadata = Base.metadata
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 
-main_database_url = os.environ.get(
-    "POSTGRESQL_JOBMANAGER_DATABASE_URI"
-)
+main_database_url = os.environ.get("POSTGRESQL_JOBMANAGER_DATABASE_URI")
 if not os.getenv("USE_TEST_DB"):
     config.set_main_option("sqlalchemy.url", main_database_url)
 else:

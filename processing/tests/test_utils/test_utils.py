@@ -5,8 +5,8 @@ import pytest
 import responses
 from fastapi import HTTPException
 
-from src.config import settings
-from src.utils import utils
+from processing.config import settings
+from processing.utils import utils
 
 
 class MockResponse:

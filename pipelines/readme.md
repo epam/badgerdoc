@@ -3,9 +3,9 @@
 Executor for pipelines.
 
 ## Setup
-`docker build -t pipeline_executor .`
+`docker build -t pipelines .`
 
-`docker run -p 8080:8080 --name <name> pipeline_executor`
+`docker run -p 8080:8080 --name <name> pipelines`
 
 ## Config
 .env file is responsible for the app settings.

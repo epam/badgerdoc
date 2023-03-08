@@ -1,11 +1,11 @@
 from unittest.mock import Mock
 
+from models import crud
+from models.crud import get_instance, get_latest_model
+from models.db import Basement, Model, StatusEnum, Training
+from models.schemas import BasementBase
 from pytest import mark
 
-from src import crud
-from src.crud import get_instance, get_latest_model
-from src.db import Basement, Model, StatusEnum, Training
-from src.schemas import BasementBase
 from tests.test_utils import TEST_LIMITS
 from tests.utils import create_expected_models, delete_date_field, row_to_dict
 

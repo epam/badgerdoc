@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import List, Union
 from uuid import UUID
 
-from src.db import StatusEnum
+from models.db import StatusEnum
 
 
 def create_expected_models(
@@ -16,7 +16,7 @@ def create_expected_models(
     status: StatusEnum = None,
     tenant: str = None,
     name: str = None,
-    description: str = ''
+    description: str = "",
 ) -> dict:
     return {
         "basement": basement_id,
@@ -33,7 +33,7 @@ def create_expected_models(
         "training_id": training_id,
         "type": None,
         "version": version,
-        "description": description
+        "description": description,
     }
 
 

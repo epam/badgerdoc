@@ -1,11 +1,12 @@
 import os
 from logging.config import fileConfig
 
+from processing.config import settings
+from processing.db.models import Base
+from processing.db.service import get_test_db_url
 from sqlalchemy import engine_from_config, pool
 
 from alembic import context
-from src.config import settings
-from src.db.service import get_test_db_url
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -26,7 +27,6 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-from src.db.models import Base
 
 target_metadata = Base.metadata
 

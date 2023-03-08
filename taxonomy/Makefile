@@ -19,16 +19,16 @@ refactor:
 test_checks: check_sort format lint unit_tests
 
 all_test:
-	poetry run pytest --cov-report term --cov=app tests
+	poetry run pytest --cov-report term --cov=taxonomy tests
 
 unit_tests:
-	poetry run pytest --cov-report= --cov=app tests -m unittest
+	poetry run pytest --cov-report= --cov=taxonomy tests -m unittest
 
 integration_tests:
 	poetry run pytest tests -m integration
 
 docker_test:
-	docker exec taxonomy pytest --cov-report term --cov=app tests
+	docker exec taxonomy pytest --cov-report term --cov=taxonomy tests
 
 check: sort refactor lint all_test
 
@@ -39,7 +39,7 @@ pre-commit:
 	poetry run pre-commit install
 
 run:
-	poetry run uvicorn app.main:app --reload
+	poetry run uvicorn taxonomy.main:app --reload
 
 update_docs:
 	poetry run python -m documentation.update_docs

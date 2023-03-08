@@ -4,12 +4,12 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.exc import DBAPIError, SQLAlchemyError
 
-from app.microservice_communication.search import (
+from annotation.microservice_communication.search import (
     AUTHORIZATION,
     BEARER,
     HEADER_TENANT,
 )
-from app.models import AnnotatedDoc, User
+from annotation.models import AnnotatedDoc, User
 from tests.consts import ANNOTATION_PATH
 from tests.override_app_dependency import TEST_TENANT, TEST_TOKEN, app
 
@@ -128,7 +128,7 @@ def test_get_annotation_for_particular_revision_status_codes(
     expected_response,
 ):
     monkeypatch.setattr(
-        "app.annotations.main.connect_s3",
+        "annotation.annotations.main.connect_s3",
         Mock(return_value=minio_particular_revision),
     )
     response = client.get(

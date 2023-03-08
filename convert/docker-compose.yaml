@@ -7,7 +7,7 @@ services:
       - "9000:9000"
       - "9001:9001"
     env_file:
-      - src/.env
+      - convert/.env
     volumes:
       - ./:/convert/
     command: server --console-address ":9001" /export
@@ -18,10 +18,10 @@ services:
       target: build
     restart: on-failure
     env_file:
-      - src/.env
+      - convert/.env
     volumes:
-      - "./src:/convert/src"
-    command: "uvicorn src.main:app --host 0.0.0.0 --port 8080 --reload"
+      - "./convert:/convert/convert"
+    command: "uvicorn convert.main:app --host 0.0.0.0 --port 8080 --reload"
     depends_on:
       - minio
     ports:

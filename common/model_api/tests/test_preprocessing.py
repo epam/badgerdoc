@@ -2,11 +2,10 @@ from decimal import Decimal
 from pathlib import Path
 from unittest.mock import MagicMock, call
 
-import pytest
-
 import model_api.preprocessing
-from model_api.config import settings
+import pytest
 from model_api.common.models import GeometryObject, PageDOD, Size
+from model_api.config import settings
 from model_api.preprocessing import (
     calculate_dpi,
     convert_figure_bbox_in_points,

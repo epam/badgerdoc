@@ -2,8 +2,6 @@ import logging
 from pathlib import Path
 from typing import Any, Dict, Iterator, Tuple
 
-from .config import settings
-
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 

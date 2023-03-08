@@ -5,7 +5,9 @@ repo_owner = "epam"
 repo_name = "badgerdoc"
 
 # Send a GET request to the GitHub API to get the list of contributors
-response = requests.get(f"https://api.github.com/repos/{repo_owner}/{repo_name}/contributors")
+response = requests.get(
+    f"https://api.github.com/repos/{repo_owner}/{repo_name}/contributors"
+)
 
 # Parse the JSON response
 contributors = response.json()
