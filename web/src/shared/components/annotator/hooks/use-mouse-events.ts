@@ -1,5 +1,5 @@
-import noop from 'lodash/noop';
 import React, { useRef, useEffect } from 'react';
+import noop from 'lodash/noop';
 import { Point } from '..';
 import { getRefOffset } from '../utils/get-ref-offset';
 import isClick from '../utils/is-click';
@@ -40,8 +40,6 @@ export const useMouseEvents = ({
             y: pageY - offsetTop
         };
     };
-
-    let myPath: any;
 
     const handleMouseDown = (e: MouseEvent) => {
         if (e.button !== 0) {

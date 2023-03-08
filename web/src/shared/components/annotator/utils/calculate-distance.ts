@@ -48,7 +48,7 @@ export const getNearestTokenToPoint = (tokens: PageToken[], point: Point): PageT
 export const getMultilineTextTokens = (tokens: PageToken[], coords: Point[]): PageToken[] => {
     const firstToken = getNearestTokenToPoint(tokens, coords[0]);
     const lastToken = getNearestTokenToPoint(tokens, coords[1]);
-    if (!firstToken.id || !lastToken.id) return [];
+    if (firstToken.id === undefined || lastToken.id === undefined) return [];
     const firstId = Math.min(firstToken.id, lastToken.id);
     const lastId = Math.max(firstToken.id, lastToken.id);
     return tokens.slice(firstId, lastId + 1);

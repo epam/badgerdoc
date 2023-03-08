@@ -164,8 +164,14 @@ export const Annotator: FC<AnnotatorProps> = ({
 
     const panoRef = useRef<HTMLDivElement>(null);
 
+    const {
+        coords: selectionCoords,
+        isStarted: isSelectionStarted,
+        isEnded: isSelectionEnded
+    } = useSelection(panoRef, selectionType, isCellMode, editable && !!selectedCategory);
+
     const unSelectAnnotation = () => {
-        if (!isStarted) return;
+        if (!isSelectionStarted) return;
         onEmptyAreaClick && onEmptyAreaClick();
         handleAnnotationSelected(undefined);
     };
@@ -177,12 +183,6 @@ export const Annotator: FC<AnnotatorProps> = ({
         handleAnnotationSelected,
         unSelectAnnotation
     );
-
-    const {
-        coords: selectionCoords,
-        isStarted,
-        isEnded: isSelectionEnded
-    } = useSelection(panoRef, selectionType, isCellMode, editable && !!selectedCategory);
 
     const submitAnnotation = useSubmitAnnotation(
         selectionType,

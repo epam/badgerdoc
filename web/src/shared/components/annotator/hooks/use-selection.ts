@@ -12,6 +12,15 @@ type SelectionResult = {
     isEnded: boolean;
 };
 
+const isClickedOnControlElement = (target: HTMLElement, isCellMode: boolean): boolean => {
+    return (
+        target.classList.contains('resizer') ||
+        target.classList.contains(ANNOTATION_LABEL_CLASS) ||
+        possiblyClickedOnTableGutter(target) ||
+        isCellMode
+    );
+};
+
 export const useSelection = (
     panoRef: React.RefObject<HTMLDivElement>,
     selectionType: AnnotationBoundType | AnnotationLinksBoundType | AnnotationImageToolType,
@@ -22,20 +31,11 @@ export const useSelection = (
     const [isStarted, setIsStarted] = useState<boolean>(false);
     const [isEnded, setIsEnded] = useState<boolean>(false);
 
-    const isClickedOnControlElement = (target: HTMLElement): boolean => {
-        return (
-            target.classList.contains('resizer') ||
-            target.classList.contains(ANNOTATION_LABEL_CLASS) ||
-            possiblyClickedOnTableGutter(target) ||
-            isCellMode
-        );
-    };
-
     useMouseEvents({
         ref: panoRef,
         onMouseDown(_, target) {
             if (['Chain', 'All to all'].includes(selectionType)) return false;
-            if (isClickedOnControlElement(target)) return false;
+            if (isClickedOnControlElement(target, isCellMode)) return false;
             if (!isEditable) return false;
 
             setCoords([]);
@@ -44,11 +44,11 @@ export const useSelection = (
         },
         onMouseMove(start: Point, end: Point, target) {
             if (['Chain', 'All to all'].includes(selectionType)) return false;
-            if (isClickedOnControlElement(target)) return false;
+            if (isClickedOnControlElement(target, isCellMode)) return false;
             if (!isEditable) return false;
 
             // HERE WILL BE THE LOGIC ABOUT DIFFERENT SELECTION TYPES
-            // WE WILL SET COORDS DIFFERETLY BASED ON TYPE
+            // WE WILL SET COORDS DIFFERENTLY BASED ON TYPE
             setCoords([start, end]);
         },
         onMouseUp() {
