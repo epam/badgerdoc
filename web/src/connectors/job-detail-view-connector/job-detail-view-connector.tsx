@@ -235,7 +235,7 @@ export const JobConnector: React.FC<JobDetailViewProps> = ({
                 <CreateTask
                     {...props}
                     jobId={job?.id}
-                    annotatorIds={job?.annotators || []}
+                    annotatorIds={job?.annotators.map((el) => el.id) || []}
                     fileIds={job?.files || []}
                 />
             ))
