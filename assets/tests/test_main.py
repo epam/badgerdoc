@@ -468,6 +468,7 @@ def test_download_positive_originals(
 ):
     response = Response()
     response._content = pdf_file_bytes
+    response.status_code = 201
     gotenberg.return_value = response
     with patch("src.routers.minio_router.fastapi.responses.StreamingResponse"):
         with NamedTemporaryFile(suffix=".doc", prefix="some_file") as file:
