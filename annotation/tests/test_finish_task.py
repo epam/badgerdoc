@@ -1047,6 +1047,7 @@ def test_finish_task_should_work_with_some_pages_covered_extensively_twice(
 
 def test_finish_task_should_work_with_all_pages_covered_extensively_twice(
     prepare_db_with_extensive_coverage_annotations,
+    mock_minio_empty_bucket,
 ):
     # given
     (
@@ -1061,10 +1062,14 @@ def test_finish_task_should_work_with_all_pages_covered_extensively_twice(
     db.commit()
 
     # when
-    response = client.post(
-        FINISH_TASK_PATH.format(task_id=annotation_tasks[2]["id"]),
-        headers=TEST_HEADERS,
-    )
+    with patch(
+        "app.tasks.services.get_file_path_and_bucket",
+        return_value=("", ""),
+    ):
+        response = client.post(
+            FINISH_TASK_PATH.format(task_id=annotation_tasks[2]["id"]),
+            headers=TEST_HEADERS,
+        )
 
     # then
     assert response
@@ -1099,6 +1104,7 @@ def test_finish_task_should_work_with_all_pages_covered_extensively_twice(
 @patch("app.tasks.resources.AGREEMENT_SCORE_ENABLED", "true")
 def test_finish_task_with_agreement_score_enabled_score_matched(
     prepare_db_with_extensive_coverage_annotations,
+    mock_minio_empty_bucket,
 ):
     (
         db,
@@ -1127,7 +1133,7 @@ def test_finish_task_with_agreement_score_enabled_score_matched(
     assert response
 
     mock1.assert_called_once()
-    mock2.assert_called_once()
+    mock2.assert_called()
     mock4.assert_called_once()
     validation_task = (
         db.query(ManualAnnotationTask)
@@ -1149,6 +1155,7 @@ def test_finish_task_with_agreement_score_enabled_score_matched(
 @patch("app.tasks.resources.AGREEMENT_SCORE_ENABLED", "true")
 def test_finish_task_with_agreement_score_enabled_score_not_matched(
     prepare_db_with_extensive_coverage_annotations,
+    mock_minio_empty_bucket,
 ):
     (
         db,
@@ -1177,7 +1184,7 @@ def test_finish_task_with_agreement_score_enabled_score_not_matched(
     assert response
 
     mock1.assert_called_once()
-    mock2.assert_called_once()
+    mock2.assert_called()
     mock4.assert_not_called()
     validation_task = (
         db.query(ManualAnnotationTask)
@@ -1198,6 +1205,7 @@ def test_finish_task_with_agreement_score_enabled_score_not_matched(
 @patch.dict(os.environ, {"AGREEMENT_SCORE_ENABLED": "true"})
 def test_finish_task_with_agreement_score_enabled_annotation_not_finished(
     prepare_db_with_extensive_coverage_annotations_same_pages,
+    mock_minio_empty_bucket,
 ):
     (
         db,
@@ -1226,7 +1234,7 @@ def test_finish_task_with_agreement_score_enabled_annotation_not_finished(
     assert response
 
     mock1.assert_not_called()
-    mock2.assert_not_called()
+    mock2.assert_called_once()
     mock4.assert_not_called()
     validation_task = (
         db.query(ManualAnnotationTask)
@@ -1241,3 +1249,189 @@ def test_finish_task_with_agreement_score_enabled_annotation_not_finished(
 
     job = db.query(Job).filter(Job.job_id == validation_task.job_id).first()
     assert job.status == JobStatusEnumSchema.in_progress
+
+
+TRANSFER_ANNOTATIONS_USERS = [
+    "01ec1df0-516d-4905-a902-fbd1ed99a49d",
+    "02ec1df0-526d-4905-a902-fbd1ed99a49d",
+    "03ec1df0-536d-4905-a902-fbd1ed99a49d",
+]
+TRANSFER_ANNOTATIONS_CATEGORIES = [
+    Category(id="Test111", name="Test1", type=CategoryTypeSchema.box),
+    Category(id="Test222", name="Test2", type=CategoryTypeSchema.box),
+]
+TRANSFER_ANNOTATIONS_FILE = File(
+    file_id=54321,
+    tenant=TEST_TENANT,
+    job_id=123456,
+    pages_number=1,
+    distributed_annotating_pages=[1],
+    distributed_validating_pages=[1],
+    status=FileStatusEnumSchema.pending,
+)
+TRANSFER_ANNOTATIONS_JOB = Job(
+    job_id=TRANSFER_ANNOTATIONS_FILE.job_id,
+    callback_url="http://www.test.com/test1",
+    annotators=[
+        User(user_id=TRANSFER_ANNOTATIONS_USERS[0]),
+        User(user_id=TRANSFER_ANNOTATIONS_USERS[1]),
+    ],
+    validators=[User(user_id=TRANSFER_ANNOTATIONS_USERS[2])],
+    validation_type=ValidationSchema.extensive_coverage,
+    extensive_coverage=2,
+    files=[TRANSFER_ANNOTATIONS_FILE],
+    is_auto_distribution=True,
+    categories=TRANSFER_ANNOTATIONS_CATEGORIES,
+    deadline=None,
+    tenant=TEST_TENANT,
+    status=JobStatusEnumSchema.in_progress,
+)
+TRANSFER_ANNOTATIONS_TASKS = [
+    {
+        "id": 1,
+        "file_id": TRANSFER_ANNOTATIONS_FILE.file_id,
+        "pages": [1],
+        "job_id": TRANSFER_ANNOTATIONS_FILE.job_id,
+        "user_id": TRANSFER_ANNOTATIONS_USERS[0],
+        "is_validation": False,
+        "status": TaskStatusEnumSchema.finished,
+        "deadline": None,
+    },
+    {
+        "id": 2,
+        "file_id": TRANSFER_ANNOTATIONS_FILE.file_id,
+        "pages": [1],
+        "job_id": TRANSFER_ANNOTATIONS_FILE.job_id,
+        "user_id": TRANSFER_ANNOTATIONS_USERS[1],
+        "is_validation": False,
+        "status": TaskStatusEnumSchema.in_progress,
+        "deadline": None,
+    },
+    {
+        "id": 3,
+        "file_id": TRANSFER_ANNOTATIONS_FILE.file_id,
+        "pages": [1],
+        "job_id": TRANSFER_ANNOTATIONS_FILE.job_id,
+        "user_id": TRANSFER_ANNOTATIONS_USERS[2],
+        "is_validation": True,
+        "status": TaskStatusEnumSchema.pending,
+        "deadline": None,
+    },
+]
+TRANSFER_ANNOTATIONS_DOCS = [
+    AnnotatedDoc(
+        revision="1",
+        user=TRANSFER_ANNOTATIONS_TASKS[0]["user_id"],
+        pipeline=None,
+        file_id=TRANSFER_ANNOTATIONS_TASKS[0]["file_id"],
+        job_id=TRANSFER_ANNOTATIONS_TASKS[0]["job_id"],
+        pages={"1": "11"},
+        validated=[],
+        failed_validation_pages=[],
+        tenant=TEST_TENANT,
+        task_id=TRANSFER_ANNOTATIONS_TASKS[0]["id"],
+        date="2023-1-01T00:00:00",
+        categories=[
+            category.name for category in TRANSFER_ANNOTATIONS_CATEGORIES
+        ],
+    ),
+    AnnotatedDoc(
+        revision="2",
+        user=TRANSFER_ANNOTATIONS_TASKS[1]["user_id"],
+        pipeline=None,
+        file_id=TRANSFER_ANNOTATIONS_TASKS[1]["file_id"],
+        job_id=TRANSFER_ANNOTATIONS_TASKS[1]["job_id"],
+        pages={"1": "22"},
+        validated=[],
+        failed_validation_pages=[],
+        tenant=TEST_TENANT,
+        task_id=TRANSFER_ANNOTATIONS_TASKS[1]["id"],
+        date="2023-1-01T00:00:00",
+        categories=[
+            category.name for category in TRANSFER_ANNOTATIONS_CATEGORIES
+        ],
+    ),
+]
+SAME_OBJ = {"same": 1}
+TRANSFER_ANNOTATIONS_PAGES = {
+    "11": {
+        "page_num": 1,
+        "size": {"width": 1.0, "height": 1.0},
+        "objs": [{"id": 111, "key": [1, 2, 3]}, {"id": 222, **SAME_OBJ}],
+    },
+    "22": {
+        "page_num": 1,
+        "size": {"width": 1.0, "height": 1.0},
+        "objs": [{"id": 333, **SAME_OBJ}],
+    },
+}
+
+
+def test_transfer_annotations(
+    prepare_db_transfer_annotations,
+    prepare_minio_transfer_annotations,
+):
+    db = prepare_db_transfer_annotations
+    with patch(
+        "app.tasks.services.get_file_path_and_bucket",
+        return_value=("", ""),
+    ):
+        finish_response = client.post(
+            FINISH_TASK_PATH.format(
+                task_id=TRANSFER_ANNOTATIONS_TASKS[1]["id"]
+            ),
+            headers=TEST_HEADERS,
+        )
+
+    assert finish_response.status_code == 200
+
+    annotation_task = (
+        db.query(ManualAnnotationTask)
+        .filter(
+            ManualAnnotationTask.id == TRANSFER_ANNOTATIONS_TASKS[1]["id"],
+        )
+        .first()
+    )
+    validation_task = (
+        db.query(ManualAnnotationTask)
+        .filter(
+            ManualAnnotationTask.id == TRANSFER_ANNOTATIONS_TASKS[2]["id"],
+        )
+        .first()
+    )
+
+    assert annotation_task.status == TaskStatusEnumSchema.finished
+    assert validation_task.status == TaskStatusEnumSchema.in_progress
+
+    new_revision_number = (
+        db.query(AnnotatedDoc)
+        .filter(
+            AnnotatedDoc.file_id == TRANSFER_ANNOTATIONS_FILE.file_id,
+            AnnotatedDoc.job_id == TRANSFER_ANNOTATIONS_JOB.job_id,
+            AnnotatedDoc.user == TRANSFER_ANNOTATIONS_TASKS[-1]["user_id"],
+        )
+        .first()
+        .revision
+    )
+
+    all_revisions = client.get(
+        f"/annotation/{TRANSFER_ANNOTATIONS_JOB.job_id}/"
+        f"{TRANSFER_ANNOTATIONS_FILE.file_id}/latest_by_user",
+        headers=TEST_HEADERS,
+        params={"page_numbers": [1]},
+    )
+    new_revision = next(
+        (
+            revision
+            for revision in all_revisions.json()["1"]
+            if revision["revision"] == new_revision_number
+        ),
+        None,
+    )
+    assert new_revision
+
+    new_revision_objs = [
+        {key: obj[key] for key in obj if key != "id"}
+        for obj in new_revision["objs"]
+    ]
+    assert new_revision_objs == [SAME_OBJ]

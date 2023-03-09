@@ -81,6 +81,11 @@ from tests.test_finish_task import (
     FINISH_TASK_USER_2,
     FINISH_TASK_USER_3,
     TASK_NOT_IN_PROGRESS_STATUS,
+    TRANSFER_ANNOTATIONS_DOCS,
+    TRANSFER_ANNOTATIONS_FILE,
+    TRANSFER_ANNOTATIONS_JOB,
+    TRANSFER_ANNOTATIONS_PAGES,
+    TRANSFER_ANNOTATIONS_TASKS,
     VALIDATION_TASKS_TO_READY,
 )
 from tests.test_get_annotation_for_particular_revision import (
@@ -1436,3 +1441,34 @@ def prepare_db_with_extensive_coverage_annotations_same_pages(db_session):
 
     yield (db_session, (task_1, task_2, task_3), validation)
     clear_db()
+
+
+@pytest.fixture
+def prepare_db_transfer_annotations(db_session):
+    add_objects(db_session, [TRANSFER_ANNOTATIONS_FILE])
+    add_objects(db_session, [TRANSFER_ANNOTATIONS_JOB])
+    add_objects(
+        db_session,
+        (ManualAnnotationTask(**obj) for obj in TRANSFER_ANNOTATIONS_TASKS),
+    )
+    add_objects(db_session, [*TRANSFER_ANNOTATIONS_DOCS])
+    yield db_session
+    clear_db()
+
+
+@pytest.fixture
+def prepare_minio_transfer_annotations(monkeypatch, moto_s3):
+    path = (
+        f"{S3_START_PATH}/{TRANSFER_ANNOTATIONS_JOB.job_id}/"
+        f"{TRANSFER_ANNOTATIONS_FILE.file_id}/"
+    )
+    for page_hash, page_annotation in TRANSFER_ANNOTATIONS_PAGES.items():
+        moto_s3.Bucket(TRANSFER_ANNOTATIONS_JOB.tenant).put_object(
+            Body=json.dumps(page_annotation),
+            Key=path + f"{page_hash}.json",
+        )
+    monkeypatch.setattr(
+        "app.annotations.main.connect_s3",
+        Mock(return_value=moto_s3),
+    )
+    yield moto_s3
