@@ -23,6 +23,12 @@ class FilesToDataset(Dataset):
     objects: List[int]
 
 
+class ConvertionStatus(str, enum.Enum):
+    ERROR = ("conversion error",)
+    CONVERTED_TO_PDF = ("converted to PDF",)
+    CONVERTED_TO_JPG = "converted to JPEG"
+
+
 class FileProcessingStatus(str, enum.Enum):
     UPLOADING = "uploading"
     UPLOADED = "uploaded"

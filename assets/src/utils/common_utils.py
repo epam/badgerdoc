@@ -169,12 +169,24 @@ class FileConverter:
         self.file_name = file_name
         self.new_file = blank_db_file
         self.ext: str = ext
-        self.conversion_status: Optional[str] = None
+        self.conversion_status: Optional[schemas.ConvertionStatus] = None
         self.converted_file: Optional[bytes] = None
         self.converted_ext: Optional[str] = None
 
         minio_config = create_minio_config()
         self.minio_client = minio.Minio(**minio_config)
+
+    @property
+    def _output_pdf_path(self) -> str:
+        return f"files/{self.new_file.id}/{self.new_file.id}.pdf"
+
+    @property
+    def _output_tokens_path(self) -> str:
+        return f"files/{self.new_file.id}/ocr/1.json"
+
+    @property
+    def _tmp_file_name(self) -> str:
+        return f"{self.new_file.id}.pdf"
 
     def convert_to_pdf(self) -> bytes:
         """
@@ -188,18 +200,18 @@ class FileConverter:
                 settings.gotenberg_libre_office_endpoint, files=file_
             )
         except requests.exceptions.ConnectionError as e:
-            self.conversion_status = "conversion error"
+            self.conversion_status = schemas.ConvertionStatus.ERROR
             logger_.error("Gotenberg connection error - detail: %s", e)
             raise requests.exceptions.ConnectionError(e)
 
         if is_gotenberg_returns_file(converted_file.content) is False:
             #  is_gotenberg_returns_file func checks if file was converted to pdf.  # noqa
             #  In case of some error, the content of Gotenberg response is plain text.  # noqa
-            self.conversion_status = "conversion error"
+            self.conversion_status = schemas.ConvertionStatus.ERROR
             logger_.error("%s with %s", self.conversion_status, self.file_name)
             raise exceptions.FileConversionError
         self.converted_ext = ".pdf"
-        self.conversion_status = "converted to PDF"
+        self.conversion_status = schemas.ConvertionStatus.CONVERTED_TO_PDF
         return converted_file.content
 
     def convert_html_to_pdf(self) -> bytes:
@@ -214,17 +226,17 @@ class FileConverter:
                 settings.gotenberg_chromium_endpoint, files=file_
             )
         except requests.exceptions.ConnectionError as e:
-            self.conversion_status = "conversion error"
+            self.conversion_status = schemas.ConvertionStatus.ERROR
             raise requests.exceptions.ConnectionError(e)
 
         if not is_gotenberg_returns_file(converted_file.content):
             #  is_gotenberg_returns_file func checks if file was converted to pdf.  # noqa
             #  In case of some error, the content of Gotenberg response is plain text.  # noqa
-            self.conversion_status = "conversion error"
+            self.conversion_status = schemas.ConvertionStatus.ERROR
             logger_.error("%s with %s", self.conversion_status, self.file_name)
             raise exceptions.FileConversionError
         self.converted_ext = ".pdf"
-        self.conversion_status = "converted to PDF"
+        self.conversion_status = schemas.ConvertionStatus.CONVERTED_TO_PDF
         return converted_file.content
 
     def convert_to_jpg(self) -> bytes:
@@ -235,7 +247,7 @@ class FileConverter:
         try:
             img = PIL.Image.open(BytesIO(self.file_bytes))
         except PIL.UnidentifiedImageError:
-            self.conversion_status = "conversion error"
+            self.conversion_status = schemas.ConvertionStatus.ERROR
             logger_.error("%s with %s", self.conversion_status, self.file_name)
             raise exceptions.FileConversionError
         if img.mode in ("RGBA", "P"):
@@ -244,61 +256,77 @@ class FileConverter:
         img.close()
         byte_im = buf.getvalue()
         self.converted_ext = ".jpg"
-        self.conversion_status = "converted to JPEG"
+        self.conversion_status = schemas.ConvertionStatus.CONVERTED_TO_JPG
         return byte_im
 
-    def convert_txt(self) -> bytes:
+    def convert_gotenberg_formats(self) -> bytes:
         pdf_from_txt = self.convert_to_pdf()
-        output_pdf_path = f"files/{self.new_file.id}/{self.new_file.id}.pdf"
         file_ = BytesIO(pdf_from_txt)
         self.minio_client.put_object(
             bucket_name=self.bucket_storage,
-            object_name=output_pdf_path,
+            object_name=self._output_pdf_path,
             data=file_,
             length=len(pdf_from_txt),
         )
-        output_tokens_path = f"files/{self.new_file.id}/ocr/1.json"
         post_pdf_to_convert(
             self.bucket_storage,
-            output_pdf_path,
-            output_tokens_path,
+            self._output_pdf_path,
+            self._output_tokens_path,
         )
         self.converted_ext = ".pdf"
-        self.conversion_status = "converted to PDF"
-        tmp_file_name = f"{self.new_file.id}.pdf"
+        self.conversion_status = schemas.ConvertionStatus.CONVERTED_TO_PDF
         converted_file = self.minio_client.fget_object(  # noqa
             self.bucket_storage,
-            output_pdf_path,
-            tmp_file_name,
+            self._output_pdf_path,
+            self._tmp_file_name,
         )
-        with open(tmp_file_name, "rb") as tmp_file:
+        with open(self._tmp_file_name, "rb") as tmp_file:
             return tmp_file.read()
 
     def convert_html(self) -> bytes:
         pdf_from_html = self.convert_html_to_pdf()
-        output_pdf_path = f"files/{self.new_file.id}/{self.new_file.id}.pdf"
         file_ = BytesIO(pdf_from_html)
         self.minio_client.put_object(
             bucket_name=self.bucket_storage,
-            object_name=output_pdf_path,
+            object_name=self._output_pdf_path,
             data=file_,
             length=len(pdf_from_html),
         )
-        output_tokens_path = f"files/{self.new_file.id}/ocr/1.json"
         post_pdf_to_convert(
             self.bucket_storage,
-            output_pdf_path,
-            output_tokens_path,
+            self._output_pdf_path,
+            self._output_tokens_path,
         )
         self.converted_ext = ".pdf"
-        self.conversion_status = "converted to PDF"
-        tmp_file_name = f"{self.new_file.id}.pdf"
+        self.conversion_status = schemas.ConvertionStatus.CONVERTED_TO_PDF
         converted_file = self.minio_client.fget_object(  # noqa
             self.bucket_storage,
-            output_pdf_path,
-            tmp_file_name,
+            self._output_pdf_path,
+            self._tmp_file_name,
         )
-        with open(tmp_file_name, "rb") as tmp_file:
+        with open(self._tmp_file_name, "rb") as tmp_file:
+            return tmp_file.read()
+
+    def convert_pdf(self) -> bytes:
+        self.minio_client.put_object(
+            bucket_name=self.bucket_storage,
+            object_name=self._output_pdf_path,
+            data=BytesIO(self.file_bytes),
+            length=len(self.file_bytes),
+        )
+        post_pdf_to_convert(
+            self.bucket_storage,
+            self._output_pdf_path,
+            self._output_tokens_path,
+        )
+        self.converted_ext = ".pdf"
+        self.conversion_status = schemas.ConvertionStatus.CONVERTED_TO_PDF
+        converted_file = self.minio_client.fget_object(  # noqa
+            self.bucket_storage,
+            self._output_pdf_path,
+            self._tmp_file_name,
+        )
+        with open(self._tmp_file_name, "rb") as tmp_file:
             return tmp_file.read()
 
     def convert(self) -> Union[bool]:
@@ -308,10 +336,10 @@ class FileConverter:
         try:
             if self.ext == ".html":
                 self.converted_file = self.convert_html()
-            if self.ext == ".txt":
-                self.converted_file = self.convert_txt()
+            if self.ext == ".pdf":
+                self.converted_file = self.convert_pdf()
             if self.ext in settings.gotenberg_formats:
-                self.converted_file = self.convert_to_pdf()
+                self.converted_file = self.convert_gotenberg_formats()
             if self.ext in settings.image_formats:
                 self.converted_file = self.convert_to_jpg()
         except exceptions.FileConversionError:
