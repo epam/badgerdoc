@@ -118,7 +118,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
     const editPage = editedPages.includes(currentPage);
     const splitValidation = isValidation && job?.validation_type === 'extensive_coverage';
 
-    const isValidationDisabled = !currentPage && !isAnnotatable && !splitValidation;
+    const isValidationDisabled = (!currentPage && !splitValidation) || !isAnnotatable;
 
     const [boundModeSwitch, setBoundModeSwitch] = useState<AnnotationBoundMode>('box');
     const [tableModeValues, setTableModeValues] = useState<string>('');
