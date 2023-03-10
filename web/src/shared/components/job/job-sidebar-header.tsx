@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo } from 'react';
 import styles from './job-sidebar-header.module.scss';
-import { Job, JobType } from '../../../api/typings/jobs';
+import { Job, JobStatus, JobType } from '../../../api/typings/jobs';
 import { Status } from '../status';
 import { mapStatusForJobs } from 'shared/helpers/map-statuses';
 import '@epam/uui-components/styles.css';
@@ -43,8 +43,8 @@ export const JobSidebarHeader = ({ job }: JobSidebarHeaderProps) => {
             <h2 className={styles.headerText}>{JobTypeLabel[job.type]}</h2>
             <div className={styles.jobStatusWrapper}>
                 <Status
-                    statusTitle={mapStatusForJobs(job.status ?? 'Pending', job.mode).title}
-                    color={mapStatusForJobs(job.status ?? 'Pending', job.mode).color}
+                    statusTitle={mapStatusForJobs(job.status ?? JobStatus.Pending, job.mode).title}
+                    color={mapStatusForJobs(job.status ?? JobStatus.Pending, job.mode).color}
                 />
             </div>
 

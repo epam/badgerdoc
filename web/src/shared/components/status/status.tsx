@@ -1,10 +1,11 @@
 import React, { FC } from 'react';
+import { JobStatus } from 'api/typings/jobs';
 import { Text, Tooltip } from '@epam/loveship';
 import styles from './status.module.scss';
 
 type StatusProps = {
     color: string;
-    statusTitle: string;
+    statusTitle: JobStatus | string;
     isOverSize?: boolean;
     isTooltip?: boolean;
     placementTooltip?: 'top' | 'bottom' | 'left' | 'right';

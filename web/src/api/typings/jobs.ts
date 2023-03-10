@@ -51,10 +51,11 @@ export type JobType =
     | 'ExtractionJob'
     | 'ImportJob';
 
-export type JobStatus =
-    | 'Pending'
-    | 'In Progress'
-    | 'Failed'
-    | 'Finished'
-    | 'Draft'
-    | 'Ready For Annotation';
+export const enum JobStatus {
+    Pending = 'Pending',
+    InProgress = 'In Progress',
+    Failed = 'Failed', // not used in the current version of the application
+    Finished = 'Finished',
+    Draft = 'Draft', // not used in the current version of the application
+    ReadyForAnnotation = 'Ready For Annotation'
+}
