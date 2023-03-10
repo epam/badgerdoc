@@ -18,7 +18,7 @@ from sqlalchemy import (
     func,
 )
 from sqlalchemy.dialects.postgresql import ARRAY, ENUM, JSON, JSONB, UUID
-from sqlalchemy.orm import relationship, validates, backref
+from sqlalchemy.orm import relationship, validates
 from sqlalchemy_utils import Ltree, LtreeType
 
 from app.database import Base
