@@ -83,6 +83,7 @@ from .services import (
     count_annotation_tasks,
     create_annotation_task,
     create_export_csv,
+    create_validation_revisions,
     evaluate_agreement_score,
     filter_tasks_db,
     finish_validation_task,
@@ -941,7 +942,18 @@ def finish_task(
     )
 
     if not task.is_validation:
-        unblock_validation_tasks(db, task, annotated_file_pages=finished_pages)
+        unblocked_tasks = unblock_validation_tasks(
+            db, task, annotated_file_pages=finished_pages
+        )
+        if (
+            job.validation_type == ValidationSchema.extensive_coverage
+            and unblocked_tasks
+        ):
+            # create first validation revisions with matching annotations
+            create_validation_revisions(
+                db, x_current_tenant, token, job.job_id, task, unblocked_tasks
+            )
+
     task.status = TaskStatusEnumSchema.finished
     same_job_tasks_amount = (
         db.query(ManualAnnotationTask)
