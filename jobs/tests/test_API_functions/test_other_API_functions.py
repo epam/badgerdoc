@@ -23,11 +23,13 @@ def test_get_all_jobs_endpoint(
 def test_get_job_by_id_positive(
     testing_app, testing_session, mock_AnnotationJobParams
 ):
-    create_mock_extraction_job_in_db(testing_session)
-    create_mock_annotation_job_in_db(testing_session, mock_AnnotationJobParams)
-    response = testing_app.get("/jobs/2")
-    assert response.status_code == 200
-    assert response.json()["name"] == "MockAnnotationJob"
+    with patch("jobs.utils.fetch", return_value=asyncio.Future()) as mock:
+        mock.side_effect = [(200, "annotator_username1"), (200, "annotator_username2")]
+        create_mock_extraction_job_in_db(testing_session)
+        create_mock_annotation_job_in_db(testing_session, mock_AnnotationJobParams)
+        response = testing_app.get("/jobs/2")
+        assert response.status_code == 200
+        assert response.json()["name"] == "MockAnnotationJob"
 
 
 def test_get_job_by_id_negative(

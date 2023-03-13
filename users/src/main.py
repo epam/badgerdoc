@@ -23,7 +23,19 @@ from src.schemas import Users
 from tenant_dependency import TenantData, get_tenant_info
 from urllib3.exceptions import MaxRetryError
 
-app = FastAPI(title="users", root_path=ROOT_PATH, version="0.1.2")
+CLIENT_VIEWS_USERS_ACCESS_TOKEN_DATA = {}
+
+
+app = FastAPI(title="users", root_path=ROOT_PATH, version="0.1.3")
+
+
+@app.on_event("startup")
+async def startup_event():
+    CLIENT_VIEWS_USERS_ACCESS_TOKEN_DATA[
+        "ACCESS_TOKEN"
+    ] = await kc_schemas.ClientViewsUsersAccessToken.create_instance()
+
+
 realm = conf.KEYCLOAK_REALM
 minio_client = s3.get_minio_client()
 
@@ -146,6 +158,23 @@ async def get_user(
 ) -> kc_schemas.User:
     """Get user from realm."""
     return await kc_query.get_user(realm, token.token, user_id)
+
+
+@app.get(
+    "/get_username_by_user_id",
+    status_code=200,
+    tags=["users"],
+)
+async def get_username_by_user_id(
+    user_id: str,
+    token: TenantData = Depends(tenant),
+    current_tenant: Optional[str] = Header(None, alias="X-Current-Tenant"),
+) -> str:
+    """Get username by its user_id with any valid token."""
+    result = await kc_utils.get_username(
+        CLIENT_VIEWS_USERS_ACCESS_TOKEN_DATA["ACCESS_TOKEN"], user_id
+    )
+    return result.username
 
 
 @app.get(

@@ -75,7 +75,10 @@ async def get_users_by_role(
 
 
 async def get_token_v2(
-    realm: str, request_form: Union[schemas.TokenRequest, schemas.RefreshTokenRequest]
+    realm: str,
+    request_form: Union[
+        schemas.TokenRequest, schemas.RefreshTokenRequest, schemas.OAuthRequest
+    ],
 ) -> schemas.TokenResponse:
     """Get access token.
 

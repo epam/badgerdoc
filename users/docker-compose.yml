@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   postgres:
-    image: library/postgres
+    image: "library/postgres:14"
     env_file:
       - .env
     ports:
@@ -29,7 +29,9 @@ services:
       - .env
 
   app:
-    build: .
+    build:
+      context: .
+      target: build
     environment:
       KEYCLOAK_ENDPOINT: "http://keycloak:8080"
       S3_CREDENTIALS_PROVIDER: "minio"
