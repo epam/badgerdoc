@@ -14,7 +14,7 @@ import {
     SortingDirection,
     UpdateCategory
 } from 'api/typings';
-import { InfiniteData, useQuery, useMutation, useQueryClient } from 'react-query';
+import { InfiniteData, useQuery, useMutation, useQueryClient, useInfiniteQuery } from 'react-query';
 import { pageSizes } from 'shared';
 import { useBadgerFetch } from './api';
 
@@ -79,14 +79,22 @@ export const getCategories = (id: string): Promise<Category> => {
     })();
 };
 
-export const useCategoriesByJob: QueryHookType<CategoriesByJobParams, PagedResponse<Category>> = (
-    { jobId, page, size, searchText, filters, sortConfig },
-    options
-) => {
-    return useQuery(
-        ['categoriesByJob', jobId, page, size, searchText, filters, sortConfig],
-        () => categoriesByJobFetcher(jobId, page, size, searchText, filters, sortConfig),
-        options
+export const useCategoriesByJob: QueryInfiniteHookType<
+    Omit<CategoriesByJobParams, 'page'>,
+    Category
+> = ({ jobId, size, searchText, filters, sortConfig }, { enabled }) => {
+    return useInfiniteQuery(
+        ['categoriesByJob', jobId, size, searchText, filters, sortConfig],
+        ({ pageParam = 1 }) =>
+            categoriesByJobFetcher(jobId, pageParam, size, searchText, filters, sortConfig),
+        {
+            enabled,
+            select: (data) => ({
+                pages: data.pages.flat(),
+                pageParams: data.pageParams
+            }),
+            getNextPageParam: (lastPage, pages) => (lastPage.length ? pages.length + 1 : undefined)
+        }
     );
 };
 async function categoriesByJobFetcher(
@@ -99,7 +107,7 @@ async function categoriesByJobFetcher(
         field: 'name',
         direction: SortingDirection.ASC
     }
-): Promise<PagedResponse<Category>> {
+): Promise<Category[]> {
     const filtersArr: FilterWithDocumentExtraOption<keyof Category | string>[] = filters
         ? [...filters]
         : [];
@@ -117,8 +125,15 @@ async function categoriesByJobFetcher(
         filters: filtersArr,
         sorting: [{ direction: sortConfig.direction, field: sortConfig.field }]
     };
-    return fetchCategories(`${namespace}/jobs/${jobId}/categories/search`, 'post', body);
+    const { data } = await fetchCategories(
+        `${namespace}/jobs/${jobId}/categories/search`,
+        'post',
+        body
+    );
+
+    return data;
 }
+
 export async function categoriesFetcher(
     page = 1,
     size = pageSizes._15,
@@ -215,40 +230,8 @@ export async function fetchInfiniteCategories(
     })(JSON.stringify(body));
 }
 
-type DocumentCategoriesByJobProps = {
-    searchText: string;
-    jobId?: number;
-    filters?: FilterWithDocumentExtraOption<keyof Category>[];
-};
-
 export type DocumentCategoriesByJobResponse = {
     data?: PagedResponse<Category>;
     isLoading: boolean;
     isError: boolean;
-};
-
-export const useDocumentCategoriesByJob = ({
-    searchText,
-    jobId,
-    filters
-}: DocumentCategoriesByJobProps): DocumentCategoriesByJobResponse => {
-    const categoriesFilter: FilterWithDocumentExtraOption<keyof Category> = {
-        field: 'type',
-        operator: Operators.EQ,
-        value: 'document'
-    };
-
-    const { data, isError, isLoading } = useCategoriesByJob(
-        {
-            page: 1,
-            size: 100,
-            sortConfig: { field: 'name', direction: SortingDirection.ASC },
-            searchText,
-            filters: filters ? [categoriesFilter, ...filters] : [categoriesFilter],
-            jobId
-        },
-        { enabled: !!jobId }
-    );
-
-    return { data, isError, isLoading };
 };

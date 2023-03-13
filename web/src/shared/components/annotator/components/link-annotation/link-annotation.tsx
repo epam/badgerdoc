@@ -1,8 +1,8 @@
-import { EpamColor, IconButton } from '@epam/loveship';
 import React, { CSSProperties, useMemo } from 'react';
 import { getStyledLinkByBounds, LinkAnnotationProps } from './helpers';
 import { ReactComponent as closeIcon } from '@epam/assets/icons/common/navigation-close-12.svg';
-import { ReactComponent as ArrowIcon } from '@epam/assets/icons/common/navigation-arrow-down-24.svg';
+import { ReactComponent as ArrowIcon } from '@epam/assets/icons/common/media-play-18.svg';
+import { EpamColor, IconButton } from '@epam/loveship';
 
 import styles from './link-annotation.module.scss';
 
@@ -40,7 +40,7 @@ export const LinkAnnotation = ({
         >
             <div className={styles.container} style={{ color: category.metadata?.color }}>
                 <div
-                    className={styles.arrowBottom}
+                    className={`${styles.arrow} ${styles.arrowBottom}`}
                     style={{ visibility: !reversed ? 'hidden' : undefined }}
                 >
                     <ArrowIcon />
@@ -54,7 +54,7 @@ export const LinkAnnotation = ({
                     />
                 </div>
                 <div
-                    className={styles.arrowTop}
+                    className={styles.arrow}
                     style={{ visibility: reversed ? 'hidden' : undefined }}
                 >
                     <ArrowIcon />

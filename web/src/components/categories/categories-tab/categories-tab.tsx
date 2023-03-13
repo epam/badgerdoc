@@ -6,7 +6,7 @@ import { AnnotationBoundMode } from 'shared';
 import { CategoriesTree } from 'components/categories/categories-tree/categories-tree';
 import { Category, CategoryNode } from '../../../api/typings';
 
-import { FlexCell, MultiSwitch, SearchInput } from '@epam/loveship';
+import { Blocker, FlexCell, MultiSwitch, SearchInput } from '@epam/loveship';
 import styles from './categories-tab.module.scss';
 interface CategoriesTabProps {
     boundModeSwitch: AnnotationBoundMode;
@@ -99,7 +99,7 @@ export const CategoriesTab = ({ boundModeSwitch, setBoundModeSwitch }: Categorie
     }, [taskCategories]);
 
     return (
-        <>
+        <div className={styles.container}>
             {categoriesTypes.length > 1 && (
                 <FlexCell width="auto" cx={styles.categoriesAndLinks__wrapper}>
                     <MultiSwitch
@@ -129,6 +129,7 @@ export const CategoriesTab = ({ boundModeSwitch, setBoundModeSwitch }: Categorie
                     selectedHotKeys={selectedKeys}
                 />
             </div>
-        </>
+            <Blocker isEnabled={!isFetched} />
+        </div>
     );
 };

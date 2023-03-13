@@ -10,6 +10,7 @@ type BadgerFetchOptions = {
     withCredentials?: boolean;
     plainHeaders?: boolean;
     isBlob?: boolean;
+    signal?: AbortSignal;
 };
 export type BadgerFetchBody =
     | ReadableStream
@@ -34,7 +35,8 @@ let useBadgerFetch: BadgerFetchProvider = (arg) => {
             headers,
             withCredentials = true,
             plainHeaders = false,
-            isBlob = false
+            isBlob = false,
+            signal
         } = arg;
         const combinedHeaders = {};
 
@@ -53,6 +55,7 @@ let useBadgerFetch: BadgerFetchProvider = (arg) => {
         const response = await fetch(url, {
             method,
             body,
+            signal,
             headers: {
                 ...combinedHeaders,
                 ...headers

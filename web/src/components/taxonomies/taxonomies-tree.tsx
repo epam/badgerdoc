@@ -1,6 +1,6 @@
 import React, { FC, useCallback, useMemo } from 'react';
 import { Spinner } from '@epam/loveship';
-import { TaxonomyNode, TreeNode } from 'api/typings';
+import { TaxonomyNode, TTreeNode } from 'api/typings';
 import { EventDataNode } from 'rc-tree/lib/interface';
 import { BadgerTree } from 'shared/components/badger-tree/badger-tree';
 import { Annotation, AnnotationLabel } from 'shared';
@@ -46,7 +46,7 @@ export const TaxonomiesTree: FC<TaxonomiesTreeProps> = ({
     }, [selectedKey]);
 
     const titleRenderer = useCallback(
-        (node: TreeNode) => {
+        (node: TTreeNode) => {
             return (
                 <div className={styles.taxonomyWrapper}>
                     <div className={styles.taxonomy}>{node.title}</div>
