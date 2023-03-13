@@ -274,13 +274,12 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         }
     }
     const {
-        data: categories,
+        data: { pages: categories } = {},
         refetch: refetchCategories,
         isLoading: categoriesLoading
     } = useCategoriesByJob(
         {
             jobId: getJobId(),
-            page: 1,
             size: 100,
             searchText: '',
             sortConfig: { field: 'name', direction: SortingDirection.ASC }
@@ -296,7 +295,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
 
     const taskHasTaxonomies = useMemo(() => {
         if (categories) {
-            return !!categories.data.find((category) =>
+            return !!categories.find((category) =>
                 category.data_attributes?.find((attr) => attr.type === 'taxonomy')
             );
         }
@@ -565,7 +564,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
     const setAnnotationDataAttrs = (annotation: Annotation) => {
         const foundCategoryDataAttrs = getCategoryDataAttrs(
             annotation.category ? annotation.category : annotation.label,
-            categories?.data
+            categories
         );
         if (foundCategoryDataAttrs && foundCategoryDataAttrs.length) {
             setAnnDataAttrs((prevState) => {
@@ -715,7 +714,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             setTableMode(false);
         }
 
-        const foundCategoryDataAttrs = getCategoryDataAttrs(category, categories?.data);
+        const foundCategoryDataAttrs = getCategoryDataAttrs(category, categories);
 
         if (foundCategoryDataAttrs) {
             setAnnDataAttrs((prevState) => {
@@ -937,7 +936,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         setCurrentPage(page);
     };
     const splitValidation = useSplitValidation({
-        categories: categories?.data,
+        categories: categories,
         currentPage,
         fileId: getFileId(),
         isValidation: task?.is_validation,
@@ -963,7 +962,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         [latestAnnotationsResult.data?.pages, comparedTaxonLabels]
     );
     useEffect(() => {
-        if (!latestAnnotationsResult.data || !categories?.data) return;
+        if (!latestAnnotationsResult.data || !categories) return;
         const latestLabelIds = latestAnnotationsResult.data.categories;
 
         setLatestLabelsId(latestLabelIds);
@@ -971,7 +970,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         const result = mapAnnotationPagesFromApi(
             (page: PageInfo) => page.page_num.toString(),
             latestAnnotationsResult.data.pages,
-            categories?.data
+            categories
         );
         setAllAnnotations(result);
 
@@ -988,7 +987,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         )
             return;
         setPageSize(latestAnnotationsResult.data.pages[0].size);
-    }, [latestAnnotationsResult.data, categories?.data, mapAnnotationPagesFromApi]);
+    }, [latestAnnotationsResult.data, categories, mapAnnotationPagesFromApi]);
 
     const onClearModifiedPages = useCallback(async () => {
         setModifiedPages([]);
@@ -1005,7 +1004,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             task,
             job,
             getJobId,
-            categories: categories?.data,
+            categories,
             categoriesLoading,
             selectedCategory,
             selectedLink,
@@ -1074,7 +1073,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
     }, [
         task,
         job,
-        categories?.data,
+        categories,
         categoriesLoading,
         selectedCategory,
         selectedLink,

@@ -17,39 +17,28 @@ import { useBadgerFetch } from './api';
 
 const namespace = process.env.REACT_APP_TAXONOMIES_API_NAMESPACE;
 
-export const useTaxons: QueryHookType<QueryHookParamsType<Taxon>, PagedResponse<Taxon>> = (
-    { page, size, searchText, searchField, filters, sortConfig },
-    options
-) => {
-    return useQuery(
-        ['taxons', page, size, searchText, filters, sortConfig],
-        () => taxonsFetcher(page, size, searchText, filters, sortConfig, searchField),
-        options
-    );
-};
+type TTaxonFetcher = (args: {
+    page?: number;
+    size?: number;
+    searchText?: string | null;
+    filters?: FilterWithDocumentExtraOption<keyof Taxon>[];
+    sortConfig?: Sorting<keyof Taxon>;
+    searchField?: keyof Taxon;
+    signal?: AbortSignal;
+}) => Promise<PagedResponse<Taxon>>;
 
-export const useAllTaxonomies: QueryHookType<
-    QueryHookParamsType<Taxonomy>,
-    PagedResponse<Taxonomy>
-> = ({ page, size, searchText, filters, sortConfig }, options) => {
-    return useQuery(
-        ['taxonomies/all', page, size, searchText, filters, sortConfig],
-        () => taxonomiesFetcher(page, size, searchText, filters, sortConfig),
-        options
-    );
-};
-
-export async function taxonsFetcher(
+export const taxonsFetcher: TTaxonFetcher = async ({
     page = 1,
     size = pageSizes._15,
-    searchText?: string | null,
-    filters?: FilterWithDocumentExtraOption<keyof Taxon>[],
-    sortConfig: Sorting<keyof Taxon> = {
+    searchText,
+    filters,
+    sortConfig = {
         field: 'name',
         direction: SortingDirection.ASC
     },
-    searchField: keyof Taxon | undefined = 'name'
-): Promise<PagedResponse<Taxon>> {
+    searchField = 'name',
+    signal
+}) => {
     const filtersArr: FilterWithDocumentExtraOption<keyof Taxon>[] = filters ? [...filters] : [];
     if (searchText) {
         filtersArr.push({
@@ -64,8 +53,39 @@ export async function taxonsFetcher(
         filters: filtersArr,
         sorting: [{ direction: sortConfig.direction, field: sortConfig.field }]
     };
-    return fetchTaxons(`${namespace}/taxons/search`, 'post', body);
-}
+
+    return fetchTaxons(`${namespace}/taxons/search`, 'post', body, signal);
+};
+
+export const useTaxons: QueryHookType<QueryHookParamsType<Taxon>, PagedResponse<Taxon>> = (
+    { page, size, searchText, searchField, filters, sortConfig },
+    options
+) => {
+    return useQuery(
+        ['taxons', page, size, searchText, filters, sortConfig],
+        () =>
+            taxonsFetcher({
+                page,
+                size,
+                searchText,
+                filters,
+                sortConfig,
+                searchField
+            }),
+        options
+    );
+};
+
+export const useAllTaxonomies: QueryHookType<
+    QueryHookParamsType<Taxonomy>,
+    PagedResponse<Taxonomy>
+> = ({ page, size, searchText, filters, sortConfig }, options) => {
+    return useQuery(
+        ['taxonomies/all', page, size, searchText, filters, sortConfig],
+        () => taxonomiesFetcher(page, size, searchText, filters, sortConfig),
+        options
+    );
+};
 
 export async function taxonomiesFetcher(
     page = 1,
@@ -97,12 +117,14 @@ export async function taxonomiesFetcher(
 export async function fetchTaxons(
     url: string,
     method: HTTPRequestMethod,
-    body?: SearchBody<Taxon>
+    body?: SearchBody<Taxon>,
+    signal?: AbortSignal
 ): Promise<PagedResponse<Taxon>> {
     return useBadgerFetch<PagedResponse<Taxon>>({
         url,
         method,
-        withCredentials: true
+        withCredentials: true,
+        signal
     })(JSON.stringify(body));
 }
 
