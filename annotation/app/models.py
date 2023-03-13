@@ -300,13 +300,18 @@ class ManualAnnotationTask(Base):
     user = relationship("User", back_populates="tasks")
     jobs = relationship("Job", back_populates="tasks")
     docs = relationship("AnnotatedDoc", back_populates="tasks")
-    stats = relationship("AnnotationStatistics", back_populates="task")
+    stats = relationship(
+        "AnnotationStatistics",
+        back_populates="task",
+        cascade="all, delete-orphan"
+    )
     agreement_metrics = relationship(
         "AgreementMetrics",
         primaryjoin=(
             "or_(ManualAnnotationTask.id==AgreementMetrics.task_from, "
             "ManualAnnotationTask.id==AgreementMetrics.task_to)"
         ),
+        cascade="all, delete-orphan"
     )
 
 
@@ -317,7 +322,11 @@ class AnnotationStatistics(Base):
         ForeignKey("tasks.id", ondelete="cascade"),
         primary_key=True,
     )
-    task = relationship("ManualAnnotationTask", back_populates="stats")
+    task = relationship(
+        "ManualAnnotationTask",
+        back_populates="stats",
+        passive_deletes=True,
+    )
     event_type = Column(
         ENUM(AnnotationStatisticsEventEnumSchema, name="event_type"),
         nullable=False,
