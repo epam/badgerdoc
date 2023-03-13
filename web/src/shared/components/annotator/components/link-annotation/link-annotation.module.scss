@@ -3,11 +3,14 @@
     align-items: center;
     justify-content: flex-start;
     cursor: pointer;
-    z-index: 100;
+    z-index: 10;
+    opacity: 0.5;
     &:hover {
         border-bottom-width: 2px !important;
+        opacity: 0.8;
     }
 }
+
 .label {
     cursor: pointer;
     color: white;
@@ -19,18 +22,20 @@
         background: rgba(255, 255, 255, 0.76);
     }
 }
+
 .container {
     margin: 0 -14px;
     display: flex;
     align-items: center;
     flex-grow: 1;
 }
-.arrowBottom {
-    transform: rotate(90deg);
-    fill: currentColor;
-}
 
-.arrowTop {
-    transform: rotate(-90deg);
+.arrow {
     fill: currentColor;
+    width: 29px;
+    height: 18px;
+
+    &Bottom {
+        transform: rotate(180deg);
+    }
 }
