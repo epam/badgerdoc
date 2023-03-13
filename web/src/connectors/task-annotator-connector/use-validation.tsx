@@ -1,10 +1,3 @@
-import { AnnotationsResponse, useAddAnnotationsMutation } from 'api/hooks/annotations';
-import { useGetValidatedPages, useSetTaskFinishedMutation, useSetTaskState } from 'api/hooks/tasks';
-import { Task } from 'api/typings/tasks';
-import {
-    FinishTaskValidationModal,
-    TaskValidationValues
-} from '../../components/task/task-modal/task-validation-modal';
 import React, {
     Dispatch,
     MutableRefObject,
@@ -14,14 +7,24 @@ import React, {
     useMemo,
     useState
 } from 'react';
-import { useUuiContext } from '@epam/uui';
-import { CategoryDataAttributeWithValue, PageInfo, User } from 'api/typings';
 import { UseQueryResult } from 'react-query';
+import { isEmpty } from 'lodash';
+
+import { Task } from 'api/typings/tasks';
+import { CategoryDataAttributeWithValue, PageInfo, User } from 'api/typings';
+
+import { AnnotationsResponse, useAddAnnotationsMutation } from 'api/hooks/annotations';
+import { useGetValidatedPages, useSetTaskFinishedMutation, useSetTaskState } from 'api/hooks/tasks';
+import {
+    FinishTaskValidationModal,
+    TaskValidationValues
+} from '../../components/task/task-modal/task-validation-modal';
 import { ApiError } from 'api/api-error';
-import { mapModifiedAnnotationPagesToApi } from './task-annotator-utils';
 import { Annotation, PageToken } from 'shared';
 import { PageSize } from 'shared/components/document-pages/document-pages';
-import { isEmpty } from 'lodash';
+import { mapModifiedAnnotationPagesToApi } from './task-annotator-utils';
+
+import { useUuiContext } from '@epam/uui';
 
 export type ValidationParams = {
     latestAnnotationsResult: UseQueryResult<AnnotationsResponse, unknown>;

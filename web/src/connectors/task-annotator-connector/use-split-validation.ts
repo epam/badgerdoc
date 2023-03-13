@@ -1,6 +1,6 @@
 import { AnnotationsByUserObj, useLatestAnnotationsByUser } from 'api/hooks/annotations';
 import { Category, Label, Link, Taxon } from 'api/typings';
-import { Job } from 'api/typings/jobs';
+import { Job, JobStatus } from 'api/typings/jobs';
 import cloneDeep from 'lodash/cloneDeep';
 import isEqual from 'lodash/isEqual';
 import { useCallback, useEffect, useMemo } from 'react';
@@ -211,7 +211,7 @@ export default function useSplitValidation({
     };
 
     useEffect(() => {
-        if (validPages.length && isSplitValidation) {
+        if (validPages.length && isSplitValidation && job.status !== JobStatus.Finished) {
             onAnnotationTaskFinish();
         }
     }, [validPages, isSplitValidation]);

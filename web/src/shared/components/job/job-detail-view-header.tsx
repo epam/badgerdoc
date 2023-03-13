@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button, FlexCell, FlexRow, FlexSpacer } from '@epam/loveship';
-import { Job } from 'api/typings/jobs';
+import { Job, JobStatus } from 'api/typings/jobs';
 import styles from './job-header.module.scss';
 import { JOBS_PAGE } from '../../constants';
 import { BreadcrumbNavigation } from '../breadcrumb';
@@ -14,12 +14,7 @@ type JobDetailViewHeaderProps = {
     onDistributeTaskClick(): void;
     onEditJobClick(job: Job): void;
 };
-// const JobTypeLabel: Record<JobType, string> = {
-//     ExtractionJob: 'Automatic',
-//     AnnotationJob: 'Manual',
-//     ExtractionWithAnnotationJob: 'Automatic + Manual',
-//     ImportJob: 'Import'
-// };
+
 export const JobDetailViewHeader: React.FC<JobDetailViewHeaderProps> = ({
     name,
     onCreateNewTaskClick,
@@ -31,8 +26,8 @@ export const JobDetailViewHeader: React.FC<JobDetailViewHeaderProps> = ({
     if (!job) return null;
 
     const jobCanBeStarted =
-        (job.status === 'Pending' && job.type === 'AnnotationJob') ||
-        (job.status === 'Ready For Annotation' && job.type === 'ExtractionWithAnnotationJob');
+        (job.status === JobStatus.Pending && job.type === 'AnnotationJob') ||
+        (job.status === JobStatus.ReadyForAnnotation && job.type === 'ExtractionWithAnnotationJob');
 
     return (
         <FlexCell cx={styles.wrapper}>
