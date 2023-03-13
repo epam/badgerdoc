@@ -2,7 +2,7 @@ import csv
 import io
 import os
 from datetime import datetime
-from typing import List, NamedTuple, Optional, Set, Tuple
+from typing import Any, Dict, List, NamedTuple, Optional, Set, Tuple
 
 import dotenv
 import pydantic
@@ -12,9 +12,15 @@ from sqlalchemy import and_, asc, text
 from sqlalchemy.orm import Session
 from tenant_dependency import TenantData
 
+from app.annotations.main import (
+    construct_annotated_doc,
+    find_all_revisions_pages,
+    load_all_revisions_pages,
+)
 from app.errors import CheckFieldError, FieldConstraintError
 from app.filters import TaskFilter
 from app.jobs import update_files, update_user_overall_load
+from app.logger import Logger
 from app.microservice_communication.assets_communication import (
     get_file_path_and_bucket,
 )
@@ -33,6 +39,7 @@ from app.schemas import (
     AgreementScoreServiceInput,
     AgreementScoreServiceResponse,
     AnnotationStatisticsInputSchema,
+    DocForSaveSchema,
     ExportTaskStatsInput,
     ManualAnnotationTaskInSchema,
     ResponseScore,
@@ -40,6 +47,7 @@ from app.schemas import (
     TaskStatusEnumSchema,
     ValidationSchema,
 )
+from app.schemas.annotations import PageSchema
 
 dotenv.load_dotenv(dotenv.find_dotenv())
 AGREEMENT_SCORE_MIN_MATCH = float(os.getenv("AGREEMENT_SCORE_MIN_MATCH"))
@@ -401,27 +409,27 @@ def unblock_validation_tasks(
     db: Session,
     task: ManualAnnotationTask,
     annotated_file_pages: List[int],
-) -> None:
+) -> List[ManualAnnotationTask]:
     """Having list of all annotated pages search for all 'pending'
     validation tasks for this job_id and file_id for which 'task.pages' is
     subset of annotated_file_pages list and updates such tasks status from
     'pending' to 'ready'.
     """
-    (
-        db.query(ManualAnnotationTask)
-        .filter(
-            and_(
-                ManualAnnotationTask.job_id == task.job_id,
-                ManualAnnotationTask.is_validation.is_(True),
-                ManualAnnotationTask.status == TaskStatusEnumSchema.pending,
-                ManualAnnotationTask.file_id == task.file_id,
-                ManualAnnotationTask.pages.contained_by(annotated_file_pages),
-            )
-        )
-        .update(
-            {"status": TaskStatusEnumSchema.ready}, synchronize_session=False
+    unblocked_tasks = db.query(ManualAnnotationTask).filter(
+        and_(
+            ManualAnnotationTask.job_id == task.job_id,
+            ManualAnnotationTask.is_validation.is_(True),
+            ManualAnnotationTask.status == TaskStatusEnumSchema.pending,
+            ManualAnnotationTask.file_id == task.file_id,
+            ManualAnnotationTask.pages.contained_by(annotated_file_pages),
         )
     )
+    validation_tasks = unblocked_tasks.all()
+    unblocked_tasks.update(
+        {"status": TaskStatusEnumSchema.ready},
+        synchronize_session=False,
+    )
+    return validation_tasks
 
 
 def get_task_stats_by_id(
@@ -651,3 +659,182 @@ def save_agreement_metrics(
     ]
     db.bulk_save_objects(metrics)
     db.commit()
+
+
+def get_annotation_tasks(
+    db: Session,
+    job_id: int,
+    file_id: int,
+    pages: List[int],
+) -> List[ManualAnnotationTask]:
+    """
+    Having list of pages search for all 'finished' annotation tasks
+    for job_id and file_id.
+    """
+    return (
+        db.query(ManualAnnotationTask)
+        .filter(
+            and_(
+                ManualAnnotationTask.job_id == job_id,
+                ManualAnnotationTask.is_validation.is_(False),
+                ManualAnnotationTask.status == TaskStatusEnumSchema.finished,
+                ManualAnnotationTask.file_id == file_id,
+                ManualAnnotationTask.pages.contained_by(pages),
+            )
+        )
+        .all()
+    )
+
+
+def load_revisions(
+    db: Session,
+    x_current_tenant: str,
+    pages_nums: List[int],
+    annotation_tasks: List[ManualAnnotationTask],
+) -> Dict[int, Dict[int, Dict[str, Any]]]:
+    """Load all tasks revisions by given page."""
+    tasks_data = dict()
+    for task_number, annotation_task in enumerate(annotation_tasks):
+        task_revisions = get_task_revisions(
+            db,
+            x_current_tenant,
+            annotation_task.job_id,
+            annotation_task.id,
+            annotation_task.file_id,
+            pages_nums,
+        )
+        annotated_pages = find_all_revisions_pages(task_revisions, pages_nums)
+        load_all_revisions_pages(annotated_pages, x_current_tenant)
+
+        for page_number, annotations in annotated_pages.items():
+            tasks_data.setdefault(page_number, {})[task_number] = {
+                "size": (
+                    annotations[0]["size"]
+                    if annotations
+                    else {"width": 0.0, "height": 0.0}
+                ),
+                "objects": [
+                    {key: obj[key] for key in obj if key != "id"}
+                    for revision in annotations
+                    for obj in revision["objs"]
+                ],
+                "categories": set(
+                    category
+                    for revision in annotations
+                    for category in revision["categories"]
+                ),
+            }
+    return tasks_data
+
+
+def find_common_values(
+    db: Session,
+    x_current_tenant: str,
+    pages_nums: List[int],
+    annotation_tasks: List[ManualAnnotationTask],
+) -> Tuple[List[PageSchema], Set[str]]:
+    """Find common values in annotation tasks."""
+    tasks_data = load_revisions(
+        db, x_current_tenant, pages_nums, annotation_tasks
+    )
+
+    common_objs_pages: List[PageSchema] = []
+    obj_id: int = 0
+    for page_number, tasks in tasks_data.items():
+        common_objs_pages.append(
+            PageSchema(
+                page_num=page_number,
+                size=(
+                    tasks[0]["size"]
+                    if tasks
+                    else {"width": 0.0, "height": 0.0}
+                ),
+                objs=[
+                    {"id": (obj_id := obj_id + 1), **obj}  # noqa F841
+                    for obj in tasks[
+                        min(tasks.keys(), key=lambda x: len(tasks[x]))
+                    ]["objects"]
+                    if all(
+                        obj in task_data["objects"]
+                        for task_data in tasks.values()
+                    )
+                ],
+            ),
+        )
+
+    common_categories = (
+        set.intersection(
+            *(
+                set.intersection(
+                    *(task_data["categories"] for task_data in tasks.values())
+                )
+                for tasks in tasks_data.values()
+            )
+        )
+        if tasks_data
+        else set()
+    )
+
+    return common_objs_pages, common_categories
+
+
+def create_validation_revisions(
+    db: Session,
+    x_current_tenant: str,
+    token: TenantData,
+    job_id: int,
+    finished_task: ManualAnnotationTask,
+    validation_tasks: List[ManualAnnotationTask],
+) -> None:
+    """
+    Create first validation revisions with all matching annotations from
+    annotations tasks. Change validations tasks statuses to 'in_progress'.
+    """
+    for validation_task in validation_tasks:
+        file_id = validation_task.file_id
+        pages_nums = validation_task.pages
+
+        s3_file_path, s3_file_bucket = get_file_path_and_bucket(
+            file_id, x_current_tenant, token.token
+        )
+        annotation_tasks = get_annotation_tasks(
+            db, job_id, file_id, pages_nums
+        )
+        annotation_tasks.append(finished_task)
+        annotated_pages, categories = find_common_values(
+            db, x_current_tenant, pages_nums, annotation_tasks
+        )
+        if not (
+            (annotated_pages and any(page.objs for page in annotated_pages))
+            or categories
+        ):
+            continue
+
+        doc = DocForSaveSchema(
+            user=validation_task.user_id,
+            pages=annotated_pages,
+            validated=set(),
+            failed_validation_pages=set(),
+            categories=categories,
+        )
+
+        try:
+            construct_annotated_doc(
+                db=db,
+                user_id=validation_task.user_id,
+                pipeline_id=None,
+                job_id=job_id,
+                file_id=file_id,
+                doc=doc,
+                tenant=x_current_tenant,
+                s3_file_path=s3_file_path,
+                s3_file_bucket=s3_file_bucket,
+                latest_doc=None,
+                task_id=validation_task.id,
+                is_latest=True,
+            )
+        except ValueError:
+            Logger.exception("Cannot save first validation revision.")
+        else:
+            db.flush()
+            update_task_status(db, validation_task)
