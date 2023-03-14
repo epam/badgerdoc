@@ -34,7 +34,7 @@ export const useUsersDataFromTask = (task: Task | undefined) => {
     useEffect(() => {
         if (job) {
             const { owners, annotators, validators } = job;
-            const usersArr = uniq([...validators, ...annotators, ...owners]);
+            const usersArr = uniq([...validators, ...annotators.map((el) => el.id), ...owners]);
             usersFilters.current = [
                 {
                     field: 'id',
@@ -66,7 +66,13 @@ const mapUsersFromServer = (job: Job, usersArray: PagedResponse<User>) => {
     const sortedUserObject: SortedUsersType = ['owners', 'annotators', 'validators'].reduce(
         (acc, key) => {
             const userKey = key as keyof SortedUsersType;
-            acc[userKey] = usersArray.data.filter((user) => job[userKey].includes(user.id));
+            acc[userKey] = usersArray.data.filter((user) => {
+                if (userKey === 'annotators') {
+                    job[userKey].some((el) => el.id === user.id);
+                } else {
+                    job[userKey].includes(user.id);
+                }
+            });
             return acc;
         },
         {} as SortedUsersType

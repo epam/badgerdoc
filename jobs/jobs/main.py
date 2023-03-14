@@ -328,6 +328,7 @@ async def get_job_by_id(
     job_id: int,
     current_tenant: Optional[str] = Header(None, alias="X-Current-Tenant"),
     db: Session = Depends(db_service.get_session),
+    token_data: TenantData = Depends(tenant),
 ) -> Dict[str, Any]:
     """Getting hold on a job in the database by its id"""
 
@@ -337,8 +338,10 @@ async def get_job_by_id(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Job with this id does not exist.",
         )
-    result = job_needed.as_dict
-    return result
+    result = await utils.enrich_annotators_with_usernames(
+        job_needed, current_tenant, token_data.token
+    )
+    return result.as_dict
 
 
 @app.delete("/jobs/{job_id}")

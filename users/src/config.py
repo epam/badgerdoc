@@ -10,6 +10,12 @@ KEYCLOAK_ENDPOINT = os.getenv(
 KEYCLOAK_REALM = os.getenv("KEYCLOAK_REALM", "master")
 KEYCLOAK_ROLE_ADMIN = os.getenv("KEYCLOAK_ROLE_ADMIN", "")
 KEYCLOAK_USERS_PUBLIC_KEY = os.getenv("KEYCLOAK_USERS_PUBLIC_KEY", "")
+KEYCLOAK_ROLE_ClientViewsAllUsers_ID = os.getenv(
+    "KEYCLOAK_ROLE_ClientViewsAllUsers_ID"
+)
+KEYCLOAK_ROLE_ClientViewsAllUsers_SECRET = os.getenv(
+    "KEYCLOAK_ROLE_ClientViewsAllUsers_SECRET"
+)
 
 BADGERDOC_CLIENT_SECRET = os.getenv(
     "BADGERDOC_CLIENT_SECRET", "219367e9-d55a-4b15-8903-0d89fde7574e"

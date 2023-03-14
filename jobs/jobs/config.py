@@ -28,6 +28,7 @@ PIPELINES_URI = os.environ.get("PIPELINES_URI")
 ASSETS_URI = os.environ.get("ASSETS_URI")
 ANNOTATION_MICROSERVICE_URI = os.environ.get("ANNOTATION_MICROSERVICE_URI")
 KEYCLOAK_HOST = os.environ.get("KEYCLOAK_HOST", "http://dev1.badgerdoc.com")
+USERS_HOST = os.environ.get("USERS_HOST")
 
 HOST_PIPELINES = "http://pipelines"
 HOST_ASSETS = "http://assets"

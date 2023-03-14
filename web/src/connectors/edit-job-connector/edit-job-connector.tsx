@@ -416,7 +416,7 @@ const useEditJobFormValues = ({
             annotators:
                 initialJob.validation_type !== 'cross'
                     ? initialJob.annotators?.map((el) => {
-                          const user = users?.find((elem) => elem.id === el);
+                          const user = users?.find((elem) => elem.id === el.id);
                           if (user) return user;
                           return {} as User;
                       })
@@ -430,7 +430,7 @@ const useEditJobFormValues = ({
             annotators_validators:
                 initialJob.validation_type === 'cross'
                     ? initialJob.annotators?.map((el) => {
-                          const user = users?.find((elem) => elem.id === el);
+                          const user = users?.find((elem) => elem.id === el.id);
                           if (user) return user;
                           return {} as User;
                       })
