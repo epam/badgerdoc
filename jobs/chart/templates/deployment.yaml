@@ -54,6 +54,8 @@ spec:
           value: "annotation"
         - name: TAXONOMY_URI
           value: "taxonomy"
+        - name: USERS_HOST
+          value: "users"
         - name: KEYCLOAK_HOST
           valueFrom:
             secretKeyRef:

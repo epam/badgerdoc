@@ -13,6 +13,7 @@ from jobs.config import (
     JOBS_HOST,
     PAGINATION_THRESHOLD,
     ROOT_PATH,
+    USERS_HOST,
 )
 from jobs.logger import logger
 from jobs.models import CombinedJob
@@ -473,11 +474,12 @@ async def fetch(
     method: str,
     url: str,
     body: Optional[Any] = None,
+    data: Optional[Any] = None,
     headers: Optional[Dict[str, Any]] = None,
     **kwargs: Any,
 ) -> Tuple[int, Any]:
     async with aiohttp.request(
-        method=method, url=url, json=body, headers=headers, **kwargs
+        method=method, url=url, json=body, headers=headers, data=data, **kwargs
     ) as resp:
         status_ = resp.status
         json = {}
@@ -583,3 +585,53 @@ def get_taxonomy_links(
         )
         for category_link in categories_links
     ]
+
+
+async def get_annotator_username(
+    job_annotator_uuid: str, current_tenant: str, token: str
+) -> str:
+    headers = {
+        "X-Current-Tenant": current_tenant,
+        "Authorization": f"Bearer: {token}",
+    }
+    try:
+        _, username = await fetch(
+            method="GET",
+            url=f"http://{USERS_HOST}/get_username_by_user_id?"
+            f"user_id={job_annotator_uuid}",
+            headers=headers,
+            raise_for_status=True,
+        )
+    except aiohttp.client_exceptions.ClientError as err:
+        logger.exception("Failed getting username of annotator")
+        raise fastapi.HTTPException(
+            status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Failed getting username of annotator: {err}",
+        )
+    return username
+
+
+async def enrich_annotators_with_usernames(
+    job_obj: CombinedJob, current_tenant: str, token: str
+) -> CombinedJob:
+    logger.info("Enriching job_obj with usernames of annotators")
+    job_annotators = job_obj.annotators
+    logger.info("job_annotators = %s", job_annotators)
+
+    if not job_annotators:
+        return job_obj
+
+    reformatted_job_annotators = []
+    for job_annotator_id in job_annotators:
+        logger.info("job_annotator_id = %s", job_annotator_id)
+        job_annotator_username = await get_annotator_username(
+            job_annotator_id, current_tenant, token
+        )
+        logger.info("job_annotator_username got = %s", job_annotator_username)
+
+        reformatted_job_annotators.append(
+            {"id": job_annotator_id, "username": job_annotator_username}
+        )
+
+    job_obj.annotators = reformatted_job_annotators
+    return job_obj

@@ -93,6 +93,16 @@ spec:
             secretKeyRef:
               name: users
               key: ADMIN_CLIENT_SECRET_DEV1
+        - name: KEYCLOAK_ROLE_ClientViewsAllUsers_ID
+          valueFrom:
+            secretKeyRef:
+              name: users
+              key: KEYCLOAK_ROLE_ClientViewsAllUsers_ID
+        - name: KEYCLOAK_ROLE_ClientViewsAllUsers_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: users
+              key: KEYCLOAK_ROLE_ClientViewsAllUsers_SECRET
         command: ["/bin/sh"]
         args: ["-c", "uvicorn src.main:app --host 0.0.0.0 --port 8080 --root-path /api/v1/users"]
       dnsPolicy: ClusterFirst
