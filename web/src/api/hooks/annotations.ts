@@ -1,4 +1,10 @@
-import { CategoryDataAttrType, MutationHookType, PageInfo, QueryHookType } from 'api/typings';
+import {
+    AnnotationUserRevision,
+    CategoryDataAttrType,
+    MutationHookType,
+    PageInfo,
+    QueryHookType
+} from 'api/typings';
 import { Task } from 'api/typings/tasks';
 import { useMutation, useQuery } from 'react-query';
 import { useBadgerFetch } from './api';
@@ -70,6 +76,15 @@ export type AnnotationsByUserObj = PageInfo & {
 export type AnnotationsByUserResponse = {
     [page_num: number]: AnnotationsByUserObj[];
 };
+
+export type AnnotationAllUsersObject = {
+    [key: number]: AnnotationUserRevision[];
+};
+
+type AnnotationAllUsersRequest = {
+    data: AnnotationAllUsersObject;
+};
+
 export const useLatestAnnotations: QueryHookType<LatestAnnotationsParams, AnnotationsResponse> = (
     { jobId, fileId, revisionId, pageNumbers, userId },
     options
@@ -78,6 +93,15 @@ export const useLatestAnnotations: QueryHookType<LatestAnnotationsParams, Annota
         ['latestAnnotations', jobId, fileId, revisionId, pageNumbers, userId],
         async () => fetchLatestAnnotations(jobId, fileId, revisionId, pageNumbers, userId),
         options
+    );
+};
+
+export const useAnnotationsAllUsers: QueryHookType<
+    LatestAnnotationsParams,
+    AnnotationAllUsersRequest
+> = ({ jobId, fileId, pageNumbers }) => {
+    return useQuery([jobId, fileId], async () =>
+        fetchAnnotationAllUsers(jobId, fileId, pageNumbers)
     );
 };
 
@@ -104,6 +128,18 @@ async function fetchLatestAnnotations(
     const user = userId ? `&user_id=${userId}` : '';
     return useBadgerFetch({
         url: `${namespace}/annotation/${jobId}/${fileId}/${revId}?${pageNums?.join('&')}${user}`,
+        method: 'get',
+        withCredentials: true
+    })();
+}
+
+async function fetchAnnotationAllUsers(jobId?: number, fileId?: number, pageNumbers?: number[]) {
+    if (!jobId || !fileId) {
+        return;
+    }
+    const pageNums = pageNumbers?.map((pageNumber) => `page_numbers=${pageNumber}`);
+    return useBadgerFetch({
+        url: `${namespace}/annotation/${jobId}/${fileId}?${pageNums?.join('&')}`,
         method: 'get',
         withCredentials: true
     })();
