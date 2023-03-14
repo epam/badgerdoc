@@ -54,3 +54,30 @@ cd assets && pipenv install --dev
 ```
 pipenv shell && pip install -e ../lib/filter_lib ../lib/tenants
 ```
+
+## Contributors
+
+- [spiridonovfed](@spiridonovfed)
+- [Iogsotot](@Iogsotot)
+- [sbilevich](@sbilevich)
+- [thinklab](@thinklab)
+- [MagicTearsAsunder](@MagicTearsAsunder)
+- [cakeinsauce](@cakeinsauce)
+- [Aleksei-Egorenko-EPAM](@Aleksei-Egorenko-EPAM)
+- [iurii-topychkanov](@iurii-topychkanov)
+- [andrei-shulaev](@andrei-shulaev)
+- [nanbratan](@nanbratan)
+- [Ziprion](@Ziprion)
+- [khyurri](@khyurri)
+- [serereg](@serereg)
+- [AnastasiiaPlyako](@AnastasiiaPlyako)
+- [Andrka](@Andrka)
+- [gi6rgi](@gi6rgi)
+- [borisevich-a-v](@borisevich-a-v)
+- [andgineer](@andgineer)
+- [cm-howard](@cm-howard)
+- [Jesovile](@Jesovile)
+- [Kitonick79](@Kitonick79)
+- [Nathicanaa](@Nathicanaa)
+- [minev-dev](@minev-dev)
+- [theoriginmm](@theoriginmm)
