@@ -1,7 +1,7 @@
 import React, { Fragment, useMemo } from 'react';
 import noop from 'lodash/noop';
 
-import { hexToRGBA } from '../../utils/hex-to-rgba';
+import { stringToRGBA } from '../../utils/string-to-rgba';
 import {
     createBoundsFromTokens,
     getBorders,
@@ -87,7 +87,7 @@ export const TextAnnotation = ({
                         key={index}
                         className={styles.textAnnotation}
                         style={{
-                            background: hexToRGBA(color, isActive ? 0.4 : 0.2),
+                            background: stringToRGBA(color, isActive ? 0.4 : 0.2),
                             position: 'absolute',
                             width: (width ?? 0) * scale,
                             height: (height ?? 0) * scale,
