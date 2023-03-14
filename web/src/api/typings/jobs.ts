@@ -33,7 +33,7 @@ export type Job = {
     // TODO: create enum or type with defined value
     mode: JobMode;
     pipeline_id: string;
-    annotators: Array<string>;
+    annotators: Array<{ id: string; username: string }>;
     validators: Array<string>;
     owners: Array<string>;
     categories: Array<number>;
