@@ -10,7 +10,6 @@ from minio import Minio, S3Error
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-
 pytestmark = pytest.mark.integration
 
 load_dotenv("./.env")
@@ -97,7 +96,10 @@ def file_id(minio_client):
     return file_id
 
 
-@pytest.mark.skip("Fails with ValueError: Unable to find `/processing/docker-compose.yml` for integration tests.")
+@pytest.mark.skip(
+    "Fails with ValueError: Unable to find `/processing/docker-compose.yml` "
+    "for integration tests."
+)
 def test_minio_ok(minio_url, minio_client, file_id):
     objs = minio_client.list_objects(
         BUCKET, f"files/{file_id}", recursive=True
@@ -110,14 +112,20 @@ def test_minio_ok(minio_url, minio_client, file_id):
     }
 
 
-@pytest.mark.skip("Fails with ValueError: Unable to find `/processing/docker-compose.yml` for integration tests.")
+@pytest.mark.skip(
+    "Fails with ValueError: Unable to find `/processing/docker-compose.yml` "
+    "for integration tests."
+)
 def test_url(minio_url, processing_url, preprocessing_url):
     assert "0.0.0.0:9000" in str(minio_url)
     assert "0.0.0.0:8080" in str(processing_url)
     assert "0.0.0.0:65432" in str(preprocessing_url)
 
 
-@pytest.mark.skip("Fails with ValueError: Unable to find `/processing/docker-compose.yml` for integration tests.")
+@pytest.mark.skip(
+    "Fails with ValueError: Unable to find `/processing/docker-compose.yml` "
+    "for integration tests."
+)
 def test_get_preprocessing_results_all_pages(processing_url, file_id):
     response = requests.get(
         url=processing_url.rstrip("/") + f"/tokens/{file_id}",
@@ -127,7 +135,10 @@ def test_get_preprocessing_results_all_pages(processing_url, file_id):
         assert response.json() == [json.load(file1), json.load(file2)]
 
 
-@pytest.mark.skip("Fails with ValueError: Unable to find `/processing/docker-compose.yml` for integration tests.")
+@pytest.mark.skip(
+    "Fails with ValueError: Unable to find `/processing/docker-compose.yml` "
+    "for integration tests."
+)
 def test_get_preprocessing_results_some_pages(processing_url, file_id):
     response = requests.get(
         url=processing_url.rstrip("/") + f"/tokens/{file_id}",
@@ -140,13 +151,16 @@ def test_get_preprocessing_results_some_pages(processing_url, file_id):
     assert response.json() == [file2_json]
 
 
-@pytest.mark.skip("Fails with ValueError: Unable to find `/processing/docker-compose.yml` for integration tests.")
+@pytest.mark.skip(
+    "Fails with ValueError: Unable to find `/processing/docker-compose.yml` "
+    "for integration tests."
+)
 def test_send_request_to_preprocessing(
     preprocessing_url, processing_url, minio_client, monkeypatch
 ):
     minio_client.fput_object(BUCKET, "files/1/1.pdf", PDF)
     response = requests.post(
-        url=processing_url.rstrip("/") + f"/run_preprocess",
+        url=processing_url.rstrip("/") + "/run_preprocess",
         headers={"X-Current-Tenant": "test"},
         json={"model_id": "preprocessing", "file_id": "1", "pages": [1, 2]},
     )

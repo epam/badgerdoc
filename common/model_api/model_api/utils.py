@@ -20,14 +20,30 @@ def form_response(
             [{"page_num": 1,
              "size": {"width": 2100, "height": 2970},
              "objs":
-                 [{"id": "aab83828-cd8b-41f7-a3c3-943f13e67c2c", "bbox": [500, 100, 1500, 1000], "category": "3"},
-                  {"id": "30e4d539-8e90-49c7-b49c-883073e2b8c8", "bbox": [100, 1600, 800, 2000], "category": "0"}]
-                  },
+                  [
+                      {
+                          "id": "aab83828-cd8b-41f7-a3c3-943f13e67c2c",
+                          "bbox": [500, 100, 1500, 1000], "category": "3"
+                      },
+                      {
+                          "id": "30e4d539-8e90-49c7-b49c-883073e2b8c8",
+                          "bbox": [100, 1600, 800, 2000], "category": "0"
+                      }
+                  ]
+             },
              {"page_num": 2,
               "size": {"width": 2100, "height": 2970},
               "objs":
-                  [{"id": "44d94e31-7079-470a-b8b5-74ce365353f7", "bbox": [500, 500, 1500, 1300], "category": "3"},
-                   {"id": "d86d467f-6ec1-404e-b4e6-ba8d78f93754", "bbox": [500, 1300, 1500, 2600], "category": "3"}]
+                  [
+                      {
+                          "id": "44d94e31-7079-470a-b8b5-74ce365353f7",
+                          "bbox": [500, 500, 1500, 1300], "category": "3"
+                      },
+                      {
+                           "id": "d86d467f-6ec1-404e-b4e6-ba8d78f93754",
+                           "bbox": [500, 1300, 1500, 2600], "category": "3"
+                      }
+                  ]
                    }]}
         inp_page_category_bboxes={
             "0": {

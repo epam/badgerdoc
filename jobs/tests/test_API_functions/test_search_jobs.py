@@ -37,8 +37,10 @@ def test_search_job_invalid_field(testing_app, testing_session):
         },
     )
     assert response.status_code == 422
-    response_message = response.json()['detail'][0]['msg']
-    assert response_message.startswith("value is not a valid enumeration member")
+    response_message = response.json()["detail"][0]["msg"]
+    assert response_message.startswith(
+        "value is not a valid enumeration member"
+    )
 
 
 def test_search_job_without_filters(

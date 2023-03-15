@@ -11,8 +11,8 @@ from sqlalchemy import asc, not_
 from sqlalchemy.exc import DBAPIError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from app.annotations import accumulate_pages_info, row_to_dict
-from app.models import (
+from annotation.annotations import accumulate_pages_info, row_to_dict
+from annotation.models import (
     AgreementMetrics,
     AnnotatedDoc,
     Category,
@@ -21,7 +21,7 @@ from app.models import (
     ManualAnnotationTask,
     User,
 )
-from app.schemas import (
+from annotation.schemas import (
     AgreementScoreServiceResponse,
     CategoryTypeSchema,
     FileStatusEnumSchema,
@@ -29,7 +29,7 @@ from app.schemas import (
     TaskStatusEnumSchema,
     ValidationSchema,
 )
-from app.tasks import get_task_revisions
+from annotation.tasks import get_task_revisions
 from tests.consts import FINISH_TASK_PATH
 from tests.override_app_dependency import TEST_HEADERS, TEST_TENANT, app
 
@@ -870,7 +870,7 @@ def test_finish_tasks_failed_validation_statuses(
     }
     accumulate_pages = set(), failed, set(), set(), None
     monkeypatch.setattr(
-        "app.annotations.main.accumulate_pages_info",
+        "annotation.annotations.main.accumulate_pages_info",
         Mock(return_value=accumulate_pages),
     )
     responses.add(
@@ -917,7 +917,7 @@ def test_finish_tasks_reannotation_statuses(
     }
     accumulate_pages = set(), set(), annotated, set(), None
     monkeypatch.setattr(
-        "app.annotations.main.accumulate_pages_info",
+        "annotation.annotations.main.accumulate_pages_info",
         Mock(return_value=accumulate_pages),
     )
     responses.add(
@@ -1063,7 +1063,7 @@ def test_finish_task_should_work_with_all_pages_covered_extensively_twice(
 
     # when
     with patch(
-        "app.tasks.services.get_file_path_and_bucket",
+        "annotation.tasks.services.get_file_path_and_bucket",
         return_value=("", ""),
     ):
         response = client.post(
@@ -1100,8 +1100,8 @@ def test_finish_task_should_work_with_all_pages_covered_extensively_twice(
     assert validation_task.status == TaskStatusEnumSchema.ready
 
 
-@patch("app.tasks.services.AGREEMENT_SCORE_MIN_MATCH", 0.7)
-@patch("app.tasks.resources.AGREEMENT_SCORE_ENABLED", "true")
+@patch("annotation.tasks.services.AGREEMENT_SCORE_MIN_MATCH", 0.7)
+@patch("annotation.tasks.resources.AGREEMENT_SCORE_ENABLED", "true")
 def test_finish_task_with_agreement_score_enabled_score_matched(
     prepare_db_with_extensive_coverage_annotations,
     mock_minio_empty_bucket,
@@ -1118,14 +1118,16 @@ def test_finish_task_with_agreement_score_enabled_score_matched(
     db.commit()
 
     with patch(
-        "app.tasks.services.get_agreement_score",
+        "annotation.tasks.services.get_agreement_score",
         return_value=AGREEMENT_SCORE_RESPONSE,
     ) as mock1:
         with patch(
-            "app.tasks.services.get_file_path_and_bucket",
+            "annotation.tasks.services.get_file_path_and_bucket",
             return_value=("", ""),
         ) as mock2:
-            with patch("app.tasks.resources.update_job_status") as mock4:
+            with patch(
+                "annotation.tasks.resources.update_job_status"
+            ) as mock4:
                 response = client.post(
                     FINISH_TASK_PATH.format(task_id=annotation_tasks[2]["id"]),
                     headers=TEST_HEADERS,
@@ -1151,8 +1153,8 @@ def test_finish_task_with_agreement_score_enabled_score_matched(
     assert db.query(AgreementMetrics).count() == 6
 
 
-@patch("app.tasks.services.AGREEMENT_SCORE_MIN_MATCH", 0.99)
-@patch("app.tasks.resources.AGREEMENT_SCORE_ENABLED", "true")
+@patch("annotation.tasks.services.AGREEMENT_SCORE_MIN_MATCH", 0.99)
+@patch("annotation.tasks.resources.AGREEMENT_SCORE_ENABLED", "true")
 def test_finish_task_with_agreement_score_enabled_score_not_matched(
     prepare_db_with_extensive_coverage_annotations,
     mock_minio_empty_bucket,
@@ -1169,14 +1171,16 @@ def test_finish_task_with_agreement_score_enabled_score_not_matched(
     db.commit()
 
     with patch(
-        "app.tasks.services.get_agreement_score",
+        "annotation.tasks.services.get_agreement_score",
         return_value=AGREEMENT_SCORE_RESPONSE,
     ) as mock1:
         with patch(
-            "app.tasks.services.get_file_path_and_bucket",
+            "annotation.tasks.services.get_file_path_and_bucket",
             return_value=("", ""),
         ) as mock2:
-            with patch("app.tasks.resources.update_job_status") as mock4:
+            with patch(
+                "annotation.tasks.resources.update_job_status"
+            ) as mock4:
                 response = client.post(
                     FINISH_TASK_PATH.format(task_id=annotation_tasks[2]["id"]),
                     headers=TEST_HEADERS,
@@ -1201,7 +1205,7 @@ def test_finish_task_with_agreement_score_enabled_score_not_matched(
     assert job.status == JobStatusEnumSchema.in_progress
 
 
-@patch("app.tasks.services.AGREEMENT_SCORE_MIN_MATCH", 0.5)
+@patch("annotation.tasks.services.AGREEMENT_SCORE_MIN_MATCH", 0.5)
 @patch.dict(os.environ, {"AGREEMENT_SCORE_ENABLED": "true"})
 def test_finish_task_with_agreement_score_enabled_annotation_not_finished(
     prepare_db_with_extensive_coverage_annotations_same_pages,
@@ -1219,14 +1223,16 @@ def test_finish_task_with_agreement_score_enabled_annotation_not_finished(
     db.commit()
 
     with patch(
-        "app.tasks.services.get_agreement_score",
+        "annotation.tasks.services.get_agreement_score",
         return_value=AGREEMENT_SCORE_RESPONSE,
     ) as mock1:
         with patch(
-            "app.tasks.services.get_file_path_and_bucket",
+            "annotation.tasks.services.get_file_path_and_bucket",
             return_value=("", ""),
         ) as mock2:
-            with patch("app.tasks.resources.update_job_status") as mock4:
+            with patch(
+                "annotation.tasks.resources.update_job_status"
+            ) as mock4:
                 response = client.post(
                     FINISH_TASK_PATH.format(task_id=annotation_tasks[2]["id"]),
                     headers=TEST_HEADERS,
@@ -1373,7 +1379,7 @@ def test_transfer_annotations(
 ):
     db = prepare_db_transfer_annotations
     with patch(
-        "app.tasks.services.get_file_path_and_bucket",
+        "annotation.tasks.services.get_file_path_and_bucket",
         return_value=("", ""),
     ):
         finish_response = client.post(

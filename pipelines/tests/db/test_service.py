@@ -2,17 +2,16 @@
 
 import datetime
 import uuid
-from typing import List
 from unittest.mock import patch
 
+import pipelines.db.models as dbm
+import pipelines.db.service as service
+import pipelines.execution as execution
+import pipelines.schemas as schemas
 import pytest
 from aiokafka import AIOKafkaProducer
 from freezegun import freeze_time
 
-import src.db.models as dbm
-import src.db.service as service
-import src.execution as execution
-import src.schemas as schemas
 import tests.testing_data as td
 
 pytest_plugins = ("pytest_asyncio",)
@@ -128,7 +127,9 @@ def test_get_step_by_step_and_task_id(testing_session):
     """Testing get_step_by_step_and_task_id."""
     task = dbm.PipelineExecutionTask(pipeline=dbm.Pipeline(type="inference"))
     step_uuid = str(uuid.uuid4())
-    step = dbm.ExecutionStep(task=task, step_id=step_uuid, init_args={"foo": 1})
+    step = dbm.ExecutionStep(
+        task=task, step_id=step_uuid, init_args={"foo": 1}
+    )
     testing_session.add(step)
     assert service.get_step_by_step_and_task_id(
         testing_session, 1, step_uuid
@@ -139,7 +140,9 @@ def test_get_step_by_step_and_task_id_not_found(testing_session):
     """Testing get_step_by_step_and_task_id when instance not found."""
     some_random_uuid = str(uuid.uuid4())
     assert (
-        service.get_step_by_step_and_task_id(testing_session, 1, some_random_uuid)
+        service.get_step_by_step_and_task_id(
+            testing_session, 1, some_random_uuid
+        )
         is None
     )
 
@@ -214,7 +217,9 @@ def test_update_task_in_lock(testing_session):
     """Testing update_task_in_lock."""
     runner1_uuid, runner2_uuid = [str(uuid.uuid4()) for _ in range(2)]
     task = dbm.PipelineExecutionTask(
-        pipeline=dbm.Pipeline(type="inference"), status=PEND, runner_id=runner1_uuid
+        pipeline=dbm.Pipeline(type="inference"),
+        status=PEND,
+        runner_id=runner1_uuid,
     )
     testing_session.add(task)
     assert task.runner_id == runner1_uuid
@@ -259,7 +264,11 @@ def test_get_expired_heartbeats(testing_session):
     """Testing get_expired_heartbeats."""
     eff_date = datetime.datetime.utcnow()
     last_heartbeat = eff_date - datetime.timedelta(minutes=1)
-    testing_session.add(dbm.ExecutorHeartbeat(id=str(uuid.uuid4()), last_heartbeat=last_heartbeat))
+    testing_session.add(
+        dbm.ExecutorHeartbeat(
+            id=str(uuid.uuid4()), last_heartbeat=last_heartbeat
+        )
+    )
     result = service.get_expired_heartbeats(testing_session, eff_date)
     assert result[0].last_heartbeat == last_heartbeat
 
@@ -278,7 +287,9 @@ def test_update_heartbeat_timestamp(testing_session):
 def test_task_runner_id_status_in_lock(testing_session):
     """Testing change_task_runner_id_and_status."""
     task = dbm.PipelineExecutionTask(
-        pipeline=dbm.Pipeline(type="inference"), status=RUN, runner_id=str(uuid.uuid4())
+        pipeline=dbm.Pipeline(type="inference"),
+        status=RUN,
+        runner_id=str(uuid.uuid4()),
     )
     testing_session.add(task)
     service.change_task_runner_id_status_in_lock(testing_session, 1)
@@ -420,7 +431,8 @@ def test_process_step_completion(status: str, result, testing_session):
 
 
 def test_process_step_completion_delete_step(testing_session):
-    """Testing process_step_completion when result is None and status is DONE."""
+    """Testing process_step_completion when result is
+    None and status is DONE."""
     task = dbm.PipelineExecutionTask(pipeline=dbm.Pipeline(type="inference"))
     step = dbm.ExecutionStep(task=task, status=RUN)
     testing_session.add(step)

@@ -2,11 +2,10 @@ import json
 from typing import Iterator, Optional
 
 import boto3
-from botocore.errorfactory import ClientError
-from elasticsearch import helpers
-
 import search.es as es
 import search.schemas as schemas
+from botocore.errorfactory import ClientError
+from elasticsearch import helpers
 from search.config import settings
 from search.logger import logger
 
@@ -41,7 +40,8 @@ def create_boto3_config():
             "- s3_credentials_provider is not set"
         )
     logger.info(
-        f"S3_Credentials provider - {settings.s3_credentials_provider}")
+        f"S3_Credentials provider - {settings.s3_credentials_provider}"
+    )
     return boto3_config
 
 

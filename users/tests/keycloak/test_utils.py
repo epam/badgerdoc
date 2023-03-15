@@ -1,6 +1,6 @@
-import src.keycloak.utils as kc_utils
-from src.schemas import Users
 import pytest
+import users.keycloak.utils as kc_utils
+from users.schemas import Users
 
 
 @pytest.fixture
@@ -28,4 +28,8 @@ def test_create_filters_with_empty_request_body(request_body):
 def test_create_filters(request_body):
     users = Users(filters=request_body)
     filters = kc_utils.create_filters(users)
-    assert filters == {"name": "h", "id": ["user_id"], "role": "role-annotator"}
+    assert filters == {
+        "name": "h",
+        "id": ["user_id"],
+        "role": "role-annotator",
+    }

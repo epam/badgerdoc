@@ -3,7 +3,10 @@ import os
 import sys
 from pathlib import Path
 
-FORMAT = "%(levelname)s:    %(filename)s    %(funcName)s    %(asctime)s - %(message)s"
+FORMAT = (
+    "%(levelname)s:    %(filename)s    %(funcName)s    "
+    "%(asctime)s - %(message)s"
+)
 DATE_FORMAT = "%d-%m-%Y %H:%M:%S"
 LOGGING_FORMAT = logging.Formatter(
     fmt=FORMAT,

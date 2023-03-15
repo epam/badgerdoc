@@ -34,9 +34,9 @@ services:
     environment:
       - DATABASE_URL=postgresql+psycopg2://admin:admin@db:5432/file_management
       - KEYCLOAK_URI=http://dev1.badgerdoc.com
-    command: bash -c "alembic upgrade afa33cc83d57 && alembic upgrade fe5926249504 && alembic upgrade 0f6c859c1d1c && alembic upgrade head && uvicorn src.main:app --host 0.0.0.0 --port 8080 --reload"
+    command: bash -c "alembic upgrade afa33cc83d57 && alembic upgrade fe5926249504 && alembic upgrade 0f6c859c1d1c && alembic upgrade head && uvicorn assets.main:app --host 0.0.0.0 --port 8080 --reload"
     volumes:
-      - .:/opt/dataset_manager/
+      - .:/opt/assets/
     ports:
       - "8080:8080"
     depends_on:

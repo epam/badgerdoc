@@ -1,9 +1,0 @@
-pre-commit==2.14.0
-pytest==6.2.4
-pytest-asyncio==0.15.1
-freezegun==1.1.0
-pytest-cov
-isort==5.9.1
-black==22.10.0
-mypy==0.910
-flake8==6.0.0

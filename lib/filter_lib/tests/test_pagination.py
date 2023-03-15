@@ -1,12 +1,13 @@
+import pytest
+from pydantic import ValidationError
+
 from ..src.pagination import (
-    paginate,
     PaginationParams,
-    make_pagination,
     _calculate_num_pages,
+    make_pagination,
+    paginate,
 )
 from .conftest import User
-from pydantic import ValidationError
-import pytest
 
 
 @pytest.mark.parametrize(

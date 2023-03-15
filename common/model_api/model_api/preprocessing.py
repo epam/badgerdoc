@@ -1,8 +1,7 @@
 """Crop bboxes from images"""
-import warnings
 from decimal import Decimal
 from pathlib import Path
-from typing import Dict, Iterator, List, Tuple
+from typing import Iterator, List, Tuple
 
 from pdfplumber.page import Page
 from PIL.Image import Image

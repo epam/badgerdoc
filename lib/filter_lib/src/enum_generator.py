@@ -1,7 +1,7 @@
 import enum
 from typing import List, Optional, Type
 
-from sqlalchemy.ext.declarative.api import DeclarativeMeta
+from sqlalchemy.ext.declarative import DeclarativeMeta
 from sqlalchemy.inspection import inspect
 from sqlalchemy.orm import RelationshipProperty
 from sqlalchemy.orm.mapper import Mapper

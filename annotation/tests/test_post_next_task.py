@@ -3,26 +3,26 @@ from unittest.mock import Mock, patch
 
 import pytest
 import responses
-from app.microservice_communication.assets_communication import (
-    ASSETS_FILES_URL,
-)
-from app.microservice_communication.search import (
-    AUTHORIZATION,
-    BEARER,
-    HEADER_TENANT,
-)
-from app.microservice_communication.user import USERS_SEARCH_URL
-from app.models import Category, File, Job, ManualAnnotationTask, User
-from app.schemas import (
-    CategoryTypeSchema,
-    TaskStatusEnumSchema,
-    ValidationSchema,
-)
 from fastapi.testclient import TestClient
 from requests import ConnectionError, RequestException, Timeout
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from annotation.microservice_communication.assets_communication import (
+    ASSETS_FILES_URL,
+)
+from annotation.microservice_communication.search import (
+    AUTHORIZATION,
+    BEARER,
+    HEADER_TENANT,
+)
+from annotation.microservice_communication.user import USERS_SEARCH_URL
+from annotation.models import Category, File, Job, ManualAnnotationTask, User
+from annotation.schemas import (
+    CategoryTypeSchema,
+    TaskStatusEnumSchema,
+    ValidationSchema,
+)
 from tests.override_app_dependency import (
     TEST_HEADERS,
     TEST_TENANT,

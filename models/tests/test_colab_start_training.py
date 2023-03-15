@@ -32,7 +32,7 @@ TRAINING_ARCHIVE_DATA = "archive"
 def test_start_training_db_error(monkeypatch, overrided_token_client) -> None:
     """Test handling of db connection errors"""
     monkeypatch.setattr(
-        "src.crud.Session.query",
+        "models.crud.Session.query",
         Mock(side_effect=SQLAlchemyError("some error message")),
     )
     response = overrided_token_client.post(
@@ -79,7 +79,10 @@ def test_start_training_no_key_script_error(
 
 
 @pytest.mark.integration
-@pytest.mark.skip("Test should be fixed - got 'Annotation dataset for training 1 not ready' in response")
+@pytest.mark.skip(
+    "Test should be fixed - got 'Annotation dataset for training 1 not ready' "
+    "in response"
+)
 @pytest.mark.parametrize(
     "prepare_db_start_training", [TRAINING_ARCHIVE_KEY], indirect=True
 )
@@ -90,7 +93,7 @@ def test_start_training_colab_connection_error(
     description in message.
     """
     monkeypatch.setattr(
-        "src.routers.training_routers.connect_colab",
+        "models.routers.training_routers.connect_colab",
         Mock(side_effect=SSHException("some ssh error")),
     )
     response = overrided_token_client.post(
@@ -114,7 +117,10 @@ class MockSSHContext:
 
 
 @pytest.mark.integration
-@pytest.mark.skip("Test should be fixed - got 'Annotation dataset for training 1 not ready' in response")
+@pytest.mark.skip(
+    "Test should be fixed - got 'Annotation dataset for training 1 not ready' "
+    "in response"
+)
 @pytest.mark.parametrize(
     "prepare_db_start_training", [TRAINING_ARCHIVE_KEY], indirect=True
 )
@@ -129,11 +135,11 @@ def test_start_training_no_such_bucket_error(
     """
     other_tenant = TEST_TENANTS[1]
     monkeypatch.setattr(
-        "src.utils.boto3.resource",
+        "models.utils.boto3.resource",
         Mock(return_value=moto_minio),
     )
     monkeypatch.setattr(
-        "src.routers.training_routers.connect_colab", MockSSHContext
+        "models.routers.training_routers.connect_colab", MockSSHContext
     )
     response = overrided_token_client.post(
         START_TRAINING_PATH.format(EXIST_TRAINING_ID),
@@ -145,7 +151,10 @@ def test_start_training_no_such_bucket_error(
 
 
 @pytest.mark.integration
-@pytest.mark.skip("Test should be fixed - got 'Annotation dataset for training 1 not ready' in response")
+@pytest.mark.skip(
+    "Test should be fixed - got 'Annotation dataset for training 1 not ready' "
+    "in response"
+)
 @pytest.mark.parametrize(
     "prepare_db_start_training",
     [TRAINING_ARCHIVE_KEY],
@@ -158,11 +167,11 @@ def test_start_training_boto3_error(
     return 500 status with error description in message.
     """
     monkeypatch.setattr(
-        "src.routers.training_routers.get_minio_object",
+        "models.routers.training_routers.get_minio_object",
         Mock(side_effect=BotoCoreError()),
     )
     monkeypatch.setattr(
-        "src.routers.training_routers.connect_colab", MockSSHContext
+        "models.routers.training_routers.connect_colab", MockSSHContext
     )
     response = overrided_token_client.post(
         START_TRAINING_PATH.format(EXIST_TRAINING_ID),
@@ -174,7 +183,10 @@ def test_start_training_boto3_error(
 
 
 @pytest.mark.integration
-@pytest.mark.skip("Test should be fixed - got 'Annotation dataset for training 1 not ready' in response")
+@pytest.mark.skip(
+    "Test should be fixed - got 'Annotation dataset for training 1 not ready' "
+    "in response"
+)
 @pytest.mark.parametrize(
     "prepare_db_start_training",
     [TRAINING_ARCHIVE_KEY],
@@ -191,14 +203,14 @@ def test_start_training_integration(
     """
     mock_upload = Mock()
     monkeypatch.setattr(
-        "src.routers.training_routers.upload_file_to_colab", mock_upload
+        "models.routers.training_routers.upload_file_to_colab", mock_upload
     )
     monkeypatch.setattr(
-        "src.utils.boto3.resource",
+        "models.utils.boto3.resource",
         Mock(return_value=save_start_training_minio_objects),
     )
     monkeypatch.setattr(
-        "src.routers.training_routers.connect_colab", MockSSHContext
+        "models.routers.training_routers.connect_colab", MockSSHContext
     )
     response = overrided_token_client.post(
         START_TRAINING_PATH.format(EXIST_TRAINING_ID),

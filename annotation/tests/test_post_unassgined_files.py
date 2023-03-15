@@ -3,14 +3,14 @@ from fastapi.testclient import TestClient
 from sqlalchemy.exc import DBAPIError, SQLAlchemyError
 from sqlalchemy.sql.elements import not_
 
-from app.annotations import row_to_dict
-from app.microservice_communication.search import (
+from annotation.annotations import row_to_dict
+from annotation.microservice_communication.search import (
     AUTHORIZATION,
     BEARER,
     HEADER_TENANT,
 )
-from app.models import File, Job, ManualAnnotationTask, User
-from app.schemas import (
+from annotation.models import File, Job, ManualAnnotationTask, User
+from annotation.schemas import (
     FileStatusEnumSchema,
     TaskStatusEnumSchema,
     ValidationSchema,

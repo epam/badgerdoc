@@ -7,8 +7,8 @@ from fastapi.testclient import TestClient
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from app.annotations import S3_START_PATH
-from app.models import DocumentLinks
+from annotation.annotations import S3_START_PATH
+from annotation.models import DocumentLinks
 from tests.consts import ANNOTATION_PATH
 from tests.override_app_dependency import TEST_HEADERS, TEST_TENANT, app
 
@@ -609,7 +609,7 @@ def test_get_latest_revision_by_user(
     expected_response_key,
 ):
     monkeypatch.setattr(
-        "app.annotations.main.connect_s3",
+        "annotation.annotations.main.connect_s3",
         Mock(return_value=prepare_moto_s3_for_get_revisions),
     )
     response = client.get(
@@ -728,7 +728,7 @@ def test_get_all_revisions(
     expected_response_key,
 ):
     monkeypatch.setattr(
-        "app.annotations.main.connect_s3",
+        "annotation.annotations.main.connect_s3",
         Mock(return_value=prepare_moto_s3_for_get_revisions),
     )
     response = client.get(
@@ -747,7 +747,7 @@ def test_get_annotation_with_similarity(
     prepare_db_for_get_revisions_similar: DocumentLinks,
 ) -> None:
     monkeypatch.setattr(
-        "app.annotations.main.connect_s3",
+        "annotation.annotations.main.connect_s3",
         Mock(return_value=prepare_moto_s3_for_get_revisions),
     )
     response = client.get(

@@ -83,7 +83,7 @@ To make it work in docker-compose
 * Start docker containers via command `make up`  
 
 Now there is no need to rebuild app image every time you make changes in code.  
-It applies to whole `annotation` package, thus changes in `app`, `tests`, `.env`,
+It applies to whole `annotation` package, thus changes in `annotation`, `tests`, `.env`,
 `README.md`, etc. will be applied too.  
 Also, with hot-reload, you can run tests inside docker container
 using command `make docker_test`
@@ -101,7 +101,7 @@ To run tests inside docker
 * If you are using Windows, run makefile command `make test-windows`
 * To run tests inside docker container, check paragraph **Hot reload in docker-compose**
 
-5) To run app locally without building Docker image use `uvicorn app.main:app --host 127.0.0.1 --port 8080`
+5) To run app locally without building Docker image use `uvicorn annotation.main:app --host 127.0.0.1 --port 8080`
 
 
 6) Project may need some dependencies from artifactory base image specified in Dockerfile.  
@@ -146,7 +146,7 @@ Other fields may be empty.
 * Paste token
 * Click `authorize`
 
-For local development `url` in module `/app/token_dependency.py` should be changed
+For local development `url` in module `/annotation/token_dependency.py` should be changed
 to `http://dev1.badgerdoc.com` or `http://dev2.badgerdoc.com`  
 For stands `url` should be `http://bagerdoc-keycloack`
 

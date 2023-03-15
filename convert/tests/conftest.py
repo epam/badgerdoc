@@ -1,11 +1,10 @@
 from typing import Generator, List
 
 import pytest
+from assets import main
+from assets.routers import labelstudio
 from pydantic import BaseModel
 from starlette.testclient import TestClient
-
-from src import main
-from src.routers import labelstudio
 
 
 class TenantData(BaseModel):
