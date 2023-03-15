@@ -15,6 +15,7 @@ import { tokenToRect } from '../utils/to-rect-utils';
 import { getTokensBound } from '../utils/get-tokens-bound';
 import { getMultilineTextTokens } from '../utils/calculate-distance';
 import { AnnotationLinksBoundType } from 'shared';
+import { createTextFromToken } from 'shared/helpers/tokens';
 
 const submitFreeBoxAnnotation = (
     coords: Point[],
@@ -82,7 +83,9 @@ const submitBoxAnnotation = (
 
     const ann = {
         boundType: 'box' as AnnotationBoundType,
-        bound: getTokensBound(selected)
+        bound: getTokensBound(selected),
+        tokens: selected,
+        text: selected.map(createTextFromToken).join('')
     };
 
     cb(ann);
@@ -100,7 +103,8 @@ const submitTextAnnotation = (
     const ann = {
         boundType: 'text' as AnnotationBoundType,
         bound: {} as Bound,
-        tokens: selected
+        tokens: selected,
+        text: selected.map(createTextFromToken).join('')
     };
 
     cb(ann);

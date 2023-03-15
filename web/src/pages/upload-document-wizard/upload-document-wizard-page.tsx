@@ -21,7 +21,7 @@ import {
 } from '../../shared/components/wizard/dataset-wizard-screen/dataset-wizard-screen';
 import { runPreprocessing } from '../../api/hooks/models';
 import { getError } from 'shared/helpers/get-error';
-import { DOCUMENTS_PAGE, JOBS_PAGE } from '../../shared/constants';
+import { DOCUMENTS_PAGE, JOBS_PAGE } from '../../shared/constants/general';
 
 import wizardStyles from 'shared/components/wizard/wizard/wizard.module.scss';
 import { Text } from '@epam/loveship';

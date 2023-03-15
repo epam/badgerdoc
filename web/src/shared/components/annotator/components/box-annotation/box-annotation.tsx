@@ -9,9 +9,11 @@ import { ANNOTATION_LABEL_CLASS } from '../../hooks/use-annotation-move';
 import { Bound } from '../../typings';
 import { getAnnotationElementId } from '../../utils/use-annotation-links';
 import styles from './box-annotation.module.scss';
+import { cx } from '@epam/uui';
+import { ANNOTATION_LABEL_ID_PREFIX } from 'shared/constants/annotations';
 
 type BoxAnnotationProps = {
-    label?: React.ReactNode;
+    label?: string;
     color?: string;
     bound: Bound;
     isSelected?: boolean;
@@ -27,7 +29,6 @@ type BoxAnnotationProps = {
     boundType: string;
     onMouseEnter?: React.MouseEventHandler<HTMLDivElement>;
     onMouseLeave?: React.MouseEventHandler<HTMLDivElement>;
-    taskHasTaxonomies?: boolean;
 };
 
 export const BoxAnnotation = ({
@@ -45,8 +46,7 @@ export const BoxAnnotation = ({
     id,
     page,
     onMouseEnter = noop,
-    onMouseLeave = noop,
-    taskHasTaxonomies
+    onMouseLeave = noop
 }: BoxAnnotationProps) => {
     const { x, y, width, height } = bound;
 
@@ -60,9 +60,10 @@ export const BoxAnnotation = ({
         zIndex: isSelected ? 10 : 1
     };
 
-    const annotationClassNames = `${styles.annotation} ${
-        isSelected ? styles.selected : isHovered || taskHasTaxonomies ? styles.hovered : ''
-    }`;
+    const annotationClassNames = cx(styles.annotation, {
+        [styles.selected]: isSelected || isHovered
+    });
+
     return (
         <div
             role="none"
@@ -82,9 +83,9 @@ export const BoxAnnotation = ({
                     isEditable && isSelected ? styles.labelDraggable : ''
                 } ${ANNOTATION_LABEL_CLASS}`}
                 style={{ backgroundColor: color }}
-                data-id={id}
+                id={`${ANNOTATION_LABEL_ID_PREFIX}${id}`}
             >
-                {label}
+                {label.split('.').pop()}
                 {isEditable && (
                     <IconButton
                         icon={closeIcon}

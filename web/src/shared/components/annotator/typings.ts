@@ -1,5 +1,5 @@
 import { Category, Link } from 'api/typings';
-import React, { ReactNode, RefObject } from 'react';
+import React, { RefObject } from 'react';
 import paper from 'paper';
 
 export type AnnotationBoundType = 'box' | 'free-box' | 'table' | 'text' | 'table_cell' | 'polygon';
@@ -59,7 +59,7 @@ export type AnnotationLinksBoundType = 'Chain' | 'All to all';
 export type AnnotationBoundMode = 'box' | 'link' | 'segmentation' | 'document';
 export type AnnotationLabel = {
     annotationId?: string | number;
-    label?: ReactNode;
+    label?: string;
     color?: string;
 };
 export type Annotation = {
@@ -68,6 +68,7 @@ export type Annotation = {
     bound: Bound;
     pageSize?: { width: number; height: number };
     category?: number | string;
+    categoryName?: string;
     color?: string;
     label?: string;
     style?: Pick<React.CSSProperties, 'border' | 'color'>;
@@ -80,6 +81,7 @@ export type Annotation = {
     segments?: number[][];
     labels?: AnnotationLabel[];
     originalAnnotationId?: number;
+    text?: string;
 };
 
 export type Bound = {
@@ -122,7 +124,6 @@ export type EditableAnnotationRenderer = (
         tools: AnnotationImageTool;
         setTools: (t: AnnotationImageTool) => void;
         canvas: boolean;
-        taskHasTaxonomies?: boolean;
     }
 ) => React.ReactNode;
 
@@ -183,7 +184,7 @@ export type TableProps = {
 };
 
 export type TableAnnotationProps = {
-    label?: React.ReactNode;
+    label?: string;
     color?: string;
     bound: Bound;
     isSelected?: boolean;

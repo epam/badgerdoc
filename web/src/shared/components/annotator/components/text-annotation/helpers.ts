@@ -5,7 +5,7 @@ const MIN_GAP_INTER_LINES_TO_SHOW_LABEL = 10;
 const MIN_GAP_BETWEEN_START_END_LABELS = 250;
 
 export type TextAnnotationProps = {
-    label?: React.ReactNode;
+    label?: string;
     labels?: AnnotationLabel[];
     color?: string;
     onClick?: React.MouseEventHandler<HTMLDivElement>;
@@ -28,7 +28,6 @@ export type TextAnnotationProps = {
     id?: string | number;
     page: number;
     isHovered?: boolean;
-    taskHasTaxonomies?: boolean;
 };
 
 type LabelPosition = 'start' | 'end' | 'middle' | 'both' | 'no_label';
@@ -36,13 +35,12 @@ type LabelPosition = 'start' | 'end' | 'middle' | 'both' | 'no_label';
 export type TextAnnotationLabelProps = {
     color: string;
     labelPosition: LabelPosition;
-    label?: React.ReactNode;
+    label?: string;
     onCloseIconClick?: React.MouseEventHandler<HTMLDivElement>;
     onContextMenu?: React.MouseEventHandler<HTMLDivElement>;
     isEditable?: boolean;
     isSelected?: boolean;
     isHovered?: boolean;
-    taskHasTaxonomies?: boolean;
 };
 
 type TextAnnBoundParams = {

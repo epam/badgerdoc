@@ -14,6 +14,7 @@ import { isIntersected, isR2InsideR1 } from 'shared/components/annotator/utils/i
 import { annotationToRect, tokenToRect } from 'shared/components/annotator/utils/to-rect-utils';
 import { bboxToBound } from 'shared/helpers/bbox-to-bound';
 import { boundToBBox } from 'shared/helpers/bound-to-bbox';
+import { createTextFromToken } from 'shared/helpers/tokens';
 import { boundToRect } from '../../shared/components/annotator/utils/rect-to-bound';
 
 const categoryDataAttrsCache = new Map();
@@ -96,12 +97,13 @@ const addTableValues = (ann: Annotation): TableApi => {
     };
 };
 
-const createText = (token: PageInfoObjs | PageToken) => {
-    const previousSymbol = token?.previous || '';
-    const afterSymbol = token?.after || '';
-    const text = token?.text || '';
-    return previousSymbol + text + afterSymbol;
-};
+const getTextFromTokens = (annotation: Annotation, pageTokens: PageToken[]) =>
+    annotation.tokens
+        ? annotation.tokens.map(createTextFromToken).join('')
+        : (pageTokens ?? [])
+              .filter((token) => isIntersected(tokenToRect(token), annotationToRect(annotation)))
+              .map(createTextFromToken)
+              .join('');
 
 const mapAnnotationToApi = (
     ann: Annotation,
@@ -117,13 +119,9 @@ const mapAnnotationToApi = (
     const filteredDataAttrs = annDataAttrsItem
         ? annDataAttrsItem.filter(({ value }) => value.trim() !== '')
         : [];
+
     // TODO: if no tokens are available, inform user?
-    const tokensByAnnotation = ann.tokens
-        ? ann.tokens?.map(createText).join('')
-        : (tokens ?? [])
-              .filter((token) => isIntersected(tokenToRect(token), annotationToRect(ann)))
-              .map(createText)
-              .join('');
+    const tokensByAnnotation = ann.text ?? getTextFromTokens(ann, tokens);
 
     if (ann.boundType === 'table') {
         const cells: PageInfoObjs[] = [...(ann.tableCells as Annotation[])].map((el) => ({
@@ -310,7 +308,8 @@ export const mapAnnotationFromApi = (
         table: (obj.type as AnnotationBoundType) === 'table' ? formatTable(obj.data) : undefined,
         children: obj.children,
         tableCells: (obj.type as AnnotationBoundType) === 'table' ? [] : undefined,
-        segments: obj.segments
+        segments: obj.segments,
+        text: obj.text
     };
 };
 
@@ -331,7 +330,7 @@ export const mapAnnotationDataAttrsFromApi = (annotationsPages: PageInfo[]) => {
 const mapTokenFromApi = (obj: PageInfoObjs, id: number, scale: number): PageToken => {
     return {
         id,
-        text: createText(obj),
+        text: createTextFromToken(obj),
         ...bboxToBound(obj.bbox, scale)
     };
 };

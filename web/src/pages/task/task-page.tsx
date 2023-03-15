@@ -7,11 +7,12 @@ import { Button, FlexRow, FlexSpacer, Panel, Text } from '@epam/loveship';
 import { ApiError } from 'api/api-error';
 import { useNotifications } from 'shared/components/notifications';
 import { TableAnnotatorContextProvider } from '../../shared/components/annotator/context/table-annotator-context';
-import { DASHBOARD_PAGE, JOBS_PAGE, PREVIOUS_PAGE_JOB } from '../../shared/constants';
+import { DASHBOARD_PAGE, JOBS_PAGE, PREVIOUS_PAGE_JOB } from '../../shared/constants/general';
 import { BreadcrumbNavigation } from '../../shared/components/breadcrumb';
 import { useNextAndPreviousTask, useSetTaskState } from 'api/hooks/tasks';
 import { getError } from 'shared/helpers/get-error';
-import { ANNOTATION_PAGE } from 'shared/constants';
+import { ANNOTATION_PAGE } from 'shared/constants/general';
+import { FlowSideBar } from 'components/task/task-sidebar-flow';
 
 import styles from './task-page.module.scss';
 
@@ -92,6 +93,7 @@ const TaskPage: FC = () => {
                 </FlexRow>
                 <div className={`${styles.content}`}>
                     <TableAnnotatorContextProvider>
+                        <FlowSideBar />
                         <TaskDocumentPages viewMode={false} />
                         <TaskSidebar viewMode={false} isNextTaskPresented={Boolean(nextTaskId)} />
                     </TableAnnotatorContextProvider>

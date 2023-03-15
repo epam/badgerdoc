@@ -11,7 +11,7 @@ import Wizard, {
     renderWizardButtons,
     WizardPropsStep
 } from 'shared/components/wizard/wizard/wizard';
-import { MODELS_PAGE } from 'shared/constants';
+import { MODELS_PAGE } from 'shared/constants/general';
 import wizardStyles from '../../shared/components/wizard/wizard/wizard.module.scss';
 
 type AddModelConnectorProps = {

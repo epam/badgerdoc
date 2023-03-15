@@ -16,7 +16,7 @@ import { DocumentPageConnector } from '../../connectors/document-page-connector/
 import { DatasetRow } from 'components/dataset/dataset-row/dataset-row';
 import { DocumentsSearchProvider } from 'shared/contexts/documents-search';
 import { UploadWizardPage } from '../upload-document-wizard/upload-document-wizard-page';
-import { JOBS_PAGE } from '../../shared/constants';
+import { JOBS_PAGE } from '../../shared/constants/general';
 import { DocumentsDropZone } from 'components/documents/documents-drop-zone/documents-drop-zone';
 
 const DocumentsPage = () => {

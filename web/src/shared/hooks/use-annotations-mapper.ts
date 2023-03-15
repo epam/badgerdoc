@@ -92,6 +92,7 @@ export default function useAnnotationsMapper(
                     const annotation = mapAnnotationFromApi(obj, category, taxonLabels);
                     return {
                         ...annotation,
+                        categoryName: category?.name,
                         labels: getAnnotationLabels(pageKey, annotation, category)
                     };
                 });

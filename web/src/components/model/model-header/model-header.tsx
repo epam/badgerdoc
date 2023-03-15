@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button, FlexCell, FlexRow } from '@epam/loveship';
 import styles from '../../../shared/components/job/job-header.module.scss';
-import { MODELS_PAGE } from '../../../shared/constants';
+import { MODELS_PAGE } from '../../../shared/constants/general';
 import { BreadcrumbNavigation } from '../../../shared/components/breadcrumb';
 
 type ModelHeaderProps = {

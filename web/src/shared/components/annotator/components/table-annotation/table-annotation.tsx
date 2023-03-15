@@ -46,7 +46,6 @@ export const TableAnnotation = ({
     annotation,
     scale,
     isCellMode,
-    cells,
     id,
     page,
     categories
@@ -59,16 +58,13 @@ export const TableAnnotation = ({
         onMergeCellsClicked,
         setTableModeRows,
         setTableModeColumns,
-        selectedCellsCanBeMerged,
         setSelectedCellsCanBeMerged,
         splitCells,
         onSplitCellsClicked,
-        selectedCellsCanBeSplitted,
         setSelectedCellsCanBeSplitted
     } = useTableAnnotatorContext();
     const { selectedAnnotation, setIsNeedToSaveTable } = useTaskAnnotatorContext();
-    const { tableCellCategory, setTableCellCategory, isNeedToSaveTable } =
-        useTaskAnnotatorContext();
+    const { tableCellCategory, setTableCellCategory } = useTaskAnnotatorContext();
     const { x, y, width, height } = bound;
 
     const tableRef = useRef<HTMLDivElement>(null);
