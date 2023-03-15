@@ -222,7 +222,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
 
     const dataAttrsWithTaxonomy = useMemo(() => {
         if (!selectedAnnotation || !categories) return;
-        return getCategoryDataAttrs(selectedAnnotation?.category, categories).filter(
+        return getCategoryDataAttrs(selectedAnnotation?.category, categories)?.filter(
             (dataAttr) => dataAttr.type === 'taxonomy'
         );
     }, [selectedAnnotation, categories]);
