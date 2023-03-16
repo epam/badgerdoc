@@ -65,7 +65,7 @@ export const JobSidebarConnector: React.FC<JobDetailViewSideBarProps> = ({
     useEffect(() => {
         if (users && job && Array.isArray(users.data) && job.annotators) {
             const filteredUsers = users?.data.filter((user) => {
-                return job.annotators.some((el) => el.id === user.id);
+                return job.annotators.some((annotator) => annotator.id === user.id);
             });
             setAnnotators(filteredUsers);
         }

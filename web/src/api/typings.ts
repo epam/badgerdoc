@@ -302,6 +302,11 @@ export type User = {
     };
 };
 
+export type TUserShort = {
+    id: string;
+    username: string;
+};
+
 export type DatasetResponse = {
     id: number;
     name: string;

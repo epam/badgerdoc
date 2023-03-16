@@ -1,6 +1,6 @@
 import { AnnotationsByUserObj, useLatestAnnotationsByUser } from 'api/hooks/annotations';
 import { Category, Label, Link, Taxon } from 'api/typings';
-import { Job, JobStatus } from 'api/typings/jobs';
+import { JobStatus, Job } from 'api/typings/jobs';
 import cloneDeep from 'lodash/cloneDeep';
 import isEqual from 'lodash/isEqual';
 import { useCallback, useEffect, useMemo } from 'react';

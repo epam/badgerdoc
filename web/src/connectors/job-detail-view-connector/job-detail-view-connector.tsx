@@ -235,13 +235,14 @@ export const JobConnector: React.FC<JobDetailViewProps> = ({
                 <CreateTask
                     {...props}
                     jobId={job?.id}
-                    annotatorIds={job?.annotators.map((el) => el.id) || []}
                     fileIds={job?.files || []}
+                    annotatorIds={job?.annotators.map(({ id }) => id) || []}
                 />
             ))
             .then(noop)
             .catch(noop);
     }, [job]);
+
     const onStartJob = async () => {
         try {
             await startJobMutation.mutateAsync({ jobId });
