@@ -1,11 +1,12 @@
 from _pytest.monkeypatch import MonkeyPatch
-from assets.converters.text.text_to_badgerdoc_converter import (
+from starlette.testclient import TestClient
+
+from convert.converters.text.text_to_badgerdoc_converter import (
     TextToBadgerdocConverter,
 )
-from assets.converters.text.text_to_tokens_converter import (
+from convert.converters.text.text_to_tokens_converter import (
     TextToBadgerdocTokensConverter,
 )
-from starlette.testclient import TestClient
 
 
 def test_correctness_of_import_text_schema(

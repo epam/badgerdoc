@@ -3,9 +3,10 @@ from typing import Any, List, Optional, Tuple
 
 import boto3
 import urllib3
-from assets.config import settings
-from assets.logger import get_logger
 from fastapi import HTTPException, status
+
+from convert.config import settings
+from convert.logger import get_logger
 
 from ..exceptions import BucketError, FileKeyError, UploadLimitExceedError
 from ..models import coco

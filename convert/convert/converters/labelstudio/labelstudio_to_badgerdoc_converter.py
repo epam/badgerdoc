@@ -5,31 +5,32 @@ from typing import Any, Dict, List, Optional, Set, Union
 from uuid import uuid4
 
 import requests
-from assets.config import DEFAULT_PAGE_BORDER_OFFSET, settings
-from assets.converters.base_format.badgerdoc import Badgerdoc
-from assets.converters.base_format.models.annotation_practic import (
-    BadgerdocAnnotation,
-    DocumentLink,
-)
-from assets.converters.base_format.models.tokens import BadgerdocToken, Page
-from assets.converters.base_format.pdf_renderer import PDFRenderer
-from assets.converters.labelstudio.annotation_converter import (
-    AnnotationConverter,
-)
-from assets.converters.labelstudio.models.annotation import (
-    LabelStudioModel,
-    ValidationType,
-)
-from assets.converters.text.text_to_tokens_converter import (
-    TextToBadgerdocTokensConverter,
-)
-from assets.logger import get_logger
-from assets.models.common import S3Path
 from botocore.client import BaseClient
 from botocore.exceptions import ClientError
 from fastapi import HTTPException, status
 from fastapi.encoders import jsonable_encoder
 from tenant_dependency import TenantData
+
+from convert.config import DEFAULT_PAGE_BORDER_OFFSET, settings
+from convert.converters.base_format.badgerdoc import Badgerdoc
+from convert.converters.base_format.models.annotation_practic import (
+    BadgerdocAnnotation,
+    DocumentLink,
+)
+from convert.converters.base_format.models.tokens import BadgerdocToken, Page
+from convert.converters.base_format.pdf_renderer import PDFRenderer
+from convert.converters.labelstudio.annotation_converter import (
+    AnnotationConverter,
+)
+from convert.converters.labelstudio.models.annotation import (
+    LabelStudioModel,
+    ValidationType,
+)
+from convert.converters.text.text_to_tokens_converter import (
+    TextToBadgerdocTokensConverter,
+)
+from convert.logger import get_logger
+from convert.models.common import S3Path
 
 LOGGER = get_logger(__file__)
 LOGGER.setLevel("DEBUG")

@@ -1,14 +1,15 @@
 import tempfile
 from pathlib import Path
 
-from assets.config import DEFAULT_PAGE_BORDER_OFFSET
-from assets.converters.base_format.badgerdoc import Badgerdoc
-from assets.converters.base_format.pdf_renderer import PDFRenderer
-from assets.converters.text.text_to_tokens_converter import (
+from botocore.client import BaseClient
+
+from convert.config import DEFAULT_PAGE_BORDER_OFFSET
+from convert.converters.base_format.badgerdoc import Badgerdoc
+from convert.converters.base_format.pdf_renderer import PDFRenderer
+from convert.converters.text.text_to_tokens_converter import (
     TextToBadgerdocTokensConverter,
 )
-from assets.models.common import S3Path
-from botocore.client import BaseClient
+from convert.models.common import S3Path
 
 
 class TextToBadgerdocConverter:

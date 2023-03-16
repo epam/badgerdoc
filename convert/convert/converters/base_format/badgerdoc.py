@@ -1,10 +1,10 @@
 from pathlib import Path
 from typing import List, Optional
 
-from assets.converters.pdf.pdf_converter import (
+from convert.converters.pdf.pdf_converter import (
     PlainPDFToBadgerdocTokensConverter,
 )
-from assets.converters.utils import filter_printing_tokens
+from convert.converters.utils import filter_printing_tokens
 
 from .models.annotation_practic import BadgerdocAnnotation
 from .models.tokens import Page

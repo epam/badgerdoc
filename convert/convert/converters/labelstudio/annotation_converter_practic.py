@@ -1,14 +1,14 @@
 from typing import List
 
-from assets.converters.base_format.models import annotation_practic
-from assets.converters.base_format.models.annotation import (
+from convert.converters.base_format.models import annotation_practic
+from convert.converters.base_format.models.annotation import (
     AnnotationLink,
     BadgerdocAnnotation,
     Obj,
     Page,
     Size,
 )
-from assets.converters.base_format.models.tokens import (
+from convert.converters.base_format.models.tokens import (
     Page as BadgerdocTokensPage,
 )
 

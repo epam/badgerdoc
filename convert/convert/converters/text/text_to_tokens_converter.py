@@ -2,14 +2,14 @@ import collections
 import string
 from typing import Deque, List
 
-from assets.config import (
+from convert.config import (
     DEFAULT_PAGE_BORDER_OFFSET,
     DEFAULT_PDF_FONT_HEIGHT,
     DEFAULT_PDF_FONT_WIDTH,
     DEFAULT_PDF_LINE_SPACING,
     DEFAULT_PDF_PAGE_WIDTH,
 )
-from assets.converters.base_format.models.tokens import (
+from convert.converters.base_format.models.tokens import (
     BadgerdocToken,
     Offset,
     Page,

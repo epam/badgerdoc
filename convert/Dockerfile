@@ -1,8 +1,10 @@
 ARG base_image=818863528939.dkr.ecr.eu-central-1.amazonaws.com/badgerdoc/python_base:0.1.7
-FROM ${base_image} as base
+FROM ${base_image} as build
 
-COPY policy.xml  /etc/ImageMagick-6/policy.xml
-COPY poetry.lock pyproject.toml /
+WORKDIR /opt/convert
+
+COPY poetry.lock pyproject.toml ./
+COPY convert convert
 
 RUN : \
    && apt-get update \
@@ -12,6 +14,8 @@ RUN : \
    && rm -rf /var/lib/apt/lists/* \
    && :
 
+COPY policy.xml  /etc/ImageMagick-6/policy.xml
+
 RUN : \
     && python3 -m pip install --upgrade pip \
     && pip install poetry>=1.1.13 \
@@ -19,14 +23,7 @@ RUN : \
     && poetry install --no-root --only main \
     && :
 
-FROM base as build
-
-WORKDIR /convert
-COPY convert/ /convert/convert
 CMD uvicorn convert.main:app --host 0.0.0.0 --port 8080
-
-FROM base as test
-CMD ["python", "-m", "pytest", "--cov=app"]
 
 FROM sonarsource/sonar-scanner-cli:4.6 AS sonar
 

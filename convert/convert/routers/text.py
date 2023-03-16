@@ -1,9 +1,10 @@
-from assets.config import minio_client
-from assets.converters.text.text_to_badgerdoc_converter import (
+from fastapi import APIRouter, status
+
+from convert.config import minio_client
+from convert.converters.text.text_to_badgerdoc_converter import (
     TextToBadgerdocConverter,
 )
-from assets.models.text import TextRequest
-from fastapi import APIRouter, status
+from convert.models.text import TextRequest
 
 router = APIRouter(prefix="/text", tags=["text"])
 

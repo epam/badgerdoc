@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from assets.logger import get_logger
+from convert.logger import get_logger
 
 LOGGER = get_logger(__file__)
 

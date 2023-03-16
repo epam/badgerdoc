@@ -3,19 +3,22 @@ from pathlib import Path
 from typing import Any, Dict, List, NamedTuple, Optional
 
 import requests
-from assets.config import settings
-from assets.converters.base_format.models import annotation_practic
-from assets.converters.base_format.models.annotation import BadgerdocAnnotation
-from assets.converters.base_format.models.manifest import Manifest
-from assets.converters.base_format.models.tokens import BadgerdocToken, Page
-from assets.converters.labelstudio.annotation_converter_practic import (
-    AnnotationConverterToTheory,
-)
-from assets.logger import get_logger
-from assets.models.common import S3Path
 from botocore.client import BaseClient
 from fastapi import HTTPException, status
 from tenant_dependency import TenantData
+
+from convert.config import settings
+from convert.converters.base_format.models import annotation_practic
+from convert.converters.base_format.models.annotation import (
+    BadgerdocAnnotation,
+)
+from convert.converters.base_format.models.manifest import Manifest
+from convert.converters.base_format.models.tokens import BadgerdocToken, Page
+from convert.converters.labelstudio.annotation_converter_practic import (
+    AnnotationConverterToTheory,
+)
+from convert.logger import get_logger
+from convert.models.common import S3Path
 
 from .models.annotation import (
     Annotation,

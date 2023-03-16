@@ -2,7 +2,7 @@ import os
 from typing import Any, Dict, List
 from zipfile import ZipFile
 
-from assets.config import settings
+from convert.config import settings
 
 from ..exceptions import UploadLimitExceedError
 
