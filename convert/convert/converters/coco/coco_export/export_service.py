@@ -3,9 +3,10 @@ import uuid
 from typing import Any, Dict, List, Type
 from zipfile import ZipFile
 
-from assets.config import minio_client
-from assets.logger import get_logger
 from fastapi import BackgroundTasks
+
+from convert.config import minio_client
+from convert.logger import get_logger
 
 from ..utils.s3_utils import convert_bucket_name_if_s3prefix
 from .convert import ExportConvertBase

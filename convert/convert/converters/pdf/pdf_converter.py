@@ -1,14 +1,15 @@
 from typing import List
 
-from assets.converters.base_format.models.tokens import (
+from pdfminer.high_level import extract_pages
+from pdfminer.layout import LTChar, LTTextBoxHorizontal, LTTextLineHorizontal
+
+from convert.converters.base_format.models.tokens import (
     BadgerdocToken,
     Offset,
     Page,
     PageSize,
 )
-from assets.converters.utils import filter_printing_tokens
-from pdfminer.high_level import extract_pages
-from pdfminer.layout import LTChar, LTTextBoxHorizontal, LTTextLineHorizontal
+from convert.converters.utils import filter_printing_tokens
 
 
 class PlainPDFToBadgerdocTokensConverter:

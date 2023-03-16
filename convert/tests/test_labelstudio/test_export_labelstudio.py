@@ -2,15 +2,16 @@ from pathlib import Path
 
 import responses
 from _pytest.monkeypatch import MonkeyPatch
-from assets.converters.base_format.models import annotation_practic, manifest
-from assets.converters.base_format.models.tokens import Page
-from assets.converters.labelstudio import annotation_converter_practic
-from assets.converters.labelstudio.badgerdoc_to_labelstudio_converter import (
+from starlette.testclient import TestClient
+
+from convert.converters.base_format.models import annotation_practic, manifest
+from convert.converters.base_format.models.tokens import Page
+from convert.converters.labelstudio import annotation_converter_practic
+from convert.converters.labelstudio.badgerdoc_to_labelstudio_converter import (
     BadgerdocToLabelstudioConverter,
     LabelStudioFormat,
 )
-from assets.converters.labelstudio.models.annotation import LabelStudioModel
-from starlette.testclient import TestClient
+from convert.converters.labelstudio.models.annotation import LabelStudioModel
 
 TEST_FILES_DIR = Path(__file__).parent / "test_data"
 

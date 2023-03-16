@@ -2,9 +2,10 @@ import os
 import tempfile
 from pathlib import Path
 
-from assets.converters.base_format.badgerdoc import Badgerdoc
-from assets.models.common import S3Path
 from botocore.client import BaseClient
+
+from convert.converters.base_format.badgerdoc import Badgerdoc
+from convert.models.common import S3Path
 
 
 class PDFToBadgerdocConverter:

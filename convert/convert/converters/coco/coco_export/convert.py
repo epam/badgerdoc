@@ -7,9 +7,10 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 from zipfile import ZipFile
 
 import requests
-from assets.config import minio_client, minio_resource, settings
-from assets.logger import get_logger
 from botocore.exceptions import ClientError
+
+from convert.config import minio_client, minio_resource, settings
+from convert.logger import get_logger
 
 from ..models.coco import Annotation, Category, CocoDataset, Image
 from ..utils.common_utils import add_to_zip_and_local_remove, get_headers

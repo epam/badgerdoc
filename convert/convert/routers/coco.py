@@ -2,23 +2,24 @@ from typing import Any
 from urllib.parse import urlparse
 
 import requests
-from assets.config import minio_client, settings
-from assets.converters.coco.coco_export.convert import (
-    ConvertToCoco,
-    ExportBadgerdoc,
-)
-from assets.converters.coco.coco_export.export_service import (
-    export_run_and_return_url,
-)
-from assets.converters.coco.coco_import.convert import ConvertToBadgerdoc
-from assets.converters.coco.coco_import.import_job import create_import_job
-from assets.converters.coco.models import coco
-from assets.converters.coco.utils.s3_utils import get_bucket_path
-from assets.logger import get_logger
 from fastapi import APIRouter, BackgroundTasks, Depends, Header, status
 from fastapi.responses import Response, StreamingResponse
 from requests import HTTPError
 from tenant_dependency import TenantData, get_tenant_info
+
+from convert.config import minio_client, settings
+from convert.converters.coco.coco_export.convert import (
+    ConvertToCoco,
+    ExportBadgerdoc,
+)
+from convert.converters.coco.coco_export.export_service import (
+    export_run_and_return_url,
+)
+from convert.converters.coco.coco_import.convert import ConvertToBadgerdoc
+from convert.converters.coco.coco_import.import_job import create_import_job
+from convert.converters.coco.models import coco
+from convert.converters.coco.utils.s3_utils import get_bucket_path
+from convert.logger import get_logger
 
 router = APIRouter(prefix="/coco", tags=["coco"])
 LOGGER = get_logger(__file__)

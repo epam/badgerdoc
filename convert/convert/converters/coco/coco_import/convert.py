@@ -5,8 +5,8 @@ import os.path
 from pathlib import Path
 from typing import Any, Dict, Set
 
-from assets.config import get_request_session, settings
-from assets.logger import get_logger
+from convert.config import get_request_session, settings
+from convert.logger import get_logger
 
 from ..models.coco import DataS3
 from ..utils.json_utils import import_save_to_json, load_from_json

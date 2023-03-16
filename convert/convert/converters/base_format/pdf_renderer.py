@@ -3,8 +3,9 @@ from pathlib import Path
 from typing import List
 
 import fitz
-from assets.config import DEFAULT_PAGE_BORDER_OFFSET, DEFAULT_PDF_FONT_HEIGHT
 from fitz import Page
+
+from convert.config import DEFAULT_PAGE_BORDER_OFFSET, DEFAULT_PDF_FONT_HEIGHT
 
 from .models.tokens import BadgerdocToken
 

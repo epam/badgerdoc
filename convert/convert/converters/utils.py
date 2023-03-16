@@ -1,6 +1,6 @@
 from typing import List
 
-from assets.converters.base_format.models.tokens import BadgerdocToken
+from convert.converters.base_format.models.tokens import BadgerdocToken
 
 
 def filter_printing_tokens(objs: List[BadgerdocToken]) -> List[BadgerdocToken]:

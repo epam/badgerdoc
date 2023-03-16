@@ -3,8 +3,9 @@ from typing import List, Optional
 from zipfile import ZipFile
 
 import pdfplumber
-from assets.config import settings
-from assets.logger import get_logger
+
+from convert.config import settings
+from convert.logger import get_logger
 
 from .common_utils import add_to_zip_and_local_remove
 

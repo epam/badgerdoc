@@ -1,11 +1,11 @@
 from pathlib import Path
 
-from assets.converters.base_format.models.tokens import (
+from convert.converters.base_format.models.tokens import (
     BadgerdocToken,
     Offset,
     Page,
 )
-from assets.converters.pdf.pdf_converter import (  # noqa
+from convert.converters.pdf.pdf_converter import (  # noqa
     PlainPDFToBadgerdocTokensConverter,
 )
 

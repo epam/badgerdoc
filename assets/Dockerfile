@@ -7,7 +7,7 @@ WORKDIR /opt/assets
 
 COPY .env alembic.ini pyproject.toml poetry.lock version.txt ./
 COPY alembic alembic
-COPY assets asserts
+COPY assets assets
 
 RUN : \
     && python3 -m pip install --upgrade pip \
@@ -18,7 +18,6 @@ RUN : \
 
 RUN : \
     && apt-get update \
-    && apt-get -qq -y install curl \
     && apt-get install -y poppler-utils \
     && apt-get install libmagic1 -y \
     && :
