@@ -65,6 +65,8 @@ spec:
           value: http://{{ .Values.app.hostname }}/api/v1/jobs/jobs/
         - name: ANNOTATION_SERVICE_URL
           value: http://{{ .Values.app.hostname }}/api/v1/annotation/
+        - name: TAXONOMY_SERVICE_URL
+          value: http://{{ .Values.app.hostname }}/api/v1/taxonomy/
         - name: IMPORT_COCO_URL
           value: http://0.0.0.0:8080/converter/import/
         - name: KEYCLOAK_URL
