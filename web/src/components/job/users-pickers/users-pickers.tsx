@@ -1,8 +1,8 @@
-import { ILens } from '@epam/uui';
+import React, { FC } from 'react';
 import { User, ValidationType } from 'api/typings';
 import { JobValues } from 'connectors/edit-job-connector/edit-job-connector';
-import React, { FC } from 'react';
 import UsersPicker from '../users-picker/users-picker';
+import { ILens } from '@epam/uui';
 
 type UsersPickersProps = {
     users: User[] | undefined;
@@ -48,11 +48,7 @@ const UsersPickers: FC<UsersPickersProps> = ({ lens, users }) => {
     };
 
     const typeProps = propMap[lensValidationType];
-    return (
-        <>
-            <UsersPicker users={users} typeProps={typeProps} />
-        </>
-    );
+    return <UsersPicker users={users} typeProps={typeProps} />;
 };
 
 export default UsersPickers;

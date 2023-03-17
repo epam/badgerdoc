@@ -11,8 +11,6 @@ import {
     User,
     ValidationType
 } from 'api/typings';
-import { Form, INotification, IFormApi } from '@epam/uui';
-import { ErrorNotification, SuccessNotification, Text } from '@epam/loveship';
 import { svc } from 'services';
 import { getError } from '../../shared/helpers/get-error';
 import { useCategories } from 'api/hooks/categories';
@@ -22,6 +20,9 @@ import { CurrentUser } from 'shared/contexts/current-user';
 import wizardStyles from '../../shared/components/wizard/wizard/wizard.module.scss';
 import { useAllTaxonomies, useTaxonomiesByJobId } from 'api/hooks/taxons';
 import { cloneDeep } from 'lodash';
+
+import { Form, INotification, IFormApi } from '@epam/uui';
+import { ErrorNotification, SuccessNotification, Text } from '@epam/loveship';
 
 type EditJobConnectorProps = {
     renderWizardButtons: ({
@@ -71,7 +72,7 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
     showNoExtractionTab
 }) => {
     const getMetadata = (state: JobValues) => {
-        const { jobType, validationType, annotators_validators, pipeline } = state;
+        const { jobType, validationType, annotators_validators, pipeline, validators } = state;
 
         // TODO add proper typing for validators
         const metadata: any = {
@@ -90,6 +91,11 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
                 isInvalid: (annotators_validators?.length || 0) < 2,
                 validationMessage:
                     'For Cross validation at least 2 annotators or validators are required'
+            };
+            metadata.props['validators'] = {
+                isInvalid: (validators?.length || 0) < 1,
+                validationMessage: 'For Extensive Coverage at least 1 validator required',
+                isRequired: true
             };
         }
 
