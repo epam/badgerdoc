@@ -10,8 +10,8 @@ import React, {
 import { UseQueryResult } from 'react-query';
 import { isEmpty } from 'lodash';
 
-import { Task } from 'api/typings/tasks';
-import { CategoryDataAttributeWithValue, PageInfo, User } from 'api/typings';
+import { Task, TTaskUsers } from 'api/typings/tasks';
+import { CategoryDataAttributeWithValue, PageInfo } from 'api/typings';
 
 import { AnnotationsResponse, useAddAnnotationsMutation } from 'api/hooks/annotations';
 import { useGetValidatedPages, useSetTaskFinishedMutation, useSetTaskState } from 'api/hooks/tasks';
@@ -32,7 +32,7 @@ export type ValidationParams = {
     currentPage: number;
     onCloseDataTab: () => void;
     isOwner: boolean;
-    sortedUsers: MutableRefObject<{ owners: User[]; annotators: User[]; validators: User[] }>;
+    taskUsers: MutableRefObject<TTaskUsers>;
     onSaveTask: () => void;
     allAnnotations: Record<number, Annotation[]>;
     tokensByPages: Record<number, PageToken[]>;
@@ -69,7 +69,7 @@ export const useValidation = ({
     latestAnnotationsResult,
     task,
     currentPage,
-    sortedUsers,
+    taskUsers,
     isOwner,
     onCloseDataTab,
     onSaveTask,
@@ -234,7 +234,7 @@ export const useValidation = ({
             <FinishTaskValidationModal
                 onSaveForm={onSaveForm}
                 allValid={allValid}
-                allUsers={sortedUsers.current}
+                allUsers={taskUsers.current}
                 currentUser={task?.user_id || ''}
                 isOwner={isOwner}
                 invalidPages={invalidPages.length}

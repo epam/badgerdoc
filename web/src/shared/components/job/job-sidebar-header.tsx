@@ -7,7 +7,7 @@ import '@epam/uui-components/styles.css';
 import { useJobProgress } from 'api/hooks/jobs';
 
 type JobSidebarHeaderProps = {
-    job: Job | undefined;
+    job?: Job;
 };
 
 const JobTypeLabel: Record<JobType, string> = {

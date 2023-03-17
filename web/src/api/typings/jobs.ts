@@ -1,4 +1,4 @@
-import { ValidationType } from '../typings';
+import { TUserShort, ValidationType } from '../typings';
 
 export type DocumentJob = {
     id: number;
@@ -33,7 +33,7 @@ export type Job = {
     // TODO: create enum or type with defined value
     mode: JobMode;
     pipeline_id: string;
-    annotators: Array<{ id: string; username: string }>;
+    annotators: Array<TUserShort>;
     validators: Array<string>;
     owners: Array<string>;
     categories: Array<number>;

@@ -9,7 +9,7 @@ import React, {
     useState
 } from 'react';
 import { cloneDeep, isEqual } from 'lodash';
-import { Task } from 'api/typings/tasks';
+import { Task, TTaskUsers } from 'api/typings/tasks';
 import { ApiError } from 'api/api-error';
 import {
     DocumentLink,
@@ -32,8 +32,7 @@ import {
     Operators,
     PageInfo,
     SortingDirection,
-    Taxon,
-    User
+    Taxon
 } from 'api/typings';
 import { Job } from 'api/typings/jobs';
 import { FileMetaInfo } from 'pages/document/document-page-sidebar-content/document-page-sidebar-content';
@@ -66,7 +65,7 @@ import {
     mapTokenPagesFromApi
 } from './task-annotator-utils';
 import useSplitValidation, { SplitValidationValue } from './use-split-validation';
-import { useUsersDataFromTask } from './user-fetch-hook';
+import { useTaskUsers } from './use-task-users';
 import { DocumentLinksValue, useDocumentLinks } from './use-document-links';
 import { useValidation, ValidationValues } from './use-validation';
 
@@ -91,7 +90,7 @@ type ContextValue = SplitValidationValue &
         setPageSize: (pS: any) => void;
         tabValue: string;
         isOwner: boolean;
-        sortedUsers: MutableRefObject<{ owners: User[]; annotators: User[]; validators: User[] }>;
+        taskUsers: MutableRefObject<TTaskUsers>;
         selectionType: AnnotationBoundType | AnnotationLinksBoundType | AnnotationImageToolType;
         selectedTool: AnnotationImageToolType;
         setSelectedTool: (t: AnnotationImageToolType) => void;
@@ -260,7 +259,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
     const getJobId = (): number | undefined => (task ? task.job.id : jobId);
 
     const getFileId = (): number | undefined => (task ? task.file.id : fileMetaInfo?.id);
-    const { isOwner, sortedUsers } = useUsersDataFromTask(task);
+    const { isOwner, taskUsers } = useTaskUsers(task);
 
     const { data: job } = useJobById({ jobId: task?.job.id });
 
@@ -905,7 +904,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         latestAnnotationsResult,
         task,
         currentPage,
-        sortedUsers,
+        taskUsers,
         isOwner,
         onCloseDataTab,
         onSaveTask,
@@ -1027,7 +1026,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             setIsNeedToSaveTable,
             tabValue,
             selectedAnnotation,
-            sortedUsers,
+            taskUsers,
             isOwner,
             isDataTabDisabled,
             isCategoryDataEmpty,
