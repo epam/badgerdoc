@@ -1358,17 +1358,32 @@ TRANSFER_ANNOTATIONS_DOCS = [
         ],
     ),
 ]
-SAME_OBJ = {"same": 1}
+TOKEN_1 = {"id": 111, "other": 1}
+TOKEN_2 = {"id": 222, "other": 2}
+OBJ_1 = {"type": "text", "data": {"tokens": [TOKEN_1, TOKEN_2]}, "other": 2}
+EXPECTED_OBJ_1 = {
+    "type": "text",
+    "data": {
+        "tokens": [{"id": TOKEN_1["id"]}, {"id": TOKEN_2["id"]}],
+        "dataAttributes": [],
+    },
+    "other": 2,
+}
+OBJ_2 = {"same": 3}
 TRANSFER_ANNOTATIONS_PAGES = {
     "11": {
         "page_num": 1,
         "size": {"width": 1.0, "height": 1.0},
-        "objs": [{"id": 111, "key": [1, 2, 3]}, {"id": 222, **SAME_OBJ}],
+        "objs": [
+            {"id": 1, **OBJ_1},
+            {"id": 2, **OBJ_2},
+            {"id": 3, "key": [1, 2, 3]},
+        ],
     },
     "22": {
         "page_num": 1,
         "size": {"width": 1.0, "height": 1.0},
-        "objs": [{"id": 333, **SAME_OBJ}],
+        "objs": [{"id": 4, **OBJ_1}, {"id": 5, **OBJ_2}],
     },
 }
 
@@ -1440,4 +1455,4 @@ def test_transfer_annotations(
         {key: obj[key] for key in obj if key != "id"}
         for obj in new_revision["objs"]
     ]
-    assert new_revision_objs == [SAME_OBJ]
+    assert new_revision_objs == [EXPECTED_OBJ_1, OBJ_2]

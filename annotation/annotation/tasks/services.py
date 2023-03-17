@@ -724,6 +724,31 @@ def load_revisions(
                     for category in revision["categories"]
                 ),
             }
+            # remove unnecessary attributes in "text" type tokens
+            tasks_data[page_number][task_number]["objects"] = [
+                {
+                    **result,
+                    "data": {
+                        "tokens": [
+                            {
+                                key: token[key]
+                                for key in token
+                                if key
+                                in {"id", "text", "x", "y", "width", "height"}
+                            }
+                            for token in result.get("data", {}).get(
+                                "tokens", []
+                            )
+                        ],
+                        "dataAttributes": result.get("data", {}).get(
+                            "dataAttributes", []
+                        ),
+                    },
+                }
+                if result.get("type", "") == "text"
+                else result
+                for result in tasks_data[page_number][task_number]["objects"]
+            ]
     return tasks_data
 
 
@@ -783,7 +808,6 @@ def create_validation_revisions(
     x_current_tenant: str,
     token: TenantData,
     job_id: int,
-    finished_task: ManualAnnotationTask,
     validation_tasks: List[ManualAnnotationTask],
 ) -> None:
     """
@@ -800,7 +824,6 @@ def create_validation_revisions(
         annotation_tasks = get_annotation_tasks(
             db, job_id, file_id, pages_nums
         )
-        annotation_tasks.append(finished_task)
         annotated_pages, categories = find_common_values(
             db, x_current_tenant, pages_nums, annotation_tasks
         )
@@ -836,5 +859,4 @@ def create_validation_revisions(
         except ValueError:
             Logger.exception("Cannot save first validation revision.")
         else:
-            db.flush()
             update_task_status(db, validation_task)
