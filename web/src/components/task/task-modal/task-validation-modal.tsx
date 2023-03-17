@@ -18,8 +18,9 @@ import {
 } from '@epam/loveship';
 import { FormSaveResponse, IFormApi, IModal, Metadata, useArrayDataSource } from '@epam/uui';
 
-import { User } from '../../../api/typings';
+import { TUserShort } from '../../../api/typings';
 import styles from './task-modal.module.scss';
+import { TTaskUsers } from 'api/typings/tasks';
 
 export interface TaskValidationValues {
     option_invalid?: string | null;
@@ -33,11 +34,7 @@ interface IProps extends IModal<TaskValidationValues> {
     invalidPages: number;
     editedPageCount: number;
     validSave: () => void;
-    allUsers: {
-        owners: User[];
-        annotators: User[];
-        validators: User[];
-    };
+    allUsers: TTaskUsers;
     currentUser: string;
     isOwner: boolean;
     onRedirectAfterFinish: () => void;
@@ -66,7 +63,7 @@ export const FinishTaskValidationModal: FC<IProps> = (modalProps) => {
         option_edited: null
     });
 
-    const annotatorsDataSource = useArrayDataSource<User, string, any>(
+    const annotatorsDataSource = useArrayDataSource<TUserShort, string, any>(
         {
             items: allUsers.annotators ?? []
         },
