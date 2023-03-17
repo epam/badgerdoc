@@ -2,7 +2,7 @@ import React, { FC } from 'react';
 import { Text } from '@epam/loveship';
 import styles from './styles.module.scss';
 import { Annotation } from 'shared';
-import { hexToRGBA } from 'shared/components/annotator/utils/hex-to-rgba';
+import { stringToRGBA } from 'shared/components/annotator/utils/string-to-rgba';
 import { ANNOTATION_FLOW_ITEM_ID_PREFIX } from 'shared/constants/annotations';
 import { ANNOTATION_PATH_SEPARATOR } from './constants';
 
@@ -21,7 +21,8 @@ export const AnnotationRow: FC<
                 style={{
                     color,
                     border: `1px solid ${color}`,
-                    backgroundColor: id !== selectedAnnotationId ? 'unset' : hexToRGBA(color, 0.2)
+                    backgroundColor:
+                        id !== selectedAnnotationId ? 'unset' : stringToRGBA(color, 0.2)
                 }}
             >
                 <Text

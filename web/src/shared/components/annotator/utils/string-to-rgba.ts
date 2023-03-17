@@ -1,4 +1,4 @@
-import { colorDictionary } from '../../../constants';
+import { colorDictionary } from '../../../constants/general';
 
 const isValidHex = (hex: string) => /^#([A-Fa-f0-9]{3,4}){1,2}$/.test(hex);
 
