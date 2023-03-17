@@ -944,19 +944,6 @@ def finish_task(
         )
     )
 
-    if not task.is_validation:
-        unblocked_tasks = unblock_validation_tasks(
-            db, task, annotated_file_pages=finished_pages
-        )
-        if (
-            job.validation_type == ValidationSchema.extensive_coverage
-            and unblocked_tasks
-        ):
-            # create first validation revisions with matching annotations
-            create_validation_revisions(
-                db, x_current_tenant, token, job.job_id, task, unblocked_tasks
-            )
-
     task.status = TaskStatusEnumSchema.finished
     same_job_tasks_amount = (
         db.query(ManualAnnotationTask)
@@ -1065,6 +1052,20 @@ def finish_task(
                 )
             # store metrics in db
             save_agreement_metrics(db=db, scores=compared_score)
+
+    if not task.is_validation:
+        unblocked_tasks = unblock_validation_tasks(
+            db, task, annotated_file_pages=finished_pages
+        )
+        if (
+            job.validation_type == ValidationSchema.extensive_coverage
+            and unblocked_tasks
+        ):
+            db.flush()
+            # create first validation revisions with matching annotations
+            create_validation_revisions(
+                db, x_current_tenant, token, job.job_id, unblocked_tasks
+            )
 
     db.flush()
     update_user_overall_load(db, task.user_id)
