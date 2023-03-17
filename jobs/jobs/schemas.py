@@ -203,7 +203,11 @@ class JobParams(BaseModel):
 
         if (
             validation_type
-            in [ValidationType.hierarchical, ValidationType.validation_only]
+            in [
+                ValidationType.hierarchical,
+                ValidationType.validation_only,
+                ValidationType.extensive_coverage,
+            ]
             and not v
         ):
             raise ValueError(
