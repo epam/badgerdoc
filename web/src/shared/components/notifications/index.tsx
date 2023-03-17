@@ -1,32 +1,31 @@
 import React, { ReactNode, useMemo } from 'react';
+
 import { ErrorNotification, SuccessNotification } from '@epam/loveship';
-import { INotification } from '@epam/uui';
-import { noop } from 'lodash';
-import { svc } from 'services';
+import { INotification, useUuiContext } from '@epam/uui';
 
 export const useNotifications = () => {
-    const notifySuccess = (template: ReactNode, duration = 3) => {
-        return svc.uuiNotifications
+    const { uuiNotifications } = useUuiContext();
+
+    const notifySuccess = async (template: ReactNode, duration = 3) => {
+        return uuiNotifications
             .show(
                 (props: INotification) => (
                     <SuccessNotification {...props}>{template}</SuccessNotification>
                 ),
                 { duration }
             )
-            .then(noop)
-            .catch(noop);
+            .catch(() => null);
     };
 
-    const notifyError = (template: ReactNode) => {
-        return svc.uuiNotifications
+    const notifyError = async (template: ReactNode, duration = 5) => {
+        return uuiNotifications
             .show(
                 (props: INotification) => (
                     <ErrorNotification {...props}>{template}</ErrorNotification>
                 ),
-                { duration: 5 }
+                { duration }
             )
-            .then(noop)
-            .catch(noop);
+            .catch(() => null);
     };
 
     return useMemo(() => ({ notifySuccess, notifyError }), []);
