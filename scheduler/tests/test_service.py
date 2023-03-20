@@ -1,5 +1,4 @@
 from scheduler.db import models, service
-from unittest import mock
 
 
 def test_add_into_db(testing_session, testing_unit_instance):

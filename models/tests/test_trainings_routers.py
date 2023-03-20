@@ -4,10 +4,9 @@ from unittest.mock import Mock, patch
 import pytest
 from fastapi.exceptions import HTTPException
 from fastapi.testclient import TestClient
-
-from src.db import Basement, Training
-from src.main import app
-from src.routers import training_routers
+from models.db import Basement, Training
+from models.main import app
+from models.routers import training_routers
 
 from .override_app_dependency import TEST_HEADER
 
@@ -99,7 +98,7 @@ def test_get_training_by_id_withot_training(get):
 
 @patch.object(training_routers.crud, "delete_instance")
 @patch.object(training_routers.crud, "get_instance")
-@patch("src.routers.training_routers.get_minio_resource", Mock())
+@patch("models.routers.training_routers.get_minio_resource", Mock())
 def test_delete_training_by_id(get, delete, client):
     data = {"id": 1}
     training_routers.get_db = Mock()
@@ -113,7 +112,7 @@ def test_delete_training_by_id(get, delete, client):
 
 @patch.object(training_routers.crud, "delete_instance")
 @patch.object(training_routers.crud, "get_instance")
-@patch("src.routers.training_routers.get_minio_resource", Mock())
+@patch("models.routers.training_routers.get_minio_resource", Mock())
 def test_delete_training_by_id_calls_crud(get, delete):
     data = training_routers.schemas.TrainingDelete(id=1)
     db_entity = Mock()

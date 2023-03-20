@@ -2,8 +2,8 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.exc import DBAPIError, SQLAlchemyError
 
-from app.models import Job, User
-from app.schemas import ValidationSchema
+from annotation.models import Job, User
+from annotation.schemas import ValidationSchema
 from tests.override_app_dependency import TEST_HEADERS, TEST_TENANT, app
 
 client = TestClient(app)

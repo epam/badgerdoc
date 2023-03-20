@@ -2,13 +2,13 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.exc import DBAPIError, SQLAlchemyError
 
-from app.microservice_communication.search import (
+from annotation.microservice_communication.search import (
     AUTHORIZATION,
     BEARER,
     HEADER_TENANT,
 )
-from app.models import Category, File, Job, ManualAnnotationTask, User
-from app.schemas import (
+from annotation.models import Category, File, Job, ManualAnnotationTask, User
+from annotation.schemas import (
     CategoryTypeSchema,
     TaskStatusEnumSchema,
     ValidationSchema,

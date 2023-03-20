@@ -1,22 +1,22 @@
 import os
 from unittest.mock import patch
 
+import pipelines.app as app
+import pipelines.db.models as dbm
+import pipelines.db.service as service
+import pipelines.execution as execution
 import pytest
 from fastapi.testclient import TestClient
+from pipelines.config import DB_URI
 from pydantic import BaseModel
 from sqlalchemy import create_engine
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy_utils import create_database, database_exists, drop_database
 
-import src.app as app
-import src.db.models as dbm
-import src.db.service as service
-import src.execution as execution
 import tests.testing_data as td
 from alembic import command
 from alembic.config import Config
-from src.config import DB_URI
 
 test_db_url = service.get_test_db_url(DB_URI)
 alembic_cfg = Config("alembic.ini")
@@ -72,7 +72,7 @@ def setup_token():
 def testing_app(testing_engine, testing_session, setup_token):
     session = sessionmaker(bind=testing_engine)
     app.app.dependency_overrides[app.TOKEN] = lambda: setup_token
-    with patch("src.db.service.LocalSession", session):
+    with patch("pipelines.db.service.LocalSession", session):
         app.app.dependency_overrides[
             service.get_session
         ] = lambda: testing_session
@@ -102,19 +102,19 @@ def testing_task(testing_pipeline):
 
 @pytest.fixture
 def session_mock():
-    with patch("src.db.service.LocalSession") as mock:
+    with patch("pipelines.db.service.LocalSession") as mock:
         yield mock
 
 
 @pytest.fixture
 def request_mock():
-    with patch("src.http_utils.requests.request") as mock:
+    with patch("pipelines.http_utils.requests.request") as mock:
         yield mock
 
 
 @pytest.fixture
 def run_in_session_mock():
-    with patch("src.db.service.run_in_session") as mock:
+    with patch("pipelines.db.service.run_in_session") as mock:
         yield mock
 
 
@@ -124,7 +124,7 @@ def mock_preprocessing_file_status():
         return True
 
     with patch(
-        "src.execution.PipelineTask.check_preprocessing_status",
+        "pipelines.execution.PipelineTask.check_preprocessing_status",
         check_preprocessing_status_mock,
     ) as mock:
         yield mock

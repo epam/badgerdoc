@@ -179,6 +179,7 @@ export const useAddJobMutation: MutationHookType<JobVariables, Job> = () => {
 type JobByIdParams = {
     jobId?: number;
 };
+
 export const useJobById: QueryHookType<JobByIdParams, Job | undefined> = ({ jobId }, options) => {
     return useQuery(
         ['jobDetailed', jobId],

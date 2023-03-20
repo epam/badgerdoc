@@ -1,7 +1,7 @@
 import pytest
 from fastapi.testclient import TestClient
 
-from app.schemas import EntitiesStatusesSchema, TaskStatusEnumSchema
+from annotation.schemas import EntitiesStatusesSchema, TaskStatusEnumSchema
 from tests.override_app_dependency import TEST_HEADERS, app
 
 client = TestClient(app)

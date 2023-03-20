@@ -21,7 +21,7 @@ jobs:
        - name: run docker-compose up
          run: cd scheduler && docker-compose -f docker-compose-for-tests.yaml up -d --build
        - name: run tests
-         run: docker exec scheduler_web_app bash -c "pytest"
+         run: docker exec scheduler_web_app bash -c "poetry run pytest"
        - name: check with flake8
          run: docker exec scheduler_web_app bash -c "flake8 --exclude=alembic,tests --extend-ignore=E203"
        - name: check with isort

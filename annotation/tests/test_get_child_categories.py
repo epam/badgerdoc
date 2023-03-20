@@ -7,16 +7,16 @@ from pytest import mark
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from app.microservice_communication.assets_communication import (
+from annotation.microservice_communication.assets_communication import (
     ASSETS_FILES_URL,
 )
-from app.microservice_communication.search import (
+from annotation.microservice_communication.search import (
     AUTHORIZATION,
     BEARER,
     HEADER_TENANT,
 )
-from app.models import Category
-from app.schemas import CategoryTypeSchema
+from annotation.models import Category
+from annotation.schemas import CategoryTypeSchema
 from tests.consts import CATEGORIES_PATH, POST_JOBS_PATH
 from tests.override_app_dependency import (
     TEST_HEADERS,

@@ -79,7 +79,8 @@ class ClassifierRequest(BaseModel):
         if v is not None:
             if values["output_path"] is None:
                 raise ValueError(
-                    "If you define output bucket you should also define output path."
+                    "If you define output bucket you should "
+                    "also define output path."
                 )
         return v
 

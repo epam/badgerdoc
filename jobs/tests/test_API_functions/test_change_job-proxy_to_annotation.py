@@ -39,7 +39,8 @@ def test_change_annotation_job_without_request_to_annotation(
         response = testing_app.put("/jobs/1", json={"status": "Finished"})
         assert response.status_code == 200
         assert response.json()["status"] == "Finished"
-        # check there were no requests to "Annotation" microservice to update job
+        # check there were no requests to "Annotation"
+        # microservice to update job
         mock.assert_not_awaited()
 
 

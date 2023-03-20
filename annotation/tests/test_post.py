@@ -7,9 +7,11 @@ from sqlalchemy import not_
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from app.microservice_communication.assets_communication import ASSETS_URL
-from app.models import Category, File, Job, ManualAnnotationTask, User
-from app.schemas import CategoryTypeSchema, ValidationSchema
+from annotation.microservice_communication.assets_communication import (
+    ASSETS_URL,
+)
+from annotation.models import Category, File, Job, ManualAnnotationTask, User
+from annotation.schemas import CategoryTypeSchema, ValidationSchema
 from tests.override_app_dependency import TEST_HEADERS, TEST_TENANT, app
 
 client = TestClient(app)
@@ -443,7 +445,7 @@ def test_post_tasks_empty_files_and_datasets_error(
 @patch.object(Session, "query")
 def test_post_tasks_exception(Session, monkeypatch, prepare_db_for_post):
     monkeypatch.setattr(
-        "app.jobs.resources.get_files_info",
+        "annotation.jobs.resources.get_files_info",
         Mock(return_value=FILES_FROM_ASSETS_FOR_TASK_INFO[0]),
     )
     Session.side_effect = Mock(side_effect=SQLAlchemyError())
@@ -472,7 +474,7 @@ def test_post_tasks_only_files(
     expected_tasks_number,
 ):
     monkeypatch.setattr(
-        "app.microservice_communication.assets_communication.get_response",
+        "annotation.microservice_communication.assets_communication.get_response",  # noqa
         Mock(return_value=returned_files),
     )
     response = client.post(
@@ -519,7 +521,7 @@ def test_post_tasks_new_user(monkeypatch, prepare_db_for_post):
         TASK_INFO_NEW_USER["user_ids"][1]
     )
     monkeypatch.setattr(
-        "app.microservice_communication.assets_communication.get_response",
+        "annotation.microservice_communication.assets_communication.get_response",  # noqa
         Mock(return_value=FILES_FROM_ASSETS_FOR_TASK_INFO_NEW_USER),
     )
     response = client.post(
@@ -581,7 +583,7 @@ def test_post_tasks_deadline(
     assets_files,
 ):
     monkeypatch.setattr(
-        "app.microservice_communication.assets_communication.get_response",
+        "annotation.microservice_communication.assets_communication.get_response",  # noqa
         Mock(return_value=assets_files),
     )
     response = client.post(
@@ -596,7 +598,7 @@ def test_post_tasks_deadline(
 @pytest.mark.integration
 def test_post_tasks_validation_only(monkeypatch, prepare_db_for_post):
     monkeypatch.setattr(
-        "app.microservice_communication.assets_communication.get_response",
+        "annotation.microservice_communication.assets_communication.get_response",  # noqa
         Mock(return_value=[FILES_FROM_ASSETS_FOR_TASK_INFO[2][0]]),
     )
     tasks_info = {
@@ -629,7 +631,7 @@ def test_post_tasks_wrong_files(
     returned_files,
 ):
     monkeypatch.setattr(
-        "app.microservice_communication.assets_communication.get_response",
+        "annotation.microservice_communication.assets_communication.get_response",  # noqa
         Mock(return_value=returned_files),
     )
     response = client.post(
@@ -686,7 +688,7 @@ def test_post_tasks_users_validation_error(
     assets_files,
 ):
     monkeypatch.setattr(
-        "app.microservice_communication.assets_communication.get_response",
+        "annotation.microservice_communication.assets_communication.get_response",  # noqa
         Mock(return_value=assets_files),
     )
     response = client.post(

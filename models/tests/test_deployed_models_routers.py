@@ -2,9 +2,8 @@ from unittest.mock import Mock, patch
 
 import pytest
 from kubernetes.client.exceptions import ApiException
-
-from src.routers import deployed_models_routers
-from src.schemas import DeployedModelPod
+from models.routers import deployed_models_routers
+from models.schemas import DeployedModelPod
 
 
 def test_get_deployed_model_list_returns_list_of_models(client):

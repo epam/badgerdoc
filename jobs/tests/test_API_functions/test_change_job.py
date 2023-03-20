@@ -1,8 +1,9 @@
 import asyncio
-import pytest
 from unittest.mock import patch
 
 import jobs.schemas as schemas
+import pytest
+
 from tests.test_db import (
     create_mock_annotation_job_in_db,
     create_mock_extraction_job_in_db,
@@ -39,7 +40,8 @@ def test_change_job_status_correct_jwt_provided_and_incorrect_job_id(
 
 
 @pytest.mark.skip(
-    reason="Check for job owner is temporarily disabled for development purposes"
+    reason="Check for job owner is temporarily disabled "
+    "for development purposes"
 )
 def test_change_job_status_with_validation_incorrect_job_owner(
     testing_app,
@@ -76,10 +78,17 @@ def test_change_job_linked_taxonomy(
     create_mock_extraction_job_in_db(testing_session)
     with patch("jobs.utils.fetch", return_value=asyncio.Future()) as mock:
         mock.side_effect = [(204, {}), (200, {})]
-        response = testing_app.put("/jobs/1", json={"categories": [{
-            "category_id": "category2",
-            "taxonomy_id": "my_taxonomy_id",
-            "taxonomy_version": 1
-        }]})
+        response = testing_app.put(
+            "/jobs/1",
+            json={
+                "categories": [
+                    {
+                        "category_id": "category2",
+                        "taxonomy_id": "my_taxonomy_id",
+                        "taxonomy_version": 1,
+                    }
+                ]
+            },
+        )
         assert response.status_code == 200
         assert response.json()["categories"] == ["category2"]

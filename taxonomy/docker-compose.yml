@@ -37,7 +37,7 @@ services:
       postgres-postgresql:
         condition: service_healthy
     volumes:
-      - ./:/opt/taxonomy/app
+      - .:/opt/taxonomy
     restart: always
 
 networks:

@@ -1,11 +1,10 @@
-import pytest
 from _pytest.monkeypatch import MonkeyPatch
 from starlette.testclient import TestClient
 
-from src.converters.text.text_to_badgerdoc_converter import (
+from convert.converters.text.text_to_badgerdoc_converter import (
     TextToBadgerdocConverter,
 )
-from src.converters.text.text_to_tokens_converter import (
+from convert.converters.text.text_to_tokens_converter import (
     TextToBadgerdocTokensConverter,
 )
 

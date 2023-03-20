@@ -65,12 +65,14 @@ spec:
           value: http://{{ .Values.app.hostname }}/api/v1/jobs/jobs/
         - name: ANNOTATION_SERVICE_URL
           value: http://{{ .Values.app.hostname }}/api/v1/annotation/
+        - name: TAXONOMY_SERVICE_URL
+          value: http://{{ .Values.app.hostname }}/api/v1/taxonomy/
         - name: IMPORT_COCO_URL
           value: http://0.0.0.0:8080/converter/import/
         - name: KEYCLOAK_URL
           value: http://{{ .Values.app.hostname }}
         command: ["/bin/sh"]
-        args: ["-c", "uvicorn src.main:app --host 0.0.0.0 --port 8080 --root-path /api/v1/convert"]
+        args: ["-c", "uvicorn convert.main:app --host 0.0.0.0 --port 8080 --root-path /api/v1/convert"]
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler

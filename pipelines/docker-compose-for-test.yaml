@@ -70,7 +70,7 @@ services:
       - PREPROCESSING_URL=//preprocess:8000/
       - POSTPROCESSING_URI=//postprocess:8004/
     volumes:
-      - .:/opt/pipeline_executor
+      - .:/opt/pipelines
     networks:
       - badgerdoc-scheduler
     ports:

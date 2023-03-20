@@ -17,7 +17,7 @@ import { svc } from 'services';
 import { getError } from '../../shared/helpers/get-error';
 import { useCategories } from 'api/hooks/categories';
 import { useUsers } from 'api/hooks/users';
-import { Job, JobType } from 'api/typings/jobs';
+import { JobType, Job } from 'api/typings/jobs';
 import { CurrentUser } from 'shared/contexts/current-user';
 import wizardStyles from '../../shared/components/wizard/wizard/wizard.module.scss';
 import { useAllTaxonomies, useTaxonomiesByJobId } from 'api/hooks/taxons';
@@ -415,29 +415,29 @@ const useEditJobFormValues = ({
             validationType: initialJob.validation_type,
             annotators:
                 initialJob.validation_type !== 'cross'
-                    ? initialJob.annotators?.map((el) => {
-                          const user = users?.find((elem) => elem.id === el.id);
+                    ? initialJob.annotators?.map((annotator) => {
+                          const user = users?.find((user) => user.id === annotator.id);
                           if (user) return user;
                           return {} as User;
                       })
                     : [],
             validators:
                 initialJob.validators?.map((el) => {
-                    const user = users?.find((elem) => elem.id === el);
+                    const user = users?.find((user) => user.id === el);
                     if (user) return user;
                     return {} as User;
                 }) || [],
             annotators_validators:
                 initialJob.validation_type === 'cross'
-                    ? initialJob.annotators?.map((el) => {
-                          const user = users?.find((elem) => elem.id === el.id);
+                    ? initialJob.annotators?.map((annotator) => {
+                          const user = users?.find((user) => user.id === annotator.id);
                           if (user) return user;
                           return {} as User;
                       })
                     : [],
             owners:
                 initialJob.owners?.map((el) => {
-                    const user = users?.find((elem) => elem.id === el);
+                    const user = users?.find((user) => user.id === el);
                     if (user) return user;
                     return {} as User;
                 }) || [],

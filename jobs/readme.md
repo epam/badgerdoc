@@ -5,9 +5,9 @@ or Annotation microservice respectively.
 Please also change POSTGRESQL_JOBMANAGER_DATABASE_URI env in Dockerfile.
 
 ## Setup
-`docker build -t job_manager .`
+`docker build -t jobs .`
 
-`docker run -p 8123:8123 job_manager`
+`docker run -p 8123:8123 jobs`
 
 ## Config
 .env file for settings.

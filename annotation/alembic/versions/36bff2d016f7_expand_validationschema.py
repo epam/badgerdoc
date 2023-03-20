@@ -135,7 +135,9 @@ def upgrade():
         ondelete="cascade",
     )
 
-    op.execute("ALTER TYPE validation_type ADD VALUE IF NOT EXISTS 'validation_only'")
+    op.execute(
+        "ALTER TYPE validation_type ADD VALUE IF NOT EXISTS 'validation_only'"
+    )
 
 
 class ValidationSchema(str, Enum):

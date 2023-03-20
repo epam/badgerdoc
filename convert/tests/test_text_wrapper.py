@@ -1,7 +1,7 @@
 import collections
 import string
 
-from src.converters.text.text_to_tokens_converter import (  # noqa: E501
+from convert.converters.text.text_to_tokens_converter import (  # noqa: E501
     TextWrapper,
 )
 

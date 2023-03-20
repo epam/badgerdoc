@@ -4,9 +4,9 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.exc import DBAPIError, SQLAlchemyError
 
-from app.annotations import row_to_dict
-from app.models import Category, File, Job, ManualAnnotationTask, User
-from app.schemas import (
+from annotation.annotations import row_to_dict
+from annotation.models import Category, File, Job, ManualAnnotationTask, User
+from annotation.schemas import (
     CategoryTypeSchema,
     TaskStatusEnumSchema,
     ValidationSchema,

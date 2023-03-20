@@ -4,14 +4,14 @@ from itertools import cycle
 from typing import Optional
 from unittest.mock import PropertyMock, patch
 
+import pipelines.db.models as dbm
+import pipelines.execution as execution
+import pipelines.schemas as schemas
 import pytest
 from aiokafka import AIOKafkaProducer
 from fastapi import HTTPException
 from pydantic import BaseModel
 
-import src.db.models as dbm
-import src.execution as execution
-import src.schemas as schemas
 import tests.testing_data as td
 
 LOGGER = logging.getLogger(__name__)
@@ -34,9 +34,10 @@ def uuid_mock():
 
 
 @patch(
-    "src.execution.ExecutionStep.get_pipeline_step", new_callable=PropertyMock
+    "pipelines.execution.ExecutionStep.get_pipeline_step",
+    new_callable=PropertyMock,
 )
-@patch("src.execution.ExecutionStep.step_execution")
+@patch("pipelines.execution.ExecutionStep.step_execution")
 @pytest.mark.asyncio
 async def test_step_execution_with_logging(
     step_exec_mock, pipeline_step, run_in_session_mock, caplog
@@ -63,9 +64,10 @@ async def test_step_execution_with_logging(
     "It passes when run separately, but fails when all tests are run."
 )
 @patch(
-    "src.execution.ExecutionStep.get_pipeline_step", new_callable=PropertyMock
+    "pipelines.execution.ExecutionStep.get_pipeline_step",
+    new_callable=PropertyMock,
 )
-@patch("src.execution.ExecutionStep.send")
+@patch("pipelines.execution.ExecutionStep.send")
 @pytest.mark.asyncio
 async def test_step_execution(
     mock_send, model_url, caplog, run_in_session_mock
@@ -239,8 +241,8 @@ def test_adjust_pipeline():
     "Test should be fixed - it 'blinks'. "
     "It passes when run separately, but fails when all tests are run."
 )
-@patch("src.execution.ExecutionStep.step_execution_with_logging")
-@patch("src.execution.PipelineTask.send_status")
+@patch("pipelines.execution.ExecutionStep.step_execution_with_logging")
+@patch("pipelines.execution.PipelineTask.send_status")
 @pytest.mark.asyncio
 async def test_start_task(
     webhook_mock,
@@ -284,11 +286,11 @@ async def test_start_task(
     #     return True
 
     with patch(
-        "src.execution.PipelineTask.get_pipeline_type",
+        "pipelines.execution.PipelineTask.get_pipeline_type",
         lambda _: schemas.PipelineTypes.INFERENCE,
     ):
         # with patch(
-        #     "src.execution.PipelineTask.check_preprocessing_status",
+        #     "pipelines.execution.PipelineTask.check_preprocessing_status",
         #     check_preprocessing_status_mock,
         # ):
         await task.start(AIOKafkaProducer)
@@ -301,7 +303,7 @@ async def test_start_task(
     "Test should be fixed - it 'blinks'. "
     "It passes when run separately, but fails when all tests are run."
 )
-@patch("src.execution.ExecutionStep.step_execution_with_logging")
+@patch("pipelines.execution.ExecutionStep.step_execution_with_logging")
 @pytest.mark.asyncio
 async def test_process_next_steps(exec_step, caplog):
     exec_step.return_value = None
@@ -335,9 +337,9 @@ async def test_process_next_steps(exec_step, caplog):
             "steps": [received_step, child_step],
         }
     )
-    with patch("src.execution.PipelineTask.get_by_id", lambda id_: task):
+    with patch("pipelines.execution.PipelineTask.get_by_id", lambda id_: task):
         with patch(
-            "src.execution.PipelineTask.get_pipeline_type",
+            "pipelines.execution.PipelineTask.get_pipeline_type",
             lambda _: schemas.PipelineTypes.INFERENCE,
         ):
             await received_step.process_next_steps(AIOKafkaProducer)
@@ -349,7 +351,7 @@ async def test_process_next_steps(exec_step, caplog):
     "Test should be fixed - it 'blinks'. "
     "It passes when run separately, but fails when all tests are run."
 )
-@patch("src.execution.ExecutionStep.step_execution_with_logging")
+@patch("pipelines.execution.ExecutionStep.step_execution_with_logging")
 @pytest.mark.asyncio
 async def test_process_next_staps_without_child_steps(exec_step, caplog):
     received_step = execution.ExecutionStep.parse_obj(
@@ -383,7 +385,7 @@ async def test_process_next_staps_without_child_steps(exec_step, caplog):
         }
     )
 
-    with patch("src.execution.PipelineTask.get_by_id", lambda id_: task):
+    with patch("pipelines.execution.PipelineTask.get_by_id", lambda id_: task):
         await received_step.process_next_steps(AIOKafkaProducer)
 
     assert caplog.messages[0].startswith("Step with id = 58 from task = 20")

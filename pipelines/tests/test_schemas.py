@@ -1,9 +1,9 @@
 """Testing src/schemas.py."""
 
+import pipelines.db.models as dbm
+import pipelines.schemas as schemas
 import pytest
 
-import src.db.models as dbm
-import src.schemas as schemas
 import tests.testing_data as td
 
 
@@ -85,7 +85,6 @@ def test_get_path():
 
 
 def test_get_path_dont_trim():
-    """Testing get_path of InputArguments without trimming last path component."""
     assert td.input_args_1.get_path(trim=False) == "qwe/foo/bar/baz"
 
 
@@ -104,7 +103,6 @@ def test_get_filename():
     ["input_", "is_init"], [(None, True), (None, False), ({"a": 1}, True)]
 )
 def test_create_input_by_label_no_input_or_just_init(input_, is_init):
-    """Testing create_input_by_label of InputArguments when there's no input."""
     args = td.input_args_1.copy(update={"input": input_, "_is_init": is_init})
     res = args.create_input_by_label(None)
     assert res == args

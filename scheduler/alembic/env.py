@@ -1,11 +1,12 @@
-from logging import config as logging_config
 import os
+from logging import config as logging_config
+
 import sqlalchemy
-from alembic import context
+from scheduler import config as scheduler_config
 from scheduler.db import models
 from scheduler.db.service import get_test_db_url
 
-from scheduler import config as scheduler_config
+from alembic import context
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

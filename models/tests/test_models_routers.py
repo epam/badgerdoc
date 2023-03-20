@@ -4,10 +4,10 @@ from unittest.mock import Mock, patch
 import pytest
 from fastapi.exceptions import HTTPException
 from fastapi.testclient import TestClient
+from models.db import Basement, Model, StatusEnum
+from models.main import app
+from models.routers import models_routers
 
-from src.db import Basement, Model, StatusEnum
-from src.main import app
-from src.routers import models_routers
 from tests.override_app_dependency import TEST_HEADER, TEST_TENANTS
 from tests.test_crud import GET_BASEMENT
 from tests.utils import create_expected_models, delete_date_field, row_to_dict

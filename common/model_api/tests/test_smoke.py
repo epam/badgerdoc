@@ -1,9 +1,8 @@
 from pathlib import Path
 from unittest.mock import MagicMock
-from pprint import pprint
-import pytest
 
 import model_api
+import pytest
 from model_api.common import models as m
 from model_api.pipeline import pipeline
 
@@ -103,11 +102,15 @@ def inference_return(model, images):
     for image in images:
         if image == Path("aab83828-cd8b-41f7-a3c3-943f13e67c2c.png"):
             print("inference yield 1")
-            yield "aab83828-cd8b-41f7-a3c3-943f13e67c2c", {"chemical_formula": "31"}
+            yield "aab83828-cd8b-41f7-a3c3-943f13e67c2c", {
+                "chemical_formula": "31"
+            }
 
         if image == Path("732f2735-3369-4305-9d29-fa3be99d72dd.png"):
             print("inference yield 2")
-            yield "732f2735-3369-4305-9d29-fa3be99d72dd", {"chemical_formula": "31"}
+            yield "732f2735-3369-4305-9d29-fa3be99d72dd", {
+                "chemical_formula": "31"
+            }
 
 
 def crop_page_return(pdf_page, dod_page: m.PageDOD, categories, output_path):
@@ -184,8 +187,12 @@ def mock_put_annotation(loader, work_dir, annotation, request):
 #     ]
 # )
 response = {
-    "0": {"1": ["30e4d539-8e90-49c7-b49c-883073e2b8c8",
-                "aab83828-cd8b-41f7-a3c3-943f13e67c2c"]},
+    "0": {
+        "1": [
+            "30e4d539-8e90-49c7-b49c-883073e2b8c8",
+            "aab83828-cd8b-41f7-a3c3-943f13e67c2c",
+        ]
+    },
     "3": {
         "2": [
             "44d94e31-7079-470a-b8b5-74ce365353f7",
@@ -235,6 +242,6 @@ def test_form_response(monkeypatch):
         inference=inference_return,
         request=request,
         loader=None,
-        work_dir=None
+        work_dir=None,
     )
     assert m.ClassifierResponse(__root__=response) == inference_and_save_result

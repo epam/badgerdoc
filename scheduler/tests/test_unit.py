@@ -1,7 +1,7 @@
-from tests import testing_data
-
 import pytest
 from scheduler import exceptions, unit
+
+from tests import testing_data
 
 
 def test_from_message_right():
@@ -15,7 +15,7 @@ def test_from_message_right():
 
 def test_from_message_wrong():
     with pytest.raises(exceptions.WrongSignature):
-        unit_ = unit.Unit.from_message(testing_data.wrong_message)
+        unit.Unit.from_message(testing_data.wrong_message)
 
 
 def test_from_orm_unit_method(testing_unit_instance):

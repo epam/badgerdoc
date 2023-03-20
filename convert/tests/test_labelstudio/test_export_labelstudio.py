@@ -1,18 +1,17 @@
 from pathlib import Path
 
-import pytest
 import responses
 from _pytest.monkeypatch import MonkeyPatch
 from starlette.testclient import TestClient
 
-from src.converters.base_format.models import annotation_practic, manifest
-from src.converters.base_format.models.tokens import Page
-from src.converters.labelstudio import annotation_converter_practic
-from src.converters.labelstudio.badgerdoc_to_labelstudio_converter import (
+from convert.converters.base_format.models import annotation_practic, manifest
+from convert.converters.base_format.models.tokens import Page
+from convert.converters.labelstudio import annotation_converter_practic
+from convert.converters.labelstudio.badgerdoc_to_labelstudio_converter import (
     BadgerdocToLabelstudioConverter,
     LabelStudioFormat,
 )
-from src.converters.labelstudio.models.annotation import LabelStudioModel
+from convert.converters.labelstudio.models.annotation import LabelStudioModel
 
 TEST_FILES_DIR = Path(__file__).parent / "test_data"
 
@@ -26,7 +25,8 @@ def test_correctness_of_export_text_schema(
         "input_tokens": {"bucket": "test", "path": "files/926/ocr/1.json"},
         "input_annotation": {
             "bucket": "test",
-            "path": "annotation/1763/926/1ae7876fd4d777d5b4e6dbd338b230d74aa4ff8d.json",
+            "path": "annotation/1763/926/"
+            "1ae7876fd4d777d5b4e6dbd338b230d74aa4ff8d.json",
         },
         "input_manifest": {
             "bucket": "test",
@@ -51,9 +51,10 @@ def test_correctness_of_export_text_schema(
 
 
 @responses.activate
-def test_annotation_converter_case_without_taxonomies_and_document_labels() -> None:
+def test_annotation_converter_no_taxonomies_and_document_labels() -> None:
     responses.post(
-        "http://dev2.badgerdoc.com/api/v1/annotation/jobs/1070/categories/search",
+        "http://dev2.badgerdoc.com/api/v1/annotation/"
+        "jobs/1070/categories/search",
         json={"data": []},
     )
 
@@ -108,7 +109,8 @@ def test_annotation_converter_case_without_taxonomies_and_document_labels() -> N
 @responses.activate
 def test_annotation_converter_case_without_export_labelstudio():
     responses.post(
-        "http://dev2.badgerdoc.com/api/v1/annotation/jobs/1070/categories/search",
+        "http://dev2.badgerdoc.com/api/v1/annotation/"
+        "jobs/1070/categories/search",
         json={"data": []},
     )
     tokens_test = Page.parse_file(
@@ -136,5 +138,4 @@ def test_annotation_converter_case_without_export_labelstudio():
         badgerdoc_manifest=manifest_test,
         request_headers={},
     )
-    labelstudio_model_test = ls_format_test.labelstudio_data
     assert ls_format_test.labelstudio_data.__root__[0].data.text == "All "

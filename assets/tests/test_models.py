@@ -1,8 +1,7 @@
 import uuid
 
 import pytest
-
-from src.db.models import Association, Datasets, FileObject
+from assets.db.models import Association, Datasets, FileObject
 
 
 @pytest.fixture

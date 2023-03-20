@@ -6,16 +6,16 @@ from unittest.mock import patch
 import pytest
 import sqlalchemy_utils
 import tenant_dependency
-from alembic import command
-from alembic.config import Config
 from fastapi import testclient
+from scheduler import app
+from scheduler import config as scheduler_config
 from scheduler.db import models
 from scheduler.db.service import get_test_db_url
 from sqlalchemy import create_engine, orm
 from sqlalchemy.exc import SQLAlchemyError
 
-from scheduler import app
-from scheduler import config as scheduler_config
+from alembic import command
+from alembic.config import Config
 
 alembic_cfg = Config("alembic.ini")
 

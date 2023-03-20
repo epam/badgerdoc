@@ -18,7 +18,7 @@ COPY minio_service/ /common/minio_service
 ARG ARTIFACTORY_USER
 ARG ARTIFACTORY_PASS
 
-RUN pip install poetry==1.1.13
+RUN pip install poetry>=1.1.13
 
 COPY minio_service/pyproject.toml /common/minio_service
 COPY minio_service/poetry.lock /common/minio_service
@@ -26,7 +26,7 @@ COPY minio_service/poetry.lock /common/minio_service
 RUN poetry config virtualenvs.create false \
    && poetry build\
    && tar xvzf dist/minio-service-0.1.0.tar.gz\
-   && poetry install --no-interaction --no-dev\
+   && poetry install --no-interaction --only main\
    && poetry run add-logging\
    && rm -rf pyproject.toml poetry.lock
 
@@ -41,7 +41,7 @@ COPY page_rendering/poetry.lock /common/page_rendering
 RUN poetry config virtualenvs.create false \
    && poetry build\
    && tar xvzf dist/page_rendering-0.1.0.tar.gz\
-   && poetry install --no-interaction --no-dev\
+   && poetry install --no-interaction --only main\
    && poetry run add-logging\
    && rm -rf pyproject.toml poetry.lock
 
