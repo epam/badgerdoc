@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useMemo } from 'react';
+import React, { FC, useEffect, useMemo, useState } from 'react';
 import TaskDocumentPages from 'components/task/task-document-pages/task-document-pages';
 import TaskSidebar from 'components/task/task-sidebar/task-sidebar';
 import { TaskAnnotatorContextProvider } from 'connectors/task-annotator-connector/task-annotator-context';

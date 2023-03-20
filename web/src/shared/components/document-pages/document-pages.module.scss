@@ -2,9 +2,8 @@
 
 .pdf-container {
     display: grid;
-    grid-template-columns: 2.5rem 1fr;
     height: calc(100% - 40px);
-    gap: 0.5rem;
+    position: relative;
 }
 
 .pdf-document-container {
@@ -17,21 +16,21 @@
 }
 
 .page-scale {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 15px;
+    position: absolute;
+    z-index: 100;
+    top: 10px;
+    left: 10px;
 
     &__button-group {
         display: flex;
-        flex-direction: column;
+        flex-direction: row;
         align-items: center;
         gap: 10px;
     }
 
     &__item {
-        width: 36px;
-        height: 36px;
+        width: 30px;
+        height: 30px;
         border: solid 1px $btn-border;
         background-color: white;
         display: flex;

@@ -1,4 +1,4 @@
-.container {
+.listContainer {
     display: flex;
     flex-direction: column;
     max-height: 100%;
@@ -37,4 +37,23 @@
 .pathContainer {
     padding-bottom: 0 !important;
     word-break: break-word;
+}
+
+.container {
+    width: 320px;
+    height: 100%;
+    border-radius: 0 !important;
+}
+
+.hideIcon {
+    outline: none;
+    width: 20px !important;
+    border: unset !important;
+    box-shadow: unset !important;
+    border-radius: 0 !important;
+}
+
+.wrapper {
+    flex-direction: row;
+    border-radius: 0 !important;
 }

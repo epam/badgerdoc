@@ -1,17 +1,14 @@
 .container {
-  height: auto;
-  display: block;
-  flex-direction: row;
-  justify-content: flex-start;
-  margin-left: 62px;
+    height: auto;
+    display: block;
 
-  > :not(:last-child) {
-    margin-bottom: 12px;
-  }
+    > :not(:last-child) {
+        margin-bottom: 12px;
+    }
 
-  .button {
-    width: fit-content;
-    margin-right: 6px;
-    flex-shrink: 0;
-  }
+    .button {
+        width: fit-content;
+        margin-right: 6px;
+        flex-shrink: 0;
+    }
 }

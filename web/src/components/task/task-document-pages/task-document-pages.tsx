@@ -8,8 +8,7 @@ export interface DocumentPageProps {
     viewMode: boolean;
 }
 
-const TaskDocumentPages = (props: DocumentPageProps) => {
-    const { viewMode } = props;
+const TaskDocumentPages = ({ viewMode }: DocumentPageProps) => {
     const {
         task,
         fileMetaInfo,
