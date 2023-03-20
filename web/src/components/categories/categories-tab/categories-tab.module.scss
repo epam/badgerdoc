@@ -1,9 +1,14 @@
-@import '~shared/helpers/styles';
+@import "~shared/helpers/styles";
 
 .categories {
     padding-top: 10px;
     flex: 1;
     min-height: 100px;
+}
+
+.container {
+    position: relative;
+    height: 100%;
 }
 
 .category {
@@ -97,8 +102,4 @@
 .search {
     width: 294px;
     margin: 0 auto;
-}
-
-.container {
-    position: relative;
 }
