@@ -1,9 +1,9 @@
-import { Button, IconContainer } from '@epam/loveship';
 import React, { FC, Fragment } from 'react';
-import styles from './wizard.module.scss';
 import WizardStep from '../wizard-step/wizard-step';
-import { ReactComponent as backIcon } from '@epam/assets/icons/common/navigation-back-24.svg';
 import { Link } from 'react-router-dom';
+import { ReactComponent as backIcon } from '@epam/assets/icons/common/navigation-back-24.svg';
+import { Button, IconContainer } from '@epam/loveship';
+import styles from './wizard.module.scss';
 
 export type WizardPropsStep = {
     title: string;

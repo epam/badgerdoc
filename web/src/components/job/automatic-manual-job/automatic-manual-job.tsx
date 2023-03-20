@@ -1,18 +1,19 @@
-import { ILens } from '@epam/uui';
+import React, { FC, useContext } from 'react';
 import { Category, Pipeline, Taxonomy, User } from 'api/typings';
 import { JobValues } from 'connectors/edit-job-connector/edit-job-connector';
-import React, { FC, useContext } from 'react';
 import JobName from '../job-name/job-name';
-import styles from './automatic-manual-job.module.scss';
 import ValidationTypePicker from '../validation-type-picker/validation-type-picker';
 import DeadlinePicker from '../deadline-picker/deadline-picker';
 import UsersPickers from '../users-pickers/users-pickers';
 import PipelinePicker from '../pipeline-picker/pipeline-picker';
 import CategoriesPicker from 'shared/components/categories-picker/categories-picker';
-import { Checkbox } from '@epam/loveship';
 import { ExtensiveCoverageInput } from './extensive-coverage-input/extensive-coverage-input';
 import TaxonomyPickers from 'shared/components/taxonomy-pickers/taxonomy-pickers';
 import { CurrentUser } from 'shared/contexts/current-user';
+
+import { Checkbox } from '@epam/loveship';
+import { ILens } from '@epam/uui';
+import styles from './automatic-manual-job.module.scss';
 
 type AutomaticManualJobProps = {
     categories: Category[] | undefined;
