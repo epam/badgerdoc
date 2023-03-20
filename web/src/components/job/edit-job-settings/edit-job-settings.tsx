@@ -1,6 +1,4 @@
 import React, { FC } from 'react';
-import { MultiSwitch } from '@epam/loveship';
-import { ILens } from '@epam/uui';
 import { Category, Pipeline, Taxonomy, User } from 'api/typings';
 import { JobValues } from 'connectors/edit-job-connector/edit-job-connector';
 import AutomaticJob from '../automatic-job/automatic-job';
@@ -8,6 +6,9 @@ import styles from './edit-job-settings.module.scss';
 import AutomaticManualJob from '../automatic-manual-job/automatic-manual-job';
 import { JobType } from 'api/typings/jobs';
 import { InfoIcon } from '../../../shared/components/info-icon/info-icon';
+
+import { MultiSwitch } from '@epam/loveship';
+import { ILens } from '@epam/uui';
 
 export type EditJobSettingsProps = {
     pipelines: Pipeline[] | undefined;
@@ -28,8 +29,9 @@ const EditJobSettings: FC<EditJobSettingsProps> = ({
     initialType,
     showNoExtractionTab
 }) => {
-    let currentJobType = lens.prop('jobType').get();
+    const currentJobType = lens.prop('jobType').get();
     let job;
+
     if (currentJobType === 'ExtractionJob') {
         job = <AutomaticJob pipelines={pipelines} lens={lens} />;
     } else if (
@@ -80,7 +82,7 @@ const EditJobSettings: FC<EditJobSettingsProps> = ({
                     size="42"
                     items={tabs}
                     {...lens.prop('jobType').toProps()}
-                    value={'ExtractionWithAnnotationJob'}
+                    value={currentJobType}
                 />
                 <InfoIcon
                     title="Select annotation type"
