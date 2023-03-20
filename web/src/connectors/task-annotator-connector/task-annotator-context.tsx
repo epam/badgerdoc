@@ -68,6 +68,10 @@ import useSplitValidation, { SplitValidationValue } from './use-split-validation
 import { useTaskUsers } from './use-task-users';
 import { DocumentLinksValue, useDocumentLinks } from './use-document-links';
 import { useValidation, ValidationValues } from './use-validation';
+import { useNotifications } from 'shared/components/notifications';
+
+import { Text, Panel } from '@epam/loveship';
+import { getError } from 'shared/helpers/get-error';
 
 type ContextValue = SplitValidationValue &
     SyncScrollValue &
@@ -243,6 +247,8 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         width: defaultPageWidth,
         height: defaultPageHeight
     });
+
+    const { notifyError } = useNotifications();
 
     let task: Task | undefined;
     let isTaskLoading: boolean = false;
@@ -922,11 +928,20 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         if (task) {
             try {
                 await onSaveTask();
-                await finishTaskMutation.mutateAsync({ taskId: task!.id });
+                await finishTaskMutation.mutateAsync({ taskId: task!.id }).catch((e) => {
+                    notifyError(
+                        <Panel>
+                            <Text>{`Can't finish task: ${getError(e)}`}</Text>
+                        </Panel>
+                    );
+                });
+
                 useSetTaskState({ id: task!.id, eventType: 'closed' });
                 onRedirectAfterFinish();
             } catch {
-                (e: Error) => console.error(e);
+                (e: Error) => {
+                    console.error(e);
+                };
             }
         }
     };

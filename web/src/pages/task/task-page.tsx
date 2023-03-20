@@ -1,7 +1,6 @@
 import React, { FC, useEffect, useMemo } from 'react';
 import TaskDocumentPages from 'components/task/task-document-pages/task-document-pages';
 import TaskSidebar from 'components/task/task-sidebar/task-sidebar';
-import styles from './task-page.module.scss';
 import { TaskAnnotatorContextProvider } from 'connectors/task-annotator-connector/task-annotator-context';
 import { matchPath, useHistory, useLocation, useParams } from 'react-router-dom';
 import { Button, FlexRow, FlexSpacer, Panel, Text } from '@epam/loveship';
@@ -13,6 +12,8 @@ import { BreadcrumbNavigation } from '../../shared/components/breadcrumb';
 import { useNextAndPreviousTask, useSetTaskState } from 'api/hooks/tasks';
 import { getError } from 'shared/helpers/get-error';
 import { ANNOTATION_PAGE } from 'shared/constants';
+
+import styles from './task-page.module.scss';
 
 const TaskPage: FC = () => {
     const { pathname } = useLocation();
