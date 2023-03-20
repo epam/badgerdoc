@@ -6,7 +6,7 @@ import { TextLabel } from '../../text-label';
 import { Category } from '../../../../../../api/typings';
 
 type TableCellProps = {
-    label?: React.ReactNode;
+    label?: string;
     color?: string;
     bound: Bound;
     cell: Annotation;
@@ -28,7 +28,6 @@ export const TableCell = ({
     color = 'black',
     bound,
     tableBound,
-    cell,
     isSelected,
     isEditable,
     annotationRef,
@@ -36,7 +35,6 @@ export const TableCell = ({
     onDoubleClick = noop,
     onContextMenu = noop,
     onCloseIconClick = noop,
-    scale,
     category,
     categories
 }: TableCellProps) => {

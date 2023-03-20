@@ -26,8 +26,7 @@ export const editableAnnotationRenderer: EditableAnnotationRenderer = ({
     categories,
     tools,
     setTools,
-    canvas,
-    taskHasTaxonomies
+    canvas
 }) => {
     switch (annotation.boundType) {
         case 'box':
@@ -51,7 +50,6 @@ export const editableAnnotationRenderer: EditableAnnotationRenderer = ({
                     boundType={annotation.boundType}
                     onMouseEnter={onMouseEnter}
                     onMouseLeave={onMouseLeave}
-                    taskHasTaxonomies={taskHasTaxonomies}
                 />
             );
         case 'text':
@@ -75,7 +73,6 @@ export const editableAnnotationRenderer: EditableAnnotationRenderer = ({
                     page={page!}
                     onMouseEnter={onMouseEnter}
                     onMouseLeave={onMouseLeave}
-                    taskHasTaxonomies={taskHasTaxonomies}
                 />
             );
         case 'table':

@@ -2,7 +2,7 @@ import React from 'react';
 import { Button, FlexCell, FlexRow, FlexSpacer } from '@epam/loveship';
 import { Job, JobStatus } from 'api/typings/jobs';
 import styles from './job-header.module.scss';
-import { JOBS_PAGE } from '../../constants';
+import { JOBS_PAGE } from '../../constants/general';
 import { BreadcrumbNavigation } from '../breadcrumb';
 
 type JobDetailViewHeaderProps = {

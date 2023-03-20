@@ -27,7 +27,7 @@ import { useAsyncSourceTable } from '../../shared/hooks/async-source-table';
 import { JobTable } from '../../shared/components/job/job-table-component';
 import { Job } from 'api/typings/jobs';
 import qs from 'qs';
-import { ANNOTATION_PAGE, PREVIOUS_PAGE_JOB } from '../../shared/constants';
+import { ANNOTATION_PAGE, PREVIOUS_PAGE_JOB } from '../../shared/constants/general';
 import { useHistory } from 'react-router-dom';
 
 type JobDetailViewProps = {

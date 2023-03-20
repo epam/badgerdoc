@@ -1,0 +1,40 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    max-height: 100%;
+    padding: 20px;
+}
+
+.item {
+    margin-bottom: 15px;
+    &:not(:last-child) {
+        border-bottom: 1px solid #acafbf;
+    }
+}
+
+.label {
+    cursor: pointer;
+    padding: 5px;
+    color: inherit !important;
+    border: inherit !important;
+}
+
+.text {
+    overflow: unset;
+    text-overflow: unset;
+    word-break: break-word;
+}
+
+.toolbar {
+    padding: 20px 20px 0 20px;
+}
+
+.tab {
+    width: 100%;
+    justify-content: center;
+}
+
+.pathContainer {
+    padding-bottom: 0 !important;
+    word-break: break-word;
+}

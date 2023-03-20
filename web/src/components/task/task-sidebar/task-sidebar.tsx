@@ -37,6 +37,7 @@ import { ReactComponent as SplitIcon } from '@epam/assets/icons/common/editor-ta
 import styles from './task-sidebar.module.scss';
 import { getCategoryDataAttrs } from 'connectors/task-annotator-connector/task-annotator-utils';
 import { FinishButton } from './finish-button';
+import { TABS } from './constants';
 
 type TaskSidebarProps = {
     jobSettings?: ReactElement;
@@ -270,17 +271,6 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
         [categories]
     );
 
-    const tabs = ['Categories', 'Data', 'Information', 'Document'];
-
-    const renderTab = (tabName: string) => (
-        <TabButton
-            caption={tabName}
-            isLinkActive={tabValue === tabName}
-            onClick={() => setTabValue(tabName)}
-            size="36"
-        />
-    );
-
     const taskInfoElements = [
         { name: 'Document:', value: `${fileMetaInfo.name}` },
         { name: 'TaskId:', value: `${task?.id}` },
@@ -334,7 +324,15 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
         <div className={`${styles.container} flex-col`}>
             <div className={`${styles.main} flex-col`}>
                 <FlexRow borderBottom="night50" background="none" cx="justify-center">
-                    {tabs.map((tab) => renderTab(tab))}
+                    {TABS.map((tabName) => (
+                        <TabButton
+                            size="36"
+                            key={tabName}
+                            caption={tabName}
+                            isLinkActive={tabValue === tabName}
+                            onClick={() => setTabValue(tabName)}
+                        />
+                    ))}
                 </FlexRow>
                 <div className={`${styles.tabs} flex-col flex-cell`}>
                     {!splitValidation && (isValid || isInvalid) ? (
@@ -479,7 +477,6 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
                     {tabValue === 'Document' && categories === undefined && (
                         <NoData title="There are no categories" />
                     )}
-
                     {isValidation && !splitValidation && (
                         <div className="flex justify-around">
                             {!editPage && (

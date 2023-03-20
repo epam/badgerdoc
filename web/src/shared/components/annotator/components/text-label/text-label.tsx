@@ -3,17 +3,17 @@ import noop from 'lodash/noop';
 import { ReactComponent as closeIcon } from '@epam/assets/icons/common/navigation-close-12.svg';
 import { IconButton } from '@epam/loveship';
 import styles from './text-label.module.scss';
+import { cx } from '@epam/uui';
 
 type TextLabelProps = {
     color: string;
     className: string;
-    label?: React.ReactNode;
+    label?: string;
     onCloseIconClick?: React.MouseEventHandler<HTMLDivElement>;
     onContextMenu?: React.MouseEventHandler<HTMLDivElement>;
     isEditable?: boolean;
     isSelected?: boolean;
     isHovered?: boolean;
-    taskHasTaxonomies?: boolean;
 };
 
 export const TextLabel = ({
@@ -24,25 +24,21 @@ export const TextLabel = ({
     onContextMenu = noop,
     isEditable,
     isSelected,
-    isHovered,
-    taskHasTaxonomies
-}: TextLabelProps) => {
-    const labelStyle = isSelected || isHovered || taskHasTaxonomies ? styles.show : '';
-    return (
-        <span
-            className={`${className} ${labelStyle}`}
-            style={{ backgroundColor: color }}
-            onContextMenu={onContextMenu}
-        >
-            {label}
-            {isEditable && (
-                <IconButton
-                    icon={closeIcon}
-                    onClick={onCloseIconClick}
-                    color={'white'}
-                    iconPosition={'right'}
-                />
-            )}
-        </span>
-    );
-};
+    isHovered
+}: TextLabelProps) => (
+    <span
+        style={{ backgroundColor: color }}
+        onContextMenu={onContextMenu}
+        className={cx(className, { [styles.show]: isSelected || isHovered })}
+    >
+        {label?.split('.').pop()}
+        {isEditable && (
+            <IconButton
+                icon={closeIcon}
+                onClick={onCloseIconClick}
+                color={'white'}
+                iconPosition={'right'}
+            />
+        )}
+    </span>
+);

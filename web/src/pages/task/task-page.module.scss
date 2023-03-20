@@ -1,9 +1,9 @@
 .content {
-    flex:1;
+    flex: 1;
     overflow: hidden;
     width: 100vw;
     display: grid;
-    grid-template-columns: 1fr 320px;
+    grid-template-columns: 320px 1fr 320px;
     gap: 1rem;
     padding: 1rem 1rem 1rem 0.5rem;
 }

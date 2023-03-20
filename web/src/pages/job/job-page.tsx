@@ -6,7 +6,7 @@ import { JobSidebarConnector } from '../../connectors/job-detail-view-sidebar-co
 import { Job } from '../../api/typings/jobs';
 import qs from 'qs';
 import { User } from 'api/typings';
-import { JOBS_PAGE } from '../../shared/constants';
+import { JOBS_PAGE } from '../../shared/constants/general';
 
 export function JobPage() {
     const history = useHistory();

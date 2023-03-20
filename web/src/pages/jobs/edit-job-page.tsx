@@ -7,7 +7,7 @@ import Wizard, {
     WizardPropsStep
 } from '../../shared/components/wizard/wizard/wizard';
 import { DocumentsTableConnector } from '../../connectors';
-import { JOBS_PAGE } from '../../shared/constants';
+import { JOBS_PAGE } from '../../shared/constants/general';
 import { useJobById } from 'api/hooks/jobs';
 import EditJobConnector from '../../connectors/edit-job-connector/edit-job-connector';
 

@@ -27,7 +27,7 @@ import {
     MODELS_PAGE,
     PIPELINES_PAGE,
     REPORTS_PAGE
-} from './shared/constants';
+} from './shared/constants/general';
 import { ProtectedRoute } from 'shared/components/protected-route';
 import { CategoriesTableConnector } from './connectors/categories-table-connector';
 

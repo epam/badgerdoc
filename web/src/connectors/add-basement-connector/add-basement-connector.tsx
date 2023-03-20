@@ -6,7 +6,7 @@ import { getError } from '../../shared/helpers/get-error';
 import { Basement } from 'api/typings';
 import { useAddBasementMutation } from 'api/hooks/basements';
 import AddBasementSettings from '../../components/basement/add-basement-settings/add-basement-settings';
-import { BASEMENTS_PAGE } from '../../shared/constants';
+import { BASEMENTS_PAGE } from '../../shared/constants/general';
 import Wizard, {
     renderWizardButtons,
     WizardPropsStep

@@ -3,7 +3,7 @@ import { TasksTableConnector } from 'connectors/tasks-table-connector/tasks-tabl
 import styles from './dashboard-page.module.scss';
 import { Switch, Route, useRouteMatch, Redirect, useHistory } from 'react-router';
 import { BreadcrumbNavigation } from '../../shared/components/breadcrumb';
-import { ANNOTATION_PAGE } from '../../shared/constants';
+import { ANNOTATION_PAGE } from '../../shared/constants/general';
 
 export function DashboardPage() {
     const { path } = useRouteMatch();

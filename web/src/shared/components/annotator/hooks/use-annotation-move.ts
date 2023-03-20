@@ -1,4 +1,5 @@
 import { useState, useRef, RefObject } from 'react';
+import { ANNOTATION_FLOW_ITEM_ID_PREFIX } from 'shared/constants/annotations';
 import { Annotation, Point, Bound } from '..';
 import { useMouseEvents } from './use-mouse-events';
 
@@ -59,7 +60,7 @@ export const useAnnotationMove: UseAnnotationMoveHook = ({
             if (
                 !target.classList.contains(ANNOTATION_LABEL_CLASS) ||
                 !selectedAnnotation ||
-                target.getAttribute('data-id') !== selectedAnnotation.id.toString() // make sure we hovered label of selected annotation, not any other
+                target.id !== `${ANNOTATION_FLOW_ITEM_ID_PREFIX}${selectedAnnotation.id}` // make sure we hovered label of selected annotation, not any other
             ) {
                 return false;
             }

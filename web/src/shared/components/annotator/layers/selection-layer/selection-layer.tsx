@@ -9,7 +9,7 @@ type MultilineTextProps = {
     tokens: PageToken[];
     scale: number;
     color: string;
-    label: React.ReactNode;
+    label: string;
 };
 
 type SelectionLayerProps = {

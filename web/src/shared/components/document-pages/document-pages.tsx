@@ -208,6 +208,7 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                                     />
                                     <SyncedContainer className={styles['split-document-page']}>
                                         <DocumentSinglePage
+                                            userId={user_id}
                                             annotations={annotationsByUserId[user_id]}
                                             scale={scale}
                                             pageSize={apiPageSize}

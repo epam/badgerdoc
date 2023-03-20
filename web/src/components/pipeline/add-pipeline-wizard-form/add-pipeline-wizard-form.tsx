@@ -6,7 +6,7 @@ import Wizard, {
     renderWizardButtons,
     WizardPropsStep
 } from 'shared/components/wizard/wizard/wizard';
-import { PIPELINES_PAGE } from 'shared/constants';
+import { PIPELINES_PAGE } from 'shared/constants/general';
 import AddPipelineSettings from '../add-pipeline-settings/add-pipeline-settings';
 import { PipelineFormField } from '../pipeline-form-field/pipeline-form-field';
 import wizardStyles from '../../../shared/components/wizard/wizard/wizard.module.scss';

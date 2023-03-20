@@ -16,6 +16,7 @@ const DocumentSinglePage: FC<RenderPageParams> = ({
     annotations,
     scale,
     pageNum,
+    userId,
     handlePageLoaded = noop,
     pageSize,
     containerRef,
@@ -46,10 +47,12 @@ const DocumentSinglePage: FC<RenderPageParams> = ({
         onAnnotationEdited,
         onCurrentPageChange,
         onAnnotationDoubleClick,
-        isSplitValidation
+        isSplitValidation,
+        setCurrentDocumentUserId
     } = useTaskAnnotatorContext();
     const { showMenu, getMenuProps } = useContextMenu();
     const pageAnnotations = annotations ?? allAnnotations[pageNum] ?? empty;
+
     const isValidation = task?.is_validation;
     const isEdited = editedPages.includes(currentPage);
     const pageTokens = tokensByPages[pageNum] ?? empty;
@@ -125,6 +128,10 @@ const DocumentSinglePage: FC<RenderPageParams> = ({
             className={styles.page}
         >
             <div
+                role="none"
+                onClick={() => {
+                    setCurrentDocumentUserId(userId);
+                }}
                 style={{
                     opacity: isValidation && pageNum !== currentPage ? 0.4 : 1
                 }}
@@ -251,6 +258,7 @@ const DocumentSinglePage: FC<RenderPageParams> = ({
 };
 
 type RenderPageParams = {
+    userId?: string;
     annotations?: Annotation[];
     scale: number;
     pageNum: number;

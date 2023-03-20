@@ -86,7 +86,7 @@ type ContextValue = SplitValidationValue &
         selectedAnnotation?: Annotation;
         fileMetaInfo: FileMetaInfo;
         tokensByPages: Record<number, PageToken[]>;
-        allAnnotations?: Record<number, Annotation[]>;
+        allAnnotations?: Record<string, Annotation[]>;
         pageNumbers: number[];
         currentPage: number;
         modifiedPages: number[];
@@ -144,7 +144,6 @@ type ContextValue = SplitValidationValue &
         selectedToolParams: PaperToolParams;
         setSelectedToolParams: (nt: PaperToolParams) => void;
         setSelectedAnnotation: (annotation: Annotation | undefined) => void;
-        taskHasTaxonomies?: boolean;
         selectedLabels?: Label[];
         onLabelsSelected: (labels: Label[], pickedLabels: string[]) => void;
         setSelectedLabels: (labels: Label[]) => void;
@@ -152,6 +151,8 @@ type ContextValue = SplitValidationValue &
         isDocLabelsModified: boolean;
         getJobId: () => number | undefined;
         linksFromApi?: DocumentLink[];
+        setCurrentDocumentUserId: (userId?: string) => void;
+        currentDocumentUserId?: string;
     };
 
 type ProviderProps = {
@@ -181,6 +182,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
     onSaveTaskError,
     children
 }) => {
+    const [currentDocumentUserId, setCurrentDocumentUserId] = useState<string>();
     const [selectedCategory, setSelectedCategory] = useState<Category>();
     const [selectedLabels, setSelectedLabels] = useState<Label[]>([]);
     const [latestLabelsId, setLatestLabelsId] = useState<string[]>([]);
@@ -209,7 +211,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         AnnotationBoundType | AnnotationLinksBoundType | AnnotationImageToolType
     >('free-box');
     const [selectedTool, setSelectedTool] = useState<AnnotationImageToolType>('pen');
-    const [selectedAnnotation, setSelectedAnnotation] = useState<Annotation | undefined>(undefined);
+    const [selectedAnnotation, setSelectedAnnotation] = useState<Annotation | undefined>();
     const [isDataTabDisabled, setIsDataTabDisabled] = useState<boolean>(dataTabDefaultDisableState);
     const [isCategoryDataEmpty, setIsCategoryDataEmpty] = useState<boolean>(false);
     const [annDataAttrs, setAnnDataAttrs] = useState<
@@ -298,14 +300,6 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         }
     }, [task, jobId]);
 
-    const taskHasTaxonomies = useMemo(() => {
-        if (categories) {
-            return !!categories.find((category) =>
-                category.data_attributes?.find((attr) => attr.type === 'taxonomy')
-            );
-        }
-    }, [categories]);
-
     const documentFilters: FilterWithDocumentExtraOption<keyof FileDocument>[] = [];
 
     documentFilters.push({
@@ -329,7 +323,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             userId:
                 job?.validation_type === 'extensive_coverage' && !revisionId ? task?.user_id : ''
         },
-        { enabled: !!(task || job) }
+        { enabled: Boolean(task || job) }
     );
 
     const tokenRes = useTokens(
@@ -379,10 +373,12 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
 
         const newAnnotation = {
             ...annData,
+            categoryName: category?.name,
             color: category?.metadata?.color,
             label: hasTaxonomy ? annData.label : category?.name,
             labels: getAnnotationLabels(pageNum.toString(), annData, category)
         };
+
         setAllAnnotations((prevState) => ({
             ...prevState,
             [pageNum]: [...pageAnnotations, newAnnotation]
@@ -1048,7 +1044,6 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             annDataAttrs,
             externalViewer,
             tableCellCategory,
-            taskHasTaxonomies,
             setTableCellCategory,
             onAnnotationCreated,
             onAnnotationDeleted,
@@ -1079,6 +1074,8 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             latestLabelsId,
             setLatestLabelsId,
             linksFromApi,
+            setCurrentDocumentUserId,
+            currentDocumentUserId,
             ...splitValidation,
             ...syncScroll,
             ...documentLinksValues,
@@ -1114,7 +1111,8 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         linksFromApi,
         documentLinksValues,
         latestAnnotationsResult,
-        validationValues
+        validationValues,
+        currentDocumentUserId
     ]);
 
     return <TaskAnnotatorContext.Provider value={value}>{children}</TaskAnnotatorContext.Provider>;

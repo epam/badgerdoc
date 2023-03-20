@@ -14,8 +14,9 @@ import { TableAnnotatorContextProvider } from '../../shared/components/annotator
 import TaskDocumentPages from '../../components/task/task-document-pages/task-document-pages';
 import { TaskAnnotatorContextProvider } from '../../connectors/task-annotator-connector/task-annotator-context';
 import { useHistory } from 'react-router-dom';
-import { DOCUMENTS_PAGE, JOBS_PAGE, PREVIOUS_PAGE_JOB } from '../../shared/constants';
+import { DOCUMENTS_PAGE, JOBS_PAGE, PREVIOUS_PAGE_JOB } from '../../shared/constants/general';
 import { BreadcrumbNavigation } from '../../shared/components/breadcrumb';
+import { FlowSideBar } from 'components/task/task-sidebar-flow';
 
 export interface DocumentPageProps {
     fileMetaInfo: FileMetaInfo;
@@ -68,6 +69,7 @@ export function DocumentPage(props: DocumentPageProps) {
                     onSaveTaskError={() => {}}
                 >
                     <TableAnnotatorContextProvider>
+                        <FlowSideBar />
                         <TaskDocumentPages viewMode={true} />
                         <TaskSidebar
                             viewMode={true}

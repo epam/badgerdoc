@@ -138,8 +138,7 @@ export const Annotator: FC<AnnotatorProps> = ({
         onSplitLinkSelected,
         selectedTool,
         selectedToolParams,
-        setSelectedAnnotation,
-        taskHasTaxonomies
+        setSelectedAnnotation
     } = useTaskAnnotatorContext();
 
     const handleAnnotationSelected = onAnnotationSelected ?? setSelectedAnnotation;
@@ -556,8 +555,7 @@ export const Annotator: FC<AnnotatorProps> = ({
                             page,
                             onMouseEnter: () => setHoveredAnnotation(annotation),
                             onMouseLeave: () => setHoveredAnnotation(undefined),
-                            selectedAnnotationRef: isSelected ? selectedAnnotationRef : undefined,
-                            taskHasTaxonomies
+                            selectedAnnotationRef: isSelected ? selectedAnnotationRef : undefined
                         });
                     }}
                     page={page}
