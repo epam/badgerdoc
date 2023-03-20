@@ -4,12 +4,19 @@
     margin: 0;
     border: 1px solid transparent;
     width: 100%;
+    height: inherit; // or 100% ?
 
     &-focused:not(&-active-focused) {
         border-color: cyan;
     }
+
+    &-list {
+        height: 100%;
+    }
+
     .rc-tree-list-holder {
         overflow: auto;
+        height: inherit; // or 100% ?
         scrollbar-width: thin;
         scrollbar-color: hsl(0, 0%, 60%);
         margin-right: 9px;
