@@ -1,4 +1,9 @@
+from random import randint
+
+import pytest
+
 from ..src.enum_generator import get_enum_from_orm
+from ..src.pagination import PaginationParamsForUII
 from ..src.query_modificator import (
     _create_filter,
     _create_or_condition,
@@ -505,3 +510,63 @@ def test_filters_with_null_not_ilike(get_session):
     query, pag = form_query(specs, query)
     ids = [el.id for el in query]
     assert ids == [10, 15]
+
+
+@pytest.mark.parametrize(
+    "offset_and_limit", [(randint(0, 20), randint(0, 20)) for _ in range(10)]
+)
+def test_form_query_uii_compatible_format(get_session, offset_and_limit):
+    session = get_session
+    user_instances_to_create = [
+        User(id=idx) for idx in range(1, randint(1, 20))
+    ]
+    session.add_all(user_instances_to_create)
+    session.commit()
+    query = session.query(User)
+
+    offset, limit = offset_and_limit
+
+    specs = {"pagination": {"offset": offset, "limit": limit}}
+    query, pag = form_query(specs, query)
+
+    start_slice_num = offset
+    stop_slice_num = offset + limit
+
+    assert (
+        query.all() == user_instances_to_create[start_slice_num:stop_slice_num]
+    )
+    assert query.count() <= limit
+
+    assert pag == PaginationParamsForUII(
+        offset=offset,
+        limit=limit,
+        has_more=offset + limit < len(user_instances_to_create),
+    )
+
+
+@pytest.mark.parametrize(
+    "pagination_attr",
+    [
+        {"offset": 1, "page_size": 10},
+        {"page_num": 1, "limit": 10},
+        {"blablabla": "blablabla"},
+    ],
+)
+def test_form_query_uii_compatible_format_bad_pagination_data(
+    get_session, pagination_attr
+):
+    session = get_session
+    user_instances_to_create = [
+        User(id=idx) for idx in range(1, randint(1, 20))
+    ]
+    session.add_all(user_instances_to_create)
+    session.commit()
+    query = session.query(User)
+
+    specs = {"pagination": pagination_attr}
+    with pytest.raises(
+        ValueError,
+        match=r"Bad data provided in the 'pagination' attribute. "
+        r"Please re-check",
+    ):
+        form_query(specs, query)

@@ -1,5 +1,5 @@
 import enum
-from typing import Any, Generic, List, Optional, Sequence, Type, TypeVar
+from typing import Any, Generic, List, Optional, Sequence, Type, TypeVar, Union
 
 from pydantic import BaseModel, Field, root_validator, validator
 from pydantic.generics import GenericModel
@@ -64,8 +64,13 @@ class Pagination(BaseModel):
     page_size: _FilterPagesize
 
 
+class PaginationForUII(BaseModel):
+    offset: int
+    limit: int = Field(..., le=100)
+
+
 class BaseSearch(BaseModel):
-    pagination: Optional[Pagination]
+    pagination: Optional[Union[Pagination, PaginationForUII]]
 
     @root_validator
     def root_validate(  # pylint: disable=no-self-argument
@@ -87,8 +92,12 @@ class PaginationOut(Pagination):
     has_more: bool
 
 
+class PaginationForUIIOut(PaginationForUII):
+    has_more: bool
+
+
 class Page(GenericModel, Generic[TypeC], BaseModel):
-    pagination: PaginationOut
+    pagination: Union[PaginationOut, PaginationForUIIOut]
     data: Sequence[TypeC]
 
     @validator("data")

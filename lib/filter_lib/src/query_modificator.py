@@ -9,7 +9,12 @@ from sqlalchemy_filters import apply_filters, apply_sort
 from sqlalchemy_filters.exceptions import BadFilterFormat, BadSpec
 from sqlalchemy_utils import LtreeType
 
-from .pagination import PaginationParams, make_pagination
+from .pagination import (
+    PaginationParams,
+    PaginationParamsForUII,
+    make_pagination,
+    make_pagination_compatible_for_uii,
+)
 from .schema_generator import Pagination
 
 
@@ -40,7 +45,7 @@ def get_distinct_columns(
 
 def form_query(
     args: Dict[str, Any], query: Query
-) -> Tuple[Query, PaginationParams]:
+) -> Tuple[Query, Union[PaginationParams, PaginationParamsForUII]]:
     filters = args.get("filters")
     sorting = args.get("sorting")
     pagination = args.get("pagination")
@@ -65,13 +70,29 @@ def form_query(
     if sorting and not query._order_by:
         for sor in sorting:
             query = _create_sorting(query, sor)
-
     if not pagination:
         pagination = Pagination(page_num=1, page_size=15).dict()
     try:
-        query, pag = make_pagination(
-            query, pagination["page_num"], pagination["page_size"]
-        )
+        if (pagination.get("page_num") is not None) and (
+            pagination.get("page_size") is not None
+        ):
+            query, pag = make_pagination(
+                query, pagination["page_num"], pagination["page_size"]
+            )
+
+        elif (pagination.get("offset") is not None) and (
+            pagination.get("limit") is not None
+        ):
+            query, pag = make_pagination_compatible_for_uii(
+                query, pagination["offset"], pagination["limit"]
+            )
+
+        else:
+            raise ValueError(
+                "Bad data provided in the 'pagination' attribute. "
+                "Please re-check"
+            )
+
     except (ProgrammingError, DataError) as e:
         raise BadFilterFormat(f"description: {e.orig}") from e
 

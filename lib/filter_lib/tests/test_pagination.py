@@ -1,3 +1,5 @@
+from random import randint
+
 import pytest
 from pydantic import ValidationError
 
@@ -7,6 +9,8 @@ from ..src.pagination import (
     make_pagination,
     paginate,
 )
+from ..src.query_modificator import form_query
+from ..src.schema_generator import PaginationForUIIOut
 from .conftest import User
 
 
@@ -111,3 +115,36 @@ def test_calculate_num_pages():
     assert _calculate_num_pages(100, 101) == 2
     assert _calculate_num_pages(15, 14) == 1
     assert _calculate_num_pages(15, 0) == 0
+
+
+@pytest.mark.parametrize(
+    "offset_and_limit", [(randint(0, 20), randint(0, 20)) for _ in range(10)]
+)
+def test_paginate_with_uii_compatible_format(get_session, offset_and_limit):
+    session = get_session
+    user_instances_to_create = [
+        User(id=idx) for idx in range(1, randint(1, 20))
+    ]
+    session.add_all(user_instances_to_create)
+    session.commit()
+    query = session.query(User)
+
+    offset, limit = offset_and_limit
+
+    specs = {"pagination": {"offset": offset, "limit": limit}}
+    query, pag = form_query(specs, query)
+
+    paginate_result = paginate(query.all(), pag)
+
+    start_slice_num = offset
+    stop_slice_num = offset + limit
+    assert (
+        paginate_result.data
+        == user_instances_to_create[start_slice_num:stop_slice_num]
+    )
+
+    assert paginate_result.pagination == PaginationForUIIOut(
+        offset=offset,
+        limit=limit,
+        has_more=offset + limit < len(user_instances_to_create),
+    )

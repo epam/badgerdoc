@@ -104,3 +104,29 @@ def test_positive_one_key():
         ],
         "sorting": [],
     }
+
+
+example_5 = {
+    "pagination": {"offset": 5, "limit": 10},
+    "filters": [
+        {"field": "ts_vector", "operator": "match", "value": "kubeflow"}
+    ],
+    "sorting": [{"field": "id", "direction": "desc"}],
+}
+
+
+def test_positive_standard_structure_with_pagination_for_uii():
+    assert map_request_to_filter(example_5, "test_model") == {
+        "pagination": {"offset": 5, "limit": 10},
+        "filters": [
+            {
+                "model": "test_model",
+                "field": "ts_vector",
+                "op": "match",
+                "value": "kubeflow",
+            }
+        ],
+        "sorting": [
+            {"model": "test_model", "field": "id", "direction": "desc"}
+        ],
+    }
