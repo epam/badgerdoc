@@ -72,7 +72,7 @@ from annotation.schemas import (
     ValidationEndSchema,
     ValidationSchema,
 )
-from annotation.tags import REVISION_TAG, TASKS_TAG
+from annotation.tags import TASKS_TAG
 from annotation.tasks.validation import (
     create_annotation_tasks,
     create_validation_tasks,
@@ -716,7 +716,6 @@ def delete_batch_tasks(
     "/{task_id}/pages_summary",
     status_code=status.HTTP_200_OK,
     response_model=PagesInfoSchema,
-    tags=[REVISION_TAG],
     responses={
         404: {"model": NotFoundErrorSchema},
     },

@@ -10,11 +10,11 @@ from annotation.microservice_communication.search import (
 )
 from annotation.models import AnnotatedDoc
 from annotation.schemas import AnnotatedDocSchema, ConnectionErrorSchema
-from annotation.tags import ANNOTATION_TAG, REVISION_TAG
+from annotation.tags import REVISION_TAG
 
 router = APIRouter(
     prefix="/revisions",
-    tags=[REVISION_TAG, ANNOTATION_TAG],
+    tags=[REVISION_TAG],
     responses={500: {"model": ConnectionErrorSchema}},
 )
 

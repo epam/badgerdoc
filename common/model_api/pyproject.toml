@@ -13,7 +13,7 @@ pdfplumber = "0.5.28"
 fastapi = "^0.70.0"
 uvicorn = "^0.15.0"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 mypy = "0.910"
 pytest = "^6.2.5"
 isort = "5.10.1"

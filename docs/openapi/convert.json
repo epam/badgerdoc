@@ -243,13 +243,13 @@
         ]
       }
     },
-    "/label_studio/import": {
+    "/labelstudio/import": {
       "post": {
         "tags": [
-          "label_studio"
+          "labelstudio"
         ],
-        "summary": "Import Label Studio",
-        "operationId": "import_label_studio_label_studio_import_post",
+        "summary": "Import Labelstudio",
+        "operationId": "import_labelstudio_labelstudio_import_post",
         "parameters": [
           {
             "required": false,
@@ -298,13 +298,24 @@
         ]
       }
     },
-    "/label_studio/export": {
+    "/labelstudio/export": {
       "post": {
         "tags": [
-          "label_studio"
+          "labelstudio"
         ],
-        "summary": "Export Label Studio",
-        "operationId": "export_label_studio_label_studio_export_post",
+        "summary": "Export Labelstudio",
+        "operationId": "export_labelstudio_labelstudio_export_post",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -334,7 +345,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
       }
     },
     "/text/import": {
@@ -375,6 +391,45 @@
           }
         }
       }
+    },
+    "/pdf/import": {
+      "post": {
+        "tags": [
+          "pdf"
+        ],
+        "summary": "Import Pdf",
+        "operationId": "import_pdf_pdf_import_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PdfRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -384,6 +439,7 @@
         "required": [
           "input_tokens",
           "input_annotation",
+          "input_manifest",
           "output_annotation"
         ],
         "type": "object",
@@ -392,6 +448,9 @@
             "$ref": "#/components/schemas/S3Path"
           },
           "input_annotation": {
+            "$ref": "#/components/schemas/S3Path"
+          },
+          "input_manifest": {
             "$ref": "#/components/schemas/S3Path"
           },
           "output_annotation": {
@@ -560,6 +619,22 @@
               "type": "string"
             },
             "default": []
+          }
+        }
+      },
+      "PdfRequest": {
+        "title": "PdfRequest",
+        "required": [
+          "input_pdf",
+          "output_tokens"
+        ],
+        "type": "object",
+        "properties": {
+          "input_pdf": {
+            "$ref": "#/components/schemas/S3Path"
+          },
+          "output_tokens": {
+            "$ref": "#/components/schemas/S3Path"
           }
         }
       },

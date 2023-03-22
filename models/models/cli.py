@@ -79,7 +79,11 @@ def init_cli_handlers(app: FastAPI, arguments: Any) -> None:
         parser.print_help()
 
 
-if __name__ == "__main__":
-    from main import app
+def main():
+    from .main import app
 
     init_cli_handlers(app, sys.argv[1:])
+
+
+if __name__ == "__main__":
+    main()

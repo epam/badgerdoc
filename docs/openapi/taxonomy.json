@@ -363,7 +363,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Page_Union_app.schemas.taxon.TaxonResponseSchema__str__dict__"
+                  "$ref": "#/components/schemas/Page_Union_taxonomy.schemas.taxon.TaxonResponseSchema__str__dict__"
                 }
               }
             }
@@ -374,6 +374,93 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/taxons/parents_concatenate": {
+      "post": {
+        "tags": [
+          "Taxon"
+        ],
+        "summary": "Get concatenated list of ids and names for taxon's parents.",
+        "description": "Get concatenated list of ids and names for taxon's parents.",
+        "operationId": "parents_concatenate_taxons_parents_concatenate_post",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "Request",
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Parents Concatenate Taxons Parents Concatenate Post",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ParentsConcatenateResponseSchema"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundErrorSchema"
                 }
               }
             }
@@ -1403,7 +1490,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Page_Union_app.schemas.taxonomy.TaxonomyResponseSchema__str__dict__"
+                  "$ref": "#/components/schemas/Page_Union_taxonomy.schemas.taxonomy.TaxonomyResponseSchema__str__dict__"
                 }
               }
             }
@@ -1580,8 +1667,8 @@
           "detail": "Resource was not found."
         }
       },
-      "Page_Union_app.schemas.taxon.TaxonResponseSchema__str__dict__": {
-        "title": "Page[Union[app.schemas.taxon.TaxonResponseSchema, str, dict]]",
+      "Page_Union_taxonomy.schemas.taxon.TaxonResponseSchema__str__dict__": {
+        "title": "Page[Union[taxonomy.schemas.taxon.TaxonResponseSchema, str, dict]]",
         "required": [
           "pagination",
           "data"
@@ -1611,8 +1698,8 @@
         },
         "description": "Abstract base class for generic types.\n\nA generic type is typically declared by inheriting from\nthis class parameterized with one or more type variables.\nFor example, a generic mapping type might be defined as::\n\n  class Mapping(Generic[KT, VT]):\n      def __getitem__(self, key: KT) -> VT:\n          ...\n      # Etc.\n\nThis class can then be used as follows::\n\n  def lookup_name(mapping: Mapping[KT, VT], key: KT, default: VT) -> VT:\n      try:\n          return mapping[key]\n      except KeyError:\n          return default"
       },
-      "Page_Union_app.schemas.taxonomy.TaxonomyResponseSchema__str__dict__": {
-        "title": "Page[Union[app.schemas.taxonomy.TaxonomyResponseSchema, str, dict]]",
+      "Page_Union_taxonomy.schemas.taxonomy.TaxonomyResponseSchema__str__dict__": {
+        "title": "Page[Union[taxonomy.schemas.taxonomy.TaxonomyResponseSchema, str, dict]]",
         "required": [
           "pagination",
           "data"
@@ -1690,6 +1777,38 @@
           "has_more": {
             "title": "Has More",
             "type": "boolean"
+          }
+        }
+      },
+      "ParentsConcatenateResponseSchema": {
+        "title": "ParentsConcatenateResponseSchema",
+        "required": [
+          "taxon_id",
+          "taxon_name",
+          "parent_ids_concat",
+          "parent_names_concat"
+        ],
+        "type": "object",
+        "properties": {
+          "taxon_id": {
+            "title": "Taxon Id",
+            "type": "string",
+            "example": "my_taxon_id"
+          },
+          "taxon_name": {
+            "title": "Taxon Name",
+            "type": "string",
+            "example": "taxon_name"
+          },
+          "parent_ids_concat": {
+            "title": "Parent Ids Concat",
+            "type": "string",
+            "example": "parent_id_1.parent_id_2"
+          },
+          "parent_names_concat": {
+            "title": "Parent Names Concat",
+            "type": "string",
+            "example": "parent_name_1.parent_name_2"
           }
         }
       },

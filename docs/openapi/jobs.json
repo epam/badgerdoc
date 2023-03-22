@@ -715,6 +715,10 @@
           "validation_type": {
             "$ref": "#/components/schemas/ValidationType"
           },
+          "extensive_coverage": {
+            "title": "Extensive Coverage",
+            "type": "integer"
+          },
           "pipeline_id": {
             "title": "Pipeline Id",
             "type": "integer"

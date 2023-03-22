@@ -19,7 +19,7 @@ boto3 = "^1.21.23"
 paramiko = "^2.10.3"
 python-multipart = "^0.0.5"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 black = "^22.3b0"
 isort = "5.9.1"
 mypy = "0.910"
@@ -31,6 +31,9 @@ flake8 = "^4.0.1"
 commitizen = "^2.27.0"
 types-requests = "^2.27.25"
 SQLAlchemy-Utils = "0.39.0"
+
+[tool.poetry.scripts]
+models = "models.cli:main"
 
 [tool.isort]
 profile = "black"

@@ -2,7 +2,7 @@
   "openapi": "3.0.2",
   "info": {
     "title": "users",
-    "version": "0.1.2"
+    "version": "0.1.3"
   },
   "paths": {
     "/token": {
@@ -272,6 +272,61 @@
                 "schema": {
                   "$ref": "#/components/schemas/User"
                 }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/get_username_by_user_id": {
+      "get": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Get Username By User Id",
+        "description": "Get username by its user_id with any valid token.",
+        "operationId": "get_username_by_user_id_get_username_by_user_id_get",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "User Id",
+              "type": "string"
+            },
+            "name": "user_id",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
               }
             }
           },

@@ -8,7 +8,6 @@
     "/annotation/{task_id}": {
       "post": {
         "tags": [
-          "Annotation",
           "Annotation"
         ],
         "summary": "Save annotation by user.",
@@ -109,8 +108,7 @@
       "get": {
         "tags": [
           "Annotation",
-          "Revision",
-          "Annotation"
+          "Revision"
         ],
         "summary": "Get all users revisions (or pipeline revision) for particular pages.",
         "operationId": "get_all_revisions_annotation__job_id___file_id__get",
@@ -220,7 +218,6 @@
       },
       "post": {
         "tags": [
-          "Annotation",
           "Annotation"
         ],
         "summary": "Save annotation by pipeline.",
@@ -404,8 +401,7 @@
       "get": {
         "tags": [
           "Annotation",
-          "Revision",
-          "Annotation"
+          "Revision"
         ],
         "summary": "Get latest revision made by particular user (or by pipeline) for particular pages.",
         "operationId": "get_latest_revision_by_user_annotation__job_id___file_id__latest_by_user_get",
@@ -523,8 +519,7 @@
       "get": {
         "tags": [
           "Annotation",
-          "Revision",
-          "Annotation"
+          "Revision"
         ],
         "summary": "Get annotation for given revision.Info will be accumulated from first revision up togiven.",
         "operationId": "get_annotations_up_to_given_revision_annotation__job_id___file_id___revision__get",
@@ -647,8 +642,7 @@
       "get": {
         "tags": [
           "Annotation",
-          "Revision",
-          "Annotation"
+          "Revision"
         ],
         "summary": "Get annotation for latest or particular revision.",
         "operationId": "get_annotation_for_given_revision_annotation__job_id___file_id__changes__revision__get",
@@ -801,6 +795,86 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/NotFoundErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/tasks/get_previous_and_next_tasks": {
+      "get": {
+        "tags": [
+          "Manual Annotation Tasks"
+        ],
+        "summary": "Get one previous and one next tasks from the one passed in",
+        "operationId": "get_next_and_previous_annotation_tasks_tasks_get_previous_and_next_tasks_get",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Task Id",
+              "exclusiveMinimum": 0.0,
+              "type": "integer"
+            },
+            "example": 1,
+            "name": "task_id",
+            "in": "query"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "User",
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": "40b6b526-d6f4-45e8-8af3-d26b5a404018",
+            "name": "user",
+            "in": "header"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreviousAndNextTasksSchema"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
                 }
               }
             }
@@ -1625,8 +1699,7 @@
     "/tasks/{task_id}/pages_summary": {
       "get": {
         "tags": [
-          "Manual Annotation Tasks",
-          "Revision"
+          "Manual Annotation Tasks"
         ],
         "summary": "Get arrays of pages, that have been validated, marked as failed, annotated and not processed in all saved revisions by task_id",
         "operationId": "get_pages_info_tasks__task_id__pages_summary_get",
@@ -1965,7 +2038,6 @@
     "/metadata": {
       "get": {
         "tags": [
-          "Manual Annotation Tasks",
           "Metadata"
         ],
         "summary": "Get list of possible statuses of tasks.",
@@ -2189,7 +2261,7 @@
     "/jobs/{job_id}/files": {
       "get": {
         "tags": [
-          "Files"
+          "Jobs"
         ],
         "summary": "Get list of files for a particular job.",
         "operationId": "get_job_files_jobs__job_id__files_get",
@@ -2289,7 +2361,7 @@
     "/jobs/{job_id}/files/unassigned": {
       "get": {
         "tags": [
-          "Files"
+          "Jobs"
         ],
         "summary": "Get list of unassigned files by job id.",
         "operationId": "get_unassigned_files_jobs__job_id__files_unassigned_get",
@@ -2613,7 +2685,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Page_Union_app.schemas.categories.CategoryResponseSchema__str__dict__"
+                  "$ref": "#/components/schemas/Page_Union_annotation.schemas.categories.CategoryResponseSchema__str__dict__"
                 }
               }
             }
@@ -2702,7 +2774,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Page_Union_app.schemas.categories.CategoryResponseSchema__str__dict__"
+                  "$ref": "#/components/schemas/Page_Union_annotation.schemas.categories.CategoryResponseSchema__str__dict__"
                 }
               }
             }
@@ -3340,7 +3412,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Page_Union_app.schemas.categories.CategoryResponseSchema__str__dict__"
+                  "$ref": "#/components/schemas/Page_Union_annotation.schemas.categories.CategoryResponseSchema__str__dict__"
                 }
               }
             }
@@ -3376,8 +3448,7 @@
     "/revisions/{job_id}/{file_id}": {
       "get": {
         "tags": [
-          "Revision",
-          "Annotation"
+          "Revision"
         ],
         "summary": "Get list of all revisions for provided job_id and file_id without annotation of pages.",
         "operationId": "get_revisions_without_annotation_revisions__job_id___file_id__get",
@@ -3582,7 +3653,13 @@
             "items": {
               "type": "object"
             },
-            "example": {}
+            "example": [
+              {
+                "to": 2,
+                "category": "my_category",
+                "type": "directional"
+              }
+            ]
           }
         }
       },
@@ -3950,7 +4027,13 @@
             "items": {
               "type": "object"
             },
-            "example": {}
+            "example": [
+              {
+                "to": 2,
+                "category": "my_category",
+                "type": "directional"
+              }
+            ]
           }
         }
       },
@@ -4189,8 +4272,8 @@
               "format": "uuid"
             },
             "example": [
-              "f0474853-f733-41c0-b897-90b788b822e3",
-              "b44156f8-e634-48a6-b5f3-c8b1462a2d67"
+              "b44156f8-e634-48a6-b5f3-c8b1462a2d67",
+              "f0474853-f733-41c0-b897-90b788b822e3"
             ]
           },
           "validators": {
@@ -4202,8 +4285,8 @@
               "format": "uuid"
             },
             "example": [
-              "f0474853-f733-41c0-b897-90b788b822e3",
-              "b44156f8-e634-48a6-b5f3-c8b1462a2d67"
+              "b44156f8-e634-48a6-b5f3-c8b1462a2d67",
+              "f0474853-f733-41c0-b897-90b788b822e3"
             ]
           },
           "owners": {
@@ -4215,8 +4298,8 @@
               "format": "uuid"
             },
             "example": [
-              "f0474853-f733-41c0-b897-90b788b822e3",
-              "b44156f8-e634-48a6-b5f3-c8b1462a2d67"
+              "b44156f8-e634-48a6-b5f3-c8b1462a2d67",
+              "f0474853-f733-41c0-b897-90b788b822e3"
             ]
           },
           "validation_type": {
@@ -4268,8 +4351,8 @@
               "type": "string"
             },
             "example": [
-              "1",
-              "2"
+              "2",
+              "1"
             ]
           },
           "deadline": {
@@ -4393,8 +4476,8 @@
               "type": "string"
             },
             "example": [
-              "1",
-              "2"
+              "2",
+              "1"
             ]
           },
           "deadline": {
@@ -4402,6 +4485,11 @@
             "type": "string",
             "format": "date-time",
             "example": "2021-10-19 01:01:01"
+          },
+          "extensive_coverage": {
+            "title": "Extensive Coverage",
+            "type": "integer",
+            "example": 1
           }
         }
       },
@@ -4720,6 +4808,18 @@
             "type": "boolean",
             "default": false,
             "example": false
+          },
+          "categories": {
+            "title": "Categories",
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "1",
+              "2"
+            ]
           }
         }
       },
@@ -4835,8 +4935,8 @@
         },
         "description": "Abstract base class for generic types.\n\nA generic type is typically declared by inheriting from\nthis class parameterized with one or more type variables.\nFor example, a generic mapping type might be defined as::\n\n  class Mapping(Generic[KT, VT]):\n      def __getitem__(self, key: KT) -> VT:\n          ...\n      # Etc.\n\nThis class can then be used as follows::\n\n  def lookup_name(mapping: Mapping[KT, VT], key: KT, default: VT) -> VT:\n      try:\n          return mapping[key]\n      except KeyError:\n          return default"
       },
-      "Page_Union_app.schemas.categories.CategoryResponseSchema__str__dict__": {
-        "title": "Page[Union[app.schemas.categories.CategoryResponseSchema, str, dict]]",
+      "Page_Union_annotation.schemas.categories.CategoryResponseSchema__str__dict__": {
+        "title": "Page[Union[annotation.schemas.categories.CategoryResponseSchema, str, dict]]",
         "required": [
           "pagination",
           "data"
@@ -5066,7 +5166,25 @@
             "items": {
               "type": "object"
             },
-            "example": {}
+            "example": [
+              {
+                "to": 2,
+                "category": "my_category",
+                "type": "directional"
+              }
+            ]
+          }
+        }
+      },
+      "PreviousAndNextTasksSchema": {
+        "title": "PreviousAndNextTasksSchema",
+        "type": "object",
+        "properties": {
+          "previous_task": {
+            "$ref": "#/components/schemas/ManualAnnotationTaskSchema"
+          },
+          "next_task": {
+            "$ref": "#/components/schemas/ManualAnnotationTaskSchema"
           }
         }
       },
@@ -5136,8 +5254,8 @@
               "format": "uuid"
             },
             "example": [
-              "f0474853-f733-41c0-b897-90b788b822e3",
-              "b44156f8-e634-48a6-b5f3-c8b1462a2d67"
+              "b44156f8-e634-48a6-b5f3-c8b1462a2d67",
+              "f0474853-f733-41c0-b897-90b788b822e3"
             ]
           },
           "files": {
