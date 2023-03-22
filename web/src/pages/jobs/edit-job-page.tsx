@@ -115,5 +115,6 @@ export const EditJobPage = () => {
             )
         }
     ];
+
     return <Wizard steps={steps} returnUrl={`${JOBS_PAGE}/${jobId}`} stepIndex={stepIndex} />;
 };
