@@ -69,7 +69,7 @@ export function DocumentPage(props: DocumentPageProps) {
                     onSaveTaskError={() => {}}
                 >
                     <TableAnnotatorContextProvider>
-                        <FlowSideBar />
+                        {historyState?.previousPage !== PREVIOUS_PAGE_JOB && <FlowSideBar />}
                         <TaskDocumentPages viewMode={true} />
                         <TaskSidebar
                             viewMode={true}
