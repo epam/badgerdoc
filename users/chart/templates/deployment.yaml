@@ -57,7 +57,7 @@ spec:
           value: "users"
         - name: POSTGRES_HOST
           value: "postgres-postgresql"
-        - name: S3_CREDENTIALS_PROVIDER
+        - name: S3_PROVIDER
           value: "minio"
         - name: S3_ENDPOINT
           value: "minio:80"
@@ -71,18 +71,16 @@ spec:
             secretKeyRef:
               name: assets
               key: MINIO_SECRET_KEY
-        - name: KEYCLOAK_ENDPOINT
+        - name: KEYCLOAK_HOST
+          # TODO: fix typo
           value: "http://bagerdoc-keycloack"
-        - name: KEYCLOAK_USERS_PUBLIC_KEY
+        - name: KEYCLOAK_SYSTEM_USER_CLIENT
+          value: BadgerDoc
+        - name: KEYCLOAK_SYSTEM_USER_SECRET
           valueFrom:
             secretKeyRef:
               name: users-keycloack
-              key: KEYCLOAK_USERS_PUBLIC_KEY
-        - name: KEYCLOAK_DIRECT_ENDPOINT
-          valueFrom:
-            secretKeyRef:
-              name: users
-              key: KEYCLOAK_DIRECT_ENDPOINT_DEV1
+              key: KEYCLOAK_SYSTEM_USER_SECRET
         - name: BADGERDOC_CLIENT_SECRET
           valueFrom:
             secretKeyRef:
@@ -93,16 +91,6 @@ spec:
             secretKeyRef:
               name: users
               key: ADMIN_CLIENT_SECRET_DEV1
-        - name: KEYCLOAK_ROLE_ClientViewsAllUsers_ID
-          valueFrom:
-            secretKeyRef:
-              name: users
-              key: KEYCLOAK_ROLE_ClientViewsAllUsers_ID
-        - name: KEYCLOAK_ROLE_ClientViewsAllUsers_SECRET
-          valueFrom:
-            secretKeyRef:
-              name: users
-              key: KEYCLOAK_ROLE_ClientViewsAllUsers_SECRET
         command: ["/bin/sh"]
         args: ["-c", "uvicorn users.main:app --host 0.0.0.0 --port 8080 --root-path /api/v1/users"]
       dnsPolicy: ClusterFirst

@@ -13,7 +13,8 @@ RUN : \
     && poetry install --no-root --only main \
     && :
 
-CMD ["uvicorn", "users.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "users.main:app", "--host", "0.0.0.0", "--port", "8080"]
+EXPOSE 8080
 
 FROM build AS test
 

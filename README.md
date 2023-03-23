@@ -1,3 +1,5 @@
+# What is BadgerDoc
+
 **BadgerDoc** is a ML Delivery Platform made to make delivery process of Machine Learning Solutions visible to customer,
 managers and ML team. The primary goal of the platform is to visualize ML model delivery cycle -  data annotation, 
 model training and result visualization.
@@ -19,31 +21,89 @@ For now, BadgerDoc is working with vectorized and scanned documents, but it has 
 
 #
 # Local Setup
-## How to build a base Docker image:
 
-1. Copy folders with required dependencies to the base image folder:
-```
-cp -r lib/filter_lib lib/tenants infra/docker/python_base/
-```
-2. Rename "tenant" folder:
-```
-mv infra/docker/python_base/tenants infra/docker/python_base/tenant_dependency
-```
-3. Open the base Docker image using your favourive text editor:
-```
-vim infra/docker/python_base/Dockerfile
-```
-4. Find the following lines and remove them for each dependency install to avoid linting errors:
-```
-&& black src --check && mypy src && pylint src \
-```
-5. Build the image, specifying the tag that is used in other Docker images as a "base" image:
-```
-docker build infra/docker/python_base -t 818863528939.dkr.ecr.eu-central-1.amazonaws.com/badgerdoc/python_base:0.1.7
-```
-P.S. You can get this tag from any microservice Dockerfile like ```processing/Dockerfile```
+## Building the base image
 
-#
+Run the following command to build the base image:
+
+```
+make build_base
+```
+
+After the base image is built, it is recommended to clean up any temporary files generated during the build process. To do this, run the following command:
+
+```
+make clean
+```
+
+## Building microservices
+
+Easiest way to build microservices is to run `make build_all` command, right after that, 
+it's possible run docker-compose to serve BadgerDoc in local mode.
+
+If it's required to build separate microservice, just run `make build_{microservice}` command,
+for instance: `make build_users` to build or rebuild users
+
+## Running BadgerDoc in local mode
+
+After all services are built, you need to create `.env` file in root folder. You may just copy from example: `cp .env.example .env` 
+
+Time to run: 
+
+```
+docker-compose -f docker-compose-dev.yaml up -d
+```
+
+Now services are running, but to start using BadgerDoc, some additional configuration steps are required
+
+## Keycloak local configuration
+_It's a good idea to automate this section_
+
+Important! This is not secure configuration, follow [KeyCloak best practices](https://www.keycloak.org/server/configuration-production) to setup on production environment
+
+1. Login into Keycloak using url http://127.0.0.1:8082/auth and `admin:admin` as credentials
+
+2. Go to Realm Settings -> Keys and disable `RSA-OAEP` algorithm. It will help to avoid issue explainded here https://github.com/jpadilla/pyjwt/issues/722
+
+3. Add tenant attribute to `admin` user, go to Users -> select `admin` -> go to Attributes -> create attribut `tenants:local`
+
+4. Go to Clients -> admin-cli -> Mappers -> Create and fill form with following values:
+
+| Param                      | Value          |
+|----------------------------|----------------|
+| Protocol                   | openid-connect |
+| Name                       | tenants        |
+| Mapper Type                | User Attribute |
+| User Attribute             | tenants        |
+| Token Claim Name           | tenants        |
+| Claim JSON Type            | string         |
+| Add to ID token            | On             |
+| Add to access token        | On             |
+| Add to userinfo            | On             |
+| Multivalued                | On             |
+| Aggregate attribute values | On             |
+
+5. Go to Client Scopes -> Find `roles` and select in list -> Scope -> Add `admin` to Assigned Roles, then go to Mappers and ensure that only 2 mappers exists: `realm roles` and `client roles`. Delete all other mappers
+
+6. Go to Clients -> Create -> Fill form and save
+
+| Param                      | Value              |
+|----------------------------|--------------------|
+| Client ID                  | badgerdoc-internal |
+| Client Protocol            | openid-connect     |
+
+7. Go to Cliens -> Find `badgerdoc-internal` -> change settings `Access Type: Confidential`, set `Service Accounts Enabled` to `On`, then save. Now you can Credentials tab, open it and copy Secret
+
+Now `Client ID` and `Secret` must be set to `.env` as `KEYCLOAK_SYSTEM_USER_CLIENT` and `KEYCLOAK_SYSTEM_USER_SECRET`
+
+8. Go to Clients -> Find `badgerdoc-internal` -> Service Account Roles -> Client Roles -> master-realm -> Find `view-users` and `view-identity-providers` in Available Roles and add to Assigned Roles
+
+Time to reload `docker-compose`, because `.env` was changed: 
+
+```
+docker-compose -f docker-compose-dev.yaml up -d
+```
+
 ## How to install required dependencies locally
 
 1. Install all required dependencies for a microservice using a packaging tool like Pipenv/Poetry depending on the microservice you are about to set up (we will use Pipenv and "assets" service for this example):
@@ -55,7 +115,7 @@ cd assets && pipenv install --dev
 pipenv shell && pip install -e ../lib/filter_lib ../lib/tenants
 ```
 
-## Contributors
+# Contributors
 
 - [spiridonovfed](@spiridonovfed)
 - [Iogsotot](@Iogsotot)
