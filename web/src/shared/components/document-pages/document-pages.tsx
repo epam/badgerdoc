@@ -89,7 +89,7 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
         documentLinks,
         onLinkChanged,
         selectedRelatedDoc,
-        taskUsers
+        job
     } = useTaskAnnotatorContext();
 
     const containerRef = useRef<HTMLDivElement>(null);
@@ -101,9 +101,10 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
     const selectedLabelsId = selectedLabels?.map(({ id }) => id) || [];
 
     const getAnnotatorName = useCallback(
-        (annotatorId: string): string =>
-            taskUsers.current.annotators.find(({ id }) => id === annotatorId)?.username || '',
-        [taskUsers]
+        (annotatorId: string): string => {
+            return job?.annotators.find(({ id }) => id === annotatorId)?.username || '';
+        },
+        [job]
     );
 
     useEffect(() => {

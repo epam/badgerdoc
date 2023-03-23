@@ -1,23 +1,24 @@
 import React, { FC, useEffect, useMemo, useState } from 'react';
-import { FlexRow, Panel, TabButton } from '@epam/loveship';
-import styles from './styles.module.scss';
 import { useTaskAnnotatorContext } from 'connectors/task-annotator-connector/task-annotator-context';
 import { AnnotationList } from './annotation-list';
 import { Annotation } from 'shared';
 import { getSortedAllAnnotationList, getSortedAnnotationsByUserId, getTabs } from './utils';
 import { OWNER_TAB } from './constants';
 
+import { FlexRow, Panel, TabButton } from '@epam/loveship';
+import styles from './styles.module.scss';
+
 export const FlowSideBar: FC = () => {
     const [currentTab, setCurrentTab] = useState(OWNER_TAB.id);
 
     const {
-        taskUsers,
         annotationsByUserId,
         setSelectedAnnotation,
         setCurrentDocumentUserId,
         currentDocumentUserId = OWNER_TAB.id,
         allAnnotations: allAnnotationsByPageNum = {},
-        selectedAnnotation: { id: selectedAnnotationId } = {}
+        selectedAnnotation: { id: selectedAnnotationId } = {},
+        job
     } = useTaskAnnotatorContext();
 
     useEffect(() => {
@@ -30,8 +31,8 @@ export const FlowSideBar: FC = () => {
     };
 
     const tabs = useMemo(
-        () => getTabs(taskUsers.current.annotators, Object.keys(annotationsByUserId)),
-        [taskUsers.current.annotators, annotationsByUserId]
+        () => getTabs(job?.annotators ?? [], Object.keys(annotationsByUserId)),
+        [job, annotationsByUserId]
     );
 
     const allSortedAnnotations = useMemo(
