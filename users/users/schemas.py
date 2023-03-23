@@ -51,6 +51,4 @@ class FilterUserUserName(BaseModel):
 
 
 class Users(BaseModel):
-    filters: Optional[
-        List[Union[FilterUserUserName, FilterUserUserID, FilterRole]]
-    ]
+    filters: Optional[List[Union[FilterUserUserName, FilterUserUserID, FilterRole]]]

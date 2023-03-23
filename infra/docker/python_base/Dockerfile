@@ -1,21 +1,14 @@
 FROM python:3.8.10-slim-buster AS base
 
-RUN mkdir /opt/filter_lib && mkdir /opt/tenant_dependency
-COPY filter_lib/ /opt/filter_lib
-COPY tenant_dependency/ /opt/tenant_dependency
-RUN python3 -m pip install --upgrade pip
+COPY lib/filter_lib/ /opt/filter_lib/
+COPY lib/tenants/ /opt/tenants/
+RUN python3 -m pip install --upgrade pip && \
+    pip3 install poetry==1.4.0  && \
+    cd /opt/filter_lib && pip3 install . && \
+    cd /opt/tenants && pip3 install . && \
+    cd ../ && rm -rf filter_lib && rm -rf tenants
 
-FROM base AS build
-
-WORKDIR /opt/filter_lib
-RUN python3 setup.py install
-
-WORKDIR /opt/tenant_dependency
-RUN python3 setup.py install
-
-WORKDIR /opt
 ENV PYTHONPATH /opt
-RUN rm -rf filter_lib && rm -rf tenant_dependency
 
 FROM base AS test
 

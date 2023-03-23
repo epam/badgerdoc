@@ -2,6 +2,7 @@
 from unittest.mock import patch
 
 import pytest
+
 import users.keycloak.query as query
 import users.keycloak.schemas as schemas
 
@@ -30,9 +31,7 @@ async def test_get_token_v2(request_mock):
 
 
 @pytest.mark.asyncio
-async def test_introspect_token_test(
-    request_mock, mocked_token1, mocked_token1_data
-):
+async def test_introspect_token_test(request_mock, mocked_token1, mocked_token1_data):
     request_mock.return_value.__aenter__.return_value.json.return_value = (
         mocked_token1_data
     )
@@ -41,9 +40,7 @@ async def test_introspect_token_test(
 
 
 @pytest.mark.asyncio
-async def test_get_master_realm_auth_data(
-    request_mock, mocked_admin_auth_data
-):
+async def test_get_master_realm_auth_data(request_mock, mocked_admin_auth_data):
     request_mock.return_value.__aenter__.return_value.json.return_value = (
         mocked_admin_auth_data
     )

@@ -10,15 +10,15 @@ COPY annotation ./annotation
 
 RUN : \
     && python3 -m pip install --upgrade pip \
-    && pip install poetry>=1.1.13 \
-    && poetry config virtualenvs.create false \
-    && :
+    && pip install poetry==1.4.0 \
+    && poetry config virtualenvs.create false
 
 FROM base as build
 
 COPY ./documentation ./documentation
 RUN poetry install --no-root --only main
 CMD alembic upgrade head && uvicorn annotation.main:app --host 0.0.0.0 --port 8080
+EXPOSE 8080
 
 FROM base as test
 
