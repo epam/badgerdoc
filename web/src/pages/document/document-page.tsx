@@ -16,7 +16,7 @@ import { TaskAnnotatorContextProvider } from '../../connectors/task-annotator-co
 import { useHistory } from 'react-router-dom';
 import { DOCUMENTS_PAGE, JOBS_PAGE, PREVIOUS_PAGE_JOB } from '../../shared/constants/general';
 import { BreadcrumbNavigation } from '../../shared/components/breadcrumb';
-import { FlowSideBar } from 'components/task/task-sidebar-flow';
+import { FlowSideBar } from 'components/task/task-sidebar-flow/task-sidebar-flow';
 
 export interface DocumentPageProps {
     fileMetaInfo: FileMetaInfo;
