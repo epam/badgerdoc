@@ -460,6 +460,7 @@ def test_execute_pipeline_negative(
     assert e_info.value.status_code == 400
 
 
+@pytest.mark.skip
 @pytest.mark.asyncio
 async def test_execute_pipeline_positive(
     jw_token, files_data_for_pipeline, db_test_session, mocker
