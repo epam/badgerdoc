@@ -1,12 +1,17 @@
 from __future__ import annotations
 
+import logging
+import os
 from enum import Enum
 from typing import Any, Dict, List, Optional, Union
 
-import users.config as conf
-import users.keycloak.query as kc_query
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel, Field
+
+import users.keycloak.query as kc_query
+
+logger = logging.getLogger(__name__)
+logger.setLevel(os.getenv("LOG_LEVEL", "INFO"))
 
 
 def camelize(string: str) -> str:
@@ -324,22 +329,3 @@ class RefreshTokenRequest(OAuthRequest):
     client_id: str = "admin-cli"
     grant_type: str = "refresh_token"
     refresh_token: str
-
-
-class ClientViewsUsersAccessToken(object):
-    @classmethod
-    async def create_instance(cls):
-        instance = ClientViewsUsersAccessToken()
-        instance.token = ""
-        await instance.request_new_token()
-        return instance
-
-    async def request_new_token(self):
-        auth_data = OAuthRequest(
-            grant_type="client_credentials",
-            client_id=conf.KEYCLOAK_ROLE_ClientViewsAllUsers_ID,
-            client_secret=conf.KEYCLOAK_ROLE_ClientViewsAllUsers_SECRET,
-        )
-        realm = conf.KEYCLOAK_REALM
-        token_data = await kc_query.get_token_v2(realm, auth_data)
-        self.token = token_data.access_token

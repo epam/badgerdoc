@@ -4,7 +4,7 @@ from functools import reduce
 from string import Template
 from urllib.parse import urljoin
 
-from users.config import KEYCLOAK_ENDPOINT
+from users.config import KEYCLOAK_HOST
 
 
 def join_paths(*args: str) -> str:
@@ -12,7 +12,7 @@ def join_paths(*args: str) -> str:
     return reduce(urljoin, map(lambda x: x.strip("/") + "/", args))
 
 
-_base_uri = join_paths(KEYCLOAK_ENDPOINT, "auth")
+_base_uri = join_paths(KEYCLOAK_HOST, "auth")
 _base_uri_admin = join_paths(_base_uri, "admin")
 
 _realm_uri = join_paths("realms", "$realm")
@@ -38,7 +38,5 @@ token_introspection_uri = Template(
     join_paths(_base_uri, _oidc_uri, "token", "introspect")
 )
 identity_providers_uri = Template(
-    join_paths(
-        _base_uri, "admin", _realm_uri, "identity-provider", "instances"
-    )
+    join_paths(_base_uri, "admin", _realm_uri, "identity-provider", "instances")
 )

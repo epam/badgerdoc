@@ -63,6 +63,10 @@ export type JobValues = {
     selected_taxonomies: CategoryRelatedTaxonomies | undefined;
 };
 
+const validationTypeTitle = {
+    ['extensive_coverage']: 'Extensive Coverage',
+    ['hierarchical']: 'Hierarchical Validation'
+};
 const EditJobConnector: FC<EditJobConnectorProps> = ({
     renderWizardButtons,
     onJobAdded,
@@ -73,6 +77,9 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
 }) => {
     const getMetadata = (state: JobValues) => {
         const { jobType, validationType, annotators_validators, pipeline, validators } = state;
+
+        const annotatorsValidatorsCount = validationType === 'cross' ? 2 : 1;
+        const annotatorsValidatorsCombinedFieldRequired = validationType === 'cross' ? true : false;
 
         // TODO add proper typing for validators
         const metadata: any = {
@@ -88,13 +95,17 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
 
         if (jobType === 'ExtractionWithAnnotationJob') {
             metadata.props['annotators_validators'] = {
-                isInvalid: (annotators_validators?.length || 0) < 2,
+                isInvalid: (annotators_validators?.length || 0) < annotatorsValidatorsCount,
                 validationMessage:
-                    'For Cross validation at least 2 annotators or validators are required'
+                    'For Cross validation at least 2 annotators or validators are required',
+                isRequired: annotatorsValidatorsCombinedFieldRequired
             };
+        }
+
+        if (validationType === 'extensive_coverage' || validationType === 'hierarchical') {
             metadata.props['validators'] = {
                 isInvalid: (validators?.length || 0) < 1,
-                validationMessage: 'For Extensive Coverage at least 1 validator required',
+                validationMessage: `For ${validationTypeTitle[validationType]} at least 1 validator required`,
                 isRequired: true
             };
         }

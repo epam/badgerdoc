@@ -2,6 +2,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
 from minio import Minio
+
 from users import config
 
 
@@ -13,10 +14,10 @@ def extract_idp_data_needed(
     for alias in IDP_aliases:
         IDP_info = {
             "Alias": alias,
-            "Auth link": f"{config.KEYCLOAK_ENDPOINT}"
+            "Auth link": f"{config.KEYCLOAK_HOST}"
             f"/auth/realms/master/protocol/openid-connect/auth?"
             f"client_id=BadgerDoc&response_type=token&"
-            f"redirect_uri={config.KEYCLOAK_ENDPOINT}"
+            f"redirect_uri={config.KEYCLOAK_HOST}"
             f"/login&kc_idp_hint={alias}",
         }
         IDPs_info.append(IDP_info)
