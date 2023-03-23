@@ -76,7 +76,7 @@ export default function useSplitValidation({
             jobId: job?.id,
             pageNumbers: [currentPage]
         },
-        { enabled: isSplitValidation }
+        { enabled: true }
     );
 
     const userPages: AnnotationsByUserObj[] = useMemo(() => {

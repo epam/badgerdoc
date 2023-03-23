@@ -30,10 +30,9 @@ export const FlowSideBar: FC = () => {
         setCurrentDocumentUserId(tab === OWNER_TAB.id ? undefined : tab);
     };
 
-    const tabs = useMemo(
-        () => getTabs(job?.annotators ?? [], Object.keys(annotationsByUserId)),
-        [job, annotationsByUserId]
-    );
+    const tabs = useMemo(() => {
+        return getTabs(job?.annotators ?? [], Object.keys(annotationsByUserId));
+    }, [job, annotationsByUserId]);
 
     const allSortedAnnotations = useMemo(
         () => getSortedAllAnnotationList(allAnnotationsByPageNum),
