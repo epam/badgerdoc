@@ -62,7 +62,7 @@ def form_query(
         for fil in non_distinct_filters:
             query = _create_filter(query, fil)
 
-    if sorting and _is_order_attribute_empty(query):
+    if sorting and not query._order_by:
         for sor in sorting:
             query = _create_sorting(query, sor)
 
@@ -76,13 +76,6 @@ def form_query(
         raise BadFilterFormat(f"description: {e.orig}") from e
 
     return query, pag
-
-
-def _is_order_attribute_empty(query: Query) -> bool:
-    for attr_name in ("_order_by", "_order_by_clauses"):
-        if hasattr(query, attr_name):
-            return not bool(getattr(query, attr_name))
-    return True
 
 
 def _get_entity(query: Query, model_name: str) -> Type[DeclarativeMeta]:
