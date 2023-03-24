@@ -2,8 +2,9 @@
 
 .pdf-container {
     display: grid;
+    grid-template-columns: 2.5rem 1fr;
     height: calc(100% - 40px);
-    position: relative;
+    gap: 0.5rem;
 }
 
 .pdf-document-container {
@@ -16,27 +17,24 @@
 }
 
 .page-scale {
-    position: absolute;
-    z-index: 100;
-    top: 10px;
-    left: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 15px;
 
     &__button-group {
         display: flex;
-        flex-direction: row;
+        flex-direction: column;
         align-items: center;
         gap: 10px;
     }
 
     &__item {
-        width: 30px;
-        height: 30px;
+        width: 36px;
+        height: 36px;
         border: solid 1px $btn-border;
         background-color: white;
-        display: flex;
-        align-items: center;
         justify-content: center;
-        cursor: pointer;
 
         &--active {
             background-color: #474a5a;
@@ -44,6 +42,10 @@
                 fill: white;
             }
         }
+    }
+
+    &__icon {
+        align-items: center !important;
     }
 }
 

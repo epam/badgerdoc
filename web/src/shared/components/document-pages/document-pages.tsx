@@ -52,7 +52,8 @@ type DocumentPagesProps = {
 
 export const getScale = (containerWidth: number, contentWidth: number) => {
     // need to limit fraction part to get rid of loss of precision when return to initial zoom
-    return Math.round((containerWidth / contentWidth) * 1000) / 1000;
+    // 20 - container padding
+    return Math.round(((containerWidth - 20) / contentWidth) * 1000) / 1000;
 };
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
@@ -154,7 +155,7 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                         fullScale > scale ? styles['page-scale__item--active'] : ''
                     }`}
                 />
-                <IconContainer icon={searchIcon} size={16} />
+                <IconContainer icon={searchIcon} cx={styles['page-scale__icon']} />
                 <IconButton
                     icon={decreaseIcon}
                     onClick={() => setAdditionalScale((origin) => origin - 0.1)}
