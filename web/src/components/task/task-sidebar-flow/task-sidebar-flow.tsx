@@ -1,6 +1,5 @@
 import React, { FC, useEffect, useMemo, useState } from 'react';
 import { Button, FlexRow, Panel, TabButton } from '@epam/loveship';
-import styles from './styles.module.scss';
 import { useTaskAnnotatorContext } from 'connectors/task-annotator-connector/task-annotator-context';
 import { AnnotationList } from './annotation-list';
 import { Annotation } from 'shared';
@@ -8,6 +7,8 @@ import { getSortedAllAnnotationList, getSortedAnnotationsByUserId, getTabs } fro
 import { OWNER_TAB, VISIBILITY_SETTING_ID } from './constants';
 import { ReactComponent as closeIcon } from '@epam/assets/icons/common/navigation-chevron-left_left-18.svg';
 import { ReactComponent as openIcon } from '@epam/assets/icons/common/navigation-chevron-right_right-18.svg';
+
+import styles from './styles.module.scss';
 
 export const FlowSideBar: FC = () => {
     const [currentTab, setCurrentTab] = useState(OWNER_TAB.id);
