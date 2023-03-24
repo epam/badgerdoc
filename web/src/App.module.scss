@@ -6,7 +6,24 @@
     box-sizing: border-box;
     font-family: 'Source Sans Pro', sans-serif;
     font-style: normal;
-    line-height: 1.5;
+
+    scrollbar-width: thin;
+    scrollbar-color: hsl(0, 0%, 60%);
+
+    &::-webkit-scrollbar {
+        width: 7px;
+        height: 7px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: rgba(128, 128, 128, 0.1);
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background-color: #{'hsl(0 0% 60%)'};
+        border-radius: 15px;
+        border: 3px solid #{'hsl(0 0% 60%)'};
+    }
 }
 
 html,

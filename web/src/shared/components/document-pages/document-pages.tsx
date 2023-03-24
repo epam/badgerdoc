@@ -5,7 +5,8 @@ import React, {
     useEffect,
     useState,
     useRef,
-    useCallback
+    useCallback,
+    useMemo
 } from 'react';
 import { ReactComponent as increaseIcon } from '@epam/assets/icons/common/action-add-24.svg';
 import { ReactComponent as searchIcon } from '@epam/assets/icons/common/action-search-18.svg';
@@ -49,14 +50,10 @@ type DocumentPagesProps = {
     onEmptyAreaClick: () => void;
 };
 
-export const getScale = (
-    containerWidth: number,
-    contentWidth: number,
-    containerPadding: number = 0
-) => {
+export const getScale = (containerWidth: number, contentWidth: number) => {
     // need to limit fraction part to get rid of loss of precision when return to initial zoom
-    const highAccuracyScale = (containerWidth - containerPadding) / contentWidth;
-    return Math.round(highAccuracyScale * 1000) / 1000;
+    // 20 - container padding
+    return Math.round(((containerWidth - 20) / contentWidth) * 1000) / 1000;
 };
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
@@ -95,7 +92,7 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
     const containerRef = useRef<HTMLDivElement>(null);
 
     const [scale, setScale] = useState(0);
-    const [initialScale, setInitialScale] = useState(0);
+    const [additionalScale, setAdditionalScale] = useState(0);
     const [originalPageSize, setOriginalPageSize] = useState<PageSize>();
 
     const selectedLabelsId = selectedLabels?.map(({ id }) => id) || [];
@@ -112,17 +109,30 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
         setPageSize!(newPageSize);
     }, [apiPageSize, originalPageSize]);
 
-    useEffect(() => {
+    const handleChangeScale = useCallback(() => {
         if (!containerRef.current || !apiPageSize || !apiPageSize.width) return;
 
-        containerRef.current.style.overflow = 'scroll';
-        const width = containerRef.current.clientWidth;
-        containerRef.current.style.overflow = '';
+        const { width } = containerRef.current.getBoundingClientRect();
+        const newScale = getScale(width, apiPageSize.width);
 
-        const newScale = getScale(width, apiPageSize.width, 20);
         setScale(newScale);
-        setInitialScale(newScale);
     }, [apiPageSize]);
+
+    const containerResizeObserver = useMemo(
+        () => new ResizeObserver(handleChangeScale),
+        [handleChangeScale]
+    );
+
+    useEffect(() => {
+        if (!containerRef.current) return;
+        containerResizeObserver.observe(containerRef.current);
+
+        return () => {
+            if (!containerRef.current) return;
+            containerResizeObserver.unobserve(containerRef.current);
+        };
+    }, [containerResizeObserver]);
+
     const handlePageLoaded = (page: PDFPageProxy | HTMLImageElement) => {
         if (!originalPageSize) {
             if ('originalWidth' in page) {
@@ -133,28 +143,26 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
         }
     };
 
+    const fullScale = scale + additionalScale;
+
     const pageScale = (
         <div className={styles['page-scale']} style={scaleStyle}>
             <div className={styles['page-scale__button-group']}>
-                <button
-                    className={`${styles['page-scale__item']} ${
-                        scale > initialScale ? styles['page-scale__item--active'] : ''
+                <IconButton
+                    icon={increaseIcon}
+                    onClick={() => setAdditionalScale((origin) => origin + 0.1)}
+                    cx={`${styles['page-scale__item']} ${
+                        fullScale > scale ? styles['page-scale__item--active'] : ''
                     }`}
-                    onClick={() => setScale(scale + 0.1)}
-                >
-                    <IconButton icon={increaseIcon} />
-                </button>
-                <div>
-                    <IconContainer icon={searchIcon} />
-                </div>
-                <button
-                    className={`${styles['page-scale__item']} ${
-                        scale < initialScale ? styles['page-scale__item--active'] : ''
+                />
+                <IconContainer icon={searchIcon} cx={styles['page-scale__icon']} />
+                <IconButton
+                    icon={decreaseIcon}
+                    onClick={() => setAdditionalScale((origin) => origin - 0.1)}
+                    cx={`${styles['page-scale__item']} ${
+                        fullScale < scale ? styles['page-scale__item--active'] : ''
                     }`}
-                    onClick={() => setScale(scale - 0.1)}
-                >
-                    <IconButton icon={decreaseIcon} />
-                </button>
+                />
             </div>
         </div>
     );
@@ -186,7 +194,7 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                         >
                             <ResizableSyncedContainer className={styles['split-document-page']}>
                                 <DocumentSinglePage
-                                    scale={scale}
+                                    scale={fullScale}
                                     pageSize={apiPageSize}
                                     pageNum={currentPage}
                                     handlePageLoaded={handlePageLoaded}
@@ -211,11 +219,15 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                                         <DocumentSinglePage
                                             userId={user_id}
                                             annotations={annotationsByUserId[user_id]}
-                                            scale={scale}
+                                            scale={fullScale}
                                             pageSize={apiPageSize}
                                             pageNum={page_num}
                                             onAnnotationSelected={(scaledAnn?: Annotation) =>
-                                                onSplitAnnotationSelected(scale, user_id, scaledAnn)
+                                                onSplitAnnotationSelected(
+                                                    fullScale,
+                                                    user_id,
+                                                    scaledAnn
+                                                )
                                             }
                                         />
                                     </SyncedContainer>
@@ -236,7 +248,7 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                                     options={{ httpHeaders: getAuthHeaders() }}
                                 >
                                     <DocumentSinglePage
-                                        scale={scale}
+                                        scale={fullScale}
                                         pageSize={apiPageSize}
                                         pageNum={currentPage}
                                         handlePageLoaded={handlePageLoaded}
@@ -259,7 +271,7 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                                 >
                                     <DocumentSinglePage
                                         annotations={[]}
-                                        scale={scale}
+                                        scale={fullScale}
                                         pageSize={apiPageSize}
                                         pageNum={currentPage}
                                         handlePageLoaded={handlePageLoaded}
@@ -293,7 +305,7 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                                             return (
                                                 <Fragment key={pageNum}>
                                                     <DocumentSinglePage
-                                                        scale={scale}
+                                                        scale={fullScale}
                                                         pageSize={apiPageSize}
                                                         pageNum={pageNum}
                                                         handlePageLoaded={handlePageLoaded}
@@ -326,7 +338,7 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                                         return (
                                             <Fragment key={pageNum}>
                                                 <DocumentSinglePage
-                                                    scale={scale}
+                                                    scale={fullScale}
                                                     pageSize={apiPageSize}
                                                     pageNum={pageNum}
                                                     handlePageLoaded={handlePageLoaded}

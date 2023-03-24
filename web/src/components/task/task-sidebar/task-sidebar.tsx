@@ -5,6 +5,7 @@ import {
     LabeledInput,
     MultiSwitch,
     NumericInput,
+    Panel,
     RadioGroup,
     TabButton,
     Tooltip
@@ -37,7 +38,9 @@ import { ReactComponent as SplitIcon } from '@epam/assets/icons/common/editor-ta
 import styles from './task-sidebar.module.scss';
 import { getCategoryDataAttrs } from 'connectors/task-annotator-connector/task-annotator-utils';
 import { FinishButton } from './finish-button';
-import { TABS } from './constants';
+import { TABS, VISIBILITY_SETTING_ID } from './constants';
+import { ReactComponent as openIcon } from '@epam/assets/icons/common/navigation-chevron-left_left-18.svg';
+import { ReactComponent as closeIcon } from '@epam/assets/icons/common/navigation-chevron-right_right-18.svg';
 
 type TaskSidebarProps = {
     jobSettings?: ReactElement;
@@ -46,6 +49,13 @@ type TaskSidebarProps = {
 };
 
 const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPresented }) => {
+    const [isHidden, setIsHidden] = useState<boolean>(() => {
+        const savedValue = localStorage.getItem(VISIBILITY_SETTING_ID);
+        return savedValue ? JSON.parse(savedValue) : false;
+    });
+    const [tableModeValues, setTableModeValues] = useState<string>('');
+    const [boundModeSwitch, setBoundModeSwitch] = useState<AnnotationBoundMode>('box');
+
     const {
         annDataAttrs,
         task,
@@ -120,9 +130,6 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
     const splitValidation = isValidation && job?.validation_type === 'extensive_coverage';
 
     const isValidationDisabled = (!currentPage && !splitValidation) || !isAnnotatable;
-
-    const [boundModeSwitch, setBoundModeSwitch] = useState<AnnotationBoundMode>('box');
-    const [tableModeValues, setTableModeValues] = useState<string>('');
 
     const { refetch } = useGetValidatedPages(
         { taskId: task?.id, taskType: task?.is_validation },
@@ -320,265 +327,286 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
         refetch();
     };
 
-    return (
-        <div className={`${styles.container} flex-col`}>
-            <div className={`${styles.main} flex-col`}>
-                <FlexRow borderBottom="night50" background="none" cx="justify-center">
-                    {TABS.map((tabName) => (
-                        <TabButton
-                            size="36"
-                            key={tabName}
-                            caption={tabName}
-                            isLinkActive={tabValue === tabName}
-                            onClick={() => setTabValue(tabName)}
-                        />
-                    ))}
-                </FlexRow>
-                <div className={`${styles.tabs} flex-col flex-cell`}>
-                    {!splitValidation && (isValid || isInvalid) ? (
-                        <div className={validationStyle}>
-                            <Status
-                                statusTitle={mapStatusForValidationPage(validationStatus).title}
-                                color={mapStatusForValidationPage(validationStatus).color}
-                            />
-                        </div>
-                    ) : null}
-                    {tabValue === 'Categories' && (
-                        <>
-                            <CategoriesTab
-                                boundModeSwitch={boundModeSwitch}
-                                setBoundModeSwitch={setBoundModeSwitch}
-                            />
-                            {boundModeSwitch === 'segmentation' && (
-                                <ImageToolsParams
-                                    onChangeToolParams={(e) => {
-                                        setSelectedToolParams({
-                                            type: selectedToolParams.type,
-                                            values: e
-                                        });
-                                    }}
-                                    selectedTool={selectedTool}
-                                    toolParams={selectedToolParams}
-                                />
-                            )}
-                            {!viewMode && (
-                                <CategoriesSelectionModeToggle
-                                    selectionType={selectionType}
-                                    onChangeSelectionType={onChangeSelectionType}
-                                    selectionMode={boundModeSwitch}
-                                    fileMetaInfo={fileMetaInfo}
-                                    selectedTool={selectedTool}
-                                    onChangeSelectedTool={onChangeSelectedTool}
-                                    isDisabled={!isAnnotatable}
-                                />
-                            )}
-                        </>
-                    )}
-                    {tabValue === 'Data' && tableMode && (
-                        <>
-                            <div className={styles.multiswitch}>
-                                <MultiSwitch
-                                    items={[
-                                        { id: 'lines', caption: 'Lines' },
-                                        { id: 'cells', caption: 'Cells' }
-                                    ]}
-                                    value={tableModeValues}
-                                    onValueChange={setTableModeValues}
-                                />
-                            </div>
+    const handleToggleVisibility = () => {
+        localStorage.setItem(VISIBILITY_SETTING_ID, String(!isHidden));
+        setIsHidden(!isHidden);
+    };
 
-                            {tableModeValues === 'lines' && (
-                                <div className={styles.tableParams}>
-                                    <LabeledInput label="Columns">
-                                        <NumericInput
-                                            value={tableModeColumns}
-                                            onValueChange={setTableModeColumns}
-                                            min={1}
-                                            max={10}
+    return (
+        <Panel cx={styles.wrapper}>
+            <Button
+                fill="none"
+                cx={styles.hideIcon}
+                onClick={handleToggleVisibility}
+                icon={isHidden ? openIcon : closeIcon}
+            />
+            {!isHidden && (
+                <div className={`${styles.container} flex-col`}>
+                    <div className={`${styles.main} flex-col`}>
+                        <FlexRow borderBottom="night50" background="none" cx="justify-center">
+                            {TABS.map((tabName) => (
+                                <TabButton
+                                    size="36"
+                                    key={tabName}
+                                    caption={tabName}
+                                    isLinkActive={tabValue === tabName}
+                                    onClick={() => setTabValue(tabName)}
+                                />
+                            ))}
+                        </FlexRow>
+                        <div className={`${styles.tabs} flex-col flex-cell`}>
+                            {!splitValidation && (isValid || isInvalid) ? (
+                                <div className={validationStyle}>
+                                    <Status
+                                        statusTitle={
+                                            mapStatusForValidationPage(validationStatus).title
+                                        }
+                                        color={mapStatusForValidationPage(validationStatus).color}
+                                    />
+                                </div>
+                            ) : null}
+                            {tabValue === 'Categories' && (
+                                <>
+                                    <CategoriesTab
+                                        boundModeSwitch={boundModeSwitch}
+                                        setBoundModeSwitch={setBoundModeSwitch}
+                                    />
+                                    {boundModeSwitch === 'segmentation' && (
+                                        <ImageToolsParams
+                                            onChangeToolParams={(e) => {
+                                                setSelectedToolParams({
+                                                    type: selectedToolParams.type,
+                                                    values: e
+                                                });
+                                            }}
+                                            selectedTool={selectedTool}
+                                            toolParams={selectedToolParams}
                                         />
-                                    </LabeledInput>
-                                    <span>X</span>
-                                    <LabeledInput label="Rows">
-                                        <NumericInput
-                                            value={tableModeRows}
-                                            onValueChange={setTableModeRows}
-                                            min={1}
-                                            max={10}
+                                    )}
+                                    {!viewMode && (
+                                        <CategoriesSelectionModeToggle
+                                            selectionType={selectionType}
+                                            onChangeSelectionType={onChangeSelectionType}
+                                            selectionMode={boundModeSwitch}
+                                            fileMetaInfo={fileMetaInfo}
+                                            selectedTool={selectedTool}
+                                            onChangeSelectedTool={onChangeSelectedTool}
+                                            isDisabled={!isAnnotatable}
                                         />
-                                    </LabeledInput>
+                                    )}
+                                </>
+                            )}
+                            {tabValue === 'Data' && tableMode && (
+                                <>
+                                    <div className={styles.multiswitch}>
+                                        <MultiSwitch
+                                            items={[
+                                                { id: 'lines', caption: 'Lines' },
+                                                { id: 'cells', caption: 'Cells' }
+                                            ]}
+                                            value={tableModeValues}
+                                            onValueChange={setTableModeValues}
+                                        />
+                                    </div>
+
+                                    {tableModeValues === 'lines' && (
+                                        <div className={styles.tableParams}>
+                                            <LabeledInput label="Columns">
+                                                <NumericInput
+                                                    value={tableModeColumns}
+                                                    onValueChange={setTableModeColumns}
+                                                    min={1}
+                                                    max={10}
+                                                />
+                                            </LabeledInput>
+                                            <span>X</span>
+                                            <LabeledInput label="Rows">
+                                                <NumericInput
+                                                    value={tableModeRows}
+                                                    onValueChange={setTableModeRows}
+                                                    min={1}
+                                                    max={10}
+                                                />
+                                            </LabeledInput>
+                                        </div>
+                                    )}
+                                    {tableModeValues === 'cells' && (
+                                        <div>
+                                            <div className={styles.mergeButton}>
+                                                <RadioGroup
+                                                    items={cellsItems}
+                                                    value={tableCellCategory}
+                                                    onValueChange={setTableCellCategory}
+                                                    direction="vertical"
+                                                    isDisabled={
+                                                        !(cellsSelected && selectedCellsCanBeMerged)
+                                                    }
+                                                />
+                                            </div>
+                                            <div className={styles.mergeButton}>
+                                                <Button
+                                                    color={'sky'}
+                                                    caption={'Merge'}
+                                                    icon={MergeIcon}
+                                                    isDisabled={
+                                                        !(cellsSelected && selectedCellsCanBeMerged)
+                                                    }
+                                                    fill={'none'}
+                                                    onClick={() => onMergeCellsClicked(true)}
+                                                />
+                                            </div>
+                                            {cellsSelected && selectedCellsCanBeSplitted && (
+                                                <div className={styles.mergeButton}>
+                                                    <Button
+                                                        color={'sky'}
+                                                        caption={'Split'}
+                                                        icon={SplitIcon}
+                                                        fill={'none'}
+                                                        onClick={() => onSplitCellsClicked(true)}
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </>
+                            )}
+                            {tabValue === 'Data' && !tableMode && (
+                                <TaskSidebarData
+                                    annDataAttrs={annDataAttrs}
+                                    selectedAnnotation={selectedAnnotation}
+                                    isCategoryDataEmpty={isCategoryDataEmpty}
+                                    onDataAttributesChange={onDataAttributesChange}
+                                    viewMode={viewMode}
+                                    onAnnotationEdited={onAnnotationEdited}
+                                    currentPage={currentPage}
+                                    taxonomyId={(taxonomy || [])[0]?.id}
+                                />
+                            )}
+                            {tabValue === 'Information' && (
+                                <div className={styles.information}>
+                                    {task ? taskInfo : docInfo}
                                 </div>
                             )}
-                            {tableModeValues === 'cells' && (
-                                <div>
-                                    <div className={styles.mergeButton}>
-                                        <RadioGroup
-                                            items={cellsItems}
-                                            value={tableCellCategory}
-                                            onValueChange={setTableCellCategory}
-                                            direction="vertical"
-                                            isDisabled={
-                                                !(cellsSelected && selectedCellsCanBeMerged)
-                                            }
-                                        />
-                                    </div>
-                                    <div className={styles.mergeButton}>
+                            {tabValue === 'Document' && categories !== undefined && (
+                                <TaskSidebarLabelsLinks
+                                    viewMode={viewMode}
+                                    jobId={jobId}
+                                    onLabelsSelected={onLabelsSelected}
+                                    selectedLabels={selectedLabels ?? []}
+                                    documentLinks={documentLinks}
+                                    onRelatedDocClick={onRelatedDocClick}
+                                    selectedRelatedDoc={selectedRelatedDoc}
+                                />
+                            )}
+                            {tabValue === 'Document' && categories === undefined && (
+                                <NoData title="There are no categories" />
+                            )}
+                            {isValidation && !splitValidation && (
+                                <div className="flex justify-around">
+                                    {!editPage && (
                                         <Button
-                                            color={'sky'}
-                                            caption={'Merge'}
-                                            icon={MergeIcon}
-                                            isDisabled={
-                                                !(cellsSelected && selectedCellsCanBeMerged)
+                                            key={`valid${currentPage}`}
+                                            cx={styles.validation}
+                                            caption="Valid"
+                                            fill={isValid ? undefined : 'none'}
+                                            color="grass"
+                                            onClick={
+                                                isValid
+                                                    ? undefined
+                                                    : () => {
+                                                          onValidClick();
+                                                          onAddTouchedPage();
+                                                      }
                                             }
-                                            fill={'none'}
-                                            onClick={() => onMergeCellsClicked(true)}
+                                            isDisabled={isValidationDisabled}
                                         />
-                                    </div>
-                                    {cellsSelected && selectedCellsCanBeSplitted && (
-                                        <div className={styles.mergeButton}>
-                                            <Button
-                                                color={'sky'}
-                                                caption={'Split'}
-                                                icon={SplitIcon}
-                                                fill={'none'}
-                                                onClick={() => onSplitCellsClicked(true)}
-                                            />
-                                        </div>
+                                    )}
+                                    {!isInvalid && !editPage && (
+                                        <Button
+                                            key={`invalid${currentPage}`}
+                                            cx={styles.validation}
+                                            caption="Invalid"
+                                            fill={isInvalid ? undefined : 'none'}
+                                            color="fire"
+                                            onClick={
+                                                isInvalid
+                                                    ? undefined
+                                                    : () => {
+                                                          onInvalidClick();
+                                                          onAddTouchedPage();
+                                                      }
+                                            }
+                                            isDisabled={isValidationDisabled}
+                                        />
+                                    )}
+                                    {!annotationSaved && editPage && (
+                                        <Button
+                                            cx={styles.validation}
+                                            caption="CANCEL"
+                                            fill="none"
+                                            color="sky"
+                                            onClick={onCancelClick}
+                                            isDisabled={isValidationDisabled}
+                                        />
+                                    )}
+                                    {!editPage && isInvalid && (
+                                        <Button
+                                            cx={styles.validation}
+                                            caption="EDIT"
+                                            fill="none"
+                                            color="sky"
+                                            onClick={onEditClick}
+                                            isDisabled={isValidationDisabled}
+                                        />
+                                    )}
+                                    {!annotationSaved && editPage && (
+                                        <Button
+                                            cx={styles.validation}
+                                            caption="SAVE EDITS"
+                                            fill="none"
+                                            color="sky"
+                                            onClick={handleSaveEdits}
+                                            isDisabled={isValidationDisabled}
+                                        />
                                     )}
                                 </div>
                             )}
-                        </>
-                    )}
-                    {tabValue === 'Data' && !tableMode && (
-                        <TaskSidebarData
-                            annDataAttrs={annDataAttrs}
-                            selectedAnnotation={selectedAnnotation}
-                            isCategoryDataEmpty={isCategoryDataEmpty}
-                            onDataAttributesChange={onDataAttributesChange}
-                            viewMode={viewMode}
-                            onAnnotationEdited={onAnnotationEdited}
-                            currentPage={currentPage}
-                            taxonomyId={(taxonomy || [])[0]?.id}
-                        />
-                    )}
-                    {tabValue === 'Information' && (
-                        <div className={styles.information}>{task ? taskInfo : docInfo}</div>
-                    )}
-                    {tabValue === 'Document' && categories !== undefined && (
-                        <TaskSidebarLabelsLinks
-                            viewMode={viewMode}
-                            jobId={jobId}
-                            onLabelsSelected={onLabelsSelected}
-                            selectedLabels={selectedLabels ?? []}
-                            documentLinks={documentLinks}
-                            onRelatedDocClick={onRelatedDocClick}
-                            selectedRelatedDoc={selectedRelatedDoc}
-                        />
-                    )}
-                    {tabValue === 'Document' && categories === undefined && (
-                        <NoData title="There are no categories" />
-                    )}
-                    {isValidation && !splitValidation && (
-                        <div className="flex justify-around">
-                            {!editPage && (
-                                <Button
-                                    key={`valid${currentPage}`}
-                                    cx={styles.validation}
-                                    caption="Valid"
-                                    fill={isValid ? undefined : 'none'}
-                                    color="grass"
-                                    onClick={
-                                        isValid
-                                            ? undefined
-                                            : () => {
-                                                  onValidClick();
-                                                  onAddTouchedPage();
-                                              }
-                                    }
-                                    isDisabled={isValidationDisabled}
-                                />
-                            )}
-                            {!isInvalid && !editPage && (
-                                <Button
-                                    key={`invalid${currentPage}`}
-                                    cx={styles.validation}
-                                    caption="Invalid"
-                                    fill={isInvalid ? undefined : 'none'}
-                                    color="fire"
-                                    onClick={
-                                        isInvalid
-                                            ? undefined
-                                            : () => {
-                                                  onInvalidClick();
-                                                  onAddTouchedPage();
-                                              }
-                                    }
-                                    isDisabled={isValidationDisabled}
-                                />
-                            )}
-                            {!annotationSaved && editPage && (
-                                <Button
-                                    cx={styles.validation}
-                                    caption="CANCEL"
-                                    fill="none"
-                                    color="sky"
-                                    onClick={onCancelClick}
-                                    isDisabled={isValidationDisabled}
-                                />
-                            )}
-                            {!editPage && isInvalid && (
-                                <Button
-                                    cx={styles.validation}
-                                    caption="EDIT"
-                                    fill="none"
-                                    color="sky"
-                                    onClick={onEditClick}
-                                    isDisabled={isValidationDisabled}
-                                />
-                            )}
-                            {!annotationSaved && editPage && (
-                                <Button
-                                    cx={styles.validation}
-                                    caption="SAVE EDITS"
-                                    fill="none"
-                                    color="sky"
-                                    onClick={handleSaveEdits}
-                                    isDisabled={isValidationDisabled}
-                                />
-                            )}
                         </div>
+                    </div>
+                    {task && ( // todo: add "EDIT ANNOTATION" button here if no task
+                        <Tooltip
+                            content={
+                                isSaveButtonDisabled
+                                    ? 'Please modify annotation to enable save button'
+                                    : ''
+                            }
+                        >
+                            <Button
+                                caption={SaveButton}
+                                fill="white"
+                                onClick={handleSave}
+                                cx={styles.button}
+                                isDisabled={isSaveButtonDisabled}
+                            />
+                        </Tooltip>
                     )}
-                </div>
-            </div>
-            {task && ( // todo: add "EDIT ANNOTATION" button here if no task
-                <Tooltip
-                    content={
-                        isSaveButtonDisabled ? 'Please modify annotation to enable save button' : ''
-                    }
-                >
-                    <Button
-                        caption={SaveButton}
-                        fill="white"
-                        onClick={handleSave}
-                        cx={styles.button}
-                        isDisabled={isSaveButtonDisabled}
+                    <FinishButton
+                        viewMode={viewMode}
+                        isAnnotatable={isAnnotatable}
+                        allValidated={allValidated}
+                        isNextTaskPresented={isNextTaskPresented}
+                        isValidation={Boolean(isValidation)}
+                        isSplitValidation={Boolean(splitValidation)}
+                        editedPagesCount={editedPages.length}
+                        touchedPagesCount={touchedPages.length}
+                        notProcessedPages={notProcessedPages}
+                        onFinishValidation={onFinishValidation}
+                        onAnnotationTaskFinish={onAnnotationTaskFinish}
+                        onFinishSplitValidation={onFinishSplitValidation}
                     />
-                </Tooltip>
+                </div>
             )}
-            <FinishButton
-                viewMode={viewMode}
-                isAnnotatable={isAnnotatable}
-                allValidated={allValidated}
-                isNextTaskPresented={isNextTaskPresented}
-                isValidation={Boolean(isValidation)}
-                isSplitValidation={Boolean(splitValidation)}
-                editedPagesCount={editedPages.length}
-                touchedPagesCount={touchedPages.length}
-                notProcessedPages={notProcessedPages}
-                onFinishValidation={onFinishValidation}
-                onAnnotationTaskFinish={onAnnotationTaskFinish}
-                onFinishSplitValidation={onFinishSplitValidation}
-            />
-        </div>
+        </Panel>
     );
 };
 

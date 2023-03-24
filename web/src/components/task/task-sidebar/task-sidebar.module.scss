@@ -3,6 +3,8 @@
 .container {
     gap: 10px;
     overflow: hidden;
+    width: 320px;
+    height: 100%;
 }
 
 .main {
@@ -85,4 +87,17 @@
     padding: 1px 4px;
     border: 1px solid $night500;
     color: $night500;
+}
+
+.hideIcon {
+    outline: none;
+    width: 20px !important;
+    border: unset !important;
+    box-shadow: unset !important;
+    border-radius: 0 !important;
+}
+
+.wrapper {
+    border-radius: 0 !important;
+    flex-direction: row-reverse;
 }

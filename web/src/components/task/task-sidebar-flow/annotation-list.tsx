@@ -82,7 +82,7 @@ export const AnnotationList: FC<{
                 )}
             </FlexRow>
             <ScrollBars>
-                <div className={styles.container} ref={containerRef}>
+                <div className={styles.listContainer} ref={containerRef}>
                     {list.map((annotation, index) => (
                         <AnnotationRow
                             {...annotation}
