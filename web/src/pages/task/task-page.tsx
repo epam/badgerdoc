@@ -13,7 +13,7 @@ import { useNextAndPreviousTask, useSetTaskState } from 'api/hooks/tasks';
 import { getError } from 'shared/helpers/get-error';
 import { ANNOTATION_PAGE } from 'shared/constants/general';
 import styles from './task-page.module.scss';
-import { FlowSideBar } from 'components/task/task-sidebar-flow';
+import { FlowSideBar } from 'components/task/task-sidebar-flow/task-sidebar-flow';
 
 const TaskPage: FC = () => {
     const { pathname } = useLocation();

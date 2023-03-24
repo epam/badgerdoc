@@ -1,6 +1,7 @@
 import React from 'react';
 import { render } from '@testing-library/react';
 import { BreadcrumbNavigation } from './breadcrumb-navigation';
+import withRouter from '../../../../config/jest/decorators/withRouter';
 
 const breadcrumbMock = [
     { name: 'first element', url: 'url' },
@@ -10,7 +11,7 @@ const breadcrumbMock = [
 describe('BreadcrumbNavigation', () => {
     it('should exist url and name', async () => {
         const { getByText, getAllByRole } = render(
-            <BreadcrumbNavigation breadcrumbs={breadcrumbMock} />
+            withRouter(<BreadcrumbNavigation breadcrumbs={breadcrumbMock} />)
         );
 
         const firstElement = getByText('first element');
