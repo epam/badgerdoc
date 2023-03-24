@@ -9,6 +9,7 @@ import { ReactComponent as closeIcon } from '@epam/assets/icons/common/navigatio
 import { ReactComponent as openIcon } from '@epam/assets/icons/common/navigation-chevron-right_right-18.svg';
 
 import styles from './styles.module.scss';
+import { ValidationType } from 'api/typings';
 
 export const FlowSideBar: FC = () => {
     const [currentTab, setCurrentTab] = useState(OWNER_TAB.id);
@@ -18,13 +19,13 @@ export const FlowSideBar: FC = () => {
     });
 
     const {
-        taskUsers,
         annotationsByUserId,
         setSelectedAnnotation,
         setCurrentDocumentUserId,
         currentDocumentUserId = OWNER_TAB.id,
         allAnnotations: allAnnotationsByPageNum = {},
-        selectedAnnotation: { id: selectedAnnotationId } = {}
+        selectedAnnotation: { id: selectedAnnotationId } = {},
+        job: { annotators, validation_type: validationType } = {}
     } = useTaskAnnotatorContext();
 
     useEffect(() => {
@@ -41,10 +42,14 @@ export const FlowSideBar: FC = () => {
         setIsHidden(!isHidden);
     };
 
-    const tabs = useMemo(
-        () => getTabs(taskUsers.current.annotators, Object.keys(annotationsByUserId)),
-        [taskUsers.current.annotators, annotationsByUserId]
-    );
+    const tabs = useMemo(() => {
+        if (!annotators) return [];
+
+        return getTabs({
+            users: annotators,
+            userIds: Object.keys(annotationsByUserId)
+        });
+    }, [annotators, annotationsByUserId]);
 
     const allSortedAnnotations = useMemo(
         () => getSortedAllAnnotationList(allAnnotationsByPageNum),
@@ -61,6 +66,8 @@ export const FlowSideBar: FC = () => {
         [OWNER_TAB.id]: allSortedAnnotations
     };
 
+    const isTabsShown = validationType === ValidationType.extensiveCoverage && tabs.length > 1;
+
     return (
         <Panel cx={styles.wrapper}>
             <Button
@@ -71,7 +78,7 @@ export const FlowSideBar: FC = () => {
             />
             {!isHidden && (
                 <Panel background="white" cx={styles.container}>
-                    {tabs.length > 1 && (
+                    {isTabsShown && (
                         <FlexRow>
                             {tabs.map(({ id, caption }) => (
                                 <TabButton
@@ -85,11 +92,13 @@ export const FlowSideBar: FC = () => {
                             ))}
                         </FlexRow>
                     )}
-                    <AnnotationList
-                        onSelect={setSelectedAnnotation}
-                        list={annotationsByTab[currentTab]}
-                        selectedAnnotationId={selectedAnnotationId}
-                    />
+                    {annotationsByTab[currentTab] && (
+                        <AnnotationList
+                            onSelect={setSelectedAnnotation}
+                            list={annotationsByTab[currentTab]}
+                            selectedAnnotationId={selectedAnnotationId}
+                        />
+                    )}
                 </Panel>
             )}
         </Panel>
