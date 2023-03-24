@@ -6,7 +6,7 @@ import { Task, TaskStatus } from 'api/typings/tasks';
 import { useColumns } from './sh-columns';
 import { CurrentUser } from '../../shared/contexts/current-user';
 import { useAsyncSourceTable } from 'shared/hooks/async-source-table';
-import { Operators, SortingDirection, TableFilters } from 'api/typings';
+import { Operators, SortingDirection, TableFilters, ValidationType } from 'api/typings';
 import { DataSourceState, IDataSourceView } from '@epam/uui';
 import { JobVariables, addJob } from '../../api/hooks/jobs';
 
@@ -53,7 +53,7 @@ export const SHDashboardTableConnector: FC<SHDashboardTableConnectorProps> = ({
             is_auto_distribution: true,
             is_draft: false,
             categories: [],
-            validation_type: 'validation only',
+            validation_type: ValidationType.validationOnly,
             owners: [currentUser.user_id],
             annotators: [],
             validators: [currentUser.user_id]
