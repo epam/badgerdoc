@@ -1,6 +1,8 @@
 .container {
     height: auto;
     display: block;
+    flex-direction: row;
+    justify-content: flex-start;
 
     > :not(:last-child) {
         margin-bottom: 12px;

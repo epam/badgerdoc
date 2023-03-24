@@ -1,22 +1,22 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
-
-import withRouter from '../../../../config/jest/decorators/withRouter';
+import { render } from '@testing-library/react';
 import { BreadcrumbNavigation } from './breadcrumb-navigation';
 
 const breadcrumbMock = [
-    { name: 'name breadcrumb', url: 'url' },
-    { name: 'name 2', url: 'url2' }
+    { name: 'first element', url: 'url' },
+    { name: 'second element', url: 'url2' }
 ];
 
 describe('BreadcrumbNavigation', () => {
-    it('should exist url and name', () => {
-        render(withRouter(<BreadcrumbNavigation breadcrumbs={breadcrumbMock} />));
+    it('should exist url and name', async () => {
+        const { getByText, getAllByRole } = render(
+            <BreadcrumbNavigation breadcrumbs={breadcrumbMock} />
+        );
 
-        const links = screen.getAllByRole('link');
-        const name = screen.getByText('name breadcrumb');
+        const firstElement = getByText('first element');
+        const [firstLink] = getAllByRole('link');
 
-        expect(name).toBeVisible();
-        expect(links[0].getAttribute('href')).toBe('/url');
+        expect(firstElement).toBeVisible();
+        expect(firstLink.getAttribute('href')).toBe('/url');
     });
 });
