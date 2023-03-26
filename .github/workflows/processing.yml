@@ -10,21 +10,84 @@ on:
       - processing/**
       - .github/worlflows/processing.yml
 jobs:
-   processing-linters-and-tests:
-     runs-on: ubuntu-latest
-     steps:
-       - uses: actions/checkout@v2
-       - name: update docker-compose
-         run: pip install --upgrade docker-compose
-       - name: create base image
-         run: cd infra/docker/python_base && make build image_name=818863528939.dkr.ecr.eu-central-1.amazonaws.com/badgerdoc/python_base:0.1.7
-       - name: run docker-compose up
-         run: cd processing && docker-compose up -d --build
-       - name: run tests
-         run: docker exec processing_web_app bash -c "poetry run pytest"
-       - name: check with flake8
-         run: docker exec processing_web_app bash -c "flake8 --exclude=alembic,tests --extend-ignore=E203"
-       - name: check with isort
-         run: docker exec processing_web_app bash -c "isort --profile=black --line-length=79 --check-only --skip=alembic --skip=tests ."
-       - name: check with black
-         run: docker exec processing_web_app bash -c 'black --check --line-length=79 --exclude="(alembic|tests)" .'
+  processing-pre-commit-actions:
+    strategy:
+      matrix:
+        python-version: [ "3.8.15" ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+      - name: Run isort
+        uses: isort/isort-action@v1.1.0
+        with:
+          configuration:
+            --profile=black
+            --filter-files
+            --line-length=79
+      - name: Black
+        uses: psf/black@stable
+        with:
+          options: "--line-length=79"
+      - run: pip install flake8
+      - run: flake8 --extend-ignore=E203 processing
+
+  processing-build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ "3.8.15" ]
+    services:
+      postgres-postgresql:
+        image: postgres:13
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_HOST_AUTH_METHOD: trust
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: processing
+          USE_TEST_DB: True
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+      minio:
+        image: 'bitnami/minio:latest'
+        ports:
+          - 9000:9000
+        env:
+          MINIO_ROOT_USER: minioadmin
+          MINIO_ROOT_PASSWORD: minioadmin
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          cd processing
+          sudo apt-get update && sudo apt-get -y install poppler-utils
+          pip install poetry~=1.4.0
+          poetry install --no-root --no-interaction
+          poetry add ../lib/filter_lib
+          poetry add ../lib/tenants
+      - name: Test with pytest
+        run: |
+          cd processing
+          poetry run pytest
+        env:
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: processing
+          USE_TEST_DB: True
+          S3_CREDENTIALS_PROVIDER: minio
+          S3_ENDPOINT: localhost:9000
+          S3_ACCESS_KEY: minioadmin
+          S3_SECRET_KEY: minioadmin
+          MINIO_SECURE_CONNECTION: False
