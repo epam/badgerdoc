@@ -33,7 +33,7 @@ types-requests = "*"
 sqlalchemy-utils = "*"
 
 [tool.poetry.scripts]
-assets = "assets.cli:main"
+badgerdoc = "assets.main:cli_handler"
 
 [build-system]
 requires = ["poetry-core"]

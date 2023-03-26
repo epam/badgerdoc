@@ -1,0 +1,6 @@
+/venv/
+/.mypy_cache/
+/.pytest_cache/
+/tests/.pytest_cache/
+*.egg-info/
+.pytest_cache/

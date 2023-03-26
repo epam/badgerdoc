@@ -1,0 +1,32 @@
+[project]
+name = "badgerdoc_cli"
+description = "Package for badgerdoc cli tools"
+requires-python = ">=3.8"
+version = "0.1.0"
+dynamic = ["readme", "dependencies", "optional-dependencies"]
+
+[tool.setuptools.dynamic]
+readme = {file = ["README.md"]}
+dependencies = {file = "requirements.txt"}
+optional-dependencies.dev = {file = "requirements-dev.txt"}
+
+[build-system]
+requires = ["setuptools>=67.0.0"]
+build-backend = "setuptools.build_meta"
+
+# Dev tools settings
+
+[tool.black]
+line-length = 79
+
+[tool.isort]
+profile = "black"
+line_length = 79
+
+[tool.mypy]
+python_version = 3.8
+strict = "True"
+
+[tool.pylint.basic]
+max-line-length=79
+errors-only = "True"
