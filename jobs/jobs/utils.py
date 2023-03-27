@@ -595,20 +595,22 @@ async def get_annotator_username(
         "Authorization": f"Bearer: {token}",
     }
     try:
-        _, username = await fetch(
+        _, user_data = await fetch(
             method="GET",
-            url=f"http://{USERS_HOST}/get_username_by_user_id?"
-            f"user_id={job_annotator_uuid}",
+            url=f"http://{USERS_HOST}/users/{job_annotator_uuid}",
             headers=headers,
             raise_for_status=True,
         )
     except aiohttp.client_exceptions.ClientError as err:
-        logger.exception("Failed getting username of annotator")
+        logger.exception(
+            "Failed getting user data for annotator - %s", job_annotator_uuid
+        )
         raise fastapi.HTTPException(
             status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=f"Failed getting username of annotator: {err}",
+            detail=f"Failed getting user data for annotator - "
+            f"{job_annotator_uuid}: {err}",
         )
-    return username
+    return user_data["username"]
 
 
 async def enrich_annotators_with_usernames(

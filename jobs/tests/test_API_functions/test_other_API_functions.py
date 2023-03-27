@@ -23,12 +23,16 @@ def test_get_all_jobs_endpoint(
 
 
 def test_get_job_by_id_positive(
-    testing_app, testing_session, mock_AnnotationJobParams
+    testing_app,
+    testing_session,
+    mock_AnnotationJobParams,
+    user1_data,
+    user2_data,
 ):
     with patch("jobs.utils.fetch", return_value=asyncio.Future()) as mock:
         mock.side_effect = [
-            (200, "annotator_username1"),
-            (200, "annotator_username2"),
+            (200, user1_data),
+            (200, user2_data),
         ]
         create_mock_extraction_job_in_db(testing_session)
         create_mock_annotation_job_in_db(
