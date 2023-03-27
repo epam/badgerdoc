@@ -169,6 +169,11 @@ from tests.test_tasks_crud_ud import (
     CRUD_UD_TASK,
 )
 from tests.test_update_job import (
+    NEW_REDISTRIBUTE_TASKS_CATEGORY,
+    NEW_REDISTRIBUTE_TASKS_USER,
+    REDISTRIBUTE_TASKS_FILE,
+    REDISTRIBUTE_TASKS_JOB,
+    REDISTRIBUTED_TASKS,
     UPDATE_JOB_CATEGORIES,
     UPDATE_JOB_FILES,
     UPDATE_JOB_USERS,
@@ -1472,3 +1477,22 @@ def prepare_minio_transfer_annotations(monkeypatch, moto_s3):
         Mock(return_value=moto_s3),
     )
     yield moto_s3
+
+
+@pytest.fixture
+def prepare_db_for_redistribute_tasks(db_session):
+    add_objects(db_session, [REDISTRIBUTE_TASKS_FILE])
+    add_objects(
+        db_session,
+        [
+            REDISTRIBUTE_TASKS_JOB,
+            NEW_REDISTRIBUTE_TASKS_CATEGORY,
+            NEW_REDISTRIBUTE_TASKS_USER,
+        ],
+    )
+    add_objects(
+        db_session,
+        (ManualAnnotationTask(**obj) for obj in REDISTRIBUTED_TASKS),
+    )
+    yield db_session
+    clear_db()
