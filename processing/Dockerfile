@@ -7,17 +7,17 @@ WORKDIR /processing
 COPY poetry.lock pyproject.toml .env alembic.ini version.txt ./
 
 RUN : \
-    && python3 -m pip install --upgrade pip \
-    && pip install poetry~=1.4.0 \
-    && poetry config virtualenvs.create false \
-    && poetry install --no-root --only main \
-    && :
+  && python3 -m pip install --upgrade pip \
+  && pip install poetry~=1.4.0 \
+  && poetry config virtualenvs.create false \
+  && poetry install --no-root --only main \
+  && :
 
 FROM base as build
 
 COPY alembic alembic
 COPY processing processing
-CMD alembic upgrade head && uvicorn processing.main:app --host 0.0.0.0 --port 8080
+CMD uvicorn processing.main:app --host 0.0.0.0 --port 8080
 
 FROM build as development
 
