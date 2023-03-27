@@ -149,23 +149,6 @@ async def get_user(
     return await kc_query.get_user(realm, token_, user_id)
 
 
-# TODO: remove this endpoint and migrate to /users/{user_id}
-@app.get(
-    "/get_username_by_user_id",
-    status_code=200,
-    tags=["users"],
-)
-async def get_username_by_user_id(
-    user_id: str,
-    token: TenantData = Depends(tenant),
-    current_tenant: Optional[str] = Header(None, alias="X-Current-Tenant"),
-) -> str:
-    """Get username by its user_id with any valid token."""
-    Logger.warning("/get_username_by_user_id deprecated. User /users instead")
-    result = await kc_utils.get_username(user_id)
-    return result.username
-
-
 @app.get("/tenants", status_code=200, response_model=List[str], tags=["tenants"])
 async def get_tenants(
     token: TenantData = Depends(tenant),
