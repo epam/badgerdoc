@@ -98,11 +98,11 @@ export const TaskSidebarLabelsLinks: FC<TaskSidebarLabelsLinksProps> = ({
     return (
         <FlexCell cx={styles.linksAndLabels}>
             <MultiSwitch
+                size="30"
                 items={documentCategories}
                 value={documentCategoryType}
                 onValueChange={handleCategoryTypeChange}
             />
-
             {documentCategoryType === DocumentCategoryType.Document ? (
                 <TaskSidebarLabels
                     isLoading={isFetching}

@@ -87,7 +87,12 @@ const TaskPage: FC = () => {
                     <BreadcrumbNavigation breadcrumbs={crumbs} />
                     <FlexSpacer />
                     {nextTaskId && (
-                        <Button fill="white" caption="Next" onClick={handleRedirectToNextTask} />
+                        <Button
+                            size="30"
+                            fill="white"
+                            caption="Next"
+                            onClick={handleRedirectToNextTask}
+                        />
                     )}
                 </FlexRow>
                 <div className={styles.content}>
