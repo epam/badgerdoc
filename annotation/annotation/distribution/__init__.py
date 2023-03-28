@@ -11,6 +11,7 @@ from annotation.distribution.main import (
     find_unassigned_files,
     find_unassigned_pages,
     prepare_response,
+    redistribute,
 )
 
 __all__ = [
@@ -26,4 +27,5 @@ __all__ = [
     find_unassigned_files,
     find_unassigned_pages,
     prepare_response,
+    redistribute,
 ]

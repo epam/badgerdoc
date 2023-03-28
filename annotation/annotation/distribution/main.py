@@ -45,19 +45,35 @@ from datetime import datetime
 from typing import Dict, Iterable, List, Optional, Set, Tuple, Union
 from uuid import UUID
 
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
-from annotation.jobs import create_user, read_user
+from annotation.jobs import create_user, delete_tasks, read_user
+from annotation.jobs.services import (
+    PagesInWork,
+    Task,
+    get_pages_in_work,
+    get_tasks_to_delete,
+    remove_pages_in_work,
+    set_task_statuses,
+)
 from annotation.microservice_communication.assets_communication import (
     FilesForDistribution,
 )
-from annotation.models import File, User
-from annotation.schemas import TaskStatusEnumSchema, ValidationSchema
+from annotation.microservice_communication.jobs_communication import (
+    JobUpdateException,
+    update_job_status,
+)
+from annotation.models import File, Job, ManualAnnotationTask, User
+from annotation.schemas import (
+    JobStatusEnumSchema,
+    TaskStatusEnumSchema,
+    ValidationSchema,
+)
 from annotation.tasks import create_tasks as create_db_tasks
 
 MAX_PAGES = 50
 
-Task = Dict[str, Union[int, List[int], bool]]
 AnnotatedFilesPages = Dict[int, List[Dict[str, Union[int, List[int]]]]]
 DistributionUser = Dict[str, Union[int, float, UUID]]
 
@@ -86,6 +102,7 @@ def distribute(
     already_created_tasks: List[Task] = None,
     deadline: Optional[datetime] = None,
     extensive_coverage: int = 1,
+    pages_in_work: PagesInWork = None,
 ) -> Iterable[Task]:
     """Main script to distribute given files between given existing annotators
     for annotation and between validators for validation (depending on job's
@@ -132,6 +149,10 @@ def distribute(
             )
         # Distribute files and pages for validation considering already
         # distributed files and pages for annotation for each annotator
+        if pages_in_work:
+            annotations_in_work = pages_in_work.get("annotation")
+            if annotations_in_work:
+                remove_pages_in_work(annotation_tasks, annotations_in_work)
         create_db_tasks(db, annotation_tasks, job_id)
         db.flush()
         tasks.extend(annotation_tasks)
@@ -150,6 +171,10 @@ def distribute(
             tasks_status=validation_tasks_status,
             deadline=deadline,
         )
+        if pages_in_work:
+            validations_in_work = pages_in_work.get("validation")
+            if validations_in_work:
+                remove_pages_in_work(validation_tasks, validations_in_work)
         create_db_tasks(db, validation_tasks, job_id)
         db.flush()
         tasks.extend(validation_tasks)
@@ -191,7 +216,12 @@ def distribute_tasks_extensively(
             key=lambda x: -x["pages_number"],
         )
         for _ in range(extensive_coverage):
-            pages = list(range(1, file["pages_number"] + 1))
+            unassigned_pages = file.get("unassigned_pages")
+            pages = (
+                unassigned_pages
+                if unassigned_pages
+                else list(range(1, file["pages_number"] + 1))
+            )
             while pages:
                 if annotators[0]["pages_number"] >= MAX_PAGES:
                     user_can_take_pages = MAX_PAGES
@@ -887,3 +917,67 @@ def prepare_response(
         )
     ]
     return annotation_tasks
+
+
+def redistribute(db: Session, token: str, x_current_tenant: str, job: Job):
+    """Delete unstarted tasks and distribute files without assignment."""
+    job_old_tasks = (
+        db.query(ManualAnnotationTask)
+        .filter(ManualAnnotationTask.job_id == job.job_id)
+        .all()
+    )
+    tasks_to_delete = get_tasks_to_delete(job_old_tasks)
+    delete_tasks(db, tasks_to_delete)
+    db.flush()
+
+    files = [
+        {"file_id": job_file.file_id, "pages_number": job_file.pages_number}
+        for job_file in job.files
+    ]
+    pages_in_work = get_pages_in_work(set(job_old_tasks), tasks_to_delete)
+
+    distribute(
+        db,
+        files,
+        job.annotators,
+        job.validators,
+        job.job_id,
+        job.validation_type,
+        deadline=job.deadline,
+        extensive_coverage=job.extensive_coverage,
+        pages_in_work=pages_in_work,
+    )
+
+    job_new_tasks = sorted(
+        (
+            db.query(ManualAnnotationTask)
+            .filter(ManualAnnotationTask.job_id == job.job_id)
+            .all()
+        ),
+        key=lambda x: len(x.pages),
+        reverse=True,
+    )
+
+    if job.status == JobStatusEnumSchema.in_progress:
+        set_task_statuses(job, job_new_tasks)
+        db.flush()
+
+    if all(
+        job_task.status == TaskStatusEnumSchema.finished
+        for job_task in job_new_tasks
+    ):
+        # finish job
+        try:
+            update_job_status(
+                job.callback_url,
+                JobStatusEnumSchema.finished,
+                x_current_tenant,
+                token,
+            )
+        except JobUpdateException as exc:
+            db.rollback()
+            raise HTTPException(
+                status_code=500,
+                detail=f"Error: connection error ({exc.exc_info})",
+            )
+        job.status = JobStatusEnumSchema.finished

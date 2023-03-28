@@ -1,4 +1,4 @@
-from collections import defaultdict
+from collections import Counter, defaultdict
 from typing import Any, DefaultDict, Dict, List, Optional, Set, Tuple, Union
 from uuid import UUID
 
@@ -193,7 +193,7 @@ def update_jobs_users(
     validation_type: ValidationSchema,
     tenant: str,
     is_manual: bool = True,
-) -> Optional[Set[UUID]]:
+) -> Tuple[Set[UUID], Set[UUID]]:
     new_annotators = patch_data.get("annotators", [])
     new_validators = patch_data.get("validators", [])
     new_owners = patch_data.get("owners", [])
@@ -203,19 +203,21 @@ def update_jobs_users(
         "owners": (new_owners, None),
     }
     new_users = {*new_annotators, *new_validators, *new_owners}
-    deleted_users = find_deleted_users(db, job_id, new_users, tenant)
+    deleted_users, saved_users = find_deleted_users(
+        db, job_id, new_users, tenant
+    )
     db_users = []
     if new_users:  # one query into DB for any possible user type provided
-        saved_users, added_users = find_users(db, new_users)
+        old_users, added_users = find_users(db, new_users)
         db.add_all(added_users)
-        db_users.extend(saved_users + added_users)
+        db_users.extend(old_users + added_users)
     if not is_manual:
         patch_data["annotators"], patch_data["validators"] = [], []
         if isinstance(new_owners, set):
             patch_data["owners"] = list(
                 {user for user in db_users if user.user_id in new_owners}
             )
-        return
+        return set(), set()
     # with specifying custom default iterable value in 'patch_data.get()' we
     # can make one query into database and also could check if user field
     # wasn't provided in query (empty list) or explicitly provided as empty set
@@ -228,7 +230,28 @@ def update_jobs_users(
             patch_data[user_type] = list(
                 {user for user in db_users if user.user_id in users}
             )
-    return deleted_users
+    return deleted_users, saved_users
+
+
+def get_users_to_save(
+    job: Job, new_job_data: dict, saved_users: set
+) -> Tuple[Set[UUID], Set[UUID]]:
+    old_annotators, old_validators = {
+        annotator.user_id for annotator in job.annotators
+    }, {validator.user_id for validator in job.validators}
+    new_annotators, new_validators = new_job_data.get(
+        "annotators", set()
+    ), new_job_data.get("validators", set())
+    annotators_to_save = (old_annotators - set(new_annotators)) & saved_users
+    validators_to_save = (old_validators - set(new_validators)) & saved_users
+    return annotators_to_save, validators_to_save
+
+
+def add_users(
+    db: Session, users: List[User], users_ids: Set[UUID]
+) -> List[User]:
+    users_to_add = db.query(User).filter(User.user_id.in_(users_ids)).all()
+    return list(set((*users, *users_to_add)))
 
 
 def update_job_categories(
@@ -437,18 +460,6 @@ def create_job(db: Session, job_info: JobInfoSchema):
     return job_info
 
 
-def clean_tasks_before_jobs_update(db: Session, job_id: int):
-    """Cleans tasks related to job with
-    auto_distribution flag before tasks recreation
-    """
-    tasks = (
-        db.query(ManualAnnotationTask)
-        .filter(ManualAnnotationTask.job_id == job_id)
-        .all()
-    )
-    delete_tasks(db, tasks)
-
-
 def delete_redundant_users(db: Session, users_ids: Set[UUID]):
     """Finds and deletes users who are not associated with any job"""
     annotators = db.query(User).join(association_job_annotator)
@@ -465,14 +476,19 @@ def delete_redundant_users(db: Session, users_ids: Set[UUID]):
 
 def find_deleted_users(
     db: Session, job_id: int, users_ids: Set[UUID], tenant: str
-) -> Set[UUID]:
+) -> Tuple[Set[UUID], Set[UUID]]:
     """Finds users who will be removed from job after update
     Updates overall load for deleted users and deletes job's tasks for them"""
     job_users_ids = find_jobs_users(db, job_id, tenant)
     deleted_users_ids = job_users_ids.difference(users_ids)
+    tasks_to_save = set()
+    users_to_save = set()
     if deleted_users_ids:
-        delete_tasks_for_removed_users(db, deleted_users_ids, job_id)
-    return deleted_users_ids
+        tasks_to_save = delete_tasks_for_removed_users(
+            db, deleted_users_ids, job_id
+        )
+        users_to_save = set(task.user_id for task in tasks_to_save)
+    return deleted_users_ids.difference(users_to_save), users_to_save
 
 
 def find_jobs_users(db: Session, job_id: int, tenant: str) -> Set[UUID]:
@@ -481,24 +497,6 @@ def find_jobs_users(db: Session, job_id: int, tenant: str) -> Set[UUID]:
     job_users = {*job.annotators, *job.validators, *job.owners}
     job_users_ids = {user.user_id for user in job_users}
     return job_users_ids
-
-
-def delete_tasks_for_removed_users(db: Session, users: Set[UUID], job_id: int):
-    """Deletes tasks for users that have been removed
-    from job's annotators or validators"""
-    for user_id in users:
-        task = (
-            db.query(ManualAnnotationTask)
-            .filter(
-                ManualAnnotationTask.job_id == job_id,
-                ManualAnnotationTask.user_id == user_id,
-            )
-            .first()
-        )
-        if task:
-            db.delete(task)
-            db.flush()
-            update_user_overall_load(db, user_id)
 
 
 def delete_tasks(db: Session, tasks: Set[ManualAnnotationTask]):
@@ -524,6 +522,34 @@ def delete_tasks(db: Session, tasks: Set[ManualAnnotationTask]):
     db.flush()
     for user_id in users:
         update_user_overall_load(db, user_id)
+
+
+def delete_tasks_for_removed_users(
+    db: Session, users: Set[UUID], job_id: int
+) -> Set[ManualAnnotationTask]:
+    """Deletes tasks for users that have been removed
+    from job's annotators or validators if tasks were not finished"""
+    tasks_to_save = set()
+    tasks_to_delete = set()
+    for user_id in users:
+        user_tasks = (
+            db.query(ManualAnnotationTask)
+            .filter(
+                ManualAnnotationTask.job_id == job_id,
+                ManualAnnotationTask.user_id == user_id,
+            )
+            .all()
+        )
+        for user_task in user_tasks:
+            if user_task.status == TaskStatusEnumSchema.finished:
+                tasks_to_save.add(user_task)
+                continue
+
+            tasks_to_delete.add(user_task)
+
+    delete_tasks(db, tasks_to_delete)
+
+    return tasks_to_save
 
 
 def collect_job_names(
@@ -555,3 +581,140 @@ def update_jobs_names(db: Session, jobs_names: Dict):
     for key, value in jobs_names.items():
         db.query(Job).filter(Job.job_id == key).update({Job.name: value})
     db.commit()
+
+
+FileInWork = List[Dict[str, Union[int, List[int]]]]
+PagesInWork = Dict[str, FileInWork]
+
+
+def get_pages_in_work(
+    job_tasks: Set[ManualAnnotationTask],
+    tasks_to_delete: Set[ManualAnnotationTask],
+) -> PagesInWork:
+    task_type = {
+        True: "validation",
+        False: "annotation",
+    }
+    pages_in_work = {}
+    tasks_in_work = set(job_tasks) - tasks_to_delete
+
+    for task_in_work in tasks_in_work:
+        pages_in_work.setdefault(
+            task_type[task_in_work.is_validation], []
+        ).append(
+            {
+                "file_id": task_in_work.file_id,
+                "pages_number": task_in_work.pages,
+            }
+        )
+
+    return pages_in_work
+
+
+def get_tasks_to_delete(
+    job_tasks: List[ManualAnnotationTask],
+) -> Set[ManualAnnotationTask]:
+    started_annotation_tasks = [
+        task
+        for task in job_tasks
+        if (
+            task.status
+            in {
+                TaskStatusEnumSchema.in_progress,
+                TaskStatusEnumSchema.finished,
+            }
+            and not task.is_validation
+        )
+    ]
+    unstarted_tasks = [
+        task
+        for task in job_tasks
+        if task.status
+        in {TaskStatusEnumSchema.pending, TaskStatusEnumSchema.ready}
+    ]
+    annotation_tasks_to_delete = [
+        task for task in unstarted_tasks if not task.is_validation
+    ]
+
+    validation_tasks_to_delete: List[ManualAnnotationTask] = []
+    # select validation tasks without starting annotations
+    for validation_task in (
+        task for task in unstarted_tasks if task.is_validation
+    ):
+        if not any(
+            task
+            for task in started_annotation_tasks
+            if (
+                task.file_id == validation_task.file_id,
+                task.pages == validation_task.pages,
+            )
+        ):
+            validation_tasks_to_delete.append(validation_task)
+
+    return set(annotation_tasks_to_delete + validation_tasks_to_delete)
+
+
+Task = Dict[str, Union[int, List[int], bool]]
+
+
+def remove_pages_in_work(tasks: List[Task], pages_in_work: FileInWork):
+    """Sort tasks by task pages and remove already started pages from tasks.
+    All operations are inplace."""
+    tasks.sort(key=lambda x: x["pages"])
+    pages_in_work.sort(key=lambda x: x["pages_number"])
+
+    for pages in pages_in_work:
+        pages_to_remove = set(pages["pages_number"])
+
+        for index, task in enumerate(tasks):
+            if pages["file_id"] == task["file_id"] and any(
+                page in task["pages"] for page in pages_to_remove
+            ):
+                same_pages = pages_to_remove.intersection(set(task["pages"]))
+                task["pages"] = [
+                    page for page in task["pages"] if page not in same_pages
+                ]
+                pages_to_remove.difference_update(same_pages)
+
+                if not task["pages"]:
+                    tasks.pop(index)
+
+                if not pages_to_remove:
+                    break
+
+
+def set_task_statuses(job: Job, job_new_tasks: List[ManualAnnotationTask]):
+    """Set statuses for job tasks."""
+    # collect all finished annotated pages
+    annotated_pages = defaultdict(Counter)
+    for job_task in job_new_tasks:
+        if (
+            not job_task.is_validation
+            and job_task.status == TaskStatusEnumSchema.finished
+        ):
+            annotated_pages[job_task.file_id].update(Counter(job_task.pages))
+
+    for job_task in job_new_tasks:
+        if job_task.status != TaskStatusEnumSchema.pending:
+            continue
+        if (
+            not job_task.is_validation
+            or job.validation_type == ValidationSchema.validation_only
+        ):
+            job_task.status = TaskStatusEnumSchema.ready
+            continue
+
+        finished_pages = annotated_pages.get(job_task.file_id, Counter())
+
+        if all(
+            page in finished_pages.keys()
+            and finished_pages[page] >= count * job.extensive_coverage
+            for page, count in Counter(job_task.pages).items()
+        ):
+            # validation task has all finished annotations
+            job_task.status = TaskStatusEnumSchema.ready
+            for page in job_task.pages:
+                if finished_pages[page] > 0:
+                    finished_pages[page] -= 1
+
+            annotated_pages[job_task.file_id] = finished_pages
