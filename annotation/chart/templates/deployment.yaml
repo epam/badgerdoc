@@ -71,6 +71,11 @@ spec:
             secretKeyRef:
               name: annotation
               key: S3_PASS  
+        - name: KEYCLOAK_HOST
+          valueFrom:
+            secretKeyRef:
+              name: users
+              key: KEYCLOAK_DIRECT_ENDPOINT_DEV1
         command: ["/bin/sh"]
         args: ["-c", "alembic upgrade head && uvicorn annotation.main:app --host 0.0.0.0 --port 8080 --root-path /api/v1/annotation"]
       dnsPolicy: ClusterFirst
