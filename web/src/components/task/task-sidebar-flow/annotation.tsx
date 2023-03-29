@@ -1,10 +1,10 @@
 import React, { FC } from 'react';
-import { Text } from '@epam/loveship';
-import styles from './styles.module.scss';
 import { Annotation } from 'shared';
 import { stringToRGBA } from 'shared/components/annotator/utils/string-to-rgba';
 import { ANNOTATION_FLOW_ITEM_ID_PREFIX } from 'shared/constants/annotations';
 import { ANNOTATION_PATH_SEPARATOR } from './constants';
+import { Text } from '@epam/loveship';
+import styles from './styles.module.scss';
 
 export const AnnotationRow: FC<
     Annotation & {
