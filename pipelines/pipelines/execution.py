@@ -275,12 +275,6 @@ class PipelineTask(BaseModel):
         initial_step = [step for step in self.steps if step.init_args][0]
         args = schemas.InputArguments.parse_obj(initial_step.init_args)
         tenant = s3.tenant_from_bucket(args.get_output_bucket())
-        if pipeline_type == schemas.PipelineTypes.INFERENCE:
-            preprecessing_passed = await self.check_preprocessing_status(
-                tenant
-            )
-            if not preprecessing_passed:
-                return
         logger.info(f"Start executing task with id = {self.id}")
         self.change_status(schemas.Status.RUN)
         self.send_status(pipeline_type=pipeline_type, tenant=tenant)
