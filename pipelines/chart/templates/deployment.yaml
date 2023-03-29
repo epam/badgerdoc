@@ -86,7 +86,7 @@ spec:
               name: pipelines
               key: PIPELINES_CLIENT_SECRET_KEY_DEV1
         command: ["/bin/sh"]
-        args: ["-c", "alembic upgrade head && uvicorn pipelines.app:app --host 0.0.0.0 --port 8080 --root-path /api/v1/pipelines"]
+        args: ["-c", "alembic upgrade head && uvicorn pipelines.app:app --host 0.0.0.0 --port 8080 --root-path /api/v1/pipelines --reload"]
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
