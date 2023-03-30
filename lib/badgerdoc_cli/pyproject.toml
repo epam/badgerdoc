@@ -8,7 +8,7 @@ dynamic = ["readme", "dependencies", "optional-dependencies"]
 [tool.setuptools.dynamic]
 readme = {file = ["README.md"]}
 dependencies = {file = "requirements.txt"}
-optional-dependencies.dev = {file = "requirements-dev.txt"}
+optional-dependencies.dev = {file = ["badgerdoc_cli", "requirements-dev.txt"]}
 
 [build-system]
 requires = ["setuptools>=67.0.0"]
