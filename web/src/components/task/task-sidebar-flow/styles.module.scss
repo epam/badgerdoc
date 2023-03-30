@@ -2,18 +2,24 @@
     display: flex;
     flex-direction: column;
     max-height: 100%;
-    padding: 20px;
+    padding: 8px;
+    height: 100%;
+    overflow: auto;
 }
 
 .item {
-    margin-bottom: 15px;
-    &:not(:last-child) {
-        border-bottom: 1px solid #acafbf;
-    }
+    padding: 8px;
+    overflow: unset;
+    cursor: pointer;
+    border-radius: unset;
+    border: 2px solid white;
+}
+
+.selectedAnnotation {
+    border-color: black;
 }
 
 .label {
-    cursor: pointer;
     padding: 5px;
     color: inherit !important;
     border: inherit !important;
@@ -26,7 +32,19 @@
 }
 
 .toolbar {
-    padding: 20px 20px 0 20px;
+    min-height: unset;
+    padding: 16px 16px 4px 16px;
+}
+
+.button {
+    & svg {
+        width: 12px;
+        height: 12px;
+    }
+}
+
+.counter {
+    padding: 0;
 }
 
 .tab {
@@ -47,7 +65,7 @@
 
 .hideIcon {
     outline: none;
-    width: 20px !important;
+    width: 16px !important;
     border: unset !important;
     box-shadow: unset !important;
     border-radius: 0 !important;

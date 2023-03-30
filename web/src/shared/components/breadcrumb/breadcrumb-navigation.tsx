@@ -10,7 +10,7 @@ type BreadcrumbNavigationProps = {
 };
 
 export const BreadcrumbNavigation: FC<BreadcrumbNavigationProps> = ({ breadcrumbs }) => (
-    <FlexRow>
+    <FlexRow cx={styles.container}>
         {breadcrumbs.map(({ name, url }, index) => (
             <React.Fragment key={name}>
                 {index > 0 && <IconContainer icon={navigation} />}

@@ -6,9 +6,10 @@ import styles from './task-document-pages.module.scss';
 
 export interface DocumentPageProps {
     viewMode: boolean;
+    additionalScale: number;
 }
 
-const TaskDocumentPages = ({ viewMode }: DocumentPageProps) => {
+const TaskDocumentPages = ({ viewMode, additionalScale }: DocumentPageProps) => {
     const {
         task,
         fileMetaInfo,
@@ -44,6 +45,7 @@ const TaskDocumentPages = ({ viewMode }: DocumentPageProps) => {
                 />
             )}
             <DocumentPages
+                additionalScale={additionalScale}
                 pageNumbers={pageNumbers}
                 fileMetaInfo={fileMetaInfo}
                 apiPageSize={pageSize}

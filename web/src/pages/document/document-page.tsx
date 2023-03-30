@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 import {
     DocumentPageSidebarContent,
@@ -17,6 +17,7 @@ import { useHistory } from 'react-router-dom';
 import { DOCUMENTS_PAGE, JOBS_PAGE, PREVIOUS_PAGE_JOB } from '../../shared/constants/general';
 import { BreadcrumbNavigation } from '../../shared/components/breadcrumb';
 import { FlowSideBar } from 'components/task/task-sidebar-flow/task-sidebar-flow';
+import { DocumentScale } from 'components/documents/document-scale/document-scale';
 
 export interface DocumentPageProps {
     fileMetaInfo: FileMetaInfo;
@@ -33,8 +34,14 @@ export interface DocumentPageProps {
     documentJobId?: number;
 }
 
-export function DocumentPage(props: DocumentPageProps) {
-    const { fileMetaInfo, documentJobsInfo, documentJobRevisionsInfo, documentJobId } = props;
+export function DocumentPage({
+    fileMetaInfo,
+    documentJobId,
+    documentJobsInfo,
+    documentJobRevisionsInfo
+}: DocumentPageProps) {
+    const [additionalScale, setAdditionalScale] = useState(0);
+
     const history = useHistory();
 
     const historyState = history.location.state as {
@@ -56,8 +63,11 @@ export function DocumentPage(props: DocumentPageProps) {
 
     return (
         <div className={styles['document-page']}>
-            <div className={styles['document-page-subheader']}>
-                <BreadcrumbNavigation breadcrumbs={crumbs} />
+            <div className={styles.header}>
+                <div className={styles['header__left-block']}>
+                    <BreadcrumbNavigation breadcrumbs={crumbs} />
+                    <DocumentScale scale={additionalScale} onChange={setAdditionalScale} />
+                </div>
             </div>
             <div className={styles['document-page-content']}>
                 <TaskAnnotatorContextProvider
@@ -70,7 +80,7 @@ export function DocumentPage(props: DocumentPageProps) {
                 >
                     <TableAnnotatorContextProvider>
                         <FlowSideBar />
-                        <TaskDocumentPages viewMode={true} />
+                        <TaskDocumentPages additionalScale={additionalScale} viewMode={true} />
                         <TaskSidebar
                             viewMode={true}
                             jobSettings={

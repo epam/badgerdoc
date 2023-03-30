@@ -1,15 +1,17 @@
 import React, { FC, useEffect, useRef, useState } from 'react';
-import { Button, ControlGroup, FlexRow, Text } from '@epam/loveship';
-import styles from './styles.module.scss';
-import { ScrollBars } from '@epam/uui-components';
-import { ReactComponent as leftIcon } from '@epam/assets/icons/common/navigation-chevron-left-18.svg';
-import { ReactComponent as rightIcon } from '@epam/assets/icons/common/navigation-chevron-right-18.svg';
+import { Button, FlexRow, Text } from '@epam/loveship';
 import { AnnotationRow } from './annotation';
 import { Annotation } from 'shared';
 import {
     ANNOTATION_FLOW_ITEM_ID_PREFIX,
     ANNOTATION_LABEL_ID_PREFIX
 } from 'shared/constants/annotations';
+
+import styles from './styles.module.scss';
+import { ReactComponent as goLastIcon } from '@epam/assets/icons/common/navigation-chevron-down_down-18.svg';
+import { ReactComponent as goNextIcon } from '@epam/assets/icons/common/navigation-chevron-down-18.svg';
+import { ReactComponent as goPrevIcon } from '@epam/assets/icons/common/navigation-chevron-up-18.svg';
+import { ReactComponent as goFirstIcon } from '@epam/assets/icons/common/navigation-chevron-up_up-18.svg';
 
 export const AnnotationList: FC<{
     list: Annotation[];
@@ -56,44 +58,63 @@ export const AnnotationList: FC<{
         handleSelect(nextIndex);
     };
 
+    const isOnFirstElement = !selectedIndex || !isSelectedInCurrentView;
+    const isOnLastElement = !isSelectedInCurrentView || selectedIndex === list.length - 1;
+
     return (
         <>
             <FlexRow cx={styles.toolbar}>
-                <ControlGroup>
-                    <Button
-                        fill="white"
-                        icon={leftIcon}
-                        onClick={handleGoPrev}
-                        rawProps={{ 'data-testid': 'flow-prev-button' }}
-                        isDisabled={!selectedIndex || !isSelectedInCurrentView}
-                    />
-                    <Button
-                        fill="white"
-                        icon={rightIcon}
-                        onClick={handleGoNext}
-                        rawProps={{ 'data-testid': 'flow-next-button' }}
-                        isDisabled={!isSelectedInCurrentView || selectedIndex === list.length - 1}
-                    />
-                </ControlGroup>
+                <Button
+                    size="24"
+                    fill="white"
+                    icon={goLastIcon}
+                    cx={styles.button}
+                    isDisabled={!list.length || selectedIndex === list.length - 1}
+                    onClick={() => handleSelect(list.length - 1)}
+                />
+                <Button
+                    size="24"
+                    fill="white"
+                    icon={goNextIcon}
+                    cx={styles.button}
+                    onClick={handleGoNext}
+                    isDisabled={isOnLastElement}
+                    rawProps={{ 'data-testid': 'flow-next-button' }}
+                />
+                <Button
+                    size="24"
+                    fill="white"
+                    icon={goPrevIcon}
+                    cx={styles.button}
+                    onClick={handleGoPrev}
+                    isDisabled={isOnFirstElement}
+                />
+                <Button
+                    size="24"
+                    fill="white"
+                    icon={goFirstIcon}
+                    cx={styles.button}
+                    onClick={() => handleSelect(0)}
+                    isDisabled={isOnFirstElement}
+                    rawProps={{ 'data-testid': 'flow-prev-button' }}
+                />
                 {!isSelectedInCurrentView ? null : (
-                    <Text color="night500">
+                    <Text color="night500" cx={styles.counter}>
                         {selectedIndex + 1} of {list.length}
                     </Text>
                 )}
             </FlexRow>
-            <ScrollBars>
-                <div className={styles.listContainer} ref={containerRef}>
-                    {list.map((annotation, index) => (
-                        <AnnotationRow
-                            {...annotation}
-                            index={index}
-                            key={annotation.id}
-                            onSelect={handleSelect}
-                            selectedAnnotationId={selectedAnnotationId}
-                        />
-                    ))}
-                </div>
-            </ScrollBars>
+            <div className={styles.listContainer} ref={containerRef}>
+                {list.map((annotation, index) => (
+                    <AnnotationRow
+                        {...annotation}
+                        index={index}
+                        key={annotation.id}
+                        onSelect={handleSelect}
+                        selectedAnnotationId={selectedAnnotationId}
+                    />
+                ))}
+            </div>
         </>
     );
 };

@@ -1,9 +1,9 @@
-import React, { FC, useEffect, useMemo } from 'react';
+import React, { FC, useEffect, useMemo, useState } from 'react';
 import TaskDocumentPages from 'components/task/task-document-pages/task-document-pages';
 import TaskSidebar from 'components/task/task-sidebar/task-sidebar';
 import { TaskAnnotatorContextProvider } from 'connectors/task-annotator-connector/task-annotator-context';
 import { matchPath, useHistory, useLocation, useParams } from 'react-router-dom';
-import { Button, FlexRow, FlexSpacer, Panel, Text } from '@epam/loveship';
+import { Button, Panel, Text } from '@epam/loveship';
 import { ApiError } from 'api/api-error';
 import { useNotifications } from 'shared/components/notifications';
 import { TableAnnotatorContextProvider } from '../../shared/components/annotator/context/table-annotator-context';
@@ -14,8 +14,11 @@ import { getError } from 'shared/helpers/get-error';
 import { ANNOTATION_PAGE } from 'shared/constants/general';
 import styles from './task-page.module.scss';
 import { FlowSideBar } from 'components/task/task-sidebar-flow/task-sidebar-flow';
+import { DocumentScale } from 'components/documents/document-scale/document-scale';
 
 const TaskPage: FC = () => {
+    const [additionalScale, setAdditionalScale] = useState(0);
+
     const { pathname } = useLocation();
     const { taskId } = useParams<{ taskId: string }>();
     const history = useHistory<Record<string, string | undefined>>();
@@ -83,22 +86,26 @@ const TaskPage: FC = () => {
             onSaveTaskError={handleSaveTaskError}
         >
             <div className="flex-col">
-                <FlexRow cx={styles.title}>
-                    <BreadcrumbNavigation breadcrumbs={crumbs} />
-                    <FlexSpacer />
-                    {nextTaskId && (
-                        <Button
-                            size="30"
-                            fill="white"
-                            caption="Next"
-                            onClick={handleRedirectToNextTask}
-                        />
-                    )}
-                </FlexRow>
+                <div className={styles.title}>
+                    <div className={styles['title__left-block']}>
+                        <BreadcrumbNavigation breadcrumbs={crumbs} />
+                        <DocumentScale scale={additionalScale} onChange={setAdditionalScale} />
+                    </div>
+                    <div className={styles['title__right-block']}>
+                        {nextTaskId && (
+                            <Button
+                                size="30"
+                                fill="white"
+                                caption="Next"
+                                onClick={handleRedirectToNextTask}
+                            />
+                        )}
+                    </div>
+                </div>
                 <div className={styles.content}>
                     <TableAnnotatorContextProvider>
                         <FlowSideBar />
-                        <TaskDocumentPages viewMode={false} />
+                        <TaskDocumentPages additionalScale={additionalScale} viewMode={false} />
                         <TaskSidebar viewMode={false} isNextTaskPresented={Boolean(nextTaskId)} />
                     </TableAnnotatorContextProvider>
                 </div>
