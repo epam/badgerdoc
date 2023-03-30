@@ -50,10 +50,9 @@
         "start": "react-scripts start",
         "build": "react-scripts build",
         "test": "react-scripts test",
-        "test:jest:coverage": "yarn test:jest --coverage",
-        "test:jest": "npx jest --config config/jest/jest.config.ts",
-        "eject": "react-scripts eject",
-        "lint:js": "eslint . --ext .js,.ts,.tsx",
+        "test:ci": "yarn test --runInBand --passWithNoTests --verbose --watchAll=false",
+        "test:coverage": "yarn test --coverage --watchAll=false",
+        "lint:js": "eslint . --ext .js,.ts,.tsx --max-warnings=0",
         "lint:types": "tsc -p tsconfig.json --noEmit",
         "hooks:i": "npx simple-git-hooks",
         "prettier": "prettier ./src/**/*.{ts,tsx,js} --write"
@@ -72,7 +71,7 @@
     },
     "simple-git-hooks": {
         "pre-commit": "cd web && yarn lint:js --fix && yarn lint:types",
-        "pre-push": "cd web && yarn test --runInBand --passWithNoTests --verbose --watchAll=false"
+        "pre-push": "cd web && yarn test:ci"
     },
     "resolutions": {
         "node-sass": "npm:sass",

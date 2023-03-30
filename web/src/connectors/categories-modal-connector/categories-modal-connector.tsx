@@ -62,7 +62,7 @@ export const ModalWithDisabledClickOutsideAndCross: FC<IProps> = (props) => {
     const [parentValue, setParentValue] = useState<string | null>(parenProps);
     const { page, pageSize } = pageConfig;
     const { notifyError, notifySuccess } = useNotifications();
-    const { data: categories, refetch: refetchCategory } = useCategories(
+    const { refetch: refetchCategory } = useCategories(
         { page, size: pageSize, sortConfig } as QueryHookParamsType<Category>,
         {}
     );

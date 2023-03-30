@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState, useContext, useCallback } from 'react';
+import React, { useEffect, useMemo, useRef, useState, useContext } from 'react';
 import styles from './documents-table-connector.module.scss';
 import {
     Button,
