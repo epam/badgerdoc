@@ -285,7 +285,7 @@ export const mapAnnotationFromApi = (
 ): Annotation => {
     let taxonName: string | undefined;
 
-    if (obj.data.dataAttributes) {
+    if (obj.data?.dataAttributes) {
         const dataAttr: CategoryDataAttributeWithValue = obj.data.dataAttributes.find(
             (attr: CategoryDataAttributeWithValue) => attr.type === 'taxonomy'
         );
