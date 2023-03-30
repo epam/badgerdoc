@@ -103,6 +103,7 @@ export const CategoriesTab = ({ boundModeSwitch, setBoundModeSwitch }: Categorie
             {categoriesTypes.length > 1 && (
                 <FlexCell width="auto" cx={styles.categoriesAndLinks__wrapper}>
                     <MultiSwitch
+                        size="30"
                         items={categoriesTypes}
                         value={boundModeSwitch}
                         onValueChange={

@@ -21,7 +21,7 @@ import annotation.categories.services
 from annotation import logger as app_logger
 from annotation.categories import fetch_bunch_categories_db
 from annotation.database import get_db
-from annotation.distribution import distribute
+from annotation.distribution import distribute, redistribute
 from annotation.filters import CategoryFilter
 from annotation.microservice_communication.assets_communication import (
     get_files_info,
@@ -62,13 +62,14 @@ from ..models import (
     User,
 )
 from .services import (
-    clean_tasks_before_jobs_update,
+    add_users,
     collect_job_names,
     delete_redundant_users,
     filter_job_categories,
     find_users,
     get_job,
     get_jobs_by_files,
+    get_users_to_save,
     update_inner_job_status,
     update_job_categories,
     update_job_files,
@@ -249,7 +250,12 @@ def update_job(
             detail="There should be no annotators or validators provided "
             f"for {job.job_type}.",
         )
-    deleted_users = update_jobs_users(
+    job.validation_type = patch_data.get(
+        "validation_type", job.validation_type
+    )
+    db.flush()
+
+    deleted_users, saved_users = update_jobs_users(
         db,
         job_id,
         patch_data,
@@ -257,6 +263,10 @@ def update_job(
         x_current_tenant,
         is_manual,
     )
+    annotators_to_save, validators_to_save = get_users_to_save(
+        job, patch_data, saved_users
+    )
+
     update_job_categories(db, patch_data, x_current_tenant)
     validate_job_extensive_coverage(patch_data, job)
     for field, value in patch_data.items():
@@ -265,21 +275,11 @@ def update_job(
     if deleted_users:
         delete_redundant_users(db, deleted_users)
     if job.is_auto_distribution:
-        files = [
-            {"file_id": file.file_id, "pages_number": file.pages_number}
-            for file in job.files
-        ]
         db.flush()
-        clean_tasks_before_jobs_update(db, job_id)
-        distribute(
-            db,
-            files,
-            job.annotators,
-            job.validators,
-            job_id,
-            job.validation_type,
-            deadline=job.deadline,
-        )
+        redistribute(db, token.token, x_current_tenant, job)
+    # add saved tasks users who have been removed for redistribution
+    job.annotators = add_users(db, job.annotators, annotators_to_save)
+    job.validators = add_users(db, job.validators, validators_to_save)
     db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 

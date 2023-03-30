@@ -1,4 +1,5 @@
 import pytest
+
 import users.keycloak.schemas as kc_schemas
 
 user_1 = kc_schemas.User(username="user", id="1")

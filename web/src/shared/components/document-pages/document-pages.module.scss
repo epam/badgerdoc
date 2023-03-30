@@ -34,10 +34,7 @@
         height: 36px;
         border: solid 1px $btn-border;
         background-color: white;
-        display: flex;
-        align-items: center;
         justify-content: center;
-        cursor: pointer;
 
         &--active {
             background-color: #474a5a;
@@ -45,6 +42,10 @@
                 fill: white;
             }
         }
+    }
+
+    &__icon {
+        align-items: center !important;
     }
 }
 

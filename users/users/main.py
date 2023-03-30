@@ -1,11 +1,8 @@
+import os
 from typing import Any, Callable, Dict, List, Optional
 
 import aiohttp
 import pydantic
-import users.config as conf
-import users.keycloak.query as kc_query
-import users.keycloak.schemas as kc_schemas
-import users.keycloak.utils as kc_utils
 from aiohttp.web_exceptions import HTTPException as AIOHTTPException
 from apscheduler.schedulers.background import BackgroundScheduler
 from email_validator import EmailNotValidError, validate_email
@@ -14,33 +11,29 @@ from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from tenant_dependency import TenantData, get_tenant_info
 from urllib3.exceptions import MaxRetryError
-from users import s3, utils
-from users.config import (
-    KEYCLOAK_ROLE_ADMIN,
-    KEYCLOAK_USERS_PUBLIC_KEY,
-    ROOT_PATH,
-)
+
+import users.config as conf
+import users.keycloak.query as kc_query
+import users.keycloak.schemas as kc_schemas
+import users.keycloak.utils as kc_utils
+from users import s3, service_account, utils
+from users.config import (KEYCLOAK_ROLE_ADMIN, KEYCLOAK_SYSTEM_USER_SECRET,
+                          ROOT_PATH)
 from users.logger import Logger
 from users.schemas import Users
 
-CLIENT_VIEWS_USERS_ACCESS_TOKEN_DATA = {}
-
-
 app = FastAPI(title="users", root_path=ROOT_PATH, version="0.1.3")
-
-
-@app.on_event("startup")
-async def startup_event():
-    CLIENT_VIEWS_USERS_ACCESS_TOKEN_DATA[
-        "ACCESS_TOKEN"
-    ] = await kc_schemas.ClientViewsUsersAccessToken.create_instance()
-
 
 realm = conf.KEYCLOAK_REALM
 minio_client = s3.get_minio_client()
 
+KEYCLOAK_HOST = os.getenv("KEYCLOAK_HOST")
+
 tenant = get_tenant_info(
-    KEYCLOAK_USERS_PUBLIC_KEY, algorithm="RS256", debug=True
+    KEYCLOAK_SYSTEM_USER_SECRET,
+    algorithm="RS256",
+    url=KEYCLOAK_HOST,
+    debug=True,
 )
 
 
@@ -50,19 +43,13 @@ def check_authorization(token: TenantData, role: str) -> None:
 
 
 @app.middleware("http")
-async def request_error_handler(
-    request: Request, call_next: Callable[..., Any]
-) -> Any:
+async def request_error_handler(request: Request, call_next: Callable[..., Any]) -> Any:
     try:
         return await call_next(request)
     except aiohttp.ClientResponseError as err:
-        return JSONResponse(
-            status_code=err.status, content={"detail": err.message}
-        )
+        return JSONResponse(status_code=err.status, content={"detail": err.message})
     except AIOHTTPException as err:
-        return JSONResponse(
-            status_code=err.status_code, content={"detail": err.reason}
-        )
+        return JSONResponse(status_code=err.status_code, content={"detail": err.reason})
 
 
 @app.post(
@@ -115,9 +102,7 @@ async def user_registration(
         realm=realm, token=token.token, email=email, exact="true"
     )
     user_id = user[0].id
-    await kc_query.execute_action_email(
-        token=token.token, realm=realm, user_id=user_id
-    )
+    await kc_query.execute_action_email(token=token.token, realm=realm, user_id=user_id)
     return {"detail": "User has been created"}
 
 
@@ -157,37 +142,20 @@ async def get_user(
     current_tenant: Optional[str] = Header(None, alias="X-Current-Tenant"),
 ) -> kc_schemas.User:
     """Get user from realm."""
-    return await kc_query.get_user(realm, token.token, user_id)
+    token_ = await service_account.auth_token.get_token()
+    # TODO: get tenants from token and check if returned users tenant present
+    # in current user tenants
+    # Also, remove private data, if requested using token_
+    return await kc_query.get_user(realm, token_, user_id)
 
 
-@app.get(
-    "/get_username_by_user_id",
-    status_code=200,
-    tags=["users"],
-)
-async def get_username_by_user_id(
-    user_id: str,
-    token: TenantData = Depends(tenant),
-    current_tenant: Optional[str] = Header(None, alias="X-Current-Tenant"),
-) -> str:
-    """Get username by its user_id with any valid token."""
-    result = await kc_utils.get_username(
-        CLIENT_VIEWS_USERS_ACCESS_TOKEN_DATA["ACCESS_TOKEN"], user_id
-    )
-    return result.username
-
-
-@app.get(
-    "/tenants", status_code=200, response_model=List[str], tags=["tenants"]
-)
+@app.get("/tenants", status_code=200, response_model=List[str], tags=["tenants"])
 async def get_tenants(
     token: TenantData = Depends(tenant),
     current_tenant: Optional[str] = Header(None, alias="X-Current-Tenant"),
 ) -> List[str]:
     """Get all tenants."""
-    return [
-        group.name for group in await kc_query.get_groups(realm, token.token)
-    ]
+    return [group.name for group in await kc_query.get_groups(realm, token.token)]
 
 
 @app.post(
@@ -207,9 +175,7 @@ async def create_tenant(
     try:
         s3.create_bucket(minio_client, bucket)
     except MaxRetryError:
-        raise HTTPException(
-            status_code=503, detail="Cannot connect to the Minio."
-        )
+        raise HTTPException(status_code=503, detail="Cannot connect to the Minio.")
     tenant_ = kc_schemas.Group(name=tenant)
     await kc_query.create_group(realm, token.token, tenant_)
     return {"detail": "Tenant has been created"}
@@ -275,9 +241,7 @@ async def get_users_by_filter(
             role=filters.get("role").value,  # type: ignore
         )
     else:
-        users_list = await kc_query.get_users_v2(
-            realm=realm, token=token.token
-        )
+        users_list = await kc_query.get_users_v2(realm=realm, token=token.token)
 
     users_list = kc_schemas.User.filter_users(
         users=users_list,
@@ -308,7 +272,8 @@ async def get_idp_names_and_SSOauth_links() -> Dict[str, List[Dict[str, str]]]:
 
 @app.on_event("startup")
 def periodic() -> None:
-    if not conf.S3_CREDENTIALS_PROVIDER == "aws_iam":
+    # TODO: test if it's still working and needed
+    if not conf.S3_PROVIDER == "aws_iam":
         Logger.info("Background task 'delete_file_after_7_days' is turned off")
         scheduler = BackgroundScheduler()
         scheduler.add_job(

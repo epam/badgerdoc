@@ -1,4 +1,4 @@
-@import "~shared/helpers/styles";
+@import '~shared/helpers/styles';
 
 .categories {
     padding-top: 10px;
@@ -102,4 +102,9 @@
 .search {
     width: 294px;
     margin: 0 auto;
+}
+
+.container {
+    flex: 1;
+    position: relative;
 }

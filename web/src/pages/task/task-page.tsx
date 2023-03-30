@@ -12,9 +12,8 @@ import { BreadcrumbNavigation } from '../../shared/components/breadcrumb';
 import { useNextAndPreviousTask, useSetTaskState } from 'api/hooks/tasks';
 import { getError } from 'shared/helpers/get-error';
 import { ANNOTATION_PAGE } from 'shared/constants/general';
-import { FlowSideBar } from 'components/task/task-sidebar-flow';
-
 import styles from './task-page.module.scss';
+import { FlowSideBar } from 'components/task/task-sidebar-flow/task-sidebar-flow';
 
 const TaskPage: FC = () => {
     const { pathname } = useLocation();
@@ -88,10 +87,15 @@ const TaskPage: FC = () => {
                     <BreadcrumbNavigation breadcrumbs={crumbs} />
                     <FlexSpacer />
                     {nextTaskId && (
-                        <Button fill="white" caption="Next" onClick={handleRedirectToNextTask} />
+                        <Button
+                            size="30"
+                            fill="white"
+                            caption="Next"
+                            onClick={handleRedirectToNextTask}
+                        />
                     )}
                 </FlexRow>
-                <div className={`${styles.content}`}>
+                <div className={styles.content}>
                     <TableAnnotatorContextProvider>
                         <FlowSideBar />
                         <TaskDocumentPages viewMode={false} />

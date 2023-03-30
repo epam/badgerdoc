@@ -1,7 +1,6 @@
 from annotation.jobs.services import (
     check_annotators,
     check_validators,
-    clean_tasks_before_jobs_update,
     collect_job_names,
     create_user,
     delete_redundant_users,
@@ -27,7 +26,6 @@ __all__ = [
     check_annotators,
     check_validators,
     collect_job_names,
-    clean_tasks_before_jobs_update,
     delete_redundant_users,
     delete_tasks,
 ]

@@ -1,3 +1,5 @@
+import logging
+import os
 from typing import Any, Dict, Optional, Union
 
 import jwt
@@ -8,12 +10,16 @@ from fastapi.security.utils import get_authorization_scheme_param
 
 from .schema import SupportedAlgorithms, TenantData
 
+logger = logging.getLogger(__name__)
+logger.setLevel(os.getenv("LOG_LEVEL", "INFO"))
+
 
 class TenantDependencyBase:
     def __init__(
         self,
         key: str = "",
         algorithm: str = "RS256",
+        # TODO: Fix type from bagerdoc to badgerdoc
         url: str = "http://bagerdoc-keycloack",
     ) -> None:
         """
@@ -46,6 +52,9 @@ class TenantDependencyBase:
             )
         _, token = get_authorization_scheme_param(authorization)
         decoded: Dict[str, Any] = {}
+        logger.debug(
+            "Decoding token: %s, with algorithm %s", token, self.algorithm
+        )
         if self.algorithm == SupportedAlgorithms.HS256:
             decoded = self.decode_hs256(token)
         elif self.algorithm == SupportedAlgorithms.RS256:
@@ -64,6 +73,7 @@ class TenantDependencyBase:
             )
 
         if not (sub and roles and tenants):
+            logger.debug("Sub %s, roles: %s, tenants: %s", sub, roles, tenants)
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Wrong data provided in jwt!",
@@ -88,6 +98,7 @@ class TenantDependencyBase:
                 detail="Token is expired!",
             )
         except (jwt.PyJWTError, jwt.exceptions.DecodeError):
+            logger.exception("Cannot decode invalid hs256 token")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Token is invalid!",
@@ -106,6 +117,7 @@ class TenantDependencyBase:
                 detail="Token is expired!",
             )
         except (jwt.PyJWTError, jwt.exceptions.DecodeError):
+            logger.exception("Cannot decode invalid rs256 token")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Token is invalid!",

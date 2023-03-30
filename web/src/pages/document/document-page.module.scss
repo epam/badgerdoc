@@ -4,28 +4,15 @@
     flex-direction: column;
 
     &-subheader {
-        margin-left: 55px;
-        display: flex;
-        align-items: center;
-        padding: 22px 28px 24px 28px;
-        gap: 10px;
-        &-title {
-            font-size: 16px;
-        }
-
-        &-caption {
-            font-size: 16px;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
+        padding: 10px 20px;
     }
 }
 
 .document-page-content {
     flex: 1;
     display: grid;
-    grid-template-columns: 1fr 320px;
+    grid-template-columns: max-content 1fr max-content;
     gap: 1rem;
-    padding: 0 4rem 1rem 1rem;
+    padding: 0 0 1rem 0;
     height: 0;
 }

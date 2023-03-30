@@ -27,7 +27,7 @@ POSTGRESQL_JOBMANAGER_DATABASE_URI = os.environ.get(
 PIPELINES_URI = os.environ.get("PIPELINES_URI")
 ASSETS_URI = os.environ.get("ASSETS_URI")
 ANNOTATION_MICROSERVICE_URI = os.environ.get("ANNOTATION_MICROSERVICE_URI")
-KEYCLOAK_HOST = os.environ.get("KEYCLOAK_HOST", "http://dev1.badgerdoc.com")
+KEYCLOAK_HOST = os.environ.get("KEYCLOAK_HOST", "")
 USERS_HOST = os.environ.get("USERS_HOST")
 
 HOST_PIPELINES = "http://pipelines"

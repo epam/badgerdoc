@@ -314,3 +314,75 @@ def separate_files_1_2_data_from_dataset_manager():
         ],
     }
     return separate_files_1_2_data_from_dataset_manager
+
+
+@pytest.fixture
+def user1_data():
+    user1_data = {
+        "access": {
+            "manageGroupMembership": False,
+            "view": True,
+            "mapRoles": False,
+            "impersonate": False,
+            "manage": False,
+        },
+        "attributes": {"tenants": ["test"]},
+        "clientConsents": None,
+        "clientRoles": None,
+        "createdTimestamp": 1645544502633,
+        "credentials": None,
+        "disableableCredentialTypes": [],
+        "email": None,
+        "emailVerified": False,
+        "enabled": True,
+        "federatedIdentities": [],
+        "federationLink": None,
+        "firstName": None,
+        "groups": None,
+        "id": "45526cca-291a-405e-8234-6088454e18c4",
+        "lastName": None,
+        "notBefore": 0,
+        "origin": None,
+        "realmRoles": None,
+        "requiredActions": [],
+        "self": None,
+        "serviceAccountClientId": None,
+        "username": "annotator",
+    }
+    return user1_data
+
+
+@pytest.fixture
+def user2_data():
+    user2_data = {
+        "access": {
+            "manageGroupMembership": False,
+            "view": True,
+            "mapRoles": False,
+            "impersonate": False,
+            "manage": False,
+        },
+        "attributes": None,
+        "clientConsents": None,
+        "clientRoles": None,
+        "createdTimestamp": 1672758840502,
+        "credentials": None,
+        "disableableCredentialTypes": [],
+        "email": "annotator2@maiil.com",
+        "emailVerified": True,
+        "enabled": True,
+        "federatedIdentities": [],
+        "federationLink": None,
+        "firstName": "annotator2",
+        "groups": None,
+        "id": "3675d181-9d31-4d59-91fc-9b24e3a8e486",
+        "lastName": "annotatorov",
+        "notBefore": 0,
+        "origin": None,
+        "realmRoles": None,
+        "requiredActions": [],
+        "self": None,
+        "serviceAccountClientId": None,
+        "username": "annotator2",
+    }
+    return user2_data

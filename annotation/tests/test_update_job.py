@@ -1,4 +1,5 @@
 import os
+from collections import Counter
 from unittest.mock import Mock, patch
 
 import responses
@@ -12,6 +13,7 @@ from annotation.models import (
     Category,
     File,
     Job,
+    ManualAnnotationTask,
     User,
     association_job_annotator,
     association_job_category,
@@ -23,6 +25,7 @@ from annotation.schemas import (
     FileStatusEnumSchema,
     JobStatusEnumSchema,
     JobTypeEnumSchema,
+    TaskStatusEnumSchema,
     ValidationSchema,
 )
 from tests.consts import POST_JOBS_PATH
@@ -736,3 +739,207 @@ def test_update_jobs_name_from_db_or_microservice(
     job_name = session.query(Job.name).filter(Job.job_id == job_id).scalar()
     assert response.status_code == 204
     assert job_name == expected_result
+
+
+REDISTRIBUTE_TASKS_USERS = [
+    "11ec1df0-516d-4905-a902-fbd1ed99a49d",
+    "12ec1df0-526d-4905-a902-fbd1ed99a49d",
+    "13ec1df0-536d-4905-a902-fbd1ed99a49d",
+    "14ec1df0-546d-4905-a902-fbd1ed99a49d",
+]
+NEW_REDISTRIBUTE_TASKS_USER = User(
+    user_id="15ec1df0-556d-4905-a902-fbd1ed99a49d"
+)
+REDISTRIBUTE_TASKS_CATEGORIES = [
+    Category(id="Test123", name="Test1", type=CategoryTypeSchema.box),
+    Category(id="Test234", name="Test2", type=CategoryTypeSchema.box),
+]
+NEW_REDISTRIBUTE_TASKS_CATEGORY = Category(
+    id="Test345", name="Test2", type=CategoryTypeSchema.box
+)
+REDISTRIBUTE_TASKS_FILE = File(
+    file_id=654321,
+    tenant=TEST_TENANT,
+    job_id=1234567,
+    pages_number=6,
+    distributed_annotating_pages=[6],
+    annotated_pages=[1, 2],
+    distributed_validating_pages=[6],
+    status=FileStatusEnumSchema.pending,
+)
+REDISTRIBUTE_TASKS_JOB = Job(
+    job_id=REDISTRIBUTE_TASKS_FILE.job_id,
+    callback_url="http://www.test.com/test1",
+    annotators=[
+        User(user_id=REDISTRIBUTE_TASKS_USERS[0]),
+        User(user_id=REDISTRIBUTE_TASKS_USERS[1]),
+        User(user_id=REDISTRIBUTE_TASKS_USERS[2]),
+    ],
+    validators=[User(user_id=REDISTRIBUTE_TASKS_USERS[3])],
+    validation_type=ValidationSchema.extensive_coverage,
+    extensive_coverage=2,
+    files=[REDISTRIBUTE_TASKS_FILE],
+    is_auto_distribution=True,
+    categories=REDISTRIBUTE_TASKS_CATEGORIES,
+    deadline=None,
+    tenant=TEST_TENANT,
+    status=JobStatusEnumSchema.in_progress,
+)
+NEW_EXTENSIVE_COVERAGE = 3
+REDISTRIBUTED_TASKS = [
+    {
+        "id": 11,
+        "file_id": REDISTRIBUTE_TASKS_FILE.file_id,
+        "pages": [1, 2],
+        "job_id": REDISTRIBUTE_TASKS_FILE.job_id,
+        "user_id": REDISTRIBUTE_TASKS_USERS[0],
+        "is_validation": False,
+        "status": TaskStatusEnumSchema.finished,
+        "deadline": None,
+    },
+    {
+        "id": 12,
+        "file_id": REDISTRIBUTE_TASKS_FILE.file_id,
+        "pages": [1, 2],
+        "job_id": REDISTRIBUTE_TASKS_FILE.job_id,
+        "user_id": REDISTRIBUTE_TASKS_USERS[1],
+        "is_validation": False,
+        "status": TaskStatusEnumSchema.in_progress,
+        "deadline": None,
+    },
+    {
+        "id": 21,
+        "file_id": REDISTRIBUTE_TASKS_FILE.file_id,
+        "pages": [3, 4],
+        "job_id": REDISTRIBUTE_TASKS_FILE.job_id,
+        "user_id": REDISTRIBUTE_TASKS_USERS[1],
+        "is_validation": False,
+        "status": TaskStatusEnumSchema.in_progress,
+        "deadline": None,
+    },
+    {
+        "id": 22,
+        "file_id": REDISTRIBUTE_TASKS_FILE.file_id,
+        "pages": [3, 4],
+        "job_id": REDISTRIBUTE_TASKS_FILE.job_id,
+        "user_id": REDISTRIBUTE_TASKS_USERS[2],
+        "is_validation": False,
+        "status": TaskStatusEnumSchema.ready,
+        "deadline": None,
+    },
+    {
+        "id": 31,
+        "file_id": REDISTRIBUTE_TASKS_FILE.file_id,
+        "pages": [5, 6],
+        "job_id": REDISTRIBUTE_TASKS_FILE.job_id,
+        "user_id": REDISTRIBUTE_TASKS_USERS[2],
+        "is_validation": False,
+        "status": TaskStatusEnumSchema.ready,
+        "deadline": None,
+    },
+    {
+        "id": 32,
+        "file_id": REDISTRIBUTE_TASKS_FILE.file_id,
+        "pages": [5, 6],
+        "job_id": REDISTRIBUTE_TASKS_FILE.job_id,
+        "user_id": REDISTRIBUTE_TASKS_USERS[1],
+        "is_validation": False,
+        "status": TaskStatusEnumSchema.ready,
+        "deadline": None,
+    },
+    {
+        "id": 41,
+        "file_id": REDISTRIBUTE_TASKS_FILE.file_id,
+        "pages": [1, 2, 3, 4, 5, 6],
+        "job_id": REDISTRIBUTE_TASKS_FILE.job_id,
+        "user_id": REDISTRIBUTE_TASKS_USERS[3],
+        "is_validation": True,
+        "status": TaskStatusEnumSchema.pending,
+        "deadline": None,
+    },
+]
+
+
+@mark.integration
+def test_update_jobs_delete_annotator(
+    monkeypatch, prepare_db_for_redistribute_tasks
+):
+    session = prepare_db_for_redistribute_tasks
+    monkeypatch.setattr(
+        "annotation.jobs.services.get_job_names",
+        Mock(return_value={REDISTRIBUTE_TASKS_JOB.job_id: "job_name"}),
+    )
+
+    response = client.patch(
+        f"{POST_JOBS_PATH}/{REDISTRIBUTE_TASKS_JOB.job_id}",
+        json={
+            "annotators": [
+                REDISTRIBUTE_TASKS_USERS[1],
+                REDISTRIBUTE_TASKS_USERS[2],
+                NEW_REDISTRIBUTE_TASKS_USER.user_id,
+            ],
+            "categories": [
+                *[category.id for category in REDISTRIBUTE_TASKS_CATEGORIES],
+                NEW_REDISTRIBUTE_TASKS_CATEGORY.id,
+            ],
+            "extensive_coverage": NEW_EXTENSIVE_COVERAGE,
+        },
+        headers=TEST_HEADERS,
+    )
+
+    assert response.status_code == 204
+
+    tasks = (
+        session.query(ManualAnnotationTask)
+        .filter_by(job_id=REDISTRIBUTE_TASKS_JOB.job_id)
+        .all()
+    )
+    job = (
+        session.query(Job)
+        .filter_by(job_id=REDISTRIBUTE_TASKS_JOB.job_id)
+        .all()
+    )
+    job_file = (
+        session.query(File)
+        .filter_by(job_id=REDISTRIBUTE_TASKS_JOB.job_id)
+        .all()
+    )
+
+    assert any(
+        task for task in tasks if task.id == REDISTRIBUTED_TASKS[0]["id"]
+    )
+    assert all(
+        task.status
+        in {
+            TaskStatusEnumSchema.ready,
+            TaskStatusEnumSchema.in_progress,
+            TaskStatusEnumSchema.finished,
+        }
+        for task in tasks
+        if not task.is_validation
+    )
+
+    pages_for_annotation = [
+        page for task in tasks if not task.is_validation for page in task.pages
+    ]
+    pages_counter = Counter(pages_for_annotation)
+    assert len(pages_counter) == REDISTRIBUTE_TASKS_FILE.pages_number
+    assert all(
+        value == NEW_EXTENSIVE_COVERAGE for value in pages_counter.values()
+    )
+
+    pages_for_validation = [
+        page for task in tasks if task.is_validation for page in task.pages
+    ]
+    assert len(pages_for_validation) == REDISTRIBUTE_TASKS_FILE.pages_number
+
+    assert (
+        session.query(Category)
+        .filter_by(id=NEW_REDISTRIBUTE_TASKS_CATEGORY.id)
+        .first()
+        in job[0].categories
+    )
+    assert (
+        job_file[0].distributed_annotating_pages
+        == job_file[0].distributed_validating_pages
+    )

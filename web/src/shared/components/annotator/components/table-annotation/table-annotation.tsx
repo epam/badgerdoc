@@ -101,8 +101,7 @@ export const TableAnnotation = ({
             tableModeColumns,
             annotation,
             selectedAnnotation,
-            gutterParams,
-            scale
+            gutterParams
         );
 
         // TODO: Placeholders if initial structure of table is corrupted
