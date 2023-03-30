@@ -22,15 +22,15 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: 'pip'
       - name: Install dependencies
+        working-directory: ./lib/badgerdoc_cli
         run: |
-          cd lib/badgerdoc_cli
           python -m pip install --upgrade pip
           pip install ".[dev]"
       - name: Run linters and checkers [isort -> black -> mypy -> pylint]
+        working-directory: ./lib/badgerdoc_cli
         run: |
-          cd lib/badgerdoc_cli
-          pre-commit run --all-files
+          pre-commit run --files ./* --from-ref origin/HEAD --to-ref HEAD
       - name: Run tests
+        working-directory: ./lib/badgerdoc_cli
         run: |
-          cd lib/badgerdoc_cli
           pytest tests/

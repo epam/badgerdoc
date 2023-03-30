@@ -1,8 +1,4 @@
 name: Documentation build and push
-on:
-  push:
-    branches:
-      - "**"  # TODO: remove before merging
 jobs:
   annotation:
     runs-on: ubuntu-latest
