@@ -28,7 +28,7 @@ pytest-cov = "*"
 pytest-asyncio = "^0.20.3"
 
 [tool.poetry.scripts]
-jobs = "jobs.cli:main"
+badgerdoc = "jobs.main:cli_handler"
 
 [build-system]
 requires = ["poetry-core"]

@@ -189,3 +189,10 @@ async def search_facets(
     )
     await response.adjust_facet_result(x_current_tenant, token.token)
     return response
+
+
+def cli_handler() -> None:
+    from badgerdoc_cli import cli_handler, init_cli_app
+
+    init_cli_app(app)
+    cli_handler()

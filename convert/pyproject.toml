@@ -32,7 +32,7 @@ datamodel-code-generator = "^0.17.1"
 responses = "^0.22.0"
 
 [tool.poetry.scripts]
-convert = "convert.cli:main"
+badgerdoc = "convert.main:cli_handler"
 
 [tool.black]
 line_length = "79"

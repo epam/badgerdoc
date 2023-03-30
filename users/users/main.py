@@ -318,3 +318,10 @@ def periodic() -> None:
             hour="*/1",
         )
         scheduler.start()
+
+
+def cli_handler() -> None:
+    from badgerdoc_cli import cli_handler, init_cli_app
+
+    init_cli_app(app)
+    cli_handler()

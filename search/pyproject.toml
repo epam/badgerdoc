@@ -30,7 +30,7 @@ moto = "^3.0.3"
 responses = "^0.18.0"
 
 [tool.poetry.scripts]
-search = "search.cli:main"
+badgerdoc = "search.main:cli_handler"
 
 [tool.commitizen]
 name = "cz_conventional_commits"

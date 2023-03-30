@@ -401,3 +401,10 @@ async def get_jobs_progress(
         for job_id, job_progress in zip(job_ids, jobs_progress)
         if job_progress is not None
     }
+
+
+def cli_handler() -> None:
+    from badgerdoc_cli import cli_handler, init_cli_app
+
+    init_cli_app(app)
+    cli_handler()

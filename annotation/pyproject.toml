@@ -32,7 +32,7 @@ moto = {extras = ["s3"], version = "^2.2.8"}
 pytest-cov = "^3.0.0"
 
 [tool.poetry.scripts]
-annotation = "annotation.cli:main"
+badgerdoc = "annotation.main:cli_handler"
 
 [build-system]
 requires = ["poetry-core"]

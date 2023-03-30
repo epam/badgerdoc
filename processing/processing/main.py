@@ -180,3 +180,10 @@ async def preprocessing_health_check(
 ) -> bool:
     """Test run for preprocessing"""
     return await health_check_preprocessing(model_url, languages)
+
+
+def cli_handler() -> None:
+    from badgerdoc_cli import cli_handler, init_cli_app
+
+    init_cli_app(app)
+    cli_handler()

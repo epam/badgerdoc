@@ -342,3 +342,10 @@ async def get_job_progress_by_job_id(
         session=session, job_id=job_id, step_status=schemas.Status.DONE
     )
     return {"finished": finished, "total": total}
+
+
+def cli_handler() -> None:
+    from badgerdoc_cli import cli_handler, init_cli_app
+
+    init_cli_app(app)
+    cli_handler()

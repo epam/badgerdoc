@@ -35,7 +35,7 @@ SQLAlchemy-Utils = "^0.39.0"
 flake8 = "^6.0.0"
 
 [tool.poetry.scripts]
-processing = "processing.cli:main"
+badgerdoc = "processing.main:cli_handler"
 
 [tool.black]
 line_length = "79"

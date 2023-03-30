@@ -52,7 +52,7 @@ cd assets && pipenv install --dev
 ```
 2. Install dependencies from "lib" folder:
 ```
-pipenv shell && pip install -e ../lib/filter_lib ../lib/tenants
+pipenv shell && pip install -e ../lib/filter_lib ../lib/tenants ../lib/badgerdoc_cli
 ```
 
 ## Contributors

@@ -24,7 +24,7 @@ pre-commit = "^2.15.0"
 pytest-asyncio = "^0.15.1"
 
 [tool.poetry.scripts]
-users = "users.cli:main"
+badgerdoc = "users.main:cli_handler"
 
 [build-system]
 requires = ["poetry-core"]

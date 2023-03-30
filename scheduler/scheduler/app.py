@@ -46,3 +46,10 @@ async def get_status(
             detail=NO_TENANT,
         )
     return {"status": unit.status}
+
+
+def cli_handler() -> None:
+    from badgerdoc_cli import cli_handler, init_cli_app
+
+    init_cli_app(app)
+    cli_handler()

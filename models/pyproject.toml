@@ -33,7 +33,7 @@ types-requests = "^2.27.25"
 SQLAlchemy-Utils = "0.39.0"
 
 [tool.poetry.scripts]
-models = "models.cli:main"
+badgerdoc = "models.main:cli_handler"
 
 [tool.isort]
 profile = "black"
