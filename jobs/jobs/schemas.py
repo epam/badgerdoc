@@ -136,10 +136,25 @@ class JobParams(BaseModel):
     @validator(
         "validation_type",
         "owners",
-        "categories",
         always=True,
     )  # pylint: disable=no-self-argument
     def check_annotationjob_attributes(
+        cls,
+        v: Union[List[str], List[Union[str, CategoryLinkInput]]],
+        values: Dict[str, Any],
+        field: ModelField,
+    ) -> Union[List[int], List[str]]:
+        job_type = values.get("type")
+        if not v and job_type == JobType.AnnotationJob:
+            raise ValueError(f"{field.name} cannot be empty for {job_type}")
+
+        return v
+
+    @validator(
+        "categories",
+        always=True,
+    )  # pylint: disable=no-self-argument
+    def check_categories_for_annotationjob_attributes(
         cls,
         v: Union[List[str], List[Union[str, CategoryLinkInput]]],
         values: Dict[str, Any],
@@ -162,7 +177,7 @@ class JobParams(BaseModel):
     ) -> List[str]:
         job_type = values.get("type")
         validation_type = values.get("validation_type")
-        if job_type == JobType.ExtractionJob:
+        if job_type == JobType.ExtractionJob and v:
             raise ValueError(
                 f"{field.name} cannot be assigned to ExtractionJob"
             )
@@ -196,7 +211,7 @@ class JobParams(BaseModel):
         job_type = values.get("type")
         validation_type = values.get("validation_type")
 
-        if job_type == JobType.ExtractionJob:
+        if job_type == JobType.ExtractionJob and v:
             raise ValueError(
                 f"{field.name} cannot be assigned to ExtractionJob"
             )
