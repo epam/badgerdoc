@@ -1,4 +1,8 @@
 name: Documentation build and push
+on:
+  push:
+    branches:
+      - "**"  # TODO: remove before merging
 jobs:
   annotation:
     runs-on: ubuntu-latest
@@ -22,9 +26,10 @@ jobs:
           poetry install --no-root --without dev
           poetry add --editable ../lib/filter_lib
           poetry add --editable ../lib/tenants
+          poetry add --editable ../lib/badgerdoc_cli
       - name: Generate documentation
         working-directory: ./annotation
-        run: poetry run annotation openapi .$SPEC_PATH
+        run: poetry run badgerdoc openapi .$SPEC_PATH
         env:
           PYTHONPATH: .
       - name: Save documentation
@@ -54,9 +59,10 @@ jobs:
           poetry install --no-root --without dev
           poetry add --editable ../lib/filter_lib
           poetry add --editable ../lib/tenants
+          poetry add --editable ../lib/badgerdoc_cli
       - name: Generate documentation
         working-directory: ./assets
-        run: poetry run assets openapi .$SPEC_PATH
+        run: poetry run badgerdoc openapi .$SPEC_PATH
         env:
           PYTHONPATH: .
       - name: Save documentation
@@ -84,9 +90,10 @@ jobs:
           pip install poetry
           poetry install --no-root --without dev
           poetry add --editable ../lib/tenants
+          poetry add --editable ../lib/badgerdoc_cli
       - name: Generate documentation
         working-directory: ./convert
-        run: poetry run convert openapi .$SPEC_PATH
+        run: poetry run badgerdoc openapi .$SPEC_PATH
         env:
           PYTHONPATH: .
       - name: Save documentation
@@ -115,9 +122,10 @@ jobs:
           poetry install --no-root --without dev
           poetry add --editable ../lib/filter_lib
           poetry add --editable ../lib/tenants
+          poetry add --editable ../lib/badgerdoc_cli
       - name: Generate documentation
         working-directory: ./jobs
-        run: poetry run jobs openapi .$SPEC_PATH
+        run: poetry run badgerdoc openapi .$SPEC_PATH
         env:
           PYTHONPATH: .
       - name: Save documentation
@@ -146,9 +154,10 @@ jobs:
           poetry install --no-root --without dev
           poetry add --editable ../lib/filter_lib
           poetry add --editable ../lib/tenants
+          poetry add --editable ../lib/badgerdoc_cli
       - name: Generate documentation
         working-directory: ./models
-        run: poetry run models openapi .$SPEC_PATH
+        run: poetry run badgerdoc openapi .$SPEC_PATH
         env:
           PYTHONPATH: .
       - name: Save documentation
@@ -177,9 +186,10 @@ jobs:
           poetry install --no-root --without dev
           poetry add --editable ../lib/filter_lib
           poetry add --editable ../lib/tenants
+          poetry add --editable ../lib/badgerdoc_cli
       - name: Generate documentation
         working-directory: ./pipelines
-        run: poetry run pipelines openapi .$SPEC_PATH
+        run: poetry run badgerdoc openapi .$SPEC_PATH
         env:
           PYTHONPATH: .
       - name: Save documentation
@@ -207,9 +217,10 @@ jobs:
           pip install poetry
           poetry install --no-root --without dev
           poetry add --editable ../lib/tenants
+          poetry add --editable ../lib/badgerdoc_cli
       - name: Generate documentation
         working-directory: ./processing
-        run: poetry run processing openapi .$SPEC_PATH
+        run: poetry run badgerdoc openapi .$SPEC_PATH
         env:
           PYTHONPATH: .
       - name: Save documentation
@@ -237,9 +248,10 @@ jobs:
           pip install poetry
           poetry install --no-root --without dev
           poetry add --editable ../lib/tenants
+          poetry add --editable ../lib/badgerdoc_cli
       - name: Generate documentation
         working-directory: ./scheduler
-        run: poetry run scheduler openapi .$SPEC_PATH
+        run: poetry run badgerdoc openapi .$SPEC_PATH
         env:
           PYTHONPATH: .
       - name: Save documentation
@@ -268,9 +280,10 @@ jobs:
           poetry install --no-root --without dev
           poetry add --editable ../lib/filter_lib
           poetry add --editable ../lib/tenants
+          poetry add --editable ../lib/badgerdoc_cli
       - name: Generate documentation
         working-directory: ./search
-        run: poetry run search openapi .$SPEC_PATH
+        run: poetry run badgerdoc openapi .$SPEC_PATH
         env:
           PYTHONPATH: .
       - name: Save documentation
@@ -299,9 +312,10 @@ jobs:
           poetry install --no-root --without dev
           poetry add --editable ../lib/filter_lib
           poetry add --editable ../lib/tenants
+          poetry add --editable ../lib/badgerdoc_cli
       - name: Generate documentation
         working-directory: ./taxonomy
-        run: poetry run taxonomy openapi .$SPEC_PATH
+        run: poetry run badgerdoc openapi .$SPEC_PATH
         env:
           PYTHONPATH: .
       - name: Save documentation
@@ -329,9 +343,10 @@ jobs:
           pip install poetry
           poetry install --no-root --without dev
           poetry add --editable ../lib/tenants
+          poetry add --editable ../lib/badgerdoc_cli
       - name: Generate documentation
         working-directory: ./users
-        run: poetry run users openapi .$SPEC_PATH
+        run: poetry run badgerdoc openapi .$SPEC_PATH
         env:
           PYTHONPATH: .
       - name: Save documentation

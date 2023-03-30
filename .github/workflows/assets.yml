@@ -74,6 +74,7 @@ jobs:
           poetry install --no-root --no-interaction
           poetry add ../lib/filter_lib
           poetry add ../lib/tenants
+          poetry add ../lib/badgerdoc_cli
       - name: Test with pytest
         run: |
           cd assets
