@@ -45,13 +45,13 @@ def inject_openapi_commands(
     app: Optional[FastAPI], subparsers: SupportsAddParser
 ) -> None:
     def _generate_openapi(arguments: Dict[str, Any]) -> None:
-        path: str = arguments["path"]
-        if not path.endswith(".json"):
-            raise ValueError("Invalid file format. Must be .json")
         if app is None:
             raise ValueError(
                 "CLI is not initialized. Add init_cli_app call to set up CLI"
             )
+        path: str = arguments["path"]
+        if not path.endswith(".json"):
+            raise ValueError("Invalid file format. Must be .json")
         generate_openapi(app=app, file_path=path, indent=arguments["indent"])
 
     openapi_parser = subparsers.add_parser(
@@ -59,7 +59,7 @@ def inject_openapi_commands(
     )
     openapi_parser.add_argument("path", help="path to save spec to")
     openapi_parser.add_argument(
-        "--indent", help="indents in json open api spec", default=2
+        "--indent", help="indents in json open api spec", type=int, default=2
     )
     openapi_parser.set_defaults(func_with_args=_generate_openapi)
 
@@ -72,7 +72,7 @@ def init_cli_handlers(app: Optional[FastAPI], arguments: Any) -> None:
         help="show full traceback and other debug info",
         action="store_true",
     )
-    subparsers = parser.add_subparsers()
+    subparsers: Any = parser.add_subparsers()
     inject_openapi_commands(app, subparsers)
     params = vars(parser.parse_args(arguments))
     try:
@@ -103,5 +103,5 @@ def init_cli_app(app: FastAPI) -> None:
     APP = app
 
 
-def cli_handler():
+def cli_handler() -> None:
     init_cli_handlers(APP, sys.argv[1:])

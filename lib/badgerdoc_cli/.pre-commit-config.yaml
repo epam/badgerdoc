@@ -30,6 +30,9 @@ repos:
         require_serial: true
         args:
           - --strict
+          - --ignore-missing-imports
+          - --allow-untyped-decorators
+          - --python-version=3.8
   - repo: https://github.com/pycqa/pylint
     rev: v2.17.1
     hooks:
@@ -38,3 +41,4 @@ repos:
           args:
             - --max-line-length=79
             - --errors-only
+            - --disable=E0401

@@ -15,7 +15,6 @@ requires = ["setuptools>=67.0.0"]
 build-backend = "setuptools.build_meta"
 
 # Dev tools settings
-
 [tool.black]
 line-length = 79
 
@@ -26,7 +25,10 @@ line_length = 79
 [tool.mypy]
 python_version = 3.8
 strict = "True"
+ignore_missing_imports = "True"
+allow_untyped_decorators = "True"
 
 [tool.pylint.basic]
 max-line-length=79
 errors-only = "True"
+disable = ["E0401"]
