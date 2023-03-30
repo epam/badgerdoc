@@ -24,9 +24,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install poetry
           poetry install --no-root --without dev
-          poetry add --editable ../lib/filter_lib
-          poetry add --editable ../lib/tenants
-          poetry add --editable ../lib/badgerdoc_cli
+          poetry add ../lib/filter_lib
+          poetry add ../lib/tenants
+          poetry add ../lib/badgerdoc_cli
       - name: Generate documentation
         working-directory: ./annotation
         run: poetry run badgerdoc openapi .$SPEC_PATH
@@ -57,9 +57,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install poetry
           poetry install --no-root --without dev
-          poetry add --editable ../lib/filter_lib
-          poetry add --editable ../lib/tenants
-          poetry add --editable ../lib/badgerdoc_cli
+          poetry add ../lib/filter_lib
+          poetry add ../lib/tenants
+          poetry add ../lib/badgerdoc_cli
       - name: Generate documentation
         working-directory: ./assets
         run: poetry run badgerdoc openapi .$SPEC_PATH
@@ -89,8 +89,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install poetry
           poetry install --no-root --without dev
-          poetry add --editable ../lib/tenants
-          poetry add --editable ../lib/badgerdoc_cli
+          poetry add ../lib/tenants
+          poetry add ../lib/badgerdoc_cli
       - name: Generate documentation
         working-directory: ./convert
         run: poetry run badgerdoc openapi .$SPEC_PATH
@@ -120,9 +120,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install poetry
           poetry install --no-root --without dev
-          poetry add --editable ../lib/filter_lib
-          poetry add --editable ../lib/tenants
-          poetry add --editable ../lib/badgerdoc_cli
+          poetry add ../lib/filter_lib
+          poetry add ../lib/tenants
+          poetry add ../lib/badgerdoc_cli
       - name: Generate documentation
         working-directory: ./jobs
         run: poetry run badgerdoc openapi .$SPEC_PATH
@@ -152,9 +152,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install poetry
           poetry install --no-root --without dev
-          poetry add --editable ../lib/filter_lib
-          poetry add --editable ../lib/tenants
-          poetry add --editable ../lib/badgerdoc_cli
+          poetry add ../lib/filter_lib
+          poetry add ../lib/tenants
+          poetry add ../lib/badgerdoc_cli
       - name: Generate documentation
         working-directory: ./models
         run: poetry run badgerdoc openapi .$SPEC_PATH
@@ -184,9 +184,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install poetry
           poetry install --no-root --without dev
-          poetry add --editable ../lib/filter_lib
-          poetry add --editable ../lib/tenants
-          poetry add --editable ../lib/badgerdoc_cli
+          poetry add ../lib/filter_lib
+          poetry add ../lib/tenants
+          poetry add ../lib/badgerdoc_cli
       - name: Generate documentation
         working-directory: ./pipelines
         run: poetry run badgerdoc openapi .$SPEC_PATH
@@ -216,8 +216,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install poetry
           poetry install --no-root --without dev
-          poetry add --editable ../lib/tenants
-          poetry add --editable ../lib/badgerdoc_cli
+          poetry add ../lib/tenants
+          poetry add ../lib/badgerdoc_cli
       - name: Generate documentation
         working-directory: ./processing
         run: poetry run badgerdoc openapi .$SPEC_PATH
@@ -247,8 +247,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install poetry
           poetry install --no-root --without dev
-          poetry add --editable ../lib/tenants
-          poetry add --editable ../lib/badgerdoc_cli
+          poetry add ../lib/tenants
+          poetry add ../lib/badgerdoc_cli
       - name: Generate documentation
         working-directory: ./scheduler
         run: poetry run badgerdoc openapi .$SPEC_PATH
@@ -278,9 +278,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install poetry
           poetry install --no-root --without dev
-          poetry add --editable ../lib/filter_lib
-          poetry add --editable ../lib/tenants
-          poetry add --editable ../lib/badgerdoc_cli
+          poetry add ../lib/filter_lib
+          poetry add ../lib/tenants
+          poetry add ../lib/badgerdoc_cli
       - name: Generate documentation
         working-directory: ./search
         run: poetry run badgerdoc openapi .$SPEC_PATH
@@ -310,9 +310,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install poetry
           poetry install --no-root --without dev
-          poetry add --editable ../lib/filter_lib
-          poetry add --editable ../lib/tenants
-          poetry add --editable ../lib/badgerdoc_cli
+          poetry add ../lib/filter_lib
+          poetry add ../lib/tenants
+          poetry add ../lib/badgerdoc_cli
       - name: Generate documentation
         working-directory: ./taxonomy
         run: poetry run badgerdoc openapi .$SPEC_PATH
@@ -342,8 +342,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install poetry
           poetry install --no-root --without dev
-          poetry add --editable ../lib/tenants
-          poetry add --editable ../lib/badgerdoc_cli
+          poetry add ../lib/tenants
+          poetry add ../lib/badgerdoc_cli
       - name: Generate documentation
         working-directory: ./users
         run: poetry run badgerdoc openapi .$SPEC_PATH
