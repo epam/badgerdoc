@@ -14,12 +14,10 @@ export default function useAnnotationsTaxons(annotationsByPages?: PageInfo[]): M
         if (annotationsByPages) {
             for (let page of annotationsByPages) {
                 for (let obj of page.objs) {
-                    if (
-                        obj.data?.dataAttributes?.[0] &&
-                        obj.data?.dataAttributes?.[0].value &&
-                        obj.data?.dataAttributes?.[0].type === 'taxonomy'
-                    ) {
-                        taxonIdArr.push(obj.data?.dataAttributes?.[0].value);
+                    const { value, type } = obj.data?.dataAttributes?.[0] || {};
+
+                    if (value && type === 'taxonomy') {
+                        taxonIdArr.push(value);
                     }
                 }
             }
