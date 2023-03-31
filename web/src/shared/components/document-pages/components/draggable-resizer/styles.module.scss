@@ -1,0 +1,26 @@
+.container {
+    display: grid;
+    place-items: center;
+}
+
+.vertical {
+    @extend .container;
+    width: 24px;
+    cursor: col-resize;
+    &__inner {
+        width: 2px;
+        height: 100%;
+        background: #fff;
+    }
+}
+
+.horizontal {
+    @extend .container;
+    height: 24px;
+    cursor: row-resize;
+    &__inner {
+        height: 2px;
+        width: 100%;
+        background: #fff;
+    }
+}

@@ -1003,7 +1003,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         setModifiedPages([]);
     }, []);
 
-    const syncScroll = useSyncScroll();
+    const { SyncedContainer } = useSyncScroll();
 
     const linksFromApi = latestAnnotationsResult.data?.links_json;
 
@@ -1076,8 +1076,8 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             linksFromApi,
             setCurrentDocumentUserId,
             currentDocumentUserId,
+            SyncedContainer,
             ...splitValidation,
-            ...syncScroll,
             ...documentLinksValues,
             ...validationValues
         };
@@ -1105,7 +1105,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         isDataTabDisabled,
         selectedToolParams,
         splitValidation,
-        syncScroll,
+        SyncedContainer,
         selectedLabels,
         latestLabelsId,
         linksFromApi,
