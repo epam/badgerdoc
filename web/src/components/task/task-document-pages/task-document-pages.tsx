@@ -3,13 +3,19 @@ import { useTaskAnnotatorContext } from 'connectors/task-annotator-connector/tas
 import DocumentPages from 'shared/components/document-pages/document-pages';
 import ExternalViewerPopup from 'components/external-viewer-modal/external-viewer-popup';
 import styles from './task-document-pages.module.scss';
+import { GridVariants } from 'shared/constants/task';
 
 export interface DocumentPageProps {
     viewMode: boolean;
     additionalScale: number;
+    gridVariant?: GridVariants;
 }
 
-const TaskDocumentPages = ({ viewMode, additionalScale }: DocumentPageProps) => {
+const TaskDocumentPages = ({
+    viewMode,
+    additionalScale,
+    gridVariant = GridVariants.horizontal
+}: DocumentPageProps) => {
     const {
         task,
         fileMetaInfo,
@@ -19,12 +25,6 @@ const TaskDocumentPages = ({ viewMode, additionalScale }: DocumentPageProps) => 
         currentPage,
         editedPages,
         externalViewer,
-        onEmptyAreaClick,
-        onAnnotationCopyPress,
-        onAnnotationCutPress,
-        onAnnotationPastePress,
-        onAnnotationUndoPress,
-        onAnnotationRedoPress,
         onExternalViewerClose
     } = useTaskAnnotatorContext();
 
@@ -45,18 +45,13 @@ const TaskDocumentPages = ({ viewMode, additionalScale }: DocumentPageProps) => 
                 />
             )}
             <DocumentPages
+                gridVariant={gridVariant}
                 additionalScale={additionalScale}
                 pageNumbers={pageNumbers}
                 fileMetaInfo={fileMetaInfo}
                 apiPageSize={pageSize}
                 setPageSize={setPageSize}
                 editable={editable}
-                onAnnotationCopyPress={onAnnotationCopyPress}
-                onAnnotationCutPress={onAnnotationCutPress}
-                onAnnotationPastePress={onAnnotationPastePress}
-                onAnnotationUndoPress={onAnnotationUndoPress}
-                onAnnotationRedoPress={onAnnotationRedoPress}
-                onEmptyAreaClick={onEmptyAreaClick}
             />
         </div>
     );

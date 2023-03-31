@@ -1,31 +1,61 @@
-import React, { useRef, useState } from 'react';
+import { cx } from '@epam/uui-core';
+import React, { DragEvent, useState } from 'react';
+import { GridVariants } from 'shared/constants/task';
+import styles from './styles.module.scss';
 
 interface DraggableResizerProps {
-    onChange: (heightDiff: number) => void;
     currentHeight: number;
+    currentWidth?: number;
+    type?: GridVariants;
+    onChange: (heightDiff: number) => void;
 }
 
-const DraggableResizer: React.FC<DraggableResizerProps> = ({ onChange, currentHeight }) => {
+const DraggableResizer: React.FC<DraggableResizerProps> = ({
+    type = GridVariants.horizontal,
+    onChange,
+    currentWidth = 0,
+    currentHeight = 0
+}) => {
     const [initialDiff, setInitialDiff] = useState<number>(0);
-    const ref = useRef<HTMLDivElement>(null);
 
-    const onDrag = (newHeight: number) => {
-        if (newHeight) {
-            onChange(newHeight - initialDiff);
+    const isVertical = type === GridVariants.vertical;
+    const isHorizontal = type === GridVariants.horizontal;
+
+    const handleDrag = ({ pageY, pageX }: DragEvent<HTMLDivElement>) => {
+        if (isHorizontal && pageY) {
+            onChange(pageY - initialDiff);
+        }
+        if (isVertical && pageX) {
+            onChange(pageX - initialDiff);
         }
     };
 
+    const handleDragStart = ({ pageY, pageX }: DragEvent<HTMLDivElement>) => {
+        if (isHorizontal) {
+            setInitialDiff(pageY - currentHeight);
+        }
+        if (isVertical) {
+            setInitialDiff(pageX - currentWidth);
+        }
+    };
+
+    const containerClassName = cx({
+        [styles.vertical]: isVertical,
+        [styles.horizontal]: isHorizontal
+    });
+    const innerClassName = cx({
+        [styles['vertical__inner']]: isVertical,
+        [styles['horizontal__inner']]: isHorizontal
+    });
+
     return (
         <div
-            ref={ref}
-            style={{ height: '24px', cursor: 'row-resize' }}
             draggable
-            onDrag={(e) => onDrag(e.pageY)}
-            onDragStart={(e) => {
-                setInitialDiff(e.pageY - currentHeight);
-            }}
+            onDrag={handleDrag}
+            onDragStart={handleDragStart}
+            className={containerClassName}
         >
-            <div style={{ background: '#FFF', height: '2px' }} />
+            <div className={innerClassName} />
         </div>
     );
 };

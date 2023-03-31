@@ -15,9 +15,12 @@ import { ANNOTATION_PAGE } from 'shared/constants/general';
 import styles from './task-page.module.scss';
 import { FlowSideBar } from 'components/task/task-sidebar-flow/task-sidebar-flow';
 import { DocumentScale } from 'components/documents/document-scale/document-scale';
+import { PickGridType } from './picker-grid-type';
+import { GridVariants } from 'shared/constants/task';
 
 const TaskPage: FC = () => {
     const [additionalScale, setAdditionalScale] = useState(0);
+    const [gridVariant, setGridVariant] = useState(GridVariants.horizontal);
 
     const { pathname } = useLocation();
     const { taskId } = useParams<{ taskId: string }>();
@@ -92,6 +95,7 @@ const TaskPage: FC = () => {
                         <DocumentScale scale={additionalScale} onChange={setAdditionalScale} />
                     </div>
                     <div className={styles['title__right-block']}>
+                        <PickGridType value={gridVariant} onChange={setGridVariant} />
                         {nextTaskId && (
                             <Button
                                 size="30"
@@ -105,7 +109,11 @@ const TaskPage: FC = () => {
                 <div className={styles.content}>
                     <TableAnnotatorContextProvider>
                         <FlowSideBar />
-                        <TaskDocumentPages additionalScale={additionalScale} viewMode={false} />
+                        <TaskDocumentPages
+                            viewMode={false}
+                            gridVariant={gridVariant}
+                            additionalScale={additionalScale}
+                        />
                         <TaskSidebar viewMode={false} isNextTaskPresented={Boolean(nextTaskId)} />
                     </TableAnnotatorContextProvider>
                 </div>
