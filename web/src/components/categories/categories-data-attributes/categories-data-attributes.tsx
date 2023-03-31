@@ -53,7 +53,7 @@ export const CategoriesDataAttributes: FC<CategoriesDataAttributesProps> = ({
                 <IconButton icon={AddIcon} onClick={addDataAtt} />
                 <Text>Add new attribute</Text>
             </FlexRow>
-            {dataAttributes.map((el, index) => {
+            {dataAttributes?.map((el, index) => {
                 return (
                     <div key={index}>
                         <FlexRow padding="24" vPadding="12">

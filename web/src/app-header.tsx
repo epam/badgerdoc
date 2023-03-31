@@ -66,7 +66,7 @@ export const AppHeader = () => {
 
     return (
         <FlexCell>
-            <MainMenu appLogoUrl="../svg/logo.svg" logoHref={getLogoLink()}>
+            <MainMenu appLogoUrl="/svg/logo.svg" logoHref={getLogoLink()}>
                 {menu.map((item) => {
                     const pathMatches = (path: string) => {
                         return history.location.pathname.indexOf(`/${path}`) === 0;

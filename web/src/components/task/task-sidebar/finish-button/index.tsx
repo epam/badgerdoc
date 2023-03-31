@@ -46,7 +46,9 @@ export const FinishButton: FC<TaskSidebarProps> = ({
     const handleFinishValidation = isSplitValidation ? onFinishSplitValidation : onFinishValidation;
     const isDisabled =
         !isAnnotatable ||
-        (isValidation && !allValidated && !touchedPagesCount && !editedPagesCount);
+        !allValidated ||
+        (isValidation && !touchedPagesCount && !editedPagesCount);
+
     const tooltipContent =
         allValidated && !isSplitValidation
             ? ''
