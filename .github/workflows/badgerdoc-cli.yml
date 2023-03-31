@@ -29,7 +29,7 @@ jobs:
       - name: Run linters and checkers [isort -> black -> mypy -> pylint]
         working-directory: ./lib/badgerdoc_cli
         run: |
-          pre-commit run --files ./* --from-ref origin/HEAD --to-ref HEAD
+          pre-commit run --files ./*
       - name: Run tests
         working-directory: ./lib/badgerdoc_cli
         run: |
