@@ -1,5 +1,5 @@
 ## Commit messages
-Commit messages have to follow the [Conventional Commits Specification](https://www.conventionalcommits.org/en/v1.0.0/#specification) and be written in the _imperative mood_.
+Commit messages should follow the [Conventional Commits Specification](https://www.conventionalcommits.org/en/v1.0.0/#specification) and be written in the _imperative mood_.
 * The commit message should be structured as follows:
   ```
   <type>[optional scope]: <brief description>
@@ -27,6 +27,12 @@ Commit messages have to follow the [Conventional Commits Specification](https://
 * E.g.:
   * Preferred: `feat: add model validation`, than: `added new feature for model validation. Minor changes`
   * Preferred: `refactor(execution): improve code readability`, than: `refactored execution module to improve code readability`
+
+## Pull Request title
+Pull request titles **must** follow [Conventional Commits Specification](#commit-messages) 
+above because default and only merge strategy is Squashing with defaulting message to Pull Request title.
+If you are lazy enough you can ignore commit messages themselves - 
+at the end everything is squashed to a single commit with PR title's message.
 
 ## Branch naming
 * Branch name should have a specifying prefix with `/`, e.g. `feature/`, `hotfix/`, `chore/`
