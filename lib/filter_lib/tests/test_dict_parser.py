@@ -1,4 +1,4 @@
-from ..src.dict_parser import map_request_to_filter
+from src.dict_parser import map_request_to_filter
 
 example_1 = {
     "pagination": {"page_num": 1, "page_size": 50},
