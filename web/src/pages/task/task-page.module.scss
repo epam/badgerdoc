@@ -4,10 +4,26 @@
     width: 100vw;
     display: grid;
     grid-template-columns: max-content 1fr max-content;
-    gap: 1rem;
-    padding-bottom: 1rem;
+    gap: 12px;
+    padding-bottom: 16px;
 }
 
 .title {
-    padding: 10px 20px;
+    padding: 12px 16px;
+    gap: 12px;
+    display: grid;
+    grid-template-columns: 1fr 320px;
+
+    &__left-block {
+        display: flex;
+        height: 30px;
+        justify-content: space-between;
+        flex-direction: row;
+    }
+
+    &__right-block {
+        height: 30px;
+        display: flex;
+        justify-content: right;
+    }
 }

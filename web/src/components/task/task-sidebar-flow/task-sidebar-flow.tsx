@@ -79,7 +79,7 @@ export const FlowSideBar: FC = () => {
             {!isHidden && (
                 <Panel background="white" cx={styles.container}>
                     {isTabsShown && (
-                        <FlexRow>
+                        <FlexRow borderBottom="night400">
                             {tabs.map(({ id, caption }) => (
                                 <TabButton
                                     key={id}

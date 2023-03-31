@@ -1,10 +1,12 @@
 @import '~shared/helpers/styles';
 
 .pdf-container {
+    height: 100%;
     display: grid;
-    grid-template-columns: 2.5rem 1fr;
+}
+
+.with-multiple-view {
     height: calc(100% - 40px);
-    gap: 0.5rem;
 }
 
 .pdf-document-container {
@@ -14,39 +16,6 @@
 
 .pdf-parent {
     overflow: auto;
-}
-
-.page-scale {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 15px;
-
-    &__button-group {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 10px;
-    }
-
-    &__item {
-        width: 36px;
-        height: 36px;
-        border: solid 1px $btn-border;
-        background-color: white;
-        justify-content: center;
-
-        &--active {
-            background-color: #474a5a;
-            svg {
-                fill: white;
-            }
-        }
-    }
-
-    &__icon {
-        align-items: center !important;
-    }
 }
 
 .document-wrapper {

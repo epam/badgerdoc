@@ -4,6 +4,7 @@ import { stringToRGBA } from 'shared/components/annotator/utils/string-to-rgba';
 import { ANNOTATION_FLOW_ITEM_ID_PREFIX } from 'shared/constants/annotations';
 import { ANNOTATION_PATH_SEPARATOR } from './constants';
 import { Text } from '@epam/loveship';
+import { cx } from '@epam/uui';
 import styles from './styles.module.scss';
 
 export const AnnotationRow: FC<
@@ -16,20 +17,19 @@ export const AnnotationRow: FC<
     const labelList = label.split('.');
 
     return (
-        <div id={`${ANNOTATION_FLOW_ITEM_ID_PREFIX}${id}`} className={styles.item}>
+        <div
+            role="none"
+            onClick={() => onSelect(index)}
+            id={`${ANNOTATION_FLOW_ITEM_ID_PREFIX}${id}`}
+            className={cx(styles.item, id === selectedAnnotationId && styles.selectedAnnotation)}
+        >
             <div
                 style={{
                     color,
-                    border: `1px solid ${color}`,
-                    backgroundColor:
-                        id !== selectedAnnotationId ? 'unset' : stringToRGBA(color, 0.2)
+                    backgroundColor: stringToRGBA(color, 0.2)
                 }}
             >
-                <Text
-                    cx={styles.label}
-                    onClick={() => onSelect(index)}
-                    rawProps={{ 'data-testid': 'flow-label' }}
-                >
+                <Text cx={styles.label} rawProps={{ 'data-testid': 'flow-label' }}>
                     {labelList[labelList.length - 1]}
                 </Text>
             </div>
