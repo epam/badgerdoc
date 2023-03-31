@@ -1,6 +1,7 @@
 import argparse
 import code
 import json
+import os
 import sys
 from typing import Any, Dict, Optional, Protocol
 
@@ -11,7 +12,7 @@ APP = None
 
 
 class SupportsAddParser(Protocol):
-    def add_parser(self, name: str, **kwargs: str) -> argparse.ArgumentParser:
+    def add_parser(self, name: str, **kwargs: Any) -> argparse.ArgumentParser:
         pass
 
 
@@ -53,9 +54,12 @@ def inject_openapi_commands(
         if not path.endswith(".json"):
             raise ValueError("Invalid file format. Must be .json")
         generate_openapi(app=app, file_path=path, indent=arguments["indent"])
+        print(f"Documentation is saved at {os.path.abspath(path)}")
 
     openapi_parser = subparsers.add_parser(
-        "openapi", help="generate openapi specification"
+        "openapi",
+        help="generate openapi specification",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     openapi_parser.add_argument("path", help="path to save spec to")
     openapi_parser.add_argument(
@@ -65,7 +69,9 @@ def inject_openapi_commands(
 
 
 def init_cli_handlers(app: Optional[FastAPI], arguments: Any) -> None:
-    parser = argparse.ArgumentParser("badgerdoc")
+    parser = argparse.ArgumentParser(
+        "badgerdoc", formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
     parser.add_argument(
         "-v",
         "--verbose",

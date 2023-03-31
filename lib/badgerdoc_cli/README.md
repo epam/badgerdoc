@@ -47,7 +47,48 @@ def cli_handler() -> None:
 badgerdoc = "some_package.some_module:cli_handler"
 ```
 - Now you can use CLI tool using `badgerdoc` command
+---
+## Usage
+```shell
+$ badgerdoc
+usage: badgerdoc [-h] [-v] {openapi} ...
 
-## Commands
-All commands available at `badgerdoc`
-# TODO: [TBD]
+positional arguments:
+  {openapi}
+    openapi      generate openapi specification
+
+optional arguments:
+  -h, --help     show this help message and exit
+  -v, --verbose  show full traceback and other debug info (default: False)
+```
+### badgerdoc openapi
+```shell
+$ badgerdoc openapi
+usage: badgerdoc openapi [-h] [--indent INDENT] path
+
+positional arguments:
+  path             path to save spec to
+
+optional arguments:
+  -h, --help       show this help message and exit
+  --indent INDENT  indents in json open api spec (default: 2)
+```
+Example:
+```shell
+$ badgerdoc openapi example.json
+Documentation is saved at /Users/badgerdoc/projects/badgerdoc/annotation/example.json
+$ cat example.json
+{
+  "openapi": "3.0.2",
+  "info": {
+    "title": "Badgerdoc Annotation",
+    "version": "0.1.5"
+  },
+  "paths": {
+    "/annotation/{task_id}": {
+      "post": {
+        "tags": [
+          "Annotation"
+        ],
+    ...
+```
