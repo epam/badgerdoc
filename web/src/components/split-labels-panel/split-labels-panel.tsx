@@ -15,15 +15,24 @@ export const SplitLabelsPanel: FC<SplitLabelsPanelProps> = ({ labels, selectedLa
         return <Spinner color="sky" />;
     }
 
-    const onClick = (id: string) => () => {
+    const onClick = (label: Label) => () => {
         setTabValue('Document');
-        onLabelsSelected(labels, [...selectedLabelsId, id]);
+
+        if (!selectedLabelsId.includes(label.id)) {
+            onLabelsSelected([label]);
+        }
     };
 
     return (
         <div className={styles.container}>
             {labels.map(({ name, id }) => (
-                <Tag size="24" caption={name} key={name} onClick={onClick(id)} cx={styles.tag} />
+                <Tag
+                    size="24"
+                    caption={name}
+                    key={name}
+                    onClick={onClick({ name, id })}
+                    cx={styles.tag}
+                />
             ))}
         </div>
     );

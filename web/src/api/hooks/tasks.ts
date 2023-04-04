@@ -71,10 +71,6 @@ export const useTasks: QueryHookType<UseTasksParamsType, PagedResponse<Task>> = 
         options
     );
 
-type TaskByIdParams = {
-    taskId: number;
-};
-
 type UsersForTaskParams = {
     jobId: number;
 };
@@ -153,7 +149,7 @@ const mapTaskFromApi = (apiTask: ApiTask): Task => {
     return { ...task, user_id: user.id };
 };
 
-export const useTaskById: QueryHookType<TaskByIdParams, Task> = ({ taskId }) =>
+export const useTaskById: QueryHookType<{ taskId?: number }, Task> = ({ taskId }) =>
     useQuery(
         ['task', taskId],
         async () =>
@@ -161,7 +157,7 @@ export const useTaskById: QueryHookType<TaskByIdParams, Task> = ({ taskId }) =>
                 url: `${namespace}/tasks/${taskId}`,
                 method: 'get'
             })(),
-        { select: mapTaskFromApi }
+        { select: mapTaskFromApi, enabled: Boolean(taskId) }
     );
 export const useUsersForTask: QueryHookType<UsersForTaskParams, User[]> = ({ jobId }) =>
     useQuery(['usersForTask', jobId], async () =>

@@ -22,7 +22,8 @@ import {
     Bound,
     PageToken,
     PaperTool,
-    TokenStyle
+    TokenStyle,
+    ToolNames
 } from './typings';
 import { TokensLayer } from './layers/tokens-layer/tokens-layer';
 import { editableAnnotationRenderer } from './layers/annotations-layer/annotations-editable-renderer';
@@ -431,7 +432,7 @@ export const Annotator: FC<AnnotatorProps> = ({
 
                 if (selectionType === 'polygon') {
                     const defaultActivePen = createImageTool(
-                        'pen',
+                        ToolNames.pen,
                         onAnnotationDeleted,
                         selectedToolParams
                     );

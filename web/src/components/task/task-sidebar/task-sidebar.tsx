@@ -21,7 +21,8 @@ import {
     AnnotationBoundType,
     AnnotationImageToolType,
     AnnotationLinksBoundType,
-    Maybe
+    Maybe,
+    ToolNames
 } from 'shared';
 import { Status } from 'shared/components/status';
 import { mapStatusForValidationPage } from 'shared/helpers/map-statuses';
@@ -154,7 +155,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
                 break;
             case 'segmentation':
                 newSelectionType = 'polygon';
-                onChangeSelectedTool('pen');
+                onChangeSelectedTool(ToolNames.pen);
 
                 break;
             default:

@@ -1,16 +1,8 @@
-import React, {
-    Dispatch,
-    MutableRefObject,
-    SetStateAction,
-    useCallback,
-    useEffect,
-    useMemo,
-    useState
-} from 'react';
+import React, { Dispatch, SetStateAction, useCallback, useEffect, useMemo, useState } from 'react';
 import { UseQueryResult } from 'react-query';
 import { isEmpty } from 'lodash';
 
-import { Task, TTaskUsers } from 'api/typings/tasks';
+import { Task } from 'api/typings/tasks';
 import { CategoryDataAttributeWithValue, PageInfo } from 'api/typings';
 
 import { AnnotationsResponse, useAddAnnotationsMutation } from 'api/hooks/annotations';
@@ -25,14 +17,14 @@ import { PageSize } from 'shared/components/document-pages/document-pages';
 import { mapModifiedAnnotationPagesToApi } from './task-annotator-utils';
 
 import { useUuiContext } from '@epam/uui';
+import { TJobUsers } from 'api/typings/jobs';
 
 export type ValidationParams = {
     latestAnnotationsResult: UseQueryResult<AnnotationsResponse, unknown>;
     task?: Task;
     currentPage: number;
     onCloseDataTab: () => void;
-    isOwner: boolean;
-    taskUsers: MutableRefObject<TTaskUsers>;
+    jobUsers: TJobUsers;
     onSaveTask: () => void;
     allAnnotations: Record<number, Annotation[]>;
     tokensByPages: Record<number, PageToken[]>;
@@ -50,7 +42,6 @@ export type ValidationValues = {
     editedPages: number[];
     touchedPages: number[];
     notProcessedPages: number[];
-    allValid: boolean;
     allValidated: boolean;
     annotationSaved: boolean;
     onValidClick: () => void;
@@ -59,18 +50,17 @@ export type ValidationValues = {
     onCancelClick: () => void;
     onClearTouchedPages: () => void;
     onAddTouchedPage: () => void;
-    setValidPages: (pages: number[]) => void;
+    setValidPages: (pages: number[]) => void; // -
     onFinishValidation: () => void;
     onSaveEditClick: () => void;
-    setAnnotationSaved: Dispatch<SetStateAction<boolean>>;
+    setAnnotationSaved: Dispatch<SetStateAction<boolean>>; // -
 };
 
 export const useValidation = ({
     latestAnnotationsResult,
     task,
     currentPage,
-    taskUsers,
-    isOwner,
+    jobUsers,
     onCloseDataTab,
     onSaveTask,
     allAnnotations,
@@ -158,7 +148,7 @@ export const useValidation = ({
         setAnnotationSaved(false);
     }, [invalidPages, validPages, currentPage, notProcessedPages]);
 
-    const onClearTouchedPages = useCallback(async () => {
+    const onClearTouchedPages = useCallback(() => {
         setTouchedPages([]);
     }, []);
 
@@ -234,9 +224,8 @@ export const useValidation = ({
             <FinishTaskValidationModal
                 onSaveForm={onSaveForm}
                 allValid={allValid}
-                allUsers={taskUsers.current}
-                currentUser={task?.user_id || ''}
-                isOwner={isOwner}
+                allUsers={jobUsers}
+                isOwner={!task?.user_id ? false : jobUsers.owners.includes(task?.user_id)}
                 invalidPages={invalidPages.length}
                 editedPageCount={editedPages.length}
                 validSave={onSaveValidForm}
@@ -252,7 +241,6 @@ export const useValidation = ({
             editedPages,
             touchedPages,
             notProcessedPages,
-            allValid,
             allValidated,
             annotationSaved,
             onValidClick,
@@ -272,7 +260,6 @@ export const useValidation = ({
             editedPages,
             touchedPages,
             notProcessedPages,
-            allValid,
             allValidated,
             annotationSaved,
             onValidClick,
