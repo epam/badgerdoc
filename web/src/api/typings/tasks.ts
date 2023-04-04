@@ -1,5 +1,3 @@
-import { TUserShort } from 'api/typings';
-
 export type ApiTask = {
     id: number;
     status: TaskStatus;
@@ -32,7 +30,7 @@ export type TaskModel = {
     file_id: number;
     pages: Array<number>;
     job_id: number;
-    //todo: add dependecy from other models
+    //todo: add dependency from other models
     user_id: string;
     is_validation: boolean;
     deadline: string;
@@ -57,4 +55,4 @@ export type TaskStatus = 'Pending' | 'Ready' | 'In Progress' | 'Finished';
 
 export type ValidationPageStatus = 'Valid Page' | 'Invalid Page';
 
-export type TTaskUsers = Record<'owners' | 'validators' | 'annotators', TUserShort[]>;
+// export type TTaskUsers = Record<'owners' | 'validators' | 'annotators', TUserShort[]>;

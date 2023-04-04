@@ -221,7 +221,6 @@ export default function useSplitValidation({
             annotationsByUserId,
             categoriesByUserId,
             isSplitValidation,
-            job,
             onSplitAnnotationSelected,
             onSplitLinkSelected,
             onFinishSplitValidation,

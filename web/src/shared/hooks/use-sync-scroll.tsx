@@ -54,7 +54,7 @@ export default function useSyncScroll(): SyncScrollValue {
 
     return useMemo(
         () => ({
-            SyncedContainer
+            SyncedContainer // TODO: Do we really need it in hook context???
         }),
         []
     );
