@@ -766,6 +766,8 @@ def find_common_values(
     common_objs_pages: List[PageSchema] = []
     obj_id: int = 0
     for page_number, tasks in tasks_data.items():
+        if not tasks:
+            continue
         common_objs_pages.append(
             PageSchema(
                 page_num=page_number,
