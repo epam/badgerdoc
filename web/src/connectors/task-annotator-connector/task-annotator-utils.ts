@@ -9,13 +9,21 @@ import {
     Taxon
 } from 'api/typings';
 
-import { Annotation, AnnotationBoundType, AnnotationTable, PageToken, TableApi } from 'shared';
+import {
+    Annotation,
+    AnnotationBoundType,
+    AnnotationTable,
+    Bound,
+    PageToken,
+    TableApi
+} from 'shared';
 import { isIntersected, isR2InsideR1 } from 'shared/components/annotator/utils/is-intersected';
 import { annotationToRect, tokenToRect } from 'shared/components/annotator/utils/to-rect-utils';
 import { bboxToBound } from 'shared/helpers/bbox-to-bound';
 import { boundToBBox } from 'shared/helpers/bound-to-bbox';
 import { createTextFromToken } from 'shared/helpers/tokens';
 import { boundToRect } from '../../shared/components/annotator/utils/rect-to-bound';
+import { getTokensBound } from '../../shared/components/annotator/utils/get-tokens-bound';
 
 const categoryDataAttrsCache = new Map();
 export const defaultExternalViewer: ExternalViewerState = {
@@ -161,11 +169,14 @@ const mapAnnotationToApi = (
         ];
     }
 
+    const bound: Bound =
+        ann.boundType === 'text' && ann.tokens ? getTokensBound(ann.tokens) : ann.bound;
+
     return [
         {
             id: +ann.id,
             type: ann.boundType,
-            bbox: boundToBBox(ann.bound),
+            bbox: boundToBBox(bound),
             category: ann.category,
             data: {
                 tokens: ann.tokens,
@@ -244,12 +255,14 @@ export const mapModifiedAnnotationPagesToApi = (
         );
         const dataAttributes = annotationDataAttrs;
 
+        const objs = annotationWithChildren
+            .map((annotation) => mapAnnotationToApi(annotation, dataAttributes, tokens))
+            .flat();
+
         return {
             page_num,
             size: pageSize ?? defaultPageSize,
-            objs: annotationWithChildren
-                .map((annotation) => mapAnnotationToApi(annotation, dataAttributes, tokens))
-                .flat()
+            objs
         };
     });
 
