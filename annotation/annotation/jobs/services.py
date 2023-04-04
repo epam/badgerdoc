@@ -188,12 +188,10 @@ def check_validators(
 
 def update_jobs_users(
     db: Session,
-    job_id: int,
+    job: Job,
     patch_data: dict,
-    validation_type: ValidationSchema,
-    tenant: str,
     is_manual: bool = True,
-) -> Tuple[Set[UUID], Set[UUID]]:
+) -> Tuple[Set[UUID], Set[UUID], Set[UUID]]:
     new_annotators = patch_data.get("annotators", [])
     new_validators = patch_data.get("validators", [])
     new_owners = patch_data.get("owners", [])
@@ -203,8 +201,16 @@ def update_jobs_users(
         "owners": (new_owners, None),
     }
     new_users = {*new_annotators, *new_validators, *new_owners}
-    deleted_users, saved_users = find_deleted_users(
-        db, job_id, new_users, tenant
+    old_users = {
+        *{user.user_id for user in job.annotators},
+        *{user.user_id for user in job.validators},
+        *{user.user_id for user in job.owners},
+    }
+    annotators_to_save, validators_to_save = find_saved_users(
+        db, job, set(new_annotators), set(new_validators)
+    )
+    deleted_users = old_users.difference(
+        {*new_users, *annotators_to_save, *validators_to_save}
     )
     db_users = []
     if new_users:  # one query into DB for any possible user type provided
@@ -217,7 +223,7 @@ def update_jobs_users(
             patch_data["owners"] = list(
                 {user for user in db_users if user.user_id in new_owners}
             )
-        return set(), set()
+        return set(), set(), set()
     # with specifying custom default iterable value in 'patch_data.get()' we
     # can make one query into database and also could check if user field
     # wasn't provided in query (empty list) or explicitly provided as empty set
@@ -226,25 +232,11 @@ def update_jobs_users(
         users, checker = users_with_checker
         if isinstance(users, set):
             if checker:
-                checker(users, validation_type)
+                checker(users, job.validation_type)
             patch_data[user_type] = list(
                 {user for user in db_users if user.user_id in users}
             )
-    return deleted_users, saved_users
-
-
-def get_users_to_save(
-    job: Job, new_job_data: dict, saved_users: set
-) -> Tuple[Set[UUID], Set[UUID]]:
-    old_annotators, old_validators = {
-        annotator.user_id for annotator in job.annotators
-    }, {validator.user_id for validator in job.validators}
-    new_annotators, new_validators = new_job_data.get(
-        "annotators", set()
-    ), new_job_data.get("validators", set())
-    annotators_to_save = (old_annotators - set(new_annotators)) & saved_users
-    validators_to_save = (old_validators - set(new_validators)) & saved_users
-    return annotators_to_save, validators_to_save
+    return deleted_users, annotators_to_save, validators_to_save
 
 
 def add_users(
@@ -474,29 +466,38 @@ def delete_redundant_users(db: Session, users_ids: Set[UUID]):
         )
 
 
-def find_deleted_users(
-    db: Session, job_id: int, users_ids: Set[UUID], tenant: str
+def find_saved_users(
+    db: Session,
+    job: Job,
+    new_annotators: Set[UUID],
+    new_validators: Set[UUID],
 ) -> Tuple[Set[UUID], Set[UUID]]:
-    """Finds users who will be removed from job after update
+    """Finds users who will be saved in job after update
     Updates overall load for deleted users and deletes job's tasks for them"""
-    job_users_ids = find_jobs_users(db, job_id, tenant)
-    deleted_users_ids = job_users_ids.difference(users_ids)
-    tasks_to_save = set()
-    users_to_save = set()
-    if deleted_users_ids:
-        tasks_to_save = delete_tasks_for_removed_users(
-            db, deleted_users_ids, job_id
+    deleted_annotators = {user.user_id for user in job.annotators}.difference(
+        new_annotators
+    )
+    deleted_validators = {user.user_id for user in job.validators}.difference(
+        new_validators
+    )
+    annotators_to_save, validators_to_save = set(), set()
+    if deleted_annotators:
+        annotations_to_save = delete_tasks_for_removed_users(
+            db,
+            deleted_annotators,
+            job.job_id,
+            is_validation=False,
         )
-        users_to_save = set(task.user_id for task in tasks_to_save)
-    return deleted_users_ids.difference(users_to_save), users_to_save
-
-
-def find_jobs_users(db: Session, job_id: int, tenant: str) -> Set[UUID]:
-    """Finds users for particular job"""
-    job = get_job(db, job_id, tenant)
-    job_users = {*job.annotators, *job.validators, *job.owners}
-    job_users_ids = {user.user_id for user in job_users}
-    return job_users_ids
+        annotators_to_save = set(task.user_id for task in annotations_to_save)
+    if deleted_validators:
+        validations_to_save = delete_tasks_for_removed_users(
+            db,
+            deleted_validators,
+            job.job_id,
+            is_validation=True,
+        )
+        validators_to_save = set(task.user_id for task in validations_to_save)
+    return annotators_to_save, validators_to_save
 
 
 def delete_tasks(db: Session, tasks: Set[ManualAnnotationTask]):
@@ -525,7 +526,10 @@ def delete_tasks(db: Session, tasks: Set[ManualAnnotationTask]):
 
 
 def delete_tasks_for_removed_users(
-    db: Session, users: Set[UUID], job_id: int
+    db: Session,
+    users: Set[UUID],
+    job_id: int,
+    is_validation: bool,
 ) -> Set[ManualAnnotationTask]:
     """Deletes tasks for users that have been removed
     from job's annotators or validators if tasks were not finished"""
@@ -537,6 +541,7 @@ def delete_tasks_for_removed_users(
             .filter(
                 ManualAnnotationTask.job_id == job_id,
                 ManualAnnotationTask.user_id == user_id,
+                ManualAnnotationTask.is_validation.is_(is_validation),
             )
             .all()
         )
