@@ -1,0 +1,22 @@
+.link-row {
+    justify-content: space-between;
+    width: 280px;
+    padding: 2px 8px;
+
+    & .title {
+        display: flex;
+        gap: 4px;
+    }
+
+    & .cross {
+        display: none !important;
+    }
+
+    &:hover {
+        background-color: #e1e3eb;
+
+        .cross {
+            display: flex !important;
+        }
+    }
+}

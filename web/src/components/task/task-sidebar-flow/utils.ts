@@ -30,3 +30,25 @@ export const getSortedAnnotationsByUserId = (annotationsByUserId: Record<string,
         accumulator[userId] = [...annotationsByUserId[userId]].sort(sortByCoordinates);
         return accumulator;
     }, {});
+
+type TCollectIncomingLinksReturnValue = {
+    incomingLinksByAnnotationId: Record<string, Annotation['links']>;
+    annotationNameById: Record<string, string>;
+};
+
+export const collectIncomingLinks = (annotations: Annotation[]) => {
+    return annotations.reduce(
+        (acc: TCollectIncomingLinksReturnValue, annotation) => {
+            acc.annotationNameById[annotation.id] = annotation.label ?? '';
+
+            annotation.links?.forEach(({ to, ...link }) => {
+                if (!acc.incomingLinksByAnnotationId[to]) acc.incomingLinksByAnnotationId[to] = [];
+
+                acc.incomingLinksByAnnotationId[to]?.push({ ...link, to: annotation.id });
+            });
+
+            return acc;
+        },
+        { incomingLinksByAnnotationId: {}, annotationNameById: {} }
+    );
+};

@@ -22,6 +22,7 @@ export const FlowSideBar: FC = () => {
         annotationsByUserId,
         setSelectedAnnotation,
         setCurrentDocumentUserId,
+        onLinkDeleted,
         currentDocumentUserId = OWNER_TAB.id,
         allAnnotations: allAnnotationsByPageNum = {},
         selectedAnnotation: { id: selectedAnnotationId } = {},
@@ -94,8 +95,10 @@ export const FlowSideBar: FC = () => {
                     )}
                     {annotationsByTab[currentTab] && (
                         <AnnotationList
+                            onLinkDeleted={onLinkDeleted}
                             onSelect={setSelectedAnnotation}
                             list={annotationsByTab[currentTab]}
+                            isEditable={currentTab === OWNER_TAB.id}
                             selectedAnnotationId={selectedAnnotationId}
                         />
                     )}

@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useRef, useState } from 'react';
+import React, { FC, useEffect, useMemo, useRef, useState } from 'react';
 import { Button, FlexRow, Text } from '@epam/loveship';
 import { AnnotationRow } from './annotation';
 import { Annotation } from 'shared';
@@ -12,12 +12,16 @@ import { ReactComponent as goLastIcon } from '@epam/assets/icons/common/navigati
 import { ReactComponent as goNextIcon } from '@epam/assets/icons/common/navigation-chevron-down-18.svg';
 import { ReactComponent as goPrevIcon } from '@epam/assets/icons/common/navigation-chevron-up-18.svg';
 import { ReactComponent as goFirstIcon } from '@epam/assets/icons/common/navigation-chevron-up_up-18.svg';
+import { collectIncomingLinks } from './utils';
+import { Link } from 'api/typings';
 
 export const AnnotationList: FC<{
     list: Annotation[];
+    isEditable: boolean;
     selectedAnnotationId?: Annotation['id'];
+    onLinkDeleted: (pageNum: number, annotationId: Annotation['id'], link: Link) => void;
     onSelect: (annotation: Annotation) => void;
-}> = ({ list, selectedAnnotationId, onSelect }) => {
+}> = ({ list, selectedAnnotationId, onSelect, onLinkDeleted, isEditable }) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const [selectedIndex, setSelectedIndex] = useState<number>(0);
     const [isSelectedInCurrentView, setIsSelectedInCurrentView] = useState<boolean>(false);
@@ -48,6 +52,11 @@ export const AnnotationList: FC<{
             ?.scrollIntoView();
     };
 
+    const handleSelectById = (id: Annotation['id']) => {
+        const index = list.findIndex((item) => item.id === id);
+        handleSelect(index);
+    };
+
     const handleGoPrev = () => {
         const prevIndex = !selectedIndex ? 0 : selectedIndex - 1;
         handleSelect(prevIndex);
@@ -60,6 +69,11 @@ export const AnnotationList: FC<{
 
     const isOnFirstElement = !selectedIndex || !isSelectedInCurrentView;
     const isOnLastElement = !isSelectedInCurrentView || selectedIndex === list.length - 1;
+
+    const { incomingLinksByAnnotationId, annotationNameById } = useMemo(
+        () => collectIncomingLinks(list),
+        [list]
+    );
 
     return (
         <>
@@ -109,8 +123,13 @@ export const AnnotationList: FC<{
                     <AnnotationRow
                         {...annotation}
                         index={index}
+                        isEditable={isEditable}
                         key={annotation.id}
+                        onLinkDeleted={onLinkDeleted}
+                        annotationNameById={annotationNameById}
+                        incomingLinks={incomingLinksByAnnotationId[annotation.id]}
                         onSelect={handleSelect}
+                        onSelectById={handleSelectById}
                         selectedAnnotationId={selectedAnnotationId}
                     />
                 ))}
