@@ -69,7 +69,6 @@ from .services import (
     find_users,
     get_job,
     get_jobs_by_files,
-    get_users_to_save,
     update_inner_job_status,
     update_job_categories,
     update_job_files,
@@ -256,16 +255,11 @@ def update_job(
     )
     db.flush()
 
-    deleted_users, saved_users = update_jobs_users(
+    deleted_users, annotators_to_save, validators_to_save = update_jobs_users(
         db,
-        job_id,
+        job,
         patch_data,
-        job.validation_type,
-        x_current_tenant,
         is_manual,
-    )
-    annotators_to_save, validators_to_save = get_users_to_save(
-        job, patch_data, saved_users
     )
 
     update_job_categories(db, patch_data, x_current_tenant)
