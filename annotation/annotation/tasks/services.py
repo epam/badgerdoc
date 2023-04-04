@@ -772,7 +772,7 @@ def find_common_values(
             PageSchema(
                 page_num=page_number,
                 size=(
-                    tasks[0]["size"]
+                    tasks[next(iter(tasks))]["size"]
                     if tasks
                     else {"width": 0.0, "height": 0.0}
                 ),
