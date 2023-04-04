@@ -12,7 +12,7 @@ import { useLazyLoading } from 'shared/hooks/lazy-loading';
 
 type TaskSidebarLabelsViewProps = {
     viewMode: boolean;
-    labels?: Category[];
+    categories?: Category[];
     onValueChange: (value: Label[]) => void;
     selectedLabels: Label[];
     hasNextPage: boolean;
@@ -22,9 +22,9 @@ type TaskSidebarLabelsViewProps = {
 
 const TaskSidebarLabelsView: FC<TaskSidebarLabelsViewProps> = ({
     viewMode = false,
-    labels,
-    onValueChange,
+    categories,
     selectedLabels,
+    onValueChange,
     hasNextPage,
     onFetchNext,
     isLoading
@@ -37,7 +37,7 @@ const TaskSidebarLabelsView: FC<TaskSidebarLabelsViewProps> = ({
     const { task } = useTaskAnnotatorContext();
     const isDisabled = task?.status !== 'In Progress' && task?.status !== 'Ready';
 
-    if (!labels) {
+    if (!categories) {
         return <Spinner color="sky" />;
     }
 
@@ -46,17 +46,17 @@ const TaskSidebarLabelsView: FC<TaskSidebarLabelsViewProps> = ({
         [selectedLabels]
     );
 
-    const labelsArr = useMemo(() => labels.map(({ name, id }) => ({ name, id })), [labels]);
+    const labels = useMemo(() => categories.map(({ name, id }) => ({ name, id })), [categories]);
 
     const dataSource = useArrayDataSource<Label, string, unknown>(
-        { items: [...selectedLabels, ...labelsArr] },
-        [labelsArr]
+        { items: [...selectedLabels, ...labels] },
+        [labels]
     );
 
     const renderData =
         viewMode || isDisabled ? (
             <FlexCell width="auto" style={{ overflow: 'hidden' }}>
-                {labelsArr.map(({ id, name }) => (
+                {labels.map(({ id, name }) => (
                     <Checkbox
                         cx={styles.checkbox}
                         label={name}
@@ -80,7 +80,7 @@ const TaskSidebarLabelsView: FC<TaskSidebarLabelsViewProps> = ({
                 maxTotalItems={100}
                 sorting={{ field: 'name', direction: 'asc' }}
                 onValueChange={(value) => {
-                    onValueChange(labelsArr.filter((item) => value?.includes(item.id)));
+                    onValueChange(labels.filter((item) => value?.includes(item.id)));
                 }}
             />
         );
@@ -108,7 +108,7 @@ type TaskSidebarLabelsProps = {
 
 export const TaskSidebarLabels = ({
     viewMode = false,
-    labels = [],
+    labels,
     onLabelsSelected,
     selectedLabels = [],
     searchText,
@@ -131,7 +131,7 @@ export const TaskSidebarLabels = ({
             {labels ? (
                 <TaskSidebarLabelsView
                     viewMode={viewMode}
-                    labels={labels}
+                    categories={labels}
                     isLoading={isLoading}
                     hasNextPage={hasNextPage}
                     onFetchNext={onFetchNext}

@@ -45,6 +45,12 @@ export type Job = {
     // TODO: check pipeline property
 };
 
+export type TJobUsers = {
+    owners: Job['owners'];
+    annotators: Job['annotators'];
+    validators: Job['validators'];
+};
+
 export type JobType =
     | 'ExtractionWithAnnotationJob'
     | 'AnnotationJob'
