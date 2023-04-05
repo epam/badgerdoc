@@ -1,7 +1,7 @@
 from typing import Generator, List
 
 import pytest
-from assets import main
+from convert import main
 from pydantic import BaseModel
 from starlette.testclient import TestClient
 
