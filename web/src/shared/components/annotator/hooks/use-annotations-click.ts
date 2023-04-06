@@ -1,5 +1,5 @@
 import React, { RefObject, useCallback } from 'react';
-import { AnnotationImageToolType, AnnotationLinksBoundType } from 'shared';
+import { ToolNames, AnnotationLinksBoundType } from 'shared';
 import { Annotation, AnnotationBoundType, Point } from '../typings';
 import { getRefOffset } from '../utils/get-ref-offset';
 import { isPointInsideRect } from '../utils/is-intersected';
@@ -13,9 +13,7 @@ export const useAnnotationsClick = (
     panoRef: RefObject<HTMLDivElement>,
     annotations: Annotation[],
     scale: number,
-    allowedSelectionTypes: Array<
-        AnnotationBoundType | AnnotationLinksBoundType | AnnotationImageToolType
-    >,
+    allowedSelectionTypes: Array<AnnotationBoundType | AnnotationLinksBoundType | ToolNames>,
     setSelectedAnnotation: (ann: Annotation | undefined) => void,
     unselectAnnotation: () => void
 ) => {

@@ -1,12 +1,5 @@
 import { useMemo } from 'react';
-import {
-    Point,
-    PageToken,
-    Annotation,
-    Rect,
-    AnnotationBoundType,
-    AnnotationImageToolType
-} from '../typings';
+import { Point, PageToken, Annotation, Rect, AnnotationBoundType, ToolNames } from '../typings';
 import { isIntersected } from '../utils/is-intersected';
 import { tokenToRect, annotationToRect } from '../utils/to-rect-utils';
 import { getRectFrom2Points } from '../utils/get-rect-from-2-points';
@@ -18,7 +11,7 @@ type SelectionTokensPropsType = {
     selectionCoords: Point[];
     tokens: PageToken[];
     scale: number;
-    selectionType: AnnotationBoundType | AnnotationLinksBoundType | AnnotationImageToolType;
+    selectionType: AnnotationBoundType | AnnotationLinksBoundType | ToolNames;
 };
 type AnnotationsTokensPropsType = {
     tokens: PageToken[];

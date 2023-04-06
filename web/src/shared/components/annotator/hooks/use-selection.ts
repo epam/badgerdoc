@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AnnotationBoundType, AnnotationImageToolType, Point } from '../typings';
+import { AnnotationBoundType, ToolNames, Point } from '../typings';
 import { useMouseEvents } from './use-mouse-events';
 import { possiblyClickedOnTableGutter } from '../utils/detect-gutter-click';
 import { AnnotationLinksBoundType } from 'shared';
@@ -23,7 +23,7 @@ const isClickedOnControlElement = (target: HTMLElement, isCellMode: boolean): bo
 
 export const useSelection = (
     panoRef: React.RefObject<HTMLDivElement>,
-    selectionType: AnnotationBoundType | AnnotationLinksBoundType | AnnotationImageToolType,
+    selectionType: AnnotationBoundType | AnnotationLinksBoundType | ToolNames,
     isCellMode: boolean,
     isEditable: boolean
 ): SelectionResult => {

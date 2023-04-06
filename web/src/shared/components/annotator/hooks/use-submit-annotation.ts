@@ -1,13 +1,5 @@
 import { useCallback } from 'react';
-import {
-    Point,
-    AnnotationBoundType,
-    PageToken,
-    Annotation,
-    Bound,
-    PaperTool,
-    AnnotationImageToolType
-} from '..';
+import { Point, AnnotationBoundType, PageToken, Annotation, Bound, PaperTool, ToolNames } from '..';
 import { getRectFrom2Points } from '../utils/get-rect-from-2-points';
 import { isIntersected } from '../utils/is-intersected';
 import { rectToBound } from '../utils/rect-to-bound';
@@ -111,7 +103,7 @@ const submitTextAnnotation = (
 };
 
 export const useSubmitAnnotation = (
-    selectionType: AnnotationBoundType | AnnotationLinksBoundType | AnnotationImageToolType,
+    selectionType: AnnotationBoundType | AnnotationLinksBoundType | ToolNames,
     tokens: PageToken[],
     onBoundCreated: (ann: Pick<Annotation, 'bound' | 'boundType'>) => void
 ): ((p: Point[] | PaperTool) => void) => {

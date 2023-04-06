@@ -427,7 +427,7 @@ export type PageInfoObjs = {
     after?: string;
     data?: any;
     links?: Link[];
-    children?: number[] | string[];
+    children?: (string | number)[];
     segments?: number[][];
     original_annotation_id?: number;
 };

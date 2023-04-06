@@ -1,5 +1,5 @@
 import React, { CSSProperties, FC, useMemo } from 'react';
-import { Point, AnnotationBoundType, PageToken, AnnotationImageToolType } from '../../typings';
+import { Point, AnnotationBoundType, PageToken, ToolNames } from '../../typings';
 import { BoxSelection } from '../../components/box-selection/box-selection';
 import { getRectFrom2Points } from '../../utils/get-rect-from-2-points';
 import { TextAnnotation as TextSelection } from '../../components/text-annotation';
@@ -13,11 +13,7 @@ type MultilineTextProps = {
 };
 
 type SelectionLayerProps = {
-    selectionType:
-        | string
-        | AnnotationBoundType
-        | AnnotationLinksBoundType
-        | AnnotationImageToolType;
+    selectionType: string | AnnotationBoundType | AnnotationLinksBoundType | ToolNames;
     selectionCoords: Point[];
     selectionStyle?: CSSProperties;
     isSelectionEnded: boolean;

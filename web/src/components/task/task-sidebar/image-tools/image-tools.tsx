@@ -1,4 +1,4 @@
-import { AnnotationImageToolType } from '../../../../shared';
+import { ToolNames } from '../../../../shared';
 import React from 'react';
 import { FlexRow, IconButton, Tooltip } from '@epam/loveship';
 
@@ -11,7 +11,7 @@ import { ReactComponent as maskrcnnIcon } from '@epam/assets/icons/common/file-c
 import { ReactComponent as selectIcon } from '@epam/assets/icons/common/table-sort_asc-18.svg';
 
 type ImageToolProps = {
-    onSelectTool: (t: AnnotationImageToolType) => void;
+    onSelectTool: (t: ToolNames) => void;
     disabled: boolean;
 };
 
@@ -21,49 +21,49 @@ export const ImageTools = ({ onSelectTool, disabled }: ImageToolProps) => {
             <Tooltip content="Pen" placement="bottom">
                 <IconButton
                     icon={penIcon}
-                    onClick={() => onSelectTool('pen')}
+                    onClick={() => onSelectTool(ToolNames.pen)}
                     isDisabled={disabled}
                 />
             </Tooltip>
             <Tooltip content="Brush" placement="bottom">
                 <IconButton
                     icon={brushIcon}
-                    onClick={() => onSelectTool('brush')}
+                    onClick={() => onSelectTool(ToolNames.brush)}
                     isDisabled={disabled}
                 />
             </Tooltip>
             <Tooltip content="Wand" placement="bottom">
                 <IconButton
                     icon={wandIcon}
-                    onClick={() => onSelectTool('wand')}
+                    onClick={() => onSelectTool(ToolNames.wand)}
                     isDisabled={disabled}
                 />
             </Tooltip>
             <Tooltip content="Eraser" placement="bottom">
                 <IconButton
                     icon={eraserIcon}
-                    onClick={() => onSelectTool('eraser')}
+                    onClick={() => onSelectTool(ToolNames.eraser)}
                     isDisabled={disabled}
                 />
             </Tooltip>
             <Tooltip content="DEXTR" placement="bottom">
                 <IconButton
                     icon={dextrIcon}
-                    onClick={() => onSelectTool('dextr')}
+                    onClick={() => onSelectTool(ToolNames.dextr)}
                     isDisabled={disabled}
                 />
             </Tooltip>
             <Tooltip content="MaskRCNN" placement="bottom">
                 <IconButton
                     icon={maskrcnnIcon}
-                    onClick={() => onSelectTool('rectangle')}
+                    onClick={() => onSelectTool(ToolNames.rectangle)}
                     isDisabled={disabled}
                 />
             </Tooltip>
             <Tooltip content="Select" placement="bottom">
                 <IconButton
                     icon={selectIcon}
-                    onClick={() => onSelectTool('select')}
+                    onClick={() => onSelectTool(ToolNames.select)}
                     isDisabled={disabled}
                 />
             </Tooltip>

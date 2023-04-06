@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ReactComponent as infoIcon } from '@epam/assets/icons/common/notification-info-outline-18.svg';
 import {
-    AnnotationImageToolType,
+    ToolNames,
     BrushToolParams,
     EraserToolParams,
     PaperToolParams,
@@ -20,7 +20,7 @@ export const ImageToolsParams = ({
     onChangeToolParams,
     toolParams
 }: {
-    selectedTool: AnnotationImageToolType;
+    selectedTool: ToolNames;
     onChangeToolParams: (
         newParams: PenToolParams | BrushToolParams | EraserToolParams | WandToolParams
     ) => void;

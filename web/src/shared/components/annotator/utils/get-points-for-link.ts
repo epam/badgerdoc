@@ -2,7 +2,7 @@ import { Category, Link } from 'api/typings';
 import {
     Annotation,
     AnnotationBoundType,
-    AnnotationImageToolType,
+    ToolNames,
     AnnotationLinksBoundType,
     Point
 } from 'shared';
@@ -67,7 +67,7 @@ export const getAnnotationPage = (all: Record<number, Annotation[]>, annotation:
 
 export const getPointsForLinks = (
     id: number | string,
-    annType: AnnotationBoundType | AnnotationLinksBoundType | AnnotationImageToolType,
+    annType: AnnotationBoundType | AnnotationLinksBoundType | ToolNames,
     pageNum: number,
     links: Link[],
     annotations: Annotation[],
@@ -165,11 +165,9 @@ export const getPointsForLinks = (
         } else {
             let leftBound: DOMRectWithId;
             let rightBound: DOMRectWithId;
-            let leftType: string;
-            let rightType: string;
 
             if (bound.boundType == 'text') {
-                [leftBound, rightBound, leftType, rightType] =
+                [leftBound, rightBound] =
                     annType == 'text'
                         ? getLeftBound2(
                               [firstChildStart, lastChildStart],
@@ -180,7 +178,7 @@ export const getPointsForLinks = (
                         : getLeftBound2([boundStart], bound.bound, annType, bound.boundType);
             }
             if (annType == 'text') {
-                [leftBound, rightBound, leftType, rightType] =
+                [leftBound, rightBound] =
                     bound.boundType == 'text'
                         ? getLeftBound2(
                               [firstChildStart, lastChildStart],
@@ -195,7 +193,7 @@ export const getPointsForLinks = (
                               bound.boundType
                           );
             } else {
-                [leftBound, rightBound, leftType, rightType] = getLeftBound2(
+                [leftBound, rightBound] = getLeftBound2(
                     [boundStart],
                     [bound.bound] as DOMRectWithId[],
                     annType,

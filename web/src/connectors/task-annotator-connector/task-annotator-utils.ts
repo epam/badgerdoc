@@ -283,7 +283,7 @@ export const mapAnnotationFromApi = (
     category?: Category,
     taxonLabels?: Map<string, Taxon>
 ): Annotation => {
-    let taxonName: string | undefined;
+    let taxonName;
 
     if (obj.data.dataAttributes) {
         const dataAttr: CategoryDataAttributeWithValue = obj.data.dataAttributes.find(
@@ -305,9 +305,9 @@ export const mapAnnotationFromApi = (
         tokens: obj.data?.tokens,
         links: obj?.links,
         data: obj.data,
-        table: (obj.type as AnnotationBoundType) === 'table' ? formatTable(obj.data) : undefined,
+        table: obj.type === 'table' ? formatTable(obj.data) : undefined,
         children: obj.children,
-        tableCells: (obj.type as AnnotationBoundType) === 'table' ? [] : undefined,
+        tableCells: obj.type === 'table' ? [] : undefined,
         segments: obj.segments,
         text: obj.text
     };

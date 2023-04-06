@@ -40,19 +40,17 @@ export type PaperTool = {
     selection?: paper.Path;
     params: PaperToolParams;
 };
-export const toolNames = [
-    'pen',
-    'brush',
-    'eraser',
-    'wand',
-    'dextr',
-    'rectangle',
-    'select'
-] as const;
-export type AnnotationImageToolType = typeof toolNames[number];
-export type AnnotationImageTool = {
-    [k in typeof toolNames[number]]: Maybe<PaperTool>;
-};
+export enum ToolNames {
+    pen = 'pen',
+    brush = 'brush',
+    eraser = 'eraser',
+    wand = 'wand',
+    dextr = 'dextr',
+    rectangle = 'rectangle',
+    select = 'select'
+}
+
+export type AnnotationImageTool = Record<ToolNames, PaperTool | undefined>;
 
 export type AnnotationLinksBoundType = 'Chain' | 'All to all';
 
@@ -64,7 +62,7 @@ export type AnnotationLabel = {
 };
 export type Annotation = {
     id: string | number;
-    boundType: AnnotationBoundType | AnnotationLinksBoundType | AnnotationImageToolType;
+    boundType: AnnotationBoundType | AnnotationLinksBoundType | ToolNames;
     bound: Bound;
     pageSize?: { width: number; height: number };
     category?: number | string;
@@ -75,9 +73,9 @@ export type Annotation = {
     tokens?: PageToken[];
     links?: Link[];
     table?: AnnotationTable;
-    data?: any; //TODO??
+    data?: any; // TODO: need to define proper types for data
     tableCells?: Maybe<Annotation[]>;
-    children?: number[] | string[];
+    children?: (string | number)[];
     segments?: number[][];
     labels?: AnnotationLabel[];
     originalAnnotationId?: number;

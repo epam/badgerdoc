@@ -1,4 +1,4 @@
-import React, { FC, ReactElement, useEffect, useMemo, useState } from 'react';
+import React, { FC, ReactElement, useCallback, useEffect, useMemo, useState } from 'react';
 import {
     Button,
     FlexRow,
@@ -19,9 +19,9 @@ import { TaskSidebarData } from '../task-sidebar-data/task-sidebar-data';
 import {
     AnnotationBoundMode,
     AnnotationBoundType,
-    AnnotationImageToolType,
     AnnotationLinksBoundType,
-    Maybe
+    Maybe,
+    ToolNames
 } from 'shared';
 import { Status } from 'shared/components/status';
 import { mapStatusForValidationPage } from 'shared/helpers/map-statuses';
@@ -104,7 +104,8 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
         onRelatedDocClick,
         selectedRelatedDoc,
         documentLinksChanged,
-        onFinishSplitValidation,
+        isSplitValidation,
+        setValidPages,
         allValidated,
         annotationSaved,
         onFinishValidation,
@@ -141,10 +142,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
     };
 
     useEffect(() => {
-        let newSelectionType:
-            | AnnotationBoundType
-            | AnnotationImageToolType
-            | AnnotationLinksBoundType;
+        let newSelectionType: AnnotationBoundType | ToolNames | AnnotationLinksBoundType;
         switch (boundModeSwitch) {
             case 'box':
                 newSelectionType = 'box';
@@ -154,7 +152,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
                 break;
             case 'segmentation':
                 newSelectionType = 'polygon';
-                onChangeSelectedTool('pen');
+                onChangeSelectedTool(ToolNames.pen);
 
                 break;
             default:
@@ -332,6 +330,11 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
         setIsHidden(!isHidden);
     };
 
+    const onFinishSplitValidation = useCallback(() => {
+        if (!task || !isSplitValidation) return;
+        setValidPages(task?.pages!);
+    }, [task, isSplitValidation]);
+
     return (
         <Panel cx={styles.wrapper}>
             <Button
@@ -373,10 +376,10 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
                                     />
                                     {boundModeSwitch === 'segmentation' && (
                                         <ImageToolsParams
-                                            onChangeToolParams={(e) => {
+                                            onChangeToolParams={(values) => {
                                                 setSelectedToolParams({
-                                                    type: selectedToolParams.type,
-                                                    values: e
+                                                    values,
+                                                    type: selectedToolParams.type
                                                 });
                                             }}
                                             selectedTool={selectedTool}

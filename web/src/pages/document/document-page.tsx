@@ -64,9 +64,6 @@ export function DocumentPage(props: DocumentPageProps) {
                     jobId={documentJobId}
                     revisionId={documentJobRevisionsInfo?.selectedDocumentJobRevisionId}
                     fileMetaInfo={fileMetaInfo}
-                    onRedirectAfterFinish={() => {}}
-                    onSaveTaskSuccess={() => {}}
-                    onSaveTaskError={() => {}}
                 >
                     <TableAnnotatorContextProvider>
                         <FlowSideBar />

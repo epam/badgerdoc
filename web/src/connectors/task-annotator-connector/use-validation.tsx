@@ -1,6 +1,5 @@
 import React, { Dispatch, SetStateAction, useCallback, useEffect, useMemo, useState } from 'react';
 import { UseQueryResult } from 'react-query';
-import { isEmpty } from 'lodash';
 
 import { Task } from 'api/typings/tasks';
 import { CategoryDataAttributeWithValue, PageInfo } from 'api/typings';
@@ -31,9 +30,9 @@ export type ValidationParams = {
     tokenPages?: PageInfo[];
     annDataAttrs: Record<number, Array<CategoryDataAttributeWithValue>>;
     pageSize: PageSize;
-    onRedirectAfterFinish: () => void;
-    onSaveTaskSuccess: () => void;
-    onSaveTaskError: (error: ApiError) => void;
+    onRedirectAfterFinish?: () => void;
+    onSaveTaskSuccess?: () => void;
+    onSaveTaskError?: (error: ApiError) => void;
 };
 
 export type ValidationValues = {
@@ -112,12 +111,12 @@ export const useValidation = ({
     };
 
     const onSaveValidForm = async () => {
-        if (task) {
-            await finishTaskMutation.mutateAsync({ taskId: task?.id });
-            await useSetTaskState({ id: task?.id, eventType: 'closed' });
-            return {};
-        }
+        if (!task) return;
+
+        await finishTaskMutation.mutateAsync({ taskId: task.id });
+        await useSetTaskState({ id: task.id, eventType: 'closed' });
     };
+
     useEffect(() => {
         if (pages) {
             setValidPages(pages.validated);
@@ -127,12 +126,12 @@ export const useValidation = ({
     }, [pages]);
 
     const allValid =
-        isEmpty(invalidPages) &&
-        isEmpty(editedPages) &&
-        isEmpty(notProcessedPages) &&
-        !isEmpty(validPages);
+        !invalidPages.length &&
+        !editedPages.length &&
+        !notProcessedPages.length &&
+        Boolean(validPages.length);
 
-    const allValidated = isEmpty(notProcessedPages);
+    const allValidated = !notProcessedPages.length;
 
     const onValidClick = useCallback(() => {
         setPages(invalidPages, setInvalidPages);
@@ -203,12 +202,12 @@ export const useValidation = ({
                 invalidPages: []
             });
             onCloseDataTab();
-            onSaveTaskSuccess();
+            onSaveTaskSuccess?.();
 
             latestAnnotationsResult.refetch();
             setAnnotationSaved(true);
         } catch (error) {
-            onSaveTaskError(error as ApiError);
+            onSaveTaskError?.(error as ApiError);
         }
     };
 

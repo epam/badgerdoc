@@ -4,20 +4,20 @@ import './categories-selection-mode-toggle.scss';
 import {
     AnnotationBoundMode,
     AnnotationBoundType,
-    AnnotationImageToolType,
-    AnnotationLinksBoundType
+    AnnotationLinksBoundType,
+    ToolNames
 } from '../../../shared';
 import { FileMetaInfo } from '../../../pages/document/document-page-sidebar-content/document-page-sidebar-content';
 
 type SelectionModeSelectorProps = {
-    selectionType: AnnotationBoundType | AnnotationLinksBoundType | AnnotationImageToolType;
+    selectionType: AnnotationBoundType | AnnotationLinksBoundType | ToolNames;
     selectionMode: AnnotationBoundMode;
     onChangeSelectionType: (
-        newType: AnnotationBoundType | AnnotationLinksBoundType | AnnotationImageToolType
+        newType: AnnotationBoundType | AnnotationLinksBoundType | ToolNames
     ) => void;
     fileMetaInfo: FileMetaInfo;
-    selectedTool: AnnotationImageToolType;
-    onChangeSelectedTool: (newTool: AnnotationImageToolType) => void;
+    selectedTool: ToolNames;
+    onChangeSelectedTool: (newTool: ToolNames) => void;
     isDisabled?: boolean;
 };
 
@@ -74,11 +74,11 @@ export const CategoriesSelectionModeToggle: React.FC<SelectionModeSelectorProps>
                         // Just for now - we need to implement all tools first then we can uncomment this
                         //items={toolNames.map((el) => ({ id: el, name: el }))}
                         items={[
-                            { id: 'pen', name: 'pen' },
-                            { id: 'brush', name: 'brush' },
-                            { id: 'select', name: 'select' },
-                            { id: 'eraser', name: 'eraser' },
-                            { id: 'wand', name: 'wand' }
+                            { id: ToolNames.pen, name: ToolNames.pen },
+                            { id: ToolNames.brush, name: ToolNames.brush },
+                            { id: ToolNames.select, name: ToolNames.select },
+                            { id: ToolNames.eraser, name: ToolNames.eraser },
+                            { id: ToolNames.wand, name: ToolNames.wand }
                         ]}
                         value={selectedTool}
                         onValueChange={onChangeSelectedTool}

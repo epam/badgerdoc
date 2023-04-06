@@ -1,11 +1,5 @@
 import { DependencyList, useCallback, useMemo } from 'react';
-import {
-    Category,
-    CategoryDataAttributeWithLabel,
-    CategoryDataAttributeWithValue,
-    PageInfo,
-    Taxon
-} from 'api/typings';
+import { Category, CategoryDataAttributeWithValue, PageInfo, Taxon } from 'api/typings';
 import { mapAnnotationFromApi } from 'connectors/task-annotator-connector/task-annotator-utils';
 import { Annotation, AnnotationLabel, PageToken } from 'shared';
 
@@ -37,9 +31,6 @@ const getTopRightToken = (tokens?: PageToken[]) => {
     return topRightToken;
 };
 
-const getTokenKey = (pageKey: string, token: PageToken) =>
-    `${pageKey}_${token.text}_${token.x}_${token.y}`;
-
 export default function useAnnotationsMapper(
     taxonLabels: Map<string, Taxon>,
     deps: DependencyList
@@ -47,29 +38,28 @@ export default function useAnnotationsMapper(
     const tokenLabelsMap = useMemo(() => new Map<string, AnnotationLabel[]>(), deps);
 
     const getAnnotationLabels = useCallback(
-        (pageKey: string, annotation: Annotation, category?: Category): AnnotationLabel[] => {
+        (pageKey: string, annotation: Annotation, category?: Category) => {
             if (annotation.boundType !== 'text') {
                 return [];
             }
-            const dataAttr: CategoryDataAttributeWithLabel = annotation.data?.dataAttributes
-                ? annotation.data?.dataAttributes.find(
-                      (attr: CategoryDataAttributeWithValue) => attr.type === 'taxonomy'
-                  )
-                : null;
+
+            const isTaxonomyExisted = annotation.data?.dataAttributes?.find(
+                ({ type }: CategoryDataAttributeWithValue) => type === 'taxonomy'
+            )?.value;
 
             const label = {
                 annotationId: annotation.id,
-                label: dataAttr && dataAttr.value ? annotation.label : category?.name,
-                color: category?.metadata?.color
+                color: category?.metadata?.color,
+                label: isTaxonomyExisted ? annotation.label : category?.name
             };
-            const topRightToken: PageToken | null | undefined = getTopRightToken(
-                annotation?.tokens
-            );
+            const topRightToken = getTopRightToken(annotation?.tokens);
+
             if (!topRightToken) {
                 return [label];
             }
-            const tokenKey: string = getTokenKey(pageKey, topRightToken);
-            const labels: AnnotationLabel[] = tokenLabelsMap.get(tokenKey) ?? [];
+
+            const tokenKey = `${pageKey}_${topRightToken.text}_${topRightToken.x}_${topRightToken.y}`;
+            const labels = tokenLabelsMap.get(tokenKey) ?? [];
             labels.push(label);
             tokenLabelsMap.set(tokenKey, labels);
 
@@ -101,8 +91,7 @@ export default function useAnnotationsMapper(
                     if (annotation.boundType !== 'table') continue;
                     const relatedCells = pageAnnotations.filter(
                         (el) =>
-                            (annotation.children as number[])?.includes(el.id as number) &&
-                            el.boundType === 'table_cell'
+                            annotation.children?.includes(el.id) && el.boundType === 'table_cell'
                     );
                     annotation.tableCells = relatedCells;
                 }

@@ -1,11 +1,6 @@
-import { Category, Link } from 'api/typings';
+import { Category } from 'api/typings';
 import { useEffect, useState } from 'react';
-import {
-    Annotation,
-    AnnotationBoundType,
-    AnnotationImageToolType,
-    AnnotationLinksBoundType
-} from 'shared';
+import { Annotation, AnnotationBoundType, AnnotationLinksBoundType, ToolNames } from 'shared';
 
 export type AnnotationLink = {
     prevSelected: Annotation;
@@ -16,16 +11,17 @@ export const useAnnotationsLinks = (
     selectedAnn: Annotation | undefined,
     category: Category | undefined,
     current_page: number | undefined,
-    selectionType: AnnotationBoundType | AnnotationLinksBoundType | AnnotationImageToolType,
+    selectionType: AnnotationBoundType | AnnotationLinksBoundType | ToolNames,
     allAnnotations: Record<number, Annotation[]>,
     onAnnotationEdited: (
         prevPage: number,
-        links: Pick<Annotation, 'links'>,
-        annId: number | string
+        annId: number | string,
+        links: Pick<Annotation, 'links'>
     ) => void
 ) => {
     const [prevSelected, setPrevSelected] = useState<Annotation | undefined>();
     const [prevPage, setPrevPage] = useState<number>();
+
     useEffect(() => {
         if (['box', 'free-box', 'table', 'table-cell', 'text'].includes(selectionType)) {
             setPrevSelected(undefined);
@@ -36,22 +32,22 @@ export const useAnnotationsLinks = (
         if (
             prevSelected !== undefined &&
             selectedAnn &&
+            category &&
+            current_page &&
             JSON.stringify(prevSelected) !== JSON.stringify(selectedAnn)
         ) {
-            const prevLinks = prevSelected.links ? prevSelected.links : [];
-            let links = {
-                links: [
-                    ...prevLinks,
-                    {
-                        category_id: category?.id.toString(),
-                        to: selectedAnn.id,
-                        type: selectionType == 'Chain' ? 'directional' : 'omnidirectional',
-                        page_num: current_page
-                    } as Link
-                ]
-            };
-            onAnnotationEdited(prevPage!, links, prevSelected.id);
+            const links = prevSelected.links ? [...prevSelected.links] : [];
+
+            links.push({
+                to: selectedAnn.id,
+                page_num: current_page,
+                category_id: category?.id.toString(),
+                type: selectionType === 'Chain' ? 'directional' : 'omnidirectional'
+            });
+
+            onAnnotationEdited(prevPage!, prevSelected.id, { links });
         }
+
         setPrevSelected(selectedAnn);
         setPrevPage(current_page);
     }, [selectedAnn]);

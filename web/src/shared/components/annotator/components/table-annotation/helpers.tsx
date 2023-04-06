@@ -10,18 +10,6 @@ import {
     TableGutterMap
 } from '../../typings';
 
-const borderlineLengthRefiner = (
-    idx: number,
-    count: number,
-    gutterParams: GutterParams
-): number => {
-    if (count === 1) return -gutterParams.visibleGutterWidth / 2;
-    if (idx === 0) return (gutterParams.draggableGutterWidth + gutterParams.visibleGutterWidth) / 2;
-    if (idx === count - 1)
-        return -(gutterParams.draggableGutterWidth + 2 * gutterParams.visibleGutterWidth) / 2;
-    return 0;
-};
-
 export const updateAnnotation = (
     annotation: Annotation,
     gutters: TableGutterMap,
@@ -48,25 +36,27 @@ export const isRectangularShape = (cells: Annotation[]): boolean => {
 
 export const traverseRowsOrCols = (selector: 'row' | 'col', cells: Annotation[]): boolean => {
     const needToEnd = true;
-    let cellIdx = 0;
+    let cellIndex = 0;
     let maxOnCurDirectLine = -1;
-    const spanSelector = selector + 'span';
-    const reverseSelector = selector === 'row' ? 'col' : 'row';
-    const reverseSpanSelector = reverseSelector + 'span';
+    const spanSelector = (selector + 'span') as 'rowspan' | 'colspan';
+    const reverseSelector: 'col' | 'row' = selector === 'row' ? 'col' : 'row';
+    const reverseSpanSelector = (reverseSelector + 'span') as 'rowspan' | 'colspan';
     while (needToEnd) {
         // TODO: omg while true
-        const curCell = cells[cellIdx];
-        if (!curCell) {
+        const currentCell = cells[cellIndex];
+        if (!currentCell) {
             break;
         }
+
         const cellsOnDirectLine = cells
             .filter(
                 (el) =>
-                    el.data[selector] <= curCell.data[selector] &&
+                    el.data[selector] <= currentCell.data[selector] &&
                     el.data[selector] + (el.data[spanSelector] ? el.data[spanSelector] - 1 : 0) >=
-                        curCell.data[selector]
+                        currentCell.data[selector]
             )
             .sort((a, b) => a.data[reverseSelector] - b.data[reverseSelector]);
+
         const lastCell = cellsOnDirectLine[cellsOnDirectLine.length - 1];
         const firstCell = cellsOnDirectLine[0];
         if (maxOnCurDirectLine === -1) {
@@ -94,7 +84,7 @@ export const traverseRowsOrCols = (selector: 'row' | 'col', cells: Annotation[])
         if (newMaxOnCurDirectLine !== maxOnCurDirectLine) {
             return false;
         }
-        cellIdx++;
+        cellIndex++;
     }
     return true;
 };
@@ -321,8 +311,7 @@ export const createInitialGutters = (
     columns: number | null,
     annotation: Annotation,
     selectedAnnotation: Maybe<Annotation>,
-    gutterParams: GutterParams,
-    scale: number
+    gutterParams: GutterParams
 ): TableGutterMap => {
     let tableCols: number[] = updateTableEntity(columns, annotation, selectedAnnotation, 'cols');
     let tableRows: number[] = updateTableEntity(rows, annotation, selectedAnnotation, 'rows');

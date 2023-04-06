@@ -1,10 +1,4 @@
-import {
-    AnnotationImageToolType,
-    Maybe,
-    PaperTool,
-    PaperToolParams,
-    toolNames
-} from '../../typings';
+import { Maybe, PaperTool, PaperToolParams, ToolNames } from '../../typings';
 import { createPenTool } from './pen-tool';
 import { createSelectTool } from './select-tool';
 import { createBrushTool } from './brush-tool';
@@ -12,11 +6,10 @@ import { createEraserTool } from './eraser-tool';
 import { createMagicWandTool } from './magic-wand-tool';
 
 export const createImageTool = (
-    toolName: AnnotationImageToolType,
+    toolName: ToolNames,
     onDeleteHandler: any,
     params: PaperToolParams
 ): Maybe<PaperTool> => {
-    if (!toolNames.includes(toolName)) return undefined;
     switch (toolName) {
         case 'pen':
             return createPenTool({ onDeleteHandler, params });

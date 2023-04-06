@@ -5,26 +5,25 @@ import { getTaxonFullName } from 'shared/helpers/get-taxon-full-name';
 
 export default function useAnnotationsTaxons(annotationsByPages?: PageInfo[]): Map<string, Taxon> {
     const [taxonLabels, setTaxonLabels] = useState(new Map<string, Taxon>());
-    const updateMap = (key: string, value: Taxon) => {
-        setTaxonLabels(new Map(taxonLabels.set(key, value)));
-    };
 
-    let taxonIds: string[] | undefined = useMemo(() => {
-        let taxonIdArr: string[] = [];
-        if (annotationsByPages) {
-            for (let page of annotationsByPages) {
-                for (let obj of page.objs) {
-                    if (
-                        obj.data.dataAttributes?.[0] &&
-                        obj.data.dataAttributes?.[0].value &&
-                        obj.data.dataAttributes?.[0].type === 'taxonomy'
-                    ) {
-                        taxonIdArr.push(obj.data.dataAttributes[0].value);
-                    }
+    const taxonIds = useMemo(() => {
+        let result: string[] = [];
+
+        if (!annotationsByPages) return result;
+
+        for (let page of annotationsByPages) {
+            for (let obj of page.objs) {
+                if (
+                    obj.data.dataAttributes?.[0] &&
+                    obj.data.dataAttributes?.[0].value &&
+                    obj.data.dataAttributes?.[0].type === 'taxonomy'
+                ) {
+                    result.push(obj.data.dataAttributes[0].value);
                 }
             }
-            return taxonIdArr;
         }
+
+        return result;
     }, [annotationsByPages]);
 
     const { data: taxons } = useTaxons(
@@ -35,21 +34,24 @@ export default function useAnnotationsTaxons(annotationsByPages?: PageInfo[]): M
             filters: [
                 {
                     field: 'id',
-                    operator: Operators.IN,
-                    value: taxonIds
+                    value: taxonIds,
+                    operator: Operators.IN
                 }
             ],
             sortConfig: { field: 'name', direction: SortingDirection.ASC }
         },
-        { enabled: !!taxonIds?.length }
+        { enabled: Boolean(taxonIds.length) }
     );
 
     useEffect(() => {
-        if (taxons?.data) {
-            taxons.data.forEach((taxon: Taxon) => {
-                updateMap(taxon.id, { ...taxon, name: getTaxonFullName(taxon) });
-            });
-        }
+        if (!taxons?.data) return;
+
+        setTaxonLabels((origin) => {
+            return taxons.data.reduce((updatedTaxonLabels, taxon) => {
+                updatedTaxonLabels.set(taxon.id, { ...taxon, name: getTaxonFullName(taxon) });
+                return updatedTaxonLabels;
+            }, new Map(origin));
+        });
     }, [taxons]);
 
     return taxonLabels;

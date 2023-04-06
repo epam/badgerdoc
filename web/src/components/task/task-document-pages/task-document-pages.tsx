@@ -18,12 +18,6 @@ const TaskDocumentPages = ({ viewMode }: DocumentPageProps) => {
         currentPage,
         editedPages,
         externalViewer,
-        onEmptyAreaClick,
-        onAnnotationCopyPress,
-        onAnnotationCutPress,
-        onAnnotationPastePress,
-        onAnnotationUndoPress,
-        onAnnotationRedoPress,
         onExternalViewerClose
     } = useTaskAnnotatorContext();
 
@@ -49,12 +43,6 @@ const TaskDocumentPages = ({ viewMode }: DocumentPageProps) => {
                 apiPageSize={pageSize}
                 setPageSize={setPageSize}
                 editable={editable}
-                onAnnotationCopyPress={onAnnotationCopyPress}
-                onAnnotationCutPress={onAnnotationCutPress}
-                onAnnotationPastePress={onAnnotationPastePress}
-                onAnnotationUndoPress={onAnnotationUndoPress}
-                onAnnotationRedoPress={onAnnotationRedoPress}
-                onEmptyAreaClick={onEmptyAreaClick}
             />
         </div>
     );

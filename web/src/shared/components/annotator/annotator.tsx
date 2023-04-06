@@ -16,13 +16,13 @@ import {
     Annotation,
     AnnotationBoundType,
     AnnotationImageTool,
-    AnnotationImageToolType,
     AnnotationLabel,
     AnnotationsStyle,
     Bound,
     PageToken,
     PaperTool,
-    TokenStyle
+    TokenStyle,
+    ToolNames
 } from './typings';
 import { TokensLayer } from './layers/tokens-layer/tokens-layer';
 import { editableAnnotationRenderer } from './layers/annotations-layer/annotations-editable-renderer';
@@ -58,8 +58,8 @@ const resizeSelectionCast = {
     'free-box': 'free-box',
     text: 'text'
 } as Record<
-    AnnotationBoundType | AnnotationLinksBoundType | AnnotationImageToolType,
-    AnnotationBoundType | AnnotationLinksBoundType | AnnotationImageToolType
+    AnnotationBoundType | AnnotationLinksBoundType | ToolNames,
+    AnnotationBoundType | AnnotationLinksBoundType | ToolNames
 >;
 
 export type AnnotatorProps = PropsWithChildren<{
@@ -85,7 +85,7 @@ export type AnnotatorProps = PropsWithChildren<{
     // --- Props --- //
 
     scale: number;
-    selectionType?: AnnotationBoundType | AnnotationLinksBoundType | AnnotationImageToolType;
+    selectionType?: AnnotationBoundType | AnnotationLinksBoundType | ToolNames;
     annotations: Annotation[];
     tokens?: PageToken[];
     annotationSpan?: number;
@@ -192,6 +192,7 @@ export const Annotator: FC<AnnotatorProps> = ({
         }
     );
 
+    // TODO: Why do we have 2 identical submit handlers???
     const submitResizedAnnotation = useSubmitAnnotation(
         resizeSelectionCast[selectionType],
         tokens,
@@ -431,7 +432,7 @@ export const Annotator: FC<AnnotatorProps> = ({
 
                 if (selectionType === 'polygon') {
                     const defaultActivePen = createImageTool(
-                        'pen',
+                        ToolNames.pen,
                         onAnnotationDeleted,
                         selectedToolParams
                     );

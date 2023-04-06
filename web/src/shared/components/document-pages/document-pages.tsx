@@ -40,14 +40,7 @@ type DocumentPagesProps = {
     apiPageSize?: PageSize;
     setPageSize?: (nS: any) => void;
     scaleStyle?: CSSProperties;
-
     editable: boolean;
-    onAnnotationCopyPress: (pageNum: number, annotationId: string | number) => void;
-    onAnnotationCutPress: (pageNum: number, annotationId: string | number) => void;
-    onAnnotationPastePress: (pageSize: PageSize, pageNum: number) => void;
-    onAnnotationUndoPress: () => void;
-    onAnnotationRedoPress: () => void;
-    onEmptyAreaClick: () => void;
 };
 
 export const getScale = (containerWidth: number, contentWidth: number) => {
@@ -64,13 +57,7 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
     apiPageSize,
     setPageSize,
     scaleStyle,
-    editable,
-    onAnnotationCopyPress,
-    onAnnotationCutPress,
-    onAnnotationPastePress,
-    onAnnotationUndoPress,
-    onAnnotationRedoPress,
-    onEmptyAreaClick
+    editable
 }) => {
     const {
         task,
@@ -80,13 +67,19 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
         categoriesByUserId,
         currentPage,
         isSplitValidation,
-        onSplitAnnotationSelected,
         userPages,
         selectedLabels,
         documentLinks,
         onLinkChanged,
         selectedRelatedDoc,
-        job
+        job,
+        onEmptyAreaClick,
+        onAnnotationCopyPress,
+        onAnnotationCutPress,
+        onAnnotationPastePress,
+        onAnnotationUndoPress,
+        onAnnotationRedoPress,
+        onSplitAnnotationSelected
     } = useTaskAnnotatorContext();
 
     const containerRef = useRef<HTMLDivElement>(null);
