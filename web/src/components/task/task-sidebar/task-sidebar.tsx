@@ -37,7 +37,7 @@ import { ReactComponent as SplitIcon } from '@epam/assets/icons/common/editor-ta
 
 import styles from './task-sidebar.module.scss';
 import { getCategoryDataAttrs } from 'connectors/task-annotator-connector/task-annotator-utils';
-import { FinishButton } from './finish-button';
+import { FinishButton } from './finish-button/finish-button';
 import { TABS, VISIBILITY_SETTING_ID } from './constants';
 import { ReactComponent as openIcon } from '@epam/assets/icons/common/navigation-chevron-left_left-18.svg';
 import { ReactComponent as closeIcon } from '@epam/assets/icons/common/navigation-chevron-right_right-18.svg';
@@ -603,6 +603,8 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
                         onFinishValidation={onFinishValidation}
                         onAnnotationTaskFinish={onAnnotationTaskFinish}
                         onFinishSplitValidation={onFinishSplitValidation}
+                        jobType={job?.validation_type}
+                        taskStatus={task?.status}
                     />
                 </div>
             )}
