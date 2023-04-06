@@ -57,12 +57,12 @@ class LabelstudioToBadgerdocConverter:
         annotators: List[str],
         validators: List[str],
     ) -> None:
-        page_border_offset = DEFAULT_PAGE_BORDER_OFFSET
-        self.plain_text_converter = TextToBadgerdocTokensConverter(
-            page_border_offset=page_border_offset
-        )
-        self.pdf_renderer = PDFRenderer(page_border_offset=page_border_offset)
-        self.annotation_converter = AnnotationConverter()
+        # page_border_offset = DEFAULT_PAGE_BORDER_OFFSET
+        # self.plain_text_converter = TextToBadgerdocTokensConverter(
+        #     page_border_offset=page_border_offset
+        # )
+        # self.pdf_renderer = PDFRenderer(page_border_offset=page_border_offset)
+        # self.annotation_converter = AnnotationConverter()
         self.badgerdoc_format = Badgerdoc()
         self.s3_client = s3_client
 
@@ -228,15 +228,16 @@ class LabelstudioToBadgerdocConverter:
     def upload(
         self, importjob_id_created: int, file_id_in_assets: int
     ) -> None:
-        with tempfile.TemporaryDirectory() as tmp_dirname:
-            tmp_dirname = Path(tmp_dirname)
+        self.upload_tokens(file_id_in_assets)
+        self.upload_annotations(importjob_id_created, file_id_in_assets)
 
+    def upload_tokens(
+        self, file_id_in_assets: int
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dirname:
+            badgerdoc_tokens_path = Path(tmp_dirname) / self.BADGERDOC_TOKENS_FILENAME
             s3_output_tokens_path = self.get_output_tokens_path(
                 file_id_in_assets
-            )
-
-            badgerdoc_tokens_path = tmp_dirname / Path(
-                self.BADGERDOC_TOKENS_FILENAME
             )
             self.badgerdoc_format.export_tokens(badgerdoc_tokens_path)
             self.s3_client.upload_file(
@@ -245,14 +246,16 @@ class LabelstudioToBadgerdocConverter:
                 s3_output_tokens_path,
             )
 
-            badgerdoc_annotations_path = tmp_dirname / Path(
-                self.BADGERDOC_ANNOTATIONS_FILENAME
+    def upload_annotations(
+        self, importjob_id_created: int, file_id_in_assets: int
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dirname:
+            badgerdoc_annotations_path = Path(tmp_dirname) / self.BADGERDOC_ANNOTATIONS_FILENAME
+            s3_output_annotations_path = self.get_output_annotations_path(
+                importjob_id_created, file_id_in_assets
             )
             self.badgerdoc_format.export_annotations(
                 badgerdoc_annotations_path
-            )
-            s3_output_annotations_path = self.get_output_annotations_path(
-                importjob_id_created, file_id_in_assets
             )
             self.s3_client.upload_file(
                 str(badgerdoc_annotations_path),
