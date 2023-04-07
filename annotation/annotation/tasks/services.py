@@ -714,9 +714,7 @@ def load_revisions(
                     else {"width": 0.0, "height": 0.0}
                 ),
                 "objects": [
-                    {key: obj[key] for key in obj if key != "id"}
-                    for revision in annotations
-                    for obj in revision["objs"]
+                    obj for revision in annotations for obj in revision["objs"]
                 ],
                 "categories": set(
                     category
@@ -752,6 +750,79 @@ def load_revisions(
     return tasks_data
 
 
+def process_links(common_objs: List[dict]):
+    """
+    Search for linked objects and remove unfound links.
+    Changes are inplace.
+    """
+    for common_obj in common_objs:
+        old_links = common_obj.get("links")
+        if not old_links:
+            continue
+        common_obj["links"] = [
+            link
+            for link in old_links
+            if any(task_obj["id"] == link["to"] for task_obj in common_objs)
+        ]
+
+
+def find_common_objs(task_data: dict, all_tasks: dict) -> List[dict]:
+    """Find common objects among one task and all tasks without ids."""
+    common_objs = []
+    for task_obj in task_data["objects"]:
+        task_obj_without_ids = {
+            key: value for key, value in task_obj.items() if key != "id"
+        }
+        obj_links = task_obj_without_ids.get("links", [])
+        task_obj_without_ids["links"] = sorted(
+            [
+                {key: value for key, value in obj_link.items() if key != "to"}
+                for obj_link in obj_links
+            ]
+        )
+        if all(
+            task_obj_without_ids in task_objs
+            for task_objs in all_tasks.values()
+        ):
+            common_objs.append(task_obj)
+    return common_objs
+
+
+def remove_ids(tasks: dict) -> dict:
+    """Remove ids from objects and objects links."""
+    tasks_without_id = dict()
+    for task, task_objs in tasks.items():
+        tasks_without_id[task] = []
+        for task_obj in task_objs["objects"]:
+            task_obj_without_ids = {
+                key: value for key, value in task_obj.items() if key != "id"
+            }
+            obj_links = task_obj_without_ids.get("links", [])
+            task_obj_without_ids["links"] = sorted(
+                [
+                    {
+                        key: value
+                        for key, value in obj_link.items()
+                        if key != "to"
+                    }
+                    for obj_link in obj_links
+                ]
+            )
+            tasks_without_id[task].append(task_obj_without_ids)
+    return tasks_without_id
+
+
+def change_ids(objs: List[dict], id_mapping: Dict[int, int]):
+    """
+    Change objects and links ids according to id mapping.
+    Changes are inplace.
+    """
+    for obj in objs:
+        obj["id"] = id_mapping[obj["id"]]
+        for link in obj.get("links", []):
+            link["to"] = id_mapping[link["to"]]
+
+
 def find_common_values(
     db: Session,
     x_current_tenant: str,
@@ -763,29 +834,38 @@ def find_common_values(
         db, x_current_tenant, pages_nums, annotation_tasks
     )
 
-    common_objs_pages: List[PageSchema] = []
     obj_id: int = 0
+    common_objs_pages: List[PageSchema] = []
     for page_number, tasks in tasks_data.items():
         if not tasks:
             continue
+
+        page_size = tasks[next(iter(tasks))]["size"]
+
+        tasks_without_id = remove_ids(tasks)
+
+        # find task with min objects
+        task_min = tasks[
+            min(tasks.keys(), key=lambda x: len(tasks[x]["objects"]))
+        ]
+
+        common_objs = find_common_objs(task_min, tasks_without_id)
+        if not common_objs:
+            continue
+
+        process_links(common_objs)
+
+        id_mapping = {
+            common_obj["id"]: (obj_id := obj_id + 1)  # noqa F841
+            for common_obj in common_objs
+        }
+        change_ids(common_objs, id_mapping)
+
         common_objs_pages.append(
             PageSchema(
                 page_num=page_number,
-                size=(
-                    tasks[next(iter(tasks))]["size"]
-                    if tasks
-                    else {"width": 0.0, "height": 0.0}
-                ),
-                objs=[
-                    {"id": (obj_id := obj_id + 1), **obj}  # noqa F841
-                    for obj in tasks[
-                        min(tasks.keys(), key=lambda x: len(tasks[x]))
-                    ]["objects"]
-                    if all(
-                        obj in task_data["objects"]
-                        for task_data in tasks.values()
-                    )
-                ],
+                size=page_size,
+                objs=common_objs,
             ),
         )
 
