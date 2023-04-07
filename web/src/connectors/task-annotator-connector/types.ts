@@ -101,7 +101,7 @@ export type ContextValue = TAnnotationHandlers &
         setSelectedToolParams: (nt: PaperToolParams) => void;
         setSelectedAnnotation: (annotation: Annotation | undefined) => void;
         selectedLabels?: Label[];
-        onLabelsSelected: (labels: Label[], pickedLabels: string[]) => void;
+        onLabelsSelected: (value: Label[]) => void;
         setSelectedLabels: (labels: Label[]) => void;
         latestLabelsId: string[];
         isDocLabelsModified: boolean;

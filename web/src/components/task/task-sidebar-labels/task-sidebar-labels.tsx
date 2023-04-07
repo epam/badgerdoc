@@ -12,10 +12,9 @@ import { useLazyLoading } from 'shared/hooks/lazy-loading';
 
 type TaskSidebarLabelsViewProps = {
     viewMode: boolean;
-    labels?: Category[];
-    pickerValue: string[];
-    onValueChange: (value: string[], labelsArr: Label[]) => void;
-    selectedLabels: Label[];
+    categories?: Category[];
+    pickerValue: Label[];
+    onValueChange: (value: Label[]) => void;
     hasNextPage: boolean;
     onFetchNext: () => void;
     isLoading: boolean;
@@ -23,10 +22,9 @@ type TaskSidebarLabelsViewProps = {
 
 const TaskSidebarLabelsView: FC<TaskSidebarLabelsViewProps> = ({
     viewMode = false,
-    labels,
+    categories,
     pickerValue,
     onValueChange,
-    selectedLabels,
     hasNextPage,
     onFetchNext,
     isLoading
@@ -37,28 +35,26 @@ const TaskSidebarLabelsView: FC<TaskSidebarLabelsViewProps> = ({
     const { task } = useTaskAnnotatorContext();
     const isDisabled = task?.status !== 'In Progress' && task?.status !== 'Ready';
 
-    if (!labels) {
+    if (!categories) {
         return <Spinner color="sky" />;
     }
 
-    const labelsArr = useMemo(() => labels.map(({ name, id }) => ({ name, id })), [labels]);
+    const labels = useMemo(() => categories.map(({ name, id }) => ({ name, id })), [categories]);
+    const pickedIds = useMemo(() => pickerValue.map(({ id }) => id), [pickerValue]);
 
-    const dataSource = useArrayDataSource<Label, string, unknown>(
-        { items: [...selectedLabels, ...labelsArr] },
-        [labels]
-    );
+    const dataSource = useArrayDataSource<Label, string, unknown>({ items: labels }, [labels]);
 
     useLazyLoading(bottomLineRef, containerRef, onFetchNext);
 
     const renderData =
         viewMode || isDisabled ? (
             <FlexCell width="auto" style={{ overflow: 'hidden' }}>
-                {labelsArr.map(({ id, name }) => (
+                {labels.map(({ id, name }) => (
                     <Checkbox
                         cx={styles.checkbox}
                         label={name}
                         key={id}
-                        value={pickerValue.includes(name)}
+                        value={pickedIds.includes(name)}
                         onValueChange={noop}
                         isDisabled={isDisabled}
                     />
@@ -69,10 +65,10 @@ const TaskSidebarLabelsView: FC<TaskSidebarLabelsViewProps> = ({
                 <PickerList<Label, string>
                     dataSource={dataSource}
                     value={pickerValue}
-                    onValueChange={(value) => onValueChange(value ?? [], labelsArr)}
+                    onValueChange={(value) => onValueChange(value ?? [])}
                     entityName="location"
                     selectionMode="multi"
-                    valueType="id"
+                    valueType="entity"
                     maxDefaultItems={100}
                     maxTotalItems={100}
                     sorting={{ field: 'name', direction: 'asc' }}
@@ -91,8 +87,8 @@ const TaskSidebarLabelsView: FC<TaskSidebarLabelsViewProps> = ({
 
 type TaskSidebarLabelsProps = {
     viewMode: boolean;
-    labels?: Category[];
-    onLabelsSelected: (labels: Label[], pickedLabels: string[]) => void;
+    categories?: Category[];
+    onLabelsSelected: (value: Label[]) => void;
     selectedLabels: Label[];
     searchText: string;
     setSearchText: (text: string) => void;
@@ -103,7 +99,7 @@ type TaskSidebarLabelsProps = {
 
 export const TaskSidebarLabels = ({
     viewMode = false,
-    labels,
+    categories,
     onLabelsSelected,
     selectedLabels = [],
     searchText,
@@ -112,13 +108,11 @@ export const TaskSidebarLabels = ({
     onFetchNext,
     isLoading
 }: TaskSidebarLabelsProps) => {
-    const [pickerValue, setPickerValue] = useState(() => selectedLabels.map(({ id }) => id));
+    const [pickerValue, setPickerValue] = useState(selectedLabels);
 
-    const handleOnValueChange = (value: string[], labelsArr: Label[]) => {
-        const selectedLabels = labelsArr.filter(({ id }) => value.includes(id));
-
+    const handleOnValueChange = (value: Label[]) => {
         setPickerValue(value);
-        onLabelsSelected(selectedLabels, value);
+        onLabelsSelected(value);
     };
 
     return (
@@ -132,16 +126,15 @@ export const TaskSidebarLabels = ({
                 size="24"
                 placeholder="Search by label name"
             />
-            {labels ? (
+            {categories ? (
                 <TaskSidebarLabelsView
                     viewMode={viewMode}
-                    labels={labels}
+                    categories={categories}
                     isLoading={isLoading}
                     hasNextPage={hasNextPage}
                     onFetchNext={onFetchNext}
                     pickerValue={pickerValue}
                     onValueChange={handleOnValueChange}
-                    selectedLabels={selectedLabels}
                 />
             ) : (
                 <Spinner color="sky" />

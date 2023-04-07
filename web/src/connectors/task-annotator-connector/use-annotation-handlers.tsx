@@ -38,11 +38,13 @@ export const useAnnotationHandlers = ({
         if (!annotationBeforeModification) {
             return;
         }
-        const undoListCopy = cloneDeep(undoList);
+        const undoListCopy = [...undoList];
+
         if (undoPointer !== -1) {
-            undoListCopy.splice(undoPointer); // delete everything from pointer (including) to the right
+            undoListCopy.splice(undoPointer);
             setUndoPointer(-1);
         }
+
         setUndoList([
             ...undoListCopy,
             { action, annotation: annotationBeforeModification, pageNumber: pageNum }
@@ -62,8 +64,14 @@ export const useAnnotationHandlers = ({
 
         modifyAnnotation(pageNumber, annotationId, undoList[undoPointer].annotation);
 
-        const undoListCopy = cloneDeep(undoList);
-        undoListCopy[undoPointer].annotation = oldAnnotationState!;
+        if (!oldAnnotationState) return;
+
+        const undoListCopy = [...undoList];
+        undoListCopy[undoPointer] = {
+            ...undoListCopy[undoPointer],
+            annotation: oldAnnotationState
+        };
+
         setUndoList(undoListCopy);
     };
 
@@ -73,16 +81,6 @@ export const useAnnotationHandlers = ({
         const pageAnnotation = allAnnotations[pageNum]?.find((el) => el.id === annotationId);
 
         if (!pageAnnotation) return;
-
-        if (pageAnnotation?.labels) {
-            const labelIndexToDelete = pageAnnotation.labels.findIndex(
-                (item) => item.annotationId === annotationId
-            );
-            if (labelIndexToDelete !== -1) {
-                // TODO: Don't modify array
-                pageAnnotation?.labels?.splice(labelIndexToDelete, 1);
-            }
-        }
 
         setAllAnnotations((prevState) => {
             return {
@@ -129,7 +127,7 @@ export const useAnnotationHandlers = ({
                 ...prevState,
                 [pageNumber]: pageAnnotations.map((ann) => {
                     if (ann.id === id) {
-                        return { ...ann, ...changes, id };
+                        return { ...ann, ...changes };
                     }
                     return ann;
                 })
@@ -269,20 +267,16 @@ export const useAnnotationHandlers = ({
         }
 
         const newAnnotation = cloneDeep(annotationToPaste);
+
+        newAnnotation.id = Date.now();
         newAnnotation.bound.x = (pageSize?.width || 0) / 2 - newAnnotation.bound.width / 2;
         newAnnotation.bound.y = (pageSize?.height || 0) / 2 - newAnnotation.bound.height / 2;
-        newAnnotation.id = Date.now();
 
         const pageAnnotations = allAnnotations[pageNum] ?? [];
 
         setAllAnnotations((prevState) => ({
             ...prevState,
-            [pageNum]: [
-                ...pageAnnotations,
-                {
-                    ...newAnnotation
-                }
-            ]
+            [pageNum]: [...pageAnnotations, newAnnotation]
         }));
     };
 
