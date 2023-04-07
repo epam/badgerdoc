@@ -4,6 +4,9 @@ import { PickerInput, Button, ControlGroup, Tooltip } from '@epam/loveship';
 
 import { ReactComponent as settingsIcon } from '@epam/assets/icons/common/navigation-more_vert-18.svg';
 import styles from './finish-button.module.scss';
+import { ValidationType } from '../../../../api/typings';
+import { TaskStatus } from '../../../../api/typings/tasks';
+import { createTooltip } from './utils';
 
 type TaskSidebarProps = {
     viewMode: boolean;
@@ -18,6 +21,8 @@ type TaskSidebarProps = {
     onFinishValidation: () => void;
     onAnnotationTaskFinish: () => void;
     onFinishSplitValidation: () => void;
+    jobType?: ValidationType;
+    taskStatus?: TaskStatus;
 };
 
 export const FinishButton: FC<TaskSidebarProps> = ({
@@ -32,7 +37,8 @@ export const FinishButton: FC<TaskSidebarProps> = ({
     isNextTaskPresented,
     onFinishValidation,
     onAnnotationTaskFinish,
-    onFinishSplitValidation
+    onFinishSplitValidation,
+    jobType
 }) => {
     const [redirectionSettings, setRedirectionSettings] = useState(
         localStorage.getItem('submitted-task-redirection-page') ?? 'tasks'
@@ -44,17 +50,19 @@ export const FinishButton: FC<TaskSidebarProps> = ({
     };
 
     const handleFinishValidation = isSplitValidation ? onFinishSplitValidation : onFinishValidation;
-    const isDisabled =
-        !isAnnotatable ||
-        !allValidated ||
-        (isValidation && !touchedPagesCount && !editedPagesCount);
+
+    let isDisabled = !isAnnotatable;
+    if (jobType !== 'extensive_coverage') {
+        isDisabled =
+            !isAnnotatable ||
+            !allValidated ||
+            (isValidation && !touchedPagesCount && !editedPagesCount);
+    }
 
     const tooltipContent =
-        allValidated && !isSplitValidation
+        isDisabled && allValidated && !isSplitValidation
             ? ''
-            : `Please validate all page to finish task. Remaining pages: ${notProcessedPages?.join(
-                  ', '
-              )}`;
+            : createTooltip(jobType === 'extensive_coverage', notProcessedPages);
 
     const redirectSettingsDataSource = useArrayDataSource(
         {
