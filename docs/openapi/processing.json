@@ -1,0 +1,629 @@
+{
+  "openapi": "3.0.2",
+  "info": {
+    "title": "processing",
+    "version": "0.1.1"
+  },
+  "paths": {
+    "/": {
+      "post": {
+        "summary": "Run Text Matching",
+        "description": "Merge words into paragraphs.",
+        "operationId": "run_text_matching__post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnnotationData"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnnotationData"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tokens/{file_id}": {
+      "get": {
+        "summary": "Get data by preprocessing result.",
+        "description": "Take preprocess data from MinIO for `file_id`, and return it as\narray of pages. If file doesn't contain words, then service return\narray of pages with empty `objs` field. If there are no preprocess result\n(preprocess didn't run or `file_id` is wrong), then return `[]`.",
+        "operationId": "get_preprocessing_result_tokens__file_id__get",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "File Id",
+              "type": "integer"
+            },
+            "example": 4,
+            "name": "file_id",
+            "in": "path"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Pages",
+              "minimum": 1.0,
+              "minItems": 1,
+              "uniqueItems": true,
+              "type": "array",
+              "items": {
+                "minimum": 1.0,
+                "type": "integer"
+              }
+            },
+            "example": [
+              1,
+              3,
+              4
+            ],
+            "name": "pages",
+            "in": "query"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "tenant",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "`!`For more information look at preprocessing microservice. This endpoint just glues it's results. https://git.epam.com/epm-uii/badgerdoc/back-end/-/tree/master/preprocessing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreprocessingResultResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Some problems with minio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MinioProblem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/run_preprocess": {
+      "post": {
+        "summary": "Run preprocessing service via pipelines",
+        "description": "Create task for preprocessing.",
+        "operationId": "execute_preprocessing_service_run_preprocess_post",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreprocessExecuteRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/tasks/{task_id}": {
+      "put": {
+        "tags": [
+          "Preprocessing tasks"
+        ],
+        "summary": "Update Task Status",
+        "operationId": "update_task_status_tasks__task_id__put",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Task Id",
+              "type": "integer"
+            },
+            "name": "task_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateStatusRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/lang": {
+      "get": {
+        "summary": "Return list of available preprocessing languages.",
+        "operationId": "get_list_language_lang_get",
+        "parameters": [
+          {
+            "description": "model id",
+            "required": true,
+            "schema": {
+              "title": "Model Id",
+              "type": "string",
+              "description": "model id"
+            },
+            "example": "preprocessing",
+            "name": "model_id",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/preprocessing_health_check": {
+      "post": {
+        "summary": "Return `True` if test succeed, otherwise `False`",
+        "description": "Test run for preprocessing",
+        "operationId": "preprocessing_health_check_preprocessing_health_check_post",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Model Url",
+              "type": "string"
+            },
+            "name": "model_url",
+            "in": "query"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "Languages",
+                "uniqueItems": true,
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AnnotationData": {
+        "title": "AnnotationData",
+        "required": [
+          "file",
+          "bucket",
+          "input"
+        ],
+        "type": "object",
+        "properties": {
+          "file": {
+            "title": "Path to input PDF",
+            "type": "string",
+            "example": "files/4/4.pdf"
+          },
+          "bucket": {
+            "title": "Bucket in the MinIO",
+            "type": "string",
+            "example": "test"
+          },
+          "input": {
+            "title": "Pages with annotations",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Input"
+              }
+            ]
+          },
+          "input_path": {
+            "title": "Path to ocr JSON",
+            "type": "string",
+            "description": "Default path is a folder \"ocr\" nearby `file`.",
+            "format": "path",
+            "example": "ocr"
+          }
+        },
+        "description": "A model for an input request."
+      },
+      "HTTPValidationError": {
+        "title": "HTTPValidationError",
+        "type": "object",
+        "properties": {
+          "detail": {
+            "title": "Detail",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            }
+          }
+        }
+      },
+      "Input": {
+        "title": "Input",
+        "required": [
+          "pages"
+        ],
+        "type": "object",
+        "properties": {
+          "pages": {
+            "title": "Pages",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Page"
+            }
+          }
+        }
+      },
+      "MinioProblem": {
+        "title": "MinioProblem",
+        "required": [
+          "detail"
+        ],
+        "type": "object",
+        "properties": {
+          "detail": {
+            "title": "Detail",
+            "type": "string",
+            "example": "raw minio exception text"
+          }
+        }
+      },
+      "Page": {
+        "title": "Page",
+        "required": [
+          "page_num",
+          "size",
+          "objs"
+        ],
+        "type": "object",
+        "properties": {
+          "page_num": {
+            "title": "Page Num",
+            "type": "integer",
+            "example": 1
+          },
+          "size": {
+            "$ref": "#/components/schemas/PageSize"
+          },
+          "objs": {
+            "title": "Objs",
+            "type": "array",
+            "items": {
+              "type": "object"
+            },
+            "example": [
+              {
+                "id": 1,
+                "bbox": [
+                  1,
+                  2,
+                  3,
+                  4
+                ],
+                "category": "1",
+                "text": "string"
+              }
+            ]
+          }
+        },
+        "description": "A model for the field with bboxes."
+      },
+      "PageSize": {
+        "title": "PageSize",
+        "required": [
+          "width",
+          "height"
+        ],
+        "type": "object",
+        "properties": {
+          "width": {
+            "title": "Width",
+            "type": "number",
+            "example": 200.0
+          },
+          "height": {
+            "title": "Height",
+            "type": "number",
+            "example": 300.0
+          }
+        }
+      },
+      "PreprocessExecuteRequest": {
+        "title": "PreprocessExecuteRequest",
+        "required": [
+          "file_ids",
+          "pipeline_id"
+        ],
+        "type": "object",
+        "properties": {
+          "file_ids": {
+            "title": "File Ids",
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "example": [
+              4,
+              52
+            ]
+          },
+          "pipeline_id": {
+            "title": "Pipeline Id",
+            "type": "integer",
+            "description": "Id of pipeline to executing",
+            "example": 123
+          },
+          "languages": {
+            "title": "Languages",
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Languages for OCR to recognize text",
+            "example": [
+              "rus",
+              "eng"
+            ]
+          }
+        },
+        "description": "Request body for `/run_preprocess endpoint`"
+      },
+      "PreprocessingResultResponse": {
+        "title": "PreprocessingResultResponse",
+        "type": "object",
+        "description": "Response with preprocessing result.",
+        "example": [
+          {
+            "size": {
+              "width": 612,
+              "height": 792
+            },
+            "page_num": 2,
+            "objs": [
+              {
+                "type": "text",
+                "bbox": [
+                  307.14,
+                  143.27,
+                  327.14,
+                  153.27
+                ],
+                "text": "word"
+              }
+            ]
+          },
+          {
+            "size": {
+              "width": 612,
+              "height": 792
+            },
+            "page_num": 1,
+            "objs": [
+              {
+                "type": "text",
+                "bbox": [
+                  370.52,
+                  226.934,
+                  376.08,
+                  236.934
+                ],
+                "text": "word"
+              }
+            ]
+          }
+        ]
+      },
+      "StatusForUpdate": {
+        "title": "StatusForUpdate",
+        "enum": [
+          "Running",
+          "Finished",
+          "Failed"
+        ],
+        "type": "string",
+        "description": "An enumeration."
+      },
+      "UpdateStatusRequest": {
+        "title": "UpdateStatusRequest",
+        "required": [
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/StatusForUpdate"
+          }
+        }
+      },
+      "ValidationError": {
+        "title": "ValidationError",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "loc": {
+            "title": "Location",
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            }
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "TenantDependencyDocs": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  }
+}

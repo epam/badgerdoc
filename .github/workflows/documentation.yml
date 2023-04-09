@@ -1,0 +1,377 @@
+name: Documentation build and push
+jobs:
+  annotation:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ "3.8.15" ]
+    env:
+      SPEC_PATH: ./docs/openapi/annotation.json
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+      - name: Install dependencies
+        working-directory: ./annotation
+        run: |
+          python -m pip install --upgrade pip
+          pip install poetry
+          poetry install --no-root --without dev
+          poetry add ../lib/filter_lib
+          poetry add ../lib/tenants
+          poetry add ../lib/badgerdoc_cli
+      - name: Generate documentation
+        working-directory: ./annotation
+        run: poetry run badgerdoc openapi .$SPEC_PATH
+        env:
+          PYTHONPATH: .
+      - name: Save documentation
+        uses: actions/upload-artifact@v3
+        with:
+          path: ${{ env.SPEC_PATH }}
+  assets:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ "3.8.15" ]
+    env:
+      SPEC_PATH: ./docs/openapi/assets.json
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+      - name: Install dependencies
+        working-directory: ./assets
+        run: |
+          sudo apt-get update && sudo apt-get -y install poppler-utils
+          python -m pip install --upgrade pip
+          pip install poetry
+          poetry install --no-root --without dev
+          poetry add ../lib/filter_lib
+          poetry add ../lib/tenants
+          poetry add ../lib/badgerdoc_cli
+      - name: Generate documentation
+        working-directory: ./assets
+        run: poetry run badgerdoc openapi .$SPEC_PATH
+        env:
+          PYTHONPATH: .
+      - name: Save documentation
+        uses: actions/upload-artifact@v3
+        with:
+          path: ${{ env.SPEC_PATH }}
+  convert:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ "3.8.15" ]
+    env:
+      SPEC_PATH: ./docs/openapi/convert.json
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+      - name: Install dependencies
+        working-directory: ./convert
+        run: |
+          python -m pip install --upgrade pip
+          pip install poetry
+          poetry install --no-root --without dev
+          poetry add ../lib/tenants
+          poetry add ../lib/badgerdoc_cli
+      - name: Generate documentation
+        working-directory: ./convert
+        run: poetry run badgerdoc openapi .$SPEC_PATH
+        env:
+          PYTHONPATH: .
+      - name: Save documentation
+        uses: actions/upload-artifact@v3
+        with:
+          path: ${{ env.SPEC_PATH }}
+  jobs:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ "3.8.15" ]
+    env:
+      SPEC_PATH: ./docs/openapi/jobs.json
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+      - name: Install dependencies
+        working-directory: ./jobs
+        run: |
+          python -m pip install --upgrade pip
+          pip install poetry
+          poetry install --no-root --without dev
+          poetry add ../lib/filter_lib
+          poetry add ../lib/tenants
+          poetry add ../lib/badgerdoc_cli
+      - name: Generate documentation
+        working-directory: ./jobs
+        run: poetry run badgerdoc openapi .$SPEC_PATH
+        env:
+          PYTHONPATH: .
+      - name: Save documentation
+        uses: actions/upload-artifact@v3
+        with:
+          path: ${{ env.SPEC_PATH }}
+  models:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ "3.8.15" ]
+    env:
+      SPEC_PATH: ./docs/openapi/models.json
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+      - name: Install dependencies
+        working-directory: ./models
+        run: |
+          python -m pip install --upgrade pip
+          pip install poetry
+          poetry install --no-root --without dev
+          poetry add ../lib/filter_lib
+          poetry add ../lib/tenants
+          poetry add ../lib/badgerdoc_cli
+      - name: Generate documentation
+        working-directory: ./models
+        run: poetry run badgerdoc openapi .$SPEC_PATH
+        env:
+          PYTHONPATH: .
+      - name: Save documentation
+        uses: actions/upload-artifact@v3
+        with:
+          path: ${{ env.SPEC_PATH }}
+  pipelines:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ "3.8.15" ]
+    env:
+      SPEC_PATH: ./docs/openapi/pipelines.json
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+      - name: Install dependencies
+        working-directory: ./pipelines
+        run: |
+          python -m pip install --upgrade pip
+          pip install poetry
+          poetry install --no-root --without dev
+          poetry add ../lib/filter_lib
+          poetry add ../lib/tenants
+          poetry add ../lib/badgerdoc_cli
+      - name: Generate documentation
+        working-directory: ./pipelines
+        run: poetry run badgerdoc openapi .$SPEC_PATH
+        env:
+          PYTHONPATH: .
+      - name: Save documentation
+        uses: actions/upload-artifact@v3
+        with:
+          path: ${{ env.SPEC_PATH }}
+  processing:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ "3.8.15" ]
+    env:
+      SPEC_PATH: ./docs/openapi/processing.json
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+      - name: Install dependencies
+        working-directory: ./processing
+        run: |
+          python -m pip install --upgrade pip
+          pip install poetry
+          poetry install --no-root --without dev
+          poetry add ../lib/tenants
+          poetry add ../lib/badgerdoc_cli
+      - name: Generate documentation
+        working-directory: ./processing
+        run: poetry run badgerdoc openapi .$SPEC_PATH
+        env:
+          PYTHONPATH: .
+      - name: Save documentation
+        uses: actions/upload-artifact@v3
+        with:
+          path: ${{ env.SPEC_PATH }}
+  scheduler:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ "3.8.15" ]
+    env:
+      SPEC_PATH: ./docs/openapi/scheduler.json
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+      - name: Install dependencies
+        working-directory: ./scheduler
+        run: |
+          python -m pip install --upgrade pip
+          pip install poetry
+          poetry install --no-root --without dev
+          poetry add ../lib/tenants
+          poetry add ../lib/badgerdoc_cli
+      - name: Generate documentation
+        working-directory: ./scheduler
+        run: poetry run badgerdoc openapi .$SPEC_PATH
+        env:
+          PYTHONPATH: .
+      - name: Save documentation
+        uses: actions/upload-artifact@v3
+        with:
+          path: ${{ env.SPEC_PATH }}
+  search:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ "3.8.15" ]
+    env:
+      SPEC_PATH: ./docs/openapi/search.json
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+      - name: Install dependencies
+        working-directory: ./search
+        run: |
+          python -m pip install --upgrade pip
+          pip install poetry
+          poetry install --no-root --without dev
+          poetry add ../lib/filter_lib
+          poetry add ../lib/tenants
+          poetry add ../lib/badgerdoc_cli
+      - name: Generate documentation
+        working-directory: ./search
+        run: poetry run badgerdoc openapi .$SPEC_PATH
+        env:
+          PYTHONPATH: .
+      - name: Save documentation
+        uses: actions/upload-artifact@v3
+        with:
+          path: ${{ env.SPEC_PATH }}
+  taxonomy:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ "3.8.15" ]
+    env:
+      SPEC_PATH: ./docs/openapi/taxonomy.json
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+      - name: Install dependencies
+        working-directory: ./taxonomy
+        run: |
+          python -m pip install --upgrade pip
+          pip install poetry
+          poetry install --no-root --without dev
+          poetry add ../lib/filter_lib
+          poetry add ../lib/tenants
+          poetry add ../lib/badgerdoc_cli
+      - name: Generate documentation
+        working-directory: ./taxonomy
+        run: poetry run badgerdoc openapi .$SPEC_PATH
+        env:
+          PYTHONPATH: .
+      - name: Save documentation
+        uses: actions/upload-artifact@v3
+        with:
+          path: ${{ env.SPEC_PATH }}
+  users:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ "3.8.15" ]
+    env:
+      SPEC_PATH: ./docs/openapi/users.json
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+      - name: Install dependencies
+        working-directory: ./users
+        run: |
+          python -m pip install --upgrade pip
+          pip install poetry
+          poetry install --no-root --without dev
+          poetry add ../lib/tenants
+          poetry add ../lib/badgerdoc_cli
+      - name: Generate documentation
+        working-directory: ./users
+        run: poetry run badgerdoc openapi .$SPEC_PATH
+        env:
+          PYTHONPATH: .
+      - name: Save documentation
+        uses: actions/upload-artifact@v3
+        with:
+          path: ${{ env.SPEC_PATH }}
+  commit-specs:
+    runs-on: ubuntu-latest
+    needs: [annotation, assets, convert, jobs, models, pipelines, processing, scheduler, search, taxonomy, users]
+    env:
+      DOCS_PATH: ./docs/openapi
+    steps:
+      - uses: actions/checkout@v3
+      - name: Download generated specs
+        id: download
+        uses: actions/download-artifact@v3
+        with:
+          path: /tmp
+      - name: Extract downloaded specs
+        run: mv ${{ steps.download.outputs.download-path }}/artifact/*.json ${{ env.DOCS_PATH }}
+      - name: Push documentation
+        working-directory: ${{ env.DOCS_PATH }}
+        run: |
+          git add .
+          if git diff --quiet HEAD ./; then
+            echo No changes in documentation, exiting
+            exit 0
+          fi
+          echo '# TODO: Do nothing right now, replace with push to S3 later'
+#          git -c user.name='github-actions[bot]' -c user.email='github-actions[bot]@users.noreply.github.com' \
+#            commit --message "docs: update openapi specs"
+#          git push origin HEAD

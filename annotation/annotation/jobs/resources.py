@@ -50,7 +50,7 @@ from annotation.schemas import (
     UnassignedFilesInfoSchema,
     ValidationSchema,
 )
-from annotation.tags import FILES_TAG, JOBS_TAG
+from annotation.tags import JOBS_TAG
 from annotation.token_dependency import TOKEN
 
 from ..models import (
@@ -81,13 +81,13 @@ logger = app_logger.Logger
 router = APIRouter(
     prefix="/jobs",
     responses={500: {"model": ConnectionErrorSchema}},
+    tags=[JOBS_TAG],
 )
 
 
 @router.post(
     "/{job_id}",
     status_code=status.HTTP_201_CREATED,
-    tags=[JOBS_TAG],
     responses={
         400: {"model": BadRequestErrorSchema},
     },
@@ -206,7 +206,6 @@ def post_job(
 @router.patch(
     "/{job_id}",
     status_code=status.HTTP_204_NO_CONTENT,
-    tags=[JOBS_TAG],
     responses={
         400: {"model": BadRequestErrorSchema},
         404: {"model": NotFoundErrorSchema},
@@ -283,7 +282,6 @@ def update_job(
     "/{job_id}/files",
     status_code=status.HTTP_200_OK,
     response_model=JobFilesInfoSchema,
-    tags=[FILES_TAG],
     responses={
         404: {"model": NotFoundErrorSchema},
     },
@@ -331,7 +329,6 @@ def get_job_files(
     "/{job_id}/files/unassigned",
     status_code=status.HTTP_200_OK,
     response_model=UnassignedFilesInfoSchema,
-    tags=[FILES_TAG],
     summary="Get list of unassigned files by job id.",
 )
 def get_unassigned_files(
@@ -402,7 +399,6 @@ def get_unassigned_files(
 
 @router.post(
     "/{job_id}/start",
-    tags=[JOBS_TAG],
     status_code=status.HTTP_200_OK,
     response_model=List[ManualAnnotationTaskSchema],
     responses={
@@ -476,7 +472,6 @@ def start_job(
     "/{job_id}/users",
     status_code=status.HTTP_200_OK,
     response_model=List[Dict[str, Union[UUID, int]]],
-    tags=[JOBS_TAG],
     responses={
         404: {"model": NotFoundErrorSchema},
     },
@@ -504,7 +499,6 @@ def get_users_for_job(
 @router.get(
     "/{job_id}/categories",
     status_code=status.HTTP_200_OK,
-    tags=[JOBS_TAG],
     response_model=Page[Union[CategoryResponseSchema, str, dict]],
     summary="Get list of categories for provided job_id",
     responses={
@@ -536,7 +530,6 @@ def fetch_job_categories(
 @router.post(
     "/{job_id}/categories/search",
     status_code=status.HTTP_200_OK,
-    tags=[JOBS_TAG],
     response_model=Page[Union[CategoryResponseSchema, str, dict]],
     summary="Search categories for provided job_id",
     responses={
@@ -573,7 +566,6 @@ def search_job_categories(
 @router.get(
     "",
     status_code=status.HTTP_200_OK,
-    tags=[JOBS_TAG],
     summary="Get info about jobs, in which provided file ids participate",
 )
 def get_jobs_info_by_files(
@@ -596,7 +588,6 @@ def get_jobs_info_by_files(
     "/{job_id}/progress",
     status_code=status.HTTP_200_OK,
     response_model=JobProgressSchema,
-    tags=[JOBS_TAG],
     responses={
         404: {"model": NotFoundErrorSchema},
     },

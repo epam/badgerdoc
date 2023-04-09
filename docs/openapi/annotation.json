@@ -1,0 +1,5765 @@
+{
+  "openapi": "3.0.2",
+  "info": {
+    "title": "Badgerdoc Annotation",
+    "version": "0.1.5"
+  },
+  "paths": {
+    "/annotation/{task_id}": {
+      "post": {
+        "tags": [
+          "Annotation"
+        ],
+        "summary": "Save annotation by user.",
+        "description": "Saves annotated doc (annotation) by user. For first save base\nrevision of given annotated doc should be null. \"Pages\", \"validated\"\nand \"failed_validation_pages\" arrays should not be empty at the same\ntime, because there will be nothing to save. Tenant in header is the\nname of the bucket in minIO, where annotated pages will be saved.\nPath to pages from bucket (tenant) in minIO is as follows -\nannotation / {job_id} / {file_id}. Job_id and file_id are received from\ntask entity by provided task_id in path. Also, by this path in minIO there\nwill be manifest.json file, that will contain \"pages\" field with hashes\nfor pages of only latest revisions, \"validated\"/\"failed_validation_pages\"\nfields with numbers of validated/failed_validation pages respectively.",
+        "operationId": "post_annotation_by_user_annotation__task_id__post",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Task Id",
+              "type": "integer"
+            },
+            "example": 5,
+            "name": "task_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DocForSaveSchema"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnnotatedDocSchema"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestErrorSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/annotation/{job_id}/{file_id}": {
+      "get": {
+        "tags": [
+          "Annotation",
+          "Revision"
+        ],
+        "summary": "Get all users revisions (or pipeline revision) for particular pages.",
+        "operationId": "get_all_revisions_annotation__job_id___file_id__get",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "integer"
+            },
+            "name": "job_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "File Id",
+              "type": "integer"
+            },
+            "name": "file_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "Page Numbers",
+              "minimum": 1.0,
+              "minItems": 1,
+              "uniqueItems": true,
+              "type": "array",
+              "items": {
+                "minimum": 1.0,
+                "type": "integer"
+              }
+            },
+            "name": "page_numbers",
+            "in": "query"
+          },
+          {
+            "description": "Required in case job validation type is extensive_coverage",
+            "required": false,
+            "schema": {
+              "title": "User Id",
+              "type": "string",
+              "description": "Required in case job validation type is extensive_coverage",
+              "format": "uuid"
+            },
+            "example": "1843c251-564b-4c2f-8d42-c61fdac369a1",
+            "name": "user_id",
+            "in": "query"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get All Revisions Annotation  Job Id   File Id  Get",
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageOutSchema"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Annotation"
+        ],
+        "summary": "Save annotation by pipeline.",
+        "description": "Saves annotated doc (annotation) by pipeline. Base revision of\ngiven annotated doc should always be null. \"Pages\", \"validated\"\nand \"failed_validation_pages\" arrays should not be empty at the\nsame time, because there will be nothing to save. Tenant in header\nis the name of the bucket in minIO, where annotated pages will\nbe saved. Path to pages from bucket (tenant) in minIO is as follows -\nannotation / {job_id} / {file_id}. Also by this path in minIO there\nwill be manifest.json file, that will contain \"pages\" field with hashes\nfor pages of only latest revisions, \"validated\"/\"failed_validation_pages\"\nfields with numbers of validated/failed_validation pages respectively.",
+        "operationId": "post_annotation_by_pipeline_annotation__job_id___file_id__post",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "integer"
+            },
+            "example": 3,
+            "name": "job_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "File Id",
+              "type": "integer"
+            },
+            "example": 4,
+            "name": "file_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DocForSaveSchema"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnnotatedDocSchema"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/annotation/{file_id}": {
+      "get": {
+        "tags": [
+          "Annotation",
+          "Jobs"
+        ],
+        "summary": "Get all job_ids that have annotations for the given file_id.",
+        "operationId": "get_jobs_by_file_id_annotation__file_id__get",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "File Id",
+              "type": "integer"
+            },
+            "example": 4,
+            "name": "file_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Jobs By File Id Annotation  File Id  Get",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/JobOutSchema"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/annotation/{job_id}/{file_id}/latest_by_user": {
+      "get": {
+        "tags": [
+          "Annotation",
+          "Revision"
+        ],
+        "summary": "Get latest revision made by particular user (or by pipeline) for particular pages.",
+        "operationId": "get_latest_revision_by_user_annotation__job_id___file_id__latest_by_user_get",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "integer"
+            },
+            "example": 3,
+            "name": "job_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "File Id",
+              "type": "integer"
+            },
+            "example": 4,
+            "name": "file_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "Page Numbers",
+              "minimum": 1.0,
+              "minItems": 1,
+              "uniqueItems": true,
+              "type": "array",
+              "items": {
+                "minimum": 1.0,
+                "type": "integer"
+              }
+            },
+            "example": [
+              1,
+              3,
+              4
+            ],
+            "name": "page_numbers",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "User Id",
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": "1843c251-564b-4c2f-8d42-c61fdac369a1",
+            "name": "user_id",
+            "in": "query"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Latest Revision By User Annotation  Job Id   File Id  Latest By User Get",
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageOutSchema"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/annotation/{job_id}/{file_id}/{revision}": {
+      "get": {
+        "tags": [
+          "Annotation",
+          "Revision"
+        ],
+        "summary": "Get annotation for given revision.Info will be accumulated from first revision up togiven.",
+        "operationId": "get_annotations_up_to_given_revision_annotation__job_id___file_id___revision__get",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "integer"
+            },
+            "example": 1,
+            "name": "job_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "File Id",
+              "type": "integer"
+            },
+            "example": 1,
+            "name": "file_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "Revision",
+              "type": "string"
+            },
+            "example": "latest",
+            "name": "revision",
+            "in": "path"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Page Numbers",
+              "minimum": 1.0,
+              "minItems": 1,
+              "uniqueItems": true,
+              "type": "array",
+              "items": {
+                "minimum": 1.0,
+                "type": "integer"
+              }
+            },
+            "example": [
+              1,
+              3,
+              4
+            ],
+            "name": "page_numbers",
+            "in": "query"
+          },
+          {
+            "description": "Required in case job validation type is extensive_coverage",
+            "required": false,
+            "schema": {
+              "title": "User Id",
+              "type": "string",
+              "description": "Required in case job validation type is extensive_coverage",
+              "format": "uuid"
+            },
+            "example": "1843c251-564b-4c2f-8d42-c61fdac369a1",
+            "name": "user_id",
+            "in": "query"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ParticularRevisionSchema"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/annotation/{job_id}/{file_id}/changes/{revision}": {
+      "get": {
+        "tags": [
+          "Annotation",
+          "Revision"
+        ],
+        "summary": "Get annotation for latest or particular revision.",
+        "operationId": "get_annotation_for_given_revision_annotation__job_id___file_id__changes__revision__get",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "integer"
+            },
+            "example": 1,
+            "name": "job_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "File Id",
+              "type": "integer"
+            },
+            "example": 1,
+            "name": "file_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "Revision",
+              "type": "string"
+            },
+            "example": "latest",
+            "name": "revision",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ParticularRevisionSchema"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/tasks/next": {
+      "post": {
+        "tags": [
+          "Manual Annotation Tasks"
+        ],
+        "summary": "Get one annotation task from assigned to a user.",
+        "description": "Returns one annotation task from assigned to a user. Current - if\nthere is a task with the \"in_progress\" status, or new, if not.",
+        "operationId": "get_next_annotation_task_tasks_next_post",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "User",
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": "40b6b526-d6f4-45e8-8af3-d26b5a404018",
+            "name": "user",
+            "in": "header"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExpandedManualAnnotationTaskSchema"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/tasks/get_previous_and_next_tasks": {
+      "get": {
+        "tags": [
+          "Manual Annotation Tasks"
+        ],
+        "summary": "Get one previous and one next tasks from the one passed in",
+        "operationId": "get_next_and_previous_annotation_tasks_tasks_get_previous_and_next_tasks_get",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Task Id",
+              "exclusiveMinimum": 0.0,
+              "type": "integer"
+            },
+            "example": 1,
+            "name": "task_id",
+            "in": "query"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "User",
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": "40b6b526-d6f4-45e8-8af3-d26b5a404018",
+            "name": "user",
+            "in": "header"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreviousAndNextTasksSchema"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/tasks": {
+      "get": {
+        "tags": [
+          "Manual Annotation Tasks"
+        ],
+        "summary": "Get a list of manual annotation tasks based on search parameters.",
+        "operationId": "get_tasks_tasks_get",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "title": "File Id",
+              "type": "integer"
+            },
+            "example": 5,
+            "name": "file_id",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Job Id",
+              "type": "integer"
+            },
+            "example": 6,
+            "name": "job_id",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "User Id",
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": "2016a913-47f2-417d-afdb-032165b9330d",
+            "name": "user_id",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Deadline",
+              "type": "string",
+              "format": "date-time"
+            },
+            "example": "2021-10-19 01:01:01",
+            "name": "deadline",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Task Status",
+              "type": "string"
+            },
+            "example": "Ready",
+            "name": "task_status",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Pagination Page Size",
+              "maximum": 100.0,
+              "exclusiveMinimum": 0.0,
+              "type": "integer",
+              "default": 50
+            },
+            "example": 25,
+            "name": "pagination_page_size",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Pagination Start Page",
+              "exclusiveMinimum": 0.0,
+              "type": "integer",
+              "default": 1
+            },
+            "example": 1,
+            "name": "pagination_start_page",
+            "in": "query"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Tasks Tasks Get",
+                  "type": "object",
+                  "additionalProperties": {
+                    "anyOf": [
+                      {
+                        "type": "integer"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/ExpandedManualAnnotationTaskSchema"
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Manual Annotation Tasks"
+        ],
+        "summary": "Save one manual annotation task.",
+        "operationId": "post_task_tasks_post",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ManualAnnotationTaskInSchema"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManualAnnotationTaskSchema"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Manual Annotation Tasks"
+        ],
+        "summary": "Delete batch of tasks.",
+        "operationId": "delete_batch_tasks_tasks_delete",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "Task Ids",
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                }
+              },
+              "example": [
+                1,
+                3,
+                4
+              ]
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/tasks/{task_id}/stats": {
+      "post": {
+        "tags": [
+          "Manual Annotation Tasks"
+        ],
+        "summary": "Add task stats record.",
+        "operationId": "add_task_stats_tasks__task_id__stats_post",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Task Id",
+              "type": "integer"
+            },
+            "name": "task_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnnotationStatisticsInputSchema"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnnotationStatisticsResponseSchema"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/tasks/export": {
+      "post": {
+        "tags": [
+          "Manual Annotation Tasks"
+        ],
+        "summary": "Export agreement score statistics for task by user_id and date",
+        "operationId": "export_stats_tasks_export_post",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExportTaskStatsInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/tasks/{task_id}": {
+      "get": {
+        "tags": [
+          "Manual Annotation Tasks"
+        ],
+        "summary": "Get manual annotation task by id.",
+        "operationId": "get_task_tasks__task_id__get",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Task Id",
+              "type": "integer"
+            },
+            "example": 1,
+            "name": "task_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExpandedManualAnnotationTaskSchema"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Manual Annotation Tasks"
+        ],
+        "summary": "Delete task by id.",
+        "operationId": "delete_task_tasks__task_id__delete",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Task Id",
+              "type": "integer"
+            },
+            "example": 3,
+            "name": "task_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      },
+      "patch": {
+        "tags": [
+          "Manual Annotation Tasks"
+        ],
+        "summary": "Update task by id.",
+        "description": "Takes not required fields file_id, pages, job_id,\nuser_id or (and) is_validation. By task`s id\nin path, updates task with tasks file and returns updated task.",
+        "operationId": "update_task_tasks__task_id__patch",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Task Id",
+              "type": "integer"
+            },
+            "example": 5,
+            "name": "task_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskPatchSchema"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManualAnnotationTaskSchema"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestErrorSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/tasks/search": {
+      "post": {
+        "tags": [
+          "Manual Annotation Tasks"
+        ],
+        "summary": "Search tasks.",
+        "description": "Searches and returns annotation and validation tasks data according to\nsearch request parameters filters. Supports pagination and ordering.",
+        "operationId": "search_tasks_tasks_search_post",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/_BadgerdocSearch_tasks_ManualAnnotationTask_"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_Any_"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/tasks/{task_id}/pages_summary": {
+      "get": {
+        "tags": [
+          "Manual Annotation Tasks"
+        ],
+        "summary": "Get arrays of pages, that have been validated, marked as failed, annotated and not processed in all saved revisions by task_id",
+        "operationId": "get_pages_info_tasks__task_id__pages_summary_get",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Task Id",
+              "type": "integer"
+            },
+            "name": "task_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagesInfoSchema"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/tasks/{task_id}/finish": {
+      "post": {
+        "tags": [
+          "Manual Annotation Tasks"
+        ],
+        "summary": "Finish task.",
+        "description": "Changes task status to Finished by\ngiven id.\n\nIf task was for annotation, searches for validation tasks that can\nbe unblocked (moved from 'pending' to 'ready' status) and updates\ntheir statuses.\nIf task was for validation, there are several\nactions for marked as failed or edited pages.\n\nParameter annotation_user_for_failed_pages can be assigned\nthe following values:\n\ninitial: annotation tasks will be created for user(s), who\nannotated failed pages in 'ready' status. Validation tasks will be\ncreated and distributed automatically in 'pending' status.\n\nauto: annotation tasks (in 'ready' status) and validation tasks\n(in 'pending' status) for failed pages will be created and distributed\nautomatically.\n\nuser_id: annotation task for failed pages will be created in 'ready'\nstatus for user with provided id. Validation tasks will be created\nin 'pending' status and distributed automatically. Note that, if\nvalidation type of job is hierarchical, validator in this job\ncannot be assigned as annotator for marked as failed pages\n\nParameter validation_user_for_reannotated_pages can be assigned\nthe following values:\n\nnot_required: validation for edited pages is not required\n\nauto: validation tasks for edited pages\nwill be created in 'ready' status and distributed automatically\n\nuser_id: validation task for edited pages will be created\nin 'ready' status for user with provided id. Note that,\nif validation type of job\nis not hierarchical, user cannot assign himself for validation\nof edited pages\n\nIf all tasks associated with\njob are finished, sends a request to\njob microservice to put job status to Finished and message to search\nservice via kafka to start indexation for this job.\nSaves annotated/validated pages in the file.\n\nIf all pages of the file are annotated or validated,\nthe status of the file changes accordingly.",
+        "operationId": "finish_task_tasks__task_id__finish_post",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Task Id",
+              "type": "integer"
+            },
+            "example": 3,
+            "name": "task_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ValidationEndSchema"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManualAnnotationTaskSchema"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestErrorSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/distribution": {
+      "post": {
+        "tags": [
+          "Manual Annotation Tasks"
+        ],
+        "summary": "Save manual annotation tasks distribution. Distribution between users is automatic.",
+        "operationId": "post_tasks_distribution_post",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskInfoSchema"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Post Tasks Distribution Post",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ManualAnnotationTaskSchema"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/distribution/{job_id}": {
+      "post": {
+        "tags": [
+          "Manual Annotation Tasks"
+        ],
+        "summary": "Distribute all remaining unassigned files and pages for given job_id.",
+        "operationId": "post_tasks_for_unassigned_files_distribution__job_id__post",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "integer"
+            },
+            "example": 3,
+            "name": "job_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Post Tasks For Unassigned Files Distribution  Job Id  Post",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ManualAnnotationTaskSchema"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/metadata": {
+      "get": {
+        "tags": [
+          "Metadata"
+        ],
+        "summary": "Get list of possible statuses of tasks.",
+        "operationId": "get_entities_statuses_metadata_get",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntitiesStatusesSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/jobs/{job_id}": {
+      "post": {
+        "tags": [
+          "Jobs"
+        ],
+        "summary": "Save info about job.",
+        "operationId": "post_job_jobs__job_id__post",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "integer"
+            },
+            "example": 3,
+            "name": "job_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JobInfoSchema"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      },
+      "patch": {
+        "tags": [
+          "Jobs"
+        ],
+        "summary": "Update job by job_id.",
+        "operationId": "update_job_jobs__job_id__patch",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "integer"
+            },
+            "example": 1,
+            "name": "job_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JobPatchSchema"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestErrorSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/jobs/{job_id}/files": {
+      "get": {
+        "tags": [
+          "Jobs"
+        ],
+        "summary": "Get list of files for a particular job.",
+        "operationId": "get_job_files_jobs__job_id__files_get",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "integer"
+            },
+            "name": "job_id",
+            "in": "path"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Page Num",
+              "exclusiveMinimum": 0.0,
+              "type": "integer",
+              "default": 1
+            },
+            "name": "page_num",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Page Size",
+              "maximum": 100.0,
+              "exclusiveMinimum": 0.0,
+              "type": "integer",
+              "default": 50
+            },
+            "name": "page_size",
+            "in": "query"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobFilesInfoSchema"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/jobs/{job_id}/files/unassigned": {
+      "get": {
+        "tags": [
+          "Jobs"
+        ],
+        "summary": "Get list of unassigned files by job id.",
+        "operationId": "get_unassigned_files_jobs__job_id__files_unassigned_get",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "integer"
+            },
+            "name": "job_id",
+            "in": "path"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Page Num",
+              "exclusiveMinimum": 0.0,
+              "type": "integer",
+              "default": 1
+            },
+            "name": "page_num",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Page Size",
+              "maximum": 100.0,
+              "exclusiveMinimum": 0.0,
+              "type": "integer",
+              "default": 50
+            },
+            "name": "page_size",
+            "in": "query"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnassignedFilesInfoSchema"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/jobs/{job_id}/start": {
+      "post": {
+        "tags": [
+          "Jobs"
+        ],
+        "summary": "Start job.",
+        "description": "Changes status of tasks associated with\ngiven job_id to Ready and sends a request\nto job microservice to change\njob status to In Progress.",
+        "operationId": "start_job_jobs__job_id__start_post",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "integer"
+            },
+            "example": 3,
+            "name": "job_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Start Job Jobs  Job Id  Start Post",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ManualAnnotationTaskSchema"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/jobs/{job_id}/users": {
+      "get": {
+        "tags": [
+          "Jobs"
+        ],
+        "summary": "Get list of annotators ids and their overall load for job id.",
+        "operationId": "get_users_for_job_jobs__job_id__users_get",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "integer"
+            },
+            "example": 1,
+            "name": "job_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Users For Job Jobs  Job Id  Users Get",
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        {
+                          "type": "integer"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/jobs/{job_id}/categories": {
+      "get": {
+        "tags": [
+          "Jobs"
+        ],
+        "summary": "Get list of categories for provided job_id",
+        "description": "Returns list of categories for provided job_id. Supports pagination",
+        "operationId": "fetch_job_categories_jobs__job_id__categories_get",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "integer"
+            },
+            "example": 1,
+            "name": "job_id",
+            "in": "path"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Page Size",
+              "maximum": 100.0,
+              "minimum": 1.0,
+              "type": "integer",
+              "default": 50
+            },
+            "example": 15,
+            "name": "page_size",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Page Num",
+              "minimum": 1.0,
+              "type": "integer",
+              "default": 1
+            },
+            "example": 1,
+            "name": "page_num",
+            "in": "query"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_Union_annotation.schemas.categories.CategoryResponseSchema__str__dict__"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/jobs/{job_id}/categories/search": {
+      "post": {
+        "tags": [
+          "Jobs"
+        ],
+        "summary": "Search categories for provided job_id",
+        "description": "Searches and returns categories data according to search request parameters\nfilters for the given {job_id}. Supports pagination and ordering.",
+        "operationId": "search_job_categories_jobs__job_id__categories_search_post",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "integer"
+            },
+            "example": 1,
+            "name": "job_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/_BadgerdocSearch_categories_Category_"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_Union_annotation.schemas.categories.CategoryResponseSchema__str__dict__"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/jobs": {
+      "get": {
+        "tags": [
+          "Jobs"
+        ],
+        "summary": "Get info about jobs, in which provided file ids participate",
+        "operationId": "get_jobs_info_by_files_jobs_get",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "File Ids",
+              "minimum": 1.0,
+              "minItems": 1,
+              "uniqueItems": true,
+              "type": "array",
+              "items": {
+                "minimum": 1.0,
+                "type": "integer"
+              }
+            },
+            "example": [
+              1,
+              3,
+              4
+            ],
+            "name": "file_ids",
+            "in": "query"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/jobs/{job_id}/progress": {
+      "get": {
+        "tags": [
+          "Jobs"
+        ],
+        "summary": "Get amount of job's tasks in finished status and total amount of job's tasks.",
+        "operationId": "get_job_progress_jobs__job_id__progress_get",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "integer"
+            },
+            "example": 1,
+            "name": "job_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobProgressSchema"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/categories": {
+      "post": {
+        "tags": [
+          "Categories"
+        ],
+        "summary": "Save new category and return saved one.",
+        "operationId": "save_category_categories_post",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CategoryInputSchema"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategoryResponseSchema"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/categories/{category_id}": {
+      "get": {
+        "tags": [
+          "Categories"
+        ],
+        "summary": "Get category by id.",
+        "operationId": "fetch_category_categories__category_id__get",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Category Id",
+              "type": "string"
+            },
+            "example": "1",
+            "name": "category_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategoryResponseSchema"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "Categories"
+        ],
+        "summary": "Update category.",
+        "description": "Updates category by id and returns updated category.",
+        "operationId": "update_category_categories__category_id__put",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Category Id",
+              "type": "string"
+            },
+            "example": "1",
+            "name": "category_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CategoryBaseSchema"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategoryResponseSchema"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequestErrorSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Categories"
+        ],
+        "summary": "Delete category by id.",
+        "operationId": "delete_category_categories__category_id__delete",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Category Id",
+              "type": "string"
+            },
+            "example": "1",
+            "name": "category_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/categories/{category_id}/child": {
+      "get": {
+        "tags": [
+          "Categories"
+        ],
+        "summary": "Get list of child categories ids for category with category_id.",
+        "operationId": "get_child_categories_categories__category_id__child_get",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Category Id",
+              "type": "string"
+            },
+            "example": "Table",
+            "name": "category_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Child Categories Categories  Category Id  Child Get",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SubCategoriesOutSchema"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotFoundErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/categories/search": {
+      "post": {
+        "tags": [
+          "Categories"
+        ],
+        "summary": "Search categories.",
+        "description": "Searches and returns categories data according to search request parameters\nfilters. Supports pagination and ordering.",
+        "operationId": "search_categories_categories_search_post",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/_BadgerdocSearch_categories_Category_"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_Union_annotation.schemas.categories.CategoryResponseSchema__str__dict__"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/revisions/{job_id}/{file_id}": {
+      "get": {
+        "tags": [
+          "Revision"
+        ],
+        "summary": "Get list of all revisions for provided job_id and file_id without annotation of pages.",
+        "operationId": "get_revisions_without_annotation_revisions__job_id___file_id__get",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "integer"
+            },
+            "example": 1,
+            "name": "job_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "File Id",
+              "type": "integer"
+            },
+            "example": 1,
+            "name": "file_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "example": "test",
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Revisions Without Annotation Revisions  Job Id   File Id  Get",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AnnotatedDocSchema"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionErrorSchema"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AnnotatedDocSchema": {
+        "title": "AnnotatedDocSchema",
+        "required": [
+          "revision",
+          "user",
+          "pipeline",
+          "date",
+          "file_id",
+          "job_id",
+          "pages",
+          "validated",
+          "failed_validation_pages",
+          "tenant"
+        ],
+        "type": "object",
+        "properties": {
+          "revision": {
+            "title": "Revision",
+            "type": "string",
+            "example": "20fe52cce6a632c6eb09fdc5b3e1594f926eea69"
+          },
+          "user": {
+            "title": "User",
+            "type": "string",
+            "format": "uuid",
+            "example": "0b0ea570-e4e8-4664-84ac-dd1122471fc5"
+          },
+          "pipeline": {
+            "title": "Pipeline",
+            "type": "integer",
+            "example": 1
+          },
+          "date": {
+            "title": "Date",
+            "type": "string",
+            "format": "date-time",
+            "example": "2021-10-19 01:01:01"
+          },
+          "file_id": {
+            "title": "File Id",
+            "type": "integer",
+            "example": 1
+          },
+          "job_id": {
+            "title": "Job Id",
+            "type": "integer",
+            "example": 1
+          },
+          "pages": {
+            "title": "Pages",
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "example": {
+              "1": "19fe52cce6a632c6eb09fdc5b3e1594f926eea69",
+              "2": "adda414648714f01c1c9657646b72ebb4433c8b5"
+            }
+          },
+          "validated": {
+            "title": "Validated",
+            "minimum": 1.0,
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "minimum": 1.0,
+              "type": "integer"
+            },
+            "example": [
+              1,
+              2,
+              10
+            ]
+          },
+          "failed_validation_pages": {
+            "title": "Failed Validation Pages",
+            "minimum": 1.0,
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "minimum": 1.0,
+              "type": "integer"
+            },
+            "example": [
+              3,
+              4
+            ]
+          },
+          "tenant": {
+            "title": "Tenant",
+            "type": "string",
+            "example": "badger-doc"
+          },
+          "task_id": {
+            "title": "Task Id",
+            "type": "integer",
+            "example": 2
+          },
+          "similar_revisions": {
+            "title": "Similar Revisions",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RevisionLink"
+            }
+          },
+          "categories": {
+            "title": "Categories",
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "1",
+              "2"
+            ]
+          },
+          "links_json": {
+            "title": "Links Json",
+            "type": "array",
+            "items": {
+              "type": "object"
+            },
+            "example": [
+              {
+                "to": 2,
+                "category": "my_category",
+                "type": "directional"
+              }
+            ]
+          }
+        }
+      },
+      "AnnotationStatisticsEventEnumSchema": {
+        "title": "AnnotationStatisticsEventEnumSchema",
+        "enum": [
+          "opened",
+          "closed"
+        ],
+        "type": "string",
+        "description": "An enumeration."
+      },
+      "AnnotationStatisticsInputSchema": {
+        "title": "AnnotationStatisticsInputSchema",
+        "required": [
+          "event_type"
+        ],
+        "type": "object",
+        "properties": {
+          "event_type": {
+            "$ref": "#/components/schemas/AnnotationStatisticsEventEnumSchema"
+          },
+          "additional_data": {
+            "title": "Additional Data",
+            "type": "object",
+            "example": {
+              "attr1": "value1"
+            }
+          }
+        }
+      },
+      "AnnotationStatisticsResponseSchema": {
+        "title": "AnnotationStatisticsResponseSchema",
+        "required": [
+          "event_type",
+          "task_id",
+          "created"
+        ],
+        "type": "object",
+        "properties": {
+          "event_type": {
+            "$ref": "#/components/schemas/AnnotationStatisticsEventEnumSchema"
+          },
+          "additional_data": {
+            "title": "Additional Data",
+            "type": "object",
+            "example": {
+              "attr1": "value1"
+            }
+          },
+          "task_id": {
+            "title": "Task Id",
+            "type": "integer",
+            "example": 1
+          },
+          "created": {
+            "title": "Created",
+            "type": "string",
+            "format": "date-time",
+            "example": "2022-12-20 01:01:01"
+          },
+          "updated": {
+            "title": "Updated",
+            "type": "string",
+            "format": "date-time",
+            "example": "2022-12-20 01:01:01"
+          }
+        }
+      },
+      "BadRequestErrorSchema": {
+        "title": "BadRequestErrorSchema",
+        "required": [
+          "detail"
+        ],
+        "type": "object",
+        "properties": {
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          }
+        },
+        "example": {
+          "detail": "Bad request."
+        }
+      },
+      "CategoryBaseSchema": {
+        "title": "CategoryBaseSchema",
+        "required": [
+          "name",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string",
+            "example": "Title"
+          },
+          "parent": {
+            "title": "Parent",
+            "type": "string",
+            "example": "null"
+          },
+          "metadata": {
+            "title": "Metadata",
+            "type": "object",
+            "example": {
+              "color": "blue"
+            }
+          },
+          "type": {
+            "$ref": "#/components/schemas/CategoryTypeSchema"
+          },
+          "editor": {
+            "title": "Editor",
+            "type": "string",
+            "example": "http://editor/"
+          },
+          "data_attributes": {
+            "title": "Data Attributes",
+            "type": "array",
+            "items": {
+              "type": "object"
+            },
+            "example": [
+              {
+                "attr_1": "value_1"
+              },
+              {
+                "attr_2": "value_2"
+              }
+            ]
+          }
+        }
+      },
+      "CategoryInputSchema": {
+        "title": "CategoryInputSchema",
+        "required": [
+          "name",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string",
+            "example": "Title"
+          },
+          "parent": {
+            "title": "Parent",
+            "type": "string",
+            "example": "null"
+          },
+          "metadata": {
+            "title": "Metadata",
+            "type": "object",
+            "example": {
+              "color": "blue"
+            }
+          },
+          "type": {
+            "$ref": "#/components/schemas/CategoryTypeSchema"
+          },
+          "editor": {
+            "title": "Editor",
+            "type": "string",
+            "example": "http://editor/"
+          },
+          "data_attributes": {
+            "title": "Data Attributes",
+            "type": "array",
+            "items": {
+              "type": "object"
+            },
+            "example": [
+              {
+                "attr_1": "value_1"
+              },
+              {
+                "attr_2": "value_2"
+              }
+            ]
+          },
+          "id": {
+            "title": "Id",
+            "type": "string",
+            "description": "If id is not provided, generates it as a UUID.",
+            "example": "my_category"
+          }
+        }
+      },
+      "CategoryResponseSchema": {
+        "title": "CategoryResponseSchema",
+        "required": [
+          "name",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string",
+            "example": "Title"
+          },
+          "parent": {
+            "title": "Parent",
+            "type": "string",
+            "example": "null"
+          },
+          "metadata": {
+            "title": "Metadata",
+            "type": "object",
+            "example": {
+              "color": "blue"
+            }
+          },
+          "type": {
+            "$ref": "#/components/schemas/CategoryTypeSchema"
+          },
+          "editor": {
+            "title": "Editor",
+            "type": "string",
+            "example": "http://editor/"
+          },
+          "data_attributes": {
+            "title": "Data Attributes",
+            "type": "array",
+            "items": {
+              "type": "object"
+            },
+            "example": [
+              {
+                "attr_1": "value_1"
+              },
+              {
+                "attr_2": "value_2"
+              }
+            ]
+          },
+          "id": {
+            "title": "Id",
+            "type": "string",
+            "description": "If id is not provided, generates it as a UUID.",
+            "example": "my_category"
+          },
+          "parents": {
+            "title": "Parents",
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "is_leaf": {
+            "title": "Is Leaf",
+            "type": "boolean"
+          }
+        }
+      },
+      "CategoryTypeSchema": {
+        "title": "CategoryTypeSchema",
+        "enum": [
+          "box",
+          "link",
+          "segmentation",
+          "document",
+          "document_link"
+        ],
+        "type": "string",
+        "description": "An enumeration."
+      },
+      "ConnectionErrorSchema": {
+        "title": "ConnectionErrorSchema",
+        "required": [
+          "detail"
+        ],
+        "type": "object",
+        "properties": {
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          }
+        },
+        "example": {
+          "detail": "Error: Connection error."
+        }
+      },
+      "DocForSaveSchema": {
+        "title": "DocForSaveSchema",
+        "type": "object",
+        "properties": {
+          "base_revision": {
+            "title": "Base Revision",
+            "type": "string",
+            "example": "20fe52cce6a632c6eb09fdc5b3e1594f926eea69"
+          },
+          "user": {
+            "title": "User",
+            "type": "string",
+            "format": "uuid",
+            "example": "b0ac6d8c-7b31-4570-a634-c92b07c9e566"
+          },
+          "pipeline": {
+            "title": "Pipeline",
+            "type": "integer",
+            "example": 1
+          },
+          "pages": {
+            "title": "Pages",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PageSchema"
+            }
+          },
+          "validated": {
+            "title": "Validated",
+            "minimum": 1.0,
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "minimum": 1.0,
+              "type": "integer"
+            },
+            "example": [
+              1,
+              2,
+              10
+            ]
+          },
+          "failed_validation_pages": {
+            "title": "Failed Validation Pages",
+            "minimum": 1.0,
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "minimum": 1.0,
+              "type": "integer"
+            },
+            "example": [
+              3,
+              4
+            ]
+          },
+          "similar_revisions": {
+            "title": "Similar Revisions",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RevisionLink"
+            }
+          },
+          "categories": {
+            "title": "Categories",
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "1",
+              "2"
+            ]
+          },
+          "links_json": {
+            "title": "Links Json",
+            "type": "array",
+            "items": {
+              "type": "object"
+            },
+            "example": [
+              {
+                "to": 2,
+                "category": "my_category",
+                "type": "directional"
+              }
+            ]
+          }
+        }
+      },
+      "EntitiesStatusesSchema": {
+        "title": "EntitiesStatusesSchema",
+        "type": "object",
+        "properties": {
+          "task_statuses": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TaskStatusEnumSchema"
+            },
+            "default": [
+              "Pending",
+              "Ready",
+              "In Progress",
+              "Finished"
+            ]
+          }
+        }
+      },
+      "ExpandedManualAnnotationTaskSchema": {
+        "title": "ExpandedManualAnnotationTaskSchema",
+        "required": [
+          "id",
+          "pages",
+          "user",
+          "file",
+          "job"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "integer",
+            "example": 4
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TaskStatusEnumSchema"
+              }
+            ],
+            "default": "Pending",
+            "example": "Pending"
+          },
+          "pages": {
+            "title": "Pages",
+            "minimum": 1.0,
+            "minItems": 1,
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "minimum": 1.0,
+              "type": "integer"
+            },
+            "example": [
+              1,
+              2,
+              3
+            ]
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserSchema"
+          },
+          "is_validation": {
+            "title": "Is Validation",
+            "type": "boolean",
+            "default": false,
+            "example": false
+          },
+          "deadline": {
+            "title": "Deadline",
+            "type": "string",
+            "format": "date-time",
+            "example": "2021-10-19 01:01:01"
+          },
+          "file": {
+            "$ref": "#/components/schemas/NameSchema"
+          },
+          "job": {
+            "$ref": "#/components/schemas/NameSchema"
+          }
+        }
+      },
+      "ExportTaskStatsInput": {
+        "title": "ExportTaskStatsInput",
+        "required": [
+          "user_ids",
+          "date_from"
+        ],
+        "type": "object",
+        "properties": {
+          "user_ids": {
+            "title": "User Ids",
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": [
+              "e20af190-0f05-4cd8-ad51-811bfb19ad71"
+            ]
+          },
+          "date_from": {
+            "title": "Date From",
+            "type": "string",
+            "format": "date-time",
+            "example": "2020-12-20 01:01:01"
+          },
+          "date_to": {
+            "title": "Date To",
+            "type": "string",
+            "format": "date-time",
+            "example": "2025-12-20 01:01:01"
+          }
+        }
+      },
+      "FileInfoSchema": {
+        "title": "FileInfoSchema",
+        "required": [
+          "id",
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "integer",
+            "example": 1
+          },
+          "status": {
+            "$ref": "#/components/schemas/FileStatusEnumSchema"
+          }
+        }
+      },
+      "FileStatusEnumSchema": {
+        "title": "FileStatusEnumSchema",
+        "enum": [
+          "Pending",
+          "Annotated",
+          "Validated"
+        ],
+        "type": "string",
+        "description": "An enumeration."
+      },
+      "HTTPValidationError": {
+        "title": "HTTPValidationError",
+        "type": "object",
+        "properties": {
+          "detail": {
+            "title": "Detail",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            }
+          }
+        }
+      },
+      "JobFilesInfoSchema": {
+        "title": "JobFilesInfoSchema",
+        "required": [
+          "tenant",
+          "job_id",
+          "total_objects",
+          "current_page",
+          "page_size",
+          "files"
+        ],
+        "type": "object",
+        "properties": {
+          "tenant": {
+            "title": "Tenant",
+            "type": "string",
+            "example": "test"
+          },
+          "job_id": {
+            "title": "Job Id",
+            "type": "integer",
+            "example": 1
+          },
+          "total_objects": {
+            "title": "Total Objects",
+            "type": "integer",
+            "example": 10
+          },
+          "current_page": {
+            "title": "Current Page",
+            "type": "integer",
+            "example": 1
+          },
+          "page_size": {
+            "title": "Page Size",
+            "type": "integer",
+            "example": 50
+          },
+          "files": {
+            "title": "Files",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FileInfoSchema"
+            }
+          }
+        }
+      },
+      "JobInfoSchema": {
+        "title": "JobInfoSchema",
+        "required": [
+          "callback_url",
+          "annotators",
+          "validators",
+          "owners",
+          "files",
+          "datasets",
+          "categories",
+          "job_type"
+        ],
+        "type": "object",
+        "properties": {
+          "callback_url": {
+            "title": "Callback Url",
+            "type": "string",
+            "example": "http://jobs/jobs/1"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string",
+            "example": "job_name"
+          },
+          "annotators": {
+            "title": "Annotators",
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": [
+              "b44156f8-e634-48a6-b5f3-c8b1462a2d67",
+              "f0474853-f733-41c0-b897-90b788b822e3"
+            ]
+          },
+          "validators": {
+            "title": "Validators",
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": [
+              "b44156f8-e634-48a6-b5f3-c8b1462a2d67",
+              "f0474853-f733-41c0-b897-90b788b822e3"
+            ]
+          },
+          "owners": {
+            "title": "Owners",
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": [
+              "b44156f8-e634-48a6-b5f3-c8b1462a2d67",
+              "f0474853-f733-41c0-b897-90b788b822e3"
+            ]
+          },
+          "validation_type": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ValidationSchema"
+              }
+            ],
+            "default": "cross",
+            "example": "cross"
+          },
+          "files": {
+            "title": "Files",
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "example": [
+              1,
+              2,
+              3
+            ]
+          },
+          "datasets": {
+            "title": "Datasets",
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "example": [
+              1,
+              2,
+              3
+            ]
+          },
+          "is_auto_distribution": {
+            "title": "Is Auto Distribution",
+            "type": "boolean",
+            "default": false,
+            "example": false
+          },
+          "categories": {
+            "title": "Categories",
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "2",
+              "1"
+            ]
+          },
+          "deadline": {
+            "title": "Deadline",
+            "type": "string",
+            "format": "date-time",
+            "example": "2021-10-19 01:01:01"
+          },
+          "job_type": {
+            "$ref": "#/components/schemas/JobTypeEnumSchema"
+          },
+          "extensive_coverage": {
+            "title": "Extensive Coverage",
+            "type": "integer",
+            "default": 1,
+            "example": 1
+          }
+        }
+      },
+      "JobOutSchema": {
+        "title": "JobOutSchema",
+        "required": [
+          "job_id",
+          "is_manual"
+        ],
+        "type": "object",
+        "properties": {
+          "job_id": {
+            "title": "Job Id",
+            "type": "integer",
+            "example": 1
+          },
+          "is_manual": {
+            "title": "Is Manual",
+            "type": "boolean",
+            "example": true
+          }
+        }
+      },
+      "JobPatchSchema": {
+        "title": "JobPatchSchema",
+        "type": "object",
+        "properties": {
+          "callback_url": {
+            "title": "Callback Url",
+            "type": "string",
+            "example": "http://jobs/jobs/1"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string",
+            "example": "job_name"
+          },
+          "annotators": {
+            "title": "Annotators",
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": [
+              "f0474853-f733-41c0-b897-90b788b822e3"
+            ]
+          },
+          "validators": {
+            "title": "Validators",
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": [
+              "b44156f8-e634-48a6-b5f3-c8b1462a2d67"
+            ]
+          },
+          "owners": {
+            "title": "Owners",
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": [
+              "b44156f8-e634-48a6-b5f3-c8b1462a2d67"
+            ]
+          },
+          "files": {
+            "title": "Files",
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "example": [
+              1,
+              2,
+              3
+            ]
+          },
+          "datasets": {
+            "title": "Datasets",
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "example": [
+              1,
+              2,
+              3
+            ]
+          },
+          "categories": {
+            "title": "Categories",
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "2",
+              "1"
+            ]
+          },
+          "deadline": {
+            "title": "Deadline",
+            "type": "string",
+            "format": "date-time",
+            "example": "2021-10-19 01:01:01"
+          },
+          "extensive_coverage": {
+            "title": "Extensive Coverage",
+            "type": "integer",
+            "example": 1
+          }
+        }
+      },
+      "JobProgressSchema": {
+        "title": "JobProgressSchema",
+        "required": [
+          "finished",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "finished": {
+            "title": "Finished",
+            "type": "integer",
+            "example": 1
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer",
+            "example": 1
+          }
+        }
+      },
+      "JobTypeEnumSchema": {
+        "title": "JobTypeEnumSchema",
+        "enum": [
+          "ExtractionJob",
+          "ExtractionWithAnnotationJob",
+          "AnnotationJob",
+          "ImportJob"
+        ],
+        "type": "string",
+        "description": "An enumeration."
+      },
+      "ManualAnnotationTaskInSchema": {
+        "title": "ManualAnnotationTaskInSchema",
+        "required": [
+          "file_id",
+          "pages",
+          "job_id",
+          "user_id"
+        ],
+        "type": "object",
+        "properties": {
+          "file_id": {
+            "title": "File Id",
+            "type": "integer",
+            "example": 2
+          },
+          "pages": {
+            "title": "Pages",
+            "minimum": 1.0,
+            "minItems": 1,
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "minimum": 1.0,
+              "type": "integer"
+            },
+            "example": [
+              1,
+              2,
+              3
+            ]
+          },
+          "job_id": {
+            "title": "Job Id",
+            "type": "integer",
+            "example": 3
+          },
+          "user_id": {
+            "title": "User Id",
+            "type": "string",
+            "format": "uuid",
+            "example": "4e9c5839-f63b-49c8-b918-614b87813e53"
+          },
+          "is_validation": {
+            "title": "Is Validation",
+            "type": "boolean",
+            "default": false,
+            "example": false
+          },
+          "deadline": {
+            "title": "Deadline",
+            "type": "string",
+            "format": "date-time",
+            "example": "2021-10-19 01:01:01"
+          }
+        }
+      },
+      "ManualAnnotationTaskSchema": {
+        "title": "ManualAnnotationTaskSchema",
+        "required": [
+          "id",
+          "file_id",
+          "pages",
+          "job_id",
+          "user_id"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "integer",
+            "example": 4
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TaskStatusEnumSchema"
+              }
+            ],
+            "default": "Pending",
+            "example": "Pending"
+          },
+          "file_id": {
+            "title": "File Id",
+            "type": "integer",
+            "example": 2
+          },
+          "pages": {
+            "title": "Pages",
+            "minimum": 1.0,
+            "minItems": 1,
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "minimum": 1.0,
+              "type": "integer"
+            },
+            "example": [
+              1,
+              2,
+              3
+            ]
+          },
+          "job_id": {
+            "title": "Job Id",
+            "type": "integer",
+            "example": 3
+          },
+          "user_id": {
+            "title": "User Id",
+            "type": "string",
+            "format": "uuid",
+            "example": "4e9c5839-f63b-49c8-b918-614b87813e53"
+          },
+          "is_validation": {
+            "title": "Is Validation",
+            "type": "boolean",
+            "default": false,
+            "example": false
+          },
+          "deadline": {
+            "title": "Deadline",
+            "type": "string",
+            "format": "date-time",
+            "example": "2021-10-19 01:01:01"
+          }
+        }
+      },
+      "NameSchema": {
+        "title": "NameSchema",
+        "required": [
+          "id"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "integer",
+            "example": 1
+          },
+          "name": {
+            "title": "Name",
+            "type": "string",
+            "example": "NameOfJobOrFile"
+          }
+        }
+      },
+      "NotFoundErrorSchema": {
+        "title": "NotFoundErrorSchema",
+        "required": [
+          "detail"
+        ],
+        "type": "object",
+        "properties": {
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          }
+        },
+        "example": {
+          "detail": "Resource was not found."
+        }
+      },
+      "PageOutSchema": {
+        "title": "PageOutSchema",
+        "required": [
+          "page_num",
+          "size",
+          "objs",
+          "revision",
+          "user_id",
+          "pipeline",
+          "date"
+        ],
+        "type": "object",
+        "properties": {
+          "page_num": {
+            "title": "Page Num",
+            "minimum": 1.0,
+            "type": "integer",
+            "example": 2
+          },
+          "size": {
+            "title": "Size",
+            "type": "object",
+            "additionalProperties": {
+              "type": "number"
+            },
+            "example": {
+              "width": 10.2,
+              "height": 123.34
+            }
+          },
+          "objs": {
+            "title": "Objs",
+            "type": "array",
+            "items": {
+              "type": "object"
+            },
+            "example": [
+              {
+                "id": 2,
+                "type": "string",
+                "original_annotation_id": "int",
+                "segmentation": {
+                  "segment": "string"
+                },
+                "bbox": [
+                  10.2,
+                  123.34,
+                  34.2,
+                  43.4
+                ],
+                "links": [
+                  {
+                    "category_id": "1",
+                    "to": 2,
+                    "page_num": 2
+                  }
+                ],
+                "text": "text in object",
+                "category": "3",
+                "data": "string",
+                "children": [
+                  1,
+                  2,
+                  3
+                ]
+              },
+              {
+                "id": 3,
+                "type": "string",
+                "segmentation": {
+                  "segment": "string"
+                },
+                "tokens": [
+                  "token-string1",
+                  "token-string2",
+                  "token-string3"
+                ],
+                "links": [
+                  {
+                    "category_id": "1",
+                    "to": 2,
+                    "page_num": 3
+                  }
+                ],
+                "text": "text in object",
+                "category": "3",
+                "data": "string",
+                "children": [
+                  1,
+                  2,
+                  3
+                ]
+              }
+            ]
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "string",
+            "example": "20fe52cce6a632c6eb09fdc5b3e1594f926eea69"
+          },
+          "user_id": {
+            "title": "User Id",
+            "type": "string",
+            "format": "uuid",
+            "example": "c1c76433-5bfb-4c4a-a5b5-93c66fbfe376"
+          },
+          "pipeline": {
+            "title": "Pipeline",
+            "type": "integer",
+            "example": 2
+          },
+          "date": {
+            "title": "Date",
+            "type": "string",
+            "format": "date-time",
+            "example": "2021-10-19 01:01:01"
+          },
+          "is_validated": {
+            "title": "Is Validated",
+            "type": "boolean",
+            "default": false,
+            "example": false
+          },
+          "categories": {
+            "title": "Categories",
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "1",
+              "2"
+            ]
+          }
+        }
+      },
+      "PageSchema": {
+        "title": "PageSchema",
+        "required": [
+          "page_num",
+          "size",
+          "objs"
+        ],
+        "type": "object",
+        "properties": {
+          "page_num": {
+            "title": "Page Num",
+            "minimum": 1.0,
+            "type": "integer",
+            "example": 2
+          },
+          "size": {
+            "title": "Size",
+            "type": "object",
+            "additionalProperties": {
+              "type": "number"
+            },
+            "example": {
+              "width": 10.2,
+              "height": 123.34
+            }
+          },
+          "objs": {
+            "title": "Objs",
+            "type": "array",
+            "items": {
+              "type": "object"
+            },
+            "example": [
+              {
+                "id": 2,
+                "type": "string",
+                "original_annotation_id": "int",
+                "segmentation": {
+                  "segment": "string"
+                },
+                "bbox": [
+                  10.2,
+                  123.34,
+                  34.2,
+                  43.4
+                ],
+                "links": [
+                  {
+                    "category_id": "1",
+                    "to": 2,
+                    "page_num": 2
+                  }
+                ],
+                "text": "text in object",
+                "category": "3",
+                "data": "string",
+                "children": [
+                  1,
+                  2,
+                  3
+                ]
+              },
+              {
+                "id": 3,
+                "type": "string",
+                "segmentation": {
+                  "segment": "string"
+                },
+                "tokens": [
+                  "token-string1",
+                  "token-string2",
+                  "token-string3"
+                ],
+                "links": [
+                  {
+                    "category_id": "1",
+                    "to": 2,
+                    "page_num": 3
+                  }
+                ],
+                "text": "text in object",
+                "category": "3",
+                "data": "string",
+                "children": [
+                  1,
+                  2,
+                  3
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "Page_Any_": {
+        "title": "Page[Any]",
+        "required": [
+          "pagination",
+          "data"
+        ],
+        "type": "object",
+        "properties": {
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationOut"
+          },
+          "data": {
+            "title": "Data",
+            "type": "array",
+            "items": {}
+          }
+        },
+        "description": "Abstract base class for generic types.\n\nA generic type is typically declared by inheriting from\nthis class parameterized with one or more type variables.\nFor example, a generic mapping type might be defined as::\n\n  class Mapping(Generic[KT, VT]):\n      def __getitem__(self, key: KT) -> VT:\n          ...\n      # Etc.\n\nThis class can then be used as follows::\n\n  def lookup_name(mapping: Mapping[KT, VT], key: KT, default: VT) -> VT:\n      try:\n          return mapping[key]\n      except KeyError:\n          return default"
+      },
+      "Page_Union_annotation.schemas.categories.CategoryResponseSchema__str__dict__": {
+        "title": "Page[Union[annotation.schemas.categories.CategoryResponseSchema, str, dict]]",
+        "required": [
+          "pagination",
+          "data"
+        ],
+        "type": "object",
+        "properties": {
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationOut"
+          },
+          "data": {
+            "title": "Data",
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/CategoryResponseSchema"
+                },
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "object"
+                }
+              ]
+            }
+          }
+        },
+        "description": "Abstract base class for generic types.\n\nA generic type is typically declared by inheriting from\nthis class parameterized with one or more type variables.\nFor example, a generic mapping type might be defined as::\n\n  class Mapping(Generic[KT, VT]):\n      def __getitem__(self, key: KT) -> VT:\n          ...\n      # Etc.\n\nThis class can then be used as follows::\n\n  def lookup_name(mapping: Mapping[KT, VT], key: KT, default: VT) -> VT:\n      try:\n          return mapping[key]\n      except KeyError:\n          return default"
+      },
+      "PagesInfoSchema": {
+        "title": "PagesInfoSchema",
+        "required": [
+          "validated",
+          "failed_validation_pages",
+          "annotated_pages",
+          "not_processed"
+        ],
+        "type": "object",
+        "properties": {
+          "validated": {
+            "title": "Validated",
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "example": [
+              1,
+              2,
+              3
+            ]
+          },
+          "failed_validation_pages": {
+            "title": "Failed Validation Pages",
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "example": [
+              4,
+              5
+            ]
+          },
+          "annotated_pages": {
+            "title": "Annotated Pages",
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "example": [
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          "not_processed": {
+            "title": "Not Processed",
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "example": [
+              6
+            ]
+          }
+        }
+      },
+      "Pagination": {
+        "title": "Pagination",
+        "required": [
+          "page_size"
+        ],
+        "type": "object",
+        "properties": {
+          "page_num": {
+            "title": "Page Num",
+            "exclusiveMinimum": 0.0,
+            "type": "integer",
+            "default": 1
+          },
+          "page_size": {
+            "$ref": "#/components/schemas/_FilterPagesize"
+          }
+        }
+      },
+      "PaginationOut": {
+        "title": "PaginationOut",
+        "required": [
+          "page_size",
+          "min_pages_left",
+          "total",
+          "has_more"
+        ],
+        "type": "object",
+        "properties": {
+          "page_num": {
+            "title": "Page Num",
+            "exclusiveMinimum": 0.0,
+            "type": "integer",
+            "default": 1
+          },
+          "page_size": {
+            "$ref": "#/components/schemas/_FilterPagesize"
+          },
+          "min_pages_left": {
+            "title": "Min Pages Left",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          },
+          "has_more": {
+            "title": "Has More",
+            "type": "boolean"
+          }
+        }
+      },
+      "ParticularRevisionSchema": {
+        "title": "ParticularRevisionSchema",
+        "required": [
+          "revision",
+          "user",
+          "pipeline",
+          "date",
+          "pages"
+        ],
+        "type": "object",
+        "properties": {
+          "revision": {
+            "title": "Revision",
+            "type": "string",
+            "example": "20fe52cce6a632c6eb09fdc5b3e1594f926eea69"
+          },
+          "user": {
+            "title": "User",
+            "type": "string",
+            "format": "uuid",
+            "example": "c7311267-fdfd-4ef1-be44-160d3dd819ca"
+          },
+          "pipeline": {
+            "title": "Pipeline",
+            "type": "integer",
+            "example": 1
+          },
+          "date": {
+            "title": "Date",
+            "type": "string",
+            "format": "date-time",
+            "example": "2021-10-19 01:01:01"
+          },
+          "pages": {
+            "title": "Pages",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PageSchema"
+            }
+          },
+          "validated": {
+            "title": "Validated",
+            "minimum": 1.0,
+            "type": "array",
+            "items": {
+              "minimum": 1.0,
+              "type": "integer"
+            },
+            "example": [
+              2
+            ]
+          },
+          "failed_validation_pages": {
+            "title": "Failed Validation Pages",
+            "minimum": 1.0,
+            "type": "array",
+            "items": {
+              "minimum": 1.0,
+              "type": "integer"
+            },
+            "example": []
+          },
+          "similar_revisions": {
+            "title": "Similar Revisions",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RevisionLink"
+            }
+          },
+          "categories": {
+            "title": "Categories",
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "1",
+              "2"
+            ]
+          },
+          "links_json": {
+            "title": "Links Json",
+            "type": "array",
+            "items": {
+              "type": "object"
+            },
+            "example": [
+              {
+                "to": 2,
+                "category": "my_category",
+                "type": "directional"
+              }
+            ]
+          }
+        }
+      },
+      "PreviousAndNextTasksSchema": {
+        "title": "PreviousAndNextTasksSchema",
+        "type": "object",
+        "properties": {
+          "previous_task": {
+            "$ref": "#/components/schemas/ManualAnnotationTaskSchema"
+          },
+          "next_task": {
+            "$ref": "#/components/schemas/ManualAnnotationTaskSchema"
+          }
+        }
+      },
+      "RevisionLink": {
+        "title": "RevisionLink",
+        "required": [
+          "revision",
+          "job_id",
+          "file_id",
+          "label"
+        ],
+        "type": "object",
+        "properties": {
+          "revision": {
+            "title": "Revision",
+            "type": "string",
+            "example": "20fe52cce6a632c6eb09fdc5b3e1594f926eea69"
+          },
+          "job_id": {
+            "title": "Job Id",
+            "type": "integer",
+            "example": 1
+          },
+          "file_id": {
+            "title": "File Id",
+            "type": "integer",
+            "example": 1
+          },
+          "label": {
+            "title": "Label",
+            "type": "string",
+            "example": "similar"
+          }
+        }
+      },
+      "SubCategoriesOutSchema": {
+        "title": "SubCategoriesOutSchema",
+        "required": [
+          "id"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string",
+            "example": "123"
+          }
+        }
+      },
+      "TaskInfoSchema": {
+        "title": "TaskInfoSchema",
+        "required": [
+          "user_ids",
+          "files",
+          "datasets",
+          "job_id"
+        ],
+        "type": "object",
+        "properties": {
+          "user_ids": {
+            "title": "User Ids",
+            "minItems": 1,
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": [
+              "b44156f8-e634-48a6-b5f3-c8b1462a2d67",
+              "f0474853-f733-41c0-b897-90b788b822e3"
+            ]
+          },
+          "files": {
+            "title": "Files",
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "example": [
+              1,
+              2,
+              3
+            ]
+          },
+          "datasets": {
+            "title": "Datasets",
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "example": [
+              1,
+              2,
+              3
+            ]
+          },
+          "job_id": {
+            "title": "Job Id",
+            "type": "integer",
+            "example": 3
+          },
+          "deadline": {
+            "title": "Deadline",
+            "type": "string",
+            "format": "date-time",
+            "example": "2021-10-19 01:01:01"
+          }
+        }
+      },
+      "TaskPatchSchema": {
+        "title": "TaskPatchSchema",
+        "type": "object",
+        "properties": {
+          "file_id": {
+            "title": "File Id",
+            "type": "integer",
+            "example": 2
+          },
+          "pages": {
+            "title": "Pages",
+            "minimum": 1.0,
+            "minItems": 1,
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "minimum": 1.0,
+              "type": "integer"
+            },
+            "example": [
+              1,
+              2,
+              3
+            ]
+          },
+          "job_id": {
+            "title": "Job Id",
+            "type": "integer",
+            "example": 3
+          },
+          "user_id": {
+            "title": "User Id",
+            "type": "string",
+            "format": "uuid",
+            "example": "4e9c5839-f63b-49c8-b918-614b87813e53"
+          },
+          "is_validation": {
+            "title": "Is Validation",
+            "type": "boolean",
+            "example": false
+          },
+          "deadline": {
+            "title": "Deadline",
+            "type": "string",
+            "format": "date-time",
+            "example": "2021-10-19 01:01:01"
+          }
+        }
+      },
+      "TaskStatusEnumSchema": {
+        "title": "TaskStatusEnumSchema",
+        "enum": [
+          "Pending",
+          "Ready",
+          "In Progress",
+          "Finished"
+        ],
+        "type": "string",
+        "description": "An enumeration."
+      },
+      "UnassignedFileSchema": {
+        "title": "UnassignedFileSchema",
+        "required": [
+          "id",
+          "pages_to_annotate",
+          "pages_to_validate"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "integer",
+            "example": 1
+          },
+          "pages_to_annotate": {
+            "title": "Pages To Annotate",
+            "minimum": 1.0,
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "minimum": 1.0,
+              "type": "integer"
+            },
+            "example": [
+              1,
+              2,
+              3
+            ]
+          },
+          "pages_to_validate": {
+            "title": "Pages To Validate",
+            "minimum": 1.0,
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "minimum": 1.0,
+              "type": "integer"
+            },
+            "example": [
+              1,
+              2,
+              3
+            ]
+          }
+        }
+      },
+      "UnassignedFilesInfoSchema": {
+        "title": "UnassignedFilesInfoSchema",
+        "required": [
+          "tenant",
+          "job_id",
+          "total_objects",
+          "current_page",
+          "page_size",
+          "unassigned_files"
+        ],
+        "type": "object",
+        "properties": {
+          "tenant": {
+            "title": "Tenant",
+            "type": "string",
+            "example": "test"
+          },
+          "job_id": {
+            "title": "Job Id",
+            "type": "integer",
+            "example": 1
+          },
+          "total_objects": {
+            "title": "Total Objects",
+            "type": "integer",
+            "example": 1
+          },
+          "current_page": {
+            "title": "Current Page",
+            "type": "integer",
+            "example": 1
+          },
+          "page_size": {
+            "title": "Page Size",
+            "type": "integer",
+            "example": 50
+          },
+          "unassigned_files": {
+            "title": "Unassigned Files",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UnassignedFileSchema"
+            }
+          }
+        }
+      },
+      "UserSchema": {
+        "title": "UserSchema",
+        "required": [
+          "id"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string",
+            "format": "uuid",
+            "example": "3082242e-15e3-4e18-aad0-e3bf182b8550"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string",
+            "example": "user_login"
+          }
+        }
+      },
+      "ValidationEndSchema": {
+        "title": "ValidationEndSchema",
+        "type": "object",
+        "properties": {
+          "annotation_user_for_failed_pages": {
+            "title": "Annotation User For Failed Pages",
+            "type": "string",
+            "example": "initial"
+          },
+          "validation_user_for_reannotated_pages": {
+            "title": "Validation User For Reannotated Pages",
+            "type": "string",
+            "example": "auto"
+          }
+        }
+      },
+      "ValidationError": {
+        "title": "ValidationError",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "loc": {
+            "title": "Location",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        }
+      },
+      "ValidationSchema": {
+        "title": "ValidationSchema",
+        "enum": [
+          "cross",
+          "hierarchical",
+          "validation only",
+          "extensive_coverage"
+        ],
+        "type": "string",
+        "description": "An enumeration."
+      },
+      "_BadgerdocSearch_categories_Category_": {
+        "title": "_BadgerdocSearch[categories_Category]",
+        "type": "object",
+        "properties": {
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          },
+          "filters": {
+            "title": "Filters",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/_Filters_categories_Category_"
+            }
+          },
+          "sorting": {
+            "title": "Sorting",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/_Sorts_categories_Category_"
+            }
+          }
+        },
+        "description": "Abstract base class for generic types.\n\nA generic type is typically declared by inheriting from\nthis class parameterized with one or more type variables.\nFor example, a generic mapping type might be defined as::\n\n  class Mapping(Generic[KT, VT]):\n      def __getitem__(self, key: KT) -> VT:\n          ...\n      # Etc.\n\nThis class can then be used as follows::\n\n  def lookup_name(mapping: Mapping[KT, VT], key: KT, default: VT) -> VT:\n      try:\n          return mapping[key]\n      except KeyError:\n          return default"
+      },
+      "_BadgerdocSearch_tasks_ManualAnnotationTask_": {
+        "title": "_BadgerdocSearch[tasks_ManualAnnotationTask]",
+        "type": "object",
+        "properties": {
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          },
+          "filters": {
+            "title": "Filters",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/_Filters_tasks_ManualAnnotationTask_"
+            }
+          },
+          "sorting": {
+            "title": "Sorting",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/_Sorts_tasks_ManualAnnotationTask_"
+            }
+          }
+        },
+        "description": "Abstract base class for generic types.\n\nA generic type is typically declared by inheriting from\nthis class parameterized with one or more type variables.\nFor example, a generic mapping type might be defined as::\n\n  class Mapping(Generic[KT, VT]):\n      def __getitem__(self, key: KT) -> VT:\n          ...\n      # Etc.\n\nThis class can then be used as follows::\n\n  def lookup_name(mapping: Mapping[KT, VT], key: KT, default: VT) -> VT:\n      try:\n          return mapping[key]\n      except KeyError:\n          return default"
+      },
+      "_FilterOperations": {
+        "title": "_FilterOperations",
+        "enum": [
+          "is_null",
+          "is_not_null",
+          "eq",
+          "ne",
+          "gt",
+          "lt",
+          "ge",
+          "le",
+          "like",
+          "ilike",
+          "not_ilike",
+          "in",
+          "not_in",
+          "any",
+          "not_any",
+          "match",
+          "distinct",
+          "parent",
+          "parents_recursive",
+          "children",
+          "children_recursive"
+        ],
+        "type": "string",
+        "description": "An enumeration."
+      },
+      "_FilterPagesize": {
+        "title": "_FilterPagesize",
+        "enum": [
+          15,
+          30,
+          50,
+          80,
+          100
+        ],
+        "type": "integer",
+        "description": "An enumeration."
+      },
+      "_Filters_categories_Category_": {
+        "title": "_Filters[categories_Category]",
+        "required": [
+          "field",
+          "operator"
+        ],
+        "type": "object",
+        "properties": {
+          "field": {
+            "$ref": "#/components/schemas/categories_Category"
+          },
+          "operator": {
+            "$ref": "#/components/schemas/_FilterOperations"
+          },
+          "value": {
+            "title": "Value"
+          }
+        }
+      },
+      "_Filters_tasks_ManualAnnotationTask_": {
+        "title": "_Filters[tasks_ManualAnnotationTask]",
+        "required": [
+          "field",
+          "operator"
+        ],
+        "type": "object",
+        "properties": {
+          "field": {
+            "$ref": "#/components/schemas/tasks_ManualAnnotationTask"
+          },
+          "operator": {
+            "$ref": "#/components/schemas/_FilterOperations"
+          },
+          "value": {
+            "title": "Value"
+          }
+        }
+      },
+      "_SortDirection": {
+        "title": "_SortDirection",
+        "enum": [
+          "asc",
+          "desc"
+        ],
+        "type": "string",
+        "description": "An enumeration."
+      },
+      "_Sorts_categories_Category_": {
+        "title": "_Sorts[categories_Category]",
+        "required": [
+          "field",
+          "direction"
+        ],
+        "type": "object",
+        "properties": {
+          "field": {
+            "$ref": "#/components/schemas/categories_Category"
+          },
+          "direction": {
+            "$ref": "#/components/schemas/_SortDirection"
+          }
+        }
+      },
+      "_Sorts_tasks_ManualAnnotationTask_": {
+        "title": "_Sorts[tasks_ManualAnnotationTask]",
+        "required": [
+          "field",
+          "direction"
+        ],
+        "type": "object",
+        "properties": {
+          "field": {
+            "$ref": "#/components/schemas/tasks_ManualAnnotationTask"
+          },
+          "direction": {
+            "$ref": "#/components/schemas/_SortDirection"
+          }
+        }
+      },
+      "categories_Category": {
+        "title": "categories_Category",
+        "enum": [
+          "id",
+          "name",
+          "parent",
+          "type",
+          "editor",
+          "tree"
+        ],
+        "type": "string",
+        "description": "An enumeration."
+      },
+      "tasks_ManualAnnotationTask": {
+        "title": "tasks_ManualAnnotationTask",
+        "enum": [
+          "id",
+          "file_id",
+          "job_id",
+          "user_id",
+          "is_validation",
+          "status",
+          "deadline",
+          "stats.task_id",
+          "stats.event_type",
+          "stats.created",
+          "stats.updated",
+          "stats.additional_data",
+          "agreement_metrics.task_from",
+          "agreement_metrics.task_to",
+          "agreement_metrics.agreement_metric"
+        ],
+        "type": "string",
+        "description": "An enumeration."
+      }
+    },
+    "securitySchemes": {
+      "TenantDependencyDocs": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Manual Annotation Tasks",
+      "description": "Actions associated with manual annotation tasks."
+    },
+    {
+      "name": "Jobs",
+      "description": "Actions associated with jobs."
+    },
+    {
+      "name": "Annotation",
+      "description": "Actions associated with annotation."
+    },
+    {
+      "name": "Revision",
+      "description": "Actions associated with revisions."
+    },
+    {
+      "name": "Categories",
+      "description": "Actions associated with categories."
+    },
+    {
+      "name": "Files",
+      "description": "Actions associated with files."
+    },
+    {
+      "name": "Metadata",
+      "description": "Get list of possible entities statuses."
+    }
+  ]
+}

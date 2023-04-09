@@ -1,0 +1,1190 @@
+{
+  "openapi": "3.0.2",
+  "info": {
+    "title": "users",
+    "version": "0.1.3"
+  },
+  "paths": {
+    "/token": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Login",
+        "description": "Get auth token.",
+        "operationId": "login_token_post",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_login_token_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/refresh_token": {
+      "post": {
+        "summary": "Refresh Token",
+        "description": "Refresh token.",
+        "operationId": "refresh_token_refresh_token_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshTokenRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/registration": {
+      "post": {
+        "tags": [
+          "users"
+        ],
+        "summary": "User Registration",
+        "description": "Register new user",
+        "operationId": "user_registration_users_registration_post",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Email",
+              "type": "string"
+            },
+            "name": "email",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/users/current": {
+      "get": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Get User Data From Jwt",
+        "description": "Get user from realm with JWT",
+        "operationId": "get_user_data_from_jwt_users_current_get",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "deprecated": true,
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/users/current_v2": {
+      "get": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Get User Info From Token Introspection",
+        "description": "Get user_info from realm through JWT introspection",
+        "operationId": "get_user_info_from_token_introspection_users_current_v2_get",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/users/{user_id}": {
+      "get": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Get User",
+        "description": "Get user from realm.",
+        "operationId": "get_user_users__user_id__get",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "User Id",
+              "type": "string"
+            },
+            "name": "user_id",
+            "in": "path"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/get_username_by_user_id": {
+      "get": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Get Username By User Id",
+        "description": "Get username by its user_id with any valid token.",
+        "operationId": "get_username_by_user_id_get_username_by_user_id_get",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "User Id",
+              "type": "string"
+            },
+            "name": "user_id",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/tenants": {
+      "get": {
+        "tags": [
+          "tenants"
+        ],
+        "summary": "Get Tenants",
+        "description": "Get all tenants.",
+        "operationId": "get_tenants_tenants_get",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get Tenants Tenants Get",
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "tenants"
+        ],
+        "summary": "Create Tenant",
+        "description": "Create new tenant.",
+        "operationId": "create_tenant_tenants_post",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Tenant",
+              "type": "string"
+            },
+            "name": "tenant",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Create Tenant Tenants Post",
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/tenants/{tenant}/users/{user_id}": {
+      "put": {
+        "tags": [
+          "tenants"
+        ],
+        "summary": "Add User To Tenant",
+        "description": "Add user to tenant.",
+        "operationId": "add_user_to_tenant_tenants__tenant__users__user_id__put",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "User Id",
+              "type": "string"
+            },
+            "name": "user_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "Tenant",
+              "type": "string"
+            },
+            "name": "tenant",
+            "in": "path"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Add User To Tenant Tenants  Tenant  Users  User Id  Put",
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "tenants"
+        ],
+        "summary": "Remove User From Tenant",
+        "description": "Remove user from tenant.",
+        "operationId": "remove_user_from_tenant_tenants__tenant__users__user_id__delete",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "User Id",
+              "type": "string"
+            },
+            "name": "user_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "Tenant",
+              "type": "string"
+            },
+            "name": "tenant",
+            "in": "path"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Remove User From Tenant Tenants  Tenant  Users  User Id  Delete",
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/users/search": {
+      "post": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Get Users By Filter",
+        "description": "Getting a list of users from keycloak by substring",
+        "operationId": "get_users_by_filter_users_search_post",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Users"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/identity_providers_data": {
+      "get": {
+        "tags": [
+          "general info"
+        ],
+        "summary": "Get Idp Names And Ssoauth Links",
+        "description": "Provides names and links to authenticate with\nfor all Identity Providers set in Keycloak",
+        "operationId": "get_idp_names_and_SSOauth_links_identity_providers_data_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Body_login_token_post": {
+        "title": "Body_login_token_post",
+        "required": [
+          "username",
+          "password"
+        ],
+        "type": "object",
+        "properties": {
+          "grant_type": {
+            "title": "Grant Type",
+            "pattern": "password",
+            "type": "string"
+          },
+          "username": {
+            "title": "Username",
+            "type": "string"
+          },
+          "password": {
+            "title": "Password",
+            "type": "string"
+          },
+          "scope": {
+            "title": "Scope",
+            "type": "string",
+            "default": ""
+          },
+          "client_id": {
+            "title": "Client Id",
+            "type": "string"
+          },
+          "client_secret": {
+            "title": "Client Secret",
+            "type": "string"
+          }
+        }
+      },
+      "Credential": {
+        "title": "Credential",
+        "type": "object",
+        "properties": {
+          "createdDate": {
+            "title": "Createddate",
+            "type": "integer"
+          },
+          "credentialData": {
+            "title": "Credentialdata",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "priority": {
+            "title": "Priority",
+            "type": "integer"
+          },
+          "secretData": {
+            "title": "Secretdata",
+            "type": "string"
+          },
+          "temporary": {
+            "title": "Temporary",
+            "type": "boolean"
+          },
+          "type": {
+            "title": "Type",
+            "type": "string"
+          },
+          "userLabel": {
+            "title": "Userlabel",
+            "type": "string"
+          },
+          "value": {
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "description": "CredentialRepresentation."
+      },
+      "FederatedIdentity": {
+        "title": "FederatedIdentity",
+        "type": "object",
+        "properties": {
+          "identityProvider": {
+            "title": "Identityprovider",
+            "type": "string"
+          },
+          "userId": {
+            "title": "Userid",
+            "type": "string"
+          },
+          "userName": {
+            "title": "Username",
+            "type": "string"
+          }
+        },
+        "description": "FederatedIdentityRepresentation."
+      },
+      "FieldRole": {
+        "title": "FieldRole",
+        "enum": [
+          "role"
+        ],
+        "type": "string",
+        "description": "An enumeration."
+      },
+      "FieldUserUserID": {
+        "title": "FieldUserUserID",
+        "enum": [
+          "id"
+        ],
+        "type": "string",
+        "description": "An enumeration."
+      },
+      "FieldUserUserName": {
+        "title": "FieldUserUserName",
+        "enum": [
+          "name"
+        ],
+        "type": "string",
+        "description": "An enumeration."
+      },
+      "FilterRole": {
+        "title": "FilterRole",
+        "required": [
+          "field",
+          "operator",
+          "value"
+        ],
+        "type": "object",
+        "properties": {
+          "field": {
+            "$ref": "#/components/schemas/FieldRole"
+          },
+          "operator": {
+            "$ref": "#/components/schemas/OperatorRole"
+          },
+          "value": {
+            "$ref": "#/components/schemas/Roles"
+          }
+        }
+      },
+      "FilterUserUserID": {
+        "title": "FilterUserUserID",
+        "required": [
+          "field",
+          "operator",
+          "value"
+        ],
+        "type": "object",
+        "properties": {
+          "field": {
+            "$ref": "#/components/schemas/FieldUserUserID"
+          },
+          "operator": {
+            "$ref": "#/components/schemas/OperatorUserUserID"
+          },
+          "value": {
+            "title": "Value",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "FilterUserUserName": {
+        "title": "FilterUserUserName",
+        "required": [
+          "field",
+          "operator",
+          "value"
+        ],
+        "type": "object",
+        "properties": {
+          "field": {
+            "$ref": "#/components/schemas/FieldUserUserName"
+          },
+          "operator": {
+            "$ref": "#/components/schemas/OperatorUserUserName"
+          },
+          "value": {
+            "title": "Value",
+            "minLength": 1,
+            "type": "string"
+          }
+        }
+      },
+      "HTTPValidationError": {
+        "title": "HTTPValidationError",
+        "type": "object",
+        "properties": {
+          "detail": {
+            "title": "Detail",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            }
+          }
+        }
+      },
+      "OperatorRole": {
+        "title": "OperatorRole",
+        "enum": [
+          "eq"
+        ],
+        "type": "string",
+        "description": "An enumeration."
+      },
+      "OperatorUserUserID": {
+        "title": "OperatorUserUserID",
+        "enum": [
+          "in"
+        ],
+        "type": "string",
+        "description": "An enumeration."
+      },
+      "OperatorUserUserName": {
+        "title": "OperatorUserUserName",
+        "enum": [
+          "like"
+        ],
+        "type": "string",
+        "description": "An enumeration."
+      },
+      "RefreshTokenRequest": {
+        "title": "RefreshTokenRequest",
+        "required": [
+          "refresh_token"
+        ],
+        "type": "object",
+        "properties": {
+          "client_id": {
+            "title": "Client Id",
+            "type": "string",
+            "default": "admin-cli"
+          },
+          "grant_type": {
+            "title": "Grant Type",
+            "type": "string",
+            "default": "refresh_token"
+          },
+          "client_secret": {
+            "title": "Client Secret",
+            "type": "string"
+          },
+          "refresh_token": {
+            "title": "Refresh Token",
+            "type": "string"
+          }
+        },
+        "description": "Represents Keycloak token refreshment request"
+      },
+      "Roles": {
+        "title": "Roles",
+        "enum": [
+          "role-annotator"
+        ],
+        "type": "string",
+        "description": "An enumeration."
+      },
+      "TokenResponse": {
+        "title": "TokenResponse",
+        "required": [
+          "access_token",
+          "token_type"
+        ],
+        "type": "object",
+        "properties": {
+          "access_token": {
+            "title": "Access Token",
+            "type": "string"
+          },
+          "expires_in": {
+            "title": "Expires In",
+            "type": "integer"
+          },
+          "refresh_expires_in": {
+            "title": "Refresh Expires In",
+            "type": "integer"
+          },
+          "refresh_token": {
+            "title": "Refresh Token",
+            "type": "string"
+          },
+          "token_type": {
+            "title": "Token Type",
+            "type": "string"
+          },
+          "id_token": {
+            "title": "Id Token",
+            "type": "string"
+          },
+          "not-before-policy": {
+            "title": "Not-Before-Policy",
+            "type": "integer"
+          },
+          "session_state": {
+            "title": "Session State",
+            "type": "string"
+          },
+          "scope": {
+            "title": "Scope",
+            "type": "string"
+          }
+        },
+        "description": "Represent Keycloak token response."
+      },
+      "User": {
+        "title": "User",
+        "type": "object",
+        "properties": {
+          "access": {
+            "title": "Access",
+            "type": "object"
+          },
+          "attributes": {
+            "title": "Attributes",
+            "type": "object"
+          },
+          "clientConsents": {
+            "title": "Clientconsents",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserConsent"
+            }
+          },
+          "clientRoles": {
+            "title": "Clientroles",
+            "type": "object"
+          },
+          "createdTimestamp": {
+            "title": "Createdtimestamp",
+            "type": "integer"
+          },
+          "credentials": {
+            "title": "Credentials",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Credential"
+            }
+          },
+          "disableableCredentialTypes": {
+            "title": "Disableablecredentialtypes",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "emailVerified": {
+            "title": "Emailverified",
+            "type": "boolean"
+          },
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "federatedIdentities": {
+            "title": "Federatedidentities",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FederatedIdentity"
+            }
+          },
+          "federationLink": {
+            "title": "Federationlink",
+            "type": "string"
+          },
+          "firstName": {
+            "title": "Firstname",
+            "type": "string"
+          },
+          "groups": {
+            "title": "Groups",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "lastName": {
+            "title": "Lastname",
+            "type": "string"
+          },
+          "notBefore": {
+            "title": "Notbefore",
+            "type": "integer"
+          },
+          "origin": {
+            "title": "Origin",
+            "type": "string"
+          },
+          "realmRoles": {
+            "title": "Realmroles",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "requiredActions": {
+            "title": "Requiredactions",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "self": {
+            "title": "Self",
+            "type": "string"
+          },
+          "serviceAccountClientId": {
+            "title": "Serviceaccountclientid",
+            "type": "string"
+          },
+          "username": {
+            "title": "Username",
+            "type": "string"
+          }
+        },
+        "description": "UserRepresentation."
+      },
+      "UserConsent": {
+        "title": "UserConsent",
+        "type": "object",
+        "properties": {
+          "clientId": {
+            "title": "Clientid",
+            "type": "string"
+          },
+          "createdDate": {
+            "title": "Createddate",
+            "type": "integer"
+          },
+          "grantedClientScopes": {
+            "title": "Grantedclientscopes",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "lastUpdateDate": {
+            "title": "Lastupdatedate",
+            "type": "integer"
+          }
+        },
+        "description": "UserConsentRepresentation."
+      },
+      "Users": {
+        "title": "Users",
+        "type": "object",
+        "properties": {
+          "filters": {
+            "title": "Filters",
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/FilterUserUserName"
+                },
+                {
+                  "$ref": "#/components/schemas/FilterUserUserID"
+                },
+                {
+                  "$ref": "#/components/schemas/FilterRole"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "ValidationError": {
+        "title": "ValidationError",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "loc": {
+            "title": "Location",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "TenantDependencyDocs": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  }
+}

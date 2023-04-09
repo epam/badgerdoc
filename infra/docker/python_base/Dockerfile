@@ -2,11 +2,14 @@ FROM python:3.8.10-slim-buster AS base
 
 COPY lib/filter_lib/ /opt/filter_lib/
 COPY lib/tenants/ /opt/tenants/
+COPY lib/badgerdoc_cli/ /opt/badgerdoc_cli
+
 RUN python3 -m pip install --upgrade pip && \
     pip3 install poetry==1.4.0  && \
     cd /opt/filter_lib && pip3 install . && \
     cd /opt/tenants && pip3 install . && \
-    cd ../ && rm -rf filter_lib && rm -rf tenants
+    cd /opt/badgerdoc_cli && pip3 install . && \
+    cd ../ && rm -rf filter_lib && rm -rf tenants && rm -rf badgerdoc_cli
 
 ENV PYTHONPATH /opt
 
@@ -27,3 +30,10 @@ RUN . env/bin/activate && pip install -r requirements.txt \
     && pip install -r requirements-dev.txt && isort src --check \
     && black src --check && mypy src && pylint src \
     && pytest -vv --cov --cov-report=xml && deactivate \
+
+
+WORKDIR /opt/badgerdoc_cli
+RUN : \
+    && python3 -m venv env \
+    && source env/bin/activate \
+    && pip install .[dev] \

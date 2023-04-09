@@ -64,7 +64,6 @@ router.add_event_handler("startup", add_search_annotation_producer)
         500: {"model": ConnectionErrorSchema},
     },
     summary="Save annotation by user.",
-    tags=[ANNOTATION_TAG],
 )
 def post_annotation_by_user(
     doc: DocForSaveSchema,
@@ -232,7 +231,6 @@ def post_annotation_by_user(
         500: {"model": ConnectionErrorSchema},
     },
     summary="Save annotation by pipeline.",
-    tags=[ANNOTATION_TAG],
 )
 def post_annotation_by_pipeline(
     doc: DocForSaveSchema,
@@ -365,7 +363,7 @@ def get_jobs_by_file_id(
     },
     summary="Get latest revision made by particular "
     "user (or by pipeline) for particular pages.",
-    tags=[REVISION_TAG, ANNOTATION_TAG],
+    tags=[REVISION_TAG],
 )
 def get_latest_revision_by_user(
     job_id: int = Path(..., example=3),
@@ -407,7 +405,7 @@ def get_latest_revision_by_user(
     summary="Get annotation for given revision."
     "Info will be accumulated from first revision up to"
     "given.",
-    tags=[REVISION_TAG, ANNOTATION_TAG],
+    tags=[REVISION_TAG],
 )
 def get_annotations_up_to_given_revision(
     job_id: int = Path(..., example=1),
@@ -500,7 +498,7 @@ def get_annotations_up_to_given_revision(
         500: {"model": ConnectionErrorSchema},
     },
     summary="Get annotation for latest or particular revision.",
-    tags=[REVISION_TAG, ANNOTATION_TAG],
+    tags=[REVISION_TAG],
 )
 def get_annotation_for_given_revision(
     job_id: int = Path(..., example=1),
@@ -544,7 +542,7 @@ def get_annotation_for_given_revision(
     },
     summary="Get all users revisions (or pipeline revision) "
     "for particular pages.",
-    tags=[REVISION_TAG, ANNOTATION_TAG],
+    tags=[REVISION_TAG],
 )
 def get_all_revisions(
     job_id: int,

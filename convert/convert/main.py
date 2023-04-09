@@ -16,3 +16,10 @@ app.include_router(coco.router)
 app.include_router(labelstudio.router)
 app.include_router(text.router)
 app.include_router(pdf.router)
+
+
+def cli_handler() -> None:
+    from badgerdoc_cli import cli_handler, init_cli_app
+
+    init_cli_app(app)
+    cli_handler()

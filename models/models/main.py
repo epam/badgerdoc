@@ -71,3 +71,10 @@ app.add_exception_handler(SSHException, ssh_connection_error_handler)
 app.add_exception_handler(SSHException, ssh_connection_error_handler)
 app.add_exception_handler(SQLAlchemyError, sqlalchemy_db_error_handler)
 app.add_exception_handler(SubprocessError, subprocess_called_error_handler)
+
+
+def cli_handler() -> None:
+    from badgerdoc_cli import cli_handler, init_cli_app
+
+    init_cli_app(app)
+    cli_handler()

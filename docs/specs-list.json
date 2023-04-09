@@ -1,0 +1,46 @@
+[
+  {
+    "url": "openapi/annotation.json",
+    "name": "Annotation Service"
+  },
+  {
+    "url": "openapi/assets.json",
+    "name": "Assets Service"
+  },
+  {
+    "url": "openapi/convert.json",
+    "name": "Convert Service"
+  },
+  {
+    "url": "openapi/jobs.json",
+    "name": "Jobs Service"
+  },
+  {
+    "url": "openapi/models.json",
+    "name": "Models Service"
+  },
+  {
+    "url": "openapi/pipelines.json",
+    "name": "Pipelines Service"
+  },
+  {
+    "url": "openapi/processing.json",
+    "name": "Processing Service"
+  },
+  {
+    "url": "openapi/scheduler.json",
+    "name": "Scheduler Service"
+  },
+  {
+    "url": "openapi/search.json",
+    "name": "Search Service"
+  },
+  {
+    "url": "openapi/taxonomy.json",
+    "name": "Taxonomy Service"
+  },
+  {
+    "url": "openapi/users.json",
+    "name": "Users Service"
+  }
+]

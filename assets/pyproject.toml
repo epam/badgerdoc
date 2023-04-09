@@ -21,7 +21,7 @@ importlib-resources = "*"
 boto3 = "*"
 requests = "*"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 pre-commit = "*"
 pytest = "*"
 pytest-cov = "*"
@@ -31,6 +31,9 @@ mypy = "*"
 pylint = "*"
 types-requests = "*"
 sqlalchemy-utils = "*"
+
+[tool.poetry.scripts]
+badgerdoc = "assets.main:cli_handler"
 
 [build-system]
 requires = ["poetry-core"]

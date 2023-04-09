@@ -61,3 +61,10 @@ app.add_exception_handler(NoTaxonError, no_taxon_error_handler)
 app.add_exception_handler(SelfParentError, taxon_parent_child_error_handler)
 app.add_exception_handler(SQLAlchemyError, db_sa_error_handler)
 app.add_exception_handler(DBAPIError, db_dbapi_error_handler)
+
+
+def cli_handler() -> None:
+    from badgerdoc_cli import cli_handler, init_cli_app
+
+    init_cli_app(app)
+    cli_handler()

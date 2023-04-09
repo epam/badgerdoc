@@ -1,0 +1,1791 @@
+{
+  "openapi": "3.0.2",
+  "info": {
+    "title": "assets",
+    "version": "0.1.7"
+  },
+  "paths": {
+    "/download": {
+      "get": {
+        "tags": [
+          "minio"
+        ],
+        "summary": "Gets File From Minio With Original Content-Type",
+        "description": "Takes an id file and a bucket name and returns streaming file with\ncorresponding content-type.\n\n    Args:\n\n        id: int id of a file in minio\n        bucket: a bucket name in minio\n        original: determines file format. \"false\" for converted,\n        and \"true\" for original\n\n    Returns:\n\n         Streaming file",
+        "operationId": "gets_file_from_minio_with_original_content_type_download_get",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "File Id",
+              "type": "integer"
+            },
+            "name": "file_id",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Original",
+              "type": "boolean",
+              "default": false
+            },
+            "name": "original",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/download/thumbnail": {
+      "get": {
+        "tags": [
+          "minio"
+        ],
+        "summary": "Get Thumbnail Of Original File In Jpg Format",
+        "operationId": "get_thumbnail_of_original_file_in_jpg_format_download_thumbnail_get",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "File Id",
+              "type": "integer"
+            },
+            "name": "file_id",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/download/piece": {
+      "get": {
+        "tags": [
+          "minio"
+        ],
+        "summary": "Get Image Content With Provided Bbox",
+        "operationId": "get_image_content_with_provided_bbox_download_piece_get",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "File Id",
+              "minimum": 1.0,
+              "type": "integer"
+            },
+            "example": 42,
+            "name": "file_id",
+            "in": "query"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "Bbox",
+              "type": "array",
+              "items": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            },
+            "example": [
+              100,
+              100,
+              200,
+              200
+            ],
+            "name": "bbox",
+            "in": "query"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "Page Number",
+              "minimum": 1.0,
+              "type": "integer"
+            },
+            "example": 1,
+            "name": "page_number",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/bucket": {
+      "post": {
+        "tags": [
+          "minio"
+        ],
+        "summary": "Creates New Bucket In Minio",
+        "description": "Creates bucket into Minio. If bucket exists HTTPException will be\nraised with status code 400. Status code 400 will be raised as well\nif bucket name is less than 3 characters or name is invalid.\n\n    Args:\n\n        name: name for a new bucket\n\n    Returns:\n\n        result for creating bucket\n\n    Raises:\n\n        HTTPException status 400",
+        "operationId": "creates_new_bucket_in_minio_bucket_post",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Bucket"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/files/search": {
+      "post": {
+        "tags": [
+          "files"
+        ],
+        "summary": "Searches For Files",
+        "description": "Allows getting files metadata with filters, sorts and pagination.\n\n    Args:\n\n        request: a request to get files data, schema for this request\n        generated automatically.\n\n    Returns:\n\n        an array of files metadata",
+        "operationId": "searches_for_files_files_search_post",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/_BadgerdocSearch_files_FileObject_"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Searches For Files Files Search Post",
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Page_FileResponse_"
+                    },
+                    {
+                      "$ref": "#/components/schemas/Page_Any_"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/files": {
+      "put": {
+        "tags": [
+          "files"
+        ],
+        "summary": "Updates File'S Data After Preprocessing",
+        "operationId": "updates_file_s_data_after_preprocessing_files_put",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreprocessResponse"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "files"
+        ],
+        "summary": "Uploads Files Into Minio Bucket",
+        "description": "Provides uploading many files. Files are form-data.\nUploaded file goes to Minio storage with changed name and then\nfrom the storage metadata about these files goes to a database.\n\n    Args:\n\n        x_current_tenant: current bucket in minio\n        files: list of files to be uploaded\n\n    Returns:\n\n        Array of objects, each object contains fields: file_name,\n        id, action, status and message. For example:\n\n        [\n            {\n                \"file_name\": \"A17_FlightPlan.pdf\",\n                \"id\": 1,\n                \"action\": \"upload\",\n                \"status\": true,\n                \"message\": \"Successfully uploaded\"\n          }\n        ]\n\n    Raises:\n\n        HTTPException 404 code if bucket does not exist or 400 if bucket name\n        less than 3 characters",
+        "operationId": "uploads_files_into_minio_bucket_files_post",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_uploads_files_into_minio_bucket_files_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Uploads Files Into Minio Bucket Files Post",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ActionResponse"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "files"
+        ],
+        "summary": "Removes Files From Minio Bucket",
+        "description": "Deletes objects from minio storage and then their metadata from database.\nIf file does not exist in the bucket, then it will be skipped. The result for\neach file will be written into resulting dict.\n\n    Args:\n\n        objects: list of object ids to be deleted\n\n    Returns:\n\n        Array of objects that contain a result for each element in objects arg\n\n    Raises:\n\n        HTTPException 404 code if bucket does not exist or 400 if bucket name\n    less than 3 characters",
+        "operationId": "removes_files_from_minio_bucket_files_delete",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MinioObjects"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Removes Files From Minio Bucket Files Delete",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ActionResponse"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/datasets/search": {
+      "post": {
+        "tags": [
+          "datasets"
+        ],
+        "summary": "Searches For Datasets",
+        "description": "Allows getting datasets data with filters, sorts and pagination.\n\n    Args:\n\n        request: a request to get datasets data, schema for this request\n        generated automatically.\n\n    Returns:\n\n        an array of datasets data",
+        "operationId": "searches_for_datasets_datasets_search_post",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/_BadgerdocSearch_datasets_Datasets_"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Searches For Datasets Datasets Search Post",
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Page_DatasetResponse_"
+                    },
+                    {
+                      "$ref": "#/components/schemas/Page_Any_"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/datasets": {
+      "post": {
+        "tags": [
+          "datasets"
+        ],
+        "summary": "Creates New Dataset",
+        "description": "Creates a new dataset object in database. If dataset with given name is already exists\nthen HTTPException 400 will be raised.\n\n    Args:\n\n        item: dataset model, has only \"name\" field which is str\n\n    Returns:\n\n        a message with a result of creating a dataset\n\n    Raises:\n\n        HTTPException 400 if dataset already exists",
+        "operationId": "creates_new_dataset_datasets_post",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Dataset"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "datasets"
+        ],
+        "summary": "Removes Dataset By Its Name",
+        "description": "Deletes a dataset with a given name from a database. If that dataset does not exist\nin a database, then  HTTPException 404 will be raised.\n\n    Args:\n\n        item: dataset model, has only \"name\" field which is str\n\n    Returns:\n\n        a message with a result of removing a dataset\n\n    Raises:\n\n        HTTPException 404 if dataset does not exist",
+        "operationId": "removes_dataset_by_its_name_datasets_delete",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Dataset"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/datasets/{dataset}/files/search": {
+      "post": {
+        "tags": [
+          "datasets"
+        ],
+        "summary": "Searches For Files Inside Selected Dataset",
+        "description": "Takes a dataset name and returns all files metadata with this dataset.\nEvery object will be represented as dict.\nIf dataset with that doesn't exist HTTPException 404 will be raised.\n\n    Args:\n\n        dataset: str name of a Dataset's object\n\n    Returns:\n\n        List of metadata for all files that have relation\n        with provided dataset.\n\n    Raises:\n\n        HTTPException 404 if dataset doesn't exist",
+        "operationId": "searches_for_files_inside_selected_dataset_datasets__dataset__files_search_post",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Dataset",
+              "type": "string"
+            },
+            "name": "dataset",
+            "in": "path"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/_BadgerdocSearch_files_FileObject_"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Searches For Files Inside Selected Dataset Datasets  Dataset  Files Search Post",
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/Page_FileResponse_"
+                    },
+                    {
+                      "$ref": "#/components/schemas/Page_Any_"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/datasets/{dataset_id}/files": {
+      "get": {
+        "tags": [
+          "datasets"
+        ],
+        "summary": "Get All Files By Dataset Id",
+        "operationId": "get_all_files_by_dataset_id_datasets__dataset_id__files_get",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Dataset Id",
+              "type": "integer"
+            },
+            "name": "dataset_id",
+            "in": "path"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Get All Files By Dataset Id Datasets  Dataset Id  Files Get",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FileResponse"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/datasets/bonds/search": {
+      "post": {
+        "tags": [
+          "bonds"
+        ],
+        "summary": "Gets Pairs Dataset Name - File Id",
+        "description": "Takes every bounded pair dataset-file and returns them.\n\n    Args:\n\n        request: a request to get bonds with a pagination.\n\n    Returns:\n\n        an array of bonds dataset-file",
+        "operationId": "gets_pairs_Dataset_Name___File_Id_datasets_bonds_search_post",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BaseSearch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_AssociationResponse_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/datasets/bonds": {
+      "post": {
+        "tags": [
+          "bonds"
+        ],
+        "summary": "Bounds Array Of Files To A Dataset",
+        "description": "Bounds file objects to a given dataset. If dataset does not exist HTTPException\n404 will be raised. For each file result will be written into resulting dict.\nIf file doesn't exist or already bounded to that dataset it will be skipped.\n\n    Args:\n\n        name: str name of a dataset\n        objects: list of file ids\n\n\n    Returns:\n\n        Array that contains result of bounding for each element\n\n    Raises:\n\n        HTTPException 404 if dataset does not exist",
+        "operationId": "bounds_array_of_files_to_a_dataset_datasets_bonds_post",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FilesToDataset"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Bounds Array Of Files To A Dataset Datasets Bonds Post",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ActionResponse"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "bonds"
+        ],
+        "summary": "Removes Array Of Files From Dataset",
+        "description": "Unbound file objects with a given dataset. If dataset does not exist HTTPException\n404 will be raised. For each file result will be written into resulting dict.\nIf file doesn't exist or not bounded to that dataset it will be skipped.\n\n    Args:\n\n        item: FilesToDataset model that contains:\n            objects: list of file ids\n            name: str name of a dataset\n\n    Returns:\n\n        Array that contains result of un-bounding for each element\n\n    Raises:\n\n        HTTPException 404 if dataset does not exist",
+        "operationId": "removes_array_of_files_from_dataset_datasets_bonds_delete",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FilesToDataset"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Removes Array Of Files From Dataset Datasets Bonds Delete",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ActionResponse"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    },
+    "/s3_upload": {
+      "post": {
+        "tags": [
+          "s_3"
+        ],
+        "summary": "Downloads Files From S3",
+        "description": "Provides uploading many files from one s3 bucket to MinIO\n\nArgs:\n\n        access_key_id: storage access key\n        secret_access_key: storage secret access key\n        storage_url: storage endpoint. Example: \"http://localhost:9000\"\n        bucket_s3: s3 storage bucket name from where files to be downloaded\n        files_keys: list of files keys, paths to the file in s3 storage.\n        bucket_storage: bucket in MinIO storage where files should be\n        uploaded",
+        "operationId": "downloads_files_from_s3_s3_upload_post",
+        "parameters": [
+          {
+            "required": false,
+            "schema": {
+              "title": "Storage Url",
+              "type": "string"
+            },
+            "name": "storage_url",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "X-Current-Tenant",
+              "type": "string"
+            },
+            "name": "X-Current-Tenant",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/S3Data"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Downloads Files From S3 S3 Upload Post",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ActionResponse"
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "TenantDependencyDocs": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ActionResponse": {
+        "title": "ActionResponse",
+        "required": [
+          "action",
+          "status",
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "file_name": {
+            "title": "File Name",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "action": {
+            "title": "Action",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "boolean"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          }
+        }
+      },
+      "AssociationResponse": {
+        "title": "AssociationResponse",
+        "required": [
+          "dataset_name",
+          "file_id"
+        ],
+        "type": "object",
+        "properties": {
+          "dataset_name": {
+            "title": "Dataset Name",
+            "type": "string"
+          },
+          "file_id": {
+            "title": "File Id",
+            "type": "integer"
+          }
+        }
+      },
+      "BaseSearch": {
+        "title": "BaseSearch",
+        "type": "object",
+        "properties": {
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          }
+        }
+      },
+      "Body_uploads_files_into_minio_bucket_files_post": {
+        "title": "Body_uploads_files_into_minio_bucket_files_post",
+        "required": [
+          "files"
+        ],
+        "type": "object",
+        "properties": {
+          "files": {
+            "title": "Files",
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "binary"
+            }
+          }
+        }
+      },
+      "Bucket": {
+        "title": "Bucket",
+        "required": [
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        }
+      },
+      "Dataset": {
+        "title": "Dataset",
+        "required": [
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        }
+      },
+      "DatasetResponse": {
+        "title": "DatasetResponse",
+        "required": [
+          "id",
+          "name",
+          "created"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "created": {
+            "title": "Created",
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "FileProcessingStatus": {
+        "title": "FileProcessingStatus",
+        "enum": [
+          "uploading",
+          "uploaded",
+          "preprocessing in progress",
+          "preprocessed",
+          "failed"
+        ],
+        "type": "string",
+        "description": "An enumeration."
+      },
+      "FileProcessingStatusForUpdate": {
+        "title": "FileProcessingStatusForUpdate",
+        "enum": [
+          "preprocessing in progress",
+          "preprocessed",
+          "failed"
+        ],
+        "type": "string",
+        "description": "An enumeration."
+      },
+      "FileResponse": {
+        "title": "FileResponse",
+        "required": [
+          "id",
+          "original_name",
+          "bucket",
+          "size_in_bytes",
+          "content_type",
+          "last_modified",
+          "status",
+          "path",
+          "datasets"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "original_name": {
+            "title": "Original Name",
+            "type": "string"
+          },
+          "bucket": {
+            "title": "Bucket",
+            "type": "string"
+          },
+          "size_in_bytes": {
+            "title": "Size In Bytes",
+            "type": "integer"
+          },
+          "extension": {
+            "title": "Extension",
+            "type": "string"
+          },
+          "original_ext": {
+            "title": "Original Ext",
+            "type": "string"
+          },
+          "content_type": {
+            "title": "Content Type",
+            "type": "string"
+          },
+          "pages": {
+            "title": "Pages",
+            "type": "integer"
+          },
+          "last_modified": {
+            "title": "Last Modified",
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "$ref": "#/components/schemas/FileProcessingStatus"
+          },
+          "path": {
+            "title": "Path",
+            "type": "string"
+          },
+          "datasets": {
+            "title": "Datasets",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "FilesToDataset": {
+        "title": "FilesToDataset",
+        "required": [
+          "name",
+          "objects"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "objects": {
+            "title": "Objects",
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          }
+        }
+      },
+      "HTTPValidationError": {
+        "title": "HTTPValidationError",
+        "type": "object",
+        "properties": {
+          "detail": {
+            "title": "Detail",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            }
+          }
+        }
+      },
+      "MinioObjects": {
+        "title": "MinioObjects",
+        "required": [
+          "objects"
+        ],
+        "type": "object",
+        "properties": {
+          "objects": {
+            "title": "Objects",
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          }
+        }
+      },
+      "Page_Any_": {
+        "title": "Page[Any]",
+        "required": [
+          "pagination",
+          "data"
+        ],
+        "type": "object",
+        "properties": {
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationOut"
+          },
+          "data": {
+            "title": "Data",
+            "type": "array",
+            "items": {}
+          }
+        },
+        "description": "Abstract base class for generic types.\n\nA generic type is typically declared by inheriting from\nthis class parameterized with one or more type variables.\nFor example, a generic mapping type might be defined as::\n\n  class Mapping(Generic[KT, VT]):\n      def __getitem__(self, key: KT) -> VT:\n          ...\n      # Etc.\n\nThis class can then be used as follows::\n\n  def lookup_name(mapping: Mapping[KT, VT], key: KT, default: VT) -> VT:\n      try:\n          return mapping[key]\n      except KeyError:\n          return default"
+      },
+      "Page_AssociationResponse_": {
+        "title": "Page[AssociationResponse]",
+        "required": [
+          "pagination",
+          "data"
+        ],
+        "type": "object",
+        "properties": {
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationOut"
+          },
+          "data": {
+            "title": "Data",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AssociationResponse"
+            }
+          }
+        },
+        "description": "Abstract base class for generic types.\n\nA generic type is typically declared by inheriting from\nthis class parameterized with one or more type variables.\nFor example, a generic mapping type might be defined as::\n\n  class Mapping(Generic[KT, VT]):\n      def __getitem__(self, key: KT) -> VT:\n          ...\n      # Etc.\n\nThis class can then be used as follows::\n\n  def lookup_name(mapping: Mapping[KT, VT], key: KT, default: VT) -> VT:\n      try:\n          return mapping[key]\n      except KeyError:\n          return default"
+      },
+      "Page_DatasetResponse_": {
+        "title": "Page[DatasetResponse]",
+        "required": [
+          "pagination",
+          "data"
+        ],
+        "type": "object",
+        "properties": {
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationOut"
+          },
+          "data": {
+            "title": "Data",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DatasetResponse"
+            }
+          }
+        },
+        "description": "Abstract base class for generic types.\n\nA generic type is typically declared by inheriting from\nthis class parameterized with one or more type variables.\nFor example, a generic mapping type might be defined as::\n\n  class Mapping(Generic[KT, VT]):\n      def __getitem__(self, key: KT) -> VT:\n          ...\n      # Etc.\n\nThis class can then be used as follows::\n\n  def lookup_name(mapping: Mapping[KT, VT], key: KT, default: VT) -> VT:\n      try:\n          return mapping[key]\n      except KeyError:\n          return default"
+      },
+      "Page_FileResponse_": {
+        "title": "Page[FileResponse]",
+        "required": [
+          "pagination",
+          "data"
+        ],
+        "type": "object",
+        "properties": {
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationOut"
+          },
+          "data": {
+            "title": "Data",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FileResponse"
+            }
+          }
+        },
+        "description": "Abstract base class for generic types.\n\nA generic type is typically declared by inheriting from\nthis class parameterized with one or more type variables.\nFor example, a generic mapping type might be defined as::\n\n  class Mapping(Generic[KT, VT]):\n      def __getitem__(self, key: KT) -> VT:\n          ...\n      # Etc.\n\nThis class can then be used as follows::\n\n  def lookup_name(mapping: Mapping[KT, VT], key: KT, default: VT) -> VT:\n      try:\n          return mapping[key]\n      except KeyError:\n          return default"
+      },
+      "Pagination": {
+        "title": "Pagination",
+        "required": [
+          "page_size"
+        ],
+        "type": "object",
+        "properties": {
+          "page_num": {
+            "title": "Page Num",
+            "exclusiveMinimum": 0.0,
+            "type": "integer",
+            "default": 1
+          },
+          "page_size": {
+            "$ref": "#/components/schemas/_FilterPagesize"
+          }
+        }
+      },
+      "PaginationOut": {
+        "title": "PaginationOut",
+        "required": [
+          "page_size",
+          "min_pages_left",
+          "total",
+          "has_more"
+        ],
+        "type": "object",
+        "properties": {
+          "page_num": {
+            "title": "Page Num",
+            "exclusiveMinimum": 0.0,
+            "type": "integer",
+            "default": 1
+          },
+          "page_size": {
+            "$ref": "#/components/schemas/_FilterPagesize"
+          },
+          "min_pages_left": {
+            "title": "Min Pages Left",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          },
+          "has_more": {
+            "title": "Has More",
+            "type": "boolean"
+          }
+        }
+      },
+      "PreprocessResponse": {
+        "title": "PreprocessResponse",
+        "required": [
+          "file",
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "file": {
+            "title": "File",
+            "type": "integer"
+          },
+          "status": {
+            "$ref": "#/components/schemas/FileProcessingStatusForUpdate"
+          }
+        }
+      },
+      "S3Data": {
+        "title": "S3Data",
+        "required": [
+          "access_key_id",
+          "secret_access_key",
+          "bucket_s3",
+          "files_keys"
+        ],
+        "type": "object",
+        "properties": {
+          "access_key_id": {
+            "title": "Access Key Id",
+            "type": "string"
+          },
+          "secret_access_key": {
+            "title": "Secret Access Key",
+            "type": "string"
+          },
+          "bucket_s3": {
+            "title": "Bucket S3",
+            "type": "string"
+          },
+          "files_keys": {
+            "title": "Files Keys",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "ValidationError": {
+        "title": "ValidationError",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "loc": {
+            "title": "Location",
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            }
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        }
+      },
+      "_BadgerdocSearch_datasets_Datasets_": {
+        "title": "_BadgerdocSearch[datasets_Datasets]",
+        "type": "object",
+        "properties": {
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          },
+          "filters": {
+            "title": "Filters",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/_Filters_datasets_Datasets_"
+            }
+          },
+          "sorting": {
+            "title": "Sorting",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/_Sorts_datasets_Datasets_"
+            }
+          }
+        },
+        "description": "Abstract base class for generic types.\n\nA generic type is typically declared by inheriting from\nthis class parameterized with one or more type variables.\nFor example, a generic mapping type might be defined as::\n\n  class Mapping(Generic[KT, VT]):\n      def __getitem__(self, key: KT) -> VT:\n          ...\n      # Etc.\n\nThis class can then be used as follows::\n\n  def lookup_name(mapping: Mapping[KT, VT], key: KT, default: VT) -> VT:\n      try:\n          return mapping[key]\n      except KeyError:\n          return default"
+      },
+      "_BadgerdocSearch_files_FileObject_": {
+        "title": "_BadgerdocSearch[files_FileObject]",
+        "type": "object",
+        "properties": {
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          },
+          "filters": {
+            "title": "Filters",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/_Filters_files_FileObject_"
+            }
+          },
+          "sorting": {
+            "title": "Sorting",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/_Sorts_files_FileObject_"
+            }
+          }
+        },
+        "description": "Abstract base class for generic types.\n\nA generic type is typically declared by inheriting from\nthis class parameterized with one or more type variables.\nFor example, a generic mapping type might be defined as::\n\n  class Mapping(Generic[KT, VT]):\n      def __getitem__(self, key: KT) -> VT:\n          ...\n      # Etc.\n\nThis class can then be used as follows::\n\n  def lookup_name(mapping: Mapping[KT, VT], key: KT, default: VT) -> VT:\n      try:\n          return mapping[key]\n      except KeyError:\n          return default"
+      },
+      "_FilterOperations": {
+        "title": "_FilterOperations",
+        "enum": [
+          "is_null",
+          "is_not_null",
+          "eq",
+          "ne",
+          "gt",
+          "lt",
+          "ge",
+          "le",
+          "like",
+          "ilike",
+          "not_ilike",
+          "in",
+          "not_in",
+          "any",
+          "not_any",
+          "match",
+          "distinct",
+          "parent",
+          "parents_recursive",
+          "children",
+          "children_recursive"
+        ],
+        "type": "string",
+        "description": "An enumeration."
+      },
+      "_FilterPagesize": {
+        "title": "_FilterPagesize",
+        "enum": [
+          15,
+          30,
+          50,
+          80,
+          100
+        ],
+        "type": "integer",
+        "description": "An enumeration."
+      },
+      "_Filters_datasets_Datasets_": {
+        "title": "_Filters[datasets_Datasets]",
+        "required": [
+          "field",
+          "operator"
+        ],
+        "type": "object",
+        "properties": {
+          "field": {
+            "$ref": "#/components/schemas/datasets_Datasets"
+          },
+          "operator": {
+            "$ref": "#/components/schemas/_FilterOperations"
+          },
+          "value": {
+            "title": "Value"
+          }
+        }
+      },
+      "_Filters_files_FileObject_": {
+        "title": "_Filters[files_FileObject]",
+        "required": [
+          "field",
+          "operator"
+        ],
+        "type": "object",
+        "properties": {
+          "field": {
+            "$ref": "#/components/schemas/files_FileObject"
+          },
+          "operator": {
+            "$ref": "#/components/schemas/_FilterOperations"
+          },
+          "value": {
+            "title": "Value"
+          }
+        }
+      },
+      "_SortDirection": {
+        "title": "_SortDirection",
+        "enum": [
+          "asc",
+          "desc"
+        ],
+        "type": "string",
+        "description": "An enumeration."
+      },
+      "_Sorts_datasets_Datasets_": {
+        "title": "_Sorts[datasets_Datasets]",
+        "required": [
+          "field",
+          "direction"
+        ],
+        "type": "object",
+        "properties": {
+          "field": {
+            "$ref": "#/components/schemas/datasets_Datasets"
+          },
+          "direction": {
+            "$ref": "#/components/schemas/_SortDirection"
+          }
+        }
+      },
+      "_Sorts_files_FileObject_": {
+        "title": "_Sorts[files_FileObject]",
+        "required": [
+          "field",
+          "direction"
+        ],
+        "type": "object",
+        "properties": {
+          "field": {
+            "$ref": "#/components/schemas/files_FileObject"
+          },
+          "direction": {
+            "$ref": "#/components/schemas/_SortDirection"
+          }
+        }
+      },
+      "datasets_Datasets": {
+        "title": "datasets_Datasets",
+        "enum": [
+          "id",
+          "name",
+          "count",
+          "created",
+          "ts_vector",
+          "files.id",
+          "files.original_name",
+          "files.bucket",
+          "files.size_in_bytes",
+          "files.extension",
+          "files.original_ext",
+          "files.content_type",
+          "files.pages",
+          "files.last_modified",
+          "files.status",
+          "files.ts_vector"
+        ],
+        "type": "string",
+        "description": "An enumeration."
+      },
+      "files_FileObject": {
+        "title": "files_FileObject",
+        "enum": [
+          "id",
+          "original_name",
+          "bucket",
+          "size_in_bytes",
+          "extension",
+          "original_ext",
+          "content_type",
+          "pages",
+          "last_modified",
+          "status",
+          "ts_vector",
+          "datasets.id",
+          "datasets.name",
+          "datasets.count",
+          "datasets.created",
+          "datasets.ts_vector"
+        ],
+        "type": "string",
+        "description": "An enumeration."
+      }
+    },
+    "securitySchemes": {
+      "TenantDependencyDocs": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  }
+}
