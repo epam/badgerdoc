@@ -1,0 +1,57 @@
+[
+  {
+    "id": 74,
+    "annotations": [
+      {
+        "id": 34,
+        "completed_by": 1,
+        "result": [
+          {
+            "value": {
+              "start": 0,
+              "end": 4,
+              "text": "12 4",
+              "labels": [
+                "Jurisdiction_v23"
+              ]
+            },
+            "id": "2BTg_zS4Wd",
+            "from_name": "label",
+            "to_name": "text",
+            "type": "labels",
+            "origin": "manual"
+          }
+        ],
+        "was_cancelled": false,
+        "ground_truth": false,
+        "created_at": "2023-04-05T17:02:11.169963Z",
+        "updated_at": "2023-04-05T17:02:11.169987Z",
+        "lead_time": 78.433,
+        "prediction": {},
+        "result_count": 0,
+        "task": 74,
+        "parent_prediction": null,
+        "parent_annotation": null
+      }
+    ],
+    "file_upload": "87dd8ee1-example.json",
+    "drafts": [],
+    "predictions": [],
+    "data": {
+      "text": "12 4  7"
+    },
+    "meta": {},
+    "created_at": "2023-04-05T17:00:48.589873Z",
+    "updated_at": "2023-04-05T17:02:11.194910Z",
+    "inner_id": 1,
+    "total_annotations": 1,
+    "cancelled_annotations": 0,
+    "total_predictions": 0,
+    "comment_count": 0,
+    "unresolved_comment_count": 0,
+    "last_comment_updated_at": null,
+    "project": 19,
+    "updated_by": 1,
+    "comment_authors": []
+  }
+]

@@ -57,12 +57,6 @@ class LabelstudioToBadgerdocConverter:
         annotators: List[str],
         validators: List[str],
     ) -> None:
-        # page_border_offset = DEFAULT_PAGE_BORDER_OFFSET
-        # self.plain_text_converter = TextToBadgerdocTokensConverter(
-        #     page_border_offset=page_border_offset
-        # )
-        # self.pdf_renderer = PDFRenderer(page_border_offset=page_border_offset)
-        # self.annotation_converter = AnnotationConverter()
         self.badgerdoc_format = Badgerdoc()
         self.s3_client = s3_client
 
@@ -117,15 +111,17 @@ class LabelstudioToBadgerdocConverter:
 
         LOGGER.debug("document_labels parsed: %s", document_labels)
 
-        ls_converter = ConverterToBadgerdoc()
-        ls_converter.to_badgerdoc(ls_format)
-        self.badgerdoc_format.tokens_page = ls_converter.tokens_page
-        self.badgerdoc_format.badgerdoc_annotation = (
-            ls_converter.badgerdoc_annotation
-        )
+        converter = ConverterToBadgerdoc()
+        converter.to_badgerdoc(ls_format)
+        self.badgerdoc_format.tokens_page = converter.tokens_page
+        file_id_in_assets = self.export_and_upload_pdf_to_s3()
 
+        self.badgerdoc_format.remove_non_printing_tokens()
+        converter.to_badgerdoc_annotations(ls_format)
+        self.badgerdoc_format.badgerdoc_annotation = (
+            converter.badgerdoc_annotation
+        )
         LOGGER.debug("Tokens and annotations are converted")
-        file_id_in_assets = self.change_tokens_and_upload_output_pdf_to_s3()
 
         annotation_job_id_created = (
             self.import_annotations_to_annotation_microservice(
@@ -213,12 +209,10 @@ class LabelstudioToBadgerdocConverter:
             ) from e
         return request_to_post_assets.json()[0]["id"]
 
-    def change_tokens_and_upload_output_pdf_to_s3(self) -> int:
+    def export_and_upload_pdf_to_s3(self) -> int:
         with tempfile.TemporaryDirectory() as tmp_dirname:
             pdf_path = tmp_dirname / Path(self.OUTPUT_PDF_FILENAME)
             self.badgerdoc_format.export_pdf(pdf_path)
-
-            self.badgerdoc_format.remove_non_printing_tokens()
 
             file_id_in_assets = self.make_upload_file_request_to_assets(
                 pdf_path
@@ -478,3 +472,15 @@ class ConverterToBadgerdoc:
         self.badgerdoc_annotation = annotation_converter.convert(
             labelstudio_data, self.tokens_page
         )
+
+    def to_badgerdoc_annotations(self, labelstudio_data: LabelStudioModel):
+        if not self.tokens_page:
+            raise AnnotationError()
+        annotation_converter = AnnotationConverter()
+        self.badgerdoc_annotation = annotation_converter.convert(
+            labelstudio_data, self.tokens_page
+        )
+
+
+class AnnotationError(Exception):
+    pass

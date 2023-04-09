@@ -66,7 +66,7 @@ class AnnotationConverterPractic:
             token_theoretic = self.theoretic_tokens.objs[token_id_theoretic]
             token = annotation_practic.AnnotationToken(
                 id=token_id_theoretic,
-                text=token_theoretic.text,
+                text=f"{token_theoretic.previous or ''}{token_theoretic.text}{token_theoretic.after or ''}",
                 x=token_theoretic.bbox[0],
                 y=token_theoretic.bbox[1],
                 width=(token_theoretic.bbox[2] - token_theoretic.bbox[0]),
@@ -85,11 +85,13 @@ class AnnotationConverterPractic:
             links.append(link)
         return links
 
-    def convert_text(self, theoretic_tokens: List[int]) -> str:
-        return "".join(
-            self.theoretic_tokens.objs[token_id_theoretic].text
-            for token_id_theoretic in theoretic_tokens
-        )
+    def convert_text(self, token_ids: List[int]) -> str:
+        text = ""
+        for token_id in token_ids:
+            token = self.theoretic_tokens.objs[token_id]
+            full_token_text = f"{token.previous or ''}{token.text}{token.after or ''}"
+            text = text + full_token_text
+        return text.strip()
 
 
 class AnnotationConverterToTheory:
