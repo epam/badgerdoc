@@ -8,7 +8,6 @@ import React, {
     useState
 } from 'react';
 import { cloneDeep } from 'lodash';
-import { Task } from 'api/typings/tasks';
 import { ApiError } from 'api/api-error';
 import { useAddAnnotationsMutation, useLatestAnnotations } from 'api/hooks/annotations';
 import { useSetTaskFinishedMutation, useSetTaskState, useTaskById } from 'api/hooks/tasks';
@@ -27,7 +26,6 @@ import {
     SortingDirection,
     Taxon
 } from 'api/typings';
-import { Job } from 'api/typings/jobs';
 import { FileMetaInfo } from 'pages/document/document-page-sidebar-content/document-page-sidebar-content';
 
 import {
@@ -45,7 +43,7 @@ import { useAnnotationsLinks } from 'shared/components/annotator/utils/use-annot
 import { documentSearchResultMapper } from 'shared/helpers/document-search-result-mapper';
 import useAnnotationsTaxons from 'shared/hooks/use-annotations-taxons';
 import useAnnotationsMapper from 'shared/hooks/use-annotations-mapper';
-import useSyncScroll, { SyncScrollValue } from 'shared/hooks/use-sync-scroll';
+import useSyncScroll from 'shared/hooks/use-sync-scroll';
 import { PageSize } from '../../shared/components/document-pages/document-pages';
 import {
     defaultExternalViewer,
@@ -56,105 +54,18 @@ import {
     mapModifiedAnnotationPagesToApi,
     mapTokenPagesFromApi
 } from './task-annotator-utils';
-import useSplitValidation, { SplitValidationValue } from './use-split-validation';
-import { DocumentLinksValue, useDocumentLinks } from './use-document-links';
-import { useValidation, ValidationValues } from './use-validation';
+import useSplitValidation from './use-split-validation';
+import { useDocumentLinks } from './use-document-links';
+import { useValidation } from './use-validation';
 import { useNotifications } from 'shared/components/notifications';
 
 import { Text, Panel } from '@epam/loveship';
 import { getError } from 'shared/helpers/get-error';
 import { getToolsParams } from './utils';
-
-type ContextValue = SplitValidationValue &
-    SyncScrollValue &
-    DocumentLinksValue &
-    Omit<ValidationValues, 'allValid' | 'setValidPages' | 'setAnnotationSaved'> & {
-        task?: Task;
-        job?: Job;
-        categories?: Category[];
-        selectedCategory?: Category;
-        selectedAnnotation?: Annotation;
-        fileMetaInfo: FileMetaInfo;
-        tokensByPages: Record<string, PageToken[]>;
-        allAnnotations?: Record<string, Annotation[]>;
-        pageNumbers: number[];
-        currentPage: number;
-        modifiedPages: number[];
-        pageSize?: { width: number; height: number };
-        setPageSize: (pS: any) => void;
-        tabValue: string;
-        selectionType: AnnotationBoundType | AnnotationLinksBoundType | AnnotationImageToolType;
-        selectedTool: AnnotationImageToolType;
-        onChangeSelectedTool: (t: AnnotationImageToolType) => void;
-        tableMode: boolean;
-        isNeedToSaveTable: {
-            gutters: Maybe<TableGutterMap>;
-            cells: Maybe<Annotation[]>;
-        };
-        setIsNeedToSaveTable: (b: {
-            gutters: Maybe<TableGutterMap>;
-            cells: Maybe<Annotation[]>;
-        }) => void;
-        isCategoryDataEmpty: boolean;
-        annDataAttrs: Record<string, Array<CategoryDataAttributeWithValue>>;
-        externalViewer: ExternalViewerState;
-        onChangeSelectionType: (
-            newType: AnnotationBoundType | AnnotationLinksBoundType | AnnotationImageToolType
-        ) => void;
-        onCategorySelected: (category: Category) => void;
-        onSaveTask: () => void;
-        onExternalViewerClose: () => void;
-        onAnnotationTaskFinish: () => void;
-        onAnnotationCreated: (pageNum: number, annotation: Annotation) => void;
-        onAnnotationDeleted: (pageNum: number, annotationId: string | number) => void;
-        onAnnotationEdited: (
-            pageNum: number,
-            annotationId: string | number,
-            changes: Partial<Annotation>
-        ) => void;
-        onLinkDeleted: (pageNum: number, annotationId: string | number, link: Link) => void;
-        onCurrentPageChange: (page: number) => void;
-        onClearModifiedPages: () => void;
-        onEmptyAreaClick: () => void;
-        onAnnotationDoubleClick: (annotation: Annotation) => void;
-        onAnnotationCopyPress: (pageNum: number, annotationId: string | number) => void;
-        onAnnotationCutPress: (pageNum: number, annotationId: string | number) => void;
-        onAnnotationPastePress: (pageSize: PageSize, pageNum: number) => void;
-        onAnnotationUndoPress: () => void;
-        onAnnotationRedoPress: () => void;
-        setTabValue: (value: string) => void;
-        onDataAttributesChange: (elIndex: number, value: string) => void;
-        tableCellCategory: string | number | undefined;
-        setTableCellCategory: (s: string | number | undefined) => void;
-        selectedToolParams: PaperToolParams;
-        setSelectedToolParams: (nt: PaperToolParams) => void;
-        setSelectedAnnotation: (annotation: Annotation | undefined) => void;
-        selectedLabels?: Label[];
-        onLabelsSelected: (labels: Label[]) => void;
-        setSelectedLabels: (labels: Label[]) => void;
-        latestLabelsId: string[];
-        isDocLabelsModified: boolean;
-        getJobId: () => number | undefined;
-        // linksFromApi?: DocumentLink[];
-        setCurrentDocumentUserId: (userId?: string) => void;
-        currentDocumentUserId?: string;
-    };
-
-type ProviderProps = {
-    taskId?: number;
-    fileMetaInfo?: FileMetaInfo;
-    jobId?: number;
-    revisionId?: string;
-    onRedirectAfterFinish: () => void;
-    onSaveTaskSuccess: () => void;
-    onSaveTaskError: (error: ApiError) => void;
-};
-
-type UndoListAction = 'edit' | 'delete' | 'add';
+import { ContextValue, ProviderProps, UndoListAction } from './types';
+import { DEFAULT_PAGE_HEIGHT, DEFAULT_PAGE_WIDTH, DEFAULT_STORED_PARAMS } from './constants';
 
 const TaskAnnotatorContext = createContext<ContextValue | undefined>(undefined);
-const defaultPageWidth: number = 0;
-const defaultPageHeight: number = 0;
 
 export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
     jobId,
@@ -213,21 +124,14 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         cells: undefined
     });
 
-    const [storedParams, setStoredParams] = useState<Record<ToolNames, Maybe<PaperToolParams>>>({
-        brush: undefined,
-        dextr: undefined,
-        eraser: undefined,
-        pen: undefined,
-        rectangle: undefined,
-        select: undefined,
-        wand: undefined
-    });
+    const [storedParams, setStoredParams] =
+        useState<Record<ToolNames, Maybe<PaperToolParams>>>(DEFAULT_STORED_PARAMS);
 
     let fileMetaInfo: FileMetaInfo = fileMetaInfoParam!;
 
     const [pageSize, setPageSize] = useState<{ width: number; height: number }>({
-        width: defaultPageWidth,
-        height: defaultPageHeight
+        width: DEFAULT_PAGE_WIDTH,
+        height: DEFAULT_PAGE_HEIGHT
     });
 
     const { notifyError } = useNotifications();
@@ -794,12 +698,12 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
                 selectedLabelsId,
                 links: linksToApi
             });
-            onSaveTaskSuccess();
+            onSaveTaskSuccess?.();
             latestAnnotationsResult.refetch();
             refetchTask();
             setDocumentLinksChanged?.(false);
         } catch (error) {
-            onSaveTaskError(error as ApiError);
+            onSaveTaskError?.(error as ApiError);
         }
     };
     const tokensByPages = useMemo<Record<string, PageToken[]>>(() => {
@@ -855,7 +759,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
                 });
 
                 useSetTaskState({ id: task!.id, eventType: 'closed' });
-                onRedirectAfterFinish();
+                onRedirectAfterFinish?.();
             } catch {
                 (e: Error) => {
                     console.error(e);

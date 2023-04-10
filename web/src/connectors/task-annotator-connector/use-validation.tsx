@@ -31,9 +31,9 @@ export type ValidationParams = {
     tokenPages?: PageInfo[];
     annDataAttrs: Record<number, Array<CategoryDataAttributeWithValue>>;
     pageSize: PageSize;
-    onRedirectAfterFinish: () => void;
-    onSaveTaskSuccess: () => void;
-    onSaveTaskError: (error: ApiError) => void;
+    onRedirectAfterFinish?: () => void;
+    onSaveTaskSuccess?: () => void;
+    onSaveTaskError?: (error: ApiError) => void;
 };
 
 export type ValidationValues = {
@@ -203,12 +203,12 @@ export const useValidation = ({
                 invalidPages: []
             });
             onCloseDataTab();
-            onSaveTaskSuccess();
+            onSaveTaskSuccess?.();
 
             latestAnnotationsResult.refetch();
             setAnnotationSaved(true);
         } catch (error) {
-            onSaveTaskError(error as ApiError);
+            onSaveTaskError?.(error as ApiError);
         }
     };
 

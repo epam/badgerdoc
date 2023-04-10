@@ -36,7 +36,7 @@ interface IProps extends IModal<TaskValidationValues> {
     validSave: () => void;
     allUsers: TJobUsers;
     isOwner: boolean;
-    onRedirectAfterFinish: () => void;
+    onRedirectAfterFinish?: () => void;
 }
 
 export const FinishTaskValidationModal: FC<IProps> = (modalProps) => {
@@ -80,12 +80,12 @@ export const FinishTaskValidationModal: FC<IProps> = (modalProps) => {
     const handleConfirmValidation = async () => {
         await validSave();
         success({ option_invalid: null });
-        onRedirectAfterFinish();
+        onRedirectAfterFinish?.();
     };
 
     const handleSuccess = (formOption: TaskValidationValues) => {
         success(formOption);
-        onRedirectAfterFinish();
+        onRedirectAfterFinish?.();
     };
 
     const renderForm = ({ lens, save }: IFormApi<TaskValidationValues>): ReactNode => {
