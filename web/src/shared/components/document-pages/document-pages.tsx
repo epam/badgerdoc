@@ -85,7 +85,10 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
     const [scale, setScale] = useState(0);
     const [originalPageSize, setOriginalPageSize] = useState<PageSize>();
 
-    const selectedLabelsId = selectedLabels?.map(({ id }) => id) || [];
+    const selectedLabelsId = useMemo(
+        () => selectedLabels?.map(({ id }) => id) || [],
+        [selectedLabels]
+    );
 
     const getAnnotatorName = useCallback(
         (annotatorId: string): string => {

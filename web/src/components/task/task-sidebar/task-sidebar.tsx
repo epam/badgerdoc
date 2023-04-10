@@ -96,7 +96,6 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
         selectedToolParams,
         setSelectedToolParams,
         onLabelsSelected,
-        setSelectedLabels,
         selectedLabels,
         latestLabelsId,
         isDocLabelsModified,
@@ -225,7 +224,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
                 .map((category) => {
                     return { name: category.name, id: category.id };
                 });
-            setSelectedLabels(latestLabels);
+            onLabelsSelected(latestLabels);
         }
     }, [categories, latestLabelsId]);
 

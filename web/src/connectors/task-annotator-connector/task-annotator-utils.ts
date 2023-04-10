@@ -5,7 +5,6 @@ import {
     PageInfo,
     Category,
     CategoryDataAttrType,
-    ExternalViewerState,
     Taxon
 } from 'api/typings';
 
@@ -26,12 +25,6 @@ import { boundToRect } from '../../shared/components/annotator/utils/rect-to-bou
 import { getTokensBound } from '../../shared/components/annotator/utils/get-tokens-bound';
 
 const categoryDataAttrsCache = new Map();
-export const defaultExternalViewer: ExternalViewerState = {
-    isOpen: false,
-    type: '',
-    name: '',
-    value: ''
-};
 
 /**
  * Category types for external viewer
