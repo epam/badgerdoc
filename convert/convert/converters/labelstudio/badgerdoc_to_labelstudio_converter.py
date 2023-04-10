@@ -139,8 +139,8 @@ class BadgerdocToLabelstudioConverter:
 
 class LabelStudioFormat:
     DEFAULT_ID_FOR_ONE_ANNOTATION = 1
-    # TODO: support more than 1 page
 
+    # TODO: support more than 1 page
     def __init__(self) -> None:
         self.labelstudio_data = LabelStudioModel()
 
@@ -161,7 +161,7 @@ class LabelStudioFormat:
         )
 
         objs = self.convert_annotation_from_bd(
-            badgerdoc_annotations, badgerdoc_tokens.objs
+            badgerdoc_annotations, badgerdoc_tokens.objs, text
         )
         relations = self.convert_relation_from_bd(badgerdoc_annotations)
         document_links = (
@@ -210,13 +210,16 @@ class LabelStudioFormat:
 
     @classmethod
     def convert_annotation_from_bd(
-        cls, annotations: BadgerdocAnnotation, tokens: List[BadgerdocToken]
+            cls, annotations: BadgerdocAnnotation, tokens: List[BadgerdocToken], text: str
     ) -> List[ResultItem]:
         objs = annotations.pages[0].objs
         result_items = []
         for obj in objs:
             if not obj.tokens:
                 continue
+            start = cls.get_begin_offset(tokens, obj.tokens)
+            end = cls.get_end_offset(tokens, obj.tokens)
+            tokens_text = text[start:end]
             item = ResultItem(
                 id=obj.id,
                 from_name="label",
@@ -224,12 +227,9 @@ class LabelStudioFormat:
                 type="labels",
                 origin="manual",
                 value=Value(
-                    start=min(obj.tokens),
-                    end=max(obj.tokens) + 1,
-                    text="".join(
-                        cls.form_token_text(tokens[index])
-                        for index in obj.tokens
-                    ),
+                    start=start,
+                    end=end,
+                    text=tokens_text,
                     labels=[obj.category],
                 ),
             )
@@ -244,6 +244,16 @@ class LabelStudioFormat:
 
             result_items.append(item)
         return result_items
+
+    @staticmethod
+    def get_begin_offset(tokens: List[BadgerdocToken], token_ids: List[int]) -> int:
+        token_id = min(token_ids)
+        return tokens[token_id].offset.begin
+
+    @staticmethod
+    def get_end_offset(tokens: List[BadgerdocToken], token_ids: List[int]) -> int:
+        token_id = max(token_ids)
+        return tokens[token_id].offset.end
 
     def convert_relation_from_bd(
         self, annotations: BadgerdocAnnotation

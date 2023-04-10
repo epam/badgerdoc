@@ -1,9 +1,6 @@
 from pathlib import Path
 from typing import List, Optional
 
-from convert.converters.pdf.pdf_converter import (
-    PlainPDFToBadgerdocTokensConverter,
-)
 from convert.converters.utils import filter_printing_tokens
 
 from .models.annotation_practic import BadgerdocAnnotation
@@ -19,7 +16,6 @@ class Badgerdoc:
         self.tokens_pages: Optional[List[Page]] = None
         self.badgerdoc_annotation: Optional[BadgerdocAnnotation] = None
         self.pdf_renderer: Optional[PDFRenderer] = PDFRenderer()
-        self.pdf_converter = PlainPDFToBadgerdocTokensConverter()
 
     def export_tokens_to_folder(self, tokens_path: Path) -> None:
         if self.tokens_pages:
@@ -49,9 +45,6 @@ class Badgerdoc:
 
     def import_annotations(self, path: Path) -> None:
         self.badgerdoc_annotation = BadgerdocAnnotation.parse_file(path)
-
-    def convert_from_pdf(self, pdf) -> None:
-        self.tokens_pages = self.pdf_converter.convert(pdf)
 
     def remove_non_printing_tokens(self):
         self.tokens_page.objs = filter_printing_tokens(self.tokens_page.objs)

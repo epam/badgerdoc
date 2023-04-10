@@ -1,0 +1,51 @@
+{
+  "page_num": 1,
+  "size": {
+    "width": 79.0,
+    "height": 41.0
+  },
+  "objs": [
+    {
+      "id": 0,
+      "type": "text",
+      "bbox": [
+        15.0,
+        15.0,
+        43.0,
+        26.0
+      ],
+      "category": "Jurisdiction_v23",
+      "data": {
+        "tokens": [
+          {
+            "id": 0,
+            "text": "1",
+            "x": 15.0,
+            "y": 15.0,
+            "width": 7.0,
+            "height": 11.0
+          },
+          {
+            "id": 1,
+            "text": "2 ",
+            "x": 22.0,
+            "y": 15.0,
+            "width": 7.0,
+            "height": 11.0
+          },
+          {
+            "id": 2,
+            "text": "4  ",
+            "x": 36.0,
+            "y": 15.0,
+            "width": 7.0,
+            "height": 11.0
+          }
+        ],
+        "dataAttributes": []
+      },
+      "text": "12 4",
+      "links": []
+    }
+  ]
+}

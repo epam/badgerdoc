@@ -31,21 +31,8 @@
       "offset": {
         "begin": 1,
         "end": 2
-      }
-    },
-    {
-      "type": "text",
-      "bbox": [
-        29.0,
-        15.0,
-        36.0,
-        26.0
-      ],
-      "text": " ",
-      "offset": {
-        "begin": 2,
-        "end": 3
-      }
+      },
+      "after": " "
     },
     {
       "type": "text",
@@ -59,21 +46,8 @@
       "offset": {
         "begin": 3,
         "end": 4
-      }
-    },
-    {
-      "type": "text",
-      "bbox": [
-        43.0,
-        15.0,
-        50.0,
-        26.0
-      ],
-      "text": "\n",
-      "offset": {
-        "begin": 4,
-        "end": 5
-      }
+      },
+      "after": "\n"
     },
     {
       "type": "text",
@@ -87,21 +61,8 @@
       "offset": {
         "begin": 5,
         "end": 6
-      }
-    },
-    {
-      "type": "text",
-      "bbox": [
-        22.0,
-        48.0,
-        29.0,
-        59.0
-      ],
-      "text": "\t",
-      "offset": {
-        "begin": 6,
-        "end": 7
-      }
+      },
+      "after": "\t"
     },
     {
       "type": "text",

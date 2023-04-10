@@ -9,7 +9,7 @@ from convert.converters.pdf.pdf_converter import (  # noqa
     PlainPDFToBadgerdocTokensConverter,
 )
 
-TEST_FILES_DIR = Path(__file__).parent / "test_data"
+TEST_FILES_DIR = Path(__file__).parent / "data"
 TEST_PDF = TEST_FILES_DIR / "test.pdf"
 
 CONVERT_RESULT_FIRST_LETTER = BadgerdocToken(
