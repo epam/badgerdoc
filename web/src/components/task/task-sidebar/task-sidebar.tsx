@@ -373,10 +373,10 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
                                     />
                                     {boundModeSwitch === 'segmentation' && (
                                         <ImageToolsParams
-                                            onChangeToolParams={(e) => {
+                                            onChangeToolParams={(toolParams) => {
                                                 setSelectedToolParams({
                                                     type: selectedToolParams.type,
-                                                    values: e
+                                                    values: toolParams
                                                 });
                                             }}
                                             selectedTool={selectedTool}

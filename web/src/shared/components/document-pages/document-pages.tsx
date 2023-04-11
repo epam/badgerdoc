@@ -1,14 +1,5 @@
-import React, {
-    Fragment,
-    ReactNode,
-    useEffect,
-    useState,
-    useRef,
-    useCallback,
-    useMemo
-} from 'react';
+import React, { Fragment, useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useTaskAnnotatorContext } from 'connectors/task-annotator-connector/task-annotator-context';
-import { FileMetaInfo } from 'pages/document/document-page-sidebar-content/document-page-sidebar-content';
 import { Document, Page, pdfjs, PDFPageProxy } from 'react-pdf';
 import { Annotation } from 'shared';
 import { getAuthHeaders } from 'shared/helpers/auth-tools';
@@ -30,20 +21,8 @@ export interface PageSize {
 }
 
 type DocumentPagesProps = {
-    renderLinks?: (params: RenderLinksParams) => ReactNode;
-    pageNumbers?: number[];
-    fileMetaInfo: FileMetaInfo;
-    apiPageSize?: PageSize;
     additionalScale: number;
-    setPageSize?: (nS: any) => void;
-
     editable: boolean;
-    onAnnotationCopyPress: (pageNum: number, annotationId: string | number) => void;
-    onAnnotationCutPress: (pageNum: number, annotationId: string | number) => void;
-    onAnnotationPastePress: (pageSize: PageSize, pageNum: number) => void;
-    onAnnotationUndoPress: () => void;
-    onAnnotationRedoPress: () => void;
-    onEmptyAreaClick: () => void;
 };
 
 export const getScale = (containerWidth: number, contentWidth: number) => {
@@ -53,20 +32,7 @@ export const getScale = (containerWidth: number, contentWidth: number) => {
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 
-const DocumentPages: React.FC<DocumentPagesProps> = ({
-    pageNumbers = [],
-    fileMetaInfo,
-    apiPageSize,
-    setPageSize,
-    editable,
-    additionalScale,
-    onAnnotationCopyPress,
-    onAnnotationCutPress,
-    onAnnotationPastePress,
-    onAnnotationUndoPress,
-    onAnnotationRedoPress,
-    onEmptyAreaClick
-}) => {
+const DocumentPages: React.FC<DocumentPagesProps> = ({ editable, additionalScale }) => {
     const {
         SyncedContainer,
         annotationsByUserId,
@@ -77,7 +43,16 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
         userPages,
         selectedLabels,
         selectedRelatedDoc,
-        job
+        job,
+        pageSize: apiPageSize,
+        onAnnotationCopyPress,
+        onAnnotationCutPress,
+        onAnnotationPastePress,
+        onAnnotationUndoPress,
+        onAnnotationRedoPress,
+        onEmptyAreaClick,
+        pageNumbers,
+        fileMetaInfo
     } = useTaskAnnotatorContext();
 
     const containerRef = useRef<HTMLDivElement>(null);
@@ -96,11 +71,6 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
         },
         [job]
     );
-
-    useEffect(() => {
-        const newPageSize = apiPageSize && apiPageSize.height > 0 ? apiPageSize : originalPageSize;
-        setPageSize!(newPageSize);
-    }, [apiPageSize, originalPageSize]);
 
     const handleChangeScale = useCallback(() => {
         if (!containerRef.current || !apiPageSize || !apiPageSize.width) return;
@@ -137,6 +107,7 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
     };
 
     const fullScale = scale + additionalScale;
+    const pageSize = apiPageSize && apiPageSize.height > 0 ? apiPageSize : originalPageSize;
 
     return (
         <div
@@ -160,7 +131,7 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                         <ResizableSyncedContainer className={styles['split-document-page']}>
                             <DocumentSinglePage
                                 scale={fullScale}
-                                pageSize={apiPageSize}
+                                pageSize={pageSize}
                                 pageNum={currentPage}
                                 handlePageLoaded={handlePageLoaded}
                                 containerRef={containerRef}
@@ -185,7 +156,7 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                                         userId={user_id}
                                         annotations={annotationsByUserId[user_id]}
                                         scale={fullScale}
-                                        pageSize={apiPageSize}
+                                        pageSize={pageSize}
                                         pageNum={page_num}
                                         onAnnotationSelected={(scaledAnn?: Annotation) =>
                                             onSplitAnnotationSelected(fullScale, user_id, scaledAnn)
@@ -210,7 +181,7 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                             >
                                 <DocumentSinglePage
                                     scale={fullScale}
-                                    pageSize={apiPageSize}
+                                    pageSize={pageSize}
                                     pageNum={currentPage}
                                     handlePageLoaded={handlePageLoaded}
                                     containerRef={containerRef}
@@ -233,7 +204,7 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                                 <DocumentSinglePage
                                     annotations={[]}
                                     scale={fullScale}
-                                    pageSize={apiPageSize}
+                                    pageSize={pageSize}
                                     pageNum={currentPage}
                                     handlePageLoaded={handlePageLoaded}
                                     containerRef={containerRef}
@@ -267,7 +238,7 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                                             <Fragment key={pageNum}>
                                                 <DocumentSinglePage
                                                     scale={fullScale}
-                                                    pageSize={apiPageSize}
+                                                    pageSize={pageSize}
                                                     pageNum={pageNum}
                                                     handlePageLoaded={handlePageLoaded}
                                                     containerRef={containerRef}
@@ -292,7 +263,7 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                                         <Fragment key={pageNum}>
                                             <DocumentSinglePage
                                                 scale={fullScale}
-                                                pageSize={apiPageSize}
+                                                pageSize={pageSize}
                                                 pageNum={pageNum}
                                                 handlePageLoaded={handlePageLoaded}
                                                 containerRef={containerRef}
@@ -325,12 +296,6 @@ export type RenderPageParams = {
     pageSize?: PageSize;
     isImage?: boolean;
     imageId?: number;
-};
-
-type RenderLinksParams = {
-    updLinks: boolean;
-    scale: number;
-    annotations?: Record<number, Annotation[]>;
 };
 
 export const defaultRenderPage = ({

@@ -10,23 +10,8 @@ export interface DocumentPageProps {
 }
 
 const TaskDocumentPages = ({ viewMode, additionalScale }: DocumentPageProps) => {
-    const {
-        task,
-        fileMetaInfo,
-        pageSize,
-        setPageSize,
-        pageNumbers,
-        currentPage,
-        editedPages,
-        externalViewer,
-        onEmptyAreaClick,
-        onAnnotationCopyPress,
-        onAnnotationCutPress,
-        onAnnotationPastePress,
-        onAnnotationUndoPress,
-        onAnnotationRedoPress,
-        onExternalViewerClose
-    } = useTaskAnnotatorContext();
+    const { task, currentPage, editedPages, externalViewer, onExternalViewerClose } =
+        useTaskAnnotatorContext();
 
     const isValidation = task?.is_validation;
     const isReady = task?.status === 'Ready';
@@ -44,20 +29,7 @@ const TaskDocumentPages = ({ viewMode, additionalScale }: DocumentPageProps) => 
                     typeAttr={externalViewer.type}
                 />
             )}
-            <DocumentPages
-                additionalScale={additionalScale}
-                pageNumbers={pageNumbers}
-                fileMetaInfo={fileMetaInfo}
-                apiPageSize={pageSize}
-                setPageSize={setPageSize}
-                editable={editable}
-                onAnnotationCopyPress={onAnnotationCopyPress}
-                onAnnotationCutPress={onAnnotationCutPress}
-                onAnnotationPastePress={onAnnotationPastePress}
-                onAnnotationUndoPress={onAnnotationUndoPress}
-                onAnnotationRedoPress={onAnnotationRedoPress}
-                onEmptyAreaClick={onEmptyAreaClick}
-            />
+            <DocumentPages additionalScale={additionalScale} editable={editable} />
         </div>
     );
 };

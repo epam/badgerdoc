@@ -153,9 +153,9 @@ export const useValidation = ({
     }, []);
 
     const onAddTouchedPage = useCallback(() => {
-        !touchedPages.includes(currentPage)
-            ? setTouchedPages([...touchedPages, currentPage])
-            : () => {};
+        if (!touchedPages.includes(currentPage)) {
+            setTouchedPages([...touchedPages, currentPage]);
+        }
     }, [touchedPages, currentPage]);
 
     const onEditClick = useCallback(() => {

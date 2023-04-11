@@ -1,12 +1,4 @@
-import React, {
-    createContext,
-    useCallback,
-    useContext,
-    useEffect,
-    useMemo,
-    useReducer,
-    useRef
-} from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef } from 'react';
 import { cloneDeep } from 'lodash';
 import { ApiError } from 'api/api-error';
 import { useAddAnnotationsMutation, useLatestAnnotations } from 'api/hooks/annotations';
@@ -57,7 +49,7 @@ import { useNotifications } from 'shared/components/notifications';
 
 import { Text, Panel } from '@epam/loveship';
 import { getError } from 'shared/helpers/get-error';
-import { getToolsParams, reducer } from './utils';
+import { getToolsParams } from './utils';
 import { ContextValue, ProviderProps, UndoListAction } from './types';
 import {
     CHANGE_ANN_DATA_ATTRS,
@@ -65,7 +57,6 @@ import {
     CREATE_ANNOTATION,
     DELETE_ANNOTATION,
     DELETE_ANNOTATION_LINK,
-    INITIAL_STATE,
     MODIFY_ANNOTATION,
     ON_TABLE_DOUBLE_CLICK,
     SET_ALL_ANNOTATIONS,
@@ -92,7 +83,8 @@ import {
     SET_UNDO_POINTER,
     SWAP_UNDO_LIST_ANNOTATION_STATE,
     UNSELECT_ANNOTATION
-} from './constants';
+} from './use-task-annotator-state/constants';
+import { useTaskAnnotatorState } from './use-task-annotator-state/use-task-annotator-state';
 
 const TaskAnnotatorContext = createContext<ContextValue | undefined>(undefined);
 
@@ -133,7 +125,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             undoPointer
         },
         dispatch
-    ] = useReducer(reducer, INITIAL_STATE);
+    ] = useTaskAnnotatorState();
 
     const copiedAnnotationReference = useRef<Annotation | undefined>();
 
@@ -142,7 +134,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
     const { data: task, isLoading: isTaskLoading, refetch: refetchTask } = useTaskById({ taskId });
     const { data: job } = useJobById({ jobId: task?.job.id });
 
-    const getJobId = (): number | undefined => (task ? task.job.id : jobId); // Do we need this???
+    const getJobId = (): number | undefined => (task ? task.job.id : jobId);
 
     const { data: { pages: categories } = {}, refetch: refetchCategories } = useCategoriesByJob(
         {
@@ -210,21 +202,20 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         { enabled: Boolean(task || job) }
     );
 
-    const tokenRes = useTokens(
+    const { data: tokenPages, refetch: refetchTokens } = useTokens(
         {
             fileId: getFileId(),
             pageNumbers: pageNumbers
         },
         { enabled: false }
     );
-    const tokenPages = tokenRes.data;
 
     useEffect(() => {
         if (task || job || revisionId) {
             dispatch({ type: SET_CURRENT_PAGE, payload: pageNumbers[0] });
             documentsResult.refetch();
             latestAnnotationsResult.refetch();
-            tokenRes.refetch();
+            refetchTokens();
         }
     }, [task, job, revisionId]);
 
@@ -255,6 +246,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         };
 
         dispatch({ type: CREATE_ANNOTATION, payload: { pageNum, annotation } });
+        setAnnotationDataAttrs(annotation);
         return annotation;
     };
 
@@ -503,10 +495,10 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
 
     const modifyAnnotation = (
         pageNum: number,
-        id: string | number,
+        annotationId: string | number,
         changes: Partial<Annotation>
     ) => {
-        dispatch({ type: MODIFY_ANNOTATION, payload: { pageNum, id, changes } });
+        dispatch({ type: MODIFY_ANNOTATION, payload: { pageNum, annotationId, changes } });
     };
 
     const onLinkDeleted = (pageNum: number, annotationId: string | number, linkToDel: Link) => {
@@ -680,12 +672,12 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         validatorAnnotations: allAnnotations,
         onAnnotationCreated,
         onAnnotationEdited,
-        onAddTouchedPage: onAddTouchedPage,
+        onAddTouchedPage,
         setSelectedAnnotation: (annotation?: Annotation) => {
             dispatch({ type: SET_SELECTED_ANNOTATION, payload: annotation });
         },
         validPages: validPages,
-        setValidPages: setValidPages,
+        setValidPages,
         onAnnotationTaskFinish,
         userId: task?.user_id,
         task: task
@@ -741,7 +733,6 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         return {
             task,
             job,
-            getJobId,
             categories,
             selectedCategory,
             fileMetaInfo,
@@ -754,7 +745,6 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             selectionType,
             selectedTool,
             selectedToolParams,
-            onChangeSelectedTool,
             tableMode,
             isNeedToSaveTable,
             tabValue,
@@ -763,27 +753,14 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             annDataAttrs,
             externalViewer,
             tableCellCategory,
-            setSelectedAnnotation: (annotation?: Annotation) => {
-                dispatch({ type: SET_SELECTED_ANNOTATION, payload: annotation });
-            },
-            setTabValue: (tabValue: string) => {
-                dispatch({ type: SET_TAB_VALUE, payload: tabValue });
-            },
-            setPageSize: (pageSize: { width: number; height: number }) => {
-                dispatch({ type: SET_PAGE_SIZE, payload: pageSize });
-            },
-            setSelectedToolParams: (toolParams: PaperToolParams) => {
-                dispatch({ type: SET_SELECTED_TOOL_PARAMS, payload: toolParams });
-            },
-            setIsNeedToSaveTable: (value: { gutters?: TableGutterMap; cells?: Annotation[] }) => {
-                dispatch({ type: SET_IS_NEED_TO_SAVE_TABLE, payload: value });
-            },
-            setTableCellCategory: (cellCategory: string | number | undefined) => {
-                dispatch({ type: SET_TABLE_CELL_CATEGORY, payload: cellCategory });
-            },
-            setCurrentDocumentUserId: (documentId?: string) => {
-                dispatch({ type: SET_CURRENT_DOCUMENT_USER_ID, payload: documentId });
-            },
+            selectedLabels,
+            isDocLabelsModified,
+            latestLabelsId,
+            currentDocumentUserId,
+            validPages,
+            invalidPages,
+            getJobId,
+            onChangeSelectedTool,
             onAnnotationCreated,
             onAnnotationDeleted,
             onAnnotationEdited,
@@ -803,15 +780,26 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             onAnnotationUndoPress,
             onAnnotationRedoPress,
             onExternalViewerClose,
-            selectedLabels,
             onLabelsSelected,
-            isDocLabelsModified,
-            latestLabelsId,
-            currentDocumentUserId,
-            validPages,
-            invalidPages,
             onAddTouchedPage,
-            setValidPages,
+            setSelectedAnnotation: (annotation?: Annotation) => {
+                dispatch({ type: SET_SELECTED_ANNOTATION, payload: annotation });
+            },
+            setTabValue: (tabValue: string) => {
+                dispatch({ type: SET_TAB_VALUE, payload: tabValue });
+            },
+            setSelectedToolParams: (toolParams: PaperToolParams) => {
+                dispatch({ type: SET_SELECTED_TOOL_PARAMS, payload: toolParams });
+            },
+            setIsNeedToSaveTable: (value: { gutters?: TableGutterMap; cells?: Annotation[] }) => {
+                dispatch({ type: SET_IS_NEED_TO_SAVE_TABLE, payload: value });
+            },
+            setTableCellCategory: (cellCategory: string | number | undefined) => {
+                dispatch({ type: SET_TABLE_CELL_CATEGORY, payload: cellCategory });
+            },
+            setCurrentDocumentUserId: (documentId?: string) => {
+                dispatch({ type: SET_CURRENT_DOCUMENT_USER_ID, payload: documentId });
+            },
             ...validationValues,
             ...splitValidation,
             ...syncScroll,
