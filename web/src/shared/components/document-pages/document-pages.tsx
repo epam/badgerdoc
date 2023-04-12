@@ -155,20 +155,26 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                         )}
                     >
                         <ResizableSyncedContainer className={styles['split-document-page']}>
-                            <DocumentSinglePage
-                                scale={fullScale}
-                                pageSize={apiPageSize}
-                                pageNum={currentPage}
-                                handlePageLoaded={handlePageLoaded}
-                                containerRef={containerRef}
-                                editable
-                                onAnnotationCopyPress={onAnnotationCopyPress}
-                                onAnnotationCutPress={onAnnotationCutPress}
-                                onAnnotationPastePress={onAnnotationPastePress}
-                                onAnnotationUndoPress={onAnnotationUndoPress}
-                                onAnnotationRedoPress={onAnnotationRedoPress}
-                                onEmptyAreaClick={onEmptyAreaClick}
-                            />
+                            {pageNumbers.map((pageNum) => {
+                                return (
+                                    <Fragment key={pageNum}>
+                                        <DocumentSinglePage
+                                            scale={fullScale}
+                                            pageSize={apiPageSize}
+                                            pageNum={pageNum}
+                                            handlePageLoaded={handlePageLoaded}
+                                            containerRef={containerRef}
+                                            editable={editable}
+                                            onAnnotationCopyPress={onAnnotationCopyPress}
+                                            onAnnotationCutPress={onAnnotationCutPress}
+                                            onAnnotationPastePress={onAnnotationPastePress}
+                                            onAnnotationUndoPress={onAnnotationUndoPress}
+                                            onAnnotationRedoPress={onAnnotationRedoPress}
+                                            onEmptyAreaClick={onEmptyAreaClick}
+                                        />
+                                    </Fragment>
+                                );
+                            })}
                         </ResizableSyncedContainer>
                         {userPages.map(({ user_id, page_num }) => (
                             <Fragment key={user_id}>
