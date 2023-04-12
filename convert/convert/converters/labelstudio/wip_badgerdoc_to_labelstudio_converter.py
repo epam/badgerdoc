@@ -1,6 +1,6 @@
 import tempfile
 from pathlib import Path
-from typing import Any, Dict, List, NamedTuple, Optional
+from typing import Any, Dict, List, NamedTuple, Optional, Tuple
 
 import requests
 from botocore.client import BaseClient
@@ -19,6 +19,7 @@ from convert.converters.labelstudio.annotation_converter_practic import (
 )
 from convert.logger import get_logger
 from convert.models.common import S3Path
+from convert.converters.labelstudio.utils import combine
 
 from .models.annotation import (
     Annotation,
@@ -39,102 +40,6 @@ class BadgerdocData(NamedTuple):
     page: Page
     annotation: BadgerdocAnnotation
     manifest: Manifest
-
-
-class BadgerdocToLabelstudioConverter:
-    LABELSTUDIO_FILENAME = "ls_format.json"
-
-    def __init__(
-        self,
-        s3_client: BaseClient,
-        current_tenant: str,
-        token_data: TenantData,
-    ) -> None:
-        self.s3_client = s3_client
-        self.current_tenant = current_tenant
-        self.token_data = token_data
-        self.request_headers = {
-            "X-Current-Tenant": self.current_tenant,
-            "Authorization": f"Bearer {self.token_data.token}",
-        }
-        self.ls_format = LabelStudioFormat()
-
-    def execute(
-        self,
-        s3_input_tokens: S3Path,
-        s3_input_annotations: S3Path,
-        s3_input_manifest: S3Path,
-        s3_output_annotation: S3Path,
-    ) -> None:
-        (
-            badgerdoc_page,
-            badgerdoc_annotations,
-            badgerdoc_manifest,
-        ) = self.download(
-            s3_input_tokens, s3_input_annotations, s3_input_manifest
-        )
-        self.ls_format.from_badgerdoc(
-            badgerdoc_page,
-            badgerdoc_annotations,
-            badgerdoc_manifest,
-            self.request_headers,
-        )
-        self.upload(s3_output_annotation)
-
-    def download(
-        self,
-        s3_input_tokens: S3Path,
-        s3_input_annotations: S3Path,
-        s3_input_manifest: S3Path,
-    ) -> BadgerdocData:
-        with tempfile.TemporaryDirectory() as tmp_dirname:
-            tmp_dir = Path(tmp_dirname)
-
-            input_tokens = self.download_file_from_s3(s3_input_tokens, tmp_dir)
-            input_annotations = self.download_file_from_s3(
-                s3_input_annotations, tmp_dir
-            )
-            input_manifest = self.download_file_from_s3(
-                s3_input_manifest, tmp_dir
-            )
-            LOGGER.debug("input_manifest: %s", input_manifest.read_text())
-
-            page = Page.parse_file(input_tokens)
-            annotation = AnnotationConverterToTheory(
-                practic_annotations=annotation_practic.BadgerdocAnnotation.parse_file(  # noqa
-                    input_annotations
-                )
-            ).convert()
-            manifest = Manifest.parse_file(input_manifest)
-            return BadgerdocData(
-                page=page, annotation=annotation, manifest=manifest
-            )
-
-    def download_file_from_s3(self, s3_path: S3Path, tmp_dir: Path) -> Path:
-        local_file_path = tmp_dir / Path(s3_path.path).name
-        self.s3_client.download_file(
-            s3_path.bucket,
-            s3_path.path,
-            str(local_file_path),
-        )
-        return local_file_path
-
-    def upload(
-        self,
-        s3_output_annotation: S3Path,
-    ) -> None:
-        with tempfile.TemporaryDirectory() as tmp_dirname:
-            tmp_dir = Path(tmp_dirname)
-
-            badgerdoc_annotations_path = tmp_dir / Path(
-                self.LABELSTUDIO_FILENAME
-            )
-            self.ls_format.export_json(badgerdoc_annotations_path)
-            self.s3_client.upload_file(
-                str(badgerdoc_annotations_path),
-                s3_output_annotation.bucket,
-                s3_output_annotation.path,
-            )
 
 
 class LabelStudioFormat:
@@ -248,12 +153,12 @@ class LabelStudioFormat:
     @staticmethod
     def get_begin_offset(tokens: List[BadgerdocToken], token_ids: List[int]) -> int:
         token_id = min(token_ids)
-        return tokens[token_id].offset.begin - tokens[0].offset.begin
+        return tokens[token_id].offset.begin
 
     @staticmethod
     def get_end_offset(tokens: List[BadgerdocToken], token_ids: List[int]) -> int:
         token_id = max(token_ids)
-        return tokens[token_id].offset.end - tokens[0].offset.begin
+        return tokens[token_id].offset.end
 
     def convert_relation_from_bd(
         self, annotations: BadgerdocAnnotation
@@ -435,3 +340,156 @@ class LabelStudioFormat:
             result[taxonomy_id_of_taxon].append(taxon_obj["id"])
 
         return result
+
+
+class WipBadgerdocToLabelstudioConverter:
+    def __init__(
+        self,
+        s3_client: BaseClient,
+        current_tenant: str,
+        token_data: TenantData,
+    ) -> None:
+        self.s3_client = s3_client
+        self.current_tenant = current_tenant
+        self.token_data = token_data
+        self.request_headers = {
+            "X-Current-Tenant": self.current_tenant,
+            "Authorization": f"Bearer {self.token_data.token}",
+        }
+
+    def execute(
+        self,
+        s3_input_tokens: S3Path,
+        s3_input_manifest: S3Path,
+        s3_output_annotation: S3Path,
+    ) -> None:
+        downloader = BadgerdocDownloader(self.s3_client, s3_input_tokens, s3_input_manifest)
+        (
+            pages,
+            annotations,
+            manifest,
+        ) = downloader.download()
+        labelstudio_pages = self.convert_to_labelestudio(pages, annotations, manifest)
+        labelstudio_combined_pages_data = combine(labelstudio_pages)
+        labelstudio_combined = LabelStudioFormat()
+        labelstudio_combined.labelstudio_data = labelstudio_combined_pages_data
+        uploader = LabelStudioUploader(self.s3_client)
+        uploader.upload(labelstudio_combined, s3_output_annotation)
+
+    def convert_to_labelestudio(
+            self,
+            pages: List[Page],
+            annotations: Dict[int, annotation_practic.BadgerdocAnnotation],
+            manifest: Manifest
+        ) -> List[LabelStudioModel]:
+        labelstudio_pages = []
+        for page in pages:
+            labelstudio = LabelStudioFormat()
+            labelstudio.from_badgerdoc(
+                page,
+                annotations[page.page_num],
+                manifest,
+                self.request_headers,
+            )
+            labelstudio_pages.append(labelstudio.labelstudio_data)
+        return labelstudio_pages
+
+
+class BadgerdocDownloader:
+    def __init__(self, s3_client: BaseClient, s3_input_tokens: S3Path, s3_input_manifest: S3Path):
+        self.s3_input_tokens = s3_input_tokens
+        self.s3_input_manifest = s3_input_manifest
+        self.s3_client = s3_client
+
+    def download(
+        self,
+    ) -> Tuple[List[Page], Dict[int, annotation_practic.BadgerdocAnnotation], Manifest]:
+        with tempfile.TemporaryDirectory() as tmp_dirname:
+            tmp_dir = Path(tmp_dirname)
+
+            pages = self.get_token_pages(tmp_dir)
+            manifest = self.get_manifest(tmp_dir)
+            annotations = self.get_annotations(manifest, tmp_dir)
+
+            return pages, annotations, manifest
+
+    def get_token_pages(self, tmp_dir) -> List[Page]:
+        token_page_files = self.download_all_token_pages(self.s3_input_tokens, tmp_dir)
+        pages = []
+        for token_page_file in token_page_files:
+            pages.append(Page.parse_file(token_page_file))
+        return pages
+
+    def get_manifest(self, tmp_dir) -> Manifest:
+        manifest_file = self.download_file_from_s3(
+            self.s3_input_manifest, tmp_dir
+        )
+        return Manifest.parse_file(tmp_dir / manifest_file.name)
+
+    def get_annotations(self, manifest: Manifest, tmp_dir) -> Dict[int, annotation_practic.BadgerdocAnnotation]:
+        annotation_files = self.download_annotations(
+            manifest_s3_path=self.s3_input_manifest,
+            manifest=manifest,
+            tmp_dir=tmp_dir
+        )
+        annotations = {}
+        for page_num, annotation_file in annotation_files.items():
+            annotations[int(page_num)] = annotation_practic.BadgerdocAnnotation.parse_file(annotation_file)
+            # annotation = AnnotationConverterToTheory(
+            #     practic_annotations=annotation_practic.BadgerdocAnnotation.parse_file(  # noqa
+            #         input_annotations
+            #     )
+            # ).convert()
+        return annotations
+
+    def download_all_token_pages(self, s3_path: S3Path, tmp_dir: Path) -> List[Path]:
+        response = self.s3_client.list_objects(Bucket=s3_path.bucket, Prefix=s3_path.path)
+        pages = (obj['Key'] for obj in response['Contents'])
+        page_files = []
+        for page in pages:
+            page_path = S3Path(bucket=s3_path.bucket, path=f"{page}")
+            page_files.append(self.download_file_from_s3(s3_path=page_path, tmp_dir=tmp_dir))
+        return page_files
+
+    def download_file_from_s3(self, s3_path: S3Path, tmp_dir: Path) -> Path:
+        local_file_path = tmp_dir / Path(s3_path.path).name
+        self.s3_client.download_file(
+            s3_path.bucket,
+            s3_path.path,
+            str(local_file_path),
+        )
+        return local_file_path
+
+    def download_annotations(self, manifest_s3_path: S3Path, manifest: Manifest, tmp_dir: Path) -> Dict[str, S3Path]:
+        pages = {}
+        for page_num, page_file in manifest.pages:
+            page_s3_path = self.form_absolute_path_for_annotation(manifest_s3_path, page_file)
+            pages[page_num] = self.download_file_from_s3(page_s3_path, tmp_dir)
+        return pages
+
+    def form_absolute_path_for_annotation(self, manifest_s3_path: S3Path, page_file: str) -> S3Path:
+        absolute_path = f"{Path(manifest_s3_path.path).parent}/{page_file}.json"
+        return S3Path(bucket=manifest_s3_path.bucket, path=absolute_path)
+
+
+class LabelStudioUploader:
+    LABELSTUDIO_FILENAME = "ls_format.json"
+
+    def __init__(self, s3_client: BaseClient):
+        self.s3_client = s3_client
+
+    def upload(
+        self,
+        labelstudio: LabelStudioFormat,
+        s3_output_annotation: S3Path,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dirname:
+            badgerdoc_annotations_path = Path(tmp_dirname) / Path(
+                self.LABELSTUDIO_FILENAME
+            )
+            labelstudio.export_json(badgerdoc_annotations_path)
+            self.s3_client.upload_file(
+                str(badgerdoc_annotations_path),
+                s3_output_annotation.bucket,
+                s3_output_annotation.path,
+            )

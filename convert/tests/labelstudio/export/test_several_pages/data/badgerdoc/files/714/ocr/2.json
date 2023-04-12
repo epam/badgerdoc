@@ -1,0 +1,121 @@
+{
+  "page_num": 2,
+  "size": {
+    "width": 143.291338582677,
+    "height": 215.291338582677
+  },
+  "objs": [
+    {
+      "type": "text",
+      "bbox": [
+        28.2,
+        58.10033858267701,
+        34.2,
+        68.10033858267701
+      ],
+      "text": "9",
+      "offset": {
+        "begin": 14,
+        "end": 15
+      },
+      "previous": null,
+      "after": null
+    },
+    {
+      "type": "text",
+      "bbox": [
+        28.2,
+        69.40033858267702,
+        34.2,
+        79.40033858267702
+      ],
+      "text": "1",
+      "offset": {
+        "begin": 15,
+        "end": 16
+      },
+      "previous": null,
+      "after": null
+    },
+    {
+      "type": "text",
+      "bbox": [
+        34.2,
+        69.40033858267702,
+        40.2,
+        79.40033858267702
+      ],
+      "text": "0",
+      "offset": {
+        "begin": 16,
+        "end": 17
+      },
+      "previous": null,
+      "after": " "
+    },
+    {
+      "type": "text",
+      "bbox": [
+        46.2,
+        69.40033858267702,
+        52.2,
+        79.40033858267702
+      ],
+      "text": "p",
+      "offset": {
+        "begin": 18,
+        "end": 19
+      },
+      "previous": null,
+      "after": null
+    },
+    {
+      "type": "text",
+      "bbox": [
+        52.2,
+        69.40033858267702,
+        58.2,
+        79.40033858267702
+      ],
+      "text": "2",
+      "offset": {
+        "begin": 19,
+        "end": 20
+      },
+      "previous": null,
+      "after": " "
+    },
+    {
+      "type": "text",
+      "bbox": [
+        64.2,
+        69.40033858267702,
+        70.2,
+        79.40033858267702
+      ],
+      "text": "w",
+      "offset": {
+        "begin": 21,
+        "end": 22
+      },
+      "previous": null,
+      "after": null
+    },
+    {
+      "type": "text",
+      "bbox": [
+        70.2,
+        69.40033858267702,
+        76.2,
+        79.40033858267702
+      ],
+      "text": "2",
+      "offset": {
+        "begin": 22,
+        "end": 23
+      },
+      "previous": null,
+      "after": null
+    }
+  ]
+}

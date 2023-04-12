@@ -24,3 +24,9 @@ class BadgerdocToLabelStudioRequest(BaseModel):
     input_annotation: S3Path
     input_manifest: S3Path
     output_annotation: S3Path
+
+
+class WipBadgerdocToLabelStudioRequest(BaseModel):
+    input_tokens: S3Path
+    input_manifest: S3Path
+    output_annotation: S3Path
