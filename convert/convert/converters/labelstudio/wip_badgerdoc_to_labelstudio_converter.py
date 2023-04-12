@@ -153,12 +153,12 @@ class LabelStudioFormat:
     @staticmethod
     def get_begin_offset(tokens: List[BadgerdocToken], token_ids: List[int]) -> int:
         token_id = min(token_ids)
-        return tokens[token_id].offset.begin
+        return tokens[token_id].offset.begin - tokens[0].offset.begin
 
     @staticmethod
     def get_end_offset(tokens: List[BadgerdocToken], token_ids: List[int]) -> int:
         token_id = max(token_ids)
-        return tokens[token_id].offset.end
+        return tokens[token_id].offset.end - tokens[0].offset.begin
 
     def convert_relation_from_bd(
         self, annotations: BadgerdocAnnotation
@@ -379,7 +379,7 @@ class WipBadgerdocToLabelstudioConverter:
     def convert_to_labelestudio(
             self,
             pages: List[Page],
-            annotations: Dict[int, annotation_practic.BadgerdocAnnotation],
+            annotations: Dict[int, BadgerdocAnnotation],
             manifest: Manifest
         ) -> List[LabelStudioModel]:
         labelstudio_pages = []
@@ -403,7 +403,7 @@ class BadgerdocDownloader:
 
     def download(
         self,
-    ) -> Tuple[List[Page], Dict[int, annotation_practic.BadgerdocAnnotation], Manifest]:
+    ) -> Tuple[List[Page], Dict[int, BadgerdocAnnotation], Manifest]:
         with tempfile.TemporaryDirectory() as tmp_dirname:
             tmp_dir = Path(tmp_dirname)
 
@@ -426,7 +426,7 @@ class BadgerdocDownloader:
         )
         return Manifest.parse_file(tmp_dir / manifest_file.name)
 
-    def get_annotations(self, manifest: Manifest, tmp_dir) -> Dict[int, annotation_practic.BadgerdocAnnotation]:
+    def get_annotations(self, manifest: Manifest, tmp_dir) -> Dict[int, BadgerdocAnnotation]:
         annotation_files = self.download_annotations(
             manifest_s3_path=self.s3_input_manifest,
             manifest=manifest,
@@ -434,12 +434,12 @@ class BadgerdocDownloader:
         )
         annotations = {}
         for page_num, annotation_file in annotation_files.items():
-            annotations[int(page_num)] = annotation_practic.BadgerdocAnnotation.parse_file(annotation_file)
-            # annotation = AnnotationConverterToTheory(
-            #     practic_annotations=annotation_practic.BadgerdocAnnotation.parse_file(  # noqa
-            #         input_annotations
-            #     )
-            # ).convert()
+            # annotations[int(page_num)] = annotation_practic.BadgerdocAnnotation.parse_file(annotation_file)
+            annotations[int(page_num)] = AnnotationConverterToTheory(
+                practic_annotations=annotation_practic.BadgerdocAnnotation.parse_file(  # noqa
+                    annotation_file
+                )
+            ).convert()
         return annotations
 
     def download_all_token_pages(self, s3_path: S3Path, tmp_dir: Path) -> List[Path]:
@@ -462,7 +462,7 @@ class BadgerdocDownloader:
 
     def download_annotations(self, manifest_s3_path: S3Path, manifest: Manifest, tmp_dir: Path) -> Dict[str, S3Path]:
         pages = {}
-        for page_num, page_file in manifest.pages:
+        for page_num, page_file in manifest.pages.items():
             page_s3_path = self.form_absolute_path_for_annotation(manifest_s3_path, page_file)
             pages[page_num] = self.download_file_from_s3(page_s3_path, tmp_dir)
         return pages
