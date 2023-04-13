@@ -23,7 +23,12 @@ LOGGER.setLevel("DEBUG")
 
 
 class BadgerdocDownloader:
-    def __init__(self, s3_client: BaseClient, s3_input_tokens: S3Path, s3_input_manifest: S3Path):
+    def __init__(
+        self,
+        s3_client: BaseClient,
+        s3_input_tokens: S3Path,
+        s3_input_manifest: S3Path,
+    ):
         self.s3_input_tokens = s3_input_tokens
         self.s3_input_manifest = s3_input_manifest
         self.s3_client = s3_client
@@ -41,7 +46,9 @@ class BadgerdocDownloader:
             return pages, annotations, manifest
 
     def get_token_pages(self, tmp_dir) -> List[Page]:
-        token_page_files = self.download_all_token_pages(self.s3_input_tokens, tmp_dir)
+        token_page_files = self.download_all_token_pages(
+            self.s3_input_tokens, tmp_dir
+        )
         pages = []
         for token_page_file in token_page_files:
             pages.append(Page.parse_file(token_page_file))
@@ -53,11 +60,13 @@ class BadgerdocDownloader:
         )
         return Manifest.parse_file(tmp_dir / manifest_file.name)
 
-    def get_annotations(self, manifest: Manifest, tmp_dir) -> Dict[int, BadgerdocAnnotation]:
+    def get_annotations(
+        self, manifest: Manifest, tmp_dir
+    ) -> Dict[int, BadgerdocAnnotation]:
         annotation_files = self.download_annotations(
             manifest_s3_path=self.s3_input_manifest,
             manifest=manifest,
-            tmp_dir=tmp_dir
+            tmp_dir=tmp_dir,
         )
         annotations = {}
         for page_num, annotation_file in annotation_files.items():
@@ -68,24 +77,38 @@ class BadgerdocDownloader:
             ).convert()
         return annotations
 
-    def download_all_token_pages(self, s3_path: S3Path, tmp_dir: Path) -> List[Path]:
-        response = self.s3_client.list_objects(Bucket=s3_path.bucket, Prefix=s3_path.path)
-        pages = (obj['Key'] for obj in response['Contents'])
+    def download_all_token_pages(
+        self, s3_path: S3Path, tmp_dir: Path
+    ) -> List[Path]:
+        response = self.s3_client.list_objects(
+            Bucket=s3_path.bucket, Prefix=s3_path.path
+        )
+        pages = (obj["Key"] for obj in response["Contents"])
         page_files = []
         for page in pages:
             page_path = S3Path(bucket=s3_path.bucket, path=f"{page}")
-            page_files.append(self.download_file_from_s3(s3_path=page_path, tmp_dir=tmp_dir))
+            page_files.append(
+                self.download_file_from_s3(s3_path=page_path, tmp_dir=tmp_dir)
+            )
         return page_files
 
-    def download_annotations(self, manifest_s3_path: S3Path, manifest: Manifest, tmp_dir: Path) -> Dict[str, S3Path]:
+    def download_annotations(
+        self, manifest_s3_path: S3Path, manifest: Manifest, tmp_dir: Path
+    ) -> Dict[str, S3Path]:
         pages = {}
         for page_num, page_file in manifest.pages.items():
-            page_s3_path = self.form_absolute_path_for_annotation(manifest_s3_path, page_file)
+            page_s3_path = self.form_absolute_path_for_annotation(
+                manifest_s3_path, page_file
+            )
             pages[page_num] = self.download_file_from_s3(page_s3_path, tmp_dir)
         return pages
 
-    def form_absolute_path_for_annotation(self, manifest_s3_path: S3Path, page_file: str) -> S3Path:
-        absolute_path = f"{Path(manifest_s3_path.path).parent}/{page_file}.json"
+    def form_absolute_path_for_annotation(
+        self, manifest_s3_path: S3Path, page_file: str
+    ) -> S3Path:
+        absolute_path = (
+            f"{Path(manifest_s3_path.path).parent}/{page_file}.json"
+        )
         return S3Path(bucket=manifest_s3_path.bucket, path=absolute_path)
 
     def download_file_from_s3(self, s3_path: S3Path, tmp_dir: Path) -> Path:

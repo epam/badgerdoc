@@ -89,7 +89,9 @@ class AnnotationConverterPractic:
         text = ""
         for token_id in token_ids:
             token = self.theoretic_tokens.objs[token_id]
-            full_token_text = f"{token.previous or ''}{token.text}{token.after or ''}"
+            full_token_text = (
+                f"{token.previous or ''}{token.text}{token.after or ''}"
+            )
             text = text + full_token_text
         return text.strip()
 

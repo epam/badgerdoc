@@ -3,9 +3,10 @@ from pathlib import Path
 from typing import Any, Dict
 
 import requests
+from fastapi import HTTPException, status
+
 from convert.config import settings
 from convert.logger import get_logger
-from fastapi import HTTPException, status
 
 from ..exceptions import UploadLimitExceedError
 from ..models import coco

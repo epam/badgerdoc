@@ -8,13 +8,17 @@ from convert.converters.base_format.models.annotation import (
 )
 from convert.converters.base_format.models.manifest import Manifest
 from convert.converters.base_format.models.tokens import Page
+from convert.converters.labelstudio.badgerdoc_downloader import (
+    BadgerdocDownloader,
+)
+from convert.converters.labelstudio.labelstudio_format import LabelStudioFormat
+from convert.converters.labelstudio.labelstudio_uploader import (
+    LabelStudioUploader,
+)
+from convert.converters.labelstudio.models.annotation import LabelStudioModel
+from convert.converters.labelstudio.utils import combine
 from convert.logger import get_logger
 from convert.models.common import S3Path
-from convert.converters.labelstudio.utils import combine
-from convert.converters.labelstudio.badgerdoc_downloader import BadgerdocDownloader
-from convert.converters.labelstudio.labelstudio_uploader import LabelStudioUploader
-from convert.converters.labelstudio.labelstudio_format import LabelStudioFormat
-from convert.converters.labelstudio.models.annotation import LabelStudioModel
 
 LOGGER = get_logger(__file__)
 LOGGER.setLevel("DEBUG")
@@ -41,13 +45,17 @@ class BadgerdocToLabelstudioConverter:
         s3_input_manifest: S3Path,
         s3_output_annotation: S3Path,
     ) -> None:
-        downloader = BadgerdocDownloader(self.s3_client, s3_input_tokens, s3_input_manifest)
+        downloader = BadgerdocDownloader(
+            self.s3_client, s3_input_tokens, s3_input_manifest
+        )
         (
             pages,
             annotations,
             manifest,
         ) = downloader.download()
-        labelstudio_pages = self.convert_to_labelestudio(pages, annotations, manifest)
+        labelstudio_pages = self.convert_to_labelestudio(
+            pages, annotations, manifest
+        )
         labelstudio_combined_pages_data = combine(labelstudio_pages)
         labelstudio_combined = LabelStudioFormat()
         labelstudio_combined.labelstudio_data = labelstudio_combined_pages_data
@@ -55,16 +63,16 @@ class BadgerdocToLabelstudioConverter:
         uploader.upload(labelstudio_combined, s3_output_annotation)
 
     def convert_to_labelestudio(
-            self,
-            pages: List[Page],
-            annotations: Dict[int, BadgerdocAnnotation],
-            manifest: Manifest
-        ) -> List[LabelStudioModel]:
+        self,
+        pages: List[Page],
+        annotations: Dict[int, BadgerdocAnnotation],
+        manifest: Manifest,
+    ) -> List[LabelStudioModel]:
         labelstudio_pages = []
         for page in pages:
             annotation = None
             if page.page_num in annotations:
-                annotation = annotations[page.page_num],
+                annotation = (annotations[page.page_num],)
             labelstudio = LabelStudioFormat()
             labelstudio.from_badgerdoc(
                 page,

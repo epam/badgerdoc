@@ -21,9 +21,7 @@ def test_annotation_converter_no_taxonomies_and_document_labels() -> None:
         json={"data": []},
     )
 
-    tokens_test = Page.parse_file(
-        TEST_FILES_DIR / "badgerdoc/tokens/1.json"
-    )
+    tokens_test = Page.parse_file(TEST_FILES_DIR / "badgerdoc/tokens/1.json")
     manifest_test = manifest.Manifest.parse_file(
         TEST_FILES_DIR / "badgerdoc/annotation/manifest.json"
     )
@@ -47,37 +45,79 @@ def test_annotation_converter_no_taxonomies_and_document_labels() -> None:
         TEST_FILES_DIR / "labelstudio.json"
     )
     assert (
-        labelstudio_model_etalon.__root__[0].annotations[0].result[0].value.start
-        == labelstudio_model_test.__root__[0].annotations[0].result[0].value.start
+        labelstudio_model_etalon.__root__[0]
+        .annotations[0]
+        .result[0]
+        .value.start
+        == labelstudio_model_test.__root__[0]
+        .annotations[0]
+        .result[0]
+        .value.start
     )
     assert (
         labelstudio_model_etalon.__root__[0].annotations[0].result[0].value.end
-        == labelstudio_model_test.__root__[0].annotations[0].result[0].value.end
+        == labelstudio_model_test.__root__[0]
+        .annotations[0]
+        .result[0]
+        .value.end
     )
     assert (
-        labelstudio_model_etalon.__root__[0].annotations[0].result[0].value.text
-        == labelstudio_model_test.__root__[0].annotations[0].result[0].value.text
+        labelstudio_model_etalon.__root__[0]
+        .annotations[0]
+        .result[0]
+        .value.text
+        == labelstudio_model_test.__root__[0]
+        .annotations[0]
+        .result[0]
+        .value.text
     )
     assert (
-        labelstudio_model_etalon.__root__[0].annotations[0].result[0].value.labels
-        == labelstudio_model_test.__root__[0].annotations[0].result[0].value.labels
+        labelstudio_model_etalon.__root__[0]
+        .annotations[0]
+        .result[0]
+        .value.labels
+        == labelstudio_model_test.__root__[0]
+        .annotations[0]
+        .result[0]
+        .value.labels
     )
 
     assert (
-        labelstudio_model_etalon.__root__[0].annotations[0].result[1].value.start
-        == labelstudio_model_test.__root__[0].annotations[0].result[1].value.start
+        labelstudio_model_etalon.__root__[0]
+        .annotations[0]
+        .result[1]
+        .value.start
+        == labelstudio_model_test.__root__[0]
+        .annotations[0]
+        .result[1]
+        .value.start
     )
     assert (
         labelstudio_model_etalon.__root__[0].annotations[0].result[1].value.end
-        == labelstudio_model_test.__root__[0].annotations[0].result[1].value.end
+        == labelstudio_model_test.__root__[0]
+        .annotations[0]
+        .result[1]
+        .value.end
     )
     assert (
-        labelstudio_model_etalon.__root__[0].annotations[0].result[1].value.text
-        == labelstudio_model_test.__root__[0].annotations[0].result[1].value.text
+        labelstudio_model_etalon.__root__[0]
+        .annotations[0]
+        .result[1]
+        .value.text
+        == labelstudio_model_test.__root__[0]
+        .annotations[0]
+        .result[1]
+        .value.text
     )
     assert (
-        labelstudio_model_etalon.__root__[0].annotations[0].result[1].value.labels
-        == labelstudio_model_test.__root__[0].annotations[0].result[1].value.labels
+        labelstudio_model_etalon.__root__[0]
+        .annotations[0]
+        .result[1]
+        .value.labels
+        == labelstudio_model_test.__root__[0]
+        .annotations[0]
+        .result[1]
+        .value.labels
     )
 
     assert set(

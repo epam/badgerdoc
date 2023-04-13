@@ -3,8 +3,9 @@ from __future__ import annotations
 from datetime import datetime
 from typing import List, Optional
 
-from convert.converters.labelstudio.models.annotation import ValidationType
 from pydantic import BaseModel
+
+from convert.converters.labelstudio.models.annotation import ValidationType
 
 from .common import S3Path
 

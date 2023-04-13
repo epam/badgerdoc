@@ -1,10 +1,10 @@
 from typing import Generator, List
 
 import pytest
-from convert import main
 from pydantic import BaseModel
 from starlette.testclient import TestClient
 
+from convert import main
 from convert.routers import labelstudio
 
 

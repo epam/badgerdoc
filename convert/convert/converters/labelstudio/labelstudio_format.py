@@ -74,10 +74,10 @@ class LabelStudioFormat:
         self.labelstudio_data.__root__.append(item)
 
     def form_meta(
-            self,
-            badgerdoc_manifest: Optional[Manifest],
-            request_headers: Dict[str, str],
-        ) -> Meta:
+        self,
+        badgerdoc_manifest: Optional[Manifest],
+        request_headers: Dict[str, str],
+    ) -> Meta:
         document_links = (
             self.convert_document_links_from_bd(badgerdoc_manifest)
             if badgerdoc_manifest
@@ -109,11 +109,14 @@ class LabelStudioFormat:
             labels=document_labels,
             relations=document_links,
             categories_to_taxonomy_mapping=categories_to_taxonomy_mapping,
-        ) 
+        )
 
     @classmethod
     def convert_annotation_from_bd(
-            cls, annotations: BadgerdocAnnotation, tokens: List[BadgerdocToken], text: str
+        cls,
+        annotations: BadgerdocAnnotation,
+        tokens: List[BadgerdocToken],
+        text: str,
     ) -> List[ResultItem]:
         objs = annotations.pages[0].objs
         result_items = []
@@ -149,12 +152,16 @@ class LabelStudioFormat:
         return result_items
 
     @staticmethod
-    def get_begin_offset(tokens: List[BadgerdocToken], token_ids: List[int]) -> int:
+    def get_begin_offset(
+        tokens: List[BadgerdocToken], token_ids: List[int]
+    ) -> int:
         token_id = min(token_ids)
         return tokens[token_id].offset.begin - tokens[0].offset.begin
 
     @staticmethod
-    def get_end_offset(tokens: List[BadgerdocToken], token_ids: List[int]) -> int:
+    def get_end_offset(
+        tokens: List[BadgerdocToken], token_ids: List[int]
+    ) -> int:
         token_id = max(token_ids)
         return tokens[token_id].offset.end - tokens[0].offset.begin
 
