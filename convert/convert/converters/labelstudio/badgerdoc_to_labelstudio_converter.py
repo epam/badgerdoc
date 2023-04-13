@@ -52,7 +52,7 @@ class BadgerdocToLabelstudioConverter:
             pages,
             annotations,
             manifest,
-        ) = downloader.download()
+        ) = downloader.download_and_parse()
         labelstudio_pages = self.convert_to_labelestudio(
             pages, annotations, manifest
         )

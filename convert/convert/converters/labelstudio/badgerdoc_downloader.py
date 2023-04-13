@@ -33,7 +33,7 @@ class BadgerdocDownloader:
         self.s3_input_manifest = s3_input_manifest
         self.s3_client = s3_client
 
-    def download(
+    def download_and_parse(
         self,
     ) -> Tuple[List[Page], Dict[int, BadgerdocAnnotation], Manifest]:
         with tempfile.TemporaryDirectory() as tmp_dirname:
