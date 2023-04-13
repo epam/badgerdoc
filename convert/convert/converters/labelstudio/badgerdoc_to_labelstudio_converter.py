@@ -72,7 +72,7 @@ class BadgerdocToLabelstudioConverter:
         for page in pages:
             annotation = None
             if page.page_num in annotations:
-                annotation = (annotations[page.page_num],)
+                annotation = annotations[page.page_num]
             labelstudio = LabelStudioFormat()
             labelstudio.from_badgerdoc(
                 page,
