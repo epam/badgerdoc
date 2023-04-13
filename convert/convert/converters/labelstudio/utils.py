@@ -5,8 +5,6 @@ from .models.annotation import LabelStudioModel
 
 
 def combine(parts: List[LabelStudioModel]) -> LabelStudioModel:
-    import pprint
-    pprint.pprint([p.dict() for p in parts])
     combined_text = ""
     combined_annotations = []
 
