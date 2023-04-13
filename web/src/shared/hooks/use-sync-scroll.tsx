@@ -1,8 +1,9 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 
 interface SyncedContainerProps {
     className?: string;
     height?: number;
+    width?: number;
 }
 
 export interface SyncScrollValue {
@@ -10,14 +11,14 @@ export interface SyncScrollValue {
 }
 
 export default function useSyncScroll(): SyncScrollValue {
-    const syncedElements = useMemo(() => new Set<HTMLElement>(), []);
+    const syncedElements = useRef(new Set<HTMLElement>());
 
     const handleScroll = useCallback((event: Event) => {
         const target = event.target as HTMLElement;
         const scrollLeft = target.scrollLeft;
         const scrollTop = target.scrollTop;
 
-        for (const element of syncedElements) {
+        for (const element of syncedElements.current) {
             if (element !== target) {
                 element.scroll(scrollLeft, scrollTop);
             }
@@ -28,23 +29,23 @@ export default function useSyncScroll(): SyncScrollValue {
         if (!element) {
             return;
         }
-        syncedElements.add(element);
+        syncedElements.current.add(element);
         element.addEventListener('scroll', handleScroll);
 
         return () => {
-            syncedElements.delete(element);
+            syncedElements.current.delete(element);
             element.removeEventListener('scroll', handleScroll);
         };
     }, []);
 
     const SyncedContainer = useCallback<React.FC<SyncedContainerProps>>(
-        ({ children, className, height }) => {
+        ({ children, className, height, width }) => {
             const ref = useRef<HTMLDivElement | null>(null);
 
             useEffect(() => syncScroll(ref.current), []);
 
             return (
-                <div ref={ref} className={className} style={{ height: `${height}px` }}>
+                <div ref={ref} className={className} style={{ height, width }}>
                     {children}
                 </div>
             );
@@ -52,10 +53,7 @@ export default function useSyncScroll(): SyncScrollValue {
         []
     );
 
-    return useMemo(
-        () => ({
-            SyncedContainer
-        }),
-        []
-    );
+    return {
+        SyncedContainer
+    };
 }
