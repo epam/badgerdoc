@@ -50,14 +50,17 @@ class LabelStudioFormat:
             [self.form_token_text(obj) for obj in badgerdoc_tokens.objs]
         )
 
-        annotation = None
+        annotations = []
         if badgerdoc_annotations:
             objs = self.convert_annotation_from_bd(
                 badgerdoc_annotations, badgerdoc_tokens.objs, text
             )
             relations = self.convert_relation_from_bd(badgerdoc_annotations)
-            annotation = Annotation(
-                id=self.DEFAULT_ID_FOR_ONE_ANNOTATION, result=objs + relations
+            annotations.append(
+                Annotation(
+                    id=self.DEFAULT_ID_FOR_ONE_ANNOTATION,
+                    result=objs + relations,
+                )
             )
 
         meta = Meta()
@@ -65,7 +68,7 @@ class LabelStudioFormat:
             meta = self.form_meta(badgerdoc_manifest, request_headers)
 
         item = ModelItem(
-            annotations=[annotation],
+            annotations=annotations,
             predictions=[],
             data=Data(text=text),
             meta=meta,
