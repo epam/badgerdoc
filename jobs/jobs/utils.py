@@ -408,7 +408,7 @@ async def update_job_in_annotation(
     new_job_params_for_annotation: AnnotationJobUpdateParamsInAnnotation,
     current_tenant: str,
     jw_token: str,
-) -> None:
+) -> Dict[str, Any]:
     headers = {
         "X-Current-Tenant": current_tenant,
         "Authorization": f"Bearer: {jw_token}",
@@ -420,7 +420,7 @@ async def update_job_in_annotation(
         f" Headers={headers}, params sent = {json_data}"
     )
     try:
-        _, response = await fetch(
+        _, changed_params = await fetch(
             method="PATCH",
             url=f"{HOST_ANNOTATION}/jobs/{job_id}",
             headers=headers,
@@ -433,6 +433,7 @@ async def update_job_in_annotation(
             status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=f"Failed request to the Annotation Manager: {err}",
         )
+    return {key: value for key, value in changed_params.items() if value}
 
 
 async def get_job_progress(
