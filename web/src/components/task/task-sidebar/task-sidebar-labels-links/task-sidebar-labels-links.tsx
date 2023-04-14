@@ -21,7 +21,7 @@ import styles from './task-sidebar-labels-links.module.scss';
 type TaskSidebarLabelsLinksProps = {
     viewMode: boolean;
     jobId?: number;
-    onLabelsSelected: (labels: Label[], pickedLabels: string[]) => void;
+    onLabelsSelected: (labels: Label[]) => void;
     selectedLabels: Label[];
     documentLinks?: DocumentLinkWithName[];
     onRelatedDocClick: (documentId?: number) => void;
@@ -111,7 +111,7 @@ export const TaskSidebarLabelsLinks: FC<TaskSidebarLabelsLinksProps> = ({
                     viewMode={viewMode}
                     labels={categories}
                     onLabelsSelected={onLabelsSelected}
-                    selectedLabels={selectedLabels ?? []}
+                    selectedLabels={selectedLabels}
                     searchText={searchText}
                     setSearchText={setSearchText}
                 />

@@ -29,7 +29,11 @@ describe('AnnotationList', () => {
         selectedAnnotationId: 'first',
         onSelect: () => {},
         isEditable: false,
-        onLinkDeleted: () => {}
+        onLinkDeleted: () => {},
+        onLabelSelect: () => {},
+        onLabelDelete: () => {},
+        isOwner: false,
+        labels: []
     };
     it('Must select another annotation if selectedAnnotationId is changed', () => {
         const firstAnnotationRowId = `${ANNOTATION_FLOW_ITEM_ID_PREFIX}${firstAnnotation.id}`;

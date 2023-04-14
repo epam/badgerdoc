@@ -60,12 +60,10 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
     const {
         SyncedContainer,
         annotationsByUserId,
-        categoriesByUserId,
         currentPage,
         isSplitValidation,
         onSplitAnnotationSelected,
         userPages,
-        selectedLabels,
         selectedRelatedDoc,
         job,
         onEmptyAreaClick,
@@ -80,8 +78,6 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
 
     const [scale, setScale] = useState(0);
     const [originalPageSize, setOriginalPageSize] = useState<PageSize>();
-
-    const selectedLabelsId = selectedLabels?.map(({ id }) => id) || [];
 
     const getAnnotatorName = useCallback(
         (annotatorId: string): string => {
@@ -177,11 +173,7 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                                 key={user_id}
                                 className={styles['additional-pages-with-user-name']}
                             >
-                                <SplitAnnotatorInfo
-                                    annotatorName={getAnnotatorName(user_id)}
-                                    labels={categoriesByUserId[user_id]}
-                                    selectedLabelsId={selectedLabelsId}
-                                />
+                                <SplitAnnotatorInfo annotatorName={getAnnotatorName(user_id)} />
                                 <SyncedContainer
                                     className={cx(
                                         styles['split-document-page'],
