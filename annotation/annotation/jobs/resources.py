@@ -1,15 +1,7 @@
 from typing import Dict, List, Optional, Set, Union
 from uuid import UUID
 
-from fastapi import (
-    APIRouter,
-    Depends,
-    HTTPException,
-    Path,
-    Query,
-    Response,
-    status,
-)
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
 from filter_lib import Page
 from sqlalchemy import and_
 from sqlalchemy.orm import Session
@@ -40,6 +32,7 @@ from annotation.schemas import (
     FileStatusEnumSchema,
     JobFilesInfoSchema,
     JobInfoSchema,
+    JobPatchOutSchema,
     JobPatchSchema,
     JobProgressSchema,
     JobStatusEnumSchema,
@@ -205,7 +198,8 @@ def post_job(
 
 @router.patch(
     "/{job_id}",
-    status_code=status.HTTP_204_NO_CONTENT,
+    status_code=status.HTTP_200_OK,
+    response_model=JobPatchOutSchema,
     tags=[JOBS_TAG],
     responses={
         400: {"model": BadRequestErrorSchema},
@@ -219,10 +213,10 @@ def update_job(
     db: Session = Depends(get_db),
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
     token: TenantData = Depends(TOKEN),
-) -> Response:
+) -> JobPatchOutSchema:
     patch_data = update_query.dict(exclude_unset=True)
     if not patch_data:
-        return Response(status_code=status.HTTP_204_NO_CONTENT)
+        return JobPatchOutSchema()
     job = get_job(db, job_id, x_current_tenant)
     if not job.name:
         collect_job_names(db, [job_id], x_current_tenant, token.token)
@@ -276,7 +270,11 @@ def update_job(
     job.annotators = add_users(db, job.annotators, annotators_to_save)
     job.validators = add_users(db, job.validators, validators_to_save)
     db.commit()
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
+    return JobPatchOutSchema(
+        annotators={annotator.user_id for annotator in job.annotators},
+        validators={validator.user_id for validator in job.validators},
+        categories={category.id for category in job.categories},
+    )
 
 
 @router.get(

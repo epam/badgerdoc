@@ -253,12 +253,14 @@ async def change_job(
             new_job_params
         )
         if new_job_params_for_annotation.dict(exclude_defaults=True):
-            await utils.update_job_in_annotation(
+            changed_params = await utils.update_job_in_annotation(
                 job_id=job_id,
                 new_job_params_for_annotation=new_job_params_for_annotation,
                 current_tenant=current_tenant,
                 jw_token=jw_token,
             )
+            for field, value in changed_params.items():
+                setattr(new_job_params, field, value)
 
     is_job_changed = False
     if job_to_change.type == schemas.JobType.ExtractionWithAnnotationJob:

@@ -169,9 +169,7 @@ class JobInfoSchema(BaseModel):
         return values
 
 
-class JobPatchSchema(BaseModel):
-    callback_url: str = Field(None, example="http://jobs/jobs/1")
-    name: str = Field(None, example="job_name")
+class JobPatchOutSchema(BaseModel):
     annotators: Set[UUID] = Field(
         None,
         example={"f0474853-f733-41c0-b897-90b788b822e3"},
@@ -180,13 +178,18 @@ class JobPatchSchema(BaseModel):
         None,
         example={"b44156f8-e634-48a6-b5f3-c8b1462a2d67"},
     )
+    categories: Set[str] = Field(None, example={"1", "2"})
+
+
+class JobPatchSchema(JobPatchOutSchema):
+    callback_url: str = Field(None, example="http://jobs/jobs/1")
+    name: str = Field(None, example="job_name")
     owners: Set[UUID] = Field(
         None,
         example={"b44156f8-e634-48a6-b5f3-c8b1462a2d67"},
     )
     files: Set[int] = Field(None, example={1, 2, 3})
     datasets: Set[int] = Field(None, example={1, 2, 3})
-    categories: Set[str] = Field(None, example={"1", "2"})
     deadline: datetime = Field(None, example="2021-10-19 01:01:01")
     extensive_coverage: int = Field(None, example=1)
 
