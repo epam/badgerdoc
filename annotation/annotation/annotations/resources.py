@@ -419,8 +419,7 @@ def get_annotations_up_to_given_revision(
     user_id: Optional[UUID] = Query(
         None,
         example="1843c251-564b-4c2f-8d42-c61fdac369a1",
-        description="Required in case job validation type is extensive_"
-        "coverage",
+        description="Enables filtering relevant revisions by user_id",
     ),
 ):
     job: Job = db.query(Job).filter(Job.job_id == job_id).first()
@@ -434,8 +433,9 @@ def get_annotations_up_to_given_revision(
         AnnotatedDoc.file_id == file_id,
         AnnotatedDoc.tenant == x_current_tenant,
     ]
-    if job.validation_type == ValidationSchema.extensive_coverage:
+    if user_id:
         filters.append(AnnotatedDoc.user.in_((user_id, None)))
+
     revisions = (
         db.query(AnnotatedDoc)
         .filter(*filters)
