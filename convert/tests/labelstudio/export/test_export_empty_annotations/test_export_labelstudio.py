@@ -20,8 +20,7 @@ def test_annotation_converter_case_without_export_labelstudio():
         json={"data": []},
     )
     tokens_test = Page.parse_file(
-        TEST_FILES_DIR
-        / "badgerdoc/tokens/tokens_without_whitespaces.json"
+        TEST_FILES_DIR / "badgerdoc/tokens/tokens_without_whitespaces.json"
     )
     manifest_test = manifest.Manifest.parse_file(
         TEST_FILES_DIR / "badgerdoc/annotation/manifest.json"
@@ -29,8 +28,7 @@ def test_annotation_converter_case_without_export_labelstudio():
     annotations_test = (
         annotation_converter_practic.AnnotationConverterToTheory(
             annotation_practic.BadgerdocAnnotation.parse_file(
-                TEST_FILES_DIR
-                / "badgerdoc/annotation/annotations_empty.json"
+                TEST_FILES_DIR / "badgerdoc/annotation/annotations_empty.json"
             )
         ).convert()
     )

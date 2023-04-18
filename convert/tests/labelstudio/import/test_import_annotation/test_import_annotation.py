@@ -28,18 +28,16 @@ def test_annotation_converter() -> None:
         badgerdoc_format.export_tokens(tokens_test_path)
         tokens_test = json.loads(tokens_test_path.read_text())
 
-        tokens_etalon_path = (
-            TEST_FILES_DIR / "badgerdoc/tokens/1.json"
-        )
+        tokens_etalon_path = TEST_FILES_DIR / "badgerdoc/tokens/1.json"
         tokens_etalon = json.loads(tokens_etalon_path.read_text())
         assert tokens_test == tokens_etalon
 
         # test annotations
-        badgerdoc_format.badgerdoc_annotation = (
-            converter.badgerdoc_annotation
-        )
+        badgerdoc_format.badgerdoc_annotation = converter.badgerdoc_annotation
         annotations_test_path = Path(dir_name) / "annotations_test.json"
         badgerdoc_format.export_annotations(annotations_test_path)
         annotations_test = json.loads(annotations_test_path.read_text())
-        annotations_etalon = json.loads((TEST_FILES_DIR / "badgerdoc/annotation/fixed.json").read_text())
+        annotations_etalon = json.loads(
+            (TEST_FILES_DIR / "badgerdoc/annotation/fixed.json").read_text()
+        )
         assert annotations_test == annotations_etalon

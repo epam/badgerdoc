@@ -8,12 +8,13 @@ from convert.config import (
     DEFAULT_PDF_LINE_SPACING,
     DEFAULT_PDF_PAGE_WIDTH,
 )
+from convert.converters.base_format.badgerdoc import Badgerdoc
+from convert.converters.labelstudio.labelstudio_to_badgerdoc_converter import (
+    ConverterToBadgerdoc,
+)
 from convert.converters.text.text_to_tokens_converter import (
     TextToBadgerdocTokensConverter,
 )
-
-from convert.converters.labelstudio.labelstudio_to_badgerdoc_converter import ConverterToBadgerdoc
-from convert.converters.base_format.badgerdoc import Badgerdoc
 
 TEST_FILES_DIR = Path(__file__).parent / "data_text"
 

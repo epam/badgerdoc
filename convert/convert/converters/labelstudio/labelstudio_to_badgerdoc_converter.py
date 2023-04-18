@@ -225,11 +225,11 @@ class LabelstudioToBadgerdocConverter:
         self.upload_tokens(file_id_in_assets)
         self.upload_annotations(importjob_id_created, file_id_in_assets)
 
-    def upload_tokens(
-        self, file_id_in_assets: int
-    ) -> None:
+    def upload_tokens(self, file_id_in_assets: int) -> None:
         with tempfile.TemporaryDirectory() as tmp_dirname:
-            badgerdoc_tokens_path = Path(tmp_dirname) / self.BADGERDOC_TOKENS_FILENAME
+            badgerdoc_tokens_path = (
+                Path(tmp_dirname) / self.BADGERDOC_TOKENS_FILENAME
+            )
             s3_output_tokens_path = self.get_output_tokens_path(
                 file_id_in_assets
             )
@@ -244,7 +244,9 @@ class LabelstudioToBadgerdocConverter:
         self, importjob_id_created: int, file_id_in_assets: int
     ) -> None:
         with tempfile.TemporaryDirectory() as tmp_dirname:
-            badgerdoc_annotations_path = Path(tmp_dirname) / self.BADGERDOC_ANNOTATIONS_FILENAME
+            badgerdoc_annotations_path = (
+                Path(tmp_dirname) / self.BADGERDOC_ANNOTATIONS_FILENAME
+            )
             s3_output_annotations_path = self.get_output_annotations_path(
                 importjob_id_created, file_id_in_assets
             )
