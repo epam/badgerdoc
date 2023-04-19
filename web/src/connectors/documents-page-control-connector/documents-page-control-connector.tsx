@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState, useContext } from 'react';
+import React, { useCallback, useState, useContext } from 'react';
 import {
     Button,
     FlexRow,
@@ -7,7 +7,8 @@ import {
     SearchInput,
     PickerInput,
     Text,
-    MultiSwitch
+    MultiSwitch,
+    UploadFileToggler
 } from '@epam/loveship';
 import { useHistory } from 'react-router-dom';
 import { useArrayDataSource } from '@epam/uui';
@@ -50,6 +51,9 @@ export const DocumentsPageControlConnector = ({
         [isSearchPage]
     );
 
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const { notifyError, notifySuccess } = useNotifications();
+
     const {
         query,
         documentView,
@@ -63,49 +67,22 @@ export const DocumentsPageControlConnector = ({
     const isCard = documentView === 'card';
     const isTable = documentView === 'table';
 
-    const [isLoading, setIsLoading] = useState<boolean>(false);
-    const { notifyError, notifySuccess } = useNotifications();
-    const [filesMap, setFilesMap] = useState<Map<string, File>>(new Map([]));
+    const handleAddFiles = useCallback(async (files: File[]) => {
+        if (!files?.length) return;
 
-    const inputFileRef = useRef<HTMLInputElement>(null);
+        try {
+            setIsLoading(true);
+            const responses = await uploadFilesMutation.mutateAsync([...files]);
 
-    const onFileInputChange = (e: any) => {
-        onFilesAdded(e.target.files);
-    };
-
-    const onFilesAdded = useCallback(
-        (files: Array<File>) => {
-            const union = new Map(filesMap);
-            for (const file of files) {
-                if (!union.has(file.name)) {
-                    union.set(file.name, file);
-                }
+            for (const response of responses) {
+                notifySuccess(<Text>{response.message}</Text>);
             }
-            setFilesMap(union);
-        },
-        [filesMap]
-    );
-
-    useEffect(() => {
-        const handleFileChanged = async () => {
-            try {
-                setIsLoading(true);
-                const files = Array.from(filesMap.values());
-                const responses = await uploadFilesMutation.mutateAsync(files);
-                for (const response of responses) {
-                    notifySuccess(<Text>{response.message}</Text>);
-                }
-            } catch (error) {
-                notifyError(<Text>{getError(error)}</Text>);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        if (filesMap && filesMap.size) {
-            handleFileChanged();
+        } catch (error) {
+            notifyError(<Text>{getError(error)}</Text>);
+        } finally {
+            setIsLoading(false);
         }
-    }, [filesMap]);
+    }, []);
 
     return (
         <div className={styles['control-container']}>
@@ -114,21 +91,11 @@ export const DocumentsPageControlConnector = ({
                 <FlexSpacer />
                 <FlexRow>
                     <FlexRow padding="6">
-                        <input
-                            type="file"
-                            onChange={onFileInputChange}
-                            disabled={isLoading}
-                            ref={inputFileRef}
-                            style={{ display: 'none' }}
-                        />
-                        <Button
-                            caption="Upload"
-                            isDisabled={isLoading}
-                            onClick={() => {
-                                if (inputFileRef.current) {
-                                    inputFileRef.current.click();
-                                }
-                            }}
+                        <UploadFileToggler
+                            onFilesAdded={handleAddFiles}
+                            render={({ onClick }) => (
+                                <Button caption="Upload" isDisabled={isLoading} onClick={onClick} />
+                            )}
                         />
                     </FlexRow>
                     <FlexRow padding="6">

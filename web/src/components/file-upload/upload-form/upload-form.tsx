@@ -23,7 +23,7 @@ export const UploadForm: FC<UploadFormProps> = ({ onFilesAdded }) => {
                         onDragLeave={onDragLeave}
                         onDragOver={onDragOver}
                     >
-                        <Image></Image>
+                        <Image />
                         <Text
                             // it should be h4, that has styles exact to UI specification
                             font="sans-semibold"
@@ -60,7 +60,7 @@ export const UploadForm: FC<UploadFormProps> = ({ onFilesAdded }) => {
                                         files from your device
                                     </Text>
                                 )}
-                            ></UploadFileToggler>
+                            />
                         </Text>
                     </DropZone>
                 )}
