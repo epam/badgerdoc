@@ -11,6 +11,8 @@ import { getAnnotationElementId } from '../../utils/use-annotation-links';
 import styles from './box-annotation.module.scss';
 import { cx } from '@epam/uui';
 import { ANNOTATION_LABEL_ID_PREFIX } from 'shared/constants/annotations';
+import { getAnnotationLabelColors, isContrastColor } from 'shared/helpers/annotations';
+import { Resizer } from './resizer';
 
 type BoxAnnotationProps = {
     label?: string;
@@ -51,13 +53,13 @@ export const BoxAnnotation = ({
     const { x, y, width, height } = bound;
 
     const annStyle = {
-        left: x,
         top: y,
+        left: x,
         width: width,
-        height: height,
-        border: `2px ${color} solid`,
         color: color,
-        zIndex: isSelected ? 10 : 1
+        height: height,
+        zIndex: isSelected ? 10 : 1,
+        border: `2px ${color} solid`
     };
 
     const annotationClassNames = cx(styles.annotation, {
@@ -82,7 +84,7 @@ export const BoxAnnotation = ({
                 className={`${styles.label} ${
                     isEditable && isSelected ? styles.labelDraggable : ''
                 } ${ANNOTATION_LABEL_CLASS}`}
-                style={{ backgroundColor: color }}
+                style={getAnnotationLabelColors(color)}
                 id={`${ANNOTATION_LABEL_ID_PREFIX}${id}`}
             >
                 {label.split('.').pop()}
@@ -90,9 +92,9 @@ export const BoxAnnotation = ({
                     <IconButton
                         icon={closeIcon}
                         cx={styles.close}
-                        onClick={onCloseIconClick}
-                        color={'white'}
                         iconPosition={'right'}
+                        onClick={onCloseIconClick}
+                        color={isContrastColor(color) ? 'white' : 'night900'}
                     />
                 )}
             </span>
@@ -101,24 +103,3 @@ export const BoxAnnotation = ({
 };
 
 export const ANNOTATION_RESIZER_CLASS = 'resizer';
-
-const Resizer = ({ color }: { color: string }) => (
-    <>
-        <div
-            style={{ borderColor: color }}
-            className={`${styles.resizer} ${styles['top-left']} ${ANNOTATION_RESIZER_CLASS} top-left`}
-        />
-        <div
-            style={{ borderColor: color }}
-            className={`${styles.resizer} ${styles['top-right']} ${ANNOTATION_RESIZER_CLASS} top-right`}
-        />
-        <div
-            style={{ borderColor: color }}
-            className={`${styles.resizer} ${styles['bottom-left']} ${ANNOTATION_RESIZER_CLASS} bottom-left`}
-        />
-        <div
-            style={{ borderColor: color }}
-            className={`${styles.resizer} ${styles['bottom-right']} ${ANNOTATION_RESIZER_CLASS} bottom-right`}
-        />
-    </>
-);

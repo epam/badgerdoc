@@ -1,27 +1,15 @@
 import React, { FC } from 'react';
-import { Annotation } from 'shared';
-import { stringToRGBA } from 'shared/components/annotator/utils/string-to-rgba';
 import { ANNOTATION_FLOW_ITEM_ID_PREFIX } from 'shared/constants/annotations';
 import { ANNOTATION_PATH_SEPARATOR } from './constants';
 import { Text } from '@epam/loveship';
 import { cx } from '@epam/uui';
 
 import styles from './styles.module.scss';
-import { Link } from 'api/typings';
 import { Links } from './links';
+import { TAnnotationProps } from './types';
+import { getAnnotationLabelColors } from 'shared/helpers/annotations';
 
-export const AnnotationRow: FC<
-    Annotation & {
-        index: number;
-        incomingLinks?: Annotation['links'];
-        annotationNameById: Record<string, string>;
-        onSelect: (index: number) => void;
-        onSelectById: (id: Annotation['id']) => void;
-        selectedAnnotationId?: Annotation['id'];
-        isEditable: boolean;
-        onLinkDeleted: (pageNum: number, annotationId: Annotation['id'], link: Link) => void;
-    }
-> = ({
+export const AnnotationRow: FC<TAnnotationProps> = ({
     id,
     color = '',
     label = '',
@@ -46,13 +34,7 @@ export const AnnotationRow: FC<
             id={`${ANNOTATION_FLOW_ITEM_ID_PREFIX}${id}`}
             className={cx(styles.item, id === selectedAnnotationId && styles.selectedAnnotation)}
         >
-            <div
-                className={styles.label}
-                style={{
-                    color,
-                    backgroundColor: stringToRGBA(color, 0.2)
-                }}
-            >
+            <div className={styles.label} style={getAnnotationLabelColors(color)}>
                 <Text cx={styles.labelText} rawProps={{ 'data-testid': 'flow-label' }}>
                     {labelList[labelList.length - 1]}
                 </Text>
