@@ -27,7 +27,7 @@ export const getError = (error: any) => {
                 case DETAIL.ARRAY:
                     return error.details.detail[0].msg;
                 default:
-                    return proccedUnhandledType(detailType);
+                    return proceedUnhandledType(detailType);
             }
         }
 
@@ -39,15 +39,10 @@ export const getError = (error: any) => {
     }
 };
 
-const extractDetailType = (detail: any): DETAIL => {
-    const detailType = typeof detail as DETAIL;
-
-    if (detailType === 'object') {
-        return Array.isArray(detail) ? DETAIL.ARRAY : detailType;
-    }
-    return detailType;
+const extractDetailType = (detail: any) => {
+    return Array.isArray(detail) ? DETAIL.ARRAY : typeof detail;
 };
 
-const proccedUnhandledType = (x: never): never => {
-    throw new Error(`Unhandled type was used: ${x}`);
+const proceedUnhandledType = (dataType: string) => {
+    throw new Error(`Unhandled type was used: ${dataType}`);
 };

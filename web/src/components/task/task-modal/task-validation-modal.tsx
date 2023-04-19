@@ -16,24 +16,23 @@ import {
     RadioGroup,
     Text
 } from '@epam/loveship';
-import { FormSaveResponse, IFormApi, IModal, Metadata, useArrayDataSource } from '@epam/uui';
+import { IFormApi, IModal, Metadata, useArrayDataSource } from '@epam/uui';
 
 import { TUserShort } from '../../../api/typings';
 import styles from './task-modal.module.scss';
 import { TTaskUsers } from 'api/typings/tasks';
+import { DEFAULT_VALUES } from './constants';
 
 export interface TaskValidationValues {
     option_invalid?: string | null;
     option_edited?: string | null;
 }
 interface IProps extends IModal<TaskValidationValues> {
-    onSaveForm: (
-        formOption: TaskValidationValues
-    ) => Promise<FormSaveResponse<TaskValidationValues> | void>;
+    onSaveForm: (formOption: TaskValidationValues) => Promise<void>;
     allValid: boolean;
     invalidPages: number;
     editedPageCount: number;
-    validSave: () => void;
+    validSave: () => Promise<void>;
     allUsers: TTaskUsers;
     currentUser: string;
     isOwner: boolean;
@@ -49,7 +48,6 @@ export const FinishTaskValidationModal: FC<IProps> = (modalProps) => {
         allValid,
         abort,
         validSave,
-        success,
         onRedirectAfterFinish,
         onSaveForm
     } = modalProps;
@@ -57,11 +55,6 @@ export const FinishTaskValidationModal: FC<IProps> = (modalProps) => {
         allUsers.validators[0]?.id || allUsers.annotators[0]?.id
     );
     const [annotatorUserId, onAnnotatorUserIdChange] = useState(allUsers.annotators[0]?.id);
-
-    const [formOption] = useState<TaskValidationValues>({
-        option_invalid: null,
-        option_edited: null
-    });
 
     const annotatorsDataSource = useArrayDataSource<TUserShort, string, any>(
         {
@@ -72,19 +65,20 @@ export const FinishTaskValidationModal: FC<IProps> = (modalProps) => {
 
     const getMetaData = (): Metadata<TaskValidationValues> => ({
         props: {
-            option_invalid: { isRequired: !!invalidPages },
-            option_edited: { isRequired: !!editedPageCount }
+            option_invalid: { isRequired: Boolean(invalidPages) },
+            option_edited: { isRequired: Boolean(editedPageCount) }
         }
     });
 
     const handleConfirmValidation = async () => {
         await validSave();
-        success({ option_invalid: null });
+        abort();
         onRedirectAfterFinish();
     };
 
-    const handleSuccess = (formOption: TaskValidationValues) => {
-        success(formOption);
+    const handleSave = async (formValues: TaskValidationValues) => {
+        await onSaveForm(formValues);
+        abort();
         onRedirectAfterFinish();
     };
 
@@ -92,7 +86,7 @@ export const FinishTaskValidationModal: FC<IProps> = (modalProps) => {
         return (
             <>
                 <Panel>
-                    {!!invalidPages && (
+                    {Boolean(invalidPages) && (
                         <>
                             <FlexRow padding="24" vPadding="12">
                                 <FlexCell grow={1}>
@@ -133,7 +127,7 @@ export const FinishTaskValidationModal: FC<IProps> = (modalProps) => {
                             </FlexRow>
                         </>
                     )}
-                    {!!editedPageCount && (
+                    {Boolean(editedPageCount) && (
                         <>
                             <FlexRow padding="24" vPadding="12">
                                 <FlexCell grow={1}>
@@ -188,7 +182,7 @@ export const FinishTaskValidationModal: FC<IProps> = (modalProps) => {
                     />
                     <Button
                         color="grass"
-                        caption="Confirm validation and assigment"
+                        caption="Confirm validation and assignment"
                         onClick={save}
                     />
                 </div>
@@ -200,7 +194,6 @@ export const FinishTaskValidationModal: FC<IProps> = (modalProps) => {
             <ModalWindow>
                 <Panel background="white">
                     <ModalHeader title="Assign" onClose={abort} />
-
                     {allValid && (
                         <>
                             <FlexRow padding="24">
@@ -218,9 +211,8 @@ export const FinishTaskValidationModal: FC<IProps> = (modalProps) => {
                     )}
                     {!allValid && (
                         <Form<TaskValidationValues>
-                            value={formOption}
-                            onSave={onSaveForm}
-                            onSuccess={handleSuccess}
+                            value={DEFAULT_VALUES}
+                            onSave={handleSave}
                             renderForm={renderForm}
                             getMetadata={getMetaData}
                         />
