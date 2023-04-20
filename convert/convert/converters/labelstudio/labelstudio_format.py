@@ -63,7 +63,11 @@ class LabelStudioFormat:
                 )
             )
 
-        meta = self.form_meta(badgerdoc_manifest, request_headers) if badgerdoc_manifest else Meta()
+        meta = (
+            self.form_meta(badgerdoc_manifest, request_headers)
+            if badgerdoc_manifest
+            else Meta()
+        )
 
         item = ModelItem(
             annotations=annotations,

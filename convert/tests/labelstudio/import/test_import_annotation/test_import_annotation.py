@@ -8,7 +8,7 @@ from convert.converters.labelstudio.labelstudio_to_badgerdoc_converter import (
 )
 from convert.converters.labelstudio.models.annotation import LabelStudioModel
 
-TEST_FILES_DIR = Path(__file__).parent / "data_annotations"
+TEST_FILES_DIR = Path(__file__).parent / "data"
 
 
 def test_annotation_converter() -> None:

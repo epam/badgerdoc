@@ -10,7 +10,7 @@ from convert.converters.labelstudio.badgerdoc_to_labelstudio_converter import (
 )
 from convert.converters.labelstudio.models.annotation import LabelStudioModel
 
-TEST_FILES_DIR = Path(__file__).parent / "data_annotations_with_links"
+TEST_FILES_DIR = Path(__file__).parent / "data"
 
 
 @responses.activate
