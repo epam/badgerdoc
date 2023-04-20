@@ -1,40 +1,44 @@
 import json
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
-from convert.config import (
-    DEFAULT_PAGE_BORDER_OFFSET,
-    DEFAULT_PDF_FONT_HEIGHT,
-    DEFAULT_PDF_FONT_WIDTH,
-    DEFAULT_PDF_LINE_SPACING,
-    DEFAULT_PDF_PAGE_WIDTH,
-)
 from convert.converters.base_format.badgerdoc import Badgerdoc
 from convert.converters.labelstudio.labelstudio_to_badgerdoc_converter import (
     ConverterToBadgerdoc,
 )
-from convert.converters.text.text_to_tokens_converter import (
-    TextToBadgerdocTokensConverter,
-)
+from convert.converters.labelstudio.models.annotation import LabelStudioModel
 
-TEST_FILES_DIR = Path(__file__).parent / "data_text"
-
-INPUT_LABELSTUDIO_FILE = TEST_FILES_DIR / "input_text_field.json"
-BADGERDOC_TOKENS_FILE = TEST_FILES_DIR / "badgerdoc_tokens.json"
+TEST_FILES_DIR = Path(__file__).parent / "data"
 
 
-def test_plain_text_converter() -> None:
-    labelstudio_data = json.loads(INPUT_LABELSTUDIO_FILE.read_text())
-    converter = TextToBadgerdocTokensConverter(
-        page_width=DEFAULT_PDF_PAGE_WIDTH,
-        page_border_offset=DEFAULT_PAGE_BORDER_OFFSET,
-        font_height=DEFAULT_PDF_FONT_HEIGHT,
-        font_width=DEFAULT_PDF_FONT_WIDTH,
-        line_spacing=DEFAULT_PDF_LINE_SPACING,
-    )
-    tokens = converter.convert(labelstudio_data["text"])
-    expected_bd_tokens = json.loads(Path(BADGERDOC_TOKENS_FILE).read_text())
-
+def test_annotation_converter() -> None:
     badgerdoc_format = Badgerdoc()
-    badgerdoc_format.tokens_page = tokens
+    converter = ConverterToBadgerdoc()
+
+    ls_model = LabelStudioModel.parse_file(TEST_FILES_DIR / "labelstudio.json")
+    converter.to_badgerdoc(ls_model)
+    badgerdoc_format.tokens_page = converter.tokens_page
     badgerdoc_format.remove_non_printing_tokens()
-    assert tokens.dict(by_alias=True, exclude_none=True) == expected_bd_tokens
+    converter.tokens_page = badgerdoc_format.tokens_page
+    converter.to_badgerdoc_annotations(ls_model)
+    with TemporaryDirectory() as dir_name:
+        # test tokens
+        tokens_test_path = Path(dir_name) / "tokens_test.json"
+        # badgerdoc_format.tokens_page = converter.tokens_page
+        badgerdoc_format.export_tokens(tokens_test_path)
+        tokens_test = json.loads(tokens_test_path.read_text())
+
+        tokens_etalon_path = TEST_FILES_DIR / "badgerdoc_tokens.json"
+        tokens_etalon = json.loads(tokens_etalon_path.read_text())
+        assert tokens_test == tokens_etalon
+
+        # test annotations
+        badgerdoc_format.badgerdoc_annotation = converter.badgerdoc_annotation
+        annotations_test_path = Path(dir_name) / "annotations_test.json"
+        badgerdoc_format.export_annotations(annotations_test_path)
+        annotations_test = json.loads(annotations_test_path.read_text())
+        assert annotations_test == {
+            "size": {"width": 51.0, "height": 41.0},
+            "page_num": 1,
+            "objs": [],
+        }

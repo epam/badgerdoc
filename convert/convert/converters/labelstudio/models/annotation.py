@@ -98,7 +98,7 @@ class Meta(BaseModel):
 
 class ModelItem(BaseModel):
     id: int = 1
-    annotations: List[Annotation]
+    annotations: List[Annotation] = []
     file_upload: str = ""
     drafts: List = []
     predictions: List[int] = []
