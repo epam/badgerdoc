@@ -461,10 +461,6 @@ def distribute_whole_files(
     return tasks  # type: ignore
 
 
-class FilesForUserFoundException(Exception):
-    """Abort recursion function on first found combination"""
-
-
 def find_files_for_task(
     files: List[Dict[str, int]],
     pages_for_task: List[int],
@@ -490,39 +486,37 @@ def find_equal_files(
 ) -> List[Dict[str, int]]:
     """Find the same or combined files where the sum of the amount of pages
     equals the user load."""
-    files_pages = [x["pages_number"] for x in files if x["pages_number"]]
-    pages_for_task = []  # type: ignore
-    try:
-        find_pages_combination(files_pages, user_pages, pages_for_task)
-    except FilesForUserFoundException:
-        pass
+    file_pages = [x["pages_number"] for x in files if x["pages_number"]]
+    pages_for_task = get_page_number_combinations(file_pages, user_pages)
     return find_files_for_task(files, pages_for_task)
 
 
-def find_pages_combination(
-    files_pages: List[int],
+def get_page_number_combinations(
+    file_pages: List[int],
     user_pages: int,
-    pages_for_task: List[int],
-    combinations: List[int] = None,
-    combinations_sum: int = 0,
-) -> None:
+) -> List[int]:
     """Find the same or combined number of pages which sum is equal
-    to the user load (in pages number)."""
-    combinations = combinations or []
-    if combinations_sum == user_pages:
-        pages_for_task.extend(combinations)
-        raise FilesForUserFoundException
-    if combinations_sum > user_pages:
-        return
-    for index, file_pages in enumerate(files_pages):
-        remaining = files_pages[index + 1 :]
-        find_pages_combination(
-            remaining,
-            user_pages,
-            pages_for_task,
-            combinations + [file_pages],
-            combinations_sum + file_pages,
+    to the user load (in page numbers)"""
+    stack, combination_result = [(file_pages, [], 0)], []
+    while stack:
+        remaining, combinations, combinations_sum = stack.pop()
+        if combinations_sum == user_pages:
+            combination_result.extend(combinations)
+            break
+        if combinations_sum > user_pages or not remaining:
+            continue
+
+        file_page = remaining[0]
+        remaining = remaining[1:]
+        stack.append(
+            (
+                remaining,
+                combinations + [file_page],
+                combinations_sum + file_page,
+            )
         )
+        stack.append((remaining, combinations, combinations_sum))
+    return combination_result
 
 
 def create_tasks(
