@@ -1,9 +1,10 @@
 import React, { FC, useState } from 'react';
-import styles from './train-model-setting.module.scss';
-import { FlexRow, LabeledInput, PickerInput, TextInput } from '@epam/loveship';
-import { ILens, useArrayDataSource } from '@epam/uui';
 import { mapUndefString } from '../../../shared/helpers/utils';
-import { ModelValues } from 'connectors/add-model-connector/add-model-connector';
+import { ModelValues } from '../model.models';
+
+import { ILens, useArrayDataSource } from '@epam/uui';
+import { FlexRow, LabeledInput, PickerInput, TextInput } from '@epam/loveship';
+import styles from './train-model-setting.module.scss';
 
 export type AddModelSettingsProps = {
     lens: ILens<ModelValues>;

@@ -1,8 +1,10 @@
-import { LabeledInput, PickerInput } from '@epam/loveship';
-import { ILens, useArrayDataSource } from '@epam/uui';
-import { Basement } from 'api/typings';
-import { ModelValues } from 'connectors/add-model-connector/add-model-connector';
 import React, { FC } from 'react';
+
+import { Basement } from 'api/typings';
+import { ModelValues } from '../model.models';
+
+import { ILens, useArrayDataSource } from '@epam/uui';
+import { LabeledInput, PickerInput } from '@epam/loveship';
 
 type BasementPickerProps = {
     lens: ILens<ModelValues>;
