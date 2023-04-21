@@ -86,6 +86,8 @@ services:
   annotation:
     image: badgerdoc_annotation
     container_name: annotation
+    env_file:
+      - .env
     environment:
       - ROOT_PATH=/annotation
     networks:
