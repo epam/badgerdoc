@@ -163,8 +163,6 @@ const EditModelConnector: FC<EditModelConnectorProps> = ({ onModelEdited, onErro
             }
         };
 
-        console.log(model);
-
         try {
             const response = await editModelMutation.mutateAsync(model);
             values.id = response.id;
