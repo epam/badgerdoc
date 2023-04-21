@@ -45,7 +45,7 @@ class LabelStudioFormat:
         badgerdoc_annotations: Optional[BadgerdocAnnotation],
         badgerdoc_manifest: Optional[Manifest],
         request_headers: Dict[str, str],
-    ):
+    ) -> None:
         text = "".join(
             [self.form_token_text(obj) for obj in badgerdoc_tokens.objs]
         )
@@ -83,6 +83,8 @@ class LabelStudioFormat:
         badgerdoc_manifest: Optional[Manifest],
         request_headers: Dict[str, str],
     ) -> Meta:
+        if not badgerdoc_manifest:
+            return Meta()
         document_links = (
             self.convert_document_links_from_bd(badgerdoc_manifest)
             if badgerdoc_manifest
@@ -105,9 +107,9 @@ class LabelStudioFormat:
             categories_linked_with_taxonomies,
         )
 
-        categories_to_taxonomy_mapping = self.create_categories_to_taxonomy_mapping(  # noqa
+        categories_to_taxonomy_mapping = self.create_categories_to_taxonomy_mapping(
             job_id=job_id,
-            categories_linked_with_taxonomies=categories_linked_with_taxonomies,  # noqa
+            categories_linked_with_taxonomies=categories_linked_with_taxonomies,
             request_headers=request_headers,
         )
         return Meta(
@@ -132,7 +134,7 @@ class LabelStudioFormat:
             end = cls.get_end_offset(tokens, obj.tokens)
             tokens_text = text[start:end]
             item = ResultItem(
-                id=obj.id,
+                id=str(obj.id),
                 from_name="label",
                 to_name="text",
                 type="labels",
@@ -144,14 +146,16 @@ class LabelStudioFormat:
                     labels=[obj.category],
                 ),
             )
-            if obj.data.dataAttributes:
-                item.value.taxons = [
-                    obj.data.dataAttributes[0]["value"],
-                ]
+            if obj.data and obj.data.dataAttributes:
+                if item.value:
+                    item.value.taxons = [
+                        obj.data.dataAttributes[0]["value"],
+                    ]
             else:
-                item.value.taxons = [
-                    None,
-                ]
+                if item.value:
+                    item.value.taxons = [
+                        None,
+                    ]
 
             result_items.append(item)
         return result_items
@@ -180,8 +184,8 @@ class LabelStudioFormat:
                 continue
             for link in obj.links:
                 item = ResultItem(
-                    from_id=obj.id,
-                    to_id=link.to,
+                    from_id=str(obj.id),
+                    to_id=str(link.to),
                     type="relation",
                     direction=self.form_link_direction(),
                     labels=[link.category_id],
@@ -206,7 +210,7 @@ class LabelStudioFormat:
         # TODO: add logic for transformation link from badgerdoc format
         return "right"
 
-    def export_json(self, path: Path):
+    def export_json(self, path: Path) -> None:
         path.write_text(self.labelstudio_data.json())
 
     @staticmethod
@@ -294,8 +298,11 @@ class LabelStudioFormat:
         ]
 
     def create_categories_to_taxonomy_mapping(
-        self, job_id, categories_linked_with_taxonomies, request_headers
-    ):
+        self,
+        job_id: int,
+        categories_linked_with_taxonomies: List[str],
+        request_headers: Dict[str, str],
+    ) -> Dict[str, Dict[str, str]]:
         result = {}
         for category_id in categories_linked_with_taxonomies:
             taxonomy_objs = self.get_corresponding_taxonomy_obj(
@@ -346,7 +353,9 @@ class LabelStudioFormat:
             "Got this response from taxonomy service: %s", response_content
         )
 
-        result = {taxonomy_id: [] for taxonomy_id in all_taxonomies_ids_used}
+        result: Dict[str, Any] = {
+            taxonomy_id: [] for taxonomy_id in all_taxonomies_ids_used
+        }
         for taxon_obj in response_content["data"]:
             taxonomy_id_of_taxon = taxon_obj["taxonomy_id"]
             result[taxonomy_id_of_taxon].append(taxon_obj["id"])

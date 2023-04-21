@@ -6,7 +6,7 @@ import boto3
 from botocore.client import BaseClient
 from dotenv import load_dotenv
 from mypy_extensions import KwArg, VarArg
-from pydantic import BaseSettings, Field
+from pydantic import BaseSettings
 from requests import Session
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
@@ -36,7 +36,7 @@ class Settings(BaseSettings):
     s3_credentials_provider: Optional[str] = os.getenv(
         "S3_CREDENTIALS_PROVIDER", "minio"
     )
-    uploading_limit: int = Field(100, env="UPLOADING_LIMIT")
+    uploading_limit: int = int(os.getenv("UPLOADING_LIMIT", 100))
     coco_image_format: str = "jpg"
     dpi: int = 300
     root_path: str = os.environ.get("ROOT_PATH", "")
@@ -98,7 +98,7 @@ class NotConfiguredException(Exception):
     pass
 
 
-def create_boto3_config():
+def create_boto3_config() -> Dict[str, Optional[str]]:
     boto3_config = {}
     if settings.s3_credentials_provider == "minio":
         boto3_config.update(

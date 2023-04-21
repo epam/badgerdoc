@@ -36,7 +36,7 @@ class Badgerdoc:
             )
 
     def export_pdf(self, path: Path) -> None:
-        if not self.pdf_renderer:
+        if not self.pdf_renderer or not self.tokens_page:
             return
         self.pdf_renderer.render_tokens(self.tokens_page.objs, path)
 
@@ -46,5 +46,8 @@ class Badgerdoc:
     def import_annotations(self, path: Path) -> None:
         self.badgerdoc_annotation = BadgerdocAnnotation.parse_file(path)
 
-    def remove_non_printing_tokens(self):
-        self.tokens_page.objs = filter_printing_tokens(self.tokens_page.objs)
+    def remove_non_printing_tokens(self) -> None:
+        if self.tokens_page:
+            self.tokens_page.objs = filter_printing_tokens(
+                self.tokens_page.objs
+            )

@@ -46,8 +46,8 @@ class TextToBadgerdocConverter:
         s3_input_text: S3Path,
     ) -> str:
         with tempfile.TemporaryDirectory() as tmp_dirname:
-            tmp_dirname = Path(tmp_dirname)
-            input_file = tmp_dirname / Path(s3_input_text.path).name
+            tmp_dir = Path(tmp_dirname)
+            input_file = tmp_dir / Path(s3_input_text.path).name
 
             self.s3_client.download_file(
                 s3_input_text.bucket,
@@ -62,9 +62,9 @@ class TextToBadgerdocConverter:
         s3_output_pdf: S3Path,
     ) -> None:
         with tempfile.TemporaryDirectory() as tmp_dirname:
-            tmp_dirname = Path(tmp_dirname)
+            tmp_dir = Path(tmp_dirname)
 
-            badgerdoc_tokens_path = tmp_dirname / Path("badgerdoc_tokens.json")
+            badgerdoc_tokens_path = tmp_dir / Path("badgerdoc_tokens.json")
             self.badgerdoc_format.export_tokens(badgerdoc_tokens_path)
             self.s3_client.upload_file(
                 str(badgerdoc_tokens_path),

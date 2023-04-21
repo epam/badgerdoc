@@ -6,7 +6,7 @@ metadata:
   labels:
     app: convert
   name: convert
-  namespace: {{ .Release.Namespace }}
+  namespace: "{{ .Release.Namespace }}"
 spec:
   progressDeadlineSeconds: 600
   replicas: 1
@@ -28,7 +28,7 @@ spec:
         app: convert
     spec:
       containers:
-      - image: {{ .Values.image.registry }}/convert:{{ .Values.image.tag }}
+      - image: "{{ .Values.image.registry }}/convert:{{ .Values.image.tag }}"
         imagePullPolicy: IfNotPresent
         name: convert
         resources:

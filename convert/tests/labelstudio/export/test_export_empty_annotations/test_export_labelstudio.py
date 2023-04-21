@@ -5,15 +5,13 @@ import responses
 from convert.converters.base_format.models import annotation_practic, manifest
 from convert.converters.base_format.models.tokens import Page
 from convert.converters.labelstudio import annotation_converter_practic
-from convert.converters.labelstudio.badgerdoc_to_labelstudio_converter import (
-    LabelStudioFormat,
-)
+from convert.converters.labelstudio.labelstudio_format import LabelStudioFormat
 
 TEST_FILES_DIR = Path(__file__).parent / "data"
 
 
 @responses.activate
-def test_annotation_converter_case_without_export_labelstudio():
+def test_annotation_converter_case_without_export_labelstudio() -> None:
     responses.post(
         "http://dev2.badgerdoc.com/api/v1/annotation/"
         "jobs/1070/categories/search",

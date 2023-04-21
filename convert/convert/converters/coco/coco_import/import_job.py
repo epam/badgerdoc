@@ -3,10 +3,9 @@ from typing import Any, Dict
 from uuid import uuid4
 
 from convert.config import get_request_session, settings
+from convert.converters.coco.coco_import.import_service import import_run
+from convert.converters.coco.models.coco import DataS3
 from convert.logger import get_logger
-
-from ..models.coco import DataS3
-from .import_service import import_run
 
 LOGGER = get_logger(__file__)
 
