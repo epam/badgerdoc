@@ -3,10 +3,12 @@ import { Switch, Route, useRouteMatch, Redirect, useHistory } from 'react-router
 import { ModelsTableConnector } from 'connectors/models-table-connector';
 import AddModelConnector from '../../connectors/add-model-connector/add-model-connector';
 import { svc } from '../../services';
-import { INotification } from '@epam/uui';
-import { ErrorNotification, SuccessNotification, Text } from '@epam/loveship';
 import { ModelPage } from '../model/model-page';
 import { getError } from '../../shared/helpers/get-error';
+import EditModelConnector from '../../connectors/edit-model-connector/edit-model-connector';
+
+import { INotification } from '@epam/uui';
+import { ErrorNotification, SuccessNotification, Text } from '@epam/loveship';
 
 const ModelsPage = () => {
     const history = useHistory();
@@ -43,6 +45,7 @@ const ModelsPage = () => {
             { duration: 2 }
         );
     }, [handleModelAdded]);
+
     return (
         <Switch>
             <Route exact path={path}>
@@ -50,6 +53,9 @@ const ModelsPage = () => {
             </Route>
             <Route path={`${path}/add`}>
                 <AddModelConnector onModelAdded={handleSuccess} onError={handleError} />
+            </Route>
+            <Route path={`${path}/:modelId/:modelVer/edit`}>
+                <EditModelConnector onModelEdited={handleSuccess} onError={handleError} />
             </Route>
             <Route path={`${path}/:modelId/:modelVer`}>
                 <ModelPage />
