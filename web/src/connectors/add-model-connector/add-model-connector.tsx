@@ -1,40 +1,23 @@
 import React, { FC, useCallback, useState } from 'react';
 import AddModelSettings from 'components/model/add-model-settings/add-model-settings';
 import AddModelData from 'components/model/add-model-data/add-model-data';
-import { Form, IFormApi } from '@epam/uui';
 import { useAddModelMutation, useModels } from 'api/hooks/models';
 import { useCategories } from 'api/hooks/categories';
-import { Basement, Category, Model, SortingDirection } from 'api/typings';
+import { Model, SortingDirection } from 'api/typings';
 import { useBasements } from 'api/hooks/basements';
-import { Job } from 'api/typings/jobs';
 import Wizard, {
     renderWizardButtons,
     WizardPropsStep
 } from 'shared/components/wizard/wizard/wizard';
 import { MODELS_PAGE } from 'shared/constants/general';
+import { ModelValues } from '../../components/model/model.models';
+
+import { Form, IFormApi } from '@epam/uui';
 import wizardStyles from '../../shared/components/wizard/wizard/wizard.module.scss';
 
 type AddModelConnectorProps = {
     onModelAdded: () => void;
     onError: (err: any) => void;
-};
-
-export type ModelValues = {
-    baseModel?: Model;
-    name: string | undefined;
-    basement: Basement | undefined;
-    categories: Category[] | undefined;
-    id: string;
-    score: string | undefined;
-    status?: string;
-    type: string | undefined;
-    tenant?: string | undefined;
-    training_id?: number | undefined;
-    configuration_path_file?: string | undefined;
-    configuration_path_bucket?: string | undefined;
-    data_path_file?: string | undefined;
-    data_path_bucket?: string | undefined;
-    jobs: Job[] | undefined;
 };
 
 const initialValues: ModelValues = {
@@ -142,7 +125,7 @@ const AddModelConnector: FC<AddModelConnectorProps> = ({ onModelAdded, onError }
             ];
             return <Wizard steps={steps} returnUrl={MODELS_PAGE} stepIndex={stepIndex} />;
         },
-        [stepIndex]
+        [stepIndex, basements]
     );
 
     const handleSave = useCallback(async (values: ModelValues) => {
