@@ -193,11 +193,13 @@ class LabelStudioFormat:
     def convert_document_links_from_bd(
         manifest: Manifest,
     ) -> List[DocumentRelation]:
-        return [
-            # converting from a model with same attributes
-            DocumentRelation(**document_link.dict())
-            for document_link in manifest.links_json
-        ]
+        if manifest.links_json:
+            return [
+                # converting from a model with same attributes
+                DocumentRelation(**document_link.dict())
+                for document_link in manifest.links_json
+            ]
+        return []
 
     @staticmethod
     def form_link_direction() -> str:
