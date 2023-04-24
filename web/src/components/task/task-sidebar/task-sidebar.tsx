@@ -603,6 +603,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
                         onFinishValidation={onFinishValidation}
                         onAnnotationTaskFinish={onAnnotationTaskFinish}
                         onFinishSplitValidation={onFinishSplitValidation}
+                        onSaveTask={onSaveTask}
                         jobType={job?.validation_type}
                         taskStatus={task?.status}
                     />

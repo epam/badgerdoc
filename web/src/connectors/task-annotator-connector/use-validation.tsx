@@ -128,6 +128,7 @@ export const useValidation = ({
             return {};
         }
     };
+
     useEffect(() => {
         if (pages) {
             setValidPages(pages.validated);

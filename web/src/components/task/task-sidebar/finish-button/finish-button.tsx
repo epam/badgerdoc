@@ -21,6 +21,7 @@ type TaskSidebarProps = {
     onFinishValidation: () => void;
     onAnnotationTaskFinish: () => void;
     onFinishSplitValidation: () => void;
+    onSaveTask: () => void;
     jobType?: ValidationType;
     taskStatus?: TaskStatus;
 };
@@ -38,6 +39,7 @@ export const FinishButton: FC<TaskSidebarProps> = ({
     onFinishValidation,
     onAnnotationTaskFinish,
     onFinishSplitValidation,
+    onSaveTask,
     jobType
 }) => {
     const [redirectionSettings, setRedirectionSettings] = useState(
@@ -81,7 +83,16 @@ export const FinishButton: FC<TaskSidebarProps> = ({
                     isDisabled={isDisabled}
                     cx={styles['button-finish']}
                     caption={isValidation ? 'FINISH VALIDATION' : 'FINISH LABELING'}
-                    onClick={isValidation ? handleFinishValidation : onAnnotationTaskFinish}
+                    onClick={
+                        isValidation
+                            ? () => {
+                                  console.log('fb handleFinish');
+                                  // TODO: del onSaveTask after BE will be ready (issue #569)
+                                  onSaveTask();
+                                  handleFinishValidation();
+                              }
+                            : onAnnotationTaskFinish
+                    }
                 />
             </Tooltip>
             {isNextTaskPresented && (

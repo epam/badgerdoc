@@ -869,13 +869,28 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             return;
         }
 
+        const getPages = (): PageInfo[] => {
+            // TODO: uncommented after BE will be ready (issue #569)
+            // if (task?.is_validation && splitValidation.isSplitValidation) {
+            //     return pages;
+            // } else {
+            //     console.log('else');
+
+            //     return validationValues.validPages.length || validationValues.invalidPages.length
+            //         ? []
+            //         : pages;
+            // }
+
+            // TODO: del after BE will be ready (issue #569)
+            return validationValues.validPages.length || validationValues.invalidPages.length
+                ? []
+                : pages;
+        };
+
         try {
             await addAnnotationMutation.mutateAsync({
                 taskId,
-                pages:
-                    validationValues.validPages.length || validationValues.invalidPages.length
-                        ? []
-                        : pages,
+                pages: getPages(),
                 userId: task.user_id,
                 revision,
                 validPages: validationValues.validPages,
@@ -891,6 +906,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             onSaveTaskError(error as ApiError);
         }
     };
+
     const tokensByPages = useMemo<Record<number, PageToken[]>>(() => {
         if (!tokenPages?.length) {
             return {};
