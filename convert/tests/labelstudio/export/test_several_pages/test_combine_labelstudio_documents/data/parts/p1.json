@@ -1,0 +1,90 @@
+[
+  {
+    "id": 1,
+    "annotations": [
+      {
+        "id": 1,
+        "completed_by": null,
+        "result": [
+          {
+            "value": {
+              "start": 0,
+              "end": 4,
+              "text": "1 p1",
+              "labels": [
+                "text"
+              ],
+              "taxons": [
+                null
+              ]
+            },
+            "id": "1681124602988",
+            "from_name": "label",
+            "to_name": "text",
+            "type": "labels",
+            "origin": "manual",
+            "from_id": null,
+            "to_id": null,
+            "direction": null,
+            "labels": null
+          },
+          {
+            "value": {
+              "start": 10,
+              "end": 12,
+              "text": "56",
+              "labels": [
+                "text"
+              ],
+              "taxons": [
+                null
+              ]
+            },
+            "id": "1681124627218",
+            "from_name": "label",
+            "to_name": "text",
+            "type": "labels",
+            "origin": "manual",
+            "from_id": null,
+            "to_id": null,
+            "direction": null,
+            "labels": null
+          }
+        ],
+        "was_cancelled": false,
+        "ground_truth": false,
+        "created_at": null,
+        "updated_at": null,
+        "lead_time": 0,
+        "prediction": null,
+        "result_count": 0,
+        "task": 1,
+        "parent_prediction": null,
+        "parent_annotation": null
+      }
+    ],
+    "file_upload": "",
+    "drafts": [],
+    "predictions": [],
+    "data": {
+      "text": "1 p1 w12345678"
+    },
+    "meta": {
+      "labels": [],
+      "relations": [],
+      "categories_to_taxonomy_mapping": {}
+    },
+    "created_at": null,
+    "updated_at": null,
+    "inner_id": 1,
+    "total_annotations": null,
+    "cancelled_annotations": null,
+    "total_predictions": 0,
+    "comment_count": 0,
+    "unresolved_comment_count": 0,
+    "last_comment_updated_at": null,
+    "project": 1,
+    "updated_by": 1,
+    "comment_authors": []
+  }
+]

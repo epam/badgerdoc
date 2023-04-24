@@ -25,6 +25,8 @@ import { PageSize } from 'shared/components/document-pages/document-pages';
 import { mapModifiedAnnotationPagesToApi } from './task-annotator-utils';
 
 import { useUuiContext } from '@epam/uui';
+import { showError } from 'shared/components/notifications';
+import { getError } from 'shared/helpers/get-error';
 
 export type ValidationParams = {
     latestAnnotationsResult: UseQueryResult<AnnotationsResponse, unknown>;
@@ -103,21 +105,26 @@ export const useValidation = ({
 
     const { data: pages } = useGetValidatedPages(
         { taskId: task?.id, taskType: task?.is_validation },
-        { enabled: !!task }
+        { enabled: Boolean(task) }
     );
+
     const finishTaskMutation = useSetTaskFinishedMutation();
-    const onSaveForm = async (formOptions: TaskValidationValues) => {
-        if (task && (formOptions.option_invalid || formOptions.option_edited)) {
+
+    const onSaveForm = async ({ option_edited, option_invalid }: TaskValidationValues) => {
+        if (!task || (!option_invalid && !option_edited)) return;
+
+        try {
             await finishTaskMutation.mutateAsync({
                 taskId: task?.id,
                 options: {
-                    option_edited: formOptions.option_edited,
-                    option_invalid: formOptions.option_invalid
+                    option_edited,
+                    option_invalid
                 }
             });
 
             await useSetTaskState({ id: task?.id, eventType: 'closed' });
-            return { form: formOptions };
+        } catch (error) {
+            showError(getError(error));
         }
     };
 
@@ -125,7 +132,6 @@ export const useValidation = ({
         if (task) {
             await finishTaskMutation.mutateAsync({ taskId: task?.id });
             await useSetTaskState({ id: task?.id, eventType: 'closed' });
-            return {};
         }
     };
 

@@ -1,5 +1,8 @@
 from typing import Optional
 
+from fastapi import APIRouter, Depends, Header, status
+from tenant_dependency import TenantData, get_tenant_info
+
 from convert.config import minio_client, settings
 from convert.converters.labelstudio.badgerdoc_to_labelstudio_converter import (
     BadgerdocToLabelstudioConverter,
@@ -11,8 +14,6 @@ from convert.models.labelstudio import (
     BadgerdocToLabelStudioRequest,
     LabelStudioRequest,
 )
-from fastapi import APIRouter, Depends, Header, status
-from tenant_dependency import TenantData, get_tenant_info
 
 router = APIRouter(prefix="/labelstudio", tags=["labelstudio"])
 tenant = get_tenant_info(
@@ -50,17 +51,16 @@ def import_labelstudio(
 )
 def export_labelstudio(
     request: BadgerdocToLabelStudioRequest,
-    current_tenant: Optional[str] = Header(None, alias="X-Current-Tenant"),
+    current_tenant: str = Header(None, alias="X-Current-Tenant"),
     token_data: TenantData = Depends(tenant),
 ) -> None:
-    bd_to_labelstudio_use_case = BadgerdocToLabelstudioConverter(
+    bd_to_labelstudio_converter = BadgerdocToLabelstudioConverter(
         s3_client=minio_client,
         current_tenant=current_tenant,
         token_data=token_data,
     )
-    bd_to_labelstudio_use_case.execute(
+    bd_to_labelstudio_converter.execute(
         s3_input_tokens=request.input_tokens,
-        s3_input_annotations=request.input_annotation,
         s3_input_manifest=request.input_manifest,
         s3_output_annotation=request.output_annotation,
     )

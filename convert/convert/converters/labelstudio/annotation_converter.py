@@ -155,9 +155,7 @@ class AnnotationConverter:
         badgerdoc_tokens: BadgerdocTokensPage,
     ) -> Tuple[List[int], List[float]]:
         badgerdoc_annotation_token_indexes = self.find_badgerdoc_tokens(
-            offset_begin,
-            offset_end,
-            badgerdoc_tokens
+            offset_begin, offset_end, badgerdoc_tokens
         )
         bbox = self.form_common_bbox(
             [
@@ -168,14 +166,18 @@ class AnnotationConverter:
         return badgerdoc_annotation_token_indexes, bbox
 
     def find_badgerdoc_tokens(
-            self,
-            labelstudio_offset_begin: int,
-            labelstudio_offset_end: int,
-            badgerdoc_tokens: BadgerdocTokensPage
-        ) -> List[int]:
+        self,
+        labelstudio_offset_begin: int,
+        labelstudio_offset_end: int,
+        badgerdoc_tokens: BadgerdocTokensPage,
+    ) -> List[int]:
         ids = []
         for token_id, token in enumerate(badgerdoc_tokens.objs):
-            if labelstudio_offset_begin <= token.offset.begin <= labelstudio_offset_end:
+            if (
+                labelstudio_offset_begin
+                <= token.offset.begin
+                <= labelstudio_offset_end
+            ):
                 ids.append(token_id)
         return ids
 

@@ -8,7 +8,7 @@ from convert.converters.labelstudio.labelstudio_to_badgerdoc_converter import (
 )
 from convert.converters.labelstudio.models.annotation import LabelStudioModel
 
-TEST_FILES_DIR = Path(__file__).parent / "data_annotations_with_links"
+TEST_FILES_DIR = Path(__file__).parent / "data"
 
 
 def test_import_document_links() -> None:
@@ -21,18 +21,14 @@ def test_import_document_links() -> None:
     badgerdoc_format.remove_non_printing_tokens()
     converter.tokens_page = badgerdoc_format.tokens_page
     converter.to_badgerdoc_annotations(ls_model)
-    badgerdoc_format.badgerdoc_annotation = (
-        converter.badgerdoc_annotation
-    )
+    badgerdoc_format.badgerdoc_annotation = converter.badgerdoc_annotation
     with TemporaryDirectory() as dir_name:
         # test tokens
         tokens_test_path = Path(dir_name) / "tokens_test.json"
         badgerdoc_format.export_tokens(tokens_test_path)
         tokens_test = json.loads(tokens_test_path.read_text())
 
-        tokens_etalon_path = (
-            TEST_FILES_DIR / "badgerdoc/tokens/1.json"
-        )
+        tokens_etalon_path = TEST_FILES_DIR / "badgerdoc/tokens/1.json"
         tokens_etalon = json.loads(tokens_etalon_path.read_text())
         assert tokens_test == tokens_etalon
 
@@ -40,5 +36,7 @@ def test_import_document_links() -> None:
         annotations_test_path = Path(dir_name) / "annotations_test.json"
         badgerdoc_format.export_annotations(annotations_test_path)
         annotations_test = json.loads(annotations_test_path.read_text())
-        annotations_etalon = json.loads((TEST_FILES_DIR / "badgerdoc/annotation/fixed.json").read_text())
+        annotations_etalon = json.loads(
+            (TEST_FILES_DIR / "badgerdoc/annotation/fixed.json").read_text()
+        )
         assert annotations_test == annotations_etalon

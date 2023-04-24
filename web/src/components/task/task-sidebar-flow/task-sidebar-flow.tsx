@@ -9,7 +9,6 @@ import { ReactComponent as closeIcon } from '@epam/assets/icons/common/navigatio
 import { ReactComponent as openIcon } from '@epam/assets/icons/common/navigation-chevron-right_right-18.svg';
 
 import styles from './styles.module.scss';
-import { ValidationType } from 'api/typings';
 
 export const FlowSideBar: FC = () => {
     const [currentTab, setCurrentTab] = useState(OWNER_TAB.id);
@@ -19,14 +18,15 @@ export const FlowSideBar: FC = () => {
     });
 
     const {
+        onLinkDeleted,
+        isSplitValidation,
         annotationsByUserId,
         setSelectedAnnotation,
+        job: { annotators } = {},
         setCurrentDocumentUserId,
-        onLinkDeleted,
         currentDocumentUserId = OWNER_TAB.id,
         allAnnotations: allAnnotationsByPageNum = {},
-        selectedAnnotation: { id: selectedAnnotationId } = {},
-        job: { annotators, validation_type: validationType } = {}
+        selectedAnnotation: { id: selectedAnnotationId } = {}
     } = useTaskAnnotatorContext();
 
     useEffect(() => {
@@ -67,7 +67,7 @@ export const FlowSideBar: FC = () => {
         [OWNER_TAB.id]: allSortedAnnotations
     };
 
-    const isTabsShown = validationType === ValidationType.extensiveCoverage && tabs.length > 1;
+    const isTabsShown = isSplitValidation && tabs.length > 1;
 
     return (
         <Panel cx={styles.wrapper}>

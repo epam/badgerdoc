@@ -34,7 +34,9 @@ class PDFToBadgerdocConverter:
             self.s3_client.download_file(
                 s3_input_pdf.bucket, s3_input_pdf.path, input_file
             )
-            self.badgerdoc_format.tokens_pages = PlainPDFToBadgerdocTokensConverter().convert(input_file)
+            self.badgerdoc_format.tokens_pages = (
+                PlainPDFToBadgerdocTokensConverter().convert(input_file)
+            )
 
     def upload_badgerdoc_to_s3(self, s3_output_tokens) -> None:
         with tempfile.TemporaryDirectory() as tmp_dirname:

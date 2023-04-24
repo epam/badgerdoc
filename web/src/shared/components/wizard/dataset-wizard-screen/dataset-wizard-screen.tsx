@@ -5,11 +5,12 @@ import { DatasetPicker } from 'components/dataset-picker/dataset-picker';
 import React, { useEffect, useState, FC } from 'react';
 import { useEntity } from 'shared/hooks/use-entity';
 import styles from './dataset-wizard-screen.module.scss';
+import { DataSetOptions } from './constants';
 
 export type DatasetWizardScreenResult = {
     datasetName?: string;
     selectedDataset?: Dataset;
-    optionId: number;
+    optionId: DataSetOptions;
 };
 
 type DatasetWizardScreenProps = {
@@ -19,7 +20,7 @@ type DatasetWizardScreenProps = {
 export const DatasetWizardScreen: FC<DatasetWizardScreenProps> = ({ onChange }) => {
     const [selectedDataset, setDataset] = useState<Dataset>();
     const [datasetName, setDatasetName] = useState<string>();
-    const [optionId, setOptionId] = useState<number>(1);
+    const [optionId, setOptionId] = useState<DataSetOptions>(DataSetOptions.noDataSet);
     const { dataSource } = useEntity<Dataset, Dataset>(datasetsFetcher);
 
     useEffect(() => {
@@ -35,12 +36,16 @@ export const DatasetWizardScreen: FC<DatasetWizardScreenProps> = ({ onChange }) 
                 You might add files to dataset later.
             </div>
             <div className="form-group">
-                <RadioInput value={optionId == 1} onValueChange={() => setOptionId(1)} label="No" />
+                <RadioInput
+                    value={optionId == DataSetOptions.noDataSet}
+                    onValueChange={() => setOptionId(DataSetOptions.noDataSet)}
+                    label="No"
+                />
             </div>
             <div className="form-group">
                 <RadioInput
-                    value={optionId == 2}
-                    onValueChange={() => setOptionId(2)}
+                    value={optionId === DataSetOptions.existingDataSet}
+                    onValueChange={() => setOptionId(DataSetOptions.existingDataSet)}
                     label="Existing dataset"
                 />
                 <div className={styles['input-wrapper']}>
@@ -48,14 +53,14 @@ export const DatasetWizardScreen: FC<DatasetWizardScreenProps> = ({ onChange }) 
                         onDatasetSelect={setDataset}
                         dataSource={dataSource}
                         dataset={selectedDataset}
-                        disable={optionId !== 2}
+                        disable={optionId !== DataSetOptions.existingDataSet}
                     />
                 </div>
             </div>
             <div className="form-group">
                 <RadioInput
-                    value={optionId == 3}
-                    onValueChange={() => setOptionId(3)}
+                    value={optionId === DataSetOptions.newDataSet}
+                    onValueChange={() => setOptionId(DataSetOptions.newDataSet)}
                     label="New dataset"
                 />
                 <div className={styles['input-wrapper']}>
@@ -63,7 +68,7 @@ export const DatasetWizardScreen: FC<DatasetWizardScreenProps> = ({ onChange }) 
                         value={datasetName}
                         onValueChange={setDatasetName}
                         placeholder="Dataset name"
-                        isDisabled={optionId !== 3}
+                        isDisabled={optionId !== DataSetOptions.newDataSet}
                     />
                 </div>
             </div>

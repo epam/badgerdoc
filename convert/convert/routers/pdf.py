@@ -1,9 +1,10 @@
+from fastapi import APIRouter, status
+
 from convert.config import minio_client
 from convert.converters.pdf.pdf_to_badgerdoc_converter import (
     PDFToBadgerdocConverter,
 )
 from convert.models.pdf import PdfRequest
-from fastapi import APIRouter, status
 
 router = APIRouter(prefix="/pdf", tags=["pdf"])
 

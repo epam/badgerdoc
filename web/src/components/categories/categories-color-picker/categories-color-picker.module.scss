@@ -1,21 +1,38 @@
-@import "../../../pallete";
+@import '../../../pallete';
 .activate-checkbox-parent {
-  margin: 10px 0;
+    margin: 10px 0;
 }
 
 .color-picker-panel {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
 
-  &_box {
-    margin-left: 5px;
-    width: 36px;
-    height: 36px;
-    border: 1px solid $border_default;
-  }
+    &_box {
+        margin-left: 5px;
+        width: 36px;
+        height: 36px;
+        border: 1px solid $border_default;
+    }
 
-  &_button {
-    flex-grow: 2;
-  }
+    &_button {
+        flex-grow: 2;
+    }
+}
+
+.invalid {
+    border: 1px solid red;
+}
+
+.color-list {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 4px;
+    padding: 4px;
+}
+
+.color-cell {
+    cursor: pointer;
+    width: 16px;
+    height: 16px;
 }
