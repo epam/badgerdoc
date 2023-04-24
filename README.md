@@ -5,7 +5,7 @@ managers and ML team. The primary goal of the platform is to visualize ML model 
 model training and result visualization.
 
 The platform has rich functionality in access and data management, annotation setups, and pipeline composition.
-Access management is based on Keycloak, which is integrated with EPAM Active Directory.
+Access management is based on Keycloak, which is integrated with Active Directory.
 Data can be uploaded in batches, organized into datasets as well as uploaded as a single file.
 ML pipeline can be applied to a dataset, which will trigger batch processing, or to a single document.
 BadgerDoc is capable of annotating large datasets by many annotators. It has algorithms for task distribution,
