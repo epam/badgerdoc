@@ -9,7 +9,7 @@ from convert.converters.labelstudio.badgerdoc_to_labelstudio_converter import (
     LabelStudioFormat,
 )
 
-TEST_FILES_DIR = Path(__file__).parent / "data_with_empty_annotations"
+TEST_FILES_DIR = Path(__file__).parent / "data"
 
 
 @responses.activate

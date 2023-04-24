@@ -40,7 +40,12 @@ def test_correctness_of_import_text_schema(
     )
     monkeypatch.setattr(
         LabelstudioToBadgerdocConverter,
-        "upload",
+        "upload_tokens",
+        lambda *args, **kw: ...,
+    )
+    monkeypatch.setattr(
+        LabelstudioToBadgerdocConverter,
+        "upload_annotations",
         lambda *args, **kw: ...,
     )
     monkeypatch.setattr(

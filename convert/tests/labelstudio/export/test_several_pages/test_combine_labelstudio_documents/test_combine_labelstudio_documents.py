@@ -5,7 +5,7 @@ import responses
 from convert.converters.labelstudio.models.annotation import LabelStudioModel
 from convert.converters.labelstudio.utils import combine
 
-TEST_FILES_DIR = Path(__file__).parent / "data_for_combination"
+TEST_FILES_DIR = Path(__file__).parent / "data"
 
 
 @responses.activate
