@@ -86,7 +86,6 @@ export const FinishButton: FC<TaskSidebarProps> = ({
                     onClick={
                         isValidation
                             ? () => {
-                                  console.log('fb handleFinish');
                                   // TODO: del onSaveTask after BE will be ready (issue #569)
                                   onSaveTask();
                                   handleFinishValidation();
