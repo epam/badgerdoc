@@ -1,10 +1,11 @@
 import React, { FC, useState } from 'react';
-import { MultiSwitch } from '@epam/loveship';
-import styles from './add-model-data.module.scss';
 import TrainModel from '../train-model/train-model';
 import UseExistingDataModel from '../use-existing-data-model/use-existing-data-model';
+import { ModelValues } from '../model.models';
+
 import { ILens } from '@epam/uui';
-import { ModelValues } from 'connectors/add-model-connector/add-model-connector';
+import { MultiSwitch } from '@epam/loveship';
+import styles from './add-model-data.module.scss';
 
 export type AddModelDataProps = {
     lens: ILens<ModelValues>;

@@ -1,6 +1,4 @@
-import { DataTable, Panel } from '@epam/loveship';
 import React, { FC, useEffect, useMemo, useRef } from 'react';
-import { ILens, useArrayDataSource, useLazyDataSource } from '@epam/uui';
 import {
     FilterWithDocumentExtraOption,
     Operators,
@@ -15,7 +13,10 @@ import { jobColumns } from './jobs-columns';
 import { Job } from 'api/typings/jobs';
 import { createPagingCachedLoader } from 'shared/helpers/create-paging-cached-loader';
 import { useColumnPickerFilter } from 'shared/components/filters/column-picker';
-import { ModelValues } from 'connectors/add-model-connector/add-model-connector';
+import { ModelValues } from '../model.models';
+
+import { ILens, useArrayDataSource, useLazyDataSource } from '@epam/uui';
+import { DataTable, Panel } from '@epam/loveship';
 
 type JobsTableConnectorProps = {
     lens: ILens<ModelValues>;

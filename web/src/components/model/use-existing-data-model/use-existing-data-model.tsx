@@ -1,9 +1,10 @@
 import React, { FC, useState } from 'react';
-import styles from './use-existing-data-model.module.scss';
-import { FlexRow, LabeledInput, TextInput } from '@epam/loveship';
 import { mapUndefString } from '../../../shared/helpers/utils';
+import { ModelValues } from '../model.models';
+
 import { ILens } from '@epam/uui';
-import { ModelValues } from 'connectors/add-model-connector/add-model-connector';
+import { FlexRow, LabeledInput, TextInput } from '@epam/loveship';
+import styles from './use-existing-data-model.module.scss';
 
 export type AddModelSettingsProps = {
     lens: ILens<ModelValues>;

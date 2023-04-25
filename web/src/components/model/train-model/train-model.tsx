@@ -1,9 +1,10 @@
 import React, { FC } from 'react';
-import styles from './train-model.module.scss';
 import TrainModelSetting from '../train-model-setting/train-model-setting';
 import TrainModelJob from '../train-model-job/train-model-job';
+import { ModelValues } from '../model.models';
+
 import { ILens } from '@epam/uui';
-import { ModelValues } from 'connectors/add-model-connector/add-model-connector';
+import styles from './train-model.module.scss';
 
 export type AddModelSettingsProps = {
     lens: ILens<ModelValues>;

@@ -1,12 +1,14 @@
 import React, { FC, useEffect } from 'react';
 
-import { FlexRow, LabeledInput, TextInput } from '@epam/loveship';
-import { ILens } from '@epam/uui';
 import { Basement, Category, Model } from 'api/typings';
-import { ModelValues } from 'connectors/add-model-connector/add-model-connector';
+
 import CategoriesPicker from 'shared/components/categories-picker/categories-picker';
 import BasementPicker from '../basement-picker/basement-picker';
 import ModelPicker from '../model-picker/model-picker';
+import { ModelValues } from '../model.models';
+
+import { FlexRow, LabeledInput, Spinner, TextInput } from '@epam/loveship';
+import { ILens } from '@epam/uui';
 
 export type AddModelSettingsProps = {
     categories: Category[] | undefined;
@@ -21,6 +23,8 @@ export const AddModelSettings: FC<AddModelSettingsProps> = ({
     basements,
     models
 }) => {
+    if (!basements) return <Spinner color="sky" />;
+
     useEffect(() => {
         const baseModel = lens.prop('baseModel').toProps().value;
 
@@ -42,6 +46,7 @@ export const AddModelSettings: FC<AddModelSettingsProps> = ({
                 baseModel,
                 name: baseModel.name,
                 id: baseModel.id,
+                version: baseModel.version,
                 jobs: undefined
             };
             lens.toProps().value = newModel;

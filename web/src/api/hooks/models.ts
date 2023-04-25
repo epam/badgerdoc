@@ -15,6 +15,7 @@ import {
 import { useBadgerFetch } from './api';
 import { useMutation, useQuery, useQueryClient } from 'react-query';
 import { pageSizes } from '../../shared';
+import { getError } from '../../shared/helpers/get-error';
 
 const namespace = process.env.REACT_APP_MODELS_API_NAMESPACE;
 const preprocessingNamespace = process.env.REACT_APP_TOKENS_API_NAMESPACE;
@@ -47,6 +48,69 @@ export function addModel(data: Model): Promise<Model> {
         method: 'post',
         withCredentials: true
     })(JSON.stringify(data));
+}
+
+export function deployModel(id: string): Promise<{ [key: string]: string }> {
+    const body = {
+        id
+    };
+    return useBadgerFetch<{ [key: string]: string }>({
+        url: `${namespace}/models/deploy`,
+        method: 'post',
+        withCredentials: true
+    })(JSON.stringify(body));
+}
+
+export function editModel(data: Model): Promise<Model> {
+    const body = { ...data };
+    // TODO: replace this hardcode with real data (update UI issue 572)
+    body.description = 'New model';
+    return useBadgerFetch<Model>({
+        url: `${namespace}/models/update`,
+        method: 'put',
+        withCredentials: true
+    })(JSON.stringify(body));
+}
+
+export const useEditModelMutation: MutationHookType<Model, Model> = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation(editModel, {
+        onSuccess: () => {
+            queryClient.invalidateQueries('models');
+        }
+    });
+};
+
+function undeployModel(id: string): Promise<{ [key: string]: string }> {
+    const body = {
+        id
+    };
+    return useBadgerFetch<{ [key: string]: string }>({
+        url: `${namespace}/models/undeploy`,
+        method: 'delete',
+        withCredentials: true
+    })(JSON.stringify(body));
+}
+
+function deleteUndeployedModel(id: string): Promise<{ [key: string]: string }> {
+    const body = {
+        id
+    };
+    return useBadgerFetch<{ [key: string]: string }>({
+        url: `${namespace}/models/delete`,
+        method: 'delete',
+        withCredentials: true
+    })(JSON.stringify(body));
+}
+
+export async function undeployAndDeleteModel(id: string): Promise<void> {
+    try {
+        await undeployModel(id);
+        await deleteUndeployedModel(id);
+    } catch (error) {
+        console.error(`Failed to undeploy model: ${getError(error)}`);
+    }
 }
 
 export const useAddModelMutation: MutationHookType<Model, Model> = () => {
@@ -99,7 +163,7 @@ export const useModels: QueryHookType<UseModelsParamsType, PagedResponse<Model>>
     );
 };
 
-export function modelsFetcher(
+function modelsFetcher(
     page = 1,
     size = pageSizes._15,
     searchText?: string | null,
@@ -136,6 +200,7 @@ type ModelByIdParams = {
     modelId: string;
     modelVer?: number;
 };
+
 export const useModelById: QueryHookType<ModelByIdParams, Model> = (
     { modelId, modelVer },
     options

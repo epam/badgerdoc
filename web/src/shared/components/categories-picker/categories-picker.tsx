@@ -1,10 +1,11 @@
-import { LabeledInput, PickerInput } from '@epam/loveship';
-import { ILens, useArrayDataSource } from '@epam/uui';
+import React, { FC } from 'react';
 import { Category } from 'api/typings';
 import { JobValues } from 'connectors/edit-job-connector/edit-job-connector';
-import { ModelValues } from 'connectors/add-model-connector/add-model-connector';
-import React, { FC } from 'react';
 import { InfoIcon } from '../info-icon/info-icon';
+import { ModelValues } from '../../../components/model/model.models';
+
+import { ILens, useArrayDataSource } from '@epam/uui';
+import { LabeledInput, PickerInput } from '@epam/loveship';
 
 type CategoriesPickerProps = {
     lens: ILens<JobValues | ModelValues>;
