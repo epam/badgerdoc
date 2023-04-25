@@ -23,7 +23,12 @@
 
     &__right-block {
         height: 30px;
+        gap: 12px;
         display: flex;
         justify-content: right;
     }
+}
+
+.next-button {
+    min-width: 51px !important;
 }

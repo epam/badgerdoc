@@ -53,51 +53,51 @@ export const BoxAnnotation = ({
     const { x, y, width, height } = bound;
 
     const annStyle = {
+        width,
+        color,
+        height,
         top: y,
         left: x,
-        width: width,
-        color: color,
-        height: height,
-        zIndex: isSelected ? 10 : 1,
-        border: `2px ${color} solid`
+        border: `2px ${color} solid`,
+        zIndex: isSelected || isHovered ? 10 : 1
     };
 
-    const annotationClassNames = cx(styles.annotation, {
-        [styles.selected]: isSelected || isHovered
+    const annotationLabelClassNames = cx(styles.label, ANNOTATION_LABEL_CLASS, {
+        [styles.labelDraggable]: isEditable && isSelected
     });
 
     return (
         <div
             role="none"
+            style={annStyle}
             onClick={onClick}
-            onDoubleClick={onDoubleClick}
-            onContextMenu={onContextMenu}
+            ref={annotationRef}
             onMouseEnter={onMouseEnter}
             onMouseLeave={onMouseLeave}
-            className={annotationClassNames}
-            style={annStyle}
-            ref={annotationRef}
+            onDoubleClick={onDoubleClick}
+            onContextMenu={onContextMenu}
+            className={styles.annotation}
             id={getAnnotationElementId(page, id)}
         >
             {isSelected && isEditable && <Resizer color={color} />}
-            <span
-                className={`${styles.label} ${
-                    isEditable && isSelected ? styles.labelDraggable : ''
-                } ${ANNOTATION_LABEL_CLASS}`}
-                style={getAnnotationLabelColors(color)}
-                id={`${ANNOTATION_LABEL_ID_PREFIX}${id}`}
-            >
-                {label.split('.').pop()}
-                {isEditable && (
-                    <IconButton
-                        icon={closeIcon}
-                        cx={styles.close}
-                        iconPosition={'right'}
-                        onClick={onCloseIconClick}
-                        color={isContrastColor(color) ? 'white' : 'night900'}
-                    />
-                )}
-            </span>
+            {(isSelected || isHovered) && (
+                <span
+                    className={annotationLabelClassNames}
+                    style={getAnnotationLabelColors(color)}
+                    id={`${ANNOTATION_LABEL_ID_PREFIX}${id}`}
+                >
+                    {label.split('.').pop()}
+                    {isEditable && (
+                        <IconButton
+                            icon={closeIcon}
+                            cx={styles.close}
+                            iconPosition={'right'}
+                            onClick={onCloseIconClick}
+                            color={isContrastColor(color) ? 'white' : 'night900'}
+                        />
+                    )}
+                </span>
+            )}
         </div>
     );
 };

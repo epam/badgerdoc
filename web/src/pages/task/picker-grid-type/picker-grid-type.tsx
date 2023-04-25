@@ -48,9 +48,11 @@ export const PickGridType: FC<{ value: GridVariants; onChange: (value: GridVaria
 
     return (
         <PickerInput
-            valueType="id"
-            value={value}
+            size="30"
             disableClear
+            value={value}
+            valueType="id"
+            searchPosition="none"
             selectionMode="single"
             dataSource={dataSource}
             renderRow={renderUserRow}

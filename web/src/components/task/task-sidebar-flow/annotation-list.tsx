@@ -1,5 +1,5 @@
 import React, { FC, useEffect, useMemo, useRef, useState } from 'react';
-import { Button, FlexRow, Text } from '@epam/loveship';
+import { Accordion, Button, FlexRow, Text } from '@epam/loveship';
 import { AnnotationRow } from './annotation';
 import { Annotation } from 'shared';
 import {
@@ -13,15 +13,30 @@ import { ReactComponent as goNextIcon } from '@epam/assets/icons/common/navigati
 import { ReactComponent as goPrevIcon } from '@epam/assets/icons/common/navigation-chevron-up-18.svg';
 import { ReactComponent as goFirstIcon } from '@epam/assets/icons/common/navigation-chevron-up_up-18.svg';
 import { collectIncomingLinks } from './utils';
-import { Link } from 'api/typings';
+import { Label, Link } from 'api/typings';
+import { LabelRow } from './label-row';
 
 export const AnnotationList: FC<{
     list: Annotation[];
     isEditable: boolean;
+    labels: Label[];
     selectedAnnotationId?: Annotation['id'];
     onLinkDeleted: (pageNum: number, annotationId: Annotation['id'], link: Link) => void;
     onSelect: (annotation: Annotation) => void;
-}> = ({ list, selectedAnnotationId, onSelect, onLinkDeleted, isEditable }) => {
+    onLabelSelect: (label: Label) => void;
+    onLabelDelete: (label: Label) => void;
+    isOwner: boolean;
+}> = ({
+    list,
+    labels,
+    isOwner,
+    isEditable,
+    selectedAnnotationId,
+    onSelect,
+    onLinkDeleted,
+    onLabelSelect,
+    onLabelDelete
+}) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const [selectedIndex, setSelectedIndex] = useState<number>(0);
     const [isSelectedInCurrentView, setIsSelectedInCurrentView] = useState<boolean>(false);
@@ -118,6 +133,20 @@ export const AnnotationList: FC<{
                     </Text>
                 )}
             </FlexRow>
+            {!labels.length ? null : (
+                <Accordion title={`Labels (${labels.length})`} mode="inline" cx={styles.labelList}>
+                    {labels.map((label) => (
+                        <LabelRow
+                            key={label.id}
+                            label={label}
+                            isOwner={isOwner}
+                            isEditable={isEditable}
+                            onClick={onLabelSelect}
+                            onDelete={onLabelDelete}
+                        />
+                    ))}
+                </Accordion>
+            )}
             <div className={styles.listContainer} ref={containerRef}>
                 {list.map((annotation, index) => (
                     <AnnotationRow

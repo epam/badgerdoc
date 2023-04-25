@@ -144,8 +144,8 @@ type ContextValue = SplitValidationValue &
         selectedToolParams: PaperToolParams;
         setSelectedToolParams: (nt: PaperToolParams) => void;
         setSelectedAnnotation: (annotation: Annotation | undefined) => void;
-        selectedLabels?: Label[];
-        onLabelsSelected: (labels: Label[], pickedLabels: string[]) => void;
+        selectedLabels: Label[];
+        onLabelsSelected: (labels: Label[]) => void;
         setSelectedLabels: (labels: Label[]) => void;
         latestLabelsId: string[];
         isDocLabelsModified: boolean;
@@ -458,22 +458,18 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         setSelectedCategory(category);
     };
 
-    const onLabelsSelected = (labels: Label[], pickedLabels: string[]) => {
-        if (!Array.isArray(labels)) return;
+    const onLabelsSelected = useCallback(
+        (labels: Label[]) => {
+            if (!Array.isArray(labels)) return;
 
-        const currentLabelsId = labels.map((label) => label.id);
-        const isDocLabelsModifiedNewVal = !isEqual(latestLabelsId, currentLabelsId);
+            const currentLabelsId = labels.map((label) => label.id);
+            const isDocLabelsModifiedNewVal = !isEqual(latestLabelsId, currentLabelsId);
 
-        setIsDocLabelsModified(isDocLabelsModifiedNewVal);
-
-        setSelectedLabels((prev) => {
-            const combinedLabels = [...prev, ...labels];
-            const arrayUniqueByKey = [
-                ...new Map(combinedLabels.map((item) => [item['id'], item])).values()
-            ].filter((label) => pickedLabels.includes(label.id));
-            return arrayUniqueByKey;
-        });
-    };
+            setIsDocLabelsModified(isDocLabelsModifiedNewVal);
+            setSelectedLabels(labels);
+        },
+        [latestLabelsId]
+    );
 
     const onLinkSelected = (link: Link) => {
         setSelectedLink(link);

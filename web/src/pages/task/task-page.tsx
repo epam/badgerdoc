@@ -95,12 +95,15 @@ const TaskPage: FC = () => {
                         <DocumentScale scale={additionalScale} onChange={setAdditionalScale} />
                     </div>
                     <div className={styles['title__right-block']}>
-                        <PickGridType value={gridVariant} onChange={setGridVariant} />
+                        <div>
+                            <PickGridType value={gridVariant} onChange={setGridVariant} />
+                        </div>
                         {nextTaskId && (
                             <Button
                                 size="30"
                                 fill="white"
                                 caption="Next"
+                                cx={styles['next-button']}
                                 onClick={handleRedirectToNextTask}
                             />
                         )}
