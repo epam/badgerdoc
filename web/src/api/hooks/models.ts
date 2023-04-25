@@ -63,7 +63,7 @@ export function deployModel(id: string): Promise<{ [key: string]: string }> {
 
 export function editModel(data: Model): Promise<Model> {
     const body = { ...data };
-    // TODO: replace this hardcode with real data (update UI)
+    // TODO: replace this hardcode with real data (update UI issue 572)
     body.description = 'New model';
     return useBadgerFetch<Model>({
         url: `${namespace}/models/update`,
