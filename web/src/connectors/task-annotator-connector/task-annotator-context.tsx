@@ -870,8 +870,6 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             // if (task?.is_validation && splitValidation.isSplitValidation) {
             //     return pages;
             // } else {
-            //     console.log('else');
-
             //     return validationValues.validPages.length || validationValues.invalidPages.length
             //         ? []
             //         : pages;
