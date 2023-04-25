@@ -359,7 +359,9 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         currentPage,
         selectionType,
         allAnnotations,
-        (prevPage, links, annId) => selectedAnnotation && onAnnotationEdited(prevPage, annId, links)
+        (prevPage, links, annId) =>
+            selectedAnnotation && onAnnotationEdited(prevPage, annId, links),
+        setSelectedCategory
     );
     const createAnnotation = (
         pageNum: number,

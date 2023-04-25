@@ -20,13 +20,12 @@ import {
     AnnotationBoundMode,
     AnnotationBoundType,
     AnnotationImageToolType,
-    AnnotationLinksBoundType,
-    Maybe
+    AnnotationLinksBoundType
 } from 'shared';
 import { Status } from 'shared/components/status';
 import { mapStatusForValidationPage } from 'shared/helpers/map-statuses';
 import { ValidationPageStatus } from 'api/typings/tasks';
-import { Category, Label } from '../../../api/typings';
+import { Label } from '../../../api/typings';
 import { ImageToolsParams } from './image-tools-params';
 import { CategoriesTab } from 'components/categories/categories-tab/categories-tab';
 import { useLinkTaxonomyByCategoryAndJobId } from 'api/hooks/taxons';
@@ -74,7 +73,6 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
         isCategoryDataEmpty,
         onValidClick,
         onInvalidClick,
-        onCategorySelected,
         onSaveTask,
         onAnnotationTaskFinish,
         onEditClick,
@@ -136,10 +134,6 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
         {}
     );
 
-    const getFirstCategory = (boundMode: AnnotationBoundMode): Maybe<Category[]> => {
-        return categories?.filter((el) => el.type === boundMode);
-    };
-
     useEffect(() => {
         let newSelectionType:
             | AnnotationBoundType
@@ -150,7 +144,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
                 newSelectionType = 'box';
                 break;
             case 'link':
-                newSelectionType = 'Chain';
+                newSelectionType = AnnotationLinksBoundType.chain;
                 break;
             case 'segmentation':
                 newSelectionType = 'polygon';
@@ -159,10 +153,6 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
                 break;
             default:
                 newSelectionType = 'free-box';
-        }
-        const cats = getFirstCategory(boundModeSwitch);
-        if (cats) {
-            onCategorySelected(cats[0] as Category);
         }
         onChangeSelectionType(newSelectionType);
     }, [boundModeSwitch]);
