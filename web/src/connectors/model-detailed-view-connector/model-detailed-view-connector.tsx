@@ -22,11 +22,11 @@ export const ModelDetailedViewConnector: React.FC<ModelDetailViewProps> = ({
 
     const { data: model } = useModelById({ modelId, modelVer }, {});
 
-    // TODO: fix hooks - the hook is currently not working correctly with the server
+    // TODO: fix hooks - the hook is currently not working correctly with the server (issue 571)
     // const { data: training } = useModelTraining({ trainingId: model?.training_id || 1 }, {});
     const training = {};
 
-    // TODO: fix hooks - the hook is currently not working correctly with the server
+    // TODO: fix hooks - the hook is currently not working correctly with the server (issue 571)
     // const { data: deployment } = useModelDeployment({ modelName: model?.name || '' }, {});
     const deployment = {};
 

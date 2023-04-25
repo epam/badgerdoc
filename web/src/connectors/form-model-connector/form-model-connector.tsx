@@ -1,7 +1,7 @@
 import React, { FC, useCallback, useState } from 'react';
-import EditModelSettings from 'components/model/add-model-settings/add-model-settings';
-import EditModelData from 'components/model/add-model-data/add-model-data';
-import { useEditModelMutation, useModels } from 'api/hooks/models';
+import AddModelSettings from 'components/model/add-model-settings/add-model-settings';
+import AddModelData from 'components/model/add-model-data/add-model-data';
+import { useAddModelMutation, useEditModelMutation, useModels } from 'api/hooks/models';
 import { useCategories } from 'api/hooks/categories';
 import { Model, SortingDirection } from 'api/typings';
 import { useBasements } from 'api/hooks/basements';
@@ -10,37 +10,34 @@ import Wizard, {
     WizardPropsStep
 } from 'shared/components/wizard/wizard/wizard';
 import { MODELS_PAGE } from 'shared/constants/general';
-import { ModelValues } from '../../components/model/model.models';
+import { ModelValues, ActionTypeEnum } from '../../components/model/model.models';
 
 import { Form, IFormApi } from '@epam/uui';
 import wizardStyles from '../../shared/components/wizard/wizard/wizard.module.scss';
 
-type EditModelConnectorProps = {
-    onModelEdited: () => void;
+type FormModelConnectorProps = {
+    onModelSubmit: () => void;
     onError: (err: any) => void;
+    actionType: ActionTypeEnum;
 };
 
 const initialValues: ModelValues = {
-    name: undefined,
-    basement: undefined,
-    categories: undefined,
-    id: '',
-    score: undefined,
-    type: undefined,
-    training_id: undefined,
-    configuration_path_file: undefined,
-    configuration_path_bucket: undefined,
-    data_path_file: undefined,
-    data_path_bucket: undefined,
-    jobs: undefined
+    id: ''
 };
 
-const EditModelConnector: FC<EditModelConnectorProps> = ({ onModelEdited, onError }) => {
-    const [stepIndex, setStepIndex] = useState(0);
-
-    const getMetadata = () => ({
-        props: {}
-    });
+const FormModelConnector: FC<FormModelConnectorProps> = ({
+    onModelSubmit,
+    onError,
+    actionType
+}) => {
+    const [stepIndex, setStepIndex] = useState<number>(0);
+    const handleNext = () => {
+        setStepIndex((prev) => prev + 1);
+    };
+    const handlePrev = () => {
+        setStepIndex((prev) => prev - 1);
+    };
+    const finishButtonCaption = actionType === ActionTypeEnum.ADD ? 'Add Model' : 'Edit Model';
 
     const { data: categories } = useCategories(
         {
@@ -73,14 +70,6 @@ const EditModelConnector: FC<EditModelConnectorProps> = ({ onModelEdited, onErro
         {}
     );
 
-    const handleNext = () => {
-        setStepIndex(stepIndex + 1);
-    };
-    const handlePrev = () => {
-        setStepIndex(stepIndex - 1);
-    };
-    const finishButtonCaption = 'Add Model';
-
     const renderForm = useCallback(
         ({ lens, save }: IFormApi<ModelValues>) => {
             const steps: WizardPropsStep[] = [
@@ -89,7 +78,7 @@ const EditModelConnector: FC<EditModelConnectorProps> = ({ onModelEdited, onErro
                     content: (
                         <>
                             <div className={wizardStyles['content__body']}>
-                                <EditModelSettings
+                                <AddModelSettings
                                     lens={lens}
                                     categories={categories?.data}
                                     basements={basements?.data}
@@ -109,7 +98,7 @@ const EditModelConnector: FC<EditModelConnectorProps> = ({ onModelEdited, onErro
                     content: (
                         <>
                             <div className={wizardStyles['content__body']}>
-                                <EditModelData lens={lens} />
+                                <AddModelData lens={lens} />
                             </div>
                             <div className={wizardStyles['content__footer']}>
                                 {renderWizardButtons({
@@ -129,27 +118,35 @@ const EditModelConnector: FC<EditModelConnectorProps> = ({ onModelEdited, onErro
         [stepIndex, basements]
     );
 
-    const editModelMutation = useEditModelMutation();
+    const getModelMutationHook = (actionType: ActionTypeEnum) => {
+        switch (actionType) {
+            case ActionTypeEnum.ADD:
+                return useAddModelMutation();
+            case ActionTypeEnum.EDIT:
+                return useEditModelMutation();
+            default:
+                return useAddModelMutation();
+        }
+    };
 
-    const handleOnModelEdit = useCallback(async (values: ModelValues) => {
+    const modelMutation = getModelMutationHook(actionType);
+
+    const handleSave = useCallback(async (values: ModelValues) => {
         let categories: (string | number)[] = [];
         if (values.jobs) {
             values.jobs.forEach((el) => {
-                categories = [...categories, ...el.categories];
+                categories.push(...el.categories);
             });
         } else {
             values.categories?.forEach((el) => {
-                categories = [...categories, el.name];
+                categories.push(el.name);
             });
         }
-        categories.map((el) => {
-            return el.toString();
-        });
         const model: Model = {
             id: values.id,
             name: values.name || '',
             basement: values.basement?.id || '',
-            categories: categories as string[],
+            categories: categories.map((el) => el.toString()),
             type: values.type,
             training_id: values.training_id,
             score: parseInt(values.score || ''),
@@ -162,13 +159,9 @@ const EditModelConnector: FC<EditModelConnectorProps> = ({ onModelEdited, onErro
                 bucket: values.configuration_path_bucket || ''
             }
         };
-
         try {
-            const response = await editModelMutation.mutateAsync(model);
+            const response = await modelMutation.mutateAsync(model);
             values.id = response.id;
-            return {
-                form: values
-            };
         } catch (err: any) {
             onError(err);
             return {
@@ -179,15 +172,15 @@ const EditModelConnector: FC<EditModelConnectorProps> = ({ onModelEdited, onErro
             };
         }
     }, []);
+
     return (
         <Form
             renderForm={renderForm}
-            onSave={handleOnModelEdit}
+            onSave={handleSave}
             value={initialValues}
-            getMetadata={getMetadata}
-            onSuccess={onModelEdited}
+            onSuccess={onModelSubmit}
         />
     );
 };
 
-export default EditModelConnector;
+export default FormModelConnector;

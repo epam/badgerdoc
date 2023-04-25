@@ -3,18 +3,23 @@ import { Job } from '../../api/typings/jobs';
 
 export type ModelValues = {
     baseModel?: Model;
-    name: string | undefined;
-    basement: Basement | undefined;
-    categories: Category[] | undefined;
+    name?: string;
+    basement?: Basement;
+    categories?: Category[];
     id: string;
-    score: string | undefined;
+    score?: string;
     status?: string;
-    type: string | undefined;
-    tenant?: string | undefined;
-    training_id?: number | undefined;
-    configuration_path_file?: string | undefined;
-    configuration_path_bucket?: string | undefined;
-    data_path_file?: string | undefined;
-    data_path_bucket?: string | undefined;
-    jobs: Job[] | undefined;
+    type?: string;
+    tenant?: string;
+    training_id?: number;
+    configuration_path_file?: string;
+    configuration_path_bucket?: string;
+    data_path_file?: string;
+    data_path_bucket?: string;
+    jobs?: Job[];
 };
+
+export const enum ActionTypeEnum {
+    EDIT = 'edit',
+    ADD = 'add'
+}

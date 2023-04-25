@@ -25,8 +25,14 @@ export const ModelHeader: React.FC<ModelHeaderProps> = ({ name, modelId, version
         }
     };
 
-    const handleDeleteClick = (modelId: string) =>
-        undeployAndDeleteModel(modelId).then(() => history.push('/models'));
+    const handleDeleteClick = async (modelId: string) => {
+        try {
+            await undeployAndDeleteModel(modelId);
+            history.push('/models');
+        } catch (error) {
+            console.error(getError(error));
+        }
+    };
 
     const handleEditClick = (modelId: string, version: string) => {
         history.push(`/models/${modelId}/${version ?? ''}/edit`);

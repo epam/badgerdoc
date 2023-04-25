@@ -106,7 +106,8 @@ function deleteUndeployedModel(id: string): Promise<{ [key: string]: string }> {
 
 export async function undeployAndDeleteModel(id: string): Promise<void> {
     try {
-        await undeployModel(id).then(() => deleteUndeployedModel(id));
+        await undeployModel(id);
+        await deleteUndeployedModel(id);
     } catch (error) {
         console.error(`Failed to undeploy model: ${getError(error)}`);
     }

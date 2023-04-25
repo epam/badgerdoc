@@ -1,11 +1,11 @@
 import React, { useCallback } from 'react';
 import { Switch, Route, useRouteMatch, Redirect, useHistory } from 'react-router-dom';
 import { ModelsTableConnector } from 'connectors/models-table-connector';
-import AddModelConnector from '../../connectors/add-model-connector/add-model-connector';
+import FormModelConnector from '../../connectors/form-model-connector/form-model-connector';
 import { svc } from '../../services';
 import { ModelPage } from '../model/model-page';
 import { getError } from '../../shared/helpers/get-error';
-import EditModelConnector from '../../connectors/edit-model-connector/edit-model-connector';
+import { ActionTypeEnum } from '../../components/model/model.models';
 
 import { INotification } from '@epam/uui';
 import { ErrorNotification, SuccessNotification, Text } from '@epam/loveship';
@@ -39,7 +39,7 @@ const ModelsPage = () => {
         svc.uuiNotifications.show(
             (props: INotification) => (
                 <SuccessNotification {...props}>
-                    <Text>Model created successfully!</Text>
+                    <Text>Model submit successfully!</Text>
                 </SuccessNotification>
             ),
             { duration: 2 }
@@ -52,10 +52,18 @@ const ModelsPage = () => {
                 <ModelsTableConnector onRowClick={handleNameClick} onAddModel={handleAddModel} />
             </Route>
             <Route path={`${path}/add`}>
-                <AddModelConnector onModelAdded={handleSuccess} onError={handleError} />
+                <FormModelConnector
+                    onModelSubmit={handleSuccess}
+                    onError={handleError}
+                    actionType={ActionTypeEnum.ADD}
+                />
             </Route>
             <Route path={`${path}/:modelId/:modelVer/edit`}>
-                <EditModelConnector onModelEdited={handleSuccess} onError={handleError} />
+                <FormModelConnector
+                    onModelSubmit={handleSuccess}
+                    onError={handleError}
+                    actionType={ActionTypeEnum.EDIT}
+                />
             </Route>
             <Route path={`${path}/:modelId/:modelVer`}>
                 <ModelPage />
