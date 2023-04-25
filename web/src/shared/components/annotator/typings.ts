@@ -54,7 +54,10 @@ export type AnnotationImageTool = {
     [k in typeof toolNames[number]]: Maybe<PaperTool>;
 };
 
-export type AnnotationLinksBoundType = 'Chain' | 'All to all';
+export enum AnnotationLinksBoundType {
+    chain = 'Chain',
+    allToAll = 'All to all'
+}
 
 export type AnnotationBoundMode = 'box' | 'link' | 'segmentation' | 'document';
 export type AnnotationLabel = {
