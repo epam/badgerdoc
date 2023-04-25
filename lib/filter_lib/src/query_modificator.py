@@ -68,9 +68,23 @@ def form_query(
 
     if not pagination:
         pagination = Pagination(page_num=1, page_size=15).dict()
+
+    page_offset = pagination.get("page_offset")
+    page_num = pagination.get("page_num")
+    page_size = pagination.get("page_size")
+    if page_offset is not None:
+        offset = page_offset
+        max_count = page_size + 1
+    elif page_num is not None:
+        offset = (page_num - 1) * page_size
+        max_count = page_size * 10 + 1
     try:
         query, pag = make_pagination(
-            query, pagination["page_num"], pagination["page_size"]
+            initial_query=query,
+            page_size=pagination.get("page_size"),
+            page_offset=offset,
+            page_num=page_num,
+            max_count=max_count,
         )
     except (ProgrammingError, DataError) as e:
         raise BadFilterFormat(f"description: {e.orig}") from e

@@ -1,10 +1,10 @@
-from ..src.enum_generator import (
+from src.enum_generator import (
     _create_enum_model,
     _exclude_fields,
     _get_model_fields,
     _get_table_name,
 )
-from .conftest import Address, User
+from tests.conftest import Address, User
 
 
 def test_get_model_fields():

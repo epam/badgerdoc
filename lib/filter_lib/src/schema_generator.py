@@ -60,8 +60,28 @@ class _Sorts(GenericModel, Generic[TypeT]):
 
 
 class Pagination(BaseModel):
-    page_num: int = Field(1, gt=0)
+    page_num: Optional[int] = Field(None, gt=0)
+    page_offset: Optional[int] = Field(None, ge=0, le=100)
     page_size: _FilterPagesize
+
+    @root_validator
+    def root_validate(  # pylint: disable=no-self-argument
+        cls, values: Any
+    ) -> Any:
+        page_num = values.get("page_num")
+        page_offset = values.get("page_offset")
+
+        if all((page_num is not None, page_offset is not None)):
+            raise ValueError(
+                "'page_num' and 'page_offset' cannot be used together"
+            )
+        elif (page_num is not None) or (page_offset is not None):
+            return values
+
+        raise ValueError(
+            "'page_num' or 'page_offset' are missing. "
+            "One of these attributes shoud be used"
+        )
 
 
 class BaseSearch(BaseModel):
@@ -81,7 +101,10 @@ class _BadgerdocSearch(GenericModel, Generic[TypeT], BaseSearch):
     sorting: Optional[List[_Sorts[TypeT]]]
 
 
-class PaginationOut(Pagination):
+class PaginationOut(BaseModel):
+    page_num: Optional[int] = Field(None, gt=0)
+    page_offset: Optional[int] = Field(None, ge=0, le=100)
+    page_size: _FilterPagesize
     min_pages_left: int
     total: int
     has_more: bool

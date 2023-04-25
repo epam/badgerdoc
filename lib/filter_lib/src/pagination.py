@@ -1,6 +1,6 @@
 import math
 from collections import namedtuple
-from typing import Sequence, Tuple, TypeVar
+from typing import Optional, Sequence, Tuple, TypeVar
 
 from sqlalchemy.orm import Query
 
@@ -9,24 +9,39 @@ from .schema_generator import Page, PaginationOut
 T = TypeVar("T")
 PaginationParams = namedtuple(
     "PaginationParams",
-    ["page_num", "page_size", "min_pages_left", "total", "has_more"],
+    [
+        "page_num",
+        "page_size",
+        "min_pages_left",
+        "total",
+        "has_more",
+        "page_offset",
+    ],
 )
 
 
 def make_pagination(
-    query: Query, page_number: int, page_size: int
+    initial_query: Query,
+    page_size: int,
+    page_offset: int,
+    max_count: int,
+    page_num: Optional[int] = None,
 ) -> Tuple[Query, PaginationParams]:
-    has_more: bool = False
-    max_count = page_size * 10 + 1
-    total_results: int = query.limit(max_count).count()
+    output_query = initial_query.offset(page_offset).limit(page_size)
+    total_results = initial_query.offset(page_offset).limit(max_count).count()
+    has_more = total_results == max_count
+
     if total_results == max_count:
-        has_more = True
         total_results -= 1
-    query = query.limit(page_size)
-    query = query.offset((page_number - 1) * page_size)
-    min_num_pages: int = _calculate_num_pages(page_size, total_results)
-    return query, PaginationParams(
-        page_number, page_size, min_num_pages, total_results, has_more
+
+    min_pages_left: int = _calculate_num_pages(page_size, total_results)
+    return output_query, PaginationParams(
+        page_num,
+        page_size,
+        min_pages_left,
+        total_results,
+        has_more,
+        page_offset,
     )
 
 
@@ -41,5 +56,6 @@ def paginate(items: Sequence[T], pag_params: PaginationParams) -> Page[T]:
         min_pages_left=pag_params.min_pages_left,
         total=pag_params.total,
         has_more=pag_params.has_more,
+        page_offset=pag_params.page_offset,
     )
     return Page(pagination=pag, data=items)
