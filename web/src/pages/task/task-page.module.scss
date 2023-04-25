@@ -23,8 +23,12 @@
 
     &__right-block {
         height: 30px;
-        display: grid;
-        grid-template-columns: 1fr 51px;
         gap: 12px;
+        display: flex;
+        justify-content: right;
     }
+}
+
+.next-button {
+    min-width: 51px !important;
 }

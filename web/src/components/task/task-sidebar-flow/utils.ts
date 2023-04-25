@@ -1,4 +1,5 @@
-import { TUserShort } from 'api/typings';
+import { AnnotationsByUserObj } from 'api/hooks/annotations';
+import { Category, Label, TUserShort } from 'api/typings';
 import { Annotation } from 'shared';
 import { OWNER_TAB } from './constants';
 
@@ -50,5 +51,28 @@ export const collectIncomingLinks = (annotations: Annotation[]) => {
             return acc;
         },
         { incomingLinksByAnnotationId: {}, annotationNameById: {} }
+    );
+};
+
+export const getCategoriesByUserId = (
+    userPages: AnnotationsByUserObj[],
+    categories?: Category[]
+): Record<string, Label[]> => {
+    if (!categories?.length) return {};
+
+    return userPages.reduce(
+        (acc: Record<string, Label[]>, { user_id, categories: categoriesId }) => ({
+            ...acc,
+            [user_id]: categoriesId.reduce((labels: Label[], categoryId) => {
+                const category = categories.find(({ id }) => id === categoryId);
+
+                if (category) {
+                    labels.push({ id: category.id, name: category.name });
+                }
+
+                return labels;
+            }, [])
+        }),
+        {}
     );
 };

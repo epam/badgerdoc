@@ -103,6 +103,7 @@ const TaskPage: FC = () => {
                                 size="30"
                                 fill="white"
                                 caption="Next"
+                                cx={styles['next-button']}
                                 onClick={handleRedirectToNextTask}
                             />
                         )}
