@@ -398,17 +398,14 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
                             )}
                             {tabValue === 'Data' && tableMode && (
                                 <>
-                                    <div className={styles.multiswitch}>
-                                        <MultiSwitch
-                                            items={[
-                                                { id: 'lines', caption: 'Lines' },
-                                                { id: 'cells', caption: 'Cells' }
-                                            ]}
-                                            value={tableModeValues}
-                                            onValueChange={setTableModeValues}
-                                        />
-                                    </div>
-
+                                    <MultiSwitch
+                                        items={[
+                                            { id: 'lines', caption: 'Lines' },
+                                            { id: 'cells', caption: 'Cells' }
+                                        ]}
+                                        value={tableModeValues}
+                                        onValueChange={setTableModeValues}
+                                    />
                                     {tableModeValues === 'lines' && (
                                         <div className={styles.tableParams}>
                                             <LabeledInput label="Columns">

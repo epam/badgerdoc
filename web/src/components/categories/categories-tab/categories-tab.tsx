@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useHeight } from 'shared/hooks/use-height';
 import { useTaskAnnotatorContext } from 'connectors/task-annotator-connector/task-annotator-context';
 import { useCategoriesTree } from '../categories-tree/use-categories-tree';
 import { AnnotationBoundMode } from 'shared';
@@ -8,33 +7,34 @@ import { Category, CategoryNode } from '../../../api/typings';
 
 import { Blocker, FlexCell, MultiSwitch, SearchInput } from '@epam/loveship';
 import styles from './categories-tab.module.scss';
+
 interface CategoriesTabProps {
     boundModeSwitch: AnnotationBoundMode;
     setBoundModeSwitch: (type: AnnotationBoundMode) => void;
 }
 
 const getSubItems = (categories: Category[]): any[] => {
-    if (!categories) return [];
-    const res = [];
-    if (categories.find((el) => el.type === 'box'))
-        res.push({
+    const tabs = [];
+    if (categories.some((el) => el.type === 'box'))
+        tabs.push({
             id: 'box',
             caption: 'Layout',
-            cx: `${styles.categoriesAndLinks}`
+            cx: styles.categoriesAndLinks
         });
-    if (categories.find((el) => el.type === 'link'))
-        res.push({
+    if (categories.some((el) => el.type === 'link'))
+        tabs.push({
             id: 'link',
             caption: 'Links',
-            cx: `${styles.categoriesAndLinks}`
+            cx: styles.categoriesAndLinks
         });
-    if (categories.find((el) => el.type === 'segmentation'))
-        res.push({
+    if (categories.some((el) => el.type === 'segmentation'))
+        tabs.push({
             id: 'segmentation',
             caption: 'Segmentation',
-            cx: `${styles.categoriesAndLinks}`
+            cx: styles.categoriesAndLinks
         });
-    return res;
+
+    return tabs;
 };
 
 export const CategoriesTab = ({ boundModeSwitch, setBoundModeSwitch }: CategoriesTabProps) => {
@@ -43,8 +43,13 @@ export const CategoriesTab = ({ boundModeSwitch, setBoundModeSwitch }: Categorie
     const [searchText, setSearchText] = useState('');
     const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
 
-    const hightRef = useRef<HTMLDivElement>(null);
-    const categoriesHeight = useHeight({ ref: hightRef });
+    const treeContainerRef = useRef<HTMLDivElement>(null);
+
+    const { categoryNodes, isFetched } = useCategoriesTree({
+        searchText,
+        boundModeSwitch,
+        jobId: getJobId()
+    });
 
     const addHotKey = (categoryNodes: CategoryNode[]) => {
         const hotKeys = '123456789qwertyuiopasdfghjklzxcvbnm';
@@ -63,12 +68,6 @@ export const CategoriesTab = ({ boundModeSwitch, setBoundModeSwitch }: Categorie
         mapHotKeys(categoryNodes);
         return hotKeysMap;
     };
-
-    const { categoryNodes, isFetched } = useCategoriesTree({
-        searchText,
-        boundModeSwitch,
-        jobId: getJobId()
-    });
 
     useEffect(() => {
         if (!categoryNodes?.length) {
@@ -92,11 +91,10 @@ export const CategoriesTab = ({ boundModeSwitch, setBoundModeSwitch }: Categorie
     }, [categoryNodes]);
 
     const categoriesTypes = useMemo(() => {
-        if (taskCategories) {
-            return getSubItems(taskCategories);
-        }
-        return [];
+        return !taskCategories ? [] : getSubItems(taskCategories);
     }, [taskCategories]);
+
+    const treeHeight = treeContainerRef.current?.getBoundingClientRect().height || 0;
 
     return (
         <div className={styles.container}>
@@ -106,24 +104,22 @@ export const CategoriesTab = ({ boundModeSwitch, setBoundModeSwitch }: Categorie
                         size="30"
                         items={categoriesTypes}
                         value={boundModeSwitch}
-                        onValueChange={
-                            setBoundModeSwitch as React.Dispatch<React.SetStateAction<string>>
-                        }
+                        onValueChange={setBoundModeSwitch}
                     />
                 </FlexCell>
             )}
             {categoryNodes?.length > 20 && (
                 <SearchInput
                     value={searchText}
-                    onValueChange={(text) => setSearchText(text ? text : '')}
                     debounceDelay={300}
                     cx={styles.search}
+                    onValueChange={(text = '') => setSearchText(text)}
                 />
             )}
-            <div className={styles.categories} ref={hightRef}>
+            <div className={styles.categories} ref={treeContainerRef}>
                 <CategoriesTree
                     key={searchText}
-                    categoriesHeight={categoriesHeight}
+                    categoriesHeight={treeHeight}
                     isLoading={!isFetched}
                     categoryNodes={categoryNodes}
                     onCategorySelected={onCategorySelected}
