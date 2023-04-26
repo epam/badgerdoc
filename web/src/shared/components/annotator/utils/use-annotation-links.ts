@@ -1,5 +1,5 @@
 import { Category } from 'api/typings';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import {
     Annotation,
     AnnotationBoundType,
@@ -25,25 +25,27 @@ export const useAnnotationsLinks = (
     ) => void,
     setSelectedCategory: (category?: Category) => void
 ) => {
-    const [prevPage, setPrevPage] = useState<number>();
-    const [prevSelected, setPrevSelected] = useState<Annotation>();
+    const prevPage = useRef<number>();
+    const prevSelectedAnnotation = useRef<Annotation>();
 
     useEffect(() => {
         if (category?.type !== 'link') {
-            setPrevSelected(undefined);
-            setPrevPage(undefined);
+            prevPage.current = undefined;
+            prevSelectedAnnotation.current = undefined;
             return;
         }
 
         if (
-            prevSelected &&
-            selectedAnn &&
             category &&
+            selectedAnn &&
             current_page &&
-            prevPage &&
-            prevSelected.id !== selectedAnn.id
+            prevPage.current &&
+            prevSelectedAnnotation.current &&
+            prevSelectedAnnotation.current.id !== selectedAnn.id
         ) {
-            const links = prevSelected.links ? [...prevSelected.links] : [];
+            const links = prevSelectedAnnotation.current.links
+                ? [...prevSelectedAnnotation.current.links]
+                : [];
 
             links.push({
                 to: selectedAnn.id,
@@ -55,13 +57,15 @@ export const useAnnotationsLinks = (
                         : 'omnidirectional'
             });
 
-            onAnnotationEdited(prevPage, { links }, prevSelected.id);
+            onAnnotationEdited(prevPage.current, { links }, prevSelectedAnnotation.current.id);
             setSelectedCategory(undefined);
+            prevPage.current = undefined;
+            prevSelectedAnnotation.current = undefined;
             return;
         }
 
-        setPrevSelected(selectedAnn);
-        setPrevPage(current_page);
+        prevPage.current = current_page;
+        prevSelectedAnnotation.current = selectedAnn;
     }, [selectedAnn]);
 
     return allAnnotations;
