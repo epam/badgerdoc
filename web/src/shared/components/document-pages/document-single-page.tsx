@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import React, { FC, useMemo } from 'react';
 import { PDFPageProxy } from 'react-pdf/dist/Page';
 import { Annotation, Annotator, AnnotationLabel } from 'shared';
 import { useTaskAnnotatorContext } from 'connectors/task-annotator-connector/task-annotator-context';
@@ -9,6 +9,7 @@ import { useTableAnnotatorContext } from '../annotator/context/table-annotator-c
 import { defaultRenderPage } from './document-pages';
 import { Category } from '../../../api/typings';
 import { noop } from 'lodash';
+import { LinksLayer } from '../annotator/links-layer';
 
 const empty: any[] = [];
 
@@ -56,6 +57,11 @@ const DocumentSinglePage: FC<RenderPageParams> = ({
     const isValidation = task?.is_validation;
     const isEdited = editedPages.includes(currentPage);
     const pageTokens = tokensByPages[pageNum] ?? empty;
+
+    const annotationsForLinks = useMemo(
+        () => annotations ?? Object.values(allAnnotations).flat(),
+        [annotations, allAnnotations]
+    );
     const { isCellMode } = useTableAnnotatorContext();
     const handleAnnotationAdded = (ann: Pick<Annotation, 'bound' | 'boundType' | 'id'>) => {
         onAnnotationCreated(pageNum, {
@@ -116,8 +122,10 @@ const DocumentSinglePage: FC<RenderPageParams> = ({
         { id: 'undo', name: 'Undo', shortcut: 'Ctrl+Z' },
         { id: 'redo', name: 'Redo', shortcut: 'Ctrl+Y' }
     ];
+
     return (
         <ObservedElement
+            id="document-page"
             rootRef={containerRef}
             onIntersect={() => {
                 onCurrentPageChange(pageNum);
@@ -127,6 +135,7 @@ const DocumentSinglePage: FC<RenderPageParams> = ({
             height={pageSize ? pageSize.height * scale : undefined}
             className={styles.page}
         >
+            <LinksLayer pageNum={pageNum} annotations={annotationsForLinks} scale={scale} />
             <div
                 role="none"
                 onClick={() => {

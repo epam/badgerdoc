@@ -45,7 +45,11 @@ export const collectIncomingLinks = (annotations: Annotation[]) => {
             annotation.links?.forEach(({ to, ...link }) => {
                 if (!acc.incomingLinksByAnnotationId[to]) acc.incomingLinksByAnnotationId[to] = [];
 
-                acc.incomingLinksByAnnotationId[to]?.push({ ...link, to: annotation.id });
+                acc.incomingLinksByAnnotationId[to]?.push({
+                    ...link,
+                    to: annotation.id,
+                    page_num: annotation.pageNum ?? 1
+                });
             });
 
             return acc;

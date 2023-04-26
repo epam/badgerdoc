@@ -293,6 +293,7 @@ const formatTable = (table: TableApi): AnnotationTable => {
 
 export const mapAnnotationFromApi = (
     obj: PageInfoObjs,
+    pageNum: number,
     category?: Category,
     taxonLabels?: Map<string, Taxon>
 ): Annotation => {
@@ -322,7 +323,8 @@ export const mapAnnotationFromApi = (
         children: obj.children,
         tableCells: (obj.type as AnnotationBoundType) === 'table' ? [] : undefined,
         segments: obj.segments,
-        text: obj.text
+        text: obj.text,
+        pageNum
     };
 };
 

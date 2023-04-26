@@ -85,6 +85,7 @@ export type Annotation = {
     labels?: AnnotationLabel[];
     originalAnnotationId?: number;
     text?: string;
+    pageNum?: number;
 };
 
 export type Bound = {

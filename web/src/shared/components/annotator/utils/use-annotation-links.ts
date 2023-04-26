@@ -49,8 +49,8 @@ export const useAnnotationsLinks = (
 
             links.push({
                 to: selectedAnn.id,
-                page_num: current_page,
                 category_id: category.id,
+                page_num: selectedAnn.pageNum || current_page,
                 type:
                     selectionType == AnnotationLinksBoundType.chain
                         ? 'directional'
@@ -64,7 +64,7 @@ export const useAnnotationsLinks = (
             return;
         }
 
-        prevPage.current = current_page;
+        prevPage.current = selectedAnn?.pageNum;
         prevSelectedAnnotation.current = selectedAnn;
     }, [selectedAnn]);
 
