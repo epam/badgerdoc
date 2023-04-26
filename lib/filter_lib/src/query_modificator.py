@@ -154,6 +154,9 @@ def _create_filter(query: Query, fil: Dict[str, Any]) -> Query:
     op = fil.get("op")
     value = fil.get("value")
 
+    if not value:
+        return query
+
     validate_filter_args(model, fil, field, op, value)
 
     try:
