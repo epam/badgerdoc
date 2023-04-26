@@ -1,5 +1,6 @@
-from convert.models.common import S3Path
 from pydantic import BaseModel
+
+from convert.models.common import S3Path
 
 
 class PdfRequest(BaseModel):

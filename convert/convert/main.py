@@ -1,7 +1,8 @@
+from fastapi import FastAPI  # type: ignore
+
 from convert.config import API_NAME, API_VERSION, settings
 from convert.logger import get_logger
 from convert.routers import coco, labelstudio, pdf, text
-from fastapi import FastAPI  # type: ignore
 
 LOGGER = get_logger(__file__)
 

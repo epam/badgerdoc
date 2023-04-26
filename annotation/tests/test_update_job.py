@@ -275,24 +275,28 @@ def test_update_deadline_url_name(field, new_value, prepare_db_for_update_job):
         json={field: new_value},
         headers=TEST_HEADERS,
     )
-    assert response.status_code == 204
+    assert response.status_code == 200
     updated_job = session.query(Job).get(UPDATE_JOB_IDS[0])
     assert str(updated_job.__dict__[field]) == new_value
-    assert response.text == ""
+    assert response.json() == {
+        "annotators": list(USER_IDS[:2]),
+        "validators": [],
+        "categories": ["1"],
+    }
 
 
 @mark.integration
 @mark.parametrize(
     ["query", "status_code"],
     [
-        ({"wrong_field": "some_value"}, 204),  # not in model and patch schema
-        ({"job_id": "some_value"}, 204),  # not in patch schema
-        ({"is_auto_distribution": "some_value"}, 204),  # not in patch schema
-        ({"tenant": "some_value"}, 204),  # not in patch schema
-        ({"validation_type": "some_value"}, 204),  # not in patch schema
-        ({"tasks": "some_value"}, 204),  # not in patch schema
+        ({"wrong_field": "some_value"}, 200),  # not in model and patch schema
+        ({"job_id": "some_value"}, 200),  # not in patch schema
+        ({"is_auto_distribution": "some_value"}, 200),  # not in patch schema
+        ({"tenant": "some_value"}, 200),  # not in patch schema
+        ({"validation_type": "some_value"}, 200),  # not in patch schema
+        ({"tasks": "some_value"}, 200),  # not in patch schema
         ({"categories": 1}, 422),  # in patch schema, wrong type
-        ({}, 204),  # empty query
+        ({}, 200),  # empty query
     ],
 )
 def test_update_wrong_fields(query, status_code, prepare_db_for_update_job):
@@ -336,7 +340,7 @@ def test_update_wrong_job_id(job_id, prepare_db_for_update_job):
     ),
 )
 def test_update_categories(category_ids, prepare_db_for_update_job, job_id):
-    """Checks status 204 code and 'association_job_category' table entities
+    """Checks status 200 code and 'association_job_category' table entities
     for job's appropriate categories update cases. Also checks that categories
     were affected only in 'association_job_category' table but not in
     'categories' table itself.
@@ -348,7 +352,7 @@ def test_update_categories(category_ids, prepare_db_for_update_job, job_id):
         json={"categories": category_ids},
         headers=TEST_HEADERS,
     )
-    assert response.status_code == 204
+    assert response.status_code == 200
     jobs_categories = (
         session.query(association_job_category)
         .filter_by(job_id=job_id)
@@ -399,7 +403,7 @@ def test_update_wrong_categories(category_ids, prepare_db_for_update_job):
 def test_update_files(
     prepare_db_for_update_job, monkeypatch, field, job_id, new_files
 ):
-    """Checks that files for job successfully update with 204 response both
+    """Checks that files for job successfully update with 200 response both
     from 'files' and 'dataset' fields and that old job's files delete from
     'files' table. Also checks that files with same id as deleted/added for
     this job will be not affected for other job.
@@ -416,7 +420,7 @@ def test_update_files(
         json={field: new_ids},
         headers=TEST_HEADERS,
     )
-    assert response.status_code == 204
+    assert response.status_code == 200
     job_files_db = (
         session.query(File)
         .filter_by(job_id=job_id)
@@ -476,7 +480,7 @@ def test_update_job_new_user(
         json={user_type: new_user_ids},
         headers=TEST_HEADERS,
     )
-    assert response.status_code == 204
+    assert response.status_code == 200
     new_users_count = session.query(User).count()
     assert new_users_count == expected_users_count
     new_association = (
@@ -608,11 +612,11 @@ def test_update_files_and_datasets_for_already_started_job(
     ["user_type", "new_user_ids", "expected_code", "expected_users_count"],
     [
         ("annotators", [USER_IDS[0]], 400, 1),
-        ("annotators", [], 204, 1),
+        ("annotators", [], 200, 1),
         ("validators", [USER_IDS[0], UPDATE_NEW_USER_ID], 400, 1),
-        ("validators", [], 204, 1),
-        ("owners", [], 204, 0),
-        ("owners", [USER_IDS[1], UPDATE_NEW_USER_ID], 204, 2),
+        ("validators", [], 200, 1),
+        ("owners", [], 200, 0),
+        ("owners", [USER_IDS[1], UPDATE_NEW_USER_ID], 200, 2),
     ],
 )
 def test_update_extraction_job_new_user(
@@ -680,7 +684,7 @@ def test_delete_redundant_users(prepare_db_for_update_job):
         .all()
     )
     assert not redundant_user
-    assert response.status_code == 204
+    assert response.status_code == 200
 
 
 @mark.integration
@@ -701,7 +705,7 @@ def test_not_delete_redundant_user_as_owner_of_another_job(
         .all()
     )
     assert redundant_user_owner
-    assert response.status_code == 204
+    assert response.status_code == 200
 
 
 @mark.integration
@@ -737,7 +741,7 @@ def test_update_jobs_name_from_db_or_microservice(
         headers=TEST_HEADERS,
     )
     job_name = session.query(Job.name).filter(Job.job_id == job_id).scalar()
-    assert response.status_code == 204
+    assert response.status_code == 200
     assert job_name == expected_result
 
 
@@ -887,7 +891,7 @@ def test_update_jobs_delete_annotator(
         headers=TEST_HEADERS,
     )
 
-    assert response.status_code == 204
+    assert response.status_code == 200
 
     tasks = (
         session.query(ManualAnnotationTask)

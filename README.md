@@ -5,7 +5,7 @@ managers and ML team. The primary goal of the platform is to visualize ML model 
 model training and result visualization.
 
 The platform has rich functionality in access and data management, annotation setups, and pipeline composition.
-Access management is based on Keycloak, which is integrated with EPAM Active Directory.
+Access management is based on Keycloak, which is integrated with Active Directory.
 Data can be uploaded in batches, organized into datasets as well as uploaded as a single file.
 ML pipeline can be applied to a dataset, which will trigger batch processing, or to a single document.
 BadgerDoc is capable of annotating large datasets by many annotators. It has algorithms for task distribution,
@@ -65,7 +65,7 @@ Important! This is not secure configuration, follow [KeyCloak best practices](ht
 
 2. Go to Realm Settings -> Keys and disable `RSA-OAEP` algorithm. It will help to avoid issue explainded here https://github.com/jpadilla/pyjwt/issues/722
 
-3. Add tenant attribute to `admin` user, go to Users -> select `admin` -> go to Attributes -> create attribut `tenants:local`
+3. Add tenant attribute to `admin` user, go to Users -> select `admin` -> go to Attributes -> create attribut `tenants:local`, and save
 
 4. Go to Clients -> admin-cli -> Mappers -> Create and fill form with following values:
 
@@ -92,7 +92,7 @@ Important! This is not secure configuration, follow [KeyCloak best practices](ht
 | Client ID                  | badgerdoc-internal |
 | Client Protocol            | openid-connect     |
 
-7. Go to Cliens -> Find `badgerdoc-internal` -> change settings `Access Type: Confidential`, set `Service Accounts Enabled` to `On`, then save. Now you can Credentials tab, open it and copy Secret
+7. Go to Cliens -> Find `badgerdoc-internal` -> change settings `Access Type: Confidential`, set `Service Accounts Enabled` to `On`, add 'Valid Redirect URIs' as '*', then save. Now you can Credentials tab, open it and copy Secret
 
 Now `Client ID` and `Secret` must be set to `.env` as `KEYCLOAK_SYSTEM_USER_CLIENT` and `KEYCLOAK_SYSTEM_USER_SECRET`
 

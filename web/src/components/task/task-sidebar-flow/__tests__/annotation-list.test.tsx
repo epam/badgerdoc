@@ -27,7 +27,13 @@ describe('AnnotationList', () => {
     const props = {
         list: [firstAnnotation, secondAnnotation],
         selectedAnnotationId: 'first',
-        onSelect: () => {}
+        onSelect: () => {},
+        isEditable: false,
+        onLinkDeleted: () => {},
+        onLabelSelect: () => {},
+        onLabelDelete: () => {},
+        isOwner: false,
+        labels: []
     };
     it('Must select another annotation if selectedAnnotationId is changed', () => {
         const firstAnnotationRowId = `${ANNOTATION_FLOW_ITEM_ID_PREFIX}${firstAnnotation.id}`;

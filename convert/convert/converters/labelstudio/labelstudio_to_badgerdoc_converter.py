@@ -103,13 +103,6 @@ class LabelstudioToBadgerdocConverter:
     def execute(self) -> None:
         ls_format = self.download(self.s3_input_annotation)
         LOGGER.debug("label studio format: %s", ls_format)
-        document_labels = self.parse_document_labels_from_ls_format(ls_format)
-        categories_to_taxonomy_mapping = (
-            self.parse_categories_to_taxonomy_mapping_from_ls_format(ls_format)
-        )
-        document_links = self.parse_document_links_from_ls_format(ls_format)
-
-        LOGGER.debug("document_labels parsed: %s", document_labels)
 
         converter = ConverterToBadgerdoc()
         converter.to_badgerdoc(ls_format)
@@ -117,11 +110,27 @@ class LabelstudioToBadgerdocConverter:
         file_id_in_assets = self.export_and_upload_pdf_to_s3()
 
         self.badgerdoc_format.remove_non_printing_tokens()
+        self.upload_tokens(file_id_in_assets)
+        LOGGER.debug("Tokens are converted and uploaded")
+
+        if self.is_no_annotations(ls_format):
+            LOGGER.debug("There are no annotations")
+            return
+
         converter.to_badgerdoc_annotations(ls_format)
         self.badgerdoc_format.badgerdoc_annotation = (
             converter.badgerdoc_annotation
         )
-        LOGGER.debug("Tokens and annotations are converted")
+        LOGGER.debug("Annotations are converted")
+
+        # TODO: Move processing of document links and labels to a separate section
+        # it should be processed without annotations
+        document_labels = self.parse_document_labels_from_ls_format(ls_format)
+        categories_to_taxonomy_mapping = (
+            self.parse_categories_to_taxonomy_mapping_from_ls_format(ls_format)
+        )
+        document_links = self.parse_document_links_from_ls_format(ls_format)
+        LOGGER.debug("document_labels parsed: %s", document_labels)
 
         annotation_job_id_created = (
             self.import_annotations_to_annotation_microservice(
@@ -137,8 +146,13 @@ class LabelstudioToBadgerdocConverter:
                 document_links=document_links,
             )
         )
-        self.upload(annotation_job_id_created, file_id_in_assets)
-        LOGGER.debug("Tokens and annotations uploaded")
+        LOGGER.debug("Annotation job is created")
+        self.upload_annotations(annotation_job_id_created, file_id_in_assets)
+        LOGGER.debug("Annotations uploaded")
+
+    @staticmethod
+    def is_no_annotations(labelstudio: LabelStudioModel):
+        return not labelstudio.__root__[0].annotations
 
     def download(
         self,
@@ -219,17 +233,11 @@ class LabelstudioToBadgerdocConverter:
             )
             return file_id_in_assets
 
-    def upload(
-        self, importjob_id_created: int, file_id_in_assets: int
-    ) -> None:
-        self.upload_tokens(file_id_in_assets)
-        self.upload_annotations(importjob_id_created, file_id_in_assets)
-
-    def upload_tokens(
-        self, file_id_in_assets: int
-    ) -> None:
+    def upload_tokens(self, file_id_in_assets: int) -> None:
         with tempfile.TemporaryDirectory() as tmp_dirname:
-            badgerdoc_tokens_path = Path(tmp_dirname) / self.BADGERDOC_TOKENS_FILENAME
+            badgerdoc_tokens_path = (
+                Path(tmp_dirname) / self.BADGERDOC_TOKENS_FILENAME
+            )
             s3_output_tokens_path = self.get_output_tokens_path(
                 file_id_in_assets
             )
@@ -244,7 +252,9 @@ class LabelstudioToBadgerdocConverter:
         self, importjob_id_created: int, file_id_in_assets: int
     ) -> None:
         with tempfile.TemporaryDirectory() as tmp_dirname:
-            badgerdoc_annotations_path = Path(tmp_dirname) / self.BADGERDOC_ANNOTATIONS_FILENAME
+            badgerdoc_annotations_path = (
+                Path(tmp_dirname) / self.BADGERDOC_ANNOTATIONS_FILENAME
+            )
             s3_output_annotations_path = self.get_output_annotations_path(
                 importjob_id_created, file_id_in_assets
             )
@@ -384,7 +394,7 @@ class LabelstudioToBadgerdocConverter:
             "pages": [page.dict()],
             "validated": [],
             "failed_validation_pages": [],
-            "similar_revisions": [],  # TODO: 'simial_revisions' will be replaced with 'links' with unknown format # noqa
+            "similar_revisions": [],  # TODO: 'similar_revisions' will be replaced with 'links' with unknown format # noqa
             "categories": list(document_labels),
             "links_json": [
                 document_link.dict() for document_link in document_links

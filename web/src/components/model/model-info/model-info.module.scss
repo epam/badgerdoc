@@ -1,16 +1,15 @@
-@import '~shared/helpers/styles';
+@import "~shared/helpers/styles";
 
 .container {
   display: flex;
   flex-direction: column;
-  width: 40%;
   min-width: 450px;
 }
 
 .row {
   display: flex;
   padding: 15px 0;
-  border-bottom: 1px solid #CED0DB;
+  border-bottom: 1px solid #ced0db;
   &:last-child {
     border-bottom: none;
   }

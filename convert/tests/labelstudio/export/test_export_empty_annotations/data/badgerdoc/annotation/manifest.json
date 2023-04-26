@@ -1,0 +1,25 @@
+{
+  "revision": "c92106f72bb411bf31a78ec2e6dd81470d2f6eec",
+  "job_id": 1070,
+  "user": "02336646-f5d0-4670-b111-c140a3ad58b5",
+  "pipeline": null,
+  "date": "2023-02-06T10:58:34.131628",
+  "pages": {},
+  "failed_validation_pages": [],
+  "validated": [],
+  "links_json": [
+    {
+      "to": 533,
+      "category": "similar",
+      "type": "undirectional"
+    },
+    {
+      "to": 531,
+      "category": "similar",
+      "type": "undirectional"
+    }
+  ],
+  "file": "files/444/444.pdf",
+  "bucket": "test",
+  "categories": []
+}

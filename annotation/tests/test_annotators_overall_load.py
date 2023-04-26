@@ -633,7 +633,7 @@ def test_overall_load_recalculation_when_add_users(
     )
     users_overall_load = [user[0] for user in users_overall_load]
     assert users_overall_load == expected_overall_load
-    assert response.status_code == 204
+    assert response.status_code == 200
 
 
 @mark.integration
@@ -691,4 +691,4 @@ def test_overall_load_recalculation_when_delete_users(
     users_overall_load = [user[0] for user in users_overall_load]
     assert first_user_overall_load_db == first_user_overall_load_expected
     assert users_overall_load == expected_overall_load
-    assert response.status_code == 204
+    assert response.status_code == 200

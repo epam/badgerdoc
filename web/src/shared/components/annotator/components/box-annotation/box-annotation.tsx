@@ -11,6 +11,8 @@ import { getAnnotationElementId } from '../../utils/use-annotation-links';
 import styles from './box-annotation.module.scss';
 import { cx } from '@epam/uui';
 import { ANNOTATION_LABEL_ID_PREFIX } from 'shared/constants/annotations';
+import { getAnnotationLabelColors, isContrastColor } from 'shared/helpers/annotations';
+import { Resizer } from './resizer';
 
 type BoxAnnotationProps = {
     label?: string;
@@ -51,74 +53,53 @@ export const BoxAnnotation = ({
     const { x, y, width, height } = bound;
 
     const annStyle = {
-        left: x,
+        width,
+        color,
+        height,
         top: y,
-        width: width,
-        height: height,
+        left: x,
         border: `2px ${color} solid`,
-        color: color,
-        zIndex: isSelected ? 10 : 1
+        zIndex: isSelected || isHovered ? 10 : 1
     };
 
-    const annotationClassNames = cx(styles.annotation, {
-        [styles.selected]: isSelected || isHovered
+    const annotationLabelClassNames = cx(styles.label, ANNOTATION_LABEL_CLASS, {
+        [styles.labelDraggable]: isEditable && isSelected
     });
 
     return (
         <div
             role="none"
+            style={annStyle}
             onClick={onClick}
-            onDoubleClick={onDoubleClick}
-            onContextMenu={onContextMenu}
+            ref={annotationRef}
             onMouseEnter={onMouseEnter}
             onMouseLeave={onMouseLeave}
-            className={annotationClassNames}
-            style={annStyle}
-            ref={annotationRef}
+            onDoubleClick={onDoubleClick}
+            onContextMenu={onContextMenu}
+            className={styles.annotation}
             id={getAnnotationElementId(page, id)}
         >
             {isSelected && isEditable && <Resizer color={color} />}
-            <span
-                className={`${styles.label} ${
-                    isEditable && isSelected ? styles.labelDraggable : ''
-                } ${ANNOTATION_LABEL_CLASS}`}
-                style={{ backgroundColor: color }}
-                id={`${ANNOTATION_LABEL_ID_PREFIX}${id}`}
-            >
-                {label.split('.').pop()}
-                {isEditable && (
-                    <IconButton
-                        icon={closeIcon}
-                        cx={styles.close}
-                        onClick={onCloseIconClick}
-                        color={'white'}
-                        iconPosition={'right'}
-                    />
-                )}
-            </span>
+            {(isSelected || isHovered) && (
+                <span
+                    className={annotationLabelClassNames}
+                    style={getAnnotationLabelColors(color)}
+                    id={`${ANNOTATION_LABEL_ID_PREFIX}${id}`}
+                >
+                    {label.split('.').pop()}
+                    {isEditable && (
+                        <IconButton
+                            icon={closeIcon}
+                            cx={styles.close}
+                            iconPosition={'right'}
+                            onClick={onCloseIconClick}
+                            color={isContrastColor(color) ? 'white' : 'night900'}
+                        />
+                    )}
+                </span>
+            )}
         </div>
     );
 };
 
 export const ANNOTATION_RESIZER_CLASS = 'resizer';
-
-const Resizer = ({ color }: { color: string }) => (
-    <>
-        <div
-            style={{ borderColor: color }}
-            className={`${styles.resizer} ${styles['top-left']} ${ANNOTATION_RESIZER_CLASS} top-left`}
-        />
-        <div
-            style={{ borderColor: color }}
-            className={`${styles.resizer} ${styles['top-right']} ${ANNOTATION_RESIZER_CLASS} top-right`}
-        />
-        <div
-            style={{ borderColor: color }}
-            className={`${styles.resizer} ${styles['bottom-left']} ${ANNOTATION_RESIZER_CLASS} bottom-left`}
-        />
-        <div
-            style={{ borderColor: color }}
-            className={`${styles.resizer} ${styles['bottom-right']} ${ANNOTATION_RESIZER_CLASS} bottom-right`}
-        />
-    </>
-);

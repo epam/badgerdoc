@@ -1,4 +1,4 @@
-import { colorDictionary } from '../../../constants/general';
+import { RGBA_COLOR_DICTIONARY } from 'shared/constants/colors';
 
 const isValidHex = (hex: string) => /^#([A-Fa-f0-9]{3,4}){1,2}$/.test(hex);
 
@@ -57,8 +57,8 @@ export const stringToRGBA = (color: string, opacity: number) => {
         const [h, s, l] = extractHSLValues(color);
         return HSLToRGBA(h, s, l, opacity);
     }
-    if (colorDictionary[color]) {
-        return `rgba(${colorDictionary[color].join(', ')}, ${opacity})`;
+    if (RGBA_COLOR_DICTIONARY[color]) {
+        return `rgba(${RGBA_COLOR_DICTIONARY[color].join(', ')}, ${opacity})`;
     }
 
     return '';

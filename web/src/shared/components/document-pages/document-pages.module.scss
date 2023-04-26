@@ -6,7 +6,7 @@
 }
 
 .with-multiple-view {
-    height: calc(100% - 40px);
+    height: 100%;
 }
 
 .pdf-document-container {
@@ -26,22 +26,50 @@
     overflow: hidden;
     display: grid;
     gap: 1rem;
-    grid-template-columns: 1fr;
     grid-template-rows: 1fr;
+    grid-template-columns: 1fr;
 }
 
-.split-document-wrapper--pages-2 {
-    grid-template-rows: max-content max-content max-content 1fr;
+.horizontal-view--pages-2 {
+    grid-template-columns: 1fr;
+    grid-template-rows: max-content 24px repeat(1, 1fr);
 }
 
-.split-document-wrapper--pages-3 {
-    grid-template-rows: max-content max-content max-content 1fr max-content 1fr;
+.horizontal-view--pages-3 {
+    grid-template-columns: 1fr;
+    grid-template-rows: max-content 24ox repeat(2, 1fr);
 }
 
-.split-document-wrapper--pages-4 {
-    grid-template-rows: max-content max-content max-content 1fr max-content 1fr max-content 1fr;
+.horizontal-view--pages-4 {
+    grid-template-columns: 1fr;
+    grid-template-rows: max-content 24px repeat(3, 1fr);
+}
+
+.vertical-view--pages-2 {
+    grid-template-rows: 1fr;
+    grid-template-columns: max-content 24px repeat(1, 1fr);
+}
+
+.vertical-view--pages-3 {
+    grid-template-rows: 1fr;
+    grid-template-columns: max-content 24px repeat(2, 1fr);
+}
+
+.vertical-view--pages-4 {
+    grid-template-rows: 1fr;
+    grid-template-columns: max-content 24px repeat(3, 1fr);
 }
 
 .split-document-page {
     overflow: auto;
+}
+
+.additional-pages-with-user-name {
+    overflow: hidden;
+}
+
+.additional-page {
+    // 24px - height of the <SplitAnnotatorInfo />
+    // 16px - padding-bottom of the <SplitAnnotatorInfo />
+    height: calc(100% - (24px + 16px));
 }

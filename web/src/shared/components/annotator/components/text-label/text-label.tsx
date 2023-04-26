@@ -4,6 +4,7 @@ import { ReactComponent as closeIcon } from '@epam/assets/icons/common/navigatio
 import { IconButton } from '@epam/loveship';
 import styles from './text-label.module.scss';
 import { cx } from '@epam/uui';
+import { getAnnotationLabelColors, isContrastColor } from 'shared/helpers/annotations';
 
 type TextLabelProps = {
     color: string;
@@ -27,17 +28,17 @@ export const TextLabel = ({
     isHovered
 }: TextLabelProps) => (
     <span
-        style={{ backgroundColor: color }}
         onContextMenu={onContextMenu}
+        style={getAnnotationLabelColors(color)}
         className={cx(className, { [styles.show]: isSelected || isHovered })}
     >
         {label?.split('.').pop()}
         {isEditable && (
             <IconButton
                 icon={closeIcon}
-                onClick={onCloseIconClick}
-                color={'white'}
                 iconPosition={'right'}
+                onClick={onCloseIconClick}
+                color={isContrastColor(color) ? 'white' : 'night900'}
             />
         )}
     </span>

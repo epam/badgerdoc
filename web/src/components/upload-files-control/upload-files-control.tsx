@@ -5,33 +5,34 @@ import { UploadForm, AttachedFiles } from 'components';
 
 type UploadFilesControlProps = {
     value: File[];
-    onValueChange: (newValue: File[]) => void;
     isLoading: boolean;
+    onValueChange: (value: File[]) => void;
 };
 
 export const UploadFilesControl: FC<UploadFilesControlProps> = ({
     value,
-    onValueChange,
-    isLoading
+    isLoading,
+    onValueChange
 }) => {
     const onFilesAdded = useCallback(
         (files: Array<File>) => {
-            const newValue = new Set(value);
+            const changedValue = [...value];
+            const filesNames = new Set(value.map(({ name }) => name));
+
             for (const file of files) {
-                if (!newValue.has(file)) {
-                    newValue.add(file);
+                if (!filesNames.has(file.name)) {
+                    changedValue.push(file);
                 }
             }
-            onValueChange(Array.from(newValue));
+
+            onValueChange(changedValue);
         },
         [value]
     );
 
     const onFileRemove = useCallback(
         (file: File) => {
-            const newValue = new Set(value);
-            newValue.delete(file);
-            onValueChange(Array.from(newValue));
+            onValueChange(value.filter((item) => item !== file));
         },
         [value]
     );

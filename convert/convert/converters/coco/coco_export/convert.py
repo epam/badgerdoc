@@ -12,16 +12,8 @@ from botocore.exceptions import ClientError
 from convert.config import minio_client, minio_resource, settings
 from convert.logger import get_logger
 
-from ..models.coco import (
-    Annotation,
-    Category,
-    CocoDataset,
-    Image,
-)
-from ..utils.common_utils import (
-    add_to_zip_and_local_remove,
-    get_headers
-)
+from ..models.coco import Annotation, Category, CocoDataset, Image
+from ..utils.common_utils import add_to_zip_and_local_remove, get_headers
 from ..utils.json_utils import export_save_to_json
 from ..utils.render_pdf_page import pdf_page_to_jpg
 from ..utils.s3_utils import convert_bucket_name_if_s3prefix

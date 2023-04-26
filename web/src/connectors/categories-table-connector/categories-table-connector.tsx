@@ -7,10 +7,8 @@ import { useArrayDataSource, useUuiContext } from '@epam/uui';
 import { categoryColumns } from './categories-column';
 import { useCategories } from '../../api/hooks/categories';
 import styles from './categories-table-connector.module.scss';
-import {
-    ModalWithDisabledClickOutsideAndCross,
-    TaskValidationValues
-} from '../categories-modal-connector/categories-modal-connector';
+import { ModalWithDisabledClickOutsideAndCross } from '../categories-modal-connector/categories-modal-connector';
+import { TaskValidationValues } from '../categories-modal-connector/types';
 import { ML_MENU_ITEMS } from '../../shared/contexts/current-user';
 import { MultiSwitchMenu } from '../../shared/components/multi-switch-menu/MultiSwitchMenu';
 import { useHistory } from 'react-router-dom';

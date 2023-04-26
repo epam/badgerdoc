@@ -15,14 +15,20 @@
     border: 2px solid white;
 }
 
-.selectedAnnotation {
-    border-color: black;
+.label {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
 }
 
-.label {
+.labelText {
     padding: 5px;
     color: inherit !important;
     border: inherit !important;
+}
+
+.selectedAnnotation {
+    border-color: black;
 }
 
 .text {
@@ -74,4 +80,44 @@
 .wrapper {
     flex-direction: row;
     border-radius: 0 !important;
+}
+
+.link-row {
+    justify-content: space-between;
+    width: 280px;
+    padding: 2px 8px;
+
+    & .title {
+        display: flex;
+        gap: 4px;
+    }
+
+    & .cross {
+        display: none !important;
+    }
+
+    &:hover {
+        background-color: #e1e3eb;
+
+        .cross {
+            display: flex !important;
+        }
+    }
+}
+
+.labelList {
+    padding: 0 16px;
+}
+
+.labelRow {
+    background-color: #e1e3eb;
+    min-height: unset;
+    justify-content: space-between;
+    padding: 0 8px;
+    &:hover {
+        background-color: #e1e3eb !important;
+    }
+    &:not(:last-child) {
+        margin-bottom: 2px;
+    }
 }

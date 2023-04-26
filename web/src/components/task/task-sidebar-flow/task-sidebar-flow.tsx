@@ -1,15 +1,19 @@
-import React, { FC, useEffect, useMemo, useState } from 'react';
+import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { Button, FlexRow, Panel, TabButton } from '@epam/loveship';
 import { useTaskAnnotatorContext } from 'connectors/task-annotator-connector/task-annotator-context';
 import { AnnotationList } from './annotation-list';
-import { Annotation } from 'shared';
-import { getSortedAllAnnotationList, getSortedAnnotationsByUserId, getTabs } from './utils';
+import {
+    getTabs,
+    getCategoriesByUserId,
+    getSortedAllAnnotationList,
+    getSortedAnnotationsByUserId
+} from './utils';
 import { OWNER_TAB, VISIBILITY_SETTING_ID } from './constants';
 import { ReactComponent as closeIcon } from '@epam/assets/icons/common/navigation-chevron-left_left-18.svg';
 import { ReactComponent as openIcon } from '@epam/assets/icons/common/navigation-chevron-right_right-18.svg';
 
 import styles from './styles.module.scss';
-import { ValidationType } from 'api/typings';
+import { Label } from 'api/typings';
 
 export const FlowSideBar: FC = () => {
     const [currentTab, setCurrentTab] = useState(OWNER_TAB.id);
@@ -19,13 +23,20 @@ export const FlowSideBar: FC = () => {
     });
 
     const {
+        userPages,
+        categories,
+        setTabValue,
+        onLinkDeleted,
+        selectedLabels,
+        onLabelsSelected,
+        isSplitValidation,
         annotationsByUserId,
         setSelectedAnnotation,
+        job: { annotators } = {},
         setCurrentDocumentUserId,
         currentDocumentUserId = OWNER_TAB.id,
         allAnnotations: allAnnotationsByPageNum = {},
-        selectedAnnotation: { id: selectedAnnotationId } = {},
-        job: { annotators, validation_type: validationType } = {}
+        selectedAnnotation: { id: selectedAnnotationId } = {}
     } = useTaskAnnotatorContext();
 
     useEffect(() => {
@@ -41,6 +52,26 @@ export const FlowSideBar: FC = () => {
         localStorage.setItem(VISIBILITY_SETTING_ID, String(!isHidden));
         setIsHidden(!isHidden);
     };
+
+    const handleLabelSelect = useCallback(
+        (label: Label) => {
+            const isExisted = selectedLabels.some(({ id }) => id === label.id);
+
+            if (!isExisted) {
+                setTabValue('Document');
+                onLabelsSelected([...selectedLabels, label]);
+            }
+        },
+        [onLabelsSelected, selectedLabels]
+    );
+
+    const handleLabelDelete = useCallback(
+        (label: Label) => {
+            const withoutCurrentLabel = selectedLabels.filter(({ id }) => id !== label.id);
+            onLabelsSelected(withoutCurrentLabel);
+        },
+        [onLabelsSelected, selectedLabels]
+    );
 
     const tabs = useMemo(() => {
         if (!annotators) return [];
@@ -61,12 +92,22 @@ export const FlowSideBar: FC = () => {
         [annotationsByUserId]
     );
 
-    const annotationsByTab: Record<string, Annotation[]> = {
+    const categoriesByUserId = useMemo(
+        () => getCategoriesByUserId(userPages, categories),
+        [userPages, categories]
+    );
+
+    const annotationsByTab = {
         ...sortedAnnotationsByUserId,
         [OWNER_TAB.id]: allSortedAnnotations
     };
 
-    const isTabsShown = validationType === ValidationType.extensiveCoverage && tabs.length > 1;
+    const labelsByTab = {
+        ...categoriesByUserId,
+        [OWNER_TAB.id]: selectedLabels
+    };
+
+    const isTabsShown = isSplitValidation && tabs.length > 1;
 
     return (
         <Panel cx={styles.wrapper}>
@@ -94,8 +135,14 @@ export const FlowSideBar: FC = () => {
                     )}
                     {annotationsByTab[currentTab] && (
                         <AnnotationList
+                            onLabelDelete={handleLabelDelete}
+                            onLabelSelect={handleLabelSelect}
+                            isOwner={currentTab === OWNER_TAB.id}
+                            onLinkDeleted={onLinkDeleted}
                             onSelect={setSelectedAnnotation}
+                            labels={labelsByTab[currentTab]}
                             list={annotationsByTab[currentTab]}
+                            isEditable={currentTab === OWNER_TAB.id}
                             selectedAnnotationId={selectedAnnotationId}
                         />
                     )}

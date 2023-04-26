@@ -23,6 +23,7 @@ import './react-pdf.scss';
 import ResizableSyncedContainer from './components/ResizableSyncedContainer';
 import { cx } from '@epam/uui';
 import { ValidationType } from 'api/typings';
+import { GridVariants } from 'shared/constants/task';
 
 export interface PageSize {
     width: number;
@@ -36,14 +37,8 @@ type DocumentPagesProps = {
     apiPageSize?: PageSize;
     additionalScale: number;
     setPageSize?: (nS: any) => void;
-
     editable: boolean;
-    onAnnotationCopyPress: (pageNum: number, annotationId: string | number) => void;
-    onAnnotationCutPress: (pageNum: number, annotationId: string | number) => void;
-    onAnnotationPastePress: (pageSize: PageSize, pageNum: number) => void;
-    onAnnotationUndoPress: () => void;
-    onAnnotationRedoPress: () => void;
-    onEmptyAreaClick: () => void;
+    gridVariant: GridVariants;
 };
 
 export const getScale = (containerWidth: number, contentWidth: number) => {
@@ -59,33 +54,30 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
     apiPageSize,
     setPageSize,
     editable,
-    additionalScale,
-    onAnnotationCopyPress,
-    onAnnotationCutPress,
-    onAnnotationPastePress,
-    onAnnotationUndoPress,
-    onAnnotationRedoPress,
-    onEmptyAreaClick
+    gridVariant,
+    additionalScale
 }) => {
     const {
         SyncedContainer,
         annotationsByUserId,
-        categoriesByUserId,
         currentPage,
         isSplitValidation,
         onSplitAnnotationSelected,
         userPages,
-        selectedLabels,
         selectedRelatedDoc,
-        job
+        job,
+        onEmptyAreaClick,
+        onAnnotationCopyPress,
+        onAnnotationCutPress,
+        onAnnotationPastePress,
+        onAnnotationUndoPress,
+        onAnnotationRedoPress
     } = useTaskAnnotatorContext();
 
     const containerRef = useRef<HTMLDivElement>(null);
 
     const [scale, setScale] = useState(0);
     const [originalPageSize, setOriginalPageSize] = useState<PageSize>();
-
-    const selectedLabelsId = selectedLabels?.map(({ id }) => id) || [];
 
     const getAnnotatorName = useCallback(
         (annotatorId: string): string => {
@@ -149,41 +141,45 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                         file={getPdfDocumentAddress(fileMetaInfo.id)}
                         loading={<Spinner color="sky" />}
                         options={{ httpHeaders: getAuthHeaders() }}
-                        className={cn(
-                            styles['split-document-wrapper'],
-                            styles[`split-document-wrapper--pages-${userPages.length + 1}`]
-                        )}
+                        className={cn(styles['split-document-wrapper'], {
+                            [styles[`vertical-view--pages-${userPages.length + 1}`]]:
+                                gridVariant === GridVariants.vertical,
+                            [styles[`horizontal-view--pages-${userPages.length + 1}`]]:
+                                gridVariant === GridVariants.horizontal
+                        })}
                     >
-                        <ResizableSyncedContainer className={styles['split-document-page']}>
-                            {pageNumbers.map((pageNum) => {
-                                return (
-                                    <Fragment key={pageNum}>
-                                        <DocumentSinglePage
-                                            scale={fullScale}
-                                            pageSize={apiPageSize}
-                                            pageNum={pageNum}
-                                            handlePageLoaded={handlePageLoaded}
-                                            containerRef={containerRef}
-                                            editable={editable}
-                                            onAnnotationCopyPress={onAnnotationCopyPress}
-                                            onAnnotationCutPress={onAnnotationCutPress}
-                                            onAnnotationPastePress={onAnnotationPastePress}
-                                            onAnnotationUndoPress={onAnnotationUndoPress}
-                                            onAnnotationRedoPress={onAnnotationRedoPress}
-                                            onEmptyAreaClick={onEmptyAreaClick}
-                                        />
-                                    </Fragment>
-                                );
-                            })}
+                        <ResizableSyncedContainer
+                            type={gridVariant}
+                            rowsCount={userPages.length + 1}
+                            className={styles['split-document-page']}
+                        >
+                            <DocumentSinglePage
+                                scale={fullScale}
+                                pageSize={apiPageSize}
+                                pageNum={currentPage}
+                                handlePageLoaded={handlePageLoaded}
+                                containerRef={containerRef}
+                                editable
+                                onAnnotationCopyPress={onAnnotationCopyPress}
+                                onAnnotationCutPress={onAnnotationCutPress}
+                                onAnnotationPastePress={onAnnotationPastePress}
+                                onAnnotationUndoPress={onAnnotationUndoPress}
+                                onAnnotationRedoPress={onAnnotationRedoPress}
+                                onEmptyAreaClick={onEmptyAreaClick}
+                            />
                         </ResizableSyncedContainer>
                         {userPages.map(({ user_id, page_num }) => (
-                            <Fragment key={user_id}>
-                                <SplitAnnotatorInfo
-                                    annotatorName={getAnnotatorName(user_id)}
-                                    labels={categoriesByUserId[user_id]}
-                                    selectedLabelsId={selectedLabelsId}
-                                />
-                                <SyncedContainer className={styles['split-document-page']}>
+                            <div
+                                key={user_id}
+                                className={styles['additional-pages-with-user-name']}
+                            >
+                                <SplitAnnotatorInfo annotatorName={getAnnotatorName(user_id)} />
+                                <SyncedContainer
+                                    className={cx(
+                                        styles['split-document-page'],
+                                        styles['additional-page']
+                                    )}
+                                >
                                     <DocumentSinglePage
                                         userId={user_id}
                                         annotations={annotationsByUserId[user_id]}
@@ -195,7 +191,7 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                                         }
                                     />
                                 </SyncedContainer>
-                            </Fragment>
+                            </div>
                         ))}
                     </Document>
                 ) : selectedRelatedDoc ? (

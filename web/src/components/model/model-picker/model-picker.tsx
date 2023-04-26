@@ -1,8 +1,9 @@
+import React, { FC } from 'react';
+import { Model } from 'api/typings';
+import { ModelValues } from '../model.models';
+
 import { LabeledInput, PickerInput } from '@epam/loveship';
 import { ILens, useArrayDataSource } from '@epam/uui';
-import { Model } from 'api/typings';
-import { ModelValues } from 'connectors/add-model-connector/add-model-connector';
-import React, { FC } from 'react';
 
 type ModelPickerProps = {
     lens: ILens<ModelValues>;
@@ -16,6 +17,7 @@ const ModelPicker: FC<ModelPickerProps> = ({ lens, models }) => {
         },
         [models]
     );
+
     return (
         <LabeledInput cx={`m-t-15`} label="Base Model" {...lens.prop('baseModel').toProps()}>
             <PickerInput

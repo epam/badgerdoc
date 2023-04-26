@@ -26,16 +26,16 @@ import { DOCUMENTS_PAGE, JOBS_PAGE } from '../../shared/constants/general';
 import wizardStyles from 'shared/components/wizard/wizard/wizard.module.scss';
 import { Text } from '@epam/loveship';
 import { CurrentUser } from 'shared/contexts/current-user';
+import { DataSetOptions } from 'shared/components/wizard/dataset-wizard-screen/constants';
 
 export const UploadWizardPage = () => {
     const { isPipelinesDisabled } = useContext(CurrentUser);
 
+    const [stepIndex, setStepIndex] = useState(0);
     const [files, setFiles] = useState<File[]>([]);
-    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [isLoading, setIsLoading] = useState(false);
     const [uploadedFilesIds, setUploadedFilesIds] = useState<number[]>([]);
-
     const [datasetStepData, setDatasetStepData] = useState<DatasetWizardScreenResult>();
-
     const [preprocessorStepData, setPreprocessorStepData] =
         useState<UploadWizardPreprocessorResult>();
 
@@ -59,7 +59,6 @@ export const UploadWizardPage = () => {
 
     const uploadFilesHandler = useCallback(async () => {
         try {
-            // todo: put this inside <UploadFilesControl>
             setIsLoading(true);
             const responses = await uploadFilesMutation.mutateAsync(files);
             const filesIds: number[] = [];
@@ -76,13 +75,13 @@ export const UploadWizardPage = () => {
     }, [files]);
 
     const isDatasetStepNextDisabled = () =>
-        (datasetStepData?.optionId === 2 && !datasetStepData.selectedDataset) ||
-        (datasetStepData?.optionId === 3 && !datasetStepData.datasetName);
+        (datasetStepData?.optionId === DataSetOptions.existingDataSet &&
+            !datasetStepData.selectedDataset) ||
+        (datasetStepData?.optionId === DataSetOptions.newDataSet && !datasetStepData.datasetName);
 
     const datasetHandler = async () => {
         switch (datasetStepData?.optionId) {
-            // existing dataset
-            case 2: {
+            case DataSetOptions.existingDataSet: {
                 const datasetWithFiles: DatasetWithFiles = {
                     name: datasetStepData?.selectedDataset?.name || '',
                     objects: uploadedFilesIds
@@ -90,9 +89,7 @@ export const UploadWizardPage = () => {
                 await addFilesToDatasetMutation.mutateAsync(datasetWithFiles);
                 break;
             }
-
-            // new dataset
-            case 3: {
+            case DataSetOptions.newDataSet: {
                 // can also be saved to newDataset
                 await addDatasetMutation
                     .mutateAsync(datasetStepData.datasetName || '')
@@ -120,7 +117,6 @@ export const UploadWizardPage = () => {
         ]);
     };
 
-    const [stepIndex, setStepIndex] = useState(0);
     const handleNext = () => {
         setStepIndex(stepIndex + 1);
     };

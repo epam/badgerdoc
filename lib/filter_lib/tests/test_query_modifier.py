@@ -1,5 +1,8 @@
-from ..src.enum_generator import get_enum_from_orm
-from ..src.query_modificator import (
+import pytest
+
+from src.enum_generator import get_enum_from_orm
+from src.pagination import PaginationParams
+from src.query_modificator import (
     _create_filter,
     _create_or_condition,
     _get_column,
@@ -7,6 +10,7 @@ from ..src.query_modificator import (
     _op_is_not,
     form_query,
 )
+
 from .conftest import Address, Category, User
 
 
@@ -505,3 +509,51 @@ def test_filters_with_null_not_ilike(get_session):
     query, pag = form_query(specs, query)
     ids = [el.id for el in query]
     assert ids == [10, 15]
+
+
+@pytest.mark.parametrize(
+    "page_offset_and_page_size",
+    [(0, 15), (0, 100), (10, 30), (50, 80), (50, 100), (80, 30)],
+)
+def test_form_query_uii_compatible_format(
+    get_session, page_offset_and_page_size
+):
+    session = get_session
+    user_instances_to_create = [User(id=idx) for idx in range(1, 101)]
+    session.add_all(user_instances_to_create)
+    session.commit()
+    query = session.query(User)
+
+    page_offset, page_size = page_offset_and_page_size
+
+    specs = {
+        "pagination": {"page_offset": page_offset, "page_size": page_size}
+    }
+    query, pag = form_query(specs, query)
+
+    start_slice_num = page_offset
+    stop_slice_num = page_offset + page_size
+
+    if page_offset + page_size > len(user_instances_to_create):
+        expected_total = len(user_instances_to_create) - page_offset
+    else:
+        expected_total = page_size
+
+    assert (
+        query.all() == user_instances_to_create[start_slice_num:stop_slice_num]
+    )
+    assert query.count() <= page_size
+
+    assert pag == PaginationParams(
+        page_num=None,
+        page_offset=page_offset,
+        page_size=page_size,
+        min_pages_left=1,
+        total=expected_total,
+        has_more=(
+            query.count()
+            < len(
+                user_instances_to_create[start_slice_num : stop_slice_num + 1]
+            )
+        ),
+    )

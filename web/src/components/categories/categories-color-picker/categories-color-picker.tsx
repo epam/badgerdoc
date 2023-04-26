@@ -1,52 +1,55 @@
-import React, { useEffect, useState } from 'react';
-import { IDropdownToggler } from '@epam/uui';
-import { FlexRow, Panel, Button, Dropdown } from '@epam/loveship';
-import { HexColorPicker } from 'react-colorful';
+import React from 'react';
+import { IDropdownToggler, cx } from '@epam/uui';
+import { Panel, Button, Dropdown } from '@epam/loveship';
 import styles from './categories-color-picker.module.scss';
+import { COLORS } from 'shared/constants/colors';
 
 type CategoriesColorPickerProps = {
-    selectedColor(color: string): void;
-    defaultColor: string;
+    value: string;
+    isInvalid?: boolean;
+    onValueChange(color: string): void;
 };
 
 export const CategoriesColorPicker: React.FC<CategoriesColorPickerProps> = ({
-    selectedColor,
-    defaultColor = '#313335'
+    value,
+    isInvalid,
+    onValueChange
 }) => {
-    const [color, setColor] = useState(defaultColor);
-
-    useEffect(() => {
-        selectedColor(color);
-    }, [color]);
-
     const colorPickerView = () => {
         return (
-            <Panel background="white" shadow={true}>
-                <FlexRow padding="12" vPadding="12">
-                    <HexColorPicker color={color} onChange={setColor} />
-                </FlexRow>
+            <Panel background="white" shadow cx={styles['color-list']}>
+                {COLORS.map((color) => (
+                    <div
+                        key={color}
+                        role="none"
+                        onClick={() => onValueChange(color)}
+                        className={styles['color-cell']}
+                        style={{ backgroundColor: color }}
+                    />
+                ))}
             </Panel>
         );
     };
 
     return (
-        <>
-            <Dropdown
-                renderBody={() => colorPickerView()}
-                renderTarget={(props: IDropdownToggler) => (
-                    <div className={styles['color-picker-panel']}>
-                        <Button
-                            caption="Choose a color"
-                            {...props}
-                            cx={styles['color-picker-panel_button']}
-                        />{' '}
-                        <div
-                            className={styles['color-picker-panel_box']}
-                            style={{ background: color }}
-                        ></div>
-                    </div>
-                )}
-            />
-        </>
+        <Dropdown
+            renderBody={() => colorPickerView()}
+            renderTarget={(props: IDropdownToggler) => (
+                <div className={styles['color-picker-panel']}>
+                    <Button
+                        caption="Choose a color"
+                        {...props}
+                        cx={styles['color-picker-panel_button']}
+                    />{' '}
+                    <div
+                        className={cx(
+                            styles['color-picker-panel_box'],
+                            isInvalid && styles.invalid
+                        )}
+                        style={{ background: value }}
+                    ></div>
+                </div>
+            )}
+        />
     );
 };

@@ -1312,8 +1312,12 @@ paths:
               $ref: '#/components/schemas/JobPatchSchema'
         required: true
       responses:
-        '204':
+        '200':
           description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobPatchOutSchema'
         '500':
           description: Internal Server Error
           content:
@@ -2670,18 +2674,10 @@ components:
           title: Is Manual
           type: boolean
           example: true
-    JobPatchSchema:
-      title: JobPatchSchema
+    JobPatchOutSchema:
+      title: JobPatchOutSchema
       type: object
       properties:
-        callback_url:
-          title: Callback Url
-          type: string
-          example: http://jobs/jobs/1
-        name:
-          title: Name
-          type: string
-          example: job_name
         annotators:
           title: Annotators
           uniqueItems: true
@@ -2700,6 +2696,54 @@ components:
             format: uuid
           example:
           - b44156f8-e634-48a6-b5f3-c8b1462a2d67
+        categories:
+          title: Categories
+          uniqueItems: true
+          type: array
+          items:
+            type: string
+          example:
+          - '2'
+          - '1'
+    JobPatchSchema:
+      title: JobPatchSchema
+      type: object
+      properties:
+        annotators:
+          title: Annotators
+          uniqueItems: true
+          type: array
+          items:
+            type: string
+            format: uuid
+          example:
+          - f0474853-f733-41c0-b897-90b788b822e3
+        validators:
+          title: Validators
+          uniqueItems: true
+          type: array
+          items:
+            type: string
+            format: uuid
+          example:
+          - b44156f8-e634-48a6-b5f3-c8b1462a2d67
+        categories:
+          title: Categories
+          uniqueItems: true
+          type: array
+          items:
+            type: string
+          example:
+          - '2'
+          - '1'
+        callback_url:
+          title: Callback Url
+          type: string
+          example: http://jobs/jobs/1
+        name:
+          title: Name
+          type: string
+          example: job_name
         owners:
           title: Owners
           uniqueItems: true
@@ -2729,20 +2773,15 @@ components:
           - 1
           - 2
           - 3
-        categories:
-          title: Categories
-          uniqueItems: true
-          type: array
-          items:
-            type: string
-          example:
-          - '1'
-          - '2'
         deadline:
           title: Deadline
           type: string
           format: date-time
           example: '2021-10-19 01:01:01'
+        extensive_coverage:
+          title: Extensive Coverage
+          type: integer
+          example: 1
     JobProgressSchema:
       title: JobProgressSchema
       required:

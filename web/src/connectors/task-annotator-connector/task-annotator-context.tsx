@@ -144,8 +144,8 @@ type ContextValue = SplitValidationValue &
         selectedToolParams: PaperToolParams;
         setSelectedToolParams: (nt: PaperToolParams) => void;
         setSelectedAnnotation: (annotation: Annotation | undefined) => void;
-        selectedLabels?: Label[];
-        onLabelsSelected: (labels: Label[], pickedLabels: string[]) => void;
+        selectedLabels: Label[];
+        onLabelsSelected: (labels: Label[]) => void;
         setSelectedLabels: (labels: Label[]) => void;
         latestLabelsId: string[];
         isDocLabelsModified: boolean;
@@ -359,7 +359,9 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         currentPage,
         selectionType,
         allAnnotations,
-        (prevPage, links, annId) => selectedAnnotation && onAnnotationEdited(prevPage, annId, links)
+        (prevPage, links, annId) =>
+            selectedAnnotation && onAnnotationEdited(prevPage, annId, links),
+        setSelectedCategory
     );
     const createAnnotation = (
         pageNum: number,
@@ -458,22 +460,18 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         setSelectedCategory(category);
     };
 
-    const onLabelsSelected = (labels: Label[], pickedLabels: string[]) => {
-        if (!Array.isArray(labels)) return;
+    const onLabelsSelected = useCallback(
+        (labels: Label[]) => {
+            if (!Array.isArray(labels)) return;
 
-        const currentLabelsId = labels.map((label) => label.id);
-        const isDocLabelsModifiedNewVal = !isEqual(latestLabelsId, currentLabelsId);
+            const currentLabelsId = labels.map((label) => label.id);
+            const isDocLabelsModifiedNewVal = !isEqual(latestLabelsId, currentLabelsId);
 
-        setIsDocLabelsModified(isDocLabelsModifiedNewVal);
-
-        setSelectedLabels((prev) => {
-            const combinedLabels = [...prev, ...labels];
-            const arrayUniqueByKey = [
-                ...new Map(combinedLabels.map((item) => [item['id'], item])).values()
-            ].filter((label) => pickedLabels.includes(label.id));
-            return arrayUniqueByKey;
-        });
-    };
+            setIsDocLabelsModified(isDocLabelsModifiedNewVal);
+            setSelectedLabels(labels);
+        },
+        [latestLabelsId]
+    );
 
     const onLinkSelected = (link: Link) => {
         setSelectedLink(link);
@@ -869,13 +867,26 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             return;
         }
 
+        const getPages = (): PageInfo[] => {
+            // TODO: uncommented after BE will be ready (issue #569)
+            // if (task?.is_validation && splitValidation.isSplitValidation) {
+            //     return pages;
+            // } else {
+            //     return validationValues.validPages.length || validationValues.invalidPages.length
+            //         ? []
+            //         : pages;
+            // }
+
+            // TODO: del after BE will be ready (issue #569)
+            return validationValues.validPages.length || validationValues.invalidPages.length
+                ? []
+                : pages;
+        };
+
         try {
             await addAnnotationMutation.mutateAsync({
                 taskId,
-                pages:
-                    validationValues.validPages.length || validationValues.invalidPages.length
-                        ? []
-                        : pages,
+                pages: getPages(),
                 userId: task.user_id,
                 revision,
                 validPages: validationValues.validPages,
@@ -891,6 +902,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             onSaveTaskError(error as ApiError);
         }
     };
+
     const tokensByPages = useMemo<Record<number, PageToken[]>>(() => {
         if (!tokenPages?.length) {
             return {};
@@ -1003,7 +1015,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         setModifiedPages([]);
     }, []);
 
-    const syncScroll = useSyncScroll();
+    const { SyncedContainer } = useSyncScroll();
 
     const linksFromApi = latestAnnotationsResult.data?.links_json;
 
@@ -1076,8 +1088,8 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             linksFromApi,
             setCurrentDocumentUserId,
             currentDocumentUserId,
+            SyncedContainer,
             ...splitValidation,
-            ...syncScroll,
             ...documentLinksValues,
             ...validationValues
         };
@@ -1105,7 +1117,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         isDataTabDisabled,
         selectedToolParams,
         splitValidation,
-        syncScroll,
+        SyncedContainer,
         selectedLabels,
         latestLabelsId,
         linksFromApi,

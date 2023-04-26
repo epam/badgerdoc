@@ -1,7 +1,8 @@
-import React, { FC, useState } from 'react';
-import { IModal, useArrayDataSource } from '@epam/uui';
+import React, { FC } from 'react';
+import { useArrayDataSource } from '@epam/uui';
 import {
     Button,
+    Checkbox,
     FlexCell,
     FlexRow,
     FlexSpacer,
@@ -14,7 +15,8 @@ import {
     PickerInput,
     ScrollBars,
     Text,
-    TextInput
+    TextInput,
+    useForm
 } from '@epam/loveship';
 import { CategoriesColorPicker } from '../../components/categories/categories-color-picker/categories-color-picker';
 import { CategoriesDataAttributes } from '../../components/categories/categories-data-attributes/categories-data-attributes';
@@ -24,188 +26,124 @@ import {
     useCategories,
     useUpdateCategoriesMutation
 } from '../../api/hooks/categories';
-import {
-    Category,
-    CategoryDataAttribute,
-    CategoryDataAttrType,
-    CategoryType,
-    categoryTypes,
-    QueryHookParamsType
-} from '../../api/typings';
+import { Category, CategoryType, categoryTypes, QueryHookParamsType } from '../../api/typings';
 import { usePageTable } from '../../shared';
 import { useNotifications } from '../../shared/components/notifications';
-import { CategoriesParentSelector } from '../../components/categories/categories-parent-selector/categories-parent-selector';
 import { useEntity } from '../../shared/hooks/use-entity';
 import { getError } from 'shared/helpers/get-error';
 
-export interface TaskValidationValues {
-    categoryValue?: Category;
-}
-interface IProps extends IModal<TaskValidationValues> {
-    categoryValue?: Category;
-}
+import { IProps, TCategoryOption, TFormValues } from './types';
+import { getDefaultValues, getFormSchema } from './utils';
 
-export const ModalWithDisabledClickOutsideAndCross: FC<IProps> = (props) => {
+import styles from './styles.module.scss';
+
+export const ModalWithDisabledClickOutsideAndCross: FC<IProps> = ({
+    categoryValue,
+    abort: onClose,
+    ...props
+}) => {
     const {
-        name: nameProps = '',
-        parent: parenProps = null,
-        type: typeProps = null,
-        metadata: { color: colorProps = '#000000' } = {},
-        data_attributes: dataAttributesProps = []
-    } = props?.categoryValue || {};
-    const { pageConfig, sortConfig } = usePageTable<Category>('name');
-    const [color, setColor] = useState(colorProps);
-    const [checkBoxValue, setCheckBoxValue] = useState<boolean>(parenProps !== undefined);
-    const [type, setType] = useState<CategoryType>(typeProps ?? 'box');
-    const [categoryName, setCategoryName] = useState<string | undefined>(nameProps);
-    const [categoryId, setCategoryId] = useState<string | undefined>(nameProps);
-    const [parentValue, setParentValue] = useState<string | null>(parenProps);
-    const { page, pageSize } = pageConfig;
+        sortConfig,
+        pageConfig: { page, pageSize }
+    } = usePageTable<Category>('name');
     const { notifyError, notifySuccess } = useNotifications();
+    const { dataSource: categoriesDataSource } = useEntity<Category, string>(categoriesFetcher);
     const { refetch: refetchCategory } = useCategories(
         { page, size: pageSize, sortConfig } as QueryHookParamsType<Category>,
         {}
     );
-    const [dataAttributes, setDataAttributes] = useState(dataAttributesProps || []);
-
-    const { dataSource } = useEntity<Category, Category>(categoriesFetcher);
-
-    const categoryTypeDataSource = useArrayDataSource(
+    const categoryTypeDataSource = useArrayDataSource<TCategoryOption, CategoryType, unknown>(
         {
             items: categoryTypes.map((el) => ({ id: el, name: el }))
         },
         []
     );
 
-    const updateCategoryMutation = useUpdateCategoriesMutation();
     const addCategoryMutation = useAddCategoriesMutation();
+    const updateCategoryMutation = useUpdateCategoriesMutation();
 
-    const updateCategory = async () => {
+    const updateCategory = async (categoryId: string, formValues: TFormValues) => {
         await updateCategoryMutation.mutateAsync({
-            id: props.categoryValue!.id,
-            name: categoryName!,
-            metadata: { color: color },
-            type: type,
-            parent: parentValue,
-            data_attributes: dataAttributes
+            id: categoryId,
+            name: formValues.name,
+            metadata: { color: formValues.color },
+            type: formValues.type,
+            parent: formValues.parentId,
+            data_attributes: formValues.dataAttributes
         });
-        await refetchCategory();
+        notifySuccess(<Text>The category was updated successfully</Text>);
     };
 
-    const addCategory = async () => {
+    const addCategory = async (formValues: TFormValues) => {
         await addCategoryMutation.mutateAsync({
-            id: categoryId!,
-            name: categoryName!,
-            metadata: { color: color },
-            type: type,
-            parent: parentValue,
-            data_attributes: dataAttributes
+            id: formValues.categoryId,
+            name: formValues.name,
+            metadata: { color: formValues.color },
+            type: formValues.type,
+            parent: formValues.parentId,
+            data_attributes: formValues.dataAttributes
         });
-        await refetchCategory();
+        notifySuccess(<Text>The category was successfully added</Text>);
     };
 
-    const saveCategory = async () => {
+    const saveCategory = async (formValues: TFormValues) => {
         try {
-            const findEmptyAtt = dataAttributes.filter(
-                ({ name, type }) => name === '' || type === '' || type === null
-            );
-
-            if (categoryName?.length && color && !findEmptyAtt.length && categoryId?.length) {
-                if (props.categoryValue) {
-                    await updateCategory();
-                    notifySuccess(<Text>The category was updated successfully</Text>);
-                } else {
-                    await addCategory();
-                    notifySuccess(<Text>The category was successfully added</Text>);
-                }
-                return true;
+            if (categoryValue?.id) {
+                await updateCategory(categoryValue.id, formValues);
+            } else {
+                await addCategory(formValues);
             }
+
+            await refetchCategory();
+            onClose();
         } catch (err: any) {
             notifyError(<Text>{getError(err)}</Text>);
-            return false;
         }
     };
 
-    const addDataAtt = () => {
-        const newElem: CategoryDataAttribute = {
-            name: '',
-            type: ''
-        };
-        setDataAttributes((prevState) => [newElem, ...prevState]);
-    };
-
-    const onDataAttChange = (
-        value: CategoryDataAttrType | string,
-        index: number,
-        keyName: string
-    ) => {
-        const newDataArr = [...dataAttributes];
-        newDataArr[index] = {
-            ...newDataArr[index],
-            [keyName]: value
-        };
-
-        setDataAttributes(newDataArr);
-    };
-
-    const onNameDataAttChange = (value: string, index: number) => {
-        onDataAttChange(value, index, 'name');
-    };
-
-    const onTypeDataAttChange = (value: CategoryDataAttrType, index: number) => {
-        onDataAttChange(value, index, 'type');
-    };
-
-    const onDataAttDelete = (index: number) => {
-        setDataAttributes((prevState) => prevState.filter((_, i) => i !== index));
-    };
+    const { lens, save } = useForm<TFormValues>({
+        onSave: saveCategory,
+        getMetadata: getFormSchema,
+        value: getDefaultValues(categoryValue)
+    });
 
     return (
-        <ModalBlocker disallowClickOutside blockerShadow="dark" {...props}>
+        <ModalBlocker disallowClickOutside blockerShadow="dark" {...props} abort={onClose}>
             <ModalWindow>
                 <Panel background="white">
                     <ModalHeader title="Add new category" />
                     <ScrollBars hasTopShadow hasBottomShadow>
                         <FlexRow padding="24" vPadding="12">
                             <FlexCell grow={1}>
-                                <LabeledInput label="Category Name">
-                                    <TextInput
-                                        value={categoryName}
-                                        onValueChange={setCategoryName}
-                                    />
+                                <LabeledInput label="Category Name" isRequired>
+                                    <TextInput {...lens.prop('name').toProps()} />
                                 </LabeledInput>
                             </FlexCell>
                         </FlexRow>
                         <FlexRow padding="24" vPadding="12">
                             <FlexCell grow={1}>
-                                <LabeledInput label="Category Id">
-                                    <TextInput value={categoryId} onValueChange={setCategoryId} />
+                                <LabeledInput isRequired label="Category Id">
+                                    <TextInput {...lens.prop('categoryId').toProps()} />
                                 </LabeledInput>
                             </FlexCell>
                         </FlexRow>
                         <FlexRow padding="24" vPadding="12">
                             <FlexCell grow={1}>
-                                <LabeledInput label="Color">
-                                    <CategoriesColorPicker
-                                        defaultColor={color}
-                                        selectedColor={(color) => {
-                                            setColor(color);
-                                        }}
-                                    />
+                                <LabeledInput isRequired label="Color">
+                                    <CategoriesColorPicker {...lens.prop('color').toProps()} />
                                 </LabeledInput>
                             </FlexCell>
                         </FlexRow>
                         <FlexRow padding="24" vPadding="12">
                             <FlexCell grow={1}>
                                 <LabeledInput label="Category Type">
-                                    <PickerInput
-                                        onValueChange={setType}
-                                        getName={(item) => item.name}
+                                    <PickerInput<TCategoryOption, CategoryType>
+                                        {...lens.prop('type').toProps()}
+                                        disableClear
                                         valueType="id"
-                                        selectionMode="single"
-                                        value={type}
                                         minBodyWidth={100}
-                                        disableClear={true}
+                                        selectionMode="single"
+                                        getName={(item) => item.name}
                                         dataSource={categoryTypeDataSource}
                                     />
                                 </LabeledInput>
@@ -213,36 +151,28 @@ export const ModalWithDisabledClickOutsideAndCross: FC<IProps> = (props) => {
                         </FlexRow>
                         <FlexRow padding="24" vPadding="12">
                             <FlexCell grow={1}>
-                                <CategoriesParentSelector
-                                    setCheckBoxValue={setCheckBoxValue}
-                                    checkBoxValue={checkBoxValue}
-                                    setParentValue={setParentValue}
-                                    parentValue={parentValue}
-                                    categoriesDataSource={dataSource}
+                                <Checkbox
+                                    {...lens.prop('withParentLabel').toProps()}
+                                    label="Parent label"
+                                    cx={styles['activate-checkbox-parent']}
+                                />
+                                <PickerInput
+                                    {...lens.prop('parentId').toProps()}
+                                    valueType="id"
+                                    minBodyWidth={100}
+                                    disableClear={true}
+                                    selectionMode="single"
+                                    dataSource={categoriesDataSource}
+                                    getName={(item) => item?.name ?? 'test'}
                                 />
                             </FlexCell>
                         </FlexRow>
-
-                        <CategoriesDataAttributes
-                            dataAttributes={dataAttributes}
-                            addDataAtt={addDataAtt}
-                            onNameDataAttChange={onNameDataAttChange}
-                            onTypeDataAttChange={onTypeDataAttChange}
-                            onDataAttDelete={onDataAttDelete}
-                        />
+                        <CategoriesDataAttributes {...lens.prop('dataAttributes').toProps()} />
                     </ScrollBars>
                     <ModalFooter>
                         <FlexSpacer />
-                        <Button fill="white" caption="Cancel" onClick={() => props.abort()} />
-                        <Button
-                            caption={props.categoryValue ? 'Update' : 'Save'}
-                            onClick={async () => {
-                                let success = await saveCategory();
-                                if (success) {
-                                    props.abort();
-                                }
-                            }}
-                        />
+                        <Button fill="white" caption="Cancel" onClick={onClose} />
+                        <Button onClick={save} caption={categoryValue ? 'Update' : 'Save'} />
                     </ModalFooter>
                 </Panel>
             </ModalWindow>
