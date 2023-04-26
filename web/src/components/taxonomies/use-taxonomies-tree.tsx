@@ -67,7 +67,7 @@ export const useTaxonomiesTree = ({ searchText, taxonomyId, taxonomyFilter }: Pr
 
             handleSetTaxonsNodes(data, parentId);
 
-            if (page > 1) {
+            if (page > 1 || !data.length) {
                 setIsLoading(false);
             }
 
