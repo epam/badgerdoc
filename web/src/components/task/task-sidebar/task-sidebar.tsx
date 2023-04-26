@@ -34,12 +34,15 @@ import { NoData } from 'shared/no-data';
 import { ReactComponent as MergeIcon } from '@epam/assets/icons/common/editor-table_merge_cells-24.svg';
 import { ReactComponent as SplitIcon } from '@epam/assets/icons/common/editor-table_split_cells-24.svg';
 
-import styles from './task-sidebar.module.scss';
 import { getCategoryDataAttrs } from 'connectors/task-annotator-connector/task-annotator-utils';
 import { FinishButton } from './finish-button/finish-button';
 import { TABS, VISIBILITY_SETTING_ID } from './constants';
 import { ReactComponent as openIcon } from '@epam/assets/icons/common/navigation-chevron-left_left-18.svg';
 import { ReactComponent as closeIcon } from '@epam/assets/icons/common/navigation-chevron-right_right-18.svg';
+import { ReactComponent as Copy } from '@epam/assets/icons/common/copy_content-12.svg';
+import { handleCopy } from 'shared/helpers/copy-text';
+
+import styles from './task-sidebar.module.scss';
 
 type TaskSidebarProps = {
     jobSettings?: ReactElement;
@@ -269,7 +272,16 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
     );
 
     const taskInfoElements = [
-        { name: 'Document:', value: `${fileMetaInfo.name}` },
+        {
+            name: 'Document:',
+            value: `${fileMetaInfo.name}`,
+            additional: (
+                <Copy
+                    className={styles.copyIcon}
+                    onClick={(e) => handleCopy(e, fileMetaInfo.name)}
+                />
+            )
+        },
         { name: 'TaskId:', value: `${task?.id}` },
         { name: 'Pages:', value: `${task?.pages.join(', ')}` },
         { name: 'Job Name:', value: `${task?.job.name}` },
@@ -281,7 +293,10 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
             {taskInfoElements.map((el) => (
                 <div className={styles['metadata-item']} key={el.name}>
                     <span className={styles['metadata-item__name']}>{el.name}</span>
-                    <span className={styles['metadata-item__value']}>{el.value}</span>
+                    <div className={styles.valueWrapper}>
+                        <span className={styles['metadata-item__value']}>{el.value}</span>
+                        {el.additional}
+                    </div>
                 </div>
             ))}
         </>
