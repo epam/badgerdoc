@@ -227,7 +227,6 @@ export default function useSplitValidation({
 
     return useMemo(
         () => ({
-            // annotationsByUserId,
             isSplitValidation,
             job,
             onSplitAnnotationSelected,
@@ -239,7 +238,6 @@ export default function useSplitValidation({
             latestRevisionByAnnotatorsWithBounds
         }),
         [
-            // annotationsByUserId,
             isSplitValidation,
             job,
             onSplitAnnotationSelected,
