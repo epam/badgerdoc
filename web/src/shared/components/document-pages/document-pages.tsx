@@ -59,11 +59,11 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
 }) => {
     const {
         SyncedContainer,
-        annotationsByUserId,
-        currentPage,
         isSplitValidation,
         onSplitAnnotationSelected,
-        userPages,
+        latestRevisionByAnnotators,
+        latestRevisionByAnnotatorsWithBounds,
+        currentPage,
         selectedRelatedDoc,
         job,
         onEmptyAreaClick,
@@ -142,54 +142,85 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                         loading={<Spinner color="sky" />}
                         options={{ httpHeaders: getAuthHeaders() }}
                         className={cn(styles['split-document-wrapper'], {
-                            [styles[`vertical-view--pages-${userPages.length + 1}`]]:
-                                gridVariant === GridVariants.vertical,
-                            [styles[`horizontal-view--pages-${userPages.length + 1}`]]:
-                                gridVariant === GridVariants.horizontal
+                            [styles[
+                                `vertical-view--pages-${latestRevisionByAnnotators.length + 1}`
+                            ]]: gridVariant === GridVariants.vertical,
+                            [styles[
+                                `horizontal-view--pages-${latestRevisionByAnnotators.length + 1}`
+                            ]]: gridVariant === GridVariants.horizontal
                         })}
                     >
                         <ResizableSyncedContainer
                             type={gridVariant}
-                            rowsCount={userPages.length + 1}
+                            rowsCount={latestRevisionByAnnotators.length + 1}
                             className={styles['split-document-page']}
                         >
-                            <DocumentSinglePage
-                                scale={fullScale}
-                                pageSize={apiPageSize}
-                                pageNum={currentPage}
-                                handlePageLoaded={handlePageLoaded}
-                                containerRef={containerRef}
-                                editable
-                                onAnnotationCopyPress={onAnnotationCopyPress}
-                                onAnnotationCutPress={onAnnotationCutPress}
-                                onAnnotationPastePress={onAnnotationPastePress}
-                                onAnnotationUndoPress={onAnnotationUndoPress}
-                                onAnnotationRedoPress={onAnnotationRedoPress}
-                                onEmptyAreaClick={onEmptyAreaClick}
-                            />
+                            {pageNumbers.map((pageNum) => {
+                                return (
+                                    <Fragment key={`validation-${pageNum}`}>
+                                        <DocumentSinglePage
+                                            scale={fullScale}
+                                            pageSize={apiPageSize}
+                                            pageNum={pageNum}
+                                            handlePageLoaded={handlePageLoaded}
+                                            containerRef={containerRef}
+                                            editable
+                                            isShownAnnotation={true}
+                                            onAnnotationCopyPress={onAnnotationCopyPress}
+                                            onAnnotationCutPress={onAnnotationCutPress}
+                                            onAnnotationPastePress={onAnnotationPastePress}
+                                            onAnnotationUndoPress={onAnnotationUndoPress}
+                                            onAnnotationRedoPress={onAnnotationRedoPress}
+                                            onEmptyAreaClick={onEmptyAreaClick}
+                                        />
+                                    </Fragment>
+                                );
+                            })}
                         </ResizableSyncedContainer>
-                        {userPages.map(({ user_id, page_num }) => (
+
+                        {latestRevisionByAnnotators.map((revision) => (
                             <div
-                                key={user_id}
+                                key={revision.user_id}
                                 className={styles['additional-pages-with-user-name']}
                             >
-                                <SplitAnnotatorInfo annotatorName={getAnnotatorName(user_id)} />
+                                <SplitAnnotatorInfo
+                                    annotatorName={getAnnotatorName(revision.user_id)}
+                                />
                                 <SyncedContainer
                                     className={cx(
                                         styles['split-document-page'],
                                         styles['additional-page']
                                     )}
                                 >
-                                    <DocumentSinglePage
-                                        userId={user_id}
-                                        annotations={annotationsByUserId[user_id]}
-                                        scale={fullScale}
-                                        pageSize={apiPageSize}
-                                        pageNum={page_num}
-                                        onAnnotationSelected={(scaledAnn?: Annotation) =>
-                                            onSplitAnnotationSelected(fullScale, user_id, scaledAnn)
-                                        }
-                                    />
+                                    {pageNumbers.map((pageNum) => {
+                                        const isShowAnnotation =
+                                            !!latestRevisionByAnnotatorsWithBounds[
+                                                revision.user_id
+                                            ].filter((obj) => obj.pageNum === pageNum).length;
+
+                                        return (
+                                            <DocumentSinglePage
+                                                key={`${revision.user_id}-${pageNum}`}
+                                                scale={fullScale}
+                                                pageNum={pageNum}
+                                                pageSize={apiPageSize}
+                                                userId={revision.user_id}
+                                                isShownAnnotation={isShowAnnotation}
+                                                annotations={
+                                                    latestRevisionByAnnotatorsWithBounds[
+                                                        revision.user_id
+                                                    ]
+                                                }
+                                                onAnnotationSelected={(scaledAnn?: Annotation) =>
+                                                    onSplitAnnotationSelected(
+                                                        fullScale,
+                                                        revision.user_id,
+                                                        scaledAnn
+                                                    )
+                                                }
+                                            />
+                                        );
+                                    })}
                                 </SyncedContainer>
                             </div>
                         ))}

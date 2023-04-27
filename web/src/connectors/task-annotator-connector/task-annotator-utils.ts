@@ -250,13 +250,13 @@ export const mapModifiedAnnotationPagesToApi = (
         const annotations = annotationsByPageNum[page_num];
         const tokens = tokensByPages[page_num];
         const pageSize = pages.find((page) => page.page_num === page_num)?.size;
-        const annotationWithChildren = annotations.map((el) =>
+        const annotationWithChildren = annotations?.map((el) =>
             addChildrenToAnnotation(el, annotations)
         );
         const dataAttributes = annotationDataAttrs;
 
         const objs = annotationWithChildren
-            .map((annotation) => mapAnnotationToApi(annotation, dataAttributes, tokens))
+            ?.map((annotation) => mapAnnotationToApi(annotation, dataAttributes, tokens))
             .flat();
 
         return {

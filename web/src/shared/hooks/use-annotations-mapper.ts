@@ -90,12 +90,15 @@ export default function useAnnotationsMapper(
                 const pageAnnotations = page.objs.map((obj) => {
                     const category = categories?.find((category) => category.id == obj.category);
                     const annotation = mapAnnotationFromApi(obj, category, taxonLabels);
+
                     return {
                         ...annotation,
                         categoryName: category?.name,
-                        labels: getAnnotationLabels(pageKey, annotation, category)
+                        labels: getAnnotationLabels(pageKey, annotation, category),
+                        pageNum: page.page_num
                     };
                 });
+
                 /* Merge cells into tables */
                 for (let annotation of pageAnnotations) {
                     if (annotation.boundType !== 'table') continue;
@@ -106,6 +109,7 @@ export default function useAnnotationsMapper(
                     );
                     annotation.tableCells = relatedCells;
                 }
+
                 const filteredAnnotations = pageAnnotations.filter(
                     (el) => el.boundType !== 'table_cell'
                 );
