@@ -12,10 +12,12 @@
     flex: 1;
     overflow: hidden;
 }
+
 .validation-color {
     width: 100%;
     height: 40px;
 }
+
 .validation-text {
     color: $night900;
 }
@@ -23,13 +25,16 @@
 .validColor {
     background: $valid;
 }
+
 .invalidColor {
     background: $invalid;
 }
+
 .information {
     padding: 24px;
     flex: 1;
 }
+
 .tabs {
     overflow: hidden;
 }
@@ -39,12 +44,14 @@
     flex-direction: row;
     justify-content: space-between;
     padding: 10px;
+
     span {
         align-self: flex-end;
         font-weight: bold;
         font-size: small;
     }
-    & > div {
+
+    &>div {
         width: 45%;
     }
 }
@@ -57,17 +64,20 @@
     width: 145px;
     margin-bottom: 10px;
 }
+
 .categoriesAndLinks {
     flex: 1;
+
     &__wrapper {
         padding: 1rem;
     }
 }
+
 .metadata-item {
     font-size: 14px;
     display: grid;
-    grid-template-columns: 2fr 3fr;
-    gap: 28px;
+    grid-template-columns: 1fr 3fr;
+    gap: 12px;
     overflow: hidden;
     align-items: center;
     margin-bottom: 8px;
@@ -75,13 +85,22 @@
     &__name {
         color: #6c6f80;
     }
+
+    &__value {
+        max-width: 170px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
 }
+
 .hot-key-container {
     margin-right: 6px;
     padding: 1px 4px;
     border: 1px solid $btn-blue;
     color: $btn-blue;
 }
+
 .hot-key-container-disabled {
     margin-right: 6px;
     padding: 1px 4px;
@@ -100,4 +119,14 @@
 .wrapper {
     border-radius: 0 !important;
     flex-direction: row-reverse;
+}
+
+.valueWrapper {
+    display: flex;
+    align-items: center;
+}
+
+.copyIcon {
+    margin-left: 10px;
+    cursor: pointer;
 }

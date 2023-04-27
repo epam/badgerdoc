@@ -5,6 +5,9 @@ import { mapStatusForTasks } from 'shared/helpers/map-statuses';
 import { Status } from 'shared/components/status';
 import { Operators, TableFilters } from 'api/typings';
 import { Task, TaskStatus } from 'api/typings/tasks';
+import { ReactComponent as Copy } from '@epam/assets/icons/common/copy_content-12.svg';
+import { handleCopy } from 'shared/helpers/copy-text';
+import styles from './tasks-table.module.scss';
 
 export const COLUMNS: DataColumnProps<Task>[] = [
     {
@@ -28,11 +31,16 @@ export const COLUMNS: DataColumnProps<Task>[] = [
     {
         key: 'file_name',
         caption: 'File Name',
-        render: (task: Task) => <Text>{task.file.name}</Text>,
+        render: (task: Task) => (
+            <FlexRow>
+                <Text cx={styles.fileName}>{task.file.name}</Text>
+                <Copy onClick={(e) => handleCopy(e, task.file.name)} />
+            </FlexRow>
+        ),
         isSortable: false,
         grow: 2,
         shrink: 1,
-        width: 100
+        width: 200
     },
     {
         key: 'status',
