@@ -28,18 +28,23 @@ def make_pagination(
     page_num: Optional[int] = None,
 ) -> Tuple[Query, PaginationParams]:
     output_query = initial_query.offset(page_offset).limit(page_size)
-    total_results = initial_query.offset(page_offset).limit(max_count).count()
-    has_more = total_results == max_count
 
-    if total_results == max_count:
-        total_results -= 1
+    total_results_query = initial_query.limit(max_count)
+    if not page_num:  # "page_offset" is used instead of "page_num"
+        total_results_query = total_results_query.offset(page_offset)
+    total_results_count = total_results_query.count()
 
-    min_pages_left: int = _calculate_num_pages(page_size, total_results)
+    has_more = total_results_count == max_count
+    if total_results_count == max_count:
+        total_results_count -= 1
+
+    min_pages_left: int = _calculate_num_pages(page_size, total_results_count)
+
     return output_query, PaginationParams(
         page_num,
         page_size,
         min_pages_left,
-        total_results,
+        total_results_count,
         has_more,
         page_offset,
     )
