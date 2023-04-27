@@ -181,6 +181,7 @@ def test_get_datasets(client_app_main):
             "page_num": 1,
             "page_size": 15,
             "total": 0,
+            "page_offset": 0
         },
         "data": [],
     }

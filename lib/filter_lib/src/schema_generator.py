@@ -103,7 +103,7 @@ class _BadgerdocSearch(GenericModel, Generic[TypeT], BaseSearch):
 
 class PaginationOut(BaseModel):
     page_num: Optional[int] = Field(None, gt=0)
-    page_offset: Optional[int] = Field(None, ge=0, le=100)
+    page_offset: Optional[int] = Field(None, ge=0)
     page_size: _FilterPagesize
     min_pages_left: int
     total: int

@@ -73,6 +73,7 @@ def prepare_get_result(
     total_objects: Optional[int] = 16,
     parents=None,
     is_leaf=None,
+    page_offset=0
 ) -> dict:
     categories = []
     for cat_id, cat_name in categories_ids_names:
@@ -84,6 +85,7 @@ def prepare_get_result(
     body = {
         "pagination": {
             "page_num": current_page,
+            "page_offset": page_offset,
             "page_size": page_size,
             "min_pages_left": 1,
             "total": total_objects,

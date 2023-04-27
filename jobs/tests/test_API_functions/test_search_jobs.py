@@ -96,6 +96,7 @@ def test_search_job_has_pagination(
         "page_num": 1,
         "page_size": 15,
         "total": 50,
+        "page_offset": 0
     }
 
     response2 = testing_app.post(
@@ -115,4 +116,5 @@ def test_search_job_has_pagination(
         "page_num": 2,
         "page_size": 15,
         "total": 50,
+        "page_offset": 15
     }
