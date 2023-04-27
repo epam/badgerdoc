@@ -14,7 +14,7 @@ import { Task, TTaskUsers } from 'api/typings/tasks';
 import { CategoryDataAttributeWithValue, PageInfo } from 'api/typings';
 
 import { AnnotationsResponse, useAddAnnotationsMutation } from 'api/hooks/annotations';
-import { useGetValidatedPages, useSetTaskFinishedMutation, useSetTaskState } from 'api/hooks/tasks';
+import { useGetPageSummary, useSetTaskFinishedMutation, useSetTaskState } from 'api/hooks/tasks';
 import {
     FinishTaskValidationModal,
     TaskValidationValues
@@ -103,7 +103,7 @@ export const useValidation = ({
 
     const svc = useUuiContext();
 
-    const { data: pages } = useGetValidatedPages(
+    const { data: pages } = useGetPageSummary(
         { taskId: task?.id, taskType: task?.is_validation },
         { enabled: Boolean(task) }
     );

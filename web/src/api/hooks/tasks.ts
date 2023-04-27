@@ -269,16 +269,18 @@ type UseTaskForValidatedPagesParams = {
     taskType: boolean | undefined;
 };
 
-export const useGetValidatedPages: QueryHookType<UseTaskForValidatedPagesParams, ValidationPages> =
-    ({ taskId, taskType }) =>
-        useQuery(['tasksPages', taskId, taskType], () => {
-            if (taskType) {
-                return useBadgerFetch({
-                    url: `${namespace}/tasks/${taskId}/pages_summary`,
-                    method: 'get'
-                })();
-            }
-        });
+export const useGetPageSummary: QueryHookType<UseTaskForValidatedPagesParams, ValidationPages> = ({
+    taskId,
+    taskType
+}) =>
+    useQuery(['tasksPages', taskId, taskType], () => {
+        if (taskType) {
+            return useBadgerFetch({
+                url: `${namespace}/tasks/${taskId}/pages_summary`,
+                method: 'get'
+            })();
+        }
+    });
 
 interface TaskOptions {
     taskId: number;
