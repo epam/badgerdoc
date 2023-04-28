@@ -17,6 +17,7 @@ import {
 import { DEFAULT_TABLE_FILTER } from './constants';
 import { getTableFilter } from './utils';
 import { useJobFilter } from './use-job-filter';
+import { useNameFilter } from 'shared/hooks/use-name-filter';
 
 type TaskTableConnectorProps = {
     onRowClick: (id: number) => void;
@@ -69,6 +70,10 @@ export const TasksTableConnector: FC<TaskTableConnectorProps> = ({ onRowClick })
         }
     );
 
+    const renderNameFilter = useNameFilter({
+        fieldName: 'file_id'
+    });
+
     const renderDeadlineFilter = useDateRangeFilter('deadline');
 
     const renderJobFilter = useJobFilter({ fieldName: 'job_id' });
@@ -88,8 +93,12 @@ export const TasksTableConnector: FC<TaskTableConnectorProps> = ({ onRowClick })
         const deadlineColumn = COLUMNS.find(({ key }) => key === 'deadline');
         deadlineColumn!.renderFilter = renderDeadlineFilter;
 
+        const fileNameColumn = COLUMNS.find(({ key }) => key === 'file_name');
+        fileNameColumn!.renderFilter = renderNameFilter;
+
         const jobColumn = COLUMNS.find(({ key }) => key === 'job_name');
         jobColumn!.renderFilter = renderJobFilter;
+
         return COLUMNS;
     }, []);
 
