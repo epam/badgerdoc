@@ -90,7 +90,7 @@ export default function useSplitValidation({
         {
             fileId,
             jobId: job?.id,
-            pageNumbers: pages?.annotated_pages // передать сюда annotated из page sammury
+            pageNumbers: pages?.annotated_pages
         },
         { enabled: isSplitValidation }
     );
