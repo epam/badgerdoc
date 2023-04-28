@@ -96,7 +96,7 @@ const TaskSidebarLabelsView: FC<TaskSidebarLabelsViewProps> = ({
 
 type TaskSidebarLabelsProps = {
     viewMode: boolean;
-    labels?: Category[];
+    categories?: Category[];
     onLabelsSelected: (labels: Label[]) => void;
     selectedLabels: Label[];
     searchText: string;
@@ -108,7 +108,7 @@ type TaskSidebarLabelsProps = {
 
 export const TaskSidebarLabels = ({
     viewMode = false,
-    labels,
+    categories,
     onLabelsSelected,
     selectedLabels = [],
     searchText,
@@ -128,10 +128,10 @@ export const TaskSidebarLabels = ({
                 size="24"
                 placeholder="Search by label name"
             />
-            {labels ? (
+            {categories ? (
                 <TaskSidebarLabelsView
                     viewMode={viewMode}
-                    categories={labels}
+                    categories={categories}
                     isLoading={isLoading}
                     hasNextPage={hasNextPage}
                     onFetchNext={onFetchNext}
