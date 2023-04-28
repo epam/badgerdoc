@@ -15,6 +15,7 @@ export const Links: FC<{
     annotationId: Annotation['id'];
     isEditable: boolean;
     annotationNameById: Record<string, string>;
+    annotationPageNum?: number;
     onLinkDeleted: (pageNum: number, annotationId: Annotation['id'], link: Link) => void;
     onSelect: (id: Annotation['id']) => void;
 }> = ({
@@ -24,7 +25,8 @@ export const Links: FC<{
     links,
     onLinkDeleted,
     onSelect,
-    isEditable
+    isEditable,
+    annotationPageNum = 1
 }) => {
     return (
         <Dropdown
@@ -40,7 +42,7 @@ export const Links: FC<{
                             onClose={onClose}
                             onSelect={onSelect}
                             onDelete={() => {
-                                onLinkDeleted(link.page_num, annotationId, link);
+                                onLinkDeleted(annotationPageNum, annotationId, link);
                             }}
                         />
                     ))}

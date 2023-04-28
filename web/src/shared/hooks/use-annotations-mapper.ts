@@ -89,7 +89,12 @@ export default function useAnnotationsMapper(
                 const pageKey = getPageKey(page);
                 const pageAnnotations = page.objs.map((obj) => {
                     const category = categories?.find((category) => category.id == obj.category);
-                    const annotation = mapAnnotationFromApi(obj, category, taxonLabels);
+                    const annotation = mapAnnotationFromApi(
+                        obj,
+                        page.page_num,
+                        category,
+                        taxonLabels
+                    );
                     return {
                         ...annotation,
                         categoryName: category?.name,
