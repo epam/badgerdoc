@@ -110,7 +110,8 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
         allValidated,
         annotationSaved,
         onFinishValidation,
-        notProcessedPages
+        notProcessedPages,
+        isDataTabDisabled
     } = useTaskAnnotatorContext();
     const {
         tableModeColumns,
@@ -357,6 +358,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
                                     caption={tabName}
                                     isLinkActive={tabValue === tabName}
                                     onClick={() => setTabValue(tabName)}
+                                    isDisabled={tabName === 'Data' && isDataTabDisabled}
                                 />
                             ))}
                         </FlexRow>

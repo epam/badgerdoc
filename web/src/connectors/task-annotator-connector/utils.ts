@@ -1,5 +1,5 @@
 import { Category, Label } from 'api/typings';
-import { PaperToolParams, ToolNames } from 'shared';
+import { Annotation, PaperToolParams, ToolNames } from 'shared';
 
 export const getToolsParams = (
     selectedTool: ToolNames,
@@ -47,5 +47,39 @@ export const mapCategoriesIdToCategories = (ids: string[], categories: Category[
         const category = categories.find((item) => item.id === id);
         if (category) accumulator.push({ id, name: category.name });
 
+        return accumulator;
+    }, []);
+
+export const removeAnnotationAndLabels = (
+    annotations: Annotation[],
+    annotationToRemove: Annotation
+) =>
+    annotations.reduce((accumulator: Annotation[], annotation) => {
+        if (
+            annotationToRemove &&
+            annotationToRemove.children &&
+            annotationToRemove.boundType === 'table' &&
+            annotationToRemove.children.includes(annotation.id) &&
+            annotation.boundType === 'table_cell'
+        ) {
+            return accumulator;
+        }
+
+        if (annotation.id === annotationToRemove.id) return accumulator;
+        if (!annotation.labels?.length) {
+            accumulator.push(annotation);
+            return accumulator;
+        }
+
+        const currentLabels = [...annotation.labels];
+
+        const labelIdxToDelete = currentLabels.findIndex(
+            (item) => item.annotationId === annotationToRemove.id
+        );
+        if (labelIdxToDelete !== -1) {
+            currentLabels.splice(labelIdxToDelete, 1);
+        }
+
+        accumulator.push({ ...annotation, labels: currentLabels });
         return accumulator;
     }, []);

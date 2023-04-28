@@ -80,7 +80,7 @@ export type Annotation = {
     table?: AnnotationTable;
     data?: any; //TODO??
     tableCells?: Maybe<Annotation[]>;
-    children?: number[] | string[];
+    children?: (number | string)[];
     segments?: number[][];
     labels?: AnnotationLabel[];
     originalAnnotationId?: number;

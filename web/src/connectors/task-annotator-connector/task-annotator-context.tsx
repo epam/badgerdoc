@@ -63,7 +63,7 @@ import { useNotifications } from 'shared/components/notifications';
 
 import { Text, Panel } from '@epam/loveship';
 import { getError } from 'shared/helpers/get-error';
-import { getToolsParams } from './utils';
+import { getToolsParams, removeAnnotationAndLabels } from './utils';
 
 type ContextValue = SplitValidationValue &
     SyncScrollValue &
@@ -80,6 +80,7 @@ type ContextValue = SplitValidationValue &
         pageNumbers: number[];
         currentPage: number;
         modifiedPages: number[];
+        isDataTabDisabled: boolean;
         pageSize?: { width: number; height: number };
         setPageSize: (pS: any) => void;
         tabValue: string;
@@ -194,6 +195,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
     >('free-box');
     const [selectedTool, setSelectedTool] = useState<AnnotationImageToolType>(ToolNames.pen);
     const [selectedAnnotation, setSelectedAnnotation] = useState<Annotation | undefined>();
+    const [isDataTabDisabled, setIsDataTabDisabled] = useState(true);
     const [isCategoryDataEmpty, setIsCategoryDataEmpty] = useState<boolean>(false);
     const [annDataAttrs, setAnnDataAttrs] = useState<
         Record<string, Array<CategoryDataAttributeWithValue>>
@@ -360,12 +362,14 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         });
         setTableMode(newAnnotation.boundType === 'table');
         setSelectedAnnotation(newAnnotation);
+        setIsDataTabDisabled(false);
         setAnnotationDataAttrs(newAnnotation);
         return newAnnotation;
     };
 
     const onCloseDataTab = () => {
         setTabValue('Categories');
+        setIsDataTabDisabled(true);
         onExternalViewerClose();
     };
 
@@ -378,26 +382,14 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
 
     const deleteAnnotation = (pageNum: number, annotationId: string | number) => {
         const pageAnnotations = allAnnotations[pageNum];
-        if (!pageAnnotations) return;
+        const annotation: Maybe<Annotation> = pageAnnotations?.find((el) => el.id === annotationId);
 
-        const annotation: Maybe<Annotation> = pageAnnotations.find((el) => el.id === annotationId);
+        if (!annotation) return;
 
         setAllAnnotations((prevState) => {
             return {
                 ...prevState,
-                [pageNum]: allAnnotations[pageNum].filter((ann) => {
-                    if (
-                        annotation &&
-                        annotation.children &&
-                        annotation.boundType === 'table' &&
-                        (annotation.children as number[]).includes(+ann.id) &&
-                        ann.boundType === 'table_cell'
-                    ) {
-                        return false;
-                    }
-
-                    return ann.id !== annotationId;
-                })
+                [pageNum]: removeAnnotationAndLabels(pageAnnotations, annotation)
             };
         });
 
@@ -477,6 +469,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
     };
 
     const onEmptyAreaClick = () => {
+        setIsDataTabDisabled(true);
         setIsCategoryDataEmpty(true);
         setTabValue('Categories');
         setSelectedAnnotation(undefined);
@@ -502,6 +495,9 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             setTabValue('Categories');
             setIsCategoryDataEmpty(true);
         }
+        setIsDataTabDisabled(
+            Boolean(foundCategoryDataAttrs && foundCategoryDataAttrs.length === 0)
+        );
     };
 
     useEffect(() => {
@@ -972,6 +968,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             tabValue,
             selectedAnnotation,
             isCategoryDataEmpty,
+            isDataTabDisabled,
             annDataAttrs,
             externalViewer,
             tableCellCategory,
