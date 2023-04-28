@@ -386,6 +386,15 @@ EXPECTED_WHOLE_FILES_TASKS = [
             "user_id": "8c8a333e-d19a-492a-9e78-5df4bec0ec8b",
             "status": TASKS_STATUS,
         },
+        {
+            "deadline": None,
+            "file_id": 6,
+            "is_validation": False,
+            "job_id": 1,
+            "pages": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+            "user_id": "8c8a333e-d19a-492a-9e78-5df4bec0ec8b",
+            "status": TASKS_STATUS,
+        },
     ],
     [
         {
@@ -921,6 +930,59 @@ EXPECTED_TASKS_LIMIT_50 = [
         "status": TASKS_STATUS,
     },
 ]
+EXPECTED_TASKS_NOLIMIT_50 = [
+    [
+        {
+            "file_id": 3,
+            "pages": list(range(1, 51)),
+            "job_id": 1,
+            "user_id": "405ef0e2-b53e-4c18-bf08-c0871615d99d",
+            "is_validation": False,
+            "status": TaskStatusEnumSchema.pending,
+            "deadline": None,
+        }
+    ],
+    [
+        {
+            "file_id": 1,
+            "pages": list(range(1, 161)),
+            "job_id": 1,
+            "user_id": "405ef0e2-b53e-4c18-bf08-c0871615d99d",
+            "is_validation": False,
+            "status": TaskStatusEnumSchema.pending,
+            "deadline": None,
+        },
+        {
+            "file_id": 2,
+            "pages": list(range(1, 51)),
+            "job_id": 1,
+            "user_id": "405ef0e2-b53e-4c18-bf08-c0871615d99d",
+            "is_validation": False,
+            "status": TaskStatusEnumSchema.pending,
+            "deadline": None,
+        },
+        {
+            "file_id": 3,
+            "pages": list(range(1, 51)),
+            "job_id": 1,
+            "user_id": "c080408e-0077-4c20-b520-bd4b1541ca56",
+            "is_validation": False,
+            "status": TaskStatusEnumSchema.pending,
+            "deadline": None,
+        },
+    ],
+    [
+        {
+            "file_id": 1,
+            "pages": list(range(1, 161)),
+            "job_id": 1,
+            "user_id": "405ef0e2-b53e-4c18-bf08-c0871615d99d",
+            "is_validation": False,
+            "status": TaskStatusEnumSchema.pending,
+            "deadline": None,
+        }
+    ],
+]
 
 
 @pytest.mark.unittest
@@ -930,17 +992,17 @@ EXPECTED_TASKS_LIMIT_50 = [
         (
             [copy(FILE_LIMIT_50[0])],
             [copy(ANNOTATORS[0])],
-            EXPECTED_TASKS_LIMIT_50[:4],
+            EXPECTED_TASKS_NOLIMIT_50[2],
         ),
         (
-            [copy(FILE_LIMIT_50[0])],
+            [copy(FILE_LIMIT_50[2])],
             [copy(ANNOTATORS[0]), copy(ANNOTATORS[5])],
-            EXPECTED_TASKS_LIMIT_50[:2] + EXPECTED_TASKS_LIMIT_50[4:6],
+            EXPECTED_TASKS_NOLIMIT_50[0],
         ),
         (
             [copy(test_file) for test_file in FILE_LIMIT_50],
             [copy(ANNOTATORS[0]), copy(ANNOTATORS[5])],
-            EXPECTED_TASKS_LIMIT_50[:4] + EXPECTED_TASKS_LIMIT_50[7:10],
+            EXPECTED_TASKS_NOLIMIT_50[1],
         ),
     ],
 )
@@ -1009,6 +1071,7 @@ def test_distribution_with_extensive_coverage(
     tasks = distribute_tasks_extensively(
         files=files,
         users=annotators,
+        validators_ids=[],
         job_id=JOB_ID,
         tasks_status=TASKS_STATUS,
         is_validation=False,
