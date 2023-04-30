@@ -1,10 +1,11 @@
 import os
 from collections import Counter
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 from uuid import UUID
 
 import dotenv
+import sqlalchemy
 from fastapi import (
     APIRouter,
     Body,
@@ -38,9 +39,7 @@ from annotation.jobs import (
     update_user_overall_load,
 )
 from annotation.logger import Logger
-from annotation.microservice_communication.assets_communication import (
-    get_file_names,
-)
+from annotation.microservice_communication.assets_communication import get_file_names
 from annotation.microservice_communication.jobs_communication import (
     JobUpdateException,
     update_job_status,
@@ -73,10 +72,7 @@ from annotation.schemas import (
     ValidationSchema,
 )
 from annotation.tags import REVISION_TAG, TASKS_TAG
-from annotation.tasks.validation import (
-    create_annotation_tasks,
-    create_validation_tasks,
-)
+from annotation.tasks.validation import create_annotation_tasks, create_validation_tasks
 from annotation.token_dependency import TOKEN
 
 from ..models import File, Job, ManualAnnotationTask
@@ -217,7 +213,6 @@ def get_next_and_previous_annotation_tasks(
     db: Session = Depends(get_db),
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
 ):
-
     active_tasks_states = (
         TaskStatusEnumSchema.ready,
         TaskStatusEnumSchema.in_progress,
@@ -235,12 +230,6 @@ def get_next_and_previous_annotation_tasks(
         .limit(1)
     )
 
-    try:
-        previous_task = previous_task_query.first()
-    except AttributeError:
-        """AttributeError is raised when the previous task cannot be found"""
-        previous_task = None
-
     next_task_query = (
         db.query(ManualAnnotationTask)
         .filter(
@@ -253,15 +242,53 @@ def get_next_and_previous_annotation_tasks(
         .limit(1)
     )
 
-    try:
-        next_task = next_task_query.first()
-    except AttributeError:
-        """AttributeError is raised when the next task cannot be found"""
-        next_task = None
+    first_task_query = _get_first_task_query(
+        db, user, x_current_tenant, active_tasks_states
+        )
+
+    last_task_query = _get_first_task_query(
+        db, user, x_current_tenant, active_tasks_states, reversed=True
+        )
+
+    previous_task = _get_task(previous_task_query)
+    next_task = _get_task(next_task_query)
+
+    cycled_previous_task = previous_task
+    cycled_next_task = next_task
+    if previous_task and not next_task:
+        cycled_next_task = _get_task(first_task_query)
+    if not previous_task and next_task:
+        cycled_previous_task = _get_task(last_task_query)
 
     return PreviousAndNextTasksSchema(
-        previous_task=previous_task, next_task=next_task
+        previous_task=cycled_previous_task, next_task=cycled_next_task
     )
+
+
+def _get_first_task_query(
+    db: Session,
+    user: UUID,
+    tenant: str,
+    task_states: Tuple[TaskStatusEnumSchema],
+    reversed: bool = False) -> Query:
+    order_rule = ManualAnnotationTask.id if not reversed else ManualAnnotationTask.id.desc()
+    return (db.query(ManualAnnotationTask)
+    .filter(
+        ManualAnnotationTask.user_id == user,
+        ManualAnnotationTask.jobs.has(tenant=tenant),
+        ManualAnnotationTask.status.in_(task_states),
+    )
+    .order_by(order_rule)
+    .limit(1)
+    )
+
+
+def _get_task(query: sqlalchemy.orm.query.Query) -> Optional[ManualAnnotationTask]:
+    try:
+        return query.first()
+    except AttributeError:
+        """AttributeError is raised when the previous task cannot be found"""
+        return None
 
 
 @router.post(
