@@ -472,8 +472,6 @@ def add_task_stats_record(
 
 
 def get_file_names_by_file_ids(file_ids: Set[int], tenant: str, token: str):
-    Logger.info("file_ids_sent - %s", file_ids)
-    Logger.info("lru_file_id_to_file_name_cache - %s", lru_file_id_to_file_name_cache)
 
     file_ids_copy = file_ids.copy()
 
@@ -481,27 +479,20 @@ def get_file_names_by_file_ids(file_ids: Set[int], tenant: str, token: str):
     file_names_from_cache = {}
     for file_id in file_ids:
         if file_id in lru_file_id_to_file_name_cache:
-            Logger.info("file name for file_id - %s got from cache", file_id)
             file_names_from_cache[file_id] = lru_file_id_to_file_name_cache[
                 file_id
             ]
             file_ids_copy.remove(file_id)
-            Logger.info("file_ids_copy on iteration - %s", file_ids_copy)
-            Logger.info("file_ids on iteration - %s", file_ids)
 
     # 2. Get not cached file names by request to 'assets'
-    Logger.info("File names are not cached - %s", file_ids_copy)
     file_names_from_requests = get_file_names_by_request(
         file_ids=list(file_ids_copy), tenant=tenant, token=token
     )
-    Logger.info(f"file_names_from_requests - %s", file_names_from_requests)
 
     # 3. Add results from request to assets to cache
     lru_file_id_to_file_name_cache.update(file_names_from_requests)
 
-    result = {**file_names_from_cache, **file_names_from_requests}
-    Logger.info("result - %s", result)
-    return result
+    return {**file_names_from_cache, **file_names_from_requests}
 
 
 def create_export_csv(
@@ -552,13 +543,13 @@ def create_export_csv(
     ]
 
     file_ids = {stats_item["file_id"] for stats_item in annotation_stats}
-    file_ids_to_file_names_mapping = get_file_names_by_file_ids(
+    file_ids_to_names_mapping = get_file_names_by_file_ids(
         file_ids, tenant, token
     )
 
     for stats_item in annotation_stats:
         file_id = stats_item["file_id"]
-        stats_item["file_name"] = file_ids_to_file_names_mapping[file_id]
+        stats_item["file_name"] = file_ids_to_names_mapping.get(file_id, "")
 
     if not annotation_stats:
         raise HTTPException(
