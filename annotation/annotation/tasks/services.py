@@ -8,6 +8,7 @@ import dotenv
 import pydantic
 from fastapi import HTTPException
 from filter_lib import Page, form_query, map_request_to_filter, paginate
+from lru import LRU
 from sqlalchemy import and_, asc, text
 from sqlalchemy.orm import Session
 from tenant_dependency import TenantData
@@ -22,6 +23,7 @@ from annotation.filters import TaskFilter
 from annotation.jobs import update_files, update_user_overall_load
 from annotation.logger import Logger
 from annotation.microservice_communication.assets_communication import (
+    get_file_names_by_request,
     get_file_path_and_bucket,
 )
 from annotation.microservice_communication.task import get_agreement_score
@@ -51,6 +53,9 @@ from annotation.schemas import (
 
 dotenv.load_dotenv(dotenv.find_dotenv())
 AGREEMENT_SCORE_MIN_MATCH = float(os.getenv("AGREEMENT_SCORE_MIN_MATCH"))
+FILE_NAMES_CACHE_SIZE = int(os.getenv("FILE_NAMES_CACHE_SIZE", 1024))
+
+lru_file_id_to_file_name_cache = LRU(FILE_NAMES_CACHE_SIZE)
 
 
 def validate_task_info(
@@ -466,10 +471,31 @@ def add_task_stats_record(
     return stats_db
 
 
+def get_file_names_by_file_ids(file_ids: Set[int], tenant: str, token: str):
+    file_ids_copy = file_ids.copy()
+
+    # 1. Get file names from cache
+    file_names_from_cache = {}
+    for file_id in file_ids:
+        if file_id in lru_file_id_to_file_name_cache:
+            file_names_from_cache[file_id] = lru_file_id_to_file_name_cache[
+                file_id
+            ]
+            file_ids_copy.remove(file_id)
+
+    # 2. Get not cached file names by request to 'assets'
+    file_names_from_requests = get_file_names_by_request(
+        file_ids=list(file_ids_copy), tenant=tenant, token=token
+    )
+
+    # 3. Add results from request to assets to cache
+    lru_file_id_to_file_name_cache.update(file_names_from_requests)
+
+    return {**file_names_from_cache, **file_names_from_requests}
+
+
 def create_export_csv(
-    db: Session,
-    schema: ExportTaskStatsInput,
-    tenant: str,
+    db: Session, schema: ExportTaskStatsInput, tenant: str, token: str
 ) -> Tuple[str, bytes]:
     task_ids = {
         task.id: task
@@ -515,6 +541,15 @@ def create_export_csv(
         )
     ]
 
+    file_ids = {stats_item["file_id"] for stats_item in annotation_stats}
+    file_ids_to_file_names_mapping = get_file_names_by_file_ids(
+        file_ids, tenant, token
+    )
+
+    for stats_item in annotation_stats:
+        file_id = stats_item["file_id"]
+        stats_item["file_name"] = file_ids_to_file_names_mapping[file_id]
+
     if not annotation_stats:
         raise HTTPException(
             status_code=406,
@@ -525,8 +560,18 @@ def create_export_csv(
     # Prevent from closing
     binary.close = lambda: None
     with io.TextIOWrapper(binary, encoding="utf-8", newline="") as text_file:
-        keys = annotation_stats[0].keys()
-        dict_writer = csv.DictWriter(text_file, keys)
+        columns_names = [
+            "annotator_id",
+            "task_id",
+            "task_status",
+            "file_id",
+            "file_name",
+            "pages",
+            "time_start",
+            "time_finish",
+            "agreement_score",
+        ]
+        dict_writer = csv.DictWriter(text_file, columns_names)
         dict_writer.writeheader()
         dict_writer.writerows(annotation_stats)
     # Reset cursor
