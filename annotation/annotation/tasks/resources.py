@@ -39,7 +39,9 @@ from annotation.jobs import (
     update_user_overall_load,
 )
 from annotation.logger import Logger
-from annotation.microservice_communication.assets_communication import get_file_names
+from annotation.microservice_communication.assets_communication import (
+    get_file_names_by_request,
+)
 from annotation.microservice_communication.jobs_communication import (
     JobUpdateException,
     update_job_status,
@@ -72,7 +74,10 @@ from annotation.schemas import (
     ValidationSchema,
 )
 from annotation.tags import REVISION_TAG, TASKS_TAG
-from annotation.tasks.validation import create_annotation_tasks, create_validation_tasks
+from annotation.tasks.validation import (
+    create_annotation_tasks,
+    create_validation_tasks,
+)
 from annotation.token_dependency import TOKEN
 
 from ..models import File, Job, ManualAnnotationTask
@@ -116,7 +121,7 @@ def _prepare_expanded_tasks_response(
     """
     Get names of files, jobs, logins and add them to manual annotation tasks.
     """
-    file_names = get_file_names(list(file_ids), tenant, token)
+    file_names = get_file_names_by_request(list(file_ids), tenant, token)
     job_names = collect_job_names(db, list(job_ids), tenant, token)
 
     try:
@@ -244,11 +249,11 @@ def get_next_and_previous_annotation_tasks(
 
     first_task_query = _get_first_task_query(
         db, user, x_current_tenant, active_tasks_states
-        )
+    )
 
     last_task_query = _get_first_task_query(
         db, user, x_current_tenant, active_tasks_states, reversed=True
-        )
+    )
 
     previous_task = _get_task(previous_task_query)
     next_task = _get_task(next_task_query)
@@ -270,20 +275,28 @@ def _get_first_task_query(
     user: UUID,
     tenant: str,
     task_states: Tuple[TaskStatusEnumSchema],
-    reversed: bool = False) -> Query:
-    order_rule = ManualAnnotationTask.id if not reversed else ManualAnnotationTask.id.desc()
-    return (db.query(ManualAnnotationTask)
-    .filter(
-        ManualAnnotationTask.user_id == user,
-        ManualAnnotationTask.jobs.has(tenant=tenant),
-        ManualAnnotationTask.status.in_(task_states),
+    reversed: bool = False,
+) -> Query:
+    order_rule = (
+        ManualAnnotationTask.id
+        if not reversed
+        else ManualAnnotationTask.id.desc()
     )
-    .order_by(order_rule)
-    .limit(1)
+    return (
+        db.query(ManualAnnotationTask)
+        .filter(
+            ManualAnnotationTask.user_id == user,
+            ManualAnnotationTask.jobs.has(tenant=tenant),
+            ManualAnnotationTask.status.in_(task_states),
+        )
+        .order_by(order_rule)
+        .limit(1)
     )
 
 
-def _get_task(query: sqlalchemy.orm.query.Query) -> Optional[ManualAnnotationTask]:
+def _get_task(
+    query: sqlalchemy.orm.query.Query,
+) -> Optional[ManualAnnotationTask]:
     try:
         return query.first()
     except AttributeError:
@@ -354,11 +367,13 @@ def export_stats(
     user_date_schema: ExportTaskStatsInput,
     db: Session = Depends(get_db),
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
+    token: TenantData = Depends(TOKEN),
 ) -> StreamingResponse:
     file_name, csv_file_binary = create_export_csv(
         db=db,
         schema=user_date_schema,
         tenant=x_current_tenant,
+        token=token.token,
     )
     media_type = "text/csv"
     headers = {"Content-Disposition": f"attachment; filename={file_name}"}

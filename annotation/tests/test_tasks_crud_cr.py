@@ -953,7 +953,39 @@ def test_create_export_invalid_datetime_format(
 
 
 @pytest.mark.integration
+@responses.activate
 def test_create_export_return_csv(prepare_db_update_stats_already_updated):
+    responses.add(
+        responses.POST,
+        ASSETS_FILES_URL,
+        json={
+            "pagination": {
+                "page_num": 1,
+                "page_offset": 0,
+                "page_size": 100,
+                "min_pages_left": 10,
+                "total": 150,
+                "has_more": True,
+            },
+            "data": [
+                {
+                    "id": id,
+                    "original_name": f"{id}.pdf",
+                    "bucket": "test",
+                    "size_in_bytes": 123456789,
+                    "extension": ".pdf",
+                    "original_ext": None,
+                    "content_type": "application/pdf",
+                    "pages": 1,
+                    "last_modified": "2021-11-29T14:06:50.029129",
+                    "status": "uploaded",
+                    "path": f"files/{id}/{id}.pdf",
+                    "datasets": [],
+                } for id in range(1, 5)
+            ]
+        }
+    )
+
     body = prepare_stats_export_body(
         user_ids=[str(ann.user_id) for ann in ANNOTATORS]
     )
@@ -1513,7 +1545,7 @@ def test_search_tasks_pagination(
             "9eace50e-613e-4352-b287-85fd91c88b51",
             list(range(3, 7)),
         ),
-        # FIXME: Some annotation fixtures amend testing data on previous tests. 
+        # FIXME: Some annotation fixtures amend testing data on previous tests.
         # The problem might be in fixture's scope =module.
         pytest.param("is_validation", "ne", False, [5, 6, 20, 23], marks=pytest.mark.xfail(reason="fix the test")),
         ("status", "not_in", ["pending", "ready"], [5]),

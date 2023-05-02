@@ -80,7 +80,7 @@ def get_dataset_info(dataset_id: int, tenant: str, token: str) -> List[dict]:
     return dataset_files_info.json()
 
 
-def get_file_names(
+def get_file_names_by_request(
     file_ids: List[int], tenant: str, token: str
 ) -> Dict[int, str]:
     """
