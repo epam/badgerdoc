@@ -22,7 +22,7 @@ const RetrieveReportsList: FC<RetrieveReportsListProps> = ({ lens, users }) => {
     ];
 
     return (
-        <div className="flex flex-col form-wrapper m-b-5">
+        <div className={`${styles['form-wrapper']} flex flex-col form-wrapper m-b-5`}>
             <UsersPicker users={users} typeProps={typeProps} />
             <div className="flex">
                 <LabeledInput
