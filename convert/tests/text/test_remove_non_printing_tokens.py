@@ -1,3 +1,5 @@
+from typing import Any
+
 import pytest
 
 from convert.config import (
@@ -19,8 +21,8 @@ from convert.converters.text.text_to_tokens_converter import (
     [
         (
             "1 ",
-            Page(
-                **{
+            Page.parse_obj(
+                {
                     "size": {"width": 0, "height": 0},
                     "page_num": 1,
                     "objs": [
@@ -38,8 +40,8 @@ from convert.converters.text.text_to_tokens_converter import (
         ),
         (
             "12",
-            Page(
-                **{
+            Page.parse_obj(
+                {
                     "size": {"width": 0, "height": 0},
                     "page_num": 1,
                     "objs": [
@@ -65,8 +67,8 @@ from convert.converters.text.text_to_tokens_converter import (
         ),
         (
             "  1 2",
-            Page(
-                **{
+            Page.parse_obj(
+                {
                     "size": {"width": 0, "height": 0},
                     "page_num": 1,
                     "objs": [
@@ -90,8 +92,8 @@ from convert.converters.text.text_to_tokens_converter import (
         ),
         (
             " \n1 2",
-            Page(
-                **{
+            Page.parse_obj(
+                {
                     "size": {"width": 0, "height": 0},
                     "page_num": 1,
                     "objs": [
@@ -115,8 +117,8 @@ from convert.converters.text.text_to_tokens_converter import (
         ),
         (
             "1",
-            Page(
-                **{
+            Page.parse_obj(
+                {
                     "size": {"width": 0, "height": 0},
                     "page_num": 1,
                     "objs": [
@@ -145,7 +147,9 @@ from convert.converters.text.text_to_tokens_converter import (
         #  ),
     ],
 )
-def test_plain_text_converter(test_input: str, expected: Page, tmp_path):
+def test_plain_text_converter(
+    test_input: str, expected: Page, tmp_path: Any
+) -> None:
     converter = TextToBadgerdocTokensConverter(
         page_width=DEFAULT_PDF_PAGE_WIDTH,
         page_border_offset=DEFAULT_PAGE_BORDER_OFFSET,

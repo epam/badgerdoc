@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-from .common import S3Path
+from convert.models.common import S3Path
 
 
 class TextRequest(BaseModel):

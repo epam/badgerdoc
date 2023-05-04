@@ -6,15 +6,14 @@ from typing import List, Optional
 from pydantic import BaseModel
 
 from convert.converters.labelstudio.models.annotation import ValidationType
-
-from .common import S3Path
+from convert.models.common import S3Path
 
 
 class LabelStudioRequest(BaseModel):
     input_annotation: S3Path
     output_bucket: str
     validation_type: ValidationType
-    deadline: Optional[datetime] = None
+    deadline: datetime
     extensive_coverage: Optional[int] = None
     annotators: List[str] = []
     validators: List[str] = []

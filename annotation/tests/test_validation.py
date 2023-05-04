@@ -819,34 +819,7 @@ EXPECTED_DB_TASKS = [
         },
         {
             "file_id": TASKS[5].file_id,
-            "pages": [1],
-            "job_id": TASKS[5].job_id,
-            "user_id": str(ANNOTATORS[1].user_id),
-            "is_validation": True,
-            "status": TaskStatusEnumSchema.pending,
-            "deadline": JOBS[0].deadline,
-        },
-        {
-            "file_id": TASKS[5].file_id,
-            "pages": [2],
-            "job_id": TASKS[5].job_id,
-            "user_id": str(ANNOTATORS[2].user_id),
-            "is_validation": True,
-            "status": TaskStatusEnumSchema.pending,
-            "deadline": JOBS[0].deadline,
-        },
-        {
-            "file_id": TASKS[5].file_id,
-            "pages": [3],
-            "job_id": TASKS[5].job_id,
-            "user_id": str(ANNOTATORS[3].user_id),
-            "is_validation": True,
-            "status": TaskStatusEnumSchema.pending,
-            "deadline": JOBS[0].deadline,
-        },
-        {
-            "file_id": TASKS[5].file_id,
-            "pages": [4, 5],
+            "pages": [1, 2, 3, 4, 5],
             "job_id": TASKS[5].job_id,
             "user_id": str(ANNOTATORS[1].user_id),
             "is_validation": True,
@@ -875,36 +848,9 @@ EXPECTED_DB_TASKS = [
         },
         {
             "file_id": TASKS[1].file_id,
-            "pages": [4, 5],
+            "pages": [1, 2, 3, 4, 5],
             "job_id": 1,
-            "user_id": str(ANNOTATORS[0].user_id),
-            "is_validation": True,
-            "status": TaskStatusEnumSchema.pending,
-            "deadline": JOBS[0].deadline,
-        },
-        {
-            "file_id": TASKS[1].file_id,
-            "pages": [1],
-            "job_id": FILES[1].job_id,
-            "user_id": str(ANNOTATORS[1].user_id),
-            "is_validation": True,
-            "status": TaskStatusEnumSchema.pending,
-            "deadline": JOBS[0].deadline,
-        },
-        {
-            "file_id": TASKS[1].file_id,
-            "pages": [2],
-            "job_id": FILES[1].job_id,
             "user_id": str(ANNOTATORS[2].user_id),
-            "is_validation": True,
-            "status": TaskStatusEnumSchema.pending,
-            "deadline": JOBS[0].deadline,
-        },
-        {
-            "file_id": TASKS[1].file_id,
-            "pages": [3],
-            "job_id": FILES[1].job_id,
-            "user_id": str(ANNOTATORS[3].user_id),
             "is_validation": True,
             "status": TaskStatusEnumSchema.pending,
             "deadline": JOBS[0].deadline,
@@ -942,34 +888,7 @@ EXPECTED_DB_TASKS = [
         },
         {
             "file_id": TASKS[4].file_id,
-            "pages": [1],
-            "job_id": TASKS[4].job_id,
-            "user_id": str(ANNOTATORS[1].user_id),
-            "is_validation": True,
-            "status": TaskStatusEnumSchema.pending,
-            "deadline": JOBS[0].deadline,
-        },
-        {
-            "file_id": TASKS[4].file_id,
-            "pages": [2],
-            "job_id": TASKS[4].job_id,
-            "user_id": str(ANNOTATORS[2].user_id),
-            "is_validation": True,
-            "status": TaskStatusEnumSchema.pending,
-            "deadline": JOBS[0].deadline,
-        },
-        {
-            "file_id": TASKS[4].file_id,
-            "pages": [3],
-            "job_id": TASKS[4].job_id,
-            "user_id": str(ANNOTATORS[3].user_id),
-            "is_validation": True,
-            "status": TaskStatusEnumSchema.pending,
-            "deadline": JOBS[0].deadline,
-        },
-        {
-            "file_id": TASKS[4].file_id,
-            "pages": [4, 5],
+            "pages": [1, 2, 3, 4, 5],
             "job_id": TASKS[4].job_id,
             "user_id": str(ANNOTATORS[1].user_id),
             "is_validation": True,
@@ -1033,8 +952,7 @@ EXPECTED_DB_TASKS = [
             # validation tasks will be distributed automatically
             str(ANNOTATORS[0].user_id),
             TASKS[5].id,  # validation task for pages [1, 2, 3, 4, 5]
-            # two annotation tasks (2, 3) for pages [1, 2, 3, 4, 5],
-            # tasks are assigned to the same (first) user
+            # annotation task for pages [1, 2, 3, 4, 5]
             {1, 2, 3, 4, 5},
             TASKS[5].file_id,
             JOBS[0],  # cross validation
@@ -1047,8 +965,7 @@ EXPECTED_DB_TASKS = [
             # validation tasks will be distributed automatically
             str(ANNOTATORS[0].user_id),
             TASKS[4].id,  # validation task for pages [1, 2, 3, 4, 5]
-            # two annotation tasks (0, 1) for pages [1, 2, 3, 4, 5],
-            # tasks are assigned to the first and second users
+            # annotation tasks for pages [1, 2, 3, 4, 5]
             {1, 2, 3, 4, 5},
             TASKS[4].file_id,
             JOBS[0],  # cross validation
@@ -1120,12 +1037,11 @@ def test_create_annotation_tasks_initial_and_specific(
             # annotation tasks should be distributed automatically,
             # validation tasks will be distributed automatically
             TASKS[5].id,  # validation task for pages [1, 2, 3, 4, 5]
-            # two annotation tasks (2, 3) for pages [1, 2, 3, 4, 5],
-            # tasks are assigned to the same (first) user
+            # annotation task for pages [1, 2, 3, 4, 5]
             {1, 2, 3, 4, 5},
             TASKS[5].file_id,
             JOBS[0],  # cross validation
-            8,
+            2,
         ),
         (
             # this test is for tasks with second job, third file,
@@ -1180,27 +1096,9 @@ EXPECTED_DB_VALIDATION_TASKS = [
     [
         {
             "file_id": TASKS[5].file_id,
-            "pages": [1],
+            "pages": [1, 2, 3, 4, 5],
             "job_id": TASKS[5].job_id,
             "user_id": str(ANNOTATORS[0].user_id),
-            "is_validation": True,
-            "status": TaskStatusEnumSchema.ready,
-            "deadline": JOBS[0].deadline,
-        },
-        {
-            "file_id": TASKS[5].file_id,
-            "pages": [2, 3],
-            "job_id": TASKS[5].job_id,
-            "user_id": str(ANNOTATORS[1].user_id),
-            "is_validation": True,
-            "status": TaskStatusEnumSchema.ready,
-            "deadline": JOBS[0].deadline,
-        },
-        {
-            "file_id": TASKS[5].file_id,
-            "pages": [4, 5],
-            "job_id": TASKS[5].job_id,
-            "user_id": str(ANNOTATORS[2].user_id),
             "is_validation": True,
             "status": TaskStatusEnumSchema.ready,
             "deadline": JOBS[0].deadline,
@@ -1612,27 +1510,9 @@ def test_finish_task_successful_status_codes(
         },
         {
             "file_id": TASKS[4].file_id,
-            "pages": [1],
+            "pages": [1, 2, 3],
             "job_id": TASKS[5].job_id,
             "user_id": str(ANNOTATORS[1].user_id),
-            "is_validation": True,
-            "status": TaskStatusEnumSchema.pending,
-            "deadline": JOBS[0].deadline,
-        },
-        {
-            "file_id": TASKS[4].file_id,
-            "pages": [2],
-            "job_id": TASKS[5].job_id,
-            "user_id": str(ANNOTATORS[2].user_id),
-            "is_validation": True,
-            "status": TaskStatusEnumSchema.pending,
-            "deadline": JOBS[0].deadline,
-        },
-        {
-            "file_id": TASKS[4].file_id,
-            "pages": [3],
-            "job_id": TASKS[5].job_id,
-            "user_id": str(ANNOTATORS[3].user_id),
             "is_validation": True,
             "status": TaskStatusEnumSchema.pending,
             "deadline": JOBS[0].deadline,

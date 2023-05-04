@@ -6,11 +6,13 @@ from pathlib import Path
 from typing import Any, Dict, Set
 
 from convert.config import get_request_session, settings
+from convert.converters.coco.models.coco import DataS3
+from convert.converters.coco.utils.json_utils import (
+    import_save_to_json,
+    load_from_json,
+)
+from convert.converters.coco.utils.s3_utils import S3Manager, s3_download_files
 from convert.logger import get_logger
-
-from ..models.coco import DataS3
-from ..utils.json_utils import import_save_to_json, load_from_json
-from ..utils.s3_utils import S3Manager, s3_download_files
 
 LOGGER = get_logger(__file__)
 SESSION = get_request_session()

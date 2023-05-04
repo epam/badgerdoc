@@ -238,7 +238,7 @@ export interface TaxonomyNode extends TTreeNode {
     taxon?: BaseTaxon;
 }
 
-export interface BaseTaxon {
+interface BaseTaxon {
     id: string;
     name: string;
     parent_id: string | null;

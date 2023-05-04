@@ -10,13 +10,23 @@ import requests
 from botocore.exceptions import ClientError
 
 from convert.config import minio_client, minio_resource, settings
+from convert.converters.coco.models.coco import (
+    Annotation,
+    BBox,
+    Category,
+    CocoDataset,
+    Image,
+)
+from convert.converters.coco.utils.common_utils import (
+    add_to_zip_and_local_remove,
+    get_headers,
+)
+from convert.converters.coco.utils.json_utils import export_save_to_json
+from convert.converters.coco.utils.render_pdf_page import pdf_page_to_jpg
+from convert.converters.coco.utils.s3_utils import (
+    convert_bucket_name_if_s3prefix,
+)
 from convert.logger import get_logger
-
-from ..models.coco import Annotation, Category, CocoDataset, Image
-from ..utils.common_utils import add_to_zip_and_local_remove, get_headers
-from ..utils.json_utils import export_save_to_json
-from ..utils.render_pdf_page import pdf_page_to_jpg
-from ..utils.s3_utils import convert_bucket_name_if_s3prefix
 
 LOGGER = get_logger(__file__)
 
@@ -217,7 +227,7 @@ class DatasetFetch:
                 Delimiter="/",
             )["CommonPrefixes"]
             return file_id
-        except KeyError as err:  # noqa
+        except KeyError as err:
             LOGGER.exception("Job doesn't exist")
             raise ClientError(
                 operation_name="NuSuchPath.NotJob",
@@ -311,7 +321,7 @@ class ConvertToCoco(ExportConvertBase):
         coco_annotation.categories = sorted(
             list(
                 {
-                    v.dict()["name"]: v.dict() for v in coco_annotation.categories  # type: ignore # noqa
+                    v.dict()["name"]: v.dict() for v in coco_annotation.categories  # type: ignore
                 }.values()
             ),
             key=lambda x: x["id"],  # type: ignore
@@ -347,7 +357,7 @@ class ConvertToCoco(ExportConvertBase):
             for element in page["objs"]:
                 if element["category"] not in category_names:
                     response = requests.post(
-                        settings.category_service_url,
+                        settings.category_service_url or "",
                         headers=get_headers(self.token, self.tenant),
                         json={
                             "name": element["category"],
@@ -361,13 +371,15 @@ class ConvertToCoco(ExportConvertBase):
                 annotation_obj = Annotation(
                     id=annotation_num,
                     image_id=image_id,
-                    bbox=[
-                        float(element["bbox"][0]),
-                        float(element["bbox"][1]),
-                        round(element["bbox"][2] - element["bbox"][0], 2),
-                        round(element["bbox"][3] - element["bbox"][1], 2),
-                    ],
-                    category_id=category_id,
+                    bbox=BBox(
+                        [
+                            float(element["bbox"][0]),
+                            float(element["bbox"][1]),
+                            round(element["bbox"][2] - element["bbox"][0], 2),
+                            round(element["bbox"][3] - element["bbox"][1], 2),
+                        ]
+                    ),
+                    category_id=str(category_id),
                     area=round(element["bbox"][3] * element["bbox"][2], 2),
                     isbbox=bool(element["bbox"]),
                 )
@@ -384,8 +396,10 @@ class ConvertToCoco(ExportConvertBase):
             annotation.images.append(
                 Image(
                     id=image_id,
-                    file_name=f"{self.job_id}_{image_id}."
-                    f"{settings.coco_image_format}",
+                    file_name=Path(
+                        f"{self.job_id}_{image_id}."
+                        f"{settings.coco_image_format}"
+                    ),
                     width=page["size"]["width"],
                     height=page["size"]["height"],
                 )

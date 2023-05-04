@@ -84,10 +84,6 @@ export const useTaxonomiesTree = ({ searchText, taxonomyId, taxonomyFilter }: Pr
             handleLoadFullList({
                 search,
                 filters: [
-                    {
-                        field: 'parent_id',
-                        operator: Operators.IS_NULL
-                    },
                     taxonomyFilter ?? {
                         field: 'taxonomy_id',
                         operator: Operators.EQ,

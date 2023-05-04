@@ -4,7 +4,7 @@ metadata:
   labels:
     app: convert
   name: convert
-  namespace: {{ .Release.Namespace }}
+  namespace: "{{ .Release.Namespace }}"
 spec:
   ipFamilies:
   - IPv4

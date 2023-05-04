@@ -3,8 +3,7 @@ from typing import Any, Dict, List
 from zipfile import ZipFile
 
 from convert.config import settings
-
-from ..exceptions import UploadLimitExceedError
+from convert.converters.coco.exceptions import UploadLimitExceedError
 
 
 def check_uploading_limit(files_list: List[str]) -> Any:

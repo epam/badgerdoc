@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Tuple
 
 from pydantic import BaseModel
 
@@ -28,7 +28,7 @@ class Data(BaseModel):
 class Obj(BaseModel):
     id: int
     type: str
-    bbox: List[float]
+    bbox: Tuple[float, float, float, float]
     tokens: List[int] = []
     category: str
     data: Optional[Any]
@@ -44,5 +44,5 @@ class Page(BaseModel):
 class BadgerdocAnnotation(BaseModel):
     revision: Optional[str] = None
     pages: List[Page] = []
-    validated: Optional[List] = None
-    failed_validation_pages: Optional[List] = None
+    validated: Optional[List[int]] = None
+    failed_validation_pages: Optional[List[int]] = None

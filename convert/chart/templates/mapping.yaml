@@ -2,9 +2,9 @@ apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: convert
-  namespace: {{ .Release.Namespace }}
+  namespace: "{{ .Release.Namespace }}"
 spec:
-  host: {{ .Release.Namespace }}.badgerdoc.com
+  host: "{{ .Release.Namespace }}.badgerdoc.com"
   connect_timeout_ms: 30000
   idle_timeout_ms: 50000
   prefix: /api/v1/convert/
@@ -15,7 +15,7 @@ apiVersion: getambassador.io/v2
 kind: Mapping
 metadata:
   name: convert-internal
-  namespace: {{ .Release.Namespace }}
+  namespace: "{{ .Release.Namespace }}"
 spec:
   host: ambassador
   connect_timeout_ms: 30000

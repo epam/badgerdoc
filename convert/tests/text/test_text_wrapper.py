@@ -1,12 +1,10 @@
 import collections
 import string
 
-from convert.converters.text.text_to_tokens_converter import (  # noqa: E501
-    TextWrapper,
-)
+from convert.converters.text.text_to_tokens_converter import TextWrapper
 
 
-def test_pop_beginning_whitespaces_text_begin_with_whitespaces():
+def test_pop_beginning_whitespaces_text_begin_with_whitespaces() -> None:
     tw = TextWrapper(line_length=50)
     text = collections.deque(string.whitespace + "text" + "  ")
 
@@ -15,7 +13,7 @@ def test_pop_beginning_whitespaces_text_begin_with_whitespaces():
     assert result == list(string.whitespace)
 
 
-def test_pop_beginning_whitespaces_not_whitespaces():
+def test_pop_beginning_whitespaces_not_whitespaces() -> None:
     tw = TextWrapper(line_length=50)
     text = collections.deque("text" + "  ")
 
@@ -24,7 +22,7 @@ def test_pop_beginning_whitespaces_not_whitespaces():
     assert result == []
 
 
-def test_pop_next_word_begin_with_whitespaces():
+def test_pop_next_word_begin_with_whitespaces() -> None:
     tw = TextWrapper(line_length=50)
     text = collections.deque(" " + "text")
 
@@ -33,7 +31,7 @@ def test_pop_next_word_begin_with_whitespaces():
     assert result == []
 
 
-def test_pop_next_word_text_contains_several_verbs():
+def test_pop_next_word_text_contains_several_verbs() -> None:
     tw = TextWrapper(line_length=50)
     text = collections.deque("word1 word2 word3")
 
@@ -42,7 +40,7 @@ def test_pop_next_word_text_contains_several_verbs():
     assert result == ["w", "o", "r", "d", "1"]
 
 
-def test_wrap_short_paragraph():
+def test_wrap_short_paragraph() -> None:
     tw = TextWrapper(line_length=40)
     text = "word1 word2 word3 word4 word5"
 
@@ -51,7 +49,7 @@ def test_wrap_short_paragraph():
     assert result == [text]
 
 
-def test_wrap_paragraph_started_with_spaces():
+def test_wrap_paragraph_started_with_spaces() -> None:
     tw = TextWrapper(line_length=20)
     text = "  word1 word2 word3 word4 word5"
 
@@ -60,7 +58,7 @@ def test_wrap_paragraph_started_with_spaces():
     assert result == ["  word1 word2 word3 ", "word4 word5"]
 
 
-def test_wrap_paragraph_with_long_word():
+def test_wrap_paragraph_with_long_word() -> None:
     tw = TextWrapper(line_length=10)
     text = "word1 very_long_word word2"
 
@@ -69,7 +67,7 @@ def test_wrap_paragraph_with_long_word():
     assert result == ["word1 ", "very_long_", "word word2"]
 
 
-def test_wrap_paragraph_with_long_word_at_the_beginning():
+def test_wrap_paragraph_with_long_word_at_the_beginning() -> None:
     tw = TextWrapper(line_length=10)
     text = "very_long_word word1 word2"
 
@@ -78,9 +76,9 @@ def test_wrap_paragraph_with_long_word_at_the_beginning():
     assert result == ["very_long_", "word word1 ", "word2"]
 
 
-def test_wrap_paragraph_with_word_multiple_times_longer_then_string():
+def test_wrap_paragraph_with_word_multiple_times_longer_then_string() -> None:
     tw = TextWrapper(line_length=10)
-    text = "word1 very_long_word_which_can't_be_fitted_even_in_two_or_three_lines word2 word3"  # noqa: E501
+    text = "word1 very_long_word_which_can't_be_fitted_even_in_two_or_three_lines word2 word3"
 
     result = tw.wrap_paragraph(text)
 
@@ -97,7 +95,7 @@ def test_wrap_paragraph_with_word_multiple_times_longer_then_string():
     ]
 
 
-def test_wrap_empty_text():
+def test_wrap_empty_text() -> None:
     tw = TextWrapper(line_length=10)
     text = ""
 
@@ -106,7 +104,7 @@ def test_wrap_empty_text():
     assert result == []
 
 
-def test_wrap_single_paragraph_text():
+def test_wrap_single_paragraph_text() -> None:
     tw = TextWrapper(line_length=20)
     text = "Text which contains only one paragraph"
 
@@ -115,7 +113,7 @@ def test_wrap_single_paragraph_text():
     assert result == ["Text which contains ", "only one paragraph"]
 
 
-def test_wrap_text_with_several_paragraphs():
+def test_wrap_text_with_several_paragraphs() -> None:
     tw = TextWrapper(line_length=20)
     text = (
         "Text which contains more then one paragraph\n"

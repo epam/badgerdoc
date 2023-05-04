@@ -9,9 +9,7 @@ from convert.config import (
     DEFAULT_PDF_PAGE_WIDTH,
 )
 from convert.converters.base_format.badgerdoc import Badgerdoc
-from convert.converters.labelstudio.labelstudio_to_badgerdoc_converter import (
-    ConverterToBadgerdoc,
-)
+from convert.converters.base_format.models.tokens import Page
 from convert.converters.text.text_to_tokens_converter import (
     TextToBadgerdocTokensConverter,
 )
@@ -32,9 +30,9 @@ def test_plain_text_converter() -> None:
         line_spacing=DEFAULT_PDF_LINE_SPACING,
     )
     tokens = converter.convert(labelstudio_data["text"])
-    expected_bd_tokens = json.loads(Path(BADGERDOC_TOKENS_FILE).read_text())
+    expected_bd_tokens = Page.parse_file(Path(BADGERDOC_TOKENS_FILE))
 
     badgerdoc_format = Badgerdoc()
     badgerdoc_format.tokens_page = tokens
     badgerdoc_format.remove_non_printing_tokens()
-    assert tokens.dict(by_alias=True, exclude_none=True) == expected_bd_tokens
+    assert badgerdoc_format.tokens_page == expected_bd_tokens

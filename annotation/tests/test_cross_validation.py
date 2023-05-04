@@ -212,6 +212,48 @@ EXPECTED_TASKS = [
         "status": TASKS_STATUS,
     },
 ]
+EXPECTED_UNSPLITTED_TASKS = [
+    [
+        {
+            "file_id": 1,
+            "pages": [1, 2, 3, 4, 5, 6, 7, 8, 9],
+            "job_id": 1,
+            "user_id": "405ef0e2-b53e-4c18-bf08-c0871615d991",
+            "is_validation": True,
+            "status": TaskStatusEnumSchema.pending,
+            "deadline": None,
+        },
+        {
+            "file_id": 2,
+            "pages": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+            "job_id": 1,
+            "user_id": "405ef0e2-b53e-4c18-bf08-c0871615d991",
+            "is_validation": True,
+            "status": TaskStatusEnumSchema.pending,
+            "deadline": None,
+        },
+        {
+            "file_id": 3,
+            "pages": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+            "job_id": 1,
+            "user_id": "405ef0e2-b53e-4c18-bf08-c0871615d991",
+            "is_validation": True,
+            "status": TaskStatusEnumSchema.pending,
+            "deadline": None,
+        },
+    ],
+    [
+        {
+            "file_id": 6,
+            "pages": list(range(1, 56)),
+            "job_id": 1,
+            "user_id": "405ef0e2-b53e-4c18-bf08-c0871615d991",
+            "is_validation": True,
+            "status": TaskStatusEnumSchema.pending,
+            "deadline": None,
+        }
+    ],
+]
 
 
 @pytest.mark.unittest
@@ -295,6 +337,32 @@ def test_validate_not_annotated(
     )
 
 
+NONSPLITTED_FILES_PAGES = [
+    [
+        {
+            "file_id": 5,
+            "pages": list(range(1, 61)),
+            "job_id": 1,
+            "user_id": "405ef0e2-b53e-4c18-bf08-c0871615d991",
+            "is_validation": True,
+            "status": TaskStatusEnumSchema.pending,
+            "deadline": None,
+        }
+    ],
+    [
+        {
+            "file_id": 3,
+            "pages": list(range(1, 13)),
+            "job_id": 1,
+            "user_id": "405ef0e2-b53e-4c18-bf08-c0871615d991",
+            "is_validation": True,
+            "status": TaskStatusEnumSchema.pending,
+            "deadline": None,
+        }
+    ],
+]
+
+
 @pytest.mark.unittest
 @pytest.mark.parametrize(
     ["annotated_files_pages", "files", "annotators", "expected_tasks"],
@@ -303,13 +371,13 @@ def test_validate_not_annotated(
             ANNOTATED_FILES_PAGES[4],
             [copy(file) for file in FILES[1:3]],
             [copy(USERS[2])],
-            [EXPECTED_TASKS[4]],
+            NONSPLITTED_FILES_PAGES[1],
         ),
         (
             ANNOTATED_FILES_PAGES[5],
             [copy(file) for file in FILES[3:5]],
             [copy(USERS[4])],
-            EXPECTED_TASKS[5:7],
+            NONSPLITTED_FILES_PAGES[0],
         ),
     ],
 )
@@ -337,13 +405,13 @@ def test_cross_distribution_equal_files(
             ANNOTATED_FILES_PAGES[5],
             [copy(file) for file in FILES[:3]],
             [copy(USERS[4])],
-            [EXPECTED_TASKS[7], EXPECTED_TASKS[1], EXPECTED_TASKS[4]],
+            EXPECTED_UNSPLITTED_TASKS[0],
         ),
         (
             ANNOTATED_FILES_PAGES[5],
             [copy(FILES[5])],
             [copy(USERS[4])],
-            EXPECTED_TASKS[8:10],
+            EXPECTED_UNSPLITTED_TASKS[1],
         ),
     ],
 )
