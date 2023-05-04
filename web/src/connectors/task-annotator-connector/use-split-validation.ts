@@ -9,7 +9,7 @@ import { scaleAnnotation } from 'shared/components/annotator/utils/scale-annotat
 import useAnnotationsTaxons from 'shared/hooks/use-annotations-taxons';
 import useAnnotationsMapper from 'shared/hooks/use-annotations-mapper';
 import { Task } from 'api/typings/tasks';
-import { LatestRevisionObj, UserRevision, convertToRevisionByUserArray } from './utils';
+import { UserRevision, convertToRevisionByUserArray } from './utils';
 import { useGetPageSummary } from '../../api/hooks/tasks';
 
 interface SplitValidationParams {
@@ -95,26 +95,17 @@ export default function useSplitValidation({
         { enabled: isSplitValidation }
     );
 
+    const convertedLatestRevision = latestRevision
+        ? convertToRevisionByUserArray(latestRevision)
+        : [];
+    const currentUser = userId;
+
     const latestRevisionByAnnotators: UserRevision[] = useMemo(() => {
-        if (!latestRevision) {
-            return [];
-        }
-
-        const result = convertToRevisionByUserArray(latestRevision as unknown as LatestRevisionObj);
-        const currentUser = userId;
-
-        return result.filter((revision) => revision.user_id !== currentUser);
+        return convertedLatestRevision.filter((revision) => revision.user_id !== currentUser);
     }, [latestRevision]);
 
     const latestRevisionByCurrentUser: UserRevision[] = useMemo(() => {
-        if (!latestRevision) {
-            return [];
-        }
-
-        const result = convertToRevisionByUserArray(latestRevision as unknown as LatestRevisionObj);
-        const currentUser = userId;
-
-        return result.filter((revision) => revision.user_id === currentUser);
+        return convertedLatestRevision.filter((revision) => revision.user_id === currentUser);
     }, [latestRevision]);
 
     const taxonLabels = useAnnotationsTaxons(latestRevisionByAnnotators);
