@@ -3,16 +3,15 @@ import { LatestRevisionResponse, RevisionObjByUser, UserRevision } from './revis
 export function convertToUserRevisions(response: LatestRevisionResponse): UserRevision[] {
     const userRevisions: UserRevision[] = [];
 
-    for (const page_num in response) {
-        const pages = response[page_num];
-
-        for (const page of pages) {
+    Object.values(response)
+        .flat()
+        .forEach((page) => {
             const { user_id, size, objs, revision, is_validated, date, pipeline, categories } =
                 page;
 
             userRevisions.push({
                 user_id,
-                page_num: parseInt(page_num),
+                page_num: page.page_num,
                 size,
                 objs,
                 revision,
@@ -21,8 +20,7 @@ export function convertToUserRevisions(response: LatestRevisionResponse): UserRe
                 pipeline,
                 categories
             });
-        }
-    }
+        });
 
     return userRevisions;
 }
