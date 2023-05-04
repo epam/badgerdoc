@@ -30,6 +30,8 @@ def import_labelstudio(
     current_tenant: Optional[str] = Header(None, alias="X-Current-Tenant"),
     token_data: TenantData = Depends(tenant),
 ) -> None:
+    if not current_tenant:
+        raise ValueError("Tenant can not be empty")
     labelstudio_to_bd_use_case = LabelstudioToBadgerdocConverter(
         s3_client=minio_client,
         current_tenant=current_tenant,
@@ -38,7 +40,7 @@ def import_labelstudio(
         s3_output_bucket=request.output_bucket,
         validation_type=request.validation_type,
         deadline=request.deadline,
-        extensive_coverage=request.extensive_coverage,
+        extensive_coverage=request.extensive_coverage or 0,
         annotators=request.annotators,
         validators=request.validators,
     )
@@ -51,9 +53,11 @@ def import_labelstudio(
 )
 def export_labelstudio(
     request: BadgerdocToLabelStudioRequest,
-    current_tenant: str = Header(None, alias="X-Current-Tenant"),
+    current_tenant: Optional[str] = Header(None, alias="X-Current-Tenant"),
     token_data: TenantData = Depends(tenant),
 ) -> None:
+    if not current_tenant:
+        raise ValueError("Tenant can not be empty")
     bd_to_labelstudio_converter = BadgerdocToLabelstudioConverter(
         s3_client=minio_client,
         current_tenant=current_tenant,

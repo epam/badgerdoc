@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.exc import DBAPIError, SQLAlchemyError
@@ -309,6 +311,7 @@ def test_post_tasks_for_unassigned_files_error_status_codes(
         (JOBS[1].job_id, [], []),
     ],
 )
+@patch("annotation.distribution.main.SPLIT_MULTIPAGE_DOC", "true")
 def test_post_tasks_for_unassigned_files(
     db_post_unassigned_files, job_id, expected_tasks, expected_files
 ):

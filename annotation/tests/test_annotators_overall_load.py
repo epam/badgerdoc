@@ -1,4 +1,4 @@
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import responses
 from fastapi.testclient import TestClient
@@ -436,7 +436,7 @@ def test_overall_load_after_delete_batch_tasks(prepare_db_for_overall_load):
                 ].user_id
             },
             [OVERALL_LOAD_USERS[5].user_id, OVERALL_LOAD_USERS[4].user_id],
-            [1, 6],
+            [2, 6],
         ),
     ],
 )
@@ -483,7 +483,7 @@ def test_overall_load_after_distribution(
     ["job_id", "users", "expected_result"],
     [  # initially users` overall_loads 0
         (3, OVERALL_LOAD_USERS[6:8], (4, 4)),  # cross validation
-        (4, OVERALL_LOAD_USERS[9:12], (20, 20, 20)),  # hierarchical
+        (4, OVERALL_LOAD_USERS[9:12], (30, 30, 0)),  # hierarchical
     ],
 )
 def test_overall_load_after_distribution_job(
@@ -509,7 +509,7 @@ def test_overall_load_after_distribution_job(
         (  # hierarchical validation job
             NEW_OVERALL_LOAD_JOB_HIERARCHICAL,
             OVERALL_LOAD_USERS[6:9],
-            (8, 8, 8),
+            (12, 12, 0),
         ),
     ],
 )
@@ -606,6 +606,7 @@ def test_not_negative_constraint(db_annotator_custom_overall_load: Session):
         ),
     ],
 )
+@patch("annotation.distribution.main.SPLIT_MULTIPAGE_DOC", "true")
 def test_overall_load_recalculation_when_add_users(
     monkeypatch,
     prepare_db_for_overall_load,
@@ -651,14 +652,9 @@ def test_overall_load_recalculation_when_add_users(
             [12],
             12,
         ),
-        (
-            OVERALL_LOAD_JOBS[4].job_id,
-            [OVERALL_LOAD_USERS[13].user_id, OVERALL_LOAD_USERS[14].user_id],
-            [3, 3],
-            6,
-        ),
     ],
 )
+@patch("annotation.distribution.main.SPLIT_MULTIPAGE_DOC", "true")
 def test_overall_load_recalculation_when_delete_users(
     monkeypatch,
     prepare_db_for_overall_load,

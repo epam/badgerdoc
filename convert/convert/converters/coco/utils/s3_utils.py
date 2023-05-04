@@ -6,11 +6,14 @@ import urllib3
 from fastapi import HTTPException, status
 
 from convert.config import settings
+from convert.converters.coco.exceptions import (
+    BucketError,
+    FileKeyError,
+    UploadLimitExceedError,
+)
+from convert.converters.coco.models import coco
+from convert.converters.coco.utils.common_utils import check_uploading_limit
 from convert.logger import get_logger
-
-from ..exceptions import BucketError, FileKeyError, UploadLimitExceedError
-from ..models import coco
-from .common_utils import check_uploading_limit
 
 logger = get_logger(__name__)
 
@@ -84,15 +87,12 @@ class S3Manager:
         try:
             self._check_bucket_exist(bucket_s3)
             self._check_files_exist(bucket_s3, files_keys)
-        except FileKeyError as e:
-            logger.error(f"S3 error - detail: {e}")
-            raise FileKeyError(e)
-        except BucketError as e:
-            logger.error(f"S3 error - detail: {e}")
-            raise BucketError(e)
+        except (FileKeyError, BucketError) as e:
+            logger.exception(f"S3 error - detail: {e}")
+            raise
         except urllib3.exceptions.MaxRetryError as e:
-            logger.error(f"Connection error - detail: {e}")
-            raise urllib3.exceptions.MaxRetryError
+            logger.exception(f"Connection error - detail: {e}")
+            raise
 
 
 def s3_download_files(

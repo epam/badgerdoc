@@ -107,7 +107,7 @@ class TextToBadgerdocTokensConverter:
         self.text_wrapper = TextWrapper(line_length=self.line_tokens_amount)
 
     def convert(self, text: str) -> Page:
-        tokens = []
+        tokens: List[BadgerdocToken] = []
         line_offset = 0
         y_axis = self.page_border_offset
         for line in self.text_wrapper.wrap(text):
@@ -138,12 +138,12 @@ class TextToBadgerdocTokensConverter:
             end = begin + 1
             offset = Offset(begin=begin, end=end)
             token = BadgerdocToken(
-                bbox=[
+                bbox=(
                     x_axis,
                     y_axis,
                     x_axis + self.font_width,
                     y_axis + self.font_height,
-                ],
+                ),
                 text=char,
                 offset=offset,
             )

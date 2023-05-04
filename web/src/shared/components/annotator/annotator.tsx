@@ -37,7 +37,7 @@ import {
     useSelectionTokens,
     useTokensByResizing
 } from './hooks/use-active-tokens-calculation';
-import { Category, Link } from '../../../api/typings';
+import { Category } from '../../../api/typings';
 import { arrayUniqueByKey } from './utils/unique-array';
 import { useTaskAnnotatorContext } from '../../../connectors/task-annotator-connector/task-annotator-context';
 import { AnnotationLinksBoundType } from 'shared';
@@ -50,8 +50,6 @@ import paper from 'paper';
 import { createImageTool } from './components/image-tools';
 import { removeAllSelections } from './components/image-tools/utils';
 import { ANNOTATION_RESIZER_CLASS } from './components/box-annotation';
-import { getPointsForLinks, PointSet } from './utils/get-points-for-link';
-import { LinkAnnotation } from './components/link-annotation';
 
 const resizeSelectionCast = {
     box: 'free-box',
@@ -134,8 +132,6 @@ export const Annotator: FC<AnnotatorProps> = ({
         setIsNeedToSaveTable,
         selectedAnnotation,
         fileMetaInfo,
-        onLinkDeleted,
-        onSplitLinkSelected,
         selectedTool,
         selectedToolParams,
         setSelectedAnnotation
@@ -591,91 +587,6 @@ export const Annotator: FC<AnnotatorProps> = ({
                 }}
                 page={page}
             />
-            <LinksLayer
-                annotations={annotations}
-                categories={categories}
-                onLinkDeleted={onLinkDeleted}
-                onLinkSelected={onSplitLinkSelected}
-                pageNum={page}
-                scale={scale}
-            />
-        </div>
-    );
-};
-
-interface LinksLayerProps {
-    scale: number;
-    annotations: Annotation[];
-    categories?: Category[];
-    onLinkDeleted: (pageNum: number, annotationId: string | number, link: Link) => void;
-    onLinkSelected: (
-        fromOriginalAnnotationId: string | number,
-        originalLink: Link,
-        annotations: Annotation[]
-    ) => void;
-    pageNum: number;
-}
-
-const LinksLayer = ({
-    annotations,
-    categories,
-    onLinkDeleted,
-    onLinkSelected,
-    pageNum,
-    scale
-}: LinksLayerProps) => {
-    const [pointSets, setPointSets] = useState<PointSet[]>([]);
-
-    const onDeleteLink = useCallback(
-        (pageNum: number, from: string | number, link: Link) => (e: Event) => {
-            e.stopPropagation();
-            onLinkDeleted(pageNum, from, link);
-        },
-        [onLinkDeleted]
-    );
-
-    const onLinkSelect = useCallback(
-        (from: string | number, link: Link, annotations: Annotation[]) => () => {
-            onLinkSelected(from, link, annotations);
-        },
-        [onLinkSelected]
-    );
-
-    useEffect(() => {
-        const newPointSets: PointSet[] = [];
-        for (let ann of annotations) {
-            if (!ann.links?.length) continue;
-
-            newPointSets.push(
-                ...getPointsForLinks(
-                    ann.id,
-                    ann.boundType,
-                    pageNum,
-                    ann.links,
-                    annotations,
-                    categories
-                )
-            );
-        }
-        setPointSets(newPointSets);
-    }, [annotations, pageNum, categories, scale]);
-
-    return (
-        <div>
-            {pointSets.map(({ from, start, finish, category, type, link }) => {
-                return (
-                    <LinkAnnotation
-                        key={`${from}${link.to}`}
-                        pointStart={start}
-                        pointFinish={finish}
-                        category={category}
-                        linkType={type}
-                        reversed={finish.id === from}
-                        onDeleteLink={onDeleteLink(pageNum, from, link)}
-                        onLinkSelect={onLinkSelect(from, link, annotations)}
-                    />
-                );
-            })}
         </div>
     );
 };

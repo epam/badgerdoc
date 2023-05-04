@@ -1,6 +1,5 @@
 from pathlib import Path
 
-import responses
 from _pytest.monkeypatch import MonkeyPatch
 from starlette.testclient import TestClient
 
@@ -37,6 +36,7 @@ def test_correctness_of_export_text_schema(
         BadgerdocToLabelstudioConverter, "execute", lambda *args, **kw: ...
     )
 
+    test_app.headers = {"X-Current-Tenant": "test"}
     response = test_app.post(
         "/labelstudio/export",
         json=test_request_payload,

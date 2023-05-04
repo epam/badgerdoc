@@ -466,6 +466,7 @@ def test_post_tasks_exception(Session, monkeypatch, prepare_db_for_post):
         (TASK_INFO_FILES[1], FILES_FROM_ASSETS_FOR_TASK_INFO[1], 18),
     ],
 )
+@patch("annotation.distribution.main.SPLIT_MULTIPAGE_DOC", "true")
 def test_post_tasks_only_files(
     monkeypatch,
     prepare_db_for_post,
@@ -488,6 +489,7 @@ def test_post_tasks_only_files(
 @pytest.mark.integration
 @pytest.mark.parametrize(["case_index", "tasks_number"], [(0, 14), (1, 19)])
 @responses.activate
+@patch("annotation.distribution.main.SPLIT_MULTIPAGE_DOC", "true")
 def test_post_tasks_only_datasets(
     monkeypatch, prepare_db_for_post, case_index, tasks_number
 ):

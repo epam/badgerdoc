@@ -8,7 +8,7 @@ import {
 } from 'shared';
 import { getAnnotationElementId } from './use-annotation-links';
 
-export const offsetRelative = (element: HTMLElement, top?: HTMLElement | Element) => {
+const offsetRelative = (element: HTMLElement, top?: HTMLElement | Element) => {
     let parent = element.parentElement!;
     let offset = { left: element.offsetLeft, top: element.offsetTop };
 
@@ -40,11 +40,7 @@ export type PointSet = {
 };
 
 const getCategoryById = (id: string | number, categories: Category[] | undefined): Category => {
-    return categories?.filter((cat: Category) => cat.id == id)[0] as Category;
-};
-
-const getAnnotationById = (id: string | number, annotations: Annotation[]): Annotation => {
-    return annotations.find((ann: Annotation) => ann.id == id)!;
+    return categories?.find((cat: Category) => cat.id == id) as Category;
 };
 
 const getTrueBound = (elem: HTMLElement, id: string | number): DOMRectWithId => {
@@ -52,9 +48,9 @@ const getTrueBound = (elem: HTMLElement, id: string | number): DOMRectWithId => 
     const relOffset = offsetRelative(elem);
     return {
         ...box,
+        id,
         top: relOffset.top,
-        left: relOffset.left,
-        id
+        left: relOffset.left
     };
 };
 
@@ -68,48 +64,61 @@ export const getAnnotationPage = (all: Record<number, Annotation[]>, annotation:
 export const getPointsForLinks = (
     id: number | string,
     annType: AnnotationBoundType | AnnotationLinksBoundType | AnnotationImageToolType,
-    pageNum: number,
     links: Link[],
-    annotations: Annotation[],
+    pageNum: number,
+    annotationsById: Record<string, Annotation>,
     categories: Category[] | undefined
 ): PointSet[] => {
     let firstChildStart: DOMRectWithId, lastChildStart: DOMRectWithId;
-    let elementStart = document.getElementById(getAnnotationElementId(pageNum, id))!;
+    const elementStart = document.getElementById(getAnnotationElementId(pageNum, id))!;
+    const pageHeight =
+        document.getElementById('document-page')?.getBoundingClientRect().height ?? 0;
+
     if (!elementStart) return [];
     if (annType == 'text') {
         firstChildStart = getTrueBound(elementStart.firstChild! as HTMLElement, id);
         lastChildStart = getTrueBound(elementStart.lastChild! as HTMLElement, id);
     }
-    let boundStart = getTrueBound(elementStart, id);
-    let boundsFinish = links
-        .filter((link) => getAnnotationById(link.to, annotations))
+    const boundStart = getTrueBound(elementStart, id);
+    const boundsFinish = links
+        .filter((link) => annotationsById[link.to])
         .map((link) => {
-            const categoryName = getCategoryById(link.category_id, categories);
-            const boundType = getAnnotationById(link.to, annotations).boundType;
+            const category = getCategoryById(link.category_id, categories);
+            const boundType = annotationsById[link.to].boundType;
             const elem = document.getElementById(getAnnotationElementId(link.page_num, link.to))!;
+
+            const topOffsetMultiplier = link.page_num - pageNum;
+            const additionalTopOffset = pageHeight * topOffsetMultiplier;
+
             if (boundType == 'text') {
+                const firstChildBound = getTrueBound(elem.firstChild! as HTMLElement, link.to);
+                const lastChildBound = getTrueBound(elem.lastChild! as HTMLElement, link.to);
+
                 return {
-                    bound: [
-                        getTrueBound(elem.firstChild! as HTMLElement, link.to),
-                        getTrueBound(elem.lastChild! as HTMLElement, link.to)
-                    ],
-                    category: categoryName,
+                    link,
+                    category,
                     linkType: link.type,
                     boundType: boundType,
-                    link: link
+                    bound: [
+                        { ...firstChildBound, top: additionalTopOffset + firstChildBound.top },
+                        { ...lastChildBound, top: additionalTopOffset + lastChildBound.top }
+                    ]
                 };
             }
+
+            const linkBound = getTrueBound(elem, link.to);
+
             return {
-                bound: getTrueBound(elem, link.to),
-                category: categoryName,
+                link,
+                category,
                 linkType: link.type,
                 boundType: boundType,
-                link: link
+                bound: { ...linkBound, top: additionalTopOffset + linkBound.top }
             };
         });
 
     let linkPointA: PointWithId, linkPointB: PointWithId;
-    let points: PointSet[] = boundsFinish.map((bound) => {
+    const points: PointSet[] = boundsFinish.map((bound) => {
         let higherBound: DOMRectWithId | null;
         let lowerBound: DOMRectWithId | null;
         let higherType: string | null;

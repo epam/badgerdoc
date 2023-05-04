@@ -15,6 +15,7 @@ export const AnnotationRow: FC<TAnnotationProps> = ({
     label = '',
     text,
     index,
+    pageNum,
     onSelect,
     onSelectById,
     categoryName,
@@ -44,6 +45,7 @@ export const AnnotationRow: FC<TAnnotationProps> = ({
                         onSelect={onSelectById}
                         links={links}
                         annotationId={id}
+                        annotationPageNum={pageNum}
                         incomingLinks={incomingLinks}
                         onLinkDeleted={onLinkDeleted}
                         annotationNameById={annotationNameById}

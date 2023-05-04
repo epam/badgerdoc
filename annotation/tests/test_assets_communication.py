@@ -9,7 +9,7 @@ from annotation.microservice_communication.assets_communication import (
     ASSETS_FILES_URL,
     ASSETS_URL,
     get_dataset_info,
-    get_file_names,
+    get_file_names_by_request,
     get_file_path_and_bucket,
     get_files_info,
 )
@@ -130,7 +130,7 @@ def test_get_file_names(
         Mock(return_value=parsed_response),
     )
 
-    actual_result = get_file_names(file_ids, TEST_TENANT, TEST_TOKEN)
+    actual_result = get_file_names_by_request(file_ids, TEST_TENANT, TEST_TOKEN)
     assert actual_result == expected_result
 
 

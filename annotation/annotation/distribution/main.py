@@ -26,25 +26,30 @@ distributing whole files between annotators, files begin to be split between
 annotators, which still have an unallocated load. The algorithm tries to
 allocate the maximum number of pages of one file to one annotator. After
 distributing all files to all annotators, annotation tasks are created for the
-current job_id. Tasks creation algorithm makes sure that each annotation and
-validation task won't contain more than 50 pages. If page number in file that
-is distributed for each annotator is greater than 50, they will be divided for
-tasks respectively. After that algorithm starts to distribute files and pages
-for validation between validators using same stages (whole files firstly,
-separate file's pages arrays lastly - to allocate the maximum number of pages
-of one file to one user for validation), considering limitations of current
-validation type. If there are some remaining pages that cannot be assigned to
-validator with available pages number left (e.g. for cross-validation - only
-user who will annotate this pages have available pages number left), those
-pages will be distributed between other validators. After last distribution,
-validation tasks are created for the current job_id.
+current job_id. If "SPLIT_MULTIPAGE_DOC" environmental variable is set to
+"false", document is not split between different users. If parameter value is
+"true", it is. Also, if the variable is set to "true", tasks creation algorithm
+makes sure that each annotation and validation task won't contain more than
+50 pages. If page number in file that is distributed for each annotator is
+greater than 50, they will be divided for tasks respectively. After that
+algorithm starts to distribute files and pages for validation between
+validators using same stages (whole files firstly, separate file's pages
+arrays lastly - to allocate the maximum number of pages of one file to one user
+for validation), considering limitations of current validation type. If there
+are some remaining pages that cannot be assigned to validator with available
+pages number left (e.g. for cross-validation - only user who will annotate
+this pages have available pages number left), those pages will be distributed
+between other validators. After last distribution, validation tasks are created
+for the current job_id.
 """
+import os
 from collections import defaultdict
 from copy import deepcopy
 from datetime import datetime
 from typing import Dict, Iterable, List, Optional, Set, Tuple, Union
 from uuid import UUID
 
+import dotenv
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
@@ -72,6 +77,10 @@ from annotation.schemas import (
 )
 from annotation.tasks import create_tasks as create_db_tasks
 
+dotenv.load_dotenv(dotenv.find_dotenv())
+SPLIT_MULTIPAGE_DOC = (
+    True if os.getenv("SPLIT_MULTIPAGE_DOC", "false") == "true" else False
+)
 MAX_PAGES = 50
 
 AnnotatedFilesPages = Dict[int, List[Dict[str, Union[int, List[int]]]]]
@@ -123,6 +132,8 @@ def distribute(
     validators = [
         x.__dict__ for x in validators if x.default_load  # type: ignore
     ]
+    validators_ids = [validator["user_id"] for validator in validators]
+    annotation_tasks = []
     if annotators:
         if (
             validation_type == ValidationSchema.extensive_coverage
@@ -131,6 +142,7 @@ def distribute(
             annotation_tasks = distribute_tasks_extensively(
                 files=files,
                 users=annotators,
+                validators_ids=validators_ids,
                 job_id=job_id,
                 is_validation=False,
                 tasks_status=annotation_tasks_status,
@@ -143,6 +155,7 @@ def distribute(
                 files,
                 annotators,
                 job_id,
+                validators_ids=validators_ids,
                 is_validation=False,
                 tasks_status=annotation_tasks_status,
                 deadline=deadline,
@@ -159,7 +172,7 @@ def distribute(
         if validation_type == ValidationSchema.cross:
             annotated_files_pages = find_annotated_pages(tasks)
     job_validators = choose_validators_users(
-        validation_type, annotators, validators
+        validation_type, annotators, validators, tasks
     )
     if job_validators:
         validation_tasks = distribute_tasks(
@@ -181,20 +194,35 @@ def distribute(
     return tasks
 
 
-def choose_validators_users(validation_type, annotators, validators):
+def choose_validators_users(
+    validation_type, annotators, validators, annotation_tasks
+):
     """Returns list of validators depending on validation type for this job"""
+    users = {user["user_id"]: user for user in annotators + validators}
+    loaded_annotators = {task["user_id"] for task in annotation_tasks}
+    annotators = {annotator["user_id"] for annotator in annotators}
+    validators = {validator["user_id"] for validator in validators}
     cases = {
-        ValidationSchema.cross.value: annotators,
-        ValidationSchema.hierarchical.value: validators,
-        ValidationSchema.validation_only.value: validators,
-        ValidationSchema.extensive_coverage.value: validators,
+        ValidationSchema.cross.value: annotators
+        if SPLIT_MULTIPAGE_DOC
+        else annotators - loaded_annotators,
+        ValidationSchema.hierarchical.value: validators
+        if SPLIT_MULTIPAGE_DOC
+        else validators - loaded_annotators,
+        ValidationSchema.validation_only.value: validators
+        if SPLIT_MULTIPAGE_DOC
+        else validators - loaded_annotators,
+        ValidationSchema.extensive_coverage.value: validators
+        if SPLIT_MULTIPAGE_DOC
+        else validators - loaded_annotators,
     }
-    return cases[validation_type]
+    return [users[user_id] for user_id in cases[validation_type]]
 
 
 def distribute_tasks_extensively(
     files: List[Dict[str, int]],
     users: List[DistributionUser],
+    validators_ids: List[str],
     job_id: int,
     is_validation: bool,
     tasks_status: TaskStatusEnumSchema,
@@ -215,6 +243,16 @@ def distribute_tasks_extensively(
             filter(lambda x: x["pages_number"] > 0, users),
             key=lambda x: -x["pages_number"],
         )
+        if not SPLIT_MULTIPAGE_DOC:
+            annotators = [
+                annotator
+                for annotator in annotators
+                if annotator["user_id"] not in validators_ids
+            ] + [
+                annotator
+                for annotator in annotators
+                if annotator["user_id"] in validators_ids
+            ]
         for _ in range(extensive_coverage):
             unassigned_pages = file.get("unassigned_pages")
             pages = (
@@ -223,7 +261,10 @@ def distribute_tasks_extensively(
                 else list(range(1, file["pages_number"] + 1))
             )
             while pages:
-                if annotators[0]["pages_number"] >= MAX_PAGES:
+                if (
+                    SPLIT_MULTIPAGE_DOC
+                    and annotators[0]["pages_number"] >= MAX_PAGES
+                ):
                     user_can_take_pages = MAX_PAGES
                 else:
                     user_can_take_pages = annotators[0]["pages_number"]
@@ -240,7 +281,32 @@ def distribute_tasks_extensively(
                 if not pages_not_seen_by_user:
                     annotators.pop(0)
                     continue
-                pages_for_user = pages_not_seen_by_user[:user_can_take_pages]
+                if SPLIT_MULTIPAGE_DOC:
+                    pages_for_user = pages_not_seen_by_user[
+                        :user_can_take_pages
+                    ]
+                else:
+                    pages_for_user = pages_not_seen_by_user
+                    user_page_correction = (
+                        len(pages_not_seen_by_user)
+                        - annotators[0]["pages_number"]
+                    )
+                    if user_page_correction > 0:
+                        annotators[0]["pages_number"] += user_page_correction
+                        for annotator in annotators[1:]:
+                            annotator["pages_number"] -= user_page_correction
+                            if annotator["pages_number"] < 0:
+                                user_page_correction = abs(
+                                    annotator["pages_number"]
+                                )
+                                annotator["pages_number"] = 0
+                                continue
+                            break
+                        annotators = [
+                            annotator
+                            for annotator in annotators
+                            if annotator["pages_number"]
+                        ]
 
                 tasks.append(
                     {
@@ -285,12 +351,17 @@ def distribute_tasks(
     is_validation: bool,
     tasks_status: TaskStatusEnumSchema,
     deadline: Optional[datetime] = None,
+    validators_ids: List[str] = [],
 ) -> List[Task]:
     """Distribution script. Distribution strategy depends on task type -
     annotation or validation. Create tasks with distributed whole files firstly
     and with partial files - lastly. Returns all created tasks.
     """
     calculate_users_load(files, users)  # type: ignore
+    if not SPLIT_MULTIPAGE_DOC:
+        users[:] = [
+            user for user in users if user["user_id"] not in validators_ids
+        ] + [user for user in users if user["user_id"] in validators_ids]
 
     tasks = distribute_whole_files(  # type: ignore
         annotated_files_pages,
@@ -426,7 +497,16 @@ def distribute_whole_files(
     files for cross validation - consider only not annotated files (fully or
     partly) for each user"""
     tasks = []
+    user_page_correction = 0
     for user in users:
+        if not user["pages_number"]:
+            continue
+        if user_page_correction:
+            user["pages_number"] -= user_page_correction
+            if user["pages_number"] < 0:
+                user_page_correction = abs(user["pages_number"])
+                user["pages_number"] = 0
+                continue
         annotated_files = []
         annotator_files = annotated_files_pages.get(user["user_id"])
         if annotator_files:
@@ -446,9 +526,10 @@ def distribute_whole_files(
             tasks_status,
             deadline,
         )
-        files_for_task = find_small_files(
+        files_for_task, user_page_correction = find_small_files(
             files_to_distribute, user["pages_number"]
         )
+        user["pages_number"] += user_page_correction
         create_tasks(
             tasks,
             files_for_task,
@@ -458,6 +539,15 @@ def distribute_whole_files(
             tasks_status,
             deadline,
         )
+    if user_page_correction != 0:
+        for user in users:
+            if user["pages_number"] > 0:
+                user["pages_number"] -= user_page_correction
+                if user["pages_number"] < 0:
+                    user_page_correction = abs(user["pages_number"])
+                    user["pages_number"] = 0
+                    continue
+                break
     return tasks  # type: ignore
 
 
@@ -535,7 +625,8 @@ def create_tasks(
     deadline: Optional[datetime] = None,
 ) -> None:
     """Prepare annotation/validation tasks and decrease annotator and files
-    pages numbers. Each task won't contain more than 50 pages. If page number
+    pages numbers. If "SPLIT_MULTIPAGE_DOC" environmental variable is set to
+    "true", each task doesn't contain more than 50 pages. If page number
     in file for distribution is greater than 50, they will be divided in
     different tasks respectively.
     """
@@ -546,13 +637,19 @@ def create_tasks(
             "unassigned_pages",
             list(range(1, file_for_task["pages_number"] + 1)),
         )
-        full_tasks = len(pages) // MAX_PAGES
-        tasks_number = full_tasks + 1 if len(pages) % MAX_PAGES else full_tasks
-        for times in range(tasks_number):
+        full_tasks = len(pages) // MAX_PAGES if SPLIT_MULTIPAGE_DOC else 1
+        tasks_number = (
+            full_tasks + 1
+            if SPLIT_MULTIPAGE_DOC and len(pages) % MAX_PAGES
+            else full_tasks
+        )
+        for _ in range(tasks_number):
             tasks.append(
                 {
                     "file_id": file_for_task["file_id"],
-                    "pages": pages[:MAX_PAGES],
+                    "pages": pages[:MAX_PAGES]
+                    if SPLIT_MULTIPAGE_DOC
+                    else pages[:],
                     "job_id": job_id,
                     "user_id": user["user_id"],
                     "is_validation": is_validation,
@@ -560,22 +657,30 @@ def create_tasks(
                     "deadline": deadline,
                 }
             )
-            pages[:MAX_PAGES] = []
+            if SPLIT_MULTIPAGE_DOC:
+                pages[:MAX_PAGES] = []
+            else:
+                pages[:] = []
         user["pages_number"] -= file_for_task["pages_number"]
         file_for_task["pages_number"] = 0
 
 
 def find_small_files(
     files: List[Dict[str, int]], user_pages: int
-) -> List[Dict[str, int]]:
+) -> Tuple[List[Dict[str, int]], int]:
     """Find files with the number pages less than the user's load."""
     files_pages = [x["pages_number"] for x in files if x["pages_number"]]
     pages_for_task = []
+    user_page_correction = 0
     for pages in files_pages:
-        if pages <= user_pages:
+        if pages <= user_pages or (user_pages and not SPLIT_MULTIPAGE_DOC):
             pages_for_task.append(pages)
             user_pages -= pages
-    return find_files_for_task(files, pages_for_task)
+            if user_pages <= 0:
+                user_page_correction = abs(user_pages)
+                user_pages = 0
+                break
+    return find_files_for_task(files, pages_for_task), user_page_correction
 
 
 def distribute_annotation_partial_files(
@@ -585,7 +690,8 @@ def distribute_annotation_partial_files(
     status: TaskStatusEnumSchema,
     deadline: Optional[datetime] = None,
 ) -> List[Task]:
-    """Create annotation tasks from partial files. Each task won't contain more
+    """Create annotation tasks from partial files. If "SPLIT_MULTIPAGE_DOC"
+    environmental variable is set to "true", each task doesn't contain more
     than 50 pages. If page number in file for distribution is greater than 50,
     they will be divided in different tasks respectively.
     """
@@ -602,7 +708,9 @@ def distribute_annotation_partial_files(
         if not annotators[0]["pages_number"]:
             annotators.pop(0)
         for page in pages_to_distribute:
-            if annotators[0]["pages_number"] and len(pages) < MAX_PAGES:
+            if annotators[0]["pages_number"] and (
+                len(pages) < MAX_PAGES or not SPLIT_MULTIPAGE_DOC
+            ):
                 pages.append(page)
             else:
                 annotation_tasks.append(
@@ -621,15 +729,19 @@ def distribute_annotation_partial_files(
                 annotators.pop(0)
             annotators[0]["pages_number"] -= 1
         if pages:
-            full_tasks = len(pages) // MAX_PAGES
+            full_tasks = len(pages) // MAX_PAGES if SPLIT_MULTIPAGE_DOC else 1
             tasks_number = (
-                full_tasks + 1 if len(pages) % MAX_PAGES else full_tasks
+                full_tasks + 1
+                if SPLIT_MULTIPAGE_DOC and len(pages) % MAX_PAGES
+                else full_tasks
             )
-            for times in range(tasks_number):
+            for _ in range(tasks_number):
                 annotation_tasks.append(
                     {
                         "file_id": item["file_id"],
-                        "pages": pages[:MAX_PAGES],
+                        "pages": pages[:MAX_PAGES]
+                        if SPLIT_MULTIPAGE_DOC
+                        else pages[:],
                         "job_id": job_id,
                         "user_id": annotators[0]["user_id"],
                         "is_validation": False,
@@ -637,7 +749,10 @@ def distribute_annotation_partial_files(
                         "deadline": deadline,
                     }
                 )
-                pages[:MAX_PAGES] = []
+                if SPLIT_MULTIPAGE_DOC:
+                    pages[:MAX_PAGES] = []
+                else:
+                    pages[:] = []
     return annotation_tasks
 
 
@@ -705,9 +820,10 @@ def create_partial_validation_tasks(
 ) -> None:
     """Create validation tasks from partial files. For cross-validation also
     checks that for every validator this file's pages were not distributed for
-    annotation. Each task won't contain more than 50 pages. If page number in
-    file for distribution is greater than 50, they will be divided in different
-    tasks respectively.
+    annotation. If "SPLIT_MULTIPAGE_DOC" environmental variable is set to
+    "true", each task doesn't contain more than 50 pages. If page number in
+    file for distribution is greater than 50, they will be divided in
+    different tasks respectively.
     """
     for validator in validators:
         validation_files_pages = filter_validation_files_pages(
@@ -718,15 +834,21 @@ def create_partial_validation_tasks(
         )
         for file_id, pages in validation_files_pages.items():
             if pages:
-                full_tasks = len(pages) // MAX_PAGES
-                tasks_number = (
-                    full_tasks + 1 if len(pages) % MAX_PAGES else full_tasks
+                full_tasks = (
+                    len(pages) // MAX_PAGES if SPLIT_MULTIPAGE_DOC else 1
                 )
-                for times in range(tasks_number):
+                tasks_number = (
+                    full_tasks + 1
+                    if SPLIT_MULTIPAGE_DOC and len(pages) % MAX_PAGES
+                    else full_tasks
+                )
+                for _ in range(tasks_number):
                     validation_tasks.append(
                         {
                             "file_id": file_id,
-                            "pages": pages[:MAX_PAGES],
+                            "pages": pages[:MAX_PAGES]
+                            if SPLIT_MULTIPAGE_DOC
+                            else pages[:],
                             "job_id": job_id,
                             "user_id": validator["user_id"],
                             "is_validation": True,
@@ -734,7 +856,10 @@ def create_partial_validation_tasks(
                             "deadline": deadline,
                         }
                     )
-                    pages[:MAX_PAGES] = []
+                    if SPLIT_MULTIPAGE_DOC:
+                        pages[:MAX_PAGES] = []
+                    else:
+                        pages[:] = []
 
 
 def distribute_validation_partial_files(

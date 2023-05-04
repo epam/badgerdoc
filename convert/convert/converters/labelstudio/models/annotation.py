@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel
 
@@ -31,7 +31,7 @@ class ResultItem(BaseModel):
     from_id: Optional[str] = None
     to_id: Optional[str] = None
     direction: Optional[str] = None
-    labels: Optional[List] = None
+    labels: Optional[List[str]] = None
 
 
 class ValuePredictionItem(BaseModel):
@@ -93,14 +93,14 @@ class DocumentRelation(BaseModel):
 class Meta(BaseModel):
     labels: List[Any] = []
     relations: List[DocumentRelation] = []
-    categories_to_taxonomy_mapping = {}
+    categories_to_taxonomy_mapping: Dict[str, Dict[str, str]] = {}
 
 
 class ModelItem(BaseModel):
     id: int = 1
     annotations: List[Annotation] = []
     file_upload: str = ""
-    drafts: List = []
+    drafts: List[Annotation] = []
     predictions: List[int] = []
     data: Data
     meta: Meta = Meta()

@@ -11,13 +11,14 @@ from fastapi import HTTPException, status
 from fastapi.encoders import jsonable_encoder
 from tenant_dependency import TenantData
 
-from convert.config import DEFAULT_PAGE_BORDER_OFFSET, settings
+from convert.config import settings
 from convert.converters.base_format.badgerdoc import Badgerdoc
 from convert.converters.base_format.models.annotation_practic import (
     BadgerdocAnnotation,
     DocumentLink,
+    Obj,
 )
-from convert.converters.base_format.models.tokens import BadgerdocToken, Page
+from convert.converters.base_format.models.tokens import Page
 from convert.converters.base_format.pdf_renderer import PDFRenderer
 from convert.converters.labelstudio.annotation_converter import (
     AnnotationConverter,
@@ -123,7 +124,7 @@ class LabelstudioToBadgerdocConverter:
         )
         LOGGER.debug("Annotations are converted")
 
-        # TODO: Move processing of document links and labels to a separate section
+        # TODO: Move document links and labels processing to a separate section
         # it should be processed without annotations
         document_labels = self.parse_document_labels_from_ls_format(ls_format)
         categories_to_taxonomy_mapping = (
@@ -151,7 +152,7 @@ class LabelstudioToBadgerdocConverter:
         LOGGER.debug("Annotations uploaded")
 
     @staticmethod
-    def is_no_annotations(labelstudio: LabelStudioModel):
+    def is_no_annotations(labelstudio: LabelStudioModel) -> bool:
         return not labelstudio.__root__[0].annotations
 
     def download(
@@ -221,7 +222,7 @@ class LabelstudioToBadgerdocConverter:
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail="Failed request to 'assets' to post converted pdf-file",
             ) from e
-        return request_to_post_assets.json()[0]["id"]
+        return int(request_to_post_assets.json()[0]["id"])
 
     def export_and_upload_pdf_to_s3(self) -> int:
         with tempfile.TemporaryDirectory() as tmp_dirname:
@@ -269,9 +270,9 @@ class LabelstudioToBadgerdocConverter:
 
     @staticmethod
     def enrich_categories_with_taxonomies(
-        categories: List[str],
+        categories: List[Union[str, Dict[str, Any]]],
         categories_to_taxonomy_mapping: Dict[str, Any],
-    ) -> List[Union[str, Dict[str, Any]]]:
+    ) -> None:
         for (
             linked_category,
             taxonomy_obj,
@@ -282,7 +283,6 @@ class LabelstudioToBadgerdocConverter:
                 "taxonomy_version": taxonomy_obj["version"],
             }
             categories.append(formatted_obj)
-        return categories
 
     def request_jobs_to_create_annotation_job(
         self,
@@ -299,7 +299,7 @@ class LabelstudioToBadgerdocConverter:
     ) -> int:
         categories = self.get_box_and_link_categories() + list(document_labels)
         LOGGER.debug("categories: %s", categories)
-        categories = self.enrich_categories_with_taxonomies(
+        self.enrich_categories_with_taxonomies(
             categories, categories_to_taxonomy_mapping
         )
         LOGGER.debug("categories with taxonomy_objs: %s", categories)
@@ -354,11 +354,9 @@ class LabelstudioToBadgerdocConverter:
             "Got this response from jobs service: %s",
             request_to_post_annotation_job.json(),
         )
-        return request_to_post_annotation_job.json()["id"]
+        return int(request_to_post_annotation_job.json()["id"])
 
-    def get_categories_of_links(
-        self, pages_objs: List[BadgerdocToken]
-    ) -> List[str]:
+    def get_categories_of_links(self, pages_objs: List[Obj]) -> List[str]:
         result = []
         for pages_obj in pages_objs:
             for link in pages_obj.links:
@@ -366,7 +364,9 @@ class LabelstudioToBadgerdocConverter:
 
         return result
 
-    def get_box_and_link_categories(self) -> List[str]:
+    def get_box_and_link_categories(self) -> List[Union[str, Dict[str, Any]]]:
+        if not self.badgerdoc_format.badgerdoc_annotation:
+            return []
         pages_objs = self.badgerdoc_format.badgerdoc_annotation.objs
         categories_of_type_box = {
             pages_obj.category for pages_obj in pages_objs
@@ -387,14 +387,18 @@ class LabelstudioToBadgerdocConverter:
             f"{file_id_in_assets}"
         )
 
-        page = self.badgerdoc_format.badgerdoc_annotation
-        annotations_post_body = {
+        pages = (
+            [self.badgerdoc_format.badgerdoc_annotation.dict()]
+            if self.badgerdoc_format.badgerdoc_annotation
+            else []
+        )
+        annotations_post_body: Dict[str, Any] = {
             "base_revision": None,
             "pipeline": 0,
-            "pages": [page.dict()],
+            "pages": pages,
             "validated": [],
             "failed_validation_pages": [],
-            "similar_revisions": [],  # TODO: 'similar_revisions' will be replaced with 'links' with unknown format # noqa
+            "similar_revisions": [],  # TODO: 'similar_revisions' will be replaced with 'links' with unknown format
             "categories": list(document_labels),
             "links_json": [
                 document_link.dict() for document_link in document_links
@@ -473,7 +477,7 @@ class ConverterToBadgerdoc:
         self.pdf_renderer: Optional[PDFRenderer] = PDFRenderer()
         self.text_converter = TextToBadgerdocTokensConverter()
 
-    def to_badgerdoc(self, labelstudio_data: LabelStudioModel):
+    def to_badgerdoc(self, labelstudio_data: LabelStudioModel) -> None:
         # TODO: process several root elements
         self.tokens_page = self.text_converter.convert(
             labelstudio_data.__root__[0].data.text
@@ -483,7 +487,9 @@ class ConverterToBadgerdoc:
             labelstudio_data, self.tokens_page
         )
 
-    def to_badgerdoc_annotations(self, labelstudio_data: LabelStudioModel):
+    def to_badgerdoc_annotations(
+        self, labelstudio_data: LabelStudioModel
+    ) -> None:
         if not self.tokens_page:
             raise AnnotationError()
         annotation_converter = AnnotationConverter()

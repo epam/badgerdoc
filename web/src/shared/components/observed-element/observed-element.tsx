@@ -23,6 +23,7 @@ interface ObservedElementProps {
     width?: number;
     height?: number;
     className?: string;
+    id?: string;
 }
 
 const ObservedElement: FC<ObservedElementProps> = ({
@@ -32,7 +33,8 @@ const ObservedElement: FC<ObservedElementProps> = ({
     disabled,
     width,
     height,
-    className
+    className,
+    id
 }) => {
     const elementRef = useRef<HTMLDivElement>(null);
     const threshold = useIntersectionThreshold(rootRef?.current ?? null, elementRef.current);
@@ -61,7 +63,7 @@ const ObservedElement: FC<ObservedElementProps> = ({
     }, [threshold, disabled]);
 
     return (
-        <div ref={elementRef} style={{ width, height }} className={className}>
+        <div id={id} ref={elementRef} style={{ width, height }} className={className}>
             {children}
         </div>
     );

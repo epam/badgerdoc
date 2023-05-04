@@ -19,6 +19,12 @@ def test_annotation_converter_no_taxonomies_and_document_labels() -> None:
         TEST_FILES_DIR / "combined/labelstudio.json"
     )
 
+    assert etalon_combination.__root__[0].annotations[0].result[0].value
+    assert combination.__root__[0].annotations[0].result[0].value
+    assert etalon_combination.__root__[0].annotations[0].result[1].value
+    assert combination.__root__[0].annotations[0].result[1].value
+    assert etalon_combination.__root__[0].annotations[0].result[2].value
+    assert combination.__root__[0].annotations[0].result[2].value
     assert (
         etalon_combination.__root__[0].annotations[0].result[0].value.start
         == combination.__root__[0].annotations[0].result[0].value.start

@@ -16,6 +16,7 @@ import {
 } from '../../shared/helpers/set-filters';
 import { DEFAULT_TABLE_FILTER } from './constants';
 import { getTableFilter } from './utils';
+import { useJobFilter } from './use-job-filter';
 
 type TaskTableConnectorProps = {
     onRowClick: (id: number) => void;
@@ -70,6 +71,8 @@ export const TasksTableConnector: FC<TaskTableConnectorProps> = ({ onRowClick })
 
     const renderDeadlineFilter = useDateRangeFilter('deadline');
 
+    const renderJobFilter = useJobFilter({ fieldName: 'job_id' });
+
     const columns = useMemo(() => {
         const statusColumn = COLUMNS.find(({ key }) => key === 'status');
         statusColumn!.isFilterActive = (filter) =>
@@ -85,6 +88,8 @@ export const TasksTableConnector: FC<TaskTableConnectorProps> = ({ onRowClick })
         const deadlineColumn = COLUMNS.find(({ key }) => key === 'deadline');
         deadlineColumn!.renderFilter = renderDeadlineFilter;
 
+        const jobColumn = COLUMNS.find(({ key }) => key === 'job_name');
+        jobColumn!.renderFilter = renderJobFilter;
         return COLUMNS;
     }, []);
 

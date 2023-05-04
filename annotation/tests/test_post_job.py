@@ -561,7 +561,7 @@ def test_post_job_with_extensive_coverage_should_work(
             .filter(ManualAnnotationTask.job_id == new_job_id)
             .all()
         )
-        == 5  # 4 annotation tasks and 1 validation
+        == 3  # 2 annotation tasks and 1 validation
     )
     assert saved_job.pop("name") == "AnnotationJob1"
     assert saved_job.pop("job_type") == JobTypeEnumSchema.AnnotationJob
@@ -628,7 +628,7 @@ def test_post_job_auto_distribution(prepare_db_for_post_job):
             .filter(ManualAnnotationTask.job_id == new_job_id)
             .all()
         )
-        == 7
+        == 2
     )
     assert saved_job.pop("name") == f"AnnotationJob_{new_job_id}"
     assert saved_job.pop("job_type") == JobTypeEnumSchema.AnnotationJob

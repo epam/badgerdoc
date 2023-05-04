@@ -6,13 +6,12 @@ import requests
 from fastapi import HTTPException, status
 
 from convert.config import settings
+from convert.converters.coco.coco_import.convert import ConvertToBadgerdoc
+from convert.converters.coco.exceptions import UploadLimitExceedError
+from convert.converters.coco.models import coco
+from convert.converters.coco.utils.common_utils import check_uploading_limit
+from convert.converters.coco.utils.s3_utils import S3Manager, s3_download_files
 from convert.logger import get_logger
-
-from ..exceptions import UploadLimitExceedError
-from ..models import coco
-from ..utils.common_utils import check_uploading_limit
-from ..utils.s3_utils import S3Manager, s3_download_files
-from .convert import ConvertToBadgerdoc
 
 LOGGER = get_logger(__file__)
 

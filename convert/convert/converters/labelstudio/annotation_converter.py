@@ -1,5 +1,6 @@
-from typing import Any, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
+from convert.converters.base_format.models import annotation_practic
 from convert.converters.base_format.models.annotation import (
     AnnotationLink,
     BadgerdocAnnotation,
@@ -15,7 +16,7 @@ from .annotation_converter_practic import AnnotationConverterPractic
 from .models.annotation import Annotation, LabelStudioModel, ResultItem
 
 
-def safe_list_get(any_list: List, idx: int, default: Any = None) -> Any:
+def safe_list_get(any_list: List[Any], idx: int, default: Any = None) -> Any:
     if any_list:
         try:
             return any_list[idx]
@@ -32,7 +33,7 @@ class AnnotationConverter:
         self,
         annotations: LabelStudioModel,
         badgerdoc_tokens: BadgerdocTokensPage,
-    ):
+    ) -> annotation_practic.BadgerdocAnnotation:
         model_items = annotations.__root__
         badgerdoc_annotations = BadgerdocAnnotation(
             pages=[
@@ -87,6 +88,8 @@ class AnnotationConverter:
             return
 
         value = labelstudio_item.value
+        if not value:
+            return
         start_id = len(badgerdoc_annotations.pages[0].objs)
         for id_, label in enumerate(value.labels, start=start_id):
             _inner_index_of_iteration = start_id - id_
@@ -96,13 +99,19 @@ class AnnotationConverter:
                 value.start, value.end, badgerdoc_tokens
             )
             category = label
-            data = {"source_id": labelstudio_item.id}
+            data: Dict[str, Union[str, None, List[Dict[str, Any]]]] = {}
+            data["source_id"] = labelstudio_item.id
 
-            taxon = safe_list_get(value.taxons, _inner_index_of_iteration)
-            if taxon:
-                data["dataAttributes"] = [
-                    {"name": "taxonomy", "type": "taxonomy", "value": taxon}
-                ]
+            if value.taxons:
+                taxon = safe_list_get(value.taxons, _inner_index_of_iteration)
+                if taxon:
+                    data["dataAttributes"] = [
+                        {
+                            "name": "taxonomy",
+                            "type": "taxonomy",
+                            "value": taxon,
+                        }
+                    ]
 
             bd_annotation = Obj(
                 id=id_,
@@ -118,7 +127,7 @@ class AnnotationConverter:
         self,
         badgerdoc_annotations: BadgerdocAnnotation,
         labelstudio_item: ResultItem,
-    ):
+    ) -> None:
         if not self._is_relation(labelstudio_item):
             return
         if not labelstudio_item.from_id or not labelstudio_item.to_id:
@@ -153,7 +162,7 @@ class AnnotationConverter:
         offset_begin: int,
         offset_end: int,
         badgerdoc_tokens: BadgerdocTokensPage,
-    ) -> Tuple[List[int], List[float]]:
+    ) -> Tuple[List[int], Tuple[float, float, float, float]]:
         badgerdoc_annotation_token_indexes = self.find_badgerdoc_tokens(
             offset_begin, offset_end, badgerdoc_tokens
         )
@@ -182,13 +191,15 @@ class AnnotationConverter:
         return ids
 
     @staticmethod
-    def form_common_bbox(bboxes: List[List[float]]) -> List[float]:
-        return [
+    def form_common_bbox(
+        bboxes: List[Tuple[float, float, float, float]]
+    ) -> Tuple[float, float, float, float]:
+        return (
             min([bbox[0] for bbox in bboxes]),
             min([bbox[1] for bbox in bboxes]),
             max([bbox[2] for bbox in bboxes]),
             max([bbox[3] for bbox in bboxes]),
-        ]
+        )
 
     @staticmethod
     def find_badgerdoc_annotation(
@@ -196,5 +207,8 @@ class AnnotationConverter:
         source_id: str,
     ) -> Optional[Obj]:
         for obj in badgerdoc_annotations.pages[0].objs:
+            if not obj.data:
+                continue
             if obj.data["source_id"] == source_id:
                 return obj
+        return None
