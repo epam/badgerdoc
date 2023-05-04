@@ -1,17 +1,18 @@
 import React, { FC, useCallback, useEffect, useState } from 'react';
-import { ErrorNotification, Panel, Text } from '@epam/loveship';
-import { Form, INotification, Metadata, IFormApi, useUuiContext } from '@epam/uui';
 import { useUsers } from 'api/hooks/users';
 import { Report, SortingDirection } from 'api/typings';
 import { useHistory } from 'react-router-dom';
 import { MultiSwitchMenu } from 'shared/components/multi-switch-menu/MultiSwitchMenu';
 import { ML_MENU_ITEMS } from 'shared/contexts/current-user';
-import styles from './reports-connector.module.scss';
 import RetrieveReportsList from 'components/reports/retrieve-reports-list';
 import { renderWizardButtons } from 'shared/components/wizard/wizard/wizard';
 import { useDownloadTaskReport } from 'api/hooks/tasks';
 import { useDownloadFile } from 'shared/hooks/use-download-file';
 import { getError } from 'shared/helpers/get-error';
+
+import { ErrorNotification, Panel, Text } from '@epam/loveship';
+import { Form, INotification, Metadata, IFormApi, useUuiContext } from '@epam/uui';
+import styles from './reports-connector.module.scss';
 
 let initialValues: Report = {
     users: [],
@@ -137,7 +138,7 @@ export const ReportsConnector: FC<{}> = () => {
                 <MultiSwitchMenu items={ML_MENU_ITEMS} currentPath={history.location.pathname} />
             </div>
             <a href={url} download={name} className="hidden" ref={ref} />
-            <div>
+            <div className={styles['form-group']}>
                 <Form<Report>
                     renderForm={renderForm}
                     onSave={handleSave}

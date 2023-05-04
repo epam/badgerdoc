@@ -1,10 +1,15 @@
 .container {
-    flex: 1 1;
-    margin: 0 24px 24px;
-    height: 80vh;
-  }
+  flex: 1 1;
+  margin: 0 0 24px 24px;
+  padding-right: 24px;
+  overflow: auto;
+}
 
 .title {
-    margin-top: 22px;
-    margin-bottom: 12px;
+  margin-top: 22px;
+  margin-bottom: 12px;
+}
+
+.form-group {
+  max-height: calc(80vh - 46px);
 }
