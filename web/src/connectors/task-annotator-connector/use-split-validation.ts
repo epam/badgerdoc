@@ -9,8 +9,9 @@ import { scaleAnnotation } from 'shared/components/annotator/utils/scale-annotat
 import useAnnotationsTaxons from 'shared/hooks/use-annotations-taxons';
 import useAnnotationsMapper from 'shared/hooks/use-annotations-mapper';
 import { Task } from 'api/typings/tasks';
-import { UserRevision, convertToRevisionByUserArray } from './utils';
+import { convertToRevisionByUserArray } from './utils';
 import { useGetPageSummary } from '../../api/hooks/tasks';
+import { UserRevision } from './revisionTypes';
 
 interface SplitValidationParams {
     categories?: Category[];
@@ -116,7 +117,7 @@ export default function useSplitValidation({
         if (!latestRevisionByAnnotators) return {};
         return mapAnnotationPagesFromApi(
             (page: AnnotationsByUserObj) => page.user_id,
-            latestRevisionByAnnotators as unknown as AnnotationsByUserObj[],
+            latestRevisionByAnnotators,
             categories
         );
     }, [categories, mapAnnotationPagesFromApi, latestRevisionByAnnotators]);
