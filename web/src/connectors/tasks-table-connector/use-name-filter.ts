@@ -18,7 +18,7 @@ export const useNameFilter = ({ fieldName }: Props) => {
 
     type PagingCache = {
         page: number;
-        cache: Array<FileDocument>;
+        cache: FileDocument[];
         search: string;
     };
 
