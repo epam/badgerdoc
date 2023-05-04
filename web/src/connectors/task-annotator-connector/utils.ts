@@ -7,16 +7,8 @@ export function convertToRevisionByUserArray(sourceObj: LatestRevisionObj): User
         const pages = sourceObj[page_num];
 
         for (const page of pages) {
-            const {
-                user_id: user_id,
-                size,
-                objs,
-                revision,
-                is_validated,
-                date,
-                pipeline,
-                categories
-            } = page;
+            const { user_id, size, objs, revision, is_validated, date, pipeline, categories } =
+                page;
 
             userRevisions.push({
                 user_id,
@@ -35,19 +27,14 @@ export function convertToRevisionByUserArray(sourceObj: LatestRevisionObj): User
     return userRevisions;
 }
 
-export function delAllRevisionByUser(
+export function deleteAllRevisionByUser(
     sourceObj: RevisionObjByUser,
     user_id?: string
 ): RevisionObjByUser {
     if (!user_id) return sourceObj;
 
-    const result: RevisionObjByUser = {};
-
-    for (const key in sourceObj) {
-        if (key !== user_id) {
-            result[key] = sourceObj[key];
-        }
-    }
+    const result: RevisionObjByUser = { ...sourceObj };
+    delete result[user_id];
 
     return result;
 }

@@ -48,7 +48,7 @@ const DocumentSinglePage: FC<RenderPageParams> = ({
     editable = false,
     isImage = false,
     imageId,
-    isShownAnnotation = false,
+    isShownAnnotation = true,
     onAnnotationCopyPress = noop,
     onAnnotationCutPress = noop,
     onAnnotationSelected,
