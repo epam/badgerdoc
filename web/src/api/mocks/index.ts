@@ -23,7 +23,6 @@ import { tokens } from './tokens';
 import { models } from './models';
 import { taxons, taxonomy } from './taxons';
 import { taskStats } from './task_stats';
-import { annotationsByUser } from './annotationsByUser';
 
 const FILEMANAGEMENT_NAMESPACE = process.env.REACT_APP_FILEMANAGEMENT_API_NAMESPACE;
 const JOBMANAGER_NAMESPACE = process.env.REACT_APP_JOBMANAGER_API_NAMESPACE;
@@ -45,7 +44,6 @@ let annotationsMockData = annotations;
 let tokensMockData = tokens;
 let modelsMockData = models;
 let taxonsMockData = taxons;
-let annotationsMockDataByUser = annotationsByUser;
 const taxonomyByIdMockData = taxonomy;
 
 const MOCKS: Record<string, Record<string, BadgerFetch<any>>> = {
@@ -503,9 +501,6 @@ const MOCKS: Record<string, Record<string, BadgerFetch<any>>> = {
     },
     [`${CATEGORIES_NAMESPACE}/annotation/1/1/latest?page_numbers=1`]: {
         get: async () => annotationsMockData
-    },
-    [`${CATEGORIES_NAMESPACE}/annotation/1/1/latest_by_user?page_numbers=1`]: {
-        get: async () => annotationsMockDataByUser
     },
     [`${CATEGORIES_NAMESPACE}/annotation/1`]: {
         post: async (body) => {
