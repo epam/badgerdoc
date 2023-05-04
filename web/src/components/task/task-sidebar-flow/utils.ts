@@ -1,4 +1,4 @@
-import { AnnotationsByUserObj } from 'api/hooks/annotations';
+import { AnnotationsByUser } from 'api/hooks/annotations';
 import { Category, Label, TUserShort } from 'api/typings';
 import { Annotation } from 'shared';
 import { OWNER_TAB } from './constants';
@@ -59,7 +59,7 @@ export const collectIncomingLinks = (annotations: Annotation[]) => {
 };
 
 export const getCategoriesByUserId = (
-    userPages: AnnotationsByUserObj[],
+    userPages: AnnotationsByUser[],
     categories?: Category[]
 ): Record<string, Label[]> => {
     if (!categories?.length) return {};

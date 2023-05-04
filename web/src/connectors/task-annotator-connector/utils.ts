@@ -1,10 +1,10 @@
-import { LatestRevisionObj, RevisionObjByUser, UserRevision } from './revisionTypes';
+import { LatestRevisionResponse, RevisionObjByUser, UserRevision } from './revisionTypes';
 
-export function convertToRevisionByUserArray(sourceObj: LatestRevisionObj): UserRevision[] {
+export function convertToUserRevisions(response: LatestRevisionResponse): UserRevision[] {
     const userRevisions: UserRevision[] = [];
 
-    for (const page_num in sourceObj) {
-        const pages = sourceObj[page_num];
+    for (const page_num in response) {
+        const pages = response[page_num];
 
         for (const page of pages) {
             const { user_id, size, objs, revision, is_validated, date, pipeline, categories } =

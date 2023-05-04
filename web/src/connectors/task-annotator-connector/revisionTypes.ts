@@ -37,7 +37,7 @@ interface Page {
     categories: string[];
 }
 
-export interface LatestRevisionObj {
+export interface LatestRevisionResponse {
     [page_num: string]: Page[];
 }
 

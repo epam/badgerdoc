@@ -1,4 +1,4 @@
-import { AnnotationsByUserObj, useLatestAnnotationsByUser } from 'api/hooks/annotations';
+import { AnnotationsByUser, useLatestAnnotationsByUser } from 'api/hooks/annotations';
 import { Category, Link, Taxon } from 'api/typings';
 import { JobStatus, Job } from 'api/typings/jobs';
 import cloneDeep from 'lodash/cloneDeep';
@@ -9,7 +9,7 @@ import { scaleAnnotation } from 'shared/components/annotator/utils/scale-annotat
 import useAnnotationsTaxons from 'shared/hooks/use-annotations-taxons';
 import useAnnotationsMapper from 'shared/hooks/use-annotations-mapper';
 import { Task } from 'api/typings/tasks';
-import { convertToRevisionByUserArray } from './utils';
+import { convertToUserRevisions } from './utils';
 import { useGetPageSummary } from '../../api/hooks/tasks';
 import { UserRevision } from './revisionTypes';
 
@@ -96,9 +96,7 @@ export default function useSplitValidation({
         { enabled: isSplitValidation }
     );
 
-    const convertedLatestRevision = latestRevision
-        ? convertToRevisionByUserArray(latestRevision)
-        : [];
+    const convertedLatestRevision = latestRevision ? convertToUserRevisions(latestRevision) : [];
     const currentUser = userId;
 
     const latestRevisionByAnnotators: UserRevision[] = useMemo(() => {
@@ -116,7 +114,7 @@ export default function useSplitValidation({
     const latestRevisionByAnnotatorsWithBounds = useMemo(() => {
         if (!latestRevisionByAnnotators) return {};
         return mapAnnotationPagesFromApi(
-            (page: AnnotationsByUserObj) => page.user_id,
+            (page: AnnotationsByUser) => page.user_id,
             latestRevisionByAnnotators,
             categories
         );
