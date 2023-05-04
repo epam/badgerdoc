@@ -1,7 +1,13 @@
-from typing import List
+from pathlib import Path
+from typing import List, Optional, Tuple
 
 from pdfminer.high_level import extract_pages
-from pdfminer.layout import LTChar, LTTextBoxHorizontal, LTTextLineHorizontal
+from pdfminer.layout import (
+    LTChar,
+    LTPage,
+    LTTextBoxHorizontal,
+    LTTextLineHorizontal,
+)
 
 from convert.converters.base_format.models.tokens import (
     BadgerdocToken,
@@ -13,16 +19,18 @@ from convert.converters.utils import filter_printing_tokens
 
 
 class PlainPDFToBadgerdocTokensConverter:
-    def __init__(self):
+    def __init__(self) -> None:
         self.offset = 0
-        self.page_size = None
+        self.page_size: Optional[PageSize] = None
 
-    def get_bbox(self, char: LTChar) -> tuple:
+    def get_bbox(self, char: LTChar) -> Tuple[float, float, float, float]:
+        if not self.page_size:
+            raise AttributeError("Page size isn't initialized")
         return (
-            char.x0,
-            self.page_size.height - char.y1,
-            char.x1,
-            self.page_size.height - char.y0,
+            float(char.x0),
+            float(self.page_size.height - char.y1),
+            float(char.x1),
+            float(self.page_size.height - char.y0),
         )
 
     def convert_line(self, line: LTTextLineHorizontal) -> List[BadgerdocToken]:
@@ -40,7 +48,7 @@ class PlainPDFToBadgerdocTokensConverter:
             self.offset += 1
         return tokens
 
-    def convert_page(self, page: Page) -> List[BadgerdocToken]:
+    def convert_page(self, page: LTPage) -> List[BadgerdocToken]:
         tokens = []
         self.page_size = PageSize(width=page.width, height=page.height)
         for element in page:
@@ -52,13 +60,18 @@ class PlainPDFToBadgerdocTokensConverter:
                 tokens.extend(self.convert_line(line))
         return filter_printing_tokens(tokens)
 
-    def convert(self, plain_pfd) -> List[Page]:
-        with open(plain_pfd, mode="rb") as pdf_obj:
-            return [
-                Page(
-                    page_num=i,
-                    objs=self.convert_page(page),
-                    size=self.page_size,
+    def convert(self, plain_pdf: Path) -> List[Page]:
+        with open(plain_pdf, mode="rb") as pdf_obj:
+            pages = []
+            for i, page in enumerate(extract_pages(pdf_obj), start=1):
+                objs = self.convert_page(page)
+                if not self.page_size:
+                    continue
+                pages.append(
+                    Page(
+                        page_num=i,
+                        objs=objs,
+                        size=self.page_size,
+                    )
                 )
-                for i, page in enumerate(extract_pages(pdf_obj), start=1)
-            ]
+            return pages

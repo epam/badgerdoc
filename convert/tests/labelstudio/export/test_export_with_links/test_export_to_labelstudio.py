@@ -5,9 +5,7 @@ import responses
 from convert.converters.base_format.models import annotation_practic, manifest
 from convert.converters.base_format.models.tokens import Page
 from convert.converters.labelstudio import annotation_converter_practic
-from convert.converters.labelstudio.badgerdoc_to_labelstudio_converter import (
-    LabelStudioFormat,
-)
+from convert.converters.labelstudio.labelstudio_format import LabelStudioFormat
 from convert.converters.labelstudio.models.annotation import LabelStudioModel
 
 TEST_FILES_DIR = Path(__file__).parent / "data"
@@ -44,6 +42,10 @@ def test_annotation_converter_no_taxonomies_and_document_labels() -> None:
     labelstudio_model_etalon = LabelStudioModel.parse_file(
         TEST_FILES_DIR / "labelstudio.json"
     )
+    assert labelstudio_model_etalon.__root__[0].annotations[0].result[0].value
+    assert labelstudio_model_test.__root__[0].annotations[0].result[0].value
+    assert labelstudio_model_etalon.__root__[0].annotations[0].result[1].value
+    assert labelstudio_model_test.__root__[0].annotations[0].result[1].value
     assert (
         labelstudio_model_etalon.__root__[0]
         .annotations[0]

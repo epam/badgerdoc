@@ -45,7 +45,7 @@ class BadgerdocDownloader:
 
             return pages, annotations, manifest
 
-    def get_token_pages(self, tmp_dir) -> List[Page]:
+    def get_token_pages(self, tmp_dir: Path) -> List[Page]:
         token_page_files = self.download_all_token_pages(
             self.s3_input_tokens, tmp_dir
         )
@@ -54,14 +54,14 @@ class BadgerdocDownloader:
             pages.append(Page.parse_file(token_page_file))
         return pages
 
-    def get_manifest(self, tmp_dir) -> Manifest:
+    def get_manifest(self, tmp_dir: Path) -> Manifest:
         manifest_file = self.download_file_from_s3(
             self.s3_input_manifest, tmp_dir
         )
         return Manifest.parse_file(tmp_dir / manifest_file.name)
 
     def get_annotations(
-        self, manifest: Manifest, tmp_dir
+        self, manifest: Manifest, tmp_dir: Path
     ) -> Dict[int, BadgerdocAnnotation]:
         annotation_files = self.download_annotations(
             manifest_s3_path=self.s3_input_manifest,
@@ -71,7 +71,7 @@ class BadgerdocDownloader:
         annotations = {}
         for page_num, annotation_file in annotation_files.items():
             annotations[int(page_num)] = AnnotationConverterToTheory(
-                practic_annotations=annotation_practic.BadgerdocAnnotation.parse_file(  # noqa
+                practic_annotations=annotation_practic.BadgerdocAnnotation.parse_file(
                     annotation_file
                 )
             ).convert()
@@ -94,7 +94,7 @@ class BadgerdocDownloader:
 
     def download_annotations(
         self, manifest_s3_path: S3Path, manifest: Manifest, tmp_dir: Path
-    ) -> Dict[str, S3Path]:
+    ) -> Dict[str, Path]:
         pages = {}
         for page_num, page_file in manifest.pages.items():
             page_s3_path = self.form_absolute_path_for_annotation(

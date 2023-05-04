@@ -14,7 +14,7 @@ TEST_FILES_DIR = Path(__file__).parent / "data"
 
 
 @responses.activate
-def test_on_empty_annotations():
+def test_on_empty_annotations() -> None:
     responses.post(
         "http://dev2.badgerdoc.com/api/v1/annotation/"
         "jobs/1070/categories/search",

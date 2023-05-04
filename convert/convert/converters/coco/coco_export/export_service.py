@@ -6,10 +6,11 @@ from zipfile import ZipFile
 from fastapi import BackgroundTasks
 
 from convert.config import minio_client
+from convert.converters.coco.coco_export.convert import ExportConvertBase
+from convert.converters.coco.utils.s3_utils import (
+    convert_bucket_name_if_s3prefix,
+)
 from convert.logger import get_logger
-
-from ..utils.s3_utils import convert_bucket_name_if_s3prefix
-from .convert import ExportConvertBase
 
 LOGGER = get_logger(__file__)
 

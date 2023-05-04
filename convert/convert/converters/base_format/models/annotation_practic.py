@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from pydantic import BaseModel
 
@@ -21,7 +21,7 @@ class AnnotationToken(BaseModel):
 
 class AnnotationTokens(BaseModel):
     tokens: List[AnnotationToken] = []
-    dataAttributes: List = []
+    dataAttributes: List[Dict[str, Any]] = []
 
 
 class AnnotationLink(BaseModel):
@@ -34,7 +34,7 @@ class AnnotationLink(BaseModel):
 class Obj(BaseModel):
     id: int
     type: str
-    bbox: List[float]
+    bbox: Tuple[float, float, float, float]
     category: str
     data: Optional[AnnotationTokens]
     text: str

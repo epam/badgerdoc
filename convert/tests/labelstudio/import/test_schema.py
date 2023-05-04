@@ -51,6 +51,7 @@ def test_correctness_of_import_text_schema(
     monkeypatch.setattr(
         LabelstudioToBadgerdocConverter, "execute", lambda *args, **kw: ...
     )
+    test_app.headers = {"X-Current-Tenant": "test"}
     response = test_app.post(
         "/labelstudio/import",
         json=test_request_payload,

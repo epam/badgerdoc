@@ -28,7 +28,7 @@ class AnnotationConverterPractic:
         page_theoretic = self.theoretic_annotation.pages[FIRST_PAGE]
 
         return annotation_practic.BadgerdocAnnotation(
-            size=page_theoretic.size,
+            size=annotation_practic.Size(**page_theoretic.size.dict()),
             page_num=page_theoretic.page_num,
             objs=self.convert_objs(page_theoretic.objs),
         )
@@ -41,6 +41,11 @@ class AnnotationConverterPractic:
             tokens = self.convert_tokens(obj_theoretic.tokens)
             links = self.convert_links(obj_theoretic.links)
             text = self.convert_text(obj_theoretic.tokens)
+            dataAttributes = (
+                obj_theoretic.data.get("dataAttributes", [])
+                if obj_theoretic.data
+                else []
+            )
             obj = annotation_practic.Obj(
                 id=obj_theoretic.id,
                 type=obj_theoretic.type,
@@ -49,9 +54,7 @@ class AnnotationConverterPractic:
                 text=text,
                 data=annotation_practic.AnnotationTokens(
                     tokens=tokens,
-                    dataAttributes=obj_theoretic.data.get(
-                        "dataAttributes", []
-                    ),
+                    dataAttributes=dataAttributes,
                 ),
                 links=links,
             )
@@ -66,7 +69,9 @@ class AnnotationConverterPractic:
             token_theoretic = self.theoretic_tokens.objs[token_id_theoretic]
             token = annotation_practic.AnnotationToken(
                 id=token_id_theoretic,
-                text=f"{token_theoretic.previous or ''}{token_theoretic.text}{token_theoretic.after or ''}",
+                text=f"{token_theoretic.previous or ''}"
+                f"{token_theoretic.text}"
+                f"{token_theoretic.after or ''}",
                 x=token_theoretic.bbox[0],
                 y=token_theoretic.bbox[1],
                 width=(token_theoretic.bbox[2] - token_theoretic.bbox[0]),
@@ -77,7 +82,7 @@ class AnnotationConverterPractic:
 
     @staticmethod
     def convert_links(
-        theoretic_links: List[annotation_practic.AnnotationLink],
+        theoretic_links: List[AnnotationLink],
     ) -> List[annotation_practic.AnnotationLink]:
         links = []
         for link_theoretic in theoretic_links:
@@ -123,7 +128,11 @@ class AnnotationConverterToTheory:
     ) -> List[Obj]:
         objs = []
         for obj_practic in objs_practic:
-            token_ids = self.convert_tokens(obj_practic.data.tokens)
+            token_ids = (
+                self.convert_tokens(obj_practic.data.tokens)
+                if obj_practic.data
+                else []
+            )
             links = self.convert_links(obj_practic.links)
             obj = Obj(
                 id=obj_practic.id,

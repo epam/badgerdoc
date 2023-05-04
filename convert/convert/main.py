@@ -1,4 +1,4 @@
-from fastapi import FastAPI  # type: ignore
+from fastapi import FastAPI
 
 from convert.config import API_NAME, API_VERSION, settings
 from convert.logger import get_logger
