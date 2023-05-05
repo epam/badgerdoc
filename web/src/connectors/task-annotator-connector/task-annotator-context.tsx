@@ -353,6 +353,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             tokenRes.refetch();
         }
     }, [task, job, revisionId]);
+
     useAnnotationsLinks(
         selectedAnnotation,
         selectedCategory,
@@ -363,6 +364,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             selectedAnnotation && onAnnotationEdited(prevPage, annId, links),
         setSelectedCategory
     );
+
     const createAnnotation = (
         pageNum: number,
         annData: Annotation,
@@ -375,6 +377,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
 
         const newAnnotation = {
             ...annData,
+            pageNum,
             categoryName: category?.name,
             color: category?.metadata?.color,
             label: hasTaxonomy ? annData.label : category?.name,
