@@ -87,6 +87,7 @@ Example of response for jobs:
     }
 
 """
+import os
 from typing import Dict, List
 
 import requests
@@ -102,6 +103,7 @@ HEADER_TENANT = "X-Current-Tenant"
 AUTHORIZATION = "Authorization"
 BEARER = "Bearer"
 X_CURRENT_TENANT_HEADER = Header(..., alias=HEADER_TENANT, example="test")
+USERS_SEARCH_URL = os.environ.get("USERS_SEARCH_URL")
 
 
 def calculate_amount_of_pagination_pages(elem_amount: int):
@@ -170,6 +172,37 @@ def get_response(
         complete_response.extend(response.json()["data"])
 
     return complete_response
+
+
+def get_response_from_users_search(
+    users_ids: List[str], tenant: str, token: str
+) -> List[dict]:
+
+    post_params = {
+        "filters": [{"field": "id", "operator": "in", "value": users_ids}]
+    }
+
+    try:
+        response = requests.post(
+            USERS_SEARCH_URL,
+            headers={
+                HEADER_TENANT: tenant,
+                AUTHORIZATION: f"{BEARER} {token}",
+            },
+            json=post_params,
+            timeout=5,
+        )
+    except (ConnectionError, Timeout, RequestException) as err:
+        raise_request_exception(err)
+    if response.status_code != 200:
+        raise_request_exception(response.text)
+
+    return response.json()
+
+
+def get_user_names_by_request(user_ids: List[str], tenant: str, token: str):
+    users_data = get_response_from_users_search(user_ids, tenant, token)
+    return {u["id"]: u["username"] for u in users_data}
 
 
 def expand_response(

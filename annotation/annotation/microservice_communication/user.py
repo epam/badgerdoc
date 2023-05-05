@@ -6,10 +6,9 @@ from dotenv import find_dotenv, load_dotenv
 from requests import RequestException
 
 from annotation.logger import Logger
-from annotation.models import ManualAnnotationTask
 
 load_dotenv(find_dotenv())
-USERS_SEARCH_URL = os.environ.get("USERS_SEARCH_URL")
+USERS_GET_USER_URL = os.environ.get("USERS_GET_USER_URL")
 
 
 class GetUserInfoException(Exception):
@@ -21,7 +20,7 @@ class GetUserInfoAccessDenied(GetUserInfoException):
     pass
 
 
-def get_response(callback_url: str, user_id: str, tenant: str, token: str):
+def get_username(callback_url: str, user_id: str, tenant: str, token: str):
     try:
         user_response = requests.get(
             f"{callback_url}/{user_id}",
@@ -47,14 +46,13 @@ def get_response(callback_url: str, user_id: str, tenant: str, token: str):
         raise GetUserInfoException(exc)
 
 
-def get_user_logins(
-    tasks: List[ManualAnnotationTask], tenant: str, token: str
+def get_user_names(
+    user_ids: List[str], tenant: str, token: str
 ) -> Dict[str, str]:
     """
     Return list of logins for provided tasks from users microservice.
     """
-    user_ids = [task.user_id for task in tasks]
     return {
-        str(user_id): get_response(USERS_SEARCH_URL, user_id, tenant, token)
+        str(user_id): get_username(USERS_GET_USER_URL, user_id, tenant, token)
         for user_id in user_ids
     }

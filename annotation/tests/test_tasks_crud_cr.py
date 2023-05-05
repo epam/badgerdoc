@@ -16,7 +16,8 @@ from annotation.microservice_communication.assets_communication import (
 from annotation.microservice_communication.jobs_communication import (
     JOBS_SEARCH_URL,
 )
-from annotation.microservice_communication.user import USERS_SEARCH_URL
+from annotation.microservice_communication.user import USERS_GET_USER_URL
+from annotation.microservice_communication.search import USERS_SEARCH_URL
 from annotation.models import Category, File, Job, ManualAnnotationTask, User
 from annotation.schemas import CategoryTypeSchema, ValidationSchema
 from tests.consts import CRUD_TASKS_PATH
@@ -908,10 +909,50 @@ def test_update_task_already_updated_change_event(
 
 
 @pytest.mark.integration
+@responses.activate
 def test_create_export_data_not_found(prepare_db_update_stats):
-    body = prepare_stats_export_body(
-        user_ids=[f"{uuid4()}" for _ in range(10)]
+
+    user_ids = [f"{uuid4()}" for _ in range(10)]
+
+    responses.add(
+        responses.POST,
+        USERS_SEARCH_URL,
+        json=[
+            {
+                "access": {
+                    "manageGroupMembership": True,
+                    "view": True,
+                    "mapRoles": True,
+                    "impersonate": True,
+                    "manage": True,
+                },
+                "attributes": {"tenants": ["test"]},
+                "clientConsents": None,
+                "clientRoles": None,
+                "createdTimestamp": 1638362379072,
+                "credentials": None,
+                "disableableCredentialTypes": [],
+                "email": None,
+                "emailVerified": False,
+                "enabled": True,
+                "federatedIdentities": None,
+                "federationLink": None,
+                "firstName": None,
+                "groups": None,
+                "id": user_id,
+                "lastName": None,
+                "notBefore": 0,
+                "origin": None,
+                "realmRoles": None,
+                "requiredActions": [],
+                "self": None,
+                "serviceAccountClientId": None,
+                "username": f"{user_id}_name",
+            }
+            for user_id in user_ids
+        ],
     )
+    body = prepare_stats_export_body(user_ids=user_ids)
 
     response = client.post(
         f"{CRUD_TASKS_PATH}/export",
@@ -954,7 +995,9 @@ def test_create_export_invalid_datetime_format(
 
 @pytest.mark.integration
 @responses.activate
-def test_create_export_return_csv(prepare_db_update_stats_already_updated):
+def test_create_export_return_csv(
+    prepare_db_update_stats_already_updated, USERS_SEARCH=None
+):
     responses.add(
         responses.POST,
         ASSETS_FILES_URL,
@@ -981,14 +1024,54 @@ def test_create_export_return_csv(prepare_db_update_stats_already_updated):
                     "status": "uploaded",
                     "path": f"files/{id}/{id}.pdf",
                     "datasets": [],
-                } for id in range(1, 5)
-            ]
-        }
+                }
+                for id in range(1, 5)
+            ],
+        },
     )
 
-    body = prepare_stats_export_body(
-        user_ids=[str(ann.user_id) for ann in ANNOTATORS]
+    user_ids = [str(ann.user_id) for ann in ANNOTATORS]
+
+    responses.add(
+        responses.POST,
+        USERS_SEARCH_URL,
+        json=[
+            {
+                "access": {
+                    "manageGroupMembership": True,
+                    "view": True,
+                    "mapRoles": True,
+                    "impersonate": True,
+                    "manage": True,
+                },
+                "attributes": {"tenants": ["test"]},
+                "clientConsents": None,
+                "clientRoles": None,
+                "createdTimestamp": 1638362379072,
+                "credentials": None,
+                "disableableCredentialTypes": [],
+                "email": None,
+                "emailVerified": False,
+                "enabled": True,
+                "federatedIdentities": None,
+                "federationLink": None,
+                "firstName": None,
+                "groups": None,
+                "id": user_id,
+                "lastName": None,
+                "notBefore": 0,
+                "origin": None,
+                "realmRoles": None,
+                "requiredActions": [],
+                "self": None,
+                "serviceAccountClientId": None,
+                "username": f"{user_id}_name",
+            }
+            for user_id in user_ids
+        ],
     )
+
+    body = prepare_stats_export_body(user_ids=user_ids)
 
     response = client.post(
         f"{CRUD_TASKS_PATH}/export",
@@ -1033,7 +1116,7 @@ def test_get_task(prepare_db_for_cr_task):
     )
     responses.add(
         responses.GET,
-        re.compile(f"{USERS_SEARCH_URL}/\\w+"),
+        re.compile(f"{USERS_GET_USER_URL}/\\w+"),
         json=USERS_SEARCH_RESPONSE,
         status=200,
         headers=TEST_HEADERS,
@@ -1222,7 +1305,7 @@ def test_get_tasks(
     )
     responses.add(
         responses.GET,
-        re.compile(f"{USERS_SEARCH_URL}/\\w+"),
+        re.compile(f"{USERS_GET_USER_URL}/\\w+"),
         json=USERS_SEARCH_RESPONSE,
         status=200,
         headers=TEST_HEADERS,
@@ -1326,7 +1409,7 @@ def test_get_tasks_pagination(
     )
     responses.add(
         responses.GET,
-        re.compile(f"{USERS_SEARCH_URL}/\\w+"),
+        re.compile(f"{USERS_GET_USER_URL}/\\w+"),
         json=USERS_SEARCH_RESPONSE,
         status=200,
         headers=TEST_HEADERS,
@@ -1513,7 +1596,7 @@ def test_search_tasks_pagination(
     )
     responses.add(
         responses.GET,
-        re.compile(f"{USERS_SEARCH_URL}/\\w+"),
+        re.compile(f"{USERS_GET_USER_URL}/\\w+"),
         json=USERS_SEARCH_RESPONSE,
         status=200,
         headers=TEST_HEADERS,
@@ -1547,12 +1630,30 @@ def test_search_tasks_pagination(
         ),
         # FIXME: Some annotation fixtures amend testing data on previous tests.
         # The problem might be in fixture's scope =module.
-        pytest.param("is_validation", "ne", False, [5, 6, 20, 23], marks=pytest.mark.xfail(reason="fix the test")),
+        pytest.param(
+            "is_validation",
+            "ne",
+            False,
+            [5, 6, 20, 23],
+            marks=pytest.mark.xfail(reason="fix the test"),
+        ),
         ("status", "not_in", ["pending", "ready"], [5]),
         # FIXME
-        pytest.param("file_id", "in", [1, 2], [1, 2, 18, 21], marks=pytest.mark.xfail(reason="fix the test")),
+        pytest.param(
+            "file_id",
+            "in",
+            [1, 2],
+            [1, 2, 18, 21],
+            marks=pytest.mark.xfail(reason="fix the test"),
+        ),
         # FIXME
-        pytest.param("deadline", "gt", "2021-10-19T01:01:01", [3, *range(8, 24)], marks=pytest.mark.xfail(reason="fix the test")),
+        pytest.param(
+            "deadline",
+            "gt",
+            "2021-10-19T01:01:01",
+            [3, *range(8, 24)],
+            marks=pytest.mark.xfail(reason="fix the test"),
+        ),
         ("id", "distinct", "string", [*range(1, 7), *range(8, 25)]),
     ],
 )
@@ -1576,7 +1677,7 @@ def tests_search_tasks_filtration(
     )
     responses.add(
         responses.GET,
-        re.compile(f"{USERS_SEARCH_URL}/\\w+"),
+        re.compile(f"{USERS_GET_USER_URL}/\\w+"),
         json=USERS_SEARCH_RESPONSE,
         status=200,
         headers=TEST_HEADERS,
@@ -1619,7 +1720,7 @@ def tests_search_tasks_ordering(
     )
     responses.add(
         responses.GET,
-        re.compile(f"{USERS_SEARCH_URL}/\\w+"),
+        re.compile(f"{USERS_GET_USER_URL}/\\w+"),
         json=USERS_SEARCH_RESPONSE,
         status=200,
         headers=TEST_HEADERS,

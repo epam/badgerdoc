@@ -2,7 +2,7 @@ import csv
 import io
 import os
 from datetime import datetime
-from typing import Any, Dict, List, NamedTuple, Optional, Set, Tuple
+from typing import Any, Dict, List, NamedTuple, Optional, Set, Tuple, Union
 
 import dotenv
 import pydantic
@@ -25,6 +25,9 @@ from annotation.logger import Logger
 from annotation.microservice_communication.assets_communication import (
     get_file_names_by_request,
     get_file_path_and_bucket,
+)
+from annotation.microservice_communication.search import (
+    get_user_names_by_request,
 )
 from annotation.microservice_communication.task import get_agreement_score
 from annotation.models import (
@@ -53,8 +56,10 @@ from annotation.schemas import (
 
 dotenv.load_dotenv(dotenv.find_dotenv())
 AGREEMENT_SCORE_MIN_MATCH = float(os.getenv("AGREEMENT_SCORE_MIN_MATCH"))
+USER_NAMES_CACHE_SIZE = int(os.getenv("FILE_NAMES_CACHE_SIZE", 256))
 FILE_NAMES_CACHE_SIZE = int(os.getenv("FILE_NAMES_CACHE_SIZE", 1024))
 
+lru_user_id_to_user_name_cache = LRU(USER_NAMES_CACHE_SIZE)
 lru_file_id_to_file_name_cache = LRU(FILE_NAMES_CACHE_SIZE)
 
 
@@ -471,22 +476,52 @@ def add_task_stats_record(
     return stats_db
 
 
-def get_file_names_by_file_ids(file_ids: Set[int], tenant: str, token: str):
+def get_from_cache(objs_ids: Set[Any], cache_used: LRU):
+    objs_ids_copy = objs_ids.copy()
 
-    file_ids_copy = file_ids.copy()
+    objs_names_from_cache = {}
+    for obj_id in objs_ids:
+        if obj_id in cache_used:
+            objs_names_from_cache[obj_id] = cache_used[obj_id]
+            objs_ids_copy.remove(obj_id)
+
+    not_cached_usernames = objs_ids_copy
+
+    return objs_names_from_cache, not_cached_usernames
+
+
+def get_user_names_by_user_ids(
+    user_ids: Set[int], tenant: str, token: str
+) -> Dict[Union[str, int], str]:
+
+    # 1. Get usernames from cache
+    user_names_from_cache, not_cached_usernames = get_from_cache(
+        objs_ids=user_ids, cache_used=lru_user_id_to_user_name_cache
+    )
+
+    # 2. Get not cached usernames by request to 'users'
+    user_names_from_requests = get_user_names_by_request(
+        user_ids=list(not_cached_usernames), tenant=tenant, token=token
+    )
+
+    # 3. Add results from request to 'users' to cache
+    lru_user_id_to_user_name_cache.update(user_names_from_requests)
+
+    return {**user_names_from_cache, **user_names_from_requests}
+
+
+def get_file_names_by_file_ids(
+    file_ids: Set[int], tenant: str, token: str
+) ->  Dict[Union[str, int], str]:
 
     # 1. Get file names from cache
-    file_names_from_cache = {}
-    for file_id in file_ids:
-        if file_id in lru_file_id_to_file_name_cache:
-            file_names_from_cache[file_id] = lru_file_id_to_file_name_cache[
-                file_id
-            ]
-            file_ids_copy.remove(file_id)
+    file_names_from_cache, not_cached_filenames = get_from_cache(
+        objs_ids=file_ids, cache_used=lru_file_id_to_file_name_cache
+    )
 
     # 2. Get not cached file names by request to 'assets'
     file_names_from_requests = get_file_names_by_request(
-        file_ids=list(file_ids_copy), tenant=tenant, token=token
+        file_ids=list(not_cached_filenames), tenant=tenant, token=token
     )
 
     # 3. Add results from request to assets to cache
@@ -542,12 +577,24 @@ def create_export_csv(
         )
     ]
 
+    annotators_ids = {
+        stats_item["annotator_id"] for stats_item in annotation_stats
+    }
+    annotators_ids_to_usernames_mapping = get_user_names_by_user_ids(
+        annotators_ids, tenant, token
+    )
+
     file_ids = {stats_item["file_id"] for stats_item in annotation_stats}
     file_ids_to_names_mapping = get_file_names_by_file_ids(
         file_ids, tenant, token
     )
 
     for stats_item in annotation_stats:
+        annotator_id = stats_item["annotator_id"]
+        stats_item["annotator_name"] = annotators_ids_to_usernames_mapping.get(
+            annotator_id, ""
+        )
+
         file_id = stats_item["file_id"]
         stats_item["file_name"] = file_ids_to_names_mapping.get(file_id, "")
 
@@ -563,6 +610,7 @@ def create_export_csv(
     with io.TextIOWrapper(binary, encoding="utf-8", newline="") as text_file:
         columns_names = [
             "annotator_id",
+            "annotator_name",
             "task_id",
             "task_status",
             "file_id",

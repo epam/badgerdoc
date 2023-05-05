@@ -76,6 +76,10 @@ spec:
             secretKeyRef:
               name: users
               key: KEYCLOAK_DIRECT_ENDPOINT_DEV1
+        - name: USERS_GET_USER_URL
+          value: "http://users/users"
+        - name: USERS_SEARCH_URL
+          value: "http://users/users/search"
         command: ["/bin/sh"]
         args: ["-c", "alembic upgrade head && uvicorn annotation.main:app --host 0.0.0.0 --port 8080 --root-path /api/v1/annotation"]
       dnsPolicy: ClusterFirst
