@@ -508,6 +508,7 @@ def get_page_number_combinations(
 
         file_page = remaining[0]
         remaining = remaining[1:]
+        stack.append((remaining, combinations, combinations_sum))
         stack.append(
             (
                 remaining,
@@ -515,7 +516,6 @@ def get_page_number_combinations(
                 combinations_sum + file_page,
             )
         )
-        stack.append((remaining, combinations, combinations_sum))
     return combination_result
 
 
