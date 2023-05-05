@@ -482,8 +482,6 @@ def get_from_cache(objs_ids: Set[Any], cache_used: LRU):
     objs_names_from_cache = {}
     for obj_id in objs_ids:
         if obj_id in cache_used:
-            Logger.info("Cache %s is used", cache_used)
-            Logger.info("Obj %s got from cache", obj_id)
             objs_names_from_cache[obj_id] = cache_used[obj_id]
             objs_ids_copy.remove(obj_id)
 
