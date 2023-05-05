@@ -26,10 +26,14 @@ export const PickGridType: FC<{ value: GridVariants; onChange: (value: GridVaria
     value,
     onChange
 }) => {
-    const { job, userPages } = useTaskAnnotatorContext();
+    const { job, latestRevisionByAnnotators } = useTaskAnnotatorContext();
     const dataSource = useArrayDataSource<TOption, GridVariants, unknown>({ items: OPTIONS }, []);
 
-    if (job?.validation_type !== ValidationType.extensiveCoverage || !userPages.length) return null;
+    if (
+        job?.validation_type !== ValidationType.extensiveCoverage ||
+        !latestRevisionByAnnotators.length
+    )
+        return null;
 
     const renderUserRow = (props: DataRowProps<TOption, GridVariants>) => (
         <DataPickerRow

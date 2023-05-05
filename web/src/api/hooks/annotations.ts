@@ -3,6 +3,7 @@ import { Task } from 'api/typings/tasks';
 import { useMutation, useQuery } from 'react-query';
 import { useBadgerFetch } from './api';
 import { JobStatus } from '../typings/jobs';
+import { LatestRevisionResponse } from '../../connectors/task-annotator-connector/revisionTypes';
 
 type LatestAnnotationsParams = {
     jobId?: number;
@@ -60,16 +61,13 @@ export type AnnotationsResponse = {
     data?: { dataAttributes: CategoryDataAttrType[] };
 };
 
-export type AnnotationsByUserObj = PageInfo & {
+export type AnnotationsByUser = PageInfo & {
     categories: string[];
     revision: string;
     user_id: string;
     data?: { dataAttributes: CategoryDataAttrType[] };
 };
 
-export type AnnotationsByUserResponse = {
-    [page_num: number]: AnnotationsByUserObj[];
-};
 export const useLatestAnnotations: QueryHookType<LatestAnnotationsParams, AnnotationsResponse> = (
     { jobId, fileId, revisionId, pageNumbers, userId },
     options
@@ -83,7 +81,7 @@ export const useLatestAnnotations: QueryHookType<LatestAnnotationsParams, Annota
 
 export const useLatestAnnotationsByUser: QueryHookType<
     LatestAnnotationsParamsByUser,
-    AnnotationsByUserResponse
+    LatestRevisionResponse
 > = ({ jobId, fileId, pageNumbers, userId }, options) => {
     return useQuery(
         ['latestAnnotationsByUser', jobId, fileId, pageNumbers, userId],

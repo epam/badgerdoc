@@ -1,4 +1,4 @@
-import { AnnotationsByUserObj, useLatestAnnotationsByUser } from 'api/hooks/annotations';
+import { AnnotationsByUser, useLatestAnnotationsByUser } from 'api/hooks/annotations';
 import { Category, Link, Taxon } from 'api/typings';
 import { JobStatus, Job } from 'api/typings/jobs';
 import cloneDeep from 'lodash/cloneDeep';
@@ -9,6 +9,9 @@ import { scaleAnnotation } from 'shared/components/annotator/utils/scale-annotat
 import useAnnotationsTaxons from 'shared/hooks/use-annotations-taxons';
 import useAnnotationsMapper from 'shared/hooks/use-annotations-mapper';
 import { Task } from 'api/typings/tasks';
+import { convertToUserRevisions } from './utils';
+import { useGetPageSummary } from '../../api/hooks/tasks';
+import { UserRevision } from './revisionTypes';
 
 interface SplitValidationParams {
     categories?: Category[];
@@ -38,8 +41,6 @@ interface SplitValidationParams {
 
 export interface SplitValidationValue {
     isSplitValidation?: boolean;
-    userPages: AnnotationsByUserObj[];
-    annotationsByUserId: Record<string, Annotation[]>;
     taxonLabels: Map<string, Taxon>;
     onSplitAnnotationSelected: (scale: number, userId: string, annotation?: Annotation) => void;
     onSplitLinkSelected: (
@@ -48,6 +49,9 @@ export interface SplitValidationValue {
         annotations: Annotation[]
     ) => void;
     onFinishSplitValidation: () => void;
+    latestRevisionByAnnotators: UserRevision[];
+    latestRevisionByCurrentUser: UserRevision[];
+    latestRevisionByAnnotatorsWithBounds: Record<string, Annotation[]>;
 }
 
 export default function useSplitValidation({
@@ -78,24 +82,43 @@ export default function useSplitValidation({
         { enabled: isSplitValidation }
     );
 
-    const userPages: AnnotationsByUserObj[] = useMemo(() => {
-        if (!byUser) {
-            return [];
-        }
-        return byUser[currentPage].filter((userPage) => userPage.user_id !== userId);
-    }, [byUser, currentPage]);
+    const { data: pages } = useGetPageSummary(
+        { taskId: task?.id, taskType: task?.is_validation },
+        { enabled: Boolean(task) }
+    );
 
-    const taxonLabels = useAnnotationsTaxons(userPages);
+    const { data: latestRevision } = useLatestAnnotationsByUser(
+        {
+            fileId,
+            jobId: job?.id,
+            pageNumbers: pages?.annotated_pages
+        },
+        { enabled: isSplitValidation }
+    );
+
+    const convertedLatestRevision = latestRevision ? convertToUserRevisions(latestRevision) : [];
+    const currentUser = userId;
+
+    const latestRevisionByAnnotators: UserRevision[] = useMemo(() => {
+        return convertedLatestRevision.filter((revision) => revision.user_id !== currentUser);
+    }, [latestRevision]);
+
+    const latestRevisionByCurrentUser: UserRevision[] = useMemo(() => {
+        return convertedLatestRevision.filter((revision) => revision.user_id === currentUser);
+    }, [latestRevision]);
+
+    const taxonLabels = useAnnotationsTaxons(latestRevisionByAnnotators);
 
     const { mapAnnotationPagesFromApi } = useAnnotationsMapper(taxonLabels, [byUser, taxonLabels]);
 
-    const annotationsByUserId = useMemo(() => {
+    const latestRevisionByAnnotatorsWithBounds = useMemo(() => {
+        if (!latestRevisionByAnnotators) return {};
         return mapAnnotationPagesFromApi(
-            (page: AnnotationsByUserObj) => page.user_id,
-            userPages,
+            (page: AnnotationsByUser) => page.user_id,
+            latestRevisionByAnnotators,
             categories
         );
-    }, [categories, mapAnnotationPagesFromApi]);
+    }, [categories, mapAnnotationPagesFromApi, latestRevisionByAnnotators]);
 
     const onSplitAnnotationSelected = useCallback(
         (scale: number, userId: string, scaledAnn?: Annotation) => {
@@ -104,7 +127,9 @@ export default function useSplitValidation({
             }
 
             let category: Category | undefined;
-            const originalAnn = annotationsByUserId[userId].find((ann) => ann.id === scaledAnn.id);
+            const originalAnn = latestRevisionByAnnotatorsWithBounds[userId].find(
+                (ann) => ann.id === scaledAnn.id
+            );
 
             if (categories) {
                 category = categories.find((category) => category.id === scaledAnn.category);
@@ -192,25 +217,27 @@ export default function useSplitValidation({
 
     return useMemo(
         () => ({
-            annotationsByUserId,
             isSplitValidation,
             job,
             onSplitAnnotationSelected,
             onSplitLinkSelected,
             onFinishSplitValidation,
-            userPages,
-            taxonLabels
+            taxonLabels,
+            latestRevisionByAnnotators,
+            latestRevisionByCurrentUser,
+            latestRevisionByAnnotatorsWithBounds
         }),
         [
-            annotationsByUserId,
             isSplitValidation,
             job,
             onSplitAnnotationSelected,
             onSplitLinkSelected,
             onAddTouchedPage,
-            userPages,
             validatorAnnotations,
-            taxonLabels
+            taxonLabels,
+            latestRevisionByAnnotators,
+            latestRevisionByCurrentUser,
+            latestRevisionByAnnotatorsWithBounds
         ]
     );
 }

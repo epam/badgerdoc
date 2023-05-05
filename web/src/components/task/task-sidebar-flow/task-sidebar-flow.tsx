@@ -23,17 +23,17 @@ export const FlowSideBar: FC = () => {
     });
 
     const {
-        userPages,
         categories,
         setTabValue,
         onLinkDeleted,
         selectedLabels,
         onLabelsSelected,
         isSplitValidation,
-        annotationsByUserId,
         setSelectedAnnotation,
         job: { annotators } = {},
         setCurrentDocumentUserId,
+        latestRevisionByAnnotators,
+        latestRevisionByAnnotatorsWithBounds,
         currentDocumentUserId = OWNER_TAB.id,
         allAnnotations: allAnnotationsByPageNum = {},
         selectedAnnotation: { id: selectedAnnotationId } = {}
@@ -78,9 +78,9 @@ export const FlowSideBar: FC = () => {
 
         return getTabs({
             users: annotators,
-            userIds: Object.keys(annotationsByUserId)
+            userIds: Object.keys(latestRevisionByAnnotatorsWithBounds)
         });
-    }, [annotators, annotationsByUserId]);
+    }, [annotators, latestRevisionByAnnotatorsWithBounds]);
 
     const allSortedAnnotations = useMemo(
         () => getSortedAllAnnotationList(allAnnotationsByPageNum),
@@ -88,13 +88,13 @@ export const FlowSideBar: FC = () => {
     );
 
     const sortedAnnotationsByUserId = useMemo(
-        () => getSortedAnnotationsByUserId(annotationsByUserId),
-        [annotationsByUserId]
+        () => getSortedAnnotationsByUserId(latestRevisionByAnnotatorsWithBounds),
+        [latestRevisionByAnnotatorsWithBounds]
     );
 
     const categoriesByUserId = useMemo(
-        () => getCategoriesByUserId(userPages, categories),
-        [userPages, categories]
+        () => getCategoriesByUserId(latestRevisionByAnnotators, categories),
+        [latestRevisionByAnnotators, categories]
     );
 
     const annotationsByTab = {

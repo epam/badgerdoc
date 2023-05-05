@@ -10,7 +10,7 @@ import {
     TabButton,
     Tooltip
 } from '@epam/loveship';
-import { useGetValidatedPages } from 'api/hooks/tasks';
+import { useGetPageSummary } from 'api/hooks/tasks';
 import { useTaskAnnotatorContext } from 'connectors/task-annotator-connector/task-annotator-context';
 
 import { CategoriesSelectionModeToggle } from 'components/categories/categories-selection-mode-toggle/categories-selection-mode-toggle';
@@ -132,10 +132,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
 
     const isValidationDisabled = (!currentPage && !splitValidation) || !isAnnotatable;
 
-    const { refetch } = useGetValidatedPages(
-        { taskId: task?.id, taskType: task?.is_validation },
-        {}
-    );
+    const { refetch } = useGetPageSummary({ taskId: task?.id, taskType: task?.is_validation }, {});
 
     useEffect(() => {
         let newSelectionType:

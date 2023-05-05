@@ -11,7 +11,31 @@ import { Category } from '../../../api/typings';
 import { noop } from 'lodash';
 import { LinksLayer } from '../annotator/links-layer';
 
-const empty: any[] = [];
+type RenderPageParams = {
+    userId?: string;
+    annotations?: Annotation[];
+    scale: number;
+    pageNum: number;
+    handlePageLoaded?: (page: PDFPageProxy | HTMLImageElement) => void;
+    pageSize?: PageSize;
+    containerRef?: React.RefObject<HTMLDivElement>;
+    editable?: boolean;
+    isImage?: boolean;
+    imageId?: number;
+    isShownAnnotation?: boolean;
+    onAnnotationCopyPress?: (pageNum: number, annotationId: string | number) => void;
+    onAnnotationCutPress?: (pageNum: number, annotationId: string | number) => void;
+    onAnnotationPastePress?: (pageSize: PageSize, pageNum: number) => void;
+    onAnnotationSelected?: (annotation?: Annotation) => void;
+    onAnnotationUndoPress?: () => void;
+    onAnnotationRedoPress?: () => void;
+    onEmptyAreaClick?: () => void;
+};
+
+interface PageSize {
+    width: number;
+    height: number;
+}
 
 const DocumentSinglePage: FC<RenderPageParams> = ({
     annotations,
@@ -24,6 +48,7 @@ const DocumentSinglePage: FC<RenderPageParams> = ({
     editable = false,
     isImage = false,
     imageId,
+    isShownAnnotation = true,
     onAnnotationCopyPress = noop,
     onAnnotationCutPress = noop,
     onAnnotationSelected,
@@ -52,16 +77,22 @@ const DocumentSinglePage: FC<RenderPageParams> = ({
         setCurrentDocumentUserId
     } = useTaskAnnotatorContext();
     const { showMenu, getMenuProps } = useContextMenu();
-    const pageAnnotations = annotations ?? allAnnotations[pageNum] ?? empty;
+
+    let pageAnnotations: Annotation[] = [];
+    if (isShownAnnotation) {
+        pageAnnotations = annotations ?? allAnnotations[pageNum] ?? [];
+    }
 
     const isValidation = task?.is_validation;
     const isEdited = editedPages.includes(currentPage);
-    const pageTokens = tokensByPages[pageNum] ?? empty;
+
+    const pageTokens = tokensByPages[pageNum] ?? [];
 
     const annotationsForLinks = useMemo(
         () => annotations ?? Object.values(allAnnotations).flat(),
         [annotations, allAnnotations]
     );
+
     const { isCellMode } = useTableAnnotatorContext();
     const handleAnnotationAdded = (ann: Pick<Annotation, 'bound' | 'boundType' | 'id'>) => {
         onAnnotationCreated(pageNum, {
@@ -265,30 +296,5 @@ const DocumentSinglePage: FC<RenderPageParams> = ({
         </ObservedElement>
     );
 };
-
-type RenderPageParams = {
-    userId?: string;
-    annotations?: Annotation[];
-    scale: number;
-    pageNum: number;
-    handlePageLoaded?: (page: PDFPageProxy | HTMLImageElement) => void;
-    pageSize?: PageSize;
-    containerRef?: React.RefObject<HTMLDivElement>;
-    editable?: boolean;
-    isImage?: boolean;
-    imageId?: number;
-    onAnnotationCopyPress?: (pageNum: number, annotationId: string | number) => void;
-    onAnnotationCutPress?: (pageNum: number, annotationId: string | number) => void;
-    onAnnotationPastePress?: (pageSize: PageSize, pageNum: number) => void;
-    onAnnotationSelected?: (annotation?: Annotation) => void;
-    onAnnotationUndoPress?: () => void;
-    onAnnotationRedoPress?: () => void;
-    onEmptyAreaClick?: () => void;
-};
-
-interface PageSize {
-    width: number;
-    height: number;
-}
 
 export default DocumentSinglePage;
