@@ -126,6 +126,9 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
     };
 
     const fullScale = scale + additionalScale;
+    const annotatorIds = [
+        ...new Set(latestRevisionByAnnotators.map((revision) => revision.user_id))
+    ];
 
     return (
         <div
@@ -178,14 +181,9 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                             })}
                         </ResizableSyncedContainer>
 
-                        {latestRevisionByAnnotators.map((revision) => (
-                            <div
-                                key={revision.user_id}
-                                className={styles['additional-pages-with-user-name']}
-                            >
-                                <SplitAnnotatorInfo
-                                    annotatorName={getAnnotatorName(revision.user_id)}
-                                />
+                        {annotatorIds.map((userId) => (
+                            <div key={userId} className={styles['additional-pages-with-user-name']}>
+                                <SplitAnnotatorInfo annotatorName={getAnnotatorName(userId)} />
                                 <SyncedContainer
                                     className={cx(
                                         styles['split-document-page'],
@@ -194,27 +192,25 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                                 >
                                     {pageNumbers.map((pageNum) => {
                                         const isShowAnnotation =
-                                            !!latestRevisionByAnnotatorsWithBounds[
-                                                revision.user_id
-                                            ].filter((obj) => obj.pageNum === pageNum).length;
+                                            !!latestRevisionByAnnotatorsWithBounds[userId].filter(
+                                                (obj) => obj.pageNum === pageNum
+                                            ).length;
 
                                         return (
                                             <DocumentSinglePage
-                                                key={`${revision.user_id}-${pageNum}`}
+                                                key={`${userId}-${pageNum}`}
                                                 scale={fullScale}
                                                 pageNum={pageNum}
                                                 pageSize={apiPageSize}
-                                                userId={revision.user_id}
+                                                userId={userId}
                                                 isShownAnnotation={isShowAnnotation}
                                                 annotations={
-                                                    latestRevisionByAnnotatorsWithBounds[
-                                                        revision.user_id
-                                                    ]
+                                                    latestRevisionByAnnotatorsWithBounds[userId]
                                                 }
                                                 onAnnotationSelected={(scaledAnn?: Annotation) =>
                                                     onSplitAnnotationSelected(
                                                         fullScale,
-                                                        revision.user_id,
+                                                        userId,
                                                         scaledAnn
                                                     )
                                                 }
