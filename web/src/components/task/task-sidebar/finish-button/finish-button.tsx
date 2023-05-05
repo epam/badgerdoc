@@ -39,7 +39,6 @@ export const FinishButton: FC<TaskSidebarProps> = ({
     onFinishValidation,
     onAnnotationTaskFinish,
     onFinishSplitValidation,
-    onSaveTask,
     jobType
 }) => {
     const [redirectionSettings, setRedirectionSettings] = useState(
@@ -86,8 +85,6 @@ export const FinishButton: FC<TaskSidebarProps> = ({
                     onClick={
                         isValidation
                             ? () => {
-                                  // TODO: del onSaveTask after BE will be ready (issue #569)
-                                  onSaveTask();
                                   handleFinishValidation();
                               }
                             : onAnnotationTaskFinish

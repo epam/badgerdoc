@@ -163,6 +163,7 @@ export const useTaskById: QueryHookType<TaskByIdParams, Task> = ({ taskId }) =>
             })(),
         { select: mapTaskFromApi }
     );
+
 export const useUsersForTask: QueryHookType<UsersForTaskParams, User[]> = ({ jobId }) =>
     useQuery(['usersForTask', jobId], async () =>
         useBadgerFetch({

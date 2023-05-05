@@ -254,14 +254,17 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
 
     let task: Task | undefined;
     let isTaskLoading: boolean = false;
+    let taskPages: number[] = [];
     let refetchTask: (
         options?: (RefetchOptions & RefetchQueryFilters<Task>) | undefined
     ) => Promise<QueryObserverResult<Task, unknown>>;
+
     if (taskId) {
-        const result = useTaskById({ taskId }, {});
-        task = result.data;
-        isTaskLoading = result.isLoading;
-        refetchTask = result.refetch;
+        const annotationTaskResponse = useTaskById({ taskId }, {});
+        task = annotationTaskResponse.data;
+        isTaskLoading = annotationTaskResponse.isLoading;
+        taskPages = annotationTaskResponse.data?.pages ?? [];
+        refetchTask = annotationTaskResponse.refetch;
     }
 
     const getJobId = (): number | undefined => (task ? task.job.id : jobId);
@@ -871,19 +874,13 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         }
 
         const getPages = (): PageInfo[] => {
-            // TODO: uncommented after BE will be ready (issue #569)
-            // if (task?.is_validation && splitValidation.isSplitValidation) {
-            //     return pages;
-            // } else {
-            //     return validationValues.validPages.length || validationValues.invalidPages.length
-            //         ? []
-            //         : pages;
-            // }
-
-            // TODO: del after BE will be ready (issue #569)
-            return validationValues.validPages.length || validationValues.invalidPages.length
-                ? []
-                : pages;
+            if (task?.is_validation && splitValidation.isSplitValidation) {
+                return pages;
+            } else {
+                return validationValues.validPages.length || validationValues.invalidPages.length
+                    ? []
+                    : pages;
+            }
         };
 
         try {
@@ -975,7 +972,8 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         setValidPages: validationValues.setValidPages,
         onAnnotationTaskFinish,
         userId: task?.user_id,
-        task: task
+        task,
+        taskPages
     });
     const taxonLabels = useAnnotationsTaxons(latestAnnotationsResult.data?.pages);
     const comparedTaxonLabels: Map<string, Taxon> = useMemo(

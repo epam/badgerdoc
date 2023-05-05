@@ -10,7 +10,6 @@ import useAnnotationsTaxons from 'shared/hooks/use-annotations-taxons';
 import useAnnotationsMapper from 'shared/hooks/use-annotations-mapper';
 import { Task } from 'api/typings/tasks';
 import { convertToUserRevisions } from './utils';
-import { useGetPageSummary } from '../../api/hooks/tasks';
 import { UserRevision } from './revisionTypes';
 
 interface SplitValidationParams {
@@ -37,6 +36,7 @@ interface SplitValidationParams {
     onAnnotationTaskFinish: () => void;
     userId?: string;
     task?: Task;
+    taskPages: number[];
 }
 
 export interface SplitValidationValue {
@@ -69,7 +69,8 @@ export default function useSplitValidation({
     validPages,
     onAnnotationTaskFinish,
     userId,
-    task
+    task,
+    taskPages
 }: SplitValidationParams): SplitValidationValue {
     const isSplitValidation = isValidation && job?.validation_type === 'extensive_coverage';
 
@@ -82,16 +83,11 @@ export default function useSplitValidation({
         { enabled: isSplitValidation }
     );
 
-    const { data: pages } = useGetPageSummary(
-        { taskId: task?.id, taskType: task?.is_validation },
-        { enabled: Boolean(task) }
-    );
-
     const { data: latestRevision } = useLatestAnnotationsByUser(
         {
             fileId,
             jobId: job?.id,
-            pageNumbers: pages?.annotated_pages
+            pageNumbers: taskPages
         },
         { enabled: isSplitValidation }
     );
