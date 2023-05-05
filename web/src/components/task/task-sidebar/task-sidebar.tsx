@@ -20,7 +20,8 @@ import {
     AnnotationBoundMode,
     AnnotationBoundType,
     AnnotationImageToolType,
-    AnnotationLinksBoundType
+    AnnotationLinksBoundType,
+    ToolNames
 } from 'shared';
 import { Status } from 'shared/components/status';
 import { mapStatusForValidationPage } from 'shared/helpers/map-statuses';
@@ -109,7 +110,8 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
         allValidated,
         annotationSaved,
         onFinishValidation,
-        notProcessedPages
+        notProcessedPages,
+        isDataTabDisabled
     } = useTaskAnnotatorContext();
     const {
         tableModeColumns,
@@ -151,7 +153,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
                 break;
             case 'segmentation':
                 newSelectionType = 'polygon';
-                onChangeSelectedTool('pen');
+                onChangeSelectedTool(ToolNames.pen);
 
                 break;
             default:
@@ -356,6 +358,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
                                     caption={tabName}
                                     isLinkActive={tabValue === tabName}
                                     onClick={() => setTabValue(tabName)}
+                                    isDisabled={tabName === 'Data' && isDataTabDisabled}
                                 />
                             ))}
                         </FlexRow>

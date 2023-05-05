@@ -69,7 +69,7 @@ export default function useAnnotationsMapper(
                 return [label];
             }
             const tokenKey: string = getTokenKey(pageKey, topRightToken);
-            const labels: AnnotationLabel[] = tokenLabelsMap.get(tokenKey) ?? [];
+            const labels: AnnotationLabel[] = [...(tokenLabelsMap.get(tokenKey) ?? [])];
             labels.push(label);
             tokenLabelsMap.set(tokenKey, labels);
 

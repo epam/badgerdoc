@@ -121,10 +121,11 @@ export default function useSplitValidation({
             };
 
             copy.id = Date.now();
+
             if (
-                validatorAnnotations[currentPage]
-                    ?.map((el) => el.originalAnnotationId)
-                    .includes(Number(originalAnn.id))
+                validatorAnnotations[currentPage]?.some(
+                    (item) => item.originalAnnotationId === Number(originalAnn.id)
+                )
             ) {
                 return;
             }
@@ -194,7 +195,6 @@ export default function useSplitValidation({
         () => ({
             annotationsByUserId,
             isSplitValidation,
-            job,
             onSplitAnnotationSelected,
             onSplitLinkSelected,
             onFinishSplitValidation,

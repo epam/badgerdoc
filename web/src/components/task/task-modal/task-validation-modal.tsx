@@ -20,7 +20,7 @@ import { IFormApi, IModal, Metadata, useArrayDataSource } from '@epam/uui';
 
 import { TUserShort } from '../../../api/typings';
 import styles from './task-modal.module.scss';
-import { TTaskUsers } from 'api/typings/tasks';
+import { TJobUsers } from 'api/typings/jobs';
 import { DEFAULT_VALUES } from './constants';
 
 export interface TaskValidationValues {
@@ -32,9 +32,8 @@ interface IProps extends IModal<TaskValidationValues> {
     allValid: boolean;
     invalidPages: number;
     editedPageCount: number;
-    validSave: () => Promise<void>;
-    allUsers: TTaskUsers;
-    currentUser: string;
+    validSave: () => void;
+    allUsers: TJobUsers;
     isOwner: boolean;
     onRedirectAfterFinish: () => void;
 }
@@ -44,15 +43,16 @@ export const FinishTaskValidationModal: FC<IProps> = (modalProps) => {
         allUsers,
         invalidPages,
         editedPageCount,
-        isOwner,
         allValid,
+        isOwner,
         abort,
         validSave,
         onRedirectAfterFinish,
         onSaveForm
     } = modalProps;
+
     const [validatorUserId, onValidatorUserIdChange] = useState(
-        allUsers.validators[0]?.id || allUsers.annotators[0]?.id
+        allUsers.validators[0] || allUsers.annotators[0]?.id
     );
     const [annotatorUserId, onAnnotatorUserIdChange] = useState(allUsers.annotators[0]?.id);
 

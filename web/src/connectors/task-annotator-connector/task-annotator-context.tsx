@@ -1,6 +1,5 @@
 import React, {
     createContext,
-    MutableRefObject,
     useCallback,
     useContext,
     useEffect,
@@ -8,14 +7,10 @@ import React, {
     useRef,
     useState
 } from 'react';
-import { cloneDeep, isEqual } from 'lodash';
-import { Task, TTaskUsers } from 'api/typings/tasks';
+import { cloneDeep } from 'lodash';
+import { Task } from 'api/typings/tasks';
 import { ApiError } from 'api/api-error';
-import {
-    DocumentLink,
-    useAddAnnotationsMutation,
-    useLatestAnnotations
-} from 'api/hooks/annotations';
+import { useAddAnnotationsMutation, useLatestAnnotations } from 'api/hooks/annotations';
 import { useSetTaskFinishedMutation, useSetTaskState, useTaskById } from 'api/hooks/tasks';
 import { useCategoriesByJob } from 'api/hooks/categories';
 import { useDocuments } from 'api/hooks/documents';
@@ -25,8 +20,6 @@ import {
     Category,
     CategoryDataAttributeWithValue,
     ExternalViewerState,
-    FileDocument,
-    FilterWithDocumentExtraOption,
     Label,
     Link,
     Operators,
@@ -37,7 +30,6 @@ import {
 import { Job } from 'api/typings/jobs';
 import { FileMetaInfo } from 'pages/document/document-page-sidebar-content/document-page-sidebar-content';
 
-import { QueryObserverResult, RefetchOptions, RefetchQueryFilters } from 'react-query';
 import {
     Annotation,
     AnnotationBoundType,
@@ -47,7 +39,7 @@ import {
     PageToken,
     PaperToolParams,
     TableGutterMap,
-    toolNames
+    ToolNames
 } from 'shared';
 import { useAnnotationsLinks } from 'shared/components/annotator/utils/use-annotation-links';
 import { documentSearchResultMapper } from 'shared/helpers/document-search-result-mapper';
@@ -65,39 +57,35 @@ import {
     mapTokenPagesFromApi
 } from './task-annotator-utils';
 import useSplitValidation, { SplitValidationValue } from './use-split-validation';
-import { useTaskUsers } from './use-task-users';
 import { DocumentLinksValue, useDocumentLinks } from './use-document-links';
 import { useValidation, ValidationValues } from './use-validation';
 import { useNotifications } from 'shared/components/notifications';
 
 import { Text, Panel } from '@epam/loveship';
 import { getError } from 'shared/helpers/get-error';
+import { getToolsParams, removeAnnotationAndLabels } from './utils';
 
 type ContextValue = SplitValidationValue &
     SyncScrollValue &
     DocumentLinksValue &
-    ValidationValues & {
+    Omit<ValidationValues, 'allValid' | 'setValidPages' | 'setAnnotationSaved'> & {
         task?: Task;
         job?: Job;
         categories?: Category[];
-        categoriesLoading?: boolean;
         selectedCategory?: Category;
-        selectedLink?: Link;
         selectedAnnotation?: Annotation;
         fileMetaInfo: FileMetaInfo;
-        tokensByPages: Record<number, PageToken[]>;
+        tokensByPages: Record<string, PageToken[]>;
         allAnnotations?: Record<string, Annotation[]>;
         pageNumbers: number[];
         currentPage: number;
         modifiedPages: number[];
+        isDataTabDisabled: boolean;
         pageSize?: { width: number; height: number };
         setPageSize: (pS: any) => void;
         tabValue: string;
-        isOwner: boolean;
-        taskUsers: MutableRefObject<TTaskUsers>;
         selectionType: AnnotationBoundType | AnnotationLinksBoundType | AnnotationImageToolType;
         selectedTool: AnnotationImageToolType;
-        setSelectedTool: (t: AnnotationImageToolType) => void;
         onChangeSelectedTool: (t: AnnotationImageToolType) => void;
         tableMode: boolean;
         isNeedToSaveTable: {
@@ -108,15 +96,13 @@ type ContextValue = SplitValidationValue &
             gutters: Maybe<TableGutterMap>;
             cells: Maybe<Annotation[]>;
         }) => void;
-        isDataTabDisabled: boolean;
         isCategoryDataEmpty: boolean;
-        annDataAttrs: Record<number, Array<CategoryDataAttributeWithValue>>;
+        annDataAttrs: Record<string, Array<CategoryDataAttributeWithValue>>;
         externalViewer: ExternalViewerState;
         onChangeSelectionType: (
             newType: AnnotationBoundType | AnnotationLinksBoundType | AnnotationImageToolType
         ) => void;
         onCategorySelected: (category: Category) => void;
-        onLinkSelected: (link: Link) => void;
         onSaveTask: () => void;
         onExternalViewerClose: () => void;
         onAnnotationTaskFinish: () => void;
@@ -150,7 +136,6 @@ type ContextValue = SplitValidationValue &
         latestLabelsId: string[];
         isDocLabelsModified: boolean;
         getJobId: () => number | undefined;
-        linksFromApi?: DocumentLink[];
         setCurrentDocumentUserId: (userId?: string) => void;
         currentDocumentUserId?: string;
     };
@@ -168,7 +153,6 @@ type ProviderProps = {
 type UndoListAction = 'edit' | 'delete' | 'add';
 
 const TaskAnnotatorContext = createContext<ContextValue | undefined>(undefined);
-const dataTabDefaultDisableState = true;
 const defaultPageWidth: number = 0;
 const defaultPageHeight: number = 0;
 
@@ -187,8 +171,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
     const [selectedLabels, setSelectedLabels] = useState<Label[]>([]);
     const [latestLabelsId, setLatestLabelsId] = useState<string[]>([]);
     const [isDocLabelsModified, setIsDocLabelsModified] = useState<boolean>(false);
-    const [selectedLink, setSelectedLink] = useState<Link>();
-    const [allAnnotations, setAllAnnotations] = useState<Record<number, Annotation[]>>({});
+    const [allAnnotations, setAllAnnotations] = useState<Record<string, Annotation[]>>({});
 
     const [copiedAnnotation, setCopiedAnnotation] = useState<Annotation>();
     const copiedAnnotationReference = useRef<Annotation | undefined>();
@@ -210,12 +193,12 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
     const [selectionType, setSelectionType] = useState<
         AnnotationBoundType | AnnotationLinksBoundType | AnnotationImageToolType
     >('free-box');
-    const [selectedTool, setSelectedTool] = useState<AnnotationImageToolType>('pen');
+    const [selectedTool, setSelectedTool] = useState<AnnotationImageToolType>(ToolNames.pen);
     const [selectedAnnotation, setSelectedAnnotation] = useState<Annotation | undefined>();
-    const [isDataTabDisabled, setIsDataTabDisabled] = useState<boolean>(dataTabDefaultDisableState);
+    const [isDataTabDisabled, setIsDataTabDisabled] = useState(true);
     const [isCategoryDataEmpty, setIsCategoryDataEmpty] = useState<boolean>(false);
     const [annDataAttrs, setAnnDataAttrs] = useState<
-        Record<number, Array<CategoryDataAttributeWithValue>>
+        Record<string, Array<CategoryDataAttributeWithValue>>
     >({});
     const [externalViewer, setExternalViewer] =
         useState<ExternalViewerState>(defaultExternalViewer);
@@ -231,9 +214,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         cells: undefined
     });
 
-    const [storedParams, setStoredParams] = useState<{
-        [k in typeof toolNames[number]]: Maybe<PaperToolParams>;
-    }>({
+    const [storedParams, setStoredParams] = useState<Record<ToolNames, Maybe<PaperToolParams>>>({
         brush: undefined,
         dextr: undefined,
         eraser: undefined,
@@ -243,7 +224,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         wand: undefined
     });
 
-    let fileMetaInfo: FileMetaInfo = fileMetaInfoParam!;
+    let fileMetaInfo = fileMetaInfoParam!;
 
     const [pageSize, setPageSize] = useState<{ width: number; height: number }>({
         width: defaultPageWidth,
@@ -252,39 +233,12 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
 
     const { notifyError } = useNotifications();
 
-    let task: Task | undefined;
-    let isTaskLoading: boolean = false;
-    let refetchTask: (
-        options?: (RefetchOptions & RefetchQueryFilters<Task>) | undefined
-    ) => Promise<QueryObserverResult<Task, unknown>>;
-    if (taskId) {
-        const result = useTaskById({ taskId }, {});
-        task = result.data;
-        isTaskLoading = result.isLoading;
-        refetchTask = result.refetch;
-    }
+    const { data: task, isLoading: isTaskLoading, refetch: refetchTask } = useTaskById({ taskId });
+    const { data: job } = useJobById({ jobId: task?.job.id });
 
     const getJobId = (): number | undefined => (task ? task.job.id : jobId);
 
-    const getFileId = (): number | undefined => (task ? task.file.id : fileMetaInfo?.id);
-    const { isOwner, taskUsers } = useTaskUsers(task);
-
-    const { data: job } = useJobById({ jobId: task?.job.id });
-
-    let pageNumbers: number[] = [];
-
-    if (task) {
-        pageNumbers = task.pages;
-    } else if (fileMetaInfo?.pages) {
-        for (let i = 0; i < fileMetaInfo.pages; i++) {
-            pageNumbers.push(i + 1);
-        }
-    }
-    const {
-        data: { pages: categories } = {},
-        refetch: refetchCategories,
-        isLoading: categoriesLoading
-    } = useCategoriesByJob(
+    const { data: { pages: categories } = {}, refetch: refetchCategories } = useCategoriesByJob(
         {
             jobId: getJobId(),
             size: 100,
@@ -294,22 +248,37 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         { enabled: false }
     );
 
+    const getFileId = (): number | undefined => (task ? task.file.id : fileMetaInfo?.id);
+
+    const pageNumbers: number[] = useMemo(() => {
+        if (task) return task.pages;
+        if (fileMetaInfo?.pages) {
+            const pages = [];
+            for (let i = 0; i < fileMetaInfo.pages; i++) {
+                pages.push(i + 1);
+            }
+
+            return pages;
+        }
+
+        return [];
+    }, [task?.pages, fileMetaInfo?.pages]);
+
     useEffect(() => {
         if (task?.job.id || jobId) {
             refetchCategories();
         }
     }, [task, jobId]);
 
-    const documentFilters: FilterWithDocumentExtraOption<keyof FileDocument>[] = [];
-
-    documentFilters.push({
-        field: 'id',
-        operator: Operators.EQ,
-        value: getFileId()
-    });
     const documentsResult = useDocuments(
         {
-            filters: documentFilters
+            filters: [
+                {
+                    field: 'id',
+                    operator: Operators.EQ,
+                    value: getFileId()
+                }
+            ]
         },
         { enabled: false }
     );
@@ -353,6 +322,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             tokenRes.refetch();
         }
     }, [task, job, revisionId]);
+
     useAnnotationsLinks(
         selectedAnnotation,
         selectedCategory,
@@ -363,6 +333,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             selectedAnnotation && onAnnotationEdited(prevPage, annId, links),
         setSelectedCategory
     );
+
     const createAnnotation = (
         pageNum: number,
         annData: Annotation,
@@ -387,7 +358,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         }));
 
         setModifiedPages((prevState) => {
-            return Array.from(new Set([...prevState, pageNum]));
+            return prevState.includes(pageNum) ? prevState : [...prevState, pageNum];
         });
         setTableMode(newAnnotation.boundType === 'table');
         setSelectedAnnotation(newAnnotation);
@@ -395,6 +366,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         setAnnotationDataAttrs(newAnnotation);
         return newAnnotation;
     };
+
     const onCloseDataTab = () => {
         setTabValue('Categories');
         setIsDataTabDisabled(true);
@@ -409,41 +381,20 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
     };
 
     const deleteAnnotation = (pageNum: number, annotationId: string | number) => {
-        const pageAnnotations = allAnnotations[pageNum] ?? [];
-        const anntn: Maybe<Annotation> = pageAnnotations.find((el) => el.id === annotationId);
-        if (anntn?.labels) {
-            const labelIdxToDelete = anntn.labels.findIndex(
-                (item) => item.annotationId === annotationId
-            );
-            if (labelIdxToDelete !== -1) {
-                anntn?.labels?.splice(labelIdxToDelete, 1);
-            }
-        }
+        const pageAnnotations = allAnnotations[pageNum];
+        const annotation: Maybe<Annotation> = pageAnnotations?.find((el) => el.id === annotationId);
+
+        if (!annotation) return;
+
         setAllAnnotations((prevState) => {
-            for (let k in prevState) {
-                prevState[k].map((annList) =>
-                    annList?.links?.filter((link) => link.to !== annotationId)
-                );
-            }
             return {
                 ...prevState,
-                [pageNum]: pageAnnotations.filter((ann) => {
-                    if (
-                        anntn &&
-                        anntn.children &&
-                        anntn.boundType === 'table' &&
-                        (anntn.children as number[]).includes(+ann.id) &&
-                        ann.boundType === 'table_cell'
-                    ) {
-                        return false;
-                    }
-                    return ann.id !== annotationId;
-                })
+                [pageNum]: removeAnnotationAndLabels(pageAnnotations, annotation)
             };
         });
 
         setModifiedPages((prevState) => {
-            return Array.from(new Set([...prevState, pageNum]));
+            return prevState.includes(pageNum) ? prevState : [...prevState, pageNum];
         });
     };
 
@@ -465,17 +416,14 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             if (!Array.isArray(labels)) return;
 
             const currentLabelsId = labels.map((label) => label.id);
-            const isDocLabelsModifiedNewVal = !isEqual(latestLabelsId, currentLabelsId);
+            const isDocLabelsModifiedNewVal =
+                latestLabelsId.toString() !== currentLabelsId.toString();
 
             setIsDocLabelsModified(isDocLabelsModifiedNewVal);
             setSelectedLabels(labels);
         },
         [latestLabelsId]
     );
-
-    const onLinkSelected = (link: Link) => {
-        setSelectedLink(link);
-    };
 
     const onChangeSelectionType = (
         newType: AnnotationBoundType | AnnotationLinksBoundType | AnnotationImageToolType
@@ -496,43 +444,10 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
     }, [selectedToolParams]);
 
     useEffect(() => {
-        switch (selectedTool) {
-            case 'eraser':
-                if (storedParams.eraser) setSelectedToolParams(storedParams.eraser);
-                else
-                    setSelectedToolParams({
-                        type: 'slider-number',
-                        values: {
-                            radius: { value: 40, bounds: { min: 0, max: 150 } }
-                        }
-                    });
-                break;
-            case 'brush':
-                if (storedParams.brush) setSelectedToolParams(storedParams.brush);
-                else
-                    setSelectedToolParams({
-                        type: 'slider-number',
-                        values: {
-                            radius: { value: 40, bounds: { min: 0, max: 150 } }
-                        }
-                    });
-                break;
-            case 'wand':
-                if (storedParams.wand) setSelectedToolParams(storedParams.wand);
-                else
-                    setSelectedToolParams({
-                        type: 'slider-number',
-                        values: {
-                            threshold: { value: 35, bounds: { min: 0, max: 150 } },
-                            deviation: { value: 15, bounds: { min: 0, max: 150 } }
-                        }
-                    });
-                break;
-            case 'dextr':
-            case 'rectangle':
-            case 'select':
-            case 'pen':
-                break;
+        const toolParams = getToolsParams(selectedTool, storedParams);
+
+        if (toolParams) {
+            setSelectedToolParams(toolParams);
         }
     }, [selectedTool]);
 
@@ -554,7 +469,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
     };
 
     const onEmptyAreaClick = () => {
-        setIsDataTabDisabled(dataTabDefaultDisableState);
+        setIsDataTabDisabled(true);
         setIsCategoryDataEmpty(true);
         setTabValue('Categories');
         setSelectedAnnotation(undefined);
@@ -567,9 +482,9 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         );
         if (foundCategoryDataAttrs && foundCategoryDataAttrs.length) {
             setAnnDataAttrs((prevState) => {
-                prevState[+annotation.id] = mapAnnDataAttrs(
+                prevState[annotation.id] = mapAnnDataAttrs(
                     foundCategoryDataAttrs,
-                    prevState[+annotation.id]
+                    prevState[annotation.id]
                 );
                 return prevState;
             });
@@ -580,7 +495,9 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             setTabValue('Categories');
             setIsCategoryDataEmpty(true);
         }
-        setIsDataTabDisabled(foundCategoryDataAttrs && foundCategoryDataAttrs.length === 0);
+        setIsDataTabDisabled(
+            Boolean(foundCategoryDataAttrs && foundCategoryDataAttrs.length === 0)
+        );
     };
 
     useEffect(() => {
@@ -618,12 +535,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
 
         setAllAnnotations((prevState) => ({
             ...prevState,
-            [pageNum]: [
-                ...pageAnnotations,
-                {
-                    ...newAnnotation
-                }
-            ]
+            [pageNum]: [...pageAnnotations, newAnnotation]
         }));
     };
 
@@ -639,8 +551,14 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
 
         modifyAnnotation(pageNumber, annotationId, undoList[undoPointer].annotation);
 
-        const undoListCopy = cloneDeep(undoList);
-        undoListCopy[undoPointer].annotation = oldAnnotationState!;
+        if (!oldAnnotationState) return;
+
+        const undoListCopy = [...undoList];
+        undoListCopy[undoPointer] = {
+            ...undoListCopy[undoPointer],
+            annotation: oldAnnotationState
+        };
+
         setUndoList(undoListCopy);
     };
 
@@ -720,7 +638,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
                 const mapAttributes = mapAnnDataAttrs(foundCategoryDataAttrs, prevState[+id]);
 
                 findAndSetExternalViewerType(mapAttributes);
-                prevState[+id] = mapAttributes;
+                prevState[id] = mapAttributes;
 
                 return prevState;
             });
@@ -732,23 +650,23 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         }
     };
 
-    const onDataAttributesChange = (elIndex: number, value: string) => {
-        const newAnn = { ...annDataAttrs };
+    const onDataAttributesChange = (index: number, value: string) => {
+        if (!selectedAnnotation) return;
 
-        if (selectedAnnotation) {
-            const annItem = newAnn[+selectedAnnotation.id][elIndex];
-            newAnn[+selectedAnnotation.id][elIndex].value = value;
+        const dataAttrByAnnotationId = [...annDataAttrs[selectedAnnotation.id]];
+        const dataAttr = dataAttrByAnnotationId[index];
 
-            if (isValidCategoryType(annItem.type)) {
-                setExternalViewer({
-                    isOpen: true,
-                    type: annItem.type,
-                    name: annItem.name,
-                    value
-                });
-            }
-            setAnnDataAttrs(newAnn);
+        dataAttrByAnnotationId[index] = { ...dataAttr, value };
+
+        if (isValidCategoryType(dataAttr.type)) {
+            setExternalViewer({
+                isOpen: true,
+                type: dataAttr.type,
+                name: dataAttr.name,
+                value
+            });
         }
+        setAnnDataAttrs({ ...annDataAttrs, [selectedAnnotation.id]: dataAttrByAnnotationId });
     };
 
     const addAnnotationMutation = useAddAnnotationsMutation();
@@ -759,8 +677,9 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         changes: Partial<Annotation>
     ) => {
         setAllAnnotations((prevState) => {
-            if (pageNum === -1) {
-                pageNum = (Object.keys(prevState) as unknown as Array<number>).find((key: number) =>
+            let pageNumber: string | number = pageNum;
+            if (pageNumber === -1) {
+                pageNumber = Object.keys(prevState).find((key: string) =>
                     prevState[key].find((ann) => ann.id == id)
                 )!;
             }
@@ -768,15 +687,12 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             return {
                 ...prevState,
                 [pageNum]: pageAnnotations.map((ann) => {
-                    if (ann.id === id) {
-                        return { ...ann, ...changes, id };
-                    }
-                    return ann;
+                    return ann.id !== id ? ann : { ...ann, ...changes };
                 })
             };
         });
         setModifiedPages((prevState) => {
-            return Array.from(new Set([...prevState, pageNum]));
+            return prevState.includes(pageNum) ? prevState : [...prevState, pageNum];
         });
     };
 
@@ -786,20 +702,19 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             return {
                 ...prevState,
                 [pageNum]: pageAnnotations.map((ann) => {
-                    if (ann.id === id) {
-                        return {
-                            ...ann,
-                            links: ann.links?.filter((link) => {
-                                return (
-                                    link.category_id !== linkToDel.category_id &&
-                                    link.page_num !== linkToDel.page_num &&
-                                    link.to !== linkToDel.to &&
-                                    link.type !== linkToDel.type
-                                );
-                            })
-                        };
-                    }
-                    return ann;
+                    if (ann.id !== id) return ann;
+
+                    return {
+                        ...ann,
+                        links: ann.links?.filter((link) => {
+                            return (
+                                link.category_id !== linkToDel.category_id &&
+                                link.page_num !== linkToDel.page_num &&
+                                link.to !== linkToDel.to &&
+                                link.type !== linkToDel.type
+                            );
+                        })
+                    };
                 })
             };
         });
@@ -813,7 +728,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         if (!annotationBeforeModification) {
             return;
         }
-        const undoListCopy = cloneDeep(undoList);
+        const undoListCopy = [...undoList];
         if (undoPointer !== -1) {
             undoListCopy.splice(undoPointer); // delete everything from pointer (including) to the right
             setUndoPointer(-1);
@@ -836,21 +751,23 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         modifyAnnotation(pageNum, annotationId, changes);
     };
 
+    const { linksToApi, setDocumentLinksChanged, ...documentLinksValues } = useDocumentLinks(
+        latestAnnotationsResult.data?.links_json
+    );
+
     const onSaveTask = async () => {
         if (!task || !latestAnnotationsResult.data) return;
 
         let { revision, pages } = latestAnnotationsResult.data;
 
-        const selectedLabelsId: string[] = selectedLabels.map((obj) => obj.id) ?? [];
+        const selectedLabelsId = selectedLabels.map((obj) => obj.id) ?? [];
 
         onCloseDataTab();
 
         if (task.is_validation && !splitValidation.isSplitValidation) {
-            validationValues.setAnnotationSaved(true);
+            setAnnotationSaved(true);
             pages = pages.filter(
-                (page) =>
-                    validationValues.validPages.includes(page.page_num) ||
-                    validationValues.invalidPages.includes(page.page_num)
+                (page) => validPages.includes(page.page_num) || invalidPages.includes(page.page_num)
             );
         } else {
             pages = mapModifiedAnnotationPagesToApi(
@@ -878,9 +795,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             // }
 
             // TODO: del after BE will be ready (issue #569)
-            return validationValues.validPages.length || validationValues.invalidPages.length
-                ? []
-                : pages;
+            return validPages.length || invalidPages.length ? [] : pages;
         };
 
         try {
@@ -889,21 +804,20 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
                 pages: getPages(),
                 userId: task.user_id,
                 revision,
-                validPages: validationValues.validPages,
-                invalidPages: validationValues.invalidPages,
+                validPages: validPages,
+                invalidPages: invalidPages,
                 selectedLabelsId,
-                links: documentLinksValues.linksToApi
+                links: linksToApi
             });
             onSaveTaskSuccess();
             latestAnnotationsResult.refetch();
             refetchTask();
-            documentLinksValues?.setDocumentLinksChanged?.(false);
+            setDocumentLinksChanged?.(false);
         } catch (error) {
             onSaveTaskError(error as ApiError);
         }
     };
-
-    const tokensByPages = useMemo<Record<number, PageToken[]>>(() => {
+    const tokensByPages = useMemo<Record<string, PageToken[]>>(() => {
         if (!tokenPages?.length) {
             return {};
         }
@@ -914,12 +828,22 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         return mapTokenPagesFromApi(tokenPages, tokenScale);
     }, [tokenPages, pageSize]);
 
-    const validationValues = useValidation({
+    const {
+        validPages,
+        invalidPages,
+        onAddTouchedPage,
+        setValidPages,
+        setAnnotationSaved,
+        ...validationValues
+    } = useValidation({
         latestAnnotationsResult,
         task,
         currentPage,
-        taskUsers,
-        isOwner,
+        jobUsers: {
+            owners: job?.owners ?? [],
+            annotators: job?.annotators ?? [],
+            validators: job?.validators ?? []
+        },
         onCloseDataTab,
         onSaveTask,
         allAnnotations,
@@ -931,6 +855,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         onSaveTaskSuccess,
         onSaveTaskError
     });
+
     const finishTaskMutation = useSetTaskFinishedMutation();
     const onAnnotationTaskFinish = async () => {
         if (task) {
@@ -966,10 +891,10 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         validatorAnnotations: allAnnotations,
         onAnnotationCreated,
         onAnnotationEdited,
-        onAddTouchedPage: validationValues.onAddTouchedPage,
+        onAddTouchedPage: onAddTouchedPage,
         setSelectedAnnotation,
-        validPages: validationValues.validPages,
-        setValidPages: validationValues.setValidPages,
+        validPages: validPages,
+        setValidPages: setValidPages,
         onAnnotationTaskFinish,
         userId: task?.user_id,
         task: task
@@ -1017,19 +942,13 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
 
     const { SyncedContainer } = useSyncScroll();
 
-    const linksFromApi = latestAnnotationsResult.data?.links_json;
-
-    const documentLinksValues = useDocumentLinks(linksFromApi);
-
     const value = useMemo<ContextValue>(() => {
         return {
             task,
             job,
             getJobId,
             categories,
-            categoriesLoading,
             selectedCategory,
-            selectedLink,
             fileMetaInfo,
             tokensByPages,
             allAnnotations,
@@ -1040,7 +959,6 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             modifiedPages,
             selectionType,
             selectedTool,
-            setSelectedTool,
             selectedToolParams,
             setSelectedToolParams,
             onChangeSelectedTool,
@@ -1049,10 +967,8 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             setIsNeedToSaveTable,
             tabValue,
             selectedAnnotation,
-            taskUsers,
-            isOwner,
-            isDataTabDisabled,
             isCategoryDataEmpty,
+            isDataTabDisabled,
             annDataAttrs,
             externalViewer,
             tableCellCategory,
@@ -1062,7 +978,6 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             onAnnotationEdited,
             onLinkDeleted,
             onCategorySelected,
-            onLinkSelected,
             onChangeSelectionType,
             onSaveTask,
             onAnnotationTaskFinish,
@@ -1084,22 +999,22 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             isDocLabelsModified,
             setSelectedLabels,
             latestLabelsId,
-            setLatestLabelsId,
-            linksFromApi,
             setCurrentDocumentUserId,
             currentDocumentUserId,
+            validPages,
+            invalidPages,
+            onAddTouchedPage,
+            setValidPages,
             SyncedContainer,
+            ...validationValues,
             ...splitValidation,
-            ...documentLinksValues,
-            ...validationValues
+            ...documentLinksValues
         };
     }, [
         task,
         job,
         categories,
-        categoriesLoading,
         selectedCategory,
-        selectedLink,
         selectionType,
         selectedTool,
         fileMetaInfo,
@@ -1114,16 +1029,17 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         annDataAttrs,
         externalViewer,
         tableCellCategory,
-        isDataTabDisabled,
         selectedToolParams,
         splitValidation,
         SyncedContainer,
         selectedLabels,
         latestLabelsId,
-        linksFromApi,
         documentLinksValues,
         latestAnnotationsResult,
-        validationValues,
+        validPages,
+        invalidPages,
+        onAddTouchedPage,
+        setValidPages,
         currentDocumentUserId
     ]);
 

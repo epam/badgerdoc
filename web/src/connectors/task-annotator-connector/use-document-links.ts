@@ -82,7 +82,7 @@ export const useDocumentLinks = (linksFromApi?: DocumentLink[]): DocumentLinksVa
             selectedRelatedDoc,
             setDocumentLinksChanged
         }),
-        [documentLinks, documentLinksChanged, linksToApi, selectedRelatedDoc]
+        [documentLinks, documentLinksChanged, selectedRelatedDoc]
     );
 };
 
