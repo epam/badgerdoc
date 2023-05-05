@@ -492,7 +492,7 @@ def get_from_cache(objs_ids: Set[Any], cache_used: LRU):
 
 def get_user_names_by_user_ids(
     user_ids: Set[int], tenant: str, token: str
-) -> Dict[Union[str, int]]:
+) -> Dict[Union[str, int], str]:
 
     # 1. Get usernames from cache
     user_names_from_cache, not_cached_usernames = get_from_cache(
@@ -512,7 +512,7 @@ def get_user_names_by_user_ids(
 
 def get_file_names_by_file_ids(
     file_ids: Set[int], tenant: str, token: str
-) -> Dict[Union[str, int]]:
+) ->  Dict[Union[str, int], str]:
 
     # 1. Get file names from cache
     file_names_from_cache, not_cached_filenames = get_from_cache(
