@@ -371,6 +371,31 @@ DOC_FOR_FIRST_SAVE_BY_USER = {
     "links_json": [],
 }
 
+DOC_FOR_FIRST_SAVE_AND_VALIDATE_BY_USER = {
+    "user": POST_ANNOTATION_ANNOTATOR.user_id,
+    "pages": [
+        {
+            "page_num": 1,
+            "size": {"width": 0.0, "height": 0.0},
+            "objs": [
+                {
+                    "id": 0,
+                    "type": "string",
+                    "segmentation": {"segment": "string"},
+                    "bbox": [0.0, 0.0, 0.0, 0.0],
+                    "tokens": None,
+                    "links": [{"category_id": 0, "to": 0, "page_num": 1}],
+                    "category": "0",
+                    "data": {},
+                }
+            ],
+        }
+    ],
+    "validated": [1],
+    "failed_validation_pages": [],
+    "links_json": [],
+}
+
 DOC_WITH_BBOX_AND_TOKENS_FIELDS = copy.deepcopy(DOC_FOR_FIRST_SAVE_BY_USER)
 DOC_WITH_BBOX_AND_TOKENS_FIELDS["pages"][0]["objs"][0]["tokens"] = [
     "token_1",
@@ -540,6 +565,31 @@ ANNOTATED_DOC_FIRST = {
         ).hexdigest()
     },
     "validated": DOC_FOR_FIRST_SAVE_BY_USER["validated"],
+    "failed_validation_pages": [],
+    "tenant": POST_ANNOTATION_PG_DOC.tenant,
+    "task_id": POST_ANNOTATION_PG_TASK_1.id,
+    "similar_revisions": None,
+    "categories": [],
+    "links_json": [],
+}
+ANNOTATED_AND_VALIDATED_DOC_FIRST = {
+    "revision": sha1(
+        json.dumps(DOC_FOR_FIRST_SAVE_AND_VALIDATE_BY_USER["pages"][0]).encode()
+        + json.dumps(DOC_FOR_FIRST_SAVE_AND_VALIDATE_BY_USER["validated"]).encode()
+        + json.dumps(
+            DOC_FOR_FIRST_SAVE_AND_VALIDATE_BY_USER["failed_validation_pages"]
+        ).encode()
+    ).hexdigest(),
+    "user": POST_ANNOTATION_ANNOTATOR.user_id,
+    "pipeline": None,
+    "file_id": POST_ANNOTATION_FILE_1.file_id,
+    "job_id": POST_ANNOTATION_JOB_1.job_id,
+    "pages": {
+        "1": sha1(
+            json.dumps(DOC_FOR_FIRST_SAVE_AND_VALIDATE_BY_USER["pages"][0]).encode()
+        ).hexdigest()
+    },
+    "validated": DOC_FOR_FIRST_SAVE_AND_VALIDATE_BY_USER["validated"],
     "failed_validation_pages": [],
     "tenant": POST_ANNOTATION_PG_DOC.tenant,
     "task_id": POST_ANNOTATION_PG_TASK_1.id,
@@ -2580,3 +2630,41 @@ def test_post_user_annotation_wrong_task_statuses(
     assert expected_message in annotation_response.text
     db_task = session.query(ManualAnnotationTask).get(task_id)
     assert db_task.status == task_initial_status
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize(
+    ["task_id", "doc", "expected_result"],
+    [
+        (TASK_ID, DOC_FOR_FIRST_SAVE_AND_VALIDATE_BY_USER, ANNOTATED_AND_VALIDATED_DOC_FIRST),
+    ],
+)
+@patch("annotation.annotations.main.KafkaProducer", Mock)
+@responses.activate
+def test_post_annotation_and_validation_by_user(
+    mock_minio_empty_bucket,
+    prepare_db_for_post_annotation,
+    task_id,
+    doc,
+    expected_result,
+):
+    responses.add(
+        responses.POST,
+        ASSETS_FILES_URL,
+        json=ASSETS_RESPONSES[0],
+        status=200,
+        headers=TEST_HEADERS,
+    )
+    with TestClient(app):
+        mock_producer = producers["search_annotation"]
+        mock_producer.send = Mock(return_value="any_message")
+        actual_result = client.post(
+            construct_path(ANNOTATION_PATH, task_id),
+            headers={
+                HEADER_TENANT: POST_ANNOTATION_PG_DOC.tenant,
+                AUTHORIZATION: f"{BEARER} {TEST_TOKEN}",
+            },
+            json=doc,
+        ).json()
+    del actual_result["date"]
+    assert actual_result == expected_result
