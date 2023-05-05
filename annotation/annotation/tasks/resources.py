@@ -52,7 +52,7 @@ from annotation.microservice_communication.search import (
 )
 from annotation.microservice_communication.user import (
     GetUserInfoAccessDenied,
-    get_user_logins,
+    get_user_names,
 )
 from annotation.schemas import (
     AnnotationStatisticsInputSchema,
@@ -123,9 +123,11 @@ def _prepare_expanded_tasks_response(
     """
     file_names = get_file_names_by_request(list(file_ids), tenant, token)
     job_names = collect_job_names(db, list(job_ids), tenant, token)
+    user_ids = [task.user_id for task in tasks]
 
     try:
-        user_logins = get_user_logins(tasks, tenant, token)
+
+        user_logins = get_user_names(user_ids, tenant, token)
     except GetUserInfoAccessDenied:
         Logger.info(
             "Trying to get users logins with non-admin jwt. "

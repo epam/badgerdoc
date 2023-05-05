@@ -16,7 +16,7 @@ from annotation.microservice_communication.search import (
     BEARER,
     HEADER_TENANT,
 )
-from annotation.microservice_communication.user import USERS_SEARCH_URL
+from annotation.microservice_communication.user import USERS_GET_USER_URL
 from annotation.models import Category, File, Job, ManualAnnotationTask, User
 from annotation.schemas import (
     CategoryTypeSchema,
@@ -370,7 +370,7 @@ def test_post_next_task(
     )
     responses.add(
         responses.GET,
-        re.compile(f"{USERS_SEARCH_URL}/\\w+"),
+        re.compile(f"{USERS_GET_USER_URL}/\\w+"),
         json=USERS_SEARCH_RESPONSE,
         status=200,
         headers=TEST_HEADERS,
