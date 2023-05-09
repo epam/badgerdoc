@@ -1,5 +1,4 @@
 import React, { FC, useEffect, useMemo, useRef, useState } from 'react';
-import { Accordion, Button, FlexRow, Text } from '@epam/loveship';
 import { AnnotationRow } from './annotation';
 import { Annotation } from 'shared';
 import {
@@ -15,6 +14,8 @@ import { ReactComponent as goFirstIcon } from '@epam/assets/icons/common/navigat
 import { collectIncomingLinks } from './utils';
 import { Label, Link } from 'api/typings';
 import { LabelRow } from './label-row';
+
+import { Accordion, Button, FlexRow, Text } from '@epam/loveship';
 
 export const AnnotationList: FC<{
     list: Annotation[];
@@ -153,7 +154,7 @@ export const AnnotationList: FC<{
                         {...annotation}
                         index={index}
                         isEditable={isEditable}
-                        key={annotation.id}
+                        key={`${annotation.id}-${index}`}
                         onLinkDeleted={onLinkDeleted}
                         annotationNameById={annotationNameById}
                         incomingLinks={incomingLinksByAnnotationId[annotation.id]}

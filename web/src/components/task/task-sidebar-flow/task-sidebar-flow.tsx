@@ -1,19 +1,14 @@
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
-import { Button, FlexRow, Panel, TabButton } from '@epam/loveship';
 import { useTaskAnnotatorContext } from 'connectors/task-annotator-connector/task-annotator-context';
 import { AnnotationList } from './annotation-list';
-import {
-    getTabs,
-    getCategoriesByUserId,
-    getSortedAllAnnotationList,
-    getSortedAnnotationsByUserId
-} from './utils';
+import { getTabs, getCategoriesByUserId, getSortedAllAnnotationList } from './utils';
+import { Label } from 'api/typings';
 import { OWNER_TAB, VISIBILITY_SETTING_ID } from './constants';
 import { ReactComponent as closeIcon } from '@epam/assets/icons/common/navigation-chevron-left_left-18.svg';
 import { ReactComponent as openIcon } from '@epam/assets/icons/common/navigation-chevron-right_right-18.svg';
 
+import { Button, FlexRow, Panel, TabButton } from '@epam/loveship';
 import styles from './styles.module.scss';
-import { Label } from 'api/typings';
 
 export const FlowSideBar: FC = () => {
     const [currentTab, setCurrentTab] = useState(OWNER_TAB.id);
@@ -87,18 +82,13 @@ export const FlowSideBar: FC = () => {
         [allAnnotationsByPageNum]
     );
 
-    const sortedAnnotationsByUserId = useMemo(
-        () => getSortedAnnotationsByUserId(latestRevisionByAnnotatorsWithBounds),
-        [latestRevisionByAnnotatorsWithBounds]
-    );
-
     const categoriesByUserId = useMemo(
         () => getCategoriesByUserId(latestRevisionByAnnotators, categories),
         [latestRevisionByAnnotators, categories]
     );
 
     const annotationsByTab = {
-        ...sortedAnnotationsByUserId,
+        ...latestRevisionByAnnotatorsWithBounds,
         [OWNER_TAB.id]: allSortedAnnotations
     };
 

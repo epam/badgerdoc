@@ -1,3 +1,4 @@
+import { Annotation } from '../../shared/components/annotator/typings';
 import { LatestRevisionResponse, RevisionObjByUser, UserRevision } from './revisionTypes';
 
 export function convertToUserRevisions(response: LatestRevisionResponse): UserRevision[] {
@@ -49,4 +50,31 @@ export function getRevisionByUser(
     }
 
     return result;
+}
+
+export function removeDuplicatesById(
+    response: Record<string, Annotation[]>
+): Record<string, Annotation[]> {
+    const uniqResponseData = { ...response };
+    const ids = new Set<number>();
+
+    for (const key in uniqResponseData) {
+        if (!hasProperty(uniqResponseData, key)) {
+            continue;
+        }
+
+        uniqResponseData[key] = uniqResponseData[key].filter((annotation) => {
+            if (ids.has(+annotation.id)) {
+                return false;
+            }
+            ids.add(+annotation.id);
+            return true;
+        });
+    }
+
+    return uniqResponseData;
+}
+
+function hasProperty(response: Record<string, Annotation[]>, prop: string): boolean {
+    return Object.prototype.hasOwnProperty.call(response, prop);
 }
