@@ -72,6 +72,7 @@ import { useNotifications } from 'shared/components/notifications';
 
 import { Text, Panel } from '@epam/loveship';
 import { getError } from 'shared/helpers/get-error';
+import { removeDuplicatesById } from './utils';
 
 type ContextValue = SplitValidationValue &
     SyncScrollValue &
@@ -322,7 +323,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             jobId: getJobId(),
             fileId: getFileId(),
             revisionId,
-            pageNumbers: pageNumbers,
+            pageNumbers,
             userId:
                 job?.validation_type === 'extensive_coverage' && !revisionId ? task?.user_id : ''
         },
@@ -332,7 +333,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
     const tokenRes = useTokens(
         {
             fileId: getFileId(),
-            pageNumbers: pageNumbers
+            pageNumbers
         },
         { enabled: false }
     );
@@ -995,7 +996,8 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             latestAnnotationsResult.data.pages,
             categories
         );
-        setAllAnnotations(result);
+
+        setAllAnnotations(removeDuplicatesById(result));
 
         const annDataAttrsResult = mapAnnotationDataAttrsFromApi(
             latestAnnotationsResult.data.pages
