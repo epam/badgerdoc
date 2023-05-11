@@ -8,7 +8,7 @@ import { ReactComponent as closeIcon } from '@epam/assets/icons/common/navigatio
 import { ReactComponent as openIcon } from '@epam/assets/icons/common/navigation-chevron-right_right-18.svg';
 
 import { Button, FlexRow, Panel, TabButton } from '@epam/loveship';
-import styles from './styles.module.scss';
+import styles from './task-sidebar-flow.module.scss';
 
 export const FlowSideBar: FC = () => {
     const [currentTab, setCurrentTab] = useState(OWNER_TAB.id);
