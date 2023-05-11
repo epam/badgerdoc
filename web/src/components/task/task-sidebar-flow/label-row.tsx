@@ -3,7 +3,7 @@ import { FlexRow, IconButton, Text } from '@epam/loveship';
 import { Label } from 'api/typings';
 
 import { ReactComponent as crossIcon } from '@epam/assets/icons/common/navigation-close-18.svg';
-import styles from './styles.module.scss';
+import styles from './task-sidebar-flow.module.scss';
 
 export const LabelRow: FC<{
     label: Label;

@@ -6,7 +6,6 @@ import {
     ANNOTATION_LABEL_ID_PREFIX
 } from 'shared/constants/annotations';
 
-import styles from './styles.module.scss';
 import { ReactComponent as goLastIcon } from '@epam/assets/icons/common/navigation-chevron-down_down-18.svg';
 import { ReactComponent as goNextIcon } from '@epam/assets/icons/common/navigation-chevron-down-18.svg';
 import { ReactComponent as goPrevIcon } from '@epam/assets/icons/common/navigation-chevron-up-18.svg';
@@ -16,6 +15,7 @@ import { Label, Link } from 'api/typings';
 import { LabelRow } from './label-row';
 
 import { Accordion, Button, FlexRow, Text } from '@epam/loveship';
+import styles from './task-sidebar-flow.module.scss';
 
 export const AnnotationList: FC<{
     list: Annotation[];
