@@ -141,7 +141,6 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
                         <EditJobSettings
                             initialType={initialJob?.type}
                             pipelines={pipelines}
-                            categories={categories}
                             users={users}
                             taxonomies={taxonomies}
                             lens={lens}

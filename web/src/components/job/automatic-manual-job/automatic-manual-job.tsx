@@ -1,5 +1,5 @@
 import React, { FC, useContext } from 'react';
-import { Category, Pipeline, Taxonomy, User } from 'api/typings';
+import { Pipeline, Taxonomy, User } from 'api/typings';
 import { JobValues } from 'connectors/edit-job-connector/edit-job-connector';
 import JobName from '../job-name/job-name';
 import ValidationTypePicker from '../validation-type-picker/validation-type-picker';
@@ -16,15 +16,13 @@ import { ILens } from '@epam/uui';
 import styles from './automatic-manual-job.module.scss';
 
 type AutomaticManualJobProps = {
-    categories: Category[] | undefined;
-    users: User[] | undefined;
-    pipelines: Pipeline[] | undefined;
-    taxonomies: Taxonomy[] | undefined;
+    users?: User[];
+    pipelines?: Pipeline[];
+    taxonomies?: Taxonomy[];
     lens: ILens<JobValues>;
 };
 const AutomaticManualJob: FC<AutomaticManualJobProps> = ({
     lens,
-    categories,
     users,
     taxonomies,
     pipelines
@@ -53,7 +51,7 @@ const AutomaticManualJob: FC<AutomaticManualJobProps> = ({
             {validationType === 'extensive_coverage' && <ExtensiveCoverageInput lens={lens} />}
 
             <div className="form-group">
-                <CategoriesPicker lens={lens} categories={categories} />
+                <CategoriesPicker lens={lens} />
             </div>
             <div className="form-group">
                 <TaxonomyPickers

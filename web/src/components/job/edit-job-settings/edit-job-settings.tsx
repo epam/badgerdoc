@@ -11,10 +11,10 @@ import { MultiSwitch } from '@epam/loveship';
 import { ILens } from '@epam/uui';
 
 export type EditJobSettingsProps = {
-    pipelines: Pipeline[] | undefined;
-    categories: Category[] | undefined;
-    users: User[] | undefined;
-    taxonomies: Taxonomy[] | undefined;
+    pipelines?: Pipeline[];
+    categories?: Category[];
+    users?: User[];
+    taxonomies?: Taxonomy[];
     lens: ILens<JobValues>;
     initialType?: JobType;
     showNoExtractionTab?: boolean;
@@ -22,7 +22,6 @@ export type EditJobSettingsProps = {
 
 const EditJobSettings: FC<EditJobSettingsProps> = ({
     pipelines,
-    categories,
     users,
     taxonomies,
     lens,
@@ -40,7 +39,6 @@ const EditJobSettings: FC<EditJobSettingsProps> = ({
     ) {
         job = (
             <AutomaticManualJob
-                categories={categories}
                 users={users}
                 pipelines={pipelines}
                 taxonomies={taxonomies}
