@@ -5,8 +5,8 @@ ENV PYTHONPATH /opt/annotation
 WORKDIR /opt/annotation
 
 COPY pyproject.toml poetry.lock .env alembic.ini version.txt ./
-COPY ./alembic ./alembic
-COPY annotation ./annotation
+COPY alembic alembic
+COPY annotation annotation
 
 RUN : \
     && python3 -m pip install --upgrade pip \
@@ -15,7 +15,7 @@ RUN : \
 
 FROM base as build
 
-COPY ./documentation ./documentation
+COPY documentation documentation
 RUN poetry install --no-root --only main
 CMD alembic upgrade head && uvicorn annotation.main:app --host 0.0.0.0 --port 8080
 EXPOSE 8080
@@ -23,7 +23,7 @@ EXPOSE 8080
 FROM base as test
 
 COPY Makefile pytest.ini setup.cfg ./
-COPY ./tests ./tests
+COPY tests tests
 COPY annotation annotation
 COPY alembic alembic
 

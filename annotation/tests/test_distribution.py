@@ -1,5 +1,6 @@
 from collections import defaultdict
 from copy import copy
+from typing import List
 
 import pytest
 
@@ -14,7 +15,10 @@ from annotation.distribution import (
     find_unassigned_files,
     find_unassigned_pages,
 )
-from annotation.distribution.main import distribute_tasks_extensively
+from annotation.distribution.main import (
+    distribute_tasks_extensively,
+    get_page_number_combinations,
+)
 from annotation.microservice_communication.assets_communication import (
     prepare_files_for_distribution,
 )
@@ -1254,3 +1258,22 @@ def test_find_unassigned_files():
     )
     actual_result = find_unassigned_files(PG_FILES)
     assert actual_result == expected_result
+
+
+@pytest.mark.parametrize(
+    ("file_pages", "user_pages", "expected"),
+    (
+        ([10, 20, 30, 40], 30, [10, 20]),
+        ([5, 10, 15, 20], 35, [5, 10, 20]),
+        ([10, 20, 30, 40], 100, [10, 20, 30, 40]),
+        ([10, 20, 30, 41], 100, []),
+        ([], 30, []),
+        ([1] * 3000, 1500, [1] * 1500),
+    ),
+)
+def test_get_page_number_combinations(
+    file_pages: List[int],
+    user_pages: int,
+    expected: List[int],
+) -> None:
+    assert get_page_number_combinations(file_pages, user_pages) == expected
