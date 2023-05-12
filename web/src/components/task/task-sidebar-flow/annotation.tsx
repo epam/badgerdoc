@@ -1,13 +1,14 @@
 import React, { FC } from 'react';
 import { ANNOTATION_FLOW_ITEM_ID_PREFIX } from 'shared/constants/annotations';
 import { ANNOTATION_PATH_SEPARATOR } from './constants';
-import { Text } from '@epam/loveship';
-import { cx } from '@epam/uui';
-
-import styles from './styles.module.scss';
 import { Links } from './links';
 import { TAnnotationProps } from './types';
 import { getAnnotationLabelColors } from 'shared/helpers/annotations';
+
+import { Text } from '@epam/loveship';
+import { cx } from '@epam/uui';
+
+import styles from './task-sidebar-flow.module.scss';
 
 export const AnnotationRow: FC<TAnnotationProps> = ({
     id,

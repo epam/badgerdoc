@@ -7,8 +7,8 @@ import { OWNER_TAB, VISIBILITY_SETTING_ID } from './constants';
 import { ReactComponent as closeIcon } from '@epam/assets/icons/common/navigation-chevron-left_left-18.svg';
 import { ReactComponent as openIcon } from '@epam/assets/icons/common/navigation-chevron-right_right-18.svg';
 
-import { Button, FlexRow, Panel, TabButton } from '@epam/loveship';
-import styles from './styles.module.scss';
+import { Button, FlexRow, Panel, TabButton, Tooltip } from '@epam/loveship';
+import styles from './task-sidebar-flow.module.scss';
 
 export const FlowSideBar: FC = () => {
     const [currentTab, setCurrentTab] = useState(OWNER_TAB.id);
@@ -110,16 +110,23 @@ export const FlowSideBar: FC = () => {
             {!isHidden && (
                 <Panel background="white" cx={styles.container}>
                     {isTabsShown && (
-                        <FlexRow borderBottom="night400">
+                        <FlexRow borderBottom="night400" cx={`${styles['tabs-title-group']}`}>
                             {tabs.map(({ id, caption }) => (
-                                <TabButton
+                                <Tooltip
+                                    content={id === OWNER_TAB.id ? null : caption}
+                                    placement="top"
                                     key={id}
-                                    size="36"
-                                    cx={styles.tab}
-                                    caption={caption}
-                                    isLinkActive={currentTab === id}
-                                    onClick={() => handleChangeTab(id)}
-                                />
+                                >
+                                    <TabButton
+                                        size="36"
+                                        cx={`${styles.tab} ${
+                                            currentTab === id ? styles.active : null
+                                        }`}
+                                        caption={caption}
+                                        isLinkActive={currentTab === id}
+                                        onClick={() => handleChangeTab(id)}
+                                    />
+                                </Tooltip>
                             ))}
                         </FlexRow>
                     )}

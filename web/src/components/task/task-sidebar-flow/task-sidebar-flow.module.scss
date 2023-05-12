@@ -55,7 +55,17 @@
 
 .tab {
     width: 100%;
-    justify-content: center;
+    min-width: 75px;
+    & > div {
+        margin: auto;
+        width: inherit;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    &.active {
+        min-width: fit-content;
+    }
 }
 
 .pathContainer {
@@ -67,6 +77,28 @@
     width: 320px;
     height: 100%;
     border-radius: 0 !important;
+}
+
+.tabs-title-group {
+    overflow-x: scroll;
+    height: 47px;
+
+    scrollbar-width: thin;
+    scrollbar-color: hsl(0, 0%, 70%);
+
+    &::-webkit-scrollbar {
+        height: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: rgba(128, 128, 128, 0.1);
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background-color: #{"hsl(0 0% 70%)"};
+        border-radius: 15px;
+        border: 3px solid #{"hsl(0 0% 70%)"};
+    }
 }
 
 .hideIcon {
