@@ -477,14 +477,19 @@ export type PagingCache<T> = {
 export type PagingFetcher<T> = (
     page: number,
     size: number,
-    keyword?: string
+    keyword?: string,
+    filters?: FilterWithDocumentExtraOption<keyof T>[],
+    sortConfig?: {
+        field: string;
+        direction: SortingDirection;
+    }
 ) => Promise<PagedResponse<T>>;
 
 export type DocumentView = 'table' | 'card';
 
 export type Report = {
-    users: User[] | undefined;
+    users?: User[];
     from: string;
     to: string;
-    validationType: ValidationType | undefined;
+    validationType?: ValidationType;
 };
