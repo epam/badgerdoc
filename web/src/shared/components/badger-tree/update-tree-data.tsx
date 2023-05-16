@@ -8,9 +8,20 @@ export const updateTreeData = (
 ): TTreeNode[] =>
     list.map((node) => {
         if (node.key === key) {
+            const combinedChildren = [...node.children, ...children];
+
+            const uniqueChildren: TTreeNode[] = Array.from(
+                new Set(combinedChildren.map((obj) => obj.key))
+            )
+                .map((key) => {
+                    const foundObj = combinedChildren.find((obj) => obj.key === key);
+                    return foundObj;
+                })
+                .filter((obj) => obj !== undefined) as TTreeNode[];
+
             return {
                 ...node,
-                children: [...node.children, ...children]
+                children: uniqueChildren
             };
         }
         if (node.children && !isEmpty(node.children)) {
@@ -19,5 +30,6 @@ export const updateTreeData = (
                 children: updateTreeData(node.children, key, children)
             };
         }
+
         return node;
     });
