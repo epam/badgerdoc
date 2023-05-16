@@ -46,8 +46,22 @@
       "offset": {
         "begin": 3,
         "end": 4
+      }
+    },
+    {
+      "type": "text",
+      "bbox": [
+        43.0,
+        15.0,
+        50.0,
+        26.0
+      ],
+      "text": "5",
+      "offset": {
+        "begin": 4,
+        "end": 5
       },
-      "after": "  "
+      "after": " "
     },
     {
       "type": "text",

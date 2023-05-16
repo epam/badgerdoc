@@ -185,7 +185,7 @@ class AnnotationConverter:
             if (
                 labelstudio_offset_begin
                 <= token.offset.begin
-                <= labelstudio_offset_end
+                <= labelstudio_offset_end - 1
             ):
                 ids.append(token_id)
         return ids
