@@ -2,6 +2,8 @@ from typing import List, Optional, Tuple
 
 from pydantic import BaseModel, Field
 
+Bbox = Tuple[float, float, float, float]
+
 
 class Offset(BaseModel):
     begin: int
@@ -10,7 +12,7 @@ class Offset(BaseModel):
 
 class BadgerdocToken(BaseModel):
     type_: str = Field(default="text", alias="type")
-    bbox: Tuple[float, float, float, float]
+    bbox: Bbox
     text: str
     offset: Offset
     previous: Optional[str] = None
