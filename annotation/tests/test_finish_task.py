@@ -1270,9 +1270,9 @@ TRANSFER_ANNOTATIONS_FILE = File(
     file_id=54321,
     tenant=TEST_TENANT,
     job_id=123456,
-    pages_number=1,
-    distributed_annotating_pages=[1],
-    distributed_validating_pages=[1],
+    pages_number=2,
+    distributed_annotating_pages=[1, 2],
+    distributed_validating_pages=[1, 2],
     status=FileStatusEnumSchema.pending,
 )
 TRANSFER_ANNOTATIONS_JOB = Job(
@@ -1296,7 +1296,7 @@ TRANSFER_ANNOTATIONS_TASKS = [
     {
         "id": 1,
         "file_id": TRANSFER_ANNOTATIONS_FILE.file_id,
-        "pages": [1],
+        "pages": [1, 2],
         "job_id": TRANSFER_ANNOTATIONS_FILE.job_id,
         "user_id": TRANSFER_ANNOTATIONS_USERS[0],
         "is_validation": False,
@@ -1306,7 +1306,7 @@ TRANSFER_ANNOTATIONS_TASKS = [
     {
         "id": 2,
         "file_id": TRANSFER_ANNOTATIONS_FILE.file_id,
-        "pages": [1],
+        "pages": [1, 2],
         "job_id": TRANSFER_ANNOTATIONS_FILE.job_id,
         "user_id": TRANSFER_ANNOTATIONS_USERS[1],
         "is_validation": False,
@@ -1316,7 +1316,7 @@ TRANSFER_ANNOTATIONS_TASKS = [
     {
         "id": 3,
         "file_id": TRANSFER_ANNOTATIONS_FILE.file_id,
-        "pages": [1],
+        "pages": [1, 2],
         "job_id": TRANSFER_ANNOTATIONS_FILE.job_id,
         "user_id": TRANSFER_ANNOTATIONS_USERS[2],
         "is_validation": True,
@@ -1331,7 +1331,7 @@ TRANSFER_ANNOTATIONS_DOCS = [
         pipeline=None,
         file_id=TRANSFER_ANNOTATIONS_TASKS[0]["file_id"],
         job_id=TRANSFER_ANNOTATIONS_TASKS[0]["job_id"],
-        pages={"1": "11"},
+        pages={"1": "1-1", "2": "1-2"},
         validated=[],
         failed_validation_pages=[],
         tenant=TEST_TENANT,
@@ -1347,7 +1347,7 @@ TRANSFER_ANNOTATIONS_DOCS = [
         pipeline=None,
         file_id=TRANSFER_ANNOTATIONS_TASKS[1]["file_id"],
         job_id=TRANSFER_ANNOTATIONS_TASKS[1]["job_id"],
-        pages={"1": "22"},
+        pages={"1": "2-1", "2": "2-2"},
         validated=[],
         failed_validation_pages=[],
         tenant=TEST_TENANT,
@@ -1362,28 +1362,74 @@ TOKEN_1 = {"id": 111, "other": 1}
 TOKEN_2 = {"id": 222, "other": 2}
 OBJ_1 = {"type": "text", "data": {"tokens": [TOKEN_1, TOKEN_2]}, "other": 2}
 EXPECTED_OBJ_1 = {
+    "id": 1,
     "type": "text",
     "data": {
         "tokens": [{"id": TOKEN_1["id"]}, {"id": TOKEN_2["id"]}],
         "dataAttributes": [],
     },
     "other": 2,
+    "links": [{"to": 2, "items": []}],
+    "children": [2],
 }
 OBJ_2 = {"same": 3}
+EXPECTED_OBJ_2 = {"id": 2, **OBJ_2}
+OBJ_3 = {"new": 5}
+EXPECTED_OBJ_3 = {"id": 3, **OBJ_3, "links": [{"to": 1, "items": []}]}
 TRANSFER_ANNOTATIONS_PAGES = {
-    "11": {
+    "1-1": {
         "page_num": 1,
         "size": {"width": 1.0, "height": 1.0},
         "objs": [
-            {"id": 1, **OBJ_1},
-            {"id": 2, **OBJ_2},
-            {"id": 3, "key": [1, 2, 3]},
+            {
+                "id": 111,
+                **OBJ_1,
+                "links": [{"to": 222, "items": []}, {"to": 333, "items": []}],
+                "children": [222, 333],
+            },
+            {"id": 222, **OBJ_2},
+            {"id": 333, "key": [1, 2, 3]},
         ],
     },
-    "22": {
+    "2-1": {
         "page_num": 1,
         "size": {"width": 1.0, "height": 1.0},
-        "objs": [{"id": 4, **OBJ_1}, {"id": 5, **OBJ_2}],
+        "objs": [
+            {
+                "id": 444,
+                **OBJ_1,
+                "links": [{"to": 555, "items": []}],
+                "children": [555],
+            },
+            {"id": 555, **OBJ_2},
+        ],
+    },
+    "1-2": {
+        "page_num": 2,
+        "size": {"width": 1.0, "height": 1.0},
+        "objs": [
+            {
+                "id": 666,
+                **OBJ_1,
+            },
+            {
+                "id": 777,
+                **OBJ_3,
+                "links": [{"to": 111, "items": []}],
+                "children": [111, 222],
+            },
+        ],
+    },
+    "2-2": {
+        "page_num": 2,
+        "size": {"width": 1.0, "height": 1.0},
+        "objs": [
+            {
+                "id": 888,
+                **OBJ_3,
+                "links": [{"to": 444, "items": []}, {"to": 555, "items": []}],
+            },
+        ],
     },
 }
 
@@ -1424,35 +1470,21 @@ def test_transfer_annotations(
     assert annotation_task.status == TaskStatusEnumSchema.finished
     assert validation_task.status == TaskStatusEnumSchema.in_progress
 
-    new_revision_number = (
-        db.query(AnnotatedDoc)
-        .filter(
-            AnnotatedDoc.file_id == TRANSFER_ANNOTATIONS_FILE.file_id,
-            AnnotatedDoc.job_id == TRANSFER_ANNOTATIONS_JOB.job_id,
-            AnnotatedDoc.user == TRANSFER_ANNOTATIONS_TASKS[-1]["user_id"],
-        )
-        .first()
-        .revision
-    )
-
     all_revisions = client.get(
         f"/annotation/{TRANSFER_ANNOTATIONS_JOB.job_id}/"
         f"{TRANSFER_ANNOTATIONS_FILE.file_id}/latest_by_user",
         headers=TEST_HEADERS,
-        params={"page_numbers": [1]},
+        params={"page_numbers": [1, 2]},
     )
-    new_revision = next(
-        (
-            revision
-            for revision in all_revisions.json()["1"]
-            if revision["revision"] == new_revision_number
-        ),
-        None,
-    )
-    assert new_revision
-
-    new_revision_objs = [
-        {key: obj[key] for key in obj if key != "id"}
-        for obj in new_revision["objs"]
+    new_revisions = [
+        revision[key]
+        for revisions in all_revisions.json().values()
+        for revision in revisions
+        for key in revision
+        if revision["user_id"] == TRANSFER_ANNOTATIONS_USERS[2]
+        and key == "objs"
     ]
-    assert new_revision_objs == [EXPECTED_OBJ_1, OBJ_2]
+    assert new_revisions == [
+        [EXPECTED_OBJ_1, EXPECTED_OBJ_2],
+        [EXPECTED_OBJ_3],
+    ]

@@ -21,7 +21,9 @@ class Badgerdoc:
         if self.tokens_pages:
             for i, page in enumerate(self.tokens_pages, start=1):
                 page_file = tokens_path / Path(f"{i}.json")
-                page_file.write_text(page.json(by_alias=True))
+                page_file.write_text(
+                    page.json(by_alias=True, exclude_none=True)
+                )
 
     def export_tokens(self, path: Path) -> None:
         if self.tokens_page:

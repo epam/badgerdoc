@@ -40,7 +40,7 @@ def import_labelstudio(
         s3_output_bucket=request.output_bucket,
         validation_type=request.validation_type,
         deadline=request.deadline,
-        extensive_coverage=request.extensive_coverage or 0,
+        extensive_coverage=request.extensive_coverage,
         annotators=request.annotators,
         validators=request.validators,
     )

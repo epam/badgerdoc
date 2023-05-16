@@ -1,3 +1,4 @@
+import copy
 import csv
 import io
 import os
@@ -14,9 +15,11 @@ from sqlalchemy.orm import Session
 from tenant_dependency import TenantData
 
 from annotation.annotations.main import (
+    LATEST,
+    ParticularRevisionSchema,
+    accumulate_pages_info,
     construct_annotated_doc,
-    find_all_revisions_pages,
-    load_all_revisions_pages,
+    construct_particular_rev_response,
 )
 from annotation.errors import CheckFieldError, FieldConstraintError
 from annotation.filters import TaskFilter
@@ -780,186 +783,314 @@ def get_annotation_tasks(
     )
 
 
-def load_revisions(
+def get_accum_annotations(
+    db: Session, x_current_tenant: str, annotation_task: ManualAnnotationTask
+) -> Optional[ParticularRevisionSchema]:
+    """
+    Get annotations for all task pages.
+    It will be accumulated from first revision to latest.
+    """
+    revisions = (
+        db.query(AnnotatedDoc)
+        .filter(
+            AnnotatedDoc.job_id == annotation_task.job_id,
+            AnnotatedDoc.task_id == annotation_task.id,
+            AnnotatedDoc.file_id == annotation_task.file_id,
+            AnnotatedDoc.tenant == x_current_tenant,
+        )
+        .order_by(AnnotatedDoc.date.asc())
+        .all()
+    )
+    if not revisions:
+        return
+    _, _, annotated, _, _, required_revision = accumulate_pages_info(
+        task_pages=[],
+        revisions=revisions,
+        stop_revision=LATEST,
+        with_page_hash=True,
+    )
+    if not required_revision:
+        return
+    required_revision.pages = annotated
+    annotated_pages = construct_particular_rev_response(required_revision)
+    return annotated_pages
+
+
+def remove_unnecessary_attributes(
+    categories: Set[str], page_annotations: PageSchema
+) -> Dict[str, Any]:
+    """
+    Get page annotations and remove unnecessary
+    attributes in "text" type tokens.
+    """
+    return {
+        "size": page_annotations.size,
+        "objects": [
+            {
+                **result,
+                "data": {
+                    "tokens": [
+                        {
+                            key: token[key]
+                            for key in token
+                            if key
+                            in {
+                                "id",
+                                "text",
+                                "x",
+                                "y",
+                                "width",
+                                "height",
+                            }
+                        }
+                        for token in result.get("data", {}).get("tokens", [])
+                    ],
+                    "dataAttributes": result.get("data", {}).get(
+                        "dataAttributes", []
+                    ),
+                },
+            }
+            if result.get("type", "") == "text"
+            else result
+            for result in page_annotations.objs
+        ],
+        "categories": categories,
+    }
+
+
+def load_annotations(
     db: Session,
     x_current_tenant: str,
-    pages_nums: List[int],
     annotation_tasks: List[ManualAnnotationTask],
 ) -> Dict[int, Dict[int, Dict[str, Any]]]:
-    """Load all tasks revisions by given page."""
-    tasks_data = dict()
+    """Load all tasks revisions."""
+    tasks_annotations = dict()
     for task_number, annotation_task in enumerate(annotation_tasks):
-        task_revisions = get_task_revisions(
-            db,
-            x_current_tenant,
-            annotation_task.job_id,
-            annotation_task.id,
-            annotation_task.file_id,
-            pages_nums,
+        annotated_pages = get_accum_annotations(
+            db, x_current_tenant, annotation_task
         )
-        annotated_pages = find_all_revisions_pages(task_revisions, pages_nums)
-        load_all_revisions_pages(annotated_pages, x_current_tenant)
-
-        for page_number, annotations in annotated_pages.items():
-            tasks_data.setdefault(page_number, {})[task_number] = {
-                "size": (
-                    annotations[0]["size"]
-                    if annotations
-                    else {"width": 0.0, "height": 0.0}
-                ),
-                "objects": [
-                    obj for revision in annotations for obj in revision["objs"]
-                ],
-                "categories": set(
-                    category
-                    for revision in annotations
-                    for category in revision["categories"]
-                ),
-            }
-            # remove unnecessary attributes in "text" type tokens
-            tasks_data[page_number][task_number]["objects"] = [
-                {
-                    **result,
-                    "data": {
-                        "tokens": [
-                            {
-                                key: token[key]
-                                for key in token
-                                if key
-                                in {"id", "text", "x", "y", "width", "height"}
-                            }
-                            for token in result.get("data", {}).get(
-                                "tokens", []
-                            )
-                        ],
-                        "dataAttributes": result.get("data", {}).get(
-                            "dataAttributes", []
-                        ),
-                    },
-                }
-                if result.get("type", "") == "text"
-                else result
-                for result in tasks_data[page_number][task_number]["objects"]
-            ]
-    return tasks_data
+        if not annotated_pages:
+            continue
+        for page_annotations in annotated_pages.pages:
+            tasks_annotations.setdefault(page_annotations.page_num, {})[
+                task_number
+            ] = remove_unnecessary_attributes(
+                annotated_pages.categories, page_annotations
+            )
+    return tasks_annotations
 
 
-def process_links(common_objs: List[dict]):
+def get_new_id(
+    old_id: int, id_mapping: Dict[Tuple[int], int]
+) -> Optional[int]:
+    """Get new object id."""
+    for old_ids, new_id in id_mapping.items():
+        if old_id in old_ids:
+            return new_id
+
+
+def get_common_ids(
+    old_id: int, id_mapping: Dict[Tuple[int], int]
+) -> Tuple[int]:
+    """Get ids of same objects from other tasks."""
+    for old_ids in id_mapping.keys():
+        if old_id in old_ids:
+            return old_ids
+    return ()
+
+
+def get_links_and_children(
+    common_objs_ids: Tuple[int],
+    all_tasks_objs: Dict[str, Any],
+    id_mapping: Dict[Tuple[int], int],
+) -> Tuple[List[Dict[str, Any]], List[List[int]]]:
     """
-    Search for linked objects and remove unfound links.
+    Get links objects and children for common tasks objects.
+    Change ids for new validation revision.
+    """
+    objs_links = []
+    objs_children = []
+
+    for obj_id in common_objs_ids:
+        page_obj = all_tasks_objs[obj_id]
+        obj_links = page_obj.get("links")
+        new_links = []
+        if obj_links:
+            for link in obj_links:
+                new_link_id = get_new_id(link["to"], id_mapping)
+                if new_link_id:
+                    new_link = copy.deepcopy(link)
+                    new_link["to"] = new_link_id
+                    new_links.append(new_link)
+        objs_links.append(new_links)
+
+        obj_children = page_obj.get("children")
+        new_children = set()
+        if obj_children:
+            for child in obj_children:
+                new_child_id = get_new_id(child, id_mapping)
+                if new_child_id:
+                    new_children.add(new_child_id)
+        objs_children.append(list(new_children))
+
+    return objs_links, objs_children
+
+
+def get_common_values(items: List[List[Any]]) -> List[Any]:
+    """
+    Get common values from list of lists.
+    For example:
+    Items:
+        [
+            [{"a": 1, "b": 2, "c": 3}, {"d": 4}, {"e": 5}],
+            [{"d": 4}, {"f": 6}],
+            [{"d": 4}, {"g": 7}],
+        ]
+    In result:
+        [{"d": 4}]
+    """
+    if not items:
+        return []
+    common_items = copy.deepcopy(items[0])
+    for nested_items in items[1:]:
+        common_items = [item for item in common_items if item in nested_items]
+        if not common_items:
+            return []
+    return common_items
+
+
+def change_ids(
+    all_tasks_objs: Dict[str, Any],
+    doc_objs: Dict[str, Dict[str, Any]],
+    id_mapping: Dict[Tuple[int], int],
+):
+    """
+    Change objects, linked objects and children ids. Remove unfound.
     Changes are inplace.
     """
-    for common_obj in common_objs:
-        old_links = common_obj.get("links")
-        if not old_links:
-            continue
-        common_obj["links"] = [
-            link
-            for link in old_links
-            if any(task_obj["id"] == link["to"] for task_obj in common_objs)
-        ]
+    for doc_params in doc_objs.values():
+        for common_obj in doc_params["objects"]:
+            old_obj_id = common_obj["id"]
+            common_obj["id"] = get_new_id(old_obj_id, id_mapping)
+
+            if common_obj.get("links") or common_obj.get("children"):
+                common_objs_ids = get_common_ids(old_obj_id, id_mapping)
+                objs_links, objs_children = get_links_and_children(
+                    common_objs_ids, all_tasks_objs, id_mapping
+                )
+
+                if common_obj.get("links") and objs_links:
+                    common_obj["links"] = get_common_values(objs_links)
+
+                if common_obj.get("children") and objs_children:
+                    common_obj["children"] = get_common_values(objs_children)
 
 
-def find_common_objs(task_data: dict, all_tasks: dict) -> List[dict]:
+def remove_ids(task_obj: Dict[str, Any]) -> Dict[str, Any]:
+    """Remove ids from task objects, objects links and children."""
+    task_obj_without_ids = {
+        key: value for key, value in task_obj.items() if key != "id"
+    }
+    if task_obj_without_ids.get("links") is not None:
+        task_obj_without_ids.pop("links")
+    if task_obj_without_ids.get("children") is not None:
+        task_obj_without_ids.pop("children")
+    return task_obj_without_ids
+
+
+def find_common_objs(
+    task_data: Dict[int, Dict[str, Any]],
+    all_tasks: Dict[int, List[Tuple[Dict[str, Any], str]]],
+) -> Tuple[List[Dict[str, Any]], Dict[str, List[str]]]:
     """Find common objects among one task and all tasks without ids."""
     common_objs = []
+    same_ids = {}
     for task_obj in task_data["objects"]:
-        task_obj_without_ids = {
-            key: value for key, value in task_obj.items() if key != "id"
-        }
-        obj_links = task_obj_without_ids.get("links", [])
-        task_obj_without_ids["links"] = sorted(
-            [
-                {key: value for key, value in obj_link.items() if key != "to"}
-                for obj_link in obj_links
-            ]
-        )
-        if all(
-            task_obj_without_ids in task_objs
-            for task_objs in all_tasks.values()
-        ):
-            common_objs.append(task_obj)
-    return common_objs
+        task_obj_without_ids = remove_ids(task_obj)
+
+        task_obj_id = task_obj["id"]
+        for task_objs in all_tasks.values():
+            for obj, obj_id in task_objs:
+                if task_obj_without_ids == obj and task_obj_id != obj_id:
+                    same_ids.setdefault(task_obj_id, []).append(obj_id)
+                    break
+
+        if not same_ids.get(task_obj_id):
+            continue
+        common_objs.append(task_obj)
+    return common_objs, same_ids
 
 
-def remove_ids(tasks: dict) -> dict:
-    """Remove ids from objects and objects links."""
+def get_tasks_without_ids(
+    tasks: Dict[int, Dict[str, Any]]
+) -> Dict[int, List[Tuple[Dict[str, Any], str]]]:
+    """
+    Remove ids from all tasks objects, objects links and children.
+    Get all tasks and old objects ids.
+    """
     tasks_without_id = dict()
     for task, task_objs in tasks.items():
         tasks_without_id[task] = []
         for task_obj in task_objs["objects"]:
-            task_obj_without_ids = {
-                key: value for key, value in task_obj.items() if key != "id"
-            }
-            obj_links = task_obj_without_ids.get("links", [])
-            task_obj_without_ids["links"] = sorted(
-                [
-                    {
-                        key: value
-                        for key, value in obj_link.items()
-                        if key != "to"
-                    }
-                    for obj_link in obj_links
-                ]
-            )
-            tasks_without_id[task].append(task_obj_without_ids)
+            task_obj_id = task_obj["id"]
+            task_obj_without_ids = remove_ids(task_obj)
+            tasks_without_id[task].append((task_obj_without_ids, task_obj_id))
     return tasks_without_id
 
 
-def change_ids(objs: List[dict], id_mapping: Dict[int, int]):
-    """
-    Change objects and links ids according to id mapping.
-    Changes are inplace.
-    """
-    for obj in objs:
-        obj["id"] = id_mapping[obj["id"]]
-        for link in obj.get("links", []):
-            link["to"] = id_mapping[link["to"]]
-
-
-def find_common_values(
+def construct_annotated_pages(
     db: Session,
     x_current_tenant: str,
-    pages_nums: List[int],
     annotation_tasks: List[ManualAnnotationTask],
 ) -> Tuple[List[PageSchema], Set[str]]:
-    """Find common values in annotation tasks."""
-    tasks_data = load_revisions(
-        db, x_current_tenant, pages_nums, annotation_tasks
+    """
+    Find common objects and categories in annotation tasks.
+    Construct annotated pages for new validation revision.
+    """
+    tasks_annotations = load_annotations(
+        db, x_current_tenant, annotation_tasks
     )
-
-    obj_id: int = 0
-    common_objs_pages: List[PageSchema] = []
-    for page_number, tasks in tasks_data.items():
+    common_doc_objs = {}
+    for page_number, tasks in tasks_annotations.items():
         if not tasks:
             continue
 
         page_size = tasks[next(iter(tasks))]["size"]
-
-        tasks_without_id = remove_ids(tasks)
-
+        tasks_without_id = get_tasks_without_ids(tasks)
         # find task with min objects
         task_min = tasks[
             min(tasks.keys(), key=lambda x: len(tasks[x]["objects"]))
         ]
+        # compare objects from task with min objects with all tasks
+        common_objs, same_ids = find_common_objs(task_min, tasks_without_id)
+        if common_objs:
+            common_doc_objs[page_number] = {
+                "size": page_size,
+                "objects": common_objs,
+                "same_ids": same_ids,
+            }
+    obj_id: int = 0
+    # id mapping - {same objs ids from all tasks: new id}
+    id_mapping = {
+        (key, *value): (obj_id := obj_id + 1)  # noqa F841
+        for page_params in common_doc_objs.values()
+        for key, value in page_params["same_ids"].items()
+    }
+    all_tasks_objs = {
+        obj["id"]: obj
+        for task_items in tasks_annotations.values()
+        for page_items in task_items.values()
+        for obj in page_items["objects"]
+    }
+    change_ids(all_tasks_objs, common_doc_objs, id_mapping)
 
-        common_objs = find_common_objs(task_min, tasks_without_id)
-        if not common_objs:
-            continue
-
-        process_links(common_objs)
-
-        id_mapping = {
-            common_obj["id"]: (obj_id := obj_id + 1)  # noqa F841
-            for common_obj in common_objs
-        }
-        change_ids(common_objs, id_mapping)
-
-        common_objs_pages.append(
+    annotated_pages: List[PageSchema] = []
+    for page, page_items in common_doc_objs.items():
+        annotated_pages.append(
             PageSchema(
-                page_num=page_number,
-                size=page_size,
-                objs=common_objs,
+                page_num=page,
+                size=page_items["size"],
+                objs=page_items["objects"],
             ),
         )
 
@@ -969,14 +1100,14 @@ def find_common_values(
                 set.intersection(
                     *(task_data["categories"] for task_data in tasks.values())
                 )
-                for tasks in tasks_data.values()
+                for tasks in tasks_annotations.values()
             )
         )
-        if tasks_data
+        if tasks_annotations
         else set()
     )
 
-    return common_objs_pages, common_categories
+    return annotated_pages, common_categories
 
 
 def create_validation_revisions(
@@ -1000,8 +1131,8 @@ def create_validation_revisions(
         annotation_tasks = get_annotation_tasks(
             db, job_id, file_id, pages_nums
         )
-        annotated_pages, categories = find_common_values(
-            db, x_current_tenant, pages_nums, annotation_tasks
+        annotated_pages, categories = construct_annotated_pages(
+            db, x_current_tenant, annotation_tasks
         )
         if not (
             (annotated_pages and any(page.objs for page in annotated_pages))
