@@ -32,7 +32,26 @@ export const useTaxonomiesTree = ({ searchText, taxonomyId, taxonomyFilter }: Pr
             const childNodes = data.map((taxon) => mapTaxon(taxon));
             setTaxonomyNodes((prevState) => updateTreeData(prevState, parentKey, childNodes));
         } else {
-            setTaxonomyNodes((prevState) => [...prevState, ...mapTaxons(data)]);
+            setTaxonomyNodes((prevState) => {
+                const updatedNodes = prevState.map((prevNode) => {
+                    const matchingNode = mapTaxons(data).find(
+                        (newNode) => newNode.key === prevNode.key
+                    );
+                    if (matchingNode) {
+                        const combinedChildren = [
+                            ...new Set([...prevNode.children, ...matchingNode.children])
+                        ];
+                        return { ...prevNode, children: combinedChildren };
+                    }
+                    return prevNode;
+                });
+
+                const newNodes = mapTaxons(data).filter((newNode) =>
+                    prevState.every((prevNode) => prevNode.key !== newNode.key)
+                );
+
+                return [...updatedNodes, ...newNodes];
+            });
         }
     };
 
