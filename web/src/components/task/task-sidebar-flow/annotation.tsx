@@ -3,10 +3,11 @@ import { ANNOTATION_FLOW_ITEM_ID_PREFIX } from 'shared/constants/annotations';
 import { ANNOTATION_PATH_SEPARATOR } from './constants';
 import { Links } from './links';
 import { TAnnotationProps } from './types';
-import { getAnnotationLabelColors } from 'shared/helpers/annotations';
+import { getAnnotationLabelColors, isContrastColor } from 'shared/helpers/annotations';
 
-import { Text } from '@epam/loveship';
+import { Text, IconButton } from '@epam/loveship';
 import { cx } from '@epam/uui';
+import { ReactComponent as closeIcon } from '@epam/assets/icons/common/navigation-close-12.svg';
 
 import styles from './task-sidebar-flow.module.scss';
 
@@ -25,7 +26,8 @@ export const AnnotationRow: FC<TAnnotationProps> = ({
     incomingLinks,
     links,
     isEditable,
-    onLinkDeleted
+    onLinkDeleted,
+    onCloseIconClick
 }) => {
     const labelList = label.split('.');
 
@@ -36,6 +38,13 @@ export const AnnotationRow: FC<TAnnotationProps> = ({
             id={`${ANNOTATION_FLOW_ITEM_ID_PREFIX}${id}`}
             className={cx(styles.item, id === selectedAnnotationId && styles.selectedAnnotation)}
         >
+            <IconButton
+                icon={closeIcon}
+                cx={styles.close}
+                iconPosition={'right'}
+                onClick={() => onCloseIconClick(pageNum!, id)}
+                color={isContrastColor(color) ? 'white' : 'night900'}
+            />
             <div className={styles.label} style={getAnnotationLabelColors(color)}>
                 <Text cx={styles.labelText} rawProps={{ 'data-testid': 'flow-label' }}>
                     {labelList[labelList.length - 1]}

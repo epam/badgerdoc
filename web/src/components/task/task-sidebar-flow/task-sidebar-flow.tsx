@@ -24,6 +24,7 @@ export const FlowSideBar: FC = () => {
         selectedLabels,
         onLabelsSelected,
         isSplitValidation,
+        onAnnotationDeleted,
         setSelectedAnnotation,
         job: { annotators } = {},
         setCurrentDocumentUserId,
@@ -136,6 +137,7 @@ export const FlowSideBar: FC = () => {
                             onLabelSelect={handleLabelSelect}
                             isOwner={currentTab === OWNER_TAB.id}
                             onLinkDeleted={onLinkDeleted}
+                            onAnnotationDeleted={onAnnotationDeleted}
                             onSelect={setSelectedAnnotation}
                             labels={labelsByTab[currentTab]}
                             list={annotationsByTab[currentTab]}

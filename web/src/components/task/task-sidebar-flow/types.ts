@@ -10,4 +10,5 @@ export type TAnnotationProps = Annotation & {
     selectedAnnotationId?: Annotation['id'];
     isEditable: boolean;
     onLinkDeleted: (pageNum: number, annotationId: Annotation['id'], link: Link) => void;
+    onCloseIconClick: (pageNum: number, annotationId: Annotation['id']) => void;
 };
