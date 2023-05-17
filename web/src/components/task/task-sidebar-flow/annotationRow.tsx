@@ -38,17 +38,17 @@ export const AnnotationRow: FC<TAnnotationProps> = ({
             id={`${ANNOTATION_FLOW_ITEM_ID_PREFIX}${id}`}
             className={cx(styles.item, id === selectedAnnotationId && styles.selectedAnnotation)}
         >
-            <IconButton
-                icon={closeIcon}
-                cx={styles.close}
-                iconPosition={'right'}
-                onClick={() => onCloseIconClick(pageNum!, id)}
-                color={isContrastColor(color) ? 'white' : 'night900'}
-            />
             <div className={styles.label} style={getAnnotationLabelColors(color)}>
                 <Text cx={styles.labelText} rawProps={{ 'data-testid': 'flow-label' }}>
                     {labelList[labelList.length - 1]}
                 </Text>
+                <IconButton
+                    icon={closeIcon}
+                    cx={styles.close}
+                    iconPosition={'right'}
+                    onClick={() => onCloseIconClick(pageNum!, id)}
+                    color={isContrastColor(color) ? 'white' : 'night900'}
+                />
                 {!links?.length && !incomingLinks?.length ? null : (
                     <Links
                         isEditable={isEditable}
