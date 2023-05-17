@@ -1,5 +1,5 @@
 import React, { FC, useEffect, useMemo, useRef, useState } from 'react';
-import { AnnotationRow } from './annotation';
+import { AnnotationRow } from './annotationRow';
 import { Annotation } from 'shared';
 import {
     ANNOTATION_FLOW_ITEM_ID_PREFIX,

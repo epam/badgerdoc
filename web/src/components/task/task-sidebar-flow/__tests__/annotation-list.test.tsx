@@ -32,6 +32,7 @@ describe('AnnotationList', () => {
         onLinkDeleted: () => {},
         onLabelSelect: () => {},
         onLabelDelete: () => {},
+        onAnnotationDeleted: () => {},
         isOwner: false,
         labels: []
     };

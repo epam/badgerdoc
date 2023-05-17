@@ -1,6 +1,6 @@
 import React from 'react';
 import { render } from 'shared/helpers/testUtils/render';
-import { AnnotationRow } from '../annotation';
+import { AnnotationRow } from '../annotationRow';
 import { AnnotationBoundType } from 'shared';
 import { ANNOTATION_PATH_SEPARATOR } from '../constants';
 import { ANNOTATION_FLOW_ITEM_ID_PREFIX } from 'shared/constants/annotations';
@@ -17,6 +17,7 @@ describe('AnnotationRow', () => {
         isEditable: false,
         onSelectById: () => {},
         onLinkDeleted: () => {},
+        onCloseIconClick: () => {},
         annotationNameById: {},
         categoryName: 'categoryName',
         selectedAnnotationId: '1',
