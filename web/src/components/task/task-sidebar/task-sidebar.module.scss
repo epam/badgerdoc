@@ -1,4 +1,4 @@
-@import '~shared/helpers/styles';
+@import "~shared/helpers/styles";
 
 .container {
     gap: 10px;
@@ -51,7 +51,7 @@
         font-size: small;
     }
 
-    &>div {
+    & > div {
         width: 45%;
     }
 }
