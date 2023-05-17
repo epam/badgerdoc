@@ -31,6 +31,22 @@
     border-color: black;
 }
 
+.close {
+    width: 15px;
+    height: 15px;
+    justify-content: center;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    transition: all 150ms ease-in-out;
+    margin: 2px;
+    box-shadow: 0 0 5px #ccc;
+
+    &:hover {
+        background-color: rgba(255, 255, 255, 0.35);
+        transition: all 200ms ease-in-out;
+    }
+}
+
 .text {
     overflow: unset;
     text-overflow: unset;

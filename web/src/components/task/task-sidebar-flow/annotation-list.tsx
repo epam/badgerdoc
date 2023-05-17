@@ -1,5 +1,5 @@
 import React, { FC, useEffect, useMemo, useRef, useState } from 'react';
-import { AnnotationRow } from './annotation';
+import { AnnotationRow } from './annotationRow';
 import { Annotation } from 'shared';
 import {
     ANNOTATION_FLOW_ITEM_ID_PREFIX,
@@ -23,6 +23,7 @@ export const AnnotationList: FC<{
     labels: Label[];
     selectedAnnotationId?: Annotation['id'];
     onLinkDeleted: (pageNum: number, annotationId: Annotation['id'], link: Link) => void;
+    onAnnotationDeleted: (pageNum: number, annotationId: Annotation['id']) => void;
     onSelect: (annotation: Annotation) => void;
     onLabelSelect: (label: Label) => void;
     onLabelDelete: (label: Label) => void;
@@ -36,7 +37,8 @@ export const AnnotationList: FC<{
     onSelect,
     onLinkDeleted,
     onLabelSelect,
-    onLabelDelete
+    onLabelDelete,
+    onAnnotationDeleted
 }) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const [selectedIndex, setSelectedIndex] = useState<number>(0);
@@ -161,6 +163,7 @@ export const AnnotationList: FC<{
                         onSelect={handleSelect}
                         onSelectById={handleSelectById}
                         selectedAnnotationId={selectedAnnotationId}
+                        onCloseIconClick={onAnnotationDeleted}
                     />
                 ))}
             </div>
