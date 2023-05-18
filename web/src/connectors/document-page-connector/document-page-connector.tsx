@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { DocumentPage } from '../../pages';
 import { useDocuments } from '../../api/hooks/documents';
 import { FilterWithDocumentExtraOption, Operators } from '../../api/typings';
@@ -40,10 +40,10 @@ export const DocumentPageConnector = () => {
         { value: [Number(documentId || '')], operator: Operators.EQ, field: 'files' }
     ];
 
-    const { dataSource: documentJobDataSource, cache: documentJobsCache } = useEntity<
-        DocumentJob,
-        number
-    >(documentJobsFetcher, documentJobsFilters);
+    const { dataSource: documentJobDataSource } = useEntity<DocumentJob, number>(
+        documentJobsFetcher,
+        documentJobsFilters
+    );
 
     const [selectedDocumentJobId, setSelectedDocumentJobId] = useState<number | null>(null);
     const [selectedDocumentJobRevisionId, setSelectedDocumentJobRevisionId] = useState('');
@@ -66,12 +66,29 @@ export const DocumentPageConnector = () => {
         setSelectedDocumentJobRevisionId('');
     }, [selectedDocumentJobId, jobId]);
 
-    const onDocumentJobSelect = useCallback(
-        (documentJobId) => {
-            setSelectedDocumentJobId(documentJobId);
-        },
-        [documentJobsCache.current]
-    );
+    useEffect(() => {
+        history.replace({
+            pathname: history.location.pathname,
+            search: qs.stringify({
+                ...qs.parse(history.location.search, { ignoreQueryPrefix: true }),
+                jobId: selectedDocumentJobId
+            }),
+            state: history.location.state
+        });
+
+        history.replace({
+            pathname: history.location.pathname,
+            search: qs.stringify({
+                ...qs.parse(history.location.search, { ignoreQueryPrefix: true }),
+                revisionId: ''
+            }),
+            state: history.location.state
+        });
+
+        if (selectedDocumentJobId) {
+            setDocumentJobId(selectedDocumentJobId);
+        }
+    }, [jobId, selectedDocumentJobId]);
 
     const documentJobRevisions = useDocumentJobsRevisions(
         { documentId: documentId || '', jobId: selectedDocumentJobId! },
@@ -118,7 +135,7 @@ export const DocumentPageConnector = () => {
             documentJobsInfo={{
                 documentJobDataSource,
                 selectedDocumentJobId,
-                setSelectedDocumentJobId: onDocumentJobSelect
+                setSelectedDocumentJobId
             }}
             documentJobRevisionsInfo={{
                 documentJobRevisions,

@@ -32,9 +32,11 @@ export interface DocumentPageSidebarContentProps {
     };
 }
 
-export const DocumentPageSidebarContent = (props: DocumentPageSidebarContentProps) => {
-    const { fileMetaInfo, documentJobsInfo, documentJobRevisionsInfo } = props;
-
+export const DocumentPageSidebarContent = ({
+    fileMetaInfo,
+    documentJobsInfo,
+    documentJobRevisionsInfo
+}: DocumentPageSidebarContentProps) => {
     const annotationsDataSource = useArrayDataSource(
         {
             items:
