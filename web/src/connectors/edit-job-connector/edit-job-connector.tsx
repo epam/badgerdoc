@@ -459,11 +459,12 @@ const useEditJobFormValues = ({
                 }) || [],
             pipeline: pipelines?.find((el) => el.id === parseInt(initialJob.pipeline_id)),
             categories:
-                initialJob.categories?.map((el) => {
-                    const category = categories?.find((elem) => elem.id === el.toString());
-                    if (category) return category;
-                    return {} as Category;
-                }) || [],
+                initialJob.categories
+                    ?.map((el) => {
+                        const category = categories?.find((elem) => elem.id === el.toString());
+                        return category as Category;
+                    })
+                    .filter(Boolean) || [],
             selected_taxonomies: selectedTaxonomies,
             extensive_coverage: initialJob.extensive_coverage
         };
