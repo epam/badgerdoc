@@ -8,6 +8,8 @@ from annotation.models import (
     User,
 )
 
+ADDITIONAL_TASK_FIELDS = ["file_name", "job_name"]
+
 CategoryFilter = create_filter_model(
     Category,
     exclude=[
@@ -27,4 +29,5 @@ TaskFilter = create_filter_model(
         *[f"user.{col}" for col in User.__table__.columns.keys()],
         *[f"docs.{col}" for col in AnnotatedDoc.__table__.columns.keys()],
     ],
+    include=ADDITIONAL_TASK_FIELDS,
 )

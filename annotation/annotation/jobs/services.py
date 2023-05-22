@@ -581,6 +581,23 @@ def collect_job_names(
     return jobs_names
 
 
+def get_jobs_by_name(
+    db: Session, job_names: List[str], tenant: str
+) -> Dict[int, str]:
+    """
+    Searches for jobs in db by job names.
+    """
+    job_names_in_db = (
+        db.query(Job.job_id, Job.name)
+        .filter(
+            Job.name.in_(job_names),
+            Job.tenant == tenant,
+        )
+        .all()
+    )
+    return {job_id: job_name for job_id, job_name in job_names_in_db}
+
+
 def update_jobs_names(db: Session, jobs_names: Dict):
     """Updates jobs names in db"""
     for key, value in jobs_names.items():

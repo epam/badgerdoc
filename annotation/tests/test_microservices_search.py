@@ -253,7 +253,7 @@ def test_calculate_amount_of_pagination_pages(
     ],
 )
 def test_construct_dataset_params(page, ids, expected_result):
-    actual_result = construct_search_params(page, ids)
+    actual_result = construct_search_params(page, "id", ids)
     assert actual_result == expected_result
 
 
@@ -310,7 +310,7 @@ def test_get_response(
         json=microservice_response,
         status=200,
     )
-    actual_result = get_response(ids, url, TEST_TENANT, TEST_TOKEN)
+    actual_result = get_response("id", ids, url, TEST_TENANT, TEST_TOKEN)
     assert actual_result[0:150] == expected_response
 
 
@@ -329,7 +329,7 @@ def test_get_response_exc(exc):
     )
 
     with pytest.raises(HTTPException):
-        get_response(IDS, ASSETS_FILES_URL, TEST_TENANT, TEST_TOKEN)
+        get_response("id", IDS, ASSETS_FILES_URL, TEST_TENANT, TEST_TOKEN)
 
 
 @pytest.mark.unittest
@@ -342,4 +342,4 @@ def test_get_datasets_info_bad_status_code():
     )
 
     with pytest.raises(HTTPException):
-        get_response(IDS, ASSETS_FILES_URL, TEST_TENANT, TEST_TOKEN)
+        get_response("id", IDS, ASSETS_FILES_URL, TEST_TENANT, TEST_TOKEN)

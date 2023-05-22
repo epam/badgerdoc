@@ -555,10 +555,24 @@ paths:
         in: query
       - required: false
         schema:
+          title: File Name
+          type: string
+        example: File 1
+        name: file_name
+        in: query
+      - required: false
+        schema:
           title: Job Id
           type: integer
         example: 6
         name: job_id
+        in: query
+      - required: false
+        schema:
+          title: Job Name
+          type: string
+        example: Job 1
+        name: job_name
         in: query
       - required: false
         schema:

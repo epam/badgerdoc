@@ -43,6 +43,11 @@ def _exclude_fields(model_fields: List[str], exclude: List[str]) -> List[str]:
     return result
 
 
+def _include_fields(model_fields: List[str], include: List[str]) -> List[str]:
+    model_fields.extend(include)
+    return model_fields
+
+
 def _create_enum_model(table_name: str, fields: List[str]) -> enum.EnumMeta:
     enum_fields = {key.upper(): key for key in fields}
     model = TempEnum(table_name, enum_fields)  # type: ignore
@@ -50,11 +55,15 @@ def _create_enum_model(table_name: str, fields: List[str]) -> enum.EnumMeta:
 
 
 def get_enum_from_orm(
-    model: Type[DeclarativeMeta], exclude: Optional[List[str]] = None
+    model: Type[DeclarativeMeta],
+    exclude: Optional[List[str]] = None,
+    include: Optional[List[str]] = None,
 ) -> enum.EnumMeta:
     orm_fields = _get_model_fields(model)
     table_name = _get_table_name(model)
     if exclude:
         orm_fields = _exclude_fields(orm_fields, exclude=exclude)
+    if include:
+        orm_fields = _include_fields(orm_fields, include=include)
     result = _create_enum_model(table_name, orm_fields)
     return result

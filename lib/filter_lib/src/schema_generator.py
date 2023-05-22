@@ -164,7 +164,11 @@ class Page(GenericModel, Generic[TypeC], BaseModel):
 
 
 def create_filter_model(
-    model: Type[DeclarativeMeta], exclude: Optional[List[str]] = None
+    model: Type[DeclarativeMeta],
+    exclude: Optional[List[str]] = None,
+    include: Optional[List[str]] = None,
 ) -> Type[_BadgerdocSearch]:  # type: ignore
-    enum_orm_fields = get_enum_from_orm(model, exclude=exclude)
+    enum_orm_fields = get_enum_from_orm(
+        model, exclude=exclude, include=include
+    )
     return _BadgerdocSearch[enum_orm_fields]  # type: ignore

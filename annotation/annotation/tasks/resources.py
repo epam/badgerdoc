@@ -33,6 +33,7 @@ from annotation.jobs import (
     delete_tasks,
     get_job,
     get_job_attributes_for_post,
+    get_jobs_by_name,
     recalculate_file_pages,
     update_files,
     update_inner_job_status,
@@ -41,6 +42,7 @@ from annotation.jobs import (
 from annotation.logger import Logger
 from annotation.microservice_communication.assets_communication import (
     get_file_names_by_request,
+    get_files_by_request,
 )
 from annotation.microservice_communication.jobs_communication import (
     JobUpdateException,
@@ -96,6 +98,7 @@ from .services import (
     read_annotation_tasks,
     save_agreement_metrics,
     unblock_validation_tasks,
+    validate_ids_and_names,
     validate_task_info,
     validate_user_actions,
 )
@@ -117,12 +120,36 @@ def _prepare_expanded_tasks_response(
     tasks: List[ManualAnnotationTask],
     tenant: str,
     token: str,
+    known_file_names: Dict[int, str] = {},
+    known_job_names: Dict[int, str] = {},
 ) -> List[ExpandedManualAnnotationTaskSchema]:
     """
     Get names of files, jobs, logins and add them to manual annotation tasks.
     """
-    file_names = get_file_names_by_request(list(file_ids), tenant, token)
-    job_names = collect_job_names(db, list(job_ids), tenant, token)
+    files_without_name = set(file_ids) - set(known_file_names.keys())
+    file_names = (
+        get_file_names_by_request(list(files_without_name), tenant, token)
+        if files_without_name
+        else {}
+    )
+    file_names.update(
+        (file_id, file_name)
+        for file_id, file_name in known_file_names.items()
+        if file_id in file_ids
+    )
+
+    jobs_without_name = set(job_ids) - set(known_job_names.keys())
+    job_names = (
+        collect_job_names(db, list(jobs_without_name), tenant, token)
+        if jobs_without_name
+        else {}
+    )
+    job_names.update(
+        (job_id, job_name)
+        for job_id, job_name in known_job_names.items()
+        if job_id in job_ids
+    )
+
     user_ids = [task.user_id for task in tasks]
 
     try:
@@ -434,7 +461,9 @@ def get_task(
 )
 def get_tasks(
     file_id: Optional[int] = Query(None, example=5),
+    file_name: Optional[str] = Query(None, example="File 1"),
     job_id: Optional[int] = Query(None, example=6),
+    job_name: Optional[str] = Query(None, example="Job 1"),
     user_id: Optional[UUID] = Query(
         None, example="2016a913-47f2-417d-afdb-032165b9330d"
     ),
@@ -448,10 +477,30 @@ def get_tasks(
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
     token: TenantData = Depends(TOKEN),
 ):
+    files_by_name = (
+        get_files_by_request([file_name], x_current_tenant, token.token)
+        if file_name is not None
+        else {}
+    )
+    file_ids, files_names = validate_ids_and_names(
+        file_id,
+        file_name,
+        files_by_name,
+    )
+
+    jobs_by_name = (
+        get_jobs_by_name(db, [job_name], x_current_tenant)
+        if job_name is not None
+        else {}
+    )
+    job_ids, jobs_names = validate_ids_and_names(
+        job_id, job_name, jobs_by_name
+    )
+
     search_params = {}
     for param_name, param in zip(
-        ("file_id", "job_id", "user_id", "deadline", "status"),
-        (file_id, job_id, user_id, deadline, task_status),
+        ("file_ids", "job_ids", "user_id", "deadline", "status"),
+        (file_ids, job_ids, user_id, deadline, task_status),
     ):
         if param:
             search_params[param_name] = param
@@ -490,6 +539,8 @@ def get_tasks(
         annotation_tasks,
         x_current_tenant,
         token.token,
+        files_names,
+        jobs_names,
     )
     return {
         "current_page": pagination_start_page,
@@ -516,15 +567,18 @@ def search_tasks(
     search request parameters filters. Supports pagination and ordering.
     """
     try:
-        task_response = filter_tasks_db(db, request, x_current_tenant)
+        task_response, files_names, jobs_names = filter_tasks_db(
+            db, request, x_current_tenant, token.token
+        )
     except BadFilterFormat as error:
         raise HTTPException(
             status_code=400,
             detail=f"{error}",
         )
-    if request.filters and "distinct" in [
-        item.operator.value for item in request.filters
-    ]:
+    if not task_response.data or (
+        request.filters
+        and "distinct" in [item.operator.value for item in request.filters]
+    ):
         return task_response
     file_ids = set()
     job_ids = set()
@@ -539,6 +593,8 @@ def search_tasks(
         list(annotation_tasks),
         x_current_tenant,
         token.token,
+        files_names,
+        jobs_names,
     )
     task_response.data = annotation_tasks
     return task_response

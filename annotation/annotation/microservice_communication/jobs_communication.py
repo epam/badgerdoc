@@ -14,6 +14,8 @@ from annotation.microservice_communication.search import (
 
 load_dotenv(find_dotenv())
 JOBS_SEARCH_URL = os.environ.get("JOBS_SEARCH_URL")
+JOBS_FILE_ID_FIELD = "id"
+JOBS_FILE_NAME_FIELD = "name"
 
 
 class JobUpdateException(Exception):
@@ -47,5 +49,7 @@ def get_job_names(
     Return dict of job_id and its name for provided
     job_ids from jobs microservice.
     """
-    jobs = get_response(job_ids, JOBS_SEARCH_URL, tenant, token)
-    return {j["id"]: j["name"] for j in jobs}
+    jobs = get_response(
+        JOBS_FILE_ID_FIELD, job_ids, JOBS_SEARCH_URL, tenant, token
+    )
+    return {j[JOBS_FILE_ID_FIELD]: j[JOBS_FILE_NAME_FIELD] for j in jobs}
