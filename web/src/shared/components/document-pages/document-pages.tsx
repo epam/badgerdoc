@@ -36,6 +36,7 @@ type DocumentPagesProps = {
     fileMetaInfo: FileMetaInfo;
     apiPageSize?: PageSize;
     additionalScale: number;
+    goToPage?: number;
     setPageSize?: (nS: any) => void;
     editable: boolean;
     gridVariant: GridVariants;
@@ -55,7 +56,8 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
     setPageSize,
     editable,
     gridVariant,
-    additionalScale
+    additionalScale,
+    goToPage
 }) => {
     const {
         SyncedContainer,
@@ -304,6 +306,7 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                                                     onAnnotationUndoPress={onAnnotationUndoPress}
                                                     onAnnotationRedoPress={onAnnotationRedoPress}
                                                     onEmptyAreaClick={onEmptyAreaClick}
+                                                    isScrolledToCurrent={pageNum === goToPage}
                                                 />
                                             </Fragment>
                                         );
