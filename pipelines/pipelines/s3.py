@@ -22,7 +22,7 @@ def get_minio_config(
     secret_key: Optional[str],
     **kwargs: Optional[str],
 ) -> Dict[str, Any]:
-    minio_config = {"endpoint": endpoint, "secure": False}
+    minio_config = {"endpoint": endpoint, "secure": kwargs.get("secure")}
     if s3_provider == S3Providers.MINIO:
         minio_config["access_key"] = access_key
         minio_config["secret_key"] = secret_key
@@ -47,6 +47,7 @@ def get_minio_client() -> Minio:
         access_key=config.S3_ACCESS_KEY,
         secret_key=config.S3_SECRET_KEY,
         aws_profile=config.AWS_PROFILE,
+        secure=config.MINIO_SECURE_CONNECTION,
     )
     return Minio(**minio_config)
 
