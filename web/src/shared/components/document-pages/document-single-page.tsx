@@ -23,6 +23,7 @@ type RenderPageParams = {
     isImage?: boolean;
     imageId?: number;
     isShownAnnotation?: boolean;
+    isScrolledToCurrent?: boolean;
     onAnnotationCopyPress?: (pageNum: number, annotationId: string | number) => void;
     onAnnotationCutPress?: (pageNum: number, annotationId: string | number) => void;
     onAnnotationPastePress?: (pageSize: PageSize, pageNum: number) => void;
@@ -55,7 +56,8 @@ const DocumentSinglePage: FC<RenderPageParams> = ({
     onAnnotationPastePress = noop,
     onAnnotationUndoPress = noop,
     onAnnotationRedoPress = noop,
-    onEmptyAreaClick = noop
+    onEmptyAreaClick = noop,
+    isScrolledToCurrent = false
 }) => {
     const {
         task,
@@ -165,6 +167,7 @@ const DocumentSinglePage: FC<RenderPageParams> = ({
             width={pageSize ? pageSize.width * scale : undefined}
             height={pageSize ? pageSize.height * scale : undefined}
             className={styles.page}
+            isScrolledToCurrent={isScrolledToCurrent}
         >
             <LinksLayer pageNum={pageNum} annotations={annotationsForLinks} scale={scale} />
             <div

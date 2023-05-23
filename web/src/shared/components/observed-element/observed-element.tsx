@@ -24,6 +24,7 @@ interface ObservedElementProps {
     height?: number;
     className?: string;
     id?: string;
+    isScrolledToCurrent?: boolean;
 }
 
 const ObservedElement: FC<ObservedElementProps> = ({
@@ -34,6 +35,7 @@ const ObservedElement: FC<ObservedElementProps> = ({
     width,
     height,
     className,
+    isScrolledToCurrent,
     id
 }) => {
     const elementRef = useRef<HTMLDivElement>(null);
@@ -61,6 +63,12 @@ const ObservedElement: FC<ObservedElementProps> = ({
             observer.disconnect();
         };
     }, [threshold, disabled]);
+
+    useEffect(() => {
+        if (elementRef.current && isScrolledToCurrent) {
+            elementRef.current.scrollIntoView();
+        }
+    }, [isScrolledToCurrent, elementRef]);
 
     return (
         <div id={id} ref={elementRef} style={{ width, height }} className={className}>
