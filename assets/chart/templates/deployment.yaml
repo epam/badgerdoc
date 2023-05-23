@@ -28,7 +28,7 @@ spec:
         app: assets
     spec:
       containers:
-      - image: {{ .Values.image.registry }}/assets:{{ .Values.image.tag }}
+      - image: "{{ .Values.image.registry }}/assets:{{ .Values.image.tag }}"
         imagePullPolicy: IfNotPresent
         name: assets
         resources:
@@ -60,6 +60,8 @@ spec:
           value: "minio"
         - name: S3_ENDPOINT
           value: "minio:80"
+        - name: MINIO_SECURE_CONNECTION
+          value: "false"
         - name: S3_ACCESS_KEY
           valueFrom:
             secretKeyRef:

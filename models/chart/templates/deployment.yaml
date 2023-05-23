@@ -28,7 +28,7 @@ spec:
         app: models
     spec:
       containers:
-      - image: {{ .Values.image.registry }}/models:{{ .Values.image.tag }}
+      - image: "{{ .Values.image.registry }}/models:{{ .Values.image.tag }}"
         imagePullPolicy: IfNotPresent
         name: models
         resources:
@@ -73,6 +73,8 @@ spec:
             secretKeyRef:
               name: models
               key: MINIO_SECRET_KEY
+        - name: MINIO_SECURE_CONNECTION
+          value: "false"
         - name: MINIO_HOST
           value: "minio:80"
         - name: SECRET
