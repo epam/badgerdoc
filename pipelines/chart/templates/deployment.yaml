@@ -29,7 +29,7 @@ spec:
         app: pipelines
     spec:
       containers:
-      - image: {{ .Values.image.registry }}/pipelines:{{ .Values.image.tag }}
+      - image: "{{ .Values.image.registry }}/pipelines:{{ .Values.image.tag }}"
         imagePullPolicy: IfNotPresent
         name: pipelines
         resources:
@@ -63,6 +63,8 @@ spec:
           value: "postgres-postgresql"
         - name: S3_CREDENTIALS_PROVIDER
           value: "minio"
+        - name: MINIO_SECURE_CONNECTION
+          value: "false"
         - name: S3_ENDPOINT
           value: "minio:80"
         - name: S3_ACCESS_KEY

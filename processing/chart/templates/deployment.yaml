@@ -28,7 +28,7 @@ spec:
         app: processing
     spec:
       containers:
-      - image: {{ .Values.image.registry }}/processing:{{ .Values.image.tag }}
+      - image: "{{ .Values.image.registry }}/processing:{{ .Values.image.tag }}"
         imagePullPolicy: IfNotPresent
         name: processing
         resources:
@@ -61,6 +61,8 @@ spec:
           value: "processing"
         - name: S3_CREDENTIALS_PROVIDER
           value: "minio"
+        - name: MINIO_SECURE_CONNECTION
+          value: "false"
         - name: MINIO_SERVER
           value: "minio:80"
         - name: MINIO_ROOT_USER

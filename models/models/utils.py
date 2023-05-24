@@ -21,6 +21,7 @@ from models.constants import (
     MINIO_HOST,
     MINIO_PUBLIC_HOST,
     MINIO_SECRET_KEY,
+    MINIO_SECURE_CONNECTION,
     MODELS_NAMESPACE,
     S3_CREDENTIALS_PROVIDER,
     S3_PREFIX,
@@ -302,13 +303,13 @@ class NotConfiguredException(Exception):
 
 
 def create_boto3_config():
-    boto3_config = {}
+    boto3_config = {"secure": MINIO_SECURE_CONNECTION}
     if S3_CREDENTIALS_PROVIDER == "minio":
         boto3_config.update(
             {
                 "aws_access_key_id": MINIO_ACCESS_KEY,
                 "aws_secret_access_key": MINIO_SECRET_KEY,
-                "endpoint_url": f"http://{MINIO_HOST}",
+                "endpoint_url": MINIO_HOST,
             }
         )
     elif S3_CREDENTIALS_PROVIDER == "aws_iam":
@@ -360,7 +361,7 @@ def generate_presigned_url(
         )
     except BotoCoreError:
         return None
-    minio_client.meta._endpoint_url = f"http://{MINIO_HOST}"
+    minio_client.meta._endpoint_url = MINIO_HOST
     return presigned_url
 
 
