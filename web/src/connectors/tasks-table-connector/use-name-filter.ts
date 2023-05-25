@@ -1,6 +1,5 @@
 import { useLazyDataSource } from '@epam/uui';
-import { documentsFetcher } from 'api/hooks/documents';
-import { FileDocument } from 'api/typings';
+import { documentNamesFetcher } from 'api/hooks/document';
 import { useRef } from 'react';
 import { useColumnPickerFilter } from 'shared/components/filters/column-picker';
 import { createPagingCachedLoader } from 'shared/helpers/create-paging-cached-loader';
@@ -18,30 +17,29 @@ export const useNameFilter = ({ fieldName }: Props) => {
 
     type PagingCache = {
         page: number;
-        cache: FileDocument[];
+        cache: string[];
         search: string;
     };
 
-    const loadDocuments = createPagingCachedLoader(
+    const loadDocumentsNames = createPagingCachedLoader(
         namesCache,
         async (pageNumber, pageSize, keyword) =>
-            await documentsFetcher(pageNumber, pageSize, keyword)
+            await documentNamesFetcher(pageNumber, pageSize, [], keyword)
     );
 
-    const documentNames = useLazyDataSource<FileDocument, string, unknown>(
+    const documentNames = useLazyDataSource<string, string, unknown>(
         {
-            api: loadDocuments,
-            getId: (doc) => doc.id.toString()
+            api: loadDocumentsNames,
+            getId: (doc) => doc.toString()
         },
         []
     );
 
-    const renderNameFilter = useColumnPickerFilter<FileDocument, string, unknown, string>(
+    const renderNameFilter = useColumnPickerFilter<string, string, unknown, string>(
         documentNames,
         fieldName,
         {
-            showSearch: true,
-            getName: (item) => (typeof item === 'boolean' ? String(item) : item.original_name)
+            showSearch: true
         }
     );
     return renderNameFilter;
