@@ -70,7 +70,10 @@ spec:
         - name: IMPORT_COCO_URL
           value: http://0.0.0.0:8080/converter/import/
         - name: KEYCLOAK_URL
-          value: http://{{ .Values.app.hostname }}
+          valueFrom:
+            secretKeyRef:
+              name: users
+              key: KEYCLOAK_DIRECT_ENDPOINT_DEV1
         command: ["/bin/sh"]
         args: ["-c", "uvicorn convert.main:app --host 0.0.0.0 --port 8080 --root-path /api/v1/convert"]
       dnsPolicy: ClusterFirst
