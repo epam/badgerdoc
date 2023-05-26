@@ -71,12 +71,12 @@ export const TasksTableConnector: FC<TaskTableConnectorProps> = ({ onRowClick })
     );
 
     const renderNameFilter = useNameFilter({
-        fieldName: 'file_id'
+        fieldName: 'file_name'
     });
 
     const renderDeadlineFilter = useDateRangeFilter('deadline');
 
-    const renderJobFilter = useJobFilter({ fieldName: 'job_id' });
+    const renderJobFilter = useJobFilter({ fieldName: 'job_name' });
 
     const columns = useMemo(() => {
         const statusColumn = COLUMNS.find(({ key }) => key === 'status');

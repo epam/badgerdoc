@@ -1,6 +1,5 @@
 import { useLazyDataSource } from '@epam/uui';
-import { jobsFetcher } from 'api/hooks/jobs';
-import { Job } from 'api/typings/jobs';
+import { jobPropFetcher } from 'api/hooks/jobs';
 import { useRef } from 'react';
 import { useColumnPickerFilter } from 'shared/components/filters/column-picker';
 import { createPagingCachedLoader } from 'shared/helpers/create-paging-cached-loader';
@@ -18,29 +17,29 @@ export const useJobFilter = ({ fieldName }: Props) => {
 
     type PagingCache = {
         page: number;
-        cache: Array<Job>;
+        cache: Array<string>;
         search: string;
     };
 
     const loadJobs = createPagingCachedLoader(
         namesCache,
-        async (pageNumber, pageSize, keyword) => await jobsFetcher(pageNumber, pageSize, keyword)
+        async (pageNumber, pageSize, keyword) =>
+            await jobPropFetcher('name', pageNumber, pageSize, keyword)
     );
 
-    const jobNames = useLazyDataSource<Job, string, unknown>(
+    const jobNames = useLazyDataSource<string, string, unknown>(
         {
             api: loadJobs,
-            getId: (job) => job.id.toString()
+            getId: (job) => job.toString()
         },
         []
     );
 
-    const renderJobFilter = useColumnPickerFilter<Job, string, unknown, string>(
+    const renderJobFilter = useColumnPickerFilter<string, string, unknown, string>(
         jobNames,
         fieldName,
         {
-            showSearch: true,
-            getName: (item) => (typeof item === 'boolean' ? String(item) : item.name)
+            showSearch: true
         }
     );
     return renderJobFilter;
