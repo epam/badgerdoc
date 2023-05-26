@@ -88,7 +88,7 @@ Example of response for jobs:
 
 """
 import os
-from typing import Dict, List
+from typing import Dict, List, Union
 
 import requests
 from fastapi import Header, HTTPException
@@ -122,39 +122,47 @@ def calculate_amount_of_pagination_pages(elem_amount: int):
     return elem_amount // PAGE_SIZE
 
 
-def construct_search_params(page: int, ids: List[int]):
+def construct_search_params(
+    page: int, field: str, values: List[Union[int, str]]
+):
     """
     With this params assets will return
-    list of elements, where ids of elements matches with provided ids.
+    list of elements, which matches with provided field values.
     """
     return {
         "pagination": {"page_num": page + 1, "page_size": PAGE_SIZE},
         "filters": [
             {
-                "field": "id",
+                "field": field,
                 "operator": "in",
-                "value": ids[page * PAGE_SIZE : (page + 1) * PAGE_SIZE],
+                "value": values[page * PAGE_SIZE : (page + 1) * PAGE_SIZE],
             }
         ],
-        "sorting": [{"field": "id", "direction": "asc"}],
+        "sorting": [{"field": field, "direction": "asc"}],
     }
 
 
 def get_response(
-    ids: List[int], url: str, tenant: str, token: str
+    field: str,
+    values: List[Union[int, str]],
+    url: str,
+    tenant: str,
+    token: str,
 ) -> List[dict]:
     """
     Request from jobs or assets microservices all elements,
-    that have provided ids.
+    that have provided fields values.
     Because microservices return only 100 elements, function
     should do several requests.
     Examples of responses are in module docstring.
     """
     complete_response = []
-    amount_of_pagination_pages = calculate_amount_of_pagination_pages(len(ids))
+    amount_of_pagination_pages = calculate_amount_of_pagination_pages(
+        len(values)
+    )
 
     for page in range(amount_of_pagination_pages):
-        post_params = construct_search_params(page, ids)
+        post_params = construct_search_params(page, field, values)
         try:
             response = requests.post(
                 url,

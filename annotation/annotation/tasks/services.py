@@ -22,12 +22,17 @@ from annotation.annotations.main import (
     construct_particular_rev_response,
 )
 from annotation.errors import CheckFieldError, FieldConstraintError
-from annotation.filters import TaskFilter
-from annotation.jobs import update_files, update_user_overall_load
+from annotation.filters import ADDITIONAL_TASK_FIELDS, TaskFilter
+from annotation.jobs import (
+    get_jobs_by_name,
+    update_files,
+    update_user_overall_load,
+)
 from annotation.logger import Logger
 from annotation.microservice_communication.assets_communication import (
     get_file_names_by_request,
     get_file_path_and_bucket,
+    get_files_by_request,
 )
 from annotation.microservice_communication.search import (
     get_user_names_by_request,
@@ -249,38 +254,134 @@ def read_annotation_tasks(
     pagination_start_page: Optional[int],
     tenant: str,
 ):
-    total_objects = (
-        db.query(ManualAnnotationTask)
-        .filter_by(**search_params)
-        .filter(ManualAnnotationTask.jobs.has(tenant=tenant))
-        .count()
+    file_ids = (
+        search_params.pop("file_ids") if search_params.get("file_ids") else []
     )
-    annotation_tasks = (
+    job_ids = (
+        search_params.pop("job_ids") if search_params.get("job_ids") else []
+    )
+
+    query = (
         db.query(ManualAnnotationTask)
         .filter_by(**search_params)
         .filter(ManualAnnotationTask.jobs.has(tenant=tenant))
-        .limit(pagination_page_size)
-        .offset(  # type: ignore
-            (pagination_start_page - 1) * pagination_page_size,
-        )
+    )
+    if file_ids:
+        query = query.filter(ManualAnnotationTask.file_id.in_(file_ids))
+    if job_ids:
+        query = query.filter(ManualAnnotationTask.job_id.in_(job_ids))
+
+    total_objects = query.count()
+    annotation_tasks = (
+        query.limit(pagination_page_size)
+        .offset((pagination_start_page - 1) * pagination_page_size)
         .all()
     )
+
     return total_objects, annotation_tasks
+
+
+def validate_ids_and_names(
+    search_id: int,
+    search_name: Optional[str],
+    ids_with_names: Dict[int, str],
+) -> Tuple[List[int], Dict[int, str]]:
+    """Validate search ids and names."""
+    if search_id is not None:
+        if search_name is not None and (
+            not ids_with_names or search_id not in ids_with_names
+        ):
+            raise HTTPException(
+                status_code=404,
+                detail="Tasks with the current parameters were not found.",
+            )
+        id_with_name = (
+            {search_id: ids_with_names[search_id]}
+            if search_name is not None
+            else {}
+        )
+
+        return [search_id], id_with_name
+
+    if search_name is not None and not ids_with_names:
+        raise HTTPException(
+            status_code=404,
+            detail="Tasks with the current parameters were not found.",
+        )
+    return list(ids_with_names.keys()), ids_with_names
+
+
+def remove_additional_filters(filter_args: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Remove inplace additional filter fields
+    that are not related to the original model.
+    Return their names and values.
+    """
+    additional_filters = {}
+
+    new_filters = []
+    for filter_field in filter_args["filters"]:
+        field_name = filter_field["field"]
+        if field_name not in ADDITIONAL_TASK_FIELDS:
+            new_filters.append(filter_field)
+            continue
+        additional_filters[field_name] = (
+            filter_field["value"]
+            if isinstance(filter_field["value"], list)
+            else [filter_field["value"]]
+        )
+    filter_args["filters"] = new_filters
+
+    new_sorting = []
+    for sorting_field in filter_args["sorting"]:
+        if sorting_field["field"] not in ADDITIONAL_TASK_FIELDS:
+            new_sorting.append(sorting_field)
+    filter_args["sorting"] = new_sorting
+
+    return additional_filters
 
 
 def filter_tasks_db(
     db: Session,
     request: TaskFilter,
     tenant: str,
-) -> Page[TaskFilter]:
-    filter_query = db.query(ManualAnnotationTask).filter(
-        ManualAnnotationTask.jobs.has(tenant=tenant)
-    )
+    token: str,
+) -> Tuple[Page[TaskFilter], Dict[int, str], Dict[int, str]]:
     filter_args = map_request_to_filter(
         request.dict(), ManualAnnotationTask.__name__
     )
+    additional_filters = remove_additional_filters(filter_args)
+
+    file_names = additional_filters.get("file_name")
+    files_by_name = (
+        get_files_by_request(file_names, tenant, token) if file_names else {}
+    )
+    if file_names and not files_by_name:
+        filter_query = db.query(ManualAnnotationTask).filter(False)
+        _, pagination = form_query(filter_args, filter_query)
+        return paginate([], pagination), {}, {}
+
+    job_names = additional_filters.get("job_name")
+    jobs_by_name = get_jobs_by_name(db, job_names, tenant) if job_names else {}
+    if job_names and not jobs_by_name:
+        filter_query = db.query(ManualAnnotationTask).filter(False)
+        _, pagination = form_query(filter_args, filter_query)
+        return paginate([], pagination), {}, {}
+
+    filter_query = db.query(ManualAnnotationTask).filter(
+        ManualAnnotationTask.jobs.has(tenant=tenant)
+    )
+    if files_by_name:
+        filter_query = filter_query.filter(
+            ManualAnnotationTask.file_id.in_(files_by_name)
+        )
+    if jobs_by_name:
+        filter_query = filter_query.filter(
+            ManualAnnotationTask.job_id.in_(jobs_by_name)
+        )
+
     task_query, pagination = form_query(filter_args, filter_query)
-    return paginate(task_query.all(), pagination)
+    return paginate(task_query.all(), pagination), files_by_name, jobs_by_name
 
 
 def read_annotation_task(db: Session, task_id: int, tenant: str):

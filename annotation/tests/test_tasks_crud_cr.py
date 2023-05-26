@@ -16,8 +16,8 @@ from annotation.microservice_communication.assets_communication import (
 from annotation.microservice_communication.jobs_communication import (
     JOBS_SEARCH_URL,
 )
-from annotation.microservice_communication.user import USERS_GET_USER_URL
 from annotation.microservice_communication.search import USERS_SEARCH_URL
+from annotation.microservice_communication.user import USERS_GET_USER_URL
 from annotation.models import Category, File, Job, ManualAnnotationTask, User
 from annotation.schemas import CategoryTypeSchema, ValidationSchema
 from tests.consts import CRUD_TASKS_PATH
@@ -1241,15 +1241,21 @@ def test_get_tasks_404_response(prepare_db_for_cr_task):
 
 @pytest.mark.integration
 @pytest.mark.parametrize(
-    ["url_params", "expected_annotation_tasks"],
+    [
+        "url_params",
+        "expected_annotation_tasks",
+        "assets_response",
+    ],
     [
         (
             {"file_id": 1},
             [EXPANDED_TASKS_RESPONSE[0]],
+            ASSET_FILE_RESPONSE,
         ),
         (
             {"job_id": 1},
             EXPANDED_TASKS_RESPONSE[:3],
+            ASSET_FILE_RESPONSE,
         ),
         (
             {
@@ -1257,10 +1263,12 @@ def test_get_tasks_404_response(prepare_db_for_cr_task):
                 "user_id": "9eace50e-613e-4352-b287-85fd91c88b51",
             },
             [EXPANDED_TASKS_RESPONSE[2]],
+            ASSET_FILE_RESPONSE,
         ),
         (
             {"user_id": "72b31ea3-fde2-4c7a-82b7-c27874b81217"},
             [EXPANDED_TASKS_RESPONSE[1]],
+            ASSET_FILE_RESPONSE,
         ),
         (
             {
@@ -1268,18 +1276,40 @@ def test_get_tasks_404_response(prepare_db_for_cr_task):
                 "deadline": "2021-11-19T01:01:01",
             },
             [EXPANDED_TASKS_RESPONSE[2]],
+            ASSET_FILE_RESPONSE,
         ),
         (
             {"job_id": 1, "task_status": "Pending"},
             EXPANDED_TASKS_RESPONSE[:3],
+            ASSET_FILE_RESPONSE,
         ),
         (
             {"job_id": 2, "task_status": "Ready"},
             [EXPANDED_TASKS_RESPONSE[5]],
+            ASSET_FILE_RESPONSE,
         ),
         (
             {"job_id": 2, "task_status": "In Progress"},
             [EXPANDED_TASKS_RESPONSE[4]],
+            ASSET_FILE_RESPONSE,
+        ),
+        (
+            {"file_name": ASSET_FILE_RESPONSE["data"][0]["original_name"]},
+            [EXPANDED_TASKS_RESPONSE[0]],
+            {"data": [ASSET_FILE_RESPONSE["data"][0]]},
+        ),
+        (
+            {"job_name": "annotation_job_2"},
+            EXPANDED_TASKS_RESPONSE[3:],
+            ASSET_FILE_RESPONSE,
+        ),
+        (
+            {
+                "job_name": "annotation_job_1",
+                "file_name": ASSET_FILE_RESPONSE["data"][1]["original_name"],
+            },
+            [EXPANDED_TASKS_RESPONSE[1]],
+            {"data": [ASSET_FILE_RESPONSE["data"][1]]},
         ),
     ],
 )
@@ -1288,18 +1318,12 @@ def test_get_tasks(
     prepare_db_for_cr_task,
     url_params: dict,
     expected_annotation_tasks: dict,
+    assets_response: dict,
 ):
     responses.add(
         responses.POST,
         ASSETS_FILES_URL,
-        json=ASSET_FILE_RESPONSE,
-        status=200,
-        headers=TEST_HEADERS,
-    )
-    responses.add(
-        responses.POST,
-        JOBS_SEARCH_URL,
-        json={1: "annotation_job_1"},
+        json=assets_response,
         status=200,
         headers=TEST_HEADERS,
     )
@@ -1488,7 +1512,8 @@ def prepare_filtration_body_double_filter(
     sorting_field: Optional[str] = "status",
     first_operator: Optional[str] = "distinct",
     second_operator: Optional[str] = "distinct",
-    value: Optional[Any] = "string",
+    first_value: Optional[Any] = "string",
+    second_value: Optional[Any] = "string",
     direction: Optional[str] = "asc",
     no_filtration: Optional[bool] = False,
 ) -> dict:
@@ -1501,12 +1526,12 @@ def prepare_filtration_body_double_filter(
             {
                 "field": first_field,
                 "operator": first_operator,
-                "value": value,
+                "value": first_value,
             },
             {
                 "field": second_field,
                 "operator": second_operator,
-                "value": value,
+                "value": second_value,
             },
         ],
         "sorting": [
@@ -1823,3 +1848,90 @@ def test_post_task_wrong_file_pages(prepare_db_for_cr_task):
     )
     assert response.status_code == 400
     assert error_message in response.text
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize(
+    ["filtration_body", "asset_response", "expected_response"],
+    [
+        (
+            prepare_filtration_body(
+                filter_field="file_name",
+                value="1.pdf",
+                ordering_field="file_name",
+            ),
+            {"data": [ASSET_FILE_RESPONSE["data"][0]]},
+            [EXPANDED_TASKS_RESPONSE[0]],
+        ),
+        (
+            prepare_filtration_body(
+                filter_field="job_name",
+                value="annotation_job_2",
+                ordering_field="job_name",
+            ),
+            {"data": [ASSET_FILE_RESPONSE["data"][2]]},
+            EXPANDED_TASKS_RESPONSE[3:],
+        ),
+    ],
+)
+@responses.activate
+def test_search_additional_filter(
+    prepare_db_for_cr_task, filtration_body, asset_response, expected_response
+):
+    responses.add(
+        responses.POST,
+        ASSETS_FILES_URL,
+        json=asset_response,
+        status=200,
+        headers=TEST_HEADERS,
+    )
+    responses.add(
+        responses.GET,
+        re.compile(f"{USERS_GET_USER_URL}/\\w+"),
+        json=USERS_SEARCH_RESPONSE,
+        status=200,
+        headers=TEST_HEADERS,
+    )
+    response = client.post(
+        SEARCH_TASKS_PATH, json=filtration_body, headers=TEST_HEADERS
+    )
+    assert response.status_code == 200
+    actual_response = [
+        {key: value for key, value in x.items() if key != "id"}
+        for x in response.json()["data"]
+    ]
+    assert actual_response == expected_response
+
+
+@pytest.mark.integration
+@responses.activate
+def test_search_two_additional_filters(prepare_db_for_cr_task):
+    responses.add(
+        responses.POST,
+        ASSETS_FILES_URL,
+        json={"data": [ASSET_FILE_RESPONSE["data"][2]]},
+        status=200,
+        headers=TEST_HEADERS,
+    )
+    responses.add(
+        responses.GET,
+        re.compile(f"{USERS_GET_USER_URL}/\\w+"),
+        json=USERS_SEARCH_RESPONSE,
+        status=200,
+        headers=TEST_HEADERS,
+    )
+    body = prepare_filtration_body_double_filter(
+        first_field="file_name",
+        first_operator="in",
+        first_value=ASSET_FILE_RESPONSE["data"][2]["original_name"],
+        second_field="job_name",
+        second_operator="in",
+        second_value="annotation_job_1",
+    )
+    response = client.post(SEARCH_TASKS_PATH, json=body, headers=TEST_HEADERS)
+    assert response.status_code == 200
+    actual_response = [
+        {key: value for key, value in x.items() if key != "id"}
+        for x in response.json()["data"]
+    ]
+    assert actual_response == [EXPANDED_TASKS_RESPONSE[2]]

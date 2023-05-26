@@ -7,6 +7,7 @@ from annotation.jobs.services import (
     delete_tasks,
     get_job,
     get_job_attributes_for_post,
+    get_jobs_by_name,
     read_user,
     recalculate_file_pages,
     update_files,
@@ -28,4 +29,5 @@ __all__ = [
     collect_job_names,
     delete_redundant_users,
     delete_tasks,
+    get_jobs_by_name,
 ]
