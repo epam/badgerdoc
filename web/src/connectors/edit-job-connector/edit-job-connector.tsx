@@ -76,10 +76,13 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
     showNoExtractionTab
 }) => {
     const getMetadata = (state: JobValues) => {
-        const { jobType, validationType, annotators_validators, pipeline, validators } = state;
+        const { jobType, validationType, annotators_validators, pipeline, validators, categories } =
+            state;
 
         const annotatorsValidatorsCount = validationType === 'cross' ? 2 : 1;
         const annotatorsValidatorsCombinedFieldRequired = validationType === 'cross' ? true : false;
+        const hasLinkTypeCategory = categories?.some((category) => category.type === 'link');
+        const hasBoxTypeCategory = categories?.some((category) => category.type === 'box');
 
         // TODO add proper typing for validators
         const metadata: any = {
@@ -88,7 +91,9 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
                 pipeline: { isRequired: jobType === 'ExtractionJob' },
                 start_manual_job_automatically: { isDisabled: !pipeline },
                 validationType: { isRequired: jobType === 'ExtractionWithAnnotationJob' },
-                categories: { isRequired: jobType === 'ExtractionWithAnnotationJob' },
+                categories: {
+                    isRequired: jobType === 'ExtractionWithAnnotationJob'
+                },
                 extensive_coverage: { isRequired: validationType === 'extensive_coverage' }
             }
         };
@@ -99,6 +104,16 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
                 validationMessage:
                     'For Cross validation at least 2 annotators or validators are required',
                 isRequired: annotatorsValidatorsCombinedFieldRequired
+            };
+        }
+
+        if (hasLinkTypeCategory && !hasBoxTypeCategory) {
+            const categoriesMetaData = metadata.props['categories'];
+
+            metadata.props['categories'] = {
+                ...categoriesMetaData,
+                isInvalid: true,
+                validationMessage: 'You should select at least one category with type "Box"'
             };
         }
 
@@ -121,6 +136,7 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
     const renderForm = useCallback(
         ({ lens, save }: IFormApi<JobValues>) => {
             const values = lens.get();
+            const isInvalidCategoryList = lens.prop('categories').toProps().isInvalid;
 
             let isValid;
             switch (values.jobType) {
@@ -134,6 +150,14 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
                     isValid = !!values.jobName;
                     break;
             }
+
+            const onSubmit = () => {
+                if (!isInvalidCategoryList) {
+                    return save;
+                }
+
+                return () => {};
+            };
 
             return (
                 <>
@@ -149,7 +173,7 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
                     </div>
                     <div className={wizardStyles['content__footer']}>
                         {renderWizardButtons({
-                            save,
+                            save: onSubmit(),
                             lens,
                             disableNextButton: !isValid,
                             finishButtonCaption:
