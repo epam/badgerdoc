@@ -63,7 +63,7 @@ class JobInfoSchema(BaseModel):
     files: Set[int] = Field(..., example={1, 2, 3})
     datasets: Set[int] = Field(..., example={1, 2, 3})
     is_auto_distribution: bool = Field(default=False, example=False)
-    categories: Set[str] = Field(..., example={"1", "2"})
+    categories: Optional[Set[str]] = Field(None, example={"1", "2"})
     deadline: Optional[datetime] = Field(None, example="2021-10-19 01:01:01")
     job_type: JobTypeEnumSchema = Field(
         ..., example=JobTypeEnumSchema.ExtractionJob
@@ -151,20 +151,6 @@ class JobInfoSchema(BaseModel):
                 "If the validation type is extensive_coverage number of "
                 "annotators should equal or less then provided "
                 "extensive_coverage number."
-            )
-        return values
-
-    @root_validator
-    def check_categories(cls, values):
-        """
-        If job type is ImportJob categories may not be provided.
-        In other cases there should be not less than one category provided
-        """
-        job_type = values.get("job_type")
-        categories = values.get("categories")
-        if job_type != JobTypeEnumSchema.ImportJob and not categories:
-            raise ValueError(
-                "There should be not less than one category provided"
             )
         return values
 

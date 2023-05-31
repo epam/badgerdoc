@@ -221,21 +221,6 @@ def test_job_available_categories(
 
 
 @mark.integration
-def test_job_no_categories(mock_assets_communication):
-    session = mock_assets_communication
-    response = client.post(
-        f"{POST_JOBS_PATH}/{MOCK_ID}",
-        json=prepare_job_body(categories=[]),
-        headers=TEST_HEADERS,
-    )
-    error_message = "There should be not less than one category provided"
-    job = session.query(Job).get(MOCK_ID)
-    assert response.status_code == 422
-    assert error_message in response.text
-    assert not job
-
-
-@mark.integration
 @mark.parametrize(
     ["cat_ids", "request_tenant", "expected_cat_ids"],
     [

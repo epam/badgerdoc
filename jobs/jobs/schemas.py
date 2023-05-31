@@ -161,13 +161,13 @@ class JobParams(BaseModel):
         field: ModelField,
     ) -> Union[List[int], List[str]]:
         job_type = values.get("type")
-        if v:
+        if v is not None:
             if job_type == JobType.ExtractionJob:
                 raise ValueError(
                     f"{field.name} cannot be assigned to ExtractionJob"
                 )
         elif job_type == JobType.AnnotationJob:
-            raise ValueError(f"{field.name} cannot be empty for {job_type}")
+            raise ValueError(f"{field.name} should be passed for {job_type}")
 
         return v
 
