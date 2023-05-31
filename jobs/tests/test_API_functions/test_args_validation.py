@@ -33,7 +33,7 @@ def test_create_annotation_job_lack_of_data(testing_app):
             },
             {
                 "loc": ["body", "categories"],
-                "msg": "categories cannot be empty for AnnotationJob",
+                "msg": "categories should be passed for AnnotationJob",
                 "type": "value_error",
             },
         ]
@@ -469,7 +469,6 @@ def test_params_validation_for_extracting_job():
         "is_draft": False,
         "is_auto_distribution": False,
         "start_manual_job_automatically": False,
-        "categories": [],
         "owners": [
             "02336646-f5d0-4670-b111-c140a3ad58b5"
         ],

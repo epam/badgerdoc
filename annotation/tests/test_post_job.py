@@ -435,11 +435,6 @@ def test_post_job_connection_exception(Session, prepare_db_for_post_job):
                 "at the same time."
             ),
         ),  # even in ExtractionJob must be either files or datasets
-        (
-            POST_JOB_NEW_JOBS[12],
-            422,
-            "There should be not less than one category provided",
-        ),  # even in ExtractionJob must be at least one category
     ],
 )
 @responses.activate
