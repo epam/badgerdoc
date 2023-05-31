@@ -147,12 +147,10 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                         loading={<Spinner color="sky" />}
                         options={{ httpHeaders: getAuthHeaders() }}
                         className={cn(styles['split-document-wrapper'], {
-                            [styles[
-                                `vertical-view--pages-${latestRevisionByAnnotators.length + 1}`
-                            ]]: gridVariant === GridVariants.vertical,
-                            [styles[
-                                `horizontal-view--pages-${latestRevisionByAnnotators.length + 1}`
-                            ]]: gridVariant === GridVariants.horizontal
+                            [styles[`vertical-view--pages-${annotatorIds.length + 1}`]]:
+                                gridVariant === GridVariants.vertical,
+                            [styles[`horizontal-view--pages-${annotatorIds.length + 1}`]]:
+                                gridVariant === GridVariants.horizontal
                         })}
                     >
                         <ResizableSyncedContainer
