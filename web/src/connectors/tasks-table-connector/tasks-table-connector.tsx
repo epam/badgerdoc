@@ -124,7 +124,8 @@ export const TasksTableConnector: FC<TaskTableConnectorProps> = ({ onRowClick })
     const { data, isFetching } = useTaskForDashboard(
         { user_id: currentUser?.id, page, size: pageSize, sortConfig, filters },
         {
-            cacheTime: 0
+            cacheTime: 0,
+            enabled: Boolean(currentUser?.id)
         }
     );
 
