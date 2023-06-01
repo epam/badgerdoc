@@ -79,39 +79,42 @@ type UsersForTaskParams = {
     jobId: number;
 };
 
-export const useTaskForDashboard: QueryHookType<UseTasksParamsType, PagedResponse<Task>> = ({
-    user_id,
-    page,
-    size,
-    sortConfig,
-    filters
-}) =>
-    useQuery(['tasks', user_id, page, size, sortConfig, filters], async () => {
-        const body: SearchBody<Task> = {
-            pagination: {
-                page_num: page,
-                page_size: size
-            },
-            filters: [
-                {
-                    field: 'user_id',
-                    operator: Operators.EQ,
-                    value: `${user_id}`
+export const useTaskForDashboard: QueryHookType<UseTasksParamsType, PagedResponse<Task>> = (
+    { user_id, page, size, sortConfig, filters },
+    options
+) =>
+    useQuery(
+        ['tasks', user_id, page, size, sortConfig, filters],
+        async () => {
+            const body: SearchBody<Task> = {
+                pagination: {
+                    page_num: page,
+                    page_size: size
                 },
-                ...filters
-            ],
-            sorting: [
-                sortConfig ?? {
-                    field: 'id',
-                    direction: SortingDirection.DESC
-                }
-            ]
-        };
-        return useBadgerFetch({
-            url: `${namespace}/tasks/search`,
-            method: 'post'
-        })(JSON.stringify(body));
-    });
+                filters: [
+                    {
+                        field: 'user_id',
+                        operator: Operators.EQ,
+                        value: `${user_id}`
+                    },
+                    ...filters
+                ],
+                sorting: [
+                    sortConfig ?? {
+                        field: 'id',
+                        direction: SortingDirection.DESC
+                    }
+                ]
+            };
+            return useBadgerFetch({
+                url: `${namespace}/tasks/search`,
+                method: 'post'
+            })(JSON.stringify(body));
+        },
+        {
+            enabled: options?.enabled
+        }
+    );
 
 export function taskPropFetcher(
     propName: keyof Task | keyof DocumentExtraOption,
