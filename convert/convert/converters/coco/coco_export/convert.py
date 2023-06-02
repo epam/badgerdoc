@@ -357,7 +357,7 @@ class ConvertToCoco(ExportConvertBase):
             for element in page["objs"]:
                 if element["category"] not in category_names:
                     response = requests.post(
-                        url=settings.category_service_url,  # pylint: disable=[arg-type]
+                        url=settings.category_service_url,  # pylint: disable=arg-type
                         headers=get_headers(self.token, self.tenant),
                         json={
                             "name": element["category"],
