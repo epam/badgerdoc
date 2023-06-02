@@ -184,12 +184,18 @@ export const JobsTableConnector: FC<JobsTableConnectorProps> = ({ onAddJob, onRo
 
     const columns = useMemo(() => {
         const typeColumn = jobColumns.find(({ key }) => key === 'type');
+        typeColumn!.isFilterActive = (filter) =>
+            (filter.type && filter.type.in && Boolean(filter.type.in.length)) ?? false;
         typeColumn!.renderFilter = renderTypeFilter;
 
         const nameColumn = jobColumns.find(({ key }) => key === 'name');
+        nameColumn!.isFilterActive = (filter) =>
+            (filter.name && filter.name.in && Boolean(filter.name.in.length)) ?? false;
         nameColumn!.renderFilter = renderNameFilter;
 
         const statusColumn = jobColumns.find(({ key }) => key === 'status');
+        statusColumn!.isFilterActive = (filter) =>
+            (filter.status && filter.status.in && Boolean(filter.status.in.length)) ?? false;
         statusColumn!.renderFilter = renderStatusFilter;
 
         const deadlineColumn = jobColumns.find(({ key }) => key === 'deadline');
