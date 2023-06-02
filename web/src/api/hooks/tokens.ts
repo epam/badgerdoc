@@ -20,7 +20,7 @@ export const useTokens: QueryHookType<TokensParams, PageInfo[]> = (
 };
 
 async function fetchTokens(fileId?: number, pageNumbers?: number[]): Promise<any> {
-    const pageNums = pageNumbers?.map((pageNumber) => `page_numbers=${pageNumber}`);
+    const pageNums = pageNumbers?.map((pageNumber) => `pages=${pageNumber}`);
     return useBadgerFetch({
         url: `${namespace}/tokens/${fileId}?${pageNums?.join('&')}`,
         method: 'get'
