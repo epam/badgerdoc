@@ -58,17 +58,15 @@ spec:
               name: pipelines
               key: MINIO_SECRET_KEY
         - name: ASSETS_SERVICE_URL
-          value: http://{{ .Values.app.hostname }}/api/v1/assets/files/
+          value: http://{{ .Values.app.hostname }}/api/v1/assets/files
         - name: CATEGORY_SERVICE_URL
-          value: http://{{ .Values.app.hostname }}/api/v1/annotation/categories/
+          value: http://{{ .Values.app.hostname }}/api/v1/annotation/categories
         - name: JOB_SERVICE_URL
-          value: http://{{ .Values.app.hostname }}/api/v1/jobs/jobs/
+          value: http://{{ .Values.app.hostname }}/api/v1/jobs/jobs
         - name: ANNOTATION_SERVICE_URL
-          value: http://{{ .Values.app.hostname }}/api/v1/annotation/
+          value: http://{{ .Values.app.hostname }}/api/v1/annotation
         - name: TAXONOMY_SERVICE_URL
-          value: http://{{ .Values.app.hostname }}/api/v1/taxonomy/
-        - name: IMPORT_COCO_URL
-          value: http://0.0.0.0:8080/converter/import/
+          value: http://{{ .Values.app.hostname }}/api/v1/taxonomy
         - name: KEYCLOAK_URL
           valueFrom:
             secretKeyRef:

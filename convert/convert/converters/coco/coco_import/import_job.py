@@ -21,7 +21,7 @@ def create_import_job(
     """
 
     token = f"Bearer {tenant_dependency.__dict__.get('token', None)}"
-    job_create_url = f"{settings.job_service_url}create_job/"
+    job_create_url = f"{settings.job_service_url}/create_job"
     headers = {"X-Current-Tenant": current_tenant, "Authorization": token}
     body = {
         "name": f"import_job_{uuid4()}",
