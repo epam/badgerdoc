@@ -81,12 +81,14 @@ export const TasksTableConnector: FC<TaskTableConnectorProps> = ({ onRowClick })
     const columns = useMemo(() => {
         const statusColumn = COLUMNS.find(({ key }) => key === 'status');
         statusColumn!.isFilterActive = (filter) =>
-            (filter.status && filter.status.in && !!filter.status.in.length) ?? false;
+            (filter.status && filter.status.in && Boolean(filter.status.in.length)) ?? false;
         statusColumn!.renderFilter = renderStatusFilter;
 
         const typeColumn = COLUMNS.find(({ key }) => key === 'is_validation');
         typeColumn!.isFilterActive = (filter) =>
-            (filter.is_validation && filter.is_validation.in && !!filter.is_validation.in.length) ??
+            (filter.is_validation &&
+                filter.is_validation.in &&
+                Boolean(filter.is_validation.in.length)) ??
             false;
         typeColumn!.renderFilter = renderTypeFilter;
 
@@ -94,9 +96,14 @@ export const TasksTableConnector: FC<TaskTableConnectorProps> = ({ onRowClick })
         deadlineColumn!.renderFilter = renderDeadlineFilter;
 
         const jobColumn = COLUMNS.find(({ key }) => key === 'job_name');
+        jobColumn!.isFilterActive = (filter) =>
+            (filter.job_name && filter.job_name.in && Boolean(filter.job_name.in.length)) ?? false;
         jobColumn!.renderFilter = renderJobFilter;
 
         const fileNameColumn = COLUMNS.find(({ key }) => key === 'file_name');
+        fileNameColumn!.isFilterActive = (filter) =>
+            (filter.file_name && filter.file_name.in && Boolean(filter.file_name.in.length)) ??
+            false;
         fileNameColumn!.renderFilter = renderNameFilter;
 
         return COLUMNS;
