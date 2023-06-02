@@ -218,7 +218,8 @@ class LabelStudioFormat:
         job_id: int, request_headers: Dict[str, str]
     ) -> List[str]:
         annotations_get_categories_url = (
-            f"{settings.annotation_service_url}jobs/{job_id}/categories/search"
+            f"{settings.annotation_service_url}/"
+            f"jobs/{job_id}/categories/search"
         )
         annotations_get_categories_body = {
             "pagination": {"page_num": 1, "page_size": 100}
@@ -239,12 +240,14 @@ class LabelStudioFormat:
         except requests.exceptions.RequestException as exception:
             LOGGER.exception(
                 "Failed request to 'annotation' to get "
-                "all categories for specific job"
+                "all categories for specific job - %s",
+                request_to_get_categories.content,
             )
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail="Failed request to 'annotation' to get "
-                "all categories for specific job",
+                detail=f"Failed request to 'annotation' to get "
+                f"all categories for specific job - "
+                f"{str(request_to_get_categories.content)}",
             ) from exception
 
         LOGGER.debug(
@@ -264,7 +267,7 @@ class LabelStudioFormat:
         job_id: int, category_id: str, request_headers: Dict[str, str]
     ) -> List[Dict[str, str]]:
         get_taxonomy_url = (
-            f"{settings.taxonomy_service_url}taxonomy/"
+            f"{settings.taxonomy_service_url}/taxonomy/"
             f"link_category/{job_id}/{category_id}"
         )
         LOGGER.debug(
@@ -281,11 +284,14 @@ class LabelStudioFormat:
         except requests.exceptions.RequestException as exception:
             LOGGER.exception(
                 "Failed request to 'taxonomy' to get corresponding taxonomy"
+                " - %s",
+                request_to_get_taxonomy.content,
             )
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail="Failed request to 'taxonomy' to "
-                "get corresponding taxonomy",
+                detail=f"Failed request to 'taxonomy' to "
+                f"get corresponding taxonomy - "
+                f"{str(request_to_get_taxonomy.content)}",
             ) from exception
         response_content = request_to_get_taxonomy.json()
         LOGGER.debug(
@@ -319,7 +325,7 @@ class LabelStudioFormat:
         all_taxonomies_ids_used: List[str],
         request_headers: Dict[str, str],
     ) -> Dict[str, Any]:
-        get_taxons_used_url = f"{settings.taxonomy_service_url}taxons/search"
+        get_taxons_used_url = f"{settings.taxonomy_service_url}/taxons/search"
         LOGGER.debug(
             "Making request to url %s to get all taxons used",
             get_taxons_used_url,
@@ -343,10 +349,14 @@ class LabelStudioFormat:
             )
             request_to_get_taxons_used.raise_for_status()
         except requests.exceptions.RequestException as exception:
-            LOGGER.exception("Failed request to 'taxonomy' to get taxons_used")
+            LOGGER.exception(
+                "Failed request to 'taxonomy' to get taxons_used - %s",
+                request_to_get_taxons_used.content,
+            )
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail="Failed request to 'taxonomy' to get taxons_used",
+                detail=f"Failed request to 'taxonomy' to get taxons_used - "
+                f"{str(request_to_get_taxons_used.content)}",
             ) from exception
         response_content = request_to_get_taxons_used.json()
         LOGGER.debug(

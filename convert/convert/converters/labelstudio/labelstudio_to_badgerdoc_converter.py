@@ -200,7 +200,7 @@ class LabelstudioToBadgerdocConverter:
         )
 
     def make_upload_file_request_to_assets(self, pdf_path: Path) -> int:
-        upload_file_to_assets_url = f"{settings.assets_service_url}"
+        upload_file_to_assets_url = settings.assets_service_url
         files = [
             (
                 "files",
@@ -216,11 +216,13 @@ class LabelstudioToBadgerdocConverter:
             request_to_post_assets.raise_for_status()
         except requests.exceptions.RequestException as e:
             LOGGER.exception(
-                "Failed request to 'assets' to post converted pdf-file"
+                "Failed request to 'assets' to post converted pdf-file - %s",
+                request_to_post_assets.content,
             )
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail="Failed request to 'assets' to post converted pdf-file",
+                detail=f"Failed request to 'assets' to post converted pdf-file"
+                f" - {str(request_to_post_assets.content)}",
             ) from e
         return int(request_to_post_assets.json()[0]["id"])
 
@@ -308,7 +310,7 @@ class LabelstudioToBadgerdocConverter:
         LOGGER.debug("categories of document links: %s", categories_of_links)
         categories.extend(categories_of_links)
 
-        post_annotation_job_url = f"{settings.job_service_url}create_job/"
+        post_annotation_job_url = f"{settings.job_service_url}/create_job"
         post_annotation_job_body = {
             "name": f"import_labelstudio_job_{uuid4()}",
             "type": "AnnotationJob",
@@ -344,10 +346,14 @@ class LabelstudioToBadgerdocConverter:
             )
             request_to_post_annotation_job.raise_for_status()
         except requests.exceptions.RequestException as e:
-            LOGGER.exception("Failed request to 'jobs' to post AnnotationJob")
+            LOGGER.exception(
+                "Failed request to 'jobs' to post AnnotationJob - %s",
+                request_to_post_annotation_job.content,
+            )
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail="Failed request to 'jobs' to post AnnotationJob",
+                detail=f"Failed request to 'jobs' to post AnnotationJob"
+                f" - {str(request_to_post_annotation_job.content)}",
             ) from e
 
         LOGGER.debug(
@@ -382,7 +388,7 @@ class LabelstudioToBadgerdocConverter:
         document_links: List[DocumentLink],
     ) -> None:
         annotations_post_url = (
-            f"{settings.annotation_service_url}"
+            f"{settings.annotation_service_url}/"
             f"annotation/{annotation_job_id_created}/"
             f"{file_id_in_assets}"
         )
@@ -421,11 +427,14 @@ class LabelstudioToBadgerdocConverter:
         except requests.exceptions.RequestException as e:
             LOGGER.exception(
                 "Failed request to 'annotation' to post converted annotations"
+                " - %s",
+                request_to_post_annotations.content,
             )
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail="Failed request to 'annotation' to post "
-                "converted annotations",
+                detail=f"Failed request to 'annotation' to post "
+                f"converted annotations"
+                f" - {str(request_to_post_annotations.content)}",
             ) from e
 
         LOGGER.debug(

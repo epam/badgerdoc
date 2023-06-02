@@ -209,7 +209,7 @@ class DatasetFetch:
     def get_categories(self, token: str) -> List[str]:
         """Get categories from minio"""
         response = requests.post(
-            f"{settings.category_service_url}search",
+            f"{settings.category_service_url}/search",
             headers=get_headers(token, self.tenant),
             json={"pagination": {"page_num": 1, "page_size": 100}},
         )
@@ -357,7 +357,7 @@ class ConvertToCoco(ExportConvertBase):
             for element in page["objs"]:
                 if element["category"] not in category_names:
                     response = requests.post(
-                        settings.category_service_url or "",
+                        url=settings.category_service_url,
                         headers=get_headers(self.token, self.tenant),
                         json={
                             "name": element["category"],
