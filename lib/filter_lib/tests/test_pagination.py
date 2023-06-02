@@ -61,20 +61,32 @@ def test_paginate_positive(sequence, pag_params):
 
 
 @pytest.mark.parametrize(
-    "start, stop, expected_result",
+    "start, stop, page_num, page_size, page_offset, found_items, expected_result",
     [
-        (1, 150, (1, 15, 10, 149, False, 0)),
-        (1, 151, (1, 15, 10, 150, False, 0)),
-        (1, 152, (1, 15, 10, 150, True, 0)),
+        (1, 150, 1, 15, None, 15, (1, 15, 10, 149, False, 0)),
+        (1, 151, 1, 15, None, 15, (1, 15, 10, 150, False, 0)),
+        (1, 152, 1, 15, None, 15, (1, 15, 10, 150, True, 0)),
+        (1, 150, 11, 15, None, 0, (11, 15, 0, 0, False, 150)),
+        (1, 151, 5, 10, None, 10, (5, 10, 10, 100, True, 40)),
+        (1, 151, 6, 10, None, 10, (6, 10, 10, 100, False, 50)),
+        (1, 151, 7, 10, None, 10, (7, 10, 9, 90, False, 60)),
     ],
 )
-def test_make_pagination_max_count(get_session, start, stop, expected_result):
+def test_make_pagination_max_count(
+    get_session,
+    start,
+    stop,
+    page_num,
+    page_size,
+    page_offset,
+    found_items,
+    expected_result,
+):
     session = get_session
     new_users = [User(id=i, name=f"user{i}") for i in range(start, stop)]
     session.add_all(new_users)
     session.commit()
 
-    page_num, page_size, page_offset = 1, 15, None
     if page_offset is not None:
         offset = page_offset
         max_count = page_size + 1
@@ -90,7 +102,7 @@ def test_make_pagination_max_count(get_session, start, stop, expected_result):
         page_offset=offset,
         max_count=max_count,
     )
-    assert len(query.all()) == page_size
+    assert len(query.all()) == found_items
     assert (
         pag.page_num,
         pag.page_size,
