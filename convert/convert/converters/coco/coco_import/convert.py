@@ -93,7 +93,9 @@ class ImportConvertBase:
 
     def check_category(self) -> Set[str]:
         categories = self.prepare_data(self.local_path)["categories"]
-        categories_services_url = f"{settings.annotation_service_url}/categories"
+        categories_services_url = (
+            f"{settings.annotation_service_url}/categories"
+        )
         headers = {
             "X-Current-Tenant": self.current_tenant,
             "Authorization": self.token,
