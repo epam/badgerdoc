@@ -172,6 +172,7 @@ const TaskAnnotatorContext = createContext<ContextValue | undefined>(undefined);
 const dataTabDefaultDisableState = true;
 const defaultPageWidth: number = 0;
 const defaultPageHeight: number = 0;
+const PageTokensChunkSize: number = 5;
 
 export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
     jobId,
@@ -231,6 +232,9 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         gutters: undefined,
         cells: undefined
     });
+
+    const [tokensPagesState, setTokensPagesState] = useState<PageInfo[]>([]);
+    const [tokenPagesChunk, setTokenPagesChunk] = useState<number>(0);
 
     const [storedParams, setStoredParams] = useState<{
         [k in typeof toolNames[number]]: Maybe<PaperToolParams>;
@@ -333,11 +337,31 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
     const tokenRes = useTokens(
         {
             fileId: getFileId(),
-            pageNumbers
+            pageNumbers: pageNumbers.slice(tokenPagesChunk, tokenPagesChunk + PageTokensChunkSize)
         },
-        { enabled: false }
+        { enabled: tokenPagesChunk < pageNumbers.length }
     );
-    const tokenPages = tokenRes.data;
+
+    useEffect(() => {
+        if (tokenRes.status === 'success') {
+            if (tokenRes.data && tokenRes.data.length && tokenPagesChunk < pageNumbers.length) {
+                let newTokensPages = [];
+
+                tokenRes.data.forEach((token) => {
+                    const thisTokenPage = tokensPagesState.find(
+                        (tokenPage: PageInfo) => tokenPage.page_num === token.page_num
+                    );
+
+                    if (!thisTokenPage) newTokensPages.push(token);
+
+                    setTokensPagesState([...tokensPagesState, ...tokenRes.data]);
+                    setTokenPagesChunk(tokenPagesChunk + PageTokensChunkSize);
+                });
+            }
+        }
+    }, [tokenRes]);
+
+    const tokenPages = tokensPagesState;
 
     if (!fileMetaInfo) {
         fileMetaInfo = useMemo(
