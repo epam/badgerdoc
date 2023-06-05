@@ -111,7 +111,6 @@ export function DocumentPage({
                                 <span>Go to page</span>
                             </FlexCell>
                             <PickerInput
-                                searchPosition="none"
                                 minBodyWidth={52}
                                 size="24"
                                 dataSource={pagesDataSource}
