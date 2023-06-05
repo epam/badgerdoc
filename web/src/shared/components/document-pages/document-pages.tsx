@@ -175,6 +175,7 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                                             onAnnotationUndoPress={onAnnotationUndoPress}
                                             onAnnotationRedoPress={onAnnotationRedoPress}
                                             onEmptyAreaClick={onEmptyAreaClick}
+                                            isScrolledToCurrent={pageNum === goToPage}
                                         />
                                     </Fragment>
                                 );
@@ -214,6 +215,7 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                                                         scaledAnn
                                                     )
                                                 }
+                                                isScrolledToCurrent={pageNum === goToPage}
                                             />
                                         );
                                     })}
@@ -332,6 +334,7 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                                                 onAnnotationUndoPress={onAnnotationUndoPress}
                                                 onAnnotationRedoPress={onAnnotationRedoPress}
                                                 onEmptyAreaClick={onEmptyAreaClick}
+                                                isScrolledToCurrent={pageNum === goToPage}
                                             />
                                         </Fragment>
                                     );
