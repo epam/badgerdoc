@@ -65,7 +65,7 @@ class ImportConvertBase:
         LOGGER.info("Uploading annotations has been finished")
 
     def upload_image(self, file: str, image_id: int) -> Dict[int, int]:
-        assets_url = settings.assets_service_url
+        assets_url = f"{settings.assets_service_url}/files"
         body = {"files": (file, open(file, "rb"))}
         headers = {
             "X-Current-Tenant": self.current_tenant,
@@ -93,7 +93,7 @@ class ImportConvertBase:
 
     def check_category(self) -> Set[str]:
         categories = self.prepare_data(self.local_path)["categories"]
-        categories_services_url = settings.category_service_url
+        categories_services_url = f"{settings.annotation_service_url}/categories"
         headers = {
             "X-Current-Tenant": self.current_tenant,
             "Authorization": self.token,

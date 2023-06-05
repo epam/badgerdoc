@@ -41,7 +41,6 @@ class Settings(BaseSettings):
     dpi: int = 300
     root_path: str = os.environ.get("ROOT_PATH", "")
     assets_service_url: Optional[str] = os.getenv("ASSETS_SERVICE_URL")
-    category_service_url: Optional[str] = os.getenv("CATEGORY_SERVICE_URL")
     job_service_url: Optional[str] = os.getenv("JOB_SERVICE_URL")
     annotation_service_url: Optional[str] = os.getenv("ANNOTATION_SERVICE_URL")
     taxonomy_service_url: Optional[str] = os.getenv("TAXONOMY_SERVICE_URL")
