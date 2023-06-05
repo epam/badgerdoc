@@ -27,15 +27,17 @@ def make_pagination(
     max_count: int,
     page_num: Optional[int] = None,
 ) -> Tuple[Query, PaginationParams]:
+    # get query for current page output
     output_query = initial_query.offset(page_offset).limit(page_size)
 
-    total_results_query = initial_query.limit(max_count)
-    if not page_num:  # "page_offset" is used instead of "page_num"
-        total_results_query = total_results_query.offset(page_offset)
-    total_results_count = total_results_query.count()
+    # try to get max_count records number
+    total_results_count = (
+        initial_query.offset(page_offset).limit(max_count).count()
+    )
 
+    # if we have this quantity, then we have more than current page + 9 pages
     has_more = total_results_count == max_count
-    if total_results_count == max_count:
+    if has_more:
         total_results_count -= 1
 
     min_pages_left: int = _calculate_num_pages(page_size, total_results_count)

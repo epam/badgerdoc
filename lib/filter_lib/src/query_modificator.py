@@ -74,9 +74,11 @@ def form_query(
     page_size = pagination.get("page_size")
     if page_offset is not None:
         offset = page_offset
+        # max_count: current page records + 1 record
         max_count = page_size + 1
     elif page_num is not None:
         offset = (page_num - 1) * page_size
+        # max_count: current page records + next 9 pages records + 1 record
         max_count = page_size * 10 + 1
     try:
         query, pag = make_pagination(
