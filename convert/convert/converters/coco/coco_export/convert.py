@@ -357,7 +357,7 @@ class ConvertToCoco(ExportConvertBase):
             for element in page["objs"]:
                 if element["category"] not in category_names:
                     response = requests.post(
-                        url=f"{settings.annotation_service_url}/categories",  # type: ignore
+                        url=f"{settings.annotation_service_url}/categories",
                         headers=get_headers(self.token, self.tenant),
                         json={
                             "name": element["category"],
