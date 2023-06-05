@@ -58,9 +58,7 @@ spec:
               name: pipelines
               key: MINIO_SECRET_KEY
         - name: ASSETS_SERVICE_URL
-          value: http://{{ .Values.app.hostname }}/api/v1/assets/files
-        - name: CATEGORY_SERVICE_URL
-          value: http://{{ .Values.app.hostname }}/api/v1/annotation/categories
+          value: http://{{ .Values.app.hostname }}/api/v1/assets
         - name: JOB_SERVICE_URL
           value: http://{{ .Values.app.hostname }}/api/v1/jobs/jobs
         - name: ANNOTATION_SERVICE_URL

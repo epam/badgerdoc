@@ -200,7 +200,7 @@ class LabelstudioToBadgerdocConverter:
         )
 
     def make_upload_file_request_to_assets(self, pdf_path: Path) -> int:
-        upload_file_to_assets_url = settings.assets_service_url
+        upload_file_to_assets_url = f"{settings.assets_service_url}/files"
         files = [
             (
                 "files",
@@ -209,7 +209,7 @@ class LabelstudioToBadgerdocConverter:
         ]
         try:
             request_to_post_assets = requests.post(
-                url=upload_file_to_assets_url,  # type: ignore
+                url=upload_file_to_assets_url,
                 headers=self.request_headers,
                 files=files,
             )
