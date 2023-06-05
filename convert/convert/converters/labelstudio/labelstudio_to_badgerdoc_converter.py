@@ -209,7 +209,7 @@ class LabelstudioToBadgerdocConverter:
         ]
         try:
             request_to_post_assets = requests.post(
-                url=upload_file_to_assets_url,  # type: ignore
+                url=upload_file_to_assets_url,
                 headers=self.request_headers,
                 files=files,
             )
