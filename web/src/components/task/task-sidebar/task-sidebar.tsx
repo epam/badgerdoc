@@ -73,6 +73,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
         modifiedPages,
         tabValue,
         selectionType,
+        annotationType,
         isCategoryDataEmpty,
         onValidClick,
         onInvalidClick,
@@ -141,7 +142,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
             | AnnotationLinksBoundType;
         switch (boundModeSwitch) {
             case 'box':
-                newSelectionType = 'box';
+                newSelectionType = annotationType;
                 break;
             case 'link':
                 newSelectionType = AnnotationLinksBoundType.chain;

@@ -97,6 +97,7 @@ type ContextValue = SplitValidationValue &
         isOwner: boolean;
         taskUsers: MutableRefObject<TTaskUsers>;
         selectionType: AnnotationBoundType | AnnotationLinksBoundType | AnnotationImageToolType;
+        annotationType: AnnotationBoundType;
         selectedTool: AnnotationImageToolType;
         setSelectedTool: (t: AnnotationImageToolType) => void;
         onChangeSelectedTool: (t: AnnotationImageToolType) => void;
@@ -211,6 +212,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
     const [selectionType, setSelectionType] = useState<
         AnnotationBoundType | AnnotationLinksBoundType | AnnotationImageToolType
     >('free-box');
+    const [annotationType, setAnnotationType] = useState<AnnotationBoundType>('box');
     const [selectedTool, setSelectedTool] = useState<AnnotationImageToolType>('pen');
     const [selectedAnnotation, setSelectedAnnotation] = useState<Annotation | undefined>();
     const [isDataTabDisabled, setIsDataTabDisabled] = useState<boolean>(dataTabDefaultDisableState);
@@ -303,6 +305,12 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             refetchCategories();
         }
     }, [task, jobId]);
+
+    useEffect(() => {
+        if (['box', 'free-box', 'table', 'text', 'table_cell', 'polygon'].includes(selectionType)) {
+            setAnnotationType(selectionType as AnnotationBoundType);
+        }
+    }, [selectionType]);
 
     const documentFilters: FilterWithDocumentExtraOption<keyof FileDocument>[] = [];
 
@@ -1042,6 +1050,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             setPageSize,
             modifiedPages,
             selectionType,
+            annotationType,
             selectedTool,
             setSelectedTool,
             selectedToolParams,
