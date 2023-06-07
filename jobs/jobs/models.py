@@ -48,6 +48,8 @@ class AnnotationJob(Job):
     validators = Column(JSONB)
     owners = Column(JSONB)
     categories = Column(JSONB)
+    available_annotation_types = Column(JSONB, nullable=True)
+    available_link_types = Column(JSONB, nullable=True)
     is_auto_distribution = Column(Boolean)
     deadline = Column(DateTime)
     validation_type = Column(String(30))

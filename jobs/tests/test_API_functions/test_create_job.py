@@ -544,6 +544,90 @@ def test_create_extraction_with_annotation_job_test_categories(
         ]
 
 
+def test_create_extraction_with_annotation_job_test_with_empty_available_categories(
+    testing_app,
+    mock_data_dataset11,
+    mock_data_dataset22,
+    separate_files_1_2_data_from_dataset_manager,
+    pipeline_info_from_pipeline_manager,
+):
+    with patch("jobs.utils.fetch", return_value=asyncio.Future()) as mock:
+        mock.side_effect = [
+            (200, pipeline_info_from_pipeline_manager),
+            (200, mock_data_dataset11),
+            (200, mock_data_dataset22),
+            (200, separate_files_1_2_data_from_dataset_manager),
+            (200, {}),
+        ]
+        response = testing_app.post(
+            "/jobs/create_job",
+            json={
+                "name": "MockExtractionWithAnnotationJob",
+                "type": "ExtractionWithAnnotationJob",
+                "datasets": [1, 2],
+                "files": [1, 2],
+                "owners": ["owner1", "owner2"],
+                "annotators": ["annotator1", "annotator2"],
+                "validators": ["validator1", "validator2"],
+                "validation_type": schemas.ValidationType.hierarchical,
+                "categories": ["category1", "category2"],
+                "is_auto_distribution": False,
+                "pipeline_name": "pipeline",
+                "deadline": str(
+                    datetime.datetime.utcnow() + datetime.timedelta(days=1)
+                ),
+                "is_draft": True,
+            },
+        )
+        assert response.status_code == 200
+        assert response.json()["available_annotation_types"] == []
+        assert response.json()["available_link_types"] == []
+
+
+def test_create_extraction_with_annotation_job_test_with_available_categories(
+    testing_app,
+    mock_data_dataset11,
+    mock_data_dataset22,
+    separate_files_1_2_data_from_dataset_manager,
+    pipeline_info_from_pipeline_manager,
+):
+    with patch("jobs.utils.fetch", return_value=asyncio.Future()) as mock:
+        mock.side_effect = [
+            (200, pipeline_info_from_pipeline_manager),
+            (200, mock_data_dataset11),
+            (200, mock_data_dataset22),
+            (200, separate_files_1_2_data_from_dataset_manager),
+            (200, {}),
+        ]
+        available_annotation_types = ["text", "free-box"]
+        available_link_types = ["chain", "all to all"]
+        response = testing_app.post(
+            "/jobs/create_job",
+            json={
+                "name": "MockExtractionWithAnnotationJob",
+                "type": "ExtractionWithAnnotationJob",
+                "datasets": [1, 2],
+                "files": [1, 2],
+                "owners": ["owner1", "owner2"],
+                "annotators": ["annotator1", "annotator2"],
+                "validators": ["validator1", "validator2"],
+                "validation_type": schemas.ValidationType.hierarchical,
+                "categories": ["category1", "category2"],
+                "available_annotation_types":  available_annotation_types,
+                "available_link_types": available_link_types,
+                "is_auto_distribution": False,
+                "pipeline_name": "pipeline",
+                "deadline": str(
+                    datetime.datetime.utcnow() + datetime.timedelta(days=1)
+                ),
+                "is_draft": True,
+            },
+        )
+        assert response.status_code == 200
+        assert response.json()["available_annotation_types"] == available_annotation_types
+        assert response.json()["available_link_types"] == available_link_types
+
+
 def test_create_extraction_with_annotation_job_test_intersected_categories(
     testing_app,
     mock_data_dataset11,
@@ -698,3 +782,75 @@ def test_create_annotation_job_validation_only(
         assert response.status_code == 200
         assert response.json()["id"] == 1
         assert response.json()["validation_type"] == "validation only"
+
+
+def test_create_annotation_job_with_empty_available_annotation_types(
+    testing_app, mock_data_dataset11, mock_data_dataset22
+):
+    with patch("jobs.utils.fetch", return_value=asyncio.Future()) as mock:
+        mock.side_effect = [
+            (200, mock_data_dataset11),
+            (200, mock_data_dataset22),
+            (200, {}),
+            (200, {}),
+        ]
+        response = testing_app.post(
+            "/jobs/create_job",
+            json={
+                "name": "MockAnnotationJob",
+                "type": "AnnotationJob",
+                "datasets": [1, 2],
+                "files": [],
+                "owners": ["owner1", "owner2"],
+                "annotators": [],
+                "validators": ["validator1", "validator2"],
+                "categories": ["category1", "category2"],
+                "validation_type": schemas.ValidationType.validation_only,
+                "is_auto_distribution": False,
+                "deadline": str(
+                    datetime.datetime.utcnow() + datetime.timedelta(days=1)
+                ),
+                "is_draft": False,
+            },
+        )
+        assert response.status_code == 200
+        assert response.json()["available_annotation_types"] == []
+        assert response.json()["available_link_types"] == []
+
+
+def test_create_annotation_job_with_empty_available_annotation_types(
+    testing_app, mock_data_dataset11, mock_data_dataset22
+):
+    with patch("jobs.utils.fetch", return_value=asyncio.Future()) as mock:
+        mock.side_effect = [
+            (200, mock_data_dataset11),
+            (200, mock_data_dataset22),
+            (200, {}),
+            (200, {}),
+        ]
+        available_annotation_types = ["box", "table"]
+        available_link_types = ["chain", ]
+        response = testing_app.post(
+            "/jobs/create_job",
+            json={
+                "name": "MockAnnotationJob",
+                "type": "AnnotationJob",
+                "datasets": [1, 2],
+                "files": [],
+                "owners": ["owner1", "owner2"],
+                "annotators": [],
+                "validators": ["validator1", "validator2"],
+                "categories": ["category1", "category2"],
+                "available_annotation_types": available_annotation_types,
+                "available_link_types": available_link_types,
+                "validation_type": schemas.ValidationType.validation_only,
+                "is_auto_distribution": False,
+                "deadline": str(
+                    datetime.datetime.utcnow() + datetime.timedelta(days=1)
+                ),
+                "is_draft": False,
+            },
+        )
+        assert response.status_code == 200
+        assert response.json()["available_annotation_types"] == available_annotation_types
+        assert response.json()["available_link_types"] == available_link_types

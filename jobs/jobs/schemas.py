@@ -45,6 +45,18 @@ class ExtractionJobParams(BaseModel):
     is_draft: bool = False
 
 
+class AvailableAnnotationTypes(str, Enum):
+    box = "box"
+    text = "text"
+    free_box = "free-box"
+    table = "table"
+
+
+class AvailableLinkTypes(str, Enum):
+    chain = "chain"
+    all_to_all = "all to all"
+
+
 class AnnotationJobParams(BaseModel):
     name: str
     type: JobType = JobType.AnnotationJob
@@ -55,6 +67,8 @@ class AnnotationJobParams(BaseModel):
     validators: List[str]
     owners: List[str]
     categories: List[str]
+    available_annotation_types: List[AvailableAnnotationTypes] = []
+    available_link_types: List[AvailableLinkTypes] = []
     is_auto_distribution: bool = False
     deadline: datetime
     validation_type: ValidationType
@@ -98,6 +112,8 @@ class JobParams(BaseModel):
     annotators: Optional[List[str]]
     owners: Optional[List[str]]
     categories: Optional[List[Union[str, CategoryLinkInput]]]
+    available_annotation_types: List[AvailableAnnotationTypes] = []
+    available_link_types: List[AvailableLinkTypes] = []
     deadline: Optional[datetime]
     validators: Optional[List[str]]
     extensive_coverage: Optional[int]

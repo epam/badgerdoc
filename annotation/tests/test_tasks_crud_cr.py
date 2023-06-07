@@ -1598,12 +1598,12 @@ def test_search_two_filters_both_distinct(prepare_db_for_cr_task):
 
 @pytest.mark.integration
 @pytest.mark.parametrize(
-    ["page_num", "page_size", "result_length"],
-    [(1, 15, 15), (2, 15, 8), (3, 15, 0), (22, 30, 0)],
+    ["page_num", "page_size", "result_length", "total"],
+    [(1, 15, 15, 23), (2, 15, 8, 8), (3, 15, 0, 0), (22, 30, 0, 0)],
 )
 @responses.activate
 def test_search_tasks_pagination(
-    page_num, page_size, result_length, prepare_db_for_cr_task
+    page_num, page_size, result_length, total, prepare_db_for_cr_task
 ):
     responses.add(
         responses.POST,
@@ -1633,7 +1633,7 @@ def test_search_tasks_pagination(
     tasks = response.json()["data"]
     pagination = response.json()["pagination"]
     assert response.status_code == 200
-    assert pagination["total"] == 23
+    assert pagination["total"] == total
     assert pagination["page_num"] == page_num
     assert pagination["page_size"] == page_size
     assert len(tasks) == result_length
