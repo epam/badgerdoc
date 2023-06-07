@@ -40,7 +40,7 @@ export const useTaxonomiesTree = ({ searchText, taxonomyId, taxonomyFilter }: Pr
                     if (matchingNode) {
                         const childrens = [...prevNode.children, ...matchingNode.children];
                         const set = new Set();
-                        const combinedChildren = childrens.filter(function ({ key }) {
+                        const combinedChildren = childrens.filter(({ key }) => {
                             return !set.has(key) && set.add(key);
                         });
 
