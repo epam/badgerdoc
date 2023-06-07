@@ -15,7 +15,7 @@ router = fastapi.APIRouter(prefix="/s3_upload", tags=["s_3"])
     response_model=List[schemas.ActionResponse],
     name="downloads files from s3",
 )
-async def download_s3_files(
+def download_s3_files(
     s3_data: schemas.S3Data,
     storage_url: Optional[str] = None,
     x_current_tenant: Optional[str] = fastapi.Header(
