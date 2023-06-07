@@ -52,7 +52,7 @@ async def search_files(
     response_model=List[schemas.ActionResponse],
     name="uploads files into minio bucket",
 )
-async def upload_files(
+def upload_files(
     x_current_tenant: str = fastapi.Header(..., alias="X-Current-Tenant"),
     files: List[fastapi.UploadFile] = fastapi.File(...),
     session: sqlalchemy.orm.Session = fastapi.Depends(
