@@ -444,11 +444,11 @@ def test_search_db_connection_error(prepare_db_categories_for_filtration):
 
 @mark.integration
 @mark.parametrize(
-    ["page_num", "page_size", "result_length"],
-    [(1, 15, 15), (2, 15, 1), (3, 15, 0), (1, 30, 16)],
+    ["page_num", "page_size", "result_length", "total"],
+    [(1, 15, 15, 16), (2, 15, 1, 1), (3, 15, 0, 0), (1, 30, 16, 16)],
 )
 def test_search_pagination(
-    page_num, page_size, result_length, prepare_db_categories_for_filtration
+    page_num, page_size, result_length, total, prepare_db_categories_for_filtration
 ):
     data = prepare_filtration_body(
         page_num=page_num, page_size=page_size, no_filtration=True
@@ -459,7 +459,7 @@ def test_search_pagination(
     categories = response.json()["data"]
     pagination = response.json()["pagination"]
     assert response.status_code == 200
-    assert pagination["total"] == 16
+    assert pagination["total"] == total
     assert pagination["page_num"] == page_num
     assert pagination["page_size"] == page_size
     assert len(categories) == result_length

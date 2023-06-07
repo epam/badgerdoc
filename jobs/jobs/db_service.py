@@ -72,6 +72,8 @@ def create_annotation_job(
         deadline=annotation_job_input.deadline,
         validation_type=annotation_job_input.validation_type,
         extensive_coverage=annotation_job_input.extensive_coverage,
+        available_annotation_types=annotation_job_input.available_annotation_types,  # noqa: E501
+        available_link_types=annotation_job_input.available_link_types,
     )
     db.add(job_row)
     db.commit()
@@ -103,6 +105,8 @@ def create_extraction_annotation_job(
         validators=extraction_annotation_job_input.validators,
         owners=extraction_annotation_job_input.owners,
         categories=categories,
+        available_annotation_types=extraction_annotation_job_input.available_annotation_types,  # noqa: E501
+        available_link_types=extraction_annotation_job_input.available_link_types,  # noqa: E501
         is_auto_distribution=extraction_annotation_job_input.is_auto_distribution,  # noqa: E501
         deadline=extraction_annotation_job_input.deadline,
         validation_type=extraction_annotation_job_input.validation_type,

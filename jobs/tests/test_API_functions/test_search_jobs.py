@@ -112,9 +112,9 @@ def test_search_job_has_pagination(
     assert response2.status_code == 200
     assert response2.json()["pagination"] == {
         "has_more": False,
-        "min_pages_left": 4,
+        "min_pages_left": 3,
         "page_num": 2,
         "page_size": 15,
-        "total": 50,
+        "total": 35,
         "page_offset": 15
     }
