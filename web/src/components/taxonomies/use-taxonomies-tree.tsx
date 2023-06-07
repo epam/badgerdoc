@@ -65,7 +65,7 @@ export const useTaxonomiesTree = ({ searchText, taxonomyId, taxonomyFilter }: Pr
         search?: string;
     }) => {
         let page = 1;
-        const size = 15;
+        const size = 100;
         let isEmpty = false;
         const currentBranchName = parentId ?? 'root';
         branchesInProgress.current.add(currentBranchName);
