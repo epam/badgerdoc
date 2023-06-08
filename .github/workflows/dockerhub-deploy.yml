@@ -1,0 +1,34 @@
+name: Docker Build and Push
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - '*'
+
+env:
+  DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+  DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ env.DOCKER_USERNAME }}
+          password: ${{ env.DOCKER_PASSWORD }}
+      - name: Build and Push Docker Images
+        run: |
+          for dockerfile in */Dockerfile; do
+            dir=$(dirname $dockerfile)
+            image_name="epam/badgerdoc-$dir"
+            docker build -t $image_name:$GITHUB_TAG $dir
+            docker tag $image_name:$GITHUB_TAG $image_name:latest
+            docker push $image_name:$GITHUB_TAG
+            docker push $image_name:latest
+          done
