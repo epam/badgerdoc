@@ -8,6 +8,7 @@ import {
 } from 'api/typings';
 import { mapAnnotationFromApi } from 'connectors/task-annotator-connector/task-annotator-utils';
 import { Annotation, AnnotationLabel, PageToken } from 'shared';
+import { sortByCoordinates } from '../../components/task/task-sidebar-flow/utils';
 
 interface AnnotationsMapperValue {
     getAnnotationLabels: (
@@ -114,9 +115,9 @@ export default function useAnnotationsMapper(
                     annotation.tableCells = relatedCells;
                 }
 
-                const filteredAnnotations = pageAnnotations.filter(
-                    (el) => el.boundType !== 'table_cell'
-                );
+                const filteredAnnotations = pageAnnotations
+                    .filter((el) => el.boundType !== 'table_cell')
+                    .sort(sortByCoordinates);
                 result[pageKey] = [...(result[pageKey] ?? []), ...filteredAnnotations];
             });
 

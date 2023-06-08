@@ -13,7 +13,7 @@ export const getTabs = ({ users, userIds }: { userIds: string[]; users: TUserSho
     return [OWNER_TAB, ...userTabs];
 };
 
-const sortByCoordinates = (first: Annotation, second: Annotation) =>
+export const sortByCoordinates = (first: Annotation, second: Annotation) =>
     first.bound.y === second.bound.y
         ? first.bound.x - second.bound.x
         : first.bound.y - second.bound.y;
