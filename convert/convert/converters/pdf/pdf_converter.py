@@ -1,6 +1,7 @@
 from pathlib import Path
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional
 
+import fitz
 from pdfminer.high_level import extract_pages
 from pdfminer.layout import (
     LTAnno,
@@ -101,3 +102,53 @@ class PlainPDFToBadgerdocTokensConverter:
         new_x0, new_y0 = x1, y0
         new_x1, new_y1 = (x1 - x0) + x1, y1
         return new_x0, new_y0, new_x1, new_y1
+
+
+class PlainPDFToBadgerdocTokensConverterPytz:
+    def __init__(self) -> None:
+        self.offset = 0
+        self.page_size = Optional[PageSize] = None
+
+    def _convert_span(self, span):
+        tokens = []
+        for char in span.get("chars"):
+            token = BadgerdocToken(
+                bbox=char.get("bbox"),
+                text=char.get("c"),
+                offset=Offset(begin=self.offset, end=self.offset + 1),
+            )
+            tokens.append(token)
+        self.offset += 1
+        return tokens
+
+    def _convert_line(self, line):
+        tokens = []
+        for span in line.get("spans"):
+            tokens.extend(self._convert_span(span))
+        return tokens
+
+    def _convert_element(self, element):
+        tokens = []
+        for line in element.get("lines"):
+            tokens.extend(self._convert_line(line))
+        return tokens
+
+    def _convert_page(self, page: fitz.Page):
+        tokens = []
+        text = page.get_textpage().extractDICT()
+        self.page_size = PageSize(
+            width=text.get("width"), height=text.get("height")
+        )
+        for block in page.get_textpage().extractRAWDICT().get("blocks"):
+            tokens.extend(self._convert_element(block))
+        return tokens
+
+    def convert(self, plain_pdf: Path) -> List[Page]:
+        pages = []
+        with fitz.Document(plain_pdf) as doc:
+            for i, page in enumerate(doc.pages(), start=1):
+                objs = self._convert_page(page)
+                if not self.page_size:
+                    continue
+                pages.append(Page(page_num=i, objs=objs, size=self.page_size))
+        return pages
