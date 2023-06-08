@@ -197,6 +197,12 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                                                 (obj) => obj.pageNum === pageNum
                                             ).length;
 
+                                        const userLatestRevisionByAnnotatorsWithBoundsByPage =
+                                            latestRevisionByAnnotatorsWithBounds[userId].filter(
+                                                (annotation: Annotation) =>
+                                                    annotation.pageNum === pageNum
+                                            );
+
                                         return (
                                             <DocumentSinglePage
                                                 key={`${userId}-${pageNum}`}
@@ -206,7 +212,7 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                                                 userId={userId}
                                                 isShownAnnotation={isShowAnnotation}
                                                 annotations={
-                                                    latestRevisionByAnnotatorsWithBounds[userId]
+                                                    userLatestRevisionByAnnotatorsWithBoundsByPage
                                                 }
                                                 onAnnotationSelected={(scaledAnn?: Annotation) =>
                                                     onSplitAnnotationSelected(
