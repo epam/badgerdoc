@@ -107,9 +107,9 @@ class PlainPDFToBadgerdocTokensConverter:
 class PlainPDFToBadgerdocTokensConverterPytz:
     def __init__(self) -> None:
         self.offset = 0
-        self.page_size = Optional[PageSize] = None
+        self.page_size: Optional[PageSize] = None
 
-    def _convert_span(self, span):
+    def _convert_span(self, span):  # type: ignore
         tokens = []
         for char in span.get("chars"):
             token = BadgerdocToken(
@@ -121,33 +121,33 @@ class PlainPDFToBadgerdocTokensConverterPytz:
         self.offset += 1
         return tokens
 
-    def _convert_line(self, line):
+    def _convert_line(self, line):  # type: ignore
         tokens = []
         for span in line.get("spans"):
-            tokens.extend(self._convert_span(span))
+            tokens.extend(self._convert_span(span))  # type: ignore
         return tokens
 
-    def _convert_element(self, element):
+    def _convert_element(self, element):  # type: ignore
         tokens = []
         for line in element.get("lines"):
-            tokens.extend(self._convert_line(line))
+            tokens.extend(self._convert_line(line))  # type: ignore
         return tokens
 
-    def _convert_page(self, page: fitz.Page):
+    def _convert_page(self, page):  # type: ignore
         tokens = []
         text = page.get_textpage().extractDICT()
         self.page_size = PageSize(
             width=text.get("width"), height=text.get("height")
         )
         for block in page.get_textpage().extractRAWDICT().get("blocks"):
-            tokens.extend(self._convert_element(block))
+            tokens.extend(self._convert_element(block))  # type: ignore
         return tokens
 
     def convert(self, plain_pdf: Path) -> List[Page]:
         pages = []
         with fitz.Document(plain_pdf) as doc:
             for i, page in enumerate(doc.pages(), start=1):
-                objs = self._convert_page(page)
+                objs = self._convert_page(page)  # type: ignore
                 if not self.page_size:
                     continue
                 pages.append(Page(page_num=i, objs=objs, size=self.page_size))
