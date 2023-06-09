@@ -558,3 +558,18 @@ def test_get_minio_object(monkeypatch, save_object_minio) -> None:
     data, size = utils.get_minio_object(TEST_TENANT, "file_1.json")
     assert data.read().decode("utf-8") == expected_obj
     assert size == len(expected_obj)
+
+
+@pytest.mark.parametrize(
+    ["uri", "host"],
+    [
+        ("http://google.com", "google.com"),
+        ("https://google.com", "google.com"),
+        ("http://google.com/index.html", "google.com"),
+        ("https://0.0.0.0", "0.0.0.0"),
+        ("https://0.0.0.0:9000/index.html", "0.0.0.0:9000"),
+    ],
+)
+def test_removing_protocol_from_uri(uri, host) -> None:
+    test_host = utils.get_host(uri)
+    assert test_host == host
