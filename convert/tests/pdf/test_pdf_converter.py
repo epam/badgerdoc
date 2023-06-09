@@ -2,6 +2,7 @@ from pathlib import Path
 
 from convert.converters.base_format.models.tokens import Page
 from convert.converters.pdf.pdf_converter import (
+    PlainPDFToBadgerdocTokensConverter,
     PlainPDFToBadgerdocTokensConverterPytz,
 )
 
@@ -17,6 +18,7 @@ def test_convert() -> None:
     result = test_converter.convert(TEST_PDF)
     assert isinstance(result[0], Page)
     assert result[0] == etalon
+
 
 def test_convert_pytz() -> None:
     test_converter = PlainPDFToBadgerdocTokensConverterPytz()
