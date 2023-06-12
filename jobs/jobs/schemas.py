@@ -177,7 +177,7 @@ class JobParams(BaseModel):
         field: ModelField,
     ) -> Union[List[int], List[str]]:
         job_type = values.get("type")
-        if v is not None:
+        if v:
             if job_type == JobType.ExtractionJob:
                 raise ValueError(
                     f"{field.name} cannot be assigned to ExtractionJob"

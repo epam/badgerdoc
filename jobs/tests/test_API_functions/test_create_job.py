@@ -314,6 +314,38 @@ def test_create_extraction_job_invalid_pipeline_name(
         )
 
 
+def test_create_extraction_job_with_empty_categories_list(
+    testing_app,
+    mock_data_dataset11,
+    mock_data_dataset22,
+    separate_files_1_2_data_from_dataset_manager,
+    pipeline_info_from_pipeline_manager,
+):
+    with patch("jobs.utils.fetch", return_value=asyncio.Future()) as mock:
+        mock.side_effect = [
+            (200, pipeline_info_from_pipeline_manager),
+            (200, mock_data_dataset11),
+            (200, mock_data_dataset22),
+            (200, separate_files_1_2_data_from_dataset_manager),
+            (200, [{"id": 426}]),
+            (200, {}),
+        ]
+        response = testing_app.post(
+            "/jobs/create_job",
+            json={
+                "name": "test_extraction_job",
+                "type": "ExtractionJob",
+                "files": [1, 2],
+                "datasets": [1, 2],
+                "is_draft": False,
+                "pipeline_name": "pipeline",
+                "categories": []
+            },
+        )
+        assert response.status_code == 200
+        assert not response.json()["categories"] == []
+
+
 def test_create_extraction_with_annotation_job(
     testing_app,
     mock_data_dataset11,
