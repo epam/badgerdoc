@@ -830,10 +830,10 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
                             ...ann,
                             links: ann.links?.filter((link) => {
                                 return (
-                                    link.category_id !== linkToDel.category_id &&
-                                    link.page_num !== linkToDel.page_num &&
+                                    link.category_id === linkToDel.category_id &&
+                                    link.page_num === linkToDel.page_num &&
                                     link.to !== linkToDel.to &&
-                                    link.type !== linkToDel.type
+                                    link.type === linkToDel.type
                                 );
                             })
                         };
