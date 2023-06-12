@@ -554,6 +554,7 @@ ANNOTATED_DOC_FIRST = {
         + json.dumps(
             DOC_FOR_FIRST_SAVE_BY_USER["failed_validation_pages"]
         ).encode()
+        + str(POST_ANNOTATION_ANNOTATOR.user_id).encode()
     ).hexdigest(),
     "user": POST_ANNOTATION_ANNOTATOR.user_id,
     "pipeline": None,
@@ -579,6 +580,7 @@ ANNOTATED_AND_VALIDATED_DOC_FIRST = {
         + json.dumps(
             DOC_FOR_FIRST_SAVE_AND_VALIDATE_BY_USER["failed_validation_pages"]
         ).encode()
+        + str(POST_ANNOTATION_ANNOTATOR.user_id).encode()
     ).hexdigest(),
     "user": POST_ANNOTATION_ANNOTATOR.user_id,
     "pipeline": None,
@@ -641,7 +643,7 @@ for page in PAGES_SCHEMA:
     B_PAGES += b_page
 
 CONCATENATED_PAGES_SHA = sha1(
-    B_PAGES + json.dumps([]).encode() + json.dumps([]).encode()
+    B_PAGES + json.dumps([]).encode() + json.dumps([]).encode() + str(POST_ANNOTATION_ANNOTATOR.user_id).encode()
 ).hexdigest()
 
 MANIFEST_IN_MINIO = {
@@ -682,6 +684,7 @@ ANNOTATED_DOC_WITH_BASE_REVISION = {
         + json.dumps(
             DOC_FOR_SECOND_SAVE_BY_USER["failed_validation_pages"]
         ).encode()
+        + str(POST_ANNOTATION_ANNOTATOR.user_id).encode()
     ).hexdigest(),
     "user": POST_ANNOTATION_ANNOTATOR.user_id,
     "pipeline": None,
@@ -709,6 +712,7 @@ ANNOTATED_DOC_WITH_BOTH_TOKENS_AND_BBOX = {
         + json.dumps(
             DOC_WITH_BBOX_AND_TOKENS_FIELDS.get("failed_validation_pages", [])
         ).encode()
+        + str(POST_ANNOTATION_ANNOTATOR.user_id).encode()
     ).hexdigest(),
     "user": POST_ANNOTATION_ANNOTATOR.user_id,
     "pipeline": None,
@@ -734,6 +738,7 @@ ANNOTATED_DOC_WITHOUT_BOTH_TOKENS_AND_BBOX = {
         + json.dumps(
             DOC_WITHOUT_BBOX_AND_TOKENS.get("failed_validation_pages", [])
         ).encode()
+        + str(POST_ANNOTATION_ANNOTATOR.user_id).encode()
     ).hexdigest(),
     "user": POST_ANNOTATION_ANNOTATOR.user_id,
     "pipeline": None,
@@ -950,6 +955,7 @@ ANNOTATED_DOC_WITH_MERGE_CONFLICT = {
         + json.dumps(
             DOC_FOR_CHECK_MERGE_CONFLICT["failed_validation_pages"]
         ).encode()
+        + str(POST_ANNOTATION_ANNOTATOR.user_id).encode()
     ).hexdigest(),
     "user": POST_ANNOTATION_ANNOTATOR.user_id,
     "pipeline": None,
@@ -1397,99 +1403,111 @@ def test_post_annotation_by_user_requests_exceptions(
 
 @pytest.mark.unittest
 @pytest.mark.parametrize(
-    ["pages", "base_revision", "validated", "failed", "expected_result"],
+    ["pages", "base_revision", "validated", "failed", "user_id", "expected_result"],
     [
         (
-            PAGES_SCHEMA,
-            BASE_REVISION,
-            {1, 2, 3},
-            set(),
-            (
+                PAGES_SCHEMA,
+                BASE_REVISION,
+                {1, 2, 3},
+                set(),
+                POST_ANNOTATION_ANNOTATOR.user_id,
+                (
                 PAGES_SHA,
                 sha1(
                     BASE_REVISION.encode()
                     + B_PAGES
                     + json.dumps([1, 2, 3]).encode()
                     + json.dumps([]).encode()
+                    + str(POST_ANNOTATION_ANNOTATOR.user_id).encode()
                 ).hexdigest(),
             ),
         ),  # first and second tests should have different revisions,
         # because they have different validated pages
         (
-            PAGES_SCHEMA,
-            BASE_REVISION,
-            set(),
-            set(),
-            (
+                PAGES_SCHEMA,
+                BASE_REVISION,
+                set(),
+                set(),
+                POST_ANNOTATION_ANNOTATOR.user_id,
+                (
                 PAGES_SHA,
                 sha1(
                     BASE_REVISION.encode()
                     + B_PAGES
                     + json.dumps([]).encode()
                     + json.dumps([]).encode()
+                    + str(POST_ANNOTATION_ANNOTATOR.user_id).encode()
                 ).hexdigest(),
             ),
         ),
         (
-            PAGES_SCHEMA,
-            None,
-            {4, 4, 6},
-            {7, 8},
-            (
+                PAGES_SCHEMA,
+                None,
+                {4, 4, 6},
+                {7, 8},
+                POST_ANNOTATION_ANNOTATOR.user_id,
+                (
                 PAGES_SHA,
                 sha1(
                     b""
                     + B_PAGES
                     + json.dumps([4, 6]).encode()
                     + json.dumps([7, 8]).encode()
+                    + str(POST_ANNOTATION_ANNOTATOR.user_id).encode()
                 ).hexdigest(),
             ),
         ),  # third and fourth tests should have same revisions,
         # because they have same base revision,
         # pages, failed and validated pages
         (
-            PAGES_SCHEMA,
-            None,
-            {4, 6},
-            {7, 8},
-            (
+                PAGES_SCHEMA,
+                None,
+                {4, 6},
+                {7, 8},
+                POST_ANNOTATION_ANNOTATOR.user_id,
+                (
                 PAGES_SHA,
                 sha1(
                     b""
                     + B_PAGES
                     + json.dumps([4, 6]).encode()
                     + json.dumps([7, 8]).encode()
+                    + str(POST_ANNOTATION_ANNOTATOR.user_id).encode()
                 ).hexdigest(),
             ),
         ),
         (
-            PAGES_SCHEMA,
-            None,
-            {4, 6},
-            {10},
-            (
+                PAGES_SCHEMA,
+                None,
+                {4, 6},
+                {10},
+                POST_ANNOTATION_ANNOTATOR.user_id,
+                (
                 PAGES_SHA,
                 sha1(
                     b""
                     + B_PAGES
                     + json.dumps([4, 6]).encode()
                     + json.dumps([10]).encode()
+                    + str(POST_ANNOTATION_ANNOTATOR.user_id).encode()
                 ).hexdigest(),
             ),
         ),  # this test should have different from 3 and 4
         # tests revision, because it has different failed pages
         (
-            [],
-            BASE_REVISION,
-            {1},
-            {2},
-            (
+                [],
+                BASE_REVISION,
+                {1},
+                {2},
+                POST_ANNOTATION_ANNOTATOR.user_id,
+                (
                 {},
                 sha1(
                     BASE_REVISION.encode()
                     + b""
                     + json.dumps([1]).encode()
                     + json.dumps([2]).encode()
+                    + str(POST_ANNOTATION_ANNOTATOR.user_id).encode()
                 ).hexdigest(),
             ),
         ),  # this test`s revision should not match any other revision
@@ -1500,6 +1518,7 @@ def test_get_pages_sha(
     base_revision,
     validated,
     failed,
+    user_id,
     expected_result,
 ):
     actual_result = get_pages_sha(
@@ -1507,6 +1526,7 @@ def test_get_pages_sha(
         base_revision,
         validated,
         failed,
+        user_id
     )
 
     assert actual_result == expected_result
