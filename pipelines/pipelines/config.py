@@ -56,7 +56,7 @@ S3_ENDPOINT = os.getenv("S3_ENDPOINT")
 S3_ACCESS_KEY = os.getenv("S3_ACCESS_KEY")
 S3_SECRET_KEY = os.getenv("S3_SECRET_KEY")
 AWS_PROFILE = os.getenv("AWS_PROFILE")
-MINIO_SECURE_CONNECTION = os.getenv("MINIO_SECURE_CONNECTION")
+MINIO_SECURE_CONNECTION = os.getenv("MINIO_SECURE_CONNECTION", 'False').lower() in ('true', '1')
 
 # Keycloak settings
 KEYCLOAK_URI = os.getenv("KEYCLOAK_URI", "http://dev1.badgerdoc.com")
