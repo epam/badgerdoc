@@ -79,10 +79,17 @@ const DocumentSinglePage: FC<RenderPageParams> = ({
         setCurrentDocumentUserId
     } = useTaskAnnotatorContext();
     const { showMenu, getMenuProps } = useContextMenu();
+    let annotationsByPage: Annotation[] | null = null
+    if (annotations) {
+        annotationsByPage = annotations.filter(
+            (annotation: Annotation) =>
+                annotation.pageNum === pageNum
+        );
+    }
 
     let pageAnnotations: Annotation[] = [];
     if (isShownAnnotation) {
-        pageAnnotations = annotations ?? allAnnotations[pageNum] ?? [];
+        pageAnnotations = annotationsByPage ?? allAnnotations[pageNum] ?? [];
     }
 
     const isValidation = task?.is_validation;
