@@ -170,6 +170,7 @@ def get_pages_sha(
     base_revision: Optional[str],
     validated: Set[int],
     failed: Set[int],
+    user_uuid: str
 ) -> Tuple[Dict[str, str], str]:
     """
     Creates dict:
@@ -178,7 +179,7 @@ def get_pages_sha(
     Calculates sha for every page in given array and adds it to dict.
     Calculates sha of:
     string sha from base revision + concatenated pages + validated array
-    + failed array
+    + failed array + user_uuid
     Returns tuple of dict and hexdigest of concatenated sha.
     """
 
@@ -199,6 +200,9 @@ def get_pages_sha(
 
     b_pages += json.dumps(sorted(list(validated))).encode()
     b_pages += json.dumps(sorted(list(failed))).encode()
+
+    if user_uuid:
+        b_pages += str(user_uuid).encode()
 
     concatenated_pages_sha = get_sha_of_bytes(b_pages)
 
@@ -341,6 +345,7 @@ def construct_annotated_doc(
             doc.base_revision,
             doc.validated,
             doc.failed_validation_pages,
+            doc.user
         )
         annotated_doc.pages = pages_sha
         annotated_doc.revision = concatenated_pages_sha
@@ -355,6 +360,7 @@ def construct_annotated_doc(
             latest_doc.revision,
             doc.validated,
             doc.failed_validation_pages,
+            doc.user
         )
         annotated_doc.pages = pages_sha
         annotated_doc.pages.update(latest_doc.pages)
