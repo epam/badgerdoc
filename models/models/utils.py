@@ -1,4 +1,5 @@
 from typing import Dict, List, Optional, Tuple
+from urllib.parse import urlparse
 
 import boto3
 from botocore.client import Config
@@ -111,7 +112,10 @@ def create_ksvc(
                                     "name": "INFERENCE_PORT",
                                     "value": str(INFERENCE_PORT),
                                 },
-                                {"name": "MINIO_HOST", "value": MINIO_HOST},
+                                {
+                                    "name": "MINIO_HOST",
+                                    "value": get_host(MINIO_HOST),
+                                },
                                 {
                                     "name": "MINIO_ACCESS_KEY",
                                     "value": MINIO_ACCESS_KEY,
@@ -401,3 +405,10 @@ def get_test_db_url(main_db_url: str) -> str:
     main_db_url_split[-1] = "test_db"
     result = "/".join(main_db_url_split)
     return result
+
+
+def get_host(uri: Optional[str]) -> str:
+    if not uri:
+        raise ValueError("Empty uri")
+    parsed_uri = urlparse(uri)
+    return "{uri.netloc}".format(uri=parsed_uri)

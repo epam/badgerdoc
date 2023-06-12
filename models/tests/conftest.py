@@ -18,7 +18,7 @@ from models.constants import (
 from models.db import Base, Basement, Training, get_db
 from models.main import app
 from models.routers import tenant
-from models.utils import get_test_db_url
+from models.utils import get_test_db_url, get_host
 from moto import mock_s3
 from sqlalchemy.engine import create_engine
 from sqlalchemy.exc import SQLAlchemyError
