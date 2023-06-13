@@ -18,9 +18,10 @@ import { DocumentScale } from 'components/documents/document-scale/document-scal
 import { PickGridType } from './picker-grid-type/picker-grid-type';
 import { GridVariants } from 'shared/constants/task';
 import { useArrayDataSource } from '@epam/uui';
-
 import { ReactComponent as goNextIcon } from '@epam/assets/icons/common/navigation-chevron-down-18.svg';
 import { ReactComponent as goPrevIcon } from '@epam/assets/icons/common/navigation-chevron-up-18.svg';
+import { Labels } from 'shared/components/labels';
+import { FlexSpacer } from '@epam/uui-components';
 
 const TaskPage: FC = () => {
     const [additionalScale, setAdditionalScale] = useState(0);
@@ -130,43 +131,54 @@ const TaskPage: FC = () => {
             <div className="flex-col">
                 <div className={styles.title}>
                     <div className={styles['title__left-block']}>
-                        <BreadcrumbNavigation breadcrumbs={crumbs} />
-                        <FlexRow>
-                            <FlexRow cx={styles['goto-page-selector']}>
-                                <FlexCell minWidth={60}>
-                                    <span>Go to page</span>
-                                </FlexCell>
-                                <PickerInput
-                                    minBodyWidth={52}
-                                    size="24"
-                                    dataSource={pagesDataSource}
-                                    value={goToPage}
-                                    onValueChange={onPageChange}
-                                    getName={(item) => String(item)}
-                                    selectionMode="single"
-                                    disableClear={true}
-                                />
+                        <FlexRow spacing="12" cx={styles['full-width']}>
+                            <FlexCell width="auto" minWidth={320}>
+                                <BreadcrumbNavigation breadcrumbs={crumbs} />
+                            </FlexCell>
+                            <FlexCell width="100%">
                                 <FlexRow>
-                                    <span>of {taskData?.pages.length}</span>
-                                    <Button
-                                        size="24"
-                                        fill="white"
-                                        icon={goPrevIcon}
-                                        cx={styles.button}
-                                        onClick={handleGoPrev}
-                                        isDisabled={isFirstPage}
-                                    />
-                                    <Button
-                                        size="24"
-                                        fill="white"
-                                        icon={goNextIcon}
-                                        cx={styles.button}
-                                        onClick={handleGoNext}
-                                        isDisabled={isLastPage}
+                                    <Labels />
+                                    <FlexSpacer />
+                                    <FlexRow cx={styles['goto-page-selector']}>
+                                        <FlexCell minWidth={60}>
+                                            <span>Go to page</span>
+                                        </FlexCell>
+                                        <PickerInput
+                                            minBodyWidth={52}
+                                            size="24"
+                                            dataSource={pagesDataSource}
+                                            value={goToPage}
+                                            onValueChange={onPageChange}
+                                            getName={(item) => String(item)}
+                                            selectionMode="single"
+                                            disableClear={true}
+                                        />
+                                        <FlexRow>
+                                            <span>of {taskData?.pages.length}</span>
+                                            <Button
+                                                size="24"
+                                                fill="white"
+                                                icon={goPrevIcon}
+                                                cx={styles.button}
+                                                onClick={handleGoPrev}
+                                                isDisabled={isFirstPage}
+                                            />
+                                            <Button
+                                                size="24"
+                                                fill="white"
+                                                icon={goNextIcon}
+                                                cx={styles.button}
+                                                onClick={handleGoNext}
+                                                isDisabled={isLastPage}
+                                            />
+                                        </FlexRow>
+                                    </FlexRow>
+                                    <DocumentScale
+                                        scale={additionalScale}
+                                        onChange={setAdditionalScale}
                                     />
                                 </FlexRow>
-                            </FlexRow>
-                            <DocumentScale scale={additionalScale} onChange={setAdditionalScale} />
+                            </FlexCell>
                         </FlexRow>
                     </div>
                     <div className={styles['title__right-block']}>

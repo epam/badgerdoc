@@ -7,11 +7,10 @@ import styles from './task-sidebar-flow.module.scss';
 
 export const LabelRow: FC<{
     label: Label;
-    isOwner: boolean;
     isEditable: boolean;
     onClick: (label: Label) => void;
     onDelete: (label: Label) => void;
-}> = ({ label, isEditable, isOwner, onClick, onDelete }) => {
+}> = ({ label, isEditable, onClick, onDelete }) => {
     const handleClick = () => {
         onClick(label);
     };
@@ -20,7 +19,7 @@ export const LabelRow: FC<{
     };
 
     return (
-        <FlexRow cx={styles.labelRow} onClick={isOwner ? undefined : handleClick}>
+        <FlexRow cx={styles.labelRow} onClick={isEditable ? undefined : handleClick}>
             <Text cx={styles.labelText}>{label.name}</Text>
             {isEditable && (
                 <IconButton
