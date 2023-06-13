@@ -15,7 +15,10 @@ DATABASE_URL = (
     f"{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}"
 )
 
-MINIO_SECURE_CONNECTION = os.getenv("MINIO_SECURE_CONNECTION")
+MINIO_SECURE_CONNECTION = os.getenv("MINIO_SECURE_CONNECTION", "False").lower() in (
+    "true",
+    "1",
+)
 MINIO_ACCESS_KEY = os.environ.get("MINIO_ACCESS_KEY")
 MINIO_SECRET_KEY = os.environ.get("MINIO_SECRET_KEY")
 MINIO_HOST = os.environ.get("MINIO_HOST")

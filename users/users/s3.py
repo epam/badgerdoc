@@ -1,5 +1,5 @@
 import enum
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Union
 
 from minio import Minio, credentials
 
@@ -18,7 +18,7 @@ def get_minio_config(
     endpoint: Optional[str],
     access_key: Optional[str],
     secret_key: Optional[str],
-    **kwargs: Optional[str],
+    **kwargs: Optional[Union[str, bool]],
 ) -> Dict[str, Any]:
     minio_config = {"endpoint": endpoint, "secure": kwargs.get("secure")}
     if s3_provider == S3Providers.MINIO:
@@ -45,6 +45,7 @@ def get_minio_client() -> Minio:
         access_key=config.S3_ACCESS_KEY,
         secret_key=config.S3_SECRET_KEY,
         aws_profile=config.AWS_PROFILE,
+        secure=config.MINIO_SECURE_CONNECTION,
     )
     return Minio(**minio_config)
 
