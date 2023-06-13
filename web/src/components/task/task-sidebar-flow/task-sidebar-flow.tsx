@@ -1,39 +1,35 @@
-import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
+import React, { FC, useEffect, useMemo, useState } from 'react';
 import { useTaskAnnotatorContext } from 'connectors/task-annotator-connector/task-annotator-context';
 import { AnnotationList } from './annotation-list';
-import { getTabs, getCategoriesByUserId, getSortedAllAnnotationList } from './utils';
-import { Label } from 'api/typings';
+import { getTabs, getSortedAllAnnotationList } from './utils';
 import { OWNER_TAB, VISIBILITY_SETTING_ID } from './constants';
 import { ReactComponent as closeIcon } from '@epam/assets/icons/common/navigation-chevron-left_left-18.svg';
 import { ReactComponent as openIcon } from '@epam/assets/icons/common/navigation-chevron-right_right-18.svg';
 
 import { Button, FlexRow, Panel, TabButton, Tooltip } from '@epam/loveship';
 import styles from './task-sidebar-flow.module.scss';
+import { useLabels } from 'shared/hooks/use-labels';
 
 export const FlowSideBar: FC = () => {
-    const [currentTab, setCurrentTab] = useState(OWNER_TAB.id);
     const [isHidden, setIsHidden] = useState<boolean>(() => {
         const savedValue = localStorage.getItem(VISIBILITY_SETTING_ID);
         return savedValue ? JSON.parse(savedValue) : false;
     });
 
     const {
-        categories,
-        setTabValue,
         onLinkDeleted,
-        selectedLabels,
-        onLabelsSelected,
         isSplitValidation,
         onAnnotationDeleted,
         setSelectedAnnotation,
         job: { annotators } = {},
         setCurrentDocumentUserId,
-        latestRevisionByAnnotators,
         latestRevisionByAnnotatorsWithBounds,
         currentDocumentUserId = OWNER_TAB.id,
         allAnnotations: allAnnotationsByPageNum = {},
         selectedAnnotation: { id: selectedAnnotationId } = {}
     } = useTaskAnnotatorContext();
+
+    const { currentTab, setCurrentTab } = useLabels();
 
     useEffect(() => {
         setCurrentTab(currentDocumentUserId);
@@ -49,26 +45,6 @@ export const FlowSideBar: FC = () => {
         setIsHidden(!isHidden);
     };
 
-    const handleLabelSelect = useCallback(
-        (label: Label) => {
-            const isExisted = selectedLabels.some(({ id }) => id === label.id);
-
-            if (!isExisted) {
-                setTabValue('Document');
-                onLabelsSelected([...selectedLabels, label]);
-            }
-        },
-        [onLabelsSelected, selectedLabels]
-    );
-
-    const handleLabelDelete = useCallback(
-        (label: Label) => {
-            const withoutCurrentLabel = selectedLabels.filter(({ id }) => id !== label.id);
-            onLabelsSelected(withoutCurrentLabel);
-        },
-        [onLabelsSelected, selectedLabels]
-    );
-
     const tabs = useMemo(() => {
         if (!annotators) return [];
 
@@ -83,19 +59,9 @@ export const FlowSideBar: FC = () => {
         [allAnnotationsByPageNum]
     );
 
-    const categoriesByUserId = useMemo(
-        () => getCategoriesByUserId(latestRevisionByAnnotators, categories),
-        [latestRevisionByAnnotators, categories]
-    );
-
     const annotationsByTab = {
         ...latestRevisionByAnnotatorsWithBounds,
         [OWNER_TAB.id]: allSortedAnnotations
-    };
-
-    const labelsByTab = {
-        ...categoriesByUserId,
-        [OWNER_TAB.id]: selectedLabels
     };
 
     const isTabsShown = isSplitValidation && tabs.length > 1;
@@ -133,13 +99,9 @@ export const FlowSideBar: FC = () => {
                     )}
                     {annotationsByTab[currentTab] && (
                         <AnnotationList
-                            onLabelDelete={handleLabelDelete}
-                            onLabelSelect={handleLabelSelect}
-                            isOwner={currentTab === OWNER_TAB.id}
                             onLinkDeleted={onLinkDeleted}
                             onAnnotationDeleted={onAnnotationDeleted}
                             onSelect={setSelectedAnnotation}
-                            labels={labelsByTab[currentTab]}
                             list={annotationsByTab[currentTab]}
                             isEditable={currentTab === OWNER_TAB.id}
                             selectedAnnotationId={selectedAnnotationId}
