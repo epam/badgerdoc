@@ -424,14 +424,14 @@ def get_annotations_up_to_given_revision(
         description="Enables filtering relevant revisions by user_id",
     ),
 ):
-    Logger.debug("Endpoint 'get_annotations_up_to_given_revision' trggered with this incoming data:")
-    Logger.debug("job_id - %s", job_id)
-    Logger.debug("file_id - %s", file_id)
-    Logger.debug("revision - %s", revision)
-    Logger.debug("page_numbers - %s", page_numbers)
-    Logger.debug("user_id - %s", user_id)
+    Logger.info("Endpoint 'get_annotations_up_to_given_revision' trggered with this incoming data:")
+    Logger.info("job_id - %s", job_id)
+    Logger.info("file_id - %s", file_id)
+    Logger.info("revision - %s", revision)
+    Logger.info("page_numbers - %s", page_numbers)
+    Logger.info("user_id - %s", user_id)
 
-    Logger.debug("Proceeding with inner logic...")
+    Logger.info("Proceeding with inner logic...")
 
     job: Job = db.query(Job).filter(Job.job_id == job_id).first()
 
@@ -448,7 +448,7 @@ def get_annotations_up_to_given_revision(
     if user_id:
         filters.append(AnnotatedDoc.user.in_((user_id, None)))
 
-    Logger.debug("filters - %s", filters)
+    Logger.info("filters - %s", filters)
 
     revisions = (
         db.query(AnnotatedDoc)
@@ -457,11 +457,11 @@ def get_annotations_up_to_given_revision(
         .all()
     )
 
-    Logger.debug("revisions - %s", revisions)
+    Logger.info("revisions - %s", revisions)
 
 
     if not revisions:
-        Logger.debug("if not revisions...")
+        Logger.info("if not revisions...")
         return ParticularRevisionSchema(
             revision=None,
             user=None,
@@ -488,16 +488,16 @@ def get_annotations_up_to_given_revision(
         with_page_hash=True,
     )
 
-    Logger.debug("validated - %s", validated)
-    Logger.debug("failed - %s", failed)
-    Logger.debug("annotated - %s", annotated)
-    Logger.debug("categories - %s", categories)
-    Logger.debug("required_revision - %s", required_revision)
+    Logger.info("validated - %s", validated)
+    Logger.info("failed - %s", failed)
+    Logger.info("annotated - %s", annotated)
+    Logger.info("categories - %s", categories)
+    Logger.info("required_revision - %s", required_revision)
 
     # if revision with given id (hash) was not found,
     # response with empty revision will be returned
     if required_revision is None:
-        Logger.debug("if required_revision is None")
+        Logger.info("if required_revision is None")
         return ParticularRevisionSchema(
             revision=None,
             user=None,
@@ -516,7 +516,7 @@ def get_annotations_up_to_given_revision(
 
     result = construct_particular_rev_response(required_revision)
 
-    Logger.debug("required_revision - %s", required_revision)
+    Logger.info("required_revision - %s", required_revision)
     return result
 #######################################################
 
