@@ -10,7 +10,10 @@ KEYCLOAK_ROLE_ADMIN = os.getenv("KEYCLOAK_ROLE_ADMIN", "")
 KEYCLOAK_SYSTEM_USER_SECRET = os.getenv("KEYCLOAK_SYSTEM_USER_SECRET", "")
 
 # S3 settings
-MINIO_SECURE_CONNECTION = os.getenv("MINIO_SECURE_CONNECTION")
+MINIO_SECURE_CONNECTION = os.getenv("MINIO_SECURE_CONNECTION", "False").lower() in (
+    "true",
+    "1",
+)
 S3_PROVIDER = os.getenv("S3_PROVIDER")
 S3_PREFIX = os.getenv("S3_PREFIX", "")
 S3_ENDPOINT = os.getenv("S3_ENDPOINT")
