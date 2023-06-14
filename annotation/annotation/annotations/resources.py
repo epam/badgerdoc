@@ -44,6 +44,8 @@ from .main import (
     load_all_revisions_pages,
     load_latest_revision_pages,
 )
+from annotation.logger import Logger
+
 
 router = APIRouter(
     prefix="/annotation",
@@ -396,7 +398,7 @@ def get_latest_revision_by_user(
     load_latest_revision_pages(pages, x_current_tenant)
     return pages
 
-
+######################################
 @router.get(
     "/{job_id}/{file_id}/{revision}",
     status_code=status.HTTP_200_OK,
@@ -422,7 +424,17 @@ def get_annotations_up_to_given_revision(
         description="Enables filtering relevant revisions by user_id",
     ),
 ):
+    Logger.debug("Endpoint 'get_annotations_up_to_given_revision' trggered with this incoming data:")
+    Logger.debug("job_id - %s", job_id)
+    Logger.debug("file_id - %s", file_id)
+    Logger.debug("revision - %s", revision)
+    Logger.debug("page_numbers - %s", page_numbers)
+    Logger.debug("user_id - %s", user_id)
+
+    Logger.debug("Proceeding with inner logic...")
+
     job: Job = db.query(Job).filter(Job.job_id == job_id).first()
+
     if not job:
         raise HTTPException(
             status_code=404,
@@ -436,6 +448,8 @@ def get_annotations_up_to_given_revision(
     if user_id:
         filters.append(AnnotatedDoc.user.in_((user_id, None)))
 
+    Logger.debug("filters - %s", filters)
+
     revisions = (
         db.query(AnnotatedDoc)
         .filter(*filters)
@@ -443,7 +457,11 @@ def get_annotations_up_to_given_revision(
         .all()
     )
 
+    Logger.debug("revisions - %s", revisions)
+
+
     if not revisions:
+        Logger.debug("if not revisions...")
         return ParticularRevisionSchema(
             revision=None,
             user=None,
@@ -469,9 +487,17 @@ def get_annotations_up_to_given_revision(
         specific_pages=page_numbers,
         with_page_hash=True,
     )
+
+    Logger.debug("validated - %s", validated)
+    Logger.debug("failed - %s", failed)
+    Logger.debug("annotated - %s", annotated)
+    Logger.debug("categories - %s", categories)
+    Logger.debug("required_revision - %s", required_revision)
+
     # if revision with given id (hash) was not found,
     # response with empty revision will be returned
     if required_revision is None:
+        Logger.debug("if required_revision is None")
         return ParticularRevisionSchema(
             revision=None,
             user=None,
@@ -488,7 +514,11 @@ def get_annotations_up_to_given_revision(
     required_revision.failed_validation_pages = failed
     required_revision.categories = categories
 
-    return construct_particular_rev_response(required_revision)
+    result = construct_particular_rev_response(required_revision)
+
+    Logger.debug("required_revision - %s", required_revision)
+    return result
+#######################################################
 
 
 @router.get(
