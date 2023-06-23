@@ -33,16 +33,16 @@ class Settings(BaseSettings):
     minio_access_key: Optional[str] = os.getenv("S3_ACCESS_KEY")
     minio_secret_key: Optional[str] = os.getenv("S3_SECRET_KEY")
     s3_prefix: Optional[str] = os.getenv("S3_PREFIX")
-    s3_credentials_provider: Optional[str] = os.getenv(
-        "S3_PROVIDER", "minio"
-    )
+    s3_credentials_provider: Optional[str] = os.getenv("S3_PROVIDER", "minio")
     uploading_limit: int = int(os.getenv("UPLOADING_LIMIT", 100))
     coco_image_format: str = "jpg"
     dpi: int = 300
     root_path: str = os.environ.get("ROOT_PATH", "")
     assets_service_url: Optional[str] = os.getenv("ASSETS_SERVICE_HOST")
     job_service_url: Optional[str] = os.getenv("JOBS_SERVICE_HOST")
-    annotation_service_url: Optional[str] = os.getenv("ANNOTATION_SERVICE_HOST")
+    annotation_service_url: Optional[str] = os.getenv(
+        "ANNOTATION_SERVICE_HOST"
+    )
     taxonomy_service_url: Optional[str] = os.getenv("TAXONOMY_SERVICE_HOST")
     keycloak_url: Optional[str] = os.getenv("KEYCLOAK_HOST")
 
