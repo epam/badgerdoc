@@ -29,22 +29,22 @@ DEFAULT_PDF_LINE_SPACING = 2
 class Settings(BaseSettings):
     """Base settings values"""
 
-    minio_host: Optional[str] = os.getenv("MINIO_HOST")
-    minio_access_key: Optional[str] = os.getenv("MINIO_ACCESS_KEY")
-    minio_secret_key: Optional[str] = os.getenv("MINIO_SECRET_KEY")
+    s3_endpoint_url: Optional[str] = os.getenv("S3_ENDPOINT_URL")
+    s3_access_key: Optional[str] = os.getenv("S3_ACCESS_KEY")
+    s3_secret_key: Optional[str] = os.getenv("S3_SECRET_KEY")
     s3_prefix: Optional[str] = os.getenv("S3_PREFIX")
-    s3_credentials_provider: Optional[str] = os.getenv(
-        "S3_CREDENTIALS_PROVIDER", "minio"
-    )
+    s3_provider: Optional[str] = os.getenv("S3_PROVIDER", "minio")
     uploading_limit: int = int(os.getenv("UPLOADING_LIMIT", 100))
     coco_image_format: str = "jpg"
     dpi: int = 300
     root_path: str = os.environ.get("ROOT_PATH", "")
-    assets_service_url: Optional[str] = os.getenv("ASSETS_SERVICE_URL")
-    job_service_url: Optional[str] = os.getenv("JOB_SERVICE_URL")
-    annotation_service_url: Optional[str] = os.getenv("ANNOTATION_SERVICE_URL")
-    taxonomy_service_url: Optional[str] = os.getenv("TAXONOMY_SERVICE_URL")
-    keycloak_url: Optional[str] = os.getenv("KEYCLOAK_URL")
+    assets_service_host: Optional[str] = os.getenv("ASSETS_SERVICE_HOST")
+    jobs_service_host: Optional[str] = os.getenv("JOBS_SERVICE_HOST")
+    annotation_service_host: Optional[str] = os.getenv(
+        "ANNOTATION_SERVICE_HOST"
+    )
+    taxonomy_service_host: Optional[str] = os.getenv("TAXONOMY_SERVICE_HOST")
+    keycloak_host: Optional[str] = os.getenv("KEYCLOAK_HOST")
 
 
 def get_version() -> str:
@@ -89,7 +89,7 @@ def get_request_session(*args: List[Any], **kwargs: Dict[str, Any]) -> Session:
 
 
 settings = Settings()
-logger_.info(f"{settings.s3_credentials_provider=}")
+logger_.info(f"{settings.s3_provider=}")
 
 
 class NotConfiguredException(Exception):
@@ -98,15 +98,15 @@ class NotConfiguredException(Exception):
 
 def create_boto3_config() -> Dict[str, Optional[str]]:
     boto3_config = {}
-    if settings.s3_credentials_provider == "minio":
+    if settings.s3_provider == "minio":
         boto3_config.update(
             {
-                "aws_access_key_id": settings.minio_access_key,
-                "aws_secret_access_key": settings.minio_secret_key,
-                "endpoint_url": settings.minio_host,
+                "aws_access_key_id": settings.s3_access_key,
+                "aws_secret_access_key": settings.s3_secret_key,
+                "endpoint_url": settings.s3_endpoint_url,
             }
         )
-    elif settings.s3_credentials_provider == "aws_iam":
+    elif settings.s3_provider == "aws_iam":
         # No additional updates to config needed - boto3 uses env vars
         ...
     else:
@@ -114,9 +114,7 @@ def create_boto3_config() -> Dict[str, Optional[str]]:
             "s3 connection is not properly configured - "
             "s3_credentials_provider is not set"
         )
-    logger_.info(
-        f"S3_Credentials provider - {settings.s3_credentials_provider}"
-    )
+    logger_.info(f"S3_Credentials provider - {settings.s3_provider}")
     return boto3_config
 
 

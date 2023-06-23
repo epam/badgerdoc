@@ -1,4 +1,4 @@
-build_all:  build_base build_annotation build_users clean
+build_all:  build_base build_annotation build_users build_convert clean
 
 build_base : 
 	mkdir build_dir
@@ -11,6 +11,9 @@ build_annotation:
 
 build_users:
 	docker build --target build users/ -t badgerdoc_users
+
+build_convert:
+	docker build --target build convert/ -t badgerdoc_convert
 
 clean : 
 	rm -rf build_dir

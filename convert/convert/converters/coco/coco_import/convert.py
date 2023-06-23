@@ -55,7 +55,7 @@ class ImportConvertBase:
                 pages = [json.load(f_o)]
             body = {"pages": pages, "pipeline": 1, "validated": [1]}
             response = SESSION.post(
-                url=f"{settings.annotation_service_url}/annotation/{job_id}/"
+                url=f"{settings.annotation_service_host}/annotation/{job_id}/"
                 f"{annotation_by_image[file_id]}",
                 headers=headers,
                 json=body,
@@ -65,7 +65,7 @@ class ImportConvertBase:
         LOGGER.info("Uploading annotations has been finished")
 
     def upload_image(self, file: str, image_id: int) -> Dict[int, int]:
-        assets_url = f"{settings.assets_service_url}/files"
+        assets_url = f"{settings.assets_service_host}/files"
         body = {"files": (file, open(file, "rb"))}
         headers = {
             "X-Current-Tenant": self.current_tenant,
@@ -94,7 +94,7 @@ class ImportConvertBase:
     def check_category(self) -> Set[str]:
         categories = self.prepare_data(self.local_path)["categories"]
         categories_services_url = (
-            f"{settings.annotation_service_url}/categories"
+            f"{settings.annotation_service_host}/categories"
         )
         headers = {
             "X-Current-Tenant": self.current_tenant,

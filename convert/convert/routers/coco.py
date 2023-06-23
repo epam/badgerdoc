@@ -24,7 +24,7 @@ from convert.logger import get_logger
 router = APIRouter(prefix="/coco", tags=["coco"])
 LOGGER = get_logger(__file__)
 tenant = get_tenant_info(
-    url=settings.keycloak_url, algorithm="RS256", debug=True
+    url=settings.keycloak_host, algorithm="RS256", debug=True
 )
 
 

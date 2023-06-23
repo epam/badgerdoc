@@ -43,29 +43,29 @@ spec:
         env:
         - name: ROOT_PATH
           value: ""
-        - name: S3_CREDENTIALS_PROVIDER
+        - name: S3_PROVIDER
           value: "minio"
-        - name: MINIO_HOST
+        - name: S3_ENDPOINT_URL
           value: "http://minio"
-        - name: MINIO_ACCESS_KEY
+        - name: S3_ACCESS_KEY
           valueFrom:
             secretKeyRef:
               name: pipelines
-              key: MINIO_ACCESS_KEY
-        - name: MINIO_SECRET_KEY
+              key: S3_ACCESS_KEY
+        - name: S3_SECRET_KEY
           valueFrom:
             secretKeyRef:
               name: pipelines
-              key: MINIO_SECRET_KEY
-        - name: ASSETS_SERVICE_URL
+              key: S3_SECRET_KEY
+        - name: ASSETS_SERVICE_HOST
           value: http://{{ .Values.app.hostname }}/api/v1/assets
-        - name: JOB_SERVICE_URL
+        - name: JOBS_SERVICE_HOST
           value: http://{{ .Values.app.hostname }}/api/v1/jobs/jobs
-        - name: ANNOTATION_SERVICE_URL
+        - name: ANNOTATION_SERVICE_HOST
           value: http://{{ .Values.app.hostname }}/api/v1/annotation
-        - name: TAXONOMY_SERVICE_URL
+        - name: TAXONOMY_SERVICE_HOST
           value: http://{{ .Values.app.hostname }}/api/v1/taxonomy
-        - name: KEYCLOAK_URL
+        - name: KEYCLOAK_HOST
           valueFrom:
             secretKeyRef:
               name: users

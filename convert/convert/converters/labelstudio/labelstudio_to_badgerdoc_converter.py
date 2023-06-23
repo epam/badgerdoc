@@ -200,7 +200,7 @@ class LabelstudioToBadgerdocConverter:
         )
 
     def make_upload_file_request_to_assets(self, pdf_path: Path) -> int:
-        upload_file_to_assets_url = f"{settings.assets_service_url}/files"
+        upload_file_to_assets_url = f"{settings.assets_service_host}/files"
         files = [
             (
                 "files",
@@ -310,7 +310,9 @@ class LabelstudioToBadgerdocConverter:
         LOGGER.debug("categories of document links: %s", categories_of_links)
         categories.extend(categories_of_links)
 
-        post_annotation_job_url = f"{settings.job_service_url}/create_job"
+        post_annotation_job_url = (
+            f"{settings.jobs_service_host}/jobs/create_job"
+        )
         post_annotation_job_body = {
             "name": f"import_labelstudio_job_{uuid4()}",
             "type": "AnnotationJob",
@@ -388,7 +390,7 @@ class LabelstudioToBadgerdocConverter:
         document_links: List[DocumentLink],
     ) -> None:
         annotations_post_url = (
-            f"{settings.annotation_service_url}/"
+            f"{settings.annotation_service_host}/"
             f"annotation/{annotation_job_id_created}/"
             f"{file_id_in_assets}"
         )
