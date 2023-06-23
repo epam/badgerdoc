@@ -218,7 +218,7 @@ class LabelStudioFormat:
         job_id: int, request_headers: Dict[str, str]
     ) -> List[str]:
         annotations_get_categories_url = (
-            f"{settings.annotation_service_url}/"
+            f"{settings.annotation_service_host}/"
             f"jobs/{job_id}/categories/search"
         )
         annotations_get_categories_body = {
@@ -267,7 +267,7 @@ class LabelStudioFormat:
         job_id: int, category_id: str, request_headers: Dict[str, str]
     ) -> List[Dict[str, str]]:
         get_taxonomy_url = (
-            f"{settings.taxonomy_service_url}/taxonomy/"
+            f"{settings.taxonomy_service_host}/taxonomy/"
             f"link_category/{job_id}/{category_id}"
         )
         LOGGER.debug(
@@ -325,7 +325,7 @@ class LabelStudioFormat:
         all_taxonomies_ids_used: List[str],
         request_headers: Dict[str, str],
     ) -> Dict[str, Any]:
-        get_taxons_used_url = f"{settings.taxonomy_service_url}/taxons/search"
+        get_taxons_used_url = f"{settings.taxonomy_service_host}/taxons/search"
         LOGGER.debug(
             "Making request to url %s to get all taxons used",
             get_taxons_used_url,

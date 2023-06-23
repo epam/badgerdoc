@@ -17,7 +17,7 @@ from convert.models.labelstudio import (
 
 router = APIRouter(prefix="/labelstudio", tags=["labelstudio"])
 tenant = get_tenant_info(
-    url=settings.keycloak_url, algorithm="RS256", debug=True
+    url=settings.keycloak_host, algorithm="RS256", debug=True
 )
 
 
