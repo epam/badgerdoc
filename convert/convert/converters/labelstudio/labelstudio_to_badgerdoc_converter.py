@@ -310,7 +310,7 @@ class LabelstudioToBadgerdocConverter:
         LOGGER.debug("categories of document links: %s", categories_of_links)
         categories.extend(categories_of_links)
 
-        post_annotation_job_url = f"{settings.job_service_url}/create_job"
+        post_annotation_job_url = f"{settings.job_service_url}/jobs/create_job"
         post_annotation_job_body = {
             "name": f"import_labelstudio_job_{uuid4()}",
             "type": "AnnotationJob",

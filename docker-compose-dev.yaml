@@ -111,6 +111,21 @@ services:
       badgerdoc-keycloak:
         condition: service_started
 
+  convert:
+    image: badgerdoc_convert
+    container_name: convert
+    env_file:
+      - .env
+    environment:
+      - ROOT_PATH=/convert
+    networks:
+      - badgerdoc
+    depends_on:
+      badgerdoc-postgresql:
+        condition: service_healthy
+      badgerdoc-keycloak:
+        condition: service_started
+
 networks:
   badgerdoc:
     driver: bridge

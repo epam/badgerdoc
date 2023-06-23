@@ -59,7 +59,7 @@ def import_run(
         categories = checking_category.result()
         convert.done()
 
-    job_update_url = f"{settings.job_service_url}/{job_id}"
+    job_update_url = f"{settings.job_service_url}/jobs/{job_id}"
     body["categories"], body["files"] = list(categories), list(
         annotation_by_image.values()
     )

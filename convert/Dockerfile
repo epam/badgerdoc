@@ -24,6 +24,7 @@ RUN : \
     && :
 
 CMD uvicorn convert.main:app --host 0.0.0.0 --port 8080
+EXPOSE 8080
 
 FROM sonarsource/sonar-scanner-cli:4.6 AS sonar
 
