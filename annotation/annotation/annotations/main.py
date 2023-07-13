@@ -27,12 +27,13 @@ from annotation.schemas import (
 )
 
 load_dotenv(find_dotenv())
-S3_ENDPOINT_URL = os.environ.get("S3_ENDPOINT_URL")
+S3_ENDPOINT = os.environ.get("S3_ENDPOINT", "")
+S3_ENDPOINT_URL = f"http://{S3_ENDPOINT}"
 S3_PREFIX = os.environ.get("S3_PREFIX")
 S3_ACCESS_KEY = os.environ.get("S3_ACCESS_KEY")
 S3_SECRET_KEY = os.environ.get("S3_SECRET_KEY")
 INDEX_NAME = os.environ.get("INDEX_NAME")
-S3_START_PATH = os.environ.get("S3_START_PATH")
+S3_START_PATH = os.environ.get("S3_START_PATH", "annotation")
 S3_PROVIDER = os.environ.get("S3_PROVIDER")
 MANIFEST = "manifest.json"
 LATEST = "latest"

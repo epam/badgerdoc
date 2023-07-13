@@ -59,8 +59,8 @@ spec:
           value: "postgres-postgresql"
         - name: S3_PROVIDER
           value: "minio"
-        - name: S3_ENDPOINT_URL
-          value: "http://minio"
+        - name: S3_ENDPOINT
+          value: "minio"
         - name: S3_ACCESS_KEY
           valueFrom:
             secretKeyRef:

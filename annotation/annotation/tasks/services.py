@@ -63,7 +63,7 @@ from annotation.schemas import (
 )
 
 dotenv.load_dotenv(dotenv.find_dotenv())
-AGREEMENT_SCORE_MIN_MATCH = float(os.getenv("AGREEMENT_SCORE_MIN_MATCH"))
+AGREEMENT_SCORE_MIN_MATCH = float(os.getenv("AGREEMENT_SCORE_MIN_MATCH", 0.9))
 USER_NAMES_CACHE_SIZE = int(os.getenv("USER_NAMES_CACHE_SIZE", 256))
 FILE_NAMES_CACHE_SIZE = int(os.getenv("FILE_NAMES_CACHE_SIZE", 1024))
 
