@@ -57,25 +57,22 @@ spec:
           value: "annotation"
         - name: POSTGRES_HOST
           value: "postgres-postgresql"
-        - name: S3_CREDENTIALS_PROVIDER
+        - name: S3_PROVIDER
           value: "minio"
         - name: S3_ENDPOINT_URL
           value: "http://minio"
-        - name: S3_LOGIN
+        - name: S3_ACCESS_KEY
           valueFrom:
             secretKeyRef:
               name: annotation
-              key: S3_LOGIN
-        - name: S3_PASS
+              key: S3_ACCESS_KEY
+        - name: S3_SECRET_KEY
           valueFrom:
             secretKeyRef:
               name: annotation
-              key: S3_PASS  
+              key: S3_SECRET_KEY  
         - name: KEYCLOAK_HOST
-          valueFrom:
-            secretKeyRef:
-              name: users
-              key: KEYCLOAK_DIRECT_ENDPOINT_DEV1
+          value: "http://bagerdoc-keycloack"
         - name: USERS_GET_USER_URL
           value: "http://users/users"
         - name: USERS_SEARCH_URL

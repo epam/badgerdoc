@@ -27,13 +27,13 @@ from annotation.schemas import (
 )
 
 load_dotenv(find_dotenv())
-ENDPOINT_URL = os.environ.get("S3_ENDPOINT_URL")
+S3_ENDPOINT_URL = os.environ.get("S3_ENDPOINT_URL")
 S3_PREFIX = os.environ.get("S3_PREFIX")
-AWS_ACCESS_KEY_ID = os.environ.get("S3_LOGIN")
-AWS_SECRET_ACCESS_KEY = os.environ.get("S3_PASS")
+S3_ACCESS_KEY = os.environ.get("S3_ACCESS_KEY")
+S3_SECRET_KEY = os.environ.get("S3_SECRET_KEY")
 INDEX_NAME = os.environ.get("INDEX_NAME")
 S3_START_PATH = os.environ.get("S3_START_PATH")
-S3_CREDENTIALS_PROVIDER = os.environ.get("S3_CREDENTIALS_PROVIDER")
+S3_PROVIDER = os.environ.get("S3_PROVIDER")
 MANIFEST = "manifest.json"
 LATEST = "latest"
 
@@ -81,24 +81,24 @@ class NotConfiguredException(Exception):
 
 def connect_s3(bucket_name: str) -> boto3.resource:
     boto3_config = {}
-    if S3_CREDENTIALS_PROVIDER == "minio":
+    if S3_PROVIDER == "minio":
         boto3_config.update(
             {
-                "aws_access_key_id": AWS_ACCESS_KEY_ID,
-                "aws_secret_access_key": AWS_SECRET_ACCESS_KEY,
-                "endpoint_url": ENDPOINT_URL,
+                "S3_ACCESS_KEY": S3_ACCESS_KEY,
+                "S3_SECRET_KEY": S3_SECRET_KEY,
+                "endpoint_url": S3_ENDPOINT_URL,
             }
         )
-    elif S3_CREDENTIALS_PROVIDER == "aws_iam":
+    elif S3_PROVIDER == "aws_iam":
         # No additional updates to config needed - boto3 uses env vars
         ...
     else:
         raise NotConfiguredException(
             "s3 connection is not properly configured - "
-            "s3_credentials_provider is not set"
+            "S3_PROVIDER is not set"
         )
     s3_resource = boto3.resource("s3", **boto3_config)
-    logger_.debug(f"S3_Credentials provider - {S3_CREDENTIALS_PROVIDER}")
+    logger_.debug(f"{S3_PROVIDER=}")
 
     try:
         logger_.debug("Connecting to S3 bucket: %s", bucket_name)
@@ -170,7 +170,7 @@ def get_pages_sha(
     base_revision: Optional[str],
     validated: Set[int],
     failed: Set[int],
-    user_uuid: str
+    user_uuid: str,
 ) -> Tuple[Dict[str, str], str]:
     """
     Creates dict:
@@ -345,7 +345,7 @@ def construct_annotated_doc(
             doc.base_revision,
             doc.validated,
             doc.failed_validation_pages,
-            doc.user
+            doc.user,
         )
         annotated_doc.pages = pages_sha
         annotated_doc.revision = concatenated_pages_sha
@@ -360,7 +360,7 @@ def construct_annotated_doc(
             latest_doc.revision,
             doc.validated,
             doc.failed_validation_pages,
-            doc.user
+            doc.user,
         )
         annotated_doc.pages = pages_sha
         annotated_doc.pages.update(latest_doc.pages)
