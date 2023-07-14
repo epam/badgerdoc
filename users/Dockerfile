@@ -7,6 +7,11 @@ COPY users ./users
 COPY pyproject.toml poetry.lock .env version.txt ./
 
 RUN : \
+    && apt-get update \
+    && apt-get install -y build-essential \
+    && :
+
+RUN : \
     && python3 -m pip install --upgrade pip \
     && pip install poetry>=1.1.13 \
     && poetry config virtualenvs.create false \

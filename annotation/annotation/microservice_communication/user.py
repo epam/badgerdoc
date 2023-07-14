@@ -8,7 +8,8 @@ from requests import RequestException
 from annotation.logger import Logger
 
 load_dotenv(find_dotenv())
-USERS_GET_USER_URL = os.environ.get("USERS_GET_USER_URL")
+USERS_SERVICE_HOST = os.environ.get("USERS_SERVICE_HOST", "")
+USERS_GET_USER_URL = f"http://{USERS_SERVICE_HOST}/users"
 
 
 class GetUserInfoException(Exception):

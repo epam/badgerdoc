@@ -95,6 +95,8 @@ services:
     depends_on:
       badgerdoc-postgresql:
         condition: service_healthy
+      badgerdoc-keycloak:
+        condition: service_started
 
   users:
     image: badgerdoc_users

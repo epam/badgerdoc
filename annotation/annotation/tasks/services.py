@@ -63,8 +63,8 @@ from annotation.schemas import (
 )
 
 dotenv.load_dotenv(dotenv.find_dotenv())
-AGREEMENT_SCORE_MIN_MATCH = float(os.getenv("AGREEMENT_SCORE_MIN_MATCH"))
-USER_NAMES_CACHE_SIZE = int(os.getenv("FILE_NAMES_CACHE_SIZE", 256))
+AGREEMENT_SCORE_MIN_MATCH = float(os.getenv("AGREEMENT_SCORE_MIN_MATCH", 0.9))
+USER_NAMES_CACHE_SIZE = int(os.getenv("USER_NAMES_CACHE_SIZE", 256))
 FILE_NAMES_CACHE_SIZE = int(os.getenv("FILE_NAMES_CACHE_SIZE", 1024))
 
 lru_user_id_to_user_name_cache = LRU(USER_NAMES_CACHE_SIZE)
@@ -616,7 +616,7 @@ def get_user_names_by_user_ids(
 
 def get_file_names_by_file_ids(
     file_ids: Set[int], tenant: str, token: str
-) ->  Dict[Union[str, int], str]:
+) -> Dict[Union[str, int], str]:
 
     # 1. Get file names from cache
     file_names_from_cache, not_cached_filenames = get_from_cache(

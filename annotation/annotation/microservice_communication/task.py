@@ -17,7 +17,7 @@ from annotation.schemas import (
 )
 
 load_dotenv(find_dotenv())
-AGREEMENT_SCORE_SERVICE_URL = os.environ.get("AGREEMENT_SCORE_SERVICE_URL")
+AGREEMENT_SCORE_SERVICE_HOST = os.environ.get("AGREEMENT_SCORE_SERVICE_HOST")
 
 
 def get_agreement_score(
@@ -28,7 +28,7 @@ def get_agreement_score(
     body = [score.dict() for score in agreement_scores_input]
     try:
         response = requests.post(
-            AGREEMENT_SCORE_SERVICE_URL,
+            AGREEMENT_SCORE_SERVICE_HOST,
             headers={
                 HEADER_TENANT: tenant,
                 AUTHORIZATION: f"{BEARER} {token}",

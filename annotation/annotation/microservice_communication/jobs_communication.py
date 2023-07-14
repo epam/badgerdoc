@@ -13,7 +13,8 @@ from annotation.microservice_communication.search import (
 )
 
 load_dotenv(find_dotenv())
-JOBS_SEARCH_URL = os.environ.get("JOBS_SEARCH_URL")
+JOBS_SERVICE_HOST = os.environ.get("JOBS_SERVICE_HOST", "")
+JOBS_SEARCH_URL = f"http://{JOBS_SERVICE_HOST}/jobs/search"
 JOBS_FILE_ID_FIELD = "id"
 JOBS_FILE_NAME_FIELD = "name"
 

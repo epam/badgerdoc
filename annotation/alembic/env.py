@@ -54,6 +54,7 @@ def run_migrations_offline():
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
         compare_type=True,
+        version_table="alembic_revision_annotation",
     )
 
     with context.begin_transaction():
@@ -78,6 +79,7 @@ def run_migrations_online():
             connection=connection,
             target_metadata=target_metadata,
             compare_type=True,
+            version_table="alembic_revision_annotation",
         )
 
         with context.begin_transaction():

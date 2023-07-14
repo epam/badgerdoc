@@ -117,7 +117,7 @@ def clear_tables():
     tables = [
         data[0] for data in inspector.get_sorted_table_and_fkc_names()[-2::-1]
     ]
-    tables.remove("alembic_version")
+    tables.remove("alembic_revision_annotation")
     for table in tables:
         conn.execute(f"DELETE FROM {table}")
 

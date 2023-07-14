@@ -103,7 +103,8 @@ HEADER_TENANT = "X-Current-Tenant"
 AUTHORIZATION = "Authorization"
 BEARER = "Bearer"
 X_CURRENT_TENANT_HEADER = Header(..., alias=HEADER_TENANT, example="test")
-USERS_SEARCH_URL = os.environ.get("USERS_SEARCH_URL")
+USERS_SERVICE_HOST = os.environ.get("USERS_SERVICE_HOST", "")
+USERS_SEARCH_URL = f"http://{USERS_SERVICE_HOST}/users/search"
 
 
 def calculate_amount_of_pagination_pages(elem_amount: int):

@@ -78,9 +78,7 @@ from annotation.schemas import (
 from annotation.tasks import create_tasks as create_db_tasks
 
 dotenv.load_dotenv(dotenv.find_dotenv())
-SPLIT_MULTIPAGE_DOC = (
-    True if os.getenv("SPLIT_MULTIPAGE_DOC", "false") == "true" else False
-)
+SPLIT_MULTIPAGE_DOC = os.getenv("SPLIT_MULTIPAGE_DOC", "false") == "true"
 MAX_PAGES = 50
 
 AnnotatedFilesPages = Dict[int, List[Dict[str, Union[int, List[int]]]]]
