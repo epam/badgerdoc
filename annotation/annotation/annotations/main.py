@@ -85,8 +85,8 @@ def connect_s3(bucket_name: str) -> boto3.resource:
     if S3_PROVIDER == "minio":
         boto3_config.update(
             {
-                "S3_ACCESS_KEY": S3_ACCESS_KEY,
-                "S3_SECRET_KEY": S3_SECRET_KEY,
+                "aws_access_key_id": S3_ACCESS_KEY,
+                "aws_secret_access_key": S3_SECRET_KEY,
                 "endpoint_url": S3_ENDPOINT_URL,
             }
         )
