@@ -1,5 +1,5 @@
 ARG base_image=818863528939.dkr.ecr.eu-central-1.amazonaws.com/badgerdoc/python_base:0.1.7
-FROM ${base_image} as base
+FROM ${base_image} as build
 
 ENV PYTHONPATH /opt/annotation
 WORKDIR /opt/annotation
@@ -7,16 +7,14 @@ WORKDIR /opt/annotation
 COPY pyproject.toml poetry.lock .env alembic.ini version.txt ./
 COPY alembic alembic
 COPY annotation annotation
+COPY documentation documentation
 
 RUN : \
     && python3 -m pip install --upgrade pip \
     && pip install poetry==1.4.0 \
-    && poetry config virtualenvs.create false
+    && poetry config virtualenvs.create false \
+    && poetry install --no-root --only main
 
-FROM base as build
-
-COPY documentation documentation
-RUN poetry install --no-root --only main
 CMD alembic upgrade head && uvicorn annotation.main:app --host 0.0.0.0 --port 8080
 EXPOSE 8080
 

@@ -56,11 +56,11 @@ spec:
             secretKeyRef:
               name: assets
               key: POSTGRES_PASSWORD
-        - name: S3_CREDENTIALS_PROVIDER
+        - name: S3_PROVIDER
           value: "minio"
         - name: S3_ENDPOINT
           value: "minio:80"
-        - name: MINIO_SECURE_CONNECTION
+        - name: S3_SECURE
           value: "false"
         - name: S3_ACCESS_KEY
           valueFrom:

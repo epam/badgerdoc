@@ -6,11 +6,11 @@ from sqlalchemy.orm import Session
 
 from jobs import db_service
 from jobs.config import (
-    HOST_ANNOTATION,
-    HOST_ASSETS,
-    HOST_PIPELINES,
-    HOST_TAXONOMY,
-    JOBS_HOST,
+    ANNOTATION_SERVICE_HOST,
+    ASSETS_SERVICE_HOST,
+    PIPELINES_SERVICE_HOST,
+    TAXONOMY_SERVICE_HOST,
+    JOBS_SERVICE_HOST,
     PAGINATION_THRESHOLD,
     ROOT_PATH,
     USERS_HOST,
@@ -42,7 +42,7 @@ async def get_files_data_from_datasets(
             )
             status, response = await fetch(
                 method="GET",
-                url=f"{HOST_ASSETS}/datasets/{dataset_id}/files",
+                url=f"{ASSETS_SERVICE_HOST}/datasets/{dataset_id}/files",
                 headers={
                     "X-Current-Tenant": current_tenant,
                     "Authorization": f"Bearer {jw_token}",
@@ -93,7 +93,7 @@ async def get_files_data_from_separate_files(
             )
             _, response = await fetch(
                 method="POST",
-                url=f"{HOST_ASSETS}/files/search",
+                url=f"{ASSETS_SERVICE_HOST}/files/search",
                 body=params,
                 headers={
                     "X-Current-Tenant": current_tenant,
@@ -228,7 +228,7 @@ async def get_pipeline_instance_by_its_name(
     try:
         _, response = await fetch(
             method="GET",
-            url=f"{HOST_PIPELINES}/pipeline",
+            url=f"{PIPELINES_SERVICE_HOST}/pipeline",
             params=params,
             headers={
                 "X-Current-Tenant": current_tenant,
@@ -254,9 +254,9 @@ async def execute_pipeline(
 ) -> None:
     """Executes Run in the Inference Pipeline Manager"""
     if ROOT_PATH:
-        webhook = f"{JOBS_HOST}/{ROOT_PATH}/jobs"
+        webhook = f"{JOBS_SERVICE_HOST}/{ROOT_PATH}/jobs"
     else:
-        webhook = f"{JOBS_HOST}/jobs"
+        webhook = f"{JOBS_SERVICE_HOST}/jobs"
 
     params = {
         "job_id": job_id,
@@ -269,7 +269,7 @@ async def execute_pipeline(
     try:
         _, response = await fetch(
             method="POST",
-            url=f"{HOST_PIPELINES}/pipelines/{pipeline_id}/execute",
+            url=f"{PIPELINES_SERVICE_HOST}/pipelines/{pipeline_id}/execute",
             headers={
                 "X-Current-Tenant": current_tenant,
                 "Authorization": f"Bearer: {jw_token}",
@@ -298,9 +298,9 @@ async def execute_in_annotation_microservice(
     job_id = created_job.id
 
     if ROOT_PATH:
-        callback_url = f"{JOBS_HOST}/{ROOT_PATH}/jobs/{job_id}"
+        callback_url = f"{JOBS_SERVICE_HOST}/{ROOT_PATH}/jobs/{job_id}"
     else:
-        callback_url = f"{JOBS_HOST}/jobs/{job_id}"
+        callback_url = f"{JOBS_SERVICE_HOST}/jobs/{job_id}"
 
     headers = {
         "X-Current-Tenant": current_tenant,
@@ -332,7 +332,7 @@ async def execute_in_annotation_microservice(
     try:
         _, response = await fetch(
             method="POST",
-            url=f"{HOST_ANNOTATION}/jobs/{job_id}",
+            url=f"{ANNOTATION_SERVICE_HOST}/jobs/{job_id}",
             headers=headers,
             body=json,
             raise_for_status=True,
@@ -389,7 +389,7 @@ async def start_job_in_annotation(
     try:
         _, response = await fetch(
             method="POST",
-            url=f"{HOST_ANNOTATION}/jobs/{job_id}/start",
+            url=f"{ANNOTATION_SERVICE_HOST}/jobs/{job_id}/start",
             headers=headers,
             raise_for_status=True,
         )
@@ -422,7 +422,7 @@ async def update_job_in_annotation(
     try:
         _, changed_params = await fetch(
             method="PATCH",
-            url=f"{HOST_ANNOTATION}/jobs/{job_id}",
+            url=f"{ANNOTATION_SERVICE_HOST}/jobs/{job_id}",
             headers=headers,
             body=json_data,
             raise_for_status=True,
@@ -448,9 +448,9 @@ async def get_job_progress(
 
     url: str = ""
     if job.mode == JobMode.Automatic:
-        url = f"{HOST_PIPELINES}/jobs/{job_id}/progress"
+        url = f"{PIPELINES_SERVICE_HOST}/jobs/{job_id}/progress"
     elif job.mode == JobMode.Manual:
-        url = f"{HOST_ANNOTATION}/jobs/{job_id}/progress"
+        url = f"{ANNOTATION_SERVICE_HOST}/jobs/{job_id}/progress"
     headers = {
         "X-Current-Tenant": current_tenant,
         "Authorization": f"Bearer: {jw_token}",
@@ -515,7 +515,7 @@ async def send_category_taxonomy_link(
     try:
         _, response = await fetch(
             method="POST",
-            url=f"{HOST_TAXONOMY}/taxonomy/link_category",
+            url=f"{TAXONOMY_SERVICE_HOST}/taxonomy/link_category",
             headers=headers,
             body=[
                 taxonomy_link_param.dict(exclude_defaults=True)
@@ -543,7 +543,7 @@ async def delete_taxonomy_link(
     try:
         _, response = await fetch(
             method="DELETE",
-            url=f"{HOST_TAXONOMY}/taxonomy/link_category/{job_id}",
+            url=f"{TAXONOMY_SERVICE_HOST}/taxonomy/link_category/{job_id}",
             headers=headers,
             raise_for_status=True,
         )

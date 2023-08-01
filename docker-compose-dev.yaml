@@ -10,19 +10,17 @@
 # - 5432 for PostgreSQL (the port can be changed in the .env 
 #   file for local needs)
 # - 8082 for Keycloak.
+# - 8083 for BadgerDoc web
 #
 ###################################################################
-
-version: '3'
-
 services:
  
   # Reproxy is used for serving all services throught one host
 
   reproxy:
-    image: ghcr.io/umputun/reproxy
+    image: ghcr.io/umputun/reproxy:v1.0.0@sha256:54d600320d248d5ac6d9038e33a90ed1cdef40579e2e9bc6926d2a76f7cd59bc
     container_name: badgerdoc-reproxy
-    command: reproxy --docker.enabled --docker.auto --logger.enabled --logger.stdout --docker.network=badgerdoc_badgerdoc --mgmt.enabled --docker.exclude=badgerdoc_reproxy --docker.exclude=badgerdoc-reproxy --docker.exclude=badgerdoc-postgresql --docker.exclude=badgerdoc-keycloak
+    command: reproxy --docker.enabled --docker.auto --logger.enabled --logger.stdout --docker.network=badgerdoc_badgerdoc --mgmt.enabled --docker.exclude=badgerdoc-reproxy --docker.exclude=badgerdoc-postgresql --docker.exclude=badgerdoc-keycloak --docker.exclude=badgerdoc-web
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
@@ -37,8 +35,8 @@ services:
     image: 'bitnami/minio:2023.3.13'
     container_name: badgerdoc-minio
     environment:
-        - MINIO_ROOT_USER=${S3_ACCESS_KEY}
-        - MINIO_ROOT_PASSWORD=${S3_SECRET_KEY}
+      - MINIO_ROOT_USER=${S3_ACCESS_KEY}
+      - MINIO_ROOT_PASSWORD=${S3_SECRET_KEY}
     networks:
       - badgerdoc
 
@@ -54,6 +52,8 @@ services:
     restart: always
     networks:
       - badgerdoc
+    volumes:
+      - badgerdoc-data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 10s
@@ -61,7 +61,7 @@ services:
       retries: 5
 
   badgerdoc-keycloak:
-    image: jboss/keycloak:15.1.1
+    image: bargerdoc_keycloak
     container_name: badgerdoc-keycloak
     ports:
       - "8082:8080"
@@ -74,6 +74,7 @@ services:
       DB_PASSWORD: ${POSTGRES_PASSWORD}
       KEYCLOAK_USER: ${KEYCLOAK_USER}
       KEYCLOAK_PASSWORD: ${KEYCLOAK_PASSWORD}
+      KEYCLOAK_LOGLEVEL: DEBUG
     depends_on:
       badgerdoc-postgresql:
         condition: service_healthy
@@ -83,7 +84,7 @@ services:
       
   # BadgerDoc microservices
 
-  annotation:
+  badgerdoc-annotation:
     image: badgerdoc_annotation
     container_name: annotation
     env_file:
@@ -96,7 +97,7 @@ services:
       badgerdoc-postgresql:
         condition: service_healthy
 
-  users:
+  badgerdoc-users:
     image: badgerdoc_users
     container_name: users
     env_file:
@@ -111,7 +112,7 @@ services:
       badgerdoc-keycloak:
         condition: service_started
 
-  convert:
+  badgerdoc-convert:
     image: badgerdoc_convert
     container_name: convert
     env_file:
@@ -126,6 +127,65 @@ services:
       badgerdoc-keycloak:
         condition: service_started
 
+  badgerdoc-processing:
+    image: badgerdoc_processing
+    container_name: processing
+    env_file:
+      - .env
+    environment:
+      - ROOT_PATH=/processing
+    networks:
+      - badgerdoc
+    depends_on:
+      badgerdoc-postgresql:
+        condition: service_healthy
+      badgerdoc-keycloak:
+        condition: service_started
+
+  badgerdoc-jobs:
+    image: badgerdoc_jobs
+    container_name: jobs
+    env_file:
+      - .env
+    environment:
+      - ROOT_PATH=/jobs
+    networks:
+      - badgerdoc
+    depends_on:
+      badgerdoc-postgresql:
+        condition: service_healthy
+      badgerdoc-keycloak:
+        condition: service_started
+
+  badgerdoc-assets:
+    image: badgerdoc_assets
+    container_name: assets
+    env_file:
+      - .env
+    environment:
+      - ROOT_PATH=/assets
+    networks:
+      - badgerdoc
+    depends_on:
+      badgerdoc-postgresql:
+        condition: service_healthy
+      badgerdoc-keycloak:
+        condition: service_started
+  
+  badgerdoc-web:
+    image: badgerdoc_web
+    container_name: web
+    networks:
+      - badgerdoc
+    ports:
+      - 8083:3000
+
+  # TBD: Gotenberg
+
 networks:
   badgerdoc:
     driver: bridge
+
+volumes:
+  badgerdoc-data: {}
+  minio-data: {}

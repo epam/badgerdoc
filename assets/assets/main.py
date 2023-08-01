@@ -3,7 +3,7 @@ from assets.config import settings
 from fastapi import Depends, FastAPI
 from tenant_dependency import get_tenant_info
 
-tenant = get_tenant_info(url=settings.keycloak_uri, algorithm="RS256")
+tenant = get_tenant_info(url=settings.keycloak_host, algorithm="RS256")
 
 
 app = FastAPI(

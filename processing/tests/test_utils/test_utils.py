@@ -48,7 +48,7 @@ def test_iterable_split(value, threshold, expected):
 def test_positive_get_files_data_from_separate_files(jw_token):
     responses.add(
         responses.POST,
-        f"{settings.host_assets}/files/search"
+        f"{settings.assets_service_host}/files/search"
         % {
             "pagination": {"page_num": 1, "page_size": 100},
             "filters": [{"field": "id", "operator": "in", "value": [1, 2]}],
@@ -162,7 +162,7 @@ def test_get_files_data_from_separate_files_100_elements(jw_token):
 
     responses.add(
         responses.POST,
-        f"{settings.host_assets}/files/search"
+        f"{settings.assets_service_host}/files/search"
         % {
             "pagination": {"page_num": 1, "page_size": 100},
             "filters": [
@@ -191,7 +191,7 @@ def test_get_files_data_from_separate_files_100_elements(jw_token):
 def test_get_files_data_from_separate_files_101_elements(jw_token):
     responses.add(
         responses.POST,
-        f"{settings.host_assets}/files/search"
+        f"{settings.assets_service_host}/files/search"
         % {
             "pagination": {"page_num": 1, "page_size": 100},
             "filters": [
@@ -233,7 +233,7 @@ def test_get_files_data_from_separate_files_101_elements(jw_token):
 
     responses.add(
         responses.POST,
-        f"{settings.host_assets}/files/search"
+        f"{settings.assets_service_host}/files/search"
         % {
             "pagination": {"page_num": 2, "page_size": 100},
             "filters": [
@@ -319,7 +319,7 @@ def test_get_files_data_from_separate_files_111_elements(jw_token):
 
     responses.add(
         responses.POST,
-        f"{settings.host_assets}/files/search"
+        f"{settings.assets_service_host}/files/search"
         % {
             "pagination": {"page_num": 1, "page_size": 100},
             "filters": [
@@ -361,7 +361,7 @@ def test_get_files_data_from_separate_files_111_elements(jw_token):
 
     responses.add(
         responses.POST,
-        f"{settings.host_assets}/files/search"
+        f"{settings.assets_service_host}/files/search"
         % {
             "pagination": {"page_num": 2, "page_size": 100},
             "filters": [
@@ -421,7 +421,7 @@ def test_get_files_data_from_separate_files_501_code(jw_token):
     }
     responses.add(
         responses.POST,
-        f"{settings.host_assets}/files/search" % request_body,
+        f"{settings.assets_service_host}/files/search" % request_body,
         json={},
         status=501,
     )
@@ -442,7 +442,7 @@ def test_execute_pipeline_negative(
 
     responses.add(
         responses.POST,
-        f"{settings.host_pipelines}/pipelines/2/execute",
+        f"http://{settings.pipelines_service_host}/pipelines/2/execute",
         json={},
         status=501,
     )

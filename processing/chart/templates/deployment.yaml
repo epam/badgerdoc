@@ -41,39 +41,42 @@ spec:
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
         env:
-        - name: DB_USERNAME
+        - name: POSTGRES_USER
           valueFrom:
             secretKeyRef:
               name: pipelines
-              key: DB_USERNAME
-        - name: DB_PASSWORD
+              key: POSTGRES_USER
+        - name: POSTGRES_PASSWORD
           valueFrom:
             secretKeyRef:
               name: pipelines
+              # TODO: rename to POSTGRES_PASSWORD
               key: DB_PASSWORD
-        - name: DB_NAME
+        - name: POSTGRES_DB
           value: "processing"
-        - name: DB_HOST
+        - name: POSTGRES_HOST
           value: "postgres-postgresql"
-        - name: DB_PORT
+        - name: POSTGRES_PORT
           value: "5432"
-        - name: SERVICE_NAME
+        - name: PROCESSING_SERVICE_HOST
           value: "processing"
-        - name: S3_CREDENTIALS_PROVIDER
+        - name: S3_PROVIDER
           value: "minio"
-        - name: MINIO_SECURE_CONNECTION
+        - name: S3_SECURE
           value: "false"
-        - name: MINIO_SERVER
+        - name: S3_ENDPOINT
           value: "minio:80"
-        - name: MINIO_ROOT_USER
+        - name: S3_ACCESS_KEY
           valueFrom:
             secretKeyRef:
               name: processing
+              # TODO: Rename secret to S3_ACCESS_KEY
               key: MINIO_ROOT_USER
-        - name: MINIO_ROOT_PASSWORD
+        - name: S3_SECRET_KEY
           valueFrom:
             secretKeyRef:
               name: processing
+              # TODO: Rename secret to S3_SECRET_KEY
               key: MINIO_ROOT_PASSWORD
         command: ["/bin/bash"]
         args: ["-c", "alembic upgrade head && uvicorn processing.main:app --host 0.0.0.0 --port 8080 --root-path /api/v1/processing"]
