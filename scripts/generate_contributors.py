@@ -15,7 +15,7 @@ contributors = response.json()
 # Generate the markdown-formatted list of contributors
 markdown_list = "## Contributors\n\n"
 for contributor in contributors:
-    markdown_list += f"- [{contributor['login']}](@{contributor['login']})\n"
+    markdown_list += f"- [{contributor['login']}](https://github.com/{contributor['login']})\n"
 
 # Print the markdown list
 print(markdown_list)
