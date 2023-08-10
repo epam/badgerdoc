@@ -197,10 +197,10 @@ def setup_test_db(use_temp_env_var):
         # Drop all tables except 'alembic'
         Base.metadata.drop_all(bind=engine)
 
-        # Drop 'alembic_version' table
+        # Drop 'alembic_revision_annotation' table
         with contextlib.closing(engine.connect()) as con:
             trans = con.begin()
-            con.execute("DROP TABLE IF EXISTS alembic_version ")
+            con.execute("DROP TABLE IF EXISTS alembic_revision_annotation ")
             trans.commit()
 
     # Ensure LTREE extensions is installed

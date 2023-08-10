@@ -1,4 +1,3 @@
-import os
 from collections import Counter
 from unittest.mock import Mock, patch
 
@@ -9,6 +8,7 @@ from sqlalchemy import asc
 from sqlalchemy.exc import SQLAlchemyError
 
 from annotation.annotations import row_to_dict
+from annotation.microservice_communication import jobs_communication
 from annotation.models import (
     Category,
     File,
@@ -36,7 +36,7 @@ from tests.override_app_dependency import (
     app,
 )
 
-JOBS_SEARCH_URL = os.environ.get("JOBS_SEARCH_URL")
+JOBS_SEARCH_URL = jobs_communication.JOBS_SEARCH_URL
 
 client = TestClient(app)
 

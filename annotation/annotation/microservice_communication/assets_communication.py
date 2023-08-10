@@ -14,8 +14,9 @@ from annotation.microservice_communication.search import (
 )
 
 load_dotenv(find_dotenv())
-ASSETS_FILES_URL = os.environ.get("ASSETS_FILES_URL")
-ASSETS_URL = os.environ.get("ASSETS_URL")
+ASSETS_SERVICE_HOST = os.environ.get("ASSETS_SERVICE_HOST", "")
+ASSETS_FILES_URL = f"http://{ASSETS_SERVICE_HOST}/files/search"
+ASSETS_URL = f"http://{ASSETS_SERVICE_HOST}/datasets"
 ASSETS_FILE_ID_FIELD = "id"
 ASSETS_FILE_NAME_FIELD = "original_name"
 
