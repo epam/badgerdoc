@@ -65,7 +65,7 @@ Important! This is not secure configuration, follow [KeyCloak best practices](ht
 
 2. Go to Realm Settings -> Keys and disable `RSA-OAEP` algorithm. It will help to avoid issue explainded here https://github.com/jpadilla/pyjwt/issues/722
 
-3. Add tenant attribute to `admin` user, go to Users -> select `admin` -> go to Attributes -> create attribut `tenants:local`, and save
+3. Add tenant attribute to `admin` user, go to Users -> select `admin` -> go to Attributes -> create attribute `tenants:local`, and save
 
 4. Go to Clients -> admin-cli -> Mappers -> Create and fill form with following values:
 

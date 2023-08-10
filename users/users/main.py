@@ -10,6 +10,7 @@ from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from tenant_dependency import TenantData, get_tenant_info
+from fastapi.middleware.cors import CORSMiddleware
 from urllib3.exceptions import MaxRetryError
 
 import users.config as conf
@@ -28,6 +29,18 @@ realm = conf.KEYCLOAK_REALM
 minio_client = s3.get_minio_client()
 
 KEYCLOAK_HOST = os.getenv("KEYCLOAK_HOST")
+WEB_CORS = os.getenv("WEB_CORS", [])
+
+
+if WEB_CORS:
+    origins = [origin for origin in WEB_CORS.split(",")]
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=origins,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
 
 tenant = get_tenant_info(
     KEYCLOAK_SYSTEM_USER_SECRET,

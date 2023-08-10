@@ -14,7 +14,8 @@ RUN : \
 COPY alembic alembic
 COPY jobs jobs
 
-CMD alembic upgrade head && uvicorn jobs.main:app --host 0.0.0.0 --port 8123
+CMD alembic upgrade head && uvicorn jobs.main:app --host 0.0.0.0 --port 8080
+EXPOSE 8080
 
 FROM build as development
 

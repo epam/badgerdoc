@@ -20,28 +20,17 @@ def get_version() -> str:
 # pylint: disable=E0213
 class Settings(BaseSettings):
     log_file: Path = Path("./log.log")
-    log_level: int = logging.INFO
+    log_level: str = "INFO"
     minio_log_file_bucket = "post"
     minio_log_file_path = "log.log"
 
-    local_run: bool = False
-
     app_name: str = "processing"
     app_version: str = Field(default_factory=get_version)
-    root_path: str = "/api/v1/processing"
 
-    minio_server: str = "minio:80"
-    minio_root_user: str = "minioadmin"
-    minio_root_password: str = "minioadmin"
-    minio_secure_connection: Optional[bool] = False
     s3_prefix: Optional[str]
-    s3_credentials_provider: Optional[str]
+    s3_provider: Optional[str]
     aws_profile_name: Optional[str]
 
-    keycloak_host: str = "http://bagerdoc-keycloack"
-    host_models: str = "http://models/deployed_models"
-    host_pipelines: str = "http://pipelines"
-    host_assets: str = "http://assets"
     external_postfix: str = ".badgerdoc.com"
     preprocessing_url: Optional[str]
 
@@ -54,12 +43,25 @@ class Settings(BaseSettings):
     delay_between_retry_attempts: int = 1  # in seconds
     request_timeout: int = 3 * 60 * 60
 
-    db_username: str
-    db_password: str
-    db_host: str
-    db_port: int
-    db_name: str
-    service_name: str
+    root_path: str
+
+    assets_service_host: str
+    models_service_host: str
+    keycloak_host: str
+    pipelines_service_host: str
+
+    s3_endpoint: str
+    s3_secret_key: str
+    s3_access_key: str
+    s3_secure: bool
+
+    postgres_user: str
+    postgres_password: str
+    postgres_host: str
+    postgres_port: int
+    postgres_db: str
+
+    processing_service_host: str
 
     class Config:
         env_file: str = find_dotenv(".env")
@@ -74,17 +76,17 @@ class Settings(BaseSettings):
     def database_url(self) -> str:
         return (
             f"postgresql+psycopg2://"
-            f"{self.db_username}:{self.db_password}"
-            f"@{self.db_host}:{self.db_port}/{self.db_name}"
+            f"{self.postgres_user}:{self.postgres_password}"
+            f"@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
         )
 
     @property
     def assets_url(self) -> str:
-        return "/".join((self.host_assets.rstrip("/"), "files"))
+        return "/".join((self.assets_service_host.rstrip("/"), "files"))
 
     def get_webhook(self, endpoint: str) -> str:
         return "/".join(
-            (f"http://{self.service_name}".rstrip("/"), endpoint.lstrip("/"))
+            (f"http://{self.processing_service_host}".rstrip("/"), endpoint.lstrip("/"))
         )
 
 

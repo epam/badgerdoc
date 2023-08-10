@@ -23,9 +23,6 @@ services:
     image: 'processing:v1.1'
     env_file:
       - .env
-    environment:
-      - DB_HOST=db
-      - KEYCLOAK_HOST=http://dev1.badgerdoc.com
     volumes:
       - "./:/volume/"  # for debugging
     ports:

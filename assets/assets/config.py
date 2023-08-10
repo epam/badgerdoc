@@ -28,20 +28,20 @@ class Config(BaseSettings):
     postgres_host: Optional[str]
     postgres_port: Optional[str]
     database_url: Optional[str]
-    s3_credentials_provider: Optional[str]
+    s3_provider: Optional[str]
     s3_endpoint: Optional[str]
     s3_access_key: Optional[str]
     s3_secret_key: Optional[str]
     s3_prefix: Optional[str]
-    minio_secure_connection: Optional[bool] = False
+    s3_secure: Optional[bool] = False
     preprocessing_url: Optional[str]
     sqlalchemy_pool_size: Optional[int] = 10
-    test_region: Optional[str]
+    aws_region: Optional[str]
     preprocessing_chunk_size: Optional[int]
     root_path: Optional[str] = ""
     log_file: Optional[bool] = False
-    keycloak_uri: Optional[str]
-    gotenberg: Optional[str]
+    keycloak_host: Optional[str]
+    gotenberg_host: Optional[str]
     gotenberg_libre_office_endpoint: Optional[str]
     gotenberg_chromium_endpoint: Optional[str]
     gotenberg_formats: List[str]

@@ -4,6 +4,7 @@ from logging.config import fileConfig
 
 from jobs.models import Base
 from jobs.utils import get_test_db_url
+from jobs.config import POSTGRESQL_JOBMANAGER_DATABASE_URI
 from sqlalchemy import engine_from_config, pool
 
 from alembic import context
@@ -11,6 +12,14 @@ from alembic import context
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
+if not os.getenv("USE_TEST_DB"):
+    config.set_main_option("sqlalchemy.url", 
+                           POSTGRESQL_JOBMANAGER_DATABASE_URI)
+else:
+    config.set_main_option(
+        "sqlalchemy.url", get_test_db_url(
+            POSTGRESQL_JOBMANAGER_DATABASE_URI)
+    )
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
@@ -27,15 +36,6 @@ target_metadata = Base.metadata
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
-
-main_database_url = os.environ.get("POSTGRESQL_JOBMANAGER_DATABASE_URI")
-if not os.getenv("USE_TEST_DB"):
-    config.set_main_option("sqlalchemy.url", main_database_url)
-else:
-    config.set_main_option(
-        "sqlalchemy.url", get_test_db_url(main_database_url)
-    )
-
 
 def run_migrations_offline():
     """Run migrations in 'offline' mode.
@@ -56,6 +56,7 @@ def run_migrations_offline():
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
         compare_type=True,
+        version_table="alembic_revision_jobs",
     )
 
     with context.begin_transaction():
@@ -77,7 +78,9 @@ def run_migrations_online():
 
     with connectable.connect() as connection:
         context.configure(
-            connection=connection, target_metadata=target_metadata
+            connection=connection, 
+            target_metadata=target_metadata,
+            version_table="alembic_revision_jobs",
         )
 
         with context.begin_transaction():

@@ -14,8 +14,8 @@ pytestmark = pytest.mark.integration
 
 load_dotenv("./.env")
 
-MINIO_ROOT_USER = os.getenv("MINIO_ROOT_USER")
-MINIO_ROOT_PASSWORD = os.getenv("MINIO_ROOT_PASSWORD")
+S3_ACCESS_KEY = os.getenv("S3_ACCESS_KEY")
+S3_SECRET_KEY = os.getenv("S3_SECRET_KEY")
 EXPORT_BUCKET = os.getenv("EXPORT_BUCKET")
 MODEL_NAME = os.getenv("MODEL_NAME")
 
@@ -67,8 +67,8 @@ def preprocessing_url(module_scoped_container_getter):
 def minio_client(minio_url):
     return Minio(
         minio_url,
-        access_key=MINIO_ROOT_USER,
-        secret_key=MINIO_ROOT_PASSWORD,
+        access_key=S3_ACCESS_KEY,
+        secret_key=S3_SECRET_KEY,
         secure=False,
     )
 

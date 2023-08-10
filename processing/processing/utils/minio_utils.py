@@ -14,23 +14,23 @@ class NotConfiguredException(Exception):
 def create_minio_config():
     minio_config = {}
 
-    minio_config.update({"secure": settings.minio_secure_connection})
+    minio_config.update({"secure": settings.s3_secure})
 
-    if settings.minio_server:
-        minio_config.update({"endpoint": settings.minio_server})
+    if settings.s3_endpoint:
+        minio_config.update({"endpoint": settings.s3_endpoint})
 
-    if settings.s3_credentials_provider == "minio":
+    if settings.s3_provider == "minio":
         minio_config.update(
             {
-                "access_key": settings.minio_root_user,
-                "secret_key": settings.minio_root_password,
+                "access_key": settings.s3_access_key,
+                "secret_key": settings.s3_secret_key,
             }
         )
-    elif settings.s3_credentials_provider == "aws_iam":
+    elif settings.s3_provider == "aws_iam":
         minio_config.update({"credentials": IamAwsProvider()})
-    elif settings.s3_credentials_provider == "aws_env":
+    elif settings.s3_provider == "aws_env":
         minio_config.update({"credentials": EnvAWSProvider()})
-    elif settings.s3_credentials_provider == "aws_config":
+    elif settings.s3_provider == "aws_config":
         # environmental variable AWS_PROFILE_NAME should be set
         minio_config.update(
             {
@@ -42,10 +42,10 @@ def create_minio_config():
     else:
         raise NotConfiguredException(
             "s3 connection is not properly configured - "
-            "s3_credentials_provider is not set"
+            "s3_provider is not set"
         )
     logger.info(
-        f"S3_Credentials provider - {settings.s3_credentials_provider}"
+        f"S3_Credentials provider - {settings.s3_provider}"
     )
 
     return minio_config
@@ -64,7 +64,7 @@ class MinioCommunicator:
         cls.client = Minio(**minio_config)
         logger.info(
             "MinIO client for %s was created successfully",
-            settings.minio_server,
+            settings.s3_endpoint,
         )
 
 

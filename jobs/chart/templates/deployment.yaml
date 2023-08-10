@@ -41,19 +41,8 @@ spec:
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
         env:
-        - name: POSTGRESQL_JOBMANAGER_DATABASE_URI
-          valueFrom:
-            secretKeyRef:
-              name: jobs
-              key: POSTGRESQL_JOBMANAGER_DATABASE_URI
-        - name: PIPELINES_URI
-          value: "pipelines"
-        - name: ASSETS_URI
+        - name: ASSETS_SERVICE_HOST
           value: "assets"
-        - name: ANNOTATION_MICROSERVICE_URI
-          value: "annotation"
-        - name: TAXONOMY_URI
-          value: "taxonomy"
         - name: USERS_HOST
           value: "users"
         - name: KEYCLOAK_HOST
