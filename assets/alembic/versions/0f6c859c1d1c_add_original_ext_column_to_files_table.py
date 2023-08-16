@@ -1,5 +1,5 @@
 # type: ignore
-"""add original_ext column to files table
+"""add original_ext column to assets_files table
 
 Revision ID: 0f6c859c1d1c
 Revises: fe5926249504
@@ -22,9 +22,9 @@ depends_on = None
 
 def upgrade():
     op.add_column(
-        "files", sa.Column("original_ext", sa.String(length=50), nullable=True)
+        "assets_files", sa.Column("original_ext", sa.String(length=50), nullable=True)
     )
 
 
 def downgrade():
-    op.drop_column("files", "original_ext")
+    op.drop_column("assets_files", "original_ext")

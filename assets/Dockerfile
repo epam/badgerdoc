@@ -22,7 +22,7 @@ RUN : \
     && apt-get install libmagic1 -y \
     && :
 
-# CMD alembic upgrade afa33cc83d57 && alembic upgrade fe5926249504 && alembic upgrade 0f6c859c1d1c && alembic upgrade head
+CMD alembic upgrade afa33cc83d57 && alembic upgrade fe5926249504 && alembic upgrade 0f6c859c1d1c && alembic upgrade head
 CMD uvicorn assets.main:app --host 0.0.0.0 --port 8080
 EXPOSE 8080
 
