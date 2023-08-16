@@ -46,7 +46,7 @@ class Association(Base):  # type: ignore
     )
     file_id = sa.Column(
         sa.Integer,
-        sa.ForeignKey("files.id", ondelete="CASCADE"),
+        sa.ForeignKey("assets_files.id", ondelete="CASCADE"),
         primary_key=True,
     )
     created = sa.Column(
@@ -104,7 +104,7 @@ class Datasets(Base):  # type: ignore
 
 class FileObject(Base):  # type: ignore
 
-    __tablename__ = "files"
+    __tablename__ = "assets_files"
 
     id = sa.Column(sa.Integer, autoincrement=True, primary_key=True)
     original_name = sa.Column(sa.String(150), nullable=False)
@@ -129,7 +129,7 @@ class FileObject(Base):  # type: ignore
         ),
     )
     datasets = relationship(
-        "Datasets", secondary="association", backref="files"
+        "Datasets", secondary="association", backref="assets_files"
     )
 
     __table_args__ = (sa.Index("ix_name", ts_vector, postgresql_using="gin"),)
