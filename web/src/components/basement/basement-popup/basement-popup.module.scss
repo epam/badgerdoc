@@ -10,13 +10,13 @@ $popupWidth: 45%;
   bottom: 0;
   background-color: $bg-color;
   opacity: 0.8;
-  z-index: 1;
+  z-index: 98;
 }
 
 .popup {
   padding: 33px 36px 22px 25px;
   position: fixed;
-  z-index: 2;
+  z-index: 99;
   top: 15%;
   left: 25%;
   right: 25%;
