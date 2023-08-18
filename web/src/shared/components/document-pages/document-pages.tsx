@@ -24,6 +24,8 @@ import ResizableSyncedContainer from './components/ResizableSyncedContainer';
 import { cx } from '@epam/uui';
 import { ValidationType } from 'api/typings';
 import { GridVariants } from 'shared/constants/task';
+import DocumentPDF from './components/document-pdf';
+import { PageLoadedCallback } from './types';
 
 export interface PageSize {
     width: number;
@@ -117,7 +119,7 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
         };
     }, [containerResizeObserver]);
 
-    const handlePageLoaded = (page: PDFPageProxy | HTMLImageElement) => {
+    const handlePageLoaded: PageLoadedCallback = (page) => {
         if (!originalPageSize) {
             if ('originalWidth' in page) {
                 setOriginalPageSize({ width: page.originalWidth, height: page.originalHeight });
@@ -279,40 +281,16 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                 ) : (
                     <div className={`${styles['pdf-parent']} pdf-parent`}>
                         {fileMetaInfo.extension === '.pdf' ? (
-                            <>
-                                <Document
-                                    file={getPdfDocumentAddress(fileMetaInfo.id)}
-                                    loading={
-                                        <div className="flex-cell">
-                                            <Spinner color="sky" />
-                                        </div>
-                                    }
-                                    options={{ httpHeaders: getAuthHeaders() }}
-                                    className={styles['document-wrapper']}
-                                >
-                                    {pageNumbers.map((pageNum) => {
-                                        return (
-                                            <Fragment key={pageNum}>
-                                                <DocumentSinglePage
-                                                    scale={fullScale}
-                                                    pageSize={apiPageSize}
-                                                    pageNum={pageNum}
-                                                    handlePageLoaded={handlePageLoaded}
-                                                    containerRef={containerRef}
-                                                    editable={editable}
-                                                    onAnnotationCopyPress={onAnnotationCopyPress}
-                                                    onAnnotationCutPress={onAnnotationCutPress}
-                                                    onAnnotationPastePress={onAnnotationPastePress}
-                                                    onAnnotationUndoPress={onAnnotationUndoPress}
-                                                    onAnnotationRedoPress={onAnnotationRedoPress}
-                                                    onEmptyAreaClick={onEmptyAreaClick}
-                                                    isScrolledToCurrent={pageNum === goToPage}
-                                                />
-                                            </Fragment>
-                                        );
-                                    })}
-                                </Document>
-                            </>
+                            <DocumentPDF
+                                fileMetaInfo={fileMetaInfo}
+                                pageNumbers={pageNumbers}
+                                fullScale={fullScale}
+                                apiPageSize={apiPageSize}
+                                handlePageLoaded={handlePageLoaded}
+                                containerRef={containerRef}
+                                editable={editable}
+                                goToPage={goToPage}
+                            />
                         ) : null}
                         {fileMetaInfo.extension === '.jpg' ? (
                             <>
