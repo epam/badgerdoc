@@ -1,5 +1,5 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import { Router } from 'react-router-dom';
 import { createBrowserHistory } from 'history';
 import { Snackbar, Modals } from '@epam/uui-components';
@@ -45,4 +45,4 @@ const RoutedApp = () => (
     </Router>
 );
 
-ReactDOM.render(<RoutedApp />, document.getElementById('root'));
+createRoot(document.getElementById('root')!).render(<RoutedApp />);
