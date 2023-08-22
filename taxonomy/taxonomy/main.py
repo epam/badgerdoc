@@ -3,6 +3,7 @@ import pathlib
 
 from dotenv import find_dotenv, load_dotenv
 from fastapi import Depends, FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.exc import DBAPIError, SQLAlchemyError
 
 from taxonomy.errors import (
@@ -49,6 +50,14 @@ app = FastAPI(
     root_path=ROOT_PATH,
     dependencies=[Depends(TOKEN)],
 )
+
+if WEB_CORS := os.getenv("WEB_CORS", ""):
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=WEB_CORS.split(","),
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 app.include_router(taxon_resources.router)
 app.include_router(taxonomy_resources.router)

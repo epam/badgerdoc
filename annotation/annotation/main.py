@@ -4,6 +4,7 @@ import pathlib
 from botocore.exceptions import BotoCoreError, ClientError
 from dotenv import find_dotenv, load_dotenv
 from fastapi import Depends, FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.exc import DBAPIError, SQLAlchemyError
 from starlette.requests import Request
 
@@ -68,6 +69,14 @@ app = FastAPI(
 )
 
 logger = app_logger.Logger
+
+if WEB_CORS := os.getenv("WEB_CORS", ""):
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=WEB_CORS.split(","),
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 
 async def catch_exceptions_middleware(request: Request, call_next):

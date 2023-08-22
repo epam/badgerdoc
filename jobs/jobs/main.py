@@ -1,7 +1,9 @@
+import os
 import asyncio
 from typing import Any, Dict, List, Optional, Union
 
 from fastapi import Depends, FastAPI, Header, HTTPException, status
+from fastapi.middleware.cors import CORSMiddleware
 from filter_lib import Page, form_query, map_request_to_filter, paginate
 from sqlalchemy.orm import Session
 from sqlalchemy_filters.exceptions import BadFilterFormat
@@ -22,6 +24,14 @@ app = FastAPI(
     version=API_current_version,
     dependencies=[Depends(tenant)],
 )
+
+if WEB_CORS := os.getenv("WEB_CORS", ""):
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=WEB_CORS.split(","),
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 NO_JOB = "No such job"
 
