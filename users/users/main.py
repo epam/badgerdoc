@@ -29,14 +29,11 @@ realm = conf.KEYCLOAK_REALM
 minio_client = s3.get_minio_client()
 
 KEYCLOAK_HOST = os.getenv("KEYCLOAK_HOST")
-WEB_CORS = os.getenv("WEB_CORS", [])
 
-
-if WEB_CORS:
-    origins = [origin for origin in WEB_CORS.split(",")]
+if WEB_CORS := os.getenv("WEB_CORS", ""):
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=origins,
+        allow_origins=WEB_CORS.split(","),
         allow_methods=["*"],
         allow_headers=["*"],
     )
