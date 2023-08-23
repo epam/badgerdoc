@@ -10,7 +10,7 @@ build_keycloak:
 	mkdir -p build_dir
 	git clone https://github.com/keycloak/keycloak-containers.git build_dir/keycloak
 	cd build_dir/keycloak; git checkout 15.1.1
-	docker build build_dir/keycloak/server -t bargerdoc_keycloak
+	docker build build_dir/keycloak/server -t badgerdoc_keycloak
 
 build_annotation:
 	docker build --target build annotation/ -t badgerdoc_annotation

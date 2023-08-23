@@ -16,13 +16,10 @@ app = FastAPI(
     dependencies=[Depends(tenant)],
 )
 
-WEB_CORS = os.getenv("WEB_CORS", [])
-
-if WEB_CORS:
-    origins = [origin for origin in WEB_CORS.split(",")]
+if WEB_CORS := os.getenv("WEB_CORS", ""):
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=origins,
+        allow_origins=WEB_CORS.split(","),
         allow_methods=["*"],
         allow_headers=["*"],
     )

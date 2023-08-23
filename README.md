@@ -98,11 +98,27 @@ Now `Client ID` and `Secret` must be set to `.env` as `KEYCLOAK_SYSTEM_USER_CLIE
 
 8. Go to Clients -> Find `badgerdoc-internal` -> Service Account Roles -> Client Roles -> master-realm -> Find `view-users` and `view-identity-providers` in Available Roles and add to Assigned Roles
 
+9. Go to Roles -> add roles: presenter, manager, role-annotator, annotator, engineer. Open admin role, go to Composite Roles -> Realm Roles and add all these roles 
+
+10. Go to Clients -> badgerdoc-internal and set "Valid Redirect URIs" = * and "Web Origins" = *
+
 Time to reload `docker-compose`, because `.env` was changed: 
 
 ```
 docker-compose -f docker-compose-dev.yaml up -d
 ```
+
+## Set up Airflow as a pipeline service in local mode
+
+Airflow runs using its own resources (PostgreSQL, Redis, Flower) without sharing them with BadgerDoc.
+
+1. After setting up BadgerDoc in local mode, run:
+```
+docker-compose -f airflow/docker-compose-dev.yaml up -d
+```
+This docker-compose file was downloaded from the Apache Airflow website:
+https://airflow.apache.org/docs/apache-airflow/2.7.0/docker-compose.yaml with only a few modifications added.
+
 
 ## How to install required dependencies locally
 

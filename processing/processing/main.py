@@ -1,3 +1,4 @@
+import os
 from typing import Dict, List, Optional, Set
 
 from fastapi import (
@@ -11,6 +12,7 @@ from fastapi import (
     Response,
     status,
 )
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from tenant_dependency import TenantData, get_tenant_info
 
@@ -32,6 +34,14 @@ app = FastAPI(
 )
 
 tenant = get_tenant_info(url=settings.keycloak_host, algorithm="RS256")
+
+if WEB_CORS := os.getenv("WEB_CORS", ""):
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=WEB_CORS.split(","),
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 
 @app.post("/", response_model=schema.AnnotationData)
