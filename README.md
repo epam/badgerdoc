@@ -108,6 +108,18 @@ Time to reload `docker-compose`, because `.env` was changed:
 docker-compose -f docker-compose-dev.yaml up -d
 ```
 
+## Set up Airflow as a pipeline service in local mode
+
+Airflow runs using its own resources (PostgreSQL, Redis, Flower) without sharing them with BadgerDoc.
+
+1. After setting up BadgerDoc in local mode, run:
+```
+docker-compose -f airflow/docker-compose-dev.yaml up -d
+```
+This docker-compose file was downloaded from the Apache Airflow website:
+https://airflow.apache.org/docs/apache-airflow/2.7.0/docker-compose.yaml with only a few modifications added.
+
+
 ## How to install required dependencies locally
 
 1. Install all required dependencies for a microservice using a packaging tool like Pipenv/Poetry depending on the microservice you are about to set up (we will use Pipenv and "assets" service for this example):
