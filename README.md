@@ -102,6 +102,8 @@ Now `Client ID` and `Secret` must be set to `.env` as `KEYCLOAK_SYSTEM_USER_CLIE
 
 10. Go to Clients -> badgerdoc-internal and set "Valid Redirect URIs" = * and "Web Origins" = *
 
+11. Go to Realm Settings -> Tokens -> Find `Access Token Lifespan` and set 1 `Days`  
+
 Time to reload `docker-compose`, because `.env` was changed: 
 
 ```
