@@ -47,12 +47,33 @@ class Config(BaseSettings):
     gotenberg_formats: List[str]
     image_formats: List[str]
     aws_profile_name: Optional[str]
-    service_convert_txt: Optional[str]
-    service_convert_pdf: Optional[str]
+    convert_service_scheme: Optional[str]
+    convert_service_host: Optional[str]
+    convert_service_port: Optional[int]
+    convert_service_pdf_endpoint: Optional[str]
+    convert_service_txt_endpoint: Optional[str]
 
     class Config:
         env_file: str = find_dotenv(".env")
         env_file_encoding = "utf-8"
+
+    @property
+    def service_convert_pdf(self):
+        if self.convert_service_host and self.convert_service_scheme:
+            return f'{self.convert_service_scheme}://{self.convert_service_host}' \
+                   f'{":" + str(self.convert_service_port) if self.convert_service_port is not None else ""}' \
+                   f'{self.convert_service_pdf_endpoint}'
+
+        return None
+
+    @property
+    def service_convert_txt(self):
+        if self.convert_service_host and self.convert_service_scheme:
+            return f'{self.convert_service_scheme}://{self.convert_service_host}' \
+                   f'{":" + str(self.convert_service_port) if self.convert_service_port is not None else ""}' \
+                   f'{self.convert_service_txt_endpoint}'
+
+        return None
 
 
 settings = Config()

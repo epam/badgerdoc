@@ -1,7 +1,9 @@
+import os
 import asyncio
 from typing import Optional
 
 import fastapi
+from fastapi.middleware.cors import CORSMiddleware
 from botocore.exceptions import BotoCoreError
 from elasticsearch.exceptions import ElasticsearchException
 from tenant_dependency import TenantData, get_tenant_info
@@ -30,6 +32,15 @@ app = fastapi.FastAPI(
     root_path=settings.root_path,
     dependencies=[fastapi.Depends(TOKEN)],
 )
+
+
+if WEB_CORS := os.getenv("WEB_CORS", ""):
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=WEB_CORS.split(","),
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 
 @app.on_event("startup")
