@@ -1,20 +1,21 @@
-import React, { Fragment } from 'react';
+import React, { CSSProperties, FC, useEffect, useMemo, useRef } from 'react';
 import { useTaskAnnotatorContext } from 'connectors/task-annotator-connector/task-annotator-context';
 import { FileMetaInfo } from 'pages/document/document-page-sidebar-content/document-page-sidebar-content';
 import { Document } from 'react-pdf';
+import { FixedSizeList } from 'react-window';
+import AutoSizer from 'react-virtualized-auto-sizer';
 import { getAuthHeaders } from 'shared/helpers/auth-tools';
 import { getPdfDocumentAddress } from 'shared/helpers/get-pdf-document-address';
 import DocumentSinglePage from '../../document-single-page';
 import { Spinner } from '@epam/loveship';
-import styles from '../../document-pages.module.scss';
-import { PageSize } from '../../document-pages';
-import { PageLoadedCallback } from '../../types';
+import { ANNOTATION_LABEL_ID_PREFIX } from 'shared/constants/annotations';
+import { PageSize, DocumentLoadedCallback } from '../../types';
 
 type DocumentPDFProps = {
     pageNumbers: number[];
-    handlePageLoaded: PageLoadedCallback;
+    handleDocumentLoaded: DocumentLoadedCallback;
     fileMetaInfo: FileMetaInfo;
-    apiPageSize?: PageSize;
+    pageSize?: PageSize;
     goToPage?: number;
     editable: boolean;
     fullScale: number;
@@ -23,16 +24,28 @@ type DocumentPDFProps = {
     };
 };
 
-const DocumentPDF: React.FC<DocumentPDFProps> = ({
-    fileMetaInfo,
-    pageNumbers,
-    fullScale,
-    apiPageSize,
-    handlePageLoaded,
-    containerRef,
-    editable,
-    goToPage
+type ListItemData = Pick<
+    DocumentPDFProps,
+    'pageNumbers' | 'fullScale' | 'pageSize' | 'containerRef' | 'editable'
+>;
+
+type PDFPageRendererProps = {
+    data: ListItemData;
+    index: number;
+    style: CSSProperties;
+};
+
+// "willChange: transform" set by react-window is removed
+// to not create a new stacking context which may affect
+// context menu we show via "position: fixed"
+const fixedSizeListStyle = { willChange: 'auto' };
+
+const PDFPageRenderer: FC<PDFPageRendererProps> = ({
+    data: { pageNumbers, fullScale, pageSize, containerRef, editable },
+    index,
+    style
 }) => {
+    const pageNum = pageNumbers[index];
     const {
         onEmptyAreaClick,
         onAnnotationCopyPress,
@@ -43,6 +56,88 @@ const DocumentPDF: React.FC<DocumentPDFProps> = ({
     } = useTaskAnnotatorContext();
 
     return (
+        <div style={style}>
+            <DocumentSinglePage
+                scale={fullScale}
+                pageSize={pageSize}
+                pageNum={pageNum}
+                containerRef={containerRef}
+                editable={editable}
+                onAnnotationCopyPress={onAnnotationCopyPress}
+                onAnnotationCutPress={onAnnotationCutPress}
+                onAnnotationPastePress={onAnnotationPastePress}
+                onAnnotationUndoPress={onAnnotationUndoPress}
+                onAnnotationRedoPress={onAnnotationRedoPress}
+                onEmptyAreaClick={onEmptyAreaClick}
+            />
+        </div>
+    );
+};
+
+const DocumentPDF: React.FC<DocumentPDFProps> = ({
+    fileMetaInfo,
+    pageNumbers,
+    fullScale,
+    pageSize,
+    handleDocumentLoaded,
+    containerRef,
+    editable,
+    goToPage
+}) => {
+    const { selectedAnnotation } = useTaskAnnotatorContext();
+    const pdfListData = useMemo<ListItemData>(
+        () => ({
+            pageNumbers,
+            fullScale,
+            pageSize,
+            containerRef,
+            editable
+        }),
+        [pageNumbers, fullScale, pageSize, containerRef, editable]
+    );
+    const apiToUiPageNumbersMap = useMemo<Map<number, number>>(() => {
+        const map = pageNumbers.map((apiPageNum, uiPageNum) => [apiPageNum, uiPageNum] as const);
+        return new Map(map);
+    }, [pageNumbers]);
+    const pdfPagesListRef = useRef<FixedSizeList>(null);
+    const itemSize = Number(pageSize ? pageSize.height : 0) * fullScale;
+
+    /**
+     * goToPage - the ordering number of page which is currently shown on UI (starts from 1),
+     * correlate with "pageNumbers (indexes)"
+     * pageNumbers (values) - number of page comes from BE (can be started from any number
+     * and contains numbers only for processed pages)
+     * pageNumbers (indexes) - index of pageNumbers is a mapping to page numbers which comes from BE
+     *
+     * Example: [0: 22, 1: 23, 2: 25, 3: 28] (index - number of rendered page (actually, index + 1),
+     * value - number of the page from BE)
+     */
+
+    // in case of page switching
+    useEffect(() => {
+        pdfPagesListRef.current?.scrollToItem(goToPage! - 1, 'start');
+    }, [goToPage]);
+
+    // in case of scrolling to some annotation
+    useEffect(() => {
+        if (!selectedAnnotation) {
+            return;
+        }
+
+        const pageNum = apiToUiPageNumbersMap.get(selectedAnnotation.pageNum!)!;
+        pdfPagesListRef.current?.scrollToItem(pageNum - 1);
+
+        // scroll to the annotation (in X and Y dimension) in async mode since
+        // need to wait until scrollToItem() method loads the page -> DOM will
+        // be ready with needed annotation
+        requestAnimationFrame(() => {
+            document
+                .querySelector(`#${ANNOTATION_LABEL_ID_PREFIX}${selectedAnnotation.id}`)
+                ?.scrollIntoView();
+        });
+    }, [selectedAnnotation]);
+
+    return (
         <>
             <Document
                 file={getPdfDocumentAddress(fileMetaInfo.id)}
@@ -51,30 +146,25 @@ const DocumentPDF: React.FC<DocumentPDFProps> = ({
                         <Spinner color="sky" />
                     </div>
                 }
+                onLoadSuccess={handleDocumentLoaded}
                 options={{ httpHeaders: getAuthHeaders() }}
-                className={styles['document-wrapper']}
             >
-                {pageNumbers.map((pageNum) => {
-                    return (
-                        <Fragment key={pageNum}>
-                            <DocumentSinglePage
-                                scale={fullScale}
-                                pageSize={apiPageSize}
-                                pageNum={pageNum}
-                                handlePageLoaded={handlePageLoaded}
-                                containerRef={containerRef}
-                                editable={editable}
-                                onAnnotationCopyPress={onAnnotationCopyPress}
-                                onAnnotationCutPress={onAnnotationCutPress}
-                                onAnnotationPastePress={onAnnotationPastePress}
-                                onAnnotationUndoPress={onAnnotationUndoPress}
-                                onAnnotationRedoPress={onAnnotationRedoPress}
-                                onEmptyAreaClick={onEmptyAreaClick}
-                                isScrolledToCurrent={pageNum === goToPage}
-                            />
-                        </Fragment>
-                    );
-                })}
+                <AutoSizer>
+                    {({ width, height }: PageSize) => (
+                        <FixedSizeList
+                            ref={pdfPagesListRef}
+                            width={width}
+                            height={height}
+                            itemCount={pageNumbers.length}
+                            itemData={pdfListData}
+                            overscanCount={5}
+                            style={fixedSizeListStyle}
+                            itemSize={itemSize}
+                        >
+                            {PDFPageRenderer}
+                        </FixedSizeList>
+                    )}
+                </AutoSizer>
             </Document>
         </>
     );

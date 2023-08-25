@@ -1,14 +1,5 @@
-import React, {
-    Fragment,
-    ReactNode,
-    useEffect,
-    useState,
-    useRef,
-    useCallback,
-    useMemo
-} from 'react';
+import React, { Fragment, useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useTaskAnnotatorContext } from 'connectors/task-annotator-connector/task-annotator-context';
-import { FileMetaInfo } from 'pages/document/document-page-sidebar-content/document-page-sidebar-content';
 import { Document, Page, pdfjs, PDFPageProxy } from 'react-pdf';
 import { Annotation } from 'shared';
 import { getAuthHeaders } from 'shared/helpers/auth-tools';
@@ -25,24 +16,9 @@ import { cx } from '@epam/uui';
 import { ValidationType } from 'api/typings';
 import { GridVariants } from 'shared/constants/task';
 import DocumentPDF from './components/document-pdf';
-import { PageLoadedCallback } from './types';
+import { PageLoadedCallback, DocumentPagesProps, PageSize, DocumentLoadedCallback } from './types';
 
-export interface PageSize {
-    width: number;
-    height: number;
-}
-
-type DocumentPagesProps = {
-    renderLinks?: (params: RenderLinksParams) => ReactNode;
-    pageNumbers?: number[];
-    fileMetaInfo: FileMetaInfo;
-    apiPageSize?: PageSize;
-    additionalScale: number;
-    goToPage?: number;
-    setPageSize?: (nS: any) => void;
-    editable: boolean;
-    gridVariant: GridVariants;
-};
+export type { PageSize } from './types';
 
 export const getScale = (containerWidth: number, contentWidth: number) => {
     // need to limit fraction part to get rid of loss of precision when return to initial zoom
@@ -128,6 +104,13 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
             }
         }
     };
+
+    const handleDocumentLoaded = useCallback<DocumentLoadedCallback>(async (pdf) => {
+        const page = await pdf.getPage(1);
+        const { width, height } = page.getViewport({ scale: 1 });
+
+        setOriginalPageSize({ width, height });
+    }, []);
 
     const fullScale = scale + additionalScale;
     const annotatorIds = [
@@ -279,21 +262,21 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                         </SyncedContainer>
                     </div>
                 ) : (
-                    <div className={`${styles['pdf-parent']} pdf-parent`}>
+                    <>
                         {fileMetaInfo.extension === '.pdf' ? (
                             <DocumentPDF
                                 fileMetaInfo={fileMetaInfo}
                                 pageNumbers={pageNumbers}
                                 fullScale={fullScale}
-                                apiPageSize={apiPageSize}
-                                handlePageLoaded={handlePageLoaded}
+                                pageSize={apiPageSize}
+                                handleDocumentLoaded={handleDocumentLoaded}
                                 containerRef={containerRef}
                                 editable={editable}
                                 goToPage={goToPage}
                             />
                         ) : null}
                         {fileMetaInfo.extension === '.jpg' ? (
-                            <>
+                            <div className={styles['images-container']}>
                                 {pageNumbers.map((pageNum) => {
                                     return (
                                         <Fragment key={pageNum}>
@@ -317,9 +300,9 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                                         </Fragment>
                                     );
                                 })}
-                            </>
+                            </div>
                         ) : null}
-                    </div>
+                    </>
                 )}
             </div>
         </div>
@@ -333,12 +316,6 @@ export type RenderPageParams = {
     pageSize?: PageSize;
     isImage?: boolean;
     imageId?: number;
-};
-
-type RenderLinksParams = {
-    updLinks: boolean;
-    scale: number;
-    annotations?: Record<number, Annotation[]>;
 };
 
 export const defaultRenderPage = ({
@@ -358,6 +335,7 @@ export const defaultRenderPage = ({
             pageNumber={pageNum}
             onLoadSuccess={handlePageLoaded}
             renderAnnotationLayer={false}
+            renderTextLayer={false}
             width={pageSize?.width}
             height={pageSize?.height}
         />
