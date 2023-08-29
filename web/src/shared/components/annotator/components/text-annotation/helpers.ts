@@ -32,17 +32,6 @@ export type TextAnnotationProps = {
 
 type LabelPosition = 'start' | 'end' | 'middle' | 'both' | 'no_label';
 
-export type TextAnnotationLabelProps = {
-    color: string;
-    labelPosition: LabelPosition;
-    label?: string;
-    onCloseIconClick?: React.MouseEventHandler<HTMLDivElement>;
-    onContextMenu?: React.MouseEventHandler<HTMLDivElement>;
-    isEditable?: boolean;
-    isSelected?: boolean;
-    isHovered?: boolean;
-};
-
 type TextAnnBoundParams = {
     /**
      * Where is the label positioned - on the left, on the right, in the middle, both sides or nowhere
