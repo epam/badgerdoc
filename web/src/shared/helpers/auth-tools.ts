@@ -21,11 +21,12 @@ export const authCallback = (authResult: AuthResultRaw) => {
     const jwt = parseJwt(authResult.access_token);
     const result: AuthResult = jwt
         ? {
-              jwt: authResult.access_token,
+              accessToken: authResult.access_token,
+              refreshToken: authResult.refresh_token,
               tenants: jwt.tenants || [],
               expiresIn: authResult.expires_in
           }
-        : { jwt: null, tenants: [], expiresIn: 0 };
+        : { accessToken: null, refreshToken: null, tenants: [], expiresIn: 0 };
     return result;
 };
 
@@ -62,14 +63,26 @@ export const getCurrentTenant = (): string => localStorage.getItem(AUTH_CURRENT_
 
 export const refetchToken = async () => {
     const refetch = useBadgerFetch<AuthResultRaw>({
-        url: `${namespace}/refresh`,
+        url: `${namespace}/refresh_token`,
         method: 'post',
         headers: {
             accept: 'application/json'
         },
         withCredentials: false
     });
-    const result = await refetch(new URLSearchParams({ grant_type: 'password' }).toString());
+
+    const client_id = process.env.REACT_APP_AUTH_CLIENT_ID as string;
+    const data: StoredAuthResult = getStoredAuthDetails();
+    const refresh_token = data.authResult?.refreshToken || '';
+
+    const result = await refetch(
+        JSON.stringify({
+            grant_type: 'refresh_token',
+            client_id,
+            refresh_token
+        })
+    );
+
     if (result.access_token) {
         setAuthDetails(authCallback(result));
         return true;
@@ -84,7 +97,7 @@ export const getAuthHeaders = () => {
 
     return {
         ['X-Current-Tenant']: tenant,
-        Authorization: 'Bearer ' + details?.jwt
+        Authorization: 'Bearer ' + details?.accessToken
     };
 };
 

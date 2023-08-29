@@ -34,6 +34,7 @@ export const LoginConnector = ({ onSuccess = noop, onError = noop }: LoginConnec
             const searchParams = new URLSearchParams(location.hash);
             const authRaw: AuthResultRaw = {
                 access_token: searchParams.get('access_token') || '',
+                refresh_token: searchParams.get('refresh_token') || '',
                 expires_in: parseInt(searchParams.get('expires_in') || '0')
             };
             mutateSSO(authRaw);

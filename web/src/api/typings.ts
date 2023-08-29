@@ -11,7 +11,8 @@ export type Credentials = {
 };
 
 export type AuthResult = {
-    jwt: string | null;
+    accessToken: string | null;
+    refreshToken: string | null;
     tenants: string[];
     expiresIn: number;
 };
@@ -24,6 +25,7 @@ export type StoredAuthResult = {
 
 export type AuthResultRaw = {
     access_token: string;
+    refresh_token: string;
     expires_in: number;
 };
 
