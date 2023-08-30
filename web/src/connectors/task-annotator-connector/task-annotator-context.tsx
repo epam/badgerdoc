@@ -458,6 +458,11 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
                 anntn?.labels?.splice(labelIdxToDelete, 1);
             }
         }
+
+        if (selectedAnnotation?.id === annotationId) {
+            setSelectedAnnotation(undefined);
+        }
+
         setAllAnnotations((prevState) => {
             for (let k in prevState) {
                 prevState[k].map((annList) =>

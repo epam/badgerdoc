@@ -10,6 +10,7 @@ import DocumentSinglePage from '../../document-single-page';
 import { Spinner } from '@epam/loveship';
 import { ANNOTATION_LABEL_ID_PREFIX } from 'shared/constants/annotations';
 import { PageSize, DocumentLoadedCallback } from '../../types';
+import { Annotation } from 'shared/components/annotator';
 
 type DocumentPDFProps = {
     pageNumbers: number[];
@@ -74,6 +75,27 @@ const PDFPageRenderer: FC<PDFPageRendererProps> = ({
     );
 };
 
+const isPointInsideRect = (point: { x: number; y: number }, rect: DOMRect): boolean => {
+    return (
+        point.x >= rect.left &&
+        point.x <= rect.right &&
+        point.y >= rect.top &&
+        point.y <= rect.bottom
+    );
+};
+
+const isRectIsFullyInAnotherRect = (rectIn: DOMRect, rectOut: DOMRect): boolean => {
+    return (
+        isPointInsideRect({ x: rectIn.left, y: rectIn.top }, rectOut) &&
+        isPointInsideRect({ x: rectIn.right, y: rectIn.top }, rectOut) &&
+        isPointInsideRect({ x: rectIn.right, y: rectIn.bottom }, rectOut) &&
+        isPointInsideRect({ x: rectIn.left, y: rectIn.bottom }, rectOut)
+    );
+};
+
+const getAnnotationLabelElement = ({ id }: { id: Annotation['id'] }): HTMLDivElement | null =>
+    document.querySelector(`#${ANNOTATION_LABEL_ID_PREFIX}${id}`);
+
 const DocumentPDF: React.FC<DocumentPDFProps> = ({
     fileMetaInfo,
     pageNumbers,
@@ -100,6 +122,7 @@ const DocumentPDF: React.FC<DocumentPDFProps> = ({
         return new Map(map);
     }, [pageNumbers]);
     const pdfPagesListRef = useRef<FixedSizeList>(null);
+    const listViewContainerRef = useRef<HTMLDivElement>(null);
     const itemSize = Number(pageSize ? pageSize.height : 0) * fullScale;
 
     /**
@@ -120,21 +143,32 @@ const DocumentPDF: React.FC<DocumentPDFProps> = ({
 
     // in case of scrolling to some annotation
     useEffect(() => {
-        if (!selectedAnnotation) {
+        if (!selectedAnnotation || !pdfPagesListRef.current || !listViewContainerRef.current) {
             return;
         }
 
-        const pageNum = apiToUiPageNumbersMap.get(selectedAnnotation.pageNum!)!;
-        pdfPagesListRef.current?.scrollToItem(pageNum - 1);
+        const label = getAnnotationLabelElement(selectedAnnotation);
 
-        // scroll to the annotation (in X and Y dimension) in async mode since
-        // need to wait until scrollToItem() method loads the page -> DOM will
-        // be ready with needed annotation
-        requestAnimationFrame(() => {
-            document
-                .querySelector(`#${ANNOTATION_LABEL_ID_PREFIX}${selectedAnnotation.id}`)
-                ?.scrollIntoView();
-        });
+        if (label) {
+            const isLabelVisible = isRectIsFullyInAnotherRect(
+                label.getBoundingClientRect(),
+                listViewContainerRef.current.getBoundingClientRect()
+            );
+
+            if (!isLabelVisible) {
+                label.scrollIntoView();
+            }
+        } else {
+            const pageNum = apiToUiPageNumbersMap.get(selectedAnnotation.pageNum!)!;
+            pdfPagesListRef.current.scrollToItem(pageNum - 1);
+
+            // scroll to the annotation (in X and Y dimension) in async mode since
+            // need to wait until scrollToItem() method loads the page -> DOM will
+            // be ready with needed annotation
+            requestAnimationFrame(() => {
+                getAnnotationLabelElement(selectedAnnotation)?.scrollIntoView();
+            });
+        }
     }, [selectedAnnotation]);
 
     return (
@@ -152,6 +186,7 @@ const DocumentPDF: React.FC<DocumentPDFProps> = ({
                 <AutoSizer>
                     {({ width, height }: PageSize) => (
                         <FixedSizeList
+                            outerRef={listViewContainerRef}
                             ref={pdfPagesListRef}
                             width={width}
                             height={height}
