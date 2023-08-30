@@ -78,6 +78,8 @@ x-airflow-common:
     - ${AIRFLOW_PROJ_DIR:-.}/config:/opt/airflow/config
     - ${AIRFLOW_PROJ_DIR:-.}/plugins:/opt/airflow/plugins
   user: "${AIRFLOW_UID:-50000}:0"
+  networks:
+    - badgerdoc
   depends_on:
     &airflow-common-depends-on
     redis:
@@ -100,6 +102,8 @@ services:
       retries: 5
       start_period: 5s
     restart: always
+    networks:
+      - badgerdoc
 
   redis:
     image: redis:latest
@@ -112,6 +116,8 @@ services:
       retries: 50
       start_period: 30s
     restart: always
+    networks:
+      - badgerdoc
 
   airflow-webserver:
     <<: *airflow-common
@@ -295,6 +301,12 @@ services:
       <<: *airflow-common-depends-on
       airflow-init:
         condition: service_completed_successfully
+
+networks:
+  badgerdoc:
+    name: badgerdoc_badgerdoc
+    external: true
+
 
 volumes:
   postgres-db-volume:
