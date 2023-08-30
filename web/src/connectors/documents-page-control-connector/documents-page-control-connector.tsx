@@ -85,7 +85,7 @@ export const DocumentsPageControlConnector = ({
     }, []);
 
     return (
-        <div className={styles['control-container']}>
+        <>
             <FlexRow alignItems="center" cx={styles['header-container']}>
                 <BreadcrumbNavigation breadcrumbs={breadcrumbs} />
                 <FlexSpacer />
@@ -165,6 +165,6 @@ export const DocumentsPageControlConnector = ({
                     />
                 </FlexRow>
             </FlexRow>
-        </div>
+        </>
     );
 };
