@@ -332,6 +332,7 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
     const handleFileDeleteClick = async () => {
         try {
             await deleteFilesMutation.mutateAsync(selectedFiles);
+            setSelectedFiles([]);
         } catch (err) {
             svc.uuiNotifications.show(
                 (props: INotification) => (
