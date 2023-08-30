@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import React, { FC, useCallback } from 'react';
 import { ANNOTATION_FLOW_ITEM_ID_PREFIX } from 'shared/constants/annotations';
 import { ANNOTATION_PATH_SEPARATOR } from './constants';
 import { Links } from './links';
@@ -30,6 +30,13 @@ export const AnnotationRow: FC<TAnnotationProps> = ({
     onCloseIconClick
 }) => {
     const labelList = label.split('.');
+    const onIconClick = useCallback(
+        (event) => {
+            onCloseIconClick(pageNum!, id);
+            event.stopPropagation();
+        },
+        [pageNum, id, onCloseIconClick]
+    );
 
     return (
         <div
@@ -46,7 +53,7 @@ export const AnnotationRow: FC<TAnnotationProps> = ({
                     icon={closeIcon}
                     cx={styles.close}
                     iconPosition={'right'}
-                    onClick={() => onCloseIconClick(pageNum!, id)}
+                    onClick={onIconClick}
                     color={isContrastColor(color) ? 'white' : 'night900'}
                 />
                 {!links?.length && !incomingLinks?.length ? null : (

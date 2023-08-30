@@ -321,6 +321,7 @@ export const TableAnnotation = ({
             id={getAnnotationElementId(page, id)}
         >
             <TextLabel
+                id={id}
                 color={color}
                 className={styles['tableAnnotation-label']}
                 label={label}

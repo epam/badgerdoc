@@ -49,6 +49,10 @@ export const AnnotationList: FC<{
         setSelectedIndex(index);
         onSelect(selectedAnnotation);
 
+        // TODO: need to extract this logic to the place
+        // where this scrolling is really needed.
+        // For PDF-related case (when only 1 PDF doc is opened) it's not
+        // needed - in this case this scrolling will not do anything
         document
             .querySelector(`#${ANNOTATION_LABEL_ID_PREFIX}${selectedAnnotation.id}`)
             ?.scrollIntoView();

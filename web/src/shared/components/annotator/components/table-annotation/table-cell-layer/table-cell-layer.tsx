@@ -26,6 +26,7 @@ type TableCellProps = {
 export const TableCell = ({
     label = '',
     color = 'black',
+    cell,
     bound,
     tableBound,
     isSelected,
@@ -65,6 +66,7 @@ export const TableCell = ({
             ref={annotationRef}
         >
             <TextLabel
+                id={cell.id}
                 color={color}
                 className={styles['tableAnnotation-label']}
                 label={label}
