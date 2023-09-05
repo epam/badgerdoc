@@ -1,7 +1,9 @@
 import asyncio
+import os
 from typing import Any, Dict, List, Optional, Union
 
 from fastapi import Depends, FastAPI, Header, HTTPException, status
+from fastapi.middleware.cors import CORSMiddleware
 from filter_lib import Page, form_query, map_request_to_filter, paginate
 from pydantic import AnyUrl
 from sqlalchemy.orm import Session
@@ -16,7 +18,7 @@ import pipelines.schemas as schemas
 from pipelines.kafka_utils import Kafka
 from pipelines.pipeline_runner import run_pipeline
 
-TOKEN = get_tenant_info(url=config.KEYCLOAK_URI, algorithm="RS256")
+TOKEN = get_tenant_info(url=config.KEYCLOAK_HOST, algorithm="RS256")
 
 app = FastAPI(
     title="Pipelines",
@@ -24,6 +26,14 @@ app = FastAPI(
     root_path=config.ROOT_PATH,
     servers=[{"url": config.ROOT_PATH}],
 )
+
+if WEB_CORS := os.getenv("WEB_CORS", ""):
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=WEB_CORS.split(","),
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 kafka = Kafka()
 
@@ -34,7 +44,7 @@ NO_LATEST_TASK = "No latest task."
 NO_JOB = "No such job"
 
 
-@app.on_event("startup")
+# @app.on_event("startup")
 async def startup_kafka() -> None:
     kafka.create_topics()
 
@@ -59,6 +69,7 @@ async def add_pipeline(
     session: Session = Depends(service.get_session),
 ) -> schemas.PipelineOutId:
     """Add pipeline to DB."""
+    # TODO: fix
     if pipeline.meta.original_pipeline_id is None:
         pipeline.check_name(session)
     else:
@@ -128,6 +139,7 @@ def search_pipelines(
     session: Session = Depends(service.get_session),
 ) -> Any:
     """Returns a list of Jobs in line with filters specified"""
+    # todo: add airflow pipelines by rest api
     query = session.query(dbm.Pipeline)
     filter_args = map_request_to_filter(request.dict(), "Pipeline")
     try:

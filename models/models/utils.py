@@ -18,11 +18,11 @@ from models.constants import (
     DOMAIN_NAME,
     INFERENCE_HOST,
     INFERENCE_PORT,
-    MINIO_ACCESS_KEY,
-    MINIO_HOST,
+    S3_ACCESS_KEY,
+    S3_ENDPOINT,
     MINIO_PUBLIC_HOST,
-    MINIO_SECRET_KEY,
-    MINIO_SECURE_CONNECTION,
+    S3_SECRET_KEY,
+    S3_SECURE,
     MODELS_NAMESPACE,
     S3_CREDENTIALS_PROVIDER,
     S3_PREFIX,
@@ -113,16 +113,16 @@ def create_ksvc(
                                     "value": str(INFERENCE_PORT),
                                 },
                                 {
-                                    "name": "MINIO_HOST",
-                                    "value": get_host(MINIO_HOST),
+                                    "name": "S3_ENDPOINT",
+                                    "value": get_host(S3_ENDPOINT),
                                 },
                                 {
-                                    "name": "MINIO_ACCESS_KEY",
-                                    "value": MINIO_ACCESS_KEY,
+                                    "name": "S3_ACCESS_KEY",
+                                    "value": S3_ACCESS_KEY,
                                 },
                                 {
-                                    "name": "MINIO_SECRET_KEY",
-                                    "value": MINIO_SECRET_KEY,
+                                    "name": "S3_SECRET_KEY",
+                                    "value": S3_SECRET_KEY,
                                 },
                                 {
                                     "name": "MODEL_NAME",
@@ -307,13 +307,13 @@ class NotConfiguredException(Exception):
 
 
 def create_boto3_config():
-    boto3_config = {"secure": MINIO_SECURE_CONNECTION}
+    boto3_config = {"secure": S3_SECURE}
     if S3_CREDENTIALS_PROVIDER == "minio":
         boto3_config.update(
             {
-                "aws_access_key_id": MINIO_ACCESS_KEY,
-                "aws_secret_access_key": MINIO_SECRET_KEY,
-                "endpoint_url": MINIO_HOST,
+                "aws_access_key_id": S3_ACCESS_KEY,
+                "aws_secret_access_key": S3_SECRET_KEY,
+                "endpoint_url": S3_ENDPOINT,
             }
         )
     elif S3_CREDENTIALS_PROVIDER == "aws_iam":
@@ -365,7 +365,7 @@ def generate_presigned_url(
         )
     except BotoCoreError:
         return None
-    minio_client.meta._endpoint_url = MINIO_HOST
+    minio_client.meta._endpoint_url = S3_ENDPOINT
     return presigned_url
 
 

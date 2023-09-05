@@ -1,4 +1,5 @@
 import json
+import os
 from typing import Optional
 
 from pipelines import config, http_utils
@@ -10,9 +11,10 @@ POST = "POST"
 
 CLIENT_CREDENTIALS = "client_credentials"
 
-PIPELINES = "pipelines"
-
 WWW_FORM_URLENCODED = "application/x-www-form-urlencoded"
+
+KEYCLOAK_SYSTEM_USER_CLIENT = os.getenv("KEYCLOAK_SYSTEM_USER_CLIENT")
+KEYCLOAK_SYSTEM_USER_SECRET = os.getenv("KEYCLOAK_SYSTEM_USER_SECRET")
 
 logger = get_logger(__file__)
 
@@ -23,8 +25,8 @@ def get_service_token() -> Optional[str]:
     url = config.KEYCLOAK_TOKEN_URI
     headers = {"Content-Type": WWW_FORM_URLENCODED}
     payload = {
-        "client_id": PIPELINES,
-        "client_secret": config.CLIENT_SECRET,
+        "client_id": KEYCLOAK_SYSTEM_USER_CLIENT,
+        "client_secret": KEYCLOAK_SYSTEM_USER_SECRET,
         "grant_type": CLIENT_CREDENTIALS,
     }
     response = http_utils.make_request_with_retry(

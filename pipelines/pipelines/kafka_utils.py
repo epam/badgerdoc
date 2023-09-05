@@ -64,9 +64,15 @@ class Kafka:
             admin_client = admin.KafkaAdminClient(
                 bootstrap_servers=config.KAFKA_BOOTSTRAP_SERVER,
             )
-        except Exception:
-            logger.exception("Failed to create KafkaAdminClient.")
-            raise
+        except Exception:  # noqa
+            try:
+                # idk why, locally it works only since second initialization
+                admin_client = admin.KafkaAdminClient(
+                    bootstrap_servers=config.KAFKA_BOOTSTRAP_SERVER,
+                )
+            except Exception:
+                logger.exception("Failed to create KafkaAdminClient.")
+                raise
 
         try:
             admin_client.create_topics(new_topics=[new_topic])

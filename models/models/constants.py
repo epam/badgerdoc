@@ -5,6 +5,17 @@ from dotenv import find_dotenv, load_dotenv
 
 load_dotenv(find_dotenv("./src/.env"))
 
+def get_service_uri(prefix):
+    service_scheme=os.getenv(f"{prefix}SERVICE_SCHEME", "")
+    service_host=os.getenv(f"{prefix}SERVICE_HOST", "")
+    service_port=os.getenv(f"{prefix}SERVICE_PORT", "")
+    uri = ""
+
+    if "" not in (service_port, service_host, service_scheme):
+        uri = f"{service_scheme}://{service_host}:{service_port}"
+
+    return uri
+
 POSTGRES_USER = os.environ.get("POSTGRES_USER")
 POSTGRES_PASSWORD = os.environ.get("POSTGRES_PASSWORD")
 POSTGRES_DB = os.environ.get("POSTGRES_DB")
@@ -15,15 +26,15 @@ DATABASE_URL = (
     f"{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}"
 )
 
-MINIO_SECURE_CONNECTION = os.getenv(
-    "MINIO_SECURE_CONNECTION", "False"
+S3_SECURE = os.getenv(
+    "S3_SECURE", "False"
 ).lower() in (
     "true",
     "1",
 )
-MINIO_ACCESS_KEY = os.environ.get("MINIO_ACCESS_KEY")
-MINIO_SECRET_KEY = os.environ.get("MINIO_SECRET_KEY")
-MINIO_HOST = os.environ.get("MINIO_HOST")
+S3_ACCESS_KEY = os.environ.get("S3_ACCESS_KEY")
+S3_SECRET_KEY = os.environ.get("S3_SECRET_KEY")
+S3_ENDPOINT = os.environ.get("S3_ENDPOINT")
 MINIO_PUBLIC_HOST = os.environ.get("MINIO_PUBLIC_HOST")
 S3_PREFIX = os.environ.get("S3_PREFIX")
 S3_CREDENTIALS_PROVIDER = os.environ.get("S3_CREDENTIALS_PROVIDER")
@@ -32,17 +43,16 @@ INFERENCE_HOST = os.environ.get("INFERENCE_HOST")
 INFERENCE_PORT = os.environ.get("INFERENCE_PORT")
 
 ALGORITHM = os.environ.get("ALGORITHM", "RS256")
-SECRET = os.environ.get("SECRET")
-KEYCLOACK_URI = os.environ.get("KEYCLOACK_URI", "http://bagerdoc-keycloack")
+KEYCLOAK_SYSTEM_USER_SECRET = os.environ.get("KEYCLOAK_SYSTEM_USER_SECRET")
+KEYCLOAK_HOST = os.environ.get("KEYCLOAK_HOST", "http://bagerdoc-keycloack")
 
 DOCKER_REGISTRY_URL = os.environ.get("DOCKER_REGISTRY_URL")
 DOMAIN_NAME = os.environ.get("DOMAIN_NAME")
 MODELS_NAMESPACE = os.environ.get("MODELS_NAMESPACE")
 ROOT_PATH = os.environ.get("ROOT_PATH")
 
-CONVERT_EXPORT_URL = os.environ.get("CONVERT_EXPORT_URL")
+CONVERT_EXPORT_URL = get_service_uri("CONVERT_")
 HEADER_TENANT = "X-Current-Tenant"
-
 
 def get_version() -> str:
     default = "0.1.0"

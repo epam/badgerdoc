@@ -28,6 +28,8 @@ services:
       --docker.exclude=badgerdoc-postgresql 
       --docker.exclude=badgerdoc-keycloak 
       --docker.exclude=badgerdoc-web 
+      --docker.exclude=badgerdoc-zookeeper 
+      --docker.exclude=badgerdoc-kafka 
       --timeout.read-header=900s --timeout.resp-header=900s 
       --max=${MAX_REQ_SIZE}
     volumes:
@@ -195,6 +197,62 @@ services:
       - badgerdoc
     ports:
       - 8083:3000
+
+  badgerdoc-zookeeper:
+    image: wurstmeister/zookeeper
+    container_name: badgerdoc-zookeeper
+    ports:
+      - "2181:2181"
+    networks:
+      - badgerdoc
+
+  badgerdoc-kafka:
+    image: wurstmeister/kafka
+    container_name: badgerdoc-kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: badgerdoc-kafka
+      KAFKA_ZOOKEEPER_CONNECT: badgerdoc-zookeeper:2181
+      KAFKA_CREATE_TOPICS: 'scheduler:1:1'
+    networks:
+      - badgerdoc
+    depends_on:
+      - badgerdoc-zookeeper
+
+  badgerdoc-pipelines:
+    image: badgerdoc_pipelines
+    container_name: pipelines
+    env_file:
+      - .env
+    environment:
+      - ROOT_PATH=/pipelines
+    networks:
+      - badgerdoc
+    command: bash -c "./wait-for-it.sh -t 0 badgerdoc-kafka:9092 && alembic upgrade head && uvicorn pipelines.app:app --host 0.0.0.0 --port 8080 --reload"
+    depends_on:
+      - badgerdoc-minio
+      - badgerdoc-postgresql
+      - badgerdoc-kafka
+    restart: on-failure
+
+  badgerdoc-models:
+    image: badgerdoc_models
+    container_name: models
+    env_file:
+      - .env
+    environment:
+      - ROOT_PATH=/models
+    networks:
+      - badgerdoc
+    depends_on:
+      - badgerdoc-minio
+      - badgerdoc-postgresql
+    restart: on-failure
+    cap_add:
+      - SYS_ADMIN
+    devices:
+      - "/dev/fuse"
 
   # TBD: Gotenberg
 
