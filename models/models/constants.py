@@ -5,16 +5,14 @@ from dotenv import find_dotenv, load_dotenv
 
 load_dotenv(find_dotenv("./src/.env"))
 
-def get_service_uri(prefix):
-    service_scheme=os.getenv(f"{prefix}SERVICE_SCHEME", "")
-    service_host=os.getenv(f"{prefix}SERVICE_HOST", "")
-    service_port=os.getenv(f"{prefix}SERVICE_PORT", "")
-    uri = ""
+def get_service_uri(prefix: str) -> str:
+    service_scheme=os.getenv(f"{prefix}SERVICE_SCHEME")
+    service_host=os.getenv(f"{prefix}SERVICE_HOST")
+    service_port=os.getenv(f"{prefix}SERVICE_PORT")
 
-    if "" not in (service_port, service_host, service_scheme):
-        uri = f"{service_scheme}://{service_host}:{service_port}"
-
-    return uri
+    if service_port and service_host and service_scheme:
+        return f"{service_scheme}://{service_host}:{service_port}"
+    return ""
 
 POSTGRES_USER = os.environ.get("POSTGRES_USER")
 POSTGRES_PASSWORD = os.environ.get("POSTGRES_PASSWORD")
