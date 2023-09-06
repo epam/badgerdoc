@@ -28,11 +28,11 @@ Executor for pipelines.
 ### PostgreSQL settings
 | Variable | Description |
 |---|---------------|
-|`str` <br/> `default: postgres` <br/> DB_USERNAME| Server username. |
-|`str` <br/> `default: admin` <br/> DB_PASSWORD| Server password. |
-|`str` <br/> `default: localhost` <br/> DB_HOST| Server host. |
-|`int` <br/> `default: 5432` <br/> DB_PORT| Server port. |
-|`int` <br/> `default: pipelines` <br/> DB_NAME| Database name. |
+|`str` <br/> `default: postgres` <br/> POSTGRES_USER| Server username. |
+|`str` <br/> `default: admin` <br/> POSTGRES_PASSWORD| Server password. |
+|`str` <br/> `default: localhost` <br/> POSTGRES_HOST| Server host. |
+|`int` <br/> `default: 5432` <br/> POSTGRES_PORT| Server port. |
+|`int` <br/> `default: pipelines` <br/> POSTGRES_DB| Database name. |
 
 ### S3 settings
 File storage for result processing.

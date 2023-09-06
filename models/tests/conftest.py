@@ -11,9 +11,9 @@ from botocore.exceptions import ClientError
 from fastapi.testclient import TestClient
 from models.constants import (
     DATABASE_URL,
-    MINIO_ACCESS_KEY,
-    MINIO_HOST,
-    MINIO_SECRET_KEY,
+    S3_ACCESS_KEY,
+    S3_ENDPOINT,
+    S3_SECRET_KEY,
 )
 from models.db import Base, Basement, Training, get_db
 from models.main import app
@@ -87,9 +87,9 @@ def create_minio_bucket() -> boto3.resource:
     """
     minio_resource = boto3.resource(
         "s3",
-        endpoint_url=f"http://{MINIO_HOST}",
-        aws_access_key_id=MINIO_ACCESS_KEY,
-        aws_secret_access_key=MINIO_SECRET_KEY,
+        endpoint_url=f"http://{S3_ENDPOINT}",
+        aws_access_key_id=S3_ACCESS_KEY,
+        aws_secret_access_key=S3_SECRET_KEY,
         config=Config(signature_version="s3v4"),
     )
     try:

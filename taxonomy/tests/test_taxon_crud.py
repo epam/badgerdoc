@@ -5,7 +5,7 @@ from typing import Any, List, Optional
 import pytest
 from taxonomy.models import Taxon
 
-from tests.override_app_dependency import TEST_HEADER
+from tests.override_app_dependency import TEST_HEADERS
 
 TAXON_PATH = "/taxons"
 
@@ -102,7 +102,7 @@ def test_add_taxon_taxonomy_does_not_exist(overrided_token_client):
         taxonomy_id=uuid.uuid4().hex,
     )
     response = overrided_token_client.post(
-        TAXON_PATH, json=data, headers=TEST_HEADER
+        TAXON_PATH, json=data, headers=TEST_HEADERS
     )
     assert response.status_code == 400
     assert "Taxonomy with this id doesn't exist" in response.text
@@ -121,7 +121,7 @@ def test_add_taxon_self_parent(
         parent_id=taxon_id,
     )
     response = overrided_token_client.post(
-        TAXON_PATH, json=data, headers=TEST_HEADER
+        TAXON_PATH, json=data, headers=TEST_HEADERS
     )
     assert response.status_code == 400
     assert "Taxon cannot be its own parent" in response.text
@@ -139,7 +139,7 @@ def test_add_taxon_without_name(
     response = overrided_token_client.post(
         TAXON_PATH,
         json=data,
-        headers=TEST_HEADER,
+        headers=TEST_HEADERS,
     )
     assert response.status_code == 422
     assert "field required" in response.text
@@ -155,7 +155,7 @@ def test_add_taxon_name_empty_string(
         taxonomy_id=prepared_taxonomy_record_in_db.id,
     )
     response = overrided_token_client.post(
-        TAXON_PATH, json=data, headers=TEST_HEADER
+        TAXON_PATH, json=data, headers=TEST_HEADERS
     )
     assert response.status_code == 400
     assert "Taxon name can not be empty" in response.text
@@ -173,7 +173,7 @@ def test_add_taxon_specify_version(
         taxonomy_version=prepared_taxonomy_record_in_db.version,
     )
     response = overrided_token_client.post(
-        TAXON_PATH, json=data, headers=TEST_HEADER
+        TAXON_PATH, json=data, headers=TEST_HEADERS
     )
     assert response.status_code == 201
     assert response_schema_from_request(data) == response.json()
@@ -195,7 +195,7 @@ def test_add_unique_name(
         taxonomy_version=prepared_taxonomy_record_in_db.version,
     )
     response = overrided_token_client.post(
-        TAXON_PATH, json=data, headers=TEST_HEADER
+        TAXON_PATH, json=data, headers=TEST_HEADERS
     )
     assert response.status_code == 201
     assert response_schema_from_request(data) == response.json()
@@ -212,7 +212,7 @@ def test_add_taxon_id_exists(
         taxonomy_id=prepared_taxonomy_record_in_db.id,
     )
     response = overrided_token_client.post(
-        TAXON_PATH, json=data, headers=TEST_HEADER
+        TAXON_PATH, json=data, headers=TEST_HEADERS
     )
     assert response.status_code == 400
     assert "Taxon id must be unique" in response.text
@@ -233,7 +233,7 @@ def test_get_taxon_exists_no_parents(
         id_=taxon_id,
     )
     response = overrided_token_client.get(
-        f"{TAXON_PATH}/{taxon_id}", headers=TEST_HEADER
+        f"{TAXON_PATH}/{taxon_id}", headers=TEST_HEADERS
     )
 
     assert response.status_code == 200
@@ -256,7 +256,7 @@ def test_get_taxon_parents_isleaf(
     ]
 
     response = overrided_token_client.get(
-        f"{TAXON_PATH}/{leaf.id}", headers=TEST_HEADER
+        f"{TAXON_PATH}/{leaf.id}", headers=TEST_HEADERS
     )
 
     assert response.status_code == 200
@@ -270,7 +270,7 @@ def test_get_taxon_parents_isleaf(
 def test_get_taxon_does_not_exist(overrided_token_client):
     id_ = uuid.uuid4().hex
     response = overrided_token_client.get(
-        f"{TAXON_PATH}/{id_}", headers=TEST_HEADER
+        f"{TAXON_PATH}/{id_}", headers=TEST_HEADERS
     )
     assert response.status_code == 404
     assert f"Taxon with id: {id_} doesn't exist" in response.text
@@ -283,7 +283,7 @@ def test_update_taxon_does_not_exist(overrided_token_client):
     taxon_update.pop("id")
 
     response = overrided_token_client.put(
-        f"{TAXON_PATH}/{id_}", json=taxon_update, headers=TEST_HEADER
+        f"{TAXON_PATH}/{id_}", json=taxon_update, headers=TEST_HEADERS
     )
     assert response.status_code == 404
     assert "Cannot update taxon that doesn't exist" in response.text
@@ -301,7 +301,7 @@ def test_update_taxon_duplicate_name(
     taxon_update.pop("id")
 
     response = overrided_token_client.put(
-        f"{TAXON_PATH}/{id_}", json=taxon_update, headers=TEST_HEADER
+        f"{TAXON_PATH}/{id_}", json=taxon_update, headers=TEST_HEADERS
     )
     assert response.status_code == 400
     assert "Taxon name must be unique" in response.text
@@ -320,7 +320,7 @@ def test_update_tree_set_parent_to_none(
     new_root_body["parent_id"] = None
 
     response = overrided_token_client.put(
-        f"{TAXON_PATH}/{new_root_id}", json=new_root_body, headers=TEST_HEADER
+        f"{TAXON_PATH}/{new_root_id}", json=new_root_body, headers=TEST_HEADERS
     )
     assert response.status_code == 200
 
@@ -329,7 +329,7 @@ def test_update_tree_set_parent_to_none(
     for id_ in [single_taxon.id, new_root.id, leaf_from_root.id]:
         taxon_responses.append(
             overrided_token_client.get(
-                f"{TAXON_PATH}/{id_}", headers=TEST_HEADER
+                f"{TAXON_PATH}/{id_}", headers=TEST_HEADERS
             ).json()
         )
 
@@ -360,7 +360,7 @@ def test_update_tree_change_parent_to_another(
     response = overrided_token_client.put(
         f"{TAXON_PATH}/{changed_parent_id}",
         json=changed_parent_body,
-        headers=TEST_HEADER,
+        headers=TEST_HEADERS,
     )
     assert response.status_code == 200
 
@@ -369,7 +369,7 @@ def test_update_tree_change_parent_to_another(
     for id_ in [root.id, lost_child.id, changed_parent.id]:
         taxon_responses.append(
             overrided_token_client.get(
-                f"{TAXON_PATH}/{id_}", headers=TEST_HEADER
+                f"{TAXON_PATH}/{id_}", headers=TEST_HEADERS
             ).json()
         )
 
@@ -392,13 +392,13 @@ def test_cascade_delete_parent(
     ids_to_delete = [tax.id for tax in prepare_three_taxons_parent_each_other]
 
     delete_response = overrided_token_client.delete(
-        f"{TAXON_PATH}/{ids_to_delete[0]}", headers=TEST_HEADER
+        f"{TAXON_PATH}/{ids_to_delete[0]}", headers=TEST_HEADERS
     )
     assert delete_response.status_code == 204
 
     for id_ in ids_to_delete:
         response = overrided_token_client.get(
-            f"{TAXON_PATH}/{id_}", headers=TEST_HEADER
+            f"{TAXON_PATH}/{id_}", headers=TEST_HEADERS
         )
         assert response.status_code == 404
 
@@ -408,7 +408,7 @@ def test_delete_taxon_does_not_exist(
     overrided_token_client,
 ):
     delete_response = overrided_token_client.delete(
-        f"{TAXON_PATH}/{uuid.uuid4().hex}", headers=TEST_HEADER
+        f"{TAXON_PATH}/{uuid.uuid4().hex}", headers=TEST_HEADERS
     )
     assert delete_response.status_code == 404
     assert (
@@ -436,7 +436,7 @@ def test_search_pagination_should_work(
     )
     # when
     response = overrided_token_client.post(
-        f"{TAXON_PATH}/search", json=search_request_data, headers=TEST_HEADER
+        f"{TAXON_PATH}/search", json=search_request_data, headers=TEST_HEADERS
     )
 
     taxons = response.json()["data"]
@@ -457,7 +457,7 @@ def test_search_result_should_be_empty_if_taxon_not_exists(
     search_request_data = prepare_filtration_body(value="antarctica")
     # when
     response = overrided_token_client.post(
-        f"{TAXON_PATH}/search", json=search_request_data, headers=TEST_HEADER
+        f"{TAXON_PATH}/search", json=search_request_data, headers=TEST_HEADERS
     )
     # then
     assert response
@@ -489,7 +489,7 @@ def test_search_should_return_only_allowed_taxon_for_current_tenant(
     search_request_data = prepare_filtration_body(value=taxon_id)
     # when
     response = overrided_token_client.post(
-        f"{TAXON_PATH}/search", json=search_request_data, headers=TEST_HEADER
+        f"{TAXON_PATH}/search", json=search_request_data, headers=TEST_HEADERS
     )
     # then
     assert response
@@ -513,7 +513,7 @@ def test_search_filter_name_like(
     )
     # when
     response = overrided_token_client.post(
-        f"{TAXON_PATH}/search", json=search_request_data, headers=TEST_HEADER
+        f"{TAXON_PATH}/search", json=search_request_data, headers=TEST_HEADERS
     )
     # then
     assert response
@@ -536,7 +536,7 @@ def test_search_children_tree(
     response = overrided_token_client.post(
         f"{TAXON_PATH}/search",
         json=search_request_data,
-        headers=TEST_HEADER,
+        headers=TEST_HEADERS,
     )
     assert response.status_code == 200
     taxons = response.json()["data"]
@@ -567,7 +567,7 @@ def test_search_children_recursive_tree(
     response = overrided_token_client.post(
         f"{TAXON_PATH}/search",
         json=search_request_data,
-        headers=TEST_HEADER,
+        headers=TEST_HEADERS,
     )
     assert response.status_code == 200
     taxons = response.json()["data"]
@@ -609,7 +609,7 @@ def test_search_parents_recursive_tree(
     response = overrided_token_client.post(
         f"{TAXON_PATH}/search",
         json=search_request_data,
-        headers=TEST_HEADER,
+        headers=TEST_HEADERS,
     )
     assert response.status_code == 200
     taxons = response.json()["data"]
@@ -638,7 +638,7 @@ def test_get_parents_concatenated_not_found(
 
     response = overrided_token_client.post(
         f"{TAXON_PATH}/parents_concatenate",
-        headers=TEST_HEADER,
+        headers=TEST_HEADERS,
         json=taxon_ids,
     )
     assert response.status_code == 404
@@ -653,7 +653,7 @@ def test_get_parents_concatenated(
 
     response = overrided_token_client.post(
         f"{TAXON_PATH}/parents_concatenate",
-        headers=TEST_HEADER,
+        headers=TEST_HEADERS,
         json=taxon_ids,
     )
     assert response.status_code == 200
