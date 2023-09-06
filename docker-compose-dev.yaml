@@ -236,6 +236,20 @@ services:
       - badgerdoc-kafka
     restart: on-failure
 
+  badgerdoc-taxonomy:
+    image: badgerdoc_taxonomy
+    container_name: taxonomy
+    env_file:
+      - .env
+    environment:
+      - ROOT_PATH=/taxonomy
+    networks:
+      - badgerdoc
+    depends_on:
+      badgerdoc-postgresql:
+        condition: service_healthy
+    restart: on-failure
+
   badgerdoc-models:
     image: badgerdoc_models
     container_name: models
