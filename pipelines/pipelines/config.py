@@ -17,16 +17,13 @@ def get_version() -> str:
         return f_o.readline().strip() or default
 
 
-def get_service_uri(prefix):
-    service_scheme=os.getenv(f"{prefix}SERVICE_SCHEME", "")
-    service_host=os.getenv(f"{prefix}SERVICE_HOST", "")
-    service_port=os.getenv(f"{prefix}SERVICE_PORT", "")
-    uri = ""
-    
-    if "" not in (service_port, service_host, service_scheme):
-        uri = f"{service_scheme}://{service_host}:{service_port}"
-    
-    return uri
+def get_service_uri(prefix: str) -> str:
+    service_scheme=os.getenv(f"{prefix}SERVICE_SCHEME")
+    service_host=os.getenv(f"{prefix}SERVICE_HOST")
+    service_port=os.getenv(f"{prefix}SERVICE_PORT")
+    if service_port and service_host and service_scheme:
+        return f"{service_scheme}://{service_host}:{service_port}"
+    return ""
 
 VERSION = get_version()
 
