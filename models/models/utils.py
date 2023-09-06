@@ -20,7 +20,7 @@ from models.constants import (
     INFERENCE_PORT,
     S3_ACCESS_KEY,
     S3_ENDPOINT,
-    MINIO_PUBLIC_HOST,
+    S3_ENDPOINT,
     S3_SECRET_KEY,
     S3_SECURE,
     MODELS_NAMESPACE,
@@ -356,7 +356,7 @@ def generate_presigned_url(
     minio_client = get_minio_resource(bucket_name).meta.client
     # To make minio accessible via presigned URL from outside the cluster
     # we need to temporary use external host URL for signature generation.
-    minio_client.meta._endpoint_url = f"http://{MINIO_PUBLIC_HOST}"
+    minio_client.meta._endpoint_url = f"http://{S3_ENDPOINT}"
     try:
         presigned_url: str = minio_client.generate_presigned_url(
             http_method,
