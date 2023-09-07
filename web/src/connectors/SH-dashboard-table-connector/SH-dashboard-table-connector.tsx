@@ -42,7 +42,7 @@ export const SHDashboardTableConnector: FC<SHDashboardTableConnectorProps> = ({
         onRowClick
     });
 
-    if (filesIds?.response && currentUser?.user_id) {
+    if (filesIds?.response && currentUser?.id) {
         const initialValues: JobVariables = {
             files: filesIds.response as string[],
             name: `${currentUser?.id} - SkillHunterJob`,
@@ -54,9 +54,9 @@ export const SHDashboardTableConnector: FC<SHDashboardTableConnectorProps> = ({
             is_draft: false,
             categories: [],
             validation_type: ValidationType.validationOnly,
-            owners: [currentUser.user_id],
+            owners: [currentUser.id],
             annotators: [],
-            validators: [currentUser.user_id]
+            validators: [currentUser.id]
         };
         try {
             addJob(initialValues);

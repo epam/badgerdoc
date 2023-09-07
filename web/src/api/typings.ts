@@ -295,7 +295,7 @@ export type UpdateCategory = {
 export type User = {
     tenants: Array<string>;
     id: string;
-    user_id: string;
+    sub: string;
     username: string;
     // custom field, not in API
     current_tenant?: string;
