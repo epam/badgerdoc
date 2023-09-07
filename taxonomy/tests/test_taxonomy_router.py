@@ -5,7 +5,7 @@ from taxonomy.models import Taxonomy
 from taxonomy.schemas import CategoryLinkSchema
 from taxonomy.taxonomy import services
 
-from tests.override_app_dependency import TEST_HEADERS, TEST_TENANT
+from tests.override_app_dependency import TEST_HEADER, TEST_TENANTS
 
 
 @pytest.mark.integration
@@ -20,7 +20,7 @@ def test_create_taxonomy_should_work(overrided_token_client, db_session):
     response = overrided_token_client.post(
         "/taxonomy",
         json=input_data,
-        headers=TEST_HEADERS,
+        headers=TEST_HEADER,
     )
 
     # then
@@ -31,7 +31,7 @@ def test_create_taxonomy_should_work(overrided_token_client, db_session):
     assert response.json()["version"] == 1
 
     taxonomy: Taxonomy = services.get_latest_taxonomy(
-        db_session, input_data["id"], TEST_TENANT
+        db_session, input_data["id"], TEST_TENANTS[0]
     )
 
     assert taxonomy.id == input_data["id"]
@@ -52,14 +52,14 @@ def test_create_new_taxonomy_with_same_id_should_update_version(
     overrided_token_client.post(
         "/taxonomy",
         json=input_data,
-        headers=TEST_HEADERS,
+        headers=TEST_HEADER,
     )
 
     # when
     response = overrided_token_client.post(
         "/taxonomy",
         json=input_data,
-        headers=TEST_HEADERS,
+        headers=TEST_HEADER,
     )
 
     # then
@@ -67,7 +67,7 @@ def test_create_new_taxonomy_with_same_id_should_update_version(
     assert response.status_code == 201
 
     new_taxonomy: Taxonomy = services.get_latest_taxonomy(
-        db_session, input_data["id"], TEST_TENANT
+        db_session, input_data["id"], TEST_TENANTS[0]
     )
 
     assert new_taxonomy.id == input_data["id"]
@@ -76,7 +76,7 @@ def test_create_new_taxonomy_with_same_id_should_update_version(
     assert new_taxonomy.latest
 
     previous_taxonomy = services.get_second_latest_taxonomy(
-        db_session, input_data["id"], TEST_TENANT
+        db_session, input_data["id"], TEST_TENANTS[0]
     )
 
     assert not previous_taxonomy.latest
@@ -91,7 +91,7 @@ def test_should_return_latest_taxonomy(
     # when
     response = overrided_token_client.get(
         "/taxonomy/{taxonomy_id}".format(taxonomy_id=taxonomy_id),
-        headers=TEST_HEADERS,
+        headers=TEST_HEADER,
     )
     # then
     assert response.status_code == 200
@@ -113,7 +113,7 @@ def test_should_return_taxonomy_by_id_and_version(
             taxonomy_id=taxonomy_id,
             version=version,
         ),
-        headers=TEST_HEADERS,
+        headers=TEST_HEADER,
     )
     # then
     assert response.status_code == 200
@@ -139,7 +139,7 @@ def test_should_associate_taxonomy_to_category(
     response = overrided_token_client.post(
         "/taxonomy/link_category",
         json=request_body,
-        headers=TEST_HEADERS,
+        headers=TEST_HEADER,
     )
     # then
     assert response
@@ -168,7 +168,7 @@ def test_should_get_link_taxonomy_to_category(
             job_id=job_id,
             category_id=category_id,
         ),
-        headers=TEST_HEADERS,
+        headers=TEST_HEADER,
     )
     # then
     assert response
@@ -187,7 +187,7 @@ def test_should_search_taxonomies(
     response = overrided_token_client.post(
         "/taxonomy/all",
         json={},
-        headers=TEST_HEADERS,
+        headers=TEST_HEADER,
     )
     assert response.status_code == 200
     assert response.json()["data"]
@@ -206,7 +206,7 @@ def test_should_delete_link_taxonomy_to_category_by_job(
         "/taxonomy/link_category/{job_id}".format(
             job_id=job_id,
         ),
-        headers=TEST_HEADERS,
+        headers=TEST_HEADER,
     )
     # then
     assert response
@@ -228,7 +228,7 @@ def test_should_delete_link_taxonomy_to_category_by_job_and_category(
             job_id=job_id,
             category_id=category_id,
         ),
-        headers=TEST_HEADERS,
+        headers=TEST_HEADER,
     )
     # then
     assert response
@@ -249,7 +249,7 @@ def test_should_update_taxonomy_in_db(
     response = overrided_token_client.put(
         "/taxonomy",
         json=taxonomy_input_data,
-        headers=TEST_HEADERS,
+        headers=TEST_HEADER,
     )
     # then
     assert response
@@ -268,14 +268,14 @@ def test_should_delete_taxonomy_from_db(
         "/taxonomy/{taxonomy_id}".format(
             taxonomy_id=prepared_taxonomy_record_in_db.id,
         ),
-        headers=TEST_HEADERS,
+        headers=TEST_HEADER,
     )
     # then
     assert response
     assert response.status_code == 204
 
     taxonomy = services.get_latest_taxonomy(
-        db_session, prepared_taxonomy_record_in_db.id, TEST_TENANT
+        db_session, prepared_taxonomy_record_in_db.id, TEST_TENANTS[0]
     )
     assert taxonomy is None
 
@@ -298,7 +298,7 @@ def test_should_delete_latest_taxonomy_from_db(
         "/taxonomy/{taxonomy_id}".format(
             taxonomy_id=taxonomy_to_delete.id,
         ),
-        headers=TEST_HEADERS,
+        headers=TEST_HEADER,
     )
     # then
     assert response

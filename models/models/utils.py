@@ -24,7 +24,7 @@ from models.constants import (
     S3_SECRET_KEY,
     S3_SECURE,
     MODELS_NAMESPACE,
-    S3_CREDENTIALS_PROVIDER,
+    S3_PROVIDER,
     S3_PREFIX,
 )
 from models.db import Basement, Model
@@ -308,7 +308,7 @@ class NotConfiguredException(Exception):
 
 def create_boto3_config():
     boto3_config = {"secure": S3_SECURE}
-    if S3_CREDENTIALS_PROVIDER == "minio":
+    if S3_PROVIDER == "minio":
         boto3_config.update(
             {
                 "aws_access_key_id": S3_ACCESS_KEY,
@@ -316,7 +316,7 @@ def create_boto3_config():
                 "endpoint_url": S3_ENDPOINT,
             }
         )
-    elif S3_CREDENTIALS_PROVIDER == "aws_iam":
+    elif S3_PROVIDER == "aws_iam":
         # No additional updates to config needed - boto3 uses env vars
         ...
     else:
@@ -324,7 +324,7 @@ def create_boto3_config():
             "s3 connection is not properly configured - "
             "s3_credentials_provider is not set"
         )
-    logger_.debug(f"S3_Credentials provider - {S3_CREDENTIALS_PROVIDER}")
+    logger_.debug(f"S3 provider - {S3_PROVIDER}")
     return boto3_config
 
 
