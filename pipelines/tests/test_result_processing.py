@@ -361,7 +361,7 @@ def test_postprocess_result():
         return_value=m,
     ) as req_mock:
         with patch(
-            "pipelines.result_processing.config.POSTPROCESSING_URI", "foo.com"
+            "pipelines.result_processing.config.PROCESSING_URI", "foo.com"
         ):
             res = processing.postprocess_result({"foo": 1})
             assert res == {"foo": 42}
@@ -372,7 +372,7 @@ def test_postprocess_result():
 
 def test_postprocess_result_no_uri():
     """Testing postprocess_result when there's no uri."""
-    with patch("pipelines.result_processing.config.POSTPROCESSING_URI", ""):
+    with patch("pipelines.result_processing.config.PROCESSING_URI", ""):
         assert processing.postprocess_result({"a": 1}) is None
 
 

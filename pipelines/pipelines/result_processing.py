@@ -305,7 +305,7 @@ def postprocess_result(
     :param headers: Headers to postprocess.
     :return: Processed result if succeeded.
     """
-    uri = config.POSTPROCESSING_URI
+    uri = config.PROCESSING_URI
     if not uri:
         logger.error("postprocessing uri is None")
         return None

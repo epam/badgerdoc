@@ -17,7 +17,7 @@ Executor for pipelines.
 |`int` <br/> `default: 5` <br/> RUNNER_TIMEOUT | How often pipeline runner check pending tasks in the db, seconds. |
 |`int` <br/> `default: 15` <br/> MAX_WORKERS| Maximum concurrent pipeline executions. |
 |`str` <br/> `default: ""` <br/> ANNOTATION_URI| Annotation Manager annotation endpoint. |
-|`str` <br/> `default: ""` <br/> POSTPROCESSING_URI| Postprocessor postprocessing endpoint. |
+|`str` <br/> `default: ""` <br/> PROCESSING_URI| Postprocessor postprocessing endpoint. |
 |`bool` <br/> `default: False` <br/> DEBUG_MERGE| Models inference data deletion in Minio after pipeline execution. Don't delete if True. |
 
 ### SQLAlchemy settings
@@ -28,18 +28,18 @@ Executor for pipelines.
 ### PostgreSQL settings
 | Variable | Description |
 |---|---------------|
-|`str` <br/> `default: postgres` <br/> DB_USERNAME| Server username. |
-|`str` <br/> `default: admin` <br/> DB_PASSWORD| Server password. |
-|`str` <br/> `default: localhost` <br/> DB_HOST| Server host. |
-|`int` <br/> `default: 5432` <br/> DB_PORT| Server port. |
-|`int` <br/> `default: pipelines` <br/> DB_NAME| Database name. |
+|`str` <br/> `default: postgres` <br/> POSTGRES_USER| Server username. |
+|`str` <br/> `default: admin` <br/> POSTGRES_PASSWORD| Server password. |
+|`str` <br/> `default: localhost` <br/> POSTGRES_HOST| Server host. |
+|`int` <br/> `default: 5432` <br/> POSTGRES_PORT| Server port. |
+|`int` <br/> `default: pipelines` <br/> POSTGRES_DB| Database name. |
 
 ### S3 settings
 File storage for result processing.
 
 | Variable | Description |
 |---|---------------|
-|`str` <br/> `default: None` <br/> S3_CREDENTIALS_PROVIDER| Credentials provider. Support `minio`, `aws_iam`, `aws_env`, `aws_config` |
+|`str` <br/> `default: None` <br/> S3_PROVIDER| Credentials provider. Support `minio`, `aws_iam`, `aws_env`, `aws_config` |
 |`str` <br/> `default: ""` <br/> S3_PREFIX| Bucket name prefix. `<S3_PREFIX>[-]bucket_name` |
 |`str` <br/> `default: None` <br/> S3_ENDPOINT| S3 storage URI |
 |`str` <br/> `default: None` <br/> S3_ACCESS_KEY| S3 storage access key |

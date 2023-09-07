@@ -48,6 +48,7 @@ app = FastAPI(
     version=get_version(),
     openapi_tags=TAGS,
     root_path=ROOT_PATH,
+    servers=[{"url": ROOT_PATH}],
     dependencies=[Depends(TOKEN)],
 )
 

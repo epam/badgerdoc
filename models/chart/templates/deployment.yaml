@@ -61,23 +61,23 @@ spec:
           value: "5432"
         - name: POSTGRES_DB
           value: "models"
-        - name: S3_CREDENTIALS_PROVIDER
+        - name: S3_PROVIDER
           value: "minio"
-        - name: MINIO_ACCESS_KEY
+        - name: S3_ACCESS_KEY
           valueFrom:
             secretKeyRef:
               name: models
-              key: MINIO_ACCESS_KEY
-        - name: MINIO_SECRET_KEY
+              key: S3_ACCESS_KEY
+        - name: S3_SECRET_KEY
           valueFrom:
             secretKeyRef:
               name: models
-              key: MINIO_SECRET_KEY
-        - name: MINIO_SECURE_CONNECTION
+              key: S3_SECRET_KEY
+        - name: S3_SECURE
           value: "false"
-        - name: MINIO_HOST
+        - name: S3_ENDPOINT
           value: "http://minio:80"
-        - name: SECRET
+        - name: KEYCLOAK_SYSTEM_USER_SECRET
           value: some_secret_key
         - name: INFERENCE_HOST
           value: "127.0.0.1"

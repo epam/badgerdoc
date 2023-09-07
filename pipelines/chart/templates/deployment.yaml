@@ -42,26 +42,26 @@ spec:
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
         env:
-        - name: DB_USERNAME
+        - name: POSTGRES_USER
           valueFrom:
             secretKeyRef:
               name: pipelines
-              key: DB_USERNAME
-        - name: DB_PASSWORD
+              key: POSTGRES_USER
+        - name: POSTGRES_PASSWORD
           valueFrom:
             secretKeyRef:
               name: pipelines
-              key: DB_PASSWORD
-        - name: DB_NAME
+              key: POSTGRES_PASSWORD
+        - name: POSTGRES_DB
           value: "pipelines"
         - name: DB_URL
           valueFrom:
             secretKeyRef:
               name: pipelines
               key: DB_URL
-        - name: DB_HOST
+        - name: POSTGRES_HOST
           value: "postgres-postgresql"
-        - name: S3_CREDENTIALS_PROVIDER
+        - name: S3_PROVIDER
           value: "minio"
         - name: MINIO_SECURE_CONNECTION
           value: "false"
@@ -77,7 +77,7 @@ spec:
             secretKeyRef:
               name: pipelines
               key: MINIO_SECRET_KEY
-        - name: KEYCLOAK_URI
+        - name: KEYCLOAK_HOST
           valueFrom:
             secretKeyRef:
               name: users
