@@ -297,10 +297,10 @@ async def execute_in_annotation_microservice(
     and triggers tasks creation in it"""
     job_id = created_job.id
 
-    if ROOT_PATH:
-        callback_url = f"{JOBS_SERVICE_HOST}/{ROOT_PATH}/jobs/{job_id}"
-    else:
-        callback_url = f"{JOBS_SERVICE_HOST}/jobs/{job_id}"
+    # if ROOT_PATH:
+    #     callback_url = f"{JOBS_SERVICE_HOST}/{ROOT_PATH}/jobs/{job_id}"
+    # else:
+    callback_url = f"{JOBS_SERVICE_HOST}/jobs/{job_id}"
 
     headers = {
         "X-Current-Tenant": current_tenant,
