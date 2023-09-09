@@ -6,10 +6,11 @@ from dotenv import find_dotenv, load_dotenv
 from requests import RequestException
 
 from annotation.logger import Logger
+from annotation.utils import get_service_uri
 
 load_dotenv(find_dotenv())
-USERS_SERVICE_HOST = os.environ.get("USERS_SERVICE_HOST", "")
-USERS_GET_USER_URL = f"http://{USERS_SERVICE_HOST}/users"
+USERS_SERVICE_HOST = get_service_uri("USERS_")
+USERS_GET_USER_URL = f"{USERS_SERVICE_HOST}/users"
 
 
 class GetUserInfoException(Exception):

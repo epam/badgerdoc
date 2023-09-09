@@ -598,7 +598,7 @@ async def get_annotator_username(
     try:
         _, user_data = await fetch(
             method="GET",
-            url=f"http://{USERS_HOST}/users/{job_annotator_uuid}",
+            url=f"{USERS_HOST}/users/{job_annotator_uuid}",
             headers=headers,
             raise_for_status=True,
         )
