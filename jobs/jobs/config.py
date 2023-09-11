@@ -16,6 +16,14 @@ def get_version() -> str:
 
     return default
 
+def get_service_uri(prefix: str) -> str:  # noqa
+    service_scheme = os.getenv(f"{prefix}SERVICE_SCHEME")
+    service_host = os.getenv(f"{prefix}SERVICE_HOST")
+    service_port = os.getenv(f"{prefix}SERVICE_PORT")
+    if service_port and service_host and service_scheme:
+        return f"{service_scheme}://{service_host}:{service_port}"
+    return ""
+
 
 API_current_version = get_version()
 
@@ -33,15 +41,14 @@ POSTGRESQL_JOBMANAGER_DATABASE_URI = (
     f"/{POSTGRES_DB}"
 )
 
-ASSETS_SERVICE_HOST = os.environ.get("ASSETS_SERVICE_HOST")
 KEYCLOAK_HOST = os.environ.get("KEYCLOAK_HOST", "")
-USERS_HOST = os.environ.get("USERS_HOST")
+USERS_HOST = get_service_uri('USERS_')
 
-PIPELINES_SERVICE_HOST = f"http://{os.getenv('PIPELINES_SERVICE_HOST')}"
-ASSETS_SERVICE_HOST = f"http://{os.getenv('ASSETS_SERVICE_HOST')}"
-ANNOTATION_SERVICE_HOST = f"http://{os.getenv('ANNOTATION_SERVICE_HOST')}"
-TAXONOMY_SERVICE_HOST = f"http://{os.getenv('TAXONOMY_SERVICE_HOST')}"
-JOBS_SERVICE_HOST = f"http://{os.getenv('JOBS_SERVICE_HOST')}"
+PIPELINES_SERVICE_HOST = get_service_uri('PIPELINES_')
+ASSETS_SERVICE_HOST = get_service_uri('ASSETS_')
+ANNOTATION_SERVICE_HOST = get_service_uri('ANNOTATION_')
+TAXONOMY_SERVICE_HOST = get_service_uri('TAXONOMY_')
+JOBS_SERVICE_HOST = get_service_uri('JOBS_')
 
 PAGINATION_THRESHOLD = 7
 PROVIDE_JWT_IF_NO_ANY = True
