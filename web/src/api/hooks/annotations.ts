@@ -97,10 +97,11 @@ async function fetchLatestAnnotations(
     pageNumbers?: number[],
     userId?: string
 ): Promise<AnnotationsResponse> {
+    const pageNums = pageNumbers?.map((pageNumber) => `page_numbers=${pageNumber}`);
     const revId = revisionId || 'latest';
     const user = userId ? `&user_id=${userId}` : '';
     return useBadgerFetch<AnnotationsResponse>({
-        url: `${namespace}/annotation/${jobId}/${fileId}/${revId}?${user}`,
+        url: `${namespace}/annotation/${jobId}/${fileId}/${revId}?${pageNums?.join('&')}${user}`,
         method: 'get',
         withCredentials: true
     })();

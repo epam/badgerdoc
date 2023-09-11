@@ -12,21 +12,19 @@ import { cloneDeep, isEqual } from 'lodash';
 import { Task, TTaskUsers } from 'api/typings/tasks';
 import { ApiError } from 'api/api-error';
 import {
+    AnnotationsResponse,
     DocumentLink,
-    useAddAnnotationsMutation,
-    useLatestAnnotations
+    useAddAnnotationsMutation
 } from 'api/hooks/annotations';
 import { useSetTaskFinishedMutation, useSetTaskState, useTaskById } from 'api/hooks/tasks';
 import { useCategoriesByJob } from 'api/hooks/categories';
 import { useDocuments } from 'api/hooks/documents';
 import { useJobById } from 'api/hooks/jobs';
-import { useTokens } from 'api/hooks/tokens';
 import {
     Category,
     CategoryDataAttributeWithValue,
     ExternalViewerState,
     FileDocument,
-    FilterWithDocumentExtraOption,
     Label,
     Link,
     Operators,
@@ -37,7 +35,12 @@ import {
 import { Job } from 'api/typings/jobs';
 import { FileMetaInfo } from 'pages/document/document-page-sidebar-content/document-page-sidebar-content';
 
-import { QueryObserverResult, RefetchOptions, RefetchQueryFilters } from 'react-query';
+import {
+    QueryObserverResult,
+    RefetchOptions,
+    RefetchQueryFilters,
+    UseQueryResult
+} from 'react-query';
 import {
     Annotation,
     AnnotationBoundType,
@@ -57,6 +60,7 @@ import useSyncScroll, { SyncScrollValue } from 'shared/hooks/use-sync-scroll';
 import { PageSize } from '../../shared/components/document-pages/document-pages';
 import {
     defaultExternalViewer,
+    getAnnotationsWithAppliedChanges,
     getCategoryDataAttrs,
     isValidCategoryType,
     mapAnnDataAttrs,
@@ -73,6 +77,10 @@ import { useNotifications } from 'shared/components/notifications';
 import { Text, Panel } from '@epam/loveship';
 import { getError } from 'shared/helpers/get-error';
 import { removeDuplicatesById } from './utils';
+import { useDocumentDataLazyLoading } from './use-document-data-lazy-loading';
+import { useDocumentDataFullLoading } from './use-document-data-full-loading';
+
+type WithFunctionStub<T> = T | (() => void);
 
 type ContextValue = SplitValidationValue &
     SyncScrollValue &
@@ -132,6 +140,7 @@ type ContextValue = SplitValidationValue &
         onLinkDeleted: (pageNum: number, annotationId: string | number, link: Link) => void;
         onCurrentPageChange: (page: number) => void;
         onClearModifiedPages: () => void;
+        clearAnnotationsChanges: () => void;
         onEmptyAreaClick: () => void;
         onAnnotationDoubleClick: (annotation: Annotation) => void;
         onAnnotationCopyPress: (pageNum: number, annotationId: string | number) => void;
@@ -155,6 +164,15 @@ type ContextValue = SplitValidationValue &
         linksFromApi?: DocumentLink[];
         setCurrentDocumentUserId: (userId?: string) => void;
         currentDocumentUserId?: string;
+        getNextDocumentItems: WithFunctionStub<
+            (startIndex: number, stopIndex: number) => Promise<void>
+        >;
+        setAvailableRenderedPagesRange: WithFunctionStub<
+            ({ begin, end }: { begin: number; end: number }) => void
+        >;
+        isDocumentPageDataLoaded: (pageIndex: number) => boolean;
+        latestAnnotationsResultData: AnnotationsResponse | undefined;
+        areLatestAnnotationsFetching: boolean;
     };
 
 type ProviderProps = {
@@ -173,7 +191,19 @@ const TaskAnnotatorContext = createContext<ContextValue | undefined>(undefined);
 const dataTabDefaultDisableState = true;
 const defaultPageWidth: number = 0;
 const defaultPageHeight: number = 0;
-const PageTokensChunkSize: number = 5;
+const defaultDocumentData = {
+    latestAnnotationsResult: {
+        isFetching: true,
+        isLoading: true,
+        refetch: () => {}
+    } as UseQueryResult<AnnotationsResponse>,
+    latestAnnotationsResultData: undefined,
+    availableRenderedPagesRange: { begin: -1, end: -1 },
+    tokenPages: [],
+    setAvailableRenderedPagesRange: () => {},
+    getNextDocumentItems: () => {},
+    isDocumentPageDataLoaded: () => false
+};
 
 export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
     jobId,
@@ -208,6 +238,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
 
     const [currentPage, setCurrentPage] = useState<number>(1);
 
+    const [annotationsChanges, setAnnotationsChanges] = useState<Record<number, Annotation[]>>({});
     const [modifiedPages, setModifiedPages] = useState<number[]>([]);
     const [tabValue, setTabValue] = useState<string>('Categories');
     const [selectionType, setSelectionType] = useState<
@@ -223,6 +254,9 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
     >({});
     const [externalViewer, setExternalViewer] =
         useState<ExternalViewerState>(defaultExternalViewer);
+    const [selectedRelatedDoc, setSelectedRelatedDoc] = useState<FileDocument | undefined>(
+        undefined
+    );
 
     const [tableMode, setTableMode] = useState<boolean>(false);
     const [tableCellCategory, setTableCellCategory] = useState<string | number | undefined>('');
@@ -234,9 +268,6 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         gutters: undefined,
         cells: undefined
     });
-
-    const [tokensPagesState, setTokensPagesState] = useState<PageInfo[]>([]);
-    const [tokenPagesChunk, setTokenPagesChunk] = useState<number>(0);
 
     const [storedParams, setStoredParams] = useState<{
         [k in typeof toolNames[number]]: Maybe<PaperToolParams>;
@@ -274,22 +305,25 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         refetchTask = annotationTaskResponse.refetch;
     }
 
-    const getJobId = (): number | undefined => (task ? task.job.id : jobId);
+    const getJobId = () => (task ? task.job.id : jobId);
+    const getFileId = () => (task ? task.file.id : fileMetaInfo?.id);
 
-    const getFileId = (): number | undefined => (task ? task.file.id : fileMetaInfo?.id);
     const { isOwner, taskUsers } = useTaskUsers(task);
 
     const { data: job } = useJobById({ jobId: task?.job.id });
 
-    let pageNumbers: number[] = [];
+    const pageNumbers = useMemo(() => {
+        let result: number[] = [];
 
-    if (task) {
-        pageNumbers = task.pages;
-    } else if (fileMetaInfo?.pages) {
-        for (let i = 0; i < fileMetaInfo.pages; i++) {
-            pageNumbers.push(i + 1);
+        if (task) {
+            result = task.pages;
+        } else if (fileMetaInfo?.pages) {
+            result = Array.from({ length: fileMetaInfo.pages }, (_, index) => index + 1);
         }
-    }
+
+        return result;
+    }, [fileMetaInfo?.pages, task]);
+
     const {
         data: { pages: categories } = {},
         refetch: refetchCategories,
@@ -316,60 +350,18 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         }
     }, [selectionType]);
 
-    const documentFilters: FilterWithDocumentExtraOption<keyof FileDocument>[] = [];
-
-    documentFilters.push({
-        field: 'id',
-        operator: Operators.EQ,
-        value: getFileId()
-    });
     const documentsResult = useDocuments(
         {
-            filters: documentFilters
+            filters: [
+                {
+                    field: 'id',
+                    operator: Operators.EQ,
+                    value: getFileId()
+                }
+            ]
         },
         { enabled: false }
     );
-
-    const latestAnnotationsResult = useLatestAnnotations(
-        {
-            jobId: getJobId(),
-            fileId: getFileId(),
-            revisionId,
-            pageNumbers,
-            userId:
-                job?.validation_type === 'extensive_coverage' && !revisionId ? task?.user_id : ''
-        },
-        { enabled: Boolean(task || job) }
-    );
-
-    const tokenRes = useTokens(
-        {
-            fileId: getFileId(),
-            pageNumbers: pageNumbers.slice(tokenPagesChunk, tokenPagesChunk + PageTokensChunkSize)
-        },
-        { enabled: tokenPagesChunk < pageNumbers.length }
-    );
-
-    useEffect(() => {
-        if (tokenRes.status === 'success') {
-            if (tokenRes.data && tokenRes.data.length && tokenPagesChunk < pageNumbers.length) {
-                let newTokensPages = [];
-
-                tokenRes.data.forEach((token) => {
-                    const thisTokenPage = tokensPagesState.find(
-                        (tokenPage: PageInfo) => tokenPage.page_num === token.page_num
-                    );
-
-                    if (!thisTokenPage) newTokensPages.push(token);
-
-                    setTokensPagesState([...tokensPagesState, ...tokenRes.data]);
-                    setTokenPagesChunk(tokenPagesChunk + PageTokensChunkSize);
-                });
-            }
-        }
-    }, [tokenRes]);
-
-    const tokenPages = tokensPagesState;
 
     if (!fileMetaInfo) {
         fileMetaInfo = useMemo(
@@ -381,12 +373,64 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         );
     }
 
+    const isDocumentExist = !!documentsResult.data;
+    const isSplitValidation = task?.is_validation && job?.validation_type === 'extensive_coverage';
+    const isOnePDFLoadingFlow =
+        !isSplitValidation && !selectedRelatedDoc && fileMetaInfo.extension === '.pdf';
+
+    const documentDataViaLazyLoading = useDocumentDataLazyLoading(
+        {
+            task,
+            job,
+            jobId,
+            fileMetaInfo,
+            revisionId,
+            pageNumbers,
+            setSelectedAnnotation
+        },
+        { enabled: isDocumentExist && isOnePDFLoadingFlow }
+    );
+
+    const documentDataViaFullLoading = useDocumentDataFullLoading(
+        {
+            task,
+            job,
+            jobId,
+            fileMetaInfo,
+            revisionId,
+            pageNumbers
+        },
+        { enabled: isDocumentExist && !isOnePDFLoadingFlow }
+    );
+
+    let documentData;
+
+    // TODO: This is a workaround to use different loading approaches in one big context.
+    // For PDF and other type of doc different context should be used.
+    // This logic should be moved in appropriate places where it's needed (this
+    // requires refactoring).
+    if (!isDocumentExist) {
+        documentData = defaultDocumentData;
+    } else {
+        documentData = isOnePDFLoadingFlow
+            ? documentDataViaLazyLoading
+            : documentDataViaFullLoading;
+    }
+
+    const {
+        latestAnnotationsResult,
+        latestAnnotationsResultData,
+        availableRenderedPagesRange,
+        tokenPages,
+        setAvailableRenderedPagesRange,
+        getNextDocumentItems,
+        isDocumentPageDataLoaded
+    } = documentData;
+
     useEffect(() => {
         if (task || job || revisionId) {
             setCurrentPage(pageNumbers[0]);
             documentsResult.refetch();
-            latestAnnotationsResult.refetch();
-            tokenRes.refetch();
         }
     }, [task, job, revisionId]);
 
@@ -395,18 +439,26 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         selectedCategory,
         currentPage,
         selectionType,
-        allAnnotations,
         (prevPage, links, annId) =>
             selectedAnnotation && onAnnotationEdited(prevPage, annId, links),
         setSelectedCategory
     );
+
+    const addNewAnnotationChange = (pageNum: number, newAnnotation: Annotation) => {
+        setAnnotationsChanges((prevState) => {
+            const prevAnnotations = prevState[pageNum] ?? allAnnotations[pageNum] ?? [];
+            return {
+                ...prevState,
+                [pageNum]: [...prevAnnotations, newAnnotation]
+            };
+        });
+    };
 
     const createAnnotation = (
         pageNum: number,
         annData: Annotation,
         category: Category | undefined = selectedCategory
     ): Annotation => {
-        const pageAnnotations = allAnnotations[pageNum] ?? [];
         const hasTaxonomy = !!annData.data?.dataAttributes.find(
             (attr: CategoryDataAttributeWithValue) => attr.type === 'taxonomy'
         );
@@ -420,11 +472,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             labels: getAnnotationLabels(pageNum.toString(), annData, category)
         };
 
-        setAllAnnotations((prevState) => ({
-            ...prevState,
-            [pageNum]: [...pageAnnotations, newAnnotation]
-        }));
-
+        addNewAnnotationChange(pageNum, newAnnotation);
         setModifiedPages((prevState) => {
             return Array.from(new Set([...prevState, pageNum]));
         });
@@ -463,15 +511,11 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             setSelectedAnnotation(undefined);
         }
 
-        setAllAnnotations((prevState) => {
-            for (let k in prevState) {
-                prevState[k].map((annList) =>
-                    annList?.links?.filter((link) => link.to !== annotationId)
-                );
-            }
+        setAnnotationsChanges((prevState) => {
+            const prevAnnotations = prevState[pageNum] ?? allAnnotations[pageNum] ?? [];
             return {
                 ...prevState,
-                [pageNum]: pageAnnotations.filter((ann) => {
+                [pageNum]: prevAnnotations.filter((ann) => {
                     if (
                         anntn &&
                         anntn.children &&
@@ -658,17 +702,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         newAnnotation.bound.y = (pageSize?.height || 0) / 2 - newAnnotation.bound.height / 2;
         newAnnotation.id = Date.now();
 
-        const pageAnnotations = allAnnotations[pageNum] ?? [];
-
-        setAllAnnotations((prevState) => ({
-            ...prevState,
-            [pageNum]: [
-                ...pageAnnotations,
-                {
-                    ...newAnnotation
-                }
-            ]
-        }));
+        addNewAnnotationChange(pageNum, newAnnotation);
     };
 
     // swap annotation state and its saved state in undoList
@@ -797,56 +831,61 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
 
     const addAnnotationMutation = useAddAnnotationsMutation();
 
+    const applyModificationChange = (
+        annotationId: string | number,
+        pageNum: number,
+        changes: Partial<Annotation>
+    ) => {
+        setAnnotationsChanges((prevState) => {
+            const prevAnnotations = prevState[pageNum] ?? allAnnotations[pageNum] ?? [];
+
+            return {
+                ...prevState,
+                [pageNum]: prevAnnotations.map((ann) => {
+                    if (ann.id === annotationId) {
+                        return { ...ann, ...changes, id: annotationId };
+                    }
+
+                    return ann;
+                })
+            };
+        });
+    };
+
     const modifyAnnotation = (
         pageNum: number,
         id: string | number,
         changes: Partial<Annotation>
     ) => {
-        setAllAnnotations((prevState) => {
-            if (pageNum === -1) {
-                pageNum = (Object.keys(prevState) as unknown as Array<number>).find((key: number) =>
-                    prevState[key].find((ann) => ann.id == id)
-                )!;
-            }
-            const pageAnnotations = prevState[pageNum] ?? [];
-            return {
-                ...prevState,
-                [pageNum]: pageAnnotations.map((ann) => {
-                    if (ann.id === id) {
-                        return { ...ann, ...changes, id };
-                    }
-                    return ann;
-                })
-            };
-        });
+        if (pageNum === -1) {
+            const pageNumber = Object.keys(allAnnotations).find((key) =>
+                allAnnotations[Number(key)].find((ann) => ann.id == id)
+            );
+
+            pageNum = Number(pageNumber);
+        }
+
+        applyModificationChange(id, pageNum, changes);
+
         setModifiedPages((prevState) => {
             return Array.from(new Set([...prevState, pageNum]));
         });
     };
 
     const onLinkDeleted = (pageNum: number, id: string | number, linkToDel: Link) => {
-        setAllAnnotations((prevState) => {
-            const pageAnnotations = prevState[pageNum] ?? [];
-            return {
-                ...prevState,
-                [pageNum]: pageAnnotations.map((ann) => {
-                    if (ann.id === id) {
-                        return {
-                            ...ann,
-                            links: ann.links?.filter((link) => {
-                                return (
-                                    link.category_id === linkToDel.category_id &&
-                                    link.page_num === linkToDel.page_num &&
-                                    link.to !== linkToDel.to &&
-                                    link.type === linkToDel.type
-                                );
-                            })
-                        };
-                    }
-                    return ann;
-                })
-            };
-        });
+        const prevAnnotations = annotationsChanges[pageNum] ?? allAnnotations[pageNum] ?? [];
+        const annotation = prevAnnotations.find((ann) => ann.id === id);
+        const linksChanges = {
+            links: annotation!.links?.filter(
+                (link) =>
+                    link.category_id === linkToDel.category_id &&
+                    link.page_num === linkToDel.page_num &&
+                    link.to !== linkToDel.to &&
+                    link.type === linkToDel.type
+            )
+        };
+
+        applyModificationChange(id, pageNum, linksChanges);
     };
 
     const updateUndoList = (
@@ -881,9 +920,9 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
     };
 
     const onSaveTask = async () => {
-        if (!task || !latestAnnotationsResult.data) return;
+        if (!task || !latestAnnotationsResultData) return;
 
-        let { revision, pages } = latestAnnotationsResult.data;
+        let { revision, pages } = latestAnnotationsResultData;
 
         const selectedLabelsId: string[] = selectedLabels.map((obj) => obj.id) ?? [];
 
@@ -899,7 +938,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         } else {
             pages = mapModifiedAnnotationPagesToApi(
                 modifiedPages,
-                allAnnotations,
+                annotationsChanges,
                 tokensByPages,
                 tokenPages?.length ? tokenPages : pages,
                 annDataAttrs,
@@ -933,7 +972,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
                 links: documentLinksValues.linksToApi
             });
             onSaveTaskSuccess();
-            latestAnnotationsResult.refetch();
+            await latestAnnotationsResult.refetch();
             refetchTask();
             documentLinksValues?.setDocumentLinksChanged?.(false);
         } catch (error) {
@@ -954,13 +993,14 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
 
     const validationValues = useValidation({
         latestAnnotationsResult,
+        latestAnnotationsResultData,
         task,
         currentPage,
         taskUsers,
         isOwner,
         onCloseDataTab,
         onSaveTask,
-        allAnnotations,
+        annotationsChanges,
         tokensByPages,
         tokenPages,
         annDataAttrs,
@@ -1013,53 +1053,72 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         task,
         taskPages
     });
-    const taxonLabels = useAnnotationsTaxons(latestAnnotationsResult.data?.pages);
+    const taxonLabels = useAnnotationsTaxons(latestAnnotationsResultData?.pages);
     const comparedTaxonLabels: Map<string, Taxon> = useMemo(
         () => new Map([...taxonLabels, ...splitValidation.taxonLabels]),
         [taxonLabels, splitValidation.taxonLabels]
     );
     const { getAnnotationLabels, mapAnnotationPagesFromApi } = useAnnotationsMapper(
         comparedTaxonLabels,
-        [latestAnnotationsResult.data?.pages, comparedTaxonLabels]
+        [latestAnnotationsResultData?.pages, comparedTaxonLabels]
     );
+
     useEffect(() => {
-        if (!latestAnnotationsResult.data || !categories) return;
-        const latestLabelIds = latestAnnotationsResult.data.categories;
+        if (!latestAnnotationsResultData || !categories || latestAnnotationsResult.isLoading)
+            return;
+        const latestLabelIds = latestAnnotationsResultData.categories;
 
         setLatestLabelsId(latestLabelIds);
 
         const result = mapAnnotationPagesFromApi(
             (page: PageInfo) => page.page_num.toString(),
-            latestAnnotationsResult.data.pages,
+            latestAnnotationsResultData.pages,
             categories
         );
 
-        setAllAnnotations(removeDuplicatesById(result));
+        const annotationsWithChanges = getAnnotationsWithAppliedChanges({
+            annotations: removeDuplicatesById(result),
+            annotationsChanges,
+            availableRenderedPagesRange,
+            allPageNumbers: pageNumbers
+        });
 
-        const annDataAttrsResult = mapAnnotationDataAttrsFromApi(
-            latestAnnotationsResult.data.pages
-        );
+        setAllAnnotations(annotationsWithChanges);
+
+        const annDataAttrsResult = mapAnnotationDataAttrsFromApi(latestAnnotationsResultData.pages);
         setAnnDataAttrs(annDataAttrsResult);
 
         if (
-            latestAnnotationsResult.data.pages.length === 0 ||
-            !latestAnnotationsResult.data.pages[0].size ||
-            latestAnnotationsResult.data.pages[0].size.width === 0 ||
-            latestAnnotationsResult.data.pages[0].size.height === 0
+            latestAnnotationsResultData.pages.length === 0 ||
+            !latestAnnotationsResultData.pages[0].size ||
+            latestAnnotationsResultData.pages[0].size.width === 0 ||
+            latestAnnotationsResultData.pages[0].size.height === 0
         )
             return;
-        setPageSize(latestAnnotationsResult.data.pages[0].size);
-    }, [latestAnnotationsResult.data, categories, mapAnnotationPagesFromApi]);
+        setPageSize(latestAnnotationsResultData.pages[0].size);
+    }, [
+        latestAnnotationsResultData,
+        categories,
+        mapAnnotationPagesFromApi,
+        annotationsChanges,
+        latestAnnotationsResult.isLoading,
+        pageNumbers
+    ]);
 
     const onClearModifiedPages = useCallback(async () => {
         setModifiedPages([]);
     }, []);
 
+    const clearAnnotationsChanges = useCallback(async () => {
+        setAnnotationsChanges({});
+    }, []);
+
     const { SyncedContainer } = useSyncScroll();
 
-    const linksFromApi = latestAnnotationsResult.data?.links_json;
+    const linksFromApi = latestAnnotationsResultData?.links_json;
+    const documentLinksValues = useDocumentLinks(setSelectedRelatedDoc, linksFromApi);
 
-    const documentLinksValues = useDocumentLinks(linksFromApi);
+    const areLatestAnnotationsFetching = latestAnnotationsResult.isFetching;
 
     const value = useMemo<ContextValue>(() => {
         return {
@@ -1109,6 +1168,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             onAnnotationTaskFinish,
             onCurrentPageChange,
             onClearModifiedPages,
+            clearAnnotationsChanges,
             setTabValue,
             onDataAttributesChange,
             onEmptyAreaClick,
@@ -1130,6 +1190,12 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             setCurrentDocumentUserId,
             currentDocumentUserId,
             SyncedContainer,
+            setAvailableRenderedPagesRange,
+            latestAnnotationsResultData,
+            areLatestAnnotationsFetching,
+            getNextDocumentItems,
+            selectedRelatedDoc,
+            isDocumentPageDataLoaded,
             ...splitValidation,
             ...documentLinksValues,
             ...validationValues
@@ -1162,10 +1228,15 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         selectedLabels,
         latestLabelsId,
         linksFromApi,
+        selectedRelatedDoc,
         documentLinksValues,
-        latestAnnotationsResult,
         validationValues,
-        currentDocumentUserId
+        currentDocumentUserId,
+        getNextDocumentItems,
+        setAvailableRenderedPagesRange,
+        latestAnnotationsResultData,
+        areLatestAnnotationsFetching,
+        isDocumentPageDataLoaded
     ]);
 
     return <TaskAnnotatorContext.Provider value={value}>{children}</TaskAnnotatorContext.Provider>;

@@ -30,13 +30,14 @@ import { getError } from 'shared/helpers/get-error';
 
 export type ValidationParams = {
     latestAnnotationsResult: UseQueryResult<AnnotationsResponse, unknown>;
+    latestAnnotationsResultData: AnnotationsResponse | undefined;
     task?: Task;
     currentPage: number;
     onCloseDataTab: () => void;
     isOwner: boolean;
     taskUsers: MutableRefObject<TTaskUsers>;
     onSaveTask: () => void;
-    allAnnotations: Record<number, Annotation[]>;
+    annotationsChanges: Record<number, Annotation[]>;
     tokensByPages: Record<number, PageToken[]>;
     tokenPages?: PageInfo[];
     annDataAttrs: Record<number, Array<CategoryDataAttributeWithValue>>;
@@ -69,13 +70,14 @@ export type ValidationValues = {
 
 export const useValidation = ({
     latestAnnotationsResult,
+    latestAnnotationsResultData,
     task,
     currentPage,
     taskUsers,
     isOwner,
     onCloseDataTab,
     onSaveTask,
-    allAnnotations,
+    annotationsChanges,
     tokensByPages,
     tokenPages,
     annDataAttrs,
@@ -190,14 +192,14 @@ export const useValidation = ({
     const addAnnotationMutation = useAddAnnotationsMutation();
 
     const onSaveEditClick = async () => {
-        if (!task || !latestAnnotationsResult.data || !tokenPages) return;
+        if (!task || !latestAnnotationsResultData || !tokenPages) return;
         setPages(invalidPages, setInvalidPages);
         setPages(validPages, setValidPages);
 
-        let { revision } = latestAnnotationsResult.data;
+        let { revision } = latestAnnotationsResultData;
         const pages = mapModifiedAnnotationPagesToApi(
             editedPages,
-            allAnnotations,
+            annotationsChanges,
             tokensByPages,
             tokenPages,
             annDataAttrs,

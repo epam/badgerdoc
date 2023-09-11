@@ -240,14 +240,14 @@ const addChildrenToAnnotation = (parent: Annotation, annotations: Annotation[]):
 
 export const mapModifiedAnnotationPagesToApi = (
     modifiedPagesNums: number[],
-    annotationsByPageNum: Record<number, Annotation[]>,
+    annotationChanges: Record<number, Annotation[]>,
     tokensByPages: Record<number, PageToken[]>,
     pages: PageInfo[],
     annotationDataAttrs: Record<number, Array<CategoryDataAttributeWithValue>>,
     defaultPageSize: { width: number; height: number }
 ): PageInfo[] => {
     const res = modifiedPagesNums.map((page_num) => {
-        const annotations = annotationsByPageNum[page_num];
+        const annotations = annotationChanges[page_num];
         const tokens = tokensByPages[page_num];
         const pageSize = pages.find((page) => page.page_num === page_num)?.size;
         const annotationWithChildren = annotations?.map((el) =>
@@ -361,4 +361,60 @@ export const mapTokenPagesFromApi = (
         });
     });
     return res;
+};
+
+export const mergeCachedArraysBasedOnCachedNumbers = <T = number>(
+    oldArray: T[],
+    newArray: T[],
+    cache: Set<number>,
+    callback = (v: any): number => v
+) => {
+    const newArrayValues = new Set(newArray.map((value) => callback(value)));
+    const oldValues = oldArray.filter((value) => {
+        const oldValue = callback(value);
+        const hasFreshValueInNewArray = newArrayValues.has(oldValue);
+
+        return cache.has(oldValue) && !hasFreshValueInNewArray;
+    });
+
+    return [
+        ...oldValues, // keep only required data from old cache which doesn't have fresh value in newArray
+        ...newArray
+    ];
+};
+
+type TPagesRange = { begin: number; end: number };
+
+export const getPageNumbersToKeepInCache = (
+    allPageNumbers: number[],
+    availableRenderedPagesRange: TPagesRange
+) => {
+    const availableRenderedPageNumbers = allPageNumbers.slice(
+        availableRenderedPagesRange.begin,
+        availableRenderedPagesRange.end + 1
+    );
+
+    return new Set(availableRenderedPageNumbers);
+};
+
+type TAnnotationsWithAppliedChangesParams = {
+    annotations: Record<string, Annotation[]>;
+    annotationsChanges: Record<number, Annotation[]>;
+    allPageNumbers: number[];
+    availableRenderedPagesRange: TPagesRange;
+};
+
+export const getAnnotationsWithAppliedChanges = ({
+    annotations,
+    annotationsChanges,
+    allPageNumbers,
+    availableRenderedPagesRange
+}: TAnnotationsWithAppliedChangesParams) => {
+    const availableRenderedPageNumbers = new Set(
+        allPageNumbers.slice(availableRenderedPagesRange.begin, availableRenderedPagesRange.end + 1)
+    );
+
+    return Object.entries(annotationsChanges)
+        .filter(([pageNum]) => availableRenderedPageNumbers.has(Number(pageNum)))
+        .reduce((acc, [pageNum, changes]) => ({ ...acc, [pageNum]: changes }), annotations);
 };

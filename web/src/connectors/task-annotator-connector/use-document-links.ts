@@ -13,10 +13,10 @@ export interface DocumentLinksValue {
     setDocumentLinksChanged?: Dispatch<SetStateAction<boolean>>;
 }
 
-export const useDocumentLinks = (linksFromApi?: DocumentLink[]): DocumentLinksValue => {
-    const [selectedRelatedDoc, setSelectedRelatedDoc] = useState<FileDocument | undefined>(
-        undefined
-    );
+export const useDocumentLinks = (
+    setSelectedRelatedDoc: Dispatch<SetStateAction<FileDocument | undefined>>,
+    linksFromApi?: DocumentLink[]
+): DocumentLinksValue => {
     const [documentLinks, setDocumentLinks] = useState<DocumentLinkWithName[]>();
     const [documentLinksChanged, setDocumentLinksChanged] = useState(false);
 
@@ -79,10 +79,9 @@ export const useDocumentLinks = (linksFromApi?: DocumentLink[]): DocumentLinksVa
             linksToApi,
             onLinkChanged,
             onRelatedDocClick,
-            selectedRelatedDoc,
             setDocumentLinksChanged
         }),
-        [documentLinks, documentLinksChanged, linksToApi, selectedRelatedDoc]
+        [documentLinks, documentLinksChanged, linksToApi]
     );
 };
 

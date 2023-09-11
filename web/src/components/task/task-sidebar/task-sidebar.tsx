@@ -82,6 +82,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
         onEditClick,
         onClearTouchedPages,
         onClearModifiedPages,
+        clearAnnotationsChanges,
         onAddTouchedPage,
         onCancelClick,
         onSaveEditClick,
@@ -321,6 +322,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
         await onSaveTask();
         onClearTouchedPages();
         onClearModifiedPages();
+        clearAnnotationsChanges();
         refetch();
     };
 

@@ -1,9 +1,10 @@
-import React, { CSSProperties, FC, useEffect, useMemo, useRef } from 'react';
+import React, { CSSProperties, FC, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTaskAnnotatorContext } from 'connectors/task-annotator-connector/task-annotator-context';
 import { FileMetaInfo } from 'pages/document/document-page-sidebar-content/document-page-sidebar-content';
 import { Document } from 'react-pdf';
 import { FixedSizeList } from 'react-window';
 import AutoSizer from 'react-virtualized-auto-sizer';
+import InfiniteLoader from 'react-window-infinite-loader';
 import { getAuthHeaders } from 'shared/helpers/auth-tools';
 import { getPdfDocumentAddress } from 'shared/helpers/get-pdf-document-address';
 import DocumentSinglePage from '../../document-single-page';
@@ -11,6 +12,8 @@ import { Spinner } from '@epam/loveship';
 import { ANNOTATION_LABEL_ID_PREFIX } from 'shared/constants/annotations';
 import { PageSize, DocumentLoadedCallback } from '../../types';
 import { Annotation } from 'shared/components/annotator';
+import { useDebouncedCallback } from 'use-debounce';
+import { scrollIntoViewIfNeeded } from 'shared/helpers/scroll-into-view-if-needed';
 
 type DocumentPDFProps = {
     pageNumbers: number[];
@@ -75,26 +78,13 @@ const PDFPageRenderer: FC<PDFPageRendererProps> = ({
     );
 };
 
-const isPointInsideRect = (point: { x: number; y: number }, rect: DOMRect): boolean => {
-    return (
-        point.x >= rect.left &&
-        point.x <= rect.right &&
-        point.y >= rect.top &&
-        point.y <= rect.bottom
-    );
-};
-
-const isRectIsFullyInAnotherRect = (rectIn: DOMRect, rectOut: DOMRect): boolean => {
-    return (
-        isPointInsideRect({ x: rectIn.left, y: rectIn.top }, rectOut) &&
-        isPointInsideRect({ x: rectIn.right, y: rectIn.top }, rectOut) &&
-        isPointInsideRect({ x: rectIn.right, y: rectIn.bottom }, rectOut) &&
-        isPointInsideRect({ x: rectIn.left, y: rectIn.bottom }, rectOut)
-    );
-};
-
 const getAnnotationLabelElement = ({ id }: { id: Annotation['id'] }): HTMLDivElement | null =>
     document.querySelector(`#${ANNOTATION_LABEL_ID_PREFIX}${id}`);
+
+// we trigger request a bit earlier in order to quicker show some
+// data for the next scrolled PDF pages
+const LOADING_THRESHOLD_BUFFER = 2;
+const OVERSCAN_RENDERED_PAGES_COUNT = 5;
 
 const DocumentPDF: React.FC<DocumentPDFProps> = ({
     fileMetaInfo,
@@ -106,7 +96,12 @@ const DocumentPDF: React.FC<DocumentPDFProps> = ({
     editable,
     goToPage
 }) => {
-    const { selectedAnnotation } = useTaskAnnotatorContext();
+    const {
+        selectedAnnotation,
+        setAvailableRenderedPagesRange,
+        getNextDocumentItems,
+        isDocumentPageDataLoaded
+    } = useTaskAnnotatorContext();
     const pdfListData = useMemo<ListItemData>(
         () => ({
             pageNumbers,
@@ -117,13 +112,14 @@ const DocumentPDF: React.FC<DocumentPDFProps> = ({
         }),
         [pageNumbers, fullScale, pageSize, containerRef, editable]
     );
-    const apiToUiPageNumbersMap = useMemo<Map<number, number>>(() => {
+    const apiToUiPageNumbersMap = useMemo(() => {
         const map = pageNumbers.map((apiPageNum, uiPageNum) => [apiPageNum, uiPageNum] as const);
         return new Map(map);
     }, [pageNumbers]);
-    const pdfPagesListRef = useRef<FixedSizeList>(null);
+    const pdfPagesListRef = useRef<FixedSizeList | null>(null);
     const listViewContainerRef = useRef<HTMLDivElement>(null);
     const itemSize = Number(pageSize ? pageSize.height : 0) * fullScale;
+    const loadMoreItems = useDebouncedCallback(getNextDocumentItems, 500);
 
     /**
      * goToPage - the ordering number of page which is currently shown on UI (starts from 1),
@@ -143,33 +139,41 @@ const DocumentPDF: React.FC<DocumentPDFProps> = ({
 
     // in case of scrolling to some annotation
     useEffect(() => {
-        if (!selectedAnnotation || !pdfPagesListRef.current || !listViewContainerRef.current) {
-            return;
-        }
-
-        const label = getAnnotationLabelElement(selectedAnnotation);
-
-        if (label) {
-            const isLabelVisible = isRectIsFullyInAnotherRect(
-                label.getBoundingClientRect(),
-                listViewContainerRef.current.getBoundingClientRect()
-            );
-
-            if (!isLabelVisible) {
-                label.scrollIntoView();
+        // give the browser chance to make additional painting (to wait for changes with
+        // annotations like creation of new annotation)
+        requestAnimationFrame(() => {
+            if (!selectedAnnotation || !pdfPagesListRef.current || !listViewContainerRef.current) {
+                return;
             }
-        } else {
-            const pageNum = apiToUiPageNumbersMap.get(selectedAnnotation.pageNum!)!;
-            pdfPagesListRef.current.scrollToItem(pageNum - 1);
 
-            // scroll to the annotation (in X and Y dimension) in async mode since
-            // need to wait until scrollToItem() method loads the page -> DOM will
-            // be ready with needed annotation
-            requestAnimationFrame(() => {
-                getAnnotationLabelElement(selectedAnnotation)?.scrollIntoView();
-            });
-        }
-    }, [selectedAnnotation]);
+            const label = getAnnotationLabelElement(selectedAnnotation);
+
+            if (label) {
+                scrollIntoViewIfNeeded(listViewContainerRef.current, label);
+            } else {
+                const pageNum = apiToUiPageNumbersMap.get(selectedAnnotation.pageNum!)!;
+                pdfPagesListRef.current.scrollToItem(pageNum - 1);
+
+                // scroll to the annotation (in X and Y dimension) in async mode since
+                // need to wait until scrollToItem() method loads the page -> DOM will
+                // be ready with needed annotation
+                requestAnimationFrame(() => {
+                    getAnnotationLabelElement(selectedAnnotation)?.scrollIntoView();
+                });
+            }
+        });
+    }, [apiToUiPageNumbersMap, selectedAnnotation]);
+
+    const [isDocumentLoaded, setIsDocumentLoaded] = useState(false);
+    const onDocumentLoadSuccess = useCallback(
+        (pdf) => {
+            handleDocumentLoaded(pdf);
+            setIsDocumentLoaded(true);
+        },
+        [handleDocumentLoaded]
+    );
+
+    const isDocumentReadyForRender = isDocumentLoaded && itemSize > 0;
 
     return (
         <>
@@ -180,26 +184,55 @@ const DocumentPDF: React.FC<DocumentPDFProps> = ({
                         <Spinner color="sky" />
                     </div>
                 }
-                onLoadSuccess={handleDocumentLoaded}
+                onLoadSuccess={onDocumentLoadSuccess}
                 options={{ httpHeaders: getAuthHeaders() }}
             >
-                <AutoSizer>
-                    {({ width, height }: PageSize) => (
-                        <FixedSizeList
-                            outerRef={listViewContainerRef}
-                            ref={pdfPagesListRef}
-                            width={width}
-                            height={height}
-                            itemCount={pageNumbers.length}
-                            itemData={pdfListData}
-                            overscanCount={5}
-                            style={fixedSizeListStyle}
-                            itemSize={itemSize}
-                        >
-                            {PDFPageRenderer}
-                        </FixedSizeList>
-                    )}
-                </AutoSizer>
+                {isDocumentReadyForRender && (
+                    <AutoSizer>
+                        {({ width, height }: PageSize) => {
+                            const countOfVisiblePages = Math.ceil(height / itemSize);
+                            const loadingThreshold = countOfVisiblePages + LOADING_THRESHOLD_BUFFER;
+
+                            return (
+                                <InfiniteLoader
+                                    isItemLoaded={isDocumentPageDataLoaded}
+                                    itemCount={pageNumbers.length}
+                                    loadMoreItems={loadMoreItems}
+                                    threshold={loadingThreshold}
+                                    minimumBatchSize={
+                                        countOfVisiblePages + OVERSCAN_RENDERED_PAGES_COUNT
+                                    }
+                                >
+                                    {({ onItemsRendered, ref }) => (
+                                        <FixedSizeList
+                                            ref={(listRef) => {
+                                                ref(listRef);
+                                                pdfPagesListRef.current = listRef;
+                                            }}
+                                            outerRef={listViewContainerRef}
+                                            onItemsRendered={(props) => {
+                                                setAvailableRenderedPagesRange({
+                                                    begin: props.overscanStartIndex,
+                                                    end: props.overscanStopIndex
+                                                });
+                                                onItemsRendered(props);
+                                            }}
+                                            width={width}
+                                            height={height}
+                                            itemCount={pageNumbers.length}
+                                            itemData={pdfListData}
+                                            overscanCount={OVERSCAN_RENDERED_PAGES_COUNT}
+                                            style={fixedSizeListStyle}
+                                            itemSize={itemSize}
+                                        >
+                                            {PDFPageRenderer}
+                                        </FixedSizeList>
+                                    )}
+                                </InfiniteLoader>
+                            );
+                        }}
+                    </AutoSizer>
+                )}
             </Document>
         </>
     );
