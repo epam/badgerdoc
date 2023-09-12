@@ -3,7 +3,8 @@
     display: flex;
     flex-wrap: wrap;
     flex: 1;
-    justify-content: space-between;
+    justify-content: flex-start;
+    column-gap: 16px;
 }
 
 .divider {
@@ -12,12 +13,12 @@
 }
 .container {
     width: 100%;
-    padding-top: 12px;
 }
 .wrapper {
     flex-shrink: 1;
     min-height: 0;
     height: 100%;
+    width: 100%;
     display: flex;
     flex-direction: column;
 }

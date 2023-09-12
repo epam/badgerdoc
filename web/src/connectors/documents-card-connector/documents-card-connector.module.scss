@@ -1,5 +1,8 @@
 .card-container {
+    overflow: auto;
     display: flex;
     flex-wrap: wrap;
-    // overflow-y: scroll;
+    flex: 1 1;
+    justify-content: flex-start;
+    column-gap: 16px;
 }

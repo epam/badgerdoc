@@ -112,7 +112,7 @@ export const DocumentCardViewItem: FC<DocumentCardViewProps> = ({
                                     }
                                 }}
                             >
-                                <Checkbox value={chooseFile} onValueChange={() => {}} />
+                               {!isPieces && <Checkbox value={chooseFile} onValueChange={() => {}} />}
                             </div>
                         </div>
                         {jobs && jobs.length ? (
