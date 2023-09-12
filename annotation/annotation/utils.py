@@ -1,3 +1,6 @@
+import os
+
+
 def get_test_db_url(main_db_url: str) -> str:
     """
     Takes main database url and returns test database url.
@@ -10,3 +13,12 @@ def get_test_db_url(main_db_url: str) -> str:
     main_db_url_split[-1] = "test_db"
     result = "/".join(main_db_url_split)
     return result
+
+
+def get_service_uri(prefix: str) -> str:  # noqa
+    service_scheme = os.getenv(f"{prefix}SERVICE_SCHEME")
+    service_host = os.getenv(f"{prefix}SERVICE_HOST")
+    service_port = os.getenv(f"{prefix}SERVICE_PORT")
+    if service_port and service_host and service_scheme:
+        return f"{service_scheme}://{service_host}:{service_port}"
+    return ""

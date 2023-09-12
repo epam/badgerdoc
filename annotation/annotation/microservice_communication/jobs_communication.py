@@ -11,10 +11,11 @@ from annotation.microservice_communication.search import (
     HEADER_TENANT,
     get_response,
 )
+from annotation.utils import get_service_uri
 
 load_dotenv(find_dotenv())
-JOBS_SERVICE_HOST = os.environ.get("JOBS_SERVICE_HOST", "")
-JOBS_SEARCH_URL = f"http://{JOBS_SERVICE_HOST}/jobs/search"
+JOBS_SERVICE_HOST = get_service_uri("JOBS_")
+JOBS_SEARCH_URL = f"{JOBS_SERVICE_HOST}/jobs/search"
 JOBS_FILE_ID_FIELD = "id"
 JOBS_FILE_NAME_FIELD = "name"
 

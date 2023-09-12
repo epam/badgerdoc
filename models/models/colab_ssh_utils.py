@@ -8,7 +8,7 @@ from botocore.response import StreamingBody
 from paramiko import AutoAddPolicy, SSHClient
 from paramiko.ssh_exception import SSHException
 
-from models.constants import MINIO_ACCESS_KEY, MINIO_HOST, MINIO_SECRET_KEY
+from models.constants import S3_ACCESS_KEY, S3_ENDPOINT, S3_SECRET_KEY
 from models.errors import ColabFileUploadError
 from models.schemas import TrainingCredentials
 from models.utils import get_host
@@ -67,8 +67,8 @@ def check_aws_credentials_file(home_directory: Path) -> None:
             cred_file.writelines(
                 (
                     "[default]\n",
-                    f"aws_access_key_id={MINIO_ACCESS_KEY}\n",
-                    f"aws_secret_access_key={MINIO_SECRET_KEY}\n",
+                    f"aws_access_key_id={S3_ACCESS_KEY}\n",
+                    f"aws_secret_access_key={S3_SECRET_KEY}\n",
                 ),
             )
 
@@ -103,7 +103,7 @@ def sync_colab_with_minio(
     temp_directory: str, tenant: str, training_id: int
 ) -> None:
     syn_command = (
-        f"aws --endpoint-url http://{get_host(MINIO_HOST)} "
+        f"aws --endpoint-url http://{get_host(S3_ENDPOINT)} "
         f"s3 sync {temp_directory} "
         f"s3://{tenant}/trainings/{training_id}/results/ --delete"
     )

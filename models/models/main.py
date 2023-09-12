@@ -1,10 +1,12 @@
 import logging
+import os
 import sys
 from pathlib import Path
 from subprocess import SubprocessError
 
 from botocore.exceptions import BotoCoreError, ClientError
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from paramiko.ssh_exception import SSHException
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -58,6 +60,15 @@ app = FastAPI(
     root_path=ROOT_PATH,
     servers=[{"url": ROOT_PATH}],
 )
+
+if WEB_CORS := os.getenv("WEB_CORS", ""):
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=WEB_CORS.split(","),
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
 app.include_router(basements_routers.router)
 app.include_router(models_routers.router)
 app.include_router(training_routers.router)

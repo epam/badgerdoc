@@ -17,6 +17,14 @@ def get_version() -> str:
         return f_o.readline().strip() or default
 
 
+def get_service_uri(prefix: str) -> str:
+    service_scheme=os.getenv(f"{prefix}SERVICE_SCHEME")
+    service_host=os.getenv(f"{prefix}SERVICE_HOST")
+    service_port=os.getenv(f"{prefix}SERVICE_PORT")
+    if service_port and service_host and service_scheme:
+        return f"{service_scheme}://{service_host}:{service_port}"
+    return ""
+
 VERSION = get_version()
 
 # App settings.
@@ -24,10 +32,12 @@ HEARTBEAT_TIMEOUT = int(os.getenv("HEARTBEAT_TIMEOUT", 15))
 THRESHOLD_MUL = int(os.getenv("HEARTBEAT_THRESHOLD_MUL", 10))
 RUNNER_TIMEOUT = int(os.getenv("RUNNER_TIMEOUT", 5))
 MAX_WORKERS = int(os.getenv("MAX_WORKERS", 15))
-ANNOTATION_URI = os.getenv("ANNOTATION_URI", "")
-POSTPROCESSING_URI = os.getenv("PROCESSING_URI", "")
-MODELS_URI = os.getenv("MODELS_URI", "")
-ASSETS_URI = os.getenv("ASSETS_URI", "")
+
+ANNOTATION_URI = get_service_uri('ANNOTATION_')
+PROCESSING_URI = get_service_uri('PROCESSING_')
+MODELS_URI = get_service_uri('MODELS_')
+ASSETS_URI = get_service_uri('ASSETS_')
+
 MODELS_DEPLOYMENT_ENDPOINT = os.getenv("MODELS_DEPLOYMENT_ENDPOINT", "")
 MODELS_SEARCH_ENDPOINT = os.getenv("MODELS_SEARCH_ENDPOINT", "")
 DEBUG_MERGE = True if os.getenv("DEBUG_MERGE") == "True" else False
@@ -38,19 +48,19 @@ LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
 POOL_SIZE = int(os.getenv("SA_POOL_SIZE", 0))
 
 # Database (PostgreSQL) settings.
-DB_USERNAME = os.getenv("DB_USERNAME", "postgres")
-DB_PASSWORD = os.getenv("DB_PASSWORD", "postgres")
-DB_HOST = os.getenv("DB_HOST", "localhost")
-DB_PORT = os.getenv("DB_PORT", "5432")
-DB_NAME = os.getenv("DB_NAME", "pipelines")
+POSTGRES_USER = os.getenv("POSTGRES_USER", "postgres")
+POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "postgres")
+POSTGRES_HOST = os.getenv("POSTGRES_HOST", "localhost")
+POSTGRES_PORT = os.getenv("POSTGRES_PORT", "5432")
+POSTGRES_DB = os.getenv("POSTGRES_DB", "pipelines")
 DB_URI = os.getenv(
     "DB_URI",
-    f"postgresql+psycopg2://{DB_USERNAME}:{DB_PASSWORD}"
-    f"@{DB_HOST}:{DB_PORT}/{DB_NAME}",
+    f"postgresql+psycopg2://{POSTGRES_USER}:{POSTGRES_PASSWORD}"
+    f"@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}",
 )
 
 # S3 settings
-S3_CREDENTIALS_PROVIDER = os.getenv("S3_CREDENTIALS_PROVIDER")
+S3_PROVIDER = os.getenv("S3_PROVIDER")
 S3_PREFIX = os.getenv("S3_PREFIX", "")
 S3_ENDPOINT = os.getenv("S3_ENDPOINT")
 S3_ACCESS_KEY = os.getenv("S3_ACCESS_KEY")
@@ -61,16 +71,15 @@ MINIO_SECURE_CONNECTION = os.getenv(
 ).lower() in ("true", "1")
 
 # Keycloak settings
-KEYCLOAK_URI = os.getenv("KEYCLOAK_URI", "http://dev1.badgerdoc.com")
+KEYCLOAK_HOST = os.getenv("KEYCLOAK_HOST", "http://dev1.badgerdoc.com")
 KEYCLOAK_REALM = os.getenv("KEYCLOAK_REALM", "master")
-CLIENT_SECRET = os.getenv("CLIENT_SECRET", "")
 KEYCLOAK_TOKEN_URI = (
-    f"{KEYCLOAK_URI}/auth/realms/{KEYCLOAK_REALM}"
+    f"{KEYCLOAK_HOST}/auth/realms/{KEYCLOAK_REALM}"
     f"/protocol/openid-connect/token"
 )
 
 # Kafka settings
-KAFKA_BOOTSTRAP_SERVER = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "kafka:9092")
+KAFKA_BOOTSTRAP_SERVER = os.getenv("KAFKA_BOOTSTRAP_SERVER", "kafka:9092")
 KAFKA_CONSUME_TOPIC = os.getenv("KAFKA_CONSUME_TOPIC", "scheduler")
 KAFKA_PRODUCE_TOPIC = os.getenv("KAFKA_PRODUCE_TOPIC", "pipelines")
 KAFKA_GROUP_ID = os.getenv("KAFKA_GROUP_ID", "pipelines_group")

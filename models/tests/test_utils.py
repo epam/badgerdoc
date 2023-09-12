@@ -8,7 +8,7 @@ import requests
 from botocore.exceptions import ClientError
 from kubernetes.client.rest import ApiException
 from models import utils
-from models.constants import MINIO_HOST
+from models.constants import S3_ENDPOINT
 from models.errors import NoSuchTenant
 from models.schemas import (
     BasementBase,
@@ -115,7 +115,7 @@ def test_generate_presigned_url(
 
 
 @pytest.mark.skip("Fails in GitHub Actions for some reason")
-@patch("models.utils.MINIO_PUBLIC_HOST", MINIO_HOST)
+@patch("models.utils.S3_ENDPOINT", S3_ENDPOINT)
 @pytest.mark.integration
 def test_expired_presigned_url(create_minio_bucket):
     """Tests that http_method actions for minio Object won't be applicable

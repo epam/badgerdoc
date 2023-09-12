@@ -25,6 +25,14 @@ DEFAULT_PDF_FONT_HEIGHT = 11
 DEFAULT_PDF_FONT_WIDTH = 7
 DEFAULT_PDF_LINE_SPACING = 2
 
+def get_service_uri(prefix: str) -> str:  # noqa
+    service_scheme = os.getenv(f"{prefix}SERVICE_SCHEME")
+    service_host = os.getenv(f"{prefix}SERVICE_HOST")
+    service_port = os.getenv(f"{prefix}SERVICE_PORT")
+    if service_port and service_host and service_scheme:
+        return f"{service_scheme}://{service_host}:{service_port}"
+    return ""
+
 
 class Settings(BaseSettings):
     """Base settings values"""
@@ -38,12 +46,10 @@ class Settings(BaseSettings):
     coco_image_format: str = "jpg"
     dpi: int = 300
     root_path: str = os.environ.get("ROOT_PATH", "")
-    assets_service_host: Optional[str] = os.getenv("ASSETS_SERVICE_HOST")
-    jobs_service_host: Optional[str] = os.getenv("JOBS_SERVICE_HOST")
-    annotation_service_host: Optional[str] = os.getenv(
-        "ANNOTATION_SERVICE_HOST"
-    )
-    taxonomy_service_host: Optional[str] = os.getenv("TAXONOMY_SERVICE_HOST")
+    assets_service_host: Optional[str] = get_service_uri("ASSETS_")
+    jobs_service_host: Optional[str] = get_service_uri("JOBS_")
+    annotation_service_host: Optional[str] = get_service_uri("ANNOTATION_")
+    taxonomy_service_host: Optional[str] = get_service_uri("TAXONOMY_")
     keycloak_host: Optional[str] = os.getenv("KEYCLOAK_HOST")
 
 

@@ -60,13 +60,20 @@ class Kafka:
             replication_factor=int(config.KAFKA_REPLICATION_FACTORS),
         )
 
-        try:
-            admin_client = admin.KafkaAdminClient(
-                bootstrap_servers=config.KAFKA_BOOTSTRAP_SERVER,
-            )
-        except Exception:
-            logger.exception("Failed to create KafkaAdminClient.")
-            raise
+        retry_counter = 3
+
+        while True:
+            try:
+                # idk why, locally it works only since second initialization
+                admin_client = admin.KafkaAdminClient(
+                    bootstrap_servers=config.KAFKA_BOOTSTRAP_SERVER,
+                )
+                break
+            except Exception:
+                if retry_counter := retry_counter - 1:
+                    continue
+                logger.exception("Failed to create KafkaAdminClient.")
+                raise
 
         try:
             admin_client.create_topics(new_topics=[new_topic])

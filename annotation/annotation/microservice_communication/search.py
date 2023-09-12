@@ -97,14 +97,15 @@ from requests.exceptions import ConnectionError, RequestException, Timeout
 from annotation.annotations import row_to_dict
 from annotation.models import ManualAnnotationTask
 from annotation.schemas import ExpandedManualAnnotationTaskSchema
+from annotation.utils import get_service_uri
 
 PAGE_SIZE = 100  # max page size in assets
 HEADER_TENANT = "X-Current-Tenant"
 AUTHORIZATION = "Authorization"
 BEARER = "Bearer"
 X_CURRENT_TENANT_HEADER = Header(..., alias=HEADER_TENANT, example="test")
-USERS_SERVICE_HOST = os.environ.get("USERS_SERVICE_HOST", "")
-USERS_SEARCH_URL = f"http://{USERS_SERVICE_HOST}/users/search"
+USERS_SERVICE_HOST = get_service_uri("USERS_")
+USERS_SEARCH_URL = f"{USERS_SERVICE_HOST}/users/search"
 
 
 def calculate_amount_of_pagination_pages(elem_amount: int):

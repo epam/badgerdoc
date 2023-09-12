@@ -39,7 +39,7 @@ export const App = () => {
 
     useEffect(() => {
         if (user && user.tenants) {
-            user.id = user.user_id;
+            user.id = user.sub;
             user.current_tenant = localStorage.getItem('tenant') ?? user.tenants[0];
             setCurrentUser(user);
         } else if (isFetched) {
