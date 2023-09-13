@@ -5,6 +5,10 @@
     padding: 0;
     display: flex;
     height: 350px;
+
+    svg {
+        fill: $gray40;
+    }
     
     &__header {
         padding: 0;
