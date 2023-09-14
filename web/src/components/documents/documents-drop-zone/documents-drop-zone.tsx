@@ -42,26 +42,22 @@ export const DocumentsDropZone: FC<DocumentsDropZoneType> = ({ dataset, children
         }
     };
     return (
-        <>
-            <Panel style={{ height: '100%', width: '100%' }}>
-                <DropSpot
-                    onFilesDropped={uploadFilesHandler}
-                    render={({
-                        eventHandlers: { onDragEnter, onDrop, onDragLeave, onDragOver }
-                    }) => (
-                        <DropZone
-                            onDragEnter={onDragEnter}
-                            onDrop={onDrop}
-                            onDragLeave={onDragLeave}
-                            onDragOver={onDragOver}
-                        >
-                            {children}
-                        </DropZone>
-                    )}
-                ></DropSpot>
+        <Panel style={{ height: '100%', width: '100%' }}>
+            <DropSpot
+                onFilesDropped={uploadFilesHandler}
+                render={({ eventHandlers: { onDragEnter, onDrop, onDragLeave, onDragOver } }) => (
+                    <DropZone
+                        onDragEnter={onDragEnter}
+                        onDrop={onDrop}
+                        onDragLeave={onDragLeave}
+                        onDragOver={onDragOver}
+                    >
+                        {children}
+                    </DropZone>
+                )}
+            />
 
-                {isLoading && <Blocker isEnabled={isLoading} />}
-            </Panel>
-        </>
+            {isLoading && <Blocker isEnabled={isLoading} />}
+        </Panel>
     );
 };

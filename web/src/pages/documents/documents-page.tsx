@@ -95,14 +95,15 @@ const DocumentsPage = () => {
                                 onDragOver={() => setFileOver(true)}
                                 onDragLeave={() => setFileOver(false)}
                                 onDrop={() => setFileOver(false)}
-                                style={{ height: '100%', overflow: 'hidden' }}
+                                style={{
+                                    height: '100%',
+                                    overflow: 'hidden',
+                                    display: 'flex',
+                                    flexDirection: 'column'
+                                }}
                             >
-                                {!isFileOver && (
-                                    <div
-                                        style={{
-                                            height: '100%'
-                                        }}
-                                    >
+                                <DocumentsDropZone dataset={activeDataset}>
+                                    {!isFileOver && (
                                         <DocumentsTableConnector
                                             dataset={activeDataset}
                                             onRowClick={handleRowClick}
@@ -111,17 +112,8 @@ const DocumentsPage = () => {
                                             handleJobAddClick={handleJobAddClick}
                                             withHeader
                                         />
-                                    </div>
-                                )}
-                                {isFileOver && (
-                                    <div
-                                        style={{
-                                            height: '100%'
-                                        }}
-                                    >
-                                        <DocumentsDropZone dataset={activeDataset} />
-                                    </div>
-                                )}
+                                    )}
+                                </DocumentsDropZone>
                             </div>
                         }
                         sidebarHeaderContent={
@@ -137,9 +129,23 @@ const DocumentsPage = () => {
                     <Sidebar
                         sideContent={<DocumentsSearchConnector />}
                         mainContent={
-                            <DocumentsDropZone dataset={activeDataset}>
-                                <DocumentsCardConnector onFilesSelect={onFileSelect} />
-                            </DocumentsDropZone>
+                            <div
+                                onDragOver={() => setFileOver(true)}
+                                onDragLeave={() => setFileOver(false)}
+                                onDrop={() => setFileOver(false)}
+                                style={{
+                                    height: '100%',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    overflow: 'hidden'
+                                }}
+                            >
+                                <DocumentsDropZone dataset={activeDataset}>
+                                    {!isFileOver && (
+                                        <DocumentsCardConnector onFilesSelect={onFileSelect} />
+                                    )}
+                                </DocumentsDropZone>
+                            </div>
                         }
                         sidebarHeaderContent={
                             <DocumentsPageControlConnector
