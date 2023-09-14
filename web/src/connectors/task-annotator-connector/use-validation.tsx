@@ -93,15 +93,16 @@ export const useValidation = ({
     const [touchedPages, setTouchedPages] = useState<number[]>([]);
     const [annotationSaved, setAnnotationSaved] = useState(false);
 
-    const setPages = (
-        pagesArr: number[],
-        setPagesState: React.Dispatch<React.SetStateAction<number[]>>
-    ) => {
-        if (pagesArr.includes(currentPage)) {
-            const newIPages = pagesArr.filter((page) => page !== currentPage);
-            setPagesState(newIPages);
-        }
-    };
+    const setPages = useCallback(
+        (setPagesState: React.Dispatch<React.SetStateAction<number[]>>) => {
+            setPagesState((pagesArr) =>
+                pagesArr.includes(currentPage)
+                    ? pagesArr.filter((page) => page !== currentPage)
+                    : pagesArr
+            );
+        },
+        [currentPage]
+    );
 
     const svc = useUuiContext();
 
@@ -112,30 +113,33 @@ export const useValidation = ({
 
     const finishTaskMutation = useSetTaskFinishedMutation();
 
-    const onSaveForm = async ({ option_edited, option_invalid }: TaskValidationValues) => {
-        if (!task || (!option_invalid && !option_edited)) return;
+    const onSaveForm = useCallback(
+        async ({ option_edited, option_invalid }: TaskValidationValues) => {
+            if (!task || (!option_invalid && !option_edited)) return;
 
-        try {
-            await finishTaskMutation.mutateAsync({
-                taskId: task?.id,
-                options: {
-                    option_edited,
-                    option_invalid
-                }
-            });
+            try {
+                await finishTaskMutation.mutateAsync({
+                    taskId: task?.id,
+                    options: {
+                        option_edited,
+                        option_invalid
+                    }
+                });
 
-            await useSetTaskState({ id: task?.id, eventType: 'closed' });
-        } catch (error) {
-            showError(getError(error));
-        }
-    };
+                await useSetTaskState({ id: task?.id, eventType: 'closed' });
+            } catch (error) {
+                showError(getError(error));
+            }
+        },
+        [finishTaskMutation, task]
+    );
 
-    const onSaveValidForm = async () => {
+    const onSaveValidForm = useCallback(async () => {
         if (task) {
             await finishTaskMutation.mutateAsync({ taskId: task?.id });
             await useSetTaskState({ id: task?.id, eventType: 'closed' });
         }
-    };
+    }, [finishTaskMutation, task]);
 
     useEffect(() => {
         if (pages) {
@@ -154,18 +158,18 @@ export const useValidation = ({
     const allValidated = isEmpty(notProcessedPages);
 
     const onValidClick = useCallback(() => {
-        setPages(invalidPages, setInvalidPages);
-        setPages(notProcessedPages, setNotProcessedPages);
-        setValidPages([...validPages, currentPage]);
+        setPages(setInvalidPages);
+        setPages(setNotProcessedPages);
+        setValidPages((prevValidPages) => [...prevValidPages, currentPage]);
         setAnnotationSaved(false);
-    }, [invalidPages, validPages, currentPage, notProcessedPages]);
+    }, [setPages, currentPage]);
 
     const onInvalidClick = useCallback(() => {
-        setPages(validPages, setValidPages);
-        setPages(notProcessedPages, setNotProcessedPages);
-        setInvalidPages([...invalidPages, currentPage]);
+        setPages(setValidPages);
+        setPages(setNotProcessedPages);
+        setInvalidPages((prevInvalidPages) => [...prevInvalidPages, currentPage]);
         setAnnotationSaved(false);
-    }, [invalidPages, validPages, currentPage, notProcessedPages]);
+    }, [setPages, currentPage]);
 
     const onClearTouchedPages = useCallback(async () => {
         setTouchedPages([]);
@@ -178,23 +182,23 @@ export const useValidation = ({
     }, [touchedPages, currentPage]);
 
     const onEditClick = useCallback(() => {
-        setEditedPages([...editedPages, currentPage]);
-        setPages(invalidPages, setInvalidPages);
+        setEditedPages((prevEditedPages) => [...prevEditedPages, currentPage]);
+        setPages(setInvalidPages);
         setAnnotationSaved(false);
-    }, [editedPages, invalidPages, currentPage]);
+    }, [currentPage, setPages]);
 
     const onCancelClick = useCallback(() => {
         onCloseDataTab();
-        setPages(editedPages, setEditedPages);
-        setInvalidPages([...invalidPages, currentPage]);
-    }, [editedPages, invalidPages, currentPage]);
+        setPages(setEditedPages);
+        setInvalidPages((prevInvalidPages) => [...prevInvalidPages, currentPage]);
+    }, [onCloseDataTab, setPages, currentPage]);
 
     const addAnnotationMutation = useAddAnnotationsMutation();
 
-    const onSaveEditClick = async () => {
+    const onSaveEditClick = useCallback(async () => {
         if (!task || !latestAnnotationsResultData || !tokenPages) return;
-        setPages(invalidPages, setInvalidPages);
-        setPages(validPages, setValidPages);
+        setPages(setInvalidPages);
+        setPages(setValidPages);
 
         let { revision } = latestAnnotationsResultData;
         const pages = mapModifiedAnnotationPagesToApi(
@@ -229,16 +233,24 @@ export const useValidation = ({
         } catch (error) {
             onSaveTaskError(error as ApiError);
         }
-    };
+    }, [
+        addAnnotationMutation,
+        annDataAttrs,
+        annotationsChanges,
+        editedPages,
+        latestAnnotationsResult,
+        latestAnnotationsResultData,
+        onCloseDataTab,
+        onSaveTaskError,
+        onSaveTaskSuccess,
+        pageSize,
+        setPages,
+        task,
+        tokenPages,
+        tokensByPages
+    ]);
 
-    const onFinishValidation = async () => {
-        if (!annotationSaved) {
-            await onSaveTask();
-        }
-        showValidationModal();
-    };
-
-    const showValidationModal = () => {
+    const showValidationModal = useCallback(() => {
         svc.uuiModals.show<TaskValidationValues>((props) => (
             <FinishTaskValidationModal
                 onSaveForm={onSaveForm}
@@ -253,7 +265,26 @@ export const useValidation = ({
                 {...props}
             />
         ));
-    };
+    }, [
+        allValid,
+        editedPages.length,
+        invalidPages.length,
+        isOwner,
+        onRedirectAfterFinish,
+        onSaveForm,
+        onSaveValidForm,
+        svc.uuiModals,
+        task?.user_id,
+        taskUsers
+    ]);
+
+    const onFinishValidation = useCallback(async () => {
+        if (!annotationSaved) {
+            await onSaveTask();
+        }
+        showValidationModal();
+    }, [annotationSaved, onSaveTask, showValidationModal]);
+
     return useMemo(
         () => ({
             validPages,
@@ -290,7 +321,8 @@ export const useValidation = ({
             onAddTouchedPage,
             onClearTouchedPages,
             onCancelClick,
-            setValidPages
+            onFinishValidation,
+            onSaveEditClick
         ]
     );
 };
