@@ -500,7 +500,15 @@ class PipelineStep(BaseModel):
         """
         r = requests.request(method=method, url=url, json=body)
         logger.info("fetching url %s, body %s", url, body)
-        return r.json()
+        result = r.json()
+
+        if not r.ok:
+            raise HTTPException(
+                status_code=r.status_code,
+                detail=result['detail'] if 'detail' in result else result
+            )
+
+        return result
 
 
 PipelineStep.update_forward_refs()

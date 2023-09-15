@@ -24,7 +24,7 @@ def get_session() -> Generator[Session, None, None]:
 def create_extraction_job(
     db: Session,
     job_name: str,
-    pipeline_id: int,
+    pipeline_id: Union[int, str],
     valid_separate_files_ids: List[int],
     valid_dataset_ids: List[int],
     all_files_data: List[Dict[str, Any]],
@@ -83,7 +83,7 @@ def create_annotation_job(
 def create_extraction_annotation_job(
     db: Session,
     extraction_annotation_job_input: schemas.ExtractionWithAnnotationJobParams,
-    pipeline_id: int,
+    pipeline_id: Union[str, int],
     valid_separate_files_ids: List[int],
     valid_dataset_ids: List[int],
     all_files_data: List[Dict[str, Any]],

@@ -20,6 +20,7 @@ PyJWT = {extras = ["crypto"], version = "^2.3.0"}
 urllib3 = "^1.26.8"
 setuptools = "^60.5.0"
 aiokafka = "^0.7.2"
+apache-airflow-client = "^2.7.0"
 
 [tool.poetry.dev-dependencies]
 pre-commit = "^2.14.0"
