@@ -52,7 +52,7 @@ export const FinishButton: FC<TaskSidebarProps> = ({
 
     const handleFinishValidation = isSplitValidation ? onFinishSplitValidation : onFinishValidation;
 
-    let isDisabled = !isAnnotatable;
+    let isDisabled = !isAnnotatable || (isValidation && !allValidated);
     if (jobType !== 'extensive_coverage') {
         isDisabled =
             !isAnnotatable ||
@@ -60,10 +60,9 @@ export const FinishButton: FC<TaskSidebarProps> = ({
             (isValidation && !touchedPagesCount && !editedPagesCount);
     }
 
-    const tooltipContent =
-        isDisabled && allValidated && !isSplitValidation
-            ? ''
-            : createTooltip(jobType === 'extensive_coverage', notProcessedPages);
+    const tooltipContent = !isDisabled
+        ? null
+        : createTooltip(jobType === 'extensive_coverage', notProcessedPages);
 
     const redirectSettingsDataSource = useArrayDataSource(
         {
