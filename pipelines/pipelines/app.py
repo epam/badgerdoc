@@ -366,7 +366,7 @@ async def execute_pipeline_by_id(
 
         dag_run = DAGRun(
             dag_run_id=dag_run_id,
-            conf={'files_data': [f.dict(exclude_none=True) for f in args], 'job_id': job_id},
+            conf={'files_data': [f.to_dict_for_airflow(job_id, x_current_tenant) for f in args]},
         )
         dag_run_api.post_dag_run(dag_id, dag_run, async_req=True).get()
 

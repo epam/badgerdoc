@@ -17,7 +17,7 @@ with DAG(
     catchup=False,
     dagrun_timeout=datetime.timedelta(minutes=60),
     tags=["badgerdoc"],
-    params={"files_data": [], "job_id": -1},
+    params={"files_data": []},
 ) as dag:  # noqa
     @task
     def print_context(**context):

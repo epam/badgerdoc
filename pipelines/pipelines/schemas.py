@@ -226,6 +226,24 @@ class InputArguments(BaseModel):
         res = {k: v for k, v in dct.items() if k in categories}
         return res
 
+    def to_dict_for_airflow(self, job_id: int, tenant: str):
+        r = self.dict(exclude_none=True)
+
+        r.setdefault('input', {})['job_id'] = job_id
+        r['input_path'] = f'{tenant}/{self.file.strip("/")}'
+        r['bucket'] = tenant
+
+        if 'output_path' in r:
+            r.pop('output_path')
+
+        if 'output_bucket' in r:
+            r.pop('output_bucket')
+
+        if 'file' in r:
+            r.pop('file')
+
+        return r
+
 
 class PipelineTypes(str, Enum):
     PREPROCESSING = "preprocessing"
