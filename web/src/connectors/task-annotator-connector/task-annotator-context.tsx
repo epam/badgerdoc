@@ -1060,7 +1060,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
     );
     const { getAnnotationLabels, mapAnnotationPagesFromApi } = useAnnotationsMapper(
         comparedTaxonLabels,
-        [latestAnnotationsResultData?.pages, comparedTaxonLabels]
+        [latestAnnotationsResultData?.pages, comparedTaxonLabels, annotationsChanges]
     );
 
     useEffect(() => {
