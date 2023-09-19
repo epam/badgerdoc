@@ -246,7 +246,7 @@ async def get_pipeline_instance_by_its_name(
 
 
 async def execute_pipeline(
-    pipeline_id: int,
+    pipeline_id: Union[int, str],
     job_id: int,
     files_data: List[Dict[str, Any]],
     current_tenant: str,

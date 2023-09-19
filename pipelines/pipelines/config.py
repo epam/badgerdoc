@@ -17,13 +17,14 @@ def get_version() -> str:
         return f_o.readline().strip() or default
 
 
-def get_service_uri(prefix: str) -> str:
-    service_scheme=os.getenv(f"{prefix}SERVICE_SCHEME")
-    service_host=os.getenv(f"{prefix}SERVICE_HOST")
-    service_port=os.getenv(f"{prefix}SERVICE_PORT")
+def get_service_uri(prefix: str) -> str:  # noqa
+    service_scheme = os.getenv(f"{prefix}SERVICE_SCHEME")
+    service_host = os.getenv(f"{prefix}SERVICE_HOST")
+    service_port = os.getenv(f"{prefix}SERVICE_PORT")
     if service_port and service_host and service_scheme:
         return f"{service_scheme}://{service_host}:{service_port}"
     return ""
+
 
 VERSION = get_version()
 
@@ -92,3 +93,8 @@ DIFFERENT_PREPROCESSING_URLS = True
 # Preprocessing settings
 MAX_FILE_STATUS_RETRIES = os.getenv("MAX_FILE_STATUS_RETRIES", 100000)
 FILE_STATUS_TIMEOUT = os.getenv("FILE_STATUS_TIMEOUT", 10)
+
+# Airflow settings
+AIRFLOW_URL = get_service_uri('AIRFLOW_') + os.getenv('AIRFLOW_SERVICE_PATH_PREFIX', '/api/v1')
+AIRFLOW_USERNAME = os.getenv('AIRFLOW_USERNAME')
+AIRFLOW_PASSWORD = os.getenv('AIRFLOW_PASSWORD')

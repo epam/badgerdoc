@@ -1,6 +1,7 @@
 from typing import Optional
 
 import fastapi
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 import jobs.db_service as db_service
@@ -17,6 +18,13 @@ async def run_extraction_job(
 ) -> Optional[fastapi.HTTPException]:
     """Runs ExtractionJob - creates init_args
     and sends it to the Pipeline Manager"""
+
+    if isinstance(job_to_run.pipeline_id, str) and not job_to_run.pipeline_id.endswith(':airflow'):
+        raise HTTPException(
+            status_code=400,
+            detail="Wrong pipeline value.",
+        )
+
     db_service.update_job_mode(db, job_to_run, schemas.JobMode.Automatic)
     converted_files_data = utils.convert_files_data_for_inference(
         all_files_data=job_to_run.all_files_data,

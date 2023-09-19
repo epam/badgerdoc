@@ -56,7 +56,11 @@ async def create_extraction_job(
         pipeline_version=extraction_job_input.pipeline_version,
     )
 
-    pipeline_id = pipeline_instance.get("id")
+    pipeline_id = (
+        extraction_job_input.pipeline_name
+        if extraction_job_input.pipeline_name.endswith(':airflow')
+        else pipeline_instance.get("id")
+    )
     pipeline_categories = pipeline_instance.get("meta", {}).get(
         "categories", []
     )
@@ -131,7 +135,11 @@ async def create_extraction_annotation_job(
         jw_token=jw_token,
         pipeline_version=extraction_annotation_job_input.pipeline_version,
     )
-    pipeline_id = pipeline_instance.get("id")
+    pipeline_id = (
+        extraction_annotation_job_input.pipeline_name
+        if extraction_annotation_job_input.pipeline_name.endswith(':airflow')
+        else pipeline_instance.get("id")
+    )
 
     (
         files_data,

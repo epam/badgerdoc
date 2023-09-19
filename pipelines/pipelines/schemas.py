@@ -3,7 +3,7 @@ from __future__ import annotations
 import urllib.parse
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 from pydantic import BaseModel, Field, PrivateAttr, root_validator, validator
 
@@ -18,7 +18,7 @@ class PipelineOutId(BaseModel):
 
 
 class PipelineExecutionTaskIdOut(BaseModel):
-    id: int
+    id: Union[str, int]
 
 
 class _PipelineStep(BaseModel):
@@ -38,7 +38,7 @@ class PipelineOut(PipelineOutId):
 
     name: str
     version: int
-    original_pipeline_id: int
+    original_pipeline_id: Optional[int]
     is_latest: bool
     type: str
     description: Optional[str]
@@ -226,6 +226,18 @@ class InputArguments(BaseModel):
         res = {k: v for k, v in dct.items() if k in categories}
         return res
 
+    def to_dict_for_airflow(self, job_id: int, tenant: str):
+        r = self.dict(
+            exclude_none=True,
+            exclude={'output_path', 'output_bucket', 'file'}
+        )
+
+        r.setdefault('input', {})['job_id'] = job_id
+        r['input_path'] = f'{tenant}/{self.file.strip("/")}'
+        r['bucket'] = tenant
+
+        return r
+
 
 class PipelineTypes(str, Enum):
     PREPROCESSING = "preprocessing"
@@ -293,3 +305,13 @@ class Log(BaseModel):
 class JobProgress(BaseModel):
     finished: int = Field(..., example=1)
     total: int = Field(..., example=1)
+
+
+class SearchFilters(BaseModel):
+    limit: int = 100
+    offset: int = 0
+    order_by: str = None
+    tags: List[str] = None
+    only_active: bool = None
+    paused: bool = None
+    name_pattern: str = None

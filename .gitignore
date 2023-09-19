@@ -4,3 +4,5 @@ build_dir/
 **/__pycache__
 **/*.pyc
 .idea
+airflow/logs/
+.trash
