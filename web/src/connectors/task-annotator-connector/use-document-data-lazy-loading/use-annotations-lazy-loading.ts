@@ -4,7 +4,6 @@ import {
     getPageNumbersToKeepInCache,
     mergeCachedArraysBasedOnCachedNumbers
 } from '../task-annotator-utils';
-import { PageInfo } from 'api/typings';
 import { TAnnotationsLazyLoadingParams } from './types';
 import { useCachedDataPagesRange } from './use-cached-data-pages-range';
 
@@ -70,7 +69,7 @@ export const useAnnotationsLazyLoading = (
                     return {
                         ...oldData,
                         ...newData,
-                        pages: mergeCachedArraysBasedOnCachedNumbers<PageInfo>(
+                        pages: mergeCachedArraysBasedOnCachedNumbers(
                             oldData.pages,
                             newData.pages,
                             pageNumbersToKeepInCache,
