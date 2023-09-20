@@ -31,6 +31,7 @@ export const useTokensLazyLoading = (
         },
         {
             enabled: hookEnabled && nextLoadingPageNumbers.length > 0,
+            cacheTime: 0,
             onSuccess: (newData) => {
                 setTokenPages((oldData) => {
                     setCachedRange(availableRenderedPagesRange, nextLoadingPagesRange);

@@ -73,6 +73,7 @@ export const useAnnotationsLazyLoading = (
     const latestAnnotationsQuery = useLatestAnnotations(latestAnnotationsQueryParams, {
         enabled:
             hookEnabled && Boolean(task || job || revisionId) && nextLoadingPageNumbers.length > 0,
+        cacheTime: 0,
         onSuccess(newData) {
             setLatestAnnotationsResultData((oldData) => {
                 setCachedRange(availableRenderedPagesRange, nextLoadingPagesRange);
