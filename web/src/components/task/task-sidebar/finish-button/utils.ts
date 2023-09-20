@@ -1,14 +1,12 @@
 const LISTED_PAGES_LIMIT = 10;
-const SLICE_START_INDEX = 0;
-const SLICE_END_INDEX = LISTED_PAGES_LIMIT - 1;
 
-const getPagesList = (pages: number[]) => pages?.join(', ');
+const getPagesList = (pages: number[]) => pages.join(', ');
 
 const getAboveLimitPagesCount = (pages: number[]) => pages.length - LISTED_PAGES_LIMIT;
 
-const getVisiblePagesString = (pages: number[]) => getPagesList(getVisiblePagesArray(pages));
+const getVisiblePagesArray = (pages: number[]) => pages.slice(0, LISTED_PAGES_LIMIT);
 
-const getVisiblePagesArray = (pages: number[]) => pages.slice(SLICE_START_INDEX, SLICE_END_INDEX);
+const getVisiblePagesString = (pages: number[]) => getPagesList(getVisiblePagesArray(pages));
 
 const listRemainingPages = (pages: number[]) => {
     if (pages.length > LISTED_PAGES_LIMIT) {
