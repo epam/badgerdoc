@@ -1,7 +1,7 @@
 import { AnnotationsResponse, useLatestAnnotations } from 'api/hooks/annotations';
 import { useTokensFullLoading } from './use-tokens-full-loading';
 import { TDocumentDataFullLoadingParams } from './types';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 const functionStub = () => {};
 
@@ -33,8 +33,12 @@ export const useDocumentDataFullLoading = (
         }
     );
 
+    const refetchLatestAnnotations = useCallback(async () => {
+        await latestAnnotationsResult.refetch();
+    }, [latestAnnotationsResult]);
+
     const documentDataRefetcher = useRef(() => {
-        latestAnnotationsResult.refetch();
+        refetchLatestAnnotations();
         tokenRes.refetch();
     });
 
@@ -58,6 +62,7 @@ export const useDocumentDataFullLoading = (
         latestAnnotationsResult,
         latestAnnotationsResultData,
         availableRenderedPagesRange,
+        refetchLatestAnnotations,
         setAvailableRenderedPagesRange: functionStub,
         getNextDocumentItems: functionStub,
         isDocumentPageDataLoaded: () => true

@@ -7,7 +7,6 @@ import React, {
     useMemo,
     useState
 } from 'react';
-import { UseQueryResult } from 'react-query';
 import { isEmpty } from 'lodash';
 
 import { Task, TTaskUsers } from 'api/typings/tasks';
@@ -29,7 +28,7 @@ import { showError } from 'shared/components/notifications';
 import { getError } from 'shared/helpers/get-error';
 
 export type ValidationParams = {
-    latestAnnotationsResult: UseQueryResult<AnnotationsResponse, unknown>;
+    refetchLatestAnnotations: (pageNumbers: number[]) => Promise<void>;
     latestAnnotationsResultData: AnnotationsResponse | undefined;
     task?: Task;
     currentPage: number;
@@ -69,7 +68,7 @@ export type ValidationValues = {
 };
 
 export const useValidation = ({
-    latestAnnotationsResult,
+    refetchLatestAnnotations,
     latestAnnotationsResultData,
     task,
     currentPage,
@@ -228,7 +227,7 @@ export const useValidation = ({
             onCloseDataTab();
             onSaveTaskSuccess();
 
-            latestAnnotationsResult.refetch();
+            refetchLatestAnnotations(pages.map(({ page_num }) => page_num));
             setAnnotationSaved(true);
         } catch (error) {
             onSaveTaskError(error as ApiError);
@@ -238,7 +237,7 @@ export const useValidation = ({
         annDataAttrs,
         annotationsChanges,
         editedPages,
-        latestAnnotationsResult,
+        refetchLatestAnnotations,
         latestAnnotationsResultData,
         onCloseDataTab,
         onSaveTaskError,

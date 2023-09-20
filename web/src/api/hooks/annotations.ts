@@ -1,6 +1,6 @@
 import { CategoryDataAttrType, MutationHookType, PageInfo, QueryHookType } from 'api/typings';
 import { Task } from 'api/typings/tasks';
-import { useMutation, useQuery } from 'react-query';
+import { useMutation, useQuery, useQueryClient } from 'react-query';
 import { useBadgerFetch } from './api';
 import { JobStatus } from '../typings/jobs';
 import { LatestRevisionResponse } from '../../connectors/task-annotator-connector/revisionTypes';
@@ -77,6 +77,16 @@ export const useLatestAnnotations: QueryHookType<LatestAnnotationsParams, Annota
         async () => fetchLatestAnnotations(jobId, fileId, revisionId, pageNumbers, userId),
         options
     );
+};
+
+export const useLatestAnnotationsFetcher = () => {
+    const queryClient = useQueryClient();
+
+    return ({ jobId, fileId, revisionId, pageNumbers, userId }: LatestAnnotationsParams) =>
+        queryClient.fetchQuery(
+            ['latestAnnotations', jobId, fileId, revisionId, pageNumbers, userId],
+            async () => fetchLatestAnnotations(jobId, fileId, revisionId, pageNumbers, userId)
+        );
 };
 
 export const useLatestAnnotationsByUser: QueryHookType<

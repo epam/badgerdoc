@@ -39,7 +39,8 @@ export const useDocumentDataLazyLoading = (
     const {
         latestAnnotationsQuery,
         latestAnnotationsResultData,
-        cachedPageIndexesRange: cachedAnnotationsPageIndexesRange
+        cachedPageIndexesRange: cachedAnnotationsPageIndexesRange,
+        refetchLatestAnnotationsIfNeeded
     } = useAnnotationsLazyLoading(
         {
             task,
@@ -104,6 +105,7 @@ export const useDocumentDataLazyLoading = (
 
     return {
         latestAnnotationsResult: latestAnnotationsQuery,
+        refetchLatestAnnotations: refetchLatestAnnotationsIfNeeded,
         latestAnnotationsResultData,
         availableRenderedPagesRange,
         tokenPages,

@@ -194,9 +194,9 @@ const defaultPageHeight: number = 0;
 const defaultDocumentData = {
     latestAnnotationsResult: {
         isFetching: true,
-        isLoading: true,
-        refetch: () => {}
+        isLoading: true
     } as UseQueryResult<AnnotationsResponse>,
+    refetchLatestAnnotations: () => Promise.resolve(),
     latestAnnotationsResultData: undefined,
     availableRenderedPagesRange: { begin: -1, end: -1 },
     tokenPages: [],
@@ -424,7 +424,8 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         tokenPages,
         setAvailableRenderedPagesRange,
         getNextDocumentItems,
-        isDocumentPageDataLoaded
+        isDocumentPageDataLoaded,
+        refetchLatestAnnotations
     } = documentData;
 
     useEffect(() => {
@@ -960,10 +961,12 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             }
         };
 
+        const pagesToSave = getPages();
+
         try {
             await addAnnotationMutation.mutateAsync({
                 taskId,
-                pages: getPages(),
+                pages: pagesToSave,
                 userId: task.user_id,
                 revision,
                 validPages: validationValues.validPages,
@@ -972,7 +975,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
                 links: documentLinksValues.linksToApi
             });
             onSaveTaskSuccess();
-            await latestAnnotationsResult.refetch();
+            await refetchLatestAnnotations(pagesToSave.map(({ page_num }) => page_num));
             refetchTask();
             documentLinksValues?.setDocumentLinksChanged?.(false);
         } catch (error) {
@@ -992,7 +995,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
     }, [tokenPages, pageSize]);
 
     const validationValues = useValidation({
-        latestAnnotationsResult,
+        refetchLatestAnnotations,
         latestAnnotationsResultData,
         task,
         currentPage,
