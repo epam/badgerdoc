@@ -1,6 +1,6 @@
 import { CategoryDataAttrType, MutationHookType, PageInfo, QueryHookType } from 'api/typings';
 import { Task } from 'api/typings/tasks';
-import { useMutation, useQuery } from 'react-query';
+import { useMutation, useQuery, useQueryClient } from 'react-query';
 import { useBadgerFetch } from './api';
 import { JobStatus } from '../typings/jobs';
 import { LatestRevisionResponse } from '../../connectors/task-annotator-connector/revisionTypes';
@@ -79,6 +79,16 @@ export const useLatestAnnotations: QueryHookType<LatestAnnotationsParams, Annota
     );
 };
 
+export const useLatestAnnotationsFetcher = () => {
+    const queryClient = useQueryClient();
+
+    return ({ jobId, fileId, revisionId, pageNumbers, userId }: LatestAnnotationsParams) =>
+        queryClient.fetchQuery(
+            ['latestAnnotations', jobId, fileId, revisionId, pageNumbers, userId],
+            async () => fetchLatestAnnotations(jobId, fileId, revisionId, pageNumbers, userId)
+        );
+};
+
 export const useLatestAnnotationsByUser: QueryHookType<
     LatestAnnotationsParamsByUser,
     LatestRevisionResponse
@@ -97,10 +107,11 @@ async function fetchLatestAnnotations(
     pageNumbers?: number[],
     userId?: string
 ): Promise<AnnotationsResponse> {
+    const pageNums = pageNumbers?.map((pageNumber) => `page_numbers=${pageNumber}`);
     const revId = revisionId || 'latest';
     const user = userId ? `&user_id=${userId}` : '';
     return useBadgerFetch<AnnotationsResponse>({
-        url: `${namespace}/annotation/${jobId}/${fileId}/${revId}?${user}`,
+        url: `${namespace}/annotation/${jobId}/${fileId}/${revId}?${pageNums?.join('&')}${user}`,
         method: 'get',
         withCredentials: true
     })();

@@ -5,7 +5,6 @@ import { getTabs, getSortedAllAnnotationList } from './utils';
 import { OWNER_TAB, VISIBILITY_SETTING_ID } from './constants';
 import { ReactComponent as closeIcon } from '@epam/assets/icons/common/navigation-chevron-left_left-18.svg';
 import { ReactComponent as openIcon } from '@epam/assets/icons/common/navigation-chevron-right_right-18.svg';
-
 import { Button, FlexRow, Panel, TabButton, Tooltip } from '@epam/loveship';
 import styles from './task-sidebar-flow.module.scss';
 import { useLabels } from 'shared/hooks/use-labels';
@@ -17,16 +16,14 @@ export const FlowSideBar: FC = () => {
     });
 
     const {
-        onLinkDeleted,
         isSplitValidation,
-        onAnnotationDeleted,
         setSelectedAnnotation,
         job: { annotators } = {},
         setCurrentDocumentUserId,
         latestRevisionByAnnotatorsWithBounds,
         currentDocumentUserId = OWNER_TAB.id,
         allAnnotations: allAnnotationsByPageNum = {},
-        selectedAnnotation: { id: selectedAnnotationId } = {}
+        selectedAnnotation
     } = useTaskAnnotatorContext();
 
     const { currentTab, setCurrentTab } = useLabels();
@@ -99,12 +96,10 @@ export const FlowSideBar: FC = () => {
                     )}
                     {annotationsByTab[currentTab] && (
                         <AnnotationList
-                            onLinkDeleted={onLinkDeleted}
-                            onAnnotationDeleted={onAnnotationDeleted}
                             onSelect={setSelectedAnnotation}
                             list={annotationsByTab[currentTab]}
                             isEditable={currentTab === OWNER_TAB.id}
-                            selectedAnnotationId={selectedAnnotationId}
+                            selectedAnnotation={selectedAnnotation}
                         />
                     )}
                 </Panel>

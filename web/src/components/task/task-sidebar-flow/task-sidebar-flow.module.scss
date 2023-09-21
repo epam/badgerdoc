@@ -1,9 +1,8 @@
-.listContainer {
-    display: flex;
-    flex-direction: column;
-    max-height: 100%;
-    padding: 8px;
+@import '@epam/assets/scss/promo/colors.scss';
+
+.annotation-container {
     height: 100%;
+    padding: 8px;
     overflow: auto;
 }
 
@@ -56,6 +55,11 @@
 .toolbar {
     min-height: unset;
     padding: 16px 16px 4px 16px;
+
+    .counter {
+        padding: 0;
+        margin-left: 6px;
+    }
 }
 
 .button {
@@ -63,10 +67,6 @@
         width: 12px;
         height: 12px;
     }
-}
-
-.counter {
-    padding: 0;
 }
 
 .tab {
@@ -111,9 +111,9 @@
     }
 
     &::-webkit-scrollbar-thumb {
-        background-color: #{"hsl(0 0% 70%)"};
+        background-color: #{'hsl(0 0% 70%)'};
         border-radius: 15px;
-        border: 3px solid #{"hsl(0 0% 70%)"};
+        border: 3px solid #{'hsl(0 0% 70%)'};
     }
 }
 
@@ -168,4 +168,28 @@
     &:not(:last-child) {
         margin-bottom: 2px;
     }
+}
+
+.placeholder-header {
+    background-color: $green-lightest;
+    height: 28px;
+    display: flex;
+    align-items: center;
+}
+
+.placeholder-header__item {
+    margin-top: 3px;
+    margin-left: 5px;
+    height: 12px;
+    width: 90px;
+}
+
+.placeholder-content {
+    padding: 6px 0 9px;
+}
+
+.placeholder-content__item {
+    height: 12px;
+    margin-top: 5px;
+    margin-right: 5px;
 }

@@ -17,7 +17,6 @@ export const useAnnotationsLinks = (
     category: Category | undefined,
     current_page: number | undefined,
     selectionType: AnnotationBoundType | AnnotationLinksBoundType | AnnotationImageToolType,
-    allAnnotations: Record<number, Annotation[]>,
     onAnnotationEdited: (
         prevPage: number,
         links: Pick<Annotation, 'links'>,
@@ -67,8 +66,6 @@ export const useAnnotationsLinks = (
         prevPage.current = selectedAnn?.pageNum;
         prevSelectedAnnotation.current = selectedAnn;
     }, [selectedAnn]);
-
-    return allAnnotations;
 };
 
 export const getAnnotationElementId = (pageNum: number, elmId: string | number): string => {

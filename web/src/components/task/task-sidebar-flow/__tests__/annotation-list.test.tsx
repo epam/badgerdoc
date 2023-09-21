@@ -26,16 +26,11 @@ describe('AnnotationList', () => {
     const secondAnnotation = createAnnotation('second', 'categoryName', 'categoryName', '#FFFFF');
     const props = {
         list: [firstAnnotation, secondAnnotation],
-        selectedAnnotationId: 'first',
+        selectedAnnotation: firstAnnotation,
         onSelect: () => {},
-        isEditable: false,
-        onLinkDeleted: () => {},
-        onLabelSelect: () => {},
-        onLabelDelete: () => {},
-        onAnnotationDeleted: () => {},
-        isOwner: false,
-        labels: []
+        isEditable: false
     };
+
     it('Must select another annotation if selectedAnnotationId is changed', () => {
         const firstAnnotationRowId = `${ANNOTATION_FLOW_ITEM_ID_PREFIX}${firstAnnotation.id}`;
         const secondAnnotationRowId = `${ANNOTATION_FLOW_ITEM_ID_PREFIX}${secondAnnotation.id}`;
@@ -52,7 +47,7 @@ describe('AnnotationList', () => {
             backgroundColor: 'unset'
         });
 
-        rerender(<AnnotationList {...props} selectedAnnotationId="second" />);
+        rerender(<AnnotationList {...props} selectedAnnotation={secondAnnotation} />);
 
         expect(getByTestId('flow-prev-button').getAttribute('aria-disabled')).toBe('false');
         expect(getByTestId('flow-next-button').getAttribute('aria-disabled')).toBe('true');
