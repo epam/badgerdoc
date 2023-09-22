@@ -4,6 +4,7 @@
 // learn more: https://github.com/testing-library/jest-dom
 import React from 'react';
 import '@testing-library/jest-dom';
+import 'jest-canvas-mock';
 
 jest.setTimeout(30000);
 
