@@ -1,14 +1,6 @@
 import React, { FC, useState } from 'react';
 import { useArrayDataSource } from '@epam/uui';
-import {
-    PickerInput,
-    Button,
-    ControlGroup,
-    Tooltip,
-    WarningNotification,
-    FlexRow,
-    Text
-} from '@epam/loveship';
+import { PickerInput, Button, ControlGroup, Tooltip } from '@epam/loveship';
 
 import { ReactComponent as settingsIcon } from '@epam/assets/icons/common/navigation-more_vert-18.svg';
 import styles from './finish-button.module.scss';
@@ -63,7 +55,7 @@ export const FinishButton: FC<TaskSidebarProps> = ({
     };
 
     const handleFinishValidation = isSplitValidation ? onFinishSplitValidation : onFinishValidation;
-    const { uuiModals, uuiNotifications } = useUuiContext();
+    const { uuiModals } = useUuiContext();
 
     let isDisabled = !isAnnotatable;
     if (jobType !== 'extensive_coverage') {
@@ -88,6 +80,27 @@ export const FinishButton: FC<TaskSidebarProps> = ({
         []
     );
 
+    const finishingValidation = () => {
+        isValidation
+            ? () => {
+                  console.log('handleFinishValidation');
+                  handleFinishValidation();
+              }
+            : onAnnotationTaskFinish();
+    };
+
+    const showConfirmModal = () => {
+        if (confirmWindowNeed === 'true') {
+            uuiModals
+                .show<string>((props) => <ConfirmModal {...props} />)
+                .then(() => {
+                    finishingValidation();
+                });
+        } else {
+            finishingValidation();
+        }
+    };
+
     return !isValidation && viewMode ? null : (
         <>
             <ControlGroup cx={styles['button-finish-control-group']}>
@@ -97,34 +110,7 @@ export const FinishButton: FC<TaskSidebarProps> = ({
                         cx={styles['button-finish']}
                         caption={isValidation ? 'FINISH VALIDATION' : 'FINISH LABELING'}
                         onClick={() => {
-                            if (confirmWindowNeed === 'true') {
-                                uuiModals
-                                    .show<string>((props) => <ConfirmModal {...props} />)
-                                    .then(() => {
-                                        isValidation
-                                            ? () => {
-                                                  handleFinishValidation();
-                                              }
-                                            : onAnnotationTaskFinish;
-                                    })
-                                    .catch(() => {
-                                        uuiNotifications
-                                            .show((props) => (
-                                                <WarningNotification {...props}>
-                                                    <FlexRow alignItems="center">
-                                                        <Text>Finishing aborted.</Text>
-                                                    </FlexRow>
-                                                </WarningNotification>
-                                            ))
-                                            .catch(() => null);
-                                    });
-                            } else {
-                                isValidation
-                                    ? () => {
-                                          handleFinishValidation();
-                                      }
-                                    : onAnnotationTaskFinish;
-                            }
+                            showConfirmModal();
                         }}
                     />
                 </Tooltip>
