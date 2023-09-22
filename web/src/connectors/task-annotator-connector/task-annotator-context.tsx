@@ -82,7 +82,7 @@ import { useDocumentDataFullLoading } from './use-document-data-full-loading';
 
 type WithFunctionStub<T> = T | (() => void);
 
-type ContextValue = SplitValidationValue &
+export type ContextValue = SplitValidationValue &
     SyncScrollValue &
     DocumentLinksValue &
     ValidationValues & {
@@ -187,7 +187,6 @@ type ProviderProps = {
 
 type UndoListAction = 'edit' | 'delete' | 'add';
 
-const TaskAnnotatorContext = createContext<ContextValue | undefined>(undefined);
 const dataTabDefaultDisableState = true;
 const defaultPageWidth: number = 0;
 const defaultPageHeight: number = 0;
@@ -204,6 +203,8 @@ const defaultDocumentData = {
     getNextDocumentItems: () => {},
     isDocumentPageDataLoaded: () => false
 };
+
+export const TaskAnnotatorContext = createContext<ContextValue | undefined>(undefined);
 
 export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
     jobId,

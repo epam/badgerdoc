@@ -18,7 +18,7 @@ import styles from './task-sidebar-flow.module.scss';
 import { NoData } from 'shared/no-data';
 import { scrollIntoViewIfNeeded } from 'shared/helpers/scroll-into-view-if-needed';
 
-type AnnotationListProps = {
+export type AnnotationListProps = {
     list: Annotation[];
     isEditable: boolean;
     selectedAnnotation: Maybe<Annotation>;
