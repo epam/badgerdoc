@@ -39,7 +39,8 @@ export const FinishButton: FC<TaskSidebarProps> = ({
     onFinishValidation,
     onAnnotationTaskFinish,
     onFinishSplitValidation,
-    jobType
+    jobType,
+    taskStatus
 }) => {
     const [redirectionSettings, setRedirectionSettings] = useState(
         localStorage.getItem('submitted-task-redirection-page') ?? 'tasks'
@@ -60,9 +61,12 @@ export const FinishButton: FC<TaskSidebarProps> = ({
             (isValidation && !touchedPagesCount && !editedPagesCount);
     }
 
-    const tooltipContent = !isDisabled
-        ? null
-        : createTooltip(jobType === 'extensive_coverage', notProcessedPages);
+    const tooltipContent = createTooltip({
+        isDisabled,
+        isExtCov: jobType !== 'extensive_coverage',
+        notProcessedPages,
+        taskStatus
+    });
 
     const redirectSettingsDataSource = useArrayDataSource(
         {
