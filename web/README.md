@@ -2,10 +2,10 @@
 
 ## Recommended software:
 
-- Node 8.12.0 or later (https://nodejs.org/en/)
-- VSCode (https://code.visualstudio.com/), or other IDE with typescript support (like WebStorm)
-- yarn package manager (https://yarnpkg.com/en/)
-- Any GIT client (standalone, or embedded into your IDE)
+-   Node 8.12.0 or later (https://nodejs.org/en/)
+-   VSCode (https://code.visualstudio.com/), or other IDE with typescript support (like WebStorm)
+-   yarn package manager (https://yarnpkg.com/en/)
+-   Any GIT client (standalone, or embedded into your IDE)
 
 ## Running the project with template
 
@@ -131,7 +131,9 @@ To learn React, check out the [React documentation](https://reactjs.org/).
 To work in local environment you need to start up the **_local backend_** and configure env variables for correct connection.
 For that you need to copy content of `.env.example` file to `.env.local` and specify provided variables.
 
-## Test 
+## Test
+
 Libraries for testing:
-- React testing library 
-- Jest 
+
+-   React testing library
+-   Jest
