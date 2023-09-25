@@ -1,3 +1,5 @@
+import { TaskStatus } from 'api/typings/tasks';
+
 const LISTED_PAGES_LIMIT = 10;
 
 const getPagesList = (pages: number[]) => pages.join(', ');
@@ -18,9 +20,29 @@ const listRemainingPages = (pages: number[]) => {
     return getPagesList(pages);
 };
 
-export const createTooltip = (isExtCov: boolean, notProcessedPages: number[]): string => {
-    return isExtCov
-        ? `Please wait for all annotators to finish their tasks`
+interface CreateTooltipArgs {
+    isExtensiveCoverage: boolean;
+    notProcessedPages: number[];
+    isDisabled: boolean;
+    taskStatus?: TaskStatus;
+}
+
+export const FINISHED_TASK_TOOLTIP_TEXT =
+    'This annotation task is done. To continue annotating this document create a new task';
+
+export const createTooltip = ({
+    isDisabled,
+    taskStatus,
+    isExtensiveCoverage,
+    notProcessedPages
+}: CreateTooltipArgs) => {
+    if (!isDisabled || taskStatus === 'Pending') {
+        return null;
+    } else if (taskStatus === 'Finished') {
+        return FINISHED_TASK_TOOLTIP_TEXT;
+    }
+    return isExtensiveCoverage
+        ? 'Please wait for all annotators to finish their tasks'
         : `Please validate all page to finish task. Remaining pages: ${listRemainingPages(
               notProcessedPages
           )}`;

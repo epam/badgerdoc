@@ -43,6 +43,7 @@ import { ReactComponent as Copy } from '@epam/assets/icons/common/copy_content-1
 import { handleCopy } from 'shared/helpers/copy-text';
 
 import styles from './task-sidebar.module.scss';
+import { getSaveButtonTooltipContent } from './utils';
 
 type TaskSidebarProps = {
     jobSettings?: ReactElement;
@@ -337,6 +338,11 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
         setIsHidden(!isHidden);
     };
 
+    const saveButtonTooltipContent = getSaveButtonTooltipContent(
+        isSaveButtonDisabled,
+        task?.status
+    );
+
     return (
         <Panel cx={styles.wrapper}>
             <Button
@@ -576,13 +582,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
                         </div>
                     </div>
                     {task && ( // todo: add "EDIT ANNOTATION" button here if no task
-                        <Tooltip
-                            content={
-                                isSaveButtonDisabled
-                                    ? 'Please modify annotation to enable save button'
-                                    : ''
-                            }
-                        >
+                        <Tooltip content={saveButtonTooltipContent}>
                             <Button
                                 caption={SaveButton}
                                 fill="white"
