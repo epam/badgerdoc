@@ -5,17 +5,13 @@ from datetime import datetime
 from pprint import pprint
 
 from airflow.decorators import task, dag
-from airflow.hooks.base import BaseHook
-
-conn = BaseHook.get_connection('minio')
 
 
 @dag(schedule="@daily", start_date=datetime(2021, 12, 1), catchup=False, dag_id="print")
 def taskflow():
     @task
     def print_context(**context) -> dict:
-        # pprint(context)
-        pprint([conn.__dict__])
+        pprint(context)
         return context.get('params', {})
 
     @task
