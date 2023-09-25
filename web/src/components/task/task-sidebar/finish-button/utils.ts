@@ -21,7 +21,7 @@ const listRemainingPages = (pages: number[]) => {
 };
 
 interface CreateTooltipArgs {
-    isExtCov: boolean;
+    isExtensiveCoverage: boolean;
     notProcessedPages: number[];
     isDisabled: boolean;
     taskStatus?: TaskStatus;
@@ -33,19 +33,17 @@ export const FINISHED_TASK_TOOLTIP_TEXT =
 export const createTooltip = ({
     isDisabled,
     taskStatus,
-    isExtCov,
+    isExtensiveCoverage,
     notProcessedPages
 }: CreateTooltipArgs) => {
-    switch (true) {
-        case !isDisabled || taskStatus === 'Pending':
-            return null;
-        case taskStatus === 'Finished':
-            return FINISHED_TASK_TOOLTIP_TEXT;
-        default:
-            return isExtCov
-                ? 'Please wait for all annotators to finish their tasks'
-                : `Please validate all page to finish task. Remaining pages: ${listRemainingPages(
-                      notProcessedPages
-                  )}`;
+    if (!isDisabled || taskStatus === 'Pending') {
+        return null;
+    } else if (taskStatus === 'Finished') {
+        return FINISHED_TASK_TOOLTIP_TEXT;
     }
+    return isExtensiveCoverage
+        ? 'Please wait for all annotators to finish their tasks'
+        : `Please validate all page to finish task. Remaining pages: ${listRemainingPages(
+              notProcessedPages
+          )}`;
 };
