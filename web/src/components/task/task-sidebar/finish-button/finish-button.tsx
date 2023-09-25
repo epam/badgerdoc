@@ -81,12 +81,7 @@ export const FinishButton: FC<TaskSidebarProps> = ({
     );
 
     const finishingValidation = () => {
-        isValidation
-            ? () => {
-                  console.log('handleFinishValidation');
-                  handleFinishValidation();
-              }
-            : onAnnotationTaskFinish();
+        isValidation ? handleFinishValidation() : onAnnotationTaskFinish();
     };
 
     const showConfirmModal = () => {
