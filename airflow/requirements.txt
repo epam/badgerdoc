@@ -1,0 +1,9 @@
+boto3==1.28.4
+PyPDF2==3.0.1
+pdfplumber==0.10.2
+tqdm==4.66.1
+segtok==1.5.11
+openai==0.28.0
+pydantic==2.3.0
+apache-airflow-providers-amazon==8.7.1
+minio==7.1.16
