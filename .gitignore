@@ -6,3 +6,5 @@ build_dir/
 .idea
 airflow/logs/
 .trash
+airflow/dags/*
+airflow/.env

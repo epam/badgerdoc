@@ -42,5 +42,5 @@ build_models:
 build_taxonomy:
 	docker build --target build taxonomy/ -t badgerdoc_taxonomy
 
-clean : 
+clean:
 	rm -rf build_dir

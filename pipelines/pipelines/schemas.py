@@ -233,7 +233,7 @@ class InputArguments(BaseModel):
         )
 
         r.setdefault('input', {})['job_id'] = job_id
-        r['input_path'] = f'{tenant}/{self.file.strip("/")}'
+        r['input_path'] = self.file
         r['bucket'] = tenant
 
         return r
