@@ -15,8 +15,6 @@ type TaskSidebarProps = {
     isAnnotatable: boolean;
     isSplitValidation: boolean;
     isNextTaskPresented?: boolean;
-    editedPagesCount: number;
-    touchedPagesCount: number;
     notProcessedPages: number[];
     onFinishValidation: () => void;
     onAnnotationTaskFinish: () => void;
@@ -31,9 +29,7 @@ export const FinishButton: FC<TaskSidebarProps> = ({
     isValidation,
     allValidated,
     isAnnotatable,
-    editedPagesCount,
     isSplitValidation,
-    touchedPagesCount,
     notProcessedPages,
     isNextTaskPresented,
     onFinishValidation,
@@ -53,17 +49,11 @@ export const FinishButton: FC<TaskSidebarProps> = ({
 
     const handleFinishValidation = isSplitValidation ? onFinishSplitValidation : onFinishValidation;
 
-    let isDisabled = !isAnnotatable || (isValidation && !allValidated);
-    if (jobType !== 'extensive_coverage') {
-        isDisabled =
-            !isAnnotatable ||
-            !allValidated ||
-            (isValidation && !touchedPagesCount && !editedPagesCount);
-    }
+    const isDisabled = !isAnnotatable || (isValidation && !allValidated);
 
     const tooltipContent = createTooltip({
         isDisabled,
-        isExtensiveCoverage: jobType === 'extensive_coverage',
+        isExtensiveCoverage: jobType === ValidationType.extensiveCoverage,
         notProcessedPages,
         taskStatus
     });

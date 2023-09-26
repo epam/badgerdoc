@@ -82,7 +82,7 @@ import { useDocumentDataFullLoading } from './use-document-data-full-loading';
 
 type WithFunctionStub<T> = T | (() => void);
 
-export type ContextValue = SplitValidationValue &
+export type TTaskAnnotatorContext = SplitValidationValue &
     SyncScrollValue &
     DocumentLinksValue &
     ValidationValues & {
@@ -204,7 +204,7 @@ const defaultDocumentData = {
     isDocumentPageDataLoaded: () => false
 };
 
-export const TaskAnnotatorContext = createContext<ContextValue | undefined>(undefined);
+export const TaskAnnotatorContext = createContext<TTaskAnnotatorContext | undefined>(undefined);
 
 export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
     jobId,
@@ -999,7 +999,9 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         refetchLatestAnnotations,
         latestAnnotationsResultData,
         task,
+        job,
         currentPage,
+        pageNumbers,
         taskUsers,
         isOwner,
         onCloseDataTab,
@@ -1124,7 +1126,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
 
     const areLatestAnnotationsFetching = latestAnnotationsResult.isFetching;
 
-    const value = useMemo<ContextValue>(() => {
+    const value = useMemo<TTaskAnnotatorContext>(() => {
         return {
             task,
             job,
