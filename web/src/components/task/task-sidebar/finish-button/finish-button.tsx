@@ -80,13 +80,13 @@ export const FinishButton: FC<TaskSidebarProps> = ({
         []
     );
 
-    const finishingValidation = () => {
+    const finishingValidation = useCallback(() => {
         if (isValidation) {
             handleFinishValidation();
         } else {
             onAnnotationTaskFinish();
         }
-    };
+    }, [handleFinishValidation, onAnnotationTaskFinish, isValidation]);
 
     const showConfirmModal = useCallback(() => {
         if (confirmWindowNeed === 'true') {
