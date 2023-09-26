@@ -5,7 +5,7 @@ import { ANNOTATION_FLOW_ITEM_ID_PREFIX } from 'shared/constants/annotations';
 import { stringToRGBA } from 'shared/components/annotator/utils/string-to-rgba';
 import { AnnotationList, AnnotationListProps } from '../annotation-list';
 import {
-    ContextValue as TTaskAnnotatorContext,
+    TTaskAnnotatorContext,
     TaskAnnotatorContext
 } from 'connectors/task-annotator-connector/task-annotator-context';
 
