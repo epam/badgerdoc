@@ -63,7 +63,7 @@ export const FinishButton: FC<TaskSidebarProps> = ({
 
     const tooltipContent = createTooltip({
         isDisabled,
-        isExtensiveCoverage: jobType !== 'extensive_coverage',
+        isExtensiveCoverage: jobType === 'extensive_coverage',
         notProcessedPages,
         taskStatus
     });
