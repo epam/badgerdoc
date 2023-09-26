@@ -1,4 +1,4 @@
-import React, { FC, useState } from 'react';
+import React, { FC, useCallback, useState } from 'react';
 import { useArrayDataSource } from '@epam/uui';
 import { PickerInput, Button, ControlGroup, Tooltip } from '@epam/loveship';
 
@@ -88,7 +88,7 @@ export const FinishButton: FC<TaskSidebarProps> = ({
         }
     };
 
-    const showConfirmModal = () => {
+    const showConfirmModal = useCallback(() => {
         if (confirmWindowNeed === 'true') {
             uuiModals
                 .show<string>((props) => <ConfirmModal {...props} />)
@@ -98,7 +98,7 @@ export const FinishButton: FC<TaskSidebarProps> = ({
         } else {
             finishingValidation();
         }
-    };
+    }, [confirmWindowNeed, finishingValidation, uuiModals]);
 
     return !isValidation && viewMode ? null : (
         <>
