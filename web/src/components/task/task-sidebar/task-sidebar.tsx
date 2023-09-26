@@ -512,70 +512,72 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
                             {isValidation && !splitValidation && (
                                 <div className="flex justify-around">
                                     {!editPage && (
-                                        <Button
-                                            key={`valid${currentPage}`}
-                                            cx={styles.validation}
-                                            caption="Valid"
-                                            fill={isValid ? undefined : 'none'}
-                                            color="grass"
-                                            onClick={
-                                                isValid
-                                                    ? undefined
-                                                    : () => {
-                                                          onValidClick();
-                                                          onAddTouchedPage();
-                                                      }
-                                            }
-                                            isDisabled={isValidationDisabled}
-                                        />
+                                        <>
+                                            <Button
+                                                key={`valid${currentPage}`}
+                                                cx={styles.validation}
+                                                caption="Valid"
+                                                fill={isValid ? undefined : 'none'}
+                                                color="grass"
+                                                onClick={
+                                                    isValid
+                                                        ? undefined
+                                                        : () => {
+                                                              onValidClick();
+                                                              onAddTouchedPage();
+                                                          }
+                                                }
+                                                isDisabled={isValidationDisabled}
+                                            />
+
+                                            {!isInvalid ? (
+                                                <Button
+                                                    key={`invalid${currentPage}`}
+                                                    cx={styles.validation}
+                                                    caption="Invalid"
+                                                    fill={isInvalid ? undefined : 'none'}
+                                                    color="fire"
+                                                    onClick={
+                                                        isInvalid
+                                                            ? undefined
+                                                            : () => {
+                                                                  onInvalidClick();
+                                                                  onAddTouchedPage();
+                                                              }
+                                                    }
+                                                    isDisabled={isValidationDisabled}
+                                                />
+                                            ) : (
+                                                <Button
+                                                    cx={styles.validation}
+                                                    caption="EDIT"
+                                                    fill="none"
+                                                    color="sky"
+                                                    onClick={onEditClick}
+                                                    isDisabled={isValidationDisabled}
+                                                />
+                                            )}
+                                        </>
                                     )}
-                                    {!isInvalid && !editPage && (
-                                        <Button
-                                            key={`invalid${currentPage}`}
-                                            cx={styles.validation}
-                                            caption="Invalid"
-                                            fill={isInvalid ? undefined : 'none'}
-                                            color="fire"
-                                            onClick={
-                                                isInvalid
-                                                    ? undefined
-                                                    : () => {
-                                                          onInvalidClick();
-                                                          onAddTouchedPage();
-                                                      }
-                                            }
-                                            isDisabled={isValidationDisabled}
-                                        />
-                                    )}
-                                    {!annotationSaved && editPage && (
-                                        <Button
-                                            cx={styles.validation}
-                                            caption="CANCEL"
-                                            fill="none"
-                                            color="sky"
-                                            onClick={onCancelClick}
-                                            isDisabled={isValidationDisabled}
-                                        />
-                                    )}
-                                    {!editPage && isInvalid && (
-                                        <Button
-                                            cx={styles.validation}
-                                            caption="EDIT"
-                                            fill="none"
-                                            color="sky"
-                                            onClick={onEditClick}
-                                            isDisabled={isValidationDisabled}
-                                        />
-                                    )}
-                                    {!annotationSaved && editPage && (
-                                        <Button
-                                            cx={styles.validation}
-                                            caption="SAVE EDITS"
-                                            fill="none"
-                                            color="sky"
-                                            onClick={handleSaveEdits}
-                                            isDisabled={isValidationDisabled}
-                                        />
+                                    {editPage && !annotationSaved && (
+                                        <>
+                                            <Button
+                                                cx={styles.validation}
+                                                caption="CANCEL"
+                                                fill="none"
+                                                color="sky"
+                                                onClick={onCancelClick}
+                                                isDisabled={isValidationDisabled}
+                                            />
+                                            <Button
+                                                cx={styles.validation}
+                                                caption="SAVE EDITS"
+                                                fill="none"
+                                                color="sky"
+                                                onClick={handleSaveEdits}
+                                                isDisabled={isValidationDisabled}
+                                            />
+                                        </>
                                     )}
                                 </div>
                             )}
@@ -599,8 +601,6 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
                         isNextTaskPresented={isNextTaskPresented}
                         isValidation={Boolean(isValidation)}
                         isSplitValidation={Boolean(splitValidation)}
-                        editedPagesCount={editedPages.length}
-                        touchedPagesCount={touchedPages.length}
                         notProcessedPages={notProcessedPages}
                         onFinishValidation={onFinishValidation}
                         onAnnotationTaskFinish={onAnnotationTaskFinish}

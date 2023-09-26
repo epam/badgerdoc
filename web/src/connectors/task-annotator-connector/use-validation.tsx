@@ -7,10 +7,10 @@ import React, {
     useMemo,
     useState
 } from 'react';
-import { isEmpty } from 'lodash';
+import { difference, isEmpty } from 'lodash';
 
 import { Task, TTaskUsers } from 'api/typings/tasks';
-import { CategoryDataAttributeWithValue, PageInfo } from 'api/typings';
+import { CategoryDataAttributeWithValue, PageInfo, ValidationType } from 'api/typings';
 
 import { AnnotationsResponse, useAddAnnotationsMutation } from 'api/hooks/annotations';
 import { useGetPageSummary, useSetTaskFinishedMutation, useSetTaskState } from 'api/hooks/tasks';
@@ -26,12 +26,15 @@ import { mapModifiedAnnotationPagesToApi } from './task-annotator-utils';
 import { useUuiContext } from '@epam/uui';
 import { showError } from 'shared/components/notifications';
 import { getError } from 'shared/helpers/get-error';
+import { Job } from 'api/typings/jobs';
 
 export type ValidationParams = {
     refetchLatestAnnotations: (pageNumbers: number[]) => Promise<void>;
     latestAnnotationsResultData: AnnotationsResponse | undefined;
     task?: Task;
+    job?: Job;
     currentPage: number;
+    pageNumbers: number[];
     onCloseDataTab: () => void;
     isOwner: boolean;
     taskUsers: MutableRefObject<TTaskUsers>;
@@ -71,7 +74,9 @@ export const useValidation = ({
     refetchLatestAnnotations,
     latestAnnotationsResultData,
     task,
+    job,
     currentPage,
+    pageNumbers,
     taskUsers,
     isOwner,
     onCloseDataTab,
@@ -88,9 +93,21 @@ export const useValidation = ({
     const [validPages, setValidPages] = useState<number[]>([]);
     const [invalidPages, setInvalidPages] = useState<number[]>([]);
     const [editedPages, setEditedPages] = useState<number[]>([]);
-    const [notProcessedPages, setNotProcessedPages] = useState<number[]>([]);
+    const [notProcessedPagesFromApi, setNotProcessedPagesFromApi] = useState<number[]>([]);
     const [touchedPages, setTouchedPages] = useState<number[]>([]);
     const [annotationSaved, setAnnotationSaved] = useState(false);
+
+    // TODO: there is a pages.not_processed property which is not calculated on BE side
+    // in the right way. In order to not wait this fix, the logic
+    // is implemented on FE side. Need to investigate this on BE side and fix it's behavior
+    // if it's needed
+    const notProcessedPages = useMemo(
+        () =>
+            job?.validation_type === ValidationType.extensiveCoverage
+                ? notProcessedPagesFromApi
+                : difference(pageNumbers, validPages, invalidPages),
+        [job, notProcessedPagesFromApi, pageNumbers, validPages, invalidPages]
+    );
 
     const setPages = useCallback(
         (setPagesState: React.Dispatch<React.SetStateAction<number[]>>) => {
@@ -144,7 +161,7 @@ export const useValidation = ({
         if (pages) {
             setValidPages(pages.validated);
             setInvalidPages(pages.failed_validation_pages);
-            setNotProcessedPages(pages.not_processed);
+            setNotProcessedPagesFromApi(pages.not_processed);
         }
     }, [pages]);
 
@@ -158,14 +175,14 @@ export const useValidation = ({
 
     const onValidClick = useCallback(() => {
         setPages(setInvalidPages);
-        setPages(setNotProcessedPages);
+        setPages(setNotProcessedPagesFromApi);
         setValidPages((prevValidPages) => [...prevValidPages, currentPage]);
         setAnnotationSaved(false);
     }, [setPages, currentPage]);
 
     const onInvalidClick = useCallback(() => {
         setPages(setValidPages);
-        setPages(setNotProcessedPages);
+        setPages(setNotProcessedPagesFromApi);
         setInvalidPages((prevInvalidPages) => [...prevInvalidPages, currentPage]);
         setAnnotationSaved(false);
     }, [setPages, currentPage]);
@@ -198,6 +215,7 @@ export const useValidation = ({
         if (!task || !latestAnnotationsResultData || !tokenPages) return;
         setPages(setInvalidPages);
         setPages(setValidPages);
+        setPages(setEditedPages);
 
         let { revision } = latestAnnotationsResultData;
         const pages = mapModifiedAnnotationPagesToApi(
