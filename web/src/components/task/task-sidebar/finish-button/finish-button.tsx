@@ -73,15 +73,15 @@ export const FinishButton: FC<TaskSidebarProps> = ({
         []
     );
 
-    const finishingValidation = useCallback(() => {
+    const finishingValidation = () => {
         if (isValidation) {
             handleFinishValidation();
         } else {
             onAnnotationTaskFinish();
         }
-    }, [handleFinishValidation, onAnnotationTaskFinish, isValidation]);
+    };
 
-    const showConfirmModal = useCallback(() => {
+    const showConfirmModal = () => {
         if (confirmWindowNeed === 'true') {
             uuiModals
                 .show<string>((props) => <ConfirmModal {...props} />)
@@ -91,7 +91,7 @@ export const FinishButton: FC<TaskSidebarProps> = ({
         } else {
             finishingValidation();
         }
-    }, [confirmWindowNeed, finishingValidation, uuiModals]);
+    };
 
     return !isValidation && viewMode ? null : (
         <>
