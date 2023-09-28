@@ -108,7 +108,6 @@ export const ModalWithDisabledClickOutsideAndCross: FC<IProps> = ({
     });
 
     const title = categoryValue ? 'Edit category' : 'Add new category';
-    const categoryIdClassName = categoryValue ? styles['hidden-category-id'] : '';
 
     return (
         <ModalBlocker disallowClickOutside blockerShadow="dark" {...props} abort={onClose}>
@@ -123,7 +122,7 @@ export const ModalWithDisabledClickOutsideAndCross: FC<IProps> = ({
                                 </LabeledInput>
                             </FlexCell>
                         </FlexRow>
-                        <div className={categoryIdClassName}>
+                        {!categoryValue && (
                             <FlexRow padding="24" vPadding="12">
                                 <FlexCell grow={1}>
                                     <LabeledInput isRequired={!categoryValue} label="Category Id">
@@ -131,7 +130,8 @@ export const ModalWithDisabledClickOutsideAndCross: FC<IProps> = ({
                                     </LabeledInput>
                                 </FlexCell>
                             </FlexRow>
-                        </div>
+                        )}
+
                         <FlexRow padding="24" vPadding="12">
                             <FlexCell grow={1}>
                                 <LabeledInput isRequired label="Color">
