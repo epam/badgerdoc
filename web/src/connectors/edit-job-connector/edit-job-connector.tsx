@@ -64,8 +64,8 @@ export type JobValues = {
 };
 
 const validationTypeTitle = {
-    ['extensive_coverage']: 'Extensive Coverage',
-    ['hierarchical']: 'Hierarchical Validation'
+    'extensive_coverage': 'Extensive Coverage',
+    'hierarchical': 'Hierarchical Validation'
 };
 const EditJobConnector: FC<EditJobConnectorProps> = ({
     renderWizardButtons,

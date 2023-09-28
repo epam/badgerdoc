@@ -96,7 +96,7 @@ export const getAuthHeaders = () => {
     const tenant = getCurrentTenant();
 
     return {
-        ['X-Current-Tenant']: tenant,
+        'X-Current-Tenant': tenant,
         Authorization: 'Bearer ' + details?.accessToken
     };
 };

@@ -11,9 +11,9 @@ import { ALL_BUTTONS } from './buttons-config';
 import { Ketcher } from 'ketcher-core';
 import 'ketcher-react/dist/index.css';
 import styles from './external-viewer-popup.module.scss';
+import { CategoryDataAttrType } from 'api/typings';
 
 const structServiceProvider = new StandaloneStructServiceProvider();
-import { CategoryDataAttrType } from 'api/typings';
 
 const addLaTex = () => {
     let link = document.createElement('link');
