@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-redeclare */
 import { RefObject } from 'react';
 import { Annotation, Point, Bound, TableGutter, GutterType, TableGutterMap, Maybe } from '..';
 import { useMouseEvents } from './use-mouse-events';

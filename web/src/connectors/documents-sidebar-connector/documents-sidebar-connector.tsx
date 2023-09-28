@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from 'react';
 import { FlexRow, FlexSpacer, LinkButton, SearchInput, VirtualList } from '@epam/loveship';
 import noop from 'lodash/noop';

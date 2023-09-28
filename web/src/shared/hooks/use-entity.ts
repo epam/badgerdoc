@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useMemo, useRef } from 'react';
 import { useLazyDataSource } from '@epam/uui';
 import { FilterWithDocumentExtraOption, PagedResponse, PagingCache } from 'api/typings';

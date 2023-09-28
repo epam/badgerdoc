@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars, react-hooks/exhaustive-deps */
 import React, { FC, useContext, useEffect, useMemo } from 'react';
 import { DataTable, Panel } from '@epam/loveship';
 import { useArrayDataSource } from '@epam/uui';

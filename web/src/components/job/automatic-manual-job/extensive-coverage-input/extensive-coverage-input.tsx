@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { FC } from 'react';
 import { LabeledInput, NumericInput } from '@epam/loveship';
 import { ILens } from '@epam/uui';

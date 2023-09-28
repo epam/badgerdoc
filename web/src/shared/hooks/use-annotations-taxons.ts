@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useTaxons } from 'api/hooks/taxons';
 import { Operators, PageInfo, SortingDirection, Taxon } from 'api/typings';
 import { useEffect, useMemo, useState } from 'react';

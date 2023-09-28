@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { FC, ReactElement } from 'react';
 import { ReactComponent as Icon } from '@epam/assets/icons/common/notification-info-outline-18.svg';
 import { Tooltip } from '@epam/loveship';

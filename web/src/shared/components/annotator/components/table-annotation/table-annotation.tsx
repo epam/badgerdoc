@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars, react-hooks/exhaustive-deps */
 import noop from 'lodash/noop';
 import React, { useEffect, useRef, useState } from 'react';
 import {

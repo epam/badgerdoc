@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { FC, useState } from 'react';
 import TrainModel from '../train-model/train-model';
 import UseExistingDataModel from '../use-existing-data-model/use-existing-data-model';

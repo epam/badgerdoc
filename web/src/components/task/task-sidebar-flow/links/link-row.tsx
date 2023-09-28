@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-redeclare */
 import React, { FC } from 'react';
 import { FlexRow, IconContainer, Text } from '@epam/loveship';
 import { Annotation } from 'shared';

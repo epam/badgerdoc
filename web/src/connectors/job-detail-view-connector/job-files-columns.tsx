@@ -1,7 +1,10 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-redeclare, @typescript-eslint/no-unused-vars */
 import { FileDocument } from '../../api/typings';
 import { Text } from '@epam/loveship';
 import React from 'react';
 
+// eslint-disable-next-line import/no-anonymous-default-export
 export default [
     {
         key: 'original_name',

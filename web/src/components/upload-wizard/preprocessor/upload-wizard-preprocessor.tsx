@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-redeclare, react-hooks/exhaustive-deps */
 import React, { FC, useEffect, useState } from 'react';
 import { FlexRow, IconButton, PickerInput, RadioInput, Text, Tooltip } from '@epam/loveship';
 import { ReactComponent as InfoIcon } from '@epam/assets/icons/common/notification-info-outline-18.svg';

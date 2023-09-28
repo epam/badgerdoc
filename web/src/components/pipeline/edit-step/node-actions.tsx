@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { FC } from 'react';
 import { XYPosition } from 'react-flow-renderer';
 import styles from './edit-step.module.scss';

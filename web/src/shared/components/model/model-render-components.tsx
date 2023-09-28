@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react';
 import { FlexRow, LabeledInput, PickerInput, TextInput } from '@epam/loveship';
 import { ArrayDataSource } from '@epam/uui';

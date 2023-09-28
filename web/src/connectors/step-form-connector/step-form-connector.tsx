@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Form } from '@epam/uui';
 import { useModels, useBasements } from 'api/hooks/models';
 import { SortingDirection, Model, Operators, PipelineTypes } from 'api/typings';

@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars, react-hooks/exhaustive-deps */
 import React, { FC, useEffect, useState, useContext } from 'react';
 import styles from './documents-search-connector.module.scss';
 import { Checkbox, SearchInput, LinkButton } from '@epam/loveship';

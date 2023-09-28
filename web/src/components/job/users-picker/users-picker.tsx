@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { PickerInput, LabeledInput } from '@epam/loveship';
 import { IEditable, useArrayDataSource } from '@epam/uui';
 

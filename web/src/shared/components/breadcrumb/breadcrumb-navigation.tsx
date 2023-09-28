@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-redeclare */
 import React, { FC } from 'react';
 import { FlexRow, IconContainer, Text } from '@epam/loveship';
 import { ReactComponent as navigation } from '@epam/assets/icons/common/navigation-chevron-right-12.svg';

@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars, react-hooks/exhaustive-deps */
 import { PickerInput, LabeledInput, TextInput, Button } from '@epam/loveship';
 import { IFormApi, useArrayDataSource } from '@epam/uui';
 import { useModelById } from 'api/hooks/models';

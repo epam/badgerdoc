@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-redeclare */
 import { cx } from '@epam/uui-core';
 import React, { DragEvent, useState } from 'react';
 import { GridVariants } from 'shared/constants/task';

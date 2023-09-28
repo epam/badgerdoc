@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable react-hooks/exhaustive-deps */
 import { AnnotationsByUser, useLatestAnnotationsByUser } from 'api/hooks/annotations';
 import { Category, Link, Taxon } from 'api/typings';
 import { JobStatus, Job } from 'api/typings/jobs';

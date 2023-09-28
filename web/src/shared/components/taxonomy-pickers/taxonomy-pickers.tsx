@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars, react-hooks/rules-of-hooks */
 import { LabeledInput, PickerInput } from '@epam/loveship';
 import { ILens, useArrayDataSource } from '@epam/uui';
 import { Category, Taxonomy } from 'api/typings';

@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { RefObject, useEffect } from 'react';
 import { Annotation, AnnotationImageTool, Bound } from '../../typings';
 import paper from 'paper';

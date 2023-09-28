@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars, react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from 'react';
 import { ReactComponent as infoIcon } from '@epam/assets/icons/common/notification-info-outline-18.svg';
 import {

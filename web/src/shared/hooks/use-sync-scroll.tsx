@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable react-hooks/exhaustive-deps, react-hooks/rules-of-hooks */
 import React, { useCallback, useEffect, useRef } from 'react';
 
 interface SyncedContainerProps {

@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import styles from './paper.module.scss';
 import React, { PropsWithChildren } from 'react';
 

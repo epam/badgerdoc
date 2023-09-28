@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars, react-hooks/rules-of-hooks, react-hooks/exhaustive-deps */
 import React, { useEffect, useMemo } from 'react';
 import styles from './job-sidebar-header.module.scss';
 import { Job, JobStatus, JobType } from '../../../api/typings/jobs';

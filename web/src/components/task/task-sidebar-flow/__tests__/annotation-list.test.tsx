@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react';
 import { render } from 'shared/helpers/testUtils/render';
 import { AnnotationBoundType } from 'shared';

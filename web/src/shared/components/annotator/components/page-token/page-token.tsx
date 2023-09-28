@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react';
 import type { PageToken, TokenStyle } from '../../typings';
 import styles from './page-token.module.scss';

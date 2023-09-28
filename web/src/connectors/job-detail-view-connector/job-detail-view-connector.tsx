@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-redeclare, react-hooks/exhaustive-deps */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useJobById } from 'api/hooks/jobs';
 import { FileDocument, User } from 'api/typings';

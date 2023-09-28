@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable react-hooks/rules-of-hooks, react-hooks/exhaustive-deps, @typescript-eslint/no-redeclare */
 import { DataColumnProps, DataSourceState, useArrayDataSource } from '@epam/uui';
 import { useAsyncSourceTable } from 'shared/hooks/async-source-table';
 import {

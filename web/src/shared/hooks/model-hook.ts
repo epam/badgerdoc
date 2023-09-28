@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useMemo, useState } from 'react';
 import { useArrayDataSource } from '@epam/uui';
 

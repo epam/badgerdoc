@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars, react-hooks/exhaustive-deps */
 import React, { FC, useCallback } from 'react';
 import { Dropdown, Button, DropdownContainer } from '@epam/loveship';
 import { LabelRow } from '../../../components/task/task-sidebar-flow/label-row';

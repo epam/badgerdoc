@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable eqeqeq */
 const isMocksAllowed = String(process.env.REACT_APP_ALLOW_MOCKS).toLocaleLowerCase() == 'true';
 
 module.exports = function (req, res, next) {

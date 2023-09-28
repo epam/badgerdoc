@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { ModelDetailedViewConnector } from '../../connectors/model-detailed-view-connector/model-detailed-view-connector';

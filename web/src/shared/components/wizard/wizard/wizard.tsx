@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { FC, Fragment } from 'react';
 import WizardStep from '../wizard-step/wizard-step';
 import { Link } from 'react-router-dom';

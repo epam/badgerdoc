@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-redeclare */
 import React, { FC, useCallback } from 'react';
 import { ANNOTATION_FLOW_ITEM_ID_PREFIX } from 'shared/constants/annotations';
 import { ANNOTATION_PATH_SEPARATOR } from './constants';

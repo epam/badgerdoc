@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { FC } from 'react';
 import styles from './basement-argument.module.scss';
 import { Button, LabeledInput, TextInput } from '@epam/loveship';

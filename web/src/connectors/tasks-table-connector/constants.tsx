@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-redeclare */
 import React from 'react';
 import { FlexRow, Text } from '@epam/loveship';
 import { DataColumnProps } from '@epam/uui';

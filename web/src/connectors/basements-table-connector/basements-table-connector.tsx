@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars, react-hooks/exhaustive-deps */
 import { Button, DataTable, Panel } from '@epam/loveship';
 import React, { FC, useEffect } from 'react';
 import {

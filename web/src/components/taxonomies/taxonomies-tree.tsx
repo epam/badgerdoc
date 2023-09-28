@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars, react-hooks/exhaustive-deps */
 import React, { FC, useCallback, useMemo } from 'react';
 import { Spinner } from '@epam/loveship';
 import { TaxonomyNode, TTreeNode } from 'api/typings';

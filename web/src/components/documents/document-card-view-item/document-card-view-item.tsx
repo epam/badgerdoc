@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars, react-hooks/exhaustive-deps*/
 import React, { FC, useEffect, useState } from 'react';
 import styles from './document-card-view-item.module.scss';
 import { IconButton, Dropdown, Checkbox } from '@epam/loveship';
@@ -86,7 +88,8 @@ export const DocumentCardViewItem: FC<DocumentCardViewProps> = ({
                     <div className={styles['card-item-main']}>
                         <div className={styles['header-container']}>
                             <div className={styles['card-item-title']}>{name}</div>
-                            {/* eslint-disable */}
+                            {/* temporary_disabled_rules */}
+                            {/* eslint-disable jsx-a11y/no-static-element-interactions, jsx-a11y/click-events-have-key-events */}
                             <div
                                 onClick={(event) => {
                                     if (setSelectedFiles) {
@@ -112,7 +115,9 @@ export const DocumentCardViewItem: FC<DocumentCardViewProps> = ({
                                     }
                                 }}
                             >
-                               {!isPieces && <Checkbox value={chooseFile} onValueChange={() => {}} />}
+                                {!isPieces && (
+                                    <Checkbox value={chooseFile} onValueChange={() => {}} />
+                                )}
                             </div>
                         </div>
                         {jobs && jobs.length ? (

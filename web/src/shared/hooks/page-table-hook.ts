@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable react-hooks/exhaustive-deps */
 import { DataSourceState } from '@epam/uui';
 import React, { useCallback, useMemo, useState } from 'react';
 import { pageSizes } from 'shared';

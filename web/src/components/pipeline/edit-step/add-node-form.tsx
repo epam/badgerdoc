@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-redeclare */
 import { StepFormConnector } from 'connectors/step-form-connector/step-form-connector';
 import React, { FC } from 'react';
 import { StepValues } from './edit-step';

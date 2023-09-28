@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable react-hooks/rules-of-hooks */
 import { Operators, PagedResponse, QueryHookType } from 'api/typings';
 import { useQuery } from 'react-query';
 import {

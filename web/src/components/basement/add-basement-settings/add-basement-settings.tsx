@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars, react-hooks/exhaustive-deps */
 import React, { FC, useEffect, useState } from 'react';
 import { LabeledInput, TextInput, Checkbox, Button } from '@epam/loveship';
 import { Form, ILens } from '@epam/uui';

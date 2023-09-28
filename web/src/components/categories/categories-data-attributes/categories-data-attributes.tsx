@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-redeclare */
 import React, { FC } from 'react';
 import { useArrayDataSource } from '@epam/uui';
 import { CategoryDataAttrType, CategoryDataAttribute } from '../../../api/typings';

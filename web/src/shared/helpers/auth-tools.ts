@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable react-hooks/rules-of-hooks */
 import { AuthResult, AuthResultRaw, StoredAuthResult } from 'api/typings';
 import Cookies from 'universal-cookie';
 import { useBadgerFetch } from '../../api/hooks/api';

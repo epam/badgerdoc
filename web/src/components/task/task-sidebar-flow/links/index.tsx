@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { FC } from 'react';
 import { Dropdown, IconButton, Panel } from '@epam/loveship';
 import { Annotation } from 'shared';

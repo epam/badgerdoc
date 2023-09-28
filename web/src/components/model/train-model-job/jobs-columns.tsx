@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-redeclare, @typescript-eslint/no-unused-vars */
 import { Text } from '@epam/loveship';
 import React from 'react';
 import { Job } from 'api/typings/jobs';

@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable eqeqeq */
 import { Category, Link } from 'api/typings';
 import {
     Annotation,

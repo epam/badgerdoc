@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react';
 import { TasksTableConnector } from 'connectors/tasks-table-connector/tasks-table-connector';
 import styles from './dashboard-page.module.scss';

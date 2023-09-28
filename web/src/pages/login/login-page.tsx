@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-redeclare */
 import React from 'react';
 import { Panel, Text } from '@epam/loveship';
 import { LoginConnector } from 'connectors/login-connector';

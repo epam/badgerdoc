@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { FC } from 'react';
 import { ReactComponent as SortAsc } from '@epam/assets/icons/common/table-sort_asc-18.svg';
 import { ReactComponent as SortDesc } from '@epam/assets/icons/common/table-sort_desc-18.svg';

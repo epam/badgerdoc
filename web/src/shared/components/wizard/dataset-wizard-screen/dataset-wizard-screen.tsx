@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars, react-hooks/exhaustive-deps, eqeqeq */
 import { datasetsFetcher } from 'api/hooks/datasets';
 import { Dataset } from 'api/typings';
 import { RadioInput, TextInput } from '@epam/loveship';

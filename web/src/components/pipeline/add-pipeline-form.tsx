@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-redeclare, react-hooks/exhaustive-deps */
 import React, { FC, useCallback } from 'react';
 import { ErrorNotification, SuccessNotification, Text } from '@epam/loveship';
 import { Form, INotification } from '@epam/uui';

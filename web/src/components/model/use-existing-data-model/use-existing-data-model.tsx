@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { FC, useState } from 'react';
 import { mapUndefString } from '../../../shared/helpers/utils';
 import { ModelValues } from '../model.models';

@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars, react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from 'react';
 import { DocumentPage } from '../../pages';
 import { useDocuments } from '../../api/hooks/documents';

@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { FC, useState } from 'react';
 import { PipelineValues } from 'components/pipeline/add-pipeline-form';
 import { pipelinesFetcher } from 'api/hooks/pipelines';

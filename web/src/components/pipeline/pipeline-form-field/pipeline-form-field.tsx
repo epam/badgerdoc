@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars, react-hooks/exhaustive-deps */
 import React, { FC, useMemo } from 'react';
 import { PipelineData, Step } from 'api/typings';
 import { noop } from 'lodash';

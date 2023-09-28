@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-redeclare, react-hooks/rules-of-hooks, react-hooks/exhaustive-deps, eqeqeq, @typescript-eslint/no-unused-expressions */
 import React, {
     createContext,
     MutableRefObject,

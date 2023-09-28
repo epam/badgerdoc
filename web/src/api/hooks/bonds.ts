@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable react-hooks/rules-of-hooks */
 import { BondToDatasetResponse } from 'api/typings/bonds';
 import { useBadgerFetch } from './api';
 

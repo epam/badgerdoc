@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars, react-hooks/exhaustive-deps, @typescript-eslint/no-redeclare */
 import React, { FC, useCallback, useEffect, useState } from 'react';
 import { useUsers } from 'api/hooks/users';
 import { Report, SortingDirection } from 'api/typings';
@@ -67,7 +69,8 @@ export const ReportsConnector: FC<{}> = () => {
             const values = users.data?.data;
 
             const formInvalid = isFormInvalid(lens);
-            /* eslint-disable jsx-a11y/anchor-has-content */
+            // temporary_disabled_rules
+            /* eslint-disable jsx-a11y/anchor-has-content, react-hooks/rules-of-hooks */
             return (
                 <>
                     <RetrieveReportsList lens={lens} users={values} />

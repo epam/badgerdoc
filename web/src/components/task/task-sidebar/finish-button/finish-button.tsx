@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { FC, useState } from 'react';
 import { useArrayDataSource } from '@epam/uui';
 import { PickerInput, Button, ControlGroup, Tooltip } from '@epam/loveship';

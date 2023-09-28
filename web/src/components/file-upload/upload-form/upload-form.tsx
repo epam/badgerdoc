@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-redeclare */
 import React, { FC } from 'react';
 import { Button, Text, Panel } from '@epam/loveship';
 import { DropSpot, UploadFileToggler } from '@epam/uui-components';

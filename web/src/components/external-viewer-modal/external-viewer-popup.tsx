@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-redeclare, @typescript-eslint/no-unused-vars, react-hooks/exhaustive-deps */
 import { Panel, ModalHeader, ModalFooter, FlexRow, FlexSpacer, Button, Text } from '@epam/loveship';
 import React, { ReactElement, useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';

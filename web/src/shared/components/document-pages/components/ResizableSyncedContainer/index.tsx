@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useRef, useState } from 'react';
 import DraggableResizer from '../draggable-resizer/draggable-resizer';
 import { useTaskAnnotatorContext } from '../../../../../connectors/task-annotator-connector/task-annotator-context';

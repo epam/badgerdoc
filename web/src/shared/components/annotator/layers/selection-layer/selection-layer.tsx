@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars, react-hooks/rules-of-hooks, react-hooks/exhaustive-deps */
 import React, { CSSProperties, FC, useMemo } from 'react';
 import { Point, AnnotationBoundType, PageToken, AnnotationImageToolType } from '../../typings';
 import { BoxSelection } from '../../components/box-selection/box-selection';

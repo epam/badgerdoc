@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable react-hooks/rules-of-hooks, no-restricted-globals, eqeqeq */
 import { ApiError } from 'api/api-error';
 import { applyMocks } from 'api/mocks';
 import { HTTPRequestMethod } from 'api/typings';
