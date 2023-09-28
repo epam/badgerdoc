@@ -19,7 +19,7 @@ export const ConfirmModal = (modalProps: IModal<string>) => (
                 <ModalHeader title="Attention" onClose={() => modalProps.abort()} />
                 <ScrollBars hasTopShadow hasBottomShadow>
                     <FlexRow padding="24">
-                        <Text size="36">Are you sure you want to stop editing the document?</Text>
+                        <Text size="36">Are you sure you want to stop annotating this document?</Text>
                     </FlexRow>
                 </ScrollBars>
                 <ModalFooter>
