@@ -107,11 +107,13 @@ export const ModalWithDisabledClickOutsideAndCross: FC<IProps> = ({
         value: getDefaultValues(categoryValue)
     });
 
+    const title = categoryValue ? 'Edit category' : 'Add new category';
+
     return (
         <ModalBlocker disallowClickOutside blockerShadow="dark" {...props} abort={onClose}>
             <ModalWindow>
                 <Panel background="white">
-                    <ModalHeader title="Add new category" />
+                    <ModalHeader title={title} />
                     <ScrollBars hasTopShadow hasBottomShadow>
                         <FlexRow padding="24" vPadding="12">
                             <FlexCell grow={1}>
@@ -120,13 +122,16 @@ export const ModalWithDisabledClickOutsideAndCross: FC<IProps> = ({
                                 </LabeledInput>
                             </FlexCell>
                         </FlexRow>
-                        <FlexRow padding="24" vPadding="12">
-                            <FlexCell grow={1}>
-                                <LabeledInput isRequired label="Category Id">
-                                    <TextInput {...lens.prop('categoryId').toProps()} />
-                                </LabeledInput>
-                            </FlexCell>
-                        </FlexRow>
+                        {!categoryValue && (
+                            <FlexRow padding="24" vPadding="12">
+                                <FlexCell grow={1}>
+                                    <LabeledInput isRequired={!categoryValue} label="Category Id">
+                                        <TextInput {...lens.prop('categoryId').toProps()} />
+                                    </LabeledInput>
+                                </FlexCell>
+                            </FlexRow>
+                        )}
+
                         <FlexRow padding="24" vPadding="12">
                             <FlexCell grow={1}>
                                 <LabeledInput isRequired label="Color">

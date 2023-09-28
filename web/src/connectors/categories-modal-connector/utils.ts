@@ -31,6 +31,7 @@ export const getFormSchema = (formValues: TFormValues): Metadata<TFormValues> =>
 
 export const getDefaultValues = (category: Category | undefined) => {
     const {
+        id,
         name,
         type,
         metadata,
@@ -39,11 +40,11 @@ export const getDefaultValues = (category: Category | undefined) => {
     } = category || {};
 
     return {
-        categoryId: '',
+        categoryId: id || '',
         name: name ?? '',
         parentId: parent,
         type: type ?? 'box',
-        withParentLabel: !parent,
+        withParentLabel: !!parent,
         color: metadata?.color ?? '',
         dataAttributes: dataAttributes ?? []
     };
