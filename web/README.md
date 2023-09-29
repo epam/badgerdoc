@@ -129,7 +129,7 @@ To learn React, check out the [React documentation](https://reactjs.org/).
 ## Local Development
 
 To work in local environment you need to start up the **_local backend_** and configure env variables for correct connection.
-For that you need to copy content of `.env.example` file to `.env.local` and specify provided variables.
+By default, `.env.development` file is used when `yarn start` command is executed. In most cases it's enough for local development. In case if you want to have own set of variables for local development, you can copy content of `.env.development` file to `.env.local` and specify needed values for provided variables there.
 
 ## Test
 

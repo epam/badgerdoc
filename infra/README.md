@@ -1,11 +1,11 @@
 ## Prerequisites:
 
-* k8s
-* kubectl
-* helm
-* elasticsearch
-* postresql
-* keycloak backup db restored (this file can be retrieved from devops team)
+- k8s
+- kubectl
+- helm
+- elasticsearch
+- postresql
+- keycloak backup db restored (this file can be retrieved from devops team)
 
 ###### Create DBs in your postregsql
 
@@ -22,6 +22,7 @@ create database keycloak;
 ```
 
 ###### Restore the db (will be fixed soon)
+
 ```shell
 cat keycloak.sql | psql -U postgres keycloak
 ```
@@ -40,6 +41,7 @@ helm repo update
 ```
 
 ##### Ambassador
+
 ```shell
 kubectl apply -f infra/k8s/helm/ambassador/aes-crds.yaml
 kubectl create namespace ambassador
@@ -99,6 +101,7 @@ kubectl label namespace app istio-injection=enabled
 ##### Deploy Keycloak
 
 Please, set up DB host, user, password
+
 ```shell
 helm install bagerdoc-keycloack -n app -f values.yaml --version 6.0.1 --set  externalDatabase.password=postgres --set externalDatabase.user=postgres  --set externalDatabase.host=postgres-postgresql bitnami/keycloak
 
@@ -106,15 +109,18 @@ helm install bagerdoc-keycloack -n app -f values.yaml --version 6.0.1 --set  ext
 kubectl apply -f infra/helm/keycloack/mapping.yaml
 ```
 
-Keycloak must have the same host name  outside and inside k8s cluster
+Keycloak must have the same host name outside and inside k8s cluster
 
 ```shell
-kubectl -n kube-system edit configmap coredns 
+kubectl -n kube-system edit configmap coredns
 ```
-Please add  rewrite rule to coredns config
+
+Please add rewrite rule to coredns config
+
 ```
 rewrite name app.badgerdoc.com ambassador.ambassador.svc.cluster.local
 ```
+
 Related issue: https://github.com/coredns/coredns/issues/3298#issuecomment-534472063
 
 ##### apache kafka
@@ -182,6 +188,7 @@ How to create:
 ```shell
 cat env_vars.sh file_with_shell_above.sh | bash
 ```
+
 !!!! env_vars file has a dependecy on keycloak database.
 
 ### Microservices from Images
@@ -200,15 +207,14 @@ scheduler:0.1.1-0ad86fa3 \
 search:0.1.4-f888d959 \
 users:0.1.2-71a0f115"
 
-for image in $IMAGES; do  
-service=$(echo $image | cut -f1 -d':'); 
-tag=$(echo $image | cut -f2 -d':');  
-helm upgrade -n app -i --set image.tag=${tag} --version ${tag}  ${service}  ${service}/chart/; 
+for image in $IMAGES; do
+service=$(echo $image | cut -f1 -d':');
+tag=$(echo $image | cut -f2 -d':');
+helm upgrade -n app -i --set image.tag=${tag} --version ${tag}  ${service}  ${service}/chart/;
 done
 
-helm upgrade -n app -i --set image.tag=0.2.0-5f57ad1c --version 0.2.0-5f57ad1c  badgerdoc-ui  web/chart/; 
+helm upgrade -n app -i --set image.tag=0.2.0-5f57ad1c --version 0.2.0-5f57ad1c  badgerdoc-ui  web/chart/;
 ```
-
 
 ### How to build images
 
@@ -231,7 +237,7 @@ make build
 docker push "${YOUR_DOCKER_REGISTRY}/badgerdoc/annotation:0.1.5-${SOME_HASH}"
 
 #The next step is to deploy chart with new image
-helm upgrade -n app -i --set image.tag=0.1.5-${SOME_HASH} --version 0.1.5-${SOME_HASH}  annotation  annotation/chart/ 
+helm upgrade -n app -i --set image.tag=0.1.5-${SOME_HASH} --version 0.1.5-${SOME_HASH}  annotation  annotation/chart/
 ```
 
 ### How to build all images
@@ -270,16 +276,4 @@ cd ..; done
 
 How to build UI
 
-```shell
-export REGISTRY="badgerdoc"
-version=$(cat ./version.txt)
-sha=$(git rev-parse --short HEAD)
-tag="${version}-${sha}"
-image="${REGISTRY}/${svc}:${version}-${sha}"
-DOCKERFILE="./web/deploy/web.Dockerfile"
-
-cp -r .git ./web/
-docker build -t ${image} --no-cache=true --pull --file $DOCKERFILE ./web
-# docker push "${image}" && helm upgrade -n app -i --set image.registry=${YOUR_REGISTRY},image.tag=${version} badgerdoc-ui-dev chart/.
-rm -rf ./web/.git
-```
+TBD
