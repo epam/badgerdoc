@@ -21,7 +21,6 @@ export type DocumentPagesProps = {
     fileMetaInfo: FileMetaInfo;
     apiPageSize?: PageSize;
     additionalScale: number;
-    goToPage?: number;
     setPageSize?: (nS: any) => void;
     editable: boolean;
     gridVariant: GridVariants;

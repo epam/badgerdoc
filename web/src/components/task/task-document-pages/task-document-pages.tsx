@@ -10,14 +10,12 @@ import { GridVariants } from 'shared/constants/task';
 export interface DocumentPageProps {
     viewMode: boolean;
     additionalScale: number;
-    goToPage?: number;
     gridVariant?: GridVariants;
 }
 
 const TaskDocumentPages = ({
     viewMode,
     additionalScale,
-    goToPage,
     gridVariant = GridVariants.horizontal
 }: DocumentPageProps) => {
     const {
@@ -56,7 +54,6 @@ const TaskDocumentPages = ({
                 apiPageSize={pageSize}
                 setPageSize={setPageSize}
                 editable={editable}
-                goToPage={goToPage}
             />
         </div>
     );

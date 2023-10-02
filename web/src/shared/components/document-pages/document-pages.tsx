@@ -36,8 +36,7 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
     setPageSize,
     editable,
     gridVariant,
-    additionalScale,
-    goToPage
+    additionalScale
 }) => {
     const {
         SyncedContainer,
@@ -56,7 +55,7 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
         onAnnotationUndoPress,
         onAnnotationRedoPress
     } = useTaskAnnotatorContext();
-
+    const goToPage = currentOrderPageNumber + 1;
     const containerRef = useRef<HTMLDivElement>(null);
 
     const [scale, setScale] = useState(0);

@@ -2,7 +2,9 @@
 /* eslint-disable @typescript-eslint/no-redeclare, react-hooks/rules-of-hooks, react-hooks/exhaustive-deps, eqeqeq, @typescript-eslint/no-unused-expressions */
 import React, {
     createContext,
+    Dispatch,
     MutableRefObject,
+    SetStateAction,
     useCallback,
     useContext,
     useEffect,
@@ -101,6 +103,7 @@ export type TTaskAnnotatorContext = SplitValidationValue &
         pageNumbers: number[];
         currentPage: number;
         currentOrderPageNumber: number;
+        setCurrentOrderPageNumber: Dispatch<SetStateAction<number>>;
         modifiedPages: number[];
         pageSize?: { width: number; height: number };
         setPageSize: (pS: any) => void;
@@ -433,10 +436,10 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         refetchLatestAnnotations
     } = documentData;
 
-    const onCurrentPageChange = (page: number, orderNumber: number) => {
+    const onCurrentPageChange = useCallback((page: number, orderNumber: number) => {
         setCurrentPage(page);
         setCurrentOrderPageNumber(orderNumber);
-    };
+    }, []);
 
     useEffect(() => {
         if (task || job || revisionId) {
@@ -1147,6 +1150,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             pageNumbers,
             currentPage,
             currentOrderPageNumber,
+            setCurrentOrderPageNumber,
             pageSize,
             setPageSize,
             modifiedPages,
@@ -1227,6 +1231,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         allAnnotations,
         currentPage,
         currentOrderPageNumber,
+        setCurrentOrderPageNumber,
         pageSize,
         tableMode,
         isNeedToSaveTable,
