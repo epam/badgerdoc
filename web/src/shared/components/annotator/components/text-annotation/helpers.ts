@@ -89,8 +89,18 @@ export const updateCurrentTextAnnBound = (curBound: Bound, token: PageToken): Bo
     };
 };
 
-export const isTokenOnNewLine = (token: PageToken, curBound: Bound): boolean => {
-    return isBoundValid(curBound) && token.y > curBound.y + token.height;
+const LINE_BREAK_CHAR = '\n';
+const isTokenLastOfLine = (token: PageToken) => token?.text!.includes(LINE_BREAK_CHAR);
+
+export const isTokenOnNewLine = (
+    token: PageToken,
+    prevToken: PageToken,
+    curBound: Bound
+): boolean => {
+    return (
+        isBoundValid(curBound) &&
+        (isTokenLastOfLine(prevToken) || token.y > curBound.y + token.height)
+    );
 };
 
 const createRegularTextAnnBoundParams = (
@@ -142,12 +152,13 @@ export const getBorders = (bound: TextAnnBound, color: string): string => {
 
 export const createBoundsFromTokens = (tokens: PageToken[], scale: number): TextAnnBound[] => {
     const textAnnBounds: TextAnnBound[] = [];
+    let prevToken: PageToken = {} as PageToken;
     let curBound: Bound = {} as Bound;
     let prevBound: Bound = {} as Bound;
     let boundsCreated = 0;
     if (!tokens) return [];
     for (let token of tokens) {
-        if (isTokenOnNewLine(token, curBound)) {
+        if (isTokenOnNewLine(token, prevToken, curBound)) {
             const newTextAnnBound: TextAnnBound = createTextAnnBound(
                 curBound,
                 prevBound,
@@ -161,6 +172,7 @@ export const createBoundsFromTokens = (tokens: PageToken[], scale: number): Text
             boundsCreated++;
         }
         curBound = updateCurrentTextAnnBound(curBound, token);
+        prevToken = token;
     }
     const newTextAnnBound: TextAnnBound = createTextAnnBound(
         curBound,
