@@ -22,7 +22,6 @@ type DocumentPDFProps = {
     handleDocumentLoaded: DocumentLoadedCallback;
     fileMetaInfo: FileMetaInfo;
     pageSize?: PageSize;
-    goToPage?: number;
     editable: boolean;
     fullScale: number;
     containerRef: {
@@ -96,14 +95,14 @@ const DocumentPDF: React.FC<DocumentPDFProps> = ({
     pageSize,
     handleDocumentLoaded,
     containerRef,
-    editable,
-    goToPage
+    editable
 }) => {
     const {
         selectedAnnotation,
         setAvailableRenderedPagesRange,
         getNextDocumentItems,
-        isDocumentPageDataLoaded
+        isDocumentPageDataLoaded,
+        currentOrderPageNumber
     } = useTaskAnnotatorContext();
     const pdfListData = useMemo<ListItemData>(
         () => ({
@@ -125,7 +124,7 @@ const DocumentPDF: React.FC<DocumentPDFProps> = ({
     const loadMoreItems = useDebouncedCallback(getNextDocumentItems, 500);
 
     /**
-     * goToPage - the ordering number of page which is currently shown on UI (starts from 1),
+     * currentOrderPageNumber - the ordering number of page which is currently shown on UI,
      * correlate with "pageNumbers (indexes)"
      * pageNumbers (values) - number of page comes from BE (can be started from any number
      * and contains numbers only for processed pages)
@@ -137,8 +136,8 @@ const DocumentPDF: React.FC<DocumentPDFProps> = ({
 
     // in case of page switching
     useEffect(() => {
-        pdfPagesListRef.current?.scrollToItem(goToPage! - 1, 'start');
-    }, [goToPage]);
+        pdfPagesListRef.current?.scrollToItem(currentOrderPageNumber, 'start');
+    }, [currentOrderPageNumber]);
 
     // in case of scrolling to some annotation
     useEffect(() => {

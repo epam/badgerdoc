@@ -55,7 +55,6 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
         onAnnotationUndoPress,
         onAnnotationRedoPress
     } = useTaskAnnotatorContext();
-    const goToPage = currentOrderPageNumber + 1;
     const containerRef = useRef<HTMLDivElement>(null);
 
     const [scale, setScale] = useState(0);
@@ -163,7 +162,9 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                                             onAnnotationUndoPress={onAnnotationUndoPress}
                                             onAnnotationRedoPress={onAnnotationRedoPress}
                                             onEmptyAreaClick={onEmptyAreaClick}
-                                            isScrolledToCurrent={pageNum === goToPage}
+                                            isScrolledToCurrent={
+                                                pageNum === currentOrderPageNumber + 1
+                                            }
                                         />
                                     </Fragment>
                                 );
@@ -204,7 +205,9 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                                                         scaledAnn
                                                     )
                                                 }
-                                                isScrolledToCurrent={pageNum === goToPage}
+                                                isScrolledToCurrent={
+                                                    pageNum === currentOrderPageNumber + 1
+                                                }
                                             />
                                         );
                                     })}
@@ -278,7 +281,6 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                                 handleDocumentLoaded={handleDocumentLoaded}
                                 containerRef={containerRef}
                                 editable={editable}
-                                goToPage={goToPage}
                             />
                         ) : null}
                         {fileMetaInfo.extension === '.jpg' ? (
@@ -302,7 +304,9 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                                                 onAnnotationUndoPress={onAnnotationUndoPress}
                                                 onAnnotationRedoPress={onAnnotationRedoPress}
                                                 onEmptyAreaClick={onEmptyAreaClick}
-                                                isScrolledToCurrent={pageNum === goToPage}
+                                                isScrolledToCurrent={
+                                                    pageNum === currentOrderPageNumber + 1
+                                                }
                                             />
                                         </Fragment>
                                     );
