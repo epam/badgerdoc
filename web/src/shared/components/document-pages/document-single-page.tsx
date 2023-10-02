@@ -16,6 +16,7 @@ type RenderPageParams = {
     annotations?: Annotation[];
     scale: number;
     pageNum: number;
+    orderNumber: number;
     handlePageLoaded?: (page: PDFPageProxy | HTMLImageElement) => void;
     pageSize?: PageSize;
     containerRef?: React.RefObject<HTMLDivElement>;
@@ -42,6 +43,7 @@ const DocumentSinglePage: FC<RenderPageParams> = ({
     annotations,
     scale,
     pageNum,
+    orderNumber,
     userId,
     handlePageLoaded = noop,
     pageSize,
@@ -167,7 +169,7 @@ const DocumentSinglePage: FC<RenderPageParams> = ({
             id="document-page"
             rootRef={containerRef}
             onIntersect={() => {
-                onCurrentPageChange(pageNum);
+                onCurrentPageChange(pageNum, orderNumber);
             }}
             disabled={!pageSize}
             width={pageSize ? pageSize.width * scale : undefined}

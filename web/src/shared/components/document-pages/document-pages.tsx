@@ -46,6 +46,7 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
         latestRevisionByAnnotators,
         latestRevisionByAnnotatorsWithBounds,
         currentPage,
+        currentOrderPageNumber,
         selectedRelatedDoc,
         job,
         onEmptyAreaClick,
@@ -145,13 +146,14 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                             rowsCount={latestRevisionByAnnotators.length + 1}
                             className={styles['split-document-page']}
                         >
-                            {pageNumbers.map((pageNum) => {
+                            {pageNumbers.map((pageNum, orderNumber) => {
                                 return (
                                     <Fragment key={`validation-${pageNum}`}>
                                         <DocumentSinglePage
                                             scale={fullScale}
                                             pageSize={apiPageSize}
                                             pageNum={pageNum}
+                                            orderNumber={orderNumber}
                                             handlePageLoaded={handlePageLoaded}
                                             containerRef={containerRef}
                                             editable
@@ -178,7 +180,7 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                                         styles['additional-page']
                                     )}
                                 >
-                                    {pageNumbers.map((pageNum) => {
+                                    {pageNumbers.map((pageNum, orderNumber) => {
                                         const isShowAnnotation =
                                             !!latestRevisionByAnnotatorsWithBounds[userId].filter(
                                                 (obj) => obj.pageNum === pageNum
@@ -189,6 +191,7 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                                                 key={`${userId}-${pageNum}`}
                                                 scale={fullScale}
                                                 pageNum={pageNum}
+                                                orderNumber={orderNumber}
                                                 pageSize={apiPageSize}
                                                 userId={userId}
                                                 isShownAnnotation={isShowAnnotation}
@@ -227,6 +230,7 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                                     scale={fullScale}
                                     pageSize={apiPageSize}
                                     pageNum={currentPage}
+                                    orderNumber={currentOrderPageNumber}
                                     handlePageLoaded={handlePageLoaded}
                                     containerRef={containerRef}
                                     editable
@@ -250,6 +254,7 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                                     scale={fullScale}
                                     pageSize={apiPageSize}
                                     pageNum={currentPage}
+                                    orderNumber={currentOrderPageNumber}
                                     handlePageLoaded={handlePageLoaded}
                                     containerRef={containerRef}
                                     editable={false}
@@ -279,13 +284,14 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                         ) : null}
                         {fileMetaInfo.extension === '.jpg' ? (
                             <div className={styles['images-container']}>
-                                {pageNumbers.map((pageNum) => {
+                                {pageNumbers.map((pageNum, orderNumber) => {
                                     return (
                                         <Fragment key={pageNum}>
                                             <DocumentSinglePage
                                                 scale={fullScale}
                                                 pageSize={apiPageSize}
                                                 pageNum={pageNum}
+                                                orderNumber={orderNumber}
                                                 handlePageLoaded={handlePageLoaded}
                                                 containerRef={containerRef}
                                                 editable={editable}

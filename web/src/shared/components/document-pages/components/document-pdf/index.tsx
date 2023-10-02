@@ -48,10 +48,10 @@ const fixedSizeListStyle = { willChange: 'auto' };
 
 const PDFPageRenderer: FC<PDFPageRendererProps> = ({
     data: { pageNumbers, fullScale, pageSize, containerRef, editable },
-    index,
+    index: orderNumber,
     style
 }) => {
-    const pageNum = pageNumbers[index];
+    const pageNum = pageNumbers[orderNumber];
     const {
         onEmptyAreaClick,
         onAnnotationCopyPress,
@@ -67,6 +67,7 @@ const PDFPageRenderer: FC<PDFPageRendererProps> = ({
                 scale={fullScale}
                 pageSize={pageSize}
                 pageNum={pageNum}
+                orderNumber={orderNumber}
                 containerRef={containerRef}
                 editable={editable}
                 onAnnotationCopyPress={onAnnotationCopyPress}

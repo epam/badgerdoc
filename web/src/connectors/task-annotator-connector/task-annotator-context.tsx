@@ -100,6 +100,7 @@ export type TTaskAnnotatorContext = SplitValidationValue &
         allAnnotations?: Record<string, Annotation[]>;
         pageNumbers: number[];
         currentPage: number;
+        currentOrderPageNumber: number;
         modifiedPages: number[];
         pageSize?: { width: number; height: number };
         setPageSize: (pS: any) => void;
@@ -140,7 +141,7 @@ export type TTaskAnnotatorContext = SplitValidationValue &
             changes: Partial<Annotation>
         ) => void;
         onLinkDeleted: (pageNum: number, annotationId: string | number, link: Link) => void;
-        onCurrentPageChange: (page: number) => void;
+        onCurrentPageChange: (page: number, orderNumber: number) => void;
         onClearModifiedPages: () => void;
         clearAnnotationsChanges: () => void;
         onEmptyAreaClick: () => void;
@@ -240,6 +241,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
     );
 
     const [currentPage, setCurrentPage] = useState<number>(1);
+    const [currentOrderPageNumber, setCurrentOrderPageNumber] = useState<number>(0);
 
     const [annotationsChanges, setAnnotationsChanges] = useState<Record<number, Annotation[]>>({});
     const [modifiedPages, setModifiedPages] = useState<number[]>([]);
@@ -431,9 +433,14 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         refetchLatestAnnotations
     } = documentData;
 
+    const onCurrentPageChange = (page: number, orderNumber: number) => {
+        setCurrentPage(page);
+        setCurrentOrderPageNumber(orderNumber);
+    };
+
     useEffect(() => {
         if (task || job || revisionId) {
-            setCurrentPage(pageNumbers[0]);
+            onCurrentPageChange(pageNumbers[0], 0);
             documentsResult.refetch();
         }
     }, [task, job, revisionId]);
@@ -1040,9 +1047,6 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         }
     };
 
-    const onCurrentPageChange = (page: number) => {
-        setCurrentPage(page);
-    };
     const splitValidation = useSplitValidation({
         categories: categories,
         currentPage,
@@ -1142,6 +1146,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             allAnnotations,
             pageNumbers,
             currentPage,
+            currentOrderPageNumber,
             pageSize,
             setPageSize,
             modifiedPages,
@@ -1221,6 +1226,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         tokensByPages,
         allAnnotations,
         currentPage,
+        currentOrderPageNumber,
         pageSize,
         tableMode,
         isNeedToSaveTable,
