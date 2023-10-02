@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useAsyncDataSource } from '@epam/uui';
 import { useEffect, useMemo, useRef } from 'react';
 

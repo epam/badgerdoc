@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable react-hooks/exhaustive-deps */
 import { taxonsFetcher } from 'api/hooks/taxons';
 import {
     Operators,

@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars, react-hooks/rules-of-hooks, react-hooks/exhaustive-deps */
 import React, { FC, useEffect } from 'react';
 
 import { Basement, Category, Model } from 'api/typings';

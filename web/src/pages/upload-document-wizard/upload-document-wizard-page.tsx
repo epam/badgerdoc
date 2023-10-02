@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-redeclare, react-hooks/exhaustive-deps */
 import React, { useCallback, useContext, useState } from 'react';
 import { useHistory } from 'react-router';
 import Wizard, {

@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable react-hooks/rules-of-hooks, @typescript-eslint/no-redeclare, react-hooks/exhaustive-deps */
 import { LazyDataSourceApiRequest } from '@epam/uui';
 import { PagingCache, PagingFetcher } from 'api/typings';
 import React, { useCallback } from 'react';

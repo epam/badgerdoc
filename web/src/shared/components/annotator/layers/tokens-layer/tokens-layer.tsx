@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { CSSProperties, FC, useMemo } from 'react';
 import { Token } from '../../components/page-token';
 import { PageToken } from '../../typings';

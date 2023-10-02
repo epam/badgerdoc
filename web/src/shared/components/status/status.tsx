@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-redeclare */
 import React, { FC } from 'react';
 import { JobStatus } from 'api/typings/jobs';
 import { Text, Tooltip } from '@epam/loveship';

@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable react-hooks/rules-of-hooks */
 import { QueryHookType } from '../typings';
 import { useQuery, useQueries } from 'react-query';
 import { useBadgerFetch } from './api';

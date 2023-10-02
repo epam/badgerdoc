@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-redeclare, react-hooks/exhaustive-deps */
 import { Category, Step } from 'api/typings';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Elements, FlowElement, FlowTransform, isNode, Node } from 'react-flow-renderer';

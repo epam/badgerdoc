@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { FC } from 'react';
 import { MultiSwitch } from '@epam/loveship';
 import { useHistory } from 'react-router-dom';

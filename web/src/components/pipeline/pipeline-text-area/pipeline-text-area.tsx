@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-redeclare, @typescript-eslint/no-unused-vars */
 import { TextArea, Text } from '@epam/loveship';
 import React, { FC, useState } from 'react';
 import { ReactComponent as EditIcon } from '@epam/assets/icons/common/content-edit-12.svg';

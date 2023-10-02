@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-redeclare, react-hooks/exhaustive-deps */
 import React, { FC, useContext, useEffect, useMemo } from 'react';
 import { DataTable, Panel, Text } from '@epam/loveship';
 import { TableWrapper, usePageTable } from 'shared';

@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars, react-hooks/exhaustive-deps, eqeqeq */
 import React, { FC, useEffect, useState, useContext } from 'react';
 import { TableWrapper, usePageTable } from 'shared';
 import { DocumentCardViewItem } from '../../components/documents/document-card-view-item/document-card-view-item';

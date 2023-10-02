@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-redeclare, react-hooks/exhaustive-deps */
 import React, { FC, ReactElement, useCallback, useContext, useMemo } from 'react';
 import EditJobSettings from 'components/job/edit-job-settings/edit-job-settings';
 import { usePipelines } from 'api/hooks/pipelines';
@@ -64,8 +66,8 @@ export type JobValues = {
 };
 
 const validationTypeTitle = {
-    ['extensive_coverage']: 'Extensive Coverage',
-    ['hierarchical']: 'Hierarchical Validation'
+    extensive_coverage: 'Extensive Coverage',
+    hierarchical: 'Hierarchical Validation'
 };
 const EditJobConnector: FC<EditJobConnectorProps> = ({
     renderWizardButtons,

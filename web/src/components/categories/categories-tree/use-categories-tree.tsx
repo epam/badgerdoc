@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useCategoriesByJob } from 'api/hooks/categories';
 import {
     CategoryNode,

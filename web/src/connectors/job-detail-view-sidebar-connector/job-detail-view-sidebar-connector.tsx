@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useJobById } from '../../api/hooks/jobs';
 import { useUserByForJob } from '../../api/hooks/users';

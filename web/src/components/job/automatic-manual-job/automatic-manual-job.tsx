@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { FC, useContext } from 'react';
 import { Pipeline, Taxonomy, User } from 'api/typings';
 import { JobValues } from 'connectors/edit-job-connector/edit-job-connector';

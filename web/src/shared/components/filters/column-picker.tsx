@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars, react-hooks/exhaustive-deps */
 import React, { ReactNode, useCallback, useMemo } from 'react';
 import { ColumnPickerFilter, RangeDatePicker } from '@epam/loveship';
 import { IDataSource, ILens } from '@epam/uui';

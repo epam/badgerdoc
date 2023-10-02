@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars, react-hooks/exhaustive-deps, react-hooks/rules-of-hooks */
 import React, { FC, useCallback, useState } from 'react';
 import AddModelSettings from 'components/model/add-model-settings/add-model-settings';
 import AddModelData from 'components/model/add-model-data/add-model-data';

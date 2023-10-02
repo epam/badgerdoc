@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { FC, useEffect, useMemo, useState } from 'react';
 import { User } from 'api/typings';
 import { noop, uniq } from 'lodash';

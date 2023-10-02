@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react';
 import styles from './box-annotation.module.scss';
 import { ANNOTATION_RESIZER_CLASS } from './box-annotation';

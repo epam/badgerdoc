@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable react-hooks/exhaustive-deps */
 import { FilterWithDocumentExtraOption, Operators, TUserShort, User } from '../../api/typings';
 import { useJobById } from '../../api/hooks/jobs';
 import { useEffect, useMemo, useRef, useState } from 'react';

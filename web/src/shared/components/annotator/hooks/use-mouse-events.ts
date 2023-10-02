@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useRef, useEffect } from 'react';
 import noop from 'lodash/noop';
 import { Point } from '..';

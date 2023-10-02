@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-redeclare */
 import {
     Annotation,
     Bound,

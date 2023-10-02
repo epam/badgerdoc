@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { FC } from 'react';
 import { useModelById } from '../../../api/hooks/models';
 import styles from '../preprocessor/upload-wizard-preprocessor.module.scss';

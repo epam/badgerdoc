@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { FC } from 'react';
 import TrainModelSetting from '../train-model-setting/train-model-setting';
 import TrainModelJob from '../train-model-job/train-model-job';

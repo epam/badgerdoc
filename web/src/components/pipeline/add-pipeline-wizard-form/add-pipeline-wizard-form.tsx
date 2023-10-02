@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars, react-hooks/exhaustive-deps */
 import React, { FC, useMemo, useEffect, useState } from 'react';
 import { IFormApi } from '@epam/uui-core';
 import { Pipeline, Category, PipelineData, PipelineTypes } from 'api/typings';

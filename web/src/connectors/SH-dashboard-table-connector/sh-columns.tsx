@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-redeclare, react-hooks/exhaustive-deps */
 import React, { useMemo } from 'react';
 import { Task, TaskStatus } from '../../api/typings/tasks';
 import { FlexRow, Text } from '@epam/loveship';

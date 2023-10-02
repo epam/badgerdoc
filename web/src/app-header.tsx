@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-redeclare, react-hooks/exhaustive-deps, no-restricted-globals */
 import React, { useContext, useMemo, useCallback } from 'react';
 import {
     Dropdown,

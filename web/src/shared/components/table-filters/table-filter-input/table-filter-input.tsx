@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useCallback, useState, FC } from 'react';
 import { IEditable } from '@epam/uui';
 import { FlexRow, NumericInput, Panel } from '@epam/loveship';

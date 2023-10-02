@@ -57,10 +57,12 @@
         "test": "react-scripts test",
         "test:ci": "yarn test --runInBand --passWithNoTests --verbose --watchAll=false",
         "test:coverage": "yarn test --coverage --watchAll=false",
-        "lint:js": "eslint . --ext .js,.ts,.tsx --max-warnings=0",
-        "lint:types": "tsc -p tsconfig.json --noEmit",
+        "check:all": "yarn check:lint-rules && yarn check:format && yarn check:types",
+        "check:lint-rules": "eslint . --ext .js,.ts,.tsx --max-warnings=0",
+        "check:format": "prettier ./src/**/*.{ts,tsx,js} --check",
+        "check:types": "tsc -p tsconfig.json --noEmit",
         "hooks:i": "npx simple-git-hooks",
-        "prettier": "prettier ./src/**/*.{ts,tsx,js} --write"
+        "fix:format": "prettier ./src/**/*.{ts,tsx,js} --write"
     },
     "browserslist": {
         "production": [
@@ -75,7 +77,7 @@
         ]
     },
     "simple-git-hooks": {
-        "pre-commit": "cd web && yarn lint:js --fix && yarn lint:types",
+        "pre-commit": "cd web && yarn check:all",
         "pre-push": "cd web && yarn test:ci"
     },
     "resolutions": {
@@ -96,7 +98,6 @@
         "eslint": "^7.32.0",
         "eslint-config-prettier": "^8.3.0",
         "eslint-plugin-jsx-a11y": "^6.4.1",
-        "eslint-plugin-prettier": "^4.0.0",
         "eslint-plugin-react": "^7.25.1",
         "eslint-plugin-react-hooks": "^4.6.0",
         "jest-canvas-mock": "^2.5.2",

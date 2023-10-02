@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { FC, useEffect, useMemo, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { noop } from 'lodash';

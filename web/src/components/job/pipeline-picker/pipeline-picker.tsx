@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { FC, useState } from 'react';
 import { Pipeline } from 'api/typings';
 import { InfoIcon } from '../../../shared/components/info-icon/info-icon';

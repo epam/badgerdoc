@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useMemo, useState } from 'react';
 import { useModelById } from '../../api/hooks/models';
 import { ModelInfo } from '../../components/model/model-info/model-info';

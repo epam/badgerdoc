@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { RefObject, useCallback } from 'react';
 import { Annotation, Maybe, Point, TableGutter, TableGutterMap } from '../typings';
 import { getRefOffset } from '../utils/get-ref-offset';

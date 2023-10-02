@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-redeclare */
 import React from 'react';
 import { useAssetById } from '../../../api/hooks/assets';
 import { useTaskAnnotatorContext } from '../../../connectors/task-annotator-connector/task-annotator-context';

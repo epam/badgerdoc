@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { DatePicker, LabeledInput } from '@epam/loveship';
 import { ILens } from '@epam/uui';
 import { JobValues } from 'connectors/edit-job-connector/edit-job-connector';

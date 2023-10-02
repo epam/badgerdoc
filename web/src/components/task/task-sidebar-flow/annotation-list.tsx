@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-redeclare */
 import React, { FC, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AnnotationRow } from './annotationRow';
 import { Annotation, Maybe } from 'shared';

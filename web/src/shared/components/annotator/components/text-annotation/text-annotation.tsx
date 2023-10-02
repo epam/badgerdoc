@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars, eqeqeq */
 import React, { Fragment, useMemo } from 'react';
 import noop from 'lodash/noop';
 

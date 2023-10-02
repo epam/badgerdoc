@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-redeclare */
 import { DropSpot, Text, Blocker, Panel } from '@epam/loveship';
 import { useAddFilesToDatasetMutation } from 'api/hooks/datasets';
 import { useUploadFilesMutation } from 'api/hooks/documents';

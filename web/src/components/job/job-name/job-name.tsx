@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { ILens } from '@epam/uui';
 import { LabeledInput, TextInput } from '@epam/loveship';
 import { JobValues } from 'connectors/edit-job-connector/edit-job-connector';

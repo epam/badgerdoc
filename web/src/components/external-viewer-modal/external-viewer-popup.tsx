@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-redeclare, @typescript-eslint/no-unused-vars, react-hooks/exhaustive-deps */
 import { Panel, ModalHeader, ModalFooter, FlexRow, FlexSpacer, Button, Text } from '@epam/loveship';
 import React, { ReactElement, useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
@@ -11,9 +13,9 @@ import { ALL_BUTTONS } from './buttons-config';
 import { Ketcher } from 'ketcher-core';
 import 'ketcher-react/dist/index.css';
 import styles from './external-viewer-popup.module.scss';
+import { CategoryDataAttrType } from 'api/typings';
 
 const structServiceProvider = new StandaloneStructServiceProvider();
-import { CategoryDataAttrType } from 'api/typings';
 
 const addLaTex = () => {
     let link = document.createElement('link');

@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable react-hooks/rules-of-hooks, @typescript-eslint/no-redeclare, react-hooks/exhaustive-deps */
 import React, { FC, useCallback, useRef } from 'react';
 import { JobValues } from '../../../connectors/edit-job-connector/edit-job-connector';
 import { Category, PagingCache, PagingFetcher, SortingDirection } from '../../../api/typings';

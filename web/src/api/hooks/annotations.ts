@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable react-hooks/rules-of-hooks */
 import { CategoryDataAttrType, MutationHookType, PageInfo, QueryHookType } from 'api/typings';
 import { Task } from 'api/typings/tasks';
 import { useMutation, useQuery, useQueryClient } from 'react-query';

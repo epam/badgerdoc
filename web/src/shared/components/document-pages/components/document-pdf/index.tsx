@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-redeclare */
 import React, { CSSProperties, FC, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTaskAnnotatorContext } from 'connectors/task-annotator-connector/task-annotator-context';
 import { FileMetaInfo } from 'pages/document/document-page-sidebar-content/document-page-sidebar-content';

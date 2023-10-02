@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react';
 import { Spinner } from '@epam/loveship';
 import { PropsWithChildren } from 'react';

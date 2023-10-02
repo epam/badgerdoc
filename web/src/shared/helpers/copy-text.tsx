@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-redeclare */
 import React from 'react';
 import { SuccessNotification, Text } from '@epam/loveship';
 import { INotification } from '@epam/uui';

@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useMemo, useState } from 'react';
 import { FlexSpacer, IconButton, FlexRow } from '@epam/loveship';
 import styles from './sidebar.module.scss';

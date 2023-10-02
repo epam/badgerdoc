@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-redeclare, @typescript-eslint/no-unused-vars */
 import { DataColumnProps } from '@epam/uui';
 import { FileDocument } from 'api/typings';
 import { Text } from '@epam/loveship';

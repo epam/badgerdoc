@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-redeclare */
 import { IconButton } from '@epam/loveship';
 import { PipelineTypes, Step } from 'api/typings';
 import React, { useState } from 'react';

@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable react-hooks/exhaustive-deps */
 import { DocumentLink, DocumentLinkWithName } from 'api/hooks/annotations';
 import { useDocuments } from 'api/hooks/documents';
 import { FileDocument, Operators } from 'api/typings';

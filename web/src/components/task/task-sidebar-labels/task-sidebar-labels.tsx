@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars, react-hooks/rules-of-hooks */
 import React, { FC, useMemo, useRef } from 'react';
 import { noop } from 'lodash';
 

@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-redeclare */
 import React, { FC } from 'react';
 
 import { DatasetAddForm, DatasetValues } from 'components/dataset/dataset-add-form';

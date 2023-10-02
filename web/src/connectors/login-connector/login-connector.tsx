@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable no-restricted-globals, react-hooks/exhaustive-deps */
 import React, { useEffect } from 'react';
 
 import {

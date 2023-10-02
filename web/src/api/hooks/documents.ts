@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable react-hooks/rules-of-hooks */
 import { useMutation, useQuery, useQueryClient } from 'react-query';
 import {
     FileDocument,

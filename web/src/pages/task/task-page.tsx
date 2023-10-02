@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-redeclare, react-hooks/exhaustive-deps, react-hooks/rules-of-hooks */
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import TaskDocumentPages from 'components/task/task-document-pages/task-document-pages';
 import TaskSidebar from 'components/task/task-sidebar/task-sidebar';

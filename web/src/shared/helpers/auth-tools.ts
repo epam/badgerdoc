@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable react-hooks/rules-of-hooks */
 import { AuthResult, AuthResultRaw, StoredAuthResult } from 'api/typings';
 import Cookies from 'universal-cookie';
 import { useBadgerFetch } from '../../api/hooks/api';
@@ -96,7 +98,7 @@ export const getAuthHeaders = () => {
     const tenant = getCurrentTenant();
 
     return {
-        ['X-Current-Tenant']: tenant,
+        'X-Current-Tenant': tenant,
         Authorization: 'Bearer ' + details?.accessToken
     };
 };

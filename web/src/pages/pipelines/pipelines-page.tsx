@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useCallback } from 'react';
 import { Switch, Route, useRouteMatch, Redirect, useHistory } from 'react-router-dom';
 import AddPipelineForm from 'components/pipeline/add-pipeline-form';

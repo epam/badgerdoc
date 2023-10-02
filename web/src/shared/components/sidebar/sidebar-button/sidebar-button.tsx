@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { FC } from 'react';
 import { Button } from '@epam/loveship';
 import { ReactComponent as plusIcon } from '@epam/assets/icons/common/action-add-18.svg';

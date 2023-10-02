@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-redeclare */
 import React, { FC, Fragment, useRef, useState } from 'react';
 import { CategoryDataAttributeWithValue } from 'api/typings';
 import { TaxonomiesTree } from 'components/taxonomies/taxonomies-tree';

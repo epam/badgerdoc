@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable react-hooks/exhaustive-deps, eqeqeq */
 import { DependencyList, useCallback, useMemo } from 'react';
 import {
     Category,

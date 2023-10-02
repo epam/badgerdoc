@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars, react-hooks/exhaustive-deps */
 import React, { FC, useEffect, useState } from 'react';
 import { DocumentsSidebarConnector, RenderCreateBtn } from 'connectors/documents-sidebar-connector';
 import { usePipelines } from 'api/hooks/pipelines';

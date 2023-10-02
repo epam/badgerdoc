@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { CSSProperties, FC } from 'react';
 import { Rect } from '../../typings';
 

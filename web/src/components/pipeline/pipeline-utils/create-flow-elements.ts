@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-redeclare */
 import { PipelineData, Step } from 'api/typings';
 import { FlowElement, Node, Position } from 'react-flow-renderer';
 

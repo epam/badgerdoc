@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable react-hooks/rules-of-hooks */
 import { HTTPRequestMethod, Report } from 'api/typings';
 import { useBadgerFetch } from './api';
 

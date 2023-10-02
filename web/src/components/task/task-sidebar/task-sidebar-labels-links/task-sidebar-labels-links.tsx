@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-redeclare, react-hooks/exhaustive-deps */
 import React, { FC, useCallback, useEffect, useState } from 'react';
 import { DocumentLinkWithName } from 'api/hooks/annotations';
 import { useCategoriesByJob } from 'api/hooks/categories';

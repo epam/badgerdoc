@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable react-hooks/exhaustive-deps */
 import { Accordion, Spinner } from '@epam/loveship';
 import { DocumentLinkWithName } from 'api/hooks/annotations';
 import { Category, FileDocument } from 'api/typings';

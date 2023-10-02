@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-redeclare, react-hooks/exhaustive-deps */
 import React, { useCallback, useState } from 'react';
 import { Switch, Route, useRouteMatch, Redirect, useHistory } from 'react-router-dom';
 import { svc } from '../../services';

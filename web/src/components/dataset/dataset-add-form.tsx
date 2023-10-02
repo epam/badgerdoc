@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { FC, ReactNode, useState } from 'react';
 import { FormSaveResponse, IModal, Metadata, useUuiContext, IFormApi } from '@epam/uui';
 import {

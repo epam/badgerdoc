@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { PipelineData, Step } from 'api/typings';
 import { createFlowElements } from 'components/pipeline/pipeline-utils/create-flow-elements';
 import React, { useState, useEffect, useMemo, FC } from 'react';

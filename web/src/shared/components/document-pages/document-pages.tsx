@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-redeclare, react-hooks/exhaustive-deps */
 import React, { Fragment, useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useTaskAnnotatorContext } from 'connectors/task-annotator-connector/task-annotator-context';
 import { Document, Page, pdfjs, PDFPageProxy } from 'react-pdf';

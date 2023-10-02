@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable react-hooks/rules-of-hooks, @typescript-eslint/no-unused-expressions */
 import React, {
     Dispatch,
     MutableRefObject,

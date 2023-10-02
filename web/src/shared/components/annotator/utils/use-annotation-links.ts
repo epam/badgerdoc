@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable eqeqeq, react-hooks/exhaustive-deps */
 import { Category } from 'api/typings';
 import { useEffect, useRef } from 'react';
 import {

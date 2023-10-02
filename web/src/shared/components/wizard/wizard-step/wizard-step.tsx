@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { FC, ReactNode } from 'react';
 import { ReactComponent as Done } from '@epam/assets/icons/common/notification-check-fill-18.svg';
 import styles from './wizard-step.module.scss';

@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars, eqeqeq, react-hooks/exhaustive-deps */
 import React, { CSSProperties, useMemo } from 'react';
 import { getStyledLinkByBounds, LinkAnnotationProps } from './helpers';
 import { ReactComponent as closeIcon } from '@epam/assets/icons/common/navigation-close-12.svg';

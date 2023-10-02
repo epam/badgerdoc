@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { IconButton } from '@epam/loveship';
 import React, { FC } from 'react';
 import { ReactComponent as deleteIcon } from '@epam/assets/icons/common/content-clear-18.svg';

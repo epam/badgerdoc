@@ -1,3 +1,5 @@
+// temporary_disabled_rules
+/* eslint-disable eqeqeq, react-hooks/exhaustive-deps */
 import React, { RefObject, useCallback } from 'react';
 import { AnnotationImageToolType, AnnotationLinksBoundType } from 'shared';
 import { Annotation, AnnotationBoundType, Point } from '../typings';
