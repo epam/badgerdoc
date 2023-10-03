@@ -163,9 +163,7 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                                             onAnnotationUndoPress={onAnnotationUndoPress}
                                             onAnnotationRedoPress={onAnnotationRedoPress}
                                             onEmptyAreaClick={onEmptyAreaClick}
-                                            isScrolledToCurrent={
-                                                pageNum === currentOrderPageNumber + 1
-                                            }
+                                            isScrolledToCurrent={pageNum === currentPage}
                                         />
                                     </Fragment>
                                 );
@@ -206,9 +204,7 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                                                         scaledAnn
                                                     )
                                                 }
-                                                isScrolledToCurrent={
-                                                    pageNum === currentOrderPageNumber + 1
-                                                }
+                                                isScrolledToCurrent={pageNum === currentPage}
                                             />
                                         );
                                     })}
@@ -306,9 +302,7 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                                                 onAnnotationUndoPress={onAnnotationUndoPress}
                                                 onAnnotationRedoPress={onAnnotationRedoPress}
                                                 onEmptyAreaClick={onEmptyAreaClick}
-                                                isScrolledToCurrent={
-                                                    pageNum === currentOrderPageNumber + 1
-                                                }
+                                                isScrolledToCurrent={pageNum === currentPage}
                                             />
                                         </Fragment>
                                     );
