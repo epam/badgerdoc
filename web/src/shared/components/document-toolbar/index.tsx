@@ -8,7 +8,12 @@ import { useTaskAnnotatorContext } from 'connectors/task-annotator-connector/tas
 import { ReactComponent as goNextIcon } from '@epam/assets/icons/common/navigation-chevron-down-18.svg';
 import { ReactComponent as goPrevIcon } from '@epam/assets/icons/common/navigation-chevron-up-18.svg';
 
-export const DocumentToolbar: FC<{ countOfPages: number }> = ({ countOfPages }) => {
+type TDocumentToolbar = {
+    countOfPages: number;
+    onPageChange: (pageOrderNumber: number) => void;
+};
+
+export const DocumentToolbar: FC<TDocumentToolbar> = ({ countOfPages, onPageChange }) => {
     const { currentOrderPageNumber, pageNumbers, onCurrentPageChange } = useTaskAnnotatorContext();
     const isLastPage = currentOrderPageNumber === countOfPages - 1;
     const isFirstPage = currentOrderPageNumber === 0;
@@ -21,35 +26,40 @@ export const DocumentToolbar: FC<{ countOfPages: number }> = ({ countOfPages }) 
         []
     );
 
-    const onPageChange = (selectedPageNumber: number) => {
-        const pageOrderNumber = selectedPageNumber - 1;
+    const updateCurrentPage = useCallback(
+        (pageOrderNumber: number) => {
+            onCurrentPageChange(pageNumbers[pageOrderNumber], pageOrderNumber);
+            onPageChange(pageOrderNumber);
+        },
+        [onCurrentPageChange, onPageChange, pageNumbers]
+    );
 
-        onCurrentPageChange(pageNumbers[pageOrderNumber], pageOrderNumber);
-    };
+    const onPickerValueChange = useCallback(
+        (selectedPageNumber: number) => {
+            updateCurrentPage(selectedPageNumber - 1);
+        },
+        [updateCurrentPage]
+    );
 
     const handleGoNext = useCallback(() => {
-        const nextOrderNumber = isLastPage ? countOfPages - 1 : currentOrderPageNumber + 1;
-
-        onCurrentPageChange(pageNumbers[nextOrderNumber], nextOrderNumber);
-    }, [isLastPage, countOfPages, currentOrderPageNumber, onCurrentPageChange, pageNumbers]);
+        updateCurrentPage(isLastPage ? countOfPages - 1 : currentOrderPageNumber + 1);
+    }, [updateCurrentPage, isLastPage, countOfPages, currentOrderPageNumber]);
 
     const handleGoPrev = useCallback(() => {
-        const nextOrderNumber = isFirstPage ? 0 : currentOrderPageNumber - 1;
-
-        onCurrentPageChange(pageNumbers[nextOrderNumber], nextOrderNumber);
-    }, [isFirstPage, currentOrderPageNumber, onCurrentPageChange, pageNumbers]);
+        updateCurrentPage(isFirstPage ? 0 : currentOrderPageNumber - 1);
+    }, [isFirstPage, currentOrderPageNumber, updateCurrentPage]);
 
     return (
         <FlexRow cx={styles['goto-page-selector']}>
-            <FlexCell minWidth={60}>
-                <span>Go to page</span>
+            <FlexCell minWidth={68}>
+                <span>Current page</span>
             </FlexCell>
             <PickerInput
                 minBodyWidth={52}
                 size="24"
                 dataSource={pagesDataSource}
                 value={currentOrderPageNumber + 1}
-                onValueChange={onPageChange}
+                onValueChange={onPickerValueChange}
                 getName={(item) => String(item)}
                 selectionMode="single"
                 disableClear={true}

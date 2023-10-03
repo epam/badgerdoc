@@ -1,6 +1,6 @@
 // temporary_disabled_rules
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-redeclare, react-hooks/exhaustive-deps, react-hooks/rules-of-hooks */
-import React, { FC, useEffect, useMemo, useState } from 'react';
+import React, { FC, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import TaskDocumentPages from 'components/task/task-document-pages/task-document-pages';
 import TaskSidebar from 'components/task/task-sidebar/task-sidebar';
 import { TaskAnnotatorContextProvider } from 'connectors/task-annotator-connector/task-annotator-context';
@@ -23,6 +23,7 @@ import { Labels } from 'shared/components/labels';
 import { FlexSpacer } from '@epam/uui-components';
 import { History } from 'history';
 import { DocumentToolbar } from 'shared/components/document-toolbar';
+import { TDocumentPDFRef } from 'shared/components/document-pages/components/document-pdf/types';
 
 type TTaskPageContent = {
     taskId: string;
@@ -37,10 +38,15 @@ const TaskPageContent: FC<TTaskPageContent> = ({
     history,
     nextTaskId
 }) => {
+    const documentPDFRef = useRef<TDocumentPDFRef>(null);
     const [additionalScale, setAdditionalScale] = useState(0);
     const [gridVariant, setGridVariant] = useState(GridVariants.horizontal);
 
     const taskData = useTaskById({ taskId: Number(taskId) }, { enabled: Boolean(taskId) })?.data;
+
+    const onCurrentPageChange = useCallback((pageOrderNumber: number) => {
+        documentPDFRef.current?.scrollDocumentTo(pageOrderNumber);
+    }, []);
 
     const crumbs = useMemo(() => {
         const crumbs = [];
@@ -75,6 +81,7 @@ const TaskPageContent: FC<TTaskPageContent> = ({
                                 <FlexSpacer />
                                 <DocumentToolbar
                                     countOfPages={taskData?.pages.length ?? 0}
+                                    onPageChange={onCurrentPageChange}
                                 ></DocumentToolbar>
                                 <DocumentScale
                                     scale={additionalScale}
@@ -106,6 +113,7 @@ const TaskPageContent: FC<TTaskPageContent> = ({
                         viewMode={false}
                         gridVariant={gridVariant}
                         additionalScale={additionalScale}
+                        documentPDFRef={documentPDFRef}
                     />
                     <TaskSidebar viewMode={false} isNextTaskPresented={Boolean(nextTaskId)} />
                 </TableAnnotatorContextProvider>

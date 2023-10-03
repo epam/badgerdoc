@@ -36,7 +36,8 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
     setPageSize,
     editable,
     gridVariant,
-    additionalScale
+    additionalScale,
+    documentPDFRef
 }) => {
     const {
         SyncedContainer,
@@ -274,6 +275,7 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                     <>
                         {fileMetaInfo.extension === '.pdf' ? (
                             <DocumentPDF
+                                ref={documentPDFRef}
                                 fileMetaInfo={fileMetaInfo}
                                 pageNumbers={pageNumbers}
                                 fullScale={fullScale}

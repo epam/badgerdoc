@@ -1,6 +1,6 @@
 // temporary_disabled_rules
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 
 import {
     DocumentPageSidebarContent,
@@ -23,6 +23,7 @@ import { DocumentScale } from 'components/documents/document-scale/document-scal
 import { FlexRow } from '@epam/uui-components';
 
 import { DocumentToolbar } from 'shared/components/document-toolbar';
+import { TDocumentPDFRef } from 'shared/components/document-pages/components/document-pdf/types';
 
 export interface DocumentPageProps {
     fileMetaInfo: FileMetaInfo;
@@ -45,6 +46,7 @@ export function DocumentPage({
     documentJobsInfo,
     documentJobRevisionsInfo
 }: DocumentPageProps) {
+    const documentPDFRef = useRef<TDocumentPDFRef>(null);
     const [additionalScale, setAdditionalScale] = useState(0);
     const pages = fileMetaInfo.pages ?? 0;
 
@@ -54,7 +56,9 @@ export function DocumentPage({
         previousPageUrl?: string;
         previousPageName?: string;
     };
+
     const crumbs = [];
+
     if (historyState?.previousPage === PREVIOUS_PAGE_JOB) {
         crumbs.push({ name: 'Extractions', url: JOBS_PAGE });
         crumbs.push({
@@ -66,6 +70,10 @@ export function DocumentPage({
     }
 
     crumbs.push({ name: fileMetaInfo.name });
+
+    const onCurrentPageChange = useCallback((pageOrderNumber: number) => {
+        documentPDFRef.current?.scrollDocumentTo(pageOrderNumber);
+    }, []);
 
     return (
         <TaskAnnotatorContextProvider
@@ -81,7 +89,10 @@ export function DocumentPage({
                     <div className={styles['header__left-block']}>
                         <BreadcrumbNavigation breadcrumbs={crumbs} />
                         <FlexRow>
-                            <DocumentToolbar countOfPages={pages}></DocumentToolbar>
+                            <DocumentToolbar
+                                countOfPages={pages}
+                                onPageChange={onCurrentPageChange}
+                            ></DocumentToolbar>
                             <DocumentScale scale={additionalScale} onChange={setAdditionalScale} />
                         </FlexRow>
                     </div>
@@ -89,7 +100,11 @@ export function DocumentPage({
                 <div className={styles['document-page-content']}>
                     <TableAnnotatorContextProvider>
                         <FlowSideBar />
-                        <TaskDocumentPages additionalScale={additionalScale} viewMode={true} />
+                        <TaskDocumentPages
+                            additionalScale={additionalScale}
+                            viewMode={true}
+                            documentPDFRef={documentPDFRef}
+                        />
                         <TaskSidebar
                             viewMode={true}
                             jobSettings={

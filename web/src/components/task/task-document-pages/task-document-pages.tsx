@@ -1,22 +1,25 @@
 // temporary_disabled_rules
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React from 'react';
+import React, { RefObject } from 'react';
 import { useTaskAnnotatorContext } from 'connectors/task-annotator-connector/task-annotator-context';
 import DocumentPages from 'shared/components/document-pages/document-pages';
 import ExternalViewerPopup from 'components/external-viewer-modal/external-viewer-popup';
 import styles from './task-document-pages.module.scss';
 import { GridVariants } from 'shared/constants/task';
+import { TDocumentPDFRef } from 'shared/components/document-pages/components/document-pdf/types';
 
 export interface DocumentPageProps {
     viewMode: boolean;
     additionalScale: number;
     gridVariant?: GridVariants;
+    documentPDFRef: RefObject<TDocumentPDFRef> | null;
 }
 
 const TaskDocumentPages = ({
     viewMode,
     additionalScale,
-    gridVariant = GridVariants.horizontal
+    gridVariant = GridVariants.horizontal,
+    documentPDFRef
 }: DocumentPageProps) => {
     const {
         task,
@@ -54,6 +57,7 @@ const TaskDocumentPages = ({
                 apiPageSize={pageSize}
                 setPageSize={setPageSize}
                 editable={editable}
+                documentPDFRef={documentPDFRef}
             />
         </div>
     );

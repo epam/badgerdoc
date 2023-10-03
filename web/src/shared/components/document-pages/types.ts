@@ -1,8 +1,9 @@
-import { ReactNode } from 'react';
+import { ReactNode, RefObject } from 'react';
 import { FileMetaInfo } from 'pages/document/document-page-sidebar-content/document-page-sidebar-content';
 import { PDFPageProxy, DocumentProps } from 'react-pdf';
 import { Annotation } from 'shared';
 import { GridVariants } from 'shared/constants/task';
+import { TDocumentPDFRef } from './components/document-pdf/types';
 
 type RenderLinksParams = {
     updLinks: boolean;
@@ -24,6 +25,7 @@ export type DocumentPagesProps = {
     setPageSize?: (nS: any) => void;
     editable: boolean;
     gridVariant: GridVariants;
+    documentPDFRef: RefObject<TDocumentPDFRef> | null;
 };
 
 export type PageLoadedCallback = (page: PDFPageProxy | HTMLImageElement) => void;
