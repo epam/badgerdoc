@@ -19,7 +19,6 @@ import { useHistory } from 'react-router-dom';
 import { DOCUMENTS_PAGE, JOBS_PAGE, PREVIOUS_PAGE_JOB } from '../../shared/constants/general';
 import { BreadcrumbNavigation } from '../../shared/components/breadcrumb';
 import { FlowSideBar } from 'components/task/task-sidebar-flow/task-sidebar-flow';
-import { DocumentScale } from 'components/documents/document-scale/document-scale';
 import { FlexRow } from '@epam/uui-components';
 
 import { DocumentToolbar } from 'shared/components/document-toolbar';
@@ -91,9 +90,10 @@ export function DocumentPage({
                         <FlexRow>
                             <DocumentToolbar
                                 countOfPages={pages}
+                                scale={additionalScale}
                                 onPageChange={onCurrentPageChange}
+                                onScaleChange={setAdditionalScale}
                             ></DocumentToolbar>
-                            <DocumentScale scale={additionalScale} onChange={setAdditionalScale} />
                         </FlexRow>
                     </div>
                 </div>

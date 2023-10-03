@@ -81,12 +81,10 @@ const TaskPageContent: FC<TTaskPageContent> = ({
                                 <FlexSpacer />
                                 <DocumentToolbar
                                     countOfPages={taskData?.pages.length ?? 0}
-                                    onPageChange={onCurrentPageChange}
-                                ></DocumentToolbar>
-                                <DocumentScale
                                     scale={additionalScale}
-                                    onChange={setAdditionalScale}
-                                />
+                                    onPageChange={onCurrentPageChange}
+                                    onScaleChange={setAdditionalScale}
+                                ></DocumentToolbar>
                             </FlexRow>
                         </FlexCell>
                     </FlexRow>

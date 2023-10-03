@@ -1,4 +1,4 @@
-import { FC, useCallback } from 'react';
+import { FC, SetStateAction, useCallback } from 'react';
 import { FlexRow } from '@epam/uui-components';
 import { Button, FlexCell, PickerInput } from '@epam/loveship';
 import styles from './styles.module.scss';
@@ -7,13 +7,21 @@ import { useTaskAnnotatorContext } from 'connectors/task-annotator-connector/tas
 
 import { ReactComponent as goNextIcon } from '@epam/assets/icons/common/navigation-chevron-down-18.svg';
 import { ReactComponent as goPrevIcon } from '@epam/assets/icons/common/navigation-chevron-up-18.svg';
+import { DocumentScale } from 'components/documents/document-scale/document-scale';
 
 type TDocumentToolbar = {
     countOfPages: number;
+    scale: number;
     onPageChange: (pageOrderNumber: number) => void;
+    onScaleChange: (value: SetStateAction<number>) => void;
 };
 
-export const DocumentToolbar: FC<TDocumentToolbar> = ({ countOfPages, onPageChange }) => {
+export const DocumentToolbar: FC<TDocumentToolbar> = ({
+    countOfPages,
+    scale,
+    onPageChange,
+    onScaleChange
+}) => {
     const { currentOrderPageNumber, pageNumbers, onCurrentPageChange } = useTaskAnnotatorContext();
     const isLastPage = currentOrderPageNumber === countOfPages - 1;
     const isFirstPage = currentOrderPageNumber === 0;
@@ -50,39 +58,42 @@ export const DocumentToolbar: FC<TDocumentToolbar> = ({ countOfPages, onPageChan
     }, [isFirstPage, currentOrderPageNumber, updateCurrentPage]);
 
     return (
-        <FlexRow cx={styles['goto-page-selector']}>
-            <FlexCell minWidth={68}>
-                <span>Current page</span>
-            </FlexCell>
-            <PickerInput
-                minBodyWidth={52}
-                size="24"
-                dataSource={pagesDataSource}
-                value={currentOrderPageNumber + 1}
-                onValueChange={onPickerValueChange}
-                getName={(item) => String(item)}
-                selectionMode="single"
-                disableClear={true}
-            />
-            <FlexRow>
-                <span>of {countOfPages}</span>
-                <Button
+        <>
+            <FlexRow cx={styles['goto-page-selector']}>
+                <FlexCell minWidth={68}>
+                    <span>Current page</span>
+                </FlexCell>
+                <PickerInput
+                    minBodyWidth={52}
                     size="24"
-                    fill="white"
-                    icon={goPrevIcon}
-                    cx={styles.button}
-                    onClick={handleGoPrev}
-                    isDisabled={isFirstPage}
+                    dataSource={pagesDataSource}
+                    value={currentOrderPageNumber + 1}
+                    onValueChange={onPickerValueChange}
+                    getName={(item) => String(item)}
+                    selectionMode="single"
+                    disableClear={true}
                 />
-                <Button
-                    size="24"
-                    fill="white"
-                    icon={goNextIcon}
-                    cx={styles.button}
-                    onClick={handleGoNext}
-                    isDisabled={isLastPage}
-                />
+                <FlexRow>
+                    <span>of {countOfPages}</span>
+                    <Button
+                        size="24"
+                        fill="white"
+                        icon={goPrevIcon}
+                        cx={styles.button}
+                        onClick={handleGoPrev}
+                        isDisabled={isFirstPage}
+                    />
+                    <Button
+                        size="24"
+                        fill="white"
+                        icon={goNextIcon}
+                        cx={styles.button}
+                        onClick={handleGoNext}
+                        isDisabled={isLastPage}
+                    />
+                </FlexRow>
             </FlexRow>
-        </FlexRow>
+            <DocumentScale scale={scale} onChange={onScaleChange} />
+        </>
     );
 };
