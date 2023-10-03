@@ -342,7 +342,8 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
 
     const saveButtonTooltipContent = getSaveButtonTooltipContent(
         isSaveButtonDisabled,
-        task?.status
+        task?.status,
+        isValidation
     );
 
     return (
