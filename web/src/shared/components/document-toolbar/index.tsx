@@ -1,6 +1,6 @@
 import { FC, SetStateAction, useCallback } from 'react';
 import { FlexRow } from '@epam/uui-components';
-import { Button, FlexCell, PickerInput } from '@epam/loveship';
+import { Button, PickerInput } from '@epam/loveship';
 import styles from './styles.module.scss';
 import { useArrayDataSource } from '@epam/uui';
 import { useTaskAnnotatorContext } from 'connectors/task-annotator-connector/task-annotator-context';
@@ -60,9 +60,7 @@ export const DocumentToolbar: FC<TDocumentToolbar> = ({
     return (
         <>
             <FlexRow cx={styles['goto-page-selector']}>
-                <FlexCell minWidth={68}>
-                    <span>Current page</span>
-                </FlexCell>
+                <span>Current page</span>
                 <PickerInput
                     minBodyWidth={52}
                     size="24"
