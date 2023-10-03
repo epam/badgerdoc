@@ -3,9 +3,12 @@ import { FINISHED_TASK_TOOLTIP_TEXT } from './finish-button/utils';
 
 export const getSaveButtonTooltipContent = (
     isSaveButtonDisabled: boolean,
-    taskStatus?: TaskStatus
+    taskStatus?: TaskStatus,
+    isValidation?: boolean
 ) => {
-    if (taskStatus === 'Finished') {
+    if (isValidation && taskStatus === 'In Progress') {
+        return 'Please validate some pages to enable "Save draft" button';
+    } else if (taskStatus === 'Finished') {
         return FINISHED_TASK_TOOLTIP_TEXT;
     } else if (taskStatus === 'Pending') {
         return null;
