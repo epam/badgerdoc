@@ -47,7 +47,7 @@ export const CategoriesTab = ({ boundModeSwitch, setBoundModeSwitch }: Categorie
 
     const treeContainerRef = useRef<HTMLDivElement>(null);
 
-    const { categoryNodes, isFetched } = useCategoriesTree({
+    const { categoryNodes, isFetching } = useCategoriesTree({
         searchText,
         boundModeSwitch,
         jobId: getJobId()
@@ -122,13 +122,13 @@ export const CategoriesTab = ({ boundModeSwitch, setBoundModeSwitch }: Categorie
                 <CategoriesTree
                     key={searchText}
                     categoriesHeight={treeHeight}
-                    isLoading={!isFetched}
+                    isLoading={isFetching}
                     categoryNodes={categoryNodes}
                     onCategorySelected={onCategorySelected}
                     selectedHotKeys={selectedKeys}
                 />
             </div>
-            <Blocker isEnabled={!isFetched} />
+            <Blocker isEnabled={isFetching} />
         </div>
     );
 };

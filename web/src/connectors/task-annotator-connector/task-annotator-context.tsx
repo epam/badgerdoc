@@ -194,8 +194,8 @@ const defaultPageWidth: number = 0;
 const defaultPageHeight: number = 0;
 const defaultDocumentData = {
     latestAnnotationsResult: {
-        isFetching: true,
-        isLoading: true
+        isFetching: false,
+        isLoading: false
     } as UseQueryResult<AnnotationsResponse>,
     refetchLatestAnnotations: () => Promise.resolve(),
     latestAnnotationsResultData: undefined,

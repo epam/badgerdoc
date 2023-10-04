@@ -41,7 +41,7 @@ export const useCategoriesTree = ({ searchText, boundModeSwitch, jobId }: Props)
 
     const {
         data: { pages: searchResult } = {},
-        isFetched,
+        isFetching,
         refetch
     } = useCategoriesByJob(
         {
@@ -64,5 +64,5 @@ export const useCategoriesTree = ({ searchText, boundModeSwitch, jobId }: Props)
         if (jobId) setCategoryNodes(mapCategories(searchResult));
     }, [searchResult, searchText, boundModeSwitch]);
 
-    return { categoryNodes, isFetched };
+    return { categoryNodes, isFetching };
 };
