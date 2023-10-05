@@ -78,7 +78,7 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
     showNoExtractionTab
 }) => {
     const getMetadata = (state: JobValues) => {
-        const { jobType, validationType, annotators_validators, pipeline, validators, categories } =
+        const { jobType, validationType, annotators_validators, pipeline, validators,annotators, categories } =
             state;
 
         const annotatorsValidatorsCount = validationType === 'cross' ? 2 : 1;
@@ -102,7 +102,6 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
 
         if (jobType === 'ExtractionWithAnnotationJob') {
             metadata.props['annotators_validators'] = {
-                isInvalid: (annotators_validators?.length || 0) < annotatorsValidatorsCount,
                 validationMessage:
                     'For Cross validation at least 2 annotators or validators are required',
                 isRequired: annotatorsValidatorsCombinedFieldRequired
@@ -120,8 +119,11 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
         }
 
         if (validationType === 'extensive_coverage' || validationType === 'hierarchical') {
+            metadata.props['annotators'] = {
+                validationMessage: `For ${validationTypeTitle[validationType]} at least 1 annotator required`,
+                isRequired: true
+            };
             metadata.props['validators'] = {
-                isInvalid: (validators?.length || 0) < 1,
                 validationMessage: `For ${validationTypeTitle[validationType]} at least 1 validator required`,
                 isRequired: true
             };
