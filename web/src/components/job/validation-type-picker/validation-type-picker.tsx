@@ -69,6 +69,9 @@ const ValidationTypePicker: FC<ValidationTypePickerProps> = ({ lens }) => {
                                 <i>Hierarchical validation</i> – Validators assigned to check
                                 annotation quality and submit annotations for training or re-work.
                             </li>
+                            <li>
+                                <i>Validation only</i> : Validate all pipeline tasks manually.
+                            </li>
                         </ol>
                     }
                 />
