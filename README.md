@@ -69,7 +69,9 @@ Important! This is not secure configuration, follow [KeyCloak best practices](ht
 
 3. Add tenant attribute to `admin` user, go to Users -> select `admin` -> go to Attributes -> create attribute `tenants:local`, and save
 
-4. Go to Clients -> admin-cli -> Mappers -> Create and fill form with following values:
+4. Add tenant attribute to `service-account-badgerdoc-internal` user, request a jwt token of the service user (see pipeline.service_token.get_service_token) -> decode the got token by jwt.io -> copy a `sub` value -> go to the KeyCloak Users tab -> select `admin` -> change current page url (replace the last part with the copied string) -> go to Attributes -> create an attribute `tenants:local`, and save
+
+5. Go to Clients -> admin-cli -> Mappers -> Create and fill form with following values:
 
 | Param                      | Value          |
 | -------------------------- | -------------- |
@@ -85,32 +87,38 @@ Important! This is not secure configuration, follow [KeyCloak best practices](ht
 | Multivalued                | On             |
 | Aggregate attribute values | On             |
 
-5. Go to Client Scopes -> Find `roles` and select in list -> Scope -> Add `admin` to Assigned Roles, then go to Mappers and ensure that only 2 mappers exists: `realm roles` and `client roles`. Delete all other mappers
+6. Repeat the previous step for badgerdoc-internal client
 
-6. Go to Clients -> Create -> Fill form and save
+7. Go to Client Scopes -> Find `roles` and select in list -> Scope -> Add `admin` to Assigned Roles, then go to Mappers and ensure that only 2 mappers exists: `realm roles` and `client roles`. Delete all other mappers
+
+8. Go to Clients -> Create -> Fill form and save
 
 | Param           | Value              |
 | --------------- | ------------------ |
 | Client ID       | badgerdoc-internal |
 | Client Protocol | openid-connect     |
 
-7. Go to Cliens -> Find `badgerdoc-internal` -> change settings `Access Type: Confidential`, set `Service Accounts Enabled` to `On`, add 'Valid Redirect URIs' as '\*', then save. Now you can Credentials tab, open it and copy Secret
+9. Go to Cliens -> Find `badgerdoc-internal` -> change settings `Access Type: Confidential`, set `Service Accounts Enabled` to `On`, add 'Valid Redirect URIs' as '\*', then save. Now you can Credentials tab, open it and copy Secret
 
 Now `Client ID` and `Secret` must be set to `.env` as `KEYCLOAK_SYSTEM_USER_CLIENT` and `KEYCLOAK_SYSTEM_USER_SECRET`
 
-8. Go to Clients -> Find `badgerdoc-internal` -> Service Account Roles -> Client Roles -> master-realm -> Find `view-users` and `view-identity-providers` in Available Roles and add to Assigned Roles
+10. Go to Clients -> Find `badgerdoc-internal` -> Service Account Roles -> Client Roles -> master-realm -> Find `view-users` and `view-identity-providers` in Available Roles and add to Assigned Roles
 
-9. Go to Roles -> add roles: presenter, manager, role-annotator, annotator, engineer. Open admin role, go to Composite Roles -> Realm Roles and add all these roles
+11. Go to Roles -> add roles: presenter, manager, role-annotator, annotator, engineer. Open admin role, go to Composite Roles -> Realm Roles and add all these roles
 
-10. Go to Clients -> badgerdoc-internal and set "Valid Redirect URIs" = _ and "Web Origins" = _
+12. Go to Clients -> badgerdoc-internal and set "Valid Redirect URIs" = _ and "Web Origins" = _
 
-11. Go to Realm Settings -> Tokens -> Find `Access Token Lifespan` and set 1 `Days`
+13. Go to Realm Settings -> Tokens -> Find `Access Token Lifespan` and set 1 `Days`
 
 Time to reload `docker-compose`, because `.env` was changed:
 
 ```
 docker-compose -f docker-compose-dev.yaml up -d
 ```
+
+## Categories
+
+Be sure that you added all possible categories via badgerdoc UI (/categories) otherwise you get undefined categories on annotations view page
 
 ## Set up Airflow as a pipeline service in local mode
 
