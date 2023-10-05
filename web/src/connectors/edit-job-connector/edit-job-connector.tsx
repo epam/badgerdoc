@@ -80,7 +80,6 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
     const getMetadata = (state: JobValues) => {
         const { jobType, validationType, pipeline, categories } = state;
 
-        // const annotatorsValidatorsCount = validationType === 'cross' ? 2 : 1;
         const annotatorsValidatorsCombinedFieldRequired = validationType === 'cross' ? true : false;
         const hasLinkTypeCategory = categories?.some((category) => category.type === 'link');
         const hasBoxTypeCategory = categories?.some((category) => category.type === 'box');
