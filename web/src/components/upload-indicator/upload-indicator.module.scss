@@ -1,0 +1,18 @@
+.upload-indicator {
+    margin-right: 12px;
+
+    .upload-bar {
+        width: 25%;
+        min-width: 100px;
+
+        padding: 0 25px;
+        margin-bottom: 4px;
+    }
+
+    span {
+        display: block;
+        width: 100%;
+        padding-left: 12px;
+        font-size: 12px;
+    }
+}
