@@ -1,6 +1,6 @@
 // temporary_disabled_rules
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-redeclare, react-hooks/exhaustive-deps */
-import React, { useCallback, useState, useContext } from 'react';
+import React, { useCallback, useState, useContext, useEffect } from 'react';
 import {
     Button,
     FlexRow,
@@ -92,7 +92,7 @@ export const DocumentsPageControlConnector = ({
             <FlexRow alignItems="center" cx={styles['header-container']}>
                 <BreadcrumbNavigation breadcrumbs={breadcrumbs} />
                 <FlexRow spacing="12">
-                    {isLoading ? <UploadIndicator /> : <FlexSpacer />}
+                    {isLoading ? <UploadIndicator isRequestOngoing={isLoading} /> : <FlexSpacer />}
                     <FlexRow>
                         <FlexRow padding="6">
                             <UploadFileToggler
