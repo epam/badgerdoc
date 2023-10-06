@@ -106,7 +106,7 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
         if (jobType === 'ExtractionWithAnnotationJob') {
             metadata.props['annotators_validators'] = {
                 validationMessage:
-                    'For Cross validation at least 2 annotators or validators are required',
+                    'For "Cross validation" at least 2 annotators or validators are required',
                 isRequired: annotatorsValidatorsCombinedFieldRequired
             };
         }
@@ -123,7 +123,7 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
 
         if (validationType === ValidationType.validationOnly) {
             metadata.props['validators'] = {
-                validationMessage: `For Validation only at least 1 validator required`,
+                validationMessage: `For "Validation only" at least 1 validator is required`,
                 isRequired: true
             };
         }
@@ -133,11 +133,11 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
             validationType === ValidationType.hierarchical
         ) {
             metadata.props['annotators'] = {
-                validationMessage: `For ${validationTypeTitle[validationType]} at least 1 annotator required`,
+                validationMessage: `For "${validationTypeTitle[validationType]}" at least 1 annotator is required`,
                 isRequired: true
             };
             metadata.props['validators'] = {
-                validationMessage: `For ${validationTypeTitle[validationType]} at least 1 validator required`,
+                validationMessage: `For "${validationTypeTitle[validationType]}" at least 1 validator is required`,
                 isRequired: true
             };
         }
