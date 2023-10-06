@@ -150,7 +150,7 @@ const TaskPage: FC = () => {
     };
 
     const handleSaveTaskSuccess = () => {
-        notifySuccess(<Text>Saved successfully</Text>);
+        notifySuccess(<Text>All changes were saved</Text>);
     };
 
     const handleSaveTaskError = (error: ApiError) => {

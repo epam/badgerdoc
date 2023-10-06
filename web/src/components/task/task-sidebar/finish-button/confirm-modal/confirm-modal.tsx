@@ -14,7 +14,12 @@ import {
 } from '@epam/loveship';
 import { IModal } from '@epam/uui-core';
 
-export const ConfirmModal = (modalProps: IModal<string>) => (
+interface ConfirmModalProps {
+    modalProps: IModal<string>;
+    isValidation: boolean;
+}
+
+export const ConfirmModal = ({ modalProps, isValidation }: ConfirmModalProps) => (
     <ModalBlocker {...modalProps} blockerShadow="dark">
         <ModalWindow>
             <Panel>
@@ -22,7 +27,8 @@ export const ConfirmModal = (modalProps: IModal<string>) => (
                 <ScrollBars hasTopShadow hasBottomShadow>
                     <FlexRow padding="24">
                         <Text size="36">
-                            Are you sure you want to stop annotating this document?
+                            Are you sure you want to stop{' '}
+                            {isValidation ? 'validating' : 'annotating'} this document?
                         </Text>
                     </FlexRow>
                 </ScrollBars>
