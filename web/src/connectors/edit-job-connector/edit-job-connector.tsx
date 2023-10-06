@@ -98,6 +98,11 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
             }
         };
 
+        metadata.props['owners'] = {
+            validationMessage: 'You should select at least 1 owners are required',
+            isRequired: true
+        };
+
         if (jobType === 'ExtractionWithAnnotationJob') {
             metadata.props['annotators_validators'] = {
                 validationMessage:
@@ -113,6 +118,13 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
                 ...categoriesMetaData,
                 isInvalid: true,
                 validationMessage: 'You should select at least one category with type "Box"'
+            };
+        }
+
+        if (validationType === 'validation only') {
+            metadata.props['validators'] = {
+                validationMessage: `For Validation only at least 1 validator required`,
+                isRequired: true
             };
         }
 
