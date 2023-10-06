@@ -70,7 +70,7 @@ const ValidationTypePicker: FC<ValidationTypePickerProps> = ({ lens }) => {
                                 annotation quality and submit annotations for training or re-work.
                             </li>
                             <li>
-                                <i>Validation only</i> : Validate all pipeline tasks manually.
+                                <i>Validation only</i> – Validate all pipeline tasks manually.
                             </li>
                         </ol>
                     }
