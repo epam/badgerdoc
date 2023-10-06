@@ -20,6 +20,7 @@ import { DocumentsSearchProvider } from 'shared/contexts/documents-search';
 import { UploadWizardPage } from '../upload-document-wizard/upload-document-wizard-page';
 import { JOBS_PAGE } from '../../shared/constants/general';
 import { DocumentsDropZone } from 'components/documents/documents-drop-zone/documents-drop-zone';
+import { UploadIndicatorContextProvider } from 'components/upload-indicator/upload-indicator.context';
 
 const DocumentsPage = () => {
     const history = useHistory();
@@ -119,10 +120,12 @@ const DocumentsPage = () => {
                             </div>
                         }
                         sidebarHeaderContent={
-                            <DocumentsPageControlConnector
-                                handleUploadWizardButtonClick={handleUploadWizardButtonClick}
-                                onSearchClick={onSearchClick}
-                            />
+                            <UploadIndicatorContextProvider>
+                                <DocumentsPageControlConnector
+                                    handleUploadWizardButtonClick={handleUploadWizardButtonClick}
+                                    onSearchClick={onSearchClick}
+                                />
+                            </UploadIndicatorContextProvider>
                         }
                     />
                 </Route>
@@ -150,11 +153,13 @@ const DocumentsPage = () => {
                             </div>
                         }
                         sidebarHeaderContent={
-                            <DocumentsPageControlConnector
-                                isSearchPage
-                                handleUploadWizardButtonClick={handleUploadWizardButtonClick}
-                                onSearchClick={onSearchClick}
-                            />
+                            <UploadIndicatorContextProvider>
+                                <DocumentsPageControlConnector
+                                    isSearchPage
+                                    handleUploadWizardButtonClick={handleUploadWizardButtonClick}
+                                    onSearchClick={onSearchClick}
+                                />
+                            </UploadIndicatorContextProvider>
                         }
                     />
                 </Route>
