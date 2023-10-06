@@ -16,10 +16,10 @@ import { IModal } from '@epam/uui-core';
 
 interface ConfirmModalProps {
     modalProps: IModal<string>;
-    isValidating: boolean;
+    isValidation: boolean;
 }
 
-export const ConfirmModal = ({ modalProps, isValidating }: ConfirmModalProps) => (
+export const ConfirmModal = ({ modalProps, isValidation }: ConfirmModalProps) => (
     <ModalBlocker {...modalProps} blockerShadow="dark">
         <ModalWindow>
             <Panel>
@@ -28,7 +28,7 @@ export const ConfirmModal = ({ modalProps, isValidating }: ConfirmModalProps) =>
                     <FlexRow padding="24">
                         <Text size="36">
                             Are you sure you want to stop{' '}
-                            {isValidating ? 'validating' : 'annotating'} this document?
+                            {isValidation ? 'validating' : 'annotating'} this document?
                         </Text>
                     </FlexRow>
                 </ScrollBars>
