@@ -27,12 +27,14 @@ interface ICreateNewTaskProps extends IModal<object> {
     annotatorIds: Array<string>;
     fileIds: Array<number>;
     jobId?: number;
+    handleCloseModal: () => void;
 }
 
 export const CreateTask: FC<ICreateNewTaskProps> = ({
     jobId,
     fileIds,
     annotatorIds,
+    handleCloseModal,
     ...modalProps
 }) => {
     const mutation = useCreateNewTaskMutation();
@@ -73,6 +75,7 @@ export const CreateTask: FC<ICreateNewTaskProps> = ({
                         <Text>{`Task is created with id=${response.id}`}</Text>
                     </>
                 );
+                handleCloseModal();
             } catch (error) {
                 const errorObject: ResponseError = JSON.parse((error as Error).message);
                 notifyError(

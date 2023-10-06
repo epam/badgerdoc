@@ -239,6 +239,9 @@ export const JobConnector: React.FC<JobDetailViewProps> = ({
                     jobId={job?.id}
                     fileIds={job?.files || []}
                     annotatorIds={job?.annotators.map(({ id }) => id) || []}
+                    handleCloseModal={() => {
+                        svc.uuiModals.closeAll();
+                    }}
                 />
             ))
             .then(noop)
