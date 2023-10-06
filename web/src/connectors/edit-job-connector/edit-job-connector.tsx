@@ -99,7 +99,7 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
         };
 
         metadata.props['owners'] = {
-            validationMessage: 'You should select at least 1 owners are required',
+            validationMessage: 'For Owners at least 1 owner is required',
             isRequired: true
         };
 
