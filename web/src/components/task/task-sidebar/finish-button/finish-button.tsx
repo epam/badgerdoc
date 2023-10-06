@@ -86,7 +86,9 @@ export const FinishButton: FC<TaskSidebarProps> = ({
     const showConfirmModal = () => {
         if (confirmWindowNeed === 'true') {
             uuiModals
-                .show<string>((props) => <ConfirmModal {...props} />)
+                .show<string>((props) => (
+                    <ConfirmModal modalProps={props} isValidating={isValidation} />
+                ))
                 .then(() => {
                     finishingValidation();
                 });
