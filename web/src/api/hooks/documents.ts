@@ -16,6 +16,11 @@ import { QueryHookType } from '../typings';
 import { UploadFilesReponse } from 'api/typings/files';
 import { useBadgerFetch } from './api';
 import { FileInfo } from 'api/typings/bonds';
+import { useContext } from 'react';
+import {
+    UploadIndicatorContext,
+    UploadIndicatorContextType
+} from 'components/upload-indicator/upload-indicator.context';
 
 const namespace = process.env.REACT_APP_FILEMANAGEMENT_API_NAMESPACE;
 
@@ -71,22 +76,27 @@ export function documentsFetcher(
     })(JSON.stringify(body));
 }
 
-const uploadFiles = async (files: Array<File>): Promise<UploadFilesReponse> => {
-    const formData = new FormData();
-    files.forEach((file) => {
-        formData.append('files', file, file.name);
-    });
-    return useBadgerFetch<UploadFilesReponse>({
-        url: `${namespace}/files`,
-        method: 'post',
-        plainHeaders: true,
-        withCredentials: true
-    })(formData);
-};
+const uploadFiles =
+    (uploadIndicatorContext: UploadIndicatorContextType) =>
+    async (files: Array<File>): Promise<UploadFilesReponse> => {
+        const formData = new FormData();
+        files.forEach((file) => {
+            formData.append('files', file, file.name);
+        });
+        return useBadgerFetch<UploadFilesReponse>({
+            url: `${namespace}/files`,
+            method: 'post',
+            plainHeaders: true,
+            withCredentials: true,
+            isFileUpload: true,
+            uploadIndicatorContext
+        })(formData);
+    };
 
 export const useUploadFilesMutation: MutationHookType<File[], FileInfo[]> = () => {
+    const uploadIndicatorContext = useContext(UploadIndicatorContext);
     const queryClient = useQueryClient();
-    return useMutation(uploadFiles, {
+    return useMutation(uploadFiles(uploadIndicatorContext), {
         onSuccess: () => {
             queryClient.invalidateQueries('documents');
         }

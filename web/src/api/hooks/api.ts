@@ -4,6 +4,8 @@ import { ApiError } from 'api/api-error';
 import { applyMocks } from 'api/mocks';
 import { HTTPRequestMethod } from 'api/typings';
 import { getAuthHeaders, refetchToken } from 'shared/helpers/auth-tools';
+import { UploadIndicatorContextType } from 'components/upload-indicator/upload-indicator.context';
+import { trackUploadProgress } from './track-upload-progress';
 
 type BadgerFetchOptions = {
     url: string;
@@ -13,6 +15,8 @@ type BadgerFetchOptions = {
     plainHeaders?: boolean;
     isBlob?: boolean;
     signal?: AbortSignal;
+    isFileUpload?: boolean;
+    uploadIndicatorContext?: UploadIndicatorContextType;
 };
 export type BadgerFetchBody =
     | ReadableStream
@@ -34,11 +38,13 @@ let useBadgerFetch: BadgerFetchProvider = (arg) => {
         const {
             url,
             method = 'get',
-            headers,
+            headers: rawHeaders,
             withCredentials = true,
             plainHeaders = false,
             isBlob = false,
-            signal
+            signal,
+            isFileUpload = false,
+            uploadIndicatorContext
         } = arg;
         const combinedHeaders = {};
 
@@ -48,21 +54,36 @@ let useBadgerFetch: BadgerFetchProvider = (arg) => {
             });
         }
 
+        const contentType = isFileUpload ? 'multipart/form-data' : 'application/json';
+
         if (!plainHeaders) {
             Object.assign(combinedHeaders, {
-                'Content-Type': 'application/json'
+                'Content-Type': contentType
             });
         }
 
-        const response = await fetch(url, {
-            method,
-            body,
-            signal,
-            headers: {
-                ...combinedHeaders,
-                ...headers
-            }
-        });
+        const headers = {
+            ...combinedHeaders,
+            ...rawHeaders
+        };
+
+        let response: Response = {} as Response;
+        if (isFileUpload) {
+            response = await trackUploadProgress(
+                url,
+                method,
+                uploadIndicatorContext,
+                body as FormData,
+                headers
+            );
+        } else {
+            response = await fetch(url, {
+                method,
+                body,
+                signal,
+                headers
+            });
+        }
         const { status, statusText } = response;
         if (status >= 500) {
             throw new ApiError(statusText, 'Please contact DevOps Support Team', {
