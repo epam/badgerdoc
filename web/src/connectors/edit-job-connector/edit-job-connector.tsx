@@ -121,14 +121,17 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
             };
         }
 
-        if (validationType === 'validation only') {
+        if (validationType === ValidationType.validationOnly) {
             metadata.props['validators'] = {
                 validationMessage: `For Validation only at least 1 validator required`,
                 isRequired: true
             };
         }
 
-        if (validationType === 'extensive_coverage' || validationType === 'hierarchical') {
+        if (
+            validationType === ValidationType.extensiveCoverage ||
+            validationType === ValidationType.hierarchical
+        ) {
             metadata.props['annotators'] = {
                 validationMessage: `For ${validationTypeTitle[validationType]} at least 1 annotator required`,
                 isRequired: true
