@@ -1,0 +1,32 @@
+.goto-page-selector {
+    span {
+        font-size: 12px;
+    }
+
+    & > :nth-child(2) {
+        margin: 0 6px;
+        width: 72px;
+    }
+}
+
+.button {
+    align-items: center;
+    box-shadow: none !important;
+    width: 24px;
+    height: 24px;
+    align-self: center;
+
+    :global(.uui-caption) {
+        font-size: 24px;
+        padding: 0;
+    }
+
+    &:first-of-type {
+        margin-left: 12px;
+        margin-right: 3px;
+    }
+
+    &:last-of-type {
+        margin-right: 32px;
+    }
+}
