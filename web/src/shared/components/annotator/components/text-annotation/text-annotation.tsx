@@ -79,7 +79,8 @@ export const TextAnnotation = ({
                                             isEditable={isEditable}
                                             isSelected={isSelected}
                                             isHovered={isHovered}
-                                            onCloseIconClick={() => {
+                                            onCloseIconClick={(event) => {
+                                                event.stopPropagation();
                                                 onAnnotationDelete(annLabel.annotationId!);
                                             }}
                                             onContextMenu={(event) => {
