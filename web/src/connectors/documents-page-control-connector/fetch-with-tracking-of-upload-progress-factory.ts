@@ -17,11 +17,11 @@ export type TFetchType = ({
     uploadProgressTracker
 }: {
     uploadProgressTracker: UploadProgressTracker;
-}) => (reqParams: BadgerCustomFetchRequestParams) => Promise<Response>;
+}) => (url: string, reqParams: BadgerCustomFetchRequestParams) => Promise<Response>;
 
 export const fetchWithTrackingOfUploadProgressFactory: TFetchType =
     ({ uploadProgressTracker }) =>
-    ({ url, method, body, headers }) => {
+    (url, { method, body, headers }) => {
         return new Promise<Response>((resolve) => {
             const xhr = new XMLHttpRequest();
             xhr.open(method, url, true);

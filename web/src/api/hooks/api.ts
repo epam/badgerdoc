@@ -6,13 +6,16 @@ import { HTTPRequestMethod } from 'api/typings';
 import { getAuthHeaders, refetchToken } from 'shared/helpers/auth-tools';
 
 export type BadgerCustomFetchRequestParams = {
-    url: string;
     method: string;
     headers: Record<string, string>;
     body?: BadgerFetchBody;
+    signal?: AbortSignal;
 };
 
-export type BadgerCustomFetch = (params: BadgerCustomFetchRequestParams) => Promise<Response>;
+export type BadgerCustomFetch = (
+    url: string,
+    params: BadgerCustomFetchRequestParams
+) => Promise<Response>;
 
 type BadgerFetchOptions = {
     url: string;
@@ -51,6 +54,8 @@ let useBadgerFetch: BadgerFetchProvider = (arg) => {
             signal,
             customFetch
         } = arg;
+        const badgerFetch = customFetch ?? fetch;
+
         const combinedHeaders = {};
 
         if (withCredentials) {
@@ -70,22 +75,13 @@ let useBadgerFetch: BadgerFetchProvider = (arg) => {
             ...rawHeaders
         };
 
-        let response = {} as Response;
-        if (customFetch) {
-            response = await customFetch({
-                url,
-                method,
-                body,
-                headers
-            });
-        } else {
-            response = await fetch(url, {
-                method,
-                body,
-                signal,
-                headers
-            });
-        }
+        const response = await badgerFetch(url, {
+            method,
+            body,
+            signal,
+            headers
+        });
+
         const { status, statusText } = response;
         if (status >= 500) {
             throw new ApiError(statusText, 'Please contact DevOps Support Team', {
