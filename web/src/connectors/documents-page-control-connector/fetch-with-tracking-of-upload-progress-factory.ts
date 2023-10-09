@@ -30,7 +30,6 @@ export const fetchWithTrackingOfUploadProgressFactory =
                             statusText: xhr.statusText
                         })
                     );
-                    uploadProgressTracker.resetUploadProgressState();
                 } else {
                     reject(new Error(`Upload failed with status ${xhr.status}`));
                 }

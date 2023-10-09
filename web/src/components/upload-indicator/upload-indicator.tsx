@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, useEffect } from 'react';
 import { IndeterminateBar, ProgressBar } from '@epam/loveship';
 import styles from './upload-indicator.module.scss';
 import { UploadProgressTracker } from 'connectors/documents-page-control-connector/use-fetch-with-tracking-of-upload-progress';
@@ -10,6 +10,11 @@ export const UploadIndicator: FC<{
 
     const message = isUploaded ? 'Processing' : 'Uploading';
     const indicatorWrapperStyle = isUploaded ? styles.processing : styles.uploading;
+
+    useEffect(() => {
+        return () => uploadProgressTracker.resetUploadProgressState();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     return (
         <div className={styles['upload-indicator']}>
