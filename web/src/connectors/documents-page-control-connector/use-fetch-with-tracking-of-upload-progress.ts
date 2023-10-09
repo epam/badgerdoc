@@ -1,12 +1,9 @@
 import { useCallback, useMemo, useState } from 'react';
 import { fetchWithTrackingOfUploadProgressFactory } from './fetch-with-tracking-of-upload-progress-factory';
 import { BadgerCustomFetch } from 'api/hooks/api';
-
-type OnProgressCallback = (progress: number) => void;
-
 export interface UploadProgressTracker {
     progress: number;
-    setProgress: OnProgressCallback;
+    setProgress: (progress: number) => void;
     isUploaded: boolean;
     resetUploadProgressState: () => void;
 }
@@ -19,9 +16,9 @@ export const useFetchWithTrackingOfUploadProgress = (): {
 
     const isUploaded = progress === 100;
 
-    const resetUploadProgressState = () => {
+    const resetUploadProgressState = useCallback(() => {
         setProgress(0);
-    };
+    }, []);
 
     const uploadProgressTracker: UploadProgressTracker = useMemo(
         () => ({
@@ -30,7 +27,7 @@ export const useFetchWithTrackingOfUploadProgress = (): {
             isUploaded,
             resetUploadProgressState
         }),
-        [progress, setProgress, isUploaded]
+        [progress, setProgress, isUploaded, resetUploadProgressState]
     );
 
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -8,8 +8,8 @@ import { getAuthHeaders, refetchToken } from 'shared/helpers/auth-tools';
 export type BadgerCustomFetchRequestParams = {
     url: string;
     method: string;
-    body: FormData;
-    headers: Record<string, string> | Headers;
+    headers: Record<string, string>;
+    body?: BadgerFetchBody;
 };
 
 export type BadgerCustomFetch = (params: BadgerCustomFetchRequestParams) => Promise<Response>;
@@ -75,7 +75,7 @@ let useBadgerFetch: BadgerFetchProvider = (arg) => {
             response = await customFetch({
                 url,
                 method,
-                body: body as FormData,
+                body,
                 headers
             });
         } else {

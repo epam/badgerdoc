@@ -1,14 +1,28 @@
 import { BadgerCustomFetchRequestParams } from 'api/hooks/api';
 import { UploadProgressTracker } from './use-fetch-with-tracking-of-upload-progress';
+import { ApiError } from 'api/api-error';
 
 const calculateProgress = (loaded: number, total: number): number => {
     return Math.floor(100 * (loaded / total));
 };
 
-export const fetchWithTrackingOfUploadProgressFactory =
-    ({ uploadProgressTracker }: { uploadProgressTracker: UploadProgressTracker }) =>
-    ({ url, method, body, headers }: BadgerCustomFetchRequestParams): Promise<Response> => {
-        return new Promise<Response>((resolve, reject) => {
+const handleUploadFailed = (xhr: XMLHttpRequest) => {
+    throw new ApiError(xhr.statusText, `Upload failed with status ${xhr.status}`, {
+        status: xhr.status,
+        ...xhr.response.body
+    });
+};
+
+export type TFetchType = ({
+    uploadProgressTracker
+}: {
+    uploadProgressTracker: UploadProgressTracker;
+}) => (reqParams: BadgerCustomFetchRequestParams) => Promise<Response>;
+
+export const fetchWithTrackingOfUploadProgressFactory: TFetchType =
+    ({ uploadProgressTracker }) =>
+    ({ url, method, body, headers }) => {
+        return new Promise<Response>((resolve) => {
             const xhr = new XMLHttpRequest();
             xhr.open(method, url, true);
 
@@ -17,7 +31,7 @@ export const fetchWithTrackingOfUploadProgressFactory =
             }
 
             xhr.upload.onprogress = ({ loaded, total, lengthComputable }) => {
-                if (lengthComputable && uploadProgressTracker) {
+                if (lengthComputable) {
                     uploadProgressTracker.setProgress(calculateProgress(loaded, total));
                 }
             };
@@ -31,14 +45,14 @@ export const fetchWithTrackingOfUploadProgressFactory =
                         })
                     );
                 } else {
-                    reject(new Error(`Upload failed with status ${xhr.status}`));
+                    handleUploadFailed(xhr);
                 }
             };
 
             xhr.onerror = () => {
-                reject(new Error('Upload failed'));
+                handleUploadFailed(xhr);
             };
 
-            xhr.send(body);
+            xhr.send(body as FormData);
         });
     };

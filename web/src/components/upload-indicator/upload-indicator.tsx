@@ -8,7 +8,7 @@ export const UploadIndicator: FC<{
 }> = ({ uploadProgressTracker }) => {
     const { isUploaded, progress } = uploadProgressTracker;
 
-    const message = isUploaded ? 'Processing' : 'Uploading';
+    const message = isUploaded ? 'Processing...' : 'Uploading...';
     const indicatorWrapperStyle = isUploaded ? styles.processing : styles.uploading;
 
     useEffect(() => {
