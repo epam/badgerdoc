@@ -42,7 +42,7 @@ export const UploadWizardPage = () => {
         useState<UploadWizardPreprocessorResult>();
 
     const { notifyError, notifySuccess } = useNotifications();
-    const uploadFilesMutation = useUploadFilesMutation();
+    const uploadFilesMutation = useUploadFilesMutation({})();
     const addDatasetMutation = useAddDatasetMutation();
     const addFilesToDatasetMutation = useAddFilesToDatasetMutation();
     const bondFilesToExistingDataset = bondToDataset;

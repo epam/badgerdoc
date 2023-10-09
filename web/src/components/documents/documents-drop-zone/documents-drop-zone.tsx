@@ -17,7 +17,7 @@ type DocumentsDropZoneType = {
 export const DocumentsDropZone: FC<DocumentsDropZoneType> = ({ dataset, children }) => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
-    const uploadFilesMutation = useUploadFilesMutation();
+    const uploadFilesMutation = useUploadFilesMutation({})();
     const addFilesToDatasetMutation = useAddFilesToDatasetMutation();
     const { notifyError, notifySuccess } = useNotifications();
 

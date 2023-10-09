@@ -24,6 +24,7 @@ import { ReactComponent as WizardIcon } from 'icons/wizard.svg';
 import { useNotifications } from '../../shared/components/notifications';
 import { useUploadFilesMutation } from '../../api/hooks/documents';
 import { UploadIndicator } from 'components/upload-indicator/upload-indicator';
+import { useFetchWithTrackingOfUploadProgress } from './use-fetch-with-tracking-of-upload-progress';
 
 type DocumentsPageControlProps = {
     isSearchPage?: boolean;
@@ -46,7 +47,11 @@ export const DocumentsPageControlConnector = ({
     handleUploadWizardButtonClick
 }: DocumentsPageControlProps) => {
     const history = useHistory();
-    const uploadFilesMutation = useUploadFilesMutation();
+    const { uploadProgressTracker, fetchWithTrackingOfUploadProgress } =
+        useFetchWithTrackingOfUploadProgress();
+    const uploadFilesMutation = useUploadFilesMutation({
+        customFetch: fetchWithTrackingOfUploadProgress
+    })();
     const dataSortSource = useArrayDataSource(
         {
             items: isSearchPage ? sortPiecesItems : sortFilesItems
@@ -92,7 +97,11 @@ export const DocumentsPageControlConnector = ({
             <FlexRow alignItems="center" cx={styles['header-container']}>
                 <BreadcrumbNavigation breadcrumbs={breadcrumbs} />
                 <FlexRow spacing="12">
-                    {isLoading ? <UploadIndicator isRequestOngoing={isLoading} /> : <FlexSpacer />}
+                    {isLoading ? (
+                        <UploadIndicator uploadProgressTracker={uploadProgressTracker} />
+                    ) : (
+                        <FlexSpacer />
+                    )}
                     <FlexRow>
                         <FlexRow padding="6">
                             <UploadFileToggler

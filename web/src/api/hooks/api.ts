@@ -4,8 +4,15 @@ import { ApiError } from 'api/api-error';
 import { applyMocks } from 'api/mocks';
 import { HTTPRequestMethod } from 'api/typings';
 import { getAuthHeaders, refetchToken } from 'shared/helpers/auth-tools';
-import { UploadIndicatorContextType } from 'components/upload-indicator/upload-indicator.context';
-import { trackUploadProgress } from './track-upload-progress';
+
+export type BadgerCustomFetchRequestParams = {
+    url: string;
+    method: string;
+    body: FormData;
+    headers: Record<string, string> | Headers;
+};
+
+export type BadgerCustomFetch = (params: BadgerCustomFetchRequestParams) => Promise<Response>;
 
 type BadgerFetchOptions = {
     url: string;
@@ -15,8 +22,7 @@ type BadgerFetchOptions = {
     plainHeaders?: boolean;
     isBlob?: boolean;
     signal?: AbortSignal;
-    isFileUpload?: boolean;
-    uploadIndicatorContext?: UploadIndicatorContextType;
+    customFetch?: BadgerCustomFetch;
 };
 export type BadgerFetchBody =
     | ReadableStream
@@ -43,8 +49,7 @@ let useBadgerFetch: BadgerFetchProvider = (arg) => {
             plainHeaders = false,
             isBlob = false,
             signal,
-            isFileUpload = false,
-            uploadIndicatorContext
+            customFetch
         } = arg;
         const combinedHeaders = {};
 
@@ -54,11 +59,9 @@ let useBadgerFetch: BadgerFetchProvider = (arg) => {
             });
         }
 
-        const contentType = isFileUpload ? 'multipart/form-data' : 'application/json';
-
         if (!plainHeaders) {
             Object.assign(combinedHeaders, {
-                'Content-Type': contentType
+                'Content-Type': 'application/json'
             });
         }
 
@@ -67,15 +70,14 @@ let useBadgerFetch: BadgerFetchProvider = (arg) => {
             ...rawHeaders
         };
 
-        let response: Response = {} as Response;
-        if (isFileUpload) {
-            response = await trackUploadProgress(
+        let response = {} as Response;
+        if (customFetch) {
+            response = await customFetch({
                 url,
                 method,
-                uploadIndicatorContext,
-                body as FormData,
+                body: body as FormData,
                 headers
-            );
+            });
         } else {
             response = await fetch(url, {
                 method,

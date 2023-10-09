@@ -14,13 +14,8 @@ import {
 import { pageSizes } from 'shared/primitives';
 import { QueryHookType } from '../typings';
 import { UploadFilesReponse } from 'api/typings/files';
-import { useBadgerFetch } from './api';
+import { BadgerCustomFetch, useBadgerFetch } from './api';
 import { FileInfo } from 'api/typings/bonds';
-import { useContext } from 'react';
-import {
-    UploadIndicatorContext,
-    UploadIndicatorContextType
-} from 'components/upload-indicator/upload-indicator.context';
 
 const namespace = process.env.REACT_APP_FILEMANAGEMENT_API_NAMESPACE;
 
@@ -77,7 +72,7 @@ export function documentsFetcher(
 }
 
 const uploadFiles =
-    (uploadIndicatorContext: UploadIndicatorContextType) =>
+    ({ customFetch }: { customFetch?: BadgerCustomFetch }) =>
     async (files: Array<File>): Promise<UploadFilesReponse> => {
         const formData = new FormData();
         files.forEach((file) => {
@@ -88,20 +83,20 @@ const uploadFiles =
             method: 'post',
             plainHeaders: true,
             withCredentials: true,
-            isFileUpload: true,
-            uploadIndicatorContext
+            customFetch
         })(formData);
     };
 
-export const useUploadFilesMutation: MutationHookType<File[], FileInfo[]> = () => {
-    const uploadIndicatorContext = useContext(UploadIndicatorContext);
-    const queryClient = useQueryClient();
-    return useMutation(uploadFiles(uploadIndicatorContext), {
-        onSuccess: () => {
-            queryClient.invalidateQueries('documents');
-        }
-    });
-};
+export const useUploadFilesMutation =
+    ({ customFetch }: { customFetch?: BadgerCustomFetch }): MutationHookType<File[], FileInfo[]> =>
+    () => {
+        const queryClient = useQueryClient();
+        return useMutation(uploadFiles({ customFetch }), {
+            onSuccess: () => {
+                queryClient.invalidateQueries('documents');
+            }
+        });
+    };
 
 export const useDocumentsInJob: QueryHookType<
     UseDocumentsParamsType & { filesIds: Array<number> },
