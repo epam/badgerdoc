@@ -22,7 +22,7 @@ import { BreadcrumbNavigation } from 'shared/components/breadcrumb';
 import { DocumentsSearch } from 'shared/contexts/documents-search';
 import { ReactComponent as WizardIcon } from 'icons/wizard.svg';
 import { useNotifications } from '../../shared/components/notifications';
-import { useUploadFilesMutation } from '../../api/hooks/documents';
+import { useUploadFilesMutationWithProgressTracking } from '../../api/hooks/documents';
 import { UploadIndicator } from 'components/upload-indicator/upload-indicator';
 import { useFetchWithTrackingOfUploadProgress } from './use-fetch-with-tracking-of-upload-progress';
 
@@ -48,9 +48,9 @@ export const DocumentsPageControlConnector = ({
 }: DocumentsPageControlProps) => {
     const history = useHistory();
     const uploadProgressTracker = useFetchWithTrackingOfUploadProgress();
-    const uploadFilesMutation = useUploadFilesMutation({
+    const uploadFilesMutation = useUploadFilesMutationWithProgressTracking({
         customFetch: uploadProgressTracker.fetchWithTrackingOfUploadProgress
-    })();
+    });
     const dataSortSource = useArrayDataSource(
         {
             items: isSearchPage ? sortPiecesItems : sortFilesItems

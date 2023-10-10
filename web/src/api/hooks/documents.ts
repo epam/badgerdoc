@@ -71,8 +71,12 @@ export function documentsFetcher(
     })(JSON.stringify(body));
 }
 
+type WithCustomFetch = {
+    customFetch?: BadgerCustomFetch;
+};
+
 const uploadFiles =
-    ({ customFetch }: { customFetch?: BadgerCustomFetch }) =>
+    (args?: WithCustomFetch) =>
     async (files: Array<File>): Promise<UploadFilesReponse> => {
         const formData = new FormData();
         files.forEach((file) => {
@@ -83,20 +87,27 @@ const uploadFiles =
             method: 'post',
             plainHeaders: true,
             withCredentials: true,
-            customFetch
+            customFetch: args?.customFetch
         })(formData);
     };
 
-export const useUploadFilesMutation =
-    (props?: { customFetch?: BadgerCustomFetch }): MutationHookType<File[], FileInfo[]> =>
-    () => {
-        const queryClient = useQueryClient();
-        return useMutation(uploadFiles({ customFetch: props?.customFetch }), {
-            onSuccess: () => {
-                queryClient.invalidateQueries('documents');
-            }
-        });
-    };
+export const useUploadFilesMutation: MutationHookType<File[], FileInfo[]> = () => {
+    const queryClient = useQueryClient();
+    return useMutation(uploadFiles(), {
+        onSuccess: () => {
+            queryClient.invalidateQueries('documents');
+        }
+    });
+};
+
+export const useUploadFilesMutationWithProgressTracking = (args: WithCustomFetch) => {
+    const queryClient = useQueryClient();
+    return useMutation(uploadFiles({ customFetch: args.customFetch }), {
+        onSuccess: () => {
+            queryClient.invalidateQueries('documents');
+        }
+    });
+};
 
 export const useDocumentsInJob: QueryHookType<
     UseDocumentsParamsType & { filesIds: Array<number> },
