@@ -102,7 +102,7 @@ export const useUploadFilesMutation: MutationHookType<File[], FileInfo[]> = () =
 
 export const useUploadFilesMutationWithProgressTracking = (args: WithCustomFetch) => {
     const queryClient = useQueryClient();
-    return useMutation(uploadFiles({ customFetch: args.customFetch }), {
+    return useMutation(uploadFiles(args), {
         onSuccess: () => {
             queryClient.invalidateQueries('documents');
         }
