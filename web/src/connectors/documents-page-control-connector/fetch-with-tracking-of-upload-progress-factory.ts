@@ -6,21 +6,23 @@ const calculateProgress = (loaded: number, total: number): number => {
     return Math.floor(100 * (loaded / total));
 };
 
-const handleUploadFailed = (xhr: XMLHttpRequest) => {
+const handleUploadFailed = (xhr: XMLHttpRequest, externalCallback: () => void) => {
+    externalCallback();
     throw new ApiError(xhr.statusText, `Upload failed with status ${xhr.status}`, {
         status: xhr.status,
         ...xhr.response.body
     });
 };
 
-type WithOnProgressCallback = {
+type CustomFetchFactoryDeps = {
     onProgressCallback: UploadProgressTracker['setProgress'];
+    onError: () => void;
 };
 
-export type TFetchType = (args: WithOnProgressCallback) => BadgerCustomFetch;
+export type TFetchType = (deps: CustomFetchFactoryDeps) => BadgerCustomFetch;
 
 export const fetchWithTrackingOfUploadProgressFactory: TFetchType =
-    ({ onProgressCallback }) =>
+    ({ onProgressCallback, onError }) =>
     (url, { method, body, headers }) => {
         return new Promise<Response>((resolve) => {
             const xhr = new XMLHttpRequest();
@@ -45,12 +47,12 @@ export const fetchWithTrackingOfUploadProgressFactory: TFetchType =
                         })
                     );
                 } else {
-                    handleUploadFailed(xhr);
+                    handleUploadFailed(xhr, onError);
                 }
             };
 
             xhr.onerror = () => {
-                handleUploadFailed(xhr);
+                handleUploadFailed(xhr, onError);
             };
 
             xhr.send(body as FormData);

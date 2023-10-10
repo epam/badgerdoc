@@ -11,28 +11,26 @@ const notifyProcessing = () => {
 export const useNotifyProcessing = (isUploaded: boolean) => {
     useEffect(() => {
         let delay = 10000;
-        let timeoutId: number | null = null;
+        let timeoutId: NodeJS.Timeout | null = null;
         let firstNotificationShown = false;
 
         const showNextNotification = () => {
-            if (isUploaded) {
-                if (!firstNotificationShown) {
-                    timeoutId = setTimeout(() => {
-                        firstNotificationShown = true;
-                        showNextNotification();
-                    }, delay) as unknown as number;
-                } else {
-                    notifyProcessing();
+            if (!isUploaded) return;
 
-                    delay *= 2;
-                    timeoutId = setTimeout(showNextNotification, delay) as unknown as number;
-                }
+            if (!firstNotificationShown) {
+                timeoutId = setTimeout(() => {
+                    firstNotificationShown = true;
+                    showNextNotification();
+                }, delay);
+            } else {
+                notifyProcessing();
+
+                delay *= 2;
+                timeoutId = setTimeout(showNextNotification, delay);
             }
         };
 
-        if (isUploaded) {
-            showNextNotification();
-        }
+        showNextNotification();
 
         return () => {
             if (timeoutId !== null) {

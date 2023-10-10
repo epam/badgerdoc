@@ -2,6 +2,8 @@ import { useCallback, useMemo, useState } from 'react';
 import { fetchWithTrackingOfUploadProgressFactory } from './fetch-with-tracking-of-upload-progress-factory';
 import { BadgerCustomFetch } from 'api/hooks/api';
 import { useNotifyProcessing } from './use-notify-processing';
+import { NotificationTypes, showNotification } from 'shared/components/notifications';
+
 export interface UploadProgressTracker {
     progress: number;
     setProgress: (progress: number) => void;
@@ -10,7 +12,23 @@ export interface UploadProgressTracker {
     fetchWithTrackingOfUploadProgress: BadgerCustomFetch;
 }
 
-export const useFetchWithTrackingOfUploadProgress = (): UploadProgressTracker => {
+type UseFetchWithTrackingOfUploadProgressDeps = {
+    onError: () => void;
+};
+
+const useHandleUploadError = (onError: () => void) => {
+    return useCallback(() => {
+        showNotification({
+            type: NotificationTypes.error,
+            text: 'Error uploading the file. Try again later.'
+        });
+        onError();
+    }, [onError]);
+};
+
+export const useFetchWithTrackingOfUploadProgress = ({
+    onError
+}: UseFetchWithTrackingOfUploadProgressDeps): UploadProgressTracker => {
     const [progress, setProgress] = useState<number>(0);
 
     const isUploaded = progress === 100;
@@ -21,12 +39,15 @@ export const useFetchWithTrackingOfUploadProgress = (): UploadProgressTracker =>
         setProgress(0);
     }, []);
 
+    const handleError = useHandleUploadError(onError);
+
     const fetchWithTrackingOfUploadProgress: BadgerCustomFetch = useCallback(
         (url, reqParams) =>
             fetchWithTrackingOfUploadProgressFactory({
-                onProgressCallback: setProgress
+                onProgressCallback: setProgress,
+                onError: handleError
             })(url, reqParams),
-        []
+        [handleError]
     );
 
     const uploadProgressTracker: UploadProgressTracker = useMemo(
