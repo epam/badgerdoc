@@ -93,7 +93,7 @@ export const AnnotationList: FC<AnnotationListProps> = ({
     const isClosable =
         task?.status !== 'Finished'
             ? task?.is_validation
-                ? editedPages.includes(currentPage) !== false
+                ? editedPages.includes(currentPage)
                 : true
             : false;
 
