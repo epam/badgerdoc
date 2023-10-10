@@ -17,6 +17,7 @@ describe('AnnotationRow', () => {
         index: 15,
         onSelect: () => {},
         isEditable: false,
+        isClosable: true,
         onSelectById: () => {},
         onLinkDeleted: () => {},
         onCloseIconClick: () => {},

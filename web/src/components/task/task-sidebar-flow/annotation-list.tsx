@@ -76,12 +76,26 @@ export const AnnotationList: FC<AnnotationListProps> = ({
     const containerRef = useRef<HTMLDivElement>(null);
     const [selectedIndex, setSelectedIndex] = useState<number>(0);
     const [isSelectedInCurrentView, setIsSelectedInCurrentView] = useState<boolean>(false);
-    const { areLatestAnnotationsFetching, onLinkDeleted, onAnnotationDeleted, allAnnotations } =
-        useTaskAnnotatorContext();
+    const {
+        task,
+        areLatestAnnotationsFetching,
+        onLinkDeleted,
+        onAnnotationDeleted,
+        allAnnotations,
+        currentPage,
+        editedPages
+    } = useTaskAnnotatorContext();
     const { incomingLinksByAnnotationId, annotationNameById } = useMemo(
         () => collectIncomingLinks(list),
         [list]
     );
+
+    const isClosable =
+        task?.status !== 'Finished'
+            ? task?.is_validation
+                ? editedPages.includes(currentPage)
+                : true
+            : false;
 
     useEffect(() => {
         if (!selectedAnnotation) {
@@ -193,6 +207,7 @@ export const AnnotationList: FC<AnnotationListProps> = ({
                             {...annotation}
                             index={index}
                             isEditable={isEditable}
+                            isClosable={isClosable}
                             key={`${annotation.id}-${index}`}
                             onLinkDeleted={onLinkDeleted}
                             annotationNameById={annotationNameById}

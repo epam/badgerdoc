@@ -28,6 +28,7 @@ export const AnnotationRow: FC<TAnnotationProps> = ({
     incomingLinks,
     links,
     isEditable,
+    isClosable,
     onLinkDeleted,
     onCloseIconClick
 }) => {
@@ -51,13 +52,15 @@ export const AnnotationRow: FC<TAnnotationProps> = ({
                 <Text cx={styles.labelText} rawProps={{ 'data-testid': 'flow-label' }}>
                     {labelList[labelList.length - 1]}
                 </Text>
-                <IconButton
-                    icon={closeIcon}
-                    cx={styles.close}
-                    iconPosition={'right'}
-                    onClick={onIconClick}
-                    color={isContrastColor(color) ? 'white' : 'night900'}
-                />
+                {isClosable && (
+                    <IconButton
+                        icon={closeIcon}
+                        cx={styles.close}
+                        iconPosition={'right'}
+                        onClick={onIconClick}
+                        color={isContrastColor(color) ? 'white' : 'night900'}
+                    />
+                )}
                 {!links?.length && !incomingLinks?.length ? null : (
                     <Links
                         isEditable={isEditable}
