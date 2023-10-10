@@ -88,10 +88,10 @@ const uploadFiles =
     };
 
 export const useUploadFilesMutation =
-    ({ customFetch }: { customFetch?: BadgerCustomFetch }): MutationHookType<File[], FileInfo[]> =>
+    (props?: { customFetch?: BadgerCustomFetch }): MutationHookType<File[], FileInfo[]> =>
     () => {
         const queryClient = useQueryClient();
-        return useMutation(uploadFiles({ customFetch }), {
+        return useMutation(uploadFiles({ customFetch: props?.customFetch }), {
             onSuccess: () => {
                 queryClient.invalidateQueries('documents');
             }
