@@ -13,11 +13,11 @@ const handleUploadFailed = (xhr: XMLHttpRequest) => {
     });
 };
 
-export type TFetchType = ({
-    onProgressCallback
-}: {
+type WithOnProgressCallback = {
     onProgressCallback: UploadProgressTracker['setProgress'];
-}) => BadgerCustomFetch;
+};
+
+export type TFetchType = (args: WithOnProgressCallback) => BadgerCustomFetch;
 
 export const fetchWithTrackingOfUploadProgressFactory: TFetchType =
     ({ onProgressCallback }) =>
