@@ -14,7 +14,7 @@ import {
 import { pageSizes } from 'shared/primitives';
 import { QueryHookType } from '../typings';
 import { UploadFilesReponse } from 'api/typings/files';
-import { useBadgerFetch } from './api';
+import { BadgerCustomFetch, useBadgerFetch } from './api';
 import { FileInfo } from 'api/typings/bonds';
 
 const namespace = process.env.REACT_APP_FILEMANAGEMENT_API_NAMESPACE;
@@ -71,22 +71,38 @@ export function documentsFetcher(
     })(JSON.stringify(body));
 }
 
-const uploadFiles = async (files: Array<File>): Promise<UploadFilesReponse> => {
-    const formData = new FormData();
-    files.forEach((file) => {
-        formData.append('files', file, file.name);
-    });
-    return useBadgerFetch<UploadFilesReponse>({
-        url: `${namespace}/files`,
-        method: 'post',
-        plainHeaders: true,
-        withCredentials: true
-    })(formData);
+type WithCustomFetch = {
+    customFetch?: BadgerCustomFetch;
 };
+
+const uploadFiles =
+    (args?: WithCustomFetch) =>
+    async (files: Array<File>): Promise<UploadFilesReponse> => {
+        const formData = new FormData();
+        files.forEach((file) => {
+            formData.append('files', file, file.name);
+        });
+        return useBadgerFetch<UploadFilesReponse>({
+            url: `${namespace}/files`,
+            method: 'post',
+            plainHeaders: true,
+            withCredentials: true,
+            customFetch: args?.customFetch
+        })(formData);
+    };
 
 export const useUploadFilesMutation: MutationHookType<File[], FileInfo[]> = () => {
     const queryClient = useQueryClient();
-    return useMutation(uploadFiles, {
+    return useMutation(uploadFiles(), {
+        onSuccess: () => {
+            queryClient.invalidateQueries('documents');
+        }
+    });
+};
+
+export const useUploadFilesMutationWithProgressTracking = (args: WithCustomFetch) => {
+    const queryClient = useQueryClient();
+    return useMutation(uploadFiles(args), {
         onSuccess: () => {
             queryClient.invalidateQueries('documents');
         }

@@ -1,6 +1,6 @@
 // temporary_disabled_rules
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-redeclare, react-hooks/exhaustive-deps */
-import React, { useCallback, useState, useContext } from 'react';
+import React, { useCallback, useState, useContext, useEffect } from 'react';
 import {
     Button,
     FlexRow,
@@ -22,7 +22,9 @@ import { BreadcrumbNavigation } from 'shared/components/breadcrumb';
 import { DocumentsSearch } from 'shared/contexts/documents-search';
 import { ReactComponent as WizardIcon } from 'icons/wizard.svg';
 import { useNotifications } from '../../shared/components/notifications';
-import { useUploadFilesMutation } from '../../api/hooks/documents';
+import { useUploadFilesMutationWithProgressTracking } from '../../api/hooks/documents';
+import { UploadIndicator } from 'components/upload-indicator/upload-indicator';
+import { useFetchWithTrackingOfUploadProgress } from './use-fetch-with-tracking-of-upload-progress';
 
 type DocumentsPageControlProps = {
     isSearchPage?: boolean;
@@ -45,7 +47,10 @@ export const DocumentsPageControlConnector = ({
     handleUploadWizardButtonClick
 }: DocumentsPageControlProps) => {
     const history = useHistory();
-    const uploadFilesMutation = useUploadFilesMutation();
+    const uploadProgressTracker = useFetchWithTrackingOfUploadProgress();
+    const uploadFilesMutation = useUploadFilesMutationWithProgressTracking({
+        customFetch: uploadProgressTracker.fetchWithTrackingOfUploadProgress
+    });
     const dataSortSource = useArrayDataSource(
         {
             items: isSearchPage ? sortPiecesItems : sortFilesItems
@@ -90,23 +95,33 @@ export const DocumentsPageControlConnector = ({
         <>
             <FlexRow alignItems="center" cx={styles['header-container']}>
                 <BreadcrumbNavigation breadcrumbs={breadcrumbs} />
-                <FlexSpacer />
-                <FlexRow>
-                    <FlexRow padding="6">
-                        <UploadFileToggler
-                            onFilesAdded={handleAddFiles}
-                            render={({ onClick }) => (
-                                <Button caption="Upload" isDisabled={isLoading} onClick={onClick} />
-                            )}
-                        />
-                    </FlexRow>
-                    <FlexRow padding="6">
-                        <Button
-                            caption="Upload Wizard"
-                            onClick={handleUploadWizardButtonClick}
-                            color="grass"
-                            icon={WizardIcon}
-                        />
+                <FlexRow spacing="12">
+                    {isLoading ? (
+                        <UploadIndicator uploadProgressTracker={uploadProgressTracker} />
+                    ) : (
+                        <FlexSpacer />
+                    )}
+                    <FlexRow>
+                        <FlexRow padding="6">
+                            <UploadFileToggler
+                                onFilesAdded={handleAddFiles}
+                                render={({ onClick }) => (
+                                    <Button
+                                        caption="Upload"
+                                        isDisabled={isLoading}
+                                        onClick={onClick}
+                                    />
+                                )}
+                            />
+                        </FlexRow>
+                        <FlexRow padding="6">
+                            <Button
+                                caption="Upload Wizard"
+                                onClick={handleUploadWizardButtonClick}
+                                color="grass"
+                                icon={WizardIcon}
+                            />
+                        </FlexRow>
                     </FlexRow>
                 </FlexRow>
             </FlexRow>

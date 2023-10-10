@@ -1,0 +1,20 @@
+.upload-indicator {
+    width: 125px;
+
+    span {
+        display: block;
+        margin-top: 4px;
+        text-align: center;
+        font-size: 12px;
+    }
+
+    .indefinite-bar-wrapper {
+        width: 75px;
+        margin-left: 25px;
+    }
+
+    .bg {
+        width: 100%;
+        background-color: #c1c3cb;
+    }
+}

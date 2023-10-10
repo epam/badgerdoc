@@ -5,6 +5,18 @@ import { applyMocks } from 'api/mocks';
 import { HTTPRequestMethod } from 'api/typings';
 import { getAuthHeaders, refetchToken } from 'shared/helpers/auth-tools';
 
+export type BadgerCustomFetchRequestParams = {
+    method: string;
+    headers: Record<string, string>;
+    body?: BadgerFetchBody;
+    signal?: AbortSignal;
+};
+
+export type BadgerCustomFetch = (
+    url: string,
+    params: BadgerCustomFetchRequestParams
+) => Promise<Response>;
+
 type BadgerFetchOptions = {
     url: string;
     method?: HTTPRequestMethod;
@@ -13,6 +25,7 @@ type BadgerFetchOptions = {
     plainHeaders?: boolean;
     isBlob?: boolean;
     signal?: AbortSignal;
+    customFetch?: BadgerCustomFetch;
 };
 export type BadgerFetchBody =
     | ReadableStream
@@ -34,12 +47,15 @@ let useBadgerFetch: BadgerFetchProvider = (arg) => {
         const {
             url,
             method = 'get',
-            headers,
+            headers: rawHeaders,
             withCredentials = true,
             plainHeaders = false,
             isBlob = false,
-            signal
+            signal,
+            customFetch
         } = arg;
+        const badgerFetch = customFetch ?? fetch;
+
         const combinedHeaders = {};
 
         if (withCredentials) {
@@ -54,15 +70,18 @@ let useBadgerFetch: BadgerFetchProvider = (arg) => {
             });
         }
 
-        const response = await fetch(url, {
+        const headers = {
+            ...combinedHeaders,
+            ...rawHeaders
+        };
+
+        const response = await badgerFetch(url, {
             method,
             body,
             signal,
-            headers: {
-                ...combinedHeaders,
-                ...headers
-            }
+            headers
         });
+
         const { status, statusText } = response;
         if (status >= 500) {
             throw new ApiError(statusText, 'Please contact DevOps Support Team', {
