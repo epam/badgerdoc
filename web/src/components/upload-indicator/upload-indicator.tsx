@@ -6,22 +6,27 @@ import { UploadProgressTracker } from 'connectors/documents-page-control-connect
 export const UploadIndicator: FC<{
     uploadProgressTracker: UploadProgressTracker;
 }> = ({ uploadProgressTracker }) => {
-    const { isUploaded, progress } = uploadProgressTracker;
-
-    const message = isUploaded ? 'Processing...' : 'Uploading...';
-    const indicatorWrapperStyle = isUploaded ? styles.processing : styles.uploading;
+    const message = uploadProgressTracker.isUploaded ? 'Processing...' : 'Uploading...';
 
     useEffect(() => {
-        return () => uploadProgressTracker.resetUploadProgressState();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+        return () => {
+            if (uploadProgressTracker.isUploaded) uploadProgressTracker.resetUploadProgressState();
+        };
+    }, [uploadProgressTracker]);
 
     return (
         <div className={styles['upload-indicator']}>
-            <div className={indicatorWrapperStyle}>
-                {isUploaded ? <IndeterminateBar /> : <ProgressBar progress={progress} size="12" />}
-                <span>{message}</span>
-            </div>
+            {uploadProgressTracker.isUploaded ? (
+                <div className={styles.bg}>
+                    <div className={styles['indefinite-bar-wrapper']}>
+                        <IndeterminateBar cx={styles.bg} />
+                    </div>
+                </div>
+            ) : (
+                <ProgressBar progress={uploadProgressTracker.progress} size="12" cx={styles.bg} />
+            )}
+
+            <span>{message}</span>
         </div>
     );
 };

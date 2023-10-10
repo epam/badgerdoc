@@ -1,4 +1,4 @@
-import { BadgerCustomFetchRequestParams } from 'api/hooks/api';
+import { BadgerCustomFetch } from 'api/hooks/api';
 import { UploadProgressTracker } from './use-fetch-with-tracking-of-upload-progress';
 import { ApiError } from 'api/api-error';
 
@@ -14,13 +14,13 @@ const handleUploadFailed = (xhr: XMLHttpRequest) => {
 };
 
 export type TFetchType = ({
-    uploadProgressTracker
+    onProgressCallback
 }: {
-    uploadProgressTracker: UploadProgressTracker;
-}) => (url: string, reqParams: BadgerCustomFetchRequestParams) => Promise<Response>;
+    onProgressCallback: UploadProgressTracker['setProgress'];
+}) => BadgerCustomFetch;
 
 export const fetchWithTrackingOfUploadProgressFactory: TFetchType =
-    ({ uploadProgressTracker }) =>
+    ({ onProgressCallback }) =>
     (url, { method, body, headers }) => {
         return new Promise<Response>((resolve) => {
             const xhr = new XMLHttpRequest();
@@ -32,7 +32,7 @@ export const fetchWithTrackingOfUploadProgressFactory: TFetchType =
 
             xhr.upload.onprogress = ({ loaded, total, lengthComputable }) => {
                 if (lengthComputable) {
-                    uploadProgressTracker.setProgress(calculateProgress(loaded, total));
+                    onProgressCallback(calculateProgress(loaded, total));
                 }
             };
 

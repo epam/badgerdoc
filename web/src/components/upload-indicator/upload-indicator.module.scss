@@ -1,18 +1,19 @@
 .upload-indicator {
-    min-width: 100px;
-    margin-bottom: 4px;
+    width: 125px;
 
     span {
         display: block;
-        padding-left: 24px;
-        font-size: 12px;
+        margin-top: 4px;
+        text-align: center;
     }
 
-    .uploading {
-        padding: 0 0px;
+    .indefinite-bar-wrapper {
+        width: 75px;
+        margin-left: 25px;
     }
 
-    .processing {
-        padding: 0 24px;
+    .bg {
+        width: 100%;
+        background-color: #c1c3cb;
     }
 }

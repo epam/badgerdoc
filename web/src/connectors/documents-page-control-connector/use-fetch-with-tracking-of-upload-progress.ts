@@ -6,12 +6,10 @@ export interface UploadProgressTracker {
     setProgress: (progress: number) => void;
     isUploaded: boolean;
     resetUploadProgressState: () => void;
+    fetchWithTrackingOfUploadProgress: BadgerCustomFetch;
 }
 
-export const useFetchWithTrackingOfUploadProgress = (): {
-    uploadProgressTracker: UploadProgressTracker;
-    fetchWithTrackingOfUploadProgress: BadgerCustomFetch;
-} => {
+export const useFetchWithTrackingOfUploadProgress = (): UploadProgressTracker => {
     const [progress, setProgress] = useState<number>(0);
 
     const isUploaded = progress === 100;
@@ -20,26 +18,30 @@ export const useFetchWithTrackingOfUploadProgress = (): {
         setProgress(0);
     }, []);
 
+    const fetchWithTrackingOfUploadProgress: BadgerCustomFetch = useCallback(
+        (url, reqParams) =>
+            fetchWithTrackingOfUploadProgressFactory({
+                onProgressCallback: setProgress
+            })(url, reqParams),
+        []
+    );
+
     const uploadProgressTracker: UploadProgressTracker = useMemo(
         () => ({
             progress,
             setProgress,
             isUploaded,
-            resetUploadProgressState
+            resetUploadProgressState,
+            fetchWithTrackingOfUploadProgress
         }),
-        [progress, setProgress, isUploaded, resetUploadProgressState]
+        [
+            progress,
+            setProgress,
+            isUploaded,
+            resetUploadProgressState,
+            fetchWithTrackingOfUploadProgress
+        ]
     );
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    const fetchWithTrackingOfUploadProgress = useCallback(
-        fetchWithTrackingOfUploadProgressFactory({
-            uploadProgressTracker
-        }),
-        [uploadProgressTracker]
-    );
-
-    return {
-        uploadProgressTracker,
-        fetchWithTrackingOfUploadProgress
-    };
+    return uploadProgressTracker;
 };

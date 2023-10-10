@@ -47,10 +47,9 @@ export const DocumentsPageControlConnector = ({
     handleUploadWizardButtonClick
 }: DocumentsPageControlProps) => {
     const history = useHistory();
-    const { uploadProgressTracker, fetchWithTrackingOfUploadProgress } =
-        useFetchWithTrackingOfUploadProgress();
+    const uploadProgressTracker = useFetchWithTrackingOfUploadProgress();
     const uploadFilesMutation = useUploadFilesMutation({
-        customFetch: fetchWithTrackingOfUploadProgress
+        customFetch: uploadProgressTracker.fetchWithTrackingOfUploadProgress
     })();
     const dataSortSource = useArrayDataSource(
         {
