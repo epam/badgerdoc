@@ -11,7 +11,7 @@ const notifyProcessing = () => {
 export const useNotifyProcessing = (isUploaded: boolean) => {
     useEffect(() => {
         let delay = 10000;
-        let timeoutId: NodeJS.Timeout | null = null;
+        let timeoutId: ReturnType<typeof setTimeout> | null = null;
         let firstNotificationShown = false;
 
         const showNextNotification = () => {
