@@ -47,7 +47,10 @@ export const DocumentsPageControlConnector = ({
     handleUploadWizardButtonClick
 }: DocumentsPageControlProps) => {
     const history = useHistory();
-    const uploadProgressTracker = useFetchWithTrackingOfUploadProgress();
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const uploadProgressTracker = useFetchWithTrackingOfUploadProgress({
+        onError: () => setIsLoading(false)
+    });
     const uploadFilesMutation = useUploadFilesMutationWithProgressTracking({
         customFetch: uploadProgressTracker.fetchWithTrackingOfUploadProgress
     });
@@ -58,7 +61,6 @@ export const DocumentsPageControlConnector = ({
         [isSearchPage]
     );
 
-    const [isLoading, setIsLoading] = useState<boolean>(false);
     const { notifyError, notifySuccess } = useNotifications();
 
     const {
