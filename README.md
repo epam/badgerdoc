@@ -149,11 +149,9 @@ pipenv shell && pip install -e ../lib/filter_lib ../lib/tenants
 
 ## API docs (swagger)
 
-Use these URLs to open the swagger of some service
+Use this URL to open the swagger of some service
 
 ```
-http://dev1.badgerdoc.com/api/v1/{service_name}/docs
-http://dev2.badgerdoc.com/api/v1/{service_name}/docs
 http://127.0.0.1:8080/{service_name}/docs
 ```
 
