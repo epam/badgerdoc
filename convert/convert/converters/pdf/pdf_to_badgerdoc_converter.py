@@ -6,7 +6,7 @@ from botocore.client import BaseClient
 
 from convert.converters.base_format.badgerdoc import Badgerdoc
 from convert.converters.pdf.pdf_converter import (
-    PlainPDFToBadgerdocTokensConverter,
+    PlainPDFToBadgerdocTokensConverterPytz,
 )
 from convert.models.common import S3Path
 
@@ -35,7 +35,7 @@ class PDFToBadgerdocConverter:
                 s3_input_pdf.bucket, s3_input_pdf.path, input_file
             )
             self.badgerdoc_format.tokens_pages = (
-                PlainPDFToBadgerdocTokensConverter().convert(input_file)
+                PlainPDFToBadgerdocTokensConverterPytz().convert(input_file)
             )
 
     def upload_badgerdoc_to_s3(self, s3_output_tokens: S3Path) -> None:
