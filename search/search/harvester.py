@@ -8,7 +8,9 @@ from botocore.errorfactory import ClientError
 from elasticsearch import helpers
 from search.config import settings
 from search.logger import logger
+from embedings import get_embeduse_embeddings
 
+EMBED_URL = 'http://localhost:8501/v1/models/use-large:predict'
 
 def convert_bucket_name_if_s3prefix(bucket_name: str) -> str:
     if settings.s3_prefix:
@@ -77,6 +79,15 @@ def parse_json(
         logger.warning("Given object is not of type list")
 
 
+def get_doc_sentences(document, content):
+    return content.split(".")
+
+
+def generate_text_embedding(document, content):
+    #TODO: make float to str transformations
+    sentences = get_doc_sentences(document, content)
+    return get_embeduse_embeddings(sentences, EMBED_URL)
+
 def prepare_es_document(
     document: dict, content: str, job: int, file: int, page: int
 ) -> schemas.pieces.GeomObject:
@@ -86,6 +97,7 @@ def prepare_es_document(
         content=content,
         job_id=job,
     )
+    es_document["knn"] = generate_text_embedding(document, content)
     es_document["category"] = document["category"]
     es_document["bbox"] = document.get("bbox")
     es_document["tokens"] = document.get("tokens")

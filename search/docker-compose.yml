@@ -2,28 +2,42 @@ version: "3.9"
 
 services:
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.13.2
-    container_name: elastic
+    image: amazon/opendistro-for-elasticsearch:latest
     environment:
-      - xpack.security.enabled=false
-      - discovery.type=single-node
-    restart: always
+      - node.name=es01
+      - cluster.name=es-docker-cluster
+      #- discovery.seed_hosts=es02,es03
+      - cluster.initial_master_nodes=es01 #,es02,es03
+      - bootstrap.memory_lock=true
+      - opendistro_security.disabled=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
     healthcheck:
       test: curl --fail http://localhost:9200 || exit 1
       interval: 30s
       timeout: 3s
       retries: 10
       start_period: 30s
-    ports:
-      - ${ES_PORT}:${ES_PORT}
     networks:
       - badgerdoc-search
+    ports:
+      - "9203:9200"
+    volumes:
+      - elasticdata:/usr/share/elasticsearch/data
+
 
   backend:
-    image: search
+    build:
+      context: .
+      target: build
+    working_dir: /opt/search
+#    image: search
     container_name: search
     ports:
-      - ${APP_PORT}:${APP_PORT}
+      - 8083:8080
     networks:
       - badgerdoc-search
     depends_on:
@@ -32,11 +46,19 @@ services:
     volumes:
       - .:/opt/search
 
+  embeduse:
+    image: tensorflow/serving
+    container_name: embeduse
+    ports:
+      - "8501:8501"
+    volumes:
+      - "C:/Projects/bd/badgerdoc/search/use-encoder/use-large:/models/model"
+
   zookeeper:
     image: wurstmeister/zookeeper
     container_name: zookeeper
     ports:
-      - "2181:2181"
+      - "2185:2181"
     networks:
       - badgerdoc-search
 
@@ -51,6 +73,20 @@ services:
     networks:
       - badgerdoc-search
 
+  kafka-ui:
+    container_name: kafka-ui
+    image: provectuslabs/kafka-ui:latest
+    ports:
+      - 8081:8080
+    environment:
+      DYNAMIC_CONFIG_ENABLED: 'true'
+    volumes:
+      - ./config.yml:/etc/kafkaui/dynamic_config.yaml
+
 networks:
   badgerdoc-search:
     driver: bridge
+
+volumes:
+  elasticdata:
+    driver: local

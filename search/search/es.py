@@ -24,6 +24,10 @@ INDEX_SETTINGS = {
             "job_id": {
                 "type": "keyword",
             },
+            "embedding": {
+              "type": "knn_vector",
+              "dimension": 512
+            }
         },
     }
 }

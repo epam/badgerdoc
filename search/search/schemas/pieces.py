@@ -118,9 +118,9 @@ class PieceSort(pydantic.BaseModel):
     def build_sorting_body(self) -> Dict[str, Any]:
         return {self.field: {"order": self.direction}}
 
-
 class PiecesRequest(pydantic.BaseModel):
     query: Optional[str]
+    boost_by_txt_emb: Optional[list]
     pagination: Optional[PiecePagination]
     filters: Optional[List[PieceFilter]]
     sorting: Optional[List[PieceSort]]
@@ -157,14 +157,39 @@ class PiecesRequest(pydantic.BaseModel):
         query.update(self.pagination.build_pagination_body())
         return query
 
-    def _apply_query(self, query: Dict[str, Any]) -> Dict[str, Any]:
+    def _apply_main_query(self, query: Dict[str, Any]) -> Dict[str, Any]:
+        should = []
+        if self.boost_by_txt_emb:
+            should = self._apply_embed_txt_query(should)
+
+        if self.query:
+            should = self._apply_embed_txt_query(should)
+
+        query["query"]["bool"]["must"].append(should)
+        return query
+
+    def _apply_embed_txt_query(self, main_query):
+        query = {
+            "query": {
+                "knn": {
+                    "embedding": {
+                        "vector": [','.join(self.boost_by_txt_emb)]
+                    }
+                }
+            }
+        }
+
+        main_query.append(query)
+        return main_query
+
+    def _apply_query(self, main_query: List) -> List[Any]:
         match = {
             "match": {
                 "content": {"query": self.query, "minimum_should_match": "81%"}
             }
         }
-        query["query"]["bool"]["must"].append(match)
-        return query
+        main_query.append(match)
+        return main_query
 
     @property
     def _is_match_all(self) -> bool:
@@ -188,7 +213,8 @@ class PiecesRequest(pydantic.BaseModel):
         if self.filters:
             _q = self._apply_filters(_q)
         if self.query:
-            _q = self._apply_query(_q)
+            _q = self._apply_main_query(_q)
+
         return _q
 
     async def adjust_categories(self, tenant: str, token: str) -> None:
