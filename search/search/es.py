@@ -1,9 +1,9 @@
 from typing import Any, Dict, List, Optional, Tuple
 
 import aiohttp
-from elasticsearch import AsyncElasticsearch
-from elasticsearch.exceptions import NotFoundError, RequestError
-
+from opensearchpy import AsyncOpenSearch
+from opensearchpy.exceptions import NotFoundError, RequestError
+from search.embeddings.embeddings import get_embeduse_embeddings
 from search.config import settings
 
 INDEX_SETTINGS = {
@@ -24,11 +24,15 @@ INDEX_SETTINGS = {
             "job_id": {
                 "type": "keyword",
             },
+            "embedding": {
+                "type": "knn_vector",
+                "dimension": 512
+            }
         },
     }
 }
 
-ES: AsyncElasticsearch = AsyncElasticsearch(
+ES: AsyncOpenSearch = AsyncOpenSearch(
     hosts=settings.es_host, port=settings.es_port
 )
 
@@ -43,7 +47,7 @@ class NoCategory(NoSuchTenant):
 
 
 async def prepare_index(
-    es_instance: AsyncElasticsearch, index_name: str
+        es_instance: AsyncOpenSearch, index_name: str
 ) -> None:
     if not await es_instance.indices.exists(index=index_name):
         try:
@@ -58,9 +62,9 @@ async def prepare_index(
 
 
 async def search_v2(
-    es_instance: AsyncElasticsearch,
-    index_name: str,
-    es_query: Dict[str, Any],
+        es_instance: AsyncOpenSearch,
+        index_name: str,
+        es_query: Dict[str, Any],
 ) -> Dict[str, Any]:
     es_response = None
     try:
@@ -72,12 +76,12 @@ async def search_v2(
 
 
 async def search(
-    es_instance: AsyncElasticsearch,
-    index_name: str,
-    search_params: dict,
-    pagination_page_size: int,
-    pagination_start_page: int,
-    token: str,
+        es_instance: AsyncOpenSearch,
+        index_name: str,
+        search_params: dict,
+        pagination_page_size: int,
+        pagination_start_page: int,
+        token: str,
 ) -> dict:
     query = await build_query(
         pagination_start_page,
@@ -102,11 +106,11 @@ async def search(
 
 
 async def build_query(
-    pagination_start_page: int,
-    pagination_page_size: int,
-    search_parameters: dict,
-    tenant: str,
-    token: str,
+        pagination_start_page: int,
+        pagination_page_size: int,
+        search_parameters: dict,
+        tenant: str,
+        token: str,
 ) -> dict:
     """Return query for search in ES index. If no search_parameters provided -
     make query to search all TextPieces with "match_all". Otherwise parameters
@@ -114,35 +118,58 @@ async def build_query(
     "must" -> "match_all"; list with provided "category" id and ids of child
     categories (requested from "annotation" service) - in "filter" -> "terms".
     All remaining fields will be located in "filter" -> "term" subqueries."""
-    query = {
-        "from": (pagination_start_page - 1) * pagination_page_size,
-        "size": pagination_page_size,
-        "query": {},
-    }
     if not search_parameters:
-        query["query"]["match_all"] = {}
-        return query
-    query["query"]["bool"] = {}
+        return {
+            "from": (pagination_start_page - 1) * pagination_page_size,
+            "size": pagination_page_size,
+            "query": {
+                "script_score": {
+                    "query": {
+                        "match_all": {}
+                    }
+                }}
+
+        }
     if "content" in search_parameters:
-        query["query"]["bool"]["must"] = {
-            "match": {"content": search_parameters.pop("content")}
+        query_str = search_parameters.pop("content")
+        boost_by_txt_emb = get_embeduse_embeddings([query_str], settings.embed_url)[0]
+        query = {
+            "from": (pagination_start_page - 1) * pagination_page_size,
+            "size": pagination_page_size,
+            "query": {
+                "script_score": {
+                    "query": {
+                        "bool": {"must": [{"match": {"content": query_str}}]
+                                 }
+                    },
+                    "script": {
+                        "source": "knn_score",
+                        "lang": "knn",
+                        "params": {
+                            "field": "embedding",
+                            "query_value": boost_by_txt_emb,
+                            "space_type": "cosinesimil"
+                        }
+                    }
+                }}
         }
     if search_parameters:
-        query["query"]["bool"]["filter"] = []
+        query["query"]["script_score"]["query"]["bool"]["filter"] = []
     if "category" in search_parameters:
         category_id = search_parameters.pop("category")
         categories_ids = await add_child_categories(category_id, tenant, token)
         terms_filter = {"terms": {"category": categories_ids}}
-        query["query"]["bool"]["filter"].append(terms_filter)
+        query["script_score"]["query"]["bool"]["filter"].append(terms_filter)
     for parameter, value in search_parameters.items():
         query["query"]["bool"]["filter"].append(
             {"term": {parameter: {"value": value}}}
         )
+    print(query)
     return query
 
 
 async def add_child_categories(
-    category_id: str, tenant: str, token: str
+        category_id: str, tenant: str, token: str
 ) -> List[str]:
     """Helper function which makes GET request into "annotation" service
     endpoint and returns list of provided category_id with ids of all
@@ -172,13 +199,13 @@ async def add_child_categories(
 
 
 async def fetch(
-    method: str,
-    url: str,
-    body: Optional[Dict[str, Any]] = None,
-    headers: Optional[Dict[str, Any]] = None,
+        method: str,
+        url: str,
+        body: Optional[Dict[str, Any]] = None,
+        headers: Optional[Dict[str, Any]] = None,
 ) -> Tuple[int, Dict[str, Any]]:
     async with aiohttp.request(
-        method=method, url=url, json=body, headers=headers
+            method=method, url=url, json=body, headers=headers
     ) as resp:
         status = resp.status
         json = await resp.json()

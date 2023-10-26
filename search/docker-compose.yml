@@ -2,28 +2,41 @@ version: "3.9"
 
 services:
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.13.2
-    container_name: elastic
+    image: amazon/opendistro-for-elasticsearch:latest
     environment:
-      - xpack.security.enabled=false
-      - discovery.type=single-node
-    restart: always
+      - node.name=es01
+      - cluster.name=es-docker-cluster
+      - cluster.initial_master_nodes=es01 #,es02,es03
+      - bootstrap.memory_lock=true
+      - opendistro_security.disabled=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
     healthcheck:
       test: curl --fail http://localhost:9200 || exit 1
       interval: 30s
       timeout: 3s
       retries: 10
       start_period: 30s
-    ports:
-      - ${ES_PORT}:${ES_PORT}
     networks:
       - badgerdoc-search
+    ports:
+      - "9203:9200"
+    volumes:
+      - elasticdata:/usr/share/elasticsearch/data
+
 
   backend:
-    image: search
+    build:
+      context: .
+      target: build
+    working_dir: /opt/search
+#    image: search
     container_name: search
     ports:
-      - ${APP_PORT}:${APP_PORT}
+      - 8083:8080
     networks:
       - badgerdoc-search
     depends_on:
@@ -31,6 +44,16 @@ services:
         condition: service_healthy
     volumes:
       - .:/opt/search
+
+  embeduse:
+    image: tensorflow/serving
+    container_name: embeduse
+    ports:
+      - "8501:8501"
+    networks:
+      - badgerdoc-search
+    volumes:
+      - "./use-encoder/use-large:/models/model"
 
   zookeeper:
     image: wurstmeister/zookeeper
@@ -41,16 +64,70 @@ services:
       - badgerdoc-search
 
   kafka:
-    image: wurstmeister/kafka
+    image: confluentinc/cp-kafka:7.2.1
     container_name: kafka
     ports:
       - "9092:9092"
+      - "9997:9997"
+    hostname: host.docker.internal
     environment:
-      KAFKA_ADVERTISED_HOST_NAME: kafka
+#      KAFKA_ADVERTISED_HOST_NAME: host.docker.internal
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+     # KAFKA_NODE_ID: 1
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://host.docker.internal:9092'
+      KAFKA_JMX_OPTS: -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=kafka0 -Dcom.sun.management.jmxremote.rmi.port=9997
+    #  KAFKA_PROCESS_ROLES: 'broker,controller'
+     # KAFKA_LISTENERS: 'PLAINTEXT://host.docker.internal:9092,CONTROLLER://host.docker.internal:29093,PLAINTEXT_HOST://0.0.0.0:9092'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT'
+   #   KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
+    #  KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      KAFKA_JMX_PORT: 9997
     networks:
       - badgerdoc-search
+
+  kafka-ui:
+    container_name: kafka-ui
+    image: provectuslabs/kafka-ui:latest
+    ports:
+      - 8081:8080
+    environment:
+      DYNAMIC_CONFIG_ENABLED: 'true'
+    volumes:
+      - ./config.yml:/etc/kafkaui/dynamic_config.yaml
+
+  kafka-init-topics:
+    image: confluentinc/cp-kafka:7.2.1
+    volumes:
+       - ./data/message.json:/data/message.json
+    depends_on:
+      - kafka
+    command: "bash -c 'echo Waiting for Kafka to be ready... && \
+               cub kafka-ready -b host.docker.internal:9092 1 30 && \
+               kafka-topics --create --topic second.users --partitions 3 --replication-factor 1 --if-not-exists --bootstrap-server host.docker.internal:9092 && \
+               kafka-topics --create --topic second.messages --partitions 2 --replication-factor 1 --if-not-exists --bootstrap-server host.docker.internal:9092 && \
+               kafka-topics --create --topic first.messages --partitions 2 --replication-factor 1 --if-not-exists --bootstrap-server host.docker.internal:9092 && \
+               kafka-console-producer --bootstrap-server host.docker.internal:9092 -topic second.users < /data/message.json'"
+
+  schemaregistry0:
+    image: confluentinc/cp-schema-registry:7.2.1
+    ports:
+      - 8085:8085
+    depends_on:
+      - kafka
+    environment:
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: "PLAINTEXT://host.docker.internal:9092"
+      SCHEMA_REGISTRY_KAFKASTORE_SECURITY_PROTOCOL: PLAINTEXT
+      SCHEMA_REGISTRY_HOST_NAME: host.docker.internal
+      SCHEMA_REGISTRY_LISTENERS: http://host.docker.internal:8085
+      SCHEMA_REGISTRY_SCHEMA_REGISTRY_INTER_INSTANCE_PROTOCOL: "http"
+      SCHEMA_REGISTRY_LOG4J_ROOT_LOGLEVEL: INFO
+      SCHEMA_REGISTRY_KAFKASTORE_TOPIC: _schemas
 
 networks:
   badgerdoc-search:
     driver: bridge
+
+volumes:
+  elasticdata:
+    driver: local

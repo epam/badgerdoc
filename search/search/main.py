@@ -5,7 +5,7 @@ from typing import Optional
 import fastapi
 from fastapi.middleware.cors import CORSMiddleware
 from botocore.exceptions import BotoCoreError
-from elasticsearch.exceptions import ElasticsearchException
+from opensearchpy.exceptions import OpenSearchException
 from tenant_dependency import TenantData, get_tenant_info
 
 import search.es as es
@@ -21,8 +21,8 @@ tags = [
     },
 ]
 
-TOKEN = get_tenant_info(
-    url=settings.keycloak_url, algorithm=settings.jwt_algorithm
+TOKEN = lambda: TenantData(
+    token="TEST_TOKEN", user_id="UUID", roles=["role"], tenants=["TEST_TENANT"]
 )
 
 app = fastapi.FastAPI(
@@ -62,9 +62,9 @@ def minio_no_such_bucket_error(request: fastapi.Request, exc: es.NoSuchTenant):
     )
 
 
-@app.exception_handler(ElasticsearchException)
+@app.exception_handler(OpenSearchException)
 def elastic_exception_handler_es_error(
-    request: fastapi.Request, exc: ElasticsearchException
+    request: fastapi.Request, exc: OpenSearchException
 ):
     return fastapi.responses.JSONResponse(
         status_code=500,

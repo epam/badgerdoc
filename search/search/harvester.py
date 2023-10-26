@@ -5,10 +5,10 @@ import boto3
 import search.es as es
 import search.schemas as schemas
 from botocore.errorfactory import ClientError
-from elasticsearch import helpers
+from opensearchpy import helpers
 from search.config import settings
 from search.logger import logger
-
+from search.embeddings.embeddings import calculate_text_vectors
 
 def convert_bucket_name_if_s3prefix(bucket_name: str) -> str:
     if settings.s3_prefix:
@@ -64,9 +64,12 @@ def parse_json(
     tenant: str,
 ) -> Optional[Iterator[dict]]:
     if isinstance(text_piece_object, list):
-        for text_piece in text_piece_object:
+        text_vectors = calculate_text_vectors(text_piece_object)
+        for idx, text_piece in enumerate(text_piece_object):
             try:
                 content = text_piece["text"]
+                text_piece["embedding"] = text_vectors[idx]
+
             except KeyError:
                 continue
             document_params = content, job_id, int(file_id), int(page_num)
@@ -89,6 +92,7 @@ def prepare_es_document(
     es_document["category"] = document["category"]
     es_document["bbox"] = document.get("bbox")
     es_document["tokens"] = document.get("tokens")
+    es_document["embedding"] = document.get("embedding")
     return schemas.pieces.GeomObject.parse_obj(
         es_document
     )  # for input data validation

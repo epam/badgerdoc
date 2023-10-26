@@ -6,7 +6,7 @@ import aiohttp
 import elasticsearch
 import pytest
 import responses
-from elasticsearch.exceptions import ElasticsearchException
+from opensearchpy.exceptions import OpenSearchException
 from fastapi.testclient import TestClient
 
 from search.config import settings
@@ -322,7 +322,7 @@ async def test_build_query(
 @patch.object(elasticsearch.AsyncElasticsearch, "search")
 def test_exception(search):
     url_params = {}
-    search.side_effect = Mock(side_effect=ElasticsearchException())
+    search.side_effect = Mock(side_effect=OpenSearchException())
     response = client.get(
         settings.text_pieces_path,
         params=url_params,

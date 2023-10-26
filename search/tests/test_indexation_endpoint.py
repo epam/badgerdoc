@@ -1,7 +1,7 @@
 from unittest.mock import Mock, patch
 
 from botocore.exceptions import BotoCoreError
-from elasticsearch.exceptions import ElasticsearchException
+from opensearchpy.exceptions import OpenSearchException
 from fastapi.testclient import TestClient
 from pytest import mark
 
@@ -76,7 +76,7 @@ def test_elasticsearch_connection_error(monkeypatch, moto_s3):
     )
     monkeypatch.setattr(
         "search.harvester.old_pieces_cleaner",
-        Mock(side_effect=ElasticsearchException("ElasticsearchException")),
+        Mock(side_effect=OpenSearchException("OpenSearchException")),
     )
     response = client.post(
         f"{settings.indexation_path}/1",

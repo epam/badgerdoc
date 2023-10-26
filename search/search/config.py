@@ -47,6 +47,7 @@ class Settings(BaseSettings):
     jobs_url: str
     jobs_search: str
     computed_fields: List[str]
+    embed_url: str
 
     @property
     def annotation_categories_url(self) -> str:

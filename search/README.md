@@ -137,7 +137,7 @@ There are two ways for local development:
 
 To disable authorization, FastAPI dependency needs to be overrided  
 To do that, you need to 
-- Change `app/token_dependency.py` module to
+- Change `main.py` module to
 ```python
 from tenant_dependency import TenantData
 
