@@ -1,0 +1,13 @@
+kafka:
+  clusters:
+    -
+      name: local
+      bootstrapServers: host.docker.internal:9092
+      schemaRegistry: http://host.docker.internal:8085
+      schemaRegistryAuth:
+        username: username
+        password: password
+#     schemaNameTemplate: "%s-value"
+      metrics:
+        port: 9997
+        type: JMX
