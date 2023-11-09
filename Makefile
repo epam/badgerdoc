@@ -10,7 +10,7 @@ build_keycloak:
 	mkdir -p build_dir
 	git clone https://github.com/keycloak/keycloak-containers.git build_dir/keycloak
 	cd build_dir/keycloak; git checkout 15.1.1
-	cd ../..;docker build build_dir/keycloak/server -t badgerdoc_keycloak
+	docker build build_dir/keycloak/server -t badgerdoc_keycloak
 
 build_annotation:
 	docker build --target build annotation/ -t badgerdoc_annotation
@@ -41,6 +41,12 @@ build_models:
 
 build_taxonomy:
 	docker build --target build taxonomy/ -t badgerdoc_taxonomy
+
+build_search:
+	docker build --target build search/ -t badgerdoc_search
+
+build_embeddings:
+	docker build --target build search/embeddings/ -t badgerdoc_embeddings
 
 clean:
 	rm -rf build_dir

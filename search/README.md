@@ -22,7 +22,7 @@ This project uses [Poetry](https://python-poetry.org/) for dependency and virtua
 
 1) Clone the repo:
 
-`git clone `git clone https://git.epam.com/epm-uii/badgerdoc/back-end.git``
+`git clone `https://github.com/epam/badgerdoc.git``
 
 2) To install the required dependencies and set up a virtual environment run in the cloned directory:
 
@@ -34,16 +34,16 @@ This project uses [Poetry](https://python-poetry.org/) for dependency and virtua
 
 ### Run Docker containers
 
-1) If you did not download Docker base image specified in Dockerfile before, make sure to connect EPAM VPN via `globalprotect` 
-and after that login to EPAM artifactory. 
-You must connect artifactory using credentials (username and password) provided by DevOps team member or ask your teamlead to help with such request.
-
-*Note: you may find connection URL in Dockerfile FROM instruction ('host:port' part of Docker image path). E.g.:*
+1) if you did not build base image Run the following command to build the base image in the root folder:
 ```
-docker login -u {your username} -p {your password} artifactory.epam.com:6144
+make build_base
 ```
 
-2) Build app image using
+2) For knn search this project uses USE embeddings: 
+```
+./usev5.sh
+```
+3) Build app image using
 
 `docker build --target build -t search .`
 

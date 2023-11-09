@@ -11,6 +11,7 @@
 #   file for local needs)
 # - 8082 for Keycloak.
 # - 8083 for BadgerDoc web
+#   8084 for BadgerDoc search
 # - 9001 for minio
 #
 ###################################################################
@@ -268,6 +269,65 @@ services:
     devices:
       - "/dev/fuse"
 
+  badgerdoc-elasticsearch:
+    container_name: badgerdoc-elasticsearch
+    image: amazon/opendistro-for-elasticsearch:latest
+    environment:
+      - node.name=es01
+      - cluster.name=es-docker-cluster
+      - cluster.initial_master_nodes=es01
+      - bootstrap.memory_lock=true
+      - opendistro_security.disabled=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    healthcheck:
+      test: curl --fail http://localhost:9200 || exit 1
+      interval: 30s
+      timeout: 3s
+      retries: 10
+      start_period: 30s
+    networks:
+      - badgerdoc
+    ports:
+      - "9204:9200"
+    volumes:
+      - elasticdata:/usr/share/elasticsearch/data
+
+  badgerdoc-embeddings:
+    image: badgerdoc_embeddings
+    container_name: embeddings
+    environment:
+      - ROOT_PATH=/search/embeddings
+    networks:
+      - badgerdoc
+    ports:
+      - "0.0.0.0:3334:3334"
+
+  badgerdoc-search:
+    image: badgerdoc_search
+    container_name: search
+    env_file:
+      - .env
+    environment:
+      - ROOT_PATH=/search
+    working_dir: /opt/search
+    ports:
+      - 8084:8080
+    networks:
+      - badgerdoc
+    command: bash -c "./wait-for-it.sh -t 0 badgerdoc-kafka:9092"
+    depends_on:
+      - badgerdoc-kafka
+      - badgerdoc-elasticsearch
+    volumes:
+      - ./search/:/opt/search
+
   # TBD: Gotenberg
 
 networks:
@@ -277,3 +337,4 @@ networks:
 volumes:
   badgerdoc-data: {}
   minio-data: {}
+  elasticdata: {}

@@ -21,6 +21,7 @@ RUN : \
 COPY documentation documentation
 RUN poetry install --no-root --only main
 CMD ["uvicorn", "search.main:app", "--host", "0.0.0.0", "--port", "8080"]
+EXPOSE 8080
 
 FROM base as test
 
@@ -46,4 +47,4 @@ FROM base as build-dev
 
 RUN poetry install --no-root
 COPY documentation documentation
-CMD ["uvicorn", "search.main:app", "--host", "0.0.0.0", "--port", "8080", "--reload"]
+#CMD ["uvicorn", "search.main:app", "--host", "0.0.0.0", "--port", "8080", "--reload"]

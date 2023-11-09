@@ -27,6 +27,20 @@ paths:
           in: query
         - required: false
           schema:
+            title: Sentence
+            type: string
+          example: some sentence
+          name: sentence
+          in: query
+        - required: false
+          schema:
+            title: Question
+            type: string
+          example: some question
+          name: question
+          in: query
+        - required: false
+          schema:
             title: Document Id
             minimum: 1
             type: integer

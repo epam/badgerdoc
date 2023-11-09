@@ -48,6 +48,8 @@ class Settings(BaseSettings):
     jobs_search: str
     computed_fields: List[str]
     embed_url: str
+    qa_embed_responses_url: str
+    qa_embed_question_url: str
 
     @property
     def annotation_categories_url(self) -> str:
@@ -69,9 +71,7 @@ class Settings(BaseSettings):
 
     @property
     def jobs_search_url(self) -> str:
-        return "/".join(
-            (self.jobs_url.rstrip("/"), self.jobs_search.lstrip("/"))
-        )
+        return "/".join((self.jobs_url.rstrip("/"), self.jobs_search.lstrip("/")))
 
     class Config:
         env_file: str = find_dotenv(".env")

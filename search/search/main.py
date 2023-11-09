@@ -73,9 +73,7 @@ def elastic_exception_handler_es_error(
 
 
 @app.exception_handler(BotoCoreError)
-def minio_exception_handler_bc_error(
-    request: fastapi.Request, exc: BotoCoreError
-):
+def minio_exception_handler_bc_error(request: fastapi.Request, exc: BotoCoreError):
     return fastapi.responses.JSONResponse(
         status_code=500,
         content={"detail": f"Error: connection error ({exc})"},
@@ -105,6 +103,8 @@ async def get_text_piece(
     token: TenantData = fastapi.Depends(TOKEN),
     category: Optional[str] = fastapi.Query(None, example="Header"),
     content: Optional[str] = fastapi.Query(None, example="Elasticsearch"),
+    sentence: Optional[str] = fastapi.Query(None, example="Watts & Browning Engineers"),
+    question: Optional[str] = fastapi.Query(None, example="Who signed document in 2023?"),
     document_id: Optional[int] = fastapi.Query(None, ge=1, example=1),
     page_number: Optional[int] = fastapi.Query(None, ge=1, example=1),
     page_size: Optional[int] = fastapi.Query(50, ge=1, le=100, example=50),
@@ -117,8 +117,8 @@ async def get_text_piece(
     """
     search_params = {}
     for param_name, param in zip(
-        ("category", "content", "document_id", "page_number"),
-        (category, content, document_id, page_number),
+        ("category", "question", "sentence", "content", "document_id", "page_number"),
+        (category, question, sentence, content, document_id, page_number),
     ):
         if param:
             search_params[param_name] = param
@@ -133,6 +133,7 @@ async def get_text_piece(
     return schemas.pieces.SearchResultSchema.parse_obj(result)
 
 
+@DeprecationWarning
 @app.post(
     f"{settings.text_pieces_path}",
     response_model=schemas.pieces.SearchResultSchema2,
@@ -149,6 +150,9 @@ async def search_text_pieces(
     x_current_tenant: str = fastapi.Header(..., example="badger-doc"),
     token: TenantData = fastapi.Depends(TOKEN),
 ):
+    """
+        not used
+    """
     await request.adjust_categories(tenant=x_current_tenant, token=token.token)
     query = request.build_query()
     result = await es.search_v2(es.ES, x_current_tenant, query)
@@ -195,8 +199,6 @@ async def search_facets(
 ) -> schemas.facets.FacetsResponse:
     query = request.build_es_query()
     elastic_response = await es.ES.search(index=x_current_tenant, body=query)
-    response = schemas.facets.FacetsResponse.parse_es_response(
-        elastic_response
-    )
+    response = schemas.facets.FacetsResponse.parse_es_response(elastic_response)
     await response.adjust_facet_result(x_current_tenant, token.token)
     return response

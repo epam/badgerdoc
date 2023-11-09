@@ -9,6 +9,8 @@ from opensearchpy import helpers
 from search.config import settings
 from search.logger import logger
 from search.embeddings.embeddings import calculate_text_vectors
+from search.embeddings.embeddings import calculate_response_embedings
+
 
 def convert_bucket_name_if_s3prefix(bucket_name: str) -> str:
     if settings.s3_prefix:
@@ -39,9 +41,7 @@ def create_boto3_config():
             "s3 connection is not properly configured "
             "- s3_credentials_provider is not set"
         )
-    logger.info(
-        f"S3_Credentials provider - {settings.s3_credentials_provider}"
-    )
+    logger.info(f"S3_Credentials provider - {settings.s3_credentials_provider}")
     return boto3_config
 
 
@@ -64,12 +64,15 @@ def parse_json(
     tenant: str,
 ) -> Optional[Iterator[dict]]:
     if isinstance(text_piece_object, list):
-        text_vectors = calculate_text_vectors(text_piece_object)
+        text_vectors = calculate_text_vectors(text_piece_object, settings.embed_url)
+        # workaround: the context of sentence is equal to sentence.
+        sentences = zip([t["text"] for t in text_piece_object], [t["text"] for t in text_piece_object])
+        response_embeddings = calculate_response_embedings(sentences, settings.qa_embed_url)
         for idx, text_piece in enumerate(text_piece_object):
             try:
                 content = text_piece["text"]
                 text_piece["embedding"] = text_vectors[idx]
-
+                text_piece["resp_embedding"] = response_embeddings[idx]
             except KeyError:
                 continue
             document_params = content, job_id, int(file_id), int(page_num)
@@ -93,9 +96,8 @@ def prepare_es_document(
     es_document["bbox"] = document.get("bbox")
     es_document["tokens"] = document.get("tokens")
     es_document["embedding"] = document.get("embedding")
-    return schemas.pieces.GeomObject.parse_obj(
-        es_document
-    )  # for input data validation
+    es_document["resp_embedding"] = document.get("resp_embedding")
+    return schemas.pieces.GeomObject.parse_obj(es_document)  # for input data validation
 
 
 def extract_manifest_data(
@@ -175,7 +177,5 @@ async def old_pieces_cleaner(
 async def start_harvester(
     tenant: str, job_id: int, file_id: Optional[int] = None
 ) -> None:
-    await helpers.async_bulk(
-        es.ES, old_pieces_cleaner(tenant, job_id, file_id)
-    )
+    await helpers.async_bulk(es.ES, old_pieces_cleaner(tenant, job_id, file_id))
     await helpers.async_bulk(es.ES, harvester(tenant, job_id, file_id))
