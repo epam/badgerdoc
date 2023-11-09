@@ -188,7 +188,7 @@ async def build_query(
         query["query"]["bool"]["filter"].append(
             {"term": {parameter: {"value": value}}}
         )
-    print(query)
+    #print(query)
     return query
 
 

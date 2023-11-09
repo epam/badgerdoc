@@ -18,7 +18,7 @@ services:
         soft: 65536
         hard: 65536
     healthcheck:
-      test: curl --fail http://localhost:9200 ||= exit 1
+      test: curl --fail http://localhost:9200 || exit 1
       interval: 30s
       timeout: 3s
       retries: 10
@@ -29,9 +29,9 @@ services:
       - "9202:9200"
     volumes:
       - elasticdata:/usr/share/elasticsearch/data
-#      - ./limits.conf:/etc/security/limits.conf
+  #      - ./limits.conf:/etc/security/limits.conf
 
- backend:
+  backend:
     image: search
     container_name: search
     ports:
@@ -44,6 +44,25 @@ services:
     volumes:
       - .:/opt/search
 
+  zookeeper:
+    image: wurstmeister/zookeeper
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    networks:
+      - badgerdoc-search
+
+  kafka:
+    image: wurstmeister/kafka
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: kafka
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+    networks:
+      - badgerdoc-search
+
   embeddings:
     build: ./embeddings
     networks:
@@ -53,24 +72,6 @@ services:
     volumes:
       - ./embeddings/main.py:/app/main.py
 
-    zookeeper:
-      image: wurstmeister/zookeeper
-      container_name: zookeeper
-      ports:
-        - "2181:2181"
-      networks:
-        - badgerdoc-search
-
-    kafka:
-      image: wurstmeister/kafka
-      container_name: kafka
-      ports:
-        - "9092:9092"
-      environment:
-        KAFKA_ADVERTISED_HOST_NAME: kafka
-        KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      networks:
-        - badgerdoc-search
 
 networks:
   badgerdoc-search:
