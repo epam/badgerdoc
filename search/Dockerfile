@@ -1,11 +1,6 @@
 ARG base_image=818863528939.dkr.ecr.eu-central-1.amazonaws.com/badgerdoc/python_base:0.1.7
 FROM ${base_image} as build
 
-#RUN python3 -m pip install --upgrade pip && \
-#    apt update && \
-#    apt install gcc -y && \
-#    pip3 install poetry==1.4.0
-
 ENV PYTHONPATH /opt/search
 WORKDIR /opt/search
 

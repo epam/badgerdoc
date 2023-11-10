@@ -38,9 +38,10 @@ services:
       - ${APP_PORT}:${APP_PORT}
     networks:
       - badgerdoc-search
+    command: bash -c "./wait-for-it.sh -t 0 badgerdoc-kafka:9092 && uvicorn search.main:app --host 0.0.0.0 --port 8080 --reload"
     depends_on:
-      elasticsearch:
-        condition: service_healthy
+      - badgerdoc-kafka
+      - badgerdoc-elasticsearch
     volumes:
       - .:/opt/search
 

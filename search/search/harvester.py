@@ -67,7 +67,7 @@ def parse_json(
         text_vectors = calculate_text_vectors(text_piece_object, settings.embed_url)
         # workaround: the context of sentence is equal to sentence.
         sentences = zip([t["text"] for t in text_piece_object], [t["text"] for t in text_piece_object])
-        response_embeddings = calculate_response_embedings(sentences, settings.qa_embed_url)
+        response_embeddings = calculate_response_embedings(sentences, settings.qa_embed_responses_url)
         for idx, text_piece in enumerate(text_piece_object):
             try:
                 content = text_piece["text"]
