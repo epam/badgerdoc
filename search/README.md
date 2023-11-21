@@ -39,10 +39,6 @@ This project uses [Poetry](https://python-poetry.org/) for dependency and virtua
 make build_base
 ```
 
-2) For knn search this project uses USE embeddings: 
-```
-./usev5.sh
-```
 3) Build app image using
 
 `docker build --target build -t search .`
@@ -66,7 +62,7 @@ Description of all project's endpoints and API may be viewed without running any
 Current  logic supports searching by both: text and vectors. Two embedding models are deployed: sentence embedding match and question/answer model (see embeddings/Dockerfile)
 To be able to access elasticsearch manually you may need to temporarily change the ES_HOST in .env from "elasticsearch" to the elasticsearch host (for example, "localhost").
 
-2) About semantic search and question answering with LLM
+2) About semantic search and question answering with LLM.
    
 LLM is used to enhance response based on found document fragments (sentences). The response is generated based on 5 first document pieces found in ES. Current limit is hardcoded. Document text is splitted on pieces with NLTK sentence tokenizer. 
 In order to use this functionality please setup the following env properties: 

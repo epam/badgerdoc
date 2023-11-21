@@ -194,7 +194,7 @@ class PiecesRequest(pydantic.BaseModel):
         if self.method == "qa":
             self._apply_qa_embeddings(_q)
         _q["query"]["bool"]["must"].append(query_dsl.get_filter_by_scope(self.scope))
-        #logger.info(_q)
+        # logger.info(_q)
         return _q
 
     async def adjust_categories(self, tenant: str, token: str) -> None:
@@ -241,7 +241,6 @@ class SearchResultSchema2(pydantic.BaseModel):
     @staticmethod
     def __calculate_num_pages(page_size: int, total_results: int) -> int:
         return math.ceil(float(total_results) / float(page_size))
-
 
     async def adjust_by_generative_answers(self, query: str):
         """
