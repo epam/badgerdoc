@@ -30,6 +30,7 @@ class Settings(BaseSettings):
     s3_login: str
     s3_pass: str
     s3_start_path: str
+    s3_text_path: str
     s3_credentials_provider: Optional[str]
     s3_prefix: Optional[str]
     version: str = Field(default_factory=get_version)
@@ -50,6 +51,9 @@ class Settings(BaseSettings):
     embed_url: str
     qa_embed_responses_url: str
     qa_embed_question_url: str
+    text_category: int
+    chatgpt_api_key: str
+    chatgpt_model: str
 
     @property
     def annotation_categories_url(self) -> str:

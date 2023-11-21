@@ -3,9 +3,11 @@ from typing import Any, Dict, List, Optional, Tuple
 import aiohttp
 from opensearchpy import AsyncOpenSearch
 from opensearchpy.exceptions import NotFoundError, RequestError
-from search.embeddings.embeddings  import get_embeduse_embeddings
-from search.embeddings.embeddings  import get_qa_embeduse_embeddings
+from search.embeddings  import get_sentences_embeddings
+from search.embeddings  import get_question_embedding
 from search.config import settings
+from search.logger import logger
+import openai
 
 INDEX_SETTINGS = {
     "settings": {
@@ -26,6 +28,12 @@ INDEX_SETTINGS = {
             },
             "page_number": {
                 "type": "integer",
+            },
+            "is_annotation": {
+                "type": "boolean"
+            },
+            "sentence_num": {
+                "type": "integer"
             },
             "job_id": {
                 "type": "keyword",
@@ -78,8 +86,10 @@ async def search_v2(
 ) -> Dict[str, Any]:
     es_response = None
     try:
+       # logger.info(f"es_query {es_query}")
         es_response = await es_instance.search(index=index_name, body=es_query)
     except NotFoundError as exc:
+        logger.info(exc)
         if exc.error == "index_not_found_exception":
             raise NoSuchTenant(f"Index for tenant {index_name} doesn't exist")
     return es_response
@@ -143,9 +153,9 @@ async def build_query(
         query_str = search_parameters.pop(is_embed[0])
         embed_field = embed_fields[is_embed[0]]
         if "sentence" == is_embed[0]:
-            boost_by_txt_emb = get_embeduse_embeddings([query_str], settings.embed_url)[0]
+            boost_by_txt_emb = get_sentences_embeddings([query_str], settings.embed_url)[0]
         else:
-            boost_by_txt_emb = get_qa_embeduse_embeddings(query_str, settings.qa_embed_question_url)
+            boost_by_txt_emb = get_question_embedding(query_str, settings.qa_embed_question_url)
         knn_subquery = {
             embed_field: {
                 'vector': boost_by_txt_emb,
@@ -159,7 +169,7 @@ async def build_query(
         ]
     if "question" in search_parameters:
         query_str = search_parameters.pop("question")
-        boost_by_txt_emb = get_embeduse_embeddings([query_str], settings.embed_url)[0]
+        boost_by_txt_emb = get_question_embedding(query_str, settings.qa_embed_question_url)
         knn_subquery = {
             'embedding': {
                 'vector': boost_by_txt_emb,
@@ -188,7 +198,7 @@ async def build_query(
         query["query"]["bool"]["filter"].append(
             {"term": {parameter: {"value": value}}}
         )
-    #print(query)
+    logger.info(query)
     return query
 
 

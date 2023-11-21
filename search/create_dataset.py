@@ -1,23 +1,24 @@
-import json
 from typing import Optional, Iterator
-from zipfile import ZipFile
-from search.embeddings.embeddings import calculate_text_vectors
-from search.embeddings.embeddings import calculate_response_embedings
+from search.search.embeddings import calculate_text_vectors
+from search.search.embeddings import calculate_responses_embedings
 #from search.harvester_helper import prepare_es_document
 from tqdm import tqdm
-import itertools
 import csv
 from opensearchpy import OpenSearch, helpers
 
 PATH_PRODUCTS_DATASET = "data/"
 NAME_DATASET = "doc_query_pairs.train.tsv"
-EMBED_URL = "http://localhost:3334/api/use"
-QA_EMBED_URL = "http://localhost:3334/api/use-responses"
-NUM_RECORDS = 3000
+#EMBED_URL = "http://localhost:3334/api/use"
+#QA_EMBED_URL = "http://localhost:3334/api/use-responses"
+EMBED_URL = "http://localhost:3335/api/use"
+QA_EMBED_URL = "http://localhost:3335/api/use-responses"
+NUM_RECORDS = 30
+INDEX="local"
 #NUM_RECORDS = 20
 VECTORS_BATCH_SIZE = 10
 ES_HOST="localhost"
-ES_PORT=9202
+#ES_PORT=9202
+ES_PORT=9204
 
 def load_annotation_dataset():
     data = []
@@ -30,12 +31,12 @@ def load_annotation_dataset():
             batch.append(row[0])
             if i % VECTORS_BATCH_SIZE == 0:
                 # this is temporary solution. TODO: need context
-                sentences = list(itertools.chain(*[t.split(".") for t in batch]))
+                sentences = [ x.rstrip() for x  in batch]
                 piece = {
                     "file_id": str(i),
                     "page_num": "1",
-                    "objs": [{"category": "string", "text": t} for t in sentences],
-                    "job_id": "1",
+                    "objs": [{"category": "3", "text": t} for t in sentences],
+                    "job_id": f"{i}",
                 }
                 data.append(piece)
                 batch = []
@@ -50,7 +51,7 @@ def enrich_with_embeddings(dataset) -> Optional[Iterator[dict]]:
         if isinstance(text_piece_object, list):
             text_vectors = calculate_text_vectors(text_piece_object, EMBED_URL)
             sentences = zip([t["text"] for t in text_piece_object], [t["text"] for t in text_piece_object])
-            response_embeddings = calculate_response_embedings(sentences, QA_EMBED_URL)
+            response_embeddings = calculate_responses_embedings(sentences, QA_EMBED_URL)
 
             for idx, text_piece in enumerate(text_piece_object):
                 try:
@@ -68,7 +69,7 @@ def enrich_with_embeddings(dataset) -> Optional[Iterator[dict]]:
                 )
                 if content:
                     text_piece = prepare_es_document(text_piece, *document_params)
-                    yield {"_index": "badger-doc", "_source": text_piece}
+                    yield {"_index": INDEX, "_source": text_piece}
 
 def prepare_es_document(document: dict, content: str, job: int, file: int, page: int):
     es_document = {

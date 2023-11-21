@@ -13,6 +13,7 @@ import search.harvester as harvester
 import search.kafka_listener as kafka_listener
 import search.schemas as schemas
 from search.config import settings
+from search.logger import logger
 
 tags = [
     {
@@ -20,10 +21,13 @@ tags = [
         "description": "Actions associated with search management.",
     },
 ]
+KEYCLOAK_HOST = os.getenv("KEYCLOAK_HOST", "")
+TOKEN = get_tenant_info(url=KEYCLOAK_HOST, algorithm="RS256")
+#from tenant_dependency import TenantData
 
-TOKEN = lambda: TenantData(
-    token="TEST_TOKEN", user_id="UUID", roles=["role"], tenants=["TEST_TENANT"]
-)
+#TOKEN = lambda: TenantData(
+#    token="TEST_TOKEN", user_id="UUID", roles=["role"], tenants=["TEST_TENANT"]
+#)
 
 app = fastapi.FastAPI(
     title=settings.app_title,
@@ -122,6 +126,9 @@ async def get_text_piece(
     ):
         if param:
             search_params[param_name] = param
+    logger.debug(f"params: {search_params}")
+    logger.info(f"params: {search_params}")
+
     result = await es.search(
         es.ES,
         x_current_tenant,
@@ -130,10 +137,10 @@ async def get_text_piece(
         page_num,
         token.token,
     )
+
     return schemas.pieces.SearchResultSchema.parse_obj(result)
 
 
-@DeprecationWarning
 @app.post(
     f"{settings.text_pieces_path}",
     response_model=schemas.pieces.SearchResultSchema2,
@@ -150,15 +157,18 @@ async def search_text_pieces(
     x_current_tenant: str = fastapi.Header(..., example="badger-doc"),
     token: TenantData = fastapi.Depends(TOKEN),
 ):
-    """
-        not used
-    """
+    logger.info(f"search params: {request}")
     await request.adjust_categories(tenant=x_current_tenant, token=token.token)
     query = request.build_query()
-    result = await es.search_v2(es.ES, x_current_tenant, query)
-    return schemas.pieces.SearchResultSchema2.parse_es_response(
-        result, request.pagination
+
+    es_result = await es.search_v2(es.ES, x_current_tenant, query)
+    result = schemas.pieces.SearchResultSchema2.parse_es_response(
+        es_result, request.pagination
     )
+    if request.method == "qa":
+        await result.adjust_by_generative_answers(request.query)
+
+    return result
 
 
 @app.post(
@@ -198,7 +208,9 @@ async def search_facets(
     token: TenantData = fastapi.Depends(TOKEN),
 ) -> schemas.facets.FacetsResponse:
     query = request.build_es_query()
+    logger.info(query)
     elastic_response = await es.ES.search(index=x_current_tenant, body=query)
     response = schemas.facets.FacetsResponse.parse_es_response(elastic_response)
+
     await response.adjust_facet_result(x_current_tenant, token.token)
     return response

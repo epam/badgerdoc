@@ -61,12 +61,20 @@ Description of all project's endpoints and API may be viewed without running any
 
 ### Technical notes
 
-1) Using elasticsearch text analyzer.
+1) Using opensearch KNN search.
 
-For search purpose this app uses the standart elasticsearch text analyzer. It provides grammar based tokenization and works well for most languages. To improve search quality for a specific language it recommended to use specific language analyzer.
+Current  logic supports searching by both: text and vectors. Two embedding models are deployed: sentence embedding match and question/answer model (see embeddings/Dockerfile)
 To be able to access elasticsearch manually you may need to temporarily change the ES_HOST in .env from "elasticsearch" to the elasticsearch host (for example, "localhost").
 
-2) Support for hierarchical structure of labels.
+2) About semantic search and question answering with LLM
+   
+LLM is used to enhance response based on found document fragments (sentences). The response is generated based on 5 first document pieces found in ES. Current limit is hardcoded. Document text is splitted on pieces with NLTK sentence tokenizer. 
+In order to use this functionality please setup the following env properties: 
+* TEXT_CATEGORY - Endpoint url;
+* CHATGPT_MODEL - chat gpt model;
+* CHATGPT_API_KEY - API token;
+
+3) Support for hierarchical structure of labels.
 
 When an object is indexed, the label field is parsed for nested parts.
 When "\_" (underscore) is included in the label value, the object will additionally be associated with the value to the left of the "\_" sign. This is implemented to be able to search for related groups of labels (such as table and part of table, image and part of image).
@@ -80,7 +88,7 @@ To be able to upload files from S3 storage, user must provide following credenti
 * S3_ENDPOINT_URL - Endpoint url;
 * S3_LOGIN - Aws access key id (for minIO it will be login);
 * S3_PASS - Aws secret access key (for minIO it will be password);
-* S3_START_PATH - annotation servise start path in mionio (i.e. "annotation").
+* S3_START_PATH - annotation service start path in minio (i.e. "annotation").
 
 To access minio manually you may need to temporarily change the S3_ENDPOINT_URL in .env to the actual minio host (for example, "http://localhost:{port_number}").
 

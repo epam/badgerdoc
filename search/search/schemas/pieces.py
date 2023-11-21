@@ -1,14 +1,17 @@
 import asyncio
 import enum
+import re
 import math
 from collections import namedtuple
 from functools import reduce
 from typing import Any, Dict, List, Optional, Union
 
 import pydantic
-
+import search.embeddings as embeddings
+import search.querydsl as query_dsl
 import search.common_utils as utils
 import search.es as es
+from search.logger import logger
 
 __excluded_types = ("text",)
 PaginationParams = namedtuple(
@@ -32,6 +35,10 @@ class GeomObject(pydantic.BaseModel):
     content: str = pydantic.Field(..., example="ElasticSearch")
     document_id: pydantic.conint(ge=1) = pydantic.Field(..., example=1)  # type: ignore
     page_number: pydantic.conint(ge=1) = pydantic.Field(..., example=1)  # type: ignore
+    highlight_name: Optional[str] = pydantic.Field(None)
+    is_annotation: Optional[bool] = pydantic.Field(False)
+    is_highlight: Optional[bool] = pydantic.Field(False)
+    sentence_num: Optional[int] = pydantic.Field(None)
     bbox: Optional[pydantic.conlist(float, min_items=4, max_items=4)] = pydantic.Field(
         None, example=[1.5, 1.5, 1.5, 1.5]
     )  # type: ignore
@@ -44,6 +51,7 @@ class GeomObject(pydantic.BaseModel):
 class SearchResultSchema(pydantic.BaseModel):
     current_page: pydantic.conint(ge=1)
     page_size: pydantic.conint(ge=1)
+    short_answer: str = pydantic.Field(..., example="short answer")
     total_objects: pydantic.conint(ge=0)
     text_pieces: List[GeomObject]
 
@@ -78,7 +86,7 @@ class PieceFilter(pydantic.BaseModel):
     def get_filter_template(self) -> Dict[str, Any]:
         if not isinstance(self.value, list):
             self.value = [self.value]
-        return {"terms": {self.field: self.value}}
+        return {"terms": {self.field.value: self.value}}
 
     @property
     def is_include(self) -> bool:
@@ -107,7 +115,8 @@ class PieceSort(pydantic.BaseModel):
 
 class PiecesRequest(pydantic.BaseModel):
     query: Optional[str]
-    boost_by_txt_emb: Optional[list]
+    method: Optional[str]
+    scope: Optional[str]
     pagination: Optional[PiecePagination]
     filters: Optional[List[PieceFilter]]
     sorting: Optional[List[PieceSort]]
@@ -140,33 +149,18 @@ class PiecesRequest(pydantic.BaseModel):
         query.update(self.pagination.build_pagination_body())
         return query
 
-    def _apply_main_query(self, query: Dict[str, Any]) -> Dict[str, Any]:
-        should = []
-        if self.boost_by_txt_emb:
-            should = self._apply_embed_txt_query(should)
-
-        if self.query:
-            should = self._apply_query(should)
-
-        query["query"]["bool"]["must"].append(should)
+    def _apply_embed_txt_query(self, query: Dict[str, Any]) -> Dict[str, Any]:
+        logger.info("sim search")
+        query["query"]["bool"]["must"].append(query_dsl.get_subquery_embed_txt(self.query))
         return query
 
-    def _apply_embed_txt_query(self, main_query):
-        query = {
-            "query": {
-                "knn": {"embedding": {"vector": [",".join(self.boost_by_txt_emb)]}}
-            }
-        }
+    def _apply_qa_embeddings(self, query: Dict[str, Any]) -> Dict[str, Any]:
+        query["query"]["bool"]["must"].append(query_dsl.get_subquery_embed_qa_txt(self.query))
+        return query
 
-        main_query.append(query)
-        return main_query
-
-    def _apply_query(self, main_query: List) -> List[Any]:
-        match = {
-            "match": {"content": {"query": self.query, "minimum_should_match": "81%"}}
-        }
-        main_query.append(match)
-        return main_query
+    def _apply_text_match_query(self, query: Dict[str, Any]) -> Dict[str, Any]:
+        query["query"]["bool"]["must"].append(query_dsl.get_subquery_text_match(self.query))
+        return query
 
     @property
     def _is_match_all(self) -> bool:
@@ -180,18 +174,27 @@ class PiecesRequest(pydantic.BaseModel):
         return query
 
     def build_query(self):
-        _q = {"query": {}}
+        _q = {"query": {},
+              "_source": ["category", "page_number", "bbox", "content", "document_id", "job_id", "tokens"]}
         self._apply_es_pagination(_q)
         if self.sorting:
             self._apply_sort(_q)
         if self._is_match_all:
             return self._match_all(_q)
         _q["query"]["bool"] = {"must": [], "must_not": []}
+
         if self.filters:
             _q = self._apply_filters(_q)
-        if self.query:
-            _q = self._apply_main_query(_q)
 
+        if self.method == "text":
+            self._apply_text_match_query(_q)
+        if self.method == "semantic":
+            logger.info(f"sim search {self.query}")
+            self._apply_embed_txt_query(_q)
+        if self.method == "qa":
+            self._apply_qa_embeddings(_q)
+        _q["query"]["bool"]["must"].append(query_dsl.get_filter_by_scope(self.scope))
+        #logger.info(_q)
         return _q
 
     async def adjust_categories(self, tenant: str, token: str) -> None:
@@ -203,18 +206,31 @@ class PiecesRequest(pydantic.BaseModel):
         return
 
 
+class CombinedPiecesRequest(pydantic.BaseModel):
+    combined_query: Optional[List[PiecesRequest]]
+
+
 class PaginationOut(PiecePagination):
     pages: int
     total: int
 
 
+def get_idx(context):
+    matches = re.findall(r"\b[0-9]\b", context)
+
+    if matches and matches[0].isdigit():
+        return int(matches[0])
+    return 0
+
+
 class SearchResultSchema2(pydantic.BaseModel):
     pagination: PaginationOut
+    short_answer: Optional[str]
     data: List[GeomObject]
 
     @staticmethod
     def __make_pag_params(
-        resp: Dict[str, Any], pag_in: PiecePagination
+            resp: Dict[str, Any], pag_in: PiecePagination
     ) -> PaginationParams:
         total_results = resp["hits"]["total"]["value"]
         pages = SearchResultSchema2.__calculate_num_pages(
@@ -226,9 +242,38 @@ class SearchResultSchema2(pydantic.BaseModel):
     def __calculate_num_pages(page_size: int, total_results: int) -> int:
         return math.ceil(float(total_results) / float(page_size))
 
+
+    async def adjust_by_generative_answers(self, query: str):
+        """
+       Collect text pieces from ES and append generative answer from LLM.
+       """
+        contexts = [x.content for x in self.data]
+        opinions = await embeddings.get_gpt_opinion(contexts, query)
+        if "answer" in opinions:
+            highlight_cards = opinions["context_number"]
+            if not isinstance(highlight_cards, list):
+                highlight_cards = [highlight_cards]
+            opinions_mapped = {}
+            if len(highlight_cards) == 1:
+                opinions_mapped[highlight_cards[0]] = opinions["answer"]
+            if len(highlight_cards) > 1 and "context" in opinions["answer"]:
+                pattern = r'(.*?)\((.*?)\)\s?'
+                matches = re.findall(pattern, opinions["answer"])
+                opinions_mapped = {get_idx(context): text for text, context in matches}
+
+                logger.info(f"extracted from generative response {opinions_mapped}")
+            logger.info(highlight_cards)
+            # map to original items
+            for i, item in enumerate(self.data):
+                if (i + 1) in highlight_cards:
+                    item.highlight_name = opinions_mapped[i + 1]
+                    item.is_highlight = True
+            self.short_answer = opinions["answer"]
+        return
+
     @staticmethod
     def parse_es_response(
-        es_response: Dict[str, Any], pag_in: PiecePagination
+            es_response: Dict[str, Any], pag_in: PiecePagination
     ) -> "SearchResultSchema2":
         pag_params = SearchResultSchema2.__make_pag_params(es_response, pag_in)
         pag = PaginationOut(
@@ -239,4 +284,16 @@ class SearchResultSchema2(pydantic.BaseModel):
         )
         hits = (x["_source"] for x in es_response["hits"]["hits"])
         items = pydantic.parse_obj_as(List[GeomObject], hits)
+
         return SearchResultSchema2(pagination=pag, data=items)
+
+
+class CombinedPiecesRequest(pydantic.BaseModel):
+    all_results: Optional[List[SearchResultSchema2]]
+
+    """
+   Takes first top 5 items from each & combines output. 
+   """
+
+    async def adjust_by_generative_answers(self, query: str):
+        contexts = [x.content for x in self.all_results[0]]

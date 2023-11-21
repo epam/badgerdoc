@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field
 import search.common_utils as utils
 from search.config import settings
 from search.es import INDEX_SETTINGS, fetch
+import search.querydsl as query_dsl
 
 __excluded_agg_types = ("text",)
 
@@ -74,10 +75,10 @@ class FacetParams(BaseModel):
     @property
     def facet_template(self) -> Dict[str, Any]:
         template = {
-            self.name: {
+            self.name.value: {
                 "filter": {"bool": {"must": [], "must_not": []}},
                 "aggs": {
-                    self.name: {"terms": {"field": self.name, "size": self.limit}}
+                    self.name.value: {"terms": {"field": self.name.value, "size": self.limit}}
                 },
             }
         }
@@ -89,6 +90,15 @@ class FacetsRequest(BaseModel):
         description="*Match query in a text type field*",
         example="Elasticsearch",
     )
+    method: Optional[str] = Field(
+        description="*method*",
+        example="semantic",
+    )
+    scope: Optional[str] = Field(
+        description="*where to search*",
+        example="document",
+    )
+
     facets: List[FacetParams] = Field(description="*An array for ES aggregations*")
     filters: Optional[List[FilterParams]] = Field(description="*Filters for facets*")
 
@@ -98,17 +108,33 @@ class FacetsRequest(BaseModel):
         return query
 
     def _build_match_query(self, query: Dict[str, Any]) -> Dict[str, Any]:
-        q = {
-            "query": {
-                "match": {
-                    "content": {
-                        "query": self.query,
-                        "minimum_should_match": "81%",
-                    }
-                }
-            }
-        }
-        query.update(q)
+        _q = {"query": {},
+              "_source": ["category", "page_number", "bbox", "content", "document_id", "job_id", "tokens"]}
+        _q["query"]["bool"] = {"must": [], "must_not": []}
+
+
+
+        if self.method == "semantic":
+            # logger.info(f"sim search {self.query}")
+            self._apply_embed_txt_query(_q)
+        if self.method == "qa":
+            self._apply_qa_embeddings(_q)
+        else:
+            self._apply_text_match_query(_q)
+        _q["query"]["bool"]["must"].append(query_dsl.get_filter_by_scope(self.scope))
+        query.update(_q)
+        return query
+
+    def _apply_embed_txt_query(self, query: Dict[str, Any]) -> Dict[str, Any]:
+        query["query"]["bool"]["must"].append(query_dsl.get_subquery_embed_txt(self.query))
+        return query
+
+    def _apply_qa_embeddings(self, query: Dict[str, Any]) -> Dict[str, Any]:
+        query["query"]["bool"]["must"].append(query_dsl.get_subquery_embed_qa_txt(self.query))
+        return query
+
+    def _apply_text_match_query(self, query: Dict[str, Any]) -> Dict[str, Any]:
+        query["query"]["bool"]["must"].append(query_dsl.get_subquery_text_match(self.query))
         return query
 
     def _build_filters(self, query: Dict[str, Any]) -> Dict[str, Any]:
@@ -168,11 +194,11 @@ class FacetBodyResponse(BaseModel):
 
     @aiocache.cached(ttl=300, serializer=aiocache.serializers.JsonSerializer())
     async def fetch_data(
-        self,
-        tenant: str,
-        token: str,
-        url: str,
-        ids: Union[Tuple[str, ...], Tuple[int, ...]],
+            self,
+            tenant: str,
+            token: str,
+            url: str,
+            ids: Union[Tuple[str, ...], Tuple[int, ...]],
     ) -> Dict[str, Any]:
         headers = {
             "X-Current-Tenant": tenant,

@@ -219,7 +219,8 @@ services:
     networks:
       - badgerdoc
     depends_on:
-      - badgerdoc-zookeeper
+      badgerdoc-zookeeper:
+        condition: service_started
 
   badgerdoc-pipelines:
     image: badgerdoc_pipelines
