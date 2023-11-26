@@ -19,7 +19,7 @@ def get_version() -> str:
 
 class Settings(BaseSettings):
     app_title: str
-    annotation_url: str
+    annotation_service_host: str
     annotation_categories: str
     annotation_categories_search: str
     es_host: str
@@ -38,7 +38,7 @@ class Settings(BaseSettings):
     text_pieces_path: str
     indexation_path: str
     root_path: str = ""
-    keycloak_url: str
+    keycloak_host: str
     jwt_algorithm: str
     kafka_bootstrap_server: str
     kafka_group_id: str
@@ -48,18 +48,22 @@ class Settings(BaseSettings):
     jobs_url: str
     jobs_search: str
     computed_fields: List[str]
-    embed_url: str
-    qa_embed_responses_url: str
-    qa_embed_question_url: str
+    embed_use_path: str
+    embed_use_response_path: str
+    embed_use_question_path: str
     text_category: int
     chatgpt_api_key: str
     chatgpt_model: str
 
     @property
+    def embed_url(self) -> str:
+        return f"{self.embed_host}{self.embed_use_path}"
+
+    @property
     def annotation_categories_url(self) -> str:
         return "/".join(
             (
-                self.annotation_url.rstrip("/"),
+                self.annotation_service_host.rstrip("/"),
                 self.annotation_categories.lstrip("/"),
             )
         )
@@ -68,14 +72,14 @@ class Settings(BaseSettings):
     def annotation_categories_search_url(self) -> str:
         return "/".join(
             (
-                self.annotation_url.rstrip("/"),
+                self.annotation_service_host.rstrip("/"),
                 self.annotation_categories_search.lstrip("/"),
             )
         )
 
     @property
     def jobs_search_url(self) -> str:
-        return "/".join((self.jobs_url.rstrip("/"), self.jobs_search.lstrip("/")))
+        return f"{self.JOBS_SERVICE_HOST}/jobs/search"
 
     class Config:
         env_file: str = find_dotenv(".env")

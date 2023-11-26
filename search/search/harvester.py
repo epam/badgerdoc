@@ -10,8 +10,8 @@ from search.config import settings
 from search.logger import logger
 from search.embeddings import calculate_text_vectors
 from search.embeddings import calculate_responses_embedings
-from nltk.tokenize import sent_tokenize
-import nltk
+from search.semantics import concat_page_text
+
 
 
 def convert_bucket_name_if_s3prefix(bucket_name: str) -> str:
@@ -70,7 +70,7 @@ def parse_json(
         text_vectors = calculate_text_vectors(text_piece_objs, settings.embed_url)
         # workaround: the context of sentence is equal to sentence.
         sentences = zip([t["text"] for t in text_piece_objs], [t["text"] for t in text_piece_objs])
-        response_embeddings = calculate_responses_embedings(sentences, settings.qa_embed_responses_url)
+        response_embeddings = calculate_responses_embedings(sentences)
         for idx, text_piece in enumerate(text_piece_objs):
             try:
                 content = text_piece["text"]
@@ -104,21 +104,8 @@ def prepare_es_document(
     es_document["embedding"] = document.get("embedding")
     es_document["is_annotation"] = document.get("is_annotation")
     es_document["resp_embedding"] = document.get("resp_embedding")
-    # return schemas.pieces.GeomObject.parse_obj(es_document)  # for input data validation
     return es_document
 
-
-def concat_text(objs: list) -> list:
-    text = ""
-    for obj in objs:
-        text += obj["text"]
-        if "after" in obj:
-            text += obj["after"]
-    try:
-        nltk.data.find('tokenizers/punkt')
-    except LookupError:
-        nltk.download('punkt')
-    return sent_tokenize(text)
 
 
 def convert_to_bd(plain_texts):
@@ -177,7 +164,7 @@ def extract_manifest_data(
         logger.info(f"annotations: {len(geom_objects)}")
         page_text_obj = s3.Object(tenant, f"{text_path}/{page_num}.json")
         parsed_chars = json.loads(page_text_obj.get()["Body"].read().decode("utf-8"))
-        plain_texts = concat_text(parsed_chars["objs"])
+        plain_texts = concat_page_text(parsed_chars["objs"])
         plain_texts_bboxes = max_bounding_box(plain_texts, parsed_chars["objs"])
         plain_objs = convert_to_bd(zip(plain_texts, plain_texts_bboxes))
         logger.info(f"sentences: {len(plain_objs)}")

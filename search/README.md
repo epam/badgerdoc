@@ -57,16 +57,18 @@ Description of all project's endpoints and API may be viewed without running any
 
 ### Technical notes
 
-1) Using opensearch KNN search.
+1) Using embeddings for KNN search.
 
-Current  logic supports searching by both: text and vectors. Two embedding models are deployed: sentence embedding match and question/answer model (see embeddings/Dockerfile)
+Embedding models are deployed as a separate service (see embeddings/Dockerfile)
 To be able to access elasticsearch manually you may need to temporarily change the ES_HOST in .env from "elasticsearch" to the elasticsearch host (for example, "localhost").
 
 2) About semantic search and question answering with LLM.
    
-LLM is used to enhance response based on found document fragments (sentences). The response is generated based on 5 first document pieces found in ES. Current limit is hardcoded. Document text is splitted on pieces with NLTK sentence tokenizer. 
-In order to use this functionality please setup the following env properties: 
-* TEXT_CATEGORY - Endpoint url;
+The output of badgerdoc annotated text and pages are stored into ElasticSearch. Before inserting, each document page is split to sentences.
+In current implementation (semantics.py) NLTK sentence tokenizer is used. Generally speaking, it can be a sentence, passage or any text chunk depending on target goal for search. 
+Search consist of 2 stages: applying text match/or KNN query; next, LLM is used to enhance result based on found text pieces. Then first N sentences are taken from ES response and processed through LLM to append generative answer to the response.
+Setup the following env properties in order to enable it: 
+* TEXT_CATEGORY - the category id of sentence;
 * CHATGPT_MODEL - chat gpt model;
 * CHATGPT_API_KEY - API token;
 

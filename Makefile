@@ -46,7 +46,7 @@ build_search:
 	docker build --target build search/ -t badgerdoc_search
 
 build_embeddings:
-	docker build --target build search/embeddings/ -t badgerdoc_embeddings
+	docker build --target build embeddings/ -t badgerdoc_embeddings
 
 clean:
 	rm -rf build_dir

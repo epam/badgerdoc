@@ -36,7 +36,7 @@ def get_sentences_embeddings(sentences: list, embedUrl: str):
 
 
 def get_question_embedding(sentence: str):
-    r = requests.post(url=settings.qa_embed_question_url, json={"text": sentence})
+    r = requests.get(url=f"{settings.embed_host}{settings.embed_use_question_path}?question="+sentence)
     return r.json()["predictions"]
 
 
@@ -45,7 +45,8 @@ def calculate_text_vectors(annotation_data: list, embedUrl: str):
     return get_sentences_embeddings(sentences, embedUrl)
 
 
-def calculate_responses_embedings(sentences: list, embedUrl: str):
+def calculate_responses_embedings(sentences: list):
+    embedUrl = f"{settings.embed_host}{settings.embed_user_responses_path}"
     r = requests.post(url=embedUrl, json={"responses": [{"sentence": r, "context": c} for r, c in sentences]})
     return [x['encodings'] for x in r.json()["embedings"]]
 
@@ -67,9 +68,9 @@ async def get_gpt_opinion(contexts: list, query_str: str) -> Dict[str, Any]:
 
     if len(text_context)==0:
         return {}
-    logger.info(f"contenxt \n {text_context}")
+    logger.info(f"context \n {text_context}")
     logger.info(len(text_context))
-    openai.api_key =  settings.chatgpt_api_key
+    openai.api_key = settings.chatgpt_api_key
     try:
         completion = openai.ChatCompletion.create(
             model=settings.chatgpt_model,
@@ -79,14 +80,13 @@ async def get_gpt_opinion(contexts: list, query_str: str) -> Dict[str, Any]:
                     "content": """""",
                 },
                 {"role": "user", "content": (
-                            f"Please provide short answer for this question and the most releveant context number: {query_str} \n based on these contexts: \n  {text_context}"
+                            f"Please provide short answer for this question and the most relevant context number: {query_str} \n based on these contexts: \n  {text_context}"
                             + "please provide answer in JSON format, like: {\"answer\": \"...\", \"context_number\":...}")
                  },
             ],
             frequency_penalty=0,
             temperature=0,
         )
-        #logger.info(completion)
         matches = completion.choices[0]["message"]["content"]
         if "answer" in matches:
             a_json = json.loads(matches)

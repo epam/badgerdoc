@@ -153,7 +153,7 @@ async def build_query(
         query_str = search_parameters.pop(is_embed[0])
         embed_field = embed_fields[is_embed[0]]
         if "sentence" == is_embed[0]:
-            boost_by_txt_emb = get_sentences_embeddings([query_str], settings.embed_url)[0]
+            boost_by_txt_emb = get_sentences_embeddings([query_str])[0]
         else:
             boost_by_txt_emb = get_question_embedding(query_str, settings.qa_embed_question_url)
         knn_subquery = {

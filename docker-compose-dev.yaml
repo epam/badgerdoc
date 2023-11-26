@@ -13,6 +13,7 @@
 # - 8083 for BadgerDoc web
 #   8084 for BadgerDoc search
 # - 9001 for minio
+# - 9200 for elasicsearch
 #
 ###################################################################
 services:
@@ -30,7 +31,8 @@ services:
       --docker.exclude=badgerdoc-keycloak 
       --docker.exclude=badgerdoc-web 
       --docker.exclude=badgerdoc-zookeeper 
-      --docker.exclude=badgerdoc-kafka 
+      --docker.exclude=badgerdoc-kafka
+      --docker.exclude=badgerdoc-elasticsearch      
       --timeout.read-header=900s --timeout.resp-header=900s 
       --max=${MAX_REQ_SIZE}
     volumes:
@@ -296,7 +298,7 @@ services:
     networks:
       - badgerdoc
     ports:
-      - "9204:9200"
+      - ${ES_PORT}:${ES_PORT}
     volumes:
       - elasticdata:/usr/share/elasticsearch/data
 
@@ -304,11 +306,9 @@ services:
     image: badgerdoc_embeddings
     container_name: embeddings
     environment:
-      - ROOT_PATH=/search/embeddings
+      - ROOT_PATH=/embeddings
     networks:
       - badgerdoc
-    ports:
-      - "0.0.0.0:3334:3334"
 
   badgerdoc-search:
     image: badgerdoc_search
@@ -318,8 +318,6 @@ services:
     environment:
       - ROOT_PATH=/search
     working_dir: /opt/search
-    ports:
-      - 8084:8080
     networks:
       - badgerdoc
     command: bash -c "./wait-for-it.sh -t 0 badgerdoc-kafka:9092"
