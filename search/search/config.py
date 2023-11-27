@@ -1,5 +1,6 @@
 import pathlib
 from typing import List, Optional
+import os
 
 from dotenv import find_dotenv
 from pydantic import BaseSettings
@@ -16,10 +17,20 @@ def get_version() -> str:
 
     return default
 
+def get_service_uri(prefix: str) -> str:  # noqa
+    service_scheme = os.getenv(f"{prefix}SERVICE_SCHEME")
+    service_host = os.getenv(f"{prefix}SERVICE_HOST")
+    service_port = os.getenv(f"{prefix}SERVICE_PORT")
+    if service_port and service_host and service_scheme:
+        return f"{service_scheme}://{service_host}:{service_port}"
+    return ""
+
 
 class Settings(BaseSettings):
     app_title: str
-    annotation_service_host: str
+    annotation_service_uri: Optional[str] = get_service_uri("ANNOTATION_")
+    jobs_service_uri: Optional[str] = get_service_uri("JOBS_")
+    embed_host_uri: Optional[str] = get_service_uri("EMBED_")
     annotation_categories: str
     annotation_categories_search: str
     es_host: str
@@ -45,25 +56,33 @@ class Settings(BaseSettings):
     kafka_search_topic: str
     kafka_search_topic_partitions: int
     kafka_search_replication_factor: int
-    jobs_url: str
     jobs_search: str
     computed_fields: List[str]
     embed_use_path: str
-    embed_use_response_path: str
+    embed_use_responses_path: str
     embed_use_question_path: str
     text_category: int
     chatgpt_api_key: str
     chatgpt_model: str
 
     @property
+    def embed_responses_url(self) -> str:
+        return f"{settings.embed_host_uri}{settings.embed_use_responses_path}"
+
+    @property
+    def embed_question_url(self) -> str:
+        return f"{settings.embed_host_uri}{settings.embed_use_question_path}"
+
+
+    @property
     def embed_url(self) -> str:
-        return f"{self.embed_host}{self.embed_use_path}"
+        return f"{self.embed_host_uri}{self.embed_use_path}"
 
     @property
     def annotation_categories_url(self) -> str:
         return "/".join(
             (
-                self.annotation_service_host.rstrip("/"),
+                self.annotation_service_uri.rstrip("/"),
                 self.annotation_categories.lstrip("/"),
             )
         )
@@ -72,14 +91,15 @@ class Settings(BaseSettings):
     def annotation_categories_search_url(self) -> str:
         return "/".join(
             (
-                self.annotation_service_host.rstrip("/"),
+                self.annotation_service_uri.rstrip("/"),
                 self.annotation_categories_search.lstrip("/"),
             )
         )
 
     @property
     def jobs_search_url(self) -> str:
-        return f"{self.JOBS_SERVICE_HOST}/jobs/search"
+        return f"{self.jobs_service_uri}/jobs/search"
+
 
     class Config:
         env_file: str = find_dotenv(".env")
@@ -87,3 +107,4 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+''

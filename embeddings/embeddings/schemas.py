@@ -5,7 +5,7 @@ import pydantic
 
 
 class EmbedRequest(BaseModel):
-    instances: Optional[List[str]] == Field(description="*An array of strings to encode")
+    instances: Optional[List[str]] = Field(description="list of sentences")
 
 
 class EmbedResultSchema(BaseModel):
@@ -19,8 +19,8 @@ class EmbedQuestionResultSchema(BaseModel):
     )
 
 class ResponseContext(BaseModel):
-    sentence: str == Field(description="sentence text")
-    context: str == Field(description="context text")
+    sentence: str = Field(description="sentence text")
+    context: str = Field(description="context text")
 
 class EmbedResponseContextRequest(BaseModel):
     responses: List[ResponseContext] = Field(
@@ -28,7 +28,7 @@ class EmbedResponseContextRequest(BaseModel):
     )
 
 class ResponseVector(BaseModel):
-    sentence: str == Field(description="context sentence")
+    sentence: str = Field(description="context sentence")
     encodings: pydantic.conlist(float, min_items=512, max_items=512) = Field(
        description="embedding vector for context sentence. dimension = 512"
     )

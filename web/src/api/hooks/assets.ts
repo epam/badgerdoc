@@ -74,7 +74,7 @@ export const useThumbnailPiece: QueryHookType<ThumbnailPieceParam, any> = (
     options
 ) => {
     return useQuery(
-        ['thumbnailPiece', fileId],
+        ['thumbnailPiece', fileId, pageNum, bbox],
         async () => fetchThumbnailPiece(fileId, pageNum, bbox),
         options
     );

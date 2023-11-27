@@ -11,7 +11,6 @@
 #   file for local needs)
 # - 8082 for Keycloak.
 # - 8083 for BadgerDoc web
-#   8084 for BadgerDoc search
 # - 9001 for minio
 # - 9200 for elasicsearch
 #
@@ -305,6 +304,8 @@ services:
   badgerdoc-embeddings:
     image: badgerdoc_embeddings
     container_name: embeddings
+    env_file:
+      - .env
     environment:
       - ROOT_PATH=/embeddings
     networks:
@@ -320,10 +321,11 @@ services:
     working_dir: /opt/search
     networks:
       - badgerdoc
-    command: bash -c "./wait-for-it.sh -t 0 badgerdoc-kafka:9092"
+    command: bash -c "./wait-for-it.sh -t 0 badgerdoc-kafka:9092 && uvicorn search.main:app --host 0.0.0.0 --port 8080 --reload"
     depends_on:
       - badgerdoc-kafka
       - badgerdoc-elasticsearch
+      - badgerdoc-embeddings
     volumes:
       - ./search/:/opt/search
 

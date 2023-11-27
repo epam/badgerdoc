@@ -24,9 +24,9 @@ tags = [
 KEYCLOAK_HOST = os.getenv("KEYCLOAK_HOST", "")
 JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "")
 TOKEN = get_tenant_info(url=KEYCLOAK_HOST, algorithm=JWT_ALGORITHM)
-# from tenant_dependency import TenantData
+#from tenant_dependency import TenantData
 
-# TOKEN = lambda: TenantData(
+#TOKEN = lambda: TenantData(
 #    token="TEST_TOKEN", user_id="UUID", roles=["role"], tenants=["TEST_TENANT"]
 # )
 
@@ -68,7 +68,7 @@ def minio_no_such_bucket_error(request: fastapi.Request, exc: es.NoSuchTenant):
 
 @app.exception_handler(OpenSearchException)
 def elastic_exception_handler_es_error(
-        request: fastapi.Rquest, exc: OpenSearchException
+        request: fastapi.Request, exc: OpenSearchException
 ):
     return fastapi.responses.JSONResponse(
         status_code=500,

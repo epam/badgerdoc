@@ -3,19 +3,18 @@ import os
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import (FastAPI,
                      HTTPException,
-                     status,
-                     Depends,
-                     Union)
+                     status)
 import tensorflow_hub as hub
 
+from typing import Union
 import numpy as np
 import tensorflow as tf
-import schemas
+import embeddings.schemas as schemas
+from embeddings.config import settings
+
 
 app = FastAPI(
     title=settings.app_title,
-    version=settings.version,
-    openapi_tags=tags,
     root_path=settings.root_path,
     dependencies=[],
 )
@@ -54,7 +53,7 @@ def text_use(
 @app.get('/api/use-question',
             tags=["Embeddings"],
     summary="USE embeddings for Question",
-                   response_model=schemas.EmbedResultSchema
+                   response_model=schemas.EmbedQuestionResultSchema
          )
 def text_question(
         question: str
@@ -64,8 +63,7 @@ def text_question(
             status_code=status.HTTP_404_NOT_FOUND, detail="invalid parameters"
         )
     query_embedding = embed_qa.signatures['question_encoder'](tf.constant([question]))['outputs'][0]
-
-    return schemas.EmbedQuestionResultSchema(predictions= np.array(query_embedding).tolist())
+    return schemas.EmbedQuestionResultSchema(predictions=np.array(query_embedding).tolist())
 
 
 @app.post('/api/use-responses',

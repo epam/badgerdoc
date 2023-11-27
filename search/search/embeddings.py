@@ -36,7 +36,7 @@ def get_sentences_embeddings(sentences: list, embedUrl: str):
 
 
 def get_question_embedding(sentence: str):
-    r = requests.get(url=f"{settings.embed_host}{settings.embed_use_question_path}?question="+sentence)
+    r = requests.get(url=f"{settings.embed_question_url}?question="+sentence)
     return r.json()["predictions"]
 
 
@@ -46,8 +46,7 @@ def calculate_text_vectors(annotation_data: list, embedUrl: str):
 
 
 def calculate_responses_embedings(sentences: list):
-    embedUrl = f"{settings.embed_host}{settings.embed_user_responses_path}"
-    r = requests.post(url=embedUrl, json={"responses": [{"sentence": r, "context": c} for r, c in sentences]})
+    r = requests.post(url=settings.embed_responses_url, json={"responses": [{"sentence": r, "context": c} for r, c in sentences]})
     return [x['encodings'] for x in r.json()["embedings"]]
 
 
