@@ -1,7 +1,7 @@
 from unittest.mock import Mock, patch
 
 from botocore.exceptions import BotoCoreError
-from elasticsearch.exceptions import ElasticsearchException
+from opensearchpy.exceptions import OpenSearchException
 from fastapi.testclient import TestClient
 from pytest import mark
 
@@ -18,9 +18,7 @@ HEADER_TENANT = "X-Current-Tenant"
 @mark.integration
 @mark.parametrize("job_id", (1, 2, 100))
 def test_successful_response(monkeypatch, drop_es_index, job_id, es):
-    monkeypatch.setattr(
-        "search.harvester.connect_s3", Mock(return_value=drop_es_index)
-    )
+    monkeypatch.setattr("search.harvester.connect_s3", Mock(return_value=drop_es_index))
     monkeypatch.setattr("search.harvester.ES", es)
     response = client.post(
         f"{settings.indexation_path}/{job_id}",
@@ -58,9 +56,7 @@ def test_no_such_tenant_bucket(drop_parametrized_index, tenant):
 
 @mark.integration
 def test_minio_connection_error(monkeypatch, moto_s3):
-    monkeypatch.setattr(
-        "search.harvester.connect_s3", Mock(side_effect=BotoCoreError)
-    )
+    monkeypatch.setattr("search.harvester.connect_s3", Mock(side_effect=BotoCoreError))
     response = client.post(
         f"{settings.indexation_path}/1",
         headers=TEST_HEADERS,
@@ -71,12 +67,10 @@ def test_minio_connection_error(monkeypatch, moto_s3):
 
 @mark.integration
 def test_elasticsearch_connection_error(monkeypatch, moto_s3):
-    monkeypatch.setattr(
-        "search.harvester.connect_s3", Mock(return_value=moto_s3)
-    )
+    monkeypatch.setattr("search.harvester.connect_s3", Mock(return_value=moto_s3))
     monkeypatch.setattr(
         "search.harvester.old_pieces_cleaner",
-        Mock(side_effect=ElasticsearchException("ElasticsearchException")),
+        Mock(side_effect=OpenSearchException("OpenSearchException")),
     )
     response = client.post(
         f"{settings.indexation_path}/1",

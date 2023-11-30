@@ -1,12 +1,20 @@
 from typing import Any, Dict, List, Optional, Tuple
 
 import aiohttp
-from elasticsearch import AsyncElasticsearch
-from elasticsearch.exceptions import NotFoundError, RequestError
-
+from opensearchpy import AsyncOpenSearch
+from opensearchpy.exceptions import NotFoundError, RequestError
+from search.embeddings  import get_sentences_embeddings
+from search.embeddings  import get_question_embedding
 from search.config import settings
+from search.logger import logger
+import openai
 
 INDEX_SETTINGS = {
+    "settings": {
+        "index": {
+            "knn": True
+        }
+    },
     "mappings": {
         "properties": {
             "category": {
@@ -21,14 +29,28 @@ INDEX_SETTINGS = {
             "page_number": {
                 "type": "integer",
             },
+            "is_annotation": {
+                "type": "boolean"
+            },
+            "sentence_num": {
+                "type": "integer"
+            },
             "job_id": {
                 "type": "keyword",
             },
+            "embedding": {
+              "type": "knn_vector",
+              "dimension": 512
+            },
+            "resp_embedding": {
+              "type": "knn_vector",
+              "dimension": 512
+            }
         },
     }
 }
 
-ES: AsyncElasticsearch = AsyncElasticsearch(
+ES: AsyncOpenSearch = AsyncOpenSearch(
     hosts=settings.es_host, port=settings.es_port
 )
 
@@ -43,7 +65,7 @@ class NoCategory(NoSuchTenant):
 
 
 async def prepare_index(
-    es_instance: AsyncElasticsearch, index_name: str
+    es_instance: AsyncOpenSearch, index_name: str
 ) -> None:
     if not await es_instance.indices.exists(index=index_name):
         try:
@@ -58,21 +80,23 @@ async def prepare_index(
 
 
 async def search_v2(
-    es_instance: AsyncElasticsearch,
+    es_instance: AsyncOpenSearch,
     index_name: str,
     es_query: Dict[str, Any],
 ) -> Dict[str, Any]:
     es_response = None
     try:
+       # logger.info(f"es_query {es_query}")
         es_response = await es_instance.search(index=index_name, body=es_query)
     except NotFoundError as exc:
+        logger.info(exc)
         if exc.error == "index_not_found_exception":
             raise NoSuchTenant(f"Index for tenant {index_name} doesn't exist")
     return es_response
 
 
 async def search(
-    es_instance: AsyncElasticsearch,
+    es_instance: AsyncOpenSearch,
     index_name: str,
     search_params: dict,
     pagination_page_size: int,
@@ -123,10 +147,46 @@ async def build_query(
         query["query"]["match_all"] = {}
         return query
     query["query"]["bool"] = {}
-    if "content" in search_parameters:
-        query["query"]["bool"]["must"] = {
-            "match": {"content": search_parameters.pop("content")}
+    embed_fields = {"sentence": "embedding", "question": "resp_embedding"}
+    is_embed = [k for k in search_parameters.keys() if k in embed_fields]
+    if len(is_embed) > 0:
+        query_str = search_parameters.pop(is_embed[0])
+        embed_field = embed_fields[is_embed[0]]
+        if "sentence" == is_embed[0]:
+            boost_by_txt_emb = get_sentences_embeddings([query_str])[0]
+        else:
+            boost_by_txt_emb = get_question_embedding(query_str, settings.qa_embed_question_url)
+        knn_subquery = {
+            embed_field: {
+                'vector': boost_by_txt_emb,
+                'k': 512
+            }
         }
+        query["query"]["bool"]["must"] = [
+            {
+                "knn": knn_subquery
+            }
+        ]
+    if "question" in search_parameters:
+        query_str = search_parameters.pop("question")
+        boost_by_txt_emb = get_question_embedding(query_str, settings.qa_embed_question_url)
+        knn_subquery = {
+            'embedding': {
+                'vector': boost_by_txt_emb,
+                'k': 512
+            }
+        }
+        query["query"]["bool"]["must"] = [
+            {
+                "knn": knn_subquery
+            }
+        ]
+    elif "content" in search_parameters:
+        query["query"]["bool"]["must"] = [
+            {
+                "match": {"content": search_parameters.pop("content")}
+            }
+        ]
     if search_parameters:
         query["query"]["bool"]["filter"] = []
     if "category" in search_parameters:
@@ -138,6 +198,7 @@ async def build_query(
         query["query"]["bool"]["filter"].append(
             {"term": {parameter: {"value": value}}}
         )
+    logger.info(query)
     return query
 
 

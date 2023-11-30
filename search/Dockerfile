@@ -1,5 +1,5 @@
 ARG base_image=818863528939.dkr.ecr.eu-central-1.amazonaws.com/badgerdoc/python_base:0.1.7
-FROM ${base_image} as base
+FROM ${base_image} as build
 
 ENV PYTHONPATH /opt/search
 WORKDIR /opt/search
@@ -13,11 +13,10 @@ RUN : \
     && poetry config virtualenvs.create false \
     && :
 
-FROM base as build
-
 COPY documentation documentation
 RUN poetry install --no-root --only main
 CMD ["uvicorn", "search.main:app", "--host", "0.0.0.0", "--port", "8080"]
+EXPOSE 8080
 
 FROM base as test
 
@@ -43,4 +42,4 @@ FROM base as build-dev
 
 RUN poetry install --no-root
 COPY documentation documentation
-CMD ["uvicorn", "search.main:app", "--host", "0.0.0.0", "--port", "8080", "--reload"]
+#CMD ["uvicorn", "search.main:app", "--host", "0.0.0.0", "--port", "8080", "--reload"]

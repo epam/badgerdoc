@@ -12,6 +12,7 @@
 # - 8082 for Keycloak.
 # - 8083 for BadgerDoc web
 # - 9001 for minio
+# - 9200 for elasicsearch
 #
 ###################################################################
 services:
@@ -29,7 +30,8 @@ services:
       --docker.exclude=badgerdoc-keycloak 
       --docker.exclude=badgerdoc-web 
       --docker.exclude=badgerdoc-zookeeper 
-      --docker.exclude=badgerdoc-kafka 
+      --docker.exclude=badgerdoc-kafka
+      --docker.exclude=badgerdoc-elasticsearch      
       --timeout.read-header=900s --timeout.resp-header=900s 
       --max=${MAX_REQ_SIZE}
     volumes:
@@ -218,7 +220,8 @@ services:
     networks:
       - badgerdoc
     depends_on:
-      - badgerdoc-zookeeper
+      badgerdoc-zookeeper:
+        condition: service_started
 
   badgerdoc-pipelines:
     image: badgerdoc_pipelines
@@ -268,6 +271,64 @@ services:
     devices:
       - "/dev/fuse"
 
+  badgerdoc-elasticsearch:
+    container_name: badgerdoc-elasticsearch
+    image: amazon/opendistro-for-elasticsearch:1.13.2
+    environment:
+      - node.name=es01
+      - cluster.name=es-docker-cluster
+      - cluster.initial_master_nodes=es01
+      - bootstrap.memory_lock=true
+      - opendistro_security.disabled=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    healthcheck:
+      test: curl --fail http://localhost:9200 || exit 1
+      interval: 30s
+      timeout: 3s
+      retries: 10
+      start_period: 30s
+    networks:
+      - badgerdoc
+    ports:
+      - ${ES_PORT}:${ES_PORT}
+    volumes:
+      - elasticdata:/usr/share/elasticsearch/data
+
+  badgerdoc-embeddings:
+    image: badgerdoc_embeddings
+    container_name: embeddings
+    env_file:
+      - .env
+    environment:
+      - ROOT_PATH=/embeddings
+    networks:
+      - badgerdoc
+
+  badgerdoc-search:
+    image: badgerdoc_search
+    container_name: search
+    env_file:
+      - .env
+    environment:
+      - ROOT_PATH=/search
+    working_dir: /opt/search
+    networks:
+      - badgerdoc
+    command: bash -c "./wait-for-it.sh -t 0 badgerdoc-kafka:9092 && uvicorn search.main:app --host 0.0.0.0 --port 8080 --reload"
+    depends_on:
+      - badgerdoc-kafka
+      - badgerdoc-elasticsearch
+      - badgerdoc-embeddings
+    volumes:
+      - ./search/:/opt/search
+
   # TBD: Gotenberg
 
 networks:
@@ -277,3 +338,4 @@ networks:
 volumes:
   badgerdoc-data: {}
   minio-data: {}
+  elasticdata: {}

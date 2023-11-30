@@ -5,7 +5,7 @@ from typing import Optional
 import fastapi
 from fastapi.middleware.cors import CORSMiddleware
 from botocore.exceptions import BotoCoreError
-from elasticsearch.exceptions import ElasticsearchException
+from opensearchpy.exceptions import OpenSearchException
 from tenant_dependency import TenantData, get_tenant_info
 
 import search.es as es
@@ -13,6 +13,7 @@ import search.harvester as harvester
 import search.kafka_listener as kafka_listener
 import search.schemas as schemas
 from search.config import settings
+from search.logger import logger
 
 tags = [
     {
@@ -20,10 +21,14 @@ tags = [
         "description": "Actions associated with search management.",
     },
 ]
+KEYCLOAK_HOST = os.getenv("KEYCLOAK_HOST", "")
+JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "")
+TOKEN = get_tenant_info(url=KEYCLOAK_HOST, algorithm=JWT_ALGORITHM)
+#from tenant_dependency import TenantData
 
-TOKEN = get_tenant_info(
-    url=settings.keycloak_url, algorithm=settings.jwt_algorithm
-)
+#TOKEN = lambda: TenantData(
+#    token="TEST_TOKEN", user_id="UUID", roles=["role"], tenants=["TEST_TENANT"]
+# )
 
 app = fastapi.FastAPI(
     title=settings.app_title,
@@ -32,7 +37,6 @@ app = fastapi.FastAPI(
     root_path=settings.root_path,
     dependencies=[fastapi.Depends(TOKEN)],
 )
-
 
 if WEB_CORS := os.getenv("WEB_CORS", ""):
     app.add_middleware(
@@ -62,9 +66,9 @@ def minio_no_such_bucket_error(request: fastapi.Request, exc: es.NoSuchTenant):
     )
 
 
-@app.exception_handler(ElasticsearchException)
+@app.exception_handler(OpenSearchException)
 def elastic_exception_handler_es_error(
-    request: fastapi.Request, exc: ElasticsearchException
+        request: fastapi.Request, exc: OpenSearchException
 ):
     return fastapi.responses.JSONResponse(
         status_code=500,
@@ -73,9 +77,7 @@ def elastic_exception_handler_es_error(
 
 
 @app.exception_handler(BotoCoreError)
-def minio_exception_handler_bc_error(
-    request: fastapi.Request, exc: BotoCoreError
-):
+def minio_exception_handler_bc_error(request: fastapi.Request, exc: BotoCoreError):
     return fastapi.responses.JSONResponse(
         status_code=500,
         content={"detail": f"Error: connection error ({exc})"},
@@ -101,14 +103,14 @@ def no_category_handler(request: fastapi.Request, exc: es.NoCategory):
     },
 )
 async def get_text_piece(
-    x_current_tenant: str = fastapi.Header(..., example="badger-doc"),
-    token: TenantData = fastapi.Depends(TOKEN),
-    category: Optional[str] = fastapi.Query(None, example="Header"),
-    content: Optional[str] = fastapi.Query(None, example="Elasticsearch"),
-    document_id: Optional[int] = fastapi.Query(None, ge=1, example=1),
-    page_number: Optional[int] = fastapi.Query(None, ge=1, example=1),
-    page_size: Optional[int] = fastapi.Query(50, ge=1, le=100, example=50),
-    page_num: Optional[int] = fastapi.Query(1, ge=1, example=1),
+        x_current_tenant: str = fastapi.Header(..., example="badger-doc"),
+        token: TenantData = fastapi.Depends(TOKEN),
+        category: Optional[str] = fastapi.Query(None, example="Header"),
+        content: Optional[str] = fastapi.Query(None, example="Elasticsearch"),
+        document_id: Optional[int] = fastapi.Query(None, ge=1, example=1),
+        page_number: Optional[int] = fastapi.Query(None, ge=1, example=1),
+        page_size: Optional[int] = fastapi.Query(50, ge=1, le=100, example=50),
+        page_num: Optional[int] = fastapi.Query(1, ge=1, example=1),
 ) -> schemas.pieces.SearchResultSchema:
     """
     Searches for text pieces saved in Elastic Search according to query
@@ -117,11 +119,12 @@ async def get_text_piece(
     """
     search_params = {}
     for param_name, param in zip(
-        ("category", "content", "document_id", "page_number"),
-        (category, content, document_id, page_number),
+            ("category", "content", "document_id", "page_number"),
+            (category, content, document_id, page_number),
     ):
         if param:
             search_params[param_name] = param
+
     result = await es.search(
         es.ES,
         x_current_tenant,
@@ -130,6 +133,7 @@ async def get_text_piece(
         page_num,
         token.token,
     )
+
     return schemas.pieces.SearchResultSchema.parse_obj(result)
 
 
@@ -145,16 +149,29 @@ async def get_text_piece(
     },
 )
 async def search_text_pieces(
-    request: schemas.pieces.PiecesRequest,
-    x_current_tenant: str = fastapi.Header(..., example="badger-doc"),
-    token: TenantData = fastapi.Depends(TOKEN),
+        request: schemas.pieces.PiecesRequest,
+        x_current_tenant: str = fastapi.Header(..., example="badger-doc"),
+        token: TenantData = fastapi.Depends(TOKEN),
 ):
+    logger.info(
+            "Post request to `search_text_pieces` endpoint. "
+            "With search params: `query`=%s, `method`=%s, `scope`=%s",
+            request.query,
+            request.method,
+            request.scope
+        )
+
     await request.adjust_categories(tenant=x_current_tenant, token=token.token)
     query = request.build_query()
-    result = await es.search_v2(es.ES, x_current_tenant, query)
-    return schemas.pieces.SearchResultSchema2.parse_es_response(
-        result, request.pagination
+
+    es_result = await es.search_v2(es.ES, x_current_tenant, query)
+    result = schemas.pieces.SearchResultSchema2.parse_es_response(
+        es_result, request.pagination
     )
+    if request.method == "qa":
+        await result.adjust_by_generative_answers(request.query)
+
+    return result
 
 
 @app.post(
@@ -168,8 +185,8 @@ async def search_text_pieces(
     },
 )
 async def start_indexing(
-    job_id: int = fastapi.Path(..., example=1),
-    x_current_tenant: str = fastapi.Header(..., example="badger-doc"),
+        job_id: int = fastapi.Path(..., example=1),
+        x_current_tenant: str = fastapi.Header(..., example="badger-doc"),
 ) -> fastapi.Response:
     """
     Drops all already existing text pieces from Elastic Search index for this
@@ -187,16 +204,23 @@ async def start_indexing(
     response_model=schemas.facets.FacetsResponse,
 )
 async def search_facets(
-    request: schemas.facets.FacetsRequest,
-    x_current_tenant: str = fastapi.Header(
-        ..., example="test", alias="X-Current-Tenant"
-    ),
-    token: TenantData = fastapi.Depends(TOKEN),
+        request: schemas.facets.FacetsRequest,
+        x_current_tenant: str = fastapi.Header(
+            ..., example="test", alias="X-Current-Tenant"
+        ),
+        token: TenantData = fastapi.Depends(TOKEN),
 ) -> schemas.facets.FacetsResponse:
     query = request.build_es_query()
+    logger.info(
+            "post request to `search_facets` endpoint. "
+            "With search params: `query`=%s, `method`=%s, `scope`=%s",
+            request.query,
+            request.method,
+            request.scope
+        )
+
     elastic_response = await es.ES.search(index=x_current_tenant, body=query)
-    response = schemas.facets.FacetsResponse.parse_es_response(
-        elastic_response
-    )
+    response = schemas.facets.FacetsResponse.parse_es_response(elastic_response)
+
     await response.adjust_facet_result(x_current_tenant, token.token)
     return response

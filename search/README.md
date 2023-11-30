@@ -22,7 +22,7 @@ This project uses [Poetry](https://python-poetry.org/) for dependency and virtua
 
 1) Clone the repo:
 
-`git clone `git clone https://git.epam.com/epm-uii/badgerdoc/back-end.git``
+`git clone `https://github.com/epam/badgerdoc.git``
 
 2) To install the required dependencies and set up a virtual environment run in the cloned directory:
 
@@ -34,13 +34,9 @@ This project uses [Poetry](https://python-poetry.org/) for dependency and virtua
 
 ### Run Docker containers
 
-1) If you did not download Docker base image specified in Dockerfile before, make sure to connect EPAM VPN via `globalprotect` 
-and after that login to EPAM artifactory. 
-You must connect artifactory using credentials (username and password) provided by DevOps team member or ask your teamlead to help with such request.
-
-*Note: you may find connection URL in Dockerfile FROM instruction ('host:port' part of Docker image path). E.g.:*
+1) if you did not build base image Run the following command to build the base image in the root folder:
 ```
-docker login -u {your username} -p {your password} artifactory.epam.com:6144
+make build_base
 ```
 
 2) Build app image using
@@ -51,7 +47,11 @@ docker login -u {your username} -p {your password} artifactory.epam.com:6144
 
 `docker-compose up -d`
 
-4) Stop Docker containers using
+4) For Windows: if elasticsearch doesn't start successfully in wsl run:
+
+ `sudo sysctl -w vm.max_map_count=262144`
+
+6) Stop Docker containers using
 
 `docker-compose down`
 
@@ -61,12 +61,22 @@ Description of all project's endpoints and API may be viewed without running any
 
 ### Technical notes
 
-1) Using elasticsearch text analyzer.
+1) Using embeddings for KNN search.
 
-For search purpose this app uses the standart elasticsearch text analyzer. It provides grammar based tokenization and works well for most languages. To improve search quality for a specific language it recommended to use specific language analyzer.
+Embedding models are deployed as a separate service (see embeddings/Dockerfile)
 To be able to access elasticsearch manually you may need to temporarily change the ES_HOST in .env from "elasticsearch" to the elasticsearch host (for example, "localhost").
 
-2) Support for hierarchical structure of labels.
+2) About semantic search and question answering with LLM.
+   
+The output of badgerdoc annotated text and pages are stored into ElasticSearch. Before inserting, each document page is split into sentences.
+In current implementation (semantics.py) NLTK sentence tokenizer is used. It can be custom implementation that splits to other text chunks optimized for the use case. 
+Search consist of 2 stages: applying text match/or KNN query; next, LLM is used to enhance result based on found text pieces. Then first N sentences are taken from ES response and processed through LLM to append generative answer to the response.
+Setup the following env properties in order to enable it: 
+* TEXT_CATEGORY - the category id of sentence;
+* CHATGPT_MODEL - chat gpt model;
+* CHATGPT_API_KEY - API token;
+
+3) Support for hierarchical structure of labels.
 
 When an object is indexed, the label field is parsed for nested parts.
 When "\_" (underscore) is included in the label value, the object will additionally be associated with the value to the left of the "\_" sign. This is implemented to be able to search for related groups of labels (such as table and part of table, image and part of image).
@@ -74,23 +84,23 @@ When "\_" (underscore) is included in the label value, the object will additiona
 For example: when indexing the label "foo_bar", the object will be searchable by the values of the label "foo_bar" and "foo".
 
 
-3) Using minio files storage.
+4) Using minio files storage.
 
 To be able to upload files from S3 storage, user must provide following credentials:
 * S3_ENDPOINT_URL - Endpoint url;
 * S3_LOGIN - Aws access key id (for minIO it will be login);
 * S3_PASS - Aws secret access key (for minIO it will be password);
-* S3_START_PATH - annotation servise start path in mionio (i.e. "annotation").
+* S3_START_PATH - annotation service start path in minio (i.e. "annotation").
 
 To access minio manually you may need to temporarily change the S3_ENDPOINT_URL in .env to the actual minio host (for example, "http://localhost:{port_number}").
 
 
-4) Makefile usage
+5Makefile usage
 
 Many useful commands for project are listed in Makefile. To run command just type ``make {command_name}`` in terminal window. 
 If your OS doesn't support `make` interface you can run any command from Makefile directly.
 
-5) Hot reload in docker-compose
+6) Hot reload in docker-compose
 
 FastAPI provides feature named [hot-reload](https://fastapi.tiangolo.com/tutorial/first-steps/?h=reload#first-steps). It watches for changes in code
 and automatically applies them without the need for a manual restart.  
@@ -101,7 +111,7 @@ To make it work in docker-compose
 
 Now there is no need to rebuild app image every time you make changes in code.
 
-6) Running tests.
+7Running tests.
 
 Project tests are divided in 2 major groups: 
 * unit-tests that may successfully run without external dependencies (e.g. without running Docker containers with minio, elasticsearch, etc.);
@@ -114,10 +124,10 @@ To run tests inside docker
 * If you are using Windows, run makefile command `make test-windows`
 
 
-7) To run app locally without building Docker image use `uvicorn app.main:app --host 127.0.0.1 --port 8080`
+8) To run app locally without building Docker image use `uvicorn app.main:app --host 127.0.0.1 --port 8080`
 
 
-8) Project may need some dependencies from artifactory base image specified in Dockerfile.  
+9Project may need some dependencies from artifactory base image specified in Dockerfile.  
 
 To run app locally you should install such dependencies from `back-end/python_base/` repo directory via `pip`  
 Dependencies should be installed from `back-end` dir  
@@ -125,7 +135,7 @@ There are two libraries for local development, that should be installed:
 * [filter_lib](https://git.epam.com/epm-uii/badgerdoc/back-end/-/tree/master/python_base/filter_lib) `pip install python_base/filter_lib`
 * [tenant_dependency](https://git.epam.com/epm-uii/badgerdoc/back-end/-/tree/master/python_base/tenant_dependency) `pip install python_base/tenant_dependency`
 
-9) Authorization   
+10Authorization   
 
 With `tenant_dependency` [lib](https://git.epam.com/epm-uii/badgerdoc/back-end/-/tree/master/python_base/tenant_dependency) authorization in SWAGGER is required.  
 
@@ -137,7 +147,7 @@ There are two ways for local development:
 
 To disable authorization, FastAPI dependency needs to be overrided  
 To do that, you need to 
-- Change `app/token_dependency.py` module to
+- Change `main.py` module to
 ```python
 from tenant_dependency import TenantData
 

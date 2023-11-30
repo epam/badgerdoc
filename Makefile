@@ -1,4 +1,4 @@
-build_all:  build_base build_annotation build_users build_convert build_jobs build_keycloak build_assets build_web  build_processing build_pipelines build_models build_taxonomy clean
+build_all:  build_base build_annotation build_users build_convert build_jobs build_keycloak build_assets build_web  build_processing build_pipelines build_models build_taxonomy build_search build_embeddings clean
 
 build_base: 
 	mkdir -p build_dir
@@ -41,6 +41,12 @@ build_models:
 
 build_taxonomy:
 	docker build --target build taxonomy/ -t badgerdoc_taxonomy
+
+build_search:
+	docker build --target build search/ -t badgerdoc_search
+
+build_embeddings:
+	docker build --target build embeddings/ -t badgerdoc_embeddings
 
 clean:
 	rm -rf build_dir

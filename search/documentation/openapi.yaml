@@ -27,6 +27,20 @@ paths:
           in: query
         - required: false
           schema:
+            title: method of query
+            type: string
+          example: semantic
+          name: method
+          in: query
+        - required: false
+          schema:
+            title: Scope of query
+            type: string
+          example: annotation
+          name: scope
+          in: query
+        - required: false
+          schema:
             title: Document Id
             minimum: 1
             type: integer
@@ -249,6 +263,10 @@ components:
           title: Total Objects
           minimum: 0
           type: integer
+        short_answer:
+          title: Short Answer On Question
+          minimum: 0
+          type: string
         text_pieces:
           title: Text Pieces
           type: array
