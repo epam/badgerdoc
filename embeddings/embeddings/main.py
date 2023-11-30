@@ -1,4 +1,3 @@
-import fastapi
 import os
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import (FastAPI,
@@ -10,7 +9,6 @@ from typing import Union
 import numpy as np
 import tensorflow as tf
 import embeddings.schemas as schemas
-from sentence_transformers import SentenceTransformer
 from embeddings.config import settings
 
 app = FastAPI(
