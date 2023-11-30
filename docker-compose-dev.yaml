@@ -273,7 +273,7 @@ services:
 
   badgerdoc-elasticsearch:
     container_name: badgerdoc-elasticsearch
-    image: amazon/opendistro-for-elasticsearch:latest
+    image: amazon/opendistro-for-elasticsearch:1.13.2
     environment:
       - node.name=es01
       - cluster.name=es-docker-cluster

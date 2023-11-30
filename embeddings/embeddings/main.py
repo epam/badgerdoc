@@ -10,15 +10,14 @@ from typing import Union
 import numpy as np
 import tensorflow as tf
 import embeddings.schemas as schemas
+from sentence_transformers import SentenceTransformer
 from embeddings.config import settings
-
 
 app = FastAPI(
     title=settings.app_title,
     root_path=settings.root_path,
     dependencies=[],
 )
-
 
 if WEB_CORS := os.getenv("WEB_CORS", ""):
     app.add_middleware(
@@ -28,17 +27,19 @@ if WEB_CORS := os.getenv("WEB_CORS", ""):
         allow_headers=["*"],
     )
 
-
-embed_qa = hub.load("https://www.kaggle.com/models/google/universal-sentence-encoder/frameworks/TensorFlow2/variations/qa/versions/2")
-embed = hub.load("https://www.kaggle.com/models/google/universal-sentence-encoder/frameworks/TensorFlow2/variations/universal-sentence-encoder/versions/2")
+embed_qa = hub.load(
+    "https://www.kaggle.com/models/google/universal-sentence-encoder/frameworks/TensorFlow2/variations/qa/versions/2")
+embed = hub.load(
+    "https://www.kaggle.com/models/google/universal-sentence-encoder/frameworks/TensorFlow2/variations/universal-sentence-encoder/versions/2")
+# bert_model_txt = SentenceTransformer("all-MiniLM-L6-v2")
 print("module loaded")
 
 
-@app.post('/api/use',
-            tags=["Embeddings"],
-    summary="USE embeddings",
-                   response_model=schemas.EmbedResultSchema
-         )
+@app.post('/api/embed/sent',
+          tags=["Embeddings"],
+          summary="USE embeddings",
+          response_model=schemas.EmbedResultSchema
+          )
 def text_use(
         request: schemas.EmbedRequest
 ) -> Union[schemas.EmbedResultSchema, HTTPException]:
@@ -50,10 +51,10 @@ def text_use(
     return schemas.EmbedResultSchema(predictions=np.array(embed(texts)).tolist())
 
 
-@app.get('/api/use-question',
-            tags=["Embeddings"],
-    summary="USE embeddings for Question",
-                   response_model=schemas.EmbedQuestionResultSchema
+@app.get('/api/embed/question',
+         tags=["Embeddings"],
+         summary="USE embeddings for Question",
+         response_model=schemas.EmbedQuestionResultSchema
          )
 def text_question(
         question: str
@@ -66,12 +67,13 @@ def text_question(
     return schemas.EmbedQuestionResultSchema(predictions=np.array(query_embedding).tolist())
 
 
-@app.post('/api/use-responses',
-            tags=["Embeddings"],
-    summary="USE embeddings for Context Sentences",
-                   response_model=schemas.EmbedResponseAnswerResultSchema
-         )
-def text_response(request: schemas.EmbedResponseContextRequest) -> Union[schemas.EmbedResponseAnswerResultSchema, HTTPException]:
+@app.post('/api/embed/responses',
+          tags=["Embeddings"],
+          summary="USE embeddings for Context Sentences",
+          response_model=schemas.EmbedResponseAnswerResultSchema
+          )
+def text_response(request: schemas.EmbedResponseContextRequest) -> Union[
+    schemas.EmbedResponseAnswerResultSchema, HTTPException]:
     responses = request.responses
     response_batch = [r.sentence for r in responses]
     context_batch = [c.context for c in responses]
@@ -85,10 +87,10 @@ def text_response(request: schemas.EmbedResponseContextRequest) -> Union[schemas
     )
     ret = []
     for batch_index, batch in enumerate(response_batch):
-        ret.append(schemas.ResponseVector(sentence=batch, encodings=np.array(encodings['outputs'][batch_index]).tolist()));
+        ret.append(
+            schemas.ResponseVector(sentence=batch, encodings=np.array(encodings['outputs'][batch_index]).tolist()));
 
     return schemas.EmbedResponseAnswerResultSchema(embedings=ret)
-
 
 
 if __name__ == '__main__':

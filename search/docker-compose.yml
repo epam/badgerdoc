@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   elasticsearch:
-    image: amazon/opendistro-for-elasticsearch:latest
+    image: amazon/opendistro-for-elasticsearch:1.13.2
     environment:
       - node.name=es01
       - cluster.name=es-docker-cluster

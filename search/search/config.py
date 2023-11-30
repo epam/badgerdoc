@@ -58,25 +58,25 @@ class Settings(BaseSettings):
     kafka_search_replication_factor: int
     jobs_search: str
     computed_fields: List[str]
-    embed_use_path: str
-    embed_use_responses_path: str
-    embed_use_question_path: str
+    embed_sent_path: str
+    embed_responses_path: str
+    embed_question_path: str
     text_category: int
     chatgpt_api_key: str
     chatgpt_model: str
 
     @property
     def embed_responses_url(self) -> str:
-        return f"{settings.embed_host_uri}{settings.embed_use_responses_path}"
+        return f"{settings.embed_host_uri}{settings.embed_responses_path}"
 
     @property
     def embed_question_url(self) -> str:
-        return f"{settings.embed_host_uri}{settings.embed_use_question_path}"
+        return f"{settings.embed_host_uri}{settings.embed_question_path}"
 
 
     @property
     def embed_url(self) -> str:
-        return f"{self.embed_host_uri}{self.embed_use_path}"
+        return f"{self.embed_host_uri}{self.embed_sent_path}"
 
     @property
     def annotation_categories_url(self) -> str:

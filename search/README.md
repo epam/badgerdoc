@@ -39,7 +39,7 @@ This project uses [Poetry](https://python-poetry.org/) for dependency and virtua
 make build_base
 ```
 
-3) Build app image using
+2) Build app image using
 
 `docker build --target build -t search .`
 
@@ -47,7 +47,11 @@ make build_base
 
 `docker-compose up -d`
 
-4) Stop Docker containers using
+4) For Windows: if elasticsearch doesn't start successfully in wsl run:
+
+ `sudo sysctl -w vm.max_map_count=262144`
+
+6) Stop Docker containers using
 
 `docker-compose down`
 
@@ -64,8 +68,8 @@ To be able to access elasticsearch manually you may need to temporarily change t
 
 2) About semantic search and question answering with LLM.
    
-The output of badgerdoc annotated text and pages are stored into ElasticSearch. Before inserting, each document page is split to sentences.
-In current implementation (semantics.py) NLTK sentence tokenizer is used. Generally speaking, it can be a sentence, passage or any text chunk depending on target goal for search. 
+The output of badgerdoc annotated text and pages are stored into ElasticSearch. Before inserting, each document page is split into sentences.
+In current implementation (semantics.py) NLTK sentence tokenizer is used. It can be custom implementation that splits to other text chunks optimized for the use case. 
 Search consist of 2 stages: applying text match/or KNN query; next, LLM is used to enhance result based on found text pieces. Then first N sentences are taken from ES response and processed through LLM to append generative answer to the response.
 Setup the following env properties in order to enable it: 
 * TEXT_CATEGORY - the category id of sentence;
@@ -80,7 +84,7 @@ When "\_" (underscore) is included in the label value, the object will additiona
 For example: when indexing the label "foo_bar", the object will be searchable by the values of the label "foo_bar" and "foo".
 
 
-3) Using minio files storage.
+4) Using minio files storage.
 
 To be able to upload files from S3 storage, user must provide following credentials:
 * S3_ENDPOINT_URL - Endpoint url;
@@ -91,12 +95,12 @@ To be able to upload files from S3 storage, user must provide following credenti
 To access minio manually you may need to temporarily change the S3_ENDPOINT_URL in .env to the actual minio host (for example, "http://localhost:{port_number}").
 
 
-4) Makefile usage
+5Makefile usage
 
 Many useful commands for project are listed in Makefile. To run command just type ``make {command_name}`` in terminal window. 
 If your OS doesn't support `make` interface you can run any command from Makefile directly.
 
-5) Hot reload in docker-compose
+6) Hot reload in docker-compose
 
 FastAPI provides feature named [hot-reload](https://fastapi.tiangolo.com/tutorial/first-steps/?h=reload#first-steps). It watches for changes in code
 and automatically applies them without the need for a manual restart.  
@@ -107,7 +111,7 @@ To make it work in docker-compose
 
 Now there is no need to rebuild app image every time you make changes in code.
 
-6) Running tests.
+7Running tests.
 
 Project tests are divided in 2 major groups: 
 * unit-tests that may successfully run without external dependencies (e.g. without running Docker containers with minio, elasticsearch, etc.);
@@ -120,10 +124,10 @@ To run tests inside docker
 * If you are using Windows, run makefile command `make test-windows`
 
 
-7) To run app locally without building Docker image use `uvicorn app.main:app --host 127.0.0.1 --port 8080`
+8) To run app locally without building Docker image use `uvicorn app.main:app --host 127.0.0.1 --port 8080`
 
 
-8) Project may need some dependencies from artifactory base image specified in Dockerfile.  
+9Project may need some dependencies from artifactory base image specified in Dockerfile.  
 
 To run app locally you should install such dependencies from `back-end/python_base/` repo directory via `pip`  
 Dependencies should be installed from `back-end` dir  
@@ -131,7 +135,7 @@ There are two libraries for local development, that should be installed:
 * [filter_lib](https://git.epam.com/epm-uii/badgerdoc/back-end/-/tree/master/python_base/filter_lib) `pip install python_base/filter_lib`
 * [tenant_dependency](https://git.epam.com/epm-uii/badgerdoc/back-end/-/tree/master/python_base/tenant_dependency) `pip install python_base/tenant_dependency`
 
-9) Authorization   
+10Authorization   
 
 With `tenant_dependency` [lib](https://git.epam.com/epm-uii/badgerdoc/back-end/-/tree/master/python_base/tenant_dependency) authorization in SWAGGER is required.  
 
