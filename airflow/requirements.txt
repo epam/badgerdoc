@@ -1,3 +1,5 @@
+# This is minimum required dependencies to run integrations
+# with BadgerDoc and ClearML in future
 boto3==1.28.4
 PyPDF2==3.0.1
 pdfplumber==0.10.2

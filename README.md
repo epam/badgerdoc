@@ -19,9 +19,14 @@ project when preliminary annoation is available.
 
 For now, BadgerDoc is working with vectorized and scanned documents, but it has capability of image annotation.
 
-#
-
 # Local Setup
+
+## Using podman instead of docker
+In case you're using Podman, set the `_DOCKER_`` environment variable before proceeding with the next steps:
+
+```
+export _DOCKER_=podman
+```
 
 ## Building the base image
 
@@ -69,9 +74,8 @@ Important! This is not secure configuration, follow [KeyCloak best practices](ht
 
 3. Add tenant attribute to `admin` user, go to Users -> select `admin` -> go to Attributes -> create attribute `tenants:local`, and save
 
-4. Add tenant attribute to `service-account-badgerdoc-internal` user, request a jwt token of the service user (see pipeline.service_token.get_service_token) -> decode the got token by jwt.io -> copy a `sub` value -> go to the KeyCloak Users tab -> select `admin` -> change current page url (replace the last part with the copied string) -> go to Attributes -> create an attribute `tenants:local`, and save
 
-5. Go to Clients -> admin-cli -> Mappers -> Create and fill form with following values:
+4. Go to Clients -> admin-cli -> Mappers -> Create and fill form with following values:
 
 | Param                      | Value          |
 | -------------------------- | -------------- |
@@ -87,28 +91,26 @@ Important! This is not secure configuration, follow [KeyCloak best practices](ht
 | Multivalued                | On             |
 | Aggregate attribute values | On             |
 
-6. Repeat the previous step for badgerdoc-internal client
 
-7. Go to Client Scopes -> Find `roles` and select in list -> Scope -> Add `admin` to Assigned Roles, then go to Mappers and ensure that only 2 mappers exists: `realm roles` and `client roles`. Delete all other mappers
+5. Go to Client Scopes -> Find `roles` -> Scope and select `admin` in list  to add to Assigned Roles, then go to Mappers and ensure that only 2 mappers exists: `realm roles` and `client roles`. Delete all other mappers
 
-8. Go to Clients -> Create -> Fill form and save
+6. Go to Clients -> Create -> Fill form and save
 
 | Param           | Value              |
 | --------------- | ------------------ |
 | Client ID       | badgerdoc-internal |
 | Client Protocol | openid-connect     |
 
-9. Go to Cliens -> Find `badgerdoc-internal` -> change settings `Access Type: Confidential`, set `Service Accounts Enabled` to `On`, add 'Valid Redirect URIs' as '\*', then save. Now you can Credentials tab, open it and copy Secret
+7. Go to Cliens -> Find `badgerdoc-internal` -> change settings `Access Type: Confidential`, set `Service Accounts Enabled` to `On`, set 'Valid Redirect URIs' and 'Web Origins' to '_', then save. Now you can Credentials tab, open it and copy Secret
 
-Now `Client ID` and `Secret` must be set to `.env` as `KEYCLOAK_SYSTEM_USER_CLIENT` and `KEYCLOAK_SYSTEM_USER_SECRET`
+Then `Client ID` and `Secret` must be set to `.env` as `KEYCLOAK_SYSTEM_USER_CLIENT=badgerdoc-internal` and `KEYCLOAK_SYSTEM_USER_SECRET` to copied key
 
-10. Go to Clients -> Find `badgerdoc-internal` -> Service Account Roles -> Client Roles -> master-realm -> Find `view-users` and `view-identity-providers` in Available Roles and add to Assigned Roles
+8. Go to Clients -> Find `badgerdoc-internal` -> Service Account Roles -> Client Roles -> master-realm -> Find `view-users` and `view-identity-providers` in Available Roles and add to Assigned Roles
 
-11. Go to Roles -> add roles: presenter, manager, role-annotator, annotator, engineer. Open admin role, go to Composite Roles -> Realm Roles and add all these roles
+9. Go to Roles -> add roles: presenter, manager, role-annotator, annotator, engineer. Open admin role, go to Composite Roles -> Realm Roles and add all these roles
 
-12. Go to Clients -> badgerdoc-internal and set "Valid Redirect URIs" = _ and "Web Origins" = _
 
-13. Go to Realm Settings -> Tokens -> Find `Access Token Lifespan` and set 1 `Days`
+10. Go to Realm Settings -> Tokens -> Find `Access Token Lifespan` and set 1 `Days`
 
 Time to reload `docker-compose`, because `.env` was changed:
 
@@ -124,7 +126,12 @@ Be sure that you added all possible categories via badgerdoc UI (/categories) ot
 
 Airflow runs using its own resources (PostgreSQL, Redis, Flower) without sharing them with BadgerDoc.
 
-1. After setting up BadgerDoc in local mode, run:
+1. Copy `airflow/.env.example` to `airflow/.env` running:
+```
+cp airflow/.env.example airflow/.env
+```
+
+2. Run:
 
 ```
 docker-compose -f airflow/docker-compose-dev.yaml up -d
@@ -132,6 +139,22 @@ docker-compose -f airflow/docker-compose-dev.yaml up -d
 
 This docker-compose file was downloaded from the Apache Airflow website:
 https://airflow.apache.org/docs/apache-airflow/2.7.0/docker-compose.yaml with only a few modifications added.
+
+## Set up ClearML as Models service in local mode
+
+ClearML runs using its own resources without sharing them with BadgerDoc.
+
+1. Copy `clearml/.env.example` to `clearml/.env` running:
+```
+cp clearml/.env.example clearml/.env
+```
+
+2. Run:
+```
+docker-compose -f clearml/docker-compose-dev.yaml up -d
+```
+
+This docker-compose file was downloaded from the ClearML GitHub: https://github.com/allegroai/clearml-server/blob/master/docker/docker-compose.yml with a few modifications added.
 
 ## How to install required dependencies locally
 
