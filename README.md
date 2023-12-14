@@ -74,7 +74,6 @@ Important! This is not secure configuration, follow [KeyCloak best practices](ht
 
 3. Add tenant attribute to `admin` user, go to Users -> select `admin` -> go to Attributes -> create attribute `tenants:local`, and save
 
-
 4. Go to Clients -> admin-cli -> Mappers -> Create and fill form with following values:
 
 | Param                      | Value          |
@@ -90,7 +89,6 @@ Important! This is not secure configuration, follow [KeyCloak best practices](ht
 | Add to userinfo            | On             |
 | Multivalued                | On             |
 | Aggregate attribute values | On             |
-
 
 5. Go to Client Scopes -> Find `roles` -> Scope and select `admin` in list  to add to Assigned Roles, then go to Mappers and ensure that only 2 mappers exists: `realm roles` and `client roles`. Delete all other mappers
 
@@ -108,7 +106,6 @@ Then `Client ID` and `Secret` must be set to `.env` as `KEYCLOAK_SYSTEM_USER_CLI
 8. Go to Clients -> Find `badgerdoc-internal` -> Service Account Roles -> Client Roles -> master-realm -> Find `view-users` and `view-identity-providers` in Available Roles and add to Assigned Roles
 
 9. Go to Roles -> add roles: presenter, manager, role-annotator, annotator, engineer. Open admin role, go to Composite Roles -> Realm Roles and add all these roles
-
 
 10. Go to Realm Settings -> Tokens -> Find `Access Token Lifespan` and set 1 `Days`
 
@@ -131,11 +128,35 @@ Airflow runs using its own resources (PostgreSQL, Redis, Flower) without sharing
 cp airflow/.env.example airflow/.env
 ```
 
-2. Run:
+To setup service account you need to configure Keycloak for BadgerDoc first.
+
+2. Setup service account. Login into Keycloak using url http://127.0.0.1:8082/auth and `admin:admin` as credentials. Select Clients -> badgerdoc-internal -> Service Accounts Roles -> Find Service Account User and click "service-account-badgerdoc-internal". Then select Attributes tab and add `tenants:local` attribute like you did it for `admin`. 
+
+3. Go to Role Mappings and assign `admin` and `default-roles-master`
+
+4. Go to Clients -> badgerdoc-internal -> Mappers -> Create and fill form: 
+
+| Param                      | Value          |
+| -------------------------- | -------------- |
+| Protocol                   | openid-connect |
+| Name                       | tenants        |
+| Mapper Type                | User Attribute |
+| User Attribute             | tenants        |
+| Token Claim Name           | tenants        |
+| Claim JSON Type            | string         |
+| Add to ID token            | On             |
+| Add to access token        | On             |
+| Add to userinfo            | On             |
+| Multivalued                | On             |
+| Aggregate attribute values | On             |
+
+5. Copy `KEYCLOAK_SYSTEM_USER_SECRET` from Badgerdoc `.env` file into Airflow `.env` file, then run 
 
 ```
 docker-compose -f airflow/docker-compose-dev.yaml up -d
 ```
+
+6. Login to Airflow 
 
 This docker-compose file was downloaded from the Apache Airflow website:
 https://airflow.apache.org/docs/apache-airflow/2.7.0/docker-compose.yaml with only a few modifications added.
