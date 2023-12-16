@@ -1,12 +1,18 @@
 _DOCKER_ ?= docker
 
-build_all:  build_base build_annotation build_users build_convert build_jobs build_keycloak build_assets build_web  build_processing build_pipelines build_models build_taxonomy clean
+build_all:  build_base build_base_3.12 build_annotation build_users build_convert build_jobs build_keycloak build_assets build_web  build_processing build_pipelines build_models build_taxonomy clean
 
 build_base: 
 	mkdir -p build_dir
 	cp -r lib/ build_dir/lib
 	cp infra/docker/python_base/Dockerfile build_dir 
 	${_DOCKER_} build --target base build_dir/ -t 818863528939.dkr.ecr.eu-central-1.amazonaws.com/badgerdoc/python_base:0.1.7
+
+build_base_3.12:
+	mkdir -p build_dir_3.12
+	cp -r lib/ build_dir_3.12/lib
+	cp infra/docker/python_base_3.12/Dockerfile build_dir_3.12
+	${_DOCKER_} build --target base build_dir_3.12/ -t 818863528939.dkr.ecr.eu-central-1.amazonaws.com/badgerdoc/python_base_3.12:0.2.0
 
 build_keycloak:
 	mkdir -p build_dir

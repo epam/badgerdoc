@@ -1,0 +1,5 @@
+SQLAlchemy==2.0.23
+sqlalchemy-filters==0.13.0
+sqlalchemy_utils==0.38.3
+psycopg2-binary==2.9.9
+pydantic>=2.5.2
