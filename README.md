@@ -101,7 +101,7 @@ Important! This is not secure configuration, follow [KeyCloak best practices](ht
 
 7. Go to Cliens -> Find `badgerdoc-internal` -> change settings `Access Type: Confidential`, set `Service Accounts Enabled` to `On`, set 'Valid Redirect URIs' and 'Web Origins' to '_', then save. Now you can Credentials tab, open it and copy Secret
 
-Then `Client ID` and `Secret` must be set to `.env` as `KEYCLOAK_SYSTEM_USER_CLIENT=badgerdoc-internal` and `KEYCLOAK_SYSTEM_USER_SECRET` to copied key
+Go back to your `.env` file.`Client ID` and `Secret` must be set to `.env` as `KEYCLOAK_SYSTEM_USER_CLIENT=badgerdoc-internal` and `KEYCLOAK_SYSTEM_USER_SECRET` to copied key
 
 8. Go to Clients -> Find `badgerdoc-internal` -> Service Account Roles -> Client Roles -> master-realm -> Find `view-users` and `view-identity-providers` in Available Roles and add to Assigned Roles
 
