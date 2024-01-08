@@ -1,19 +1,19 @@
-name: filter_lib precommit and test
-run-name: filter_lib precommit and test
+name: tenants precommit and test
+run-name: tenants precommit and test
 on:
   push:
     paths:
-      - lib/python3.12/filter_lib/**
-      - .github/worlflows/python3.12/filter-lib.yml
+      - lib/python3.12/tenants/**
+      - .github/worlflows/python3.12/tenants.yml
   pull_request:
     paths:
-      - lib/python3.12/filter_lib/**
-      - .github/worlflows/python3.12/filter-lib.yml
+      - lib/python3.12/tenants/**
+      - .github/worlflows/python3.12/tenants.yml
 jobs:
-  filter-lib-pre-commit-actions:
+  tenants-pre-commit-actions:
     strategy:
       matrix:
-        python-version: [ "3.12.1" ]
+        python-version: [ "3.12.0", "3.12.1" ]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -24,7 +24,7 @@ jobs:
       - name: Run isort
         uses: isort/isort-action@v1.1.0
         with:
-          sort-paths: lib/python3.12/filter_lib/*
+          sort-paths: lib/python3.12/tenants/*
           configuration:
             --check-only
             --profile=black
@@ -33,15 +33,15 @@ jobs:
       - name: Black
         uses: psf/black@stable
         with:
-          src: "lib/python3.12/filter_lib"
+          src: "lib/python3.12/tenants"
           options: '--check --line-length=79 --exclude="tests" --verbose'
       - run: pip install flake8
-      - run: flake8 --exclude=tests --extend-ignore=E203 lib/python3.12/filter_lib
-  filter-lib-build:
+      - run: flake8 --exclude=tests --extend-ignore=E203 lib/python3.12/tenants
+  tenants-build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [ "3.12.1" ]
+        python-version: [ "3.12.0", "3.12.1" ]
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
@@ -52,11 +52,9 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          cd lib/python3.12/filter_lib
-          pip install -r requirements.txt
-          pip install -r requirements-dev.txt
+          cd lib/python3.12/tenants
+          pip install ".[dev]"
       - name: Test with pytest
         run: |
-          cd lib/python3.12/filter_lib
+          cd lib/python3.12/tenants
           pytest
-
