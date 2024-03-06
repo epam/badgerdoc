@@ -24,6 +24,7 @@ type BadgerFetchOptions = {
     withCredentials?: boolean;
     plainHeaders?: boolean;
     isBlob?: boolean;
+    isText?: boolean; // todo: isBlob and isText must be changed to 1 field type
     signal?: AbortSignal;
     customFetch?: BadgerCustomFetch;
 };
@@ -51,6 +52,7 @@ let useBadgerFetch: BadgerFetchProvider = (arg) => {
             withCredentials = true,
             plainHeaders = false,
             isBlob = false,
+            isText = false,
             signal,
             customFetch
         } = arg;
@@ -90,7 +92,9 @@ let useBadgerFetch: BadgerFetchProvider = (arg) => {
             });
         } else {
             let responseBody;
-            if (isBlob) {
+            if (isText) {
+                responseBody = await response.text();
+            } else if (isBlob) {
                 responseBody = response.ok ? await response.blob() : await response.json();
             } else responseBody = await response.json();
             if (!response.ok) {

@@ -1,24 +1,25 @@
 // temporary_disabled_rules
 /* eslint-disable @typescript-eslint/no-redeclare, react-hooks/exhaustive-deps */
-import React, { Fragment, useEffect, useState, useRef, useCallback, useMemo } from 'react';
+import { Spinner } from '@epam/loveship';
+import { cx } from '@epam/uui';
+import { ValidationType } from 'api/typings';
+import cn from 'classnames';
+import { SplitAnnotatorInfo } from 'components/split-annotator-info';
 import { useTaskAnnotatorContext } from 'connectors/task-annotator-connector/task-annotator-context';
-import { Document, Page, pdfjs, PDFPageProxy } from 'react-pdf';
+import React, { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Document, PDFPageProxy, Page, pdfjs } from 'react-pdf';
 import { Annotation } from 'shared';
+import { GridVariants } from 'shared/constants/task';
 import { getAuthHeaders } from 'shared/helpers/auth-tools';
 import { getPdfDocumentAddress } from 'shared/helpers/get-pdf-document-address';
 import { Image } from '../image/image';
-import DocumentSinglePage from './document-single-page';
-import { Spinner } from '@epam/loveship';
-import { SplitAnnotatorInfo } from 'components/split-annotator-info';
-import styles from './document-pages.module.scss';
-import cn from 'classnames';
-import './react-pdf.scss';
 import ResizableSyncedContainer from './components/ResizableSyncedContainer';
-import { cx } from '@epam/uui';
-import { ValidationType } from 'api/typings';
-import { GridVariants } from 'shared/constants/task';
+import DocumentMol from './components/document-mol';
 import DocumentPDF from './components/document-pdf';
-import { PageLoadedCallback, DocumentPagesProps, PageSize, DocumentLoadedCallback } from './types';
+import styles from './document-pages.module.scss';
+import DocumentSinglePage from './document-single-page';
+import './react-pdf.scss';
+import { DocumentLoadedCallback, DocumentPagesProps, PageLoadedCallback, PageSize } from './types';
 
 export type { PageSize } from './types';
 
@@ -280,6 +281,9 @@ const DocumentPages: React.FC<DocumentPagesProps> = ({
                                 containerRef={containerRef}
                                 editable={editable}
                             />
+                        ) : null}
+                        {fileMetaInfo.extension === '.mol' || fileMetaInfo.extension === '.sdf' ? (
+                            <DocumentMol fileMetaInfo={fileMetaInfo} editable={editable} />
                         ) : null}
                         {fileMetaInfo.extension === '.jpg' ? (
                             <div className={styles['images-container']}>
