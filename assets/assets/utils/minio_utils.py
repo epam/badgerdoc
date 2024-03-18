@@ -10,6 +10,8 @@ from assets import db, logger
 from assets.config import settings
 from minio.credentials import AWSConfigProvider, EnvAWSProvider, IamAwsProvider
 from openbabel import pybel
+import tempfile
+import os
 
 logger_ = logger.get_logger(__name__)
 
@@ -97,9 +99,9 @@ def remake_thumbnail(
     )
     
     if file_obj.path.endswith(".sdf"):
-        file_bytes = make_chemical_thumbnail(obj.data, file_format=1)
+        file_bytes = make_chemical_thumbnail(obj.data, file_format="sdf")
     elif file_obj.path.endswith(".mol"):
-        file_bytes = make_chemical_thumbnail(obj.data, file_format=2)
+        file_bytes = make_chemical_thumbnail(obj.data, file_format="mol")
     else:
         file_bytes = make_thumbnail_pdf(obj.data)
 
@@ -211,23 +213,24 @@ def read_pdf_page(
     return img
 
 def read_chemical_page(
-    file: bytes, page_number: int = 1, file_format: int = 1
+    file: bytes, file_format: str, page_number: int = 0
 ) -> Optional[PIL.Image.Image]:
-
-    temp_file = f"demo.{'sdf' if file_format== 1 else 'mol'}"
-    temp_image = "thumbnail_mol.jpeg"
+    
+    temp_file = f"demo.{file_format}"
+    temp_image = "thumbnail.jpeg"
 
     try:
-        bytes_to_file(file, temp_file)
-        mol = list(pybel.readfile("sdf" if file_format==1 else "mol", temp_file))[page_number]
-        mol.draw(show= False, filename=temp_image) 
-        img  = PIL.Image.open(temp_image) 
+        with tempfile.TemporaryDirectory() as temp_dir:
+            bytes_to_file(file, os.path.join(temp_dir, temp_file))
+            mol = list(pybel.readfile(file_format, os.path.join(temp_dir, temp_file)))[page_number]
+            mol.draw(show= False, filename=os.path.join(temp_dir,temp_image))
+            img  = PIL.Image.open(os.path.join(temp_dir,temp_image))
     except IOError as ioe:
-        logger_.error(f"IO error - detail: {ioe}")
-        return None
+            logger_.error(f"IO error - detail: {ioe}")
+            return None
     except Exception as exc:
-        logger_.error(f"Exception error - detail: {exc}")
-        return None    
+            logger_.error(f"Exception error - detail: {exc}")
+            return None    
     return img
 
 def bytes_to_file(file_bytes, output_file):
@@ -256,24 +259,20 @@ def make_thumbnail_pdf(file: bytes) -> Union[bool, bytes]:
     return byte_im
 
 
-def make_chemical_thumbnail(file: bytes, file_format: int) -> Union[bool, bytes]:
+def make_chemical_thumbnail(file: bytes, file_format: str) -> Union[bool, bytes]:
     """
     Handles thumbnail creation for chemicals files 
     with extension .mol , .sdf
-    :param file_format : 1 = sdf, 2 = mol 
+    :param file_format : sdf, mol
     """
     buf = BytesIO()
     img = None
-
-    if file_format == 1:
-        img = read_chemical_page(file, page_number=0, file_format=1)
-    elif file_format == 2:
-        img = read_chemical_page(file, page_number=0, file_format=2)
-    else:
-        logger_.error("Invalid file format")
+    
+    img = read_chemical_page(file, page_number=0, file_format=file_format)
 
     if img is None:
         return False
+    
     size = thumb_size(img)
     img.thumbnail(size)
     img.save(buf, format="png")
