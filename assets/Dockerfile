@@ -21,7 +21,6 @@ RUN : \
     && apt-get update \
     && apt-get install -y poppler-utils \
     && apt-get install libmagic1 -y \
-    # && pip3 install openbabel-wheel\
     && :
 
 CMD alembic upgrade afa33cc83d57 \

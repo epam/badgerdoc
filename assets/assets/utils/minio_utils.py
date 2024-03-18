@@ -97,9 +97,9 @@ def remake_thumbnail(
     )
     
     if file_obj.path.endswith(".sdf"):
-        file_bytes = make_thumbnail_sdf(obj.data)
+        file_bytes = make_chemical_thumbnail(obj.data, file_format=1)
     elif file_obj.path.endswith(".mol"):
-        file_bytes = make_thumbnail_mol(obj.data)
+        file_bytes = make_chemical_thumbnail(obj.data, file_format=2)
     else:
         file_bytes = make_thumbnail_pdf(obj.data)
 
@@ -210,35 +210,16 @@ def read_pdf_page(
         return None
     return img
 
-def read_sdf_page(
-    file: bytes, page_number: int = 1
+def read_chemical_page(
+    file: bytes, page_number: int = 1, file_format: int = 1
 ) -> Optional[PIL.Image.Image]:
-    temp_file = "demo.sdf"
-    temp_image = "thumbnail.jpeg"
 
-    try:
-        bytes_to_file(file, temp_file)
-        mol = list(pybel.readfile("sdf", temp_file))[page_number]
-        mol.draw(show= False, filename=temp_image) 
-        img  = PIL.Image.open(temp_image) 
-    except IOError as ioe:
-        logger_.error(f"IO error - detail: {ioe}")
-        return None
-    except Exception as exc:
-        logger_.error(f"Exception error - detail: {exc}")
-        return None    
-    return img
-
-
-def read_mol_page(
-    file: bytes, page_number: int = 1
-) -> Optional[PIL.Image.Image]:
-    temp_file = "demo.mol"
+    temp_file = f"demo.{'sdf' if file_format== 1 else 'mol'}"
     temp_image = "thumbnail_mol.jpeg"
 
     try:
         bytes_to_file(file, temp_file)
-        mol = list(pybel.readfile("mol", temp_file))[page_number]
+        mol = list(pybel.readfile("sdf" if file_format==1 else "mol", temp_file))[page_number]
         mol.draw(show= False, filename=temp_image) 
         img  = PIL.Image.open(temp_image) 
     except IOError as ioe:
@@ -274,21 +255,23 @@ def make_thumbnail_pdf(file: bytes) -> Union[bool, bytes]:
     byte_im = buf.getvalue()
     return byte_im
 
-def make_thumbnail_sdf(file: bytes) -> Union[bool, bytes]:
-    buf = BytesIO()
-    img = read_sdf_page(file, page_number=0)
-    if img is None:
-        return False
-    size = thumb_size(img)
-    img.thumbnail(size)
-    img.save(buf, format="png")
-    img.close()
-    byte_im = buf.getvalue()
-    return byte_im
 
-def make_thumbnail_mol(file: bytes) -> Union[bool, bytes]:
+def make_chemical_thumbnail(file: bytes, file_format: int) -> Union[bool, bytes]:
+    """
+    Handles thumbnail creation for chemicals files 
+    with extension .mol , .sdf
+    :param file_format : 1 = sdf, 2 = mol 
+    """
     buf = BytesIO()
-    img = read_mol_page(file, page_number=0)
+    img = None
+
+    if file_format == 1:
+        img = read_chemical_page(file, page_number=0, file_format=1)
+    elif file_format == 2:
+        img = read_chemical_page(file, page_number=0, file_format=2)
+    else:
+        logger_.error("Invalid file format")
+
     if img is None:
         return False
     size = thumb_size(img)
