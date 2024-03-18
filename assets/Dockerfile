@@ -14,13 +14,14 @@ RUN : \
     && pip install poetry>=1.1.13 \
     && poetry config virtualenvs.create false \
     && poetry install --no-root --only main \
+    && pip install openbabel-wheel \
     && :
 
 RUN : \
     && apt-get update \
     && apt-get install -y poppler-utils \
     && apt-get install libmagic1 -y \
-    && pip3 install openbabel-wheel\
+    # && pip3 install openbabel-wheel\
     && :
 
 CMD alembic upgrade afa33cc83d57 \

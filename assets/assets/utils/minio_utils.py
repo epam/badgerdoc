@@ -98,6 +98,8 @@ def remake_thumbnail(
     
     if file_obj.path.endswith(".sdf"):
         file_bytes = make_thumbnail_sdf(obj.data)
+    elif file_obj.path.endswith(".mol"):
+        file_bytes = make_thumbnail_mol(obj.data)
     else:
         file_bytes = make_thumbnail_pdf(obj.data)
 
@@ -228,6 +230,25 @@ def read_sdf_page(
     return img
 
 
+def read_mol_page(
+    file: bytes, page_number: int = 1
+) -> Optional[PIL.Image.Image]:
+    temp_file = "demo.mol"
+    temp_image = "thumbnail_mol.jpeg"
+
+    try:
+        bytes_to_file(file, temp_file)
+        mol = list(pybel.readfile("mol", temp_file))[page_number]
+        mol.draw(show= False, filename=temp_image) 
+        img  = PIL.Image.open(temp_image) 
+    except IOError as ioe:
+        logger_.error(f"IO error - detail: {ioe}")
+        return None
+    except Exception as exc:
+        logger_.error(f"Exception error - detail: {exc}")
+        return None    
+    return img
+
 def bytes_to_file(file_bytes, output_file):
     with open(output_file, 'wb') as file:
         file.write(file_bytes)
@@ -256,6 +277,18 @@ def make_thumbnail_pdf(file: bytes) -> Union[bool, bytes]:
 def make_thumbnail_sdf(file: bytes) -> Union[bool, bytes]:
     buf = BytesIO()
     img = read_sdf_page(file, page_number=0)
+    if img is None:
+        return False
+    size = thumb_size(img)
+    img.thumbnail(size)
+    img.save(buf, format="png")
+    img.close()
+    byte_im = buf.getvalue()
+    return byte_im
+
+def make_thumbnail_mol(file: bytes) -> Union[bool, bytes]:
+    buf = BytesIO()
+    img = read_mol_page(file, page_number=0)
     if img is None:
         return False
     size = thumb_size(img)
