@@ -9,6 +9,7 @@ import urllib3.exceptions
 from assets import db, logger
 from assets.config import settings
 from minio.credentials import AWSConfigProvider, EnvAWSProvider, IamAwsProvider
+from openbabel import pybel
 
 logger_ = logger.get_logger(__name__)
 
@@ -94,19 +95,23 @@ def remake_thumbnail(
     obj: urllib3.response.HTTPResponse = storage.get_object(
         file_obj.bucket, file_obj.path
     )
-    pdf_bytes = make_thumbnail_pdf(obj.data)
-    if pdf_bytes and isinstance(pdf_bytes, bytes):
-        upload_thumbnail(
-            file_obj.bucket, pdf_bytes, storage, file_obj.thumb_path
-        )
+    
+    if file_obj.path.endswith(".sdf"):
+        file_bytes = make_thumbnail_sdf(obj.data)
+    else:
+        file_bytes = make_thumbnail_pdf(obj.data)
 
+    if file_bytes and isinstance(file_bytes, bytes):
+        upload_thumbnail(
+            file_obj.bucket, file_bytes, storage, file_obj.thumb_path
+        )
     image_bytes = make_thumbnail_images(obj.data)
     if image_bytes and isinstance(image_bytes, bytes):
         upload_thumbnail(
             file_obj.bucket, image_bytes, storage, file_obj.thumb_path
         )
     obj.close()
-    if not pdf_bytes and not image_bytes:
+    if not file_bytes and not image_bytes:
         logger_.error("File is not an image")
         return False
     logger_.info("Successfully created thumbnail for %s", file_obj.path)
@@ -203,6 +208,30 @@ def read_pdf_page(
         return None
     return img
 
+def read_sdf_page(
+    file: bytes, page_number: int = 1
+) -> Optional[PIL.Image.Image]:
+    temp_file = "demo.sdf"
+    temp_image = "thumbnail.jpeg"
+
+    try:
+        bytes_to_file(file, temp_file)
+        mol = list(pybel.readfile("sdf", temp_file))[page_number]
+        mol.draw(show= False, filename=temp_image) 
+        img  = PIL.Image.open(temp_image) 
+    except IOError as ioe:
+        logger_.error(f"IO error - detail: {ioe}")
+        return None
+    except Exception as exc:
+        logger_.error(f"Exception error - detail: {exc}")
+        return None    
+    return img
+
+
+def bytes_to_file(file_bytes, output_file):
+    with open(output_file, 'wb') as file:
+        file.write(file_bytes)
+
 
 def read_image(file: bytes) -> Optional[PIL.Image.Image]:
     try:
@@ -220,6 +249,18 @@ def make_thumbnail_pdf(file: bytes) -> Union[bool, bytes]:
     size = thumb_size(img)
     img.thumbnail(size)
     img.save(buf, format="JPEG")
+    img.close()
+    byte_im = buf.getvalue()
+    return byte_im
+
+def make_thumbnail_sdf(file: bytes) -> Union[bool, bytes]:
+    buf = BytesIO()
+    img = read_sdf_page(file, page_number=0)
+    if img is None:
+        return False
+    size = thumb_size(img)
+    img.thumbnail(size)
+    img.save(buf, format="png")
     img.close()
     byte_im = buf.getvalue()
     return byte_im
