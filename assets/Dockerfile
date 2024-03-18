@@ -14,7 +14,6 @@ RUN : \
     && pip install poetry>=1.1.13 \
     && poetry config virtualenvs.create false \
     && poetry install --no-root --only main \
-    && pip install openbabel-wheel \
     && :
 
 RUN : \
