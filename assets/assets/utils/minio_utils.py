@@ -99,9 +99,9 @@ def remake_thumbnail(
     )
     
     if file_obj.path.endswith(".sdf"):
-        file_bytes = make_chemical_thumbnail(obj.data, file_format="sdf")
+        file_bytes = make_chemical_thumbnail(obj.data, fmt="sdf")
     elif file_obj.path.endswith(".mol"):
-        file_bytes = make_chemical_thumbnail(obj.data, file_format="mol")
+        file_bytes = make_chemical_thumbnail(obj.data, fmt="mol")
     else:
         file_bytes = make_thumbnail_pdf(obj.data)
 
@@ -212,6 +212,7 @@ def read_pdf_page(
         return None
     return img
 
+
 def read_chemical_page(
     file: bytes, file_format: str, page_number: int = 0
 ) -> Optional[PIL.Image.Image]:
@@ -221,17 +222,19 @@ def read_chemical_page(
 
     try:
         with tempfile.TemporaryDirectory() as temp_dir:
-            bytes_to_file(file, os.path.join(temp_dir, temp_file))
-            mol = list(pybel.readfile(file_format, os.path.join(temp_dir, temp_file)))[page_number]
-            mol.draw(show= False, filename=os.path.join(temp_dir,temp_image))
-            img  = PIL.Image.open(os.path.join(temp_dir,temp_image))
+            file_path = os.path.join(temp_dir, temp_file)
+            bytes_to_file(file, file_path)
+            mol = list(pybel.readfile(file_format, file_path))[page_number]
+            mol.draw(show=False, filename=os.path.join(temp_dir, temp_image))
+            img = PIL.Image.open(os.path.join(temp_dir, temp_image))
     except IOError as ioe:
-            logger_.error(f"IO error - detail: {ioe}")
-            return None
+        logger_.error(f"IO error - detail: {ioe}")
+        return None
     except Exception as exc:
-            logger_.error(f"Exception error - detail: {exc}")
-            return None    
+        logger_.error(f"Exception error - detail: {exc}")
+        return None
     return img
+
 
 def bytes_to_file(file_bytes, output_file):
     with open(output_file, 'wb') as file:
@@ -259,20 +262,18 @@ def make_thumbnail_pdf(file: bytes) -> Union[bool, bytes]:
     return byte_im
 
 
-def make_chemical_thumbnail(file: bytes, file_format: str) -> Union[bool, bytes]:
+def make_chemical_thumbnail(file: bytes, fmt: str) -> Union[bool, bytes]:
     """
     Handles thumbnail creation for chemicals files 
     with extension .mol , .sdf
     :param file_format : sdf, mol
     """
     buf = BytesIO()
-    img = None
-    
-    img = read_chemical_page(file, page_number=0, file_format=file_format)
+    img = None    
+    img = read_chemical_page(file, page_number=0, file_format=fmt)
 
     if img is None:
-        return False
-    
+        return False   
     size = thumb_size(img)
     img.thumbnail(size)
     img.save(buf, format="png")
