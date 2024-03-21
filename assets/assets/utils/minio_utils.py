@@ -9,6 +9,9 @@ import urllib3.exceptions
 from assets import db, logger
 from assets.config import settings
 from minio.credentials import AWSConfigProvider, EnvAWSProvider, IamAwsProvider
+from openbabel import pybel
+import tempfile
+import os
 
 logger_ = logger.get_logger(__name__)
 
@@ -94,19 +97,25 @@ def remake_thumbnail(
     obj: urllib3.response.HTTPResponse = storage.get_object(
         file_obj.bucket, file_obj.path
     )
-    pdf_bytes = make_thumbnail_pdf(obj.data)
-    if pdf_bytes and isinstance(pdf_bytes, bytes):
-        upload_thumbnail(
-            file_obj.bucket, pdf_bytes, storage, file_obj.thumb_path
-        )
+    
+    if file_obj.path.endswith(".sdf"):
+        file_bytes = make_chemical_thumbnail(obj.data, fmt="sdf")
+    elif file_obj.path.endswith(".mol"):
+        file_bytes = make_chemical_thumbnail(obj.data, fmt="mol")
+    else:
+        file_bytes = make_thumbnail_pdf(obj.data)
 
+    if file_bytes and isinstance(file_bytes, bytes):
+        upload_thumbnail(
+            file_obj.bucket, file_bytes, storage, file_obj.thumb_path
+        )
     image_bytes = make_thumbnail_images(obj.data)
     if image_bytes and isinstance(image_bytes, bytes):
         upload_thumbnail(
             file_obj.bucket, image_bytes, storage, file_obj.thumb_path
         )
     obj.close()
-    if not pdf_bytes and not image_bytes:
+    if not file_bytes and not image_bytes:
         logger_.error("File is not an image")
         return False
     logger_.info("Successfully created thumbnail for %s", file_obj.path)
@@ -204,6 +213,34 @@ def read_pdf_page(
     return img
 
 
+def read_chemical_page(
+    file: bytes, file_format: str, page_number: int = 0
+) -> Optional[PIL.Image.Image]:
+    
+    temp_file = f"demo.{file_format}"
+    temp_image = "thumbnail.jpeg"
+
+    try:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            file_path = os.path.join(temp_dir, temp_file)
+            bytes_to_file(file, file_path)
+            mol = list(pybel.readfile(file_format, file_path))[page_number]
+            mol.draw(show=False, filename=os.path.join(temp_dir, temp_image))
+            img = PIL.Image.open(os.path.join(temp_dir, temp_image))
+    except IOError as ioe:
+        logger_.error(f"IO error - detail: {ioe}")
+        return None
+    except Exception as exc:
+        logger_.error(f"Exception error - detail: {exc}")
+        return None
+    return img
+
+
+def bytes_to_file(file_bytes, output_file):
+    with open(output_file, 'wb') as file:
+        file.write(file_bytes)
+
+
 def read_image(file: bytes) -> Optional[PIL.Image.Image]:
     try:
         img = PIL.Image.open(BytesIO(file))
@@ -220,6 +257,26 @@ def make_thumbnail_pdf(file: bytes) -> Union[bool, bytes]:
     size = thumb_size(img)
     img.thumbnail(size)
     img.save(buf, format="JPEG")
+    img.close()
+    byte_im = buf.getvalue()
+    return byte_im
+
+
+def make_chemical_thumbnail(file: bytes, fmt: str) -> Union[bool, bytes]:
+    """
+    Handles thumbnail creation for chemicals files 
+    with extension .mol , .sdf
+    :param file_format : sdf, mol
+    """
+    buf = BytesIO()
+    img = None    
+    img = read_chemical_page(file, page_number=0, file_format=fmt)
+
+    if img is None:
+        return False   
+    size = thumb_size(img)
+    img.thumbnail(size)
+    img.save(buf, format="png")
     img.close()
     byte_im = buf.getvalue()
     return byte_im

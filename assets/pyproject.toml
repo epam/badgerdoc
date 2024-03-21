@@ -20,6 +20,7 @@ sqlalchemy-filters = "*"
 importlib-resources = "*"
 boto3 = "*"
 requests = "*"
+openbabel-wheel = "^3.1.1.19"
 
 [tool.poetry.dev-dependencies]
 pre-commit = "*"
