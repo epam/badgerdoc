@@ -1,24 +1,14 @@
 # What is BadgerDoc
 
-**BadgerDoc** is a ML Delivery Platform made to make delivery process of Machine Learning Solutions visible to customer,
-managers and ML team. The primary goal of the platform is to visualize ML model delivery cycle - data annotation,
-model training and result visualization.
+**BadgerDoc** is a platform designed to help show how Machine Learning solutions are delivered to customers, managers, and ML teams. Its main aim is to visualize the process of delivering ML models, including data annotation, model training, and result display.
 
-The platform has rich functionality in access and data management, annotation setups, and pipeline composition.
-Access management is based on Keycloak, which is integrated with Active Directory.
-Data can be uploaded in batches, organized into datasets as well as uploaded as a single file.
-ML pipeline can be applied to a dataset, which will trigger batch processing, or to a single document.
-BadgerDoc is capable of annotating large datasets by many annotators. It has algorithms for task distribution,
-validation roles, several validation setups and will have multicoverage of files by annotators in nearest future.
+The platform offers a range of features for managing access and data, setting up annotations, and creating pipelines. Access is managed using Keycloak, which is linked with Active Directory. Data can be uploaded in batches or as individual files, and organized into datasets. ML pipelines can be applied to datasets for batch processing, or to single documents.
 
-BadgerDoc also has steady growing number of pre-trained models available for users, which can be assembled into pipelines through visual editor.
+BadgerDoc is capable of handling large datasets with annotations from multiple annotators. It includes tools for distributing tasks, validating annotations, and managing multiple annotators. It also provides a growing library of pre-trained models that users can combine using a visual editor.
 
-Having such a rich functionality, BadgerDoc can be used for implementing full ML development cycle,
-as well as for rapid prototyping, demonstrating EPAM expertise in ML and even for large annotation
-project when preliminary annoation is available.
+With its diverse functionality, BadgerDoc can support the entire ML development cycle, rapid prototyping, and showcasing ML expertise. It can also be used for large annotation projects when some initial annotation is already available.
 
-For now, BadgerDoc is working with vectorized and scanned documents, but it has capability of image annotation.
-
+Currently, BadgerDoc primarily works with vectorized and scanned documents but also supports image annotation.
 # Local Setup
 
 ## Using podman instead of docker
