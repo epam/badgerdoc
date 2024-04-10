@@ -1,4 +1,4 @@
-FROM python:3.8.10-slim-buster AS base
+FROM python:3.8.19-slim-bullseye AS base
 
 COPY lib/filter_lib/ /opt/filter_lib/
 COPY lib/tenants/ /opt/tenants/

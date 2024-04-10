@@ -6,12 +6,12 @@ import minio.error
 import pdf2image.exceptions
 import PIL.Image
 import urllib3.exceptions
+from indigo import Indigo
+from indigo.renderer import IndigoRenderer
+from minio.credentials import AWSConfigProvider, EnvAWSProvider, IamAwsProvider
+
 from assets import db, logger
 from assets.config import settings
-from minio.credentials import AWSConfigProvider, EnvAWSProvider, IamAwsProvider
-from openbabel import pybel
-import tempfile
-import os
 
 logger_ = logger.get_logger(__name__)
 
@@ -42,20 +42,13 @@ def create_minio_config():
     elif settings.s3_provider == "aws_config":
         # environmental variable AWS_PROFILE_NAME should be set
         minio_config.update(
-            {
-                "credentials": AWSConfigProvider(
-                    profile=settings.aws_profile_name
-                )
-            }
+            {"credentials": AWSConfigProvider(profile=settings.aws_profile_name)}
         )
     else:
         raise NotConfiguredException(
-            "s3 connection is not properly configured - "
-            "s3_provider is not set"
+            "s3 connection is not properly configured - " "s3_provider is not set"
         )
-    logger_.debug(
-        f"S3_Credentials provider - {settings.s3_provider}"
-    )
+    logger_.debug(f"S3_Credentials provider - {settings.s3_provider}")
 
     return minio_config
 
@@ -77,43 +70,37 @@ def upload_in_minio(
     """
     pdf_bytes = make_thumbnail_pdf(file)
     if pdf_bytes and isinstance(pdf_bytes, bytes):
-        upload_thumbnail(
-            file_obj.bucket, pdf_bytes, client, file_obj.thumb_path
-        )
+        upload_thumbnail(file_obj.bucket, pdf_bytes, client, file_obj.thumb_path)
 
     image_bytes = make_thumbnail_images(file)
     if image_bytes and isinstance(image_bytes, bytes):
-        upload_thumbnail(
-            file_obj.bucket, image_bytes, client, file_obj.thumb_path
-        )
-    return put_file_to_minio(
-        client, file, file_obj, file_obj.content_type, "converted"
-    )
+        upload_thumbnail(file_obj.bucket, image_bytes, client, file_obj.thumb_path)
+    return put_file_to_minio(client, file, file_obj, file_obj.content_type, "converted")
 
 
-def remake_thumbnail(
-    file_obj: db.models.FileObject, storage: minio.Minio
-) -> bool:
+def remake_thumbnail(file_obj: db.models.FileObject, storage: minio.Minio) -> bool:
     obj: urllib3.response.HTTPResponse = storage.get_object(
         file_obj.bucket, file_obj.path
     )
-    
-    if file_obj.path.endswith(".sdf"):
-        file_bytes = make_chemical_thumbnail(obj.data, fmt="sdf")
-    elif file_obj.path.endswith(".mol"):
-        file_bytes = make_chemical_thumbnail(obj.data, fmt="mol")
-    else:
+
+    ext = file_obj.extension
+    logger_.debug("Generate thumbnail from extension: %s", ext)
+    if ext in {
+        ".sdf",
+        ".mol",
+    }:
+        file_bytes = make_thumbnail_chem(obj.data, ext)
+    elif ext == ".pdf":
         file_bytes = make_thumbnail_pdf(obj.data)
+    else:
+        logger_.error("Unable to create thumbnail, unsupported extension")
+        return False
 
     if file_bytes and isinstance(file_bytes, bytes):
-        upload_thumbnail(
-            file_obj.bucket, file_bytes, storage, file_obj.thumb_path
-        )
+        upload_thumbnail(file_obj.bucket, file_bytes, storage, file_obj.thumb_path)
     image_bytes = make_thumbnail_images(obj.data)
     if image_bytes and isinstance(image_bytes, bytes):
-        upload_thumbnail(
-            file_obj.bucket, image_bytes, storage, file_obj.thumb_path
-        )
+        upload_thumbnail(file_obj.bucket, image_bytes, storage, file_obj.thumb_path)
     obj.close()
     if not file_bytes and not image_bytes:
         logger_.error("File is not an image")
@@ -213,31 +200,8 @@ def read_pdf_page(
     return img
 
 
-def read_chemical_page(
-    file: bytes, file_format: str, page_number: int = 0
-) -> Optional[PIL.Image.Image]:
-    
-    temp_file = f"demo.{file_format}"
-    temp_image = "thumbnail.jpeg"
-
-    try:
-        with tempfile.TemporaryDirectory() as temp_dir:
-            file_path = os.path.join(temp_dir, temp_file)
-            bytes_to_file(file, file_path)
-            mol = list(pybel.readfile(file_format, file_path))[page_number]
-            mol.draw(show=False, filename=os.path.join(temp_dir, temp_image))
-            img = PIL.Image.open(os.path.join(temp_dir, temp_image))
-    except IOError as ioe:
-        logger_.error(f"IO error - detail: {ioe}")
-        return None
-    except Exception as exc:
-        logger_.error(f"Exception error - detail: {exc}")
-        return None
-    return img
-
-
 def bytes_to_file(file_bytes, output_file):
-    with open(output_file, 'wb') as file:
+    with open(output_file, "wb") as file:
         file.write(file_bytes)
 
 
@@ -262,24 +226,25 @@ def make_thumbnail_pdf(file: bytes) -> Union[bool, bytes]:
     return byte_im
 
 
-def make_chemical_thumbnail(file: bytes, fmt: str) -> Union[bool, bytes]:
-    """
-    Handles thumbnail creation for chemicals files 
-    with extension .mol , .sdf
-    :param file_format : sdf, mol
-    """
-    buf = BytesIO()
-    img = None    
-    img = read_chemical_page(file, page_number=0, file_format=fmt)
+def __load_molecule(file: bytes, indigo: Indigo, ext: str) -> Indigo:
+    # in case of .sdf (maybe others types) get only first compound for preview
+    if ext == ".sdf":
+        for mol in indigo.iterateSDF(indigo.loadBuffer(file)):
+            return mol  # getting first element to preview
+    return indigo.loadMolecule(file.decode(encoding="utf-8"))
 
-    if img is None:
-        return False   
-    size = thumb_size(img)
-    img.thumbnail(size)
-    img.save(buf, format="png")
-    img.close()
-    byte_im = buf.getvalue()
-    return byte_im
+
+def make_thumbnail_chem(file: bytes, ext: str) -> Union[bool, bytes]:
+    logger_.debug("Generating thumbnail from molecules")
+    indigo = Indigo()  # todo: move creation of this object upper
+    renderer = IndigoRenderer(indigo)
+    mol = __load_molecule(file, indigo, ext)
+    indigo.setOption("render-output-format", "png")
+    # todo: pass as argument from front-end
+    indigo.setOption("render-image-width", 1024)
+    indigo.setOption("render-coloring", True)
+    mol.layout()
+    return renderer.renderToBuffer(mol)
 
 
 def make_thumbnail_images(file: bytes) -> Union[bool, bytes]:
@@ -402,9 +367,7 @@ def get_size_ratio(width: int, height: int) -> float:
     try:
         r = width / height
         if r <= 0:
-            logger_.error(
-                "Current size raio <= 0! w = %s , h = %s", width, height
-            )
+            logger_.error("Current size raio <= 0! w = %s , h = %s", width, height)
             r = 1.0
         return r
     except ZeroDivisionError:
