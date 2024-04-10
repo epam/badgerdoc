@@ -1,18 +1,10 @@
 import logging
-
-from assets.config import settings
+import os
 
 _log_format = f"%(asctime)s - [%(levelname)s] - %(name)s - (%(filename)s).%(funcName)s(%(lineno)d) - %(message)s"  # noqa
 _datefmt = "%d-%b-%y %H:%M:%S"
 
-
-def _get_file_handler() -> logging.FileHandler:
-    file_handler = logging.FileHandler(
-        f"{settings.app_name}_{settings.app_version}.log"
-    )
-    file_handler.setLevel(logging.WARNING)
-    file_handler.setFormatter(logging.Formatter(_log_format, _datefmt))
-    return file_handler
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
 
 
 def _get_stream_handler() -> logging.StreamHandler:  # type: ignore
@@ -22,15 +14,13 @@ def _get_stream_handler() -> logging.StreamHandler:  # type: ignore
     # TypeError: 'type' object is not subscriptable
 
     stream_handler = logging.StreamHandler()
-    stream_handler.setLevel(logging.INFO)
+    stream_handler.setLevel(LOG_LEVEL)
     stream_handler.setFormatter(logging.Formatter(_log_format, _datefmt))
     return stream_handler
 
 
 def get_logger(name: str) -> logging.Logger:
     logger = logging.getLogger(name)
-    logger.setLevel(logging.INFO)
-    if settings.log_file:
-        logger.addHandler(_get_file_handler())
+    logger.setLevel(LOG_LEVEL)
     logger.addHandler(_get_stream_handler())
     return logger

@@ -9,17 +9,17 @@ COPY .env alembic.ini pyproject.toml poetry.lock version.txt ./
 COPY alembic alembic
 COPY assets assets
 
-RUN : \
-    && python3 -m pip install --upgrade pip \
-    && pip install poetry>=1.1.13 \
-    && poetry config virtualenvs.create false \
-    && poetry install --no-root --only main \
-    && :
 
 RUN : \
     && apt-get update \
+    && apt install -y git gcc build-essential \
     && apt-get install -y poppler-utils \
     && apt-get install libmagic1 -y \
+    && :
+
+RUN : \
+    && poetry config virtualenvs.create false \
+    && poetry install --no-root --only main \
     && :
 
 CMD alembic upgrade afa33cc83d57 \
@@ -35,23 +35,3 @@ FROM build AS development
 COPY setup.cfg ./
 COPY tests tests
 RUN poetry install --no-root
-
-FROM sonarsource/sonar-scanner-cli:4.6 AS sonar
-
-COPY --from=test /opt/assets/tests /opt/assets/tests
-COPY --from=test /opt/assets/assets /opt/assets/assets
-COPY --from=test /opt/assets/coverage.xml /opt/assets/coverage.xml
-COPY sonar-project.properties /opt/assets/sonar-project.properties
-
-RUN : \
-    && ls -la /opt/assets/tests \
-    && ls -la /opt/assets/assets \
-    && cat /opt/assets/coverage.xml \
-    && cat /opt/assets/sonar-project.properties \
-    && :
-
-CMD sonar-scanner \
-  -Dsonar.projectKey=$SONAR_PROJECT_KEY_ASSETS \
-  -Dproject.settings=/opt/assets/sonar-project.properties \
-  -Dsonar.host.url=$SONAR_HOST_URL \
-  -Dsonar.login=$SONAR_TOKEN_ASSETS
