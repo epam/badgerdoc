@@ -5,6 +5,7 @@ Revises: d31fc5f752ac
 Create Date: 2021-12-14 08:54:04.200572
 
 """
+
 import sqlalchemy as sa
 from sqlalchemy.engine.reflection import Inspector
 

@@ -130,7 +130,9 @@ def test_get_file_names(
         Mock(return_value=parsed_response),
     )
 
-    actual_result = get_file_names_by_request(file_ids, TEST_TENANT, TEST_TOKEN)
+    actual_result = get_file_names_by_request(
+        file_ids, TEST_TENANT, TEST_TOKEN
+    )
     assert actual_result == expected_result
 
 

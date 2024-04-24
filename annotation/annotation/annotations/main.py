@@ -49,9 +49,11 @@ def row_to_dict(row) -> dict:
             column.key: (
                 str(row.__getattribute__(column.key))
                 if isinstance(row.__getattribute__(column.key), UUID)
-                else row.__getattribute__(column.key).isoformat()
-                if isinstance(row.__getattribute__(column.key), datetime)
-                else row.__getattribute__(column.key)
+                else (
+                    row.__getattribute__(column.key).isoformat()
+                    if isinstance(row.__getattribute__(column.key), datetime)
+                    else row.__getattribute__(column.key)
+                )
             )
             for column in row.__table__.columns
             if column.key != "_sa_instance_state"
@@ -60,9 +62,7 @@ def row_to_dict(row) -> dict:
         key: (
             str(value)
             if isinstance(value, UUID)
-            else value.isoformat()
-            if isinstance(value, datetime)
-            else value
+            else value.isoformat() if isinstance(value, datetime) else value
         )
         for key, value in row.__dict__.items()
         if key != "_sa_instance_state"

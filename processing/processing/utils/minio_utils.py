@@ -44,9 +44,7 @@ def create_minio_config():
             "s3 connection is not properly configured - "
             "s3_provider is not set"
         )
-    logger.info(
-        f"S3_Credentials provider - {settings.s3_provider}"
-    )
+    logger.info(f"S3_Credentials provider - {settings.s3_provider}")
 
     return minio_config
 

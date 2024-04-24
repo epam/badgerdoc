@@ -2,6 +2,7 @@
 Merging texts from small word bboxes to paragraph texts
 according to annotations.
 """
+
 import json
 import logging
 import tempfile

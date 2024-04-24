@@ -1,16 +1,16 @@
 // temporary_disabled_rules
 /* eslint-disable @typescript-eslint/no-unused-vars, react-hooks/rules-of-hooks */
-import React, { FC, useMemo, useRef } from 'react';
 import { noop } from 'lodash';
+import { FC, useMemo, useRef } from 'react';
 
+import { Checkbox, FlexCell, PickerList, SearchInput, Spinner } from '@epam/loveship';
 import { useArrayDataSource } from '@epam/uui';
-import { SearchInput, Spinner, Checkbox, FlexCell, PickerList } from '@epam/loveship';
 
-import { Label, Category } from 'api/typings';
+import { Category, Label } from 'api/typings';
 
-import styles from './task-sidebar-labels.module.scss';
 import { useTaskAnnotatorContext } from 'connectors/task-annotator-connector/task-annotator-context';
 import { useLazyLoading } from 'shared/hooks/lazy-loading';
+import styles from './task-sidebar-labels.module.scss';
 
 type TaskSidebarLabelsViewProps = {
     viewMode: boolean;
@@ -121,7 +121,7 @@ export const TaskSidebarLabels = ({
 }: TaskSidebarLabelsProps) => {
     return (
         <div className={styles.container}>
-            <p className={styles.header}> Add labels for the entire document</p>
+            <p className={styles.header}></p>
             <SearchInput
                 value={searchText}
                 onValueChange={(text) => setSearchText(text ? text : '')}

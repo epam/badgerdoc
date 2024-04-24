@@ -4,6 +4,11 @@ from types import SimpleNamespace
 from unittest.mock import Mock, PropertyMock, create_autospec, patch
 
 import pytest
+from minio import Minio
+from PIL import Image
+from requests import Response
+from sqlalchemy.orm import Session
+
 from assets import schemas
 from assets.config import settings
 from assets.db.models import FileObject
@@ -22,10 +27,6 @@ from assets.utils.common_utils import (
     to_obj,
 )
 from assets.utils.s3_utils import S3Manager
-from minio import Minio
-from PIL import Image
-from requests import Response
-from sqlalchemy.orm import Session
 
 ID_ = 12
 
@@ -112,7 +113,7 @@ def test_file_processor_is_extension_correct_without_extension():
 #     )
 #     file_processor.converted_file = pdf_file_bytes
 #     insert_file.return_value = False
-#     assert file_processor.is_blank_is_created()
+#     assert file_processor.is_blank_created()
 #     assert file_processor.is_inserted_to_database() is False
 #     insert_file.assert_called()
 
@@ -185,7 +186,7 @@ def test_file_processor_is_file_updated_status_not_updated(update_file_status):
 
 
 @patch("assets.utils.common_utils.FileProcessor.is_file_updated")
-@patch("assets.utils.common_utils.FileProcessor.is_blank_is_created")
+@patch("assets.utils.common_utils.FileProcessor.is_blank_created")
 @patch(
     "assets.utils.common_utils.FileProcessor.is_original_file_uploaded_to_storage"  # noqa
 )
@@ -194,7 +195,7 @@ def test_file_processor_is_file_updated_status_not_updated(update_file_status):
 @patch("assets.utils.common_utils.FileProcessor.is_converted_file")
 @patch("assets.utils.common_utils.FileProcessor.is_extension_correct")
 def test_file_processor_run_all_stages_passed(
-    is_blank_is_created,
+    is_blank_created,
     is_extension_correct,
     is_converted_file,
     is_inserted_to_database,
@@ -210,7 +211,7 @@ def test_file_processor_run_all_stages_passed(
         file_key="some_file",
     )
 
-    is_blank_is_created.return_value = True
+    is_blank_created.return_value = True
     is_extension_correct.return_value = True
     is_converted_file.return_value = True
     is_inserted_to_database.return_value = True
@@ -219,7 +220,7 @@ def test_file_processor_run_all_stages_passed(
     is_file_updated.return_value = True
 
     assert file_processor.run()
-    is_blank_is_created.assert_called()
+    is_blank_created.assert_called()
     is_extension_correct.assert_called()
     is_converted_file.assert_called()
     is_inserted_to_database.assert_called()

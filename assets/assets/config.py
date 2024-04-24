@@ -60,16 +60,24 @@ class Config(BaseSettings):
     @property
     def service_convert_pdf(self):
         if self.convert_service_host and self.convert_service_scheme:
-            port_str = f':{self.convert_service_port}' if self.convert_service_port is not None else '' # noqa
-            return f'{self.convert_service_scheme}://{self.convert_service_host}{port_str}{self.convert_service_pdf_endpoint}'  # noqa
+            port_str = (
+                f":{self.convert_service_port}"
+                if self.convert_service_port is not None
+                else ""
+            )  # noqa
+            return f"{self.convert_service_scheme}://{self.convert_service_host}{port_str}{self.convert_service_pdf_endpoint}"  # noqa
 
         return None
 
     @property
     def service_convert_txt(self):
         if self.convert_service_host and self.convert_service_scheme:
-            port_str = f':{self.convert_service_port}' if self.convert_service_port is not None else '' # noqa
-            return f'{self.convert_service_scheme}://{self.convert_service_host}{port_str}{self.convert_service_txt_endpoint}'  # noqa
+            port_str = (
+                f":{self.convert_service_port}"
+                if self.convert_service_port is not None
+                else ""
+            )  # noqa
+            return f"{self.convert_service_scheme}://{self.convert_service_host}{port_str}{self.convert_service_txt_endpoint}"  # noqa
 
         return None
 

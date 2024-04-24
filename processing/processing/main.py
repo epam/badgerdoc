@@ -92,11 +92,18 @@ def get_preprocessing_result(
         pages,
         current_tenant,
     )
-    bucket_name = convert_bucket_name_if_s3prefix(current_tenant)
-    return Response(
-        content=send_preprocess_result(bucket_name, file_id, pages),
-        media_type="application/json",
-    )
+    try:
+        bucket_name = convert_bucket_name_if_s3prefix(current_tenant)
+        return Response(
+            content=send_preprocess_result(bucket_name, file_id, pages),
+            media_type="application/json",
+        )
+    except Exception:
+        logger.exception("Cannot find preprocessing results")
+        return Response(
+            content="[]",
+            media_type="application/json",
+        )
 
 
 @app.post(
@@ -146,9 +153,9 @@ async def update_task_status(
     current_tenant: str = Header(..., alias="X-Current-Tenant"),
     session: Session = Depends(db.service.session_scope),
 ) -> Dict[str, str]:
-    task: Optional[
-        db.models.DbPreprocessingTask
-    ] = db.service.get_task_by_execution_id(task_id, session)
+    task: Optional[db.models.DbPreprocessingTask] = (
+        db.service.get_task_by_execution_id(task_id, session)
+    )
     if task is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="No such task"
@@ -174,7 +181,9 @@ async def update_task_status(
     summary="Return list of available preprocessing languages.",
 )
 async def get_list_language(
-    model_id: str = Query(..., description="model id", example="preprocessing")
+    model_id: str = Query(
+        ..., description="model id", example="preprocessing"
+    ),
 ) -> List[str]:
     logger.info("Get request to `/lang` endpoint for model_id=%s", model_id)
     return await GetLanguagesTask(model_id).execute()

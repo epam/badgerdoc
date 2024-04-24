@@ -8,7 +8,6 @@ that given token is valid, not expired and
 there are necessary tenants in token.
 """
 
-
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from tenant_dependency import TenantData

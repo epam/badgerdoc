@@ -31,7 +31,9 @@ async def get_model_url(model_id: str) -> str:
         logger.warning("Model url is predefined in the config.")
         return settings.preprocessing_url
 
-    models_service_url = urljoin(f"http://{settings.models_service_host}", model_id)
+    models_service_url = urljoin(
+        f"http://{settings.models_service_host}", model_id
+    )
     models_response = await send_request("GET", models_service_url)
     try:
         return get_internal_url(str(models_response.json["url"]))
@@ -120,7 +122,11 @@ async def execute_pipeline(
         )
         tasks.append(task)
 
-    pipeline_url = f"http://{settings.pipelines_service_host}/pipelines/{pipeline_id}/execute"
+    pipeline_url = (
+        f"http://{settings.pipelines_service_host}"
+        f"/pipelines/{pipeline_id}/execute"
+    )
+
     webhook = settings.get_webhook("tasks")
     logger.info("sending request to %s", pipeline_url)
 

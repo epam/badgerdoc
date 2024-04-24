@@ -1,6 +1,6 @@
 from io import BytesIO
 from pathlib import Path
-from typing import Any, Dict, List, Optional, TypedDict, Union
+from typing import Any, Callable, Dict, List, Optional, TypedDict, Union
 
 import magic
 import minio
@@ -9,13 +9,18 @@ import PIL.Image
 import requests
 import sqlalchemy.orm
 import starlette.datastructures
+
 from assets import db, exceptions, logger, schemas
 from assets.config import settings
-from assets.utils import minio_utils
+from assets.utils import chem_utils, minio_utils
 from assets.utils.convert_service_utils import post_pdf_to_convert
 from assets.utils.minio_utils import create_minio_config
 
 logger_ = logger.get_logger(__name__)
+
+
+def converter_by_extension(ext: str) -> Callable[[bytes], Any]:
+    pass
 
 
 def to_obj(
@@ -58,15 +63,22 @@ def get_mimetype(file: bytes) -> Any:
     return mimetype
 
 
-def get_pages(file: bytes) -> Any:
-    pages = get_pages_from_pdf(file) or get_pages_from_image(file)
-    return pages
+def get_pages(file: bytes, ext: str) -> Any:
+    logger_.info("Getting count of pages by file extension: %s", ext)
+    if ext not in chem_utils.SUPPORTED_FORMATS:
+        raise exceptions.AssetsUnsupportedFileFormat(
+            "File extension %s is not supported", ext
+        )
+    if "chem" == chem_utils.SUPPORTED_FORMATS[ext]:
+        return chem_utils.get_page_count(file, ext)
+    # Pdf as default
+    return get_pages_from_pdf(file) or get_pages_from_image(file)
 
 
 def get_pages_from_pdf(file: bytes) -> Any:
     try:
         pages = pdf2image.pdfinfo_from_bytes(file)["Pages"]
-    except:  # noqa
+    except Exception:
         return None
     return pages
 
@@ -75,7 +87,7 @@ def get_pages_from_image(file: bytes) -> Any:
     try:
         with PIL.Image.open(BytesIO(file)) as image:
             pages = image.n_frames
-    except:  # noqa
+    except Exception:
         return None
     return pages
 
@@ -85,7 +97,7 @@ def get_file_size(file_bytes: bytes) -> int:
 
 
 def check_uploading_limit(
-    files_list: List[Union[str, starlette.datastructures.UploadFile]]
+    files_list: List[Union[str, starlette.datastructures.UploadFile]],
 ) -> Any:
     limit = settings.uploading_limit
     if len(files_list) > limit:
@@ -397,7 +409,7 @@ class FileProcessor:
 
         return False
 
-    def is_blank_is_created(self) -> bool:
+    def is_blank_created(self) -> bool:
         """
         Checks if blank row in database was created
         """
@@ -413,7 +425,7 @@ class FileProcessor:
             ext,
             original_ext,
             get_mimetype(file_to_upload),
-            get_pages(file_to_upload),
+            get_pages(file_to_upload, ext),
             schemas.FileProcessingStatus.UPLOADING,
         )
         if ext in (".txt", ".html"):
@@ -493,7 +505,7 @@ class FileProcessor:
             ext,
             original_ext,
             get_mimetype(file_to_upload),
-            get_pages(file_to_upload),
+            get_pages(file_to_upload, ext),
             schemas.FileProcessingStatus.UPLOADING,
         )
         if self.new_file:
@@ -581,7 +593,7 @@ class FileProcessor:
         """
         return (
             self.is_extension_correct()
-            and self.is_blank_is_created()
+            and self.is_blank_created()
             and self.is_converted_file()
             and self.is_inserted_to_database()
             and self.is_uploaded_to_storage()

@@ -89,7 +89,10 @@ def post_annotation_by_user(
     if doc.user is None:
         raise HTTPException(
             status_code=400,
-            detail="Field user should not be null, when saving annotation by user.",
+            detail=(
+                "Field user should not be null, "
+                "when saving annotation by user."
+            ),
         )
     check_null_fields(doc)
 
@@ -116,7 +119,9 @@ def post_annotation_by_user(
             f"User_id associated with task: [{task.user_id}].",
         )
 
-    if not task.is_validation and (doc.validated or doc.failed_validation_pages):
+    if not task.is_validation and (
+        doc.validated or doc.failed_validation_pages
+    ):
         raise HTTPException(
             status_code=400,
             detail="This task is for annotation. "
@@ -304,15 +309,6 @@ def post_annotation_by_pipeline(
             detail=f"Cannot assign similar documents: {err}",
         ) from err
     db.commit()
-    if False:  # Kafka needs to be removed
-        check_if_kafka_message_is_needed(
-            db,
-            latest_doc,
-            new_annotated_doc,
-            job_id,
-            file_id,
-            x_current_tenant,
-        )
     return AnnotatedDocSchema.from_orm(new_annotated_doc)
 
 
@@ -332,7 +328,11 @@ def get_jobs_by_file_id(
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
     db: Session = Depends(get_db),
 ):
-    db_file = db.query(File).filter_by(file_id=file_id, tenant=x_current_tenant).first()
+    db_file = (
+        db.query(File)
+        .filter_by(file_id=file_id, tenant=x_current_tenant)
+        .first()
+    )
     if not db_file:
         raise HTTPException(
             status_code=404,
@@ -347,7 +347,10 @@ def get_jobs_by_file_id(
         .distinct(AnnotatedDoc.job_id, AnnotatedDoc.pipeline)
         .all()
     )
-    return [{"job_id": job.job_id, "is_manual": not bool(job.pipeline)} for job in jobs]
+    return [
+        {"job_id": job.job_id, "is_manual": not bool(job.pipeline)}
+        for job in jobs
+    ]
 
 
 @router.get(
@@ -379,7 +382,10 @@ def get_latest_revision_by_user(
     if user_id:
         filters.append(AnnotatedDoc.user == user_id)
     revisions = (
-        db.query(AnnotatedDoc).filter(and_(*filters)).order_by(AnnotatedDoc.date).all()
+        db.query(AnnotatedDoc)
+        .filter(and_(*filters))
+        .order_by(AnnotatedDoc.date)
+        .all()
     )
     pages = find_latest_revision_pages(revisions, page_numbers)
     if not pages:
@@ -428,7 +434,10 @@ def get_annotations_up_to_given_revision(
         filters.append(AnnotatedDoc.user.in_((user_id, None)))
 
     revisions = (
-        db.query(AnnotatedDoc).filter(*filters).order_by(AnnotatedDoc.date.asc()).all()
+        db.query(AnnotatedDoc)
+        .filter(*filters)
+        .order_by(AnnotatedDoc.date.asc())
+        .all()
     )
 
     if not revisions:
@@ -530,7 +539,10 @@ def get_annotation_for_given_revision(
     responses={
         500: {"model": ConnectionErrorSchema},
     },
-    summary="Get all users revisions (or pipeline revision) for particular pages.",
+    summary=(
+        "Get all users revisions (or pipeline revision) "
+        "for particular pages."
+    ),
     tags=[REVISION_TAG, ANNOTATION_TAG],
 )
 def get_all_revisions(
@@ -541,7 +553,9 @@ def get_all_revisions(
     user_id: Optional[UUID] = Query(
         None,
         example="1843c251-564b-4c2f-8d42-c61fdac369a1",
-        description="Required in case job validation type is extensive_coverage",
+        description=(
+            "Required in case job validation " "type is extensive_coverage"
+        ),
     ),
     db: Session = Depends(get_db),
 ):
@@ -559,7 +573,10 @@ def get_all_revisions(
     if job.validation_type == ValidationSchema.extensive_coverage:
         filters.append(AnnotatedDoc.user.in_((user_id, None)))
     revisions = (
-        db.query(AnnotatedDoc).filter(and_(*filters)).order_by(AnnotatedDoc.date).all()
+        db.query(AnnotatedDoc)
+        .filter(and_(*filters))
+        .order_by(AnnotatedDoc.date)
+        .all()
     )
     pages = find_all_revisions_pages(revisions, page_numbers)
     if not pages:

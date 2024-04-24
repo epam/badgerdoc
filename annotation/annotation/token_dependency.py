@@ -2,6 +2,7 @@
 Dependency, that will validate X-Current-Tenant
 and Authorization token
 """
+
 import os
 
 from tenant_dependency import TenantData, get_tenant_info

@@ -73,7 +73,7 @@ def prepare_get_result(
     total_objects: Optional[int] = 16,
     parents=None,
     is_leaf=None,
-    page_offset=0
+    page_offset=0,
 ) -> dict:
     categories = []
     for cat_id, cat_name in categories_ids_names:

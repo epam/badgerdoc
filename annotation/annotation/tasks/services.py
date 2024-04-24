@@ -770,12 +770,12 @@ def evaluate_agreement_score(
         )
         for task_in in tasks_intersection_pages
     ]
-    agreement_scores: List[
-        AgreementScoreServiceResponse
-    ] = get_agreement_score(
-        agreement_scores_input=agreement_scores_input,
-        tenant=tenant,
-        token=token.token,
+    agreement_scores: List[AgreementScoreServiceResponse] = (
+        get_agreement_score(
+            agreement_scores_input=agreement_scores_input,
+            tenant=tenant,
+            token=token.token,
+        )
     )
     compared_score: AgreementScoreComparingResult = compare_agreement_scores(
         agreement_scores, AGREEMENT_SCORE_MIN_MATCH
@@ -927,32 +927,36 @@ def remove_unnecessary_attributes(
     return {
         "size": page_annotations.size,
         "objects": [
-            {
-                **result,
-                "data": {
-                    "tokens": [
-                        {
-                            key: token[key]
-                            for key in token
-                            if key
-                            in {
-                                "id",
-                                "text",
-                                "x",
-                                "y",
-                                "width",
-                                "height",
+            (
+                {
+                    **result,
+                    "data": {
+                        "tokens": [
+                            {
+                                key: token[key]
+                                for key in token
+                                if key
+                                in {
+                                    "id",
+                                    "text",
+                                    "x",
+                                    "y",
+                                    "width",
+                                    "height",
+                                }
                             }
-                        }
-                        for token in result.get("data", {}).get("tokens", [])
-                    ],
-                    "dataAttributes": result.get("data", {}).get(
-                        "dataAttributes", []
-                    ),
-                },
-            }
-            if result.get("type", "") == "text"
-            else result
+                            for token in result.get("data", {}).get(
+                                "tokens", []
+                            )
+                        ],
+                        "dataAttributes": result.get("data", {}).get(
+                            "dataAttributes", []
+                        ),
+                    },
+                }
+                if result.get("type", "") == "text"
+                else result
+            )
             for result in page_annotations.objs
         ],
         "categories": categories,
