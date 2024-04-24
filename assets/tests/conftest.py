@@ -123,12 +123,12 @@ def client_app_main(
     minio_mock_exists_bucket_true.get_object.return_value.headers[
         "Content-Type"
     ] = ""
-    app.dependency_overrides[
-        minio_utils.get_storage
-    ] = lambda: minio_mock_exists_bucket_true
-    app.dependency_overrides[
-        session_scope_for_dependency
-    ] = lambda: setup_database
+    app.dependency_overrides[minio_utils.get_storage] = (
+        lambda: minio_mock_exists_bucket_true
+    )
+    app.dependency_overrides[session_scope_for_dependency] = (
+        lambda: setup_database
+    )
     app.dependency_overrides[tenant] = lambda: setup_tenant
 
     with patch.object(minio_utils, "delete_one_from_minio", return_value=True):
@@ -140,12 +140,12 @@ def client_app_main(
 def client_app_main_bucket_false(
     setup_database, minio_mock_exists_bucket_false, setup_tenant
 ):
-    app.dependency_overrides[
-        minio_utils.get_storage
-    ] = lambda: minio_mock_exists_bucket_false
-    app.dependency_overrides[
-        session_scope_for_dependency
-    ] = lambda: setup_database
+    app.dependency_overrides[minio_utils.get_storage] = (
+        lambda: minio_mock_exists_bucket_false
+    )
+    app.dependency_overrides[session_scope_for_dependency] = (
+        lambda: setup_database
+    )
     app.dependency_overrides[tenant] = lambda: setup_tenant
     client = TestClient(app)
     yield client

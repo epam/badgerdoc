@@ -87,7 +87,7 @@ Example of response for jobs:
     }
 
 """
-import os
+
 from typing import Dict, List, Union
 
 import requests
@@ -187,7 +187,6 @@ def get_response(
 def get_response_from_users_search(
     users_ids: List[str], tenant: str, token: str
 ) -> List[dict]:
-
     post_params = {
         "filters": [{"field": "id", "operator": "in", "value": users_ids}]
     }

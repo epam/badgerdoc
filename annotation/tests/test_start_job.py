@@ -267,9 +267,11 @@ def test_post_start_job_bad_job_response(
         (
             1,
             [
-                dict(row_to_dict(x), status="Ready")
-                if not x.is_validation
-                else row_to_dict(x)
+                (
+                    dict(row_to_dict(x), status="Ready")
+                    if not x.is_validation
+                    else row_to_dict(x)
+                )
                 for x in CHANGE_STATUSES_TASKS[:6]
             ],
         ),

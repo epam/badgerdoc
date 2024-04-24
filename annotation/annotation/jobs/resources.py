@@ -442,9 +442,11 @@ def start_job(
         .filter(
             and_(
                 ManualAnnotationTask.job_id == job_id,
-                ManualAnnotationTask.is_validation.is_(False)
-                if job.validation_type != ValidationSchema.validation_only
-                else ManualAnnotationTask.is_validation.is_(True),
+                (
+                    ManualAnnotationTask.is_validation.is_(False)
+                    if job.validation_type != ValidationSchema.validation_only
+                    else ManualAnnotationTask.is_validation.is_(True)
+                ),
             )
         )
         .update(

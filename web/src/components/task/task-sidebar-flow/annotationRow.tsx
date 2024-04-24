@@ -1,15 +1,15 @@
 // temporary_disabled_rules
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-redeclare */
-import React, { FC, useCallback } from 'react';
+import { FC, useCallback } from 'react';
 import { ANNOTATION_FLOW_ITEM_ID_PREFIX } from 'shared/constants/annotations';
+import { getAnnotationLabelColors, isContrastColor } from 'shared/helpers/annotations';
 import { ANNOTATION_PATH_SEPARATOR } from './constants';
 import { Links } from './links';
 import { TAnnotationProps } from './types';
-import { getAnnotationLabelColors, isContrastColor } from 'shared/helpers/annotations';
 
-import { Text, IconButton } from '@epam/loveship';
-import { cx } from '@epam/uui';
 import { ReactComponent as closeIcon } from '@epam/assets/icons/common/navigation-close-12.svg';
+import { IconButton, Text } from '@epam/loveship';
+import { cx } from '@epam/uui';
 
 import styles from './task-sidebar-flow.module.scss';
 

@@ -1,4 +1,5 @@
 """Contain model for saving page data as JSON"""
+
 import os
 from enum import Enum
 from pathlib import Path

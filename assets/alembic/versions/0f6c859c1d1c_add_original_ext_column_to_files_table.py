@@ -22,7 +22,8 @@ depends_on = None
 
 def upgrade():
     op.add_column(
-        "assets_files", sa.Column("original_ext", sa.String(length=50), nullable=True)
+        "assets_files",
+        sa.Column("original_ext", sa.String(length=50), nullable=True),
     )
 
 

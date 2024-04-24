@@ -575,8 +575,12 @@ ANNOTATED_DOC_FIRST = {
 }
 ANNOTATED_AND_VALIDATED_DOC_FIRST = {
     "revision": sha1(
-        json.dumps(DOC_FOR_FIRST_SAVE_AND_VALIDATE_BY_USER["pages"][0]).encode()
-        + json.dumps(DOC_FOR_FIRST_SAVE_AND_VALIDATE_BY_USER["validated"]).encode()
+        json.dumps(
+            DOC_FOR_FIRST_SAVE_AND_VALIDATE_BY_USER["pages"][0]
+        ).encode()
+        + json.dumps(
+            DOC_FOR_FIRST_SAVE_AND_VALIDATE_BY_USER["validated"]
+        ).encode()
         + json.dumps(
             DOC_FOR_FIRST_SAVE_AND_VALIDATE_BY_USER["failed_validation_pages"]
         ).encode()
@@ -588,7 +592,9 @@ ANNOTATED_AND_VALIDATED_DOC_FIRST = {
     "job_id": POST_ANNOTATION_JOB_1.job_id,
     "pages": {
         "1": sha1(
-            json.dumps(DOC_FOR_FIRST_SAVE_AND_VALIDATE_BY_USER["pages"][0]).encode()
+            json.dumps(
+                DOC_FOR_FIRST_SAVE_AND_VALIDATE_BY_USER["pages"][0]
+            ).encode()
         ).hexdigest()
     },
     "validated": DOC_FOR_FIRST_SAVE_AND_VALIDATE_BY_USER["validated"],
@@ -643,7 +649,10 @@ for page in PAGES_SCHEMA:
     B_PAGES += b_page
 
 CONCATENATED_PAGES_SHA = sha1(
-    B_PAGES + json.dumps([]).encode() + json.dumps([]).encode() + str(POST_ANNOTATION_ANNOTATOR.user_id).encode()
+    B_PAGES
+    + json.dumps([]).encode()
+    + json.dumps([]).encode()
+    + str(POST_ANNOTATION_ANNOTATOR.user_id).encode()
 ).hexdigest()
 
 MANIFEST_IN_MINIO = {
@@ -1403,15 +1412,22 @@ def test_post_annotation_by_user_requests_exceptions(
 
 @pytest.mark.unittest
 @pytest.mark.parametrize(
-    ["pages", "base_revision", "validated", "failed", "user_id", "expected_result"],
+    [
+        "pages",
+        "base_revision",
+        "validated",
+        "failed",
+        "user_id",
+        "expected_result",
+    ],
     [
         (
-                PAGES_SCHEMA,
-                BASE_REVISION,
-                {1, 2, 3},
-                set(),
-                POST_ANNOTATION_ANNOTATOR.user_id,
-                (
+            PAGES_SCHEMA,
+            BASE_REVISION,
+            {1, 2, 3},
+            set(),
+            POST_ANNOTATION_ANNOTATOR.user_id,
+            (
                 PAGES_SHA,
                 sha1(
                     BASE_REVISION.encode()
@@ -1424,12 +1440,12 @@ def test_post_annotation_by_user_requests_exceptions(
         ),  # first and second tests should have different revisions,
         # because they have different validated pages
         (
-                PAGES_SCHEMA,
-                BASE_REVISION,
-                set(),
-                set(),
-                POST_ANNOTATION_ANNOTATOR.user_id,
-                (
+            PAGES_SCHEMA,
+            BASE_REVISION,
+            set(),
+            set(),
+            POST_ANNOTATION_ANNOTATOR.user_id,
+            (
                 PAGES_SHA,
                 sha1(
                     BASE_REVISION.encode()
@@ -1441,12 +1457,12 @@ def test_post_annotation_by_user_requests_exceptions(
             ),
         ),
         (
-                PAGES_SCHEMA,
-                None,
-                {4, 4, 6},
-                {7, 8},
-                POST_ANNOTATION_ANNOTATOR.user_id,
-                (
+            PAGES_SCHEMA,
+            None,
+            {4, 4, 6},
+            {7, 8},
+            POST_ANNOTATION_ANNOTATOR.user_id,
+            (
                 PAGES_SHA,
                 sha1(
                     b""
@@ -1460,12 +1476,12 @@ def test_post_annotation_by_user_requests_exceptions(
         # because they have same base revision,
         # pages, failed and validated pages
         (
-                PAGES_SCHEMA,
-                None,
-                {4, 6},
-                {7, 8},
-                POST_ANNOTATION_ANNOTATOR.user_id,
-                (
+            PAGES_SCHEMA,
+            None,
+            {4, 6},
+            {7, 8},
+            POST_ANNOTATION_ANNOTATOR.user_id,
+            (
                 PAGES_SHA,
                 sha1(
                     b""
@@ -1477,12 +1493,12 @@ def test_post_annotation_by_user_requests_exceptions(
             ),
         ),
         (
-                PAGES_SCHEMA,
-                None,
-                {4, 6},
-                {10},
-                POST_ANNOTATION_ANNOTATOR.user_id,
-                (
+            PAGES_SCHEMA,
+            None,
+            {4, 6},
+            {10},
+            POST_ANNOTATION_ANNOTATOR.user_id,
+            (
                 PAGES_SHA,
                 sha1(
                     b""
@@ -1495,12 +1511,12 @@ def test_post_annotation_by_user_requests_exceptions(
         ),  # this test should have different from 3 and 4
         # tests revision, because it has different failed pages
         (
-                [],
-                BASE_REVISION,
-                {1},
-                {2},
-                POST_ANNOTATION_ANNOTATOR.user_id,
-                (
+            [],
+            BASE_REVISION,
+            {1},
+            {2},
+            POST_ANNOTATION_ANNOTATOR.user_id,
+            (
                 {},
                 sha1(
                     BASE_REVISION.encode()
@@ -1522,11 +1538,7 @@ def test_get_pages_sha(
     expected_result,
 ):
     actual_result = get_pages_sha(
-        pages,
-        base_revision,
-        validated,
-        failed,
-        user_id
+        pages, base_revision, validated, failed, user_id
     )
 
     assert actual_result == expected_result
@@ -2656,7 +2668,11 @@ def test_post_user_annotation_wrong_task_statuses(
 @pytest.mark.parametrize(
     ["task_id", "doc", "expected_result"],
     [
-        (TASK_ID, DOC_FOR_FIRST_SAVE_AND_VALIDATE_BY_USER, ANNOTATED_AND_VALIDATED_DOC_FIRST),
+        (
+            TASK_ID,
+            DOC_FOR_FIRST_SAVE_AND_VALIDATE_BY_USER,
+            ANNOTATED_AND_VALIDATED_DOC_FIRST,
+        ),
     ],
 )
 @patch("annotation.annotations.main.KafkaProducer", Mock)

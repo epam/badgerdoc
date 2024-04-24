@@ -5,6 +5,7 @@ Revises:
 Create Date: 2021-10-11 02:34:39.460385
 
 """
+
 import sqlalchemy as sa
 from assets.db.models import TSVector
 
@@ -63,7 +64,11 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(
-        "ix_name", "assets_files", ["ts_vector"], unique=False, postgresql_using="gin"
+        "ix_name",
+        "assets_files",
+        ["ts_vector"],
+        unique=False,
+        postgresql_using="gin",
     )
     op.create_table(
         "association",
@@ -73,7 +78,9 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(
             ["dataset_id"], ["datasets.id"], ondelete="CASCADE"
         ),
-        sa.ForeignKeyConstraint(["file_id"], ["assets_files.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+            ["file_id"], ["assets_files.id"], ondelete="CASCADE"
+        ),
         sa.PrimaryKeyConstraint("dataset_id", "file_id"),
     )
     # ### end Alembic commands ###

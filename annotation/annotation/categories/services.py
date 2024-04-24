@@ -321,9 +321,11 @@ def _compose_response(
             {
                 **CategoryORMSchema.from_orm(cat).dict(),
                 "is_leaf": leaves.get(cat.id, False),
-                "parents": converted_parents.get(cat.tree.path, [])
-                if cat.tree
-                else [],
+                "parents": (
+                    converted_parents.get(cat.tree.path, [])
+                    if cat.tree
+                    else []
+                ),
             }
         )
         for cat in categories

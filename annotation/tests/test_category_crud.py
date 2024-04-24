@@ -448,7 +448,11 @@ def test_search_db_connection_error(prepare_db_categories_for_filtration):
     [(1, 15, 15, 16), (2, 15, 1, 1), (3, 15, 0, 0), (1, 30, 16, 16)],
 )
 def test_search_pagination(
-    page_num, page_size, result_length, total, prepare_db_categories_for_filtration
+    page_num,
+    page_size,
+    result_length,
+    total,
+    prepare_db_categories_for_filtration,
 ):
     data = prepare_filtration_body(
         page_num=page_num, page_size=page_size, no_filtration=True

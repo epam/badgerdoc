@@ -28,3 +28,11 @@ class FileConversionError(Exception):
     """
 
     pass
+
+
+class AssetsUnsupportedFileFormat(Exception):
+    pass
+
+
+class AssetsMaxMoleculesCountExceeded(Exception):
+    pass

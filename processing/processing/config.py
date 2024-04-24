@@ -1,4 +1,3 @@
-import logging
 from pathlib import Path
 from typing import Optional, Set
 
@@ -86,7 +85,10 @@ class Settings(BaseSettings):
 
     def get_webhook(self, endpoint: str) -> str:
         return "/".join(
-            (f"http://{self.processing_service_host}".rstrip("/"), endpoint.lstrip("/"))
+            (
+                f"http://{self.processing_service_host}".rstrip("/"),
+                endpoint.lstrip("/"),
+            )
         )
 
 

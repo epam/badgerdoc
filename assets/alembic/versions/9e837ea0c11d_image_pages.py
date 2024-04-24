@@ -5,6 +5,7 @@ Revises: 0f6c859c1d1c
 Create Date: 2022-02-14 17:36:57.252191
 
 """
+
 from assets.db.models import FileObject
 from sqlalchemy.orm import Session
 

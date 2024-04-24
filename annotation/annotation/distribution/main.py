@@ -42,6 +42,7 @@ this pages have available pages number left), those pages will be distributed
 between other validators. After last distribution, validation tasks are created
 for the current job_id.
 """
+
 import os
 from collections import defaultdict
 from copy import deepcopy
@@ -201,18 +202,26 @@ def choose_validators_users(
     annotators = {annotator["user_id"] for annotator in annotators}
     validators = {validator["user_id"] for validator in validators}
     cases = {
-        ValidationSchema.cross.value: annotators
-        if SPLIT_MULTIPAGE_DOC
-        else annotators - loaded_annotators,
-        ValidationSchema.hierarchical.value: validators
-        if SPLIT_MULTIPAGE_DOC
-        else validators - loaded_annotators,
-        ValidationSchema.validation_only.value: validators
-        if SPLIT_MULTIPAGE_DOC
-        else validators - loaded_annotators,
-        ValidationSchema.extensive_coverage.value: validators
-        if SPLIT_MULTIPAGE_DOC
-        else validators - loaded_annotators,
+        ValidationSchema.cross.value: (
+            annotators
+            if SPLIT_MULTIPAGE_DOC
+            else annotators - loaded_annotators
+        ),
+        ValidationSchema.hierarchical.value: (
+            validators
+            if SPLIT_MULTIPAGE_DOC
+            else validators - loaded_annotators
+        ),
+        ValidationSchema.validation_only.value: (
+            validators
+            if SPLIT_MULTIPAGE_DOC
+            else validators - loaded_annotators
+        ),
+        ValidationSchema.extensive_coverage.value: (
+            validators
+            if SPLIT_MULTIPAGE_DOC
+            else validators - loaded_annotators
+        ),
     }
     return [users[user_id] for user_id in cases[validation_type]]
 
@@ -639,9 +648,9 @@ def create_tasks(
             tasks.append(
                 {
                     "file_id": file_for_task["file_id"],
-                    "pages": pages[:MAX_PAGES]
-                    if SPLIT_MULTIPAGE_DOC
-                    else pages[:],
+                    "pages": (
+                        pages[:MAX_PAGES] if SPLIT_MULTIPAGE_DOC else pages[:]
+                    ),
                     "job_id": job_id,
                     "user_id": user["user_id"],
                     "is_validation": is_validation,
@@ -731,9 +740,11 @@ def distribute_annotation_partial_files(
                 annotation_tasks.append(
                     {
                         "file_id": item["file_id"],
-                        "pages": pages[:MAX_PAGES]
-                        if SPLIT_MULTIPAGE_DOC
-                        else pages[:],
+                        "pages": (
+                            pages[:MAX_PAGES]
+                            if SPLIT_MULTIPAGE_DOC
+                            else pages[:]
+                        ),
                         "job_id": job_id,
                         "user_id": annotators[0]["user_id"],
                         "is_validation": False,
@@ -838,9 +849,11 @@ def create_partial_validation_tasks(
                     validation_tasks.append(
                         {
                             "file_id": file_id,
-                            "pages": pages[:MAX_PAGES]
-                            if SPLIT_MULTIPAGE_DOC
-                            else pages[:],
+                            "pages": (
+                                pages[:MAX_PAGES]
+                                if SPLIT_MULTIPAGE_DOC
+                                else pages[:]
+                            ),
                             "job_id": job_id,
                             "user_id": validator["user_id"],
                             "is_validation": True,
@@ -868,9 +881,11 @@ def distribute_validation_partial_files(
     # remaining not distributed for validation pages for every file. Files and
     # pages for each validator are created based on this dict data.
     files_all_pages = {
-        item["file_id"]: set(range(1, item["pages_number"] + 1))
-        if "unassigned_pages" not in item
-        else set(item["unassigned_pages"])
+        item["file_id"]: (
+            set(range(1, item["pages_number"] + 1))
+            if "unassigned_pages" not in item
+            else set(item["unassigned_pages"])
+        )
         for item in files
     }
     create_partial_validation_tasks(
