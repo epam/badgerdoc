@@ -1,4 +1,4 @@
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 import pytest
 import responses
@@ -244,7 +244,9 @@ def test_get_files_info(
     ],
 )
 @responses.activate
-def test_get_file_path_and_bucket(file_id, mocked_response, expected_result, assets_files_url_mock):
+def test_get_file_path_and_bucket(
+    file_id, mocked_response, expected_result, assets_files_url_mock
+):
     responses.add(
         responses.POST,
         assets_files_url_mock,

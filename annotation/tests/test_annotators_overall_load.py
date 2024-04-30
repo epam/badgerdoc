@@ -1,16 +1,14 @@
 from unittest.mock import Mock, patch
 
-import responses
 import pytest
+import responses
 from fastapi.testclient import TestClient
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from annotation.jobs import update_user_overall_load
 from annotation.main import app
-from annotation.microservice_communication.assets_communication import (
-    ASSETS_FILES_URL,
-)
+from annotation.microservice_communication.assets_communication import ASSETS_FILES_URL
 from annotation.models import (
     AnnotatedDoc,
     Category,
@@ -586,13 +584,17 @@ def test_overall_change(
 
 
 @pytest.mark.integration
-@pytest.mark.parametrize("db_annotator_custom_overall_load", [0], indirect=True)
+@pytest.mark.parametrize(
+    "db_annotator_custom_overall_load", [0], indirect=True
+)
 @pytest.mark.skip(reason="tests refactoring")
 def test_not_negative_constraint(db_annotator_custom_overall_load: Session):
     session = db_annotator_custom_overall_load
     annotator = session.query(User).get(OVERALL_LOAD_USERS[0].user_id)
     annotator.overall_load -= 1
-    with pytest.raises(SQLAlchemyError, match=r".*not_negative_overall_load.*"):
+    with pytest.raises(
+        SQLAlchemyError, match=r".*not_negative_overall_load.*"
+    ):
         session.commit()
     session.rollback()
 

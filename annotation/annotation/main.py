@@ -8,7 +8,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.exc import DBAPIError, SQLAlchemyError
 from starlette.requests import Request
 
-from annotation import logger as app_logger, database
+from annotation import database
+from annotation import logger as app_logger
 from annotation.annotations import resources as annotations_resources
 from annotation.categories import resources as categories_resources
 from annotation.distribution import resources as distribution_resources

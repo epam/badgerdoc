@@ -11,17 +11,9 @@ from sqlalchemy.orm.attributes import InstrumentedAttribute
 from annotation.categories import fetch_bunch_categories_db
 from annotation.categories.services import response_object_from_db
 from annotation.database import Base
-from annotation.errors import (
-    EnumValidationError,
-    FieldConstraintError,
-    WrongJobError,
-)
-from annotation.microservice_communication.assets_communication import (
-    get_files_info,
-)
-from annotation.microservice_communication.jobs_communication import (
-    get_job_names,
-)
+from annotation.errors import EnumValidationError, FieldConstraintError, WrongJobError
+from annotation.microservice_communication.assets_communication import get_files_info
+from annotation.microservice_communication.jobs_communication import get_job_names
 from annotation.models import (
     Category,
     File,

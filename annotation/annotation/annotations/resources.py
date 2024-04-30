@@ -11,9 +11,7 @@ from annotation.errors import NoSuchRevisionsError
 from annotation.microservice_communication.assets_communication import (
     get_file_path_and_bucket,
 )
-from annotation.microservice_communication.search import (
-    X_CURRENT_TENANT_HEADER,
-)
+from annotation.microservice_communication.search import X_CURRENT_TENANT_HEADER
 from annotation.schemas import (
     AnnotatedDocSchema,
     BadRequestErrorSchema,
