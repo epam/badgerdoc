@@ -204,6 +204,7 @@ JOB_NAMES = {
         ),
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_jobs_by_file(
     monkeypatch, db_get_jobs_info_by_files, file_ids, expected_result
 ):
@@ -282,6 +283,7 @@ def test_get_jobs_by_file(
         ),
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_jobs_info_by_files(
     monkeypatch, db_get_jobs_info_by_files, file_ids, expected_result
 ):

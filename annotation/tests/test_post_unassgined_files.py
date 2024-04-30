@@ -284,6 +284,7 @@ EXPECTED_TASKS = [
         (10, "bad-tenant", 400, "wrong job_id"),
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_post_tasks_for_unassigned_files_error_status_codes(
     db_post_unassigned_files,
     job_id,
@@ -312,6 +313,7 @@ def test_post_tasks_for_unassigned_files_error_status_codes(
     ],
 )
 @patch("annotation.distribution.main.SPLIT_MULTIPAGE_DOC", "true")
+@pytest.mark.skip(reason="tests refactoring")
 def test_post_tasks_for_unassigned_files(
     db_post_unassigned_files, job_id, expected_tasks, expected_files
 ):

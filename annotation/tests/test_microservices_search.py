@@ -3,12 +3,6 @@ import responses
 from fastapi import HTTPException
 from requests import ConnectionError, RequestException, Timeout
 
-from annotation.microservice_communication.assets_communication import (
-    ASSETS_FILES_URL,
-)
-from annotation.microservice_communication.jobs_communication import (
-    JOBS_SEARCH_URL,
-)
 from annotation.microservice_communication.search import (
     PAGE_SIZE,
     calculate_amount_of_pagination_pages,
@@ -269,21 +263,21 @@ def test_expand_response():
     [
         (
             IDS,
-            ASSETS_FILES_URL,
+            "assets_files_url_mock",
             True,
             ASSETS_RESPONSE,
             ASSETS_FILES,
         ),
         (
             [JOBS_RESPONSE["data"][0]["id"], JOBS_RESPONSE["data"][1]["id"]],
-            JOBS_SEARCH_URL,
+            "jobs_search_url_mock",
             False,
             JOBS_RESPONSE,
             JOBS_RESPONSE["data"],
         ),
         (
             IDS,
-            JOBS_SEARCH_URL,
+            "jobs_search_url_mock",
             False,
             {
                 "pagination": {
@@ -301,8 +295,9 @@ def test_expand_response():
 )
 @responses.activate
 def test_get_response(
-    ids, url, is_assets, microservice_response, expected_response
+    ids, url, is_assets, microservice_response, expected_response, request,
 ):
+    url = request.getfixturevalue(url)
     responses.add(
         responses.POST,
         url,
@@ -319,27 +314,27 @@ def test_get_response(
     ["exc"], [(ConnectionError(),), (Timeout(),), (RequestException(),)]
 )
 @responses.activate
-def test_get_response_exc(exc):
+def test_get_response_exc(exc, assets_files_url_mock):
     responses.add(
         responses.POST,
-        ASSETS_FILES_URL,
+        assets_files_url_mock,
         body=exc,
         status=200,
         headers=TEST_HEADERS,
     )
 
     with pytest.raises(HTTPException):
-        get_response("id", IDS, ASSETS_FILES_URL, TEST_TENANT, TEST_TOKEN)
+        get_response("id", IDS, assets_files_url_mock, TEST_TENANT, TEST_TOKEN)
 
 
 @pytest.mark.unittest
 @responses.activate
-def test_get_datasets_info_bad_status_code():
+def test_get_datasets_info_bad_status_code(assets_files_url_mock):
     responses.add(
         responses.POST,
-        ASSETS_FILES_URL,
+        assets_files_url_mock,
         status=500,
     )
 
     with pytest.raises(HTTPException):
-        get_response("id", IDS, ASSETS_FILES_URL, TEST_TENANT, TEST_TOKEN)
+        get_response("id", IDS, assets_files_url_mock, TEST_TENANT, TEST_TOKEN)

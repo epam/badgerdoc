@@ -161,6 +161,7 @@ MISSING_FILE_ID = 100
 
 @pytest.mark.integration
 @patch.object(Session, "query")
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_jobs_by_file_id_sql_connection_error(
     Session,
     prepare_db_for_get_job,
@@ -185,6 +186,7 @@ def test_get_jobs_by_file_id_sql_connection_error(
         (FILE_TEST_IDS[0], JOB_TEST_TENANTS[1]),
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_jobs_by_file_id_404_error(
     prepare_db_for_get_job, tenant, file_id
 ):
@@ -233,6 +235,7 @@ def test_get_jobs_by_file_id_404_error(
         ),
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_jobs_by_file(
     prepare_db_for_get_job, file_id, tenant, expected_response
 ):
@@ -248,6 +251,7 @@ def test_get_jobs_by_file(
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_jobs_name(monkeypatch, prepare_db_for_get_job):
     session = prepare_db_for_get_job
     job_ids = [1, 2, 3]

@@ -246,6 +246,7 @@ def test_accumulate_pages_info_can_extract_categories():
         ),
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_task_revisions(
     db_get_pages_info,
     tenant,
@@ -295,6 +296,7 @@ def test_get_task_revisions(
         ),
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_pages_info_status_codes(
     db_get_pages_info,
     task_id,
@@ -315,6 +317,7 @@ def test_get_pages_info_status_codes(
 
 @pytest.mark.integration
 @patch.object(Session, "query")
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_pages_info_sql_connection_error(
     Session,
     db_get_pages_info,

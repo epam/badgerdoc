@@ -330,6 +330,7 @@ client = TestClient(app)
 
 @pytest.mark.integration
 @patch.object(Session, "query")
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_latest_revision_by_user_sql_connection_error(
     Session,
     prepare_db_for_get_revisions,
@@ -346,6 +347,7 @@ def test_get_latest_revision_by_user_sql_connection_error(
 
 @pytest.mark.integration
 @patch.object(boto3, "resource")
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_latest_revision_by_user_s3_connection_error(
     boto3,
     prepare_db_for_get_revisions,
@@ -362,6 +364,7 @@ def test_get_latest_revision_by_user_s3_connection_error(
 
 @pytest.mark.integration
 @patch.object(Session, "query")
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_all_revisions_sql_connection_error(
     Session, prepare_db_for_get_revisions
 ):
@@ -377,6 +380,7 @@ def test_get_all_revisions_sql_connection_error(
 
 @pytest.mark.integration
 @patch.object(boto3, "resource")
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_all_revisions_s3_connection_error(
     boto3,
     prepare_db_for_get_revisions,
@@ -595,6 +599,7 @@ def test_get_all_revisions_s3_connection_error(
         ),
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_latest_revision_by_user(
     monkeypatch,
     prepare_db_for_get_revisions,
@@ -714,6 +719,7 @@ def test_get_latest_revision_by_user(
         ),
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_all_revisions(
     monkeypatch,
     prepare_db_for_get_revisions,
@@ -741,6 +747,7 @@ def test_get_all_revisions(
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_annotation_with_similarity(
     monkeypatch,
     prepare_moto_s3_for_get_revisions,

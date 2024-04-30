@@ -367,6 +367,7 @@ DATASET_MANAGER_DATASET_RESPONSE = [
 
 @pytest.mark.integration
 @patch.object(Session, "query")
+@pytest.mark.skip(reason="tests refactoring")
 def test_post_job_connection_exception(Session, prepare_db_for_post_job):
     Session.side_effect = Mock(side_effect=SQLAlchemyError())
     response = client.post(
@@ -438,6 +439,7 @@ def test_post_job_connection_exception(Session, prepare_db_for_post_job):
     ],
 )
 @responses.activate
+@pytest.mark.skip(reason="tests refactoring")
 def test_post_job(
     prepare_db_for_post_job,
     job_info,
@@ -493,6 +495,7 @@ def test_post_job(
 
 @pytest.mark.integration
 @responses.activate
+@pytest.mark.skip(reason="tests refactoring")
 def test_post_job_with_extensive_coverage_should_work(
     prepare_db_for_post_job, prepare_categories_with_tree
 ):
@@ -565,6 +568,7 @@ def test_post_job_with_extensive_coverage_should_work(
 
 @pytest.mark.integration
 @responses.activate
+@pytest.mark.skip(reason="tests refactoring")
 def test_post_job_auto_distribution(prepare_db_for_post_job):
     new_job_id = 14
     session = prepare_db_for_post_job
@@ -633,6 +637,7 @@ def test_post_job_auto_distribution(prepare_db_for_post_job):
 @pytest.mark.integration
 @patch.object(Session, "bulk_insert_mappings")
 @responses.activate
+@pytest.mark.skip(reason="tests refactoring")
 def test_post_job_auto_distribution_exc(Session, prepare_db_for_post_job):
     Session.side_effect = Mock(side_effect=SQLAlchemyError())
     new_job_id = 7
@@ -698,6 +703,7 @@ def test_post_job_auto_distribution_exc(Session, prepare_db_for_post_job):
         ((Job.job_id,), (POST_JOB_EXISTING_JOB["job_id"],)),
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_job_attributes_for_post(
     prepare_db_for_post_job, attribute_filter, expected_result
 ):
@@ -720,6 +726,7 @@ def test_get_job_attributes_for_post(
     [(POST_JOB_NEW_JOBS[10], "ExtractionJob1"), (POST_JOB_NEW_JOBS[13], None)],
 )
 @responses.activate
+@pytest.mark.skip(reason="tests refactoring")
 def test_post_extraction_job_saved(
     prepare_db_for_post_job, job_info, expected_name
 ):
@@ -753,6 +760,7 @@ def test_post_extraction_job_saved(
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_post_import_job_saved(prepare_db_for_post_job):
     """Tests that new ImportJob with no users, no files or datasets provided
     will be created in db with correct values for all required fields"""

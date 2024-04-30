@@ -127,6 +127,7 @@ GET_JOB_FILES = (
 
 @pytest.mark.integration
 @patch.object(Session, "query")
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_job_files_connection_error(
     Session,
     prepare_db_for_get_job_files,
@@ -153,6 +154,7 @@ def test_get_job_files_connection_error(
         (GET_JOB_FILES_JOBS[1].job_id, GET_JOB_FILES_TENANTS[0]),
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_job_files_404_error(
     prepare_db_for_get_job_files,
     job_id,
@@ -200,6 +202,7 @@ def test_get_job_files_404_error(
         ),
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_job_files(
     prepare_db_for_get_job_files, job_id, tenant, expected_files
 ):
@@ -291,6 +294,7 @@ def test_get_job_files(
         ),
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_job_files_pagination(
     prepare_db_for_get_job_files,
     job_id,

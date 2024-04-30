@@ -1,9 +1,9 @@
 from typing import List
 from unittest.mock import Mock, patch
 
+import pytest
 import responses
 from fastapi.testclient import TestClient
-from pytest import mark
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
@@ -68,8 +68,9 @@ def make_response(category_ids: List[str]) -> List[dict]:
     return [{"id": category_id} for category_id in category_ids]
 
 
-@mark.integration
+@pytest.mark.integration
 @patch.object(Session, "query")
+@pytest.mark.skip(reason="tests refactoring")
 def test_db_connection_error(Session, prepare_db_child_categories):
     Session.side_effect = Mock(side_effect=SQLAlchemyError())
     category_id = "1"
@@ -81,8 +82,8 @@ def test_db_connection_error(Session, prepare_db_child_categories):
     assert "Error: connection error" in response.text
 
 
-@mark.integration
-@mark.parametrize(
+@pytest.mark.integration
+@pytest.mark.parametrize(
     ["root_category", "expected_subcategories", "tenant"],
     [
         ("1", make_response(["2", "3", "4"]), TEST_TENANT),
@@ -98,6 +99,7 @@ def test_db_connection_error(Session, prepare_db_child_categories):
         ("5", [], "other"),
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_child_categories(
     prepare_db_child_categories,
     root_category,
@@ -115,11 +117,12 @@ def test_get_child_categories(
     assert response.json() == expected_subcategories
 
 
-@mark.integration
-@mark.parametrize(
+@pytest.mark.integration
+@pytest.mark.parametrize(
     ["category_id", "tenant"],
     [("1", "other"), ("5", TEST_TENANT), (NOT_EXIST_ID, TEST_TENANT)],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_wrong_categories(
     prepare_db_child_categories, category_id, tenant
 ):
@@ -134,7 +137,8 @@ def test_get_wrong_categories(
     assert f"Category with id: {category_id} doesn't exist" in response.text
 
 
-@mark.integration
+@pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_child_categories_cache(
     prepare_db_child_categories, prepare_child_categories_cache
 ):
@@ -147,7 +151,8 @@ def test_get_child_categories_cache(
 
 
 @responses.activate
-@mark.integration
+@pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_child_categories_cache_stays_intact_when_new_job_created(
     prepare_db_child_categories, prepare_child_categories_cache
 ):

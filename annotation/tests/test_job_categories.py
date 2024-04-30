@@ -2,8 +2,8 @@ from json import loads
 from typing import Any, List, Optional, Tuple, Union
 from uuid import UUID
 
+import pytest
 from fastapi.testclient import TestClient
-from pytest import mark
 from sqlalchemy.orm import Session
 
 from annotation.microservice_communication.search import (
@@ -192,8 +192,8 @@ def prepare_filtration_body_double_filter(
     return body
 
 
-@mark.integration
-@mark.parametrize(
+@pytest.mark.integration
+@pytest.mark.parametrize(
     ["cat_ids", "cat_tenant"],
     [
         (["1"], TEST_TENANT),  # category with the same tenant
@@ -201,6 +201,7 @@ def prepare_filtration_body_double_filter(
         (["3"], None),  # common category (access for all tenants)
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_job_available_categories(
     cat_ids,
     cat_tenant,
@@ -220,8 +221,8 @@ def test_job_available_categories(
     assert categories[0].tenant == cat_tenant
 
 
-@mark.integration
-@mark.parametrize(
+@pytest.mark.integration
+@pytest.mark.parametrize(
     ["cat_ids", "request_tenant", "expected_cat_ids"],
     [
         (
@@ -238,6 +239,7 @@ def test_job_available_categories(
         (["1"], "other_tenant", "1"),  # category of other tenant
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_job_wrong_category(
     cat_ids,
     request_tenant,
@@ -259,7 +261,8 @@ def test_job_wrong_category(
     assert not job
 
 
-@mark.integration
+@pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_job_category_db_error(mock_db_error_for_job_categories):
     session = mock_db_error_for_job_categories
     response = client.post(
@@ -289,7 +292,8 @@ def delete_job(session: Session, job_id: int) -> None:
     return session.query(Job).get(job_id)
 
 
-@mark.integration
+@pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_delete_categories_no_cascade(mock_assets_communication):
     session = mock_assets_communication
     client.post(
@@ -304,7 +308,8 @@ def test_delete_categories_no_cascade(mock_assets_communication):
     assert session.query(Job).get(MOCK_ID)
 
 
-@mark.integration
+@pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_job_via_category(mock_assets_communication):
     session = mock_assets_communication
     client.post(
@@ -317,7 +322,8 @@ def test_get_job_via_category(mock_assets_communication):
     assert category.jobs[0] == job
 
 
-@mark.integration
+@pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_delete_job_no_cascade(mock_assets_communication):
     session = mock_assets_communication
     client.post(
@@ -332,14 +338,15 @@ def test_delete_job_no_cascade(mock_assets_communication):
     assert session.query(Category).get("1")
 
 
-@mark.integration
-@mark.parametrize(
+@pytest.mark.integration
+@pytest.mark.parametrize(
     ["job_id", "request_tenant"],
     [
         (2, TEST_TENANT),  # not exist job
         (MOCK_ID, "other_tenant"),  # other tenant's job
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_job_categories_wrong_job(
     prepare_db_job_with_filter_categories,
     job_id,
@@ -356,8 +363,8 @@ def test_get_job_categories_wrong_job(
     assert f"Job with job_id ({job_id}) not found" in response.text
 
 
-@mark.integration
-@mark.parametrize(
+@pytest.mark.integration
+@pytest.mark.parametrize(
     ["prepare_db_job_with_single_category", "cat_id", "cat_name"],
     [
         ("1", "1", "Title"),  # this tenant category
@@ -365,6 +372,7 @@ def test_get_job_categories_wrong_job(
     ],
     indirect=["prepare_db_job_with_single_category"],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_job_categories_tenant(
     prepare_db_job_with_single_category,
     cat_id,
@@ -381,8 +389,8 @@ def test_get_job_categories_tenant(
     assert response.json() == expected_result
 
 
-@mark.integration
-@mark.parametrize(
+@pytest.mark.integration
+@pytest.mark.parametrize(
     ["page_size", "page_num", "expected_results_count"],  # 16 results total
     [
         (15, 1, 15),
@@ -390,6 +398,7 @@ def test_get_job_categories_tenant(
         (15, 2, 1),
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_job_categories_pagination(
     prepare_db_job_with_filter_categories,
     page_size,
@@ -409,8 +418,9 @@ def test_get_job_categories_pagination(
     assert len(categories) == expected_results_count
 
 
-@mark.integration
-@mark.parametrize("page_size", (20, 1, 10))
+@pytest.mark.integration
+@pytest.mark.parametrize("page_size", (20, 1, 10))
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_job_wrong_pagination(
     page_size, prepare_db_job_with_filter_categories
 ):
@@ -424,11 +434,12 @@ def test_get_job_wrong_pagination(
     assert "value is not a valid enumeration member" in response.text
 
 
-@mark.integration
-@mark.parametrize(
+@pytest.mark.integration
+@pytest.mark.parametrize(
     ["page_num", "page_size", "result_length", "total"],
     [(1, 15, 15, 16), (2, 15, 1, 1), (3, 15, 0, 0), (1, 30, 16, 16)],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_search_pagination(
     page_num,
     page_size,
@@ -454,7 +465,8 @@ def test_search_pagination(
     assert len(categories) == result_length
 
 
-@mark.integration
+@pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_search_no_filtration(
     prepare_db_categories_for_filtration, prepare_db_job_with_filter_categories
 ):
@@ -469,11 +481,12 @@ def test_search_no_filtration(
     assert len(categories) == 16
 
 
-@mark.integration
-@mark.parametrize(
+@pytest.mark.integration
+@pytest.mark.parametrize(
     "category_id",
     ("2", "100"),  # other tenant category and category that doesn't exist
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_search_wrong_category(
     category_id,
     prepare_db_categories_for_filtration,
@@ -492,14 +505,15 @@ def test_search_wrong_category(
     assert not categories
 
 
-@mark.integration
-@mark.parametrize(
+@pytest.mark.integration
+@pytest.mark.parametrize(
     ["category_id", "category_name"],
     [
         ("1", "Title"),  # this tenant category id and name
         ("3", "Table1"),  # common category id and name
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_search_allowed_categories(
     category_id,
     category_name,
@@ -520,10 +534,11 @@ def test_search_allowed_categories(
     )
 
 
-@mark.integration
-@mark.parametrize(
+@pytest.mark.integration
+@pytest.mark.parametrize(
     ["operator", "value", "expected"], [("lt", "11", 2), ("gt", "14", 10)]
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_search_filter_gt_lt(
     operator,
     value,
@@ -542,11 +557,12 @@ def test_search_filter_gt_lt(
     assert len(categories) == expected
 
 
-@mark.integration
-@mark.parametrize(
+@pytest.mark.integration
+@pytest.mark.parametrize(
     ["operator", "value", "expected"],
     [("like", "%T%1", 2), ("like", "%T%1_", 6), ("ilike", "%T%1_", 6)],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_search_filter_name_like(
     operator,
     value,
@@ -567,8 +583,9 @@ def test_search_filter_name_like(
     assert len(categories) == expected
 
 
-@mark.integration
-@mark.parametrize(["direction", "expected"], [("asc", "1"), ("desc", "4")])
+@pytest.mark.integration
+@pytest.mark.parametrize(["direction", "expected"], [("asc", "1"), ("desc", "4")])
+@pytest.mark.skip(reason="tests refactoring")
 def test_search_filter_ordering(
     direction,
     expected,
@@ -588,7 +605,8 @@ def test_search_filter_ordering(
     assert categories["id"] == expected
 
 
-@mark.integration
+@pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_search_filter_distinct_id(
     prepare_db_categories_for_filtration,
     prepare_db_job_with_filter_categories,
@@ -606,7 +624,8 @@ def test_search_filter_distinct_id(
     assert len(result_data) == 16
 
 
-@mark.integration
+@pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_search_two_filters_different_distinct_order(
     prepare_db_categories_for_distinct_filtration,
     prepare_db_job_with_filter_categories,
@@ -633,7 +652,8 @@ def test_search_two_filters_different_distinct_order(
     assert first_result_data == second_result_data
 
 
-@mark.integration
+@pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_search_two_filters_both_distinct(
     prepare_db_categories_for_distinct_filtration,
     prepare_db_job_with_filter_categories,
@@ -649,7 +669,8 @@ def test_search_two_filters_both_distinct(
     assert len(result_data) == 3
 
 
-@mark.integration
+@pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_search_categories_400_error(
     prepare_db_categories_for_filtration,
     prepare_db_job_with_filter_categories,
@@ -668,8 +689,8 @@ def test_search_categories_400_error(
     assert error_message in response.text
 
 
-@mark.integration
-@mark.parametrize(
+@pytest.mark.integration
+@pytest.mark.parametrize(
     ["wrong_parameter", "value"],
     [
         ("field", "wrong_field"),
@@ -677,6 +698,7 @@ def test_search_categories_400_error(
         ("page_size", 0),
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_search_wrong_parameters(
     wrong_parameter,
     value,

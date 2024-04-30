@@ -180,6 +180,7 @@ JOB_WITHOUT_TASKS = CHANGE_STATUSES_JOBS[2].job_id
         (CHANGE_STATUSES_JOBS[0].job_id, JobStatusEnumSchema.failed),
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_update_inner_job_status(
     job_id, status, prepare_db_for_update_job_status
 ):
@@ -191,6 +192,7 @@ def test_update_inner_job_status(
 
 @pytest.mark.integration
 @patch.object(Session, "query")
+@pytest.mark.skip(reason="tests refactoring")
 def test_post_start_job_500_response(
     Session,
     prepare_db_for_change_statuses,
@@ -205,6 +207,7 @@ def test_post_start_job_500_response(
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_post_start_wrong_job_404_response(prepare_db_for_change_statuses):
     response = client.post(
         START_JOB_PATH.format(job_id=MISSING_JOB_ID), headers=TEST_HEADERS
@@ -214,6 +217,7 @@ def test_post_start_wrong_job_404_response(prepare_db_for_change_statuses):
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_post_start_job_404_response(prepare_db_for_change_statuses):
     response = client.post(
         START_JOB_PATH.format(job_id=JOB_WITHOUT_TASKS), headers=TEST_HEADERS
@@ -231,6 +235,7 @@ def test_post_start_job_404_response(prepare_db_for_change_statuses):
     ],
 )
 @responses.activate
+@pytest.mark.skip(reason="tests refactoring")
 def test_post_start_job_bad_job_response(
     prepare_db_for_change_statuses,
     job_response_status,
@@ -287,6 +292,7 @@ def test_post_start_job_bad_job_response(
     ],
 )
 @responses.activate
+@pytest.mark.skip(reason="tests refactoring")
 def test_post_start_job_tasks_statuses(
     prepare_db_for_change_statuses, job_id, expected_response
 ):

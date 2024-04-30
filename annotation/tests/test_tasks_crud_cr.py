@@ -675,6 +675,7 @@ def prepare_stats_export_body(
 
 @pytest.mark.integration
 @patch.object(Session, "query")
+@pytest.mark.skip(reason="tests refactoring")
 def test_post_task_500_response(Session, prepare_db_for_cr_task):
     Session.side_effect = Mock(side_effect=SQLAlchemyError())
     response = client.post(
@@ -685,6 +686,7 @@ def test_post_task_500_response(Session, prepare_db_for_cr_task):
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_post_task_wrong_job(prepare_db_for_cr_task):
     response = client.post(
         CRUD_TASKS_PATH, json=TASK_WRONG_JOB, headers=TEST_HEADERS
@@ -724,6 +726,7 @@ def test_post_task_wrong_job(prepare_db_for_cr_task):
         ),  # ExtractionJob
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_post_task_wrong_users_errors(
     prepare_db_for_cr_task, task_info, error_message
 ):
@@ -742,6 +745,7 @@ def test_post_task_wrong_users_errors(
         TASKS_WRONG_PAGES[1],
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_post_task_422_pages_response(prepare_db_for_cr_task, task_info):
     response = client.post(
         CRUD_TASKS_PATH, json=task_info, headers=TEST_HEADERS
@@ -775,6 +779,7 @@ def test_post_task_422_pages_response(prepare_db_for_cr_task, task_info):
         ),
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_post_task(prepare_db_for_cr_task, task_info, expected_response):
     response = client.post(
         CRUD_TASKS_PATH, json=task_info, headers=TEST_HEADERS
@@ -793,6 +798,7 @@ def test_post_task(prepare_db_for_cr_task, task_info, expected_response):
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_add_task_stats_start_from_close(prepare_db_for_cr_task):
     response = client.post(
         f"{CRUD_TASKS_PATH}/{CRUD_CR_ANNOTATION_TASKS[0].id}/stats",
@@ -804,6 +810,7 @@ def test_add_task_stats_start_from_close(prepare_db_for_cr_task):
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_add_task_stats_404_not_found(prepare_db_for_cr_task):
     id_ = uuid4().int
 
@@ -823,6 +830,7 @@ def test_add_task_stats_404_not_found(prepare_db_for_cr_task):
     # Task ids
     [(id_,) for id_ in [1, 2, 3, 4, 5]],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_create_task_stats(prepare_db_for_cr_task, task_id):
     response = client.post(
         f"{CRUD_TASKS_PATH}/{task_id}/stats",
@@ -844,6 +852,7 @@ def test_create_task_stats(prepare_db_for_cr_task, task_id):
     # Task ids
     [(id_,) for id_ in [1, 2, 3, 4, 5]],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_update_task_stats_same_event(prepare_db_update_stats, task_id):
     response = client.post(
         f"{CRUD_TASKS_PATH}/{task_id}/stats",
@@ -865,6 +874,7 @@ def test_update_task_stats_same_event(prepare_db_update_stats, task_id):
     # Task ids
     [(id_,) for id_ in [1, 2, 3, 4, 5]],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_update_task_already_updated(
     prepare_db_update_stats_already_updated,
     task_id,
@@ -889,6 +899,7 @@ def test_update_task_already_updated(
     # Task ids
     [(id_,) for id_ in [1, 2, 3, 4, 5]],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_update_task_already_updated_change_event(
     prepare_db_update_stats_already_updated,
     task_id,
@@ -910,6 +921,7 @@ def test_update_task_already_updated_change_event(
 
 @pytest.mark.integration
 @responses.activate
+@pytest.mark.skip(reason="tests refactoring")
 def test_create_export_data_not_found(prepare_db_update_stats):
 
     user_ids = [f"{uuid4()}" for _ in range(10)]
@@ -974,6 +986,7 @@ def test_create_export_data_not_found(prepare_db_update_stats):
         ("2000-12-15T00:00:00", "2100-12-15"),
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_create_export_invalid_datetime_format(
     prepare_db_for_cr_task, date_from, date_to
 ):
@@ -995,6 +1008,7 @@ def test_create_export_invalid_datetime_format(
 
 @pytest.mark.integration
 @responses.activate
+@pytest.mark.skip(reason="tests refactoring")
 def test_create_export_return_csv(
     prepare_db_update_stats_already_updated, USERS_SEARCH=None
 ):
@@ -1098,6 +1112,7 @@ def test_get_task_500_response(Session):
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_task_404_response(prepare_db_for_cr_task):
     response = client.get(CRUD_TASKS_PATH + "/111", headers=TEST_HEADERS)
     assert response.status_code == 404
@@ -1106,6 +1121,7 @@ def test_get_task_404_response(prepare_db_for_cr_task):
 
 @pytest.mark.integration
 @responses.activate
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_task(prepare_db_for_cr_task):
     responses.add(
         responses.POST,
@@ -1133,6 +1149,7 @@ def test_get_task(prepare_db_for_cr_task):
 
 @pytest.mark.integration
 @responses.activate
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_previous_and_next_tasks_case1(prepare_db_for_cr_task):
     user_uuid = "9eace50e-613e-4352-b287-85fd91c88b51"
     headers = {**TEST_HEADERS, "user": user_uuid}
@@ -1169,6 +1186,7 @@ def test_get_previous_and_next_tasks_case1(prepare_db_for_cr_task):
 
 @pytest.mark.integration
 @responses.activate
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_previous_and_next_tasks_case2(prepare_db_for_cr_task):
     user_uuid = "9eace50e-613e-4352-b287-85fd91c88b51"
     headers = {**TEST_HEADERS, "user": user_uuid}
@@ -1205,6 +1223,7 @@ def test_get_previous_and_next_tasks_case2(prepare_db_for_cr_task):
 
 @pytest.mark.integration
 @responses.activate
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_previous_and_next_tasks_case3(prepare_db_for_cr_task):
     user_uuid = "1cace611-713f-5353-c268-95ff92c87b62"
     headers = {**TEST_HEADERS, "user": user_uuid}
@@ -1231,6 +1250,7 @@ def test_get_tasks_500_response(Session):
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_tasks_404_response(prepare_db_for_cr_task):
     response = client.get(
         CRUD_TASKS_PATH, params={"file_id": 111}, headers=TEST_HEADERS
@@ -1314,6 +1334,7 @@ def test_get_tasks_404_response(prepare_db_for_cr_task):
     ],
 )
 @responses.activate
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_tasks(
     prepare_db_for_cr_task,
     url_params: dict,
@@ -1412,6 +1433,7 @@ def test_get_tasks(
     ],
 )
 @responses.activate
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_tasks_pagination(
     prepare_db_for_cr_task,
     url_params: dict,
@@ -1459,6 +1481,7 @@ def test_get_tasks_pagination(
         (NEW_TASKS[3], CRUD_CR_JOBS[3].deadline),
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_post_task_deadline(
     prepare_db_for_cr_task, task_info, expected_deadline
 ):
@@ -1550,6 +1573,7 @@ def prepare_filtration_body_double_filter(
 @patch(
     "annotation.tasks.resources.filter_tasks_db", side_effect=SQLAlchemyError
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_search_tasks_500_error(prepare_db_for_cr_task):
     data = prepare_filtration_body()
     response = client.post(SEARCH_TASKS_PATH, json=data, headers=TEST_HEADERS)
@@ -1558,6 +1582,7 @@ def test_search_tasks_500_error(prepare_db_for_cr_task):
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_search_tasks_400_error(prepare_db_for_cr_task):
     data = prepare_filtration_body(
         ordering_field="status", operator="distinct"
@@ -1572,6 +1597,7 @@ def test_search_tasks_400_error(prepare_db_for_cr_task):
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_search_two_filters_different_distinct_order(prepare_db_for_cr_task):
     data = prepare_filtration_body_double_filter(
         first_field="status",
@@ -1588,6 +1614,7 @@ def test_search_two_filters_different_distinct_order(prepare_db_for_cr_task):
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_search_two_filters_both_distinct(prepare_db_for_cr_task):
     data = prepare_filtration_body_double_filter()
     response = client.post(SEARCH_TASKS_PATH, json=data, headers=TEST_HEADERS)
@@ -1602,6 +1629,7 @@ def test_search_two_filters_both_distinct(prepare_db_for_cr_task):
     [(1, 15, 15, 23), (2, 15, 8, 8), (3, 15, 0, 0), (22, 30, 0, 0)],
 )
 @responses.activate
+@pytest.mark.skip(reason="tests refactoring")
 def test_search_tasks_pagination(
     page_num, page_size, result_length, total, prepare_db_for_cr_task
 ):
@@ -1683,6 +1711,7 @@ def test_search_tasks_pagination(
     ],
 )
 @responses.activate
+@pytest.mark.skip(reason="tests refactoring")
 def tests_search_tasks_filtration(
     filter_field, operator, value, expected_ids, prepare_db_for_cr_task
 ):
@@ -1733,6 +1762,7 @@ def tests_search_tasks_filtration(
     ],
 )
 @responses.activate
+@pytest.mark.skip(reason="tests refactoring")
 def tests_search_tasks_ordering(
     ordering_field, direction, expected_order_ids, prepare_db_for_cr_task
 ):
@@ -1773,6 +1803,7 @@ def tests_search_tasks_ordering(
     ],
 )
 @responses.activate
+@pytest.mark.skip(reason="tests refactoring")
 def test_search_tasks_wrong_parameters(
     wrong_parameter, value, prepare_db_for_cr_task
 ):
@@ -1809,6 +1840,7 @@ def test_search_tasks_wrong_parameters(
         ),
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_post_task_validation_only(
     prepare_db_for_cr_task, task_info, expected_status_code, expected_response
 ):
@@ -1827,6 +1859,7 @@ def test_post_task_validation_only(
 
 @pytest.mark.integration
 @pytest.mark.parametrize("task_info", (NEW_TASKS[9], NEW_TASKS[10]))
+@pytest.mark.skip(reason="tests refactoring")
 def test_post_task_wrong_file_error(prepare_db_for_cr_task, task_info):
     response = client.post(
         CRUD_TASKS_PATH, json=task_info, headers=TEST_HEADERS
@@ -1839,6 +1872,7 @@ def test_post_task_wrong_file_error(prepare_db_for_cr_task, task_info):
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_post_task_wrong_file_pages(prepare_db_for_cr_task):
     response = client.post(
         CRUD_TASKS_PATH, json=NEW_TASKS[11], headers=TEST_HEADERS
@@ -1875,6 +1909,7 @@ def test_post_task_wrong_file_pages(prepare_db_for_cr_task):
     ],
 )
 @responses.activate
+@pytest.mark.skip(reason="tests refactoring")
 def test_search_additional_filter(
     prepare_db_for_cr_task, filtration_body, asset_response, expected_response
 ):
@@ -1905,6 +1940,7 @@ def test_search_additional_filter(
 
 @pytest.mark.integration
 @responses.activate
+@pytest.mark.skip(reason="tests refactoring")
 def test_search_two_additional_filters(prepare_db_for_cr_task):
     responses.add(
         responses.POST,

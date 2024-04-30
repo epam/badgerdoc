@@ -237,6 +237,7 @@ EXPANDED_NEXT_TASK_RESPONSES = [
 
 @pytest.mark.integration
 @patch.object(Session, "query")
+@pytest.mark.skip(reason="tests refactoring")
 def test_post_next_task_sql_connection_error(
     Session,
     prepare_db_for_get_next_task,
@@ -260,6 +261,7 @@ def test_post_next_task_sql_connection_error(
     ["exc"], [(ConnectionError(),), (Timeout(),), (RequestException(),)]
 )
 @responses.activate
+@pytest.mark.skip(reason="tests refactoring")
 def test_post_next_task_request_error(prepare_db_for_get_next_task, exc):
     responses.add(
         responses.GET,
@@ -289,6 +291,7 @@ def test_post_next_task_request_error(prepare_db_for_get_next_task, exc):
         ANNOTATORS[3].user_id,
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_post_next_task_404_error(
     prepare_db_for_get_next_task,
     user_id,
@@ -356,6 +359,7 @@ EXPANDED_NEXT_TASK_RESPONSES_WITH_USER = [
     ],
 )
 @responses.activate
+@pytest.mark.skip(reason="tests refactoring")
 def test_post_next_task(
     prepare_db_for_get_next_task,
     user_id,

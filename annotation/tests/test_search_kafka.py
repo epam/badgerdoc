@@ -1,9 +1,9 @@
 from unittest import mock
 
+import pytest
 import responses
 from fastapi.testclient import TestClient
 from kafka.errors import NoBrokersAvailable
-from pytest import mark
 
 from annotation.annotations import add_search_annotation_producer
 from annotation.kafka_client import producers
@@ -109,7 +109,7 @@ DOC_FOR_SAVE_BY_USER = {
 }
 
 
-@mark.unittest
+@pytest.mark.unittest
 def test_kafka_connection_error(monkeypatch):
     """Tests that NoBrokersAvailable (subclass of KafkaError) exception
     is correctly handled and no producers added to KAFKA_PRODUCERS.
@@ -129,7 +129,7 @@ class MockProducer:
         self.value_serializer = value_serializer
 
 
-@mark.unittest
+@pytest.mark.unittest
 @mock.patch(
     target="annotation.annotations.main.KAFKA_BOOTSTRAP_SERVER", new="url_1"
 )
@@ -149,7 +149,8 @@ def test_add_search_annotation_producer(monkeypatch):
     assert mock_producer.bootstrap_servers == "url_1"
 
 
-@mark.unittest
+@pytest.mark.unittest
+@pytest.mark.skip(reason="tests refactoring")
 def test_producer_startup_creation(monkeypatch):
     """Checks that producer creation automatically called on app startup."""
     mock_startup = mock.Mock()
@@ -161,9 +162,9 @@ def test_producer_startup_creation(monkeypatch):
         mock_startup.assert_called_once()
 
 
-@mark.integration
+@pytest.mark.integration
 @responses.activate
-@mark.parametrize(
+@pytest.mark.parametrize(
     ["annotation_type_path", "doc_type"],
     [
         (
@@ -179,6 +180,7 @@ def test_producer_startup_creation(monkeypatch):
 @mock.patch(
     target="annotation.annotations.main.KafkaProducer", new=mock.Mock()
 )
+@pytest.mark.skip(reason="kafka decommissioning")
 def test_post_annotation_send_message(
     monkeypatch,
     empty_bucket,

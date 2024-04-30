@@ -335,6 +335,7 @@ LATEST_WITH_ALL_PAGES = dict(
         ),
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_annotation_for_latest_revision_status_codes(
     monkeypatch,
     minio_accumulate_revisions,

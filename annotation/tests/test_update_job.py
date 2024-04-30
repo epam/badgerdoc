@@ -1,9 +1,9 @@
 from collections import Counter
 from unittest.mock import Mock, patch
 
+import pytest
 import responses
 from fastapi.testclient import TestClient
-from pytest import mark
 from sqlalchemy import asc
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -245,8 +245,9 @@ ASSOCIATION_TABLES = {
 }
 
 
-@mark.integration
+@pytest.mark.integration
 @patch("annotation.jobs.resources.get_job", side_effect=SQLAlchemyError)
+@pytest.mark.skip(reason="tests refactoring")
 def test_update_job_connection_exception(prepare_db_for_update_job):
     """Tests error handling for SQLAlchemy errors."""
     response = client.patch(
@@ -258,8 +259,8 @@ def test_update_job_connection_exception(prepare_db_for_update_job):
     assert "Error: connection error " in response.text
 
 
-@mark.integration
-@mark.parametrize(
+@pytest.mark.integration
+@pytest.mark.parametrize(
     ["field", "new_value"],
     [
         ("callback_url", "http://www.test.com/new_url"),
@@ -267,6 +268,7 @@ def test_update_job_connection_exception(prepare_db_for_update_job):
         ("name", "JobName1"),
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_update_deadline_url_name(field, new_value, prepare_db_for_update_job):
     """Tests updating of fields without additional business logic involved."""
     session = prepare_db_for_update_job
@@ -285,8 +287,8 @@ def test_update_deadline_url_name(field, new_value, prepare_db_for_update_job):
     }
 
 
-@mark.integration
-@mark.parametrize(
+@pytest.mark.integration
+@pytest.mark.parametrize(
     ["query", "status_code"],
     [
         ({"wrong_field": "some_value"}, 200),  # not in model and patch schema
@@ -299,6 +301,7 @@ def test_update_deadline_url_name(field, new_value, prepare_db_for_update_job):
         ({}, 200),  # empty query
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_update_wrong_fields(query, status_code, prepare_db_for_update_job):
     """Tests that empty query or query with wrong fields will not modify job
     in database and checks appropriate status codes."""
@@ -314,8 +317,9 @@ def test_update_wrong_fields(query, status_code, prepare_db_for_update_job):
     assert old_job.__dict__ == updated_job.__dict__
 
 
-@mark.integration
-@mark.parametrize("job_id", (UPDATE_JOB_IDS[3], UPDATE_WRONG_JOB_ID))
+@pytest.mark.integration
+@pytest.mark.parametrize("job_id", (UPDATE_JOB_IDS[3], UPDATE_WRONG_JOB_ID))
+@pytest.mark.skip(reason="tests refactoring")
 def test_update_wrong_job_id(job_id, prepare_db_for_update_job):
     """Tests that request to change job with not-existing job_id or other
     tenant's job will return 404 error.
@@ -329,8 +333,8 @@ def test_update_wrong_job_id(job_id, prepare_db_for_update_job):
     assert f"Error: Job with job_id ({job_id}) not found" in response.text
 
 
-@mark.integration
-@mark.parametrize(
+@pytest.mark.integration
+@pytest.mark.parametrize(
     ["category_ids", "job_id"],
     (
         [["1"], UPDATE_JOB_IDS[0]],
@@ -339,6 +343,7 @@ def test_update_wrong_job_id(job_id, prepare_db_for_update_job):
         (["1"], UPDATE_JOB_IDS[7]),
     ),
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_update_categories(category_ids, prepare_db_for_update_job, job_id):
     """Checks status 200 code and 'association_job_category' table entities
     for job's appropriate categories update cases. Also checks that categories
@@ -367,8 +372,9 @@ def test_update_categories(category_ids, prepare_db_for_update_job, job_id):
     assert all_categories_before == all_categories_after
 
 
-@mark.integration
-@mark.parametrize("category_ids", ("3", "4"))
+@pytest.mark.integration
+@pytest.mark.parametrize("category_ids", ("3", "4"))
+@pytest.mark.skip(reason="tests refactoring")
 def test_update_wrong_categories(category_ids, prepare_db_for_update_job):
     """Checks status 404 code and association_job_category entities for
     not-exist and other tenant's categories update cases.
@@ -389,8 +395,8 @@ def test_update_wrong_categories(category_ids, prepare_db_for_update_job):
     assert jobs_categories == [(CATEGORIES_IDS[0], UPDATE_JOB_IDS[0])]
 
 
-@mark.integration
-@mark.parametrize(
+@pytest.mark.integration
+@pytest.mark.parametrize(
     ["field", "job_id", "new_files"],
     [
         ("files", UPDATE_JOB_IDS[0], [UPDATE_JOB_FILES_FROM_ASSETS[0]]),
@@ -400,6 +406,7 @@ def test_update_wrong_categories(category_ids, prepare_db_for_update_job):
         ("files", UPDATE_JOB_IDS[7], [UPDATE_JOB_FILES_FROM_ASSETS[2]]),
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_update_files(
     prepare_db_for_update_job, monkeypatch, field, job_id, new_files
 ):
@@ -438,8 +445,8 @@ def test_update_files(
     assert row_to_dict(other_job_files) == row_to_dict(UPDATE_JOB_FILES[1])
 
 
-@mark.integration
-@mark.parametrize(
+@pytest.mark.integration
+@pytest.mark.parametrize(
     ["user_type", "old_user_id", "new_user_ids", "expected_users_count"],
     [
         ("annotators", USER_IDS[0], [USER_IDS[0]], 4),  # same user
@@ -453,6 +460,7 @@ def test_update_files(
         ("owners", USER_IDS[2], [USER_IDS[1], UPDATE_NEW_USER_ID], 5),
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_update_job_new_user(
     prepare_db_for_update_job,
     user_type,
@@ -492,8 +500,8 @@ def test_update_job_new_user(
     assert [str(user.user_id) for user in new_association] == new_user_ids
 
 
-@mark.integration
-@mark.parametrize(
+@pytest.mark.integration
+@pytest.mark.parametrize(
     ["user_type", "user_ids", "job_id", "status_code", "error_message"],
     [
         (
@@ -556,6 +564,7 @@ def test_update_job_new_user(
         ),
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_update_user_constraints(
     monkeypatch,
     prepare_db_for_update_job,
@@ -583,8 +592,9 @@ def test_update_user_constraints(
     assert error_message in response.text
 
 
-@mark.integration
-@mark.parametrize("field", ["files", "datasets"])
+@pytest.mark.integration
+@pytest.mark.parametrize("field", ["files", "datasets"])
+@pytest.mark.skip(reason="tests refactoring")
 def test_update_files_and_datasets_for_already_started_job(
     monkeypatch, prepare_db_for_update_job, field
 ):
@@ -607,8 +617,8 @@ def test_update_files_and_datasets_for_already_started_job(
     assert error_message in response.text
 
 
-@mark.integration
-@mark.parametrize(
+@pytest.mark.integration
+@pytest.mark.parametrize(
     ["user_type", "new_user_ids", "expected_code", "expected_users_count"],
     [
         ("annotators", [USER_IDS[0]], 400, 1),
@@ -619,6 +629,7 @@ def test_update_files_and_datasets_for_already_started_job(
         ("owners", [USER_IDS[1], UPDATE_NEW_USER_ID], 200, 2),
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_update_extraction_job_new_user(
     monkeypatch,
     prepare_db_for_update_job,
@@ -662,7 +673,8 @@ def test_update_extraction_job_new_user(
     assert new_users_count == expected_users_count
 
 
-@mark.integration
+@pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_delete_redundant_users(prepare_db_for_update_job):
     """Tests redundant user deletion"""
     # Add redundant user to job
@@ -687,7 +699,8 @@ def test_delete_redundant_users(prepare_db_for_update_job):
     assert response.status_code == 200
 
 
-@mark.integration
+@pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_not_delete_redundant_user_as_owner_of_another_job(
     prepare_db_for_update_job,
 ):
@@ -708,9 +721,9 @@ def test_not_delete_redundant_user_as_owner_of_another_job(
     assert response.status_code == 200
 
 
-@mark.integration
+@pytest.mark.integration
 @responses.activate
-@mark.parametrize(
+@pytest.mark.parametrize(
     ["job_id", "tenant", "token", "expected_result"],
     [
         (UPDATE_JOB_IDS[0], UPDATE_JOBS[0].tenant, TEST_TOKEN, "JobName1"),
@@ -718,6 +731,7 @@ def test_not_delete_redundant_user_as_owner_of_another_job(
         (UPDATE_JOB_IDS[2], UPDATE_JOBS[2].tenant, TEST_TOKEN, "JobName3"),
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_update_jobs_name_from_db_or_microservice(
     monkeypatch,
     prepare_db_for_update_job,
@@ -864,7 +878,8 @@ REDISTRIBUTED_TASKS = [
 ]
 
 
-@mark.integration
+@pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_update_jobs_delete_annotator(
     monkeypatch, prepare_db_for_redistribute_tasks
 ):

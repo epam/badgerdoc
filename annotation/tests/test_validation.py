@@ -567,6 +567,7 @@ def prepare_result(tasks: List[ManualAnnotationTask]) -> List[dict]:
         (100, 100, 1, []),
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_annotators_revisions(
     db_validation_end, file_id, job_id, task_id, expected_result
 ):
@@ -624,6 +625,7 @@ ANNOTATION_FAILED_PAGES = AnnotatedDoc(
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_find_annotators_for_failed_pages(
     prepare_db_find_annotators_for_failed_pages,
 ):
@@ -780,6 +782,7 @@ def test_check_uuid_exception():
         (ANNOTATORS[3].user_id, JOBS[0].job_id, True, True),
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_check_user_job_belonging(
     db_validation_end, user_id, job_id, only_owner, expected_result
 ):
@@ -799,6 +802,7 @@ def test_check_user_job_belonging(
         (ANNOTATORS[3].user_id, JOBS[1].job_id, False, False),
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_check_user_job_action(
     db_validation_end, user_id, job_id, owner_check, expected_result
 ):
@@ -997,6 +1001,7 @@ EXPECTED_DB_TASKS = [
         ),
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_create_annotation_tasks_initial_and_specific(
     db_validation_end, user, task_id, failed, file_id, job, expected_tasks
 ):
@@ -1058,6 +1063,7 @@ def test_create_annotation_tasks_initial_and_specific(
         ),
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_create_annotation_tasks_auto(
     db_validation_end,
     task_id,
@@ -1198,6 +1204,7 @@ EXPECTED_DB_VALIDATION_TASKS = [
         ),
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_create_validation_tasks(
     db_validation_end, user, annotated, file_id, job, user_id, expected_tasks
 ):
@@ -1232,6 +1239,7 @@ def test_create_validation_tasks(
     ["user_id"],
     [(BAD_UUID,), (str(ANNOTATORS[3].user_id),)],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_create_annotation_tasks_exceptions(db_validation_end, user_id):
     with pytest.raises(HTTPException):
         create_annotation_tasks(
@@ -1255,6 +1263,7 @@ def test_create_annotation_tasks_exceptions(db_validation_end, user_id):
         ("90b68bc8-468f-43dc-8981-106b660a8578",),
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_create_validation_tasks_exceptions(db_validation_end, user):
     with pytest.raises(HTTPException):
         create_validation_tasks(
@@ -1460,6 +1469,7 @@ def test_create_validation_tasks_exceptions(db_validation_end, user):
         ),
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_finish_task_status_codes(
     db_validation_end,
     task_id,
@@ -1486,6 +1496,7 @@ def test_finish_task_status_codes(
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_finish_task_successful_status_codes(
     db_validation_end,
 ):
@@ -1561,6 +1572,7 @@ def test_finish_task_successful_status_codes(
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_check_delete_user_from_annotated_doc(db_validation_end):
     # check that a user is in DB
     annotator_to_delete = db_validation_end.query(

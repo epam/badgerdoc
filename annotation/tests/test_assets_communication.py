@@ -1,4 +1,4 @@
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import pytest
 import responses
@@ -6,8 +6,6 @@ from fastapi import HTTPException
 from requests import ConnectionError, RequestException, Timeout
 
 from annotation.microservice_communication.assets_communication import (
-    ASSETS_FILES_URL,
-    ASSETS_URL,
     get_dataset_info,
     get_file_names_by_request,
     get_file_path_and_bucket,
@@ -102,8 +100,6 @@ EXPECTED_FILES_FOR_GET_FILES_INFO = sorted(
 FILE_IDS = [f["id"] for f in FILES]
 DATASET_ID = 1
 
-ASSETS_COMPLETE_URL = ASSETS_URL + "/{dataset_id}/files"
-
 
 @pytest.mark.unittest
 @pytest.mark.parametrize(
@@ -141,10 +137,10 @@ def test_get_file_names(
     ["returned_files", "expected_result"], [(FILES, FILES), ([], [])]
 )
 @responses.activate
-def test_get_datasets_info(returned_files, expected_result):
+def test_get_datasets_info(returned_files, expected_result, assets_url_mock):
     responses.add(
         responses.GET,
-        ASSETS_COMPLETE_URL.format(dataset_id=DATASET_ID),
+        f"{assets_url_mock}/{DATASET_ID}/files",
         headers=TEST_HEADERS,
         json=returned_files,
         status=200,
@@ -159,10 +155,10 @@ def test_get_datasets_info(returned_files, expected_result):
     ["exc"], [(ConnectionError(),), (Timeout(),), (RequestException(),)]
 )
 @responses.activate
-def test_get_datasets_info_request_exc(exc):
+def test_get_datasets_info_request_exc(exc, assets_url_mock):
     responses.add(
         responses.GET,
-        ASSETS_COMPLETE_URL.format(dataset_id=DATASET_ID),
+        f"{assets_url_mock}/{DATASET_ID}/files",
         body=exc,
         headers=TEST_HEADERS,
         status=200,
@@ -174,10 +170,10 @@ def test_get_datasets_info_request_exc(exc):
 
 @pytest.mark.unittest
 @responses.activate
-def test_get_datasets_info_bad_status_code():
+def test_get_datasets_info_bad_status_code(assets_url_mock):
     responses.add(
         responses.GET,
-        ASSETS_COMPLETE_URL.format(dataset_id=DATASET_ID),
+        f"{assets_url_mock}/{DATASET_ID}/files",
         headers=TEST_HEADERS,
         status=500,
     )
@@ -215,6 +211,7 @@ def test_get_files_info(
     mocked_files,
     files_by_dataset_id,
     expected_result,
+    assets_url_mock,
 ):
     monkeypatch.setattr(
         "annotation.microservice_communication.assets_communication.get_response",  # noqa
@@ -223,7 +220,7 @@ def test_get_files_info(
     for i, dataset_id in enumerate(dataset_ids):
         responses.add(
             responses.GET,
-            ASSETS_COMPLETE_URL.format(dataset_id=dataset_id),
+            f"{assets_url_mock}/{dataset_id}/files",
             json=[files_by_dataset_id[i]],
             headers=TEST_HEADERS,
             status=200,
@@ -247,10 +244,10 @@ def test_get_files_info(
     ],
 )
 @responses.activate
-def test_get_file_path_and_bucket(file_id, mocked_response, expected_result):
+def test_get_file_path_and_bucket(file_id, mocked_response, expected_result, assets_files_url_mock):
     responses.add(
         responses.POST,
-        ASSETS_FILES_URL,
+        assets_files_url_mock,
         json=mocked_response,
         headers=TEST_HEADERS,
         status=200,

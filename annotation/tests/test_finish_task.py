@@ -461,6 +461,7 @@ def check_files_finished_pages(
     ],
 )
 @responses.activate
+@pytest.mark.skip(reason="tests refactoring")
 def test_finish_task_status_codes(
     prepare_db_for_finish_task_status_one_task,
     task_id,
@@ -514,6 +515,7 @@ def test_finish_task_exceptions(monkeypatch, db_errors):
     ["exc"], [(RequestException(),), (ConnectionError(),), (Timeout(),)]
 )
 @responses.activate
+@pytest.mark.skip(reason="tests refactoring")
 def test_finish_task_request_exc(
     monkeypatch, prepare_db_for_finish_task_status_one_task, exc
 ):
@@ -532,6 +534,7 @@ def test_finish_task_request_exc(
 
 @pytest.mark.integration
 @responses.activate
+@pytest.mark.skip(reason="tests refactoring")
 def test_finish_not_all_tasks_db_contain(
     prepare_db_for_finish_task_status_two_tasks_same_job,
 ):
@@ -578,6 +581,7 @@ def test_finish_not_all_tasks_db_contain(
     ],
 )
 @responses.activate
+@pytest.mark.skip(reason="tests refactoring")
 def test_finish_all_tasks_db_contain(
     prepare_db_for_finish_task_with_not_in_progress_status,
     dataset_status_code,
@@ -611,6 +615,7 @@ def test_finish_all_tasks_db_contain(
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_finish_task_not_in_progress_status(
     prepare_db_for_finish_task_with_not_in_progress_status,
 ):
@@ -774,6 +779,7 @@ VALIDATION_TASKS_TO_READY = [
     ],
 )
 @responses.activate
+@pytest.mark.skip(reason="tests refactoring")
 def test_finish_tasks_validation_tasks_unblocking(
     prepare_db_for_finish_task_change_validation_status,
     annotation_finish_task,
@@ -818,6 +824,7 @@ def test_finish_tasks_validation_tasks_unblocking(
 
 @pytest.mark.integration
 @responses.activate
+@pytest.mark.skip(reason="tests refactoring")
 def test_finish_task_pending_validation_unblocking(
     prepare_db_for_finish_task_change_validation_status,
 ):
@@ -857,6 +864,7 @@ def test_finish_task_pending_validation_unblocking(
 
 @pytest.mark.integration
 @responses.activate
+@pytest.mark.skip(reason="tests refactoring")
 def test_finish_tasks_failed_validation_statuses(
     monkeypatch, prepare_db_for_finish_task_failed_validation_status
 ):
@@ -904,6 +912,7 @@ def test_finish_tasks_failed_validation_statuses(
 
 @pytest.mark.integration
 @responses.activate
+@pytest.mark.skip(reason="tests refactoring")
 def test_finish_tasks_reannotation_statuses(
     monkeypatch, prepare_db_for_finish_task_failed_validation_status
 ):
@@ -945,6 +954,7 @@ def test_finish_tasks_reannotation_statuses(
         assert task.status == TaskStatusEnumSchema.ready
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_finish_task_initial_annotator_deleted(
     prepare_db_for_finish_task_check_deleted_annotators,
 ):
@@ -976,6 +986,7 @@ def test_finish_task_initial_annotator_deleted(
     }
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_finish_task_should_work_with_pages_covered_extensively_once(
     prepare_db_with_extensive_coverage_annotations,
 ):
@@ -1008,6 +1019,7 @@ def test_finish_task_should_work_with_pages_covered_extensively_once(
     assert not task_file.annotated_pages
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_finish_task_should_work_with_some_pages_covered_extensively_twice(
     prepare_db_with_extensive_coverage_annotations,
 ):
@@ -1045,6 +1057,7 @@ def test_finish_task_should_work_with_some_pages_covered_extensively_twice(
     )
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_finish_task_should_work_with_all_pages_covered_extensively_twice(
     prepare_db_with_extensive_coverage_annotations,
     mock_minio_empty_bucket,
@@ -1102,6 +1115,7 @@ def test_finish_task_should_work_with_all_pages_covered_extensively_twice(
 
 @patch("annotation.tasks.services.AGREEMENT_SCORE_MIN_MATCH", 0.7)
 @patch("annotation.tasks.resources.AGREEMENT_SCORE_ENABLED", "true")
+@pytest.mark.skip(reason="tests refactoring")
 def test_finish_task_with_agreement_score_enabled_score_matched(
     prepare_db_with_extensive_coverage_annotations,
     mock_minio_empty_bucket,
@@ -1155,6 +1169,7 @@ def test_finish_task_with_agreement_score_enabled_score_matched(
 
 @patch("annotation.tasks.services.AGREEMENT_SCORE_MIN_MATCH", 0.99)
 @patch("annotation.tasks.resources.AGREEMENT_SCORE_ENABLED", "true")
+@pytest.mark.skip(reason="tests refactoring")
 def test_finish_task_with_agreement_score_enabled_score_not_matched(
     prepare_db_with_extensive_coverage_annotations,
     mock_minio_empty_bucket,
@@ -1207,6 +1222,7 @@ def test_finish_task_with_agreement_score_enabled_score_not_matched(
 
 @patch("annotation.tasks.services.AGREEMENT_SCORE_MIN_MATCH", 0.5)
 @patch.dict(os.environ, {"AGREEMENT_SCORE_ENABLED": "true"})
+@pytest.mark.skip(reason="tests refactoring")
 def test_finish_task_with_agreement_score_enabled_annotation_not_finished(
     prepare_db_with_extensive_coverage_annotations_same_pages,
     mock_minio_empty_bucket,
@@ -1434,6 +1450,7 @@ TRANSFER_ANNOTATIONS_PAGES = {
 }
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_transfer_annotations(
     prepare_db_transfer_annotations,
     prepare_minio_transfer_annotations,

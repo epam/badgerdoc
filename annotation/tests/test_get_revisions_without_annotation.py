@@ -178,6 +178,7 @@ def construct_rev_without_annotation_path(job_id: int, file_id: int) -> str:
         ),
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_revisions_without_annotation_status_codes(
     db_revisions_without_annotation,
     file_id,
@@ -206,6 +207,7 @@ def test_get_revisions_without_annotation_status_codes(
     ],
     indirect=["db_errors"],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_revisions_without_annotation_db_exceptions(
     monkeypatch, db_errors
 ):

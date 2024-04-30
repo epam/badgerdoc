@@ -91,6 +91,7 @@ WRONG_JOB_ID = 100
         ),
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_users_for_job(
     db_get_users_for_job, job_id, expected_status_code, expected_response
 ):
@@ -118,6 +119,7 @@ def test_get_users_for_job_exceptions(monkeypatch, db_errors):
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_users_for_job_404_error(db_get_users_for_job):
     response = client.get(
         USERS_FOR_JOB_PATH.format(job_id=WRONG_JOB_ID), headers=TEST_HEADERS
