@@ -48,26 +48,15 @@ jobs:
           cache: 'pip'
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
+          python -m pip install --upgrade pip setuptools
           cd assets
           sudo apt-get update && sudo apt-get -y install poppler-utils
           pip install poetry>=1.1.13
-          poetry install --no-root --no-interaction -vvv
+          poetry config keyring.enabled false
+          poetry install --no-root --no-interaction --no-cache -vvv
           poetry add ../lib/filter_lib
           poetry add ../lib/tenants
       - name: Test with pytest
         run: |
           cd assets
           poetry run pytest
-        env:
-          POSTGRES_HOST: localhost
-          POSTGRES_PORT: 5432
-          POSTGRES_USER: admin
-          POSTGRES_PASSWORD: admin
-          POSTGRES_DB: file_management
-          USE_TEST_DB: True
-          S3_CREDENTIALS_PROVIDER: minio
-          S3_ENDPOINT: localhost:9000
-          S3_ACCESS_KEY: minioadmin
-          S3_SECRET_KEY: minioadmin
-          MINIO_SECURE_CONNECTION: False
