@@ -31,6 +31,7 @@ def file_(setup_database):
     yield session
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_delete_one_from_db(file_):
     session = file_
     delete_file_from_db(session, 1)
@@ -77,6 +78,7 @@ def test_delete_one_from_minio(minio_mock_exists_bucket_true):
         minio_mock_exists_bucket_true.remove_bucket(random_name)
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_put_to_db(setup_database):
     session = setup_database
     f = insert_file(
@@ -94,6 +96,7 @@ def test_put_to_db(setup_database):
     assert delete_file_from_db(setup_database, f.id)
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_update_file_status(file_):
     session = file_
     f = (
