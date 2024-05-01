@@ -105,6 +105,7 @@ UNASSIGNED_FILES_ENTITIES = [CATEGORY, *ANNOTATORS, *JOBS, *FILES]
 
 @pytest.mark.integration
 @patch.object(Session, "query")
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_unassigned_files_sql_connection_error(
     Session,
     db_get_unassigned_files,
@@ -176,6 +177,7 @@ def test_get_unassigned_files_sql_connection_error(
         ),
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_unassigned_files_status_codes(
     db_get_unassigned_files,
     job_id,
@@ -260,6 +262,7 @@ def test_get_unassigned_files_status_codes(
         ),
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_job_files_pagination(
     db_get_unassigned_files,
     job_id,

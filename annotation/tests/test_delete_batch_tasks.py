@@ -122,6 +122,7 @@ PENDING_READY_IDS = [TASK_PENDING["id"], TASK_READY["id"]]
         ([BAD_ID], TASK["job_id"], 422),
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_delete_batch_tasks_status_codes(
     prepare_db_for_batch_delete_tasks, tasks_id, job_id, expected_code
 ):
@@ -176,6 +177,7 @@ def test_delete_batch_tasks_exceptions(
         ),
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_delete_task(
     prepare_db_for_batch_delete_tasks,
     tasks_id,

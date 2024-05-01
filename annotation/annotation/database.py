@@ -18,14 +18,16 @@ SQLALCHEMY_DATABASE_URL = "postgresql+psycopg2://{0}:{1}@{2}:{3}/{4}".format(
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 
-# Ensure LTREE extensions is installed
-with engine.connect() as conn:
-    try:
-        conn.execute(sqlalchemy.sql.text("CREATE EXTENSION LTREE"))
-    except sqlalchemy.exc.ProgrammingError as err_:
-        # Exctension installed, just skip error
-        if "DuplicateObject" not in str(err_):
-            raise err_
+
+def init_ltree_ext() -> None:
+    """Ensure LTREE extensions is installed"""
+    with engine.connect() as conn:
+        try:
+            conn.execute(sqlalchemy.sql.text("CREATE EXTENSION LTREE"))
+        except sqlalchemy.exc.ProgrammingError as err_:
+            # Exctension installed, just skip error
+            if "DuplicateObject" not in str(err_):
+                raise
 
 
 def todict(obj):

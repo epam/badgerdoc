@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.exc import DBAPIError, SQLAlchemyError
 from starlette.requests import Request
 
+from annotation import database
 from annotation import logger as app_logger
 from annotation.annotations import resources as annotations_resources
 from annotation.categories import resources as categories_resources
@@ -77,6 +78,8 @@ if WEB_CORS := os.getenv("WEB_CORS", ""):
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+app.add_event_handler("startup", database.init_ltree_ext)
 
 
 async def catch_exceptions_middleware(request: Request, call_next):

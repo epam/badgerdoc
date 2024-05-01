@@ -16,8 +16,8 @@ from annotation.utils import get_service_uri
 load_dotenv(find_dotenv())
 
 ASSETS_SERVICE_HOST = get_service_uri("ASSETS_")
-ASSETS_FILES_URL = f"{ASSETS_SERVICE_HOST}/files/search"
 ASSETS_URL = f"{ASSETS_SERVICE_HOST}/datasets"
+ASSETS_FILES_URL = f"{ASSETS_SERVICE_HOST}/files/search"
 ASSETS_FILE_ID_FIELD = "id"
 ASSETS_FILE_NAME_FIELD = "original_name"
 

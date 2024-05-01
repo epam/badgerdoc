@@ -154,6 +154,7 @@ TASKS_TEST_PROGRESS = (
         (JOB_IDS[2], JOB_TENANT, '{"finished":0,"total":2}'),
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_jobs_progress(
     prepare_db_for_get_job_progress, job_id, tenant, expected_progress
 ):

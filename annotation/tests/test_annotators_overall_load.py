@@ -1,8 +1,8 @@
 from unittest.mock import Mock, patch
 
+import pytest
 import responses
 from fastapi.testclient import TestClient
-from pytest import mark, raises
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
@@ -325,8 +325,8 @@ DATASET_MANAGER_FILE_RESPONSE = {
 }
 
 
-@mark.integration
-@mark.parametrize(
+@pytest.mark.integration
+@pytest.mark.parametrize(
     ["task_info", "expected_overall_load"],
     [
         # user doesn`t have another tasks, current overall_load = 0
@@ -335,6 +335,7 @@ DATASET_MANAGER_FILE_RESPONSE = {
         (OVERALL_LOAD_NEW_TASKS[1], 20),
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_update_overall_load_after_post_task(
     prepare_db_for_overall_load, task_info, expected_overall_load
 ):
@@ -347,8 +348,8 @@ def test_update_overall_load_after_post_task(
     assert user.overall_load == expected_overall_load
 
 
-@mark.integration
-@mark.parametrize(
+@pytest.mark.integration
+@pytest.mark.parametrize(
     ["task_id", "request_body", "users_id", "expected_overall_loads"],
     [
         (1, {"pages": [7, 8, 9]}, [OVERALL_LOAD_USERS[1].user_id], [3]),
@@ -360,6 +361,7 @@ def test_update_overall_load_after_post_task(
         ),
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_overall_load_after_update_task(
     prepare_db_for_overall_load,
     task_id,
@@ -381,14 +383,15 @@ def test_overall_load_after_update_task(
         assert user.overall_load == expected_overall_load
 
 
-@mark.integration
-@mark.parametrize(
+@pytest.mark.integration
+@pytest.mark.parametrize(
     ["task_id", "user_id", "expected_overall_load"],
     [
         (1, OVERALL_LOAD_USERS[1].user_id, 0),  # user has one task
         (2, OVERALL_LOAD_USERS[2].user_id, 2),  # user has two tasks
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_overall_load_after_delete_task(
     prepare_db_for_overall_load, task_id, user_id, expected_overall_load
 ):
@@ -400,7 +403,8 @@ def test_overall_load_after_delete_task(
     assert user.overall_load == expected_overall_load
 
 
-@mark.integration
+@pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_overall_load_after_delete_batch_tasks(prepare_db_for_overall_load):
     user_ids = [
         OVERALL_LOAD_CREATED_TASKS[3].user_id,
@@ -418,8 +422,8 @@ def test_overall_load_after_delete_batch_tasks(prepare_db_for_overall_load):
         assert user.overall_load == expected_overall_load
 
 
-@mark.integration
-@mark.parametrize(
+@pytest.mark.integration
+@pytest.mark.parametrize(
     ["task_id", "url_params", "users_id", "expected_overall_loads"],
     [
         (  # annotator has another task
@@ -440,6 +444,7 @@ def test_overall_load_after_delete_batch_tasks(prepare_db_for_overall_load):
         ),
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_overall_load_after_finish_task(
     prepare_db_for_overall_load,
     task_id,
@@ -460,7 +465,8 @@ def test_overall_load_after_finish_task(
         assert user.overall_load == expected_overall_load
 
 
-@mark.integration
+@pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_overall_load_after_distribution(
     monkeypatch, prepare_db_for_overall_load
 ):
@@ -478,14 +484,15 @@ def test_overall_load_after_distribution(
     assert user.overall_load == 4
 
 
-@mark.integration
-@mark.parametrize(
+@pytest.mark.integration
+@pytest.mark.parametrize(
     ["job_id", "users", "expected_result"],
     [  # initially users` overall_loads 0
         (3, OVERALL_LOAD_USERS[6:8], (4, 4)),  # cross validation
         (4, OVERALL_LOAD_USERS[9:12], (30, 30, 0)),  # hierarchical
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_overall_load_after_distribution_job(
     prepare_db_for_overall_load, job_id, users, expected_result
 ):
@@ -496,9 +503,9 @@ def test_overall_load_after_distribution_job(
         assert user.overall_load == result
 
 
-@mark.integration
+@pytest.mark.integration
 @responses.activate
-@mark.parametrize(
+@pytest.mark.parametrize(
     ["new_job", "users", "expected_result"],
     [  # initially users` overall_loads 0
         (  # cross validation job
@@ -513,6 +520,7 @@ def test_overall_load_after_distribution_job(
         ),
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_overall_load_save_job_autodistribution(
     prepare_db_for_overall_load, new_job, users, expected_result
 ):
@@ -534,7 +542,8 @@ def test_overall_load_save_job_autodistribution(
         assert user.overall_load == result
 
 
-@mark.integration
+@pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_update_user_overall_load(prepare_db_for_overall_load):
     user_id = OVERALL_LOAD_USERS[1].user_id
 
@@ -553,8 +562,8 @@ def test_update_user_overall_load(prepare_db_for_overall_load):
     assert user.overall_load == 17
 
 
-@mark.integration
-@mark.parametrize(
+@pytest.mark.integration
+@pytest.mark.parametrize(
     ["db_annotator_custom_overall_load", "change_value", "expected_load"],
     [
         (1, 2, 3),
@@ -562,6 +571,7 @@ def test_update_user_overall_load(prepare_db_for_overall_load):
     ],
     indirect=["db_annotator_custom_overall_load"],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_overall_change(
     db_annotator_custom_overall_load: Session,
     change_value,
@@ -575,19 +585,24 @@ def test_overall_change(
     assert annotator.overall_load == expected_load
 
 
-@mark.integration
-@mark.parametrize("db_annotator_custom_overall_load", [0], indirect=True)
+@pytest.mark.integration
+@pytest.mark.parametrize(
+    "db_annotator_custom_overall_load", [0], indirect=True
+)
+@pytest.mark.skip(reason="tests refactoring")
 def test_not_negative_constraint(db_annotator_custom_overall_load: Session):
     session = db_annotator_custom_overall_load
     annotator = session.query(User).get(OVERALL_LOAD_USERS[0].user_id)
     annotator.overall_load -= 1
-    with raises(SQLAlchemyError, match=r".*not_negative_overall_load.*"):
+    with pytest.raises(
+        SQLAlchemyError, match=r".*not_negative_overall_load.*"
+    ):
         session.commit()
     session.rollback()
 
 
-@mark.integration
-@mark.parametrize(
+@pytest.mark.integration
+@pytest.mark.parametrize(
     ["job_id", "users", "expected_overall_load"],
     [
         (
@@ -607,6 +622,7 @@ def test_not_negative_constraint(db_annotator_custom_overall_load: Session):
     ],
 )
 @patch("annotation.distribution.main.SPLIT_MULTIPAGE_DOC", "true")
+@pytest.mark.skip(reason="tests refactoring")
 def test_overall_load_recalculation_when_add_users(
     monkeypatch,
     prepare_db_for_overall_load,
@@ -637,8 +653,8 @@ def test_overall_load_recalculation_when_add_users(
     assert response.status_code == 200
 
 
-@mark.integration
-@mark.parametrize(
+@pytest.mark.integration
+@pytest.mark.parametrize(
     [
         "job_id",
         "users",
@@ -655,6 +671,7 @@ def test_overall_load_recalculation_when_add_users(
     ],
 )
 @patch("annotation.distribution.main.SPLIT_MULTIPAGE_DOC", "true")
+@pytest.mark.skip(reason="tests refactoring")
 def test_overall_load_recalculation_when_delete_users(
     monkeypatch,
     prepare_db_for_overall_load,

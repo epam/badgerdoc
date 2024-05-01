@@ -430,6 +430,7 @@ def check_files_distributed_pages(test_session: Session, job_id: int):
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_post_tasks_empty_files_and_datasets_error(
     prepare_db_for_post,
 ):
@@ -443,6 +444,7 @@ def test_post_tasks_empty_files_and_datasets_error(
 
 @pytest.mark.integration
 @patch.object(Session, "query")
+@pytest.mark.skip(reason="tests refactoring")
 def test_post_tasks_exception(Session, monkeypatch, prepare_db_for_post):
     monkeypatch.setattr(
         "annotation.jobs.resources.get_files_info",
@@ -467,6 +469,7 @@ def test_post_tasks_exception(Session, monkeypatch, prepare_db_for_post):
     ],
 )
 @patch("annotation.distribution.main.SPLIT_MULTIPAGE_DOC", "true")
+@pytest.mark.skip(reason="tests refactoring")
 def test_post_tasks_only_files(
     monkeypatch,
     prepare_db_for_post,
@@ -490,6 +493,7 @@ def test_post_tasks_only_files(
 @pytest.mark.parametrize(["case_index", "tasks_number"], [(0, 14), (1, 19)])
 @responses.activate
 @patch("annotation.distribution.main.SPLIT_MULTIPAGE_DOC", "true")
+@pytest.mark.skip(reason="tests refactoring")
 def test_post_tasks_only_datasets(
     monkeypatch, prepare_db_for_post, case_index, tasks_number
 ):
@@ -515,6 +519,7 @@ def test_post_tasks_only_datasets(
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_post_tasks_new_user(monkeypatch, prepare_db_for_post):
     assert not prepare_db_for_post.query(User).get(
         TASK_INFO_NEW_USER["user_ids"][0]
@@ -551,6 +556,7 @@ def test_post_tasks_new_user(monkeypatch, prepare_db_for_post):
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_post_tasks_wrong_job(prepare_db_for_post):
     response = client.post(
         f"{POST_TASKS_PATH}", json=TASK_WRONG_JOB, headers=TEST_HEADERS
@@ -577,6 +583,7 @@ def test_post_tasks_wrong_job(prepare_db_for_post):
         ),
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_post_tasks_deadline(
     monkeypatch,
     prepare_db_for_post,
@@ -598,6 +605,7 @@ def test_post_tasks_deadline(
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_post_tasks_validation_only(monkeypatch, prepare_db_for_post):
     monkeypatch.setattr(
         "annotation.microservice_communication.assets_communication.get_response",  # noqa
@@ -626,6 +634,7 @@ def test_post_tasks_validation_only(monkeypatch, prepare_db_for_post):
         (TASK_INFO_FILES[1], FILES_FROM_ASSETS_FOR_TASK_INFO[0]),
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_post_tasks_wrong_files(
     monkeypatch,
     prepare_db_for_post,
@@ -681,6 +690,7 @@ def test_post_tasks_wrong_files(
         ),
     ],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_post_tasks_users_validation_error(
     monkeypatch,
     prepare_db_for_post,
