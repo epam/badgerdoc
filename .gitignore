@@ -9,3 +9,5 @@ airflow/logs/
 airflow/dags/*
 airflow/.env
 venv/
+build/
+*.egg-info/
