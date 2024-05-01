@@ -48,12 +48,11 @@ jobs:
           cache: 'pip'
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip setuptools
+          python -m pip install --upgrade pip
           cd assets
           sudo apt-get update && sudo apt-get -y install poppler-utils
           pip install poetry>=1.1.13
-          poetry config keyring.enabled false
-          poetry install --no-root --no-interaction --no-cache -vvv
+          poetry install --no-root --no-interaction
           poetry add ../lib/filter_lib
           poetry add ../lib/tenants
       - name: Test with pytest
