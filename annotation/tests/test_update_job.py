@@ -29,7 +29,12 @@ from annotation.schemas import (
     ValidationSchema,
 )
 from tests.consts import POST_JOBS_PATH
-from tests.override_app_dependency import TEST_HEADERS, TEST_TENANT, TEST_TOKEN, app
+from tests.override_app_dependency import (
+    TEST_HEADERS,
+    TEST_TENANT,
+    TEST_TOKEN,
+    app,
+)
 
 JOBS_SEARCH_URL = jobs_communication.JOBS_SEARCH_URL
 

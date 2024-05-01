@@ -7,7 +7,13 @@ from fastapi.testclient import TestClient
 from sqlalchemy import or_
 
 from annotation.annotations import row_to_dict
-from annotation.models import AnnotatedDoc, File, Job, ManualAnnotationTask, User
+from annotation.models import (
+    AnnotatedDoc,
+    File,
+    Job,
+    ManualAnnotationTask,
+    User,
+)
 from annotation.schemas import (
     AnnotationAndValidationActionsSchema,
     FileStatusEnumSchema,

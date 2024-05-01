@@ -17,7 +17,12 @@ from annotation.schemas import (
     TaskStatusEnumSchema,
     ValidationSchema,
 )
-from tests.override_app_dependency import TEST_HEADERS, TEST_TENANT, TEST_TOKEN, app
+from tests.override_app_dependency import (
+    TEST_HEADERS,
+    TEST_TENANT,
+    TEST_TOKEN,
+    app,
+)
 from tests.test_post import check_files_distributed_pages
 
 client = TestClient(app)
