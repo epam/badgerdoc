@@ -8,3 +8,4 @@ airflow/logs/
 .trash
 airflow/dags/*
 airflow/.env
+venv/
