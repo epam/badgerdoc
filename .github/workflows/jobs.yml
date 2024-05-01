@@ -14,12 +14,12 @@ jobs:
      runs-on: ubuntu-latest
      steps:
        - uses: actions/checkout@v2
-       - name: update docker-compose
-         run: pip install --upgrade docker-compose
+       - name: update docker compose
+         run: pip install --upgrade docker compose
        - name: create base image
          run: cd infra/docker/python_base && make build image_name=818863528939.dkr.ecr.eu-central-1.amazonaws.com/badgerdoc/python_base:0.1.7
-       - name: run docker-compose up
-         run: cd jobs && docker-compose up -d --build
+       - name: run docker compose up
+         run: cd jobs && docker compose up -d --build
        - name: run tests
          run: docker exec jobs_web_app bash -c "poetry run pytest"
        - name: check with flake8
