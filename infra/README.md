@@ -17,7 +17,6 @@ create database models;
 create database pipelines;
 create database processing;
 create database users;
-create database scheduler;
 create database keycloak;
 ```
 
@@ -203,7 +202,6 @@ jobs:0.1.9-8eec77d8 \
 models:0.1.3-cae49287 \
 pipelines:0.1.4-dab7a2ea \
 processing:0.1.1-f0e8c392 \
-scheduler:0.1.1-0ad86fa3 \
 search:0.1.4-f888d959 \
 users:0.1.2-71a0f115"
 
@@ -257,8 +255,7 @@ annotation \
 processing \
 models \
 users \
-convert \
-scheduler"
+convert"
 
 apphostname="app.example.com"
 
