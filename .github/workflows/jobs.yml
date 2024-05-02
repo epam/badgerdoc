@@ -33,7 +33,7 @@ jobs:
          run: |
            poetry run flake8 --extend-ignore=E203 jobs/
            poetry run isort --profile=black --line-length=79 --check-only jobs/
-           poetry run black --check --line-length=79 jobs
+           poetry run black --check --line-length=79 jobs/
        - name: Run tests
          working-directory: ./jobs
          run: |
