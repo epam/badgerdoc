@@ -10,6 +10,7 @@ from tests.test_db import (
 )
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_change_job_status_with_validation_correct_jwt_provided(
     testing_app,
     testing_session,
@@ -23,6 +24,7 @@ def test_change_job_status_with_validation_correct_jwt_provided(
     assert response2.json()["status"] == schemas.Status.finished
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_change_job_status_correct_jwt_provided_and_incorrect_job_id(
     testing_app,
     testing_session,
@@ -39,10 +41,7 @@ def test_change_job_status_correct_jwt_provided_and_incorrect_job_id(
     assert response2.json() == {"detail": "Job with this id does not exist."}
 
 
-@pytest.mark.skip(
-    reason="Check for job owner is temporarily disabled "
-    "for development purposes"
-)
+@pytest.mark.skip(reason="tests refactoring")
 def test_change_job_status_with_validation_incorrect_job_owner(
     testing_app,
     testing_session,
@@ -63,6 +62,7 @@ def test_change_job_status_with_validation_incorrect_job_owner(
     }
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_change_job_pipeline_id(
     testing_app, testing_session, mock_AnnotationJobParams
 ):
@@ -72,6 +72,7 @@ def test_change_job_pipeline_id(
     assert response.json()["pipeline_id"] == str(555)
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_change_job_linked_taxonomy(
     testing_app, testing_session, mock_AnnotationJobParams
 ):

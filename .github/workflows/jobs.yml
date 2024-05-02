@@ -12,19 +12,30 @@ on:
 jobs:
    jobs-linters-and-tests:
      runs-on: ubuntu-latest
+     strategy:
+       matrix:
+         python-version: [ "3.8.15" ]
      steps:
-       - uses: actions/checkout@v2
-       - name: update docker compose
-         run: pip install --upgrade docker compose
-       - name: create base image
-         run: cd infra/docker/python_base && make build image_name=818863528939.dkr.ecr.eu-central-1.amazonaws.com/badgerdoc/python_base:0.1.7
-       - name: run docker compose up
-         run: cd jobs && docker compose up -d --build
-       - name: run tests
-         run: docker exec jobs_web_app bash -c "poetry run pytest"
-       - name: check with flake8
-         run: docker exec jobs_web_app bash -c "flake8 --exclude=alembic,tests --extend-ignore=E203"
-       - name: check with isort
-         run: docker exec jobs_web_app bash -c "isort --profile=black --line-length=79 --check-only --skip=alembic --skip=tests ."
-       - name: check with black
-         run: docker exec jobs_web_app bash -c 'black --check --line-length=79 --exclude="(alembic|tests)" .'
+       - uses: actions/checkout@v4
+       - uses: actions/setup-python@v4
+         with:
+           python-version: ${{ matrix.python-version }}
+       - name: Install dependencies
+         working-directory: ./jobs
+         run: |
+           python -m pip install --upgrade pip
+           pip install poetry>=1.1.13
+           poetry install --no-root
+           poetry add ../lib/filter_lib
+           poetry add ../lib/tenants
+           poetry run pytest
+       - name: Run linters and checkers [flake8 -> isort -> black]
+         working-directory: ./jobs
+         run: |
+           flake8 --exclude=alembic,tests --extend-ignore=E203
+           isort --profile=black --line-length=79 --check-only --skip=alembic --skip=tests .
+           black --check --line-length=79 --exclude="(alembic|tests)" .
+       - name: Run tests
+         working-directory: ./jobs
+         run: |
+           poetry run pytest tests/

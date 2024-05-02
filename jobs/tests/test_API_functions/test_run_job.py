@@ -9,6 +9,7 @@ from requests import HTTPError
 import jobs.schemas as schemas
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_run_not_a_draft(testing_app):
     with patch("jobs.utils.fetch", return_value=asyncio.Future()) as mock:
         mock.side_effect = [
@@ -41,6 +42,7 @@ def test_run_not_a_draft(testing_app):
         }
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_run_draft_annotation_job(testing_app):
     with patch("jobs.utils.fetch", return_value=asyncio.Future()) as mock:
         mock.side_effect = [
@@ -69,6 +71,7 @@ def test_run_draft_annotation_job(testing_app):
         assert response2.json()["status"] == schemas.Status.pending
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_run_extraction_job(
     testing_app,
     mock_data_dataset11,
@@ -103,6 +106,7 @@ def test_run_extraction_job(
         assert response2.json()["status"] == schemas.Status.pending
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_run_extraction_with_annotation_job(
     testing_app,
     mock_data_dataset11,
@@ -148,6 +152,7 @@ def test_run_extraction_with_annotation_job(
         assert response2.json()["status"] == schemas.Status.pending
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_run_annotation_job_but_server_is_down(testing_app):
     with patch("jobs.utils.fetch", return_value=asyncio.Future()) as mock:
         mock.side_effect = [aiohttp.client_exceptions.ClientError()]

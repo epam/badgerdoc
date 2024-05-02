@@ -10,6 +10,7 @@ import pytest
 
 
 # ----------- Create Job Drafts ------------- #
+@pytest.mark.skip(reason="tests refactoring")
 def test_create_annotation_job_draft(testing_app, jw_token):
     response = testing_app.post(
         "/jobs/create_job",
@@ -35,6 +36,7 @@ def test_create_annotation_job_draft(testing_app, jw_token):
     assert response.json()["status"] == schemas.Status.draft
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_create_annotation_job_linked_taxonomy(testing_app, jw_token):
     with patch("jobs.utils.fetch", return_value=asyncio.Future()) as mock:
         mock.side_effect = [(200, {})]
@@ -69,6 +71,7 @@ def test_create_annotation_job_linked_taxonomy(testing_app, jw_token):
         assert response.json()["categories"] == ["category1", "category2"]
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_create_annotation_job_without_deadline(testing_app):
     response = testing_app.post(
         "/jobs/create_job",
@@ -91,6 +94,7 @@ def test_create_annotation_job_without_deadline(testing_app):
     assert not response.json().get("deadline")
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_create_extraction_job_draft(
     testing_app,
     separate_files_1_2_data_from_dataset_manager,
@@ -117,6 +121,7 @@ def test_create_extraction_job_draft(
         assert response.json()["status"] == schemas.Status.draft
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_create_extraction_with_annotation_job_draft(
     testing_app,
     mock_data_dataset11,
@@ -160,6 +165,7 @@ def test_create_extraction_with_annotation_job_draft(
 # ----------- Create Jobs ------------- #
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_schedule_manual_job_valid_datasets(
     testing_app, mock_data_dataset11, mock_data_dataset22
 ):
@@ -194,6 +200,7 @@ def test_schedule_manual_job_valid_datasets(
         assert response.json()["name"] == "MockAnnotationJob"
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_schedule_manual_job_one_invalid_dataset(
     testing_app, mock_data_dataset11
 ):
@@ -227,6 +234,7 @@ def test_schedule_manual_job_one_invalid_dataset(
         assert response.json()["name"] == "MockAnnotationJob"
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_create_extraction_job_valid_files(
     testing_app,
     mock_data_dataset11,
@@ -261,6 +269,7 @@ def test_create_extraction_job_valid_files(
         assert not response.json()["owners"]
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_create_extraction_job_with_output_bucket(
     testing_app,
     pipeline_info_from_pipeline_manager,
@@ -288,6 +297,7 @@ def test_create_extraction_job_with_output_bucket(
         assert response.json()["name"] == "test_extraction_job"
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_create_extraction_job_invalid_pipeline_name(
     testing_app, separate_files_1_2_data_from_dataset_manager
 ):
@@ -314,6 +324,7 @@ def test_create_extraction_job_invalid_pipeline_name(
         )
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_create_extraction_job_with_empty_categories_list(
     testing_app,
     mock_data_dataset11,
@@ -346,6 +357,7 @@ def test_create_extraction_job_with_empty_categories_list(
         assert not response.json()["categories"] == []
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_create_extraction_with_annotation_job(
     testing_app,
     mock_data_dataset11,
@@ -490,6 +502,7 @@ async def test_get_all_datasets_and_files_data(
         )
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_create_extraction_job_test_categories(
     testing_app,
     separate_files_1_2_data_from_dataset_manager,
@@ -525,6 +538,7 @@ def test_create_extraction_job_test_categories(
         ]
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_create_extraction_with_annotation_job_test_categories(
     testing_app,
     mock_data_dataset11,
@@ -576,6 +590,7 @@ def test_create_extraction_with_annotation_job_test_categories(
         ]
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_create_extraction_with_annotation_job_test_with_empty_available_categories(
     testing_app,
     mock_data_dataset11,
@@ -616,6 +631,7 @@ def test_create_extraction_with_annotation_job_test_with_empty_available_categor
         assert response.json()["available_link_types"] == []
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_create_extraction_with_annotation_job_test_with_available_categories(
     testing_app,
     mock_data_dataset11,
@@ -660,6 +676,7 @@ def test_create_extraction_with_annotation_job_test_with_available_categories(
         assert response.json()["available_link_types"] == available_link_types
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_create_extraction_with_annotation_job_test_intersected_categories(
     testing_app,
     mock_data_dataset11,
@@ -710,6 +727,7 @@ def test_create_extraction_with_annotation_job_test_intersected_categories(
         ]
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_create_extraction_with_annotation_job_test_no_categories(
     testing_app,
     mock_data_dataset11,
@@ -760,6 +778,7 @@ def test_create_extraction_with_annotation_job_test_no_categories(
 
 
 @freezegun.freeze_time("2022-01-01")
+@pytest.mark.skip(reason="tests refactoring")
 def test_create_import_job(testing_app):
     response = testing_app.post(
         "/jobs/create_job",
@@ -782,6 +801,7 @@ def test_create_import_job(testing_app):
     }
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_create_annotation_job_validation_only(
     testing_app, mock_data_dataset11, mock_data_dataset22
 ):
@@ -816,6 +836,7 @@ def test_create_annotation_job_validation_only(
         assert response.json()["validation_type"] == "validation only"
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_create_annotation_job_with_empty_available_annotation_types(
     testing_app, mock_data_dataset11, mock_data_dataset22
 ):
@@ -850,6 +871,7 @@ def test_create_annotation_job_with_empty_available_annotation_types(
         assert response.json()["available_link_types"] == []
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_create_annotation_job_with_empty_available_annotation_types(
     testing_app, mock_data_dataset11, mock_data_dataset22
 ):

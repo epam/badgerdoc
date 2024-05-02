@@ -9,7 +9,6 @@ import jobs.main as main
 import jobs.schemas as schemas
 import pytest
 from fastapi.testclient import TestClient
-from jobs.utils import get_test_db_url
 from pydantic import BaseModel
 from sqlalchemy import create_engine  # type: ignore
 from sqlalchemy.exc import SQLAlchemyError
@@ -23,8 +22,6 @@ from sqlalchemy_utils import (  # type: ignore
 from alembic import command
 from alembic.config import Config
 
-main_database_url = os.environ.get("POSTGRESQL_JOBMANAGER_DATABASE_URI")
-test_db_url = get_test_db_url(main_database_url)
 alembic_cfg = Config("alembic.ini")
 
 
@@ -35,14 +32,19 @@ def use_temp_env_var():
 
 
 @pytest.fixture
-def testing_engine():
+def test_db_url():
+    yield "postgresql+psycopg2://admin:admin@localhost:5432/test_db"
+
+
+@pytest.fixture
+def testing_engine(test_db_url):
     engine = create_engine(test_db_url)
 
     yield engine
 
 
 @pytest.fixture
-def setup_test_db(testing_engine, use_temp_env_var):
+def setup_test_db(testing_engine, use_temp_env_var, test_db_url):
     if not database_exists(testing_engine.url):
         create_database(testing_engine.url)
 
