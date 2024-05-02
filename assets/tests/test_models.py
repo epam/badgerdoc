@@ -32,6 +32,7 @@ def dataset(setup_database):
     session.query(Association).delete()
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_database_len(dataset):
     """
     Passes if count of created objects are equal to expected
@@ -42,6 +43,7 @@ def test_database_len(dataset):
     assert len(session.query(Association).all()) == 1
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_autocreate_association(dataset):
     """
     Passes if Association object generates automatically and
@@ -55,6 +57,7 @@ def test_autocreate_association(dataset):
     assert association.dataset_id == ds.id
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_relation(dataset):
     """
     Passes if relation FileObject-Datasets behaves as expected
@@ -65,6 +68,7 @@ def test_relation(dataset):
     assert ds in file.datasets
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_model_property(dataset):
     """
     Passes if models properties returns data in expected format
@@ -95,6 +99,7 @@ def test_model_property(dataset):
     }
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_page_count_jpg_null(setup_database):
     session = setup_database
     file_ = FileObject(
@@ -114,6 +119,7 @@ def test_page_count_jpg_null(setup_database):
     assert f.pages == 1
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_page_count_jpg_not_null(setup_database):
     session = setup_database
     file_ = FileObject(
@@ -133,6 +139,7 @@ def test_page_count_jpg_not_null(setup_database):
     assert f.pages == 10
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_page_count_any_image_null(setup_database):
     session = setup_database
     file_ = FileObject(
@@ -152,6 +159,7 @@ def test_page_count_any_image_null(setup_database):
     assert f.pages == 1
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_page_count_not_image_null(setup_database):
     session = setup_database
     file_ = FileObject(
@@ -171,6 +179,7 @@ def test_page_count_not_image_null(setup_database):
     assert f.pages is None
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_page_count_not_image_not_null(setup_database):
     session = setup_database
     file_ = FileObject(

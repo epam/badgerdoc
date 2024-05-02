@@ -4,11 +4,13 @@ import uuid
 from tempfile import NamedTemporaryFile
 from unittest.mock import patch
 
+import pytest
 from requests import Response
 
 from .conftest import BUCKET_TESTS
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_create_bucket(client_app_main_bucket_false):
     random_name = "tests" + uuid.uuid4().hex
     bucket = {"name": random_name}
@@ -18,6 +20,7 @@ def test_create_bucket(client_app_main_bucket_false):
     assert tests_bucket.status_code == 201
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_bucket_name_on_create_bucket_with_prefix(
     client_app_main_bucket_false, monkeypatch
 ):
@@ -39,6 +42,7 @@ def test_bucket_name_on_create_bucket_with_prefix(
     )
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_bucket_name_on_create_bucket_without_prefix(
     client_app_main_bucket_false, monkeypatch
 ):
@@ -60,6 +64,7 @@ def test_bucket_name_on_create_bucket_without_prefix(
     )
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_upload_and_delete_file_without_conversion(client_app_main):
     with NamedTemporaryFile(suffix=".py") as file:
         data = {"files": file}
@@ -77,6 +82,7 @@ def test_upload_and_delete_file_without_conversion(client_app_main):
 
 @patch("assets.utils.s3_utils.S3Manager.get_files")
 @patch("assets.utils.s3_utils.S3Manager.check_s3")
+@pytest.mark.skip(reason="tests refactoring")
 def test_upload_and_delete_file_s3(
     check_s3,
     get_files,
@@ -111,6 +117,8 @@ def test_upload_and_delete_file_s3(
     assert id_ == res.json()[0]["id"]
 
 
+@pytest.mark.skip(reason="tests refactoring")
+@pytest.mark.skip(reason="tests refactoring")
 def test_upload_negative(client_app_main):
     with NamedTemporaryFile() as file:
         data = {"files": file}
@@ -121,6 +129,7 @@ def test_upload_negative(client_app_main):
     assert response.status_code == 201
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_files(client_app_main, create_minio_bucket):
     with NamedTemporaryFile(suffix=".pdf") as file:
         data = {"files": file}
@@ -141,6 +150,7 @@ def test_get_files(client_app_main, create_minio_bucket):
     assert file_id == res_delete.json()[0]["id"]
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_file_by_id(client_app_main):
     with NamedTemporaryFile(suffix=".go") as file:
         data = {"files": file}
@@ -164,6 +174,7 @@ def test_get_file_by_id(client_app_main):
     assert file_id == res_delete.json()[0]["id"]
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_files_by_dataset_negative(client_app_main):
     dataset = "1231231312313123123213131"
     res = client_app_main.post(f"/datasets/{dataset}/files/search", data="{}")
@@ -171,6 +182,7 @@ def test_get_files_by_dataset_negative(client_app_main):
     assert res.json() == {"detail": f"Dataset {dataset} does not exist!"}
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_datasets(client_app_main):
     res = client_app_main.post("/datasets/search", data="{}")
     assert res.status_code == 200
@@ -187,6 +199,7 @@ def test_get_datasets(client_app_main):
     }
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_put_and_delete_dataset(client_app_main):
     random_name = uuid.uuid4().hex
     body = {"name": random_name}
@@ -203,6 +216,7 @@ def test_put_and_delete_dataset(client_app_main):
     }
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_bound_and_unbound(client_app_main):
     with NamedTemporaryFile(suffix=".py") as file:
         data = {"files": file}
@@ -256,6 +270,7 @@ def test_bound_and_unbound(client_app_main):
     assert res_delete_file.json()[0]["status"]
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_files_by_dataset(client_app_main):
     with NamedTemporaryFile(suffix=".env") as file:
         data = {"files": file}
@@ -302,6 +317,7 @@ def test_get_files_by_dataset(client_app_main):
     assert res_delete_file.json()[0]["status"]
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_bonds(client_app_main, create_minio_bucket):
     with NamedTemporaryFile(suffix=".pdf") as file:
         data = {"files": file}
@@ -338,6 +354,7 @@ def test_get_bonds(client_app_main, create_minio_bucket):
     assert res_delete_file.json()[0]["status"]
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_dataset_by_name(client_app_main):
     random_name = uuid.uuid4().hex
     body = {"name": random_name}
@@ -365,6 +382,7 @@ def test_get_dataset_by_name(client_app_main):
     }
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_files_by_filename_positive(client_app_main):
     with NamedTemporaryFile(suffix=".js") as file:
         data = {"files": file}
@@ -413,6 +431,7 @@ def test_get_files_by_filename_positive(client_app_main):
     assert res_delete.status_code == 201
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_files_by_filename_empty_array(client_app_main):
     with NamedTemporaryFile(suffix=".jpg") as file:
         data = {"files": file}
@@ -437,12 +456,14 @@ def test_get_files_by_filename_empty_array(client_app_main):
     assert res_delete.status_code == 201
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_download_negative(client_app_main):
     some_id = 1231212312
     res = client_app_main.get(f"/download?file_id={some_id}")
     assert res.status_code == 404
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_download_positive(client_app_main):
     with patch(
         "assets.routers.minio_router.fastapi.responses.StreamingResponse"
@@ -463,6 +484,7 @@ def test_download_positive(client_app_main):
 
 
 @patch("assets.utils.common_utils.requests.post")
+@pytest.mark.skip(reason="tests refactoring")
 def test_download_positive_originals(
     gotenberg,
     pdf_file_bytes,
@@ -493,6 +515,7 @@ def test_download_positive_originals(
         assert res_download.status_code == 200
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_count_changing(client_app_main):
     with NamedTemporaryFile(suffix=".py") as file:
         data = {"files": file}

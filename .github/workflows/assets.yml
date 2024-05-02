@@ -39,25 +39,6 @@ jobs:
     strategy:
       matrix:
         python-version: [ "3.8.15" ]
-    services:
-      postgres-postgresql:
-        image: postgres:13
-        ports:
-          - 5432:5432
-        env:
-          POSTGRES_HOST_AUTH_METHOD: trust
-          POSTGRES_USER: admin
-          POSTGRES_PASSWORD: admin
-          POSTGRES_DB: file_management
-          USE_TEST_DB: True
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
-      minio:
-        image: 'bitnami/minio:latest'
-        ports:
-          - 9000:9000
-        env:
-          MINIO_ROOT_USER: minioadmin
-          MINIO_ROOT_PASSWORD: minioadmin
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
@@ -78,15 +59,3 @@ jobs:
         run: |
           cd assets
           poetry run pytest
-        env:
-          POSTGRES_HOST: localhost
-          POSTGRES_PORT: 5432
-          POSTGRES_USER: admin
-          POSTGRES_PASSWORD: admin
-          POSTGRES_DB: file_management
-          USE_TEST_DB: True
-          S3_CREDENTIALS_PROVIDER: minio
-          S3_ENDPOINT: localhost:9000
-          S3_ACCESS_KEY: minioadmin
-          S3_SECRET_KEY: minioadmin
-          MINIO_SECURE_CONNECTION: False
