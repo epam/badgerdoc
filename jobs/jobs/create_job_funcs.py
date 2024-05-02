@@ -58,7 +58,7 @@ async def create_extraction_job(
 
     pipeline_id = (
         extraction_job_input.pipeline_name
-        if extraction_job_input.pipeline_name.endswith(':airflow')
+        if extraction_job_input.pipeline_name.endswith(":airflow")
         else pipeline_instance.get("id")
     )
     pipeline_categories = pipeline_instance.get("meta", {}).get(
@@ -137,7 +137,7 @@ async def create_extraction_annotation_job(
     )
     pipeline_id = (
         extraction_annotation_job_input.pipeline_name
-        if extraction_annotation_job_input.pipeline_name.endswith(':airflow')
+        if extraction_annotation_job_input.pipeline_name.endswith(":airflow")
         else pipeline_instance.get("id")
     )
 

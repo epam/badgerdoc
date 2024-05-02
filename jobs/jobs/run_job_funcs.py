@@ -19,7 +19,9 @@ async def run_extraction_job(
     """Runs ExtractionJob - creates init_args
     and sends it to the Pipeline Manager"""
 
-    if isinstance(job_to_run.pipeline_id, str) and not job_to_run.pipeline_id.endswith(':airflow'):
+    if isinstance(
+        job_to_run.pipeline_id, str
+    ) and not job_to_run.pipeline_id.endswith(":airflow"):
         raise HTTPException(
             status_code=400,
             detail="Wrong pipeline value.",
