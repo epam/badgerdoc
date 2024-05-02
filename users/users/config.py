@@ -10,7 +10,9 @@ KEYCLOAK_ROLE_ADMIN = os.getenv("KEYCLOAK_ROLE_ADMIN", "")
 KEYCLOAK_SYSTEM_USER_SECRET = os.getenv("KEYCLOAK_SYSTEM_USER_SECRET", "")
 
 # S3 settings
-MINIO_SECURE_CONNECTION = os.getenv("MINIO_SECURE_CONNECTION", "False").lower() in (
+MINIO_SECURE_CONNECTION = os.getenv(
+    "MINIO_SECURE_CONNECTION", "False"
+).lower() in (
     "true",
     "1",
 )

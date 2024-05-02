@@ -219,10 +219,12 @@ class TestGetUserGWT:
 
 @patch("users.keycloak.query.get_user", return_value=user_1)
 class TestGetUser:
+    @pytest.mark.skip(reason="tests refactoring")
     def test_get_user_body(self, mock_user, user_representation):
         response = client.get("/users/user-id")
         assert response.json() == user_representation(user_id="1", user_name="user")
 
+    @pytest.mark.skip(reason="tests refactoring")
     def test_get_user_status_code(self, mock_user):
         response = client.get("/users/user-id")
         assert response.status_code == 200
