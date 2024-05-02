@@ -3,7 +3,6 @@ name = "taxonomy"
 version = "0.1.0"
 description = "Taxonomy microservice for Badgerdoc project"
 authors = ["BadgerDoc team"]
-readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.8.0"
