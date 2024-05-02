@@ -32,9 +32,9 @@ jobs:
        - name: Run linters and checkers [flake8 -> isort -> black]
          working-directory: ./jobs
          run: |
-           flake8 --exclude=alembic,tests --extend-ignore=E203
-           isort --profile=black --line-length=79 --check-only --skip=alembic --skip=tests .
-           black --check --line-length=79 --exclude="(alembic|tests)" .
+           poetry run flake8 --exclude=alembic,tests --extend-ignore=E203
+           poetry run isort --profile=black --line-length=79 --check-only --skip=alembic --skip=tests .
+           poetry run black --check --line-length=79 --exclude="(alembic|tests)" .
        - name: Run tests
          working-directory: ./jobs
          run: |
