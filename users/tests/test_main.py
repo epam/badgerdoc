@@ -760,7 +760,7 @@ class TestUserRegistration:
 
 
 def test_get_idp_names_and_SSOauth_links(
-    mocked_admin_auth_data, mocked_identity_providers_data
+    mocked_admin_auth_data, mocked_identity_providers_data, keycloak_host_mock
 ):
     with patch(
         "users.keycloak.query.get_master_realm_auth_data",
@@ -774,7 +774,7 @@ def test_get_idp_names_and_SSOauth_links(
             "Identity Providers Info": [
                 {
                     "Alias": "EPAM_SSO",
-                    "Auth link": "http://dev2.badgerdoc.com/auth/realms/master/protocol/openid-connect/auth?client_id=BadgerDoc&response_type=token&redirect_uri=http://dev2.badgerdoc.com/login&kc_idp_hint=EPAM_SSO",  # noqa: E501
+                    "Auth link": f"{keycloak_host_mock}/auth/realms/master/protocol/openid-connect/auth?client_id=BadgerDoc&response_type=token&redirect_uri={keycloak_host_mock}/login&kc_idp_hint=EPAM_SSO",  # noqa: E501
                 }
             ]
         }

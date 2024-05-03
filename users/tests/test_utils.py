@@ -5,7 +5,7 @@ import pytest
 from users import utils
 
 
-def test_extract_idp_data_needed():
+def test_extract_idp_data_needed(keycloak_host_mock):
     mocked_data_to_convert = [
         {
             "alias": "EPAM_SSO",
@@ -45,7 +45,7 @@ def test_extract_idp_data_needed():
     assert utils.extract_idp_data_needed(mocked_data_to_convert) == [
         {
             "Alias": "EPAM_SSO",
-            "Auth link": "http://dev2.badgerdoc.com/auth/realms/master/protocol/openid-connect/auth?client_id=BadgerDoc&response_type=token&redirect_uri=http://dev2.badgerdoc.com/login&kc_idp_hint=EPAM_SSO",  # noqa: E501
+            "Auth link": f"{keycloak_host_mock}/auth/realms/master/protocol/openid-connect/auth?client_id=BadgerDoc&response_type=token&redirect_uri={keycloak_host_mock}/login&kc_idp_hint=EPAM_SSO",  # noqa: E501
         }
     ]
 
