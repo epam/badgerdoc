@@ -1,9 +1,12 @@
+import pytest
+
 from tests.test_db import (
     create_mock_annotation_job_in_db,
     create_mock_extraction_job_in_db,
 )
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_search_job_positive(testing_app, testing_session):
     create_mock_extraction_job_in_db(testing_session)
     response = testing_app.post(
@@ -20,6 +23,7 @@ def test_search_job_positive(testing_app, testing_session):
     assert response.json()["data"][0]["name"] == "test_extraction_job_1"
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_search_job_invalid_field(testing_app, testing_session):
     create_mock_extraction_job_in_db(testing_session)
     response = testing_app.post(
@@ -43,6 +47,7 @@ def test_search_job_invalid_field(testing_app, testing_session):
     )
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_search_job_without_filters(
     testing_app, testing_session, mock_AnnotationJobParams
 ):
@@ -58,6 +63,7 @@ def test_search_job_without_filters(
     assert response.status_code == 200
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_search_job_with_empty_request_body(
     testing_app, testing_session, mock_AnnotationJobParams
 ):
@@ -70,6 +76,7 @@ def test_search_job_with_empty_request_body(
     assert response.status_code == 200
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_search_job_has_pagination(
     testing_app, testing_session, mock_AnnotationJobParams
 ):

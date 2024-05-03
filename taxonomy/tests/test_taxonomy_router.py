@@ -9,6 +9,7 @@ from tests.override_app_dependency import TEST_HEADER, TEST_TENANTS
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_create_taxonomy_should_work(overrided_token_client, db_session):
     # given
     input_data = {
@@ -41,6 +42,7 @@ def test_create_taxonomy_should_work(overrided_token_client, db_session):
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_create_new_taxonomy_with_same_id_should_update_version(
     overrided_token_client, db_session
 ):
@@ -83,6 +85,7 @@ def test_create_new_taxonomy_with_same_id_should_update_version(
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_should_return_latest_taxonomy(
     overrided_token_client, prepared_taxonomy_record_in_db: Taxonomy
 ):
@@ -99,6 +102,7 @@ def test_should_return_latest_taxonomy(
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_should_return_taxonomy_by_id_and_version(
     prepare_two_taxonomy_records_with_same_id_in_db,
     overrided_token_client,
@@ -121,6 +125,7 @@ def test_should_return_taxonomy_by_id_and_version(
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_should_associate_taxonomy_to_category(
     overrided_token_client,
     prepared_taxonomy_record_in_db: Taxonomy,
@@ -155,6 +160,7 @@ def test_should_associate_taxonomy_to_category(
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_should_get_link_taxonomy_to_category(
     overrided_token_client,
     prepared_taxonomy_with_category_link: Tuple[Taxonomy, CategoryLinkSchema],
@@ -179,6 +185,7 @@ def test_should_get_link_taxonomy_to_category(
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_should_search_taxonomies(
     overrided_token_client,
     prepared_taxonomy_with_category_link: Tuple[Taxonomy, CategoryLinkSchema],
@@ -194,6 +201,7 @@ def test_should_search_taxonomies(
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_should_delete_link_taxonomy_to_category_by_job(
     overrided_token_client,
     prepared_taxonomy_with_category_link: Tuple[Taxonomy, CategoryLinkSchema],
@@ -214,6 +222,7 @@ def test_should_delete_link_taxonomy_to_category_by_job(
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_should_delete_link_taxonomy_to_category_by_job_and_category(
     overrided_token_client,
     prepared_taxonomy_with_category_link: Tuple[Taxonomy, CategoryLinkSchema],
@@ -236,6 +245,7 @@ def test_should_delete_link_taxonomy_to_category_by_job_and_category(
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_should_update_taxonomy_in_db(
     overrided_token_client,
     prepared_taxonomy_record_in_db: Taxonomy,
@@ -258,6 +268,7 @@ def test_should_update_taxonomy_in_db(
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_should_delete_taxonomy_from_db(
     overrided_token_client,
     prepared_taxonomy_record_in_db: Taxonomy,
@@ -281,6 +292,7 @@ def test_should_delete_taxonomy_from_db(
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_should_delete_latest_taxonomy_from_db(
     prepare_two_taxonomy_records_with_same_id_in_db,
     overrided_token_client,

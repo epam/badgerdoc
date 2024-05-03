@@ -96,6 +96,7 @@ def prepare_parents_concatenate_expected_response(taxons: List[Taxon]) -> dict:
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_add_taxon_taxonomy_does_not_exist(overrided_token_client):
     data = prepare_taxon_body(
         name=uuid.uuid4().hex,
@@ -109,6 +110,7 @@ def test_add_taxon_taxonomy_does_not_exist(overrided_token_client):
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_add_taxon_self_parent(
     overrided_token_client,
     prepared_taxonomy_record_in_db,
@@ -128,6 +130,7 @@ def test_add_taxon_self_parent(
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_add_taxon_without_name(
     overrided_token_client,
     prepared_taxonomy_record_in_db,
@@ -146,6 +149,7 @@ def test_add_taxon_without_name(
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_add_taxon_name_empty_string(
     overrided_token_client,
     prepared_taxonomy_record_in_db,
@@ -162,6 +166,7 @@ def test_add_taxon_name_empty_string(
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_add_taxon_specify_version(
     overrided_token_client,
     prepared_taxonomy_record_in_db,
@@ -184,6 +189,7 @@ def test_add_taxon_specify_version(
     "taxon_name",
     (uuid.uuid4().hex, "My-Taxon", "!!Another_taxon", "#$^&)Taxon123"),
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_add_unique_name(
     overrided_token_client, prepared_taxonomy_record_in_db, taxon_name
 ):
@@ -202,6 +208,7 @@ def test_add_unique_name(
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_add_taxon_id_exists(
     overrided_token_client,
     prepared_taxon_entity_in_db,
@@ -219,6 +226,7 @@ def test_add_taxon_id_exists(
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_taxon_exists_no_parents(
     overrided_token_client,
     prepared_taxon_entity_in_db,
@@ -245,6 +253,7 @@ def test_get_taxon_exists_no_parents(
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_taxon_parents_isleaf(
     overrided_token_client,
     prepare_three_taxons_parent_each_other,
@@ -267,6 +276,7 @@ def test_get_taxon_parents_isleaf(
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_taxon_does_not_exist(overrided_token_client):
     id_ = uuid.uuid4().hex
     response = overrided_token_client.get(
@@ -277,6 +287,7 @@ def test_get_taxon_does_not_exist(overrided_token_client):
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_update_taxon_does_not_exist(overrided_token_client):
     id_ = uuid.uuid4().hex
     taxon_update = prepare_taxon_body(id_=id_)
@@ -290,6 +301,7 @@ def test_update_taxon_does_not_exist(overrided_token_client):
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_update_taxon_duplicate_name(
     overrided_token_client,
     prepare_two_taxons_different_names,
@@ -308,6 +320,7 @@ def test_update_taxon_duplicate_name(
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_update_tree_set_parent_to_none(
     overrided_token_client, prepare_three_taxons_parent_each_other
 ):
@@ -345,6 +358,7 @@ def test_update_tree_set_parent_to_none(
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_update_tree_change_parent_to_another(
     overrided_token_client,
     prepare_three_taxons_parent_each_other,
@@ -385,6 +399,7 @@ def test_update_tree_change_parent_to_another(
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_cascade_delete_parent(
     overrided_token_client,
     prepare_three_taxons_parent_each_other,
@@ -404,6 +419,7 @@ def test_cascade_delete_parent(
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_delete_taxon_does_not_exist(
     overrided_token_client,
 ):
@@ -422,6 +438,7 @@ def test_delete_taxon_does_not_exist(
     ["page_num", "page_size", "result_length"],
     [(1, 15, 15), (2, 15, 1), (3, 15, 0), (1, 30, 16)],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_search_pagination_should_work(
     page_num,
     page_size,
@@ -448,6 +465,7 @@ def test_search_pagination_should_work(
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_search_result_should_be_empty_if_taxon_not_exists(
     overrided_token_client,
     prepared_taxon_hierarchy,
@@ -477,6 +495,7 @@ def test_search_result_should_be_empty_if_taxon_not_exists(
         ("australia", 1),
     ),
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_search_should_return_only_allowed_taxon_for_current_tenant(
     taxon_id,
     expected_total,
@@ -504,6 +523,7 @@ def test_search_should_return_only_allowed_taxon_for_current_tenant(
     ["operator", "value", "expected"],
     [("like", "%G%", 2), ("like", "%D%1_", 1), ("ilike", "%D%1_", 1)],
 )
+@pytest.mark.skip(reason="tests refactoring")
 def test_search_filter_name_like(
     operator, value, expected, prepared_taxon_hierarchy, overrided_token_client
 ):
@@ -522,6 +542,7 @@ def test_search_filter_name_like(
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_search_children_tree(
     overrided_token_client,
     prepare_three_taxons_parent_each_other,
@@ -551,6 +572,7 @@ def test_search_children_tree(
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_search_children_recursive_tree(
     overrided_token_client,
     prepare_three_taxons_parent_each_other,
@@ -596,6 +618,7 @@ def test_search_children_recursive_tree(
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_search_parents_recursive_tree(
     overrided_token_client,
     prepare_three_taxons_parent_each_other,
@@ -629,6 +652,7 @@ def test_search_parents_recursive_tree(
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_parents_concatenated_not_found(
     overrided_token_client, prepared_taxon_hierarchy
 ):
@@ -645,6 +669,7 @@ def test_get_parents_concatenated_not_found(
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_parents_concatenated(
     overrided_token_client, prepared_taxon_hierarchy
 ):

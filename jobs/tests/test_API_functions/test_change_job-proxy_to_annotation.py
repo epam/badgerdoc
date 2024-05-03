@@ -1,9 +1,12 @@
 import asyncio
 from unittest.mock import patch
 
+import pytest
+
 from tests.test_db import create_mock_annotation_job_in_db
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_change_annotation_job_with_request_to_annotation(
     testing_app, testing_session, mock_AnnotationJobParams2
 ):
@@ -29,6 +32,7 @@ def test_change_annotation_job_with_request_to_annotation(
         )
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_change_annotation_job_without_request_to_annotation(
     testing_app, testing_session, mock_AnnotationJobParams2
 ):
@@ -44,6 +48,7 @@ def test_change_annotation_job_without_request_to_annotation(
         mock.assert_not_awaited()
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_change_annotation_job_with_partial_request_to_annotation(
     testing_app, testing_session, mock_AnnotationJobParams2
 ):

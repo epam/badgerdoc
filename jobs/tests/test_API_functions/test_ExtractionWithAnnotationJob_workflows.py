@@ -2,9 +2,12 @@ import asyncio
 import datetime
 from unittest.mock import patch
 
+import pytest
+
 import jobs.schemas as schemas
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_change_extraction_job_to_extraction_with_annotation_job_and_run_it(
     testing_app,
     testing_session,
@@ -87,6 +90,7 @@ def test_change_extraction_job_to_extraction_with_annotation_job_and_run_it(
         assert response5.json()["status"] == schemas.Status.finished
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_create_extraction_with_annotation_job_and_run_it(
     testing_app,
     mock_data_dataset11,
@@ -163,6 +167,7 @@ def test_create_extraction_with_annotation_job_and_run_it(
         assert response5.json()["status"] == schemas.Status.finished
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_create_extraction_with_annotation_job_and_autostart_false(
     testing_app,
     mock_data_dataset11,

@@ -8,11 +8,11 @@ from jobs import db_service
 from jobs.config import (
     ANNOTATION_SERVICE_HOST,
     ASSETS_SERVICE_HOST,
-    PIPELINES_SERVICE_HOST,
-    TAXONOMY_SERVICE_HOST,
     JOBS_SERVICE_HOST,
     PAGINATION_THRESHOLD,
+    PIPELINES_SERVICE_HOST,
     ROOT_PATH,
+    TAXONOMY_SERVICE_HOST,
     USERS_HOST,
 )
 from jobs.logger import logger

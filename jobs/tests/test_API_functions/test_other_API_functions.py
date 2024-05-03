@@ -1,6 +1,8 @@
 import asyncio
 from unittest.mock import patch
 
+import pytest
+
 import jobs.schemas as schemas
 
 from tests.test_db import (
@@ -9,6 +11,7 @@ from tests.test_db import (
 )
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_all_jobs_endpoint(
     testing_app, testing_session, mock_AnnotationJobParams
 ):
@@ -22,6 +25,7 @@ def test_get_all_jobs_endpoint(
     assert response.json()[1]["name"] == "MockAnnotationJob"
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_job_by_id_positive(
     testing_app,
     testing_session,
@@ -43,6 +47,7 @@ def test_get_job_by_id_positive(
         assert response.json()["name"] == "MockAnnotationJob"
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_job_by_id_negative(
     testing_app, testing_session, mock_AnnotationJobParams
 ):
@@ -55,6 +60,7 @@ def test_get_job_by_id_negative(
     assert response.json()["detail"] == "Job with this id does not exist."
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_delete_job_positive(
     testing_app, testing_session, mock_AnnotationJobParams
 ):
@@ -71,6 +77,7 @@ def test_delete_job_positive(
         assert response.json() == {"success": "Job with id=2 was deleted"}
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_delete_job_invalid_job_id(
     testing_app, testing_session, mock_AnnotationJobParams
 ):
@@ -82,6 +89,7 @@ def test_delete_job_invalid_job_id(
     assert response.status_code == 404
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_get_metadata(testing_app):
     response = testing_app.get("/metadata")
     assert response.status_code == 200

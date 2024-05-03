@@ -16,6 +16,7 @@ def get_version() -> str:
 
     return default
 
+
 def get_service_uri(prefix: str) -> str:  # noqa
     service_scheme = os.getenv(f"{prefix}SERVICE_SCHEME")
     service_host = os.getenv(f"{prefix}SERVICE_HOST")
@@ -42,13 +43,13 @@ POSTGRESQL_JOBMANAGER_DATABASE_URI = (
 )
 
 KEYCLOAK_HOST = os.environ.get("KEYCLOAK_HOST", "")
-USERS_HOST = get_service_uri('USERS_')
+USERS_HOST = get_service_uri("USERS_")
 
-PIPELINES_SERVICE_HOST = get_service_uri('PIPELINES_')
-ASSETS_SERVICE_HOST = get_service_uri('ASSETS_')
-ANNOTATION_SERVICE_HOST = get_service_uri('ANNOTATION_')
-TAXONOMY_SERVICE_HOST = get_service_uri('TAXONOMY_')
-JOBS_SERVICE_HOST = get_service_uri('JOBS_')
+PIPELINES_SERVICE_HOST = get_service_uri("PIPELINES_")
+ASSETS_SERVICE_HOST = get_service_uri("ASSETS_")
+ANNOTATION_SERVICE_HOST = get_service_uri("ANNOTATION_")
+TAXONOMY_SERVICE_HOST = get_service_uri("TAXONOMY_")
+JOBS_SERVICE_HOST = get_service_uri("JOBS_")
 
 PAGINATION_THRESHOLD = 7
 PROVIDE_JWT_IF_NO_ANY = True
