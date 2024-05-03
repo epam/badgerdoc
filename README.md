@@ -1,3 +1,5 @@
+[![badgerdoc build](https://github.com/epam/badgerdoc/actions/workflows/badgerdoc-build.yml/badge.svg?branch=main)](https://github.com/epam/badgerdoc/actions/workflows/badgerdoc-build.yml)
+
 # What is BadgerDoc
 
 **BadgerDoc** is a ML Delivery Platform made to make delivery process of Machine Learning Solutions visible to customer,
