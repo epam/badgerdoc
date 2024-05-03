@@ -8,8 +8,6 @@ from typing import Any, Dict, List, Optional, Union
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel, Field
 
-import users.keycloak.query as kc_query
-
 logger = logging.getLogger(__name__)
 logger.setLevel(os.getenv("LOG_LEVEL", "INFO"))
 
