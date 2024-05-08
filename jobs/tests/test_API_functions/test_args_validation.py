@@ -479,20 +479,16 @@ def test_for_excessive_format_and_s3bucket_not_in_ImportJob(testing_app):
 def test_params_validation_for_extracting_job():
     request = {
         "name": "SuperExtraction",
-        "files": [
-            698
-        ],
+        "files": [698],
         "datasets": [],
         "type": "ExtractionJob",
         "is_draft": False,
         "is_auto_distribution": False,
         "start_manual_job_automatically": False,
-        "owners": [
-            "02336646-f5d0-4670-b111-c140a3ad58b5"
-        ],
+        "owners": ["02336646-f5d0-4670-b111-c140a3ad58b5"],
         "annotators": [],
         "validators": [],
         "pipeline_name": "dod latex",
-        "pipeline_version": 1
+        "pipeline_version": 1,
     }
     assert JobParams.parse_obj(request)

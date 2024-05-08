@@ -1,7 +1,7 @@
 // temporary_disabled_rules
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { FC, useState } from 'react';
 import { Pipeline } from 'api/typings';
+import { FC, useState } from 'react';
 import { InfoIcon } from '../../../shared/components/info-icon/info-icon';
 import { AutomaticJobProps } from '../automatic-job/automatic-job';
 
@@ -60,7 +60,7 @@ const PipelinePicker: FC<AutomaticJobProps> = ({ lens, pipelines }) => {
     return (
         <LabeledInput
             cx={`${styles.pipeline} m-t-15`}
-            label="ML Pipeline"
+            label="Pipeline"
             {...lens.prop('pipeline').toProps()}
         >
             <div className="flex align-vert-center">

@@ -4,9 +4,10 @@ from unittest.mock import patch
 
 import aiohttp.client_exceptions
 import freezegun
+import pytest
+
 import jobs.create_job_funcs as create_job_funcs
 import jobs.schemas as schemas
-import pytest
 
 
 # ----------- Create Job Drafts ------------- #
@@ -350,7 +351,7 @@ def test_create_extraction_job_with_empty_categories_list(
                 "datasets": [1, 2],
                 "is_draft": False,
                 "pipeline_name": "pipeline",
-                "categories": []
+                "categories": [],
             },
         )
         assert response.status_code == 200
@@ -591,7 +592,7 @@ def test_create_extraction_with_annotation_job_test_categories(
 
 
 @pytest.mark.skip(reason="tests refactoring")
-def test_create_extraction_with_annotation_job_test_with_empty_available_categories(
+def test_create_extraction_with_annotation_job_test_with_empty_available_categories(  # noqa
     testing_app,
     mock_data_dataset11,
     mock_data_dataset22,
@@ -661,7 +662,7 @@ def test_create_extraction_with_annotation_job_test_with_available_categories(
                 "validators": ["validator1", "validator2"],
                 "validation_type": schemas.ValidationType.hierarchical,
                 "categories": ["category1", "category2"],
-                "available_annotation_types":  available_annotation_types,
+                "available_annotation_types": available_annotation_types,
                 "available_link_types": available_link_types,
                 "is_auto_distribution": False,
                 "pipeline_name": "pipeline",
@@ -672,7 +673,10 @@ def test_create_extraction_with_annotation_job_test_with_available_categories(
             },
         )
         assert response.status_code == 200
-        assert response.json()["available_annotation_types"] == available_annotation_types
+        assert (
+            response.json()["available_annotation_types"]
+            == available_annotation_types
+        )
         assert response.json()["available_link_types"] == available_link_types
 
 
@@ -872,7 +876,7 @@ def test_create_annotation_job_with_empty_available_annotation_types(
 
 
 @pytest.mark.skip(reason="tests refactoring")
-def test_create_annotation_job_with_empty_available_annotation_types(
+def test_create_annotation_job_with_empty_available_annotation_types(  # noqa
     testing_app, mock_data_dataset11, mock_data_dataset22
 ):
     with patch("jobs.utils.fetch", return_value=asyncio.Future()) as mock:
@@ -883,7 +887,9 @@ def test_create_annotation_job_with_empty_available_annotation_types(
             (200, {}),
         ]
         available_annotation_types = ["box", "table"]
-        available_link_types = ["chain", ]
+        available_link_types = [
+            "chain",
+        ]
         response = testing_app.post(
             "/jobs/create_job",
             json={
@@ -906,5 +912,8 @@ def test_create_annotation_job_with_empty_available_annotation_types(
             },
         )
         assert response.status_code == 200
-        assert response.json()["available_annotation_types"] == available_annotation_types
+        assert (
+            response.json()["available_annotation_types"]
+            == available_annotation_types
+        )
         assert response.json()["available_link_types"] == available_link_types
