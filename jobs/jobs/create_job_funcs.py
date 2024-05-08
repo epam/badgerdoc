@@ -49,21 +49,30 @@ async def create_extraction_job(
 ) -> dbm.CombinedJob:
     """Creates new ExtractionJob and saves it in the database"""
 
-    pipeline_instance = await utils.get_pipeline_instance_by_its_name(
-        pipeline_name=extraction_job_input.pipeline_name,
-        current_tenant=current_tenant,
-        jw_token=jw_token,
-        pipeline_version=extraction_job_input.pipeline_version,
-    )
+    if False:
+        # old pipelines service
+        pipeline_instance = await utils.get_pipeline_instance_by_its_name(
+            pipeline_name=extraction_job_input.pipeline_name,
+            current_tenant=current_tenant,
+            jw_token=jw_token,
+            pipeline_version=extraction_job_input.pipeline_version,
+        )
 
-    pipeline_id = (
-        extraction_job_input.pipeline_name
-        if extraction_job_input.pipeline_name.endswith(":airflow")
-        else pipeline_instance.get("id")
-    )
-    pipeline_categories = pipeline_instance.get("meta", {}).get(
-        "categories", []
-    )
+        pipeline_id = (
+            extraction_job_input.pipeline_name
+            if extraction_job_input.pipeline_name.endswith(":airflow")
+            else pipeline_instance.get("id")
+        )
+
+        pipeline_categories = pipeline_instance.get("meta", {}).get(
+            "categories", []
+        )
+
+    else:
+        pipeline_id = extraction_job_input.pipeline_id
+        pipeline_engine = extraction_job_input.pipeline_engine
+        # check if categories passed and then append all categories to job
+        pipeline_categories = []
 
     (
         files_data,
@@ -93,6 +102,7 @@ async def create_extraction_job(
         db,
         job_name,
         pipeline_id,
+        pipeline_engine,
         valid_separate_files_uuids,
         valid_dataset_tags,
         files_data,
@@ -103,7 +113,7 @@ async def create_extraction_job(
     return job_in_db
 
 
-def create_annotation_job(
+async def create_annotation_job(
     annotation_job_input: schemas.AnnotationJobParams,
     db: Session = Depends(db_service.get_session),
 ) -> dbm.CombinedJob:
@@ -129,17 +139,28 @@ async def create_extraction_annotation_job(
     db: Session = Depends(db_service.get_session),
 ) -> dbm.CombinedJob:
     """Creates new ExtractionWithAnnotationJob and saves it in the database"""
-    pipeline_instance = await utils.get_pipeline_instance_by_its_name(
-        pipeline_name=extraction_annotation_job_input.pipeline_name,
-        current_tenant=current_tenant,
-        jw_token=jw_token,
-        pipeline_version=extraction_annotation_job_input.pipeline_version,
-    )
-    pipeline_id = (
-        extraction_annotation_job_input.pipeline_name
-        if extraction_annotation_job_input.pipeline_name.endswith(":airflow")
-        else pipeline_instance.get("id")
-    )
+    if False:
+        pipeline_instance = await utils.get_pipeline_instance_by_its_name(
+            pipeline_name=extraction_annotation_job_input.pipeline_name,
+            current_tenant=current_tenant,
+            jw_token=jw_token,
+            pipeline_version=extraction_annotation_job_input.pipeline_version,
+        )
+        pipeline_id = (
+            extraction_annotation_job_input.pipeline_name
+            if extraction_annotation_job_input.pipeline_name.endswith(
+                ":airflow"
+            )
+            else pipeline_instance.get("id")
+        )
+        pipeline_categories = pipeline_instance.get("meta", {}).get(
+            "categories", []
+        )
+    else:
+        pipeline_id = extraction_annotation_job_input.pipeline_id
+        pipeline_engine = extraction_annotation_job_input.pipeline_engine
+        # check if categories passed and then append all categories to job
+        pipeline_categories = []
 
     (
         files_data,
@@ -159,9 +180,6 @@ async def create_extraction_annotation_job(
             detail="No valid data (files, datasets) provided",
         )
 
-    pipeline_categories = pipeline_instance.get("meta", {}).get(
-        "categories", []
-    )
     manual_categories = extraction_annotation_job_input.categories
     categories = list(
         set(
@@ -175,6 +193,7 @@ async def create_extraction_annotation_job(
         db,
         extraction_annotation_job_input,
         pipeline_id,
+        pipeline_engine,
         valid_separate_files_uuids,
         valid_dataset_tags,
         files_data,

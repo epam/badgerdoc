@@ -4,9 +4,6 @@ import time
 from typing import List
 from unittest.mock import patch
 
-import jobs.db_service as service
-import jobs.main as main
-import jobs.schemas as schemas
 import pytest
 from fastapi.testclient import TestClient
 from pydantic import BaseModel
@@ -19,6 +16,9 @@ from sqlalchemy_utils import (  # type: ignore
     drop_database,
 )
 
+import jobs.db_service as service
+import jobs.main as main
+import jobs.schemas as schemas
 from alembic import command
 from alembic.config import Config
 
@@ -103,9 +103,9 @@ def setup_tenant():
 def testing_app(testing_engine, testing_session, setup_tenant):
     with patch("jobs.db_service.LocalSession", testing_session):
         main.app.dependency_overrides[main.tenant] = lambda: setup_tenant
-        main.app.dependency_overrides[
-            service.get_session
-        ] = lambda: testing_session
+        main.app.dependency_overrides[service.get_session] = (
+            lambda: testing_session
+        )
         client = TestClient(main.app)
         yield client
 

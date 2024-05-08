@@ -1,9 +1,10 @@
 from unittest.mock import patch
 
 import aiohttp.client_exceptions
-import jobs.utils as utils
 import pytest
 from fastapi import HTTPException
+
+import jobs.utils as utils
 
 # --------------TEST get_files_data_from_datasets---------------
 

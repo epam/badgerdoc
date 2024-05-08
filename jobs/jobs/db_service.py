@@ -25,6 +25,7 @@ def create_extraction_job(
     db: Session,
     job_name: str,
     pipeline_id: Union[int, str],
+    pipeline_engine: str,
     valid_separate_files_ids: List[int],
     valid_dataset_ids: List[int],
     all_files_data: List[Dict[str, Any]],
@@ -43,6 +44,7 @@ def create_extraction_job(
         validators=[],
         owners=[],
         pipeline_id=pipeline_id,
+        pipeline_engine=pipeline_engine,
         creation_datetime=datetime.utcnow(),
         categories=categories,
     )
@@ -84,6 +86,7 @@ def create_extraction_annotation_job(
     db: Session,
     extraction_annotation_job_input: schemas.ExtractionWithAnnotationJobParams,
     pipeline_id: Union[str, int],
+    pipeline_engine: str,
     valid_separate_files_ids: List[int],
     valid_dataset_ids: List[int],
     all_files_data: List[Dict[str, Any]],
@@ -111,6 +114,7 @@ def create_extraction_annotation_job(
         deadline=extraction_annotation_job_input.deadline,
         validation_type=extraction_annotation_job_input.validation_type,
         pipeline_id=pipeline_id,
+        pipeline_engine=pipeline_engine,
         all_files_data=all_files_data,
         start_manual_job_automatically=extraction_annotation_job_input.start_manual_job_automatically,  # noqa: E501
         extensive_coverage=extraction_annotation_job_input.extensive_coverage,  # noqa: E501

@@ -42,6 +42,7 @@ class ExtractionJobParams(BaseModel):
     datasets: List[int]
     pipeline_name: str
     pipeline_version: Optional[str]
+    pipeline_engine: Optional[str]
     is_draft: bool = False
 
 
@@ -119,6 +120,8 @@ class JobParams(BaseModel):
     extensive_coverage: Optional[int]
     # ---- ExtractionJob and ExtractionWithAnnotationJob attributes ---- #
     pipeline_name: Optional[str]
+    pipeline_id: Optional[str]
+    pipeline_engine: Optional[str] = Field(default="airflow")
     pipeline_version: Optional[str] = None
     # ---- ExtractionWithAnnotationJob attributes ---- #
     start_manual_job_automatically: Optional[bool] = True
@@ -343,3 +346,27 @@ class JobProgress(BaseModel):
     finished: int = Field(..., example=1)
     total: int = Field(..., example=1)
     mode: str = Field(..., example="Automatic")
+
+
+class PipelineEngine(BaseModel):
+    name: str
+    resource: str
+    enabled: bool
+
+
+class PipelineEngineSupport(BaseModel):
+    data: List[PipelineEngine]
+
+
+class Pipeline(BaseModel):
+    id: str
+    name: str
+    version: int = Field(default=0)
+    type: str = Field(default="airflow")
+    date: datetime
+    meta: Dict[str, Any]
+    steps: List[Any] = Field(default_factory=list)
+
+
+class Pipelines(BaseModel):
+    data: List[Pipeline]
