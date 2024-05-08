@@ -1,0 +1,30 @@
+name: pipelines linters and tests
+
+on:
+  push:
+    paths:
+      - pipelines/**
+      - .github/worlflows/pipelines.yml
+  pull_request:
+    paths:
+      - pipelines/**
+      - .github/worlflows/pipelines.yml
+jobs:
+   pipelines-linters-and-tests:
+     runs-on: ubuntu-latest
+     steps:
+       - uses: actions/checkout@v2
+       - name: update docker-compose
+         run: pip install --upgrade docker-compose
+       - name: create base image
+         run: cd infra/docker/python_base && make build image_name=818863528939.dkr.ecr.eu-central-1.amazonaws.com/badgerdoc/python_base:0.1.7
+       - name: run docker-compose up
+         run: cd pipelines && docker-compose -f docker-compose-for-test.yaml up -d --build
+       - name: run tests
+         run: docker exec pipelines_web_app bash -c "poetry run pytest"
+       - name: check with flake8
+         run: docker exec pipelines_web_app bash -c "flake8 --exclude=alembic,tests --extend-ignore=E203"
+       - name: check with isort
+         run: docker exec pipelines_web_app bash -c "isort --profile=black --line-length=79 --check-only --skip=alembic --skip=tests ."
+       - name: check with black
+         run: docker exec pipelines_web_app bash -c 'black --check --line-length=79 --exclude="(alembic|tests)" .'

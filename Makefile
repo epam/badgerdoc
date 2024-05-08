@@ -1,6 +1,6 @@
 _DOCKER_ ?= docker
 
-build_all:  build_base build_base_3.12 build_annotation build_users build_convert build_jobs build_keycloak build_assets build_web  build_processing build_taxonomy clean
+build_all:  build_base build_base_3.12 build_annotation build_users build_convert build_jobs build_keycloak build_assets build_web build_processing build_pipelines build_taxonomy clean
 
 build_base: 
 	mkdir -p build_dir
@@ -40,6 +40,9 @@ build_assets:
 
 build_web:
 	${_DOCKER_} build --target build web/ -t badgerdoc_web
+
+build_pipelines:
+	${_DOCKER_} build --target build pipelines/ -t badgerdoc_pipelines
 
 build_taxonomy:
 	${_DOCKER_} build --target build taxonomy/ -t badgerdoc_taxonomy

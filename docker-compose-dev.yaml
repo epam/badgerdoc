@@ -222,6 +222,22 @@ services:
     depends_on:
       - badgerdoc-zookeeper
 
+  badgerdoc-pipelines:
+    image: badgerdoc_pipelines
+    container_name: pipelines
+    env_file:
+      - .env
+    environment:
+      - ROOT_PATH=/pipelines
+    networks:
+      - badgerdoc
+    command: bash -c "./wait-for-it.sh -t 0 badgerdoc-kafka:9092 && alembic upgrade head && uvicorn pipelines.app:app --host 0.0.0.0 --port 8080 --reload"
+    depends_on:
+      - badgerdoc-minio
+      - badgerdoc-postgresql
+      - badgerdoc-kafka
+    restart: on-failure
+
   badgerdoc-taxonomy:
     image: badgerdoc_taxonomy
     container_name: taxonomy
