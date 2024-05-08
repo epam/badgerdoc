@@ -1,9 +1,10 @@
 // temporary_disabled_rules
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-redeclare, react-hooks/exhaustive-deps */
-import React, { FC, ReactElement, useCallback, useContext, useMemo } from 'react';
-import EditJobSettings from 'components/job/edit-job-settings/edit-job-settings';
-import { usePipelines } from 'api/hooks/pipelines';
+import { useCategories } from 'api/hooks/categories';
 import { JobVariables, useAddJobMutation, useEditJobMutation } from 'api/hooks/jobs';
+import { usePipelines } from 'api/hooks/pipelines';
+import { useAllTaxonomies, useTaxonomiesByJobId } from 'api/hooks/taxons';
+import { useUsers } from 'api/hooks/users';
 import {
     Category,
     CategoryRelatedTaxonomies,
@@ -13,18 +14,17 @@ import {
     User,
     ValidationType
 } from 'api/typings';
+import { Job, JobType } from 'api/typings/jobs';
+import EditJobSettings from 'components/job/edit-job-settings/edit-job-settings';
+import { cloneDeep } from 'lodash';
+import { FC, ReactElement, useCallback, useContext, useMemo } from 'react';
 import { svc } from 'services';
-import { getError } from '../../shared/helpers/get-error';
-import { useCategories } from 'api/hooks/categories';
-import { useUsers } from 'api/hooks/users';
-import { JobType, Job } from 'api/typings/jobs';
 import { CurrentUser } from 'shared/contexts/current-user';
 import wizardStyles from '../../shared/components/wizard/wizard/wizard.module.scss';
-import { useAllTaxonomies, useTaxonomiesByJobId } from 'api/hooks/taxons';
-import { cloneDeep } from 'lodash';
+import { getError } from '../../shared/helpers/get-error';
 
-import { Form, INotification, IFormApi } from '@epam/uui';
 import { ErrorNotification, SuccessNotification, Text } from '@epam/loveship';
+import { Form, IFormApi, INotification } from '@epam/uui';
 
 type EditJobConnectorProps = {
     renderWizardButtons: ({
@@ -254,11 +254,18 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
                 annotators: annotators.map((annotator) => annotator.id),
                 validators: validators.map((validator) => validator.id),
                 pipeline_name: pipeline?.name,
+                pipeline_id: pipeline?.id,
                 pipeline_version: pipeline?.version
             };
 
             if (!pipeline) {
                 delete jobProps.start_manual_job_automatically;
+            }
+
+            if (jobProps.pipeline_name) {
+                // this engine must be passed from the form
+                //jobProps.pipeline_engine = 'airflow';
+                jobProps.pipeline_engine = 'databricks';
             }
 
             if (selected_taxonomies) {

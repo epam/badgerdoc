@@ -62,6 +62,7 @@ class ExtractionJob(Job):
     __abstract__ = True
     all_files_data = Column(JSONB)
     pipeline_id = Column(String(250))
+    pipeline_engine = Column(String(255))
 
     __mapper_args__ = {"polymorphic_identity": JobType.ExtractionJob.value}
 

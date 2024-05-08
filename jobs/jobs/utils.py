@@ -1,9 +1,12 @@
-from typing import Any, Dict, Generator, List, Optional, Tuple, Union
+from typing import Any, Dict, Generator, Iterator, List, Optional, Tuple, Union
 
 import aiohttp.client_exceptions
 import fastapi.encoders
 from sqlalchemy.orm import Session
 
+import jobs.airflow_utils as airflow_utils
+import jobs.databricks_utils as databricks_utils
+import jobs.pipeline as pipeline
 from jobs import db_service
 from jobs.config import (
     ANNOTATION_SERVICE_HOST,
@@ -245,6 +248,50 @@ async def get_pipeline_instance_by_its_name(
     return response
 
 
+class UnsupportedEngine(Exception):
+    pass
+
+
+def files_data_to_pipeline_arg(
+    job_id: str, files_data: List[Dict[str, Any]]
+) -> Iterator[pipeline.PipelineFile]:
+    for file in files_data:
+        yield pipeline.PipelineFile(
+            bucket=file["bucket"],
+            input=pipeline.PipelineFileInput(job_id=job_id),
+            input_path=file["file"],
+            output_path=None,
+            pages=file["pages"],
+            s3_signed_url=None,
+        )
+
+
+async def execute_external_pipeline(
+    pipeline_id: str,
+    pipeline_engine: str,
+    job_id: int,
+    files_data: List[Dict[str, Any]],
+    current_tenant: str,
+) -> None:
+    logger.info("Running pipeline_engine %s", pipeline_engine)
+    kwargs = {
+        "pipeline_id": pipeline_id,
+        "job_id": job_id,
+        "files": list(files_data_to_pipeline_arg(job_id, files_data)),
+        "current_tenant": current_tenant,
+    }
+    logger.info("Pipeline params: %s", kwargs)
+    if pipeline_engine == "airflow":
+        pipeline = airflow_utils.AirflowPipeline()
+        # return await airflow_utils.run(**kwargs)
+    elif pipeline_engine == "databricks":
+        pipeline = databricks_utils.DatabricksPipeline()
+        # return await databricks_utils.run(**kwargs)
+    else:
+        raise UnsupportedEngine(f"Unknown engine: {pipeline_engine}")
+    return await pipeline.run(**kwargs)
+
+
 async def execute_pipeline(
     pipeline_id: Union[int, str],
     job_id: int,
@@ -292,7 +339,6 @@ async def execute_in_annotation_microservice(
     jw_token: str,
     current_tenant: str,
 ) -> None:
-
     """Sends specifically formatted files data to the Annotation Microservice
     and triggers tasks creation in it"""
     job_id = created_job.id
@@ -556,7 +602,7 @@ async def delete_taxonomy_link(
 
 
 def get_categories_ids(
-    categories: List[Union[str, CategoryLinkInput]]
+    categories: List[Union[str, CategoryLinkInput]],
 ) -> Tuple[List[str], List[CategoryLinkInput]]:
     categories_ids = [
         category_id

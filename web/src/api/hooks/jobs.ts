@@ -1,17 +1,17 @@
 // temporary_disabled_rules
 /* eslint-disable react-hooks/rules-of-hooks */
 import {
-    PagedResponse,
-    SortingDirection,
-    SearchBody,
-    QueryHookType,
-    Operators,
+    FilterWithDocumentExtraOption,
     MutationHookType,
-    ValidationType,
-    FilterWithDocumentExtraOption
+    Operators,
+    PagedResponse,
+    QueryHookType,
+    SearchBody,
+    SortingDirection,
+    ValidationType
 } from 'api/typings';
 import { Job, JobMode, JobType } from 'api/typings/jobs';
-import { useQueryClient, useMutation, useQuery } from 'react-query';
+import { useMutation, useQuery, useQueryClient } from 'react-query';
 
 import { pageSizes } from 'shared/primitives';
 import { useBadgerFetch } from './api';
@@ -44,7 +44,9 @@ export type JobVariables = {
     files?: string[] | number[];
     datasets?: string[];
     pipeline_name?: string | undefined;
+    pipeline_id?: number | undefined;
     pipeline_version?: number;
+    pipeline_engine?: string | undefined;
     type: JobType;
     is_draft: boolean;
     is_auto_distribution?: boolean;
