@@ -228,13 +228,12 @@ class InputArguments(BaseModel):
 
     def to_dict_for_airflow(self, job_id: int, tenant: str):
         r = self.dict(
-            exclude_none=True,
-            exclude={'output_path', 'output_bucket', 'file'}
+            exclude_none=True, exclude={"output_path", "output_bucket", "file"}
         )
 
-        r.setdefault('input', {})['job_id'] = job_id
-        r['input_path'] = self.file
-        r['bucket'] = tenant
+        r.setdefault("input", {})["job_id"] = job_id
+        r["input_path"] = self.file
+        r["bucket"] = tenant
 
         return r
 

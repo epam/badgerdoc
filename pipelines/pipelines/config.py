@@ -34,10 +34,10 @@ THRESHOLD_MUL = int(os.getenv("HEARTBEAT_THRESHOLD_MUL", 10))
 RUNNER_TIMEOUT = int(os.getenv("RUNNER_TIMEOUT", 5))
 MAX_WORKERS = int(os.getenv("MAX_WORKERS", 15))
 
-ANNOTATION_URI = get_service_uri('ANNOTATION_')
-PROCESSING_URI = get_service_uri('PROCESSING_')
-MODELS_URI = get_service_uri('MODELS_')
-ASSETS_URI = get_service_uri('ASSETS_')
+ANNOTATION_URI = get_service_uri("ANNOTATION_")
+PROCESSING_URI = get_service_uri("PROCESSING_")
+MODELS_URI = get_service_uri("MODELS_")
+ASSETS_URI = get_service_uri("ASSETS_")
 
 MODELS_DEPLOYMENT_ENDPOINT = os.getenv("MODELS_DEPLOYMENT_ENDPOINT", "")
 MODELS_SEARCH_ENDPOINT = os.getenv("MODELS_SEARCH_ENDPOINT", "")
@@ -95,6 +95,8 @@ MAX_FILE_STATUS_RETRIES = os.getenv("MAX_FILE_STATUS_RETRIES", 100000)
 FILE_STATUS_TIMEOUT = os.getenv("FILE_STATUS_TIMEOUT", 10)
 
 # Airflow settings
-AIRFLOW_URL = get_service_uri('AIRFLOW_') + os.getenv('AIRFLOW_SERVICE_PATH_PREFIX', '/api/v1')
-AIRFLOW_USERNAME = os.getenv('AIRFLOW_USERNAME')
-AIRFLOW_PASSWORD = os.getenv('AIRFLOW_PASSWORD')
+AIRFLOW_URL = get_service_uri("AIRFLOW_") + os.getenv(
+    "AIRFLOW_SERVICE_PATH_PREFIX", "/api/v1"
+)
+AIRFLOW_USERNAME = os.getenv("AIRFLOW_USERNAME")
+AIRFLOW_PASSWORD = os.getenv("AIRFLOW_PASSWORD")

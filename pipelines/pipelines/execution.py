@@ -505,7 +505,7 @@ class PipelineStep(BaseModel):
         if not r.ok:
             raise HTTPException(
                 status_code=r.status_code,
-                detail=result['detail'] if 'detail' in result else result
+                detail=result["detail"] if "detail" in result else result,
             )
 
         return result

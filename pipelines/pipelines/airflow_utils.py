@@ -1,20 +1,19 @@
+from collections import OrderedDict
 from datetime import datetime
 from typing import List
 
-import pipelines.config as config
 import airflow_client.client as client
-from airflow_client.client.api import dag_api
-from airflow_client.client.model.dag_collection import DAGCollection
-from airflow_client.client.model.error import Error
 from airflow_client.client.model.dag import DAG
-from pipelines.schemas import PipelineOut, InputArguments
-from collections import OrderedDict
+
+import pipelines.config as config
+from pipelines.schemas import InputArguments, PipelineOut
+
 
 def get_configuration():
     return client.Configuration(
         username=config.AIRFLOW_USERNAME,
         password=config.AIRFLOW_PASSWORD,
-        host=config.AIRFLOW_URL
+        host=config.AIRFLOW_URL,
     )
 
 
@@ -34,7 +33,7 @@ def dag2pipeline(dag: DAG):
         meta=dag.to_dict(),
         steps=[],
         name=f"{dag['dag_id']}:airflow",
-        id=0
+        id=0,
     )
 
 
@@ -43,7 +42,7 @@ def input_data_to_dag_args(data: List[InputArguments], job_id: int, tenant):
 
     for file in data:
         if file.file in dag_args:
-            dag_args[file.file].setdefault('pages', []).extend(file.pages)
+            dag_args[file.file].setdefault("pages", []).extend(file.pages)
             continue
 
         dag_args[file.file] = file.to_dict_for_airflow(job_id, tenant)

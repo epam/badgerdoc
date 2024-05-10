@@ -1,26 +1,26 @@
 import asyncio
-import datetime
 import os
 from math import ceil
 from typing import Any, Dict, List, Optional, Union
 
+from airflow_client.client import ApiClient as AirflowClient
+from airflow_client.client import ApiException
 from airflow_client.client.api.dag_api import DAGApi
-from airflow_client.client import ApiException, ApiClient as AirflowClient
 from airflow_client.client.api.dag_run_api import DAGRunApi
 from airflow_client.client.model.dag_run import DAGRun
 from fastapi import Depends, FastAPI, Header, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from filter_lib import Page, form_query, map_request_to_filter, paginate
+from filter_lib import Page, paginate
 from filter_lib.pagination import PaginationParams
 from pydantic import AnyUrl
 from sqlalchemy.orm import Session
 from sqlalchemy_filters.exceptions import BadFilterFormat
 from tenant_dependency import TenantData, get_tenant_info
 
+import pipelines.airflow_utils as airflow_utils
 import pipelines.config as config
 import pipelines.db.models as dbm
 import pipelines.db.service as service
-import pipelines.airflow_utils as airflow_utils
 import pipelines.execution as execution
 import pipelines.schemas as schemas
 from pipelines.kafka_utils import Kafka
@@ -79,10 +79,10 @@ async def add_pipeline(
     """Add pipeline to DB."""
     # TODO: fix model cluster
 
-    if pipeline.meta.name.endswith(':airflow'):
+    if pipeline.meta.name.endswith(":airflow"):
         raise HTTPException(
             status_code=400,
-            detail='Airflow pipeline creation is not supported'
+            detail="Airflow pipeline creation is not supported",
         )
 
     if pipeline.meta.original_pipeline_id is None:
@@ -116,9 +116,9 @@ async def get_pipeline(
     airflow: AirflowClient = Depends(airflow_utils.get_api_instance),
 ) -> Any:
     """Get latest pipeline from DB by name (and version)."""
-    if name.endswith(':airflow'):
+    if name.endswith(":airflow"):
         dag_api = DAGApi(airflow)
-        name = ':'.join(name.split(':')[:-1])
+        name = ":".join(name.split(":")[:-1])
         dag = dag_api.get_dag(name, async_req=True).get()
         return airflow_utils.dag2pipeline(dag)
     res = service.get_pipelines(session, name, version)
@@ -144,21 +144,22 @@ async def get_pipelines(
     If 'name' is not specified, gets all pipelines."""
     dag_api = DAGApi(airflow)
     if name is not None:
-        if name.endswith(':airflow'):
-            name = ':'.join(name.split(':')[:-1])
+        if name.endswith(":airflow"):
+            name = ":".join(name.split(":")[:-1])
             dag = dag_api.get_dag(name, async_req=True).get()
             return [airflow_utils.dag2pipeline(dag)]
         return [
-            pipeline.as_dict() for pipeline in service.get_pipelines(session, name)
+            pipeline.as_dict()
+            for pipeline in service.get_pipelines(session, name)
         ]
     else:
         dags = dag_api.get_dags(async_req=True).get()
         return [
-            pipeline.as_dict() for pipeline
-            in service.get_all_table_instances(session, dbm.Pipeline)
-        ] + [
-            {"name": dag.dag_id, **dag.to_dict()} for dag in dags.dags
-        ]
+            pipeline.as_dict()
+            for pipeline in service.get_all_table_instances(
+                session, dbm.Pipeline
+            )
+        ] + [{"name": dag.dag_id, **dag.to_dict()} for dag in dags.dags]
 
 
 @app.post(
@@ -180,9 +181,11 @@ async def search_pipelines(
     try:
         query = session.query(dbm.Pipeline)
         if request.name_pattern:
-            query = query.filter(dbm.Pipeline.name.like(f'%{request.name_pattern}%'))
+            query = query.filter(
+                dbm.Pipeline.name.like(f"%{request.name_pattern}%")
+            )
         pipelines_count = query.count()
-        query = query.offset(request.offset//2).limit(request.limit//2)
+        query = query.offset(request.offset // 2).limit(request.limit // 2)
         pipelines = query.all()
     except BadFilterFormat as e:
         raise HTTPException(
@@ -192,9 +195,12 @@ async def search_pipelines(
 
     try:
         dag_filters = dict(
-            **request.dict(exclude_none=True, exclude={'name_pattern', 'limit', 'offset'}),
-            dag_id_pattern=request.name_pattern, limit=request.limit//2,
-            offset=request.offset//2
+            **request.dict(
+                exclude_none=True, exclude={"name_pattern", "limit", "offset"}
+            ),
+            dag_id_pattern=request.name_pattern,
+            limit=request.limit // 2,
+            offset=request.offset // 2,
         )
         dag_filters = {k: v for k, v in dag_filters.items() if v is not None}
         dags = dag_api.get_dags(**dag_filters, async_req=True).get()
@@ -204,7 +210,9 @@ async def search_pipelines(
             detail=f"{e}",
         )
 
-    total_pages = ceil((dags.total_entries + pipelines_count) / (request.limit//2))
+    total_pages = ceil(
+        (dags.total_entries + pipelines_count) / (request.limit // 2)
+    )
     page_num = ceil((request.limit + request.offset) / request.limit)
 
     pag = PaginationParams(
@@ -212,7 +220,12 @@ async def search_pipelines(
         page_size=request.limit or (len(dags.dags) + len(pipelines)),
         min_pages_left=total_pages - page_num,
         total=int(dags.total_entries + pipelines_count),
-        has_more=dags.total_entries + pipelines_count - request.offset // 2 * 2 - len(dags.dags) - len(pipelines) > 0,
+        has_more=dags.total_entries
+        + pipelines_count
+        - request.offset // 2 * 2
+        - len(dags.dags)
+        - len(pipelines)
+        > 0,
         page_offset=request.offset // request.limit,
     )
     dags = [airflow_utils.dag2pipeline(dag) for dag in dags.dags]
@@ -234,10 +247,9 @@ async def delete_pipelines(
 ) -> Dict[str, str]:
     """Delete pipelines from db by name. All versions if not provided."""
 
-    if name.endswith(':airflow'):
+    if name.endswith(":airflow"):
         raise HTTPException(
-            status_code=400,
-            detail='Airflow pipeline can not be deleted'
+            status_code=400, detail="Airflow pipeline can not be deleted"
         )
 
     res = service.get_pipelines(session, name, version)
@@ -357,16 +369,20 @@ async def execute_pipeline_by_id(
     """Schedule pipeline execution n times for n-given args."""
 
     if isinstance(pipeline_id, str):
-        if not pipeline_id.endswith(':airflow'):
-            raise HTTPException(status_code=400, detail='Wrong pipeline_id')
+        if not pipeline_id.endswith(":airflow"):
+            raise HTTPException(status_code=400, detail="Wrong pipeline_id")
 
         dag_run_api = DAGRunApi(airflow)
-        dag_id = ':'.join(pipeline_id.split(':')[:-1])
-        dag_run_id = f'{dag_id}:{job_id}'
+        dag_id = ":".join(pipeline_id.split(":")[:-1])
+        dag_run_id = f"{dag_id}:{job_id}"
 
         dag_run = DAGRun(
             dag_run_id=dag_run_id,
-            conf={'files_data': airflow_utils.input_data_to_dag_args(args, job_id, x_current_tenant)},
+            conf={
+                "files_data": airflow_utils.input_data_to_dag_args(
+                    args, job_id, x_current_tenant
+                )
+            },
         )
         dag_run_api.post_dag_run(dag_id, dag_run, async_req=True).get()
 
