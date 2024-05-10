@@ -53,3 +53,19 @@ JOBS_SERVICE_HOST = get_service_uri("JOBS_")
 
 PAGINATION_THRESHOLD = 7
 PROVIDE_JWT_IF_NO_ANY = True
+
+# S3 settings
+MINIO_SECURE_CONNECTION = os.getenv(
+    "MINIO_SECURE_CONNECTION", "False"
+).lower() in (
+    "true",
+    "1",
+)
+S3_PROVIDER = os.getenv("S3_PROVIDER")
+S3_PREFIX = os.getenv("S3_PREFIX", "")
+S3_ENDPOINT = os.getenv("S3_ENDPOINT")
+S3_ACCESS_KEY = os.getenv("S3_ACCESS_KEY")
+S3_SECRET_KEY = os.getenv("S3_SECRET_KEY")
+AWS_PROFILE = os.getenv("AWS_PROFILE")
+S3_PRE_SIGNED_EXPIRES_DAYS = os.getenv("S3_PRE_SIGNED_EXPIRES_DAYS", "")
+S3_PRE_SIGNED_EXPIRES_DAYS = int(S3_PRE_SIGNED_EXPIRES_DAYS) if S3_PRE_SIGNED_EXPIRES_DAYS.isdigit() else 7

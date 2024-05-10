@@ -20,6 +20,7 @@ from jobs.config import (
 )
 from jobs.logger import logger
 from jobs.models import CombinedJob
+from jobs.s3 import create_pre_signed_s3_url
 from jobs.schemas import (
     AnnotationJobUpdateParamsInAnnotation,
     CategoryLinkInput,
@@ -262,7 +263,9 @@ def files_data_to_pipeline_arg(
             input_path=file["file"],
             output_path=None,
             pages=file["pages"],
-            s3_signed_url=None,
+            s3_signed_url=create_pre_signed_s3_url(
+                bucket=file["bucket"], path=file["file"]
+            ),
         )
 
 
