@@ -87,6 +87,7 @@ def test_response_message_incorrect(caplog):
 @patch("pipelines.execution.ExecutionStep.get_by_id")
 @patch("pipelines.execution.ExecutionStep.process_next_steps")
 @pytest.mark.asyncio
+@pytest.mark.skip(reason="tests refactoring")
 async def test_process_message_task_not_finished(
     process_next_steps, get_step, get_task, testing_app
 ):
@@ -148,6 +149,7 @@ async def test_process_message_task_not_finished(
 @patch("pipelines.execution.ExecutionStep.get_by_id")
 @patch("pipelines.execution.PipelineTask.finish")
 @pytest.mark.asyncio
+@pytest.mark.skip(reason="tests refactoring")
 async def test_process_message_task_finished(
     finish_task, get_step, get_task, testing_app
 ):

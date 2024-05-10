@@ -457,6 +457,7 @@ def test_manage_result_for_annotator_request_not_succeeded():
                 )
 
 
+@patch("pipelines.config.ANNOTATION_URI", "http://annotation:8080")
 def test_manage_result_for_annotator_request_debug_merge():
     """Debug merge is True and data are not deleted."""
     with patch("pipelines.result_processing.merge_pipeline_leaves_data"):
