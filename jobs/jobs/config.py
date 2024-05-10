@@ -55,11 +55,8 @@ PAGINATION_THRESHOLD = 7
 PROVIDE_JWT_IF_NO_ANY = True
 
 # S3 settings
-MINIO_SECURE_CONNECTION = os.getenv(
-    "MINIO_SECURE_CONNECTION", "False"
-).lower() in (
-    "true",
-    "1",
+MINIO_SECURE_CONNECTION = (
+    os.getenv("MINIO_SECURE_CONNECTION", "False").lower() == "true"
 )
 S3_PROVIDER = os.getenv("S3_PROVIDER")
 S3_PREFIX = os.getenv("S3_PREFIX", "")

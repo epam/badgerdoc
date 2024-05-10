@@ -53,7 +53,8 @@ def get_minio_client() -> Minio:
 
 
 def create_pre_signed_s3_url(
-    bucket: str, path: str,
+    bucket: str,
+    path: str,
     method: Literal["GET"] = "GET",
     expires: timedelta = timedelta(days=config.S3_PRE_SIGNED_EXPIRES_DAYS),
     client: Minio = None,  # type: ignore
@@ -62,6 +63,5 @@ def create_pre_signed_s3_url(
         from .main import minio_client as client
 
     return client.get_presigned_url(
-        method=method, bucket_name=bucket,
-        object_name=path, expires=expires
+        method=method, bucket_name=bucket, object_name=path, expires=expires
     )
