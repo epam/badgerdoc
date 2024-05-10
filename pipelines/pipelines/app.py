@@ -17,12 +17,9 @@ from sqlalchemy.orm import Session
 from sqlalchemy_filters.exceptions import BadFilterFormat
 from tenant_dependency import TenantData, get_tenant_info
 
-import pipelines.airflow_utils as airflow_utils
-import pipelines.config as config
 import pipelines.db.models as dbm
 import pipelines.db.service as service
-import pipelines.execution as execution
-import pipelines.schemas as schemas
+from pipelines import airflow_utils, config, execution, schemas
 from pipelines.kafka_utils import Kafka
 from pipelines.pipeline_runner import run_pipeline
 
