@@ -1,7 +1,7 @@
 import datetime
 import os
 import time
-from typing import List
+from typing import List, Literal
 from unittest.mock import patch
 
 import pytest
@@ -21,8 +21,20 @@ import jobs.main as main
 import jobs.schemas as schemas
 from alembic import command
 from alembic.config import Config
+from jobs import pipeline
 
 alembic_cfg = Config("alembic.ini")
+
+
+class FakePipeline(pipeline.BasePipeline):
+    calls = []
+
+    async def list(self) -> List[pipeline.AnyPipeline]:
+        return []
+
+    async def run(self, **kwargs) -> None:
+        FakePipeline.calls.append(kwargs)
+        return None
 
 
 @pytest.fixture(scope="session")
@@ -99,13 +111,31 @@ def setup_tenant():
     return mock_tenant_data
 
 
+async def patched_create_pre_signed_s3_url(
+    bucket: str,
+    path: str,
+    action: Literal["get_object"] = "get_object",
+    expire_in_hours: int = 48,
+):
+    return (
+        f"http://example.storage/"
+        f"{bucket.strip('./')}/{path.strip('./')}?some-fake-arg=1"
+    )
+
+
 @pytest.fixture
 def testing_app(testing_engine, testing_session, setup_tenant):
-    with patch("jobs.db_service.LocalSession", testing_session):
+    with (
+        patch("jobs.db_service.LocalSession", testing_session),
+        patch(
+            "jobs.s3.create_pre_signed_s3_url",
+            patched_create_pre_signed_s3_url,
+        ),
+    ):
         main.app.dependency_overrides[main.tenant] = lambda: setup_tenant
-        main.app.dependency_overrides[service.get_session] = (
-            lambda: testing_session
-        )
+        main.app.dependency_overrides[
+            service.get_session
+        ] = lambda: testing_session
         client = TestClient(main.app)
         yield client
 

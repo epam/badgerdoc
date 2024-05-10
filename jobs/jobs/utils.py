@@ -1,3 +1,4 @@
+import asyncio
 from typing import Any, Dict, Generator, Iterator, List, Optional, Tuple, Union
 
 import aiohttp.client_exceptions
@@ -11,6 +12,7 @@ from jobs import db_service
 from jobs.config import (
     ANNOTATION_SERVICE_HOST,
     ASSETS_SERVICE_HOST,
+    JOBS_RUN_PIPELINES_WITH_SIGNED_URL,
     JOBS_SERVICE_HOST,
     PAGINATION_THRESHOLD,
     PIPELINES_SERVICE_HOST,
@@ -263,10 +265,22 @@ def files_data_to_pipeline_arg(
             input_path=file["file"],
             output_path=None,
             pages=file["pages"],
-            s3_signed_url=create_pre_signed_s3_url(
-                bucket=file["bucket"], path=file["file"]
-            ),
+            s3_signed_url=None,
         )
+
+
+async def fill_s3_signed_url(files: List[pipeline.PipelineFile]):
+    async def fill(file):
+        file.s3_signed_url = await create_pre_signed_s3_url(
+            bucket=file.bucket, path=file.input_path
+        )
+
+    if not JOBS_RUN_PIPELINES_WITH_SIGNED_URL:
+        return files
+
+    tasks = [fill(f) for f in files]
+    await asyncio.gather(*tasks)
+    return files
 
 
 async def execute_external_pipeline(
@@ -280,13 +294,15 @@ async def execute_external_pipeline(
     kwargs = {
         "pipeline_id": pipeline_id,
         "job_id": job_id,
-        "files": list(files_data_to_pipeline_arg(job_id, files_data)),
+        "files": await fill_s3_signed_url(
+            list(files_data_to_pipeline_arg(job_id, files_data))
+        ),
         "current_tenant": current_tenant,
     }
     logger.info("Pipeline params: %s", kwargs)
     if pipeline_engine == "airflow":
         pipeline = airflow_utils.AirflowPipeline()
-        # return await airflow_utils.run(**kwargs)
+    # return await airflow_utils.run(**kwargs)
     elif pipeline_engine == "databricks":
         pipeline = databricks_utils.DatabricksPipeline()
         # return await databricks_utils.run(**kwargs)

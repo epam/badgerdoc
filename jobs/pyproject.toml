@@ -15,7 +15,7 @@ uvicorn = "^0.15.0"
 aiohttp = "^3.8.1"
 apache-airflow-client = "^2.7.0"
 databricks-sdk = "^0.26.0"
-minio = "^7.1.0"
+aioboto3 = "^12.4.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.5"

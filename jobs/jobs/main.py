@@ -18,7 +18,6 @@ import jobs.models as dbm
 import jobs.run_job_funcs as run_job_funcs
 import jobs.schemas as schemas
 import jobs.utils as utils
-from jobs import s3
 from jobs.config import KEYCLOAK_HOST, ROOT_PATH, API_current_version
 
 tenant = get_tenant_info(url=KEYCLOAK_HOST, algorithm="RS256", debug=True)
@@ -32,8 +31,6 @@ app = FastAPI(
     version=API_current_version,
     dependencies=[Depends(tenant)],
 )
-
-minio_client = s3.get_minio_client()
 
 if WEB_CORS := os.getenv("WEB_CORS", ""):
     app.add_middleware(
