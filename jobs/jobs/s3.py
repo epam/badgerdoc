@@ -1,6 +1,6 @@
 import enum
 from datetime import timedelta
-from typing import Any, Dict, Optional, Union, Literal
+from typing import Any, Dict, Literal, Optional, Union
 
 from minio import Minio, credentials
 
