@@ -278,8 +278,14 @@ async def fill_s3_signed_url(files: List[pipeline.PipelineFile]):
     if not JOBS_RUN_PIPELINES_WITH_SIGNED_URL:
         return files
 
-    tasks = [fill(f) for f in files]
-    await asyncio.gather(*tasks)
+    for file in files:
+        await fill(file)
+
+    # todo: uncomment this when you decide
+    #  to make the signing process parallel
+    # tasks = [fill(f) for f in files]
+    # await asyncio.gather(*tasks)
+
     return files
 
 
