@@ -264,8 +264,8 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
 
             if (jobProps.pipeline_name) {
                 // this engine must be passed from the form
-                //jobProps.pipeline_engine = 'airflow';
-                jobProps.pipeline_engine = 'databricks';
+                jobProps.pipeline_engine = 'airflow';
+                //jobProps.pipeline_engine = 'databricks';
             }
 
             if (selected_taxonomies) {

@@ -69,8 +69,8 @@ export function pipelinesFetcher(
     //};
 
     // this engine must be passed from the form
-    //const engine = "airflow"
-    const engine = "databricks"
+    const engine = "airflow"
+    //const engine = "databricks"
     return useBadgerFetch<PagedResponse<Pipeline>>({
         url: `${jobs_namespace}/pipelines/${engine}`,
         method: 'get',
