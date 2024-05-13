@@ -3,7 +3,6 @@ on:
   pull_request:
     paths:
       - "**.py"
-      - ".github/workflows/lint.yml"
 
 jobs:
   lint:
