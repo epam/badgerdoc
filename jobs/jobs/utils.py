@@ -1,4 +1,3 @@
-import asyncio
 from typing import Any, Dict, Generator, Iterator, List, Optional, Tuple, Union
 
 import aiohttp.client_exceptions
