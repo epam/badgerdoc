@@ -321,6 +321,7 @@ class JobParamsToChange(BaseModel):
     validators: Optional[List[str]]
     owners: Optional[List[str]]
     categories: Optional[List[Union[str, CategoryLinkInput]]]
+    categories_append: Optional[List[Union[str, CategoryLinkInput]]]
     deadline: Optional[datetime]
     validation_type: Optional[ValidationType]
     extensive_coverage: Optional[int]

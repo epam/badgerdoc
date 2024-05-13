@@ -11,6 +11,7 @@ from sqlalchemy_filters.exceptions import BadFilterFormat
 from tenant_dependency import TenantData, get_tenant_info
 
 import jobs.airflow_utils as airflow_utils
+import jobs.categories as categories
 import jobs.create_job_funcs as create_job_funcs
 import jobs.databricks_utils as databricks_utils
 import jobs.db_service as db_service
@@ -224,7 +225,9 @@ async def change_job(
 ) -> Union[Dict[str, Any], HTTPException]:
     """Provides an ability to change any value
     of any field of any Job in the database"""
-    job_to_change = db_service.get_job_in_db_by_id(db, job_id)
+
+    logger.info("Start job %s update with params %s", job_id, new_job_params)
+    job_to_change = db_service.get_job_in_db_by_id(db, job_id, with_lock=True)
     if not job_to_change:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -251,17 +254,20 @@ async def change_job(
         )
 
     jw_token = token_data.token
-    new_categories_links: List[schemas.CategoryLinkInput] = []
-    if new_job_params.categories:
-        new_categories_ids, new_categories_links = utils.get_categories_ids(
-            new_job_params.categories
+    try:
+        (
+            new_categories_ids,
+            new_categories_links,
+        ) = await categories.prepare_for_update(
+            job_to_change, new_job_params, current_tenant, jw_token
         )
+    except NotImplementedError as err:
+        raise HTTPException(
+            status_code=status.HTTP_406_NOT_ACCEPTABLE, detail=str(err)
+        ) from err
+
+    if new_categories_ids:
         new_job_params.categories = new_categories_ids
-        old_categories_ids = job_to_change.categories or []
-        if set(new_categories_ids) != set(old_categories_ids):
-            await utils.delete_taxonomy_link(job_id, current_tenant, jw_token)
-        else:
-            new_categories_links = []
 
     if job_to_change.type in [
         schemas.JobType.AnnotationJob,

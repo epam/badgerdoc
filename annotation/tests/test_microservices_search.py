@@ -295,7 +295,12 @@ def test_expand_response():
 )
 @responses.activate
 def test_get_response(
-    ids, url, is_assets, microservice_response, expected_response, request,
+    ids,
+    url,
+    is_assets,
+    microservice_response,
+    expected_response,
+    request,
 ):
     url = request.getfixturevalue(url)
     responses.add(

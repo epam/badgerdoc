@@ -1504,7 +1504,7 @@ def assets_host_mock():
     with patch(
         "annotation.microservice_communication."
         "assets_communication.ASSETS_SERVICE_HOST",
-        "http://assets:8080"
+        "http://assets:8080",
     ) as assets_host:
         yield assets_host
 
@@ -1514,7 +1514,7 @@ def assets_url_mock(assets_host_mock):
     with patch(
         "annotation.microservice_communication."
         "assets_communication.ASSETS_URL",
-        f"{assets_host_mock}/datasets"
+        f"{assets_host_mock}/datasets",
     ) as assets_url:
         yield assets_url
 
@@ -1524,7 +1524,7 @@ def assets_files_url_mock(assets_host_mock):
     with patch(
         "annotation.microservice_communication."
         "assets_communication.ASSETS_FILES_URL",
-        f"{assets_host_mock}/files/search"
+        f"{assets_host_mock}/files/search",
     ) as assets_files_url:
         yield assets_files_url
 
@@ -1534,7 +1534,7 @@ def jobs_host_mock():
     with patch(
         "annotation.microservice_communication."
         "jobs_communication.JOBS_SERVICE_HOST",
-        "http://jobs:8080"
+        "http://jobs:8080",
     ) as jobs_host:
         yield jobs_host
 
@@ -1544,6 +1544,6 @@ def jobs_search_url_mock(jobs_host_mock):
     with patch(
         "annotation.microservice_communication."
         "jobs_communication.JOBS_SEARCH_URL",
-        f"{jobs_host_mock}/jobs/search"
+        f"{jobs_host_mock}/jobs/search",
     ) as jobs_search_url:
         yield jobs_search_url
