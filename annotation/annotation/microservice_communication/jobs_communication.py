@@ -1,3 +1,4 @@
+import logging
 from typing import Dict, List, Union
 
 import requests
@@ -18,6 +19,8 @@ JOBS_SEARCH_URL = f"{JOBS_SERVICE_HOST}/jobs/search"
 JOBS_FILE_ID_FIELD = "id"
 JOBS_FILE_NAME_FIELD = "name"
 
+logger = logging.getLogger(__name__)
+
 
 class JobUpdateException(Exception):
     def __init__(self, exc_info: Union[str, RequestException]):
@@ -34,6 +37,28 @@ def update_job_status(callback_url: str, status: str, tenant: str, token: str):
             },
             json={
                 "status": status,
+            },
+            timeout=5,
+        )
+        if job_response.status_code != 200:
+            raise JobUpdateException(job_response.text)
+    except RequestException as exc:
+        raise JobUpdateException(exc)
+
+
+def append_job_categories(
+    job_id: str, categories: List[str], tenant: str, token: str
+) -> None:
+    logger.info("Append categories %s to job %s", categories, job_id)
+    try:
+        job_response = requests.put(
+            f"{JOBS_SERVICE_HOST}/jobs/{job_id}",
+            headers={
+                HEADER_TENANT: tenant,
+                AUTHORIZATION: f"{BEARER} {token}",
+            },
+            json={
+                "categories_append": categories,
             },
             timeout=5,
         )

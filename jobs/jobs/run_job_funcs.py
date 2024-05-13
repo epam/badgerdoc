@@ -58,17 +58,9 @@ async def run_annotation_job(
     if not job_to_run.type == schemas.JobType.ExtractionWithAnnotationJob:
         db_service.update_job_mode(db, job_to_run, updated_status)
 
-    converted_files_data = utils.convert_files_data_for_inference(
-        all_files_data=job_to_run.all_files_data,
-        job_id=job_to_run.id,
-        output_bucket=current_tenant,
-    )
-
-    await utils.execute_external_pipeline(
-        pipeline_id=job_to_run.pipeline_id,
-        pipeline_engine=job_to_run.pipeline_engine,
-        job_id=job_to_run.id,
-        files_data=converted_files_data,
+    await utils.execute_in_annotation_microservice(
+        created_job=job_to_run,
+        jw_token=jw_token,
         current_tenant=current_tenant,
     )
     return None

@@ -1,4 +1,3 @@
-import datetime
 import os
 import time
 from typing import List
@@ -18,9 +17,13 @@ from sqlalchemy_utils import (  # type: ignore
 
 import jobs.db_service as service
 import jobs.main as main
-import jobs.schemas as schemas
 from alembic import command
 from alembic.config import Config
+
+pytest_plugins = [
+    "tests.fixtures_models",
+    "tests.fixtures_schemas",
+]
 
 alembic_cfg = Config("alembic.ini")
 
@@ -108,51 +111,6 @@ def testing_app(testing_engine, testing_session, setup_tenant):
         )
         client = TestClient(main.app)
         yield client
-
-
-@pytest.fixture()
-def mock_ExtractionJobParams():
-    mockExtractionJobParams = schemas.ExtractionJobParams(
-        name="MockExtractionJobParams",
-        files=[1, 2],
-        datasets=[1, 2],
-        pipeline_name="MockPipeline",
-    )
-    return mockExtractionJobParams
-
-
-@pytest.fixture
-def mock_AnnotationJobParams():
-    mockAnnotationJobParams = schemas.AnnotationJobParams(
-        name="MockAnnotationJob",
-        datasets=[1, 2],
-        files=[1, 2],
-        annotators=["annotator1", "annotator2"],
-        validators=["validator1", "validator2"],
-        owners=["owner1"],
-        categories=["category1", "category2"],
-        validation_type="cross",
-        is_auto_distribution=False,
-        deadline=datetime.datetime.utcnow() + datetime.timedelta(days=1),
-    )
-    return mockAnnotationJobParams
-
-
-@pytest.fixture
-def mock_AnnotationJobParams2():
-    mockAnnotationJobParams2 = schemas.AnnotationJobParams(
-        name="MockAnnotationJob",
-        datasets=[1, 2],
-        files=[1, 2],
-        annotators=["annotator1", "annotator2"],
-        validators=["validator1", "validator2"],
-        owners=["owner2"],
-        categories=["category1", "category2"],
-        validation_type="cross",
-        is_auto_distribution=False,
-        deadline=datetime.datetime.utcnow() + datetime.timedelta(days=1),
-    )
-    return mockAnnotationJobParams2
 
 
 @pytest.fixture
