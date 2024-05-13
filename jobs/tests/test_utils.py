@@ -5,6 +5,7 @@ import pytest
 from fastapi import HTTPException
 
 import jobs.utils as utils
+from tests.conftest import FakePipeline, patched_create_pre_signed_s3_url
 
 # --------------TEST get_files_data_from_datasets---------------
 
@@ -1088,3 +1089,39 @@ def test_delete_duplicates_4():
         test_file_data1,
         test_file_data2,
     ]
+
+
+@pytest.mark.parametrize("sign_s3_links", [True, False])
+@pytest.mark.asyncio
+async def test_execute_external_pipeline(sign_s3_links: bool):
+    with patch(
+        "jobs.utils.airflow_utils.AirflowPipeline", new=FakePipeline
+    ), patch(
+        "jobs.utils.JOBS_RUN_PIPELINES_WITH_SIGNED_URL", new=sign_s3_links
+    ), patch(
+        "jobs.utils.create_pre_signed_s3_url",
+        new=patched_create_pre_signed_s3_url,
+    ):
+        await utils.execute_external_pipeline(
+            pipeline_id="2",
+            pipeline_engine="airflow",
+            job_id=2,
+            files_data=[
+                {
+                    "bucket": "test",
+                    "file": f"files/1/1.{sign_s3_links}.pdf",
+                    "pages": [1, 2, 3],
+                }
+            ],
+            current_tenant="test_tenant",
+        )
+
+        assert FakePipeline.calls
+        assert FakePipeline.calls[-1].get("files")
+        if sign_s3_links:
+            assert (
+                f"/test/files/1/1.{sign_s3_links}.pdf"
+                in FakePipeline.calls[-1]["files"][0].s3_signed_url
+            )
+        else:
+            assert FakePipeline.calls[-1]["files"][0].s3_signed_url is None

@@ -11,6 +11,7 @@ from jobs import db_service
 from jobs.config import (
     ANNOTATION_SERVICE_HOST,
     ASSETS_SERVICE_HOST,
+    JOBS_RUN_PIPELINES_WITH_SIGNED_URL,
     JOBS_SERVICE_HOST,
     PAGINATION_THRESHOLD,
     PIPELINES_SERVICE_HOST,
@@ -20,6 +21,7 @@ from jobs.config import (
 )
 from jobs.logger import logger
 from jobs.models import CombinedJob
+from jobs.s3 import create_pre_signed_s3_url
 from jobs.schemas import (
     AnnotationJobUpdateParamsInAnnotation,
     CategoryLinkInput,
@@ -266,6 +268,26 @@ def files_data_to_pipeline_arg(
         )
 
 
+async def fill_s3_signed_url(files: List[pipeline.PipelineFile]):
+    async def fill(file):
+        file.s3_signed_url = await create_pre_signed_s3_url(
+            bucket=file.bucket, path=file.input_path
+        )
+
+    if not JOBS_RUN_PIPELINES_WITH_SIGNED_URL:
+        return files
+
+    for file in files:
+        await fill(file)
+
+    # todo: uncomment this when you decide
+    #  to make the signing process parallel
+    # tasks = [fill(f) for f in files]
+    # await asyncio.gather(*tasks)
+
+    return files
+
+
 async def execute_external_pipeline(
     pipeline_id: str,
     pipeline_engine: str,
@@ -277,13 +299,15 @@ async def execute_external_pipeline(
     kwargs = {
         "pipeline_id": pipeline_id,
         "job_id": job_id,
-        "files": list(files_data_to_pipeline_arg(job_id, files_data)),
+        "files": await fill_s3_signed_url(
+            list(files_data_to_pipeline_arg(job_id, files_data))
+        ),
         "current_tenant": current_tenant,
     }
     logger.info("Pipeline params: %s", kwargs)
     if pipeline_engine == "airflow":
         pipeline = airflow_utils.AirflowPipeline()
-        # return await airflow_utils.run(**kwargs)
+    # return await airflow_utils.run(**kwargs)
     elif pipeline_engine == "databricks":
         pipeline = databricks_utils.DatabricksPipeline()
         # return await databricks_utils.run(**kwargs)

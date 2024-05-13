@@ -46,6 +46,7 @@ async def get_dags() -> List[pipeline.AnyPipeline]:
         return dag_api.get_dags()
 
 
+# todo: should we remove this?
 def files_data_to_pipeline(
     files_data: List[Dict[str, Any]],
     job_id: int,
