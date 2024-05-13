@@ -53,3 +53,25 @@ JOBS_SERVICE_HOST = get_service_uri("JOBS_")
 
 PAGINATION_THRESHOLD = 7
 PROVIDE_JWT_IF_NO_ANY = True
+
+# S3 settings
+MINIO_SECURE_CONNECTION = (
+    os.getenv("MINIO_SECURE_CONNECTION", "False").lower() == "true"
+)
+S3_PROVIDER = os.getenv("S3_PROVIDER")
+JOBS_RUN_PIPELINES_WITH_SIGNED_URL = (
+    os.getenv("JOBS_RUN_PIPELINES_WITH_SIGNED_URL", "False").lower() == "true"
+    and S3_PROVIDER == "aws_iam"
+)
+AWS_REGION = os.getenv("AWS_REGION")
+S3_PREFIX = os.getenv("S3_PREFIX", "")
+S3_ENDPOINT = os.getenv("S3_ENDPOINT")
+S3_ACCESS_KEY = os.getenv("S3_ACCESS_KEY")
+S3_SECRET_KEY = os.getenv("S3_SECRET_KEY")
+AWS_PROFILE = os.getenv("AWS_PROFILE")
+S3_PRE_SIGNED_EXPIRES_HOURS = os.getenv("S3_PRE_SIGNED_EXPIRES_HOURS", "")
+S3_PRE_SIGNED_EXPIRES_HOURS = (
+    int(S3_PRE_SIGNED_EXPIRES_HOURS)
+    if S3_PRE_SIGNED_EXPIRES_HOURS.isdigit()
+    else 48
+)
