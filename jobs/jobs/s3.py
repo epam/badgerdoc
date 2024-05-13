@@ -1,6 +1,5 @@
 import enum
 import logging
-import os
 from typing import Dict, Literal, Optional
 
 import aioboto3
@@ -24,16 +23,6 @@ class NotConfiguredException(Exception):
 def create_boto3_config() -> Dict[str, Optional[str]]:
     boto3_config = {}
     if config.S3_PROVIDER == S3Providers.MINIO:
-        profile_full_path = os.path.expanduser("~/.aws/credentials")
-        aws_dir = os.path.expanduser("~/.aws/")
-
-        if not config.AWS_PROFILE and not os.path.exists(profile_full_path):
-            if not os.path.exists(aws_dir):
-                os.mkdir(aws_dir)
-            with open(profile_full_path, "a+") as file:
-                # stub, otherwise aioboto3 doesn't work on debugging
-                file.write("\n[local]\n")
-
         boto3_config.update(
             {
                 "aws_access_key_id": config.S3_ACCESS_KEY,
@@ -56,9 +45,8 @@ def create_boto3_config() -> Dict[str, Optional[str]]:
 def s3_resource():
     boto_config = create_boto3_config()
     # local is a stub for minio provider, check create_boto3_config
-    session = aioboto3.Session(profile_name=config.AWS_PROFILE or "local")
-
-    return session.resource("s3", region_name=config.AWS_REGION, **boto_config)
+    session = aioboto3.Session()
+    return session.resource("s3", **boto_config)
 
 
 async def create_pre_signed_s3_url(
