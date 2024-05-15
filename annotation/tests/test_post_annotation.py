@@ -27,9 +27,7 @@ from annotation.annotations.main import (
     upload_pages_to_minio,
 )
 from annotation.kafka_client import producers
-from annotation.microservice_communication.assets_communication import (
-    ASSETS_FILES_URL,
-)
+from annotation.microservice_communication.assets_communication import ASSETS_FILES_URL
 from annotation.microservice_communication.search import (
     AUTHORIZATION,
     BEARER,
@@ -52,12 +50,7 @@ from annotation.schemas import (
     ValidationSchema,
 )
 from tests.consts import ANNOTATION_PATH
-from tests.override_app_dependency import (
-    TEST_HEADERS,
-    TEST_TENANT,
-    TEST_TOKEN,
-    app,
-)
+from tests.override_app_dependency import TEST_HEADERS, TEST_TENANT, TEST_TOKEN, app
 from tests.test_tasks_crud_ud import construct_path
 
 client = TestClient(app)
