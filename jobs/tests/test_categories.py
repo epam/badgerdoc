@@ -40,9 +40,11 @@ class TestPrepareForUpdate:
             jw_token="test",
         )
         if categories_append_request.categories_append:
-            assert cats == list(
-                set(categories_append_request.categories_append)
-                | set(combined_job_for_update.categories)
+            assert sorted(cats) == sorted(
+                list(
+                    set(categories_append_request.categories_append)
+                    | set(combined_job_for_update.categories)
+                )
             )
         else:
             assert not cats

@@ -1,4 +1,5 @@
 # flake8: noqa: F501
+import logging
 from typing import Any, List, Optional, Union
 
 import fastapi
@@ -6,9 +7,13 @@ import filter_lib
 import minio
 import sqlalchemy.orm
 import sqlalchemy_filters.exceptions
+
 from assets import db, exceptions, schemas, utils
 
 router = fastapi.APIRouter(prefix="/files", tags=["files"])
+
+
+logger = logging.getLogger(__name__)
 
 
 @router.post(
@@ -89,10 +94,11 @@ def upload_files(
     """
     bucket_name = utils.s3_utils.get_bucket_name(x_current_tenant)
     utils.minio_utils.check_bucket(bucket_name, storage_)
+    logger.debug(f"{bucket_name} bucket has been checked")
     upload_results = utils.common_utils.process_form_files(
         bucket_name, files, session, storage_
     )
-
+    logger.debug(f"files has been uploaded")
     return [
         schemas.ActionResponse.parse_obj(response)
         for response in upload_results
