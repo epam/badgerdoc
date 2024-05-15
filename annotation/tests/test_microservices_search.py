@@ -11,10 +11,7 @@ from annotation.microservice_communication.search import (
     get_response,
 )
 from annotation.models import ManualAnnotationTask
-from annotation.schemas import (
-    ExpandedManualAnnotationTaskSchema,
-    TaskStatusEnumSchema,
-)
+from annotation.schemas import ExpandedManualAnnotationTaskSchema, TaskStatusEnumSchema
 from tests.override_app_dependency import TEST_HEADERS, TEST_TENANT, TEST_TOKEN
 
 AMOUNT_OF_ELEMENTS = 150

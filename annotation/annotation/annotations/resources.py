@@ -2,15 +2,12 @@ import logging
 from typing import Dict, List, Optional, Set
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, Response, status
 from sqlalchemy import and_, desc
 from sqlalchemy.orm import Session
 from tenant_dependency import TenantData
 
-from annotation.categories.services import (
-    combine_categories,
-    fetch_bunch_categories_db,
-)
+from annotation.categories.services import combine_categories, fetch_bunch_categories_db
 from annotation.database import get_db
 from annotation.errors import NoSuchRevisionsError
 from annotation.jobs.services import update_jobs_categories
@@ -18,9 +15,7 @@ from annotation.microservice_communication import jobs_communication
 from annotation.microservice_communication.assets_communication import (
     get_file_path_and_bucket,
 )
-from annotation.microservice_communication.search import (
-    X_CURRENT_TENANT_HEADER,
-)
+from annotation.microservice_communication.search import X_CURRENT_TENANT_HEADER
 from annotation.schemas import (
     AnnotatedDocSchema,
     BadRequestErrorSchema,
@@ -39,6 +34,7 @@ from ..models import AnnotatedDoc, File, Job, ManualAnnotationTask
 from ..token_dependency import TOKEN
 from .main import (
     LATEST,
+    DuplicateAnnotationError,
     accumulate_pages_info,
     add_search_annotation_producer,
     check_null_fields,
@@ -66,6 +62,7 @@ logger = logging.getLogger(__name__)
     status_code=status.HTTP_201_CREATED,
     response_model=AnnotatedDocSchema,
     responses={
+        304: {"description": "Not Modified"},
         400: {"model": BadRequestErrorSchema},
         404: {"model": NotFoundErrorSchema},
         500: {"model": ConnectionErrorSchema},
@@ -216,6 +213,11 @@ def post_annotation_by_user(
             task_id=task_id,
             is_latest=is_latest,
         )
+    except DuplicateAnnotationError:
+        # To ensure this endpoint is idempotent, we need to return a 200 OK
+        # response in case of duplication."
+        logger.exception("Found duplication on resource creation")
+        return Response("Not Modified", status_code=304)
     except ValueError as err:
         raise HTTPException(
             status_code=404,
@@ -230,6 +232,7 @@ def post_annotation_by_user(
     status_code=status.HTTP_201_CREATED,
     response_model=AnnotatedDocSchema,
     responses={
+        304: {"description": "Not Modified"},
         400: {"model": BadRequestErrorSchema},
         500: {"model": ConnectionErrorSchema},
     },
@@ -311,6 +314,12 @@ def post_annotation_by_pipeline(
             task_id=None,
             is_latest=True,
         )
+    except DuplicateAnnotationError:
+        # To ensure this endpoint is idempotent, we need to return a 200 OK
+        # response in case of duplication."
+        logger.exception("Found duplication on resource creation")
+        return Response("Not Modified", status_code=304)
+
     except ValueError as err:
         raise HTTPException(
             status_code=404,

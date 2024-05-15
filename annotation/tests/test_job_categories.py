@@ -14,12 +14,7 @@ from annotation.microservice_communication.search import (
 from annotation.models import Category, Job
 from annotation.schemas import JobTypeEnumSchema, ValidationSchema
 from tests.consts import POST_JOBS_PATH
-from tests.override_app_dependency import (
-    TEST_HEADERS,
-    TEST_TENANT,
-    TEST_TOKEN,
-    app,
-)
+from tests.override_app_dependency import TEST_HEADERS, TEST_TENANT, TEST_TOKEN, app
 from tests.test_category_crud import prepare_category_body
 
 JOBS_PATH = "/jobs"

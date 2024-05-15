@@ -8,9 +8,7 @@ from sqlalchemy.orm import Session
 
 from annotation.jobs import update_user_overall_load
 from annotation.main import app
-from annotation.microservice_communication.assets_communication import (
-    ASSETS_FILES_URL,
-)
+from annotation.microservice_communication.assets_communication import ASSETS_FILES_URL
 from annotation.models import (
     AnnotatedDoc,
     Category,

@@ -264,6 +264,10 @@ def create_manifest_json(
     )
 
 
+class DuplicateAnnotationError(Exception):
+    pass
+
+
 def construct_annotated_doc(
     db: Session,
     user_id: Optional[UUID],
@@ -381,11 +385,11 @@ def construct_annotated_doc(
     try:
         db.commit()
     except IntegrityError as err:
+        # We can repeat
         db.rollback()
-        logger_.exception(
-            "Cannot add links to document, document_links=%s", document_links
-        )
-        raise ValueError("No such documents or labels to link to") from err
+        raise DuplicateAnnotationError(
+            "No such documents or labels to link to"
+        ) from err
 
     bucket_name = convert_bucket_name_if_s3prefix(tenant)
     s3_resource = connect_s3(bucket_name)

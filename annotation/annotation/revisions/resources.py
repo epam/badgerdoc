@@ -5,9 +5,7 @@ from sqlalchemy.orm import Session
 from starlette import status
 
 from annotation.database import get_db
-from annotation.microservice_communication.search import (
-    X_CURRENT_TENANT_HEADER,
-)
+from annotation.microservice_communication.search import X_CURRENT_TENANT_HEADER
 from annotation.models import AnnotatedDoc
 from annotation.schemas import AnnotatedDocSchema, ConnectionErrorSchema
 from annotation.tags import ANNOTATION_TAG, REVISION_TAG
