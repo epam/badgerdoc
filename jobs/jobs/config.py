@@ -65,6 +65,7 @@ JOBS_RUN_PIPELINES_WITH_SIGNED_URL = (
 )
 AWS_REGION = os.getenv("AWS_REGION")
 S3_PREFIX = os.getenv("S3_PREFIX", "")
+S3_SECURE = os.getenv("S3_SECURE", "False").lower() == "true"
 S3_ENDPOINT = os.getenv("S3_ENDPOINT")
 S3_ACCESS_KEY = os.getenv("S3_ACCESS_KEY")
 S3_SECRET_KEY = os.getenv("S3_SECRET_KEY")

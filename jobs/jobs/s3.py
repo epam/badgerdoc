@@ -27,7 +27,7 @@ def create_boto3_config() -> Dict[str, Optional[str]]:
             {
                 "aws_access_key_id": config.S3_ACCESS_KEY,
                 "aws_secret_access_key": config.S3_SECRET_KEY,
-                "endpoint_url": f"http://{config.S3_ENDPOINT}",
+                "endpoint_url": f"{'https' if config.S3_SECURE else 'http'}://{config.S3_ENDPOINT}",
             }
         )
     elif config.S3_PROVIDER == S3Providers.AWS_IAM:

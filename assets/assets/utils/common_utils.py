@@ -325,6 +325,7 @@ class FileConverter:
             data=BytesIO(self.file_bytes),
             length=len(self.file_bytes),
         )
+        logger_.debug(f"{self.file_name} has been uploaded")
         post_pdf_to_convert(
             self.bucket_storage,
             self._output_pdf_path,
@@ -337,6 +338,7 @@ class FileConverter:
             self._output_pdf_path,
             self._tmp_file_name,
         )
+        logger_.debug(f"Got converted {self.file_name}")
         with open(self._tmp_file_name, "rb") as tmp_file:
             return tmp_file.read()
 
@@ -396,6 +398,8 @@ class FileProcessor:
         """
         Checks if file has an extension
         """
+        logger_.debug(f"Checking is_extension_correct {self.file_name}")
+        
         self.ext = Path(self.file_name).suffix
         if self.ext:
             return True
@@ -413,6 +417,8 @@ class FileProcessor:
         """
         Checks if blank row in database was created
         """
+        logger_.debug(f"Checking is_blank_created {self.file_name}")
+
         file_to_upload = self.file_bytes
         file_name = self.file_name
         ext = self.ext
@@ -457,6 +463,8 @@ class FileProcessor:
         """
         Checks if file was converted
         """
+        logger_.debug(f"Checking is_converted_file {self.file_name}")
+        
         converter = FileConverter(
             self.file_bytes,
             self.file_name,
@@ -486,6 +494,8 @@ class FileProcessor:
         """
         Checks if file metadata has been inserted into database
         """
+        logger_.debug(f"Checking is_inserted_to_database {self.file_name}")
+
         if self.converted_file is None:
             file_to_upload = self.file_bytes
             file_name = self.file_name
@@ -523,6 +533,8 @@ class FileProcessor:
         """
         Checks if file fas been uploaded to Minio
         """
+        logger_.debug(f"Checking is_uploaded_to_storage {self.file_name}")
+        
         if self.converted_file is None:
             file_to_upload = self.file_bytes
         else:
@@ -547,6 +559,8 @@ class FileProcessor:
         return False
 
     def is_original_file_uploaded_to_storage(self) -> bool:
+        logger_.debug(f"Checking is_original_file_uploaded_to_storage {self.file_name}")
+
         if self.conversion_status is None:
             return True
         storage = minio_utils.put_file_to_minio(
@@ -571,6 +585,8 @@ class FileProcessor:
         """
         Checks if file status has been updated
         """
+        logger_.debug(f"Checking is_file_updated {self.file_name}")
+
         upd = db.service.update_file_status(
             self.new_file.id,
             schemas.FileProcessingStatus.UPLOADED,
@@ -591,6 +607,9 @@ class FileProcessor:
         """
         Launch file processing pipeline
         """
+        
+        logger_.debug(f"Launch file processing pipeline for {self.file_name=}")
+        
         return (
             self.is_extension_correct()
             and self.is_blank_created()
