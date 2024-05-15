@@ -111,13 +111,7 @@ from tests.test_get_job_progress import (
     TASKS_TEST_PROGRESS,
 )
 from tests.test_get_pages_info import PAGES_INFO_ENTITIES
-from tests.test_get_revisions import (
-    JOBS_IDS,
-    PAGE,
-    PAGES_PATHS,
-    REVISIONS,
-    USERS_IDS,
-)
+from tests.test_get_revisions import JOBS_IDS, PAGE, PAGES_PATHS, REVISIONS, USERS_IDS
 from tests.test_get_revisions_without_annotation import (
     REV_WITHOUT_ANNOTATION_DOC_1,
     REV_WITHOUT_ANNOTATION_DOC_2,
@@ -126,10 +120,7 @@ from tests.test_get_revisions_without_annotation import (
     REV_WITHOUT_ANNOTATION_TASK,
 )
 from tests.test_get_unassigned_files import UNASSIGNED_FILES_ENTITIES
-from tests.test_get_users_for_job import (
-    USERS_FOR_JOB_ANNOTATORS,
-    USERS_FOR_JOB_JOBS,
-)
+from tests.test_get_users_for_job import USERS_FOR_JOB_ANNOTATORS, USERS_FOR_JOB_JOBS
 from tests.test_job_categories import CATEGORIES_USERS, MOCK_ID
 from tests.test_post import POST_JOBS, TEST_POST_USERS
 from tests.test_post_annotation import (

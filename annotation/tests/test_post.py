@@ -7,9 +7,7 @@ from sqlalchemy import not_
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from annotation.microservice_communication.assets_communication import (
-    ASSETS_URL,
-)
+from annotation.microservice_communication.assets_communication import ASSETS_URL
 from annotation.models import Category, File, Job, ManualAnnotationTask, User
 from annotation.schemas import CategoryTypeSchema, ValidationSchema
 from tests.override_app_dependency import TEST_HEADERS, TEST_TENANT, app

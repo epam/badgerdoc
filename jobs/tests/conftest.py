@@ -26,6 +26,11 @@ pytest_plugins = [
     "tests.fixtures_schemas",
 ]
 
+pytest_plugins = [
+    "tests.fixtures_models",
+    "tests.fixtures_schemas",
+]
+
 alembic_cfg = Config("alembic.ini")
 
 
