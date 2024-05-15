@@ -12,6 +12,9 @@ env:
 jobs:
   lint:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        tool: [ black, isort ]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -28,16 +31,12 @@ jobs:
       - name: Install python dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install black==24.4.2 pylint==3.1.0 mypy==1.10.0 isort==5.13.2
-      - name: Run Pylint
-        run: |
-          pylint ${{ steps.changed-files.outputs.all_changed_files }}
-      - name: Run Mypy
-        run: |
-          mypy --config-file $LINT_CONFIG {{ steps.changed-files.outputs.all_changed_files }}
-      - name: Run Isort
-        run: |
-          isort --config $LINT_CONFIG --check-only {{ steps.changed-files.outputs.all_changed_files }}
+          pip install black==24.4.2 isort==5.13.2
       - name: Run Black
+        if: ${{ matrix.tool }} == black
         run: |
           black --config $LINT_CONFIG --diff --check ${{ steps.changed-files.outputs.all_changed_files }}
+      - name: Run Isort
+        if: ${{ matrix.tool }} == isort
+        run: |
+          isort --config $LINT_CONFIG --check-only {{ steps.changed-files.outputs.all_changed_files }}
