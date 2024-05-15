@@ -399,7 +399,7 @@ class FileProcessor:
         Checks if file has an extension
         """
         logger_.debug(f"Checking is_extension_correct {self.file_name}")
-        
+
         self.ext = Path(self.file_name).suffix
         if self.ext:
             return True
@@ -464,7 +464,7 @@ class FileProcessor:
         Checks if file was converted
         """
         logger_.debug(f"Checking is_converted_file {self.file_name}")
-        
+
         converter = FileConverter(
             self.file_bytes,
             self.file_name,
@@ -534,7 +534,7 @@ class FileProcessor:
         Checks if file fas been uploaded to Minio
         """
         logger_.debug(f"Checking is_uploaded_to_storage {self.file_name}")
-        
+
         if self.converted_file is None:
             file_to_upload = self.file_bytes
         else:
@@ -559,7 +559,9 @@ class FileProcessor:
         return False
 
     def is_original_file_uploaded_to_storage(self) -> bool:
-        logger_.debug(f"Checking is_original_file_uploaded_to_storage {self.file_name}")
+        logger_.debug(
+            f"Checking is_original_file_uploaded_to_storage {self.file_name}"
+        )
 
         if self.conversion_status is None:
             return True
@@ -607,9 +609,9 @@ class FileProcessor:
         """
         Launch file processing pipeline
         """
-        
+
         logger_.debug(f"Launch file processing pipeline for {self.file_name=}")
-        
+
         return (
             self.is_extension_correct()
             and self.is_blank_created()

@@ -35,12 +35,14 @@ def create_minio_config():
             }
         )
     elif settings.s3_provider == "aws_iam":
-        minio_config.update({
-            "credentials": IamAwsProvider(),
-            "region": settings.aws_region,
-            "access_key": settings.s3_access_key,
-            "secret_key": settings.s3_secret_key,
-        })
+        minio_config.update(
+            {
+                "credentials": IamAwsProvider(),
+                "region": settings.aws_region,
+                "access_key": settings.s3_access_key,
+                "secret_key": settings.s3_secret_key,
+            }
+        )
     elif settings.s3_provider == "aws_env":
         minio_config.update({"credentials": EnvAWSProvider()})
     elif settings.s3_provider == "aws_config":
@@ -311,7 +313,9 @@ def delete_one_from_minio(bucket: str, obj: str, client: minio.Minio) -> bool:
 
 def check_bucket(bucket: str, client: minio.Minio) -> bool:
     try:
-        if not client.bucket_exists(bucket):  # fixme: locking here (first call) if get access denied error
+        if not client.bucket_exists(
+            bucket
+        ):  # fixme: locking here (first call) if get access denied error
             raise fastapi.HTTPException(
                 status_code=fastapi.status.HTTP_404_NOT_FOUND,
                 detail=f"bucket {bucket} does not exist!",
