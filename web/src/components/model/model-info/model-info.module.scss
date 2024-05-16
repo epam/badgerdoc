@@ -1,20 +1,20 @@
-@import "~shared/helpers/styles";
+@import '~shared/helpers/styles';
 
 .container {
-  display: flex;
-  flex-direction: column;
-  min-width: 450px;
+    display: flex;
+    flex-direction: column;
+    min-width: 450px;
 }
 
 .row {
-  display: flex;
-  padding: 15px 0;
-  border-bottom: 1px solid #ced0db;
-  &:last-child {
-    border-bottom: none;
-  }
+    display: flex;
+    padding: 15px 0;
+    border-bottom: 1px solid #ced0db;
+    &:last-child {
+        border-bottom: none;
+    }
 }
 
 .title {
-  font-weight: bold;
+    font-weight: bold;
 }

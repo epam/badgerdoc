@@ -4,16 +4,16 @@
 
 .date-picker {
     padding: 8px 11px;
-    color: #474A59;
-    font: 14px/18px "Sans Regular", Arial, sans-serif;
+    color: #474a59;
+    font: 14px/18px 'Sans Regular', Arial, sans-serif;
     min-width: 0;
     border: 0;
     outline: none;
     background: none;
     min-height: 36px;
     border-width: 1px;
-    background-color: #FFFFFF;
-    border-color: #CED0DB;
+    background-color: #ffffff;
+    border-color: #ced0db;
     border-style: solid;
     border-radius: 3px;
 
@@ -22,6 +22,6 @@
     }
 
     &-invalid {
-        border-color: #FA4B4B;
+        border-color: #fa4b4b;
     }
 }

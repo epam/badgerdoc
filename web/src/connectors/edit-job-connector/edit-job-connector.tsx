@@ -2,12 +2,13 @@
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-redeclare, react-hooks/exhaustive-deps */
 import React, { FC, ReactElement, useCallback, useContext, useMemo } from 'react';
 import EditJobSettings from 'components/job/edit-job-settings/edit-job-settings';
-import { usePipelines } from 'api/hooks/pipelines';
+import { usePipelineManagers } from 'api/hooks/pipelines';
 import { JobVariables, useAddJobMutation, useEditJobMutation } from 'api/hooks/jobs';
 import {
     Category,
     CategoryRelatedTaxonomies,
     Pipeline,
+    PipelineManager,
     SortingDirection,
     Taxonomy,
     User,
@@ -25,6 +26,7 @@ import { cloneDeep } from 'lodash';
 
 import { Form, INotification, IFormApi } from '@epam/uui';
 import { ErrorNotification, SuccessNotification, Text } from '@epam/loveship';
+// import {usePipelineManagers} from "../../api/hooks/pipeline-managers";
 
 type EditJobConnectorProps = {
     renderWizardButtons: ({
@@ -145,7 +147,7 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
         return metadata;
     };
 
-    const { pipelines, categories, users, taxonomies } = useEntities();
+    const { pipelineManagers, pipelines, categories, users, taxonomies } = useEntities();
 
     const addJobMutation = useAddJobMutation();
     const editJobMutation = useEditJobMutation();
@@ -181,7 +183,7 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
                     <div className={wizardStyles['content__body']}>
                         <EditJobSettings
                             initialType={initialJob?.type}
-                            pipelines={pipelines}
+                            pipelineManagers={pipelineManagers}
                             users={users}
                             taxonomies={taxonomies}
                             lens={lens}
@@ -200,7 +202,7 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
                 </>
             );
         },
-        [pipelines, categories, users, taxonomies]
+        [pipelineManagers, categories, users, taxonomies]
     );
 
     const handleSave = useCallback(
@@ -254,7 +256,8 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
                 annotators: annotators.map((annotator) => annotator.id),
                 validators: validators.map((validator) => validator.id),
                 pipeline_name: pipeline?.name,
-                pipeline_version: pipeline?.version
+                pipeline_id: pipeline?.id,
+                pipeline_engine: pipeline?.type
             };
 
             if (!pipeline) {
@@ -353,15 +356,7 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
 export default EditJobConnector;
 
 const useEntities = () => {
-    const pipelinesResult = usePipelines(
-        {
-            page: 1,
-            size: 100,
-            searchText: '',
-            sortConfig: { field: 'name', direction: SortingDirection.ASC }
-        },
-        {}
-    );
+    const pipelineManagers = usePipelineManagers();
 
     const categoriesResult = useCategories(
         {
@@ -391,7 +386,8 @@ const useEntities = () => {
     });
 
     return {
-        pipelines: pipelinesResult.data?.data,
+        pipelineManagers: pipelineManagers.data?.data,
+        pipelines: undefined,
         categories: categoriesResult.data?.data,
         users: usersResult.data?.data,
         taxonomies: taxonomiesResult.data?.data
@@ -401,6 +397,7 @@ const useEntities = () => {
 interface Params {
     initialJob?: Job;
     pipelines?: Pipeline[];
+    pipelineManagers?: PipelineManager[];
     categories?: Category[];
     users?: User[];
     taxonomies?: Taxonomy[];
@@ -409,6 +406,7 @@ interface Params {
 const useEditJobFormValues = ({
     initialJob,
     pipelines,
+    pipelineManagers,
     categories,
     users,
     taxonomies
@@ -459,7 +457,7 @@ const useEditJobFormValues = ({
             };
         }
 
-        if (!pipelines || !categories || !users) {
+        if (!pipelineManagers || !categories || !users) {
             return null;
         }
 
@@ -509,5 +507,14 @@ const useEditJobFormValues = ({
             selected_taxonomies: selectedTaxonomies,
             extensive_coverage: initialJob.extensive_coverage
         };
-    }, [currentUser, initialJob, pipelines, categories, users, taxonomies, selectedTaxonomies]);
+    }, [
+        currentUser,
+        initialJob,
+        pipelines,
+        pipelineManagers,
+        categories,
+        users,
+        taxonomies,
+        selectedTaxonomies
+    ]);
 };

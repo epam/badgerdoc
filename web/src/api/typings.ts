@@ -89,6 +89,7 @@ export type PipelineData = {
     model?: string;
     version?: number;
 };
+
 export type Pipeline = PipelineData & {
     id: number;
     original_pipeline_id?: number;
@@ -96,6 +97,12 @@ export type Pipeline = PipelineData & {
     type?: string;
     description?: string;
     is_latest?: boolean;
+};
+
+export type PipelineManager = {
+    name: string;
+    resource: string;
+    enabled: boolean;
 };
 
 export type Step = {

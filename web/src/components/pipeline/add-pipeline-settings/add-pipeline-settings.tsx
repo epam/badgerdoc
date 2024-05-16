@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { FC, useState } from 'react';
 import { PipelineValues } from 'components/pipeline/add-pipeline-form';
-import { pipelinesFetcher } from 'api/hooks/pipelines';
+import { pipelinesPagedFetcher } from 'api/hooks/pipelines';
 import { useEntity } from 'shared/hooks/use-entity';
 import { Pipeline } from 'api/typings';
 
@@ -20,7 +20,7 @@ type PipelineTypes = {
 };
 
 const AddPipelineSettings: FC<AddPipelineSettingsProps> = ({ lens }) => {
-    const { dataSource: pipelinesDataSource } = useEntity(pipelinesFetcher);
+    const { dataSource: pipelinesDataSource } = useEntity(pipelinesPagedFetcher);
     const [value, onValueChange] = useState(false);
     const basePipeline = lens.prop('basePipeline').toProps().value;
     const isVersion = lens.prop('isVersion').toProps().value;

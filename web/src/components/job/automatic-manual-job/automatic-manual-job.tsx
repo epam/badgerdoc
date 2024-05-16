@@ -1,7 +1,7 @@
 // temporary_disabled_rules
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { FC, useContext } from 'react';
-import { Pipeline, Taxonomy, User } from 'api/typings';
+import { PipelineManager, Taxonomy, User } from 'api/typings';
 import { JobValues } from 'connectors/edit-job-connector/edit-job-connector';
 import JobName from '../job-name/job-name';
 import ValidationTypePicker from '../validation-type-picker/validation-type-picker';
@@ -19,7 +19,7 @@ import styles from './automatic-manual-job.module.scss';
 
 type AutomaticManualJobProps = {
     users?: User[];
-    pipelines?: Pipeline[];
+    pipelineManagers?: PipelineManager[];
     taxonomies?: Taxonomy[];
     lens: ILens<JobValues>;
 };
@@ -27,7 +27,7 @@ const AutomaticManualJob: FC<AutomaticManualJobProps> = ({
     lens,
     users,
     taxonomies,
-    pipelines
+    pipelineManagers
 }) => {
     const { isPipelinesDisabled } = useContext(CurrentUser);
     const startManuallyProps = lens.prop('start_manual_job_automatically').toProps();
@@ -44,7 +44,9 @@ const AutomaticManualJob: FC<AutomaticManualJobProps> = ({
     return (
         <div className={styles.job}>
             <JobName lens={lens} />
-            {!isPipelinesDisabled && <PipelinePicker lens={lens} pipelines={pipelines} />}
+            {!isPipelinesDisabled && (
+                <PipelinePicker pipelineManagers={pipelineManagers} lens={lens} />
+            )}
             <div className="flex">
                 <ValidationTypePicker lens={lens} />
                 <DeadlinePicker lens={lens} />
