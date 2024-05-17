@@ -58,7 +58,7 @@ class BadgerdocDownloader:
         manifest_file = self.download_file_from_s3(
             self.s3_input_manifest, tmp_dir
         )
-        return Manifest.parse_file(tmp_dir / manifest_file.name)
+        return Manifest.parse_file(tmp_dir / manifest_file.name)  # type: ignore
 
     def get_annotations(
         self, manifest: Manifest, tmp_dir: Path

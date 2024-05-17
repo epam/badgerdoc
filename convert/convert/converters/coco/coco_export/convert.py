@@ -321,7 +321,7 @@ class ConvertToCoco(ExportConvertBase):
         coco_annotation.categories = sorted(
             list(
                 {
-                    v.dict()["name"]: v.dict() for v in coco_annotation.categories  # type: ignore
+                    v.dict()["name"]: v.dict() for v in coco_annotation.categories
                 }.values()
             ),
             key=lambda x: x["id"],  # type: ignore

@@ -35,7 +35,7 @@ def get_service_uri(prefix: str) -> str:  # noqa
     return ""
 
 
-class Settings(BaseSettings):
+class Settings(BaseSettings):  # type: ignore
     """Base settings values"""
 
     s3_endpoint_url: Optional[str] = os.getenv("S3_ENDPOINT_URL")
