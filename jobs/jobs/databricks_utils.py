@@ -56,15 +56,15 @@ async def run(
     client = get_client()
     client.jobs.run_now(
         pipeline_id,
-        python_params=[
-            json.dumps(
+        job_parameters={
+            "badgerdoc_job_parameters": json.dumps(
                 dataclasses.asdict(
                     pipeline.PipelineRunArgs(
                         job_id=job_id, tenant=current_tenant, files_data=files
                     )
                 )
             )
-        ],
+        },
     )
 
 
