@@ -1,7 +1,7 @@
 // temporary_disabled_rules
 /* eslint-disable @typescript-eslint/no-unused-vars, eqeqeq */
 import React, { FC } from 'react';
-import { Category, Pipeline, Taxonomy, User } from 'api/typings';
+import { Category, PipelineManager, Taxonomy, User } from 'api/typings';
 import { JobValues } from 'connectors/edit-job-connector/edit-job-connector';
 import AutomaticJob from '../automatic-job/automatic-job';
 import styles from './edit-job-settings.module.scss';
@@ -13,7 +13,7 @@ import { MultiSwitch } from '@epam/loveship';
 import { ILens } from '@epam/uui';
 
 export type EditJobSettingsProps = {
-    pipelines?: Pipeline[];
+    pipelineManagers?: PipelineManager[];
     categories?: Category[];
     users?: User[];
     taxonomies?: Taxonomy[];
@@ -23,7 +23,7 @@ export type EditJobSettingsProps = {
 };
 
 const EditJobSettings: FC<EditJobSettingsProps> = ({
-    pipelines,
+    pipelineManagers,
     users,
     taxonomies,
     lens,
@@ -34,7 +34,7 @@ const EditJobSettings: FC<EditJobSettingsProps> = ({
     let job;
 
     if (currentJobType === 'ExtractionJob') {
-        job = <AutomaticJob pipelines={pipelines} lens={lens} />;
+        job = <AutomaticJob pipelineManagers={pipelineManagers} lens={lens} />;
     } else if (
         currentJobType == 'ExtractionWithAnnotationJob' ||
         currentJobType == 'AnnotationJob'
@@ -42,7 +42,7 @@ const EditJobSettings: FC<EditJobSettingsProps> = ({
         job = (
             <AutomaticManualJob
                 users={users}
-                pipelines={pipelines}
+                pipelineManagers={pipelineManagers}
                 taxonomies={taxonomies}
                 lens={lens}
             />

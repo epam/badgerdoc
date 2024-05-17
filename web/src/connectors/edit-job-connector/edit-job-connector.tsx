@@ -1,23 +1,24 @@
 // temporary_disabled_rules
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-redeclare, react-hooks/exhaustive-deps */
-import { useCategories } from 'api/hooks/categories';
+import React, { FC, ReactElement, useCallback, useContext, useMemo } from 'react';
+import EditJobSettings from 'components/job/edit-job-settings/edit-job-settings';
+import { usePipelineManagers } from 'api/hooks/pipelines';
 import { JobVariables, useAddJobMutation, useEditJobMutation } from 'api/hooks/jobs';
-import { usePipelines } from 'api/hooks/pipelines';
+import { useCategories } from 'api/hooks/categories';
 import { useAllTaxonomies, useTaxonomiesByJobId } from 'api/hooks/taxons';
 import { useUsers } from 'api/hooks/users';
 import {
     Category,
     CategoryRelatedTaxonomies,
     Pipeline,
+    PipelineManager,
     SortingDirection,
     Taxonomy,
     User,
     ValidationType
 } from 'api/typings';
 import { Job, JobType } from 'api/typings/jobs';
-import EditJobSettings from 'components/job/edit-job-settings/edit-job-settings';
 import { cloneDeep } from 'lodash';
-import { FC, ReactElement, useCallback, useContext, useMemo } from 'react';
 import { svc } from 'services';
 import { CurrentUser } from 'shared/contexts/current-user';
 import wizardStyles from '../../shared/components/wizard/wizard/wizard.module.scss';
@@ -145,7 +146,7 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
         return metadata;
     };
 
-    const { pipelines, categories, users, taxonomies } = useEntities();
+    const { pipelineManagers, pipelines, categories, users, taxonomies } = useEntities();
 
     const addJobMutation = useAddJobMutation();
     const editJobMutation = useEditJobMutation();
@@ -181,7 +182,7 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
                     <div className={wizardStyles['content__body']}>
                         <EditJobSettings
                             initialType={initialJob?.type}
-                            pipelines={pipelines}
+                            pipelineManagers={pipelineManagers}
                             users={users}
                             taxonomies={taxonomies}
                             lens={lens}
@@ -200,7 +201,7 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
                 </>
             );
         },
-        [pipelines, categories, users, taxonomies]
+        [pipelineManagers, categories, users, taxonomies]
     );
 
     const handleSave = useCallback(
@@ -255,17 +256,11 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
                 validators: validators.map((validator) => validator.id),
                 pipeline_name: pipeline?.name,
                 pipeline_id: pipeline?.id,
-                pipeline_version: pipeline?.version
+                pipeline_engine: pipeline?.type
             };
 
             if (!pipeline) {
                 delete jobProps.start_manual_job_automatically;
-            }
-
-            if (jobProps.pipeline_name) {
-                // this engine must be passed from the form
-                jobProps.pipeline_engine = 'airflow';
-                //jobProps.pipeline_engine = 'databricks';
             }
 
             if (selected_taxonomies) {
@@ -360,15 +355,7 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
 export default EditJobConnector;
 
 const useEntities = () => {
-    const pipelinesResult = usePipelines(
-        {
-            page: 1,
-            size: 100,
-            searchText: '',
-            sortConfig: { field: 'name', direction: SortingDirection.ASC }
-        },
-        {}
-    );
+    const pipelineManagers = usePipelineManagers();
 
     const categoriesResult = useCategories(
         {
@@ -398,7 +385,8 @@ const useEntities = () => {
     });
 
     return {
-        pipelines: pipelinesResult.data?.data,
+        pipelineManagers: pipelineManagers.data?.data,
+        pipelines: undefined,
         categories: categoriesResult.data?.data,
         users: usersResult.data?.data,
         taxonomies: taxonomiesResult.data?.data
@@ -408,6 +396,7 @@ const useEntities = () => {
 interface Params {
     initialJob?: Job;
     pipelines?: Pipeline[];
+    pipelineManagers?: PipelineManager[];
     categories?: Category[];
     users?: User[];
     taxonomies?: Taxonomy[];
@@ -416,6 +405,7 @@ interface Params {
 const useEditJobFormValues = ({
     initialJob,
     pipelines,
+    pipelineManagers,
     categories,
     users,
     taxonomies
@@ -466,7 +456,7 @@ const useEditJobFormValues = ({
             };
         }
 
-        if (!pipelines || !categories || !users) {
+        if (!pipelineManagers || !categories || !users) {
             return null;
         }
 
@@ -516,5 +506,14 @@ const useEditJobFormValues = ({
             selected_taxonomies: selectedTaxonomies,
             extensive_coverage: initialJob.extensive_coverage
         };
-    }, [currentUser, initialJob, pipelines, categories, users, taxonomies, selectedTaxonomies]);
+    }, [
+        currentUser,
+        initialJob,
+        pipelines,
+        pipelineManagers,
+        categories,
+        users,
+        taxonomies,
+        selectedTaxonomies
+    ]);
 };

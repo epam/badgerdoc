@@ -9,7 +9,7 @@
     svg {
         fill: $gray40;
     }
-    
+
     &__header {
         padding: 0;
         margin-bottom: 12px;
@@ -22,13 +22,14 @@
             padding: 0;
             border-width: 0 !important;
 
-            &:hover, &:focus {
+            &:hover,
+            &:focus {
                 color: $blue !important;
                 background: none !important;
                 border-color: transparent !important;
                 box-shadow: none !important;
             }
-            
+
             & :first-child {
                 display: inline;
                 padding: 0;
