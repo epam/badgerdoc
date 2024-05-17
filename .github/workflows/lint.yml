@@ -25,9 +25,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install poetry
           poetry install --only dev
-      - name: Run isort
+      - name: Run Isort
         run: |
           poetry run isort --diff --check-only .
       - name: Run Black
         run: |
-          poetry run black --config $LINT_CONFIG --diff --check 
+          poetry run black --config $LINT_CONFIG --diff --check .
