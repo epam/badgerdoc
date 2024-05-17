@@ -3,12 +3,12 @@ on:
   pull_request:
     paths:
       - "**.py"
-workflow_dispatch:
-  inputs:
-    files:
-      description: 'Files to lint [optional]'
-      required: false
-      default: ''
+  workflow_dispatch:
+    inputs:
+      files:
+        description: 'Files to lint [optional]'
+        required: false
+        default: ''
 
 env:
   PYTHON_VERSION: 3.8
