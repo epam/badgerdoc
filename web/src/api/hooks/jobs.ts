@@ -44,9 +44,8 @@ export type JobVariables = {
     files?: string[] | number[];
     datasets?: string[];
     pipeline_name?: string | undefined;
-    pipeline_id?: number | undefined;
-    pipeline_version?: number;
-    pipeline_engine?: string | undefined;
+    pipeline_id?: number;
+    pipeline_engine?: string;
     type: JobType;
     is_draft: boolean;
     is_auto_distribution?: boolean;

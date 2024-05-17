@@ -1,4 +1,4 @@
-@import "~shared/helpers/styles";
+@import '~shared/helpers/styles';
 
 .rc-tree {
     margin: 0;
@@ -31,9 +31,9 @@
         }
 
         &::-webkit-scrollbar-thumb {
-            background-color: #{"hsl(0 0% 60%)"};
+            background-color: #{'hsl(0 0% 60%)'};
             border-radius: 15px;
-            border: 3px solid #{"hsl(0 0% 60%)"};
+            border: 3px solid #{'hsl(0 0% 60%)'};
         }
 
         & > div {
@@ -104,10 +104,10 @@
                     cursor: auto;
                 }
                 &.rc-tree-switcher_open {
-                    background-image: url("../../../icons/down.svg");
+                    background-image: url('../../../icons/down.svg');
                 }
                 &.rc-tree-switcher_close {
-                    background-image: url("../../../icons/up.svg");
+                    background-image: url('../../../icons/up.svg');
                 }
             }
         }

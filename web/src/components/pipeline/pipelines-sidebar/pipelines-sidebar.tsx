@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars, react-hooks/exhaustive-deps */
 import React, { FC, useEffect, useState } from 'react';
 import { DocumentsSidebarConnector, RenderCreateBtn } from 'connectors/documents-sidebar-connector';
-import { usePipelines } from 'api/hooks/pipelines';
+import { usePagedPipelines } from 'api/hooks/pipelines';
 import { Operators, Pipeline, SortingDirection } from 'api/typings';
 import SidebarButton from 'shared/components/sidebar/sidebar-button/sidebar-button';
 import { FlexRow, LinkButton } from '@epam/loveship';
@@ -18,7 +18,7 @@ export const PipelinesSidebar: FC<PipelinesSidebarProps> = ({
     onAddPipeline,
     onSelectPipeline
 }) => {
-    const { data: pipelines } = usePipelines(
+    const { data: pipelines } = usePagedPipelines(
         {
             page: 1,
             size: 100,
@@ -51,7 +51,7 @@ export const PipelinesSidebar: FC<PipelinesSidebarProps> = ({
     return (
         <DocumentsSidebarConnector
             title="Pipelines"
-            useEntitiesHook={usePipelines}
+            useEntitiesHook={usePagedPipelines}
             filters={[
                 {
                     field: 'is_latest',

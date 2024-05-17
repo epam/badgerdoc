@@ -7,7 +7,7 @@ import { useArrayDataSource } from '@epam/uui';
 
 import styles from './upload-wizard-preprocessor.module.scss';
 import { Operators, SortingDirection } from '../../../api/typings';
-import { usePipelines } from '../../../api/hooks/pipelines';
+import { usePagedPipelines } from '../../../api/hooks/pipelines';
 import ModelInfo from '../model-info/model-info';
 
 type RenderLabelProps = {
@@ -55,7 +55,7 @@ const UploadWizardPreprocessor: FC<UploadWizardPreprocessorProps> = ({ onChange 
         []
     );
 
-    const { data: pipelines } = usePipelines(
+    const { data: pipelines } = usePagedPipelines(
         {
             page: 1,
             size: 15,
