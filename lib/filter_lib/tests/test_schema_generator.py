@@ -1,6 +1,5 @@
 import pytest
 from pydantic import ValidationError
-
 from src.schema_generator import (
     Page,
     Pagination,

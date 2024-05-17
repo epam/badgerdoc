@@ -1,11 +1,11 @@
-import os
 import asyncio
+import os
 from typing import Optional
 
 import fastapi
-from fastapi.middleware.cors import CORSMiddleware
 from botocore.exceptions import BotoCoreError
 from elasticsearch.exceptions import ElasticsearchException
+from fastapi.middleware.cors import CORSMiddleware
 from tenant_dependency import TenantData, get_tenant_info
 
 import search.es as es

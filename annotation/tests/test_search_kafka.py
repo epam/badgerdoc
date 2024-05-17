@@ -4,6 +4,7 @@ import pytest
 import responses
 from fastapi.testclient import TestClient
 from kafka.errors import NoBrokersAvailable
+from tests.override_app_dependency import TEST_HEADERS, TEST_TENANT, app
 
 from annotation.annotations import add_search_annotation_producer
 from annotation.kafka_client import producers
@@ -15,7 +16,6 @@ from annotation.schemas import (
     TaskStatusEnumSchema,
     ValidationSchema,
 )
-from tests.override_app_dependency import TEST_HEADERS, TEST_TENANT, app
 
 from .consts import ANNOTATION_PATH
 

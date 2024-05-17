@@ -1,6 +1,5 @@
 import pytest
 from pydantic import ValidationError
-
 from src.pagination import (
     PaginationParams,
     _calculate_num_pages,

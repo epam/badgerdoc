@@ -1,10 +1,10 @@
 import os
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config, pool
-from taxonomy.database import SQLALCHEMY_DATABASE_URL, get_test_db_url
-
 from alembic import context  # type: ignore
+from sqlalchemy import engine_from_config, pool
+
+from taxonomy.database import SQLALCHEMY_DATABASE_URL, get_test_db_url
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

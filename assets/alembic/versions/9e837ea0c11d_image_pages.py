@@ -6,10 +6,10 @@ Create Date: 2022-02-14 17:36:57.252191
 
 """
 
-from assets.db.models import FileObject
+from alembic import op
 from sqlalchemy.orm import Session
 
-from alembic import op
+from assets.db.models import FileObject
 
 # revision identifiers, used by Alembic.
 

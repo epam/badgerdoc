@@ -6,9 +6,6 @@ import pytest_asyncio
 from elasticsearch import AsyncElasticsearch
 from kafka.errors import TopicAlreadyExistsError
 from moto import mock_s3
-
-from search.config import settings
-from search.es import INDEX_SETTINGS
 from tests.test_get import CHILD_CATEGORIES_DATA, TEST_DATA
 from tests.test_harvester import (
     DOCS_IN_ES,
@@ -17,6 +14,9 @@ from tests.test_harvester import (
     S3_FAIL_PAGES,
     S3_PAGES,
 )
+
+from search.config import settings
+from search.es import INDEX_SETTINGS
 
 BUCKET_NAME = INDEX_NAME
 

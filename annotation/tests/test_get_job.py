@@ -4,6 +4,8 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
+from tests.consts import ANNOTATION_PATH
+from tests.override_app_dependency import TEST_TOKEN, app
 
 from annotation.jobs import collect_job_names
 from annotation.microservice_communication.search import (
@@ -13,8 +15,6 @@ from annotation.microservice_communication.search import (
 )
 from annotation.models import Category, File, Job, User
 from annotation.schemas import FileStatusEnumSchema, ValidationSchema
-from tests.consts import ANNOTATION_PATH
-from tests.override_app_dependency import TEST_TOKEN, app
 
 client = TestClient(app)
 

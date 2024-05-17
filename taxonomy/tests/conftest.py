@@ -7,14 +7,14 @@ from uuid import uuid4
 
 import pytest
 import sqlalchemy
+from alembic import command
+from alembic.config import Config
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy_utils import create_database, database_exists, drop_database
 
-from alembic import command
-from alembic.config import Config
 from taxonomy.database import (
     SQLALCHEMY_DATABASE_URL,
     Base,

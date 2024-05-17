@@ -2,8 +2,9 @@ import datetime
 import enum
 from typing import List, Optional
 
-from assets.db.models import Datasets
 from pydantic import BaseModel, validator
+
+from assets.db.models import Datasets
 
 
 class MinioObjects(BaseModel):
