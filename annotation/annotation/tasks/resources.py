@@ -76,10 +76,7 @@ from annotation.schemas import (
     ValidationSchema,
 )
 from annotation.tags import REVISION_TAG, TASKS_TAG
-from annotation.tasks.validation import (
-    create_annotation_tasks,
-    create_validation_tasks,
-)
+from annotation.tasks.validation import create_annotation_tasks, create_validation_tasks
 from annotation.token_dependency import TOKEN
 
 from ..models import File, Job, ManualAnnotationTask

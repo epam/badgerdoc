@@ -4,6 +4,9 @@ import React, { FC, ReactElement, useCallback, useContext, useMemo } from 'react
 import EditJobSettings from 'components/job/edit-job-settings/edit-job-settings';
 import { usePipelineManagers } from 'api/hooks/pipelines';
 import { JobVariables, useAddJobMutation, useEditJobMutation } from 'api/hooks/jobs';
+import { useCategories } from 'api/hooks/categories';
+import { useAllTaxonomies, useTaxonomiesByJobId } from 'api/hooks/taxons';
+import { useUsers } from 'api/hooks/users';
 import {
     Category,
     CategoryRelatedTaxonomies,
@@ -14,19 +17,15 @@ import {
     User,
     ValidationType
 } from 'api/typings';
+import { Job, JobType } from 'api/typings/jobs';
+import { cloneDeep } from 'lodash';
 import { svc } from 'services';
-import { getError } from '../../shared/helpers/get-error';
-import { useCategories } from 'api/hooks/categories';
-import { useUsers } from 'api/hooks/users';
-import { JobType, Job } from 'api/typings/jobs';
 import { CurrentUser } from 'shared/contexts/current-user';
 import wizardStyles from '../../shared/components/wizard/wizard/wizard.module.scss';
-import { useAllTaxonomies, useTaxonomiesByJobId } from 'api/hooks/taxons';
-import { cloneDeep } from 'lodash';
+import { getError } from '../../shared/helpers/get-error';
 
-import { Form, INotification, IFormApi } from '@epam/uui';
 import { ErrorNotification, SuccessNotification, Text } from '@epam/loveship';
-// import {usePipelineManagers} from "../../api/hooks/pipeline-managers";
+import { Form, IFormApi, INotification } from '@epam/uui';
 
 type EditJobConnectorProps = {
     renderWizardButtons: ({

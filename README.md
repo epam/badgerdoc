@@ -23,12 +23,8 @@ For now, BadgerDoc is working with vectorized and scanned documents, but it has 
 
 # Local Setup
 
-## Using podman instead of docker
-In case you're using Podman, set the `_DOCKER_`` environment variable before proceeding with the next steps:
-
-```
-export _DOCKER_=podman
-```
+## For mac users
+We have tested BadgerDoc under 'colima', so this is the recommended method for a local run.
 
 ## Building the base image
 

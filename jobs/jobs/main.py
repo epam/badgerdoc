@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import os
 from typing import Any, Dict, List, Optional, Union
 
@@ -9,7 +10,10 @@ from sqlalchemy.orm import Session
 from sqlalchemy_filters.exceptions import BadFilterFormat
 from tenant_dependency import TenantData, get_tenant_info
 
+import jobs.airflow_utils as airflow_utils
+import jobs.categories as categories
 import jobs.create_job_funcs as create_job_funcs
+import jobs.databricks_utils as databricks_utils
 import jobs.db_service as db_service
 import jobs.models as dbm
 import jobs.run_job_funcs as run_job_funcs
@@ -18,6 +22,10 @@ import jobs.utils as utils
 from jobs.config import KEYCLOAK_HOST, ROOT_PATH, API_current_version
 
 tenant = get_tenant_info(url=KEYCLOAK_HOST, algorithm="RS256", debug=True)
+logger = logging.getLogger(__name__)
+AIRFLOW_ENABLED = os.getenv("AIRFLOW_ENABLED", "").lower() == "true"
+DATABRICKS_ENABLED = os.getenv("DATABRICKS_ENABLED", "").lower() == "true"
+
 app = FastAPI(
     title="Job Manager",
     root_path=ROOT_PATH,
@@ -49,10 +57,10 @@ async def create_job(
 ) -> Union[Dict[str, Any], None]:
     """Creates ExtractionJob, AnnotationJob or ExtractionWithAnnotationJob.
     If it is not 'Draft' - runs it"""
+    logger.info("Create job with job_params: %s", job_params)
     jw_token = token_data.token
 
     if job_params.type == schemas.JobType.ExtractionJob:
-
         created_extraction_job = await create_job_funcs.create_extraction_job(
             extraction_job_input=job_params,  # type: ignore
             current_tenant=current_tenant,
@@ -60,6 +68,7 @@ async def create_job(
             jw_token=jw_token,
         )
         if not job_params.is_draft:
+            logger.info("Running jobs")
             await run_job_funcs.run_extraction_job(
                 db=db,
                 job_to_run=created_extraction_job,
@@ -79,7 +88,6 @@ async def create_job(
         schemas.JobType.AnnotationJob,
         schemas.JobType.ExtractionWithAnnotationJob,
     }:
-
         categories_links: List[schemas.CategoryLinkInput] = []
         if job_params.categories:
             categories_ids, categories_links = utils.get_categories_ids(
@@ -88,10 +96,11 @@ async def create_job(
             job_params.categories = categories_ids
 
         if job_params.type == schemas.JobType.AnnotationJob:
-
-            created_annotation_job = create_job_funcs.create_annotation_job(
-                annotation_job_input=job_params,  # type: ignore
-                db=db,
+            created_annotation_job = (
+                await create_job_funcs.create_annotation_job(
+                    annotation_job_input=job_params,  # type: ignore
+                    db=db,
+                )
             )
             if not job_params.is_draft:
                 await run_job_funcs.run_annotation_job(
@@ -103,8 +112,8 @@ async def create_job(
             created_job = created_annotation_job.as_dict
 
         else:
-            created_extraction_annotation_job = await (
-                create_job_funcs.create_extraction_annotation_job(
+            created_extraction_annotation_job = (
+                await create_job_funcs.create_extraction_annotation_job(
                     extraction_annotation_job_input=job_params,  # type: ignore
                     current_tenant=current_tenant,
                     db=db,
@@ -216,7 +225,9 @@ async def change_job(
 ) -> Union[Dict[str, Any], HTTPException]:
     """Provides an ability to change any value
     of any field of any Job in the database"""
-    job_to_change = db_service.get_job_in_db_by_id(db, job_id)
+
+    logger.info("Start job %s update with params %s", job_id, new_job_params)
+    job_to_change = db_service.get_job_in_db_by_id(db, job_id, with_lock=True)
     if not job_to_change:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -243,17 +254,20 @@ async def change_job(
         )
 
     jw_token = token_data.token
-    new_categories_links: List[schemas.CategoryLinkInput] = []
-    if new_job_params.categories:
-        new_categories_ids, new_categories_links = utils.get_categories_ids(
-            new_job_params.categories
+    try:
+        (
+            new_categories_ids,
+            new_categories_links,
+        ) = await categories.prepare_for_update(
+            job_to_change, new_job_params, current_tenant, jw_token
         )
+    except NotImplementedError as err:
+        raise HTTPException(
+            status_code=status.HTTP_406_NOT_ACCEPTABLE, detail=str(err)
+        ) from err
+
+    if new_categories_ids:
         new_job_params.categories = new_categories_ids
-        old_categories_ids = job_to_change.categories or []
-        if set(new_categories_ids) != set(old_categories_ids):
-            await utils.delete_taxonomy_link(job_id, current_tenant, jw_token)
-        else:
-            new_categories_links = []
 
     if job_to_change.type in [
         schemas.JobType.AnnotationJob,
@@ -413,3 +427,81 @@ async def get_jobs_progress(
         for job_id, job_progress in zip(job_ids, jobs_progress)
         if job_progress is not None
     }
+
+
+#################################################
+#
+# Pipelines
+#
+#################################################
+
+
+@app.get(
+    "/pipelines/support",
+    response_model=schemas.PipelineEngineSupport,
+    tags=["pipelines"],
+)
+async def support(
+    _: Optional[str] = Header(None, alias="X-Current-Tenant"),
+) -> schemas.PipelineEngineSupport:
+    default_pipelines = {
+        "airflow": AIRFLOW_ENABLED,
+        "databricks": DATABRICKS_ENABLED,
+    }
+    pipeline_engines = []
+    for pipeline_name, enabled in default_pipelines.items():
+        pipeline_engines.append(
+            schemas.PipelineEngine(
+                name=pipeline_name.capitalize(),
+                enabled=enabled,
+                resource=f"/pipelines/{pipeline_name}",
+            )
+        )
+
+    return schemas.PipelineEngineSupport(data=pipeline_engines)
+
+
+# AIRFLOW
+
+
+@app.get("/pipelines/airflow", tags=["pipelines", "airflow"])
+async def airflow(
+    _: Optional[str] = Header(None, alias="X-Current-Tenant"),
+) -> schemas.Pipelines:
+    dags = await airflow_utils.get_dags()
+    try:
+        return schemas.Pipelines(
+            data=[
+                schemas.Pipeline(
+                    name=dag["dag_id"],
+                    id=dag["dag_id"],
+                    version=0,
+                    type="airflow",
+                    date="2024-05-02T11:14:20.506320",
+                    meta={},
+                    steps=[],
+                )
+                for dag in dags["dags"]
+            ]
+        )
+    except KeyError:
+        logger.exception("Unexpected airflow dags response: %s", dags)
+        raise
+
+
+@app.post(
+    "/pipelines/airflow/{pipeline_id}/execute", tags=["pipelines", "airflow"]
+)
+async def execute_airflow(pipeline_id: str):
+    pass
+
+
+# DataBricks
+
+
+@app.get("/pipelines/databricks", tags=["pipelines", "databricks"])
+async def databricks(
+    _: Optional[str] = Header(None, alias="X-Current-Tenant"),
+) -> schemas.Pipelines:
+    pipelines = list(databricks_utils.get_pipelines())
+    return schemas.Pipelines(data=pipelines)

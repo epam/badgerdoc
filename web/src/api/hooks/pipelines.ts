@@ -1,14 +1,13 @@
 // temporary_disabled_rules
 /* eslint-disable react-hooks/rules-of-hooks */
 import {
+    FilterWithDocumentExtraOption,
     MutationHookType,
     Operators,
     PagedResponse,
     Pipeline,
     QueryHookType,
-    SearchBody,
     SortingDirection,
-    FilterWithDocumentExtraOption,
     PipelineManager
 } from 'api/typings';
 import { useMutation, useQuery, useQueryClient, UseQueryResult } from 'react-query';
@@ -18,6 +17,7 @@ import { pageSizes } from '../../shared';
 const jobsNamespace = process.env.REACT_APP_JOBMANAGER_API_NAMESPACE;
 // todo this namespace uses for backward compatibility, please check usage of usePagedPipelines, pipelinesPagedFetcher
 const namespace = process.env.REACT_APP_PIPELINES_API_NAMESPACE;
+const jobs_namespace = process.env.REACT_APP_JOBMANAGER_API_NAMESPACE;
 
 type UsePipelineParamsType = {
     page?: number;
@@ -90,6 +90,9 @@ export function pipelinesPagedFetcher(
     },
     filters: FilterWithDocumentExtraOption<keyof Pipeline>[] = []
 ): Promise<PagedResponse<Pipeline>> {
+    // This function is changed to support /jobs/pipelines instead of
+    // /pipelines/pipelines microservice
+    // So additional work will be required, because API is not 100% compatible
     if (searchText) {
         filters.push({
             field: 'name',
@@ -97,16 +100,21 @@ export function pipelinesPagedFetcher(
             value: `%${searchText.trim().toLowerCase()}%`
         });
     }
-    const body: SearchBody<Pipeline> = {
-        pagination: { page_num: page, page_size: size },
-        filters,
-        sorting: [{ direction: sortConfig.direction, field: sortConfig.field }]
-    };
+
+    //const body: SearchBody<Pipeline> = {
+    //    pagination: { page_num: page, page_size: size },
+    //    filters,:
+    //    sorting: [{ direction: sortConfig.direction, field: sortConfig.field }]
+    //};
+
+    // this engine must be passed from the form
+    const engine = 'airflow';
+    //const engine = "databricks"
     return useBadgerFetch<PagedResponse<Pipeline>>({
-        url: `${namespace}/pipelines/search`,
-        method: 'post',
+        url: `${jobs_namespace}/pipelines/${engine}`,
+        method: 'get',
         withCredentials: true
-    })(JSON.stringify(body));
+    })();
 }
 
 type PipelineByNameParams = {

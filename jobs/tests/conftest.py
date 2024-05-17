@@ -1,12 +1,8 @@
-import datetime
 import os
 import time
-from typing import List
+from typing import List, Literal
 from unittest.mock import patch
 
-import jobs.db_service as service
-import jobs.main as main
-import jobs.schemas as schemas
 import pytest
 from fastapi.testclient import TestClient
 from pydantic import BaseModel
@@ -19,10 +15,34 @@ from sqlalchemy_utils import (  # type: ignore
     drop_database,
 )
 
+import jobs.db_service as service
+import jobs.main as main
 from alembic import command
 from alembic.config import Config
+from jobs import pipeline
+
+pytest_plugins = [
+    "tests.fixtures_models",
+    "tests.fixtures_schemas",
+]
+
+pytest_plugins = [
+    "tests.fixtures_models",
+    "tests.fixtures_schemas",
+]
 
 alembic_cfg = Config("alembic.ini")
+
+
+class FakePipeline(pipeline.BasePipeline):
+    calls = []
+
+    async def list(self) -> List[pipeline.AnyPipeline]:
+        return []
+
+    async def run(self, **kwargs) -> None:
+        FakePipeline.calls.append(kwargs)
+        return None
 
 
 @pytest.fixture(scope="session")
@@ -99,60 +119,33 @@ def setup_tenant():
     return mock_tenant_data
 
 
+async def patched_create_pre_signed_s3_url(
+    bucket: str,
+    path: str,
+    action: Literal["get_object"] = "get_object",
+    expire_in_hours: int = 48,
+):
+    return (
+        f"http://example.storage/"
+        f"{bucket.strip('./')}/{path.strip('./')}?some-fake-arg=1"
+    )
+
+
 @pytest.fixture
 def testing_app(testing_engine, testing_session, setup_tenant):
-    with patch("jobs.db_service.LocalSession", testing_session):
+    with (
+        patch("jobs.db_service.LocalSession", testing_session),
+        patch(
+            "jobs.s3.create_pre_signed_s3_url",
+            patched_create_pre_signed_s3_url,
+        ),
+    ):
         main.app.dependency_overrides[main.tenant] = lambda: setup_tenant
         main.app.dependency_overrides[
             service.get_session
         ] = lambda: testing_session
         client = TestClient(main.app)
         yield client
-
-
-@pytest.fixture()
-def mock_ExtractionJobParams():
-    mockExtractionJobParams = schemas.ExtractionJobParams(
-        name="MockExtractionJobParams",
-        files=[1, 2],
-        datasets=[1, 2],
-        pipeline_name="MockPipeline",
-    )
-    return mockExtractionJobParams
-
-
-@pytest.fixture
-def mock_AnnotationJobParams():
-    mockAnnotationJobParams = schemas.AnnotationJobParams(
-        name="MockAnnotationJob",
-        datasets=[1, 2],
-        files=[1, 2],
-        annotators=["annotator1", "annotator2"],
-        validators=["validator1", "validator2"],
-        owners=["owner1"],
-        categories=["category1", "category2"],
-        validation_type="cross",
-        is_auto_distribution=False,
-        deadline=datetime.datetime.utcnow() + datetime.timedelta(days=1),
-    )
-    return mockAnnotationJobParams
-
-
-@pytest.fixture
-def mock_AnnotationJobParams2():
-    mockAnnotationJobParams2 = schemas.AnnotationJobParams(
-        name="MockAnnotationJob",
-        datasets=[1, 2],
-        files=[1, 2],
-        annotators=["annotator1", "annotator2"],
-        validators=["validator1", "validator2"],
-        owners=["owner2"],
-        categories=["category1", "category2"],
-        validation_type="cross",
-        is_auto_distribution=False,
-        deadline=datetime.datetime.utcnow() + datetime.timedelta(days=1),
-    )
-    return mockAnnotationJobParams2
 
 
 @pytest.fixture

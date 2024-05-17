@@ -1,19 +1,21 @@
+import logging
 from typing import Dict, List, Optional, Set
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, Response, status
 from sqlalchemy import and_, desc
 from sqlalchemy.orm import Session
 from tenant_dependency import TenantData
 
+from annotation.categories.services import combine_categories, fetch_bunch_categories_db
 from annotation.database import get_db
 from annotation.errors import NoSuchRevisionsError
+from annotation.jobs.services import update_jobs_categories
+from annotation.microservice_communication import jobs_communication
 from annotation.microservice_communication.assets_communication import (
     get_file_path_and_bucket,
 )
-from annotation.microservice_communication.search import (
-    X_CURRENT_TENANT_HEADER,
-)
+from annotation.microservice_communication.search import X_CURRENT_TENANT_HEADER
 from annotation.schemas import (
     AnnotatedDocSchema,
     BadRequestErrorSchema,
@@ -32,9 +34,9 @@ from ..models import AnnotatedDoc, File, Job, ManualAnnotationTask
 from ..token_dependency import TOKEN
 from .main import (
     LATEST,
+    DuplicateAnnotationError,
     accumulate_pages_info,
     add_search_annotation_producer,
-    check_if_kafka_message_is_needed,
     check_null_fields,
     check_task_pages,
     construct_annotated_doc,
@@ -52,6 +54,7 @@ router = APIRouter(
 )
 
 router.add_event_handler("startup", add_search_annotation_producer)
+logger = logging.getLogger(__name__)
 
 
 @router.post(
@@ -59,6 +62,7 @@ router.add_event_handler("startup", add_search_annotation_producer)
     status_code=status.HTTP_201_CREATED,
     response_model=AnnotatedDocSchema,
     responses={
+        304: {"description": "Not Modified"},
         400: {"model": BadRequestErrorSchema},
         404: {"model": NotFoundErrorSchema},
         500: {"model": ConnectionErrorSchema},
@@ -87,12 +91,12 @@ def post_annotation_by_user(
     fields with numbers of validated/failed_validation pages respectively.
     """
     if doc.user is None:
+        detail = (
+            "Field user should not be null, when saving annotation by user."
+        )
         raise HTTPException(
             status_code=400,
-            detail=(
-                "Field user should not be null, "
-                "when saving annotation by user."
-            ),
+            detail=detail,
         )
     check_null_fields(doc)
 
@@ -209,21 +213,17 @@ def post_annotation_by_user(
             task_id=task_id,
             is_latest=is_latest,
         )
+    except DuplicateAnnotationError:
+        # To ensure this endpoint is idempotent, we need to return a 200 OK
+        # response in case of duplication."
+        logger.exception("Found duplication on resource creation")
+        return Response("Not Modified", status_code=304)
     except ValueError as err:
         raise HTTPException(
             status_code=404,
             detail=f"Cannot assign similar documents: {err}",
         ) from err
     db.commit()
-    if False:  # Kafka needs to be removed
-        check_if_kafka_message_is_needed(
-            db,
-            latest_doc,
-            new_annotated_doc,
-            task.job_id,
-            task.file_id,
-            x_current_tenant,
-        )
     return AnnotatedDocSchema.from_orm(new_annotated_doc)
 
 
@@ -232,6 +232,7 @@ def post_annotation_by_user(
     status_code=status.HTTP_201_CREATED,
     response_model=AnnotatedDocSchema,
     responses={
+        304: {"description": "Not Modified"},
         400: {"model": BadRequestErrorSchema},
         500: {"model": ConnectionErrorSchema},
     },
@@ -288,6 +289,16 @@ def post_annotation_by_pipeline(
         .order_by(desc(AnnotatedDoc.date))
         .first()
     )
+    # Add categories to jobs microservice for any commit to keep
+    # it consistent (https://github.com/epam/badgerdoc/issues/841)
+    categories = combine_categories(doc.categories, doc.pages)
+    category_objects = fetch_bunch_categories_db(
+        db, categories, x_current_tenant, root_parents=True
+    )
+    update_jobs_categories(db, job_id, category_objects)
+    jobs_communication.append_job_categories(
+        job_id, list(categories), x_current_tenant, token.token
+    )
     try:
         new_annotated_doc = construct_annotated_doc(
             db=db,
@@ -303,6 +314,12 @@ def post_annotation_by_pipeline(
             task_id=None,
             is_latest=True,
         )
+    except DuplicateAnnotationError:
+        # To ensure this endpoint is idempotent, we need to return a 200 OK
+        # response in case of duplication."
+        logger.exception("Found duplication on resource creation")
+        return Response("Not Modified", status_code=304)
+
     except ValueError as err:
         raise HTTPException(
             status_code=404,
@@ -540,8 +557,7 @@ def get_annotation_for_given_revision(
         500: {"model": ConnectionErrorSchema},
     },
     summary=(
-        "Get all users revisions (or pipeline revision) "
-        "for particular pages."
+        "Get all users revisions (or pipeline revision) for particular pages."
     ),
     tags=[REVISION_TAG, ANNOTATION_TAG],
 )
@@ -554,7 +570,7 @@ def get_all_revisions(
         None,
         example="1843c251-564b-4c2f-8d42-c61fdac369a1",
         description=(
-            "Required in case job validation " "type is extensive_coverage"
+            "Required in case job validation type is extensive_coverage"
         ),
     ),
     db: Session = Depends(get_db),

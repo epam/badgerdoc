@@ -1,13 +1,17 @@
-from typing import Any, Dict, Generator, List, Optional, Tuple, Union
+from typing import Any, Dict, Generator, Iterator, List, Optional, Tuple, Union
 
 import aiohttp.client_exceptions
 import fastapi.encoders
 from sqlalchemy.orm import Session
 
+import jobs.airflow_utils as airflow_utils
+import jobs.databricks_utils as databricks_utils
+import jobs.pipeline as pipeline
 from jobs import db_service
 from jobs.config import (
     ANNOTATION_SERVICE_HOST,
     ASSETS_SERVICE_HOST,
+    JOBS_RUN_PIPELINES_WITH_SIGNED_URL,
     JOBS_SERVICE_HOST,
     PAGINATION_THRESHOLD,
     PIPELINES_SERVICE_HOST,
@@ -17,6 +21,7 @@ from jobs.config import (
 )
 from jobs.logger import logger
 from jobs.models import CombinedJob
+from jobs.s3 import create_pre_signed_s3_url
 from jobs.schemas import (
     AnnotationJobUpdateParamsInAnnotation,
     CategoryLinkInput,
@@ -245,6 +250,72 @@ async def get_pipeline_instance_by_its_name(
     return response
 
 
+class UnsupportedEngine(Exception):
+    pass
+
+
+def files_data_to_pipeline_arg(
+    job_id: str, files_data: List[Dict[str, Any]]
+) -> Iterator[pipeline.PipelineFile]:
+    for file in files_data:
+        yield pipeline.PipelineFile(
+            bucket=file["bucket"],
+            input=pipeline.PipelineFileInput(job_id=job_id),
+            input_path=file["file"],
+            output_path=None,
+            pages=file["pages"],
+            s3_signed_url=None,
+        )
+
+
+async def fill_s3_signed_url(files: List[pipeline.PipelineFile]):
+    async def fill(file):
+        file.s3_signed_url = await create_pre_signed_s3_url(
+            bucket=file.bucket, path=file.input_path
+        )
+
+    if not JOBS_RUN_PIPELINES_WITH_SIGNED_URL:
+        return files
+
+    for file in files:
+        await fill(file)
+
+    # todo: uncomment this when you decide
+    #  to make the signing process parallel
+    # tasks = [fill(f) for f in files]
+    # await asyncio.gather(*tasks)
+
+    return files
+
+
+async def execute_external_pipeline(
+    pipeline_id: str,
+    pipeline_engine: str,
+    job_id: int,
+    files_data: List[Dict[str, Any]],
+    current_tenant: str,
+) -> None:
+    logger.info("Running pipeline_engine %s", pipeline_engine)
+    kwargs = {
+        "pipeline_id": pipeline_id,
+        "job_id": job_id,
+        "files": await fill_s3_signed_url(
+            list(files_data_to_pipeline_arg(job_id, files_data))
+        ),
+        "current_tenant": current_tenant,
+    }
+    logger.info("Pipeline params: %s", kwargs)
+    if pipeline_engine == "airflow":
+        pipeline = airflow_utils.AirflowPipeline()
+    # return await airflow_utils.run(**kwargs)
+    elif pipeline_engine == "databricks":
+        pipeline = databricks_utils.DatabricksPipeline()
+        # return await databricks_utils.run(**kwargs)
+    else:
+        raise UnsupportedEngine(f"Unknown engine: {pipeline_engine}")
+    return await pipeline.run(**kwargs)
+
+
 async def execute_pipeline(
     pipeline_id: Union[int, str],
     job_id: int,
@@ -292,7 +363,6 @@ async def execute_in_annotation_microservice(
     jw_token: str,
     current_tenant: str,
 ) -> None:
-
     """Sends specifically formatted files data to the Annotation Microservice
     and triggers tasks creation in it"""
     job_id = created_job.id
@@ -556,7 +626,7 @@ async def delete_taxonomy_link(
 
 
 def get_categories_ids(
-    categories: List[Union[str, CategoryLinkInput]]
+    categories: List[Union[str, CategoryLinkInput]],
 ) -> Tuple[List[str], List[CategoryLinkInput]]:
     categories_ids = [
         category_id

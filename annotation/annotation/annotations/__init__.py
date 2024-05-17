@@ -2,6 +2,7 @@ from annotation.annotations.main import (
     LATEST,
     MANIFEST,
     S3_START_PATH,
+    DuplicateAnnotationError,
     accumulate_pages_info,
     add_search_annotation_producer,
     check_task_pages,
@@ -20,6 +21,7 @@ __all__ = [
     MANIFEST,
     check_task_pages,
     construct_annotated_doc,
+    DuplicateAnnotationError,
     create_manifest_json,
     get_pages_sha,
 ]

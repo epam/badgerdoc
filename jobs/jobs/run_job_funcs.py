@@ -1,13 +1,15 @@
+import logging
 from typing import Optional
 
 import fastapi
-from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 import jobs.db_service as db_service
 import jobs.models as dbm
 import jobs.schemas as schemas
 import jobs.utils as utils
+
+logger = logging.getLogger(__name__)
 
 
 async def run_extraction_job(
@@ -19,14 +21,6 @@ async def run_extraction_job(
     """Runs ExtractionJob - creates init_args
     and sends it to the Pipeline Manager"""
 
-    if isinstance(
-        job_to_run.pipeline_id, str
-    ) and not job_to_run.pipeline_id.endswith(":airflow"):
-        raise HTTPException(
-            status_code=400,
-            detail="Wrong pipeline value.",
-        )
-
     db_service.update_job_mode(db, job_to_run, schemas.JobMode.Automatic)
     converted_files_data = utils.convert_files_data_for_inference(
         all_files_data=job_to_run.all_files_data,
@@ -34,12 +28,19 @@ async def run_extraction_job(
         output_bucket=current_tenant,
     )
 
-    await utils.execute_pipeline(
+    logger.info(
+        "Starting external pipeline %s for job %s of %s tenant, %s engine",
+        job_to_run.pipeline_id,
+        job_to_run.id,
+        current_tenant,
+        job_to_run.pipeline_engine,
+    )
+    await utils.execute_external_pipeline(
         pipeline_id=job_to_run.pipeline_id,
+        pipeline_engine=job_to_run.pipeline_engine,
         job_id=job_to_run.id,
         files_data=converted_files_data,
         current_tenant=current_tenant,
-        jw_token=jw_token,
     )
 
     return None

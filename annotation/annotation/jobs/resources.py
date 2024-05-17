@@ -15,16 +15,12 @@ from annotation.categories import fetch_bunch_categories_db
 from annotation.database import get_db
 from annotation.distribution import distribute, redistribute
 from annotation.filters import CategoryFilter
-from annotation.microservice_communication.assets_communication import (
-    get_files_info,
-)
+from annotation.microservice_communication.assets_communication import get_files_info
 from annotation.microservice_communication.jobs_communication import (
     JobUpdateException,
     update_job_status,
 )
-from annotation.microservice_communication.search import (
-    X_CURRENT_TENANT_HEADER,
-)
+from annotation.microservice_communication.search import X_CURRENT_TENANT_HEADER
 from annotation.schemas import (
     BadRequestErrorSchema,
     CategoryResponseSchema,
@@ -46,14 +42,7 @@ from annotation.schemas import (
 from annotation.tags import FILES_TAG, JOBS_TAG
 from annotation.token_dependency import TOKEN
 
-from ..models import (
-    AnnotatedDoc,
-    Category,
-    File,
-    Job,
-    ManualAnnotationTask,
-    User,
-)
+from ..models import AnnotatedDoc, Category, File, Job, ManualAnnotationTask, User
 from .services import (
     add_users,
     collect_job_names,

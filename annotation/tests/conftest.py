@@ -111,13 +111,7 @@ from tests.test_get_job_progress import (
     TASKS_TEST_PROGRESS,
 )
 from tests.test_get_pages_info import PAGES_INFO_ENTITIES
-from tests.test_get_revisions import (
-    JOBS_IDS,
-    PAGE,
-    PAGES_PATHS,
-    REVISIONS,
-    USERS_IDS,
-)
+from tests.test_get_revisions import JOBS_IDS, PAGE, PAGES_PATHS, REVISIONS, USERS_IDS
 from tests.test_get_revisions_without_annotation import (
     REV_WITHOUT_ANNOTATION_DOC_1,
     REV_WITHOUT_ANNOTATION_DOC_2,
@@ -126,10 +120,7 @@ from tests.test_get_revisions_without_annotation import (
     REV_WITHOUT_ANNOTATION_TASK,
 )
 from tests.test_get_unassigned_files import UNASSIGNED_FILES_ENTITIES
-from tests.test_get_users_for_job import (
-    USERS_FOR_JOB_ANNOTATORS,
-    USERS_FOR_JOB_JOBS,
-)
+from tests.test_get_users_for_job import USERS_FOR_JOB_ANNOTATORS, USERS_FOR_JOB_JOBS
 from tests.test_job_categories import CATEGORIES_USERS, MOCK_ID
 from tests.test_post import POST_JOBS, TEST_POST_USERS
 from tests.test_post_annotation import (
@@ -1504,7 +1495,7 @@ def assets_host_mock():
     with patch(
         "annotation.microservice_communication."
         "assets_communication.ASSETS_SERVICE_HOST",
-        "http://assets:8080"
+        "http://assets:8080",
     ) as assets_host:
         yield assets_host
 
@@ -1514,7 +1505,7 @@ def assets_url_mock(assets_host_mock):
     with patch(
         "annotation.microservice_communication."
         "assets_communication.ASSETS_URL",
-        f"{assets_host_mock}/datasets"
+        f"{assets_host_mock}/datasets",
     ) as assets_url:
         yield assets_url
 
@@ -1524,7 +1515,7 @@ def assets_files_url_mock(assets_host_mock):
     with patch(
         "annotation.microservice_communication."
         "assets_communication.ASSETS_FILES_URL",
-        f"{assets_host_mock}/files/search"
+        f"{assets_host_mock}/files/search",
     ) as assets_files_url:
         yield assets_files_url
 
@@ -1534,7 +1525,7 @@ def jobs_host_mock():
     with patch(
         "annotation.microservice_communication."
         "jobs_communication.JOBS_SERVICE_HOST",
-        "http://jobs:8080"
+        "http://jobs:8080",
     ) as jobs_host:
         yield jobs_host
 
@@ -1544,6 +1535,6 @@ def jobs_search_url_mock(jobs_host_mock):
     with patch(
         "annotation.microservice_communication."
         "jobs_communication.JOBS_SEARCH_URL",
-        f"{jobs_host_mock}/jobs/search"
+        f"{jobs_host_mock}/jobs/search",
     ) as jobs_search_url:
         yield jobs_search_url

@@ -200,28 +200,6 @@ services:
     ports:
       - 8083:3000
 
-  badgerdoc-zookeeper:
-    image: wurstmeister/zookeeper
-    container_name: badgerdoc-zookeeper
-    ports:
-      - "2181:2181"
-    networks:
-      - badgerdoc
-
-  badgerdoc-kafka:
-    image: wurstmeister/kafka
-    container_name: badgerdoc-kafka
-    ports:
-      - "9092:9092"
-    environment:
-      KAFKA_ADVERTISED_HOST_NAME: badgerdoc-kafka
-      KAFKA_ZOOKEEPER_CONNECT: badgerdoc-zookeeper:2181
-      KAFKA_CREATE_TOPICS: 'scheduler:1:1'
-    networks:
-      - badgerdoc
-    depends_on:
-      - badgerdoc-zookeeper
-
   badgerdoc-taxonomy:
     image: badgerdoc_taxonomy
     container_name: taxonomy

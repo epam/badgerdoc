@@ -1,3 +1,4 @@
+import logging
 from collections import Counter, defaultdict
 from typing import Any, DefaultDict, Dict, List, Optional, Set, Tuple, Union
 from uuid import UUID
@@ -11,17 +12,9 @@ from sqlalchemy.orm.attributes import InstrumentedAttribute
 from annotation.categories import fetch_bunch_categories_db
 from annotation.categories.services import response_object_from_db
 from annotation.database import Base
-from annotation.errors import (
-    EnumValidationError,
-    FieldConstraintError,
-    WrongJobError,
-)
-from annotation.microservice_communication.assets_communication import (
-    get_files_info,
-)
-from annotation.microservice_communication.jobs_communication import (
-    get_job_names,
-)
+from annotation.errors import EnumValidationError, FieldConstraintError, WrongJobError
+from annotation.microservice_communication.assets_communication import get_files_info
+from annotation.microservice_communication.jobs_communication import get_job_names
 from annotation.models import (
     Category,
     File,
@@ -41,6 +34,12 @@ from annotation.schemas import (
     TaskStatusEnumSchema,
     ValidationSchema,
 )
+
+logger = logging.getLogger(__name__)
+
+
+class JobNotFoundError(Exception):
+    pass
 
 
 def update_inner_job_status(
@@ -602,6 +601,25 @@ def update_jobs_names(db: Session, jobs_names: Dict):
     """Updates jobs names in db"""
     for key, value in jobs_names.items():
         db.query(Job).filter(Job.job_id == key).update({Job.name: value})
+    db.commit()
+
+
+def update_jobs_categories(
+    db: Session, job_id: str, categories: List[Category]
+) -> None:
+    job_ = db.query(Job).filter(Job.job_id == job_id).with_for_update().first()
+    if not job_:
+        err_message = f"No job '{job_id}' found"
+        raise JobNotFoundError(err_message)
+    logger.info("Potential categories: %s", categories)
+    logger.info("Existing categories: %s", job_.categories)
+    existing_cat_ids = set([cat.id for cat in job_.categories])
+    new_categories = [
+        cat for cat in categories if cat.id not in existing_cat_ids
+    ]
+    logger.info("Adding new categories: %s", new_categories)
+    if new_categories:
+        job_.categories.extend(new_categories)
     db.commit()
 
 

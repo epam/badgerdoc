@@ -22,6 +22,7 @@ from annotation.schemas import (
     CategoryInputSchema,
     CategoryORMSchema,
     CategoryResponseSchema,
+    PageSchema,
 )
 
 cache = TTLCache(maxsize=128, ttl=300)
@@ -447,3 +448,17 @@ def delete_category_db(db: Session, category_id: str, tenant: str) -> None:
         raise CheckFieldError("Cannot delete default category.")
     db.delete(category)
     db.commit()
+
+
+def combine_categories(
+    categories: Optional[Set[str]], pages: Optional[List[PageSchema]]
+) -> Set[str]:
+    if not categories:
+        categories = set()
+    pages_categories = set()
+    for page in pages:
+        for obj in page.objs:
+            cat = obj.get("category")
+            if cat:
+                pages_categories.add(cat)
+    return categories | pages_categories
