@@ -300,7 +300,10 @@ def test_should_delete_latest_taxonomy_from_db(
     db_session,
 ):
     # given
-    new_latest_taxonomy, taxonomy_to_delete, = sorted(
+    (
+        new_latest_taxonomy,
+        taxonomy_to_delete,
+    ) = sorted(
         prepare_two_taxonomy_records_with_same_id_in_db,
         key=lambda x: x.version,
     )

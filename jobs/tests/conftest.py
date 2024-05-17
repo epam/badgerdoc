@@ -141,9 +141,9 @@ def testing_app(testing_engine, testing_session, setup_tenant):
         ),
     ):
         main.app.dependency_overrides[main.tenant] = lambda: setup_tenant
-        main.app.dependency_overrides[
-            service.get_session
-        ] = lambda: testing_session
+        main.app.dependency_overrides[service.get_session] = (
+            lambda: testing_session
+        )
         client = TestClient(main.app)
         yield client
 

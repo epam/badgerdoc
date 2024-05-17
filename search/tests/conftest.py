@@ -179,8 +179,7 @@ def mock_consume(mock_message):
         async def __aenter__(self):
             return self
 
-        async def __aexit__(self, exc_type, exc_val, exc_tb):
-            ...
+        async def __aexit__(self, exc_type, exc_val, exc_tb): ...
 
         def __aiter__(self):
             return self
