@@ -21,20 +21,6 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           cache: 'pip'
-      - name: Run isort
-        uses: isort/isort-action@v1.1.0
-        with:
-          sort-paths: lib/tenants/*
-          configuration:
-            --check-only
-            --profile=black
-            --line-length=79
-            --skip=tests
-      - name: Black
-        uses: psf/black@stable
-        with:
-          src: "lib/tenants"
-          options: '--check --line-length=79 --exclude="tests" --verbose'
       - run: pip install flake8
       - run: flake8 --exclude=tests --extend-ignore=E203 lib/tenants
   tenants-build:

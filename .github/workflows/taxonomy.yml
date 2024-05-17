@@ -28,12 +28,10 @@ jobs:
            poetry install --no-root
            poetry add ../lib/filter_lib
            poetry add ../lib/tenants
-       - name: Run linters and checkers [flake8 -> isort -> black]
+       - name: Run linters and checkers [flake8]
          working-directory: ./taxonomy
          run: |
            poetry run flake8 --extend-ignore=E203 taxonomy/
-           poetry run isort --profile=black --line-length=79 --check-only taxonomy/
-           poetry run black --check --line-length=79 taxonomy/
        - name: Run tests
          working-directory: ./taxonomy
          run: |

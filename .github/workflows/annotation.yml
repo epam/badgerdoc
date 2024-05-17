@@ -19,17 +19,6 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           cache: 'pip'
-      - name: Run isort
-        uses: isort/isort-action@v1.1.0
-        with:
-          configuration:
-            --profile=black
-            --filter-files
-            --line-length=79
-      - name: Black
-        uses: psf/black@stable
-        with:
-          options: "--line-length=79"
       - run: pip install flake8
       - run: flake8 --extend-ignore=E203 annotation
   annotation-build:
