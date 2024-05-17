@@ -27,7 +27,7 @@ jobs:
           poetry install --only dev
       - name: Run Isort
         run: |
-          poetry run isort --config $LINT_CONFIG --diff --check-only /
+          poetry run isort --diff --check-only .
       - name: Run Black
         run: |
-          poetry run black --config $LINT_CONFIG --diff --check /
+          poetry run black --config $LINT_CONFIG --diff --check 
