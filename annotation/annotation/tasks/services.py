@@ -23,14 +23,20 @@ from annotation.annotations.main import (
 )
 from annotation.errors import CheckFieldError, FieldConstraintError
 from annotation.filters import ADDITIONAL_TASK_FIELDS, TaskFilter
-from annotation.jobs import get_jobs_by_name, update_files, update_user_overall_load
+from annotation.jobs import (
+    get_jobs_by_name,
+    update_files,
+    update_user_overall_load,
+)
 from annotation.logger import Logger
 from annotation.microservice_communication.assets_communication import (
     get_file_names_by_request,
     get_file_path_and_bucket,
     get_files_by_request,
 )
-from annotation.microservice_communication.search import get_user_names_by_request
+from annotation.microservice_communication.search import (
+    get_user_names_by_request,
+)
 from annotation.microservice_communication.task import get_agreement_score
 from annotation.models import (
     AgreementMetrics,

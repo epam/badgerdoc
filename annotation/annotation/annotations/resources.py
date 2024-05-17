@@ -2,12 +2,23 @@ import logging
 from typing import Dict, List, Optional, Set
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Path, Query, Response, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    Path,
+    Query,
+    Response,
+    status,
+)
 from sqlalchemy import and_, desc
 from sqlalchemy.orm import Session
 from tenant_dependency import TenantData
 
-from annotation.categories.services import combine_categories, fetch_bunch_categories_db
+from annotation.categories.services import (
+    combine_categories,
+    fetch_bunch_categories_db,
+)
 from annotation.database import get_db
 from annotation.errors import NoSuchRevisionsError
 from annotation.jobs.services import update_jobs_categories
@@ -15,7 +26,9 @@ from annotation.microservice_communication import jobs_communication
 from annotation.microservice_communication.assets_communication import (
     get_file_path_and_bucket,
 )
-from annotation.microservice_communication.search import X_CURRENT_TENANT_HEADER
+from annotation.microservice_communication.search import (
+    X_CURRENT_TENANT_HEADER,
+)
 from annotation.schemas import (
     AnnotatedDocSchema,
     BadRequestErrorSchema,

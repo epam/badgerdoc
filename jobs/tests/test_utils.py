@@ -3,9 +3,9 @@ from unittest.mock import patch
 import aiohttp.client_exceptions
 import pytest
 from fastapi import HTTPException
+from tests.conftest import FakePipeline, patched_create_pre_signed_s3_url
 
 import jobs.utils as utils
-from tests.conftest import FakePipeline, patched_create_pre_signed_s3_url
 
 # --------------TEST get_files_data_from_datasets---------------
 

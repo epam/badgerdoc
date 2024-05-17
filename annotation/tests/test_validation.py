@@ -11,7 +11,13 @@ from tests.test_finish_task import check_files_finished_pages
 from tests.test_post import check_files_distributed_pages
 
 from annotation.annotations import row_to_dict
-from annotation.models import AnnotatedDoc, File, Job, ManualAnnotationTask, User
+from annotation.models import (
+    AnnotatedDoc,
+    File,
+    Job,
+    ManualAnnotationTask,
+    User,
+)
 from annotation.schemas import (
     AnnotationAndValidationActionsSchema,
     FileStatusEnumSchema,

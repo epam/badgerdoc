@@ -13,7 +13,13 @@ from annotation.microservice_communication.search import (
     BEARER,
     HEADER_TENANT,
 )
-from annotation.models import AnnotatedDoc, File, Job, ManualAnnotationTask, User
+from annotation.models import (
+    AnnotatedDoc,
+    File,
+    Job,
+    ManualAnnotationTask,
+    User,
+)
 from annotation.schemas import TaskStatusEnumSchema, ValidationSchema
 from annotation.tasks import get_task_revisions
 

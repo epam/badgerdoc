@@ -4,6 +4,13 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.exc import DBAPIError, SQLAlchemyError
 from sqlalchemy.sql.elements import not_
+from tests.override_app_dependency import (
+    TEST_HEADERS,
+    TEST_TENANT,
+    TEST_TOKEN,
+    app,
+)
+from tests.test_post import check_files_distributed_pages
 
 from annotation.annotations import row_to_dict
 from annotation.microservice_communication.search import (
@@ -17,8 +24,6 @@ from annotation.schemas import (
     TaskStatusEnumSchema,
     ValidationSchema,
 )
-from tests.override_app_dependency import TEST_HEADERS, TEST_TENANT, TEST_TOKEN, app
-from tests.test_post import check_files_distributed_pages
 
 client = TestClient(app)
 

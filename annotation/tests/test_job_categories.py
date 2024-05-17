@@ -6,7 +6,12 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 from tests.consts import POST_JOBS_PATH
-from tests.override_app_dependency import TEST_HEADERS, TEST_TENANT, TEST_TOKEN, app
+from tests.override_app_dependency import (
+    TEST_HEADERS,
+    TEST_TENANT,
+    TEST_TOKEN,
+    app,
+)
 from tests.test_category_crud import prepare_category_body
 
 from annotation.microservice_communication.search import (

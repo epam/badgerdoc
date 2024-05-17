@@ -8,7 +8,9 @@ from tests.override_app_dependency import TEST_HEADERS, TEST_TENANT, app
 
 from annotation.annotations import add_search_annotation_producer
 from annotation.kafka_client import producers
-from annotation.microservice_communication.assets_communication import ASSETS_FILES_URL
+from annotation.microservice_communication.assets_communication import (
+    ASSETS_FILES_URL,
+)
 from annotation.models import Category, File, Job, ManualAnnotationTask, User
 from annotation.schemas import (
     CategoryTypeSchema,

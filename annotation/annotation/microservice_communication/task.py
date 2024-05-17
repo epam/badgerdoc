@@ -11,7 +11,10 @@ from annotation.microservice_communication.search import (
     BEARER,
     HEADER_TENANT,
 )
-from annotation.schemas import AgreementScoreServiceInput, AgreementScoreServiceResponse
+from annotation.schemas import (
+    AgreementScoreServiceInput,
+    AgreementScoreServiceResponse,
+)
 
 load_dotenv(find_dotenv())
 AGREEMENT_SCORE_SERVICE_HOST = os.environ.get("AGREEMENT_SCORE_SERVICE_HOST")

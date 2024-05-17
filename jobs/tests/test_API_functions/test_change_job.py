@@ -2,12 +2,12 @@ import asyncio
 from unittest.mock import patch
 
 import pytest
-
-import jobs.schemas as schemas
 from tests.test_db import (
     create_mock_annotation_job_in_db,
     create_mock_extraction_job_in_db,
 )
+
+import jobs.schemas as schemas
 
 
 @pytest.mark.skip(reason="tests refactoring")
