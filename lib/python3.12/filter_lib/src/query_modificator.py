@@ -18,9 +18,11 @@ def splint_to_distinct_and_not(
 ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
     distinct_filters, non_distinct_filters = [], []
     for fil in filters:
-        distinct_filters.append(fil) if _op_is_distinct(
-            fil
-        ) else non_distinct_filters.append(fil)
+        (
+            distinct_filters.append(fil)
+            if _op_is_distinct(fil)
+            else non_distinct_filters.append(fil)
+        )
 
     return distinct_filters, non_distinct_filters
 

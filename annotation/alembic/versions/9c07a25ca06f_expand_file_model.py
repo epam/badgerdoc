@@ -9,9 +9,8 @@ Create Date: 2021-12-01 18:03:43.404957
 from enum import Enum
 
 import sqlalchemy as sa
-from sqlalchemy.dialects import postgresql
-
 from alembic import op
+from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision = "9c07a25ca06f"

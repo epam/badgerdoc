@@ -2,6 +2,8 @@ import uuid
 from unittest.mock import Mock, patch
 
 import pytest
+from fastapi import HTTPException
+
 from assets.db.models import FileObject
 from assets.db.service import (
     delete_file_from_db,
@@ -10,7 +12,6 @@ from assets.db.service import (
 )
 from assets.schemas import FileProcessingStatus
 from assets.utils.minio_utils import check_bucket, delete_one_from_minio
-from fastapi import HTTPException
 
 
 @pytest.fixture

@@ -8,10 +8,10 @@ import pytest
 from fastapi.testclient import TestClient
 from pytest import fixture, mark
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
-
-from annotation.models import Category
 from tests.consts import CATEGORIES_PATH
 from tests.override_app_dependency import TEST_HEADERS, app
+
+from annotation.models import Category
 
 client = TestClient(app)
 

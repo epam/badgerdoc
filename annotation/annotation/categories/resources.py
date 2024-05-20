@@ -8,7 +8,9 @@ from sqlalchemy_filters.exceptions import BadFilterFormat
 from annotation.database import get_db
 from annotation.errors import NoSuchCategoryError
 from annotation.filters import CategoryFilter
-from annotation.microservice_communication.search import X_CURRENT_TENANT_HEADER
+from annotation.microservice_communication.search import (
+    X_CURRENT_TENANT_HEADER,
+)
 from annotation.schemas import (
     BadRequestErrorSchema,
     CategoryBaseSchema,

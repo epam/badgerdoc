@@ -6,7 +6,11 @@ from sqlalchemy.orm import Session
 from tenant_dependency import TenantData
 
 from annotation.database import get_db
-from annotation.distribution import distribute, find_unassigned_files, prepare_response
+from annotation.distribution import (
+    distribute,
+    find_unassigned_files,
+    prepare_response,
+)
 from annotation.errors import FieldConstraintError
 from annotation.jobs import (
     check_annotators,
@@ -17,7 +21,9 @@ from annotation.microservice_communication.assets_communication import (
     get_files_info,
     prepare_files_for_distribution,
 )
-from annotation.microservice_communication.search import X_CURRENT_TENANT_HEADER
+from annotation.microservice_communication.search import (
+    X_CURRENT_TENANT_HEADER,
+)
 from annotation.models import File, Job, User
 from annotation.schemas import (
     BadRequestErrorSchema,

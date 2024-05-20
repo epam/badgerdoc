@@ -4,6 +4,8 @@ from typing import List, Literal
 from unittest.mock import patch
 
 import pytest
+from alembic import command
+from alembic.config import Config
 from fastapi.testclient import TestClient
 from pydantic import BaseModel
 from sqlalchemy import create_engine  # type: ignore
@@ -17,8 +19,6 @@ from sqlalchemy_utils import (  # type: ignore
 
 import jobs.db_service as service
 import jobs.main as main
-from alembic import command
-from alembic.config import Config
 from jobs import pipeline
 
 pytest_plugins = [
@@ -141,9 +141,9 @@ def testing_app(testing_engine, testing_session, setup_tenant):
         ),
     ):
         main.app.dependency_overrides[main.tenant] = lambda: setup_tenant
-        main.app.dependency_overrides[
-            service.get_session
-        ] = lambda: testing_session
+        main.app.dependency_overrides[service.get_session] = (
+            lambda: testing_session
+        )
         client = TestClient(main.app)
         yield client
 

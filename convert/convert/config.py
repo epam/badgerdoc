@@ -25,6 +25,7 @@ DEFAULT_PDF_FONT_HEIGHT = 11
 DEFAULT_PDF_FONT_WIDTH = 7
 DEFAULT_PDF_LINE_SPACING = 2
 
+
 def get_service_uri(prefix: str) -> str:  # noqa
     service_scheme = os.getenv(f"{prefix}SERVICE_SCHEME")
     service_host = os.getenv(f"{prefix}SERVICE_HOST")
@@ -34,7 +35,7 @@ def get_service_uri(prefix: str) -> str:  # noqa
     return ""
 
 
-class Settings(BaseSettings):
+class Settings(BaseSettings):  # type: ignore
     """Base settings values"""
 
     s3_endpoint_url: Optional[str] = os.getenv("S3_ENDPOINT_URL")

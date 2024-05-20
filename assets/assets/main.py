@@ -1,9 +1,11 @@
 import os
-from assets import routers
-from assets.config import settings
+
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from tenant_dependency import get_tenant_info
+
+from assets import routers
+from assets.config import settings
 
 tenant = get_tenant_info(url=settings.keycloak_host, algorithm="RS256")
 

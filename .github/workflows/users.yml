@@ -28,12 +28,10 @@ jobs:
            pip install poetry>=1.1.13
            poetry install --no-root
            poetry add ../lib/tenants
-       - name: Run linters and checkers [flake8 -> isort -> black]
+       - name: Run linters and checkers [flake8]
          working-directory: ./users
          run: |
            poetry run flake8 --extend-ignore=E203 users/
-           poetry run isort --profile=black --line-length=79 --check-only users/
-           poetry run black --check --line-length=79 users/
        - name: Run tests
          working-directory: ./users
          run: |

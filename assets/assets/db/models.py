@@ -2,13 +2,14 @@ import datetime
 from typing import Any, Dict, Optional
 
 import sqlalchemy as sa
-from assets.config import settings
 from filter_lib import create_filter_model
 from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlalchemy.engine.default import DefaultExecutionContext
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy.types import TypeDecorator
+
+from assets.config import settings
 
 Base = declarative_base()
 engine = sa.create_engine(
