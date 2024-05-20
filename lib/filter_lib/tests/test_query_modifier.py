@@ -1,5 +1,4 @@
 import pytest
-
 from src.enum_generator import get_enum_from_orm
 from src.pagination import PaginationParams
 from src.query_modificator import (

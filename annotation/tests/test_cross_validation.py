@@ -2,6 +2,7 @@ from copy import copy
 from uuid import UUID
 
 import pytest
+from tests.test_distribution import JOB_ID
 
 from annotation.distribution import (
     distribute_validation_partial_files,
@@ -10,7 +11,6 @@ from annotation.distribution import (
 from annotation.errors import FieldConstraintError
 from annotation.jobs import check_annotators, check_validators
 from annotation.schemas import TaskStatusEnumSchema, ValidationSchema
-from tests.test_distribution import JOB_ID
 
 TASKS_STATUS = TaskStatusEnumSchema.pending
 VALIDATION_TYPE = ValidationSchema.cross

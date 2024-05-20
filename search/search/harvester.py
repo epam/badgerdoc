@@ -2,10 +2,11 @@ import json
 from typing import Iterator, Optional
 
 import boto3
-import search.es as es
-import search.schemas as schemas
 from botocore.errorfactory import ClientError
 from elasticsearch import helpers
+
+import search.es as es
+import search.schemas as schemas
 from search.config import settings
 from search.logger import logger
 

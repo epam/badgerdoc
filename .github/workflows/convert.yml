@@ -26,10 +26,11 @@ jobs:
            poetry install --all-extras
            poetry add --editable ../lib/filter_lib
            poetry add --editable ../lib/tenants
-      - name: Run linters and checkers [isort -> black -> mypy -> pylint]
+      - name: Run linters and checkers [mypy -> pylint]
         working-directory: ./convert
         run: |
-          git ls-files -- . | xargs pre-commit run --files
+          git ls-files -- . | xargs pre-commit run mypy --files
+          git ls-files -- . | xargs pre-commit run pylint --files
       - name: Run tests
         working-directory: ./convert
         run: |

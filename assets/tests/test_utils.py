@@ -496,7 +496,6 @@ def test_file_processor_conversion_error(
         assert converter.conversion_status == "conversion error"
 
 
-
 @pytest.mark.skip(reason="tests refactoring")
 def test_convert_pdf(file_converter_service):
     with NamedTemporaryFile(suffix=".pdf", prefix="123") as tmp_file:

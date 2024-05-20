@@ -181,7 +181,7 @@ class LabelstudioToBadgerdocConverter:
                     detail="Error during file fetching: file not found",
                 ) from e
 
-            return LabelStudioModel.parse_file(input_file)
+            return LabelStudioModel.parse_file(input_file)  # type: ignore
 
     def get_output_tokens_path(self, file_id_in_assets: int) -> str:
         return (

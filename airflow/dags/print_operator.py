@@ -4,7 +4,7 @@ from __future__ import annotations
 from datetime import datetime
 from pprint import pprint
 
-from airflow.decorators import task, dag
+from airflow.decorators import dag, task
 
 
 @dag(schedule="@daily", start_date=datetime(2021, 12, 1), catchup=False, dag_id="print")
