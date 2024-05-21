@@ -160,6 +160,33 @@ def generate_file_data(
     return converted_file_data
 
 
+async def convert_previous_jobs_for_inference(
+    job_ids: List[int],
+    session: Session,
+    current_tenant: str,
+    jw_token: str,
+) -> List[Dict[str, Any]]:
+    jobs_db = db_service.get_jobs_in_db_by_ids(session, job_ids)
+    result = []
+
+    for job in jobs_db:
+        if not job.files and not job.datasets:
+            continue
+        converted_files_data = convert_files_data_for_inference(
+            job.all_files_data, job.id, current_tenant
+        )
+        for file_data in converted_files_data:
+            output_path = file_data["output_path"].strip()
+            _, job_id, file_id = output_path.split("/")
+            revisions = await get_annotation_revisions(job_id, file_id, current_tenant, jw_token)
+            if not revisions:
+                continue
+            file_data["revision"] = revisions[-1]
+            result.append(file_data)
+
+    return result
+
+
 def convert_files_data_for_inference(
     all_files_data: List[Dict[str, Any]],
     job_id: int,
@@ -255,10 +282,16 @@ class UnsupportedEngine(Exception):
 
 
 def files_data_to_pipeline_arg(
-    job_id: str, files_data: List[Dict[str, Any]]
+    files_data: List[Dict[str, Any]],
+    previous_jobs_data: List[Dict[str, Any]]
 ) -> Iterator[pipeline.PipelineFile]:
-    for file in files_data:
+    data = previous_jobs_data if previous_jobs_data else files_data
+    for file in data:
+        # todo: change me
+        _, job_id, file_id = file["output_path"].strip().split("/")
+
         yield pipeline.PipelineFile(
+            revision=file.get("revision"),
             bucket=file["bucket"],
             input=pipeline.PipelineFileInput(job_id=job_id),
             input_path=file["file"],
@@ -292,6 +325,7 @@ async def execute_external_pipeline(
     pipeline_id: str,
     pipeline_engine: str,
     job_id: int,
+    previous_jobs_data: List[Dict[str, Any]],
     files_data: List[Dict[str, Any]],
     current_tenant: str,
 ) -> None:
@@ -300,7 +334,7 @@ async def execute_external_pipeline(
         "pipeline_id": pipeline_id,
         "job_id": job_id,
         "files": await fill_s3_signed_url(
-            list(files_data_to_pipeline_arg(job_id, files_data))
+            list(files_data_to_pipeline_arg(files_data, previous_jobs_data))
         ),
         "current_tenant": current_tenant,
     }
@@ -708,3 +742,33 @@ async def enrich_annotators_with_usernames(
 
     job_obj.annotators = reformatted_job_annotators
     return job_obj
+
+
+async def get_annotation_revisions(
+    job_id: int, file_id: int,
+    current_tenant: Optional[str], jw_token: str
+) -> Optional[List[int]]:
+    """Get progress of the job with 'job_id' from Pipelines
+    or Annotation Manager depending on 'job_mode'."""
+
+    headers = {
+        "X-Current-Tenant": current_tenant,
+        "Authorization": f"Bearer: {jw_token}",
+    }
+    timeout = aiohttp.ClientTimeout(total=5)
+    try:
+        _, response = await fetch(
+            method="GET", url=f"{ANNOTATION_SERVICE_HOST}/revisions/{job_id}/{file_id}",
+            headers=headers, timeout=timeout
+        )
+    except aiohttp.client_exceptions.ClientError as err:
+        logger.exception(
+            f"Failed request to get revisions "
+            f"for job_id = {job_id}, file_id = {file_id}"
+        )
+        raise fastapi.HTTPException(
+            status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Failed request to the Annotation Manager: {err}",
+        )
+
+    return response

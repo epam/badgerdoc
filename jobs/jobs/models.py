@@ -1,9 +1,10 @@
 from typing import Any, Dict
 
 from filter_lib import create_filter_model
-from sqlalchemy import Boolean, Column, DateTime, Integer, String, inspect
+from sqlalchemy import Boolean, Column, DateTime, Integer, String, inspect, ForeignKey
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship
 
 from jobs.schemas import JobType
 
@@ -21,6 +22,7 @@ class Job(Base):  # type: ignore
     status = Column(String(250))
     files = Column(JSONB)
     datasets = Column(JSONB)
+    previous_jobs = Column(JSONB)
     creation_datetime = Column(DateTime)
     type = Column(String(30))
     mode = Column(String(30))

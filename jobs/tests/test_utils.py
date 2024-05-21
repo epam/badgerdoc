@@ -1113,6 +1113,7 @@ async def test_execute_external_pipeline(sign_s3_links: bool):
                     "pages": [1, 2, 3],
                 }
             ],
+            previous_jobs_data=[],
             current_tenant="test_tenant",
         )
 

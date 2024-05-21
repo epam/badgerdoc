@@ -29,6 +29,7 @@ def create_extraction_job(
     valid_separate_files_ids: List[int],
     valid_dataset_ids: List[int],
     all_files_data: List[Dict[str, Any]],
+    previous_jobs: List[int],
     status: schemas.Status,
     categories: List[str],
 ) -> dbm.CombinedJob:
@@ -38,6 +39,7 @@ def create_extraction_job(
         status=status,
         files=valid_separate_files_ids,
         datasets=valid_dataset_ids,
+        previous_jobs=previous_jobs,
         all_files_data=all_files_data,
         type=schemas.JobType.ExtractionJob,
         annotators=[],
@@ -64,6 +66,7 @@ def create_annotation_job(
         status=status,
         files=annotation_job_input.files,
         datasets=annotation_job_input.datasets,
+        previous_jobs=annotation_job_input.previous_jobs,
         type=schemas.JobType.AnnotationJob.value,
         annotators=annotation_job_input.annotators,
         validators=annotation_job_input.validators,
@@ -89,6 +92,7 @@ def create_extraction_annotation_job(
     pipeline_engine: str,
     valid_separate_files_ids: List[int],
     valid_dataset_ids: List[int],
+    previous_jobs: List[int],
     all_files_data: List[Dict[str, Any]],
     categories: List[str],
 ) -> dbm.CombinedJob:
@@ -102,6 +106,7 @@ def create_extraction_annotation_job(
         status=initial_status,
         files=valid_separate_files_ids,
         datasets=valid_dataset_ids,
+        previous_jobs=previous_jobs,
         creation_datetime=datetime.utcnow(),
         type=schemas.JobType.ExtractionWithAnnotationJob,
         annotators=extraction_annotation_job_input.annotators,
@@ -152,6 +157,24 @@ def get_job_in_db_by_id(
         job_needed = db.query(dbm.CombinedJob).with_for_update().get(job_id)
     else:
         job_needed = db.query(dbm.CombinedJob).get(job_id)
+    return job_needed
+
+
+def get_jobs_in_db_by_ids(
+    db: Session, job_ids: List[int], with_lock=False
+) -> Union[List[dbm.CombinedJob], Any]:
+    """Getting hold on a job in the database by its id"""
+    if with_lock:
+        job_needed = (
+            db.query(dbm.CombinedJob)
+              .with_for_update()
+              .filter(dbm.CombinedJob.id.in_(job_ids)).all()
+        )
+    else:
+        job_needed = (
+            db.query(dbm.CombinedJob)
+              .filter(dbm.CombinedJob.id.in_(job_ids)).all()
+        )
     return job_needed
 
 

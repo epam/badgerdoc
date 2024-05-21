@@ -27,6 +27,12 @@ async def run_extraction_job(
         job_id=job_to_run.id,
         output_bucket=current_tenant,
     )
+    converted_previous_jobs_data = await utils.convert_previous_jobs_for_inference(
+        job_ids=job_to_run.previous_jobs,
+        session=db,
+        current_tenant=current_tenant,
+        jw_token=jw_token
+    )
 
     logger.info(
         "Starting external pipeline %s for job %s of %s tenant, %s engine",
@@ -39,6 +45,7 @@ async def run_extraction_job(
         pipeline_id=job_to_run.pipeline_id,
         pipeline_engine=job_to_run.pipeline_engine,
         job_id=job_to_run.id,
+        previous_jobs_data=converted_previous_jobs_data,
         files_data=converted_files_data,
         current_tenant=current_tenant,
     )

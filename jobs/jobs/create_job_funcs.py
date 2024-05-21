@@ -41,6 +41,7 @@ async def get_all_datasets_and_files_data(
     return files_data, valid_dataset_tags, valid_separate_files_uuids
 
 
+# noinspection PyUnreachableCode
 async def create_extraction_job(
     extraction_job_input: ExtractionJobParams,
     current_tenant: str,
@@ -87,11 +88,22 @@ async def create_extraction_job(
 
     files_data = utils.delete_duplicates(files_data)
 
-    if not files_data:
+    if not (bool(files_data) ^ bool(extraction_job_input.previous_jobs)):
         raise HTTPException(
             status_code=status.HTTP_406_NOT_ACCEPTABLE,
-            detail="No valid data (files, datasets) provided",
+            detail="No valid data (files, datasets / previous_jobs) provided",
         )
+
+    if extraction_job_input.previous_jobs:
+        previous_jobs = db_service.get_jobs_in_db_by_ids(
+            db, extraction_job_input.previous_jobs
+        )
+        if not previous_jobs:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Jobs with these ids do not exist.",
+            )
+        extraction_job_input.previous_jobs = [j.id for j in previous_jobs]
 
     job_name = extraction_job_input.name
     if extraction_job_input.is_draft:
@@ -106,6 +118,7 @@ async def create_extraction_job(
         valid_separate_files_uuids,
         valid_dataset_tags,
         files_data,
+        extraction_job_input.previous_jobs,
         initial_status,
         pipeline_categories,
     )
@@ -174,11 +187,22 @@ async def create_extraction_annotation_job(
     )
 
     files_data = utils.delete_duplicates(files_data)
-    if not files_data:
+    if not (bool(files_data) ^ bool(extraction_job_input.previous_jobs)):
         raise HTTPException(
             status_code=status.HTTP_406_NOT_ACCEPTABLE,
-            detail="No valid data (files, datasets) provided",
+            detail="No valid data (files, datasets / previous_jobs) provided",
         )
+
+    if extraction_job_input.previous_jobs:
+        previous_jobs = db_service.get_jobs_in_db_by_ids(
+            db, extraction_job_input.previous_jobs
+        )
+        if not previous_jobs:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Jobs with these ids do not exist.",
+            )
+        extraction_job_input.previous_jobs = [j.id for j in previous_jobs]
 
     manual_categories = extraction_annotation_job_input.categories
     categories = list(
@@ -196,6 +220,7 @@ async def create_extraction_annotation_job(
         pipeline_engine,
         valid_separate_files_uuids,
         valid_dataset_tags,
+        extraction_annotation_job_input.previous_jobs,
         files_data,
         categories,
     )

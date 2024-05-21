@@ -38,8 +38,9 @@ class ExtractionJobParams(BaseModel):
     name: str
     type: JobType = JobType.ExtractionJob
     mode: JobMode = JobMode.Automatic
-    files: List[int]
-    datasets: List[int]
+    files: List[int] = []
+    datasets: List[int] = []
+    previous_jobs: Optional[List[int]] = []
     pipeline_name: str
     pipeline_version: Optional[str]
     pipeline_engine: Optional[str]
@@ -62,8 +63,9 @@ class AnnotationJobParams(BaseModel):
     name: str
     type: JobType = JobType.AnnotationJob
     mode: JobMode = JobMode.Manual
-    datasets: Optional[List[int]]
-    files: Optional[List[int]]
+    files: Optional[List[int]] = []
+    datasets: Optional[List[int]] = []
+    previous_jobs: Optional[List[int]] = []
     annotators: List[str]
     validators: List[str]
     owners: List[str]
@@ -104,8 +106,9 @@ class JobParams(BaseModel):
     # ---- common attributes ---- #
     name: str
     type: JobType
-    files: Optional[List[int]]
-    datasets: Optional[List[int]]
+    files: Optional[List[int]] = []
+    datasets: Optional[List[int]] = []
+    previous_jobs: Optional[List[int]] = []
     is_draft: bool = False
     # ---- AnnotationJob and ExtractionWithAnnotationJob attributes ---- #
     is_auto_distribution: Optional[bool] = False
@@ -306,12 +309,28 @@ class JobParams(BaseModel):
             )
         return v
 
+    @validator("files", "previous_jobs", "datasets", always=True)
+    def check_input_args_attributes(  # pylint: disable=no-self-argument
+        cls, v: List[int],
+        values: Dict[str, Any],
+        field: ModelField,
+    ) -> Union[List[int], List[str]]:
+        files = values.get("files")
+        datasets = values.get("datasets")
+        previous_jobs = values.get("previous_jobs")
+
+        if previous_jobs ^ (files or datasets):
+            raise ValueError(f"Only one field must be specified: either previous_jobs or files/datasets")
+
+        return v
+
 
 class JobParamsToChange(BaseModel):
     name: Optional[str]
     type: Optional[JobType]
-    files: Optional[List[int]]
-    datasets: Optional[List[int]]
+    files: Optional[List[int]] = []
+    datasets: Optional[List[int]] = []
+    previous_jobs: Optional[List[int]] = []
     status: Optional[Status]
     is_draft: Optional[bool]
     mode: Optional[JobMode]
@@ -331,16 +350,47 @@ class JobParamsToChange(BaseModel):
     import_source: Optional[str]
     import_format: Optional[str]
 
+    @validator("files", "previous_jobs", "datasets", always=True)
+    def check_input_args_attributes(  # pylint: disable=no-self-argument
+        cls, v: List[int],
+        values: Dict[str, Any],
+        field: ModelField,
+    ) -> Union[List[int], List[str]]:
+        files = values.get("files")
+        datasets = values.get("datasets")
+        previous_jobs = values.get("previous_jobs")
+
+        if previous_jobs ^ (files or datasets):
+            raise ValueError(f"Only one field must be specified: either previous_jobs or files/datasets")
+
+        return v
+
 
 class AnnotationJobUpdateParamsInAnnotation(BaseModel):
-    datasets: Optional[List[int]]
-    files: Optional[List[int]]
+    files: Optional[List[int]] = []
+    datasets: Optional[List[int]] = []
+    previous_jobs: Optional[List[int]] = []
     annotators: Optional[List[str]]
     validators: Optional[List[str]]
     owners: Optional[List[str]]
     categories: Optional[List[str]]
     deadline: Optional[datetime]
     extensive_coverage: Optional[int]
+
+    @validator("files", "previous_jobs", "datasets", always=True)
+    def check_input_args_attributes(  # pylint: disable=no-self-argument
+        cls, v: List[int],
+        values: Dict[str, Any],
+        field: ModelField,
+    ) -> Union[List[int], List[str]]:
+        files = values.get("files")
+        datasets = values.get("datasets")
+        previous_jobs = values.get("previous_jobs")
+
+        if previous_jobs ^ (files or datasets):
+            raise ValueError(f"Only one field must be specified: either previous_jobs or files/datasets")
+
+        return v
 
 
 class JobProgress(BaseModel):

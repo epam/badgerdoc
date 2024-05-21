@@ -60,6 +60,17 @@ async def create_job(
     logger.info("Create job with job_params: %s", job_params)
     jw_token = token_data.token
 
+    if job_params.previous_jobs:
+        previous_jobs = db_service.get_jobs_in_db_by_ids(
+            db, job_params.previous_jobs
+        )
+        if not previous_jobs:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Jobs with these ids do not exist.",
+            )
+        job_params.previous_jobs = [j.id for j in previous_jobs]
+
     if job_params.type == schemas.JobType.ExtractionJob:
         created_extraction_job = await create_job_funcs.create_extraction_job(
             extraction_job_input=job_params,  # type: ignore
