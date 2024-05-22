@@ -187,7 +187,9 @@ async def create_extraction_annotation_job(
     )
 
     files_data = utils.delete_duplicates(files_data)
-    if not (bool(files_data) ^ bool(extraction_annotation_job_input.previous_jobs)):
+    if not (
+        bool(files_data) ^ bool(extraction_annotation_job_input.previous_jobs)
+    ):
         raise HTTPException(
             status_code=status.HTTP_406_NOT_ACCEPTABLE,
             detail="No valid data (files, datasets / previous_jobs) provided",
@@ -202,7 +204,9 @@ async def create_extraction_annotation_job(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Jobs with these ids do not exist.",
             )
-        extraction_annotation_job_input.previous_jobs = [j.id for j in previous_jobs]
+        extraction_annotation_job_input.previous_jobs = [
+            j.id for j in previous_jobs
+        ]
 
     manual_categories = extraction_annotation_job_input.categories
     categories = list(
