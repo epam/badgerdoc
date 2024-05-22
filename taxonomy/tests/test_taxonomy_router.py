@@ -1,11 +1,11 @@
 from typing import Tuple
 
 import pytest
+from tests.override_app_dependency import TEST_HEADER, TEST_TENANTS
+
 from taxonomy.models import Taxonomy
 from taxonomy.schemas import CategoryLinkSchema
 from taxonomy.taxonomy import services
-
-from tests.override_app_dependency import TEST_HEADER, TEST_TENANTS
 
 
 @pytest.mark.integration
@@ -300,7 +300,10 @@ def test_should_delete_latest_taxonomy_from_db(
     db_session,
 ):
     # given
-    new_latest_taxonomy, taxonomy_to_delete, = sorted(
+    (
+        new_latest_taxonomy,
+        taxonomy_to_delete,
+    ) = sorted(
         prepare_two_taxonomy_records_with_same_id_in_db,
         key=lambda x: x.version,
     )

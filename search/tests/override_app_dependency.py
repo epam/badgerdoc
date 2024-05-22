@@ -8,7 +8,6 @@ that given token is valid, not expired and
 there are necessary tenants in token.
 """
 
-
 from tenant_dependency import TenantData
 
 from search.main import TOKEN, app

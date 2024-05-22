@@ -1,6 +1,7 @@
 from unittest.mock import patch
 
 import pytest
+
 from processing.config import settings
 from processing.tasks import PreprocessingTask
 

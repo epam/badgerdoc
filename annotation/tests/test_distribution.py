@@ -3,6 +3,7 @@ from copy import copy
 from typing import List
 
 import pytest
+from tests.override_app_dependency import TEST_TENANT
 
 from annotation.distribution import (
     add_unassigned_file,
@@ -24,7 +25,6 @@ from annotation.microservice_communication.assets_communication import (
 )
 from annotation.models import File
 from annotation.schemas import FileStatusEnumSchema, TaskStatusEnumSchema
-from tests.override_app_dependency import TEST_TENANT
 
 JOB_ID = 1
 ANNOTATORS = [

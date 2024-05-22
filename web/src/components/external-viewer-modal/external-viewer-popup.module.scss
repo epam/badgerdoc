@@ -1,4 +1,4 @@
-.rnd-popup{
+.rnd-popup {
     position: absolute;
     left: 50%;
     top: 50%;
@@ -6,30 +6,30 @@
     background: white;
     margin: 0 auto;
     min-width: fit-content;
-    box-shadow: 0 0 20px 0 rgba(gray, .5);
+    box-shadow: 0 0 20px 0 rgba(gray, 0.5);
 }
-.rnd-content{
+.rnd-content {
     display: flex;
     align-items: center;
     justify-content: center;
     height: 100%;
     flex: 1;
 }
-.rnd-button{
+.rnd-button {
     background-color: #8c0;
     border-color: #8c0;
 }
-.rnd-panel{
+.rnd-panel {
     height: 100%;
 }
 
-.rnd-wrapper{
+.rnd-wrapper {
     position: fixed;
     z-index: 100;
     top: 50%;
     left: 50%;
 }
-.draggable{
+.draggable {
     cursor: move;
-    box-shadow: 0 .2rem 0 0 gray;
+    box-shadow: 0 0.2rem 0 0 gray;
 }

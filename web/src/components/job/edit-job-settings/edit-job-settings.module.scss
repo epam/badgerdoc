@@ -13,7 +13,8 @@
     align-items: center;
     margin-bottom: 1rem;
 
-    *[role='tablist'], *[role='tab'] {
+    *[role='tablist'],
+    *[role='tab'] {
         flex-grow: 1;
     }
 }

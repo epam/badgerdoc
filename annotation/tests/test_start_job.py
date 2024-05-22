@@ -6,6 +6,7 @@ from fastapi.testclient import TestClient
 from requests.exceptions import RequestException
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
+from tests.override_app_dependency import TEST_HEADERS, TEST_TENANT, app
 
 from annotation.annotations import row_to_dict
 from annotation.jobs import update_inner_job_status
@@ -16,7 +17,6 @@ from annotation.schemas import (
     TaskStatusEnumSchema,
     ValidationSchema,
 )
-from tests.override_app_dependency import TEST_HEADERS, TEST_TENANT, app
 
 client = TestClient(app)
 

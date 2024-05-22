@@ -2,6 +2,7 @@ from typing import List
 from unittest.mock import Mock
 
 import pytest
+
 from search.harvester import parse_json, start_harvester
 
 from .override_app_dependency import TEST_TENANT

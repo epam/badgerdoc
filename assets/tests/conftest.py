@@ -10,13 +10,8 @@ from unittest.mock import Mock, create_autospec, patch
 import boto3
 import pytest
 import urllib3
-from assets.config import settings
-from assets.db.models import Base, FileObject
-from assets.db.service import session_scope_for_dependency
-from assets.db.utils import get_test_db_url
-from assets.main import app, tenant
-from assets.utils import minio_utils
-from assets.utils.common_utils import FileConverter
+from alembic import command
+from alembic.config import Config
 from botocore.config import Config as BotoConfig
 from botocore.exceptions import ClientError
 from fastapi.testclient import TestClient
@@ -26,8 +21,13 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy_utils import create_database, database_exists
 
-from alembic import command
-from alembic.config import Config
+from assets.config import settings
+from assets.db.models import Base, FileObject
+from assets.db.service import session_scope_for_dependency
+from assets.db.utils import get_test_db_url
+from assets.main import app, tenant
+from assets.utils import minio_utils
+from assets.utils.common_utils import FileConverter
 
 BUCKET_TESTS = "tests" + uuid.uuid4().hex
 

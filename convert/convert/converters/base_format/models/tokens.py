@@ -25,7 +25,6 @@ class PageSize(BaseModel):
 
 
 class Page(BaseModel):
-
     """A model for the field with bboxes."""
 
     page_num: int = Field(..., example=1)

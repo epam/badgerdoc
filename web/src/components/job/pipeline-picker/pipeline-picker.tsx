@@ -1,30 +1,61 @@
 // temporary_disabled_rules
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Pipeline } from 'api/typings';
-import { FC, useState } from 'react';
+import React, { FC, useEffect, useState, useMemo } from 'react';
+import { Pipeline, PipelineManager, SortingDirection } from 'api/typings';
 import { InfoIcon } from '../../../shared/components/info-icon/info-icon';
 import { AutomaticJobProps } from '../automatic-job/automatic-job';
 
-import { FlexCell, LabeledInput, PickerInput } from '@epam/loveship';
+import { FlexCell, LabeledInput, PickerInput, RadioGroup } from '@epam/loveship';
 import { useArrayDataSource } from '@epam/uui';
 import styles from './pipeline-picker.module.scss';
+import { usePipelines } from '../../../api/hooks/pipelines';
 
 type PipelineName = {
     id: string;
 };
 
-const PipelinePicker: FC<AutomaticJobProps> = ({ lens, pipelines }) => {
+const PipelinePicker: FC<AutomaticJobProps> = ({ lens, pipelineManagers = [] }) => {
     const { value: pipelinePickerValue, onValueChange: setPipelinePickerValue } = {
         ...lens.prop('pipeline').toProps()
     };
 
+    const items = useMemo(() => {
+        return pipelineManagers.map((manager) => ({ name: manager.name, id: manager.name }));
+    }, [pipelineManagers]);
+
     const [pipelineName, setPipelineName] = useState<PipelineName>();
+    const [pipelines, setPipelines] = useState<Pipeline[] | undefined>();
+
+    const [currentPipelineManager, setCurrentPipelineManager] = useState<
+        PipelineManager | undefined
+    >();
+
+    useEffect(() => {
+        if (pipelineManagers && pipelineManagers.length > 0) {
+            setCurrentPipelineManager(pipelineManagers[0]);
+        }
+    }, [pipelineManagers]);
+
+    const { data: pipelinesResponse, isLoading } = usePipelines({
+        resource: currentPipelineManager?.resource
+    });
+
+    useEffect(() => {
+        if (pipelinesResponse?.data) {
+            setPipelines(pipelinesResponse.data);
+        }
+    }, [pipelinesResponse]);
 
     const correctForm = async (newVal: any) => {
-        newVal === null &&
+        if (newVal === null) {
             (await lens.prop('validationType').get()) === 'validation only' &&
-            lens.prop('validationType').set(newVal);
-        setPipelinePickerValue(newVal);
+                lens.prop('validationType').set(newVal);
+        } else {
+            const chosenPipeline = pipelines?.find((pipeline) => pipeline.name === newVal.id);
+            if (chosenPipeline) {
+                setPipelinePickerValue(chosenPipeline);
+            }
+        }
         return newVal;
     };
 
@@ -43,64 +74,52 @@ const PipelinePicker: FC<AutomaticJobProps> = ({ lens, pipelines }) => {
         [pipelines]
     );
 
-    const usePipelineVersionFilter = () => {
-        let pipelinesFiltered =
-            pipelines &&
-            pipelineName &&
-            pipelines.filter((pipeline) => pipeline.name === pipelineName.id);
-        return pipelinesFiltered ?? [];
+    const onChangePipeLineManager = (value: string) => {
+        const newManager = pipelineManagers?.find((manager) => manager.name === value);
+        setCurrentPipelineManager(newManager);
     };
-    const pipelineVersionsDataSource = useArrayDataSource<Pipeline, number, any>(
-        {
-            items: usePipelineVersionFilter()
-        },
-        [pipelines, pipelineName]
-    );
 
     return (
-        <LabeledInput
-            cx={`${styles.pipeline} m-t-15`}
-            label="Pipeline"
-            {...lens.prop('pipeline').toProps()}
-        >
-            <div className="flex align-vert-center">
-                <PickerInput
-                    value={pipelineName}
-                    onValueChange={async (newVal) => {
-                        newVal === null && (await correctForm(newVal));
-                        setPipelineName(newVal);
-                    }}
-                    dataSource={pipelinesDataSourceUniq}
-                    getName={(item) => item?.id ?? ''}
-                    entityName="Pipeline name"
-                    selectionMode="single"
-                    valueType={'entity'}
-                    sorting={{ field: 'id', direction: 'asc' }}
-                    placeholder="Select pipeline"
-                />
-                <FlexCell width={300} cx={'m-l-10'}>
+        <>
+            <LabeledInput cx={`${styles.pipeline} m-t-15`} label="Choose a pipeline manager">
+                <div className="flex align-vert-center">
+                    <RadioGroup
+                        items={items}
+                        value={currentPipelineManager?.name}
+                        onValueChange={onChangePipeLineManager}
+                        direction="horizontal"
+                        cx="selection-mode-toggle"
+                    />
+                </div>
+            </LabeledInput>
+            <LabeledInput
+                cx={`${styles.pipeline} m-t-15`}
+                label="ML Pipeline"
+                {...lens.prop('pipeline').toProps()}
+            >
+                <div className="flex align-vert-center">
                     <PickerInput
-                        value={pipelinePickerValue}
-                        onValueChange={(newValue) => correctForm(newValue)}
-                        dataSource={pipelineVersionsDataSource}
-                        getName={(item) => {
-                            if (item.version)
-                                return `version-${item.version}${item.is_latest ? '(latest)' : ''}`;
-                            return '';
+                        value={pipelineName}
+                        onValueChange={async (newVal) => {
+                            await correctForm(newVal);
+                            setPipelineName(newVal);
                         }}
+                        dataSource={pipelinesDataSourceUniq}
+                        getName={(item) => item?.id ?? ''}
                         entityName="Pipeline name"
                         selectionMode="single"
                         valueType={'entity'}
-                        sorting={{ field: 'version', direction: 'asc' }}
-                        placeholder="Select version"
+                        sorting={{ field: 'id', direction: 'asc' }}
+                        placeholder="Select pipeline"
+                        isDisabled={isLoading}
                     />
-                </FlexCell>
-                <InfoIcon
-                    title="Select pipeline"
-                    description="Performs operations on a document for annotation."
-                />
-            </div>
-        </LabeledInput>
+                    <InfoIcon
+                        title="Select pipeline"
+                        description="Performs operations on a document for annotation."
+                    />
+                </div>
+            </LabeledInput>
+        </>
     );
 };
 

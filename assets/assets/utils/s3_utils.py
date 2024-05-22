@@ -3,6 +3,7 @@ from typing import Any, Dict, List, Optional
 
 import boto3
 import urllib3.exceptions
+
 from assets import exceptions, logger
 from assets.config import settings
 
