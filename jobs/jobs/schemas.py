@@ -311,7 +311,8 @@ class JobParams(BaseModel):
 
     @validator("files", "previous_jobs", "datasets", always=True)
     def check_input_args_attributes(  # pylint: disable=no-self-argument
-        cls, v: List[int],
+        cls,
+        v: List[int],
         values: Dict[str, Any],
         field: ModelField,
     ) -> Union[List[int], List[str]]:
@@ -320,7 +321,9 @@ class JobParams(BaseModel):
         previous_jobs = values.get("previous_jobs")
 
         if previous_jobs ^ (files or datasets):
-            raise ValueError(f"Only one field must be specified: either previous_jobs or files/datasets")
+            raise ValueError(
+                f"Only one field must be specified: either previous_jobs or files/datasets"
+            )
 
         return v
 
@@ -352,7 +355,8 @@ class JobParamsToChange(BaseModel):
 
     @validator("files", "previous_jobs", "datasets", always=True)
     def check_input_args_attributes(  # pylint: disable=no-self-argument
-        cls, v: List[int],
+        cls,
+        v: List[int],
         values: Dict[str, Any],
         field: ModelField,
     ) -> Union[List[int], List[str]]:
@@ -361,7 +365,9 @@ class JobParamsToChange(BaseModel):
         previous_jobs = values.get("previous_jobs")
 
         if previous_jobs ^ (files or datasets):
-            raise ValueError(f"Only one field must be specified: either previous_jobs or files/datasets")
+            raise ValueError(
+                f"Only one field must be specified: either previous_jobs or files/datasets"
+            )
 
         return v
 
@@ -379,7 +385,8 @@ class AnnotationJobUpdateParamsInAnnotation(BaseModel):
 
     @validator("files", "previous_jobs", "datasets", always=True)
     def check_input_args_attributes(  # pylint: disable=no-self-argument
-        cls, v: List[int],
+        cls,
+        v: List[int],
         values: Dict[str, Any],
         field: ModelField,
     ) -> Union[List[int], List[str]]:
@@ -388,7 +395,9 @@ class AnnotationJobUpdateParamsInAnnotation(BaseModel):
         previous_jobs = values.get("previous_jobs")
 
         if previous_jobs ^ (files or datasets):
-            raise ValueError(f"Only one field must be specified: either previous_jobs or files/datasets")
+            raise ValueError(
+                f"Only one field must be specified: either previous_jobs or files/datasets"
+            )
 
         return v
 

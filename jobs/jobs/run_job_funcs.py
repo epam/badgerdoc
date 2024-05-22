@@ -27,11 +27,13 @@ async def run_extraction_job(
         job_id=job_to_run.id,
         output_bucket=current_tenant,
     )
-    converted_previous_jobs_data = await utils.convert_previous_jobs_for_inference(
-        job_ids=job_to_run.previous_jobs,
-        session=db,
-        current_tenant=current_tenant,
-        jw_token=jw_token
+    converted_previous_jobs_data = (
+        await utils.convert_previous_jobs_for_inference(
+            job_ids=job_to_run.previous_jobs,
+            session=db,
+            current_tenant=current_tenant,
+            jw_token=jw_token,
+        )
     )
 
     logger.info(

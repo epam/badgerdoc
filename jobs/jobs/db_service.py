@@ -167,13 +167,15 @@ def get_jobs_in_db_by_ids(
     if with_lock:
         job_needed = (
             db.query(dbm.CombinedJob)
-              .with_for_update()
-              .filter(dbm.CombinedJob.id.in_(job_ids)).all()
+            .with_for_update()
+            .filter(dbm.CombinedJob.id.in_(job_ids))
+            .all()
         )
     else:
         job_needed = (
             db.query(dbm.CombinedJob)
-              .filter(dbm.CombinedJob.id.in_(job_ids)).all()
+            .filter(dbm.CombinedJob.id.in_(job_ids))
+            .all()
         )
     return job_needed
 

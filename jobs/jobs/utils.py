@@ -178,7 +178,9 @@ async def convert_previous_jobs_for_inference(
         for file_data in converted_files_data:
             output_path = file_data["output_path"].strip()
             _, job_id, file_id = output_path.split("/")
-            revisions = await get_annotation_revisions(job_id, file_id, current_tenant, jw_token)
+            revisions = await get_annotation_revisions(
+                job_id, file_id, current_tenant, jw_token
+            )
             if not revisions:
                 continue
             file_data["revision"] = revisions[-1]
@@ -282,8 +284,7 @@ class UnsupportedEngine(Exception):
 
 
 def files_data_to_pipeline_arg(
-    files_data: List[Dict[str, Any]],
-    previous_jobs_data: List[Dict[str, Any]]
+    files_data: List[Dict[str, Any]], previous_jobs_data: List[Dict[str, Any]]
 ) -> Iterator[pipeline.PipelineFile]:
     data = previous_jobs_data if previous_jobs_data else files_data
     for file in data:
@@ -745,8 +746,7 @@ async def enrich_annotators_with_usernames(
 
 
 async def get_annotation_revisions(
-    job_id: int, file_id: int,
-    current_tenant: Optional[str], jw_token: str
+    job_id: int, file_id: int, current_tenant: Optional[str], jw_token: str
 ) -> Optional[List[int]]:
     """Get progress of the job with 'job_id' from Pipelines
     or Annotation Manager depending on 'job_mode'."""
@@ -758,8 +758,10 @@ async def get_annotation_revisions(
     timeout = aiohttp.ClientTimeout(total=5)
     try:
         _, response = await fetch(
-            method="GET", url=f"{ANNOTATION_SERVICE_HOST}/revisions/{job_id}/{file_id}",
-            headers=headers, timeout=timeout
+            method="GET",
+            url=f"{ANNOTATION_SERVICE_HOST}/revisions/{job_id}/{file_id}",
+            headers=headers,
+            timeout=timeout,
         )
     except aiohttp.client_exceptions.ClientError as err:
         logger.exception(
