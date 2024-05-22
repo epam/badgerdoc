@@ -322,7 +322,8 @@ class JobParams(BaseModel):
 
         if previous_jobs ^ (files or datasets):
             raise ValueError(
-                f"Only one field must be specified: either previous_jobs or files/datasets"
+                "Only one field must be specified: "
+                "either previous_jobs or files/datasets"
             )
 
         return v
@@ -366,7 +367,8 @@ class JobParamsToChange(BaseModel):
 
         if previous_jobs ^ (files or datasets):
             raise ValueError(
-                f"Only one field must be specified: either previous_jobs or files/datasets"
+                "Only one field must be specified: "
+                "either previous_jobs or files/datasets"
             )
 
         return v
@@ -396,7 +398,8 @@ class AnnotationJobUpdateParamsInAnnotation(BaseModel):
 
         if previous_jobs ^ (files or datasets):
             raise ValueError(
-                f"Only one field must be specified: either previous_jobs or files/datasets"
+                "Only one field must be specified: "
+                "either previous_jobs or files/datasets"
             )
 
         return v
