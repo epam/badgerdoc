@@ -1,14 +1,7 @@
 from typing import Any, Dict
 
 from filter_lib import create_filter_model
-from sqlalchemy import (
-    Boolean,
-    Column,
-    DateTime,
-    Integer,
-    String,
-    inspect,
-)
+from sqlalchemy import Boolean, Column, DateTime, Integer, String, inspect
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.declarative import declarative_base
 
