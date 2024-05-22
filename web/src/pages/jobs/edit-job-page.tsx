@@ -64,8 +64,8 @@ export const EditJobPage = () => {
             caption: 'Documents'
         },
         {
-            id: 'Extractions',
-            caption: 'Extractions'
+            id: 'Jobs',
+            caption: 'Jobs'
         }
     ];
 
