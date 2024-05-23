@@ -68,13 +68,17 @@ async def run_annotation_job(
         db_service.update_job_mode(db, job_to_run, updated_status)
 
     previous_jobs_data = []
-    
+
     if job_to_run.previous_jobs:
         previous_jobs = db_service.get_jobs_in_db_by_ids(
             db, job_to_run.previous_jobs
         )
         previous_jobs_data = [
-            {"job_id": p_job.id, "files": p_job.files, "datasets": p_job.datasets}
+            {
+                "job_id": p_job.id,
+                "files": p_job.files,
+                "datasets": p_job.datasets,
+            }
             for p_job in previous_jobs
         ]
 

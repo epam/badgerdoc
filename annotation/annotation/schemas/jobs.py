@@ -90,9 +90,10 @@ class JobInfoSchema(BaseModel):
 
         job_type = values.get("job_type")
 
-        if not (
-            bool(previous_jobs) ^ bool(files or datasets)
-        ) and job_type != JobTypeEnumSchema.ImportJob:
+        if (
+            not (bool(previous_jobs) ^ bool(files or datasets))
+            and job_type != JobTypeEnumSchema.ImportJob
+        ):
             raise ValueError(
                 "Only one field must be specified: "
                 "either previous_jobs or files/datasets"

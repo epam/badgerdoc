@@ -172,7 +172,9 @@ def post_job(
                 File(
                     file_id=f["file_id"],
                     tenant=x_current_tenant,
-                    job_id=f["job_id"],  # todo: should we use previous job id or the current one?
+                    job_id=f[
+                        "job_id"
+                    ],  # todo: should we use previous job id or the current one?
                     pages_number=f["pages_number"],
                     distributed_annotating_pages=list(
                         range(1, f["pages_number"] + 1)
@@ -189,7 +191,9 @@ def post_job(
                 File(
                     file_id=f["file_id"],
                     tenant=x_current_tenant,
-                    job_id=f["job_id"],  # todo: should we use previous job id or the current one?
+                    job_id=f[
+                        "job_id"
+                    ],  # todo: should we use previous job id or the current one?
                     pages_number=f["pages_number"],
                     status=FileStatusEnumSchema.pending,
                 )
