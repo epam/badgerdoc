@@ -23,6 +23,7 @@ export const EditJobPage = () => {
     const { jobId } = useParams() as { jobId: string };
 
     const [files, setFiles] = useState<number[]>([]);
+    const [jobs, setJobs] = useState<number[]>([]);
     const [stepIndex, setStepIndex] = useState(0);
     const [currentTab, onCurrentTabChange] = useState('Documents');
 
@@ -84,10 +85,10 @@ export const EditJobPage = () => {
         table = (
             <JobsTableConnector
                 isJobPage
-                onJobsSelect={setFiles}
+                onJobsSelect={setJobs}
                 onRowClick={() => null}
                 onAddJob={() => null}
-                checkedValues={files}
+                checkedValues={jobs}
             />
         );
     }
@@ -124,7 +125,8 @@ export const EditJobPage = () => {
                 <EditJobConnector
                     onJobAdded={handleJobAdded}
                     initialJob={job}
-                    files={files}
+                    files={currentTab === 'Documents' ? files : null}
+                    jobs={currentTab === 'Jobs' ? jobs : null}
                     renderWizardButtons={({ save, lens }) => {
                         return (
                             <>
