@@ -238,6 +238,8 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
             const jobProps: JobVariables = {
                 name: jobName,
                 datasets: [],
+                files,
+                previous_jobs: jobs,
                 type:
                     jobType === 'ExtractionJob'
                         ? 'ExtractionJob'
@@ -259,12 +261,6 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
                 pipeline_id: pipeline?.id,
                 pipeline_engine: pipeline?.type
             };
-
-            if (files) {
-                jobProps.files = files;
-            } else if (jobs) {
-                jobProps.jobs = jobs;
-            }
 
             if (!pipeline) {
                 delete jobProps.start_manual_job_automatically;
@@ -288,7 +284,7 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
                 if (initialJob?.id) {
                     const editData = cloneDeep(jobProps);
                     delete editData.files;
-                    delete editData.jobs;
+                    delete editData.previous_jobs;
                     delete editData.datasets;
                     await editJobMutation.mutateAsync({
                         id: initialJob.id,

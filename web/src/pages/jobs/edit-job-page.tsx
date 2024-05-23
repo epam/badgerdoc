@@ -125,8 +125,8 @@ export const EditJobPage = () => {
                 <EditJobConnector
                     onJobAdded={handleJobAdded}
                     initialJob={job}
-                    files={currentTab === 'Documents' ? files : null}
-                    jobs={currentTab === 'Jobs' ? jobs : null}
+                    files={currentTab === 'Documents' ? files : []}
+                    jobs={currentTab === 'Jobs' ? jobs : []}
                     renderWizardButtons={({ save, lens }) => {
                         return (
                             <>

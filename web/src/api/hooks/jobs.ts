@@ -41,8 +41,8 @@ export type JobVariablesWithId = JobVariables & {
 
 export type JobVariables = {
     name: string | undefined;
-    files?: string[] | number[];
-    jobs?: string[] | number[];
+    files?: string[] | number[] | null;
+    previous_jobs?: string[] | number[] | null;
     datasets?: string[];
     pipeline_name?: string | undefined;
     pipeline_id?: number;
