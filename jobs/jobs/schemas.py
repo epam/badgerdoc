@@ -2,7 +2,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional, Union
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, validator, root_validator
 from pydantic.fields import ModelField
 
 
@@ -133,15 +133,19 @@ class JobParams(BaseModel):
     import_format: Optional[str]
 
     # ---- common attributes ---- #
-    @validator("datasets", always=True)
+    @validator("previous_jobs", always=True)
     def check_files_and_datasets_are_not_empty(  # pylint: disable=no-self-argument  # noqa: E501
         cls, v: List[int], values: Dict[str, Any]
     ) -> List[int]:
-        if not values.get("type") == JobType.ImportJob:
-            if not v and not values.get("files"):
-                raise ValueError(
-                    "files and datasets cannot be empty at the same time"
-                )
+        if values.get("type") != JobType.ImportJob:
+            files = values.get("files")
+            datasets = values.get("datasets")
+
+            assert bool(v) ^ bool(files or datasets), (
+                "Only one field must be specified: "
+                "either previous_jobs or files/datasets"
+            )
+
         return v
 
     # ---- AnnotationJob and ExtractionWithAnnotationJob attributes ---- #
@@ -309,24 +313,6 @@ class JobParams(BaseModel):
             )
         return v
 
-    @validator("files", "previous_jobs", "datasets", always=True)
-    def check_input_args_attributes(  # pylint: disable=no-self-argument
-        cls,
-        v: List[int],
-        values: Dict[str, Any],
-        field: ModelField,
-    ) -> Union[List[int], List[str]]:
-        files = values.get("files")
-        datasets = values.get("datasets")
-        previous_jobs = values.get("previous_jobs")
-
-        assert bool(previous_jobs) ^ bool(files or datasets), (
-            "Only one field must be specified: "
-            "either previous_jobs or files/datasets"
-        )
-
-        return v
-
 
 class JobParamsToChange(BaseModel):
     name: Optional[str]
@@ -353,24 +339,6 @@ class JobParamsToChange(BaseModel):
     import_source: Optional[str]
     import_format: Optional[str]
 
-    @validator("files", "previous_jobs", "datasets", always=True)
-    def check_input_args_attributes(  # pylint: disable=no-self-argument
-        cls,
-        v: List[int],
-        values: Dict[str, Any],
-        field: ModelField,
-    ) -> Union[List[int], List[str]]:
-        files = values.get("files")
-        datasets = values.get("datasets")
-        previous_jobs = values.get("previous_jobs")
-
-        assert bool(previous_jobs) ^ bool(files or datasets), (
-            "Only one field must be specified: "
-            "either previous_jobs or files/datasets"
-        )
-
-        return v
-
 
 class AnnotationJobUpdateParamsInAnnotation(BaseModel):
     files: Optional[List[int]] = []
@@ -382,24 +350,6 @@ class AnnotationJobUpdateParamsInAnnotation(BaseModel):
     categories: Optional[List[str]]
     deadline: Optional[datetime]
     extensive_coverage: Optional[int]
-
-    @validator("files", "previous_jobs", "datasets", always=True)
-    def check_input_args_attributes(  # pylint: disable=no-self-argument
-        cls,
-        v: List[int],
-        values: Dict[str, Any],
-        field: ModelField,
-    ) -> Union[List[int], List[str]]:
-        files = values.get("files")
-        datasets = values.get("datasets")
-        previous_jobs = values.get("previous_jobs")
-
-        assert bool(previous_jobs) ^ bool(files or datasets), (
-            "Only one field must be specified: "
-            "either previous_jobs or files/datasets"
-        )
-
-        return v
 
 
 class JobProgress(BaseModel):
