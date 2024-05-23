@@ -134,7 +134,7 @@ class JobParams(BaseModel):
 
     # ---- common attributes ---- #
     @validator("previous_jobs", always=True)
-    def check_files_and_datasets_are_not_empty(  # pylint: disable=no-self-argument  # noqa: E501
+    def check_files_datasets_previous_jobs(  # pylint: disable=no-self-argument  # noqa: E501
         cls, v: List[int], values: Dict[str, Any]
     ) -> List[int]:
         if values.get("type") != JobType.ImportJob:
