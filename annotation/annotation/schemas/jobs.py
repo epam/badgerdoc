@@ -33,6 +33,12 @@ class ValidationSchema(str, Enum):
     extensive_coverage = "extensive_coverage"
 
 
+class PreviousJobInfoSchema(BaseModel):
+    job_id: int
+    files: Set[int]
+    datasets: Set[int]
+
+
 class JobInfoSchema(BaseModel):
     callback_url: str = Field(..., example="http://jobs/jobs/1")
     name: str = Field(None, example="job_name")
@@ -62,6 +68,7 @@ class JobInfoSchema(BaseModel):
     )
     files: Set[int] = Field(..., example={1, 2, 3})
     datasets: Set[int] = Field(..., example={1, 2, 3})
+    previous_jobs: Set[PreviousJobInfoSchema] = Field(...)
     is_auto_distribution: bool = Field(default=False, example=False)
     categories: Optional[Set[str]] = Field(None, example={"1", "2"})
     deadline: Optional[datetime] = Field(None, example="2021-10-19 01:01:01")

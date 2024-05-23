@@ -140,12 +140,28 @@ def post_job(
         )
     )
 
-    files = get_files_info(
-        job_info.files,
-        job_info.datasets,
-        x_current_tenant,
-        token.token,
-    )
+    files = []
+
+    if job_info.previous_jobs:
+        # todo: should we use previous job id or the current one?
+        for previous_job_info in job_info.previous_jobs:
+            tmp_files = get_files_info(
+                previous_job_info.files,
+                previous_job_info.datasets,
+                x_current_tenant,
+                token.token,
+            )
+            tmp_files = [{**f, "job_id": job_id} for f in tmp_files]
+            files += tmp_files
+    else:
+        files += get_files_info(
+            job_info.files,
+            job_info.datasets,
+            x_current_tenant,
+            token.token,
+        )
+        files = [{**f, "job_id": job_id} for f in files]
+
     job_type = job_info.job_type
     if (
         validation_type == ValidationSchema.validation_only
@@ -156,7 +172,7 @@ def post_job(
                 File(
                     file_id=f["file_id"],
                     tenant=x_current_tenant,
-                    job_id=job_id,
+                    job_id=f["job_id"],  # todo: should we use previous job id or the current one?
                     pages_number=f["pages_number"],
                     distributed_annotating_pages=list(
                         range(1, f["pages_number"] + 1)
@@ -173,7 +189,7 @@ def post_job(
                 File(
                     file_id=f["file_id"],
                     tenant=x_current_tenant,
-                    job_id=job_id,
+                    job_id=f["job_id"],  # todo: should we use previous job id or the current one?
                     pages_number=f["pages_number"],
                     status=FileStatusEnumSchema.pending,
                 )

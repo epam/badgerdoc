@@ -397,6 +397,7 @@ async def execute_in_annotation_microservice(
     created_job: CombinedJob,
     jw_token: str,
     current_tenant: str,
+    previous_jobs_data: List[Dict[str, Any]] = None
 ) -> None:
     """Sends specifically formatted files data to the Annotation Microservice
     and triggers tasks creation in it"""
@@ -420,6 +421,7 @@ async def execute_in_annotation_microservice(
         "validators": created_job.validators,
         "files": created_job.files,
         "datasets": created_job.datasets,
+        "previous_jobs": previous_jobs_data or [],
         "categories": created_job.categories,
         "deadline": fastapi.encoders.jsonable_encoder(created_job.deadline),
         "extensive_coverage": created_job.extensive_coverage,
