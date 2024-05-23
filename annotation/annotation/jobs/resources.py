@@ -1,14 +1,6 @@
 from typing import Dict, List, Optional, Set, Union
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
-from filter_lib import Page
-from sqlalchemy import and_
-from sqlalchemy.orm import Session
-from sqlalchemy.sql.expression import func, or_
-from sqlalchemy_filters.exceptions import BadFilterFormat
-from tenant_dependency import TenantData
-
 import annotation.categories.services
 from annotation import logger as app_logger
 from annotation.categories import fetch_bunch_categories_db
@@ -45,6 +37,13 @@ from annotation.schemas import (
 )
 from annotation.tags import FILES_TAG, JOBS_TAG
 from annotation.token_dependency import TOKEN
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
+from filter_lib import Page
+from sqlalchemy import and_
+from sqlalchemy.orm import Session
+from sqlalchemy.sql.expression import func, or_
+from sqlalchemy_filters.exceptions import BadFilterFormat
+from tenant_dependency import TenantData
 
 from ..models import (
     AnnotatedDoc,
@@ -172,9 +171,10 @@ def post_job(
                 File(
                     file_id=f["file_id"],
                     tenant=x_current_tenant,
+                    # todo: should we use previous job id or the current one?
                     job_id=f[
                         "job_id"
-                    ],  # todo: should we use previous job id or the current one?
+                    ],
                     pages_number=f["pages_number"],
                     distributed_annotating_pages=list(
                         range(1, f["pages_number"] + 1)
@@ -191,9 +191,10 @@ def post_job(
                 File(
                     file_id=f["file_id"],
                     tenant=x_current_tenant,
+                    # todo: should we use previous job id or the current one?
                     job_id=f[
                         "job_id"
-                    ],  # todo: should we use previous job id or the current one?
+                    ],
                     pages_number=f["pages_number"],
                     status=FileStatusEnumSchema.pending,
                 )
