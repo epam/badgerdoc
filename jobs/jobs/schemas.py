@@ -320,11 +320,10 @@ class JobParams(BaseModel):
         datasets = values.get("datasets")
         previous_jobs = values.get("previous_jobs")
 
-        if bool(previous_jobs) ^ bool(files or datasets):
-            raise ValueError(
-                "Only one field must be specified: "
-                "either previous_jobs or files/datasets"
-            )
+        assert bool(previous_jobs) ^ bool(files or datasets), (
+            "Only one field must be specified: "
+            "either previous_jobs or files/datasets"
+        )
 
         return v
 
@@ -365,11 +364,10 @@ class JobParamsToChange(BaseModel):
         datasets = values.get("datasets")
         previous_jobs = values.get("previous_jobs")
 
-        if bool(previous_jobs) ^ bool(files or datasets):
-            raise ValueError(
-                "Only one field must be specified: "
-                "either previous_jobs or files/datasets"
-            )
+        assert bool(previous_jobs) ^ bool(files or datasets), (
+            "Only one field must be specified: "
+            "either previous_jobs or files/datasets"
+        )
 
         return v
 
@@ -396,11 +394,10 @@ class AnnotationJobUpdateParamsInAnnotation(BaseModel):
         datasets = values.get("datasets")
         previous_jobs = values.get("previous_jobs")
 
-        if bool(previous_jobs) ^ bool(files or datasets):
-            raise ValueError(
-                "Only one field must be specified: "
-                "either previous_jobs or files/datasets"
-            )
+        assert bool(previous_jobs) ^ bool(files or datasets), (
+            "Only one field must be specified: "
+            "either previous_jobs or files/datasets"
+        )
 
         return v
 
