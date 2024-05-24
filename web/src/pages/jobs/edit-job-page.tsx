@@ -52,7 +52,7 @@ export const EditJobPage = () => {
         setStepIndex(stepIndex - 1);
     };
 
-    const finishButtonCaption = jobId ? 'Save Edits' : 'Add Extraction';
+    const finishButtonCaption = jobId ? 'Save Edits' : 'New Job';
     const isDisabled = !!jobId;
 
     const steps: WizardPropsStep[] = [

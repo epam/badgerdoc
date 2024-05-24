@@ -220,7 +220,7 @@ export const JobsTableConnector: FC<JobsTableConnectorProps> = ({ onAddJob, onRo
         <Panel cx={`${styles['container']} flex-col`}>
             <div className={`${styles['title']} flex justify-between align-vert-center`}>
                 <BreadcrumbNavigation breadcrumbs={[{ name: 'Extractions' }]} />
-                <Button onClick={onAddJob} caption="Add Extraction" />
+                <Button onClick={onAddJob} caption="New Job" />
             </div>
 
             <Panel

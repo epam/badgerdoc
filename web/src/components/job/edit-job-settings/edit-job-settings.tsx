@@ -59,13 +59,13 @@ const EditJobSettings: FC<EditJobSettingsProps> = ({
     const tabs = [
         {
             id: 'ExtractionJob',
-            caption: 'Extraction',
+            caption: 'Job',
             isDisabled:
                 initialType === 'ExtractionWithAnnotationJob' || initialType === 'AnnotationJob'
         },
         {
             id: 'ExtractionWithAnnotationJob',
-            caption: 'Extraction and annotation'
+            caption: 'Human in the Loop'
         }
     ];
     if (showNoExtractionTab) {
