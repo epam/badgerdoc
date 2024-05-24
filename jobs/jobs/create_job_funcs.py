@@ -98,12 +98,10 @@ async def create_extraction_job(
         previous_jobs = db_service.get_jobs_in_db_by_ids(
             db, extraction_job_input.previous_jobs
         )
-        if not previous_jobs:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Jobs with these ids do not exist.",
-            )
-        extraction_job_input.previous_jobs = [j.id for j in previous_jobs]
+        files_data = sum(
+            (j.all_files_data for j in previous_jobs if j.all_files_data),
+            start=[],
+        )
 
     job_name = extraction_job_input.name
     if extraction_job_input.is_draft:
@@ -199,14 +197,10 @@ async def create_extraction_annotation_job(
         previous_jobs = db_service.get_jobs_in_db_by_ids(
             db, extraction_annotation_job_input.previous_jobs
         )
-        if not previous_jobs:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Jobs with these ids do not exist.",
-            )
-        extraction_annotation_job_input.previous_jobs = [
-            j.id for j in previous_jobs
-        ]
+        files_data = sum(
+            (j.all_files_data for j in previous_jobs if j.all_files_data),
+            start=[],
+        )
 
     manual_categories = extraction_annotation_job_input.categories
     categories = list(
