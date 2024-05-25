@@ -289,7 +289,7 @@ def files_data_to_pipeline_arg(
     data = previous_jobs_data if previous_jobs_data else files_data
     for file in data:
         # todo: change me
-        _, job_id, file_id = file["output_path"].strip().split("/")
+        _, job_id, file_id, *_ = file["output_path"].strip().split("/")
 
         yield pipeline.PipelineFile(
             revision=file.get("revision"),

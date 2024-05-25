@@ -201,6 +201,7 @@ def post_job(
                     job_id=f[
                         "job_id"
                     ],
+                    previous_job_id=f.get("previous_job_id"),
                     pages_number=f["pages_number"],
                     status=FileStatusEnumSchema.pending,
                 )
