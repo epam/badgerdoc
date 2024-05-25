@@ -2,8 +2,6 @@ from typing import Any, Dict, Generator, Iterator, List, Optional, Tuple, Union
 
 import aiohttp.client_exceptions
 import fastapi.encoders
-from sqlalchemy.orm import Session
-
 import jobs.airflow_utils as airflow_utils
 import jobs.databricks_utils as databricks_utils
 import jobs.pipeline as pipeline
@@ -29,6 +27,7 @@ from jobs.schemas import (
     JobMode,
     JobParamsToChange,
 )
+from sqlalchemy.orm import Session
 
 
 async def get_files_data_from_datasets(
@@ -397,7 +396,7 @@ async def execute_in_annotation_microservice(
     created_job: CombinedJob,
     jw_token: str,
     current_tenant: str,
-    previous_jobs_data: List[Dict[str, Any]] = None
+    previous_jobs_data: List[Dict[str, Any]] = None,
 ) -> None:
     """Sends specifically formatted files data to the Annotation Microservice
     and triggers tasks creation in it"""

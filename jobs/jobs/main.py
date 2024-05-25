@@ -3,13 +3,6 @@ import logging
 import os
 from typing import Any, Dict, List, Optional, Union
 
-from fastapi import Depends, FastAPI, Header, HTTPException, status
-from fastapi.middleware.cors import CORSMiddleware
-from filter_lib import Page, form_query, map_request_to_filter, paginate
-from sqlalchemy.orm import Session
-from sqlalchemy_filters.exceptions import BadFilterFormat
-from tenant_dependency import TenantData, get_tenant_info
-
 import jobs.airflow_utils as airflow_utils
 import jobs.categories as categories
 import jobs.create_job_funcs as create_job_funcs
@@ -19,7 +12,13 @@ import jobs.models as dbm
 import jobs.run_job_funcs as run_job_funcs
 import jobs.schemas as schemas
 import jobs.utils as utils
+from fastapi import Depends, FastAPI, Header, HTTPException, status
+from fastapi.middleware.cors import CORSMiddleware
+from filter_lib import Page, form_query, map_request_to_filter, paginate
 from jobs.config import KEYCLOAK_HOST, ROOT_PATH, API_current_version
+from sqlalchemy.orm import Session
+from sqlalchemy_filters.exceptions import BadFilterFormat
+from tenant_dependency import TenantData, get_tenant_info
 
 tenant = get_tenant_info(url=KEYCLOAK_HOST, algorithm="RS256", debug=True)
 logger = logging.getLogger(__name__)
@@ -378,7 +377,12 @@ async def get_job_by_id(
     result = await utils.enrich_annotators_with_usernames(
         job_needed, current_tenant, token_data.token
     )
-    if result and not result.files and result.previous_jobs and result.all_files_data:
+    if (
+        result
+        and not result.files
+        and result.previous_jobs
+        and result.all_files_data
+    ):
         result.files.extend(file["id"] for file in result.all_files_data)
     return result.as_dict
 

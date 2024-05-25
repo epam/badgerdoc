@@ -2,12 +2,11 @@ import logging
 from typing import Optional
 
 import fastapi
-from sqlalchemy.orm import Session
-
 import jobs.db_service as db_service
 import jobs.models as dbm
 import jobs.schemas as schemas
 import jobs.utils as utils
+from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 

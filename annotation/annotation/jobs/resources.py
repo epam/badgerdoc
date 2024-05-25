@@ -1,6 +1,14 @@
 from typing import Dict, List, Optional, Set, Union
 from uuid import UUID
 
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
+from filter_lib import Page
+from sqlalchemy import and_
+from sqlalchemy.orm import Session
+from sqlalchemy.sql.expression import func, or_
+from sqlalchemy_filters.exceptions import BadFilterFormat
+from tenant_dependency import TenantData
+
 import annotation.categories.services
 from annotation import logger as app_logger
 from annotation.categories import fetch_bunch_categories_db
@@ -37,13 +45,6 @@ from annotation.schemas import (
 )
 from annotation.tags import FILES_TAG, JOBS_TAG
 from annotation.token_dependency import TOKEN
-from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
-from filter_lib import Page
-from sqlalchemy import and_
-from sqlalchemy.orm import Session
-from sqlalchemy.sql.expression import func, or_
-from sqlalchemy_filters.exceptions import BadFilterFormat
-from tenant_dependency import TenantData
 
 from ..models import (
     AnnotatedDoc,
@@ -152,9 +153,11 @@ def post_job(
             )
             tmp_files = [
                 {
-                    **f, "job_id": job_id,
-                    "previous_job_id": previous_job_info.job_id
-                } for f in tmp_files
+                    **f,
+                    "job_id": job_id,
+                    "previous_job_id": previous_job_info.job_id,
+                }
+                for f in tmp_files
             ]
             files += tmp_files
     else:
@@ -177,9 +180,7 @@ def post_job(
                     file_id=f["file_id"],
                     tenant=x_current_tenant,
                     # todo: should we use previous job id or the current one?
-                    job_id=f[
-                        "job_id"
-                    ],
+                    job_id=f["job_id"],
                     previous_job_id=f.get("previous_job_id"),
                     pages_number=f["pages_number"],
                     distributed_annotating_pages=list(
@@ -198,9 +199,7 @@ def post_job(
                     file_id=f["file_id"],
                     tenant=x_current_tenant,
                     # todo: should we use previous job id or the current one?
-                    job_id=f[
-                        "job_id"
-                    ],
+                    job_id=f["job_id"],
                     previous_job_id=f.get("previous_job_id"),
                     pages_number=f["pages_number"],
                     status=FileStatusEnumSchema.pending,
