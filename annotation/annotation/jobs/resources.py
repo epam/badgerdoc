@@ -150,7 +150,12 @@ def post_job(
                 x_current_tenant,
                 token.token,
             )
-            tmp_files = [{**f, "job_id": job_id} for f in tmp_files]
+            tmp_files = [
+                {
+                    **f, "job_id": job_id,
+                    "previous_job_id": previous_job_info.job_id
+                } for f in tmp_files
+            ]
             files += tmp_files
     else:
         files += get_files_info(
@@ -175,6 +180,7 @@ def post_job(
                     job_id=f[
                         "job_id"
                     ],
+                    previous_job_id=f.get("previous_job_id"),
                     pages_number=f["pages_number"],
                     distributed_annotating_pages=list(
                         range(1, f["pages_number"] + 1)
