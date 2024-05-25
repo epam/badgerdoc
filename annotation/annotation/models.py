@@ -247,6 +247,7 @@ class File(Base):
     file_id = Column(INTEGER, primary_key=True)
     tenant = Column(VARCHAR, nullable=False)
     job_id = Column(INTEGER, ForeignKey("jobs.job_id"), primary_key=True)
+    previous_job_id = Column(INTEGER, nullable=True)
     pages_number = Column(INTEGER, nullable=False)
     distributed_annotating_pages = Column(
         ARRAY(INTEGER),
