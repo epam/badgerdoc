@@ -4,13 +4,14 @@ import React, { FC } from 'react';
 import { Category, PipelineManager, Taxonomy, User } from 'api/typings';
 import { JobValues } from 'connectors/edit-job-connector/edit-job-connector';
 import AutomaticJob from '../automatic-job/automatic-job';
-import styles from './edit-job-settings.module.scss';
 import AutomaticManualJob from '../automatic-manual-job/automatic-manual-job';
 import { JobType } from 'api/typings/jobs';
 import { InfoIcon } from '../../../shared/components/info-icon/info-icon';
 
 import { MultiSwitch } from '@epam/loveship';
 import { ILens } from '@epam/uui';
+
+import styles from './edit-job-settings.module.scss';
 
 export type EditJobSettingsProps = {
     pipelineManagers?: PipelineManager[];

@@ -3,25 +3,29 @@
 import React, { useEffect, useState } from 'react';
 
 import { useHistory, useParams } from 'react-router-dom';
-import { Button } from '@epam/loveship';
+import { Button, MultiSwitch } from '@epam/loveship';
 import Wizard, {
     renderWizardButtons,
     WizardPropsStep
 } from '../../shared/components/wizard/wizard/wizard';
 import { DocumentsTableConnector } from '../../connectors';
+import { JobsTableConnector } from '../../connectors';
 import { JOBS_PAGE } from '../../shared/constants/general';
 import { useJobById } from 'api/hooks/jobs';
 import EditJobConnector from '../../connectors/edit-job-connector/edit-job-connector';
 
 import wizardStyles from '../../shared/components/wizard/wizard/wizard.module.scss';
 import styles from '../../shared/components/wizard/wizard/wizard.module.scss';
+import pageStyles from './edit-job-page.module.scss';
 
 export const EditJobPage = () => {
     const history = useHistory();
     const { jobId } = useParams() as { jobId: string };
 
     const [files, setFiles] = useState<number[]>([]);
+    const [jobs, setJobs] = useState<number[]>([]);
     const [stepIndex, setStepIndex] = useState(0);
+    const [currentTab, onCurrentTabChange] = useState('Documents');
 
     const { data: job } = useJobById(
         { jobId: Number(jobId) },
@@ -55,19 +59,56 @@ export const EditJobPage = () => {
     const finishButtonCaption = jobId ? 'Save Edits' : 'Add Extraction';
     const isDisabled = !!jobId;
 
+    const tabs = [
+        {
+            id: 'Documents',
+            caption: 'Documents'
+        },
+        {
+            id: 'Jobs',
+            caption: 'Jobs'
+        }
+    ];
+
+    let table;
+
+    if (currentTab === 'Documents') {
+        table = (
+            <DocumentsTableConnector
+                isJobPage
+                onFilesSelect={setFiles}
+                onRowClick={() => null}
+                checkedValues={files}
+            />
+        );
+    } else {
+        table = (
+            <JobsTableConnector
+                isJobPage
+                onJobsSelect={setJobs}
+                onRowClick={() => null}
+                onAddJob={() => null}
+                checkedValues={jobs}
+            />
+        );
+    }
+
     const steps: WizardPropsStep[] = [
         {
             title: 'Datasets',
             content: (
                 <>
                     <div className={wizardStyles['content__body']}>
-                        <div className="form-wrapper">
-                            <DocumentsTableConnector
-                                isJobPage
-                                onFilesSelect={setFiles}
-                                onRowClick={() => null}
-                                checkedValues={files}
-                            />
+                        <div className={`${pageStyles.container} flex flex-col`}>
+                            <div className={pageStyles.tabs}>
+                                <MultiSwitch
+                                    size="42"
+                                    items={tabs}
+                                    onValueChange={onCurrentTabChange}
+                                    value={currentTab}
+                                />
+                            </div>
+                            <div className={`form-wrapper`}>{table}</div>
                         </div>
                     </div>
                     <div className={wizardStyles['content__footer']}>
@@ -84,7 +125,8 @@ export const EditJobPage = () => {
                 <EditJobConnector
                     onJobAdded={handleJobAdded}
                     initialJob={job}
-                    files={files}
+                    files={currentTab === 'Documents' ? files : []}
+                    jobs={currentTab === 'Jobs' ? jobs : []}
                     renderWizardButtons={({ save, lens }) => {
                         return (
                             <>
