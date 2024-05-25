@@ -177,7 +177,7 @@ async def convert_previous_jobs_for_inference(
         )
         for file_data in converted_files_data:
             output_path = file_data["output_path"].strip()
-            _, job_id, file_id = output_path.split("/")
+            _, job_id, file_id, *_ = output_path.split("/")
             revisions = await get_annotation_revisions(
                 job_id, file_id, current_tenant, jw_token
             )

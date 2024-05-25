@@ -378,6 +378,8 @@ async def get_job_by_id(
     result = await utils.enrich_annotators_with_usernames(
         job_needed, current_tenant, token_data.token
     )
+    if result and not result.files and result.previous_jobs and result.all_files_data:
+        result.files.extend(file["id"] for file in result.all_files_data)
     return result.as_dict
 
 
