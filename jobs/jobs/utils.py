@@ -2,6 +2,8 @@ from typing import Any, Dict, Generator, Iterator, List, Optional, Tuple, Union
 
 import aiohttp.client_exceptions
 import fastapi.encoders
+from sqlalchemy.orm import Session
+
 import jobs.airflow_utils as airflow_utils
 import jobs.databricks_utils as databricks_utils
 import jobs.pipeline as pipeline
@@ -27,7 +29,6 @@ from jobs.schemas import (
     JobMode,
     JobParamsToChange,
 )
-from sqlalchemy.orm import Session
 
 
 async def get_files_data_from_datasets(

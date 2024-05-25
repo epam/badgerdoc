@@ -1,10 +1,11 @@
 from typing import Any, Dict
 
 from filter_lib import create_filter_model
-from jobs.schemas import JobType
 from sqlalchemy import Boolean, Column, DateTime, Integer, String, inspect
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.declarative import declarative_base
+
+from jobs.schemas import JobType
 
 Base = declarative_base()
 
