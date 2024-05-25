@@ -33,6 +33,12 @@ class ValidationSchema(str, Enum):
     extensive_coverage = "extensive_coverage"
 
 
+class PreviousJobInfoSchema(BaseModel):
+    job_id: int
+    files: Set[int]
+    datasets: Set[int]
+
+
 class JobInfoSchema(BaseModel):
     callback_url: str = Field(..., example="http://jobs/jobs/1")
     name: str = Field(None, example="job_name")
@@ -62,6 +68,7 @@ class JobInfoSchema(BaseModel):
     )
     files: Set[int] = Field(..., example={1, 2, 3})
     datasets: Set[int] = Field(..., example={1, 2, 3})
+    previous_jobs: List[PreviousJobInfoSchema] = Field(...)
     is_auto_distribution: bool = Field(default=False, example=False)
     categories: Optional[Set[str]] = Field(None, example={"1", "2"})
     deadline: Optional[datetime] = Field(None, example="2021-10-19 01:01:01")
@@ -74,18 +81,22 @@ class JobInfoSchema(BaseModel):
     )
 
     @root_validator
-    def check_files_and_datasets(cls, values):
+    def check_files_datasets_previous_jobs(cls, values):
         """
         Files and datasets should not be empty at the same time.
         """
         files, datasets = values.get("files"), values.get("datasets")
+        previous_jobs = values.get("previous_jobs")
+
         job_type = values.get("job_type")
+
         if (
-            not files and not datasets
-        ) and job_type != JobTypeEnumSchema.ImportJob:
+            not (bool(previous_jobs) ^ bool(files or datasets))
+            and job_type != JobTypeEnumSchema.ImportJob
+        ):
             raise ValueError(
-                "Fields files and datasets should "
-                "not be empty at the same time."
+                "Only one field must be specified: "
+                "either previous_jobs or files/datasets"
             )
         return values
 

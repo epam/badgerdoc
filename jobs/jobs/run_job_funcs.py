@@ -27,6 +27,14 @@ async def run_extraction_job(
         job_id=job_to_run.id,
         output_bucket=current_tenant,
     )
+    converted_previous_jobs_data = (
+        await utils.convert_previous_jobs_for_inference(
+            job_ids=job_to_run.previous_jobs,
+            session=db,
+            current_tenant=current_tenant,
+            jw_token=jw_token,
+        )
+    )
 
     logger.info(
         "Starting external pipeline %s for job %s of %s tenant, %s engine",
@@ -39,6 +47,7 @@ async def run_extraction_job(
         pipeline_id=job_to_run.pipeline_id,
         pipeline_engine=job_to_run.pipeline_engine,
         job_id=job_to_run.id,
+        previous_jobs_data=converted_previous_jobs_data,
         files_data=converted_files_data,
         current_tenant=current_tenant,
     )
@@ -58,8 +67,24 @@ async def run_annotation_job(
     if not job_to_run.type == schemas.JobType.ExtractionWithAnnotationJob:
         db_service.update_job_mode(db, job_to_run, updated_status)
 
+    previous_jobs_data = []
+
+    if job_to_run.previous_jobs:
+        previous_jobs = db_service.get_jobs_in_db_by_ids(
+            db, job_to_run.previous_jobs
+        )
+        previous_jobs_data = [
+            {
+                "job_id": p_job.id,
+                "files": p_job.files,
+                "datasets": p_job.datasets,
+            }
+            for p_job in previous_jobs
+        ]
+
     await utils.execute_in_annotation_microservice(
         created_job=job_to_run,
+        previous_jobs_data=previous_jobs_data,
         jw_token=jw_token,
         current_tenant=current_tenant,
     )
