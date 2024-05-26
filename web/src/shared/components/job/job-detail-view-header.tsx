@@ -37,8 +37,8 @@ export const JobDetailViewHeader: React.FC<JobDetailViewHeaderProps> = ({
                         <BreadcrumbNavigation
                             breadcrumbs={
                                 name
-                                    ? [{ name: 'Extractions', url: JOBS_PAGE }, { name: name }]
-                                    : [{ name: 'Extractions', url: JOBS_PAGE }]
+                                    ? [{ name: 'Jobs', url: JOBS_PAGE }, { name: name }]
+                                    : [{ name: 'Jobs', url: JOBS_PAGE }]
                             }
                         />
                     </FlexRow>

@@ -65,10 +65,10 @@ export const UserContextProvider: FC<{ currentUser: User | null }> = ({
         const menu: (string | SubMenu)[] = [];
         switch (true) {
             case isEngineer:
-                menu.push('documents', 'extractions', 'dashboard', 'categories', 'reports');
+                menu.push('documents', 'jobs', 'my tasks', 'categories', 'reports');
                 break;
             case isAnnotator:
-                menu.push('dashboard');
+                menu.push('my tasks');
                 break;
             case isSimple:
                 menu.push('my documents');
