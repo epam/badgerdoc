@@ -378,22 +378,8 @@ async def get_job_by_id(
     result = await utils.enrich_annotators_with_usernames(
         job_needed, current_tenant, token_data.token
     )
-    
-    if (
-        result
-        and not result.files
-        and result.all_files_data
-    ):
-        result.files = []
-        for file in result.all_files_data:
-            file_id = file.get("id")
-            if (
-                file_id is not None and 
-                file_id not in result.files
-            ):
-                result.files.append(file_id)
-                
-    return result.as_dict
+
+    return dict(**result.as_dict, files=result.files_ids)
 
 
 @app.delete("/jobs/{job_id}")
