@@ -4,8 +4,6 @@ import React, { FC, useCallback, useEffect, useState } from 'react';
 import { useUsers } from 'api/hooks/users';
 import { Report, SortingDirection } from 'api/typings';
 import { useHistory } from 'react-router-dom';
-import { MultiSwitchMenu } from 'shared/components/multi-switch-menu/MultiSwitchMenu';
-import { ML_MENU_ITEMS } from 'shared/contexts/current-user';
 import RetrieveReportsList from 'components/reports/retrieve-reports-list';
 import { renderWizardButtons } from 'shared/components/wizard/wizard/wizard';
 import { useDownloadTaskReport } from 'api/hooks/tasks';
@@ -135,11 +133,6 @@ export const ReportsConnector: FC<{}> = () => {
 
     return (
         <Panel cx={`${styles['container']} flex-col`}>
-            <div
-                className={`${styles['title']} flex justify-between align-vert-center ${styles.title}`}
-            >
-                <MultiSwitchMenu items={ML_MENU_ITEMS} currentPath={history.location.pathname} />
-            </div>
             <a href={url} download={name} className="hidden" ref={ref} />
             <div className={styles['form-group']}>
                 <Form<Report>

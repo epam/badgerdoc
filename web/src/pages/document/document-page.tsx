@@ -59,7 +59,7 @@ export function DocumentPage({
     const crumbs = [];
 
     if (historyState?.previousPage === PREVIOUS_PAGE_JOB) {
-        crumbs.push({ name: 'Extractions', url: JOBS_PAGE });
+        crumbs.push({ name: 'Jobs', url: JOBS_PAGE });
         crumbs.push({
             name: historyState.previousPageName || '',
             url: historyState.previousPageUrl

@@ -11,8 +11,6 @@ import { useCategories } from '../../api/hooks/categories';
 import styles from './categories-table-connector.module.scss';
 import { ModalWithDisabledClickOutsideAndCross } from '../categories-modal-connector/categories-modal-connector';
 import { TaskValidationValues } from '../categories-modal-connector/types';
-import { ML_MENU_ITEMS } from '../../shared/contexts/current-user';
-import { MultiSwitchMenu } from '../../shared/components/multi-switch-menu/MultiSwitchMenu';
 import { useHistory } from 'react-router-dom';
 
 type CategoriesTableConnectorProps = {};
@@ -74,8 +72,7 @@ export const CategoriesTableConnector: FC<CategoriesTableConnectorProps> = () =>
 
     return (
         <Panel cx={`${styles['container']} flex-col`}>
-            <div className={`${styles['title']} flex justify-between align-vert-center`}>
-                <MultiSwitchMenu items={ML_MENU_ITEMS} currentPath={history.location.pathname} />
+            <div className={`${styles['title']} flex justify-end align-vert-center`}>
                 <Button
                     onClick={() =>
                         uuiModals.show((props) => (
