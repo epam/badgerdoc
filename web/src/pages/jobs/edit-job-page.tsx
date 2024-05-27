@@ -84,7 +84,7 @@ export const EditJobPage = () => {
     } else {
         table = (
             <JobsTableConnector
-                isJobPage
+                isNewJobPage
                 onJobsSelect={setJobs}
                 onRowClick={() => null}
                 onAddJob={() => null}

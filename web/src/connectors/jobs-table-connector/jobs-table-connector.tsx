@@ -29,14 +29,14 @@ type JobsTableConnectorProps = {
     onRowClick: (id: number) => void;
     onJobsSelect?: (files: number[]) => void;
     checkedValues?: number[];
-    isJobPage?: boolean;
+    isNewJobPage?: boolean;
 };
 export const JobsTableConnector: FC<JobsTableConnectorProps> = ({
     onAddJob,
     onRowClick,
     onJobsSelect,
     checkedValues,
-    isJobPage
+    isNewJobPage
 }) => {
     const [shownPopup, shownPopupChange] = useState<'extraction' | 'annotation' | null>(null);
     const [selectedFiles, setSelectedFiles] = useState<number[] | []>([]);
@@ -121,7 +121,7 @@ export const JobsTableConnector: FC<JobsTableConnectorProps> = ({
 
     const view = dataSource.useView(tableValue, onTableValueChange, {
         getRowOptions: () => ({
-            checkbox: { isVisible: true },
+            checkbox: { isVisible: Boolean(isNewJobPage) },
             isSelectable: true,
             onClick: ({ id }) => onRowClick(id)
         }),
@@ -250,7 +250,7 @@ export const JobsTableConnector: FC<JobsTableConnectorProps> = ({
         renderCreationDateFilter
     ]);
 
-    if (isJobPage) {
+    if (isNewJobPage) {
         return (
             <>
                 <div className={styles.wrapper}>
