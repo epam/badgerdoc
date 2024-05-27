@@ -38,8 +38,9 @@ class ExtractionJobParams(BaseModel):
     name: str
     type: JobType = JobType.ExtractionJob
     mode: JobMode = JobMode.Automatic
-    files: List[int]
-    datasets: List[int]
+    files: List[int] = []
+    datasets: List[int] = []
+    previous_jobs: Optional[List[int]] = []
     pipeline_name: str
     pipeline_version: Optional[str]
     pipeline_engine: Optional[str]
@@ -62,8 +63,9 @@ class AnnotationJobParams(BaseModel):
     name: str
     type: JobType = JobType.AnnotationJob
     mode: JobMode = JobMode.Manual
-    datasets: Optional[List[int]]
-    files: Optional[List[int]]
+    files: Optional[List[int]] = []
+    datasets: Optional[List[int]] = []
+    previous_jobs: Optional[List[int]] = []
     annotators: List[str]
     validators: List[str]
     owners: List[str]
@@ -104,8 +106,9 @@ class JobParams(BaseModel):
     # ---- common attributes ---- #
     name: str
     type: JobType
-    files: Optional[List[int]]
-    datasets: Optional[List[int]]
+    files: Optional[List[int]] = []
+    datasets: Optional[List[int]] = []
+    previous_jobs: Optional[List[int]] = []
     is_draft: bool = False
     # ---- AnnotationJob and ExtractionWithAnnotationJob attributes ---- #
     is_auto_distribution: Optional[bool] = False
@@ -130,15 +133,19 @@ class JobParams(BaseModel):
     import_format: Optional[str]
 
     # ---- common attributes ---- #
-    @validator("datasets", always=True)
-    def check_files_and_datasets_are_not_empty(  # pylint: disable=no-self-argument  # noqa: E501
+    @validator("previous_jobs", always=True)
+    def check_files_datasets_previous_jobs(  # pylint: disable=no-self-argument  # noqa: E501
         cls, v: List[int], values: Dict[str, Any]
     ) -> List[int]:
-        if not values.get("type") == JobType.ImportJob:
-            if not v and not values.get("files"):
-                raise ValueError(
-                    "files and datasets cannot be empty at the same time"
-                )
+        if values.get("type") != JobType.ImportJob:
+            files = values.get("files")
+            datasets = values.get("datasets")
+
+            assert bool(v) ^ bool(files or datasets), (
+                "Only one field must be specified: "
+                "either previous_jobs or files/datasets"
+            )
+
         return v
 
     # ---- AnnotationJob and ExtractionWithAnnotationJob attributes ---- #
@@ -310,8 +317,9 @@ class JobParams(BaseModel):
 class JobParamsToChange(BaseModel):
     name: Optional[str]
     type: Optional[JobType]
-    files: Optional[List[int]]
-    datasets: Optional[List[int]]
+    files: Optional[List[int]] = []
+    datasets: Optional[List[int]] = []
+    previous_jobs: Optional[List[int]] = []
     status: Optional[Status]
     is_draft: Optional[bool]
     mode: Optional[JobMode]
@@ -333,8 +341,9 @@ class JobParamsToChange(BaseModel):
 
 
 class AnnotationJobUpdateParamsInAnnotation(BaseModel):
-    datasets: Optional[List[int]]
-    files: Optional[List[int]]
+    files: Optional[List[int]] = []
+    datasets: Optional[List[int]] = []
+    previous_jobs: Optional[List[int]] = []
     annotators: Optional[List[str]]
     validators: Optional[List[str]]
     owners: Optional[List[str]]

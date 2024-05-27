@@ -607,6 +607,17 @@ def get_all_revisions(
         .order_by(AnnotatedDoc.date)
         .all()
     )
+
+    if not revisions:
+        file: File = next((f for f in job.files if f.id == file_id), None)
+        filters[0] = AnnotatedDoc.job_id == file.previous_job_id
+        revisions = (
+            db.query(AnnotatedDoc)
+            .filter(and_(*filters))
+            .order_by(AnnotatedDoc.date)
+            .all()
+        )
+
     pages = find_all_revisions_pages(revisions, page_numbers)
     if not pages:
         return {page_number: [] for page_number in page_numbers}

@@ -21,6 +21,7 @@ class Job(Base):  # type: ignore
     status = Column(String(250))
     files = Column(JSONB)
     datasets = Column(JSONB)
+    previous_jobs = Column(JSONB)
     creation_datetime = Column(DateTime)
     type = Column(String(30))
     mode = Column(String(30))

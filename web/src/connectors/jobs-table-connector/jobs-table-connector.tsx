@@ -1,6 +1,6 @@
 // temporary_disabled_rules
 /* eslint-disable @typescript-eslint/no-unused-vars, react-hooks/exhaustive-deps */
-import { Button, DataTable, Panel } from '@epam/loveship';
+import { Button, DataTable, Panel, FlexRow, Checkbox } from '@epam/loveship';
 import React, { FC, useEffect, useMemo, useRef, useState } from 'react';
 import { useLazyDataSource } from '@epam/uui';
 import { useAsyncSourceTable } from 'shared/hooks/async-source-table';
@@ -27,9 +27,19 @@ import { BreadcrumbNavigation } from '../../shared/components/breadcrumb';
 type JobsTableConnectorProps = {
     onAddJob: () => void;
     onRowClick: (id: number) => void;
+    onJobsSelect?: (files: number[]) => void;
+    checkedValues?: number[];
+    isJobPage?: boolean;
 };
-export const JobsTableConnector: FC<JobsTableConnectorProps> = ({ onAddJob, onRowClick }) => {
+export const JobsTableConnector: FC<JobsTableConnectorProps> = ({
+    onAddJob,
+    onRowClick,
+    onJobsSelect,
+    checkedValues,
+    isJobPage
+}) => {
     const [shownPopup, shownPopupChange] = useState<'extraction' | 'annotation' | null>(null);
+    const [selectedFiles, setSelectedFiles] = useState<number[] | []>([]);
     const {
         pageConfig,
         onPageChange,
@@ -44,6 +54,7 @@ export const JobsTableConnector: FC<JobsTableConnectorProps> = ({ onAddJob, onRo
         filters
     } = usePageTable<Job>('creation_datetime');
     const { page, pageSize } = pageConfig;
+    const { checked } = tableValue;
 
     const { data, isFetching } = useJobs(
         {
@@ -55,6 +66,28 @@ export const JobsTableConnector: FC<JobsTableConnectorProps> = ({ onAddJob, onRo
         },
         { cacheTime: 0 }
     );
+
+    useEffect(() => {
+        if (checkedValues) {
+            onTableValueChange({
+                ...tableValue,
+                checked: checkedValues
+            });
+        }
+    }, []);
+
+    useEffect(() => {
+        setSelectedFiles(checked || []);
+        if (onJobsSelect) {
+            onJobsSelect(checked as number[]);
+        }
+    }, [checked]);
+
+    useEffect(() => {
+        if (onJobsSelect) {
+            onJobsSelect(selectedFiles as number[]);
+        }
+    }, [selectedFiles]);
 
     useEffect(() => {
         if (data?.pagination.total !== undefined) {
@@ -88,6 +121,7 @@ export const JobsTableConnector: FC<JobsTableConnectorProps> = ({ onAddJob, onRo
 
     const view = dataSource.useView(tableValue, onTableValueChange, {
         getRowOptions: () => ({
+            checkbox: { isVisible: true },
             isSelectable: true,
             onClick: ({ id }) => onRowClick(id)
         }),
@@ -216,40 +250,64 @@ export const JobsTableConnector: FC<JobsTableConnectorProps> = ({ onAddJob, onRo
         renderCreationDateFilter
     ]);
 
-    return (
-        <Panel cx={`${styles['container']} flex-col`}>
-            <div className={`${styles['title']} flex justify-between align-vert-center`}>
-                <BreadcrumbNavigation breadcrumbs={[{ name: 'Jobs' }]} />
-                <Button onClick={onAddJob} caption="New Job" />
-            </div>
+    if (isJobPage) {
+        return (
+            <>
+                <div className={styles.wrapper}>
+                    <TableWrapper
+                        page={page}
+                        pageSize={pageSize}
+                        totalCount={totalCount}
+                        onPageChange={onPageChange}
+                    >
+                        <DataTable
+                            {...view.getListProps()}
+                            getRows={view.getVisibleRows}
+                            value={tableValue}
+                            onValueChange={onTableValueChange}
+                            columns={columns}
+                            headerTextCase="upper"
+                        />
+                    </TableWrapper>
+                </div>
+            </>
+        );
+    } else {
+        return (
+            <Panel cx={`${styles['container']} flex-col`}>
+                <div className={`${styles['title']} flex justify-between align-vert-center`}>
+                    <BreadcrumbNavigation breadcrumbs={[{ name: 'Extractions' }]} />
+                    <Button onClick={onAddJob} caption="Add Extraction" />
+                </div>
 
-            <Panel
-                rawProps={{
-                    role: 'table',
-                    'aria-rowcount': view.getListProps().rowsCount,
-                    'aria-colcount': columns.length
-                }}
-            >
-                <TableWrapper
-                    page={page}
-                    pageSize={pageSize}
-                    totalCount={totalCount}
-                    onPageChange={onPageChange}
+                <Panel
+                    rawProps={{
+                        role: 'table',
+                        'aria-rowcount': view.getListProps().rowsCount,
+                        'aria-colcount': columns.length
+                    }}
                 >
-                    <DataTable
-                        {...view.getListProps()}
-                        getRows={view.getVisibleRows}
-                        value={tableValue}
-                        onValueChange={onTableValueChange}
-                        columns={columns}
-                        headerTextCase="upper"
-                    />
-                </TableWrapper>
-            </Panel>
+                    <TableWrapper
+                        page={page}
+                        pageSize={pageSize}
+                        totalCount={totalCount}
+                        onPageChange={onPageChange}
+                    >
+                        <DataTable
+                            {...view.getListProps()}
+                            getRows={view.getVisibleRows}
+                            value={tableValue}
+                            onValueChange={onTableValueChange}
+                            columns={columns}
+                            headerTextCase="upper"
+                        />
+                    </TableWrapper>
+                </Panel>
 
-            {shownPopup ? (
-                <JobPopup popupType={shownPopup} closePopup={() => shownPopupChange(null)} />
-            ) : null}
-        </Panel>
-    );
+                {shownPopup ? (
+                    <JobPopup popupType={shownPopup} closePopup={() => shownPopupChange(null)} />
+                ) : null}
+            </Panel>
+        );
+    }
 };

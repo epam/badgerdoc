@@ -41,7 +41,8 @@ type EditJobConnectorProps = {
     }) => ReactElement;
     onJobAdded: (id: number) => void;
     onRedirectAfterFinish?: () => void;
-    files: number[];
+    files?: number[] | null;
+    jobs?: number[] | null;
     checkedFiles?: number[];
     initialJob?: Job;
     showNoExtractionTab?: boolean;
@@ -75,6 +76,7 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
     onJobAdded,
     onRedirectAfterFinish,
     files,
+    jobs,
     initialJob,
     showNoExtractionTab
 }) => {
@@ -235,8 +237,9 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
 
             const jobProps: JobVariables = {
                 name: jobName,
-                files,
                 datasets: [],
+                files,
+                previous_jobs: jobs,
                 type:
                     jobType === 'ExtractionJob'
                         ? 'ExtractionJob'
@@ -281,6 +284,7 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
                 if (initialJob?.id) {
                     const editData = cloneDeep(jobProps);
                     delete editData.files;
+                    delete editData.previous_jobs;
                     delete editData.datasets;
                     await editJobMutation.mutateAsync({
                         id: initialJob.id,

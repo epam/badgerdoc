@@ -60,6 +60,17 @@ async def create_job(
     logger.info("Create job with job_params: %s", job_params)
     jw_token = token_data.token
 
+    if job_params.previous_jobs:
+        previous_jobs = db_service.get_jobs_in_db_by_ids(
+            db, job_params.previous_jobs
+        )
+        if not previous_jobs:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Jobs with these ids do not exist.",
+            )
+        job_params.previous_jobs = [j.id for j in previous_jobs]
+
     if job_params.type == schemas.JobType.ExtractionJob:
         created_extraction_job = await create_job_funcs.create_extraction_job(
             extraction_job_input=job_params,  # type: ignore
@@ -367,6 +378,13 @@ async def get_job_by_id(
     result = await utils.enrich_annotators_with_usernames(
         job_needed, current_tenant, token_data.token
     )
+    if (
+        result
+        and not result.files
+        and result.previous_jobs
+        and result.all_files_data
+    ):
+        result.files.extend(file["id"] for file in result.all_files_data)
     return result.as_dict
 
 
