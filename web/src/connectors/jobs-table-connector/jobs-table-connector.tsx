@@ -276,8 +276,8 @@ export const JobsTableConnector: FC<JobsTableConnectorProps> = ({
         return (
             <Panel cx={`${styles['container']} flex-col`}>
                 <div className={`${styles['title']} flex justify-between align-vert-center`}>
-                    <BreadcrumbNavigation breadcrumbs={[{ name: 'Extractions' }]} />
-                    <Button onClick={onAddJob} caption="Add Extraction" />
+                    <BreadcrumbNavigation breadcrumbs={[{ name: 'Jobs' }]} />
+                    <Button onClick={onAddJob} caption="New Job" />
                 </div>
 
                 <Panel
