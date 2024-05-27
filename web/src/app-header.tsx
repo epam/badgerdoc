@@ -16,7 +16,7 @@ import {
     Text
 } from '@epam/loveship';
 import { useHistory } from 'react-router-dom';
-import capitalize from 'lodash/capitalize';
+import startCase from 'lodash/startCase';
 import { CurrentUser } from 'shared/contexts/current-user';
 import { FlexSpacer } from '@epam/uui-components';
 import { cloneDeep } from 'lodash';
@@ -60,7 +60,7 @@ export const AppHeader = () => {
             case isSimple:
                 return '/my documents';
             case isAnnotator:
-                return '/dashboard';
+                return '/my tasks';
             default:
                 return '/documents';
         }
@@ -84,7 +84,7 @@ export const AppHeader = () => {
                                 }}
                                 key={item}
                                 collapseToMore
-                                caption={capitalize(item)}
+                                caption={startCase(item)}
                                 priority={0}
                                 estimatedWidth={145}
                             />

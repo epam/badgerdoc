@@ -53,7 +53,7 @@ const TaskPageContent: FC<TTaskPageContent> = ({
         const { previousPage, previousPageName, previousPageUrl } = history.location.state ?? {};
 
         if (previousPage === PREVIOUS_PAGE_JOB) {
-            crumbs.push({ name: 'Extractions', url: JOBS_PAGE });
+            crumbs.push({ name: 'Jobs', url: JOBS_PAGE });
             crumbs.push({
                 name: previousPageName ?? '',
                 url: previousPageUrl

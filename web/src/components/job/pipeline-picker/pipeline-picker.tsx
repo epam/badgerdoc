@@ -94,7 +94,7 @@ const PipelinePicker: FC<AutomaticJobProps> = ({ lens, pipelineManagers = [] }) 
             </LabeledInput>
             <LabeledInput
                 cx={`${styles.pipeline} m-t-15`}
-                label="ML Pipeline"
+                label="Pipeline"
                 {...lens.prop('pipeline').toProps()}
             >
                 <div className="flex align-vert-center">
