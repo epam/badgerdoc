@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from filter_lib import create_filter_model
 from sqlalchemy import Boolean, Column, DateTime, Integer, String, inspect
@@ -79,6 +79,18 @@ class CombinedJob(AnnotationJob, ExtractionJob, ImportJob):
 
     __tablename__ = "job"
     start_manual_job_automatically = Column(Boolean, nullable=True)
+
+    @property
+    def files_ids(self) -> List[int]:
+        files = [*self.files] if self.files else []
+
+        if self.all_files_data:
+            for file in self.all_files_data:
+                file_id = file.get("id")
+                if file_id is not None and file_id not in files:
+                    files.append(file_id)
+
+        return files
 
 
 JobFilter = create_filter_model(CombinedJob, exclude=["all_files_data"])

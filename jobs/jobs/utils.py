@@ -170,7 +170,7 @@ async def convert_previous_jobs_for_inference(
     result = []
 
     for job in jobs_db:
-        if not job.files and not job.datasets:
+        if not job.files_ids:
             continue
         converted_files_data = convert_files_data_for_inference(
             job.all_files_data, job.id, current_tenant
