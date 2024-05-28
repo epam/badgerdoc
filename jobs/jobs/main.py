@@ -379,7 +379,7 @@ async def get_job_by_id(
         job_needed, current_tenant, token_data.token
     )
 
-    return dict(**result.as_dict, files=result.files_ids)
+    return {**result.as_dict, "files": result.files_ids}
 
 
 @app.delete("/jobs/{job_id}")
