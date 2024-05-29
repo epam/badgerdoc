@@ -39,6 +39,7 @@ def get_revisions_without_annotation(
             AnnotatedDoc.file_id == file_id,
             AnnotatedDoc.tenant == x_current_tenant,
         )
+        .order_by(AnnotatedDoc.date)
         .all()
     )
     return revisions or []

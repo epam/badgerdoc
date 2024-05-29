@@ -183,7 +183,8 @@ async def convert_previous_jobs_for_inference(
             )
             if not revisions:
                 continue
-            file_data["revision"] = revisions[-1]
+            file_data["revision"] = revisions[-1]["revision"]
+            file_data["file_id"] = file_id
             result.append(file_data)
 
     return result
@@ -749,7 +750,7 @@ async def enrich_annotators_with_usernames(
 
 async def get_annotation_revisions(
     job_id: int, file_id: int, current_tenant: Optional[str], jw_token: str
-) -> Optional[List[int]]:
+) -> Optional[List[dict]]:
     """Get progress of the job with 'job_id' from Pipelines
     or Annotation Manager depending on 'job_mode'."""
 
