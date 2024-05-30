@@ -27,7 +27,14 @@ def create_minio_config():
             }
         )
     elif settings.s3_provider == "aws_iam":
-        minio_config.update({"credentials": IamAwsProvider()})
+        minio_config.update(
+            {
+                "credentials": IamAwsProvider(),
+                "region": settings.aws_region,
+                "access_key": settings.s3_access_key,
+                "secret_key": settings.s3_secret_key,
+            }
+        )
     elif settings.s3_provider == "aws_env":
         minio_config.update({"credentials": EnvAWSProvider()})
     elif settings.s3_provider == "aws_config":

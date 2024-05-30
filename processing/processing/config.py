@@ -49,6 +49,7 @@ class Settings(BaseSettings):
     keycloak_host: str
     pipelines_service_host: str
 
+    aws_region: Optional[str]
     s3_endpoint: str
     s3_secret_key: str
     s3_access_key: str
