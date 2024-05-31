@@ -3,9 +3,9 @@ from unittest.mock import patch
 import aiohttp.client_exceptions
 import pytest
 from fastapi import HTTPException
-from tests.conftest import FakePipeline, patched_create_pre_signed_s3_url
 
 import jobs.utils as utils
+from tests.conftest import FakePipeline, patched_create_pre_signed_s3_url
 
 # --------------TEST get_files_data_from_datasets---------------
 
@@ -678,95 +678,111 @@ def test_convert_files_data_for_inference_without_output_bucket(
         {
             "bucket": "bucket11",
             "file": "files/1/1.pdf",
+            "file_id": 1,
             "output_path": "runs/11/1/1",
             "pages": [1, 2, 3, 4, 5],
         },
         {
             "bucket": "bucket11",
+            "file_id": 1,
             "file": "files/1/1.pdf",
             "output_path": "runs/11/1/2",
             "pages": [6, 7, 8, 9, 10],
         },
         {
             "bucket": "bucket11",
+            "file_id": 2,
             "file": "files/2/2.pdf",
             "output_path": "runs/11/2",
             "pages": [1, 2],
         },
         {
             "bucket": "bucket11",
+            "file_id": 3,
             "file": "files/3/3.pdf",
             "output_path": "runs/11/3/1",
             "pages": [1, 2, 3, 4, 5],
         },
         {
             "bucket": "bucket11",
+            "file_id": 3,
             "file": "files/3/3.pdf",
             "output_path": "runs/11/3/2",
             "pages": [6],
         },
         {
             "bucket": "bucket11",
+            "file_id": 4,
             "file": "files/4/4.pdf",
             "output_path": "runs/11/4/1",
             "pages": [1, 2, 3, 4, 5],
         },
         {
             "bucket": "bucket11",
+            "file_id": 4,
             "file": "files/4/4.pdf",
             "output_path": "runs/11/4/2",
             "pages": [6, 7, 8, 9, 10],
         },
         {
             "bucket": "bucket11",
+            "file_id": 4,
             "file": "files/4/4.pdf",
             "output_path": "runs/11/4/3",
             "pages": [11, 12, 13, 14, 15],
         },
         {
             "bucket": "bucket11",
+            "file_id": 4,
             "file": "files/4/4.pdf",
             "output_path": "runs/11/4/4",
             "pages": [16, 17, 18, 19, 20],
         },
         {
             "bucket": "bucket11",
+            "file_id": 4,
             "file": "files/4/4.pdf",
             "output_path": "runs/11/4/5",
             "pages": [21, 22, 23, 24, 25],
         },
         {
             "bucket": "bucket11",
+            "file_id": 4,
             "file": "files/4/4.pdf",
             "output_path": "runs/11/4/6",
             "pages": [26, 27, 28, 29, 30],
         },
         {
             "bucket": "bucket11",
+            "file_id": 4,
             "file": "files/4/4.pdf",
             "output_path": "runs/11/4/7",
             "pages": [31, 32],
         },
         {
             "bucket": "bucket11",
+            "file_id": 5,
             "file": "files/5/5.pdf",
             "output_path": "runs/11/5/1",
             "pages": [1, 2, 3, 4, 5],
         },
         {
             "bucket": "bucket11",
+            "file_id": 5,
             "file": "files/5/5.pdf",
             "output_path": "runs/11/5/2",
             "pages": [6, 7, 8, 9, 10],
         },
         {
             "bucket": "bucket11",
+            "file_id": 5,
             "file": "files/5/5.pdf",
             "output_path": "runs/11/5/3",
             "pages": [11, 12, 13, 14, 15],
         },
         {
             "bucket": "bucket11",
+            "file_id": 5,
             "file": "files/5/5.pdf",
             "output_path": "runs/11/5/4",
             "pages": [16, 17, 18, 19, 20],
@@ -786,6 +802,7 @@ def test_convert_files_data_for_inference_with_completley_another_output_bucket(
     expected_result = [
         {
             "bucket": "bucket11",
+            "file_id": 1,
             "file": "files/1/1.pdf",
             "output_bucket": "another_bucket",
             "output_path": "runs/11/1/1",
@@ -793,6 +810,7 @@ def test_convert_files_data_for_inference_with_completley_another_output_bucket(
         },
         {
             "bucket": "bucket11",
+            "file_id": 1,
             "file": "files/1/1.pdf",
             "output_bucket": "another_bucket",
             "output_path": "runs/11/1/2",
@@ -800,6 +818,7 @@ def test_convert_files_data_for_inference_with_completley_another_output_bucket(
         },
         {
             "bucket": "bucket11",
+            "file_id": 2,
             "file": "files/2/2.pdf",
             "output_bucket": "another_bucket",
             "output_path": "runs/11/2",
@@ -807,6 +826,7 @@ def test_convert_files_data_for_inference_with_completley_another_output_bucket(
         },
         {
             "bucket": "bucket11",
+            "file_id": 3,
             "file": "files/3/3.pdf",
             "output_bucket": "another_bucket",
             "output_path": "runs/11/3/1",
@@ -814,6 +834,7 @@ def test_convert_files_data_for_inference_with_completley_another_output_bucket(
         },
         {
             "bucket": "bucket11",
+            "file_id": 3,
             "file": "files/3/3.pdf",
             "output_bucket": "another_bucket",
             "output_path": "runs/11/3/2",
@@ -821,6 +842,7 @@ def test_convert_files_data_for_inference_with_completley_another_output_bucket(
         },
         {
             "bucket": "bucket11",
+            "file_id": 4,
             "file": "files/4/4.pdf",
             "output_bucket": "another_bucket",
             "output_path": "runs/11/4/1",
@@ -828,6 +850,7 @@ def test_convert_files_data_for_inference_with_completley_another_output_bucket(
         },
         {
             "bucket": "bucket11",
+            "file_id": 4,
             "file": "files/4/4.pdf",
             "output_bucket": "another_bucket",
             "output_path": "runs/11/4/2",
@@ -835,6 +858,7 @@ def test_convert_files_data_for_inference_with_completley_another_output_bucket(
         },
         {
             "bucket": "bucket11",
+            "file_id": 4,
             "file": "files/4/4.pdf",
             "output_bucket": "another_bucket",
             "output_path": "runs/11/4/3",
@@ -842,6 +866,7 @@ def test_convert_files_data_for_inference_with_completley_another_output_bucket(
         },
         {
             "bucket": "bucket11",
+            "file_id": 4,
             "file": "files/4/4.pdf",
             "output_bucket": "another_bucket",
             "output_path": "runs/11/4/4",
@@ -849,6 +874,7 @@ def test_convert_files_data_for_inference_with_completley_another_output_bucket(
         },
         {
             "bucket": "bucket11",
+            "file_id": 4,
             "file": "files/4/4.pdf",
             "output_bucket": "another_bucket",
             "output_path": "runs/11/4/5",
@@ -856,6 +882,7 @@ def test_convert_files_data_for_inference_with_completley_another_output_bucket(
         },
         {
             "bucket": "bucket11",
+            "file_id": 4,
             "file": "files/4/4.pdf",
             "output_bucket": "another_bucket",
             "output_path": "runs/11/4/6",
@@ -863,6 +890,7 @@ def test_convert_files_data_for_inference_with_completley_another_output_bucket(
         },
         {
             "bucket": "bucket11",
+            "file_id": 4,
             "file": "files/4/4.pdf",
             "output_bucket": "another_bucket",
             "output_path": "runs/11/4/7",
@@ -870,6 +898,7 @@ def test_convert_files_data_for_inference_with_completley_another_output_bucket(
         },
         {
             "bucket": "bucket11",
+            "file_id": 5,
             "file": "files/5/5.pdf",
             "output_bucket": "another_bucket",
             "output_path": "runs/11/5/1",
@@ -877,6 +906,7 @@ def test_convert_files_data_for_inference_with_completley_another_output_bucket(
         },
         {
             "bucket": "bucket11",
+            "file_id": 5,
             "file": "files/5/5.pdf",
             "output_bucket": "another_bucket",
             "output_path": "runs/11/5/2",
@@ -884,6 +914,7 @@ def test_convert_files_data_for_inference_with_completley_another_output_bucket(
         },
         {
             "bucket": "bucket11",
+            "file_id": 5,
             "file": "files/5/5.pdf",
             "output_bucket": "another_bucket",
             "output_path": "runs/11/5/3",
@@ -891,6 +922,7 @@ def test_convert_files_data_for_inference_with_completley_another_output_bucket(
         },
         {
             "bucket": "bucket11",
+            "file_id": 5,
             "file": "files/5/5.pdf",
             "output_bucket": "another_bucket",
             "output_path": "runs/11/5/4",

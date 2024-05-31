@@ -14,10 +14,10 @@ class PipelineFile:
     input: PipelineFileInput
     input_path: str
     pages: List[int]
-    revision: str = None
+    revision: Optional[str] = None
     output_path: Optional[str] = None
     s3_signed_url: Optional[str] = None
-    annotation_id: Optional[str] = None
+    file_id: Optional[str] = None
 
 
 @dataclass
