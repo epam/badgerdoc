@@ -50,7 +50,7 @@ const PipelinePicker: FC<AutomaticJobProps> = ({ lens, pipelineManagers = [] }) 
         if (newVal === null) {
             (await lens.prop('validationType').get()) === 'validation only' &&
                 lens.prop('validationType').set(newVal);
-        } else {
+        } else if (newVal) {
             const chosenPipeline = pipelines?.find((pipeline) => pipeline.name === newVal.id);
             if (chosenPipeline) {
                 setPipelinePickerValue(chosenPipeline);
