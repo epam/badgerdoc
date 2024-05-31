@@ -300,16 +300,19 @@ async def change_job(
     is_job_changed = False
 
     if (
-        new_job_params.status == schemas.Status.finished
-        and job_to_change.status == schemas.Status.in_progress
+        job_to_change.type == schemas.JobType.ExtractionWithAnnotationJob
+        and new_job_params.status == schemas.Status.finished
     ):
-        is_job_changed = True
-
-    if job_to_change.type == schemas.JobType.ExtractionWithAnnotationJob:
+        new_job_params_dict = new_job_params.dict(
+            exclude_none=True, exclude_unset=True, exclude_defaults=True
+        )
         if (
-            job_to_change.mode == schemas.JobMode.Automatic
-            and new_job_params.status == schemas.Status.finished
+            job_to_change.status == schemas.Status.in_progress
+            and len(new_job_params_dict) == 1
         ):
+            # detect finishing all validation tasks from annotation
+            db_service.change_job(db, job_to_change, new_job_params)
+        elif job_to_change.mode == schemas.JobMode.Automatic:
             new_job_params.mode = schemas.JobMode.Manual
             new_job_params.status = schemas.Status.ready_for_annotation
             if job_to_change.start_manual_job_automatically:
