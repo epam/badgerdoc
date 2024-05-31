@@ -298,6 +298,13 @@ async def change_job(
                 setattr(new_job_params, field, value)
 
     is_job_changed = False
+
+    if (
+        new_job_params.status == schemas.Status.finished
+        and job_to_change.status == schemas.Status.in_progress
+    ):
+        is_job_changed = True
+
     if job_to_change.type == schemas.JobType.ExtractionWithAnnotationJob:
         if (
             job_to_change.mode == schemas.JobMode.Automatic
