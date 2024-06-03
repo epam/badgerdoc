@@ -151,6 +151,7 @@ def generate_file_data(
         "file": f"{file_data['path']}",
         "bucket": file_data["bucket"],
         "pages": pages,
+        "file_id": file_data["id"],
         "output_path": f"runs/{job_id}/{file_data['id']}",
     }
     if batch_id:
