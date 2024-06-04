@@ -427,7 +427,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
                                                     value={tableModeColumns}
                                                     onValueChange={setTableModeColumns}
                                                     min={1}
-                                                    max={10}
+                                                    max={20}
                                                 />
                                             </LabeledInput>
                                             <span>X</span>
@@ -436,7 +436,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
                                                     value={tableModeRows}
                                                     onValueChange={setTableModeRows}
                                                     min={1}
-                                                    max={10}
+                                                    max={20}
                                                 />
                                             </LabeledInput>
                                         </div>

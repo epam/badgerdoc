@@ -81,6 +81,7 @@ export const TableAnnotation = ({
         visibleGutterWidth: 2
     };
     const [scaledCells, setScaledCells] = useState<Annotation[]>(annotation.tableCells ?? []);
+    const [ensuredScale, setEnsuredScale] = useState(1);
 
     useEffect(() => {
         if (scaledCells.length) {
@@ -97,6 +98,9 @@ export const TableAnnotation = ({
             });
         }
     }, [scaledCells]);
+    useEffect(() => {
+        setEnsuredScale(scale);
+    }, [scale]);
     useEffect(() => {
         let newGutters = createInitialGutters(
             tableModeRows,
@@ -132,7 +136,7 @@ export const TableAnnotation = ({
 
         setGuttersMap(newGutters);
         setIsNeedToSaveTable({ gutters: newGutters, cells: initialCells });
-    }, [tableModeRows, tableModeColumns, selectedAnnotation]);
+    }, [tableModeRows, tableModeColumns, ensuredScale]);
 
     const onMouseDownOnGutter = useGutterClick(
         panoRef,
