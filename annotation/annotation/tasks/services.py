@@ -884,7 +884,7 @@ def get_annotation_tasks(
     )
 
 
-def get_accum_annotations(
+async def get_accum_annotations(
     db: Session, x_current_tenant: str, annotation_task: ManualAnnotationTask
 ) -> Optional[ParticularRevisionSchema]:
     """
@@ -913,7 +913,7 @@ def get_accum_annotations(
     if not required_revision:
         return
     required_revision.pages = annotated
-    annotated_pages = construct_particular_rev_response(required_revision)
+    annotated_pages = await construct_particular_rev_response(required_revision)
     return annotated_pages
 
 
@@ -963,7 +963,7 @@ def remove_unnecessary_attributes(
     }
 
 
-def load_annotations(
+async def load_annotations(
     db: Session,
     x_current_tenant: str,
     annotation_tasks: List[ManualAnnotationTask],
@@ -971,7 +971,7 @@ def load_annotations(
     """Load all tasks revisions."""
     tasks_annotations = dict()
     for task_number, annotation_task in enumerate(annotation_tasks):
-        annotated_pages = get_accum_annotations(
+        annotated_pages = await get_accum_annotations(
             db, x_current_tenant, annotation_task
         )
         if not annotated_pages:
@@ -1143,7 +1143,7 @@ def get_tasks_without_ids(
     return tasks_without_id
 
 
-def construct_annotated_pages(
+async def construct_annotated_pages(
     db: Session,
     x_current_tenant: str,
     annotation_tasks: List[ManualAnnotationTask],
@@ -1152,7 +1152,7 @@ def construct_annotated_pages(
     Find common objects and categories in annotation tasks.
     Construct annotated pages for new validation revision.
     """
-    tasks_annotations = load_annotations(
+    tasks_annotations = await load_annotations(
         db, x_current_tenant, annotation_tasks
     )
     common_doc_objs = {}
@@ -1215,7 +1215,7 @@ def construct_annotated_pages(
     return annotated_pages, common_categories
 
 
-def create_validation_revisions(
+async def create_validation_revisions(
     db: Session,
     x_current_tenant: str,
     token: TenantData,
@@ -1236,7 +1236,7 @@ def create_validation_revisions(
         annotation_tasks = get_annotation_tasks(
             db, job_id, file_id, pages_nums
         )
-        annotated_pages, categories = construct_annotated_pages(
+        annotated_pages, categories = await construct_annotated_pages(
             db, x_current_tenant, annotation_tasks
         )
         if not (
@@ -1254,7 +1254,7 @@ def create_validation_revisions(
         )
 
         try:
-            construct_annotated_doc(
+            await construct_annotated_doc(
                 db=db,
                 user_id=validation_task.user_id,
                 pipeline_id=None,
