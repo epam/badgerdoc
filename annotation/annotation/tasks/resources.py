@@ -863,7 +863,7 @@ def get_pages_info(
     },
     summary="Finish task.",
 )
-def finish_task(
+async def finish_task(
     validation_info: Optional[ValidationEndSchema] = Body(None),
     task_id: int = Path(..., example=3),
     db: Session = Depends(get_db),
@@ -1163,7 +1163,7 @@ def finish_task(
         ):
             db.flush()
             # create first validation revisions with matching annotations
-            create_validation_revisions(
+            await create_validation_revisions(
                 db, x_current_tenant, token, job.job_id, unblocked_tasks
             )
 

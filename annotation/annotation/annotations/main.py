@@ -1,10 +1,12 @@
 import json
 import os
+from contextlib import asynccontextmanager
 from datetime import datetime
 from hashlib import sha1
 from typing import Dict, List, Optional, Set, Tuple, Union
 from uuid import UUID
 
+import aioboto3
 import boto3
 from dotenv import find_dotenv, load_dotenv
 from fastapi import HTTPException
@@ -80,7 +82,8 @@ class NotConfiguredException(Exception):
     pass
 
 
-def connect_s3(bucket_name: str) -> boto3.resource:
+@asynccontextmanager
+async def connect_s3(bucket_name: str):
     boto3_config = {}
     if S3_PROVIDER == "minio":
         boto3_config.update(
@@ -98,21 +101,21 @@ def connect_s3(bucket_name: str) -> boto3.resource:
             "s3 connection is not properly configured - "
             "S3_PROVIDER is not set"
         )
-    s3_resource = boto3.resource("s3", **boto3_config)
     logger_.debug(f"{S3_PROVIDER=}")
-
-    try:
-        logger_.debug("Connecting to S3 bucket: %s", bucket_name)
-        s3_resource.meta.client.head_bucket(Bucket=bucket_name)
-        # here is some bug or I am missing smth: this line ^
-        # should raise NoSuchBucket
-        # error, if bucket is not available, but for some reason
-        # it responses with TypeError: NoneType object is not
-        # callable, this try/except block should be changed after understanding
-        # what is going on
-    except TypeError:
-        raise s3_resource.meta.client.exceptions.NoSuchBucket
-    return s3_resource
+    session = aioboto3.Session()  # todo: access key
+    async with session.resource("s3", **boto3_config) as s3_resource:
+        try:
+            logger_.debug("Connecting to S3 bucket: %s", bucket_name)
+            s3_resource.meta.client.head_bucket(Bucket=bucket_name)
+            # here is some bug or I am missing smth: this line ^
+            # should raise NoSuchBucket
+            # error, if bucket is not available, but for some reason
+            # it responses with TypeError: NoneType object is not
+            # callable, this try/except block should be changed after understanding
+            # what is going on
+        except TypeError:
+            raise s3_resource.meta.client.exceptions.NoSuchBucket
+        yield s3_resource
 
 
 def upload_pages_to_minio(
@@ -268,7 +271,7 @@ class DuplicateAnnotationError(Exception):
     pass
 
 
-def construct_annotated_doc(
+async def construct_annotated_doc(
     db: Session,
     user_id: Optional[UUID],
     pipeline_id: Optional[int],
@@ -392,25 +395,25 @@ def construct_annotated_doc(
         ) from err
 
     bucket_name = convert_bucket_name_if_s3prefix(tenant)
-    s3_resource = connect_s3(bucket_name)
-    upload_pages_to_minio(
-        pages=doc.pages,
-        pages_sha=pages_sha,
-        s3_path=s3_path,
-        bucket_name=bucket_name,
-        s3_resource=s3_resource,
-    )
-    create_manifest_json(
-        annotated_doc,
-        s3_path,
-        s3_file_path,
-        s3_file_bucket,
-        bucket_name,
-        job_id,
-        file_id,
-        db,
-        s3_resource,
-    )
+    async with connect_s3(bucket_name) as s3_resource:
+        upload_pages_to_minio(
+            pages=doc.pages,
+            pages_sha=pages_sha,
+            s3_path=s3_path,
+            bucket_name=bucket_name,
+            s3_resource=s3_resource,
+        )
+        create_manifest_json(
+            annotated_doc,
+            s3_path,
+            s3_file_path,
+            s3_file_bucket,
+            bucket_name,
+            job_id,
+            file_id,
+            db,
+            s3_resource,
+        )
 
     return annotated_doc
 
@@ -691,46 +694,46 @@ def load_page(
     loaded_pages.append(loaded_page)
 
 
-def load_all_revisions_pages(
+async def load_all_revisions_pages(
     pages: Dict[int, List[PageRevision]],
     tenant: str,
 ):
     bucket_name = convert_bucket_name_if_s3prefix(tenant)
-    s3_resource = connect_s3(bucket_name)
-    for page_num, page_revisions in pages.items():
-        loaded_pages = []
-        for page_revision in page_revisions:
-            load_page(
-                s3_resource,
-                loaded_pages,
-                bucket_name,
-                page_num,
-                page_revision["user_id"],
-                page_revision,
-                True,
-            )
-        pages[page_num] = loaded_pages
+    async with connect_s3(bucket_name) as s3_resource:
+        for page_num, page_revisions in pages.items():
+            loaded_pages = []
+            for page_revision in page_revisions:
+                load_page(
+                    s3_resource,
+                    loaded_pages,
+                    bucket_name,
+                    page_num,
+                    page_revision["user_id"],
+                    page_revision,
+                    True,
+                )
+            pages[page_num] = loaded_pages
 
 
-def load_latest_revision_pages(
+async def load_latest_revision_pages(
     pages: Dict[int, Dict[str, LatestPageRevision]],
     tenant: str,
 ):
     bucket_name = convert_bucket_name_if_s3prefix(tenant)
-    s3_resource = connect_s3(bucket_name)
-    for page_num, page_revisions in pages.items():
-        loaded_pages = []
-        for user_id, page_revision in page_revisions.items():
-            load_page(
-                s3_resource,
-                loaded_pages,
-                bucket_name,
-                page_num,
-                user_id,
-                page_revision,
-                True,
-            )
-        pages[page_num] = loaded_pages
+    async with connect_s3(bucket_name) as s3_resource:
+        for page_num, page_revisions in pages.items():
+            loaded_pages = []
+            for user_id, page_revision in page_revisions.items():
+                load_page(
+                    s3_resource,
+                    loaded_pages,
+                    bucket_name,
+                    page_num,
+                    user_id,
+                    page_revision,
+                    True,
+                )
+            pages[page_num] = loaded_pages
 
 
 def load_annotated_pages_for_particular_rev(
@@ -782,7 +785,7 @@ def load_validated_pages_for_particular_rev(
             )
 
 
-def construct_particular_rev_response(
+async def construct_particular_rev_response(
     revision: AnnotatedDoc,
 ) -> ParticularRevisionSchema:
     """
@@ -806,7 +809,6 @@ def construct_particular_rev_response(
     }
     """
     bucket_name = convert_bucket_name_if_s3prefix(revision.tenant)
-    s3_resource = connect_s3(bucket_name)
 
     page_revision = {
         "job_id": revision.job_id,
@@ -814,12 +816,13 @@ def construct_particular_rev_response(
     }
     loaded_pages = []
 
-    load_annotated_pages_for_particular_rev(
-        revision, page_revision, s3_resource, loaded_pages
-    )
-    load_validated_pages_for_particular_rev(
-        revision, page_revision, s3_resource, loaded_pages
-    )
+    async with connect_s3(bucket_name) as s3_resource:
+        load_annotated_pages_for_particular_rev(
+            revision, page_revision, s3_resource, loaded_pages
+        )
+        load_validated_pages_for_particular_rev(
+            revision, page_revision, s3_resource, loaded_pages
+        )
     similar_revisions = [
         RevisionLink(
             revision=link.similar_doc.revision,

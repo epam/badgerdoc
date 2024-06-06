@@ -83,7 +83,7 @@ logger = logging.getLogger(__name__)
     summary="Save annotation by user.",
     tags=[ANNOTATION_TAG],
 )
-def post_annotation_by_user(
+async def post_annotation_by_user(
     doc: DocForSaveSchema,
     task_id: int = Path(..., example=5),
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
@@ -212,7 +212,7 @@ def post_annotation_by_user(
                     f"already exists in latest revision.",
                 )
     try:
-        new_annotated_doc = construct_annotated_doc(
+        new_annotated_doc = await construct_annotated_doc(
             db=db,
             user_id=doc.user,
             pipeline_id=None,
@@ -252,7 +252,7 @@ def post_annotation_by_user(
     summary="Save annotation by pipeline.",
     tags=[ANNOTATION_TAG],
 )
-def post_annotation_by_pipeline(
+async def post_annotation_by_pipeline(
     doc: DocForSaveSchema,
     job_id: int = Path(..., example=3),
     file_id: int = Path(..., example=4),
@@ -313,7 +313,7 @@ def post_annotation_by_pipeline(
         job_id, list(categories), x_current_tenant, token.token
     )
     try:
-        new_annotated_doc = construct_annotated_doc(
+        new_annotated_doc = await construct_annotated_doc(
             db=db,
             user_id=None,
             pipeline_id=doc.pipeline,
@@ -394,7 +394,7 @@ def get_jobs_by_file_id(
     "user (or by pipeline) for particular pages.",
     tags=[REVISION_TAG, ANNOTATION_TAG],
 )
-def get_latest_revision_by_user(
+async def get_latest_revision_by_user(
     job_id: int = Path(..., example=3),
     file_id: int = Path(..., example=4),
     page_numbers: Set[int] = Query(..., min_items=1, ge=1, example={3, 4, 1}),
@@ -420,7 +420,7 @@ def get_latest_revision_by_user(
     pages = find_latest_revision_pages(revisions, page_numbers)
     if not pages:
         return {page_number: [] for page_number in page_numbers}
-    load_latest_revision_pages(pages, x_current_tenant)
+    await load_latest_revision_pages(pages, x_current_tenant)
     return pages
 
 
@@ -436,7 +436,7 @@ def get_latest_revision_by_user(
     "given.",
     tags=[REVISION_TAG, ANNOTATION_TAG],
 )
-def get_annotations_up_to_given_revision(
+async def get_annotations_up_to_given_revision(
     job_id: int = Path(..., example=1),
     file_id: int = Path(..., example=1),
     revision: str = Path(..., example="latest"),
@@ -515,7 +515,7 @@ def get_annotations_up_to_given_revision(
     required_revision.failed_validation_pages = failed
     required_revision.categories = categories
 
-    return construct_particular_rev_response(required_revision)
+    return await construct_particular_rev_response(required_revision)
 
 
 @router.get(
@@ -529,7 +529,7 @@ def get_annotations_up_to_given_revision(
     summary="Get annotation for latest or particular revision.",
     tags=[REVISION_TAG, ANNOTATION_TAG],
 )
-def get_annotation_for_given_revision(
+async def get_annotation_for_given_revision(
     job_id: int = Path(..., example=1),
     file_id: int = Path(..., example=1),
     revision: str = Path(..., example="latest"),
@@ -559,7 +559,7 @@ def get_annotation_for_given_revision(
     if not latest:
         raise NoSuchRevisionsError
 
-    return construct_particular_rev_response(latest)
+    return await construct_particular_rev_response(latest)
 
 
 @router.get(
@@ -574,7 +574,7 @@ def get_annotation_for_given_revision(
     ),
     tags=[REVISION_TAG, ANNOTATION_TAG],
 )
-def get_all_revisions(
+async def get_all_revisions(
     job_id: int,
     file_id: int,
     page_numbers: Set[int] = Query(..., min_items=1, ge=1),
@@ -621,5 +621,5 @@ def get_all_revisions(
     pages = find_all_revisions_pages(revisions, page_numbers)
     if not pages:
         return {page_number: [] for page_number in page_numbers}
-    load_all_revisions_pages(pages, x_current_tenant)
+    await load_all_revisions_pages(pages, x_current_tenant)
     return pages
