@@ -1,4 +1,5 @@
 import logging
+
 from airflow.decorators import task
 
 logger = logging.getLogger(__name__)
