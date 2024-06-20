@@ -50,6 +50,7 @@ import {
     AnnotationBoundType,
     AnnotationImageToolType,
     AnnotationLinksBoundType,
+    CurrentCell,
     Maybe,
     PageToken,
     PaperToolParams,
@@ -179,6 +180,9 @@ export type TTaskAnnotatorContext = SplitValidationValue &
         isDocumentPageDataLoaded: (pageIndex: number) => boolean;
         latestAnnotationsResultData: AnnotationsResponse | undefined;
         areLatestAnnotationsFetching: boolean;
+        setCurrentCell: (cell: CurrentCell) => void;
+        currentCell?: CurrentCell;
+        setTableMode: (value: boolean) => void;
     };
 
 type ProviderProps = {
@@ -295,6 +299,8 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         width: defaultPageWidth,
         height: defaultPageHeight
     });
+
+    const [currentCell, setCurrentCell] = useState<CurrentCell | undefined>(undefined);
 
     const { notifyError } = useNotifications();
 
@@ -678,7 +684,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             setTabValue('Data');
             setIsCategoryDataEmpty(false);
             setSelectedAnnotation(annotation);
-        } else {
+        } else if (!currentCell) {
             setTabValue('Categories');
             setIsCategoryDataEmpty(true);
         }
@@ -1213,6 +1219,9 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             getNextDocumentItems,
             selectedRelatedDoc,
             isDocumentPageDataLoaded,
+            currentCell,
+            setCurrentCell,
+            setTableMode,
             ...splitValidation,
             ...documentLinksValues,
             ...validationValues
@@ -1255,7 +1264,8 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         setAvailableRenderedPagesRange,
         latestAnnotationsResultData,
         areLatestAnnotationsFetching,
-        isDocumentPageDataLoaded
+        isDocumentPageDataLoaded,
+        currentCell
     ]);
 
     return <TaskAnnotatorContext.Provider value={value}>{children}</TaskAnnotatorContext.Provider>;

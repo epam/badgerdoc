@@ -344,7 +344,7 @@ export const TableAnnotation = ({
             <CellSelectionLayer selectionBounds={selectionBounds} />
             <TableCellLayer
                 table={annotation}
-                cells={scaledCells}
+                cells={annotation.tableCells}
                 scale={scale}
                 categories={categories}
             />
