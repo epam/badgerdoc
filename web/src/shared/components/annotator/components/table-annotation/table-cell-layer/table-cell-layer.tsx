@@ -54,7 +54,8 @@ export const TableCell = ({
         color: category === 'te-cell' ? '#1940FF' : '#FF1c60', //TODO: TEST
         zIndex: isSelected ? 10 : 1,
         background: cellCategory === 'te-cell' ? 'transparent' : cellCategory?.metadata?.color, //TODO: TEST,
-        opacity: 0
+        opacity: 0,
+        minWidth: '60px'
     };
 
     const handleCellClick = (e: any) => {
