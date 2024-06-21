@@ -492,7 +492,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
                                     <div className={styles.cellInput}>
                                         <LabeledInput label="Value">
                                             <TextInput
-                                                value={cell}
+                                                value={currentCell?.text}
                                                 cx="c-m-t-5"
                                                 onValueChange={(val) => {
                                                     setCell(val);
