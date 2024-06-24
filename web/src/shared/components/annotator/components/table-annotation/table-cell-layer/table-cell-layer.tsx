@@ -42,7 +42,7 @@ export const TableCell = ({
 }: TableCellProps) => {
     const { x, y, width, height } = bound;
     const cellCategory = categories?.find((el) => el.name === category) ?? 'te-cell';
-    const { setCurrentCell, setTabValue, setTableMode } = useTaskAnnotatorContext();
+    const { setCurrentCell, setTabValue } = useTaskAnnotatorContext();
 
     const annStyle = {
         position: 'absolute' as 'absolute',
@@ -67,7 +67,6 @@ export const TableCell = ({
             text: cellText
         });
         setTabValue('Data');
-        setTableMode(true);
     };
 
     return (

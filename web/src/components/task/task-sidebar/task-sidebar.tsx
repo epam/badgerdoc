@@ -420,16 +420,14 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
                             )}
                             {tabValue === 'Data' && tableMode && (
                                 <>
-                                    {!cell && (
-                                        <MultiSwitch
-                                            items={[
-                                                { id: 'lines', caption: 'Lines' },
-                                                { id: 'cells', caption: 'Cells' }
-                                            ]}
-                                            value={tableModeValues}
-                                            onValueChange={setTableModeValues}
-                                        />
-                                    )}
+                                    <MultiSwitch
+                                        items={[
+                                            { id: 'lines', caption: 'Lines' },
+                                            { id: 'cells', caption: 'Cells' }
+                                        ]}
+                                        value={tableModeValues}
+                                        onValueChange={setTableModeValues}
+                                    />
                                     {tableModeValues === 'lines' && (
                                         <div className={styles.tableParams}>
                                             <LabeledInput label="Columns">
@@ -492,7 +490,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
                                     <div className={styles.cellInput}>
                                         <LabeledInput label="Value">
                                             <TextInput
-                                                value={currentCell?.text}
+                                                value={cell}
                                                 cx="c-m-t-5"
                                                 onValueChange={(val) => {
                                                     setCell(val);

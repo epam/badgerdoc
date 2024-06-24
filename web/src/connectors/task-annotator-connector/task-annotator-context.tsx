@@ -182,7 +182,6 @@ export type TTaskAnnotatorContext = SplitValidationValue &
         areLatestAnnotationsFetching: boolean;
         setCurrentCell: (cell: CurrentCell) => void;
         currentCell?: CurrentCell;
-        setTableMode: (value: boolean) => void;
     };
 
 type ProviderProps = {
@@ -1221,7 +1220,6 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             isDocumentPageDataLoaded,
             currentCell,
             setCurrentCell,
-            setTableMode,
             ...splitValidation,
             ...documentLinksValues,
             ...validationValues
