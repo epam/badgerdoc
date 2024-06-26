@@ -4,6 +4,7 @@ import { Annotation, Bound, Maybe } from '../../../typings';
 import styles from './table-cell-layer.module.scss';
 import { TextLabel } from '../../text-label';
 import { Category } from '../../../../../../api/typings';
+import { useTaskAnnotatorContext } from 'connectors/task-annotator-connector/task-annotator-context';
 
 type TableCellProps = {
     label?: string;
@@ -41,6 +42,7 @@ export const TableCell = ({
 }: TableCellProps) => {
     const { x, y, width, height } = bound;
     const cellCategory = categories?.find((el) => el.name === category) ?? 'te-cell';
+    const { setCurrentCell, setTabValue } = useTaskAnnotatorContext();
 
     const annStyle = {
         position: 'absolute' as 'absolute',
@@ -52,19 +54,36 @@ export const TableCell = ({
         color: category === 'te-cell' ? '#1940FF' : '#FF1c60', //TODO: TEST
         zIndex: isSelected ? 10 : 1,
         background: cellCategory === 'te-cell' ? 'transparent' : cellCategory?.metadata?.color, //TODO: TEST,
-        opacity: 0.2
+        opacity: 0,
+        minWidth: '60px'
+    };
+
+    const handleCellClick = (e: any) => {
+        onClick(e);
+        const cellId = e.target.getAttribute('data-id');
+        const cellText = e.target.getAttribute('data-text');
+        setCurrentCell({
+            id: cellId,
+            text: cellText
+        });
+        setTabValue('Data');
     };
 
     return (
         <div
-            role="none"
-            onClick={onClick}
+            role="button"
+            onClick={handleCellClick}
             onDoubleClick={onDoubleClick}
             onContextMenu={onContextMenu}
+            onKeyPress={handleCellClick}
             className="table-cell"
             style={annStyle}
             ref={annotationRef}
+            data-id={cell.id}
+            data-text={cell.text}
+            tabIndex={0}
         >
+            {cell.text}
             <TextLabel
                 id={cell.id}
                 color={color}

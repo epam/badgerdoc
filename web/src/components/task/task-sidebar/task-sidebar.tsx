@@ -10,7 +10,8 @@ import {
     Panel,
     RadioGroup,
     TabButton,
-    Tooltip
+    Tooltip,
+    TextInput
 } from '@epam/loveship';
 import { useGetPageSummary } from 'api/hooks/tasks';
 import { useTaskAnnotatorContext } from 'connectors/task-annotator-connector/task-annotator-context';
@@ -43,9 +44,9 @@ import { ReactComponent as openIcon } from '@epam/assets/icons/common/navigation
 import { ReactComponent as closeIcon } from '@epam/assets/icons/common/navigation-chevron-right_right-18.svg';
 import { ReactComponent as Copy } from '@epam/assets/icons/common/copy_content-12.svg';
 import { handleCopy } from 'shared/helpers/copy-text';
+import { getSaveButtonTooltipContent } from './utils';
 
 import styles from './task-sidebar.module.scss';
-import { getSaveButtonTooltipContent } from './utils';
 
 type TaskSidebarProps = {
     jobSettings?: ReactElement;
@@ -114,7 +115,8 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
         allValidated,
         annotationSaved,
         onFinishValidation,
-        notProcessedPages
+        notProcessedPages,
+        currentCell
     } = useTaskAnnotatorContext();
     const {
         tableModeColumns,
@@ -138,6 +140,12 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
     const isValidationDisabled = (!currentPage && !splitValidation) || !isAnnotatable;
 
     const { refetch } = useGetPageSummary({ taskId: task?.id, taskType: task?.is_validation }, {});
+
+    const [cell, setCell] = useState<string | undefined>('');
+
+    useEffect(() => {
+        setCell(currentCell?.text);
+    }, [currentCell]);
 
     useEffect(() => {
         let newSelectionType:
@@ -427,7 +435,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
                                                     value={tableModeColumns}
                                                     onValueChange={setTableModeColumns}
                                                     min={1}
-                                                    max={10}
+                                                    max={20}
                                                 />
                                             </LabeledInput>
                                             <span>X</span>
@@ -436,7 +444,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
                                                     value={tableModeRows}
                                                     onValueChange={setTableModeRows}
                                                     min={1}
-                                                    max={10}
+                                                    max={20}
                                                 />
                                             </LabeledInput>
                                         </div>
@@ -479,6 +487,22 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
                                             )}
                                         </div>
                                     )}
+                                    <div className={styles.cellInput}>
+                                        <LabeledInput label="Value">
+                                            <TextInput
+                                                value={cell}
+                                                cx="c-m-t-5"
+                                                onValueChange={(val) => {
+                                                    setCell(val);
+                                                }}
+                                                rawProps={{
+                                                    style: {
+                                                        width: '200px'
+                                                    }
+                                                }}
+                                            />
+                                        </LabeledInput>
+                                    </div>
                                 </>
                             )}
                             {tabValue === 'Data' && !tableMode && (

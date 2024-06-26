@@ -45,7 +45,6 @@ import { useTaskAnnotatorContext } from '../../../connectors/task-annotator-conn
 import { AnnotationLinksBoundType } from 'shared';
 
 import { useTableAnnotatorContext } from './context/table-annotator-context';
-import { scaleAnnotation } from './utils/scale-annotation';
 import { updateAnnotation } from './components/table-annotation/helpers';
 
 import paper from 'paper';
@@ -355,7 +354,7 @@ export const Annotator: FC<AnnotatorProps> = ({
         if (createdIdRef.current) {
             const createdAnnotation = annotations.find((ann) => ann.id === createdIdRef.current);
             if (createdAnnotation) {
-                handleAnnotationSelected(scaleAnnotation(createdAnnotation, scale));
+                handleAnnotationSelected(createdAnnotation);
             }
             createdIdRef.current = null;
         }
@@ -395,17 +394,21 @@ export const Annotator: FC<AnnotatorProps> = ({
         }
     }, [selectedAnnotation, isNeedToSaveTable]);
 
-    const downscaleAnnotation = (a: Annotation): Annotation => {
-        return {
-            ...a,
-            bound: {
-                x: a.bound.x / scale,
-                y: a.bound.y / scale,
-                width: a.bound.width / scale,
-                height: a.bound.height / scale
-            }
-        };
-    };
+    const downscaleAnnotation = useMemo(
+        () =>
+            (a: Annotation): Annotation => {
+                return {
+                    ...a,
+                    bound: {
+                        x: a.bound.x / scale,
+                        y: a.bound.y / scale,
+                        width: a.bound.width / scale,
+                        height: a.bound.height / scale
+                    }
+                };
+            },
+        [scale]
+    );
 
     const [size, setSize] = useState<{ width: number; height: number }>();
     useEffect(() => {
@@ -505,6 +508,11 @@ export const Annotator: FC<AnnotatorProps> = ({
                         const isSelected = annotation.id === selectedAnnotation?.id;
                         const isHovered = annotation.id === hoveredAnnotation?.id;
 
+                        const downscaledAnnotation =
+                            annotation.boundType === 'table'
+                                ? downscaleAnnotation(annotation)
+                                : annotation;
+
                         return editableAnnotationRenderer({
                             annotation,
                             cells: annotation.tableCells,
@@ -519,20 +527,16 @@ export const Annotator: FC<AnnotatorProps> = ({
                             canvas: paperIsSet,
                             setTools,
                             onClick: (e) => {
-                                onClickHook(e, annotation);
+                                onClickHook(e, downscaledAnnotation);
                             },
                             onDoubleClick: () => {
-                                onAnnotationDoubleClick(
-                                    annotation.boundType === 'table'
-                                        ? downscaleAnnotation(annotation)
-                                        : annotation
-                                );
+                                onAnnotationDoubleClick(downscaledAnnotation);
                             },
                             onContextMenu: (e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
                                 onAnnotationContextMenu(e, annotation.id, annotation.labels);
-                                onClickHook(e, annotation);
+                                onClickHook(e, downscaledAnnotation);
                             },
                             onAnnotationContextMenu: (
                                 event: React.MouseEvent<HTMLDivElement>,

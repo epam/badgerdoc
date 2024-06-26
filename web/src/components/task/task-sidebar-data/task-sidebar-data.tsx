@@ -7,9 +7,10 @@ import { useTaxonomiesTree } from 'components/taxonomies/use-taxonomies-tree';
 import { useHeight } from 'shared/hooks/use-height';
 import { Annotation } from 'shared';
 import { isEmpty } from 'lodash';
-import { Blocker, SearchInput, Text, TextArea } from '@epam/loveship';
-import styles from './task-sidebar-data.module.scss';
+import { Blocker, SearchInput, Text, TextArea, LabeledInput, TextInput } from '@epam/loveship';
 import { NoData } from 'shared/no-data';
+import { useTaskAnnotatorContext } from 'connectors/task-annotator-connector/task-annotator-context';
+import styles from './task-sidebar-data.module.scss';
 
 type TaskSidebarDataProps = {
     isCategoryDataEmpty: boolean;
@@ -40,6 +41,7 @@ export const TaskSidebarData: FC<TaskSidebarDataProps> = ({
 
     const hightRef = useRef<HTMLDivElement>(null);
     const taxonomiesHeight = useHeight({ ref: hightRef });
+    const { currentCell } = useTaskAnnotatorContext();
 
     const { taxonomyNodes, expandNode, onLoadData, isLoading } = useTaxonomiesTree({
         searchText,
@@ -48,6 +50,22 @@ export const TaskSidebarData: FC<TaskSidebarDataProps> = ({
 
     return (
         <div className={styles['task-sidebar-data']}>
+            {currentCell && (
+                <div className={styles.cellInput}>
+                    <LabeledInput label="Value">
+                        <TextInput
+                            value={currentCell?.text}
+                            onValueChange={() => {}}
+                            cx="c-m-t-5"
+                            rawProps={{
+                                style: {
+                                    width: '200px'
+                                }
+                            }}
+                        />
+                    </LabeledInput>
+                </div>
+            )}
             {isCategoryDataEmpty && (
                 <div className={styles['no-data']}>
                     <NoData title="The selected category doesn't have data attributes" />

@@ -226,3 +226,8 @@ export type AnnotationTable = {
     cols: number[];
     rows: number[];
 };
+
+export type CurrentCell = {
+    id: string | number;
+    text: string;
+};
