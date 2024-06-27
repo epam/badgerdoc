@@ -145,7 +145,8 @@ const mapAnnotationToApi = (
                 rowspan: el.data?.rowspan,
                 colspan: el.data?.colspan
             },
-            links: el.links
+            links: el.links,
+            text: el.text
         }));
         return [
             {
@@ -249,7 +250,7 @@ export const mapModifiedAnnotationPagesToApi = (
     const res = modifiedPagesNums.map((page_num) => {
         const annotations = annotationChanges[page_num];
         const tokens = tokensByPages[page_num];
-        const pageSize = pages.find((page) => page.page_num === page_num)?.size;
+        // const pageSize = pages.find((page) => page.page_num === page_num)?.size;
         const annotationWithChildren = annotations?.map((el) =>
             addChildrenToAnnotation(el, annotations)
         );
@@ -261,7 +262,8 @@ export const mapModifiedAnnotationPagesToApi = (
 
         return {
             page_num,
-            size: pageSize ?? defaultPageSize,
+            size: defaultPageSize, // TO DELETE
+            // size: pageSize ?? defaultPageSize,
             objs
         };
     });

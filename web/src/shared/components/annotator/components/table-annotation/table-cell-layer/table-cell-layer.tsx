@@ -1,10 +1,10 @@
 import noop from 'lodash/noop';
 import React, { RefObject } from 'react';
 import { Annotation, Bound, Maybe } from '../../../typings';
-import styles from './table-cell-layer.module.scss';
 import { TextLabel } from '../../text-label';
 import { Category } from '../../../../../../api/typings';
 import { useTaskAnnotatorContext } from 'connectors/task-annotator-connector/task-annotator-context';
+import styles from './table-cell-layer.module.scss';
 
 type TableCellProps = {
     label?: string;
@@ -63,7 +63,7 @@ export const TableCell = ({
         const cellId = e.target.getAttribute('data-id');
         const cellText = e.target.getAttribute('data-text');
         setCurrentCell({
-            id: cellId,
+            id: Number(cellId),
             text: cellText
         });
         setTabValue('Data');
