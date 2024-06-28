@@ -145,7 +145,8 @@ const mapAnnotationToApi = (
                 rowspan: el.data?.rowspan,
                 colspan: el.data?.colspan
             },
-            links: el.links
+            links: el.links,
+            text: el.text
         }));
         return [
             {

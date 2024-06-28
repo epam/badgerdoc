@@ -13,6 +13,8 @@ export const editableAnnotationRenderer: EditableAnnotationRenderer = ({
     isHovered,
     scale,
     selectedAnnotationRef,
+    isBoxAnnotationResizeEnded,
+    isBoxAnnotationResizeStarted,
     onClick,
     onDoubleClick,
     editable,
@@ -82,8 +84,11 @@ export const editableAnnotationRenderer: EditableAnnotationRenderer = ({
                 <TableAnnotation
                     isEditable={editable}
                     isSelected={isSelected}
+                    isHovered={isHovered}
                     key={annotation.id}
                     annotationRef={selectedAnnotationRef}
+                    isBoxAnnotationResizeEnded={isBoxAnnotationResizeEnded}
+                    isBoxAnnotationResizeStarted={isBoxAnnotationResizeStarted}
                     bound={annotation.bound}
                     color={annotation.color}
                     label={annotation.label}
@@ -91,6 +96,8 @@ export const editableAnnotationRenderer: EditableAnnotationRenderer = ({
                     onContextMenu={onContextMenu}
                     onDoubleClick={onDoubleClick}
                     onCloseIconClick={onCloseIconClick}
+                    onMouseEnter={onMouseEnter}
+                    onMouseLeave={onMouseLeave}
                     panoRef={panoRef as RefObject<HTMLDivElement>}
                     annotation={annotation}
                     scale={scale as number}

@@ -106,7 +106,9 @@ export type EditableAnnotationRenderer = (
         cells: Maybe<Annotation[]>;
         isSelected: boolean;
         isHovered?: boolean;
+        isBoxAnnotationResizeEnded?: boolean;
         selectedAnnotationRef?: RefObject<HTMLDivElement>;
+        isBoxAnnotationResizeStarted?: boolean;
         onClick: React.MouseEventHandler<HTMLDivElement>;
         onDoubleClick: React.MouseEventHandler<HTMLDivElement>;
         onContextMenu: React.MouseEventHandler<HTMLDivElement>;
@@ -193,11 +195,16 @@ export type TableAnnotationProps = {
     bound: Bound;
     isSelected?: boolean;
     isEditable?: boolean;
+    isHovered?: boolean;
+    isBoxAnnotationResizeEnded?: boolean;
+    isBoxAnnotationResizeStarted?: boolean;
     annotationRef?: RefObject<HTMLDivElement>;
     onClick?: React.MouseEventHandler<HTMLDivElement>;
     onDoubleClick?: React.MouseEventHandler<HTMLDivElement>;
     onContextMenu?: React.MouseEventHandler<HTMLDivElement>;
     onCloseIconClick?: React.MouseEventHandler<HTMLDivElement>;
+    onMouseEnter?: React.MouseEventHandler<HTMLDivElement>;
+    onMouseLeave?: React.MouseEventHandler<HTMLDivElement>;
     panoRef: RefObject<HTMLDivElement>;
     annotation: Annotation;
     scale: number;
