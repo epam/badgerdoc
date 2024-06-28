@@ -84,6 +84,7 @@ export const TableAnnotation = ({
     const [selectionBounds, setSelectionBounds] = useState<Bound>();
     const [selectedCells, setSelectedCells] = useState<Annotation[]>([]);
     const [forcedResizecBoundaries, forceResizedBoundaries] = React.useState<{}>();
+    const [gutterColor, setGutterColor] = useState(color);
     const forceResize = React.useCallback(() => forceResizedBoundaries({}), []);
 
     const gutterParams: GutterParams = {
@@ -109,6 +110,9 @@ export const TableAnnotation = ({
     }, [scaledCells]);
 
     useEffect(() => {
+        if (!isBoxAnnotationResizeEnded && isBoxAnnotationResizeStarted) {
+            setGutterColor('transparent');
+        }
         if (isBoxAnnotationResizeEnded && !isBoxAnnotationResizeStarted) {
             // TODO: Avoid delayed force updates. Here we need to react on annotation boundaries change and recalculate gutters based on new bound sizes
             delay(() => forceResize(), 0);
@@ -156,7 +160,8 @@ export const TableAnnotation = ({
 
         setGuttersMap(newGutters);
         setIsNeedToSaveTable({ gutters: newGutters, cells: initialCells });
-    }, [tableModeRows, tableModeColumns, forcedResizecBoundaries]);
+        setGutterColor(color);
+    }, [tableModeRows, tableModeColumns, forcedResizecBoundaries, scale]);
 
     const onMouseDownOnGutter = useGutterClick(
         panoRef,
@@ -365,7 +370,7 @@ export const TableAnnotation = ({
                 selectedGutter={selectedGutter}
                 onMouseDownOnGutter={onMouseDownOnGutter}
                 isCellMode={isCellMode}
-                color={color}
+                color={gutterColor}
             />
             <CellSelectionLayer selectionBounds={selectionBounds} />
             <TableCellLayer
