@@ -63,6 +63,7 @@ const GutterPartComponent = ({
                 className="gutter-core"
                 style={{
                     background: gutterPart.visibility ? color : 'transparent',
+                    transition: 'background .3s ease',
                     height:
                         gutter.type === 'vertical'
                             ? '100%'
