@@ -378,6 +378,7 @@ export const TableAnnotation = ({
                 cells={annotation.tableCells}
                 scale={scale}
                 categories={categories}
+                tableColor={color}
             />
         </div>
     );
