@@ -1,2 +1,2 @@
-import assets.db.models
-import assets.db.service  # noqa
+from assets.db import models
+from assets.db import service  # noqa
