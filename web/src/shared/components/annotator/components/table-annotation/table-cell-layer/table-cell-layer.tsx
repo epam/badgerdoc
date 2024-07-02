@@ -1,14 +1,13 @@
 import noop from 'lodash/noop';
 import React, { RefObject } from 'react';
 import { Annotation, Bound, Maybe } from '../../../typings';
-import styles from './table-cell-layer.module.scss';
-import { TextLabel } from '../../text-label';
 import { Category } from '../../../../../../api/typings';
 import { useTaskAnnotatorContext } from 'connectors/task-annotator-connector/task-annotator-context';
 
 type TableCellProps = {
     label?: string;
     color?: string;
+    tableColor?: string;
     bound: Bound;
     cell: Annotation;
     tableBound: Bound;
@@ -27,6 +26,7 @@ type TableCellProps = {
 export const TableCell = ({
     label = '',
     color = 'black',
+    tableColor,
     cell,
     bound,
     tableBound,
@@ -41,25 +41,22 @@ export const TableCell = ({
     categories
 }: TableCellProps) => {
     const { x, y, width, height } = bound;
-    const cellCategory = categories?.find((el) => el.name === category) ?? 'te-cell';
     const { setCurrentCell, setTabValue } = useTaskAnnotatorContext();
 
     const annStyle = {
         position: 'absolute' as 'absolute',
         left: x - tableBound.x,
         top: y - tableBound.y,
-        width: width,
-        height: height,
+        width: x + width,
+        height: y + height,
         //border: `2px ${color} solid`,
         color: category === 'te-cell' ? '#1940FF' : '#FF1c60', //TODO: TEST
         zIndex: isSelected ? 10 : 1,
-        background: cellCategory === 'te-cell' ? 'transparent' : cellCategory?.metadata?.color, //TODO: TEST,
-        opacity: 0,
-        minWidth: '60px'
+        background: category === 'header_cell' ? tableColor : 'transparent',
+        opacity: 0.2
     };
 
     const handleCellClick = (e: any) => {
-        onClick(e);
         const cellId = e.target.getAttribute('data-id');
         const cellText = e.target.getAttribute('data-text');
         setCurrentCell({
@@ -71,27 +68,28 @@ export const TableCell = ({
 
     return (
         <div
-            role="button"
-            onClick={handleCellClick}
+            role="none"
+            onClick={onClick}
             onDoubleClick={onDoubleClick}
             onContextMenu={onContextMenu}
-            onKeyPress={handleCellClick}
             className="table-cell"
             style={annStyle}
             ref={annotationRef}
-            data-id={cell.id}
-            data-text={cell.text}
-            tabIndex={0}
         >
-            {cell.text}
-            <TextLabel
-                id={cell.id}
-                color={color}
-                className={styles['tableAnnotation-label']}
-                label={label}
-                onCloseIconClick={onCloseIconClick}
-                isEditable={isEditable}
-            />
+            <div
+                role="button"
+                onClick={handleCellClick}
+                onKeyPress={handleCellClick}
+                tabIndex={0}
+                style={{
+                    width: x + width,
+                    height: y + height,
+                    opacity: 0,
+                    cursor: 'pointer'
+                }}
+                data-id={cell.id}
+                data-text={cell.text}
+            ></div>
         </div>
     );
 };
@@ -102,12 +100,14 @@ export const TableCellLayer = ({
     // todo: consider removal scale param
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     scale,
-    categories
+    categories,
+    tableColor
 }: {
     table: Annotation;
     cells: Maybe<Annotation[]>;
     scale: number;
     categories: Maybe<Category[]>;
+    tableColor?: string;
 }) => {
     return cells ? (
         <>
@@ -118,6 +118,7 @@ export const TableCellLayer = ({
                     bound={el.bound}
                     tableBound={table.bound}
                     color={el.color}
+                    tableColor={tableColor}
                     scale={scale}
                     category={el.category}
                     categories={categories}
