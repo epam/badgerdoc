@@ -41,7 +41,6 @@ export const TableCell = ({
     categories
 }: TableCellProps) => {
     const { x, y, width, height } = bound;
-    // const cellCategory = categories?.find((el) => el.name === category) ?? 'te-cell';
     const { setCurrentCell, setTabValue } = useTaskAnnotatorContext();
 
     const annStyle = {
@@ -54,7 +53,6 @@ export const TableCell = ({
         color: category === 'te-cell' ? '#1940FF' : '#FF1c60', //TODO: TEST
         zIndex: isSelected ? 10 : 1,
         background: category === 'header_cell' ? tableColor : 'transparent',
-        // background: cellCategory === 'te-cell' ? 'transparent' : cellCategory?.metadata?.color, //TODO: TEST,
         opacity: 0.2
     };
 
