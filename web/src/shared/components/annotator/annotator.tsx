@@ -43,6 +43,7 @@ import { Category } from '../../../api/typings';
 import { arrayUniqueByKey } from './utils/unique-array';
 import { useTaskAnnotatorContext } from '../../../connectors/task-annotator-connector/task-annotator-context';
 import { AnnotationLinksBoundType } from 'shared';
+import { scaleAnnotation } from './utils/scale-annotation';
 
 import { useTableAnnotatorContext } from './context/table-annotator-context';
 import { updateAnnotation } from './components/table-annotation/helpers';
@@ -55,7 +56,8 @@ import { ANNOTATION_RESIZER_CLASS } from './components/box-annotation';
 const resizeSelectionCast = {
     box: 'free-box',
     'free-box': 'free-box',
-    text: 'text'
+    text: 'text',
+    table: 'table'
 } as Record<
     AnnotationBoundType | AnnotationLinksBoundType | AnnotationImageToolType,
     AnnotationBoundType | AnnotationLinksBoundType | AnnotationImageToolType
@@ -192,7 +194,14 @@ export const Annotator: FC<AnnotatorProps> = ({
     const submitResizedAnnotation = useSubmitAnnotation(
         resizeSelectionCast[selectionType],
         tokens,
-        (ann) => selectedAnnotation && onAnnotationEdited(selectedAnnotation.id, ann)
+        (ann) =>
+            selectedAnnotation &&
+            onAnnotationEdited(
+                selectedAnnotation.id,
+                selectedAnnotation.boundType === 'table'
+                    ? { ...selectedAnnotation, bound: ann.bound }
+                    : ann
+            )
     );
 
     const submitMovedAnnotation = useSubmitAnnotation(
@@ -201,12 +210,47 @@ export const Annotator: FC<AnnotatorProps> = ({
         (ann) => selectedAnnotation && onAnnotationEdited(selectedAnnotation.id, ann)
     );
 
-    const { coords: resizedBoxAnnotationCoords, isEnded: isBoxAnnotationResizeEnded } =
-        useBoxResize({
-            panoRef,
-            selectedAnnotationRef,
-            selectedAnnotation
-        });
+    const downscaleAnnotation = useMemo(
+        () =>
+            (a: Annotation): Annotation => {
+                const bound = {
+                    x: a.bound.x / scale,
+                    y: a.bound.y / scale,
+                    width: a.bound.width / scale,
+                    height: a.bound.height / scale
+                };
+
+                if (a.boundType === 'table' && a.table) {
+                    const tableRows = a.table.rows;
+                    const tableCols = a.table.cols;
+                    return {
+                        ...a,
+                        bound,
+                        table: {
+                            rows: tableRows.map((el) => el / scale),
+                            cols: tableCols.map((el) => el / scale)
+                        },
+                        tableCells: a.tableCells?.map((el) => downscaleAnnotation(el))
+                    };
+                }
+
+                return { ...a, bound };
+            },
+        [scale]
+    );
+
+    const {
+        coords: resizedBoxAnnotationCoords,
+        isEnded: isBoxAnnotationResizeEnded,
+        isStarted: isBoxAnnotationResizeStarted
+    } = useBoxResize({
+        panoRef,
+        selectedAnnotationRef,
+        selectedAnnotation:
+            selectedAnnotation?.boundType === 'table'
+                ? scaleAnnotation(selectedAnnotation, scale)
+                : selectedAnnotation
+    });
 
     const { coords: movedAnnotationCoords, isEnded: isAnnotationMoveEnded } = useAnnotationMove({
         panoRef,
@@ -394,22 +438,6 @@ export const Annotator: FC<AnnotatorProps> = ({
         }
     }, [selectedAnnotation, isNeedToSaveTable]);
 
-    const downscaleAnnotation = useMemo(
-        () =>
-            (a: Annotation): Annotation => {
-                return {
-                    ...a,
-                    bound: {
-                        x: a.bound.x / scale,
-                        y: a.bound.y / scale,
-                        width: a.bound.width / scale,
-                        height: a.bound.height / scale
-                    }
-                };
-            },
-        [scale]
-    );
-
     const [size, setSize] = useState<{ width: number; height: number }>();
     useEffect(() => {
         if (fileMetaInfo.imageSize) {
@@ -525,6 +553,8 @@ export const Annotator: FC<AnnotatorProps> = ({
                             categories,
                             tools,
                             canvas: paperIsSet,
+                            isBoxAnnotationResizeEnded,
+                            isBoxAnnotationResizeStarted,
                             setTools,
                             onClick: (e) => {
                                 onClickHook(e, downscaledAnnotation);

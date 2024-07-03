@@ -49,6 +49,7 @@ export type ValidationParams = {
     onRedirectAfterFinish: () => void;
     onSaveTaskSuccess: () => void;
     onSaveTaskError: (error: ApiError) => void;
+    setTableMode: (value: boolean) => void;
 };
 
 export type ValidationValues = {
@@ -90,7 +91,8 @@ export const useValidation = ({
     pageSize,
     onRedirectAfterFinish,
     onSaveTaskSuccess,
-    onSaveTaskError
+    onSaveTaskError,
+    setTableMode
 }: ValidationParams) => {
     const [validPages, setValidPages] = useState<number[]>([]);
     const [invalidPages, setInvalidPages] = useState<number[]>([]);
@@ -203,7 +205,8 @@ export const useValidation = ({
         setEditedPages((prevEditedPages) => [...prevEditedPages, currentPage]);
         setPages(setInvalidPages);
         setAnnotationSaved(false);
-    }, [currentPage, setPages]);
+        setTableMode(true);
+    }, [currentPage, setPages, setTableMode]);
 
     const onCancelClick = useCallback(() => {
         onCloseDataTab();

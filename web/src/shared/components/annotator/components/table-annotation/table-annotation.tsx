@@ -1,6 +1,7 @@
 // temporary_disabled_rules
 /* eslint-disable @typescript-eslint/no-unused-vars, react-hooks/exhaustive-deps */
 import noop from 'lodash/noop';
+import delay from 'lodash/delay';
 import React, { useEffect, useRef, useState } from 'react';
 import {
     Annotation,
@@ -33,6 +34,7 @@ import { useTableAnnotatorContext } from '../../context/table-annotator-context'
 import { TableCellLayer } from './table-cell-layer';
 import { useTaskAnnotatorContext } from '../../../../../connectors/task-annotator-connector/task-annotator-context';
 import { getAnnotationElementId } from '../../utils/use-annotation-links';
+import { Resizer } from '../box-annotation/resizer';
 
 export const TableAnnotation = ({
     label = '',
@@ -40,11 +42,17 @@ export const TableAnnotation = ({
     bound,
     isSelected,
     isEditable,
+    isHovered,
+    isBoxAnnotationResizeEnded,
+    isBoxAnnotationResizeStarted,
     onClick = noop,
     onDoubleClick = noop,
     onContextMenu = noop,
     onCloseIconClick = noop,
+    onMouseEnter = noop,
+    onMouseLeave = noop,
     panoRef,
+    annotationRef,
     annotation,
     scale,
     isCellMode,
@@ -75,13 +83,15 @@ export const TableAnnotation = ({
     const [selectedGutter, setSelectedGutter] = useState<Maybe<TableGutter>>({} as TableGutter);
     const [selectionBounds, setSelectionBounds] = useState<Bound>();
     const [selectedCells, setSelectedCells] = useState<Annotation[]>([]);
+    const [forcedResizecBoundaries, forceResizedBoundaries] = React.useState<{}>();
+    const [gutterColor, setGutterColor] = useState(color);
+    const forceResize = React.useCallback(() => forceResizedBoundaries({}), []);
 
     const gutterParams: GutterParams = {
         draggableGutterWidth: 10,
         visibleGutterWidth: 2
     };
     const [scaledCells, setScaledCells] = useState<Annotation[]>(annotation.tableCells ?? []);
-    const [ensuredScale, setEnsuredScale] = useState(1);
 
     useEffect(() => {
         if (scaledCells.length) {
@@ -98,25 +108,39 @@ export const TableAnnotation = ({
             });
         }
     }, [scaledCells]);
+
     useEffect(() => {
-        setEnsuredScale(scale);
-    }, [scale]);
+        if (!isBoxAnnotationResizeEnded && isBoxAnnotationResizeStarted) {
+            setGutterColor('transparent');
+        }
+        if (isBoxAnnotationResizeEnded && !isBoxAnnotationResizeStarted) {
+            // TODO: Avoid delayed force updates. Here we need to react on annotation boundaries change and recalculate gutters based on new bound sizes
+            delay(() => forceResize(), 0);
+        }
+    }, [isBoxAnnotationResizeEnded, isBoxAnnotationResizeStarted]);
+
     useEffect(() => {
         let newGutters = createInitialGutters(
-            tableModeRows,
-            tableModeColumns,
+            annotation.data ? annotation.table!.rows.length + 1 : tableModeRows,
+            annotation.data ? annotation.table!.cols.length + 1 : tableModeColumns,
             annotation,
             selectedAnnotation,
             gutterParams
         );
 
         // TODO: Placeholders if initial structure of table is corrupted
-        const initialCells = createInitialCells(
-            tableModeRows,
-            tableModeColumns,
-            annotation,
-            selectedAnnotation
-        );
+        let initialCells: Annotation[] = [];
+        if (!annotation.data) {
+            initialCells = createInitialCells(
+                tableModeRows,
+                tableModeColumns,
+                annotation,
+                selectedAnnotation
+            );
+        } else {
+            initialCells = annotation.tableCells!;
+        }
+
         setScaledCells(initialCells);
         if (initialCells.length) {
             newGutters = recalculatePartsBasedOnCells(
@@ -136,7 +160,8 @@ export const TableAnnotation = ({
 
         setGuttersMap(newGutters);
         setIsNeedToSaveTable({ gutters: newGutters, cells: initialCells });
-    }, [tableModeRows, tableModeColumns, ensuredScale]);
+        setGutterColor(color);
+    }, [tableModeRows, tableModeColumns, forcedResizecBoundaries, scale]);
 
     const onMouseDownOnGutter = useGutterClick(
         panoRef,
@@ -308,7 +333,7 @@ export const TableAnnotation = ({
         height: height,
         border: `2px ${color} solid`,
         color: color,
-        zIndex: isSelected ? 10 : 1
+        zIndex: isSelected || isHovered ? 10 : 1
     };
 
     return (
@@ -320,26 +345,32 @@ export const TableAnnotation = ({
                 setTableModeColumns(annotation.table!.cols.length + 1);
                 onDoubleClick(e);
             }}
+            onMouseEnter={onMouseEnter}
+            onMouseLeave={onMouseLeave}
             onContextMenu={onContextMenu}
             className={styles.tableAnnotation}
             style={annStyle}
-            ref={tableRef}
+            ref={annotationRef}
             id={getAnnotationElementId(page, id)}
         >
-            <TextLabel
-                id={id}
-                color={color}
-                className={styles['tableAnnotation-label']}
-                label={label}
-                onCloseIconClick={onCloseIconClick}
-                isEditable={isEditable}
-            />
+            {isSelected && isEditable && <Resizer color={color} />}
+            {(isSelected || isHovered) && (
+                <TextLabel
+                    id={id}
+                    color={color}
+                    className={styles['tableAnnotation-label']}
+                    label={label}
+                    onCloseIconClick={onCloseIconClick}
+                    isEditable={isEditable}
+                    isHovered={isHovered}
+                />
+            )}
             <GuttersLayer
                 gutters={guttersMap}
                 selectedGutter={selectedGutter}
                 onMouseDownOnGutter={onMouseDownOnGutter}
                 isCellMode={isCellMode}
-                color={color}
+                color={gutterColor}
             />
             <CellSelectionLayer selectionBounds={selectionBounds} />
             <TableCellLayer
