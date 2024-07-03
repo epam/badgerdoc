@@ -60,7 +60,7 @@ export const TableCell = ({
         const cellId = e.target.getAttribute('data-id');
         const cellText = e.target.getAttribute('data-text');
         setCurrentCell({
-            id: cellId,
+            id: Number(cellId),
             text: cellText
         });
         setTabValue('Data');

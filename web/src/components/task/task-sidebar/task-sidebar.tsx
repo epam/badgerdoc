@@ -20,6 +20,7 @@ import { CategoriesSelectionModeToggle } from 'components/categories/categories-
 import { useTableAnnotatorContext } from '../../../shared/components/annotator/context/table-annotator-context';
 import { TaskSidebarData } from '../task-sidebar-data/task-sidebar-data';
 import {
+    Annotation,
     AnnotationBoundMode,
     AnnotationBoundType,
     AnnotationImageToolType,
@@ -116,7 +117,8 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
         annotationSaved,
         onFinishValidation,
         notProcessedPages,
-        currentCell
+        currentCell,
+        allAnnotations
     } = useTaskAnnotatorContext();
     const {
         tableModeColumns,
@@ -142,10 +144,20 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
     const { refetch } = useGetPageSummary({ taskId: task?.id, taskType: task?.is_validation }, {});
 
     const [cell, setCell] = useState<string | undefined>('');
+    const [annotation, setAnnotation] = useState<Annotation>();
 
     useEffect(() => {
         setCell(currentCell?.text);
     }, [currentCell]);
+
+    useEffect(() => {
+        if (allAnnotations) {
+            const annotation = allAnnotations[currentPage];
+            if (annotation) {
+                setAnnotation(annotation[0]);
+            }
+        }
+    }, [allAnnotations]);
 
     useEffect(() => {
         let newSelectionType:
@@ -354,6 +366,26 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
         isValidation
     );
 
+    const handleCellChange = (value: string) => {
+        setCell(value);
+        if (annotation) {
+            const editedTableCells = annotation.tableCells?.map((tableCell: Annotation) => {
+                let text = tableCell.text;
+                if (tableCell?.id === currentCell?.id) {
+                    text = value;
+                }
+
+                return {
+                    ...tableCell,
+                    text
+                };
+            });
+            onAnnotationEdited(currentPage, annotation.id, {
+                tableCells: editedTableCells
+            });
+        }
+    };
+
     return (
         <Panel cx={styles.wrapper}>
             <Button
@@ -420,14 +452,16 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
                             )}
                             {tabValue === 'Data' && tableMode && (
                                 <>
-                                    <MultiSwitch
-                                        items={[
-                                            { id: 'lines', caption: 'Lines' },
-                                            { id: 'cells', caption: 'Cells' }
-                                        ]}
-                                        value={tableModeValues}
-                                        onValueChange={setTableModeValues}
-                                    />
+                                    <div className={styles.switchLineCells}>
+                                        <MultiSwitch
+                                            items={[
+                                                { id: 'lines', caption: 'Lines' },
+                                                { id: 'cells', caption: 'Cells' }
+                                            ]}
+                                            value={tableModeValues}
+                                            onValueChange={setTableModeValues}
+                                        />
+                                    </div>
                                     {tableModeValues === 'lines' && (
                                         <div className={styles.tableParams}>
                                             <LabeledInput label="Columns">
@@ -492,9 +526,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
                                             <TextInput
                                                 value={cell}
                                                 cx="c-m-t-5"
-                                                onValueChange={(val) => {
-                                                    setCell(val);
-                                                }}
+                                                onValueChange={handleCellChange}
                                                 rawProps={{
                                                     style: {
                                                         width: '200px'
