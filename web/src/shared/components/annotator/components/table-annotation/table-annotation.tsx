@@ -88,7 +88,7 @@ export const TableAnnotation = ({
     const forceResize = React.useCallback(() => forceResizedBoundaries({}), []);
 
     const gutterParams: GutterParams = {
-        draggableGutterWidth: 10,
+        draggableGutterWidth: 8,
         visibleGutterWidth: 2
     };
     const [scaledCells, setScaledCells] = useState<Annotation[]>(annotation.tableCells ?? []);
