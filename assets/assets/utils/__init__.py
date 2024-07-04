@@ -1,4 +1,6 @@
-import assets.utils.common_utils
-import assets.utils.convert_service_utils
-import assets.utils.minio_utils
-import assets.utils.s3_utils  # noqa
+from assets.utils import s3_utils  # noqa
+from assets.utils import (  # noqa
+    common_utils,
+    convert_service_utils,
+    minio_utils,
+)
