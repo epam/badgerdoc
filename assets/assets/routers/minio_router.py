@@ -26,7 +26,7 @@ async def get_from_minio(
     ),
     storage: minio.Minio = fastapi.Depends(utils.minio_utils.get_storage),
 ) -> Union[
-    fastapi.responses.StreamingResponse, 
+    fastapi.responses.StreamingResponse,
     fastapi.responses.RedirectResponse
 ]:
     """
