@@ -11,17 +11,24 @@ from assets.config import settings
 router = fastapi.APIRouter(tags=["minio"])
 
 
-@router.get("/download", name="gets file from minio with original content-type")
+@router.get(
+    "/download", name="gets file from minio with original content-type"
+)
 async def get_from_minio(
     file_id: int,
     background_tasks: fastapi.BackgroundTasks,
-    x_current_tenant: Optional[str] = fastapi.Header(None, alias="X-Current-Tenant"),
+    x_current_tenant: Optional[str] = fastapi.Header(
+        None, alias="X-Current-Tenant"
+    ),
     original: bool = False,
     session: sqlalchemy.orm.Session = fastapi.Depends(
         db.service.session_scope_for_dependency
     ),
     storage: minio.Minio = fastapi.Depends(utils.minio_utils.get_storage),
-) -> Union[fastapi.responses.StreamingResponse, fastapi.responses.RedirectResponse]:
+) -> Union[
+    fastapi.responses.StreamingResponse, 
+    fastapi.responses.RedirectResponse
+]:
     """
     Takes an id file and a bucket name and returns streaming file with
     corresponding content-type.
