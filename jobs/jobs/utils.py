@@ -301,6 +301,7 @@ def files_data_to_pipeline_arg(
             output_path=None,
             pages=file["pages"],
             s3_signed_url=None,
+            file_id=file_id
         )
 
 
