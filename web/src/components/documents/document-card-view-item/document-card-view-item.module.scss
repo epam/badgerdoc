@@ -106,3 +106,14 @@
     background-position: center top !important;
     background-size: 100% auto !important;
 }
+
+.card-item-box {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.card-item-download {
+    width: 20px;
+    margin-top: 5px;
+}
