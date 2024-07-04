@@ -105,38 +105,6 @@ def upload_files(
     ]
 
 
-@router.get(
-    "/{file_id}",
-    status_code=fastapi.status.HTTP_200_OK,
-    name="download file from the bucket",
-)
-def download_file(
-    file_id: int = fastapi.Path(..., example=4),
-    x_current_tenant: str = fastapi.Header(..., alias="X-Current-Tenant"),
-    session: sqlalchemy.orm.Session = fastapi.Depends(
-        db.service.session_scope_for_dependency
-    ),
-    storage_: minio.Minio = fastapi.Depends(utils.minio_utils.get_storage),
-) -> List[fastapi.Response]:
-    file_obj = db.service.get_file_by_id(session, file_id)
-    if not file_obj:
-        raise fastapi.HTTPException(
-            status_code=fastapi.status.HTTP_404_NOT_FOUND,
-            detail=f"File with id {file_id} does not exist!",
-        )
-    
-    url = storage_.get_presigned_url(
-        "GET",
-        bucket_name=file_obj.bucket,
-        object_name=file_obj.path,
-    )
-    
-    return fastapi.responses.RedirectResponse(
-        url=url,
-        status_code=302
-    )
-
-
 @router.delete(
     "",
     status_code=fastapi.status.HTTP_201_CREATED,

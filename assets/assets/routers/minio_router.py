@@ -11,21 +11,17 @@ from assets.config import settings
 router = fastapi.APIRouter(tags=["minio"])
 
 
-@router.get(
-    "/download", name="gets file from minio with original content-type"
-)
+@router.get("/download", name="gets file from minio with original content-type")
 async def get_from_minio(
     file_id: int,
     background_tasks: fastapi.BackgroundTasks,
-    x_current_tenant: Optional[str] = fastapi.Header(
-        None, alias="X-Current-Tenant"
-    ),
+    x_current_tenant: Optional[str] = fastapi.Header(None, alias="X-Current-Tenant"),
     original: bool = False,
     session: sqlalchemy.orm.Session = fastapi.Depends(
         db.service.session_scope_for_dependency
     ),
     storage: minio.Minio = fastapi.Depends(utils.minio_utils.get_storage),
-) -> fastapi.responses.StreamingResponse:
+) -> fastapi.responses.StreamingResponse | fastapi.responses.RedirectResponse:
     """
     Takes an id file and a bucket name and returns streaming file with
     corresponding content-type.
@@ -46,13 +42,21 @@ async def get_from_minio(
             status_code=fastapi.status.HTTP_404_NOT_FOUND,
             detail="No such file in a bucket",
         )
+
     utils.minio_utils.check_bucket(f.bucket, storage)
-    response = utils.minio_utils.stream_minio(f.path, f.bucket, storage)
-    if original:
-        response = utils.minio_utils.stream_minio(
-            f.origin_path, f.bucket, storage
+    path = f.origin_path if original else f.path
+
+    if settings.s3_provider != "minio":
+        url = storage.get_presigned_url(
+            "GET",
+            bucket_name=f.bucket,
+            object_name=path,
         )
+        return fastapi.responses.RedirectResponse(url=url, status_code=302)
+
+    response = utils.minio_utils.stream_minio(f.path, f.bucket, storage)
     background_tasks.add_task(utils.minio_utils.close_conn, response)
+
     return fastapi.responses.StreamingResponse(
         response.stream(), media_type=response.headers["Content-Type"]
     )
