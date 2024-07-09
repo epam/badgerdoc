@@ -1030,8 +1030,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         pageSize,
         onRedirectAfterFinish,
         onSaveTaskSuccess,
-        onSaveTaskError,
-        setTableMode
+        onSaveTaskError
     });
     const finishTaskMutation = useSetTaskFinishedMutation();
     const onAnnotationTaskFinish = async () => {
