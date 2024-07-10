@@ -171,7 +171,6 @@ export const TableAnnotation = ({
         setGuttersMap(newGutters);
         setIsNeedToSaveTable({ gutters: newGutters, cells: initialCells, id: annotation?.id });
         setGutterColor(color);
-        // }
     }, [tableModeRows, tableModeColumns, forcedResizecBoundaries, scale]);
 
     const onMouseDownOnGutter = useGutterClick(
