@@ -337,7 +337,11 @@ export const createInitialGutters = (
                         y: tableRows[i]
                     }
                 },
-                parts: calculateExistingParts(tableCols, annotation.bound.width)
+                parts: calculateExistingParts(
+                    tableCols,
+                    annotation.bound.width,
+                    gutterParams.visibleGutterWidth
+                )
             };
         }
         for (let j = 0; j < tableCols.length; ++j) {
@@ -360,7 +364,11 @@ export const createInitialGutters = (
                         y: annotation.bound.height
                     }
                 },
-                parts: calculateExistingParts(tableRows, annotation.bound.height)
+                parts: calculateExistingParts(
+                    tableRows,
+                    annotation.bound.height,
+                    gutterParams.visibleGutterWidth
+                )
             };
         }
     }
@@ -381,7 +389,11 @@ export const sumArrToIndex = (gutter: TableGutter, idx: number): number => {
     return res;
 };
 
-const calculateExistingParts = (array: number[], maxLength: number): GutterPart[] => {
+const calculateExistingParts = (
+    array: number[],
+    maxLength: number,
+    visibleGutterWidth: number
+): GutterPart[] => {
     let prev = 0;
     return array
         .map((gutterLength) => {
@@ -394,7 +406,7 @@ const calculateExistingParts = (array: number[], maxLength: number): GutterPart[
         })
         .concat([
             {
-                length: maxLength - prev,
+                length: maxLength - prev - visibleGutterWidth,
                 visibility: true
             }
         ]);
@@ -427,7 +439,11 @@ export const createGuttersFromAnnotation = (
                         y: annotation.table.rows[i]
                     }
                 },
-                parts: calculateExistingParts(annotation.table.cols, annotation.bound.width)
+                parts: calculateExistingParts(
+                    annotation.table.cols,
+                    annotation.bound.width,
+                    gutterParams.visibleGutterWidth
+                )
             };
         }
         for (let j = 0; j < annotation.table.cols.length; ++j) {
@@ -450,7 +466,11 @@ export const createGuttersFromAnnotation = (
                         y: annotation.bound.height
                     }
                 },
-                parts: calculateExistingParts(annotation.table.rows, annotation.bound.height)
+                parts: calculateExistingParts(
+                    annotation.table.rows,
+                    annotation.bound.height,
+                    gutterParams.visibleGutterWidth
+                )
             };
         }
     }
