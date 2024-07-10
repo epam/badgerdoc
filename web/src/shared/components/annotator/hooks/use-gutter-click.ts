@@ -27,8 +27,19 @@ export const useGutterClick = (
             const affectedGutters = Object.values(guttersMap).filter((gutter) => {
                 const gutterRect = gutterToRect(bound, gutter, scale);
                 return isPointInsideRect(gutterRect, clickPoint);
-            })[0];
-            setGutter(selectedAnnotation ? affectedGutters : undefined); //It's fine if we set it to undefined
+            });
+
+            let affectedGutter;
+
+            if (affectedGutters.length > 1) {
+                // If more then 1 gutters affected then give preference to vertical type
+                const verticalGutter = affectedGutters.find((gutter) => gutter.type === 'vertical');
+                affectedGutter = verticalGutter ?? affectedGutters[0];
+            } else {
+                affectedGutter = affectedGutters[0];
+            }
+            
+            setGutter(selectedAnnotation ? affectedGutter : undefined); //It's fine if we set it to undefined
         },
         [
             guttersMap,
