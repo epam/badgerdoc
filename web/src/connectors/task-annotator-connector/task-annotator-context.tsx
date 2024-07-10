@@ -120,10 +120,12 @@ export type TTaskAnnotatorContext = SplitValidationValue &
         isNeedToSaveTable: {
             gutters: Maybe<TableGutterMap>;
             cells: Maybe<Annotation[]>;
+            id: Maybe<number | string>;
         };
         setIsNeedToSaveTable: (b: {
             gutters: Maybe<TableGutterMap>;
             cells: Maybe<Annotation[]>;
+            id: Maybe<number | string>;
         }) => void;
         isDataTabDisabled: boolean;
         isCategoryDataEmpty: boolean;
@@ -275,9 +277,11 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
     const [isNeedToSaveTable, setIsNeedToSaveTable] = useState<{
         gutters: Maybe<TableGutterMap>;
         cells: Maybe<Annotation[]>;
+        id: Maybe<number | string>;
     }>({
         gutters: undefined,
-        cells: undefined
+        cells: undefined,
+        id: undefined
     });
 
     const [storedParams, setStoredParams] = useState<{

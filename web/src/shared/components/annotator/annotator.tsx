@@ -422,18 +422,22 @@ export const Annotator: FC<AnnotatorProps> = ({
             selectedAnnotation &&
             isNeedToSaveTable.gutters &&
             isNeedToSaveTable.cells &&
-            isNeedToSaveTable.cells.length
+            isNeedToSaveTable.cells.length &&
+            selectedAnnotation.id === isNeedToSaveTable.id
         ) {
             const ann = {
                 ...selectedAnnotation,
                 table: updateAnnotation(selectedAnnotation, isNeedToSaveTable.gutters, scale),
-                children: isNeedToSaveTable.cells.map((el) => el.id),
-                tableCells: isNeedToSaveTable.cells.map((el) => downscaleAnnotation(el))
+                ...(!selectedAnnotation.data && {
+                    children: isNeedToSaveTable.cells.map((el) => el.id),
+                    tableCells: isNeedToSaveTable.cells.map((el) => downscaleAnnotation(el))
+                })
             };
             onAnnotationEdited(selectedAnnotation.id, ann);
             setIsNeedToSaveTable({
                 gutters: undefined,
-                cells: undefined
+                cells: undefined,
+                id: undefined
             });
         }
     }, [selectedAnnotation, isNeedToSaveTable]);

@@ -35,6 +35,7 @@ import { TableCellLayer } from './table-cell-layer';
 import { useTaskAnnotatorContext } from '../../../../../connectors/task-annotator-connector/task-annotator-context';
 import { getAnnotationElementId } from '../../utils/use-annotation-links';
 import { Resizer } from '../box-annotation/resizer';
+import _ from 'lodash';
 
 export const TableAnnotation = ({
     label = '',
@@ -74,7 +75,7 @@ export const TableAnnotation = ({
         setSelectedCellsCanBeSplitted
     } = useTableAnnotatorContext();
     const { selectedAnnotation, setIsNeedToSaveTable } = useTaskAnnotatorContext();
-    const { tableCellCategory, setTableCellCategory } = useTaskAnnotatorContext();
+    const { tableCellCategory, setTableCellCategory, currentPage } = useTaskAnnotatorContext();
     const { x, y, width, height } = bound;
 
     const tableRef = useRef<HTMLDivElement>(null);
@@ -104,7 +105,8 @@ export const TableAnnotation = ({
             setGuttersMap(newGutters);
             setIsNeedToSaveTable({
                 gutters: newGutters,
-                cells: scaledCells
+                cells: scaledCells,
+                id: annotation.id
             });
         }
     }, [scaledCells]);
@@ -120,7 +122,8 @@ export const TableAnnotation = ({
     }, [isBoxAnnotationResizeEnded, isBoxAnnotationResizeStarted]);
 
     useEffect(() => {
-        let newGutters = createInitialGutters(
+        let newGutters = {};
+        newGutters = createInitialGutters(
             annotation.data ? annotation.table!.rows.length + 1 : tableModeRows,
             annotation.data ? annotation.table!.cols.length + 1 : tableModeColumns,
             annotation,
@@ -130,13 +133,20 @@ export const TableAnnotation = ({
 
         // TODO: Placeholders if initial structure of table is corrupted
         let initialCells: Annotation[] = [];
-        if (!annotation.data) {
+
+        if (selectedAnnotation && !selectedAnnotation?.data) {
             initialCells = createInitialCells(
                 tableModeRows,
                 tableModeColumns,
                 annotation,
                 selectedAnnotation
             );
+        } else if (annotation.id === selectedAnnotation?.id) {
+            if (selectedAnnotation?.data) {
+                initialCells = selectedAnnotation.tableCells!;
+            } else {
+                initialCells = annotation.tableCells!;
+            }
         } else {
             initialCells = annotation.tableCells!;
         }
@@ -159,8 +169,9 @@ export const TableAnnotation = ({
         }
 
         setGuttersMap(newGutters);
-        setIsNeedToSaveTable({ gutters: newGutters, cells: initialCells });
+        setIsNeedToSaveTable({ gutters: newGutters, cells: initialCells, id: annotation?.id });
         setGutterColor(color);
+        // }
     }, [tableModeRows, tableModeColumns, forcedResizecBoundaries, scale]);
 
     const onMouseDownOnGutter = useGutterClick(
@@ -176,7 +187,8 @@ export const TableAnnotation = ({
         setSelectedGutter(undefined);
         setIsNeedToSaveTable({
             gutters: guttersMap,
-            cells: scaledCells
+            cells: scaledCells,
+            id: annotation?.id
         });
     };
 
@@ -184,7 +196,8 @@ export const TableAnnotation = ({
         setGuttersMap(newGutters);
         setIsNeedToSaveTable({
             gutters: newGutters,
-            cells: scaledCells
+            cells: scaledCells,
+            id: annotation?.id
         });
     };
 
@@ -192,7 +205,8 @@ export const TableAnnotation = ({
         setScaledCells(newCells);
         setIsNeedToSaveTable({
             gutters: guttersMap,
-            cells: newCells
+            cells: newCells,
+            id: annotation?.id
         });
     };
 
@@ -273,7 +287,11 @@ export const TableAnnotation = ({
                 const restCells = scaledCells.filter(
                     (el) => !newCells.map((it) => it.id).includes(el.id)
                 );
-                setIsNeedToSaveTable({ gutters: guttersMap, cells: [...restCells, ...newCells] });
+                setIsNeedToSaveTable({
+                    gutters: guttersMap,
+                    cells: [...restCells, ...newCells],
+                    id: annotation?.id
+                });
                 setScaledCells([...restCells, ...newCells]);
             }
         }
@@ -341,8 +359,6 @@ export const TableAnnotation = ({
             role="none"
             onClick={!isCellMode ? onClick : () => {}}
             onDoubleClick={(e) => {
-                setTableModeRows(annotation.table!.rows.length + 1);
-                setTableModeColumns(annotation.table!.cols.length + 1);
                 onDoubleClick(e);
             }}
             onMouseEnter={onMouseEnter}
