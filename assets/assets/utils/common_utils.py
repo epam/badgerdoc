@@ -71,6 +71,8 @@ def get_pages(file: bytes, ext: str) -> Any:
         )
     if "chem" == chem_utils.SUPPORTED_FORMATS[ext]:
         return chem_utils.get_page_count(file, ext)
+    if "text" == chem_utils.SUPPORTED_FORMATS[ext]:
+        return 1
     # Pdf as default
     return get_pages_from_pdf(file) or get_pages_from_image(file)
 
