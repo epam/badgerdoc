@@ -55,7 +55,7 @@ export const DocumentsCardConnector: FC<DocumentsCardConnectorProps> = () => {
                             key={`${index}${document_id}`}
                             isPieces
                             documentId={document_id}
-                            name={document_id}
+                            documentName={document_id}
                             documentPage={page_number}
                             jobs={jobs?.filter((e) => e.id == job_id)}
                             bbox={bbox}

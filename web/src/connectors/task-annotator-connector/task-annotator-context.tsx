@@ -184,6 +184,8 @@ export type TTaskAnnotatorContext = SplitValidationValue &
         areLatestAnnotationsFetching: boolean;
         setCurrentCell: (cell: CurrentCell) => void;
         currentCell?: CurrentCell;
+        setTableCellsModified: (cellModified: boolean) => void;
+        tableCellsModified: boolean;
     };
 
 type ProviderProps = {
@@ -304,6 +306,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
     });
 
     const [currentCell, setCurrentCell] = useState<CurrentCell | undefined>(undefined);
+    const [tableCellsModified, setTableCellsModified] = useState<boolean>(false);
 
     const { notifyError } = useNotifications();
 
@@ -951,7 +954,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
 
         onCloseDataTab();
 
-        if (task.is_validation && !splitValidation.isSplitValidation) {
+        if (task.is_validation && !splitValidation.isSplitValidation && !tableCellsModified) {
             validationValues.setAnnotationSaved(true);
             pages = pages.filter(
                 (page) =>
@@ -1225,6 +1228,8 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             isDocumentPageDataLoaded,
             currentCell,
             setCurrentCell,
+            setTableCellsModified,
+            tableCellsModified,
             ...splitValidation,
             ...documentLinksValues,
             ...validationValues
@@ -1268,7 +1273,8 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         latestAnnotationsResultData,
         areLatestAnnotationsFetching,
         isDocumentPageDataLoaded,
-        currentCell
+        currentCell,
+        tableCellsModified
     ]);
 
     return <TaskAnnotatorContext.Provider value={value}>{children}</TaskAnnotatorContext.Provider>;

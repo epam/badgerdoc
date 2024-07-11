@@ -118,7 +118,8 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
         onFinishValidation,
         notProcessedPages,
         currentCell,
-        allAnnotations
+        allAnnotations,
+        setTableCellsModified
     } = useTaskAnnotatorContext();
     const {
         tableModeColumns,
@@ -181,10 +182,6 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
         }
         onChangeSelectionType(newSelectionType);
     }, [boundModeSwitch]);
-
-    useEffect(() => {
-        if (tableMode) setTabValue('Data');
-    }, [tableMode]);
 
     const isSaveButtonDisabled = useMemo(() => {
         if (isDocLabelsModified || documentLinksChanged) return false;
@@ -383,6 +380,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
             onAnnotationEdited(currentPage, annotation.id, {
                 tableCells: editedTableCells
             });
+            setTableCellsModified(true);
         }
     };
 
