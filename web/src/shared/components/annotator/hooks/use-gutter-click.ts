@@ -38,7 +38,7 @@ export const useGutterClick = (
             } else {
                 affectedGutter = affectedGutters[0];
             }
-            
+
             setGutter(selectedAnnotation ? affectedGutter : undefined); //It's fine if we set it to undefined
         },
         [
