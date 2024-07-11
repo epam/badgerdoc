@@ -14,6 +14,8 @@ SUPPORTED_FORMATS = {
     ".jpg": "image",
     ".jpeg": "image",
     ".txt": "text",
+    ".xlsx": "text",
+    ".lst": "text",
 }
 
 logger_ = logger.get_logger(__name__)
