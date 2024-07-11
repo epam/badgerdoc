@@ -495,7 +495,7 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
                             <DocumentCardViewItem
                                 key={id}
                                 documentId={+id}
-                                name={original_name}
+                                documentName={original_name}
                                 lastModified={last_modified}
                                 jobs={(jobs as any)[id] as any}
                                 thumbnails={thumbnails}

@@ -14,7 +14,7 @@ export const useAssetById: QueryHookType<FileParams, any> = ({ fileId }, options
     return useQuery(['asset', fileId], async () => fetchLatestAnnotations(fileId), options);
 };
 
-async function fetchLatestAnnotations(fileId: number): Promise<any> {
+export async function fetchLatestAnnotations(fileId: number): Promise<any> {
     return useBadgerFetch({
         url: `${namespace}/download?file_id=${fileId}`,
         method: 'get',
