@@ -91,7 +91,8 @@ const DocumentPDF = forwardRef<TDocumentPDFRef, DocumentPDFProps>(
             selectedAnnotation,
             setAvailableRenderedPagesRange,
             getNextDocumentItems,
-            isDocumentPageDataLoaded
+            isDocumentPageDataLoaded,
+            currentCell
         } = useTaskAnnotatorContext();
         const pdfListData = useMemo<ListItemData>(
             () => ({
@@ -137,7 +138,8 @@ const DocumentPDF = forwardRef<TDocumentPDFRef, DocumentPDFProps>(
                 if (
                     !selectedAnnotation ||
                     !pdfPagesListRef.current ||
-                    !listViewContainerRef.current
+                    !listViewContainerRef.current ||
+                    currentCell
                 ) {
                     return;
                 }
@@ -158,7 +160,7 @@ const DocumentPDF = forwardRef<TDocumentPDFRef, DocumentPDFProps>(
                     });
                 }
             });
-        }, [apiToUiPageNumbersMap, selectedAnnotation]);
+        }, [apiToUiPageNumbersMap, selectedAnnotation, currentCell]);
 
         const [isDocumentLoaded, setIsDocumentLoaded] = useState(false);
         const onDocumentLoadSuccess = useCallback(
