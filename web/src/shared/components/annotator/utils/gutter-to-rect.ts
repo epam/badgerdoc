@@ -15,8 +15,10 @@ export const gutterToRect = (annotationBound: Bound, gutter: TableGutter, scale:
                 (type === 'horizontal' ? gutter.draggableGutterWidth : 0)) /
             scale,
         right:
-            (annotationBound.x + end.x) / scale + (type === 'vertical' ? gutter.draggableGutterWidth / 2 : 0),
+            (annotationBound.x + end.x) / scale +
+            (type === 'vertical' ? gutter.draggableGutterWidth / 2 : 0),
         left:
-            (annotationBound.x + start.x) / scale  - (type === 'vertical' ? gutter.draggableGutterWidth / 2 : 0)
+            (annotationBound.x + start.x) / scale -
+            (type === 'vertical' ? gutter.draggableGutterWidth / 2 : 0)
     };
 };
