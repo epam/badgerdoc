@@ -1,9 +1,10 @@
 from typing import Optional
 
+from badgerdoc_storage import storage as bd_storage
 from fastapi import APIRouter, Depends, Header, status
 from tenant_dependency import TenantData, get_tenant_info
 
-from convert.config import minio_client, settings
+from convert.config import settings
 from convert.converters.labelstudio.badgerdoc_to_labelstudio_converter import (
     BadgerdocToLabelstudioConverter,
 )
@@ -32,8 +33,9 @@ def import_labelstudio(
 ) -> None:
     if not current_tenant:
         raise ValueError("Tenant can not be empty")
+    storage = bd_storage.get_storage(current_tenant)
     labelstudio_to_bd_use_case = LabelstudioToBadgerdocConverter(
-        s3_client=minio_client,
+        s3_client=storage,
         current_tenant=current_tenant,
         token_data=token_data,
         s3_input_annotation=request.input_annotation,
@@ -58,8 +60,9 @@ def export_labelstudio(
 ) -> None:
     if not current_tenant:
         raise ValueError("Tenant can not be empty")
+    storage = bd_storage.get_storage(current_tenant)
     bd_to_labelstudio_converter = BadgerdocToLabelstudioConverter(
-        s3_client=minio_client,
+        s3_client=storage,
         current_tenant=current_tenant,
         token_data=token_data,
     )

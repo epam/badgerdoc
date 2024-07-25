@@ -29,8 +29,6 @@ services:
       --docker.exclude=badgerdoc-postgresql 
       --docker.exclude=badgerdoc-keycloak 
       --docker.exclude=badgerdoc-web 
-      --docker.exclude=badgerdoc-zookeeper 
-      --docker.exclude=badgerdoc-kafka 
       --timeout.read-header=900s 
       --timeout.resp-header=900s 
       --max=${MAX_REQ_SIZE}
