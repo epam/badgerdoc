@@ -1,9 +1,8 @@
 from typing import Dict, Optional, Tuple, Union
 
 import fastapi.responses
-import minio
 import sqlalchemy.orm
-import urllib3.exceptions
+from badgerdoc_storage import storage as bd_storage
 
 from assets import db, schemas, utils
 from assets.config import settings
@@ -24,7 +23,6 @@ async def get_from_minio(
     session: sqlalchemy.orm.Session = fastapi.Depends(
         db.service.session_scope_for_dependency
     ),
-    storage: minio.Minio = fastapi.Depends(utils.minio_utils.get_storage),
 ) -> Union[
     fastapi.responses.StreamingResponse, fastapi.responses.RedirectResponse
 ]:
@@ -49,23 +47,11 @@ async def get_from_minio(
             detail="No such file in a bucket",
         )
 
-    utils.minio_utils.check_bucket(f.bucket, storage)
     path = f.origin_path if original else f.path
-
-    if settings.s3_provider != "minio":
-        url = storage.get_presigned_url(
-            "GET",
-            bucket_name=f.bucket,
-            object_name=path,
-        )
-        return fastapi.responses.RedirectResponse(url=url, status_code=302)
-
-    response = utils.minio_utils.stream_minio(f.path, f.bucket, storage)
-    background_tasks.add_task(utils.minio_utils.close_conn, response)
-
-    return fastapi.responses.StreamingResponse(
-        response.stream(), media_type=response.headers["Content-Type"]
+    url = bd_storage.get_storage(x_current_tenant).gen_signed_url(
+        path, exp=86400
     )
+    return fastapi.responses.RedirectResponse(url=url, status_code=302)
 
 
 @router.get(
@@ -77,7 +63,6 @@ async def get_preview_from_minio(
     session: sqlalchemy.orm.Session = fastapi.Depends(
         db.service.session_scope_for_dependency
     ),
-    storage: minio.Minio = fastapi.Depends(utils.minio_utils.get_storage),
     x_current_tenant: Optional[str] = fastapi.Header(
         None, alias="X-Current-Tenant"
     ),
@@ -88,14 +73,12 @@ async def get_preview_from_minio(
             status_code=fastapi.status.HTTP_404_NOT_FOUND,
             detail="No such file in a bucket",
         )
-    utils.minio_utils.check_bucket(f.bucket, storage)
-    if not utils.minio_utils.check_file_exist(f.thumb_path, f.bucket, storage):
-        utils.minio_utils.remake_thumbnail(f, storage)
-    response = utils.minio_utils.stream_minio(f.thumb_path, f.bucket, storage)
-    background_tasks.add_task(utils.minio_utils.close_conn, response)
-    return fastapi.responses.StreamingResponse(
-        response.stream(), media_type=response.headers["Content-Type"]
+    if not utils.minio_utils.check_file_exist(f.thumb_path, x_current_tenant):
+        utils.minio_utils.remake_thumbnail(f, x_current_tenant)
+    url = bd_storage.get_storage(x_current_tenant).gen_signed_url(
+        f.thumb_path, exp=60
     )
+    return fastapi.responses.RedirectResponse(url=url, status_code=302)
 
 
 @router.get("/download/piece", name="get image content with provided bbox")
@@ -109,7 +92,6 @@ async def get_image_piece(
     x_current_tenant: Optional[str] = fastapi.Header(
         None, alias="X-Current-Tenant"
     ),
-    storage: minio.Minio = fastapi.Depends(utils.minio_utils.get_storage),
     session: sqlalchemy.orm.Session = fastapi.Depends(
         db.service.session_scope_for_dependency
     ),
@@ -126,12 +108,12 @@ async def get_image_piece(
             detail=f"Content type {f.content_type} not supported",
         )
     piece_path = f"files/bbox/{f.id}/page{page_number}_bbox{bbox}_ext{settings.bbox_ext}.jpg"  # noqa
-    if not utils.minio_utils.check_file_exist(piece_path, f.bucket, storage):
+    if not utils.minio_utils.check_file_exist(piece_path, f.bucket, None):
         utils.minio_utils.make_pdf_piece(
-            f, page_number, bbox, piece_path, storage
+            f, page_number, bbox, piece_path, None
         )
 
-    response = utils.minio_utils.stream_minio(piece_path, f.bucket, storage)
+    response = utils.minio_utils.stream_minio(piece_path, f.bucket, None)
     background_tasks.add_task(utils.minio_utils.close_conn, response)
     return fastapi.responses.StreamingResponse(
         response.stream(), media_type=response.headers["Content-Type"]
@@ -145,7 +127,6 @@ async def get_image_piece(
 )
 async def create_bucket(
     bucket: schemas.Bucket,
-    storage: minio.Minio = fastapi.Depends(utils.minio_utils.get_storage),
     x_current_tenant: Optional[str] = fastapi.Header(
         None, alias="X-Current-Tenant"
     ),
@@ -165,21 +146,4 @@ async def create_bucket(
             HTTPException status 400
 
     """
-    bucket.name = utils.s3_utils.get_bucket_name(bucket.name)
-    try:
-        if storage.bucket_exists(bucket.name):
-            raise fastapi.HTTPException(
-                status_code=fastapi.status.HTTP_400_BAD_REQUEST,
-                detail=f"Bucket with name {bucket.name} already exists!",
-            )
-        storage.make_bucket(bucket.name)
-    except urllib3.exceptions.MaxRetryError as e:
-        raise fastapi.HTTPException(
-            status_code=fastapi.status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=str(e),
-        )
-    except (ValueError, minio.S3Error) as e:
-        raise fastapi.HTTPException(
-            status_code=fastapi.status.HTTP_400_BAD_REQUEST, detail=str(e)
-        )
-    return {"detail": f"Bucket {bucket.name} successfully created!"}
+    raise NotImplementedError("This method is not supported")

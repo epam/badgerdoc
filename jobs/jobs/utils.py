@@ -306,8 +306,10 @@ def files_data_to_pipeline_arg(
 
 
 async def fill_s3_signed_url(files: List[pipeline.PipelineFile]):
-    async def fill(file):
-        file.s3_signed_url = await create_pre_signed_s3_url(
+    logger.debug("Filling signed URL")
+
+    def fill(file):
+        file.s3_signed_url = create_pre_signed_s3_url(
             bucket=file.bucket, path=file.input_path
         )
 
@@ -315,7 +317,7 @@ async def fill_s3_signed_url(files: List[pipeline.PipelineFile]):
         return files
 
     for file in files:
-        await fill(file)
+        fill(file)
 
     # todo: uncomment this when you decide
     #  to make the signing process parallel
