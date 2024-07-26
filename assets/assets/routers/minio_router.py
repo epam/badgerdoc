@@ -48,9 +48,7 @@ async def get_from_minio(
         )
 
     path = f.origin_path if original else f.path
-    url = bd_storage.get_storage(x_current_tenant).gen_signed_url(
-        path, exp=86400
-    )
+    url = bd_storage.get_storage(x_current_tenant).gen_signed_url(path, exp=60)
     return fastapi.responses.RedirectResponse(url=url, status_code=302)
 
 

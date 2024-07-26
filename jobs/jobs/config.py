@@ -56,8 +56,8 @@ PROVIDE_JWT_IF_NO_ANY = True
 
 # S3 settings
 STORAGE_PROVIDER = os.getenv("STORAGE_PROVIDER")
-JOBS_RUN_PIPELINES_WITH_SIGNED_URL = (
-    os.getenv("JOBS_RUN_PIPELINES_WITH_SIGNED_URL", "False").lower() == "true"
+JOBS_SIGNED_URL_ENABLED = (
+    os.getenv("JOBS_SIGNED_URL_ENABLED", "False").lower() == "true"
 )
 AWS_REGION = os.getenv("AWS_REGION")
 S3_PREFIX = os.getenv("S3_PREFIX", "")
@@ -66,11 +66,10 @@ S3_ENDPOINT = os.getenv("S3_ENDPOINT")
 S3_ACCESS_KEY = os.getenv("S3_ACCESS_KEY")
 S3_SECRET_KEY = os.getenv("S3_SECRET_KEY")
 AWS_PROFILE = os.getenv("AWS_PROFILE")
-JOBS_S3_SIGNED_URL_EXPIRES_HOURS = os.getenv(
-    "JOBS_S3_SIGNED_URL_EXPIRES_HOURS", ""
+JOBS_SIGNED_URL_TTL = os.getenv("JOBS_SIGNED_URL_TTL", "")
+JOBS_SIGNED_URL_TTL = (
+    int(JOBS_SIGNED_URL_TTL) if JOBS_SIGNED_URL_TTL.isdigit() else 60
 )
-JOBS_S3_SIGNED_URL_EXPIRES_HOURS = (
-    int(JOBS_S3_SIGNED_URL_EXPIRES_HOURS)
-    if JOBS_S3_SIGNED_URL_EXPIRES_HOURS.isdigit()
-    else 48
+JOBS_SIGNED_URL_KEY_NAME = (
+    os.getenv("JOBS_SIGNED_URL_KEY_NAME") or "signed_url"
 )
