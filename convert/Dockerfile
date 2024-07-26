@@ -1,4 +1,4 @@
-ARG base_image=818863528939.dkr.ecr.eu-central-1.amazonaws.com/badgerdoc/python_base:0.1.8
+ARG base_image=818863528939.dkr.ecr.eu-central-1.amazonaws.com/badgerdoc/python_base_3.12:0.2.0
 FROM ${base_image} as build
 
 WORKDIR /opt/convert
@@ -7,18 +7,18 @@ COPY poetry.lock pyproject.toml ./
 COPY convert convert
 
 RUN : \
-   && apt-get update \
-   && apt-get install --yes software-properties-common libmagickwand-dev \
-   && add-apt-repository https://archive.ubuntu.com/ \
-   && apt-get install -y ghostscript \
-   && rm -rf /var/lib/apt/lists/* \
-   && :
+    && apt-get update \
+    && apt-get install --yes software-properties-common libmagickwand-dev \
+    && add-apt-repository https://archive.ubuntu.com/ \
+    && apt-get install -y ghostscript \
+    && rm -rf /var/lib/apt/lists/* \
+    && :
 
 COPY policy.xml  /etc/ImageMagick-6/policy.xml
 
 RUN : \
     && python3 -m pip install --upgrade pip \
-    && pip install poetry>=1.1.13 \
+    && pip install poetry>=1.7.1 \
     && poetry config virtualenvs.create false \
     && poetry install --no-root --only main \
     && :
@@ -33,7 +33,7 @@ COPY convert /working/convert
 COPY sonar-project.properties /working/sonar-project.properties
 
 CMD sonar-scanner \
-  -Dsonar.projectKey=$SONAR_PROJECT_KEY_MODELS \
-  -Dproject.settings=/working/sonar-project.properties \
-  -Dsonar.host.url=$SONAR_HOST_URL \
-  -Dsonar.login=$SONAR_TOKEN_MODELS
+    -Dsonar.projectKey=$SONAR_PROJECT_KEY_MODELS \
+    -Dproject.settings=/working/sonar-project.properties \
+    -Dsonar.host.url=$SONAR_HOST_URL \
+    -Dsonar.login=$SONAR_TOKEN_MODELS

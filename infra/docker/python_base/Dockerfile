@@ -2,7 +2,7 @@ FROM python:3.8.19-slim-bullseye AS base
 
 COPY lib/filter_lib/ /opt/filter_lib/
 COPY lib/tenants/ /opt/tenants/
-COPY lib/badgerdoc_storage /opt/badgerdoc_storage/
+COPY lib/badgerdoc_storage /opt/lib/badgerdoc_storage/
 
 RUN python3 -m pip install --upgrade pip && \
     apt update && \
@@ -10,8 +10,7 @@ RUN python3 -m pip install --upgrade pip && \
     pip3 install poetry==1.4.0  && \
     cd /opt/filter_lib && pip3 install . && \
     cd /opt/tenants && pip3 install . && \
-    cd /opt/badgerdoc_storage && pip3 install . && \
-    cd ../ && rm -rf filter_lib && rm -rf tenants && rm -rf badgerdoc_storage
+    cd ../ && rm -rf filter_lib && rm -rf tenants
 
 ENV PYTHONPATH /opt
 
@@ -31,4 +30,4 @@ RUN python3 -m venv env
 RUN . env/bin/activate && pip install -r requirements.txt \
     && pip install -r requirements-dev.txt && isort src --check \
     && black src --check && mypy src && pylint src \
-    && pytest -vv --cov --cov-report=xml && deactivate 
+    && pytest -vv --cov --cov-report=xml && deactivate
