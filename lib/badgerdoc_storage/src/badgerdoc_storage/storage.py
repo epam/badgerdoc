@@ -1,7 +1,7 @@
 import datetime
 import logging
 import os
-from typing import Dict, List, Optional, Protocol
+from typing import Any, Dict, List, Optional, Protocol
 from urllib.parse import urlsplit
 
 import azure.core.exceptions
@@ -36,9 +36,6 @@ def create_boto3_config() -> Dict[str, Optional[str]]:
     if S3_ACCESS_KEY is not None:
         s3_secure = os.getenv("S3_SECURE", "").upper() == "TRUE"
         s3_endpoint = os.getenv("S3_ENDPOINT")
-
-        # TODO: Check region
-
         boto3_config.update(
             {
                 "aws_access_key_id": S3_ACCESS_KEY,
@@ -50,6 +47,10 @@ def create_boto3_config() -> Dict[str, Optional[str]]:
                 ),
             }
         )
+        s3_region = os.getenv("S3_REGION")
+        if s3_region:
+            boto3_config["region_name"] = s3_region
+
     logger.debug("S3 configured")
     return boto3_config
 
@@ -73,26 +74,18 @@ class BadgerDocStorage(Protocol):
     ) -> None:
         pass
 
-    def exists(self, target_path: str) -> bool:
-        pass
+    def exists(self, target_path: str) -> bool: ...
 
-    def download(self, target_path: str, file: str) -> None:
-        pass
+    def download(self, target_path: str, file: str) -> None: ...
 
-    def gen_signed_url(self, file: str, exp: int) -> str:
-        pass
+    def gen_signed_url(self, file: str, exp: int) -> str: ...
 
-    def list_objects(
-        self, targe_path: str, recursive: bool = False
-    ) -> List[str]:
-        pass
+    def list_objects(self, target_path: str) -> List[str]: ...
 
-    def remove(self, file: str) -> None:
-        pass
+    def remove(self, file: str) -> None: ...
 
     @property
-    def tenant(self) -> str:
-        pass
+    def tenant(self) -> str: ...
 
 
 class BadgerDocS3Storage:
@@ -113,7 +106,7 @@ class BadgerDocS3Storage:
         self, target_path: str, file: str, content_type: Optional[str] = None
     ) -> None:
         bucket_name = self.__get_bucket_name()
-        params = {"Filename": file, "Key": target_path}
+        params: Dict[str, Any] = {"Filename": file, "Key": target_path}
         if content_type:
             params["ExtraArgs"] = {"ContentType": content_type}
         self.s3_resource.Bucket(bucket_name).upload_file(**params)
@@ -148,6 +141,12 @@ class BadgerDocS3Storage:
                 "Unable to download file: %s", target_path
             ) from err
 
+    def list_objects(self, target_path: str) -> List[str]:
+        bucket_name = self.__get_bucket_name()
+        bucket = self.s3_resource.Bucket(bucket_name)
+        objects = bucket.objects.filter(Prefix=target_path)
+        return [obj.key for obj in objects]
+
     def gen_signed_url(self, file: str, exp: int) -> str:
         bucket_name = self.__get_bucket_name()
         signed_url = self.s3_resource.meta.client.generate_presigned_url(
@@ -159,6 +158,7 @@ class BadgerDocS3Storage:
             if split.query is not None:
                 new_url += f"?{split.query}"
             return new_url
+        return signed_url
 
     def remove(self, file: str) -> None:
         pass
@@ -220,18 +220,17 @@ class BadgerDocAzureStorage:
             snapshot=blob_client.snapshot,
             account_key=blob_client.credential.account_key,
             permission=ContainerSasPermissions(read=True),
-            expiry=datetime.datetime.now() + datetime.timedelta(seconds=exp),
+            expiry=datetime.datetime.now() + datetime.timedelta(minutes=exp),
         )
         return blob_client.url + "?" + sas_token
 
-    def list_objects(
-        self, target_path: str, recursive: bool = False
-    ) -> List[str]:
-        if not recursive:
-            target_path += "/"  # Append slash to get blobs only at top level.
-        blob_iter = self.blob_service_client.list_blobs(
-            self._container_name, name_starts_with=target_path
+    def list_objects(self, target_path: str) -> List[str]:
+        if not target_path.endswith("/"):
+            target_path += "/"
+        container_client = self.blob_service_client.get_container_client(
+            self._tenant
         )
+        blob_iter = container_client.walk_blobs(name_starts_with=target_path)
         return [blob.name for blob in blob_iter]
 
     def remove(self, file: str) -> None:

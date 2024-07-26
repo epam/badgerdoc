@@ -2,7 +2,7 @@ ARG base_image=818863528939.dkr.ecr.eu-central-1.amazonaws.com/badgerdoc/python_
 FROM ${base_image} as base
 
 ENV PYTHONUNBUFFERED 1
-WORKDIR /processing
+WORKDIR /opt/processing
 
 COPY poetry.lock pyproject.toml .env alembic.ini version.txt ./
 
@@ -32,7 +32,7 @@ COPY package/tests /sonar/tests
 COPY sonar-project.properties /sonar/sonar-project.properties
 
 CMD sonar-scanner \
-  -Dsonar.projectKey=$SONAR_PROJECT_KEY_PROCESSING \
-  -Dproject.settings=/sonar/sonar-project.properties \
-  -Dsonar.host.url=$SONAR_HOST_URL \
-  -Dsonar.login=$SONAR_TOKEN_PROCESSING
+    -Dsonar.projectKey=$SONAR_PROJECT_KEY_PROCESSING \
+    -Dproject.settings=/sonar/sonar-project.properties \
+    -Dsonar.host.url=$SONAR_HOST_URL \
+    -Dsonar.login=$SONAR_TOKEN_PROCESSING
