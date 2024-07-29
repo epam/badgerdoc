@@ -52,9 +52,7 @@ class TenantDependencyBase:
             )
         _, token = get_authorization_scheme_param(authorization)
         decoded: Dict[str, Any] = {}
-        logger.debug(
-            "Decoding token: %s, with algorithm %s", token, self.algorithm
-        )
+        logger.debug("Decoding token with algorithm %s", self.algorithm)
         if self.algorithm == SupportedAlgorithms.HS256:
             decoded = self.decode_hs256(token)
         elif self.algorithm == SupportedAlgorithms.RS256:

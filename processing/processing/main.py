@@ -23,7 +23,6 @@ from processing.send_preprocess_results import send_preprocess_result
 from processing.tasks import GetLanguagesTask, PreprocessingTask
 from processing.text_merge import merge_words_to_paragraph
 from processing.utils.logger import get_logger
-from processing.utils.minio_utils import convert_bucket_name_if_s3prefix
 from processing.utils.utils import map_finish_status_for_assets
 
 logger = get_logger(__name__)
@@ -93,9 +92,8 @@ def get_preprocessing_result(
         current_tenant,
     )
     try:
-        bucket_name = convert_bucket_name_if_s3prefix(current_tenant)
         return Response(
-            content=send_preprocess_result(bucket_name, file_id, pages),
+            content=send_preprocess_result(current_tenant, file_id, pages),
             media_type="application/json",
         )
     except Exception:
@@ -195,7 +193,11 @@ async def get_list_language(
     summary="Return `True` if test succeed, otherwise `False`",
 )
 async def preprocessing_health_check(
-    model_url: str, languages: Optional[Set[str]] = Body(None, example=None)
+    model_url: str,
+    languages: Optional[Set[str]] = Body(None, example=None),
+    current_tenant: str = Header(..., alias="X-Current-Tenant"),
 ) -> bool:
     """Test run for preprocessing"""
-    return await health_check_preprocessing(model_url, languages)
+    return await health_check_preprocessing(
+        model_url, languages, current_tenant
+    )

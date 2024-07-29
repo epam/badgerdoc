@@ -28,6 +28,7 @@ jobs:
            poetry install --no-root
            poetry add ../lib/filter_lib
            poetry add ../lib/tenants
+           poetry add ../lib/badgerdoc_storage
        - name: Run linters and checkers [flake8]
          working-directory: ./jobs
          run: |

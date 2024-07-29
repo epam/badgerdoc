@@ -28,7 +28,7 @@ class Config(BaseSettings):
     postgres_host: Optional[str]
     postgres_port: Optional[str]
     database_url: Optional[str]
-    s3_provider: Optional[str]
+    storage_provider: Optional[str]
     s3_endpoint: Optional[str]
     s3_access_key: Optional[str]
     s3_secret_key: Optional[str]

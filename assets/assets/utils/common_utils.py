@@ -2,6 +2,7 @@ from io import BytesIO
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, TypedDict, Union
 
+import badgerdoc_storage
 import magic
 import minio
 import pdf2image
@@ -14,7 +15,6 @@ from assets import db, exceptions, logger, schemas
 from assets.config import settings
 from assets.utils import chem_utils, minio_utils
 from assets.utils.convert_service_utils import post_pdf_to_convert
-from assets.utils.minio_utils import create_minio_config
 
 logger_ = logger.get_logger(__name__)
 
@@ -133,21 +133,18 @@ def process_s3_files(
 
 
 def process_form_files(
-    bucket_storage: str,
+    tenant: str,
     form_files: List[Any],
     session: sqlalchemy.orm.Session,
-    storage: minio.Minio,
 ) -> List[ActionResponseTypedDict]:
     """
     Applies file processing to each form uploaded files
     """
     result = []
+    bd_storage = badgerdoc_storage.storage.get_storage(tenant)
     for file_ in form_files:
         file_processor = FileProcessor(
-            file=file_,
-            storage=storage,
-            session=session,
-            bucket_storage=bucket_storage,
+            file=file_, storage=bd_storage, session=session
         )
         file_processor.run()
         result.append(file_processor.response)
@@ -176,6 +173,7 @@ class FileConverter:
         ext: str,
         bucket_storage: str,
         blank_db_file,
+        storage: badgerdoc_storage.storage.BadgerDocStorage,
     ) -> None:
         self.bucket_storage = bucket_storage
         self.file_bytes = file_bytes
@@ -185,9 +183,7 @@ class FileConverter:
         self.conversion_status: Optional[schemas.ConvertionStatus] = None
         self.converted_file: Optional[bytes] = None
         self.converted_ext: Optional[str] = None
-
-        minio_config = create_minio_config()
-        self.minio_client = minio.Minio(**minio_config)
+        self.storage = storage
 
     @property
     def _output_pdf_path(self) -> str:
@@ -321,13 +317,14 @@ class FileConverter:
             return tmp_file.read()
 
     def convert_pdf(self) -> bytes:
-        self.minio_client.put_object(
-            bucket_name=self.bucket_storage,
-            object_name=self._output_pdf_path,
-            data=BytesIO(self.file_bytes),
-            length=len(self.file_bytes),
-        )
-        logger_.debug(f"{self.file_name} has been uploaded")
+        try:
+            self.storage.upload_obj(
+                target_path=self._output_pdf_path,
+                file=BytesIO(self.file_bytes),
+            )
+        except badgerdoc_storage.storage.BadgerDocStorageResourceExistsError:
+            logger_.warning("File %s exists", self._output_pdf_path)
+        logger_.debug("File has been uploaded", self.file_name)
         post_pdf_to_convert(
             self.bucket_storage,
             self._output_pdf_path,
@@ -335,12 +332,10 @@ class FileConverter:
         )
         self.converted_ext = ".pdf"
         self.conversion_status = schemas.ConvertionStatus.CONVERTED_TO_PDF
-        converted_file = self.minio_client.fget_object(  # noqa
-            self.bucket_storage,
-            self._output_pdf_path,
-            self._tmp_file_name,
-        )
         logger_.debug(f"Got converted {self.file_name}")
+        # TODO: It's should be removed,
+        # because no real temporary dir is used here
+        self.storage.download(self._output_pdf_path, self._tmp_file_name)
         with open(self._tmp_file_name, "rb") as tmp_file:
             return tmp_file.read()
 
@@ -374,9 +369,8 @@ class FileProcessor:
     def __init__(
         self,
         file: Union[BytesIO, starlette.datastructures.UploadFile],
-        storage: minio.Minio,
+        storage: badgerdoc_storage.storage.BadgerDocStorage,
         session: sqlalchemy.orm.Session,
-        bucket_storage: str,
         file_key: str = None,
     ) -> None:
         self.response: Optional[ActionResponseTypedDict] = None
@@ -385,7 +379,6 @@ class FileProcessor:
         self.new_file: Optional[db.models.FileObject] = None
         self.storage = storage
         self.ext: Optional[str] = None
-        self.bucket_storage = bucket_storage
         if isinstance(file, BytesIO):
             self.file_bytes = file.read()
             self.file_name = Path(file_key).name
@@ -428,7 +421,7 @@ class FileProcessor:
         self.new_file = db.service.insert_file(
             self.session,
             file_name,
-            self.bucket_storage,
+            self.storage.tenant,
             get_file_size(file_to_upload),
             ext,
             original_ext,
@@ -437,17 +430,15 @@ class FileProcessor:
             schemas.FileProcessingStatus.UPLOADING,
         )
         if ext in (".txt", ".html"):
-            minio_config = create_minio_config()
-            minio_client = minio.Minio(**minio_config)
-            minio_client.put_object(
-                bucket_name=self.bucket_storage,
-                object_name=self.new_file.path,
-                data=BytesIO(self.file_bytes),
-                length=len(self.file_bytes),
+            self.storage.upload_obj(
+                target_path=self.new_file.path,
+                file=BytesIO(self.file_bytes),
             )
         else:
-            storage = minio_utils.upload_in_minio(  # noqa
-                file_to_upload, self.storage, self.new_file
+            minio_utils.upload_in_minio(  # noqa
+                storage=self.storage,
+                file=file_to_upload,
+                file_obj=self.new_file,
             )
 
         if self.new_file:
@@ -471,8 +462,9 @@ class FileProcessor:
             self.file_bytes,
             self.file_name,
             self.ext,
-            self.bucket_storage,
+            self.storage.tenant,
             self.new_file,
+            self.storage,
         )
         converter.convert()
         self.conversion_status = converter.conversion_status
@@ -512,7 +504,7 @@ class FileProcessor:
             self.new_file.id,
             self.session,
             file_name,
-            self.bucket_storage,
+            self.storage.tenant,
             get_file_size(file_to_upload),
             ext,
             original_ext,
@@ -543,7 +535,9 @@ class FileProcessor:
             file_to_upload = self.converted_file
 
         storage = minio_utils.upload_in_minio(
-            file_to_upload, self.storage, self.new_file
+            self.storage,
+            file_to_upload,
+            self.new_file,
         )
         if storage:
             return True
@@ -568,11 +562,11 @@ class FileProcessor:
         if self.conversion_status is None:
             return True
         storage = minio_utils.put_file_to_minio(
-            client=self.storage,
             file=self.file_bytes,
             file_obj=self.new_file,
             content_type=get_mimetype(self.file_bytes),
             folder="origin",
+            tenant=self.storage.tenant,
         )
         if storage:
             return True

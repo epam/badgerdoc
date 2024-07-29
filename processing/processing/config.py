@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     app_version: str = Field(default_factory=get_version)
 
     s3_prefix: Optional[str]
-    s3_provider: Optional[str]
+    storage_provider: Optional[str]
     aws_profile_name: Optional[str]
 
     external_postfix: str = ".badgerdoc.com"

@@ -159,21 +159,11 @@ docker-compose -f airflow/docker-compose-dev.yaml up -d
 This docker-compose file was downloaded from the Apache Airflow website:
 https://airflow.apache.org/docs/apache-airflow/2.7.0/docker-compose.yaml with only a few modifications added.
 
-## Set up ClearML as Models service in local mode
+## Set up Azure Blob Storage
 
-ClearML runs using its own resources without sharing them with BadgerDoc.
+### Enable CORS
+https://learn.microsoft.com/en-us/rest/api/storageservices/cross-origin-resource-sharing--cors--support-for-the-azure-storage-services
 
-1. Copy `clearml/.env.example` to `clearml/.env` running:
-```
-cp clearml/.env.example clearml/.env
-```
-
-2. Run:
-```
-docker-compose -f clearml/docker-compose-dev.yaml up -d
-```
-
-This docker-compose file was downloaded from the ClearML GitHub: https://github.com/allegroai/clearml-server/blob/master/docker/docker-compose.yml with a few modifications added.
 
 ## How to install required dependencies locally
 

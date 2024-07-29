@@ -1,3 +1,4 @@
+# pylint: disable-all
 import abc
 import json
 import os
@@ -9,7 +10,7 @@ from zipfile import ZipFile
 import requests
 from botocore.exceptions import ClientError
 
-from convert.config import minio_client, minio_resource, settings
+from convert.config import settings
 from convert.converters.coco.models.coco import (
     Annotation,
     BBox,
@@ -46,7 +47,7 @@ class DatasetFetch:
             Return path to loaded json
         """
         key = f"annotation/{self.job_id}/{file_id}"
-        minio_client.download_file(self.bucket_name, key, key)
+        minio_client.download_file(self.bucket_name, key, key)  # type: ignore
         return key
 
     def download_image(
@@ -66,7 +67,7 @@ class DatasetFetch:
         image_local_path = (
             f"{image_folder}/{self.job_id}_{Path(file_path).name}"
         )
-        minio_resource.meta.client.download_file(
+        minio_resource.meta.client.download_file(  # type: ignore
             self.bucket_name, file_path, image_local_path
         )
         LOGGER.info("file %s was downloaded", Path(file_path).name)
@@ -115,7 +116,7 @@ class DatasetFetch:
         for page_num, page_name in pages.items():
             if validated_pages and int(page_num) not in validated_pages:
                 continue
-            minio_client.download_file(
+            minio_client.download_file(  # type: ignore
                 self.bucket_name,
                 f"{work_dir}/{page_name}.json",
                 f"{local_path}/{page_name}.json",
@@ -138,7 +139,7 @@ class DatasetFetch:
             if validated_pages and int(page_num) not in validated_pages:
                 continue
             annotation_page_content = json.loads(
-                minio_client.get_object(
+                minio_client.get_object(  # type: ignore
                     Bucket=self.bucket_name, Key=f"{work_dir}/{page_name}.json"
                 )["Body"].read()
             )
@@ -159,9 +160,7 @@ class DatasetFetch:
         """
         work_dir = Path(manifest).parent
         manifest_content = json.loads(
-            minio_client.get_object(Bucket=self.bucket_name, Key=manifest)[
-                "Body"
-            ]
+            minio_client.get_object(Bucket=self.bucket_name, Key=manifest)["Body"]  # type: ignore
             .read()
             .decode("utf-8")
         )
@@ -221,7 +220,7 @@ class DatasetFetch:
     def is_job_exist(self) -> Union[List[Dict[str, str]], ClientError]:
         """Existence check of the job"""
         try:
-            file_id = minio_client.list_objects(
+            file_id = minio_client.list_objects(  # type: ignore
                 Bucket=self.bucket_name,
                 Prefix=f"annotation/{self.job_id}/",
                 Delimiter="/",
@@ -297,7 +296,7 @@ class ConvertToCoco(ExportConvertBase):
             for number, category in enumerate(categories)
         }
         for page in file_id:
-            files = minio_client.list_objects(
+            files = minio_client.list_objects(  # type: ignore
                 Bucket=self.bucket_name, Prefix=page["Prefix"]
             )["Contents"]
             manifest_path = [
@@ -417,7 +416,7 @@ class ExportBadgerdoc(ExportConvertBase):
         loader = DatasetFetch(self.job_id, self.tenant, self.uuid)
         file_id = loader.is_job_exist()
         for page in file_id:
-            files = minio_client.list_objects(
+            files = minio_client.list_objects(  # type: ignore
                 Bucket=self.bucket_name, Prefix=page["Prefix"]
             )["Contents"]
             manifest_path = [
@@ -427,7 +426,7 @@ class ExportBadgerdoc(ExportConvertBase):
             annotation_local_path = f"{job}/{file}/{file_name}"
             if not os.path.exists(Path(annotation_local_path).parent):
                 os.makedirs(Path(annotation_local_path).parent, exist_ok=True)
-            minio_client.download_file(
+            minio_client.download_file(  # type: ignore
                 self.bucket_name, manifest_path, annotation_local_path
             )
             LOGGER.info(

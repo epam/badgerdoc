@@ -9,3 +9,4 @@ openai==0.28.0
 pydantic==2.3.0
 apache-airflow-providers-amazon==8.7.1
 minio==7.1.16
+epam.indigo==1.19.0

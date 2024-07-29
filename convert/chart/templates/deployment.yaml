@@ -43,7 +43,7 @@ spec:
         env:
         - name: ROOT_PATH
           value: ""
-        - name: S3_PROVIDER
+        - name: STORAGE_PROVIDER
           value: "minio"
         - name: S3_ENDPOINT_URL
           value: "http://minio"

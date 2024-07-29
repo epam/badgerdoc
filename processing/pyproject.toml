@@ -19,7 +19,7 @@ cryptography = "^36.0.1"
 SQLAlchemy = "1.3.24"
 psycopg2-binary = "^2.9.1"
 alembic = "^1.7.7"
-
+badgerdoc-storage = { path = "../lib/badgerdoc_storage" }
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.5"

@@ -12,10 +12,10 @@ sqlalchemy_utils = "^0.38.3"
 fastapi = "^0.68.1"
 python-dotenv = "^0.19.0"
 uvicorn = "^0.15.0"
-aiohttp = "^3.8.1"
 apache-airflow-client = "^2.7.0"
 databricks-sdk = "^0.26.0"
-aioboto3 = "^12.4.0"
+aiohttp = "^3.9.5"
+badgerdoc-storage = { path = "../lib/badgerdoc_storage" }
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.5"

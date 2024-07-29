@@ -119,7 +119,7 @@ def setup_tenant():
     return mock_tenant_data
 
 
-async def patched_create_pre_signed_s3_url(
+def patched_create_pre_signed_s3_url(
     bucket: str,
     path: str,
     action: Literal["get_object"] = "get_object",

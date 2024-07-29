@@ -1,13 +1,17 @@
+# pylint: disable-all
+import os
+import tempfile
 from typing import Any
 from urllib.parse import urlparse
 
 import requests
+from badgerdoc_storage import storage as bd_storage
 from fastapi import APIRouter, BackgroundTasks, Depends, Header, status
 from fastapi.responses import Response, StreamingResponse
 from requests import HTTPError
 from tenant_dependency import TenantData, get_tenant_info
 
-from convert.config import minio_client, settings
+from convert.config import settings
 from convert.converters.coco.coco_export.convert import (
     ConvertToCoco,
     ExportBadgerdoc,
@@ -136,21 +140,23 @@ def download_dataset(
     current_tenant: str = Header(None, alias="X-Current-Tenant"),
 ) -> Any:
     response = requests.get(url)
+    storage = bd_storage.get_storage(current_tenant)
     if response.status_code != 200:
         return Response(status_code=status.HTTP_204_NO_CONTENT)
     parsed = urlparse(url)
     minio_path = parsed.path[1:].split("/")
-    bucket, _ = minio_path[0], str.join("/", minio_path[1:-1])
-    zip_file = minio_client.get_object(
-        Bucket=bucket, Key=str.join("/", minio_path[1:])
-    )
-    background.add_task(
-        minio_client.delete_object,
-        Bucket=bucket,
-        Key=str.join("/", minio_path[1:]),
-    )
-    return StreamingResponse(
-        content=zip_file["Body"].iter_chunks(),
-        media_type="application/zip",
-        headers={"Content-Disposition": "attachment; filename=coco.zip"},
-    )
+    with tempfile.TemporaryDirectory() as dir_:
+        zip_file = os.path.join(dir_, "zip_file")
+        storage.download(Key=str.join("/", minio_path[1:]))
+        background.add_task(
+            storage.remove,
+            str.join("/", minio_path[1:]),
+        )
+        with open(zip_file, "rb") as file:
+            return StreamingResponse(
+                content=file.read(),
+                media_type="application/zip",
+                headers={
+                    "Content-Disposition": "attachment; filename=coco.zip"
+                },
+            )

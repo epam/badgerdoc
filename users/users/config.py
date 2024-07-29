@@ -16,7 +16,7 @@ MINIO_SECURE_CONNECTION = os.getenv(
     "true",
     "1",
 )
-S3_PROVIDER = os.getenv("S3_PROVIDER")
+STORAGE_PROVIDER = os.getenv("STORAGE_PROVIDER")
 S3_PREFIX = os.getenv("S3_PREFIX", "")
 S3_ENDPOINT = os.getenv("S3_ENDPOINT")
 S3_ACCESS_KEY = os.getenv("S3_ACCESS_KEY")

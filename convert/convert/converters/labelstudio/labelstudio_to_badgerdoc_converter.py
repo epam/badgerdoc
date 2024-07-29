@@ -5,6 +5,7 @@ from typing import Any, Dict, List, Optional, Set, Union
 from uuid import uuid4
 
 import requests
+from badgerdoc_storage import storage as bd_storage
 from botocore.client import BaseClient
 from botocore.exceptions import ClientError
 from fastapi import HTTPException, status
@@ -38,7 +39,6 @@ LOGGER.setLevel("DEBUG")
 
 
 class LabelstudioToBadgerdocConverter:
-
     CONVERTED_ANNOTATIONS_FILENAME = "annotations.json"
     CONVERTED_TOKENS_FILENAME = "1.json"
     OUTPUT_PDF_FILENAME = "badgerdoc_render.pdf"
@@ -47,7 +47,7 @@ class LabelstudioToBadgerdocConverter:
 
     def __init__(
         self,
-        s3_client: BaseClient,
+        s3_client: bd_storage.BadgerDocStorage,
         current_tenant: str,
         token_data: TenantData,
         s3_input_annotation: S3Path,
