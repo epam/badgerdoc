@@ -1,12 +1,20 @@
 import uuid
 from datetime import datetime
 
+import boto3
 import pytest
+from moto import mock_s3
 from sqlalchemy import INTEGER, VARCHAR, Column, DateTime
 from sqlalchemy.dialects.postgresql import UUID
 
-from annotation.annotations.main import row_to_dict
+from annotation.annotations.main import (
+    NotConfiguredException,
+    connect_s3,
+    convert_bucket_name_if_s3prefix,
+    row_to_dict,
+)
 from annotation.database import Base
+from tests.override_app_dependency import TEST_TENANT
 
 
 class AnnotationRow:
@@ -83,3 +91,81 @@ def test_row_to_dict(row, expected_dictionary):
     result = row_to_dict(row)
     print(result)
     assert result == expected_dictionary
+
+
+@pytest.mark.unittest
+@pytest.mark.parametrize(
+    [
+        "s3_prefix",
+        "bucket_name",
+        "expected_string",
+    ],
+    [
+        (
+            "S3_test",
+            "bucket_test",
+            "S3_test-bucket_test",
+        ),
+        (
+            None,
+            "bucket_test",
+            "bucket_test",
+        ),
+    ],
+)
+def test_convert_bucket_name_if_s3prefix(
+    monkeypatch,
+    s3_prefix,
+    bucket_name,
+    expected_string,
+):
+    monkeypatch.setattr("annotation.annotations.main.S3_PREFIX", s3_prefix)
+    result = convert_bucket_name_if_s3prefix(bucket_name=bucket_name)
+    assert result == expected_string
+
+
+@mock_s3
+@pytest.mark.unittest
+@pytest.mark.parametrize(
+    [
+        "s3_provider",
+        "bucket_name",
+    ],
+    [
+        (
+            "minio",
+            TEST_TENANT,
+        ),  # successful connection
+        (
+            "aws_iam",
+            TEST_TENANT,
+        ),  # successful connection
+        (
+            "no_provider",
+            TEST_TENANT,
+        ),  # NotConfiguredException
+        (
+            "aws_iam",
+            "no_bucket",
+        ),  # NoSuchBucket
+    ],
+)
+def test_connect_s3(monkeypatch, s3_provider, bucket_name):
+    s3 = boto3.resource("s3")
+    s3.create_bucket(Bucket=TEST_TENANT)
+    monkeypatch.setattr("annotation.annotations.main.S3_PROVIDER", s3_provider)
+
+    if s3_provider == "minio":
+        monkeypatch.setattr(
+            "annotation.annotations.main.S3_ENDPOINT_URL", "http://"
+        )
+
+    if s3_provider == "no_provider":
+        with pytest.raises(NotConfiguredException):
+            connect_s3(bucket_name)
+    elif bucket_name == "no_bucket":
+        with pytest.raises(s3.meta.client.exceptions.NoSuchBucket):
+            connect_s3(bucket_name)
+    else:
+        result_s3 = connect_s3(bucket_name)
+        assert s3 == result_s3

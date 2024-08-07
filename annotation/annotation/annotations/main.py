@@ -6,6 +6,7 @@ from typing import Dict, List, Optional, Set, Tuple, Union
 from uuid import UUID
 
 import boto3
+from botocore.exceptions import ClientError
 from dotenv import find_dotenv, load_dotenv
 from fastapi import HTTPException
 from kafka import KafkaProducer
@@ -62,7 +63,9 @@ def row_to_dict(row) -> dict:
         key: (
             str(value)
             if isinstance(value, UUID)
-            else value.isoformat() if isinstance(value, datetime) else value
+            else value.isoformat()
+            if isinstance(value, datetime)
+            else value
         )
         for key, value in row.__dict__.items()
         if key != "_sa_instance_state"
@@ -110,8 +113,12 @@ def connect_s3(bucket_name: str) -> boto3.resource:
         # it responses with TypeError: NoneType object is not
         # callable, this try/except block should be changed after understanding
         # what is going on
-    except TypeError:
-        raise s3_resource.meta.client.exceptions.NoSuchBucket
+
+        # It throws S3 Client Error 404 now
+    except ClientError as e:
+        raise s3_resource.meta.client.exceptions.NoSuchBucket(
+            e.response, e.operation_name
+        )
     return s3_resource
 
 
