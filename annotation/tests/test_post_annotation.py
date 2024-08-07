@@ -12,14 +12,6 @@ from fastapi.testclient import TestClient
 from requests import RequestException
 from sqlalchemy.exc import DBAPIError, SQLAlchemyError
 from sqlalchemy.orm import Session
-from tests.consts import ANNOTATION_PATH
-from tests.override_app_dependency import (
-    TEST_HEADERS,
-    TEST_TENANT,
-    TEST_TOKEN,
-    app,
-)
-from tests.test_tasks_crud_ud import construct_path
 
 from annotation.annotations import (
     MANIFEST,
@@ -58,6 +50,14 @@ from annotation.schemas import (
     TaskStatusEnumSchema,
     ValidationSchema,
 )
+from tests.consts import ANNOTATION_PATH
+from tests.override_app_dependency import (
+    TEST_HEADERS,
+    TEST_TENANT,
+    TEST_TOKEN,
+    app,
+)
+from tests.test_tasks_crud_ud import construct_path
 
 client = TestClient(app)
 
@@ -2184,6 +2184,8 @@ def test_post_annotation_by_pipeline_two_eq_revs_in_a_row(
             {1},
             {2},
             {1, 2, 3},
+            # this should raise the exception
+            # the page_num 10 is not present in task_pages
         ),
         (
             [
@@ -2192,6 +2194,8 @@ def test_post_annotation_by_pipeline_two_eq_revs_in_a_row(
             {10},
             {2},
             {1, 2, 3},
+            # this should raise the exception
+            # pages is not present in task_pages
         ),
         (
             [
@@ -2200,6 +2204,8 @@ def test_post_annotation_by_pipeline_two_eq_revs_in_a_row(
             {1},
             {20},
             {1, 2, 3},
+            # this should raise the exception
+            # validated is not present in task_pages
         ),
         (
             [
@@ -2208,6 +2214,8 @@ def test_post_annotation_by_pipeline_two_eq_revs_in_a_row(
             {10},
             {20},
             {1, 2, 3},
+            # this should raise the exception
+            # pages and validated is not present in task_pages
         ),
     ],
 )
