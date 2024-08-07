@@ -1,9 +1,8 @@
 import uuid
 from datetime import datetime
+from unittest.mock import MagicMock
 
-import boto3
 import pytest
-from moto import mock_s3
 from sqlalchemy import INTEGER, VARCHAR, Column, DateTime
 from sqlalchemy.dialects.postgresql import UUID
 
@@ -124,7 +123,6 @@ def test_convert_bucket_name_if_s3prefix(
     assert result == expected_string
 
 
-@mock_s3
 @pytest.mark.unittest
 @pytest.mark.parametrize(
     [
@@ -150,22 +148,18 @@ def test_convert_bucket_name_if_s3prefix(
         ),  # NoSuchBucket
     ],
 )
-def test_connect_s3(monkeypatch, s3_provider, bucket_name):
-    s3 = boto3.resource("s3")
-    s3.create_bucket(Bucket=TEST_TENANT)
-    monkeypatch.setattr("annotation.annotations.main.S3_PROVIDER", s3_provider)
+def test_connect_s3(moto_s3, monkeypatch, s3_provider, bucket_name):
+    mock_resource = MagicMock(return_value=moto_s3)
+    monkeypatch.setattr("boto3.resource", mock_resource)
 
-    if s3_provider == "minio":
-        monkeypatch.setattr(
-            "annotation.annotations.main.S3_ENDPOINT_URL", "http://"
-        )
+    monkeypatch.setattr("annotation.annotations.main.S3_PROVIDER", s3_provider)
 
     if s3_provider == "no_provider":
         with pytest.raises(NotConfiguredException):
             connect_s3(bucket_name)
     elif bucket_name == "no_bucket":
-        with pytest.raises(s3.meta.client.exceptions.NoSuchBucket):
+        with pytest.raises(moto_s3.meta.client.exceptions.NoSuchBucket):
             connect_s3(bucket_name)
     else:
         result_s3 = connect_s3(bucket_name)
-        assert s3 == result_s3
+        assert moto_s3 == result_s3
