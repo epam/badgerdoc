@@ -81,5 +81,4 @@ ANNOTATION_ROW_TABLE = AnnotationRowTable(
 )
 def test_row_to_dict(row, expected_dictionary):
     result = row_to_dict(row)
-    print(result)
     assert result == expected_dictionary
