@@ -2430,8 +2430,6 @@ def test_post_annotation_by_pipeline_two_eq_revs_in_a_row(
             {1},
             {2},
             {1, 2, 3},
-            # this should raise the exception
-            # the page_num 10 is not present in task_pages
         ),
         (
             [
@@ -2440,8 +2438,6 @@ def test_post_annotation_by_pipeline_two_eq_revs_in_a_row(
             {10},
             {2},
             {1, 2, 3},
-            # this should raise the exception
-            # pages is not present in task_pages
         ),
         (
             [
@@ -2450,8 +2446,6 @@ def test_post_annotation_by_pipeline_two_eq_revs_in_a_row(
             {1},
             {20},
             {1, 2, 3},
-            # this should raise the exception
-            # validated is not present in task_pages
         ),
         (
             [
@@ -2460,8 +2454,6 @@ def test_post_annotation_by_pipeline_two_eq_revs_in_a_row(
             {10},
             {20},
             {1, 2, 3},
-            # this should raise the exception
-            # pages and validated is not present in task_pages
         ),
     ],
 )
