@@ -1,9 +1,9 @@
+import os
 from collections import defaultdict
 from copy import copy
 from typing import List
 
 import pytest
-from tests.override_app_dependency import TEST_TENANT
 
 from annotation.distribution import (
     add_unassigned_file,
@@ -17,6 +17,7 @@ from annotation.distribution import (
     find_unassigned_pages,
 )
 from annotation.distribution.main import (
+    choose_validators_users,
     distribute_tasks_extensively,
     get_page_number_combinations,
 )
@@ -24,7 +25,12 @@ from annotation.microservice_communication.assets_communication import (
     prepare_files_for_distribution,
 )
 from annotation.models import File
-from annotation.schemas import FileStatusEnumSchema, TaskStatusEnumSchema
+from annotation.schemas import (
+    FileStatusEnumSchema,
+    TaskStatusEnumSchema,
+    ValidationSchema,
+)
+from tests.override_app_dependency import TEST_TENANT
 
 JOB_ID = 1
 ANNOTATORS = [
@@ -1277,3 +1283,191 @@ def test_get_page_number_combinations(
     expected: List[int],
 ) -> None:
     assert get_page_number_combinations(file_pages, user_pages) == expected
+
+
+# ADDITIONAL TESTS
+
+USERS = [
+    {
+        "user_id": "405ef0e2-b53e-4c18-bf08-c0871615d99d",
+        "default_load": 100,
+        "overall_load": 0,
+    },
+    {
+        "user_id": "ba3e0ccf-8661-4ed3-892b-7c291160f631",
+        "default_load": 96,
+        "overall_load": 0,
+    },
+    {
+        "user_id": "6e2ce9ac-2fe8-4cc7-bdcd-bac90faa9247",
+        "default_load": 95,
+        "overall_load": 0,
+    },
+    {
+        "user_id": "8c8a333e-d19a-492a-9e78-5df4bec0ec8b",
+        "default_load": 92,
+        "overall_load": 0,
+    },
+    {
+        "user_id": "ba38c547-f7f2-4ece-b56f-9926e34b159a",
+        "default_load": 90,
+        "overall_load": 0,
+    },
+    {
+        "user_id": "c080408e-0077-4c20-b520-bd4b1541ca56",
+        "default_load": 100,
+        "overall_load": 50,
+    },
+    {
+        "user_id": "c080408e-0077-4c20-b520-bd4b1541ca57",
+        "default_load": 100,
+        "overall_load": 100,
+    },
+    {
+        "user_id": "c080408e-0077-4c20-b520-bd4b1541ca58",
+        "default_load": 0,
+        "overall_load": 100,
+    },
+    {
+        "user_id": "c080408e-0077-4c20-b520-bd4b1541ca59",
+        "default_load": 0,
+        "overall_load": 50,
+    },
+    {
+        "user_id": "c080408e-0077-4c20-b520-bd4b1541ca60",
+        "default_load": 100,
+        "overall_load": 100,
+    },
+]
+
+ANNOTATION_TASKS_CHOOSE_VALIDATORS = [
+    {
+        "deadline": None,
+        "file_id": 4,
+        "is_validation": False,
+        "job_id": 1,
+        "pages": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+        "user_id": "405ef0e2-b53e-4c18-bf08-c0871615d99d",
+        "status": TASKS_STATUS,
+    },
+    {
+        "deadline": None,
+        "file_id": 5,
+        "is_validation": False,
+        "job_id": 1,
+        "pages": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+        "user_id": "c080408e-0077-4c20-b520-bd4b1541ca60",
+        "status": TASKS_STATUS,
+    },
+    {
+        "deadline": None,
+        "file_id": 3,
+        "is_validation": False,
+        "job_id": 1,
+        "pages": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+        "user_id": "c080408e-0077-4c20-b520-bd4b1541ca58",
+        "status": TASKS_STATUS,
+    },
+]
+
+EXPECTED_OUTPUT = [
+    [
+        {
+            "user_id": "ba3e0ccf-8661-4ed3-892b-7c291160f631",
+            "default_load": 96,
+            "overall_load": 0,
+        },
+        {
+            "user_id": "c080408e-0077-4c20-b520-bd4b1541ca59",
+            "default_load": 0,
+            "overall_load": 50,
+        },
+    ],
+    [
+        {
+            "user_id": "6e2ce9ac-2fe8-4cc7-bdcd-bac90faa9247",
+            "default_load": 95,
+            "overall_load": 0,
+        },
+        {
+            "user_id": "8c8a333e-d19a-492a-9e78-5df4bec0ec8b",
+            "default_load": 92,
+            "overall_load": 0,
+        },
+        {
+            "user_id": "ba38c547-f7f2-4ece-b56f-9926e34b159a",
+            "default_load": 90,
+            "overall_load": 0,
+        },
+        {
+            "user_id": "c080408e-0077-4c20-b520-bd4b1541ca56",
+            "default_load": 100,
+            "overall_load": 50,
+        },
+        {
+            "user_id": "c080408e-0077-4c20-b520-bd4b1541ca57",
+            "default_load": 100,
+            "overall_load": 100,
+        },
+    ],
+]
+
+
+@pytest.mark.parametrize(
+    "split_multipage_doc_setup,"
+    "validation_type,"
+    "annotators,"
+    "validators,"
+    "annotation_tasks,"
+    "expected_output",
+    [
+        (
+            False,
+            ValidationSchema.cross,
+            USERS[0:2] + USERS[7:],
+            USERS[2:7],
+            ANNOTATION_TASKS_CHOOSE_VALIDATORS,
+            EXPECTED_OUTPUT[0],
+        ),
+        (
+            True,
+            ValidationSchema.hierarchical,
+            USERS[0:2] + USERS[7:],
+            USERS[2:7],
+            ANNOTATION_TASKS_CHOOSE_VALIDATORS,
+            EXPECTED_OUTPUT[1],
+        ),
+        (
+            True,
+            ValidationSchema.validation_only,
+            USERS[0:2] + USERS[7:],
+            USERS[2:7],
+            ANNOTATION_TASKS_CHOOSE_VALIDATORS,
+            EXPECTED_OUTPUT[1],
+        ),
+    ],
+)
+@pytest.mark.unittest
+def test_choose_validators_users(
+    split_multipage_doc_setup,
+    validation_type,
+    annotators,
+    validators,
+    annotation_tasks,
+    expected_output,
+):
+    # SETUP
+    # Set environment variable SPLIT_MULTIPAGE_DOC
+    if split_multipage_doc_setup:
+        os.environ["SPLIT_MULTIPAGE_DOC"] = "1"
+    else:
+        del os.environ["SPLIT_MULTIPAGE_DOC"]
+
+    output = choose_validators_users(
+        validation_type, annotators, validators, annotation_tasks
+    )
+
+    # Checking is lists have the same elements
+    # expected_output is already sorted by 'user_id'
+    sorted_output = sorted(output, key=lambda x: x["user_id"])
+    assert sorted_output == expected_output
