@@ -118,7 +118,7 @@ def connect_s3(bucket_name: str) -> boto3.resource:
     except ClientError as e:
         raise s3_resource.meta.client.exceptions.NoSuchBucket(
             e.response, e.operation_name
-        )
+        ) from e
     return s3_resource
 
 
