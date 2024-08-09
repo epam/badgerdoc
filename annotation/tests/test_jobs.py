@@ -1,21 +1,21 @@
-import pytest
-from unittest.mock import MagicMock, patch 
-
 import uuid
-from annotation.jobs.services import update_inner_job_status, check_annotators
-from annotation.models import Category, File, Job, User
-from annotation.schemas import (
-    CategoryTypeSchema,
-    FileStatusEnumSchema,
-    TaskStatusEnumSchema,
-    ValidationSchema,
-    JobStatusEnumSchema,
-)
+from unittest.mock import MagicMock, patch
+
+import pytest
 
 from annotation.errors import (
     EnumValidationError,
     FieldConstraintError,
     WrongJobError,
+)
+from annotation.jobs.services import check_annotators, update_inner_job_status
+from annotation.models import Category, File, Job, User
+from annotation.schemas import (
+    CategoryTypeSchema,
+    FileStatusEnumSchema,
+    JobStatusEnumSchema,
+    TaskStatusEnumSchema,
+    ValidationSchema,
 )
 
 JOB_TENANT = "test"
@@ -92,24 +92,39 @@ JOBS_TO_TEST_PROGRESS = (
 #     status=FileStatusEnumSchema.pending,
 # )
 
+
 def test_update_job_status():
 
     mock_session = MagicMock()
 
-    update_inner_job_status(mock_session, JOB_IDS[0], JobStatusEnumSchema.finished)
+    update_inner_job_status(
+        mock_session, JOB_IDS[0], JobStatusEnumSchema.finished
+    )
 
-    mock_session.query(Job).filter(Job.job_id == JOB_IDS[0]).update.assert_called_with({"status":JobStatusEnumSchema.finished})
+    mock_session.query(Job).filter(
+        Job.job_id == JOB_IDS[0]
+    ).update.assert_called_with({"status": JobStatusEnumSchema.finished})
 
-def test_check_annotators_cross_validation_one_annotator():
-    validation_type = ValidationSchema.cross
-    annotators = set([uuid.UUID(ANNOTATORS[0].user_id)]) # we must first create a list to use set() function
 
-    with pytest.raises(FieldConstraintError):
-        check_annotators(annotators, validation_type)
-
-def test_check_annotators_hierarchical_validation_zero_annotators():
-    validation_type = ValidationSchema.hierarchical
-    annotators = set()
-
-    with pytest.raises(FieldConstraintError):
-        check_annotators(annotators, validation_type)
+@pytest.mark.parametrize(
+    "validation_type," "annotators",
+    [
+        (ValidationSchema.cross, set([uuid.UUID(ANNOTATORS[0].user_id)])),
+        (ValidationSchema.hierarchical, set()),
+        (
+            ValidationSchema.validation_only,
+            set([uuid.UUID(ANNOTATORS[0].user_id)]),
+        ),
+    ],
+)
+@pytest.mark.unittest
+def test_check_annotators_cross(validation_type, annotators):
+    if validation_type == ValidationSchema.cross:
+        with pytest.raises(FieldConstraintError):
+            check_annotators(annotators, validation_type)
+    elif validation_type == ValidationSchema.hierarchical:
+        with pytest.raises(FieldConstraintError):
+            check_annotators(annotators, validation_type)
+    elif validation_type == ValidationSchema.validation_only:
+        with pytest.raises(FieldConstraintError):
+            check_annotators(annotators, validation_type)
