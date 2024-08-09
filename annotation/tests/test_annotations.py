@@ -113,5 +113,4 @@ def create_mock_dict(d: dict) -> Mock:
 )
 def test_row_to_dict(row, expected_result):
     result = row_to_dict(row)
-    print(result)
     assert result == expected_result
