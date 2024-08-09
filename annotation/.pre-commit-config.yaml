@@ -19,7 +19,7 @@ repos:
     hooks:
       - id: flake8
         args:
-          - --extend-ignore=E203, F401
+          - --extend-ignore=E203
   - repo: https://github.com/commitizen-tools/commitizen
     rev: v2.17.11
     hooks:
