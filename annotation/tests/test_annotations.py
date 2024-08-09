@@ -114,6 +114,18 @@ ANNOTATION_DOC_CATEGORIES = AnnotatedDoc(
     links_json=[],
 )
 
+ANNOTATION_EXPECTED_MANIFEST = {
+    "pages": {},
+    "validated": [1],
+    "failed_validation_pages": [],
+    "file": "path/to/file",
+    "bucket": "bucket-of-phys-file",
+    "categories": [
+        {"type": "taxonomy", "value": "foo"},
+        {"type": "taxonomy", "value": "bar"},
+    ],
+}
+
 
 @pytest.fixture
 def mock_db_query_filter_order_by_all_empty():
@@ -256,17 +268,7 @@ def test_get_sha_of_bytes():
             f"{str(ANNOTATION_DOC_CATEGORIES.file_id)}",
             "path/to/file",
             "bucket-of-phys-file",
-            {
-                "pages": {},
-                "validated": [1],
-                "failed_validation_pages": [],
-                "file": "path/to/file",
-                "bucket": "bucket-of-phys-file",
-                "categories": [
-                    {"type": "taxonomy", "value": "foo"},
-                    {"type": "taxonomy", "value": "bar"},
-                ],
-            },
+            ANNOTATION_EXPECTED_MANIFEST,
         )
     ],
 )
