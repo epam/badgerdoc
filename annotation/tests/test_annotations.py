@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime
+from unittest.mock import Mock
 
 import pytest
 
@@ -8,21 +9,6 @@ from annotation.models import AnnotatedDoc, Category, File, Job, User
 from annotation.schemas.categories import CategoryTypeSchema
 from annotation.schemas.jobs import JobTypeEnumSchema, ValidationSchema
 from tests.override_app_dependency import TEST_TENANT
-
-
-class AnnotationRow:
-    def __init__(
-        self,
-        uuid_attr: uuid.UUID,
-        datetime_attr: datetime,
-        str_attr: str,
-        int_attr: int,
-    ):
-        self.uuid_attr = uuid_attr
-        self.datetime_attr = datetime_attr
-        self.str_attr = str_attr
-        self.int_attr = int_attr
-
 
 SPECIFIC_DATE_TIME = datetime(2024, 1, 1, 10, 10, 0)
 
@@ -76,6 +62,12 @@ ANNOTATION_DOC_CATEGORIES = AnnotatedDoc(
 )
 
 
+def create_mock_dict(d: dict) -> Mock:
+    mock_dict = Mock()
+    mock_dict.__dict__ = d
+    return mock_dict
+
+
 @pytest.mark.unittest
 @pytest.mark.parametrize(
     ["row", "expected_result"],
@@ -100,11 +92,15 @@ ANNOTATION_DOC_CATEGORIES = AnnotatedDoc(
             # row_to_dict won't cast INTEGER to string
         ),
         (
-            AnnotationRow(
-                uuid_attr=uuid.UUID("34c665fd-ddfb-412c-a3f8-3351d87c6030"),
-                datetime_attr=SPECIFIC_DATE_TIME,
-                str_attr="test string",
-                int_attr=1,
+            create_mock_dict(
+                {
+                    "uuid_attr": uuid.UUID(
+                        "34c665fd-ddfb-412c-a3f8-3351d87c6030"
+                    ),
+                    "datetime_attr": SPECIFIC_DATE_TIME,
+                    "str_attr": "test string",
+                    "int_attr": 1,
+                }
             ),
             {
                 "uuid_attr": "34c665fd-ddfb-412c-a3f8-3351d87c6030",
