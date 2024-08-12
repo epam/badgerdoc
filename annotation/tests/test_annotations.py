@@ -168,7 +168,7 @@ def test_convert_bucket_name_if_s3prefix(
 )
 def test_connect_s3(moto_s3: boto3.resource, s3_provider: str):
     with patch("boto3.resource", return_value=moto_s3) as mock_resource, patch(
-        "annotation.annotations.main.S3_PROVIDER", s3_provider
+        "annotation.annotations.main.STORAGE_PROVIDER", s3_provider
     ):
         result_s3 = connect_s3(TEST_TENANT)
         mock_resource.assert_called_once()
@@ -177,7 +177,7 @@ def test_connect_s3(moto_s3: boto3.resource, s3_provider: str):
 
 def test_connect_s3_no_provider(moto_s3: boto3.resource):
     with patch("boto3.resource", return_value=moto_s3), patch(
-        "annotation.annotations.main.S3_PROVIDER", "NO_PROVIDER"
+        "annotation.annotations.main.STORAGE_PROVIDER", "NO_PROVIDER"
     ):
         with pytest.raises(NotConfiguredException):
             connect_s3(TEST_TENANT)
@@ -185,7 +185,7 @@ def test_connect_s3_no_provider(moto_s3: boto3.resource):
 
 def test_connect_s3_no_bucket(moto_s3: boto3.resource):
     with patch("boto3.resource", return_value=moto_s3), patch(
-        "annotation.annotations.main.S3_PROVIDER", "aws_iam"
+        "annotation.annotations.main.STORAGE_PROVIDER", "aws_iam"
     ):
         with pytest.raises(moto_s3.meta.client.exceptions.NoSuchBucket):
             connect_s3("NO_BUCKET")

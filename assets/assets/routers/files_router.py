@@ -63,15 +63,14 @@ def upload_files(
     session: sqlalchemy.orm.Session = fastapi.Depends(
         db.service.session_scope_for_dependency
     ),
-    storage_: minio.Minio = fastapi.Depends(utils.minio_utils.get_storage),
 ) -> List[schemas.ActionResponse]:
     """
     Provides uploading many files. Files are form-data.
-    Uploaded file goes to Minio storage with changed name and then
+    Uploaded file goes to storage with changed name and then
     from the storage metadata about these files goes to a database.
 
         Args:\n
-            x_current_tenant: current bucket in minio
+            x_current_tenant: tenant
             files: list of files to be uploaded
 
         Returns:\n
@@ -92,13 +91,11 @@ def upload_files(
             less than 3 characters
 
     """
-    bucket_name = utils.s3_utils.get_bucket_name(x_current_tenant)
-    utils.minio_utils.check_bucket(bucket_name, storage_)
-    logger.debug(f"{bucket_name} bucket has been checked")
+    logger.debug(f"{x_current_tenant} bucket has been checked")
     upload_results = utils.common_utils.process_form_files(
-        bucket_name, files, session, storage_
+        x_current_tenant, files, session
     )
-    logger.debug(f"files has been uploaded")
+    logger.debug("files has been uploaded")
     return [
         schemas.ActionResponse.parse_obj(response)
         for response in upload_results
@@ -116,7 +113,6 @@ async def delete_files(
     session: sqlalchemy.orm.Session = fastapi.Depends(
         db.service.session_scope_for_dependency
     ),
-    storage: minio.Minio = fastapi.Depends(utils.minio_utils.get_storage),
     x_current_tenant: Optional[str] = fastapi.Header(
         None, alias="X-Current-Tenant"
     ),
@@ -137,8 +133,7 @@ async def delete_files(
         less than 3 characters
 
     """
-    bucket_name = utils.s3_utils.get_bucket_name(x_current_tenant)
-    utils.minio_utils.check_bucket(bucket_name, storage)
+    bucket_name = x_current_tenant
     action = "delete"
     result: List[schemas.ActionResponse] = []
 

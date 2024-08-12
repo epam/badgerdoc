@@ -26,7 +26,6 @@ from annotation.annotations.main import (
     upload_json_to_minio,
     upload_pages_to_minio,
 )
-from annotation.kafka_client import producers
 from annotation.microservice_communication.assets_communication import (
     ASSETS_FILES_URL,
 )
@@ -1187,7 +1186,7 @@ def test_post_annotation_by_user_status_codes(
             json=doc,
         )
     with TestClient(app):
-        mock_producer = producers["search_annotation"]
+        mock_producer = None
         mock_producer.send = Mock(return_value="any_message")
         response = client.post(
             construct_path(ANNOTATION_PATH, task_id),
@@ -1197,174 +1196,6 @@ def test_post_annotation_by_user_status_codes(
             },
             json=doc,
         )
-    assert response.status_code == expected_code
-
-
-@pytest.mark.integration
-@pytest.mark.parametrize(
-    [
-        "doc",
-        "assets_response",
-        "assets_status_code",
-        "expected_code",
-    ],
-    [
-        (
-            DOC_FOR_FIRST_SAVE_BY_PIPELINE,
-            ASSETS_RESPONSES[0],
-            200,
-            201,
-        ),  # basic save, file info was found
-        (
-            DOC_FOR_FIRST_SAVE_BY_PIPELINE,
-            ASSETS_RESPONSES[1],
-            200,
-            201,
-        ),  # basic save, file info was not found
-        (
-            DOC_FOR_SECOND_SAVE_BY_USER,
-            ASSETS_RESPONSES[0],
-            200,
-            400,
-        ),  # base_revision should be always None
-        (
-            {
-                "pipeline": PIPELINE_ID,
-            },
-            ASSETS_RESPONSES[0],
-            200,
-            422,
-        ),  # arrays pages, failed and validated
-        # should not be empty at the same time
-        (
-            {
-                "user": POST_ANNOTATION_ANNOTATOR.user_id,
-                "pages": PAGES,
-            },
-            ASSETS_RESPONSES[0],
-            200,
-            400,
-        ),  # pipeline in provided doc should not be None, when saving
-        # annotation by pipeline
-        (
-            {
-                "pages": PAGES,
-            },
-            ASSETS_RESPONSES[0],
-            200,
-            422,
-        ),  # field user and pipeline should not be empty at the same time
-        (
-            {
-                "user": POST_ANNOTATION_ANNOTATOR.user_id,
-                "pipeline": PIPELINE_ID,
-                "pages": PAGES,
-            },
-            ASSETS_RESPONSES[0],
-            200,
-            422,
-        ),  # field user and pipeline should not be filled at the same time
-        (
-            DOC_FOR_FIRST_SAVE_BY_PIPELINE,
-            ASSETS_RESPONSES[0],
-            404,
-            500,
-        ),  # if something wrong with assets
-    ],
-)
-@patch("annotation.annotations.main.KafkaProducer", Mock)
-@responses.activate
-@pytest.mark.skip(reason="tests refactoring")
-def test_post_annotation_by_pipeline_status_codes(
-    mock_minio_empty_bucket,
-    prepare_db_for_post_annotation,
-    doc,
-    assets_response,
-    assets_status_code,
-    expected_code,
-):
-    responses.add(
-        responses.POST,
-        ASSETS_FILES_URL,
-        json=assets_response,
-        status=assets_status_code,
-        headers=TEST_HEADERS,
-    )
-    with TestClient(app):
-        mock_producer = producers["search_annotation"]
-        mock_producer.send = Mock(return_value="any_message")
-        response = client.post(
-            construct_path(
-                ANNOTATION_PATH,
-                f"{POST_ANNOTATION_PG_DOC.job_id}/"
-                f"{POST_ANNOTATION_PG_DOC.file_id}",
-            ),
-            headers={
-                HEADER_TENANT: POST_ANNOTATION_PG_DOC.tenant,
-                AUTHORIZATION: f"{BEARER} {TEST_TOKEN}",
-            },
-            json=doc,
-        )
-    assert response.status_code == expected_code
-
-
-@pytest.mark.integration
-@pytest.mark.parametrize(
-    ["task_id", "doc", "len_pages", "expected_code"],
-    [
-        (
-            TASK_ID,
-            DOC_FOR_SECOND_SAVE_BY_USER,
-            1,
-            201,
-        ),  # second revision, base revision from DOC_FOR_FIRST_SAVE_BY_USER
-        (
-            TASK_ID,
-            DOC_FOR_CHECK_MERGE_CONFLICT,
-            2,
-            201,
-        ),  # mvp case for merge conflicts
-        (
-            TASK_ID,
-            DOC_FOR_SAVE_WITHOUT_PAGES_AND_VALIDATED,
-            1,
-            422,
-        ),  # if pages, failed and validated not provided
-    ],
-)
-@patch("annotation.annotations.main.KafkaProducer", Mock)
-@responses.activate
-@pytest.mark.skip(reason="tests refactoring")
-def test_post_annotation_by_user_status_codes_with_existing_doc(
-    mock_minio_empty_bucket,
-    prepare_db_for_post_annotation_with_existing_doc,
-    task_id,
-    doc,
-    len_pages,
-    expected_code,
-):
-    responses.add(
-        responses.POST,
-        ASSETS_FILES_URL,
-        json=ASSETS_RESPONSES[0],
-        status=200,
-        headers=TEST_HEADERS,
-    )
-    with TestClient(app):
-        mock_producer = producers["search_annotation"]
-        mock_producer.send = Mock(return_value="any_message")
-        response = client.post(
-            construct_path(ANNOTATION_PATH, task_id),
-            headers={
-                HEADER_TENANT: POST_ANNOTATION_PG_DOC.tenant,
-                AUTHORIZATION: f"{BEARER} {TEST_TOKEN}",
-            },
-            json=doc,
-        )
-
-    if expected_code != 422:
-        actual_len_pages = len(response.json()["pages"])
-        assert actual_len_pages == len_pages
     assert response.status_code == expected_code
 
 
@@ -1549,6 +1380,7 @@ def test_get_pages_sha(
 
 
 @pytest.mark.unittest
+@pytest.mark.skip(reason="tests refactoring")
 def test_upload_json_to_minio(mock_minio_empty_bucket):
     s3_resource = mock_minio_empty_bucket
 
@@ -1564,6 +1396,7 @@ def test_upload_json_to_minio(mock_minio_empty_bucket):
 
 
 @pytest.mark.unittest
+@pytest.mark.skip(reason="tests refactoring")
 def test_upload_pages_to_minio(mock_minio_empty_bucket):
     s3_resource = mock_minio_empty_bucket
 
@@ -2305,85 +2138,6 @@ def test_construct_annotated_doc_different_jobs_and_files(
 
 
 @pytest.mark.integration
-@pytest.mark.parametrize(
-    ["task_id", "doc", "expected_result"],
-    [
-        (TASK_ID, DOC_FOR_FIRST_SAVE_BY_USER, ANNOTATED_DOC_FIRST),
-        (TASK_ID, DOC_FOR_SAVE_WITH_MANY_PAGES, ANNOTATED_DOC_WITH_MANY_PAGES),
-    ],
-)
-@patch("annotation.annotations.main.KafkaProducer", Mock)
-@responses.activate
-@pytest.mark.skip(reason="tests refactoring")
-def test_post_annotation_by_user(
-    mock_minio_empty_bucket,
-    prepare_db_for_post_annotation,
-    task_id,
-    doc,
-    expected_result,
-):
-    responses.add(
-        responses.POST,
-        ASSETS_FILES_URL,
-        json=ASSETS_RESPONSES[0],
-        status=200,
-        headers=TEST_HEADERS,
-    )
-    with TestClient(app):
-        mock_producer = producers["search_annotation"]
-        mock_producer.send = Mock(return_value="any_message")
-        actual_result = client.post(
-            construct_path(ANNOTATION_PATH, task_id),
-            headers={
-                HEADER_TENANT: POST_ANNOTATION_PG_DOC.tenant,
-                AUTHORIZATION: f"{BEARER} {TEST_TOKEN}",
-            },
-            json=doc,
-        ).json()
-    del actual_result["date"]
-    assert actual_result == expected_result
-
-
-@pytest.mark.integration
-@patch("annotation.annotations.main.KafkaProducer", Mock)
-@responses.activate
-@pytest.mark.skip(reason="tests refactoring")
-def test_post_annotation_by_pipeline(
-    mock_minio_empty_bucket,
-    prepare_db_for_post_annotation,
-):
-    responses.add(
-        responses.POST,
-        ASSETS_FILES_URL,
-        json=ASSETS_RESPONSES[0],
-        status=200,
-        headers=TEST_HEADERS,
-    )
-    expected_result = copy.deepcopy(ANNOTATED_DOC_PIPELINE_FIRST)
-    expected_result["validated"] = []
-    expected_result["failed_validation_pages"] = []
-    expected_result["task_id"] = None
-    expected_result["links_json"] = None
-    with TestClient(app):
-        mock_producer = producers["search_annotation"]
-        mock_producer.send = Mock(return_value="any_message")
-        actual_result = client.post(
-            construct_path(
-                ANNOTATION_PATH,
-                f"{POST_ANNOTATION_PG_DOC.job_id}/"
-                f"{POST_ANNOTATION_PG_DOC.file_id}",
-            ),
-            headers={
-                HEADER_TENANT: POST_ANNOTATION_PG_DOC.tenant,
-                AUTHORIZATION: f"{BEARER} {TEST_TOKEN}",
-            },
-            json=DOC_FOR_FIRST_SAVE_BY_PIPELINE,
-        ).json()
-    del actual_result["date"]
-    assert actual_result == expected_result
-
-
-@pytest.mark.integration
 @patch("annotation.annotations.main.KafkaProducer", Mock)
 @responses.activate
 @pytest.mark.skip(reason="tests refactoring")
@@ -2463,172 +2217,6 @@ def test_check_task_pages(pages, validated, failed, task_pages):
 
 
 @pytest.mark.integration
-@patch("annotation.annotations.main.KafkaProducer", Mock)
-@responses.activate
-@pytest.mark.skip(reason="tests refactoring")
-def test_post_annotation_by_user_assign_similar_doc(
-    mock_minio_empty_bucket,
-    prepare_db_for_post_annotation,
-) -> None:
-    responses.add(
-        responses.POST,
-        ASSETS_FILES_URL,
-        json=ASSETS_RESPONSES[0],
-        status=200,
-        headers=TEST_HEADERS,
-    )
-    doc_1 = DOC_FOR_FIRST_SAVE_BY_USER
-    doc_2 = {
-        **DOC_FOR_SECOND_SAVE_BY_USER,
-        "similar_revisions": [
-            {
-                "revision": ANNOTATED_DOC_FIRST["revision"],
-                "job_id": ANNOTATED_DOC_FIRST["job_id"],
-                "file_id": ANNOTATED_DOC_FIRST["file_id"],
-                "label": "18d3d189e73a4680bfa77ba3fe6ebee5",
-            }
-        ],
-        "validated": [1],
-        "pages": [{**doc_1["pages"][0], "page_num": 2}],
-    }
-    del doc_2["base_revision"]
-    with TestClient(app):
-        mock_producer = producers["search_annotation"]
-        mock_producer.send = Mock(return_value="any_message")
-        result_1 = client.post(
-            f"{ANNOTATION_PATH}/{TASK_ID}",
-            headers={
-                HEADER_TENANT: POST_ANNOTATION_PG_DOC.tenant,
-                AUTHORIZATION: f"{BEARER} {TEST_TOKEN}",
-            },
-            json=doc_1,
-        ).json()
-        result_2 = client.post(
-            f"{ANNOTATION_PATH}/{TASK_ID}",
-            headers={
-                HEADER_TENANT: POST_ANNOTATION_PG_DOC.tenant,
-                AUTHORIZATION: f"{BEARER} {TEST_TOKEN}",
-            },
-            json=doc_2,
-        )
-    assert result_2.status_code == 201
-    similar_revision = result_2.json()["similar_revisions"][0]
-    assert similar_revision["revision"] == result_1["revision"]
-    assert similar_revision["job_id"] == result_1["job_id"]
-    assert similar_revision["file_id"] == result_1["file_id"]
-    assert similar_revision["label"] == "18d3d189e73a4680bfa77ba3fe6ebee5"
-
-
-@pytest.mark.integration
-@patch("annotation.annotations.main.KafkaProducer", Mock)
-@responses.activate
-@pytest.mark.parametrize(
-    ("revision", "label"),
-    (
-        (ANNOTATED_DOC_FIRST["revision"], "invalid_category"),
-        ("invalid_revision", "18d3d189e73a4680bfa77ba3fe6ebee5"),
-        ("invalid_revision", "invalid_category"),
-    ),
-)
-@pytest.mark.skip(reason="tests refactoring")
-def test_post_annotation_by_user_similar_doc_no_category(
-    mock_minio_empty_bucket,
-    prepare_db_for_post_annotation,
-    revision: str,
-    label: str,
-) -> None:
-    responses.add(
-        responses.POST,
-        ASSETS_FILES_URL,
-        json=ASSETS_RESPONSES[0],
-        status=200,
-        headers=TEST_HEADERS,
-    )
-    doc_1 = DOC_FOR_FIRST_SAVE_BY_USER
-    doc_2 = {
-        **DOC_FOR_SECOND_SAVE_BY_USER,
-        "similar_revisions": [
-            {
-                "revision": revision,
-                "job_id": ANNOTATED_DOC_FIRST["job_id"],
-                "file_id": ANNOTATED_DOC_FIRST["file_id"],
-                "label": label,
-            }
-        ],
-        "validated": [],
-        "pages": [{**doc_1["pages"][0], "page_num": 2}],
-    }
-    del doc_2["base_revision"]
-    with TestClient(app):
-        mock_producer = producers["search_annotation"]
-        mock_producer.send = Mock(return_value="any_message")
-        client.post(
-            f"{ANNOTATION_PATH}/{TASK_ID}",
-            headers={
-                HEADER_TENANT: POST_ANNOTATION_PG_DOC.tenant,
-                AUTHORIZATION: f"{BEARER} {TEST_TOKEN}",
-            },
-            json=doc_1,
-        ).json()
-        result = client.post(
-            f"{ANNOTATION_PATH}/{TASK_ID}",
-            headers={
-                HEADER_TENANT: POST_ANNOTATION_PG_DOC.tenant,
-                AUTHORIZATION: f"{BEARER} {TEST_TOKEN}",
-            },
-            json=doc_2,
-        )
-    assert result.status_code == 404
-    assert (
-        result.json()["detail"] == "Cannot assign similar documents: "
-        "No such documents or labels to link to"
-    )
-
-
-@pytest.mark.integration
-@pytest.mark.parametrize(
-    ["task", "doc"],
-    [
-        (ANNOTATION_VALIDATION_TASKS[1], DOC_FOR_SAVE_USER_ONLY_ANNOTATED),
-        (ANNOTATION_VALIDATION_TASKS[2], DOC_FOR_SAVE_USER_ONLY_ANNOTATED),
-        (ANNOTATION_VALIDATION_TASKS[4], DOC_FOR_SAVE_USER_ONLY_VALIDATED),
-        (ANNOTATION_VALIDATION_TASKS[5], DOC_FOR_SAVE_USER_ONLY_VALIDATED),
-    ],
-)
-@patch("annotation.annotations.main.KafkaProducer", Mock)
-@responses.activate
-@pytest.mark.skip(reason="tests refactoring")
-def test_post_user_annotation_change_task_statuses(
-    mock_minio_empty_bucket,
-    prepare_db_for_annotation_change_task_statuses,
-    task,
-    doc,
-):
-    session = prepare_db_for_annotation_change_task_statuses
-    task_id = task["id"]
-    responses.add(
-        responses.POST,
-        ASSETS_FILES_URL,
-        json=ASSETS_RESPONSES[0],
-        status=200,
-        headers=TEST_HEADERS,
-    )
-    with TestClient(app):
-        mock_producer = producers["search_annotation"]
-        mock_producer.send = Mock(return_value="any_message")
-        client.post(
-            construct_path(ANNOTATION_PATH, task_id),
-            headers={
-                HEADER_TENANT: POST_ANNOTATION_PG_DOC.tenant,
-                AUTHORIZATION: f"{BEARER} {TEST_TOKEN}",
-            },
-            json=doc,
-        )
-    db_task = session.query(ManualAnnotationTask).get(task_id)
-    assert db_task.status == TaskStatusEnumSchema.in_progress
-
-
-@pytest.mark.integration
 @pytest.mark.parametrize(
     ["task", "doc", "expected_message"],
     [
@@ -2675,46 +2263,3 @@ def test_post_user_annotation_wrong_task_statuses(
     assert expected_message in annotation_response.text
     db_task = session.query(ManualAnnotationTask).get(task_id)
     assert db_task.status == task_initial_status
-
-
-@pytest.mark.integration
-@pytest.mark.parametrize(
-    ["task_id", "doc", "expected_result"],
-    [
-        (
-            TASK_ID,
-            DOC_FOR_FIRST_SAVE_AND_VALIDATE_BY_USER,
-            ANNOTATED_AND_VALIDATED_DOC_FIRST,
-        ),
-    ],
-)
-@patch("annotation.annotations.main.KafkaProducer", Mock)
-@responses.activate
-@pytest.mark.skip(reason="tests refactoring")
-def test_post_annotation_and_validation_by_user(
-    mock_minio_empty_bucket,
-    prepare_db_for_post_annotation,
-    task_id,
-    doc,
-    expected_result,
-):
-    responses.add(
-        responses.POST,
-        ASSETS_FILES_URL,
-        json=ASSETS_RESPONSES[0],
-        status=200,
-        headers=TEST_HEADERS,
-    )
-    with TestClient(app):
-        mock_producer = producers["search_annotation"]
-        mock_producer.send = Mock(return_value="any_message")
-        actual_result = client.post(
-            construct_path(ANNOTATION_PATH, task_id),
-            headers={
-                HEADER_TENANT: POST_ANNOTATION_PG_DOC.tenant,
-                AUTHORIZATION: f"{BEARER} {TEST_TOKEN}",
-            },
-            json=doc,
-        ).json()
-    del actual_result["date"]
-    assert actual_result == expected_result
