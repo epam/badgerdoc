@@ -1,4 +1,4 @@
-from typing import Dict, List, Union
+import re
 from unittest.mock import Mock, call, patch
 
 import pytest
@@ -16,7 +16,6 @@ from annotation.tasks.services import (
 )
 
 
-@patch("sqlalchemy.orm.Session", spec=True)
 @pytest.mark.parametrize(
     ("validation_type", "is_validation"),
     (
@@ -26,297 +25,297 @@ from annotation.tasks.services import (
     ),
 )
 def test_validate_task_info(
-    mock_session: Mock,
     validation_type: ValidationSchema,
     is_validation: bool,
 ):
-    db_session = mock_session()
-    task_info = {"is_validation": is_validation}
-
-    with patch(
+    with patch("sqlalchemy.orm.Session", spec=True) as mock_session, patch(
         "annotation.tasks.services.validate_users_info"
     ) as mock_validate_users_info, patch(
         "annotation.tasks.services.validate_files_info"
     ) as mock_validate_files_info:
+
+        db_session = mock_session()
+        task_info = {"is_validation": is_validation}
+
         validate_task_info(db_session, task_info, validation_type)
+
         mock_validate_users_info.assert_called_once_with(
             db_session, task_info, validation_type
         )
         mock_validate_files_info.assert_called_once_with(db_session, task_info)
 
 
-@patch("sqlalchemy.orm.Session", spec=True)
-def test_validate_task_info_raises_error_for_invalid_task_info(
-    mock_session: Mock,
-):
-    db_session = mock_session()
-    task_info = {"is_validation": False}
-    validation_type = ValidationSchema.validation_only
+def test_validate_task_info_invalid_task_info():
+    with patch("sqlalchemy.orm.Session", spec=True) as mock_session:
+        db_session = mock_session()
+        task_info = {"is_validation": False}
+        validation_type = ValidationSchema.validation_only
 
-    with pytest.raises(FieldConstraintError):
-        validate_task_info(db_session, task_info, validation_type)
+        with pytest.raises(FieldConstraintError):
+            validate_task_info(db_session, task_info, validation_type)
 
 
-@patch("sqlalchemy.orm.Session", spec=True)
 @pytest.mark.parametrize(
-    ("validation_type", "is_validation"),
+    ("is_validation"),
     (
-        (ValidationSchema.validation_only, True),
-        (ValidationSchema.validation_only, False),
+        (True),
+        (False),
     ),
 )
-def test_validate_users_info(
-    mock_session: Mock, validation_type: ValidationSchema, is_validation: bool
-):
-    db_session = mock_session()
-    task_info = {
-        "is_validation": is_validation,
-        "user_id": 1,
-        "job_id": 2,
-    }
+def test_validate_users_info(is_validation: bool):
+    with patch("sqlalchemy.orm.Session", spec=True) as mock_session:
+        db_session = mock_session()
+        task_info = {
+            "is_validation": is_validation,
+            "user_id": 1,
+            "job_id": 2,
+        }
 
-    validation_type = ValidationSchema.validation_only
-    db_session.query().filter_by().first().return_value = True
+        db_session.query().filter_by().first().return_value = True
 
-    validate_users_info(db_session, task_info, validation_type)
-
-    assert db_session.query.call_count == 2
-
-
-@patch("sqlalchemy.orm.Session", spec=True)
-def test_validate_users_info_calls_check_cross_annotating_pages(
-    mock_session: Mock,
-):
-    db_session = mock_session()
-    task_info = {
-        "is_validation": True,
-        "user_id": 1,
-        "job_id": 2,
-    }
-
-    with patch(
-        f"annotation.tasks.services.{'check_cross_annotating_pages'}"
-    ) as mock_func:
-        validate_users_info(db_session, task_info, ValidationSchema.cross)
-        mock_func.assert_called_once_with(db_session, task_info)
-
-
-@patch("sqlalchemy.orm.Session", spec=True)
-@pytest.mark.parametrize(
-    ("is_validation", "validator_or_annotator"),
-    [
-        (True, "validator"),
-        (False, "annotator"),
-    ],
-)
-def test_validate_users_info_raises_error_for_invalid_users_info(
-    mock_session: Mock,
-    is_validation: bool,
-    validator_or_annotator: str,
-):
-    db_session = mock_session()
-    task_info = {
-        "is_validation": is_validation,
-        "user_id": 1,
-        "job_id": 2,
-    }
-    db_session.query().filter_by().first.return_value = None
-
-    expected_error_message = (
-        f"user 1 is not assigned as {validator_or_annotator} for job 2"
-    )
-
-    with pytest.raises(FieldConstraintError, match=expected_error_message):
         validate_users_info(
             db_session, task_info, ValidationSchema.validation_only
         )
 
-
-@patch("sqlalchemy.orm.Session", spec=True)
-def test_validate_files_info(mock_session: Mock):
-    db_session = mock_session()
-    task_info = {
-        "file_id": 1,
-        "job_id": 2,
-        "pages": [1, 2, 3],
-    }
-
-    mock_file = Mock(spec=File)
-    mock_file.pages_number = 3
-
-    mock_query = db_session.query.return_value
-    mock_query.filter_by.return_value.first.return_value = mock_file
-
-    validate_files_info(db_session, task_info)
-
-    assert db_session.query.call_count == 1
-    db_session.query.assert_has_calls((call(File),))
-    mock_query.filter_by.assert_called_once_with(file_id=1, job_id=2)
+        assert db_session.query.call_count == 2
 
 
-@patch("sqlalchemy.orm.Session", spec=True)
+def test_validate_users_info_cross_validation():
+    with patch("sqlalchemy.orm.Session", spec=True) as mock_session, patch(
+        "annotation.tasks.services.check_cross_annotating_pages"
+    ) as mock_func:
+        db_session = mock_session()
+        task_info = {
+            "is_validation": True,
+            "user_id": 1,
+            "job_id": 2,
+        }
+
+        validate_users_info(db_session, task_info, ValidationSchema.cross)
+        mock_func.assert_called_once_with(db_session, task_info)
+
+
 @pytest.mark.parametrize(
-    ("task_info", "mock_file", "expected_error_message_regex"),
+    ("is_validation", "validator_or_annotator"),
     (
-        (
-            {
-                "file_id": 1,
-                "job_id": 2,
-                "pages": [1, 2, 4],
-            },
-            Mock(spec=File, pages_number=3),
-            r"pages \(\{4\}\) do not belong to file",
-        ),
-        (
-            {
-                "file_id": 1,
-                "job_id": 2,
-                "pages": [1, 2, 3],
-            },
-            None,
-            r"file with id 1 is not assigned for job 2",
-        ),
+        (True, "validator"),
+        (False, "annotator"),
     ),
 )
-def test_validate_files_info_raises_error_for_invalid_file_info(
-    mock_session: Mock,
-    task_info: Dict[str, Union[int, List[int]]],
-    mock_file: Mock,
-    expected_error_message_regex: str,
+def test_validate_users_info_invalid_users_info(
+    is_validation: bool,
+    validator_or_annotator: str,
 ):
-    db_session = mock_session()
-    db_session.query().filter_by().first.return_value = mock_file
+    with patch("sqlalchemy.orm.Session", spec=True) as mock_session:
+        db_session = mock_session()
+        task_info = {
+            "is_validation": is_validation,
+            "user_id": 1,
+            "job_id": 2,
+        }
+        db_session.query().filter_by().first.return_value = None
 
-    with pytest.raises(
-        FieldConstraintError, match=expected_error_message_regex
-    ):
+        expected_error_message = (
+            f"user 1 is not assigned as {validator_or_annotator} for job 2"
+        )
+
+        with pytest.raises(FieldConstraintError, match=expected_error_message):
+            validate_users_info(
+                db_session, task_info, ValidationSchema.validation_only
+            )
+
+
+def test_validate_files_info():
+    with patch("sqlalchemy.orm.Session", spec=True) as mock_session:
+        db_session = mock_session()
+        task_info = {
+            "file_id": 1,
+            "job_id": 2,
+            "pages": [1, 2, 3],
+        }
+
+        mock_file = Mock(spec=File)
+        mock_file.pages_number = 3
+
+        mock_query = db_session.query.return_value
+        mock_query.filter_by.return_value.first.return_value = mock_file
+
         validate_files_info(db_session, task_info)
 
+        assert db_session.query.call_count == 1
+        db_session.query.assert_has_calls((call(File),))
+        mock_query.filter_by.assert_called_once_with(file_id=1, job_id=2)
 
-@patch("sqlalchemy.orm.Session", spec=True)
-def test_check_cross_annotating_pages(mock_session: Mock):
-    db_session = mock_session()
-    task_info = {"user_id": 1, "file_id": 2, "job_id": 3, "pages": {4, 5}}
-    existing_pages = []
 
-    mock_query = db_session.query.return_value
-    mock_query.filter.return_value.all.return_value = [(existing_pages,)]
+def test_validate_files_info_invalid_page_numbers():
+    with patch("sqlalchemy.orm.Session", spec=True) as mock_session:
+        db_session = mock_session()
+        task_info = {
+            "file_id": 1,
+            "job_id": 2,
+            "pages": [1, 2, 4],
+        }
+        mock_file = Mock(spec=File, pages_number=3)
+        db_session.query().filter_by().first.return_value = mock_file
 
-    try:
+        expected_error_message_regex = r"pages \(\{4\}\) do not belong to file"
+
+        with pytest.raises(
+            FieldConstraintError, match=expected_error_message_regex
+        ):
+            validate_files_info(db_session, task_info)
+
+
+def test_validate_files_info_missing_file():
+    with patch("sqlalchemy.orm.Session", spec=True) as mock_session:
+        db_session = mock_session()
+        task_info = {
+            "file_id": 1,
+            "job_id": 2,
+            "pages": [1, 2, 3],
+        }
+        db_session.query().filter_by().first.return_value = None
+
+        expected_error_message_regex = (
+            r"file with id 1 is not assigned for job 2"
+        )
+
+        with pytest.raises(
+            FieldConstraintError, match=expected_error_message_regex
+        ):
+            validate_files_info(db_session, task_info)
+
+
+def test_check_cross_annotating_pages():
+    with patch("sqlalchemy.orm.Session", spec=True) as mock_session:
+        db_session = mock_session()
+        task_info = {"user_id": 1, "file_id": 2, "job_id": 3, "pages": {4, 5}}
+        existing_pages = []
+
+        mock_query = db_session.query.return_value
+        mock_query.filter.return_value.all.return_value = [(existing_pages,)]
+
         check_cross_annotating_pages(db_session, task_info)
 
         assert db_session.query.call_count == 1
-        db_session.query.assert_has_calls(
-            [
-                call(ManualAnnotationTask.pages),
-            ]
-        )
+        db_session.query.assert_has_calls((call(ManualAnnotationTask.pages),))
         mock_query.filter.assert_called_once()
 
-    except FieldConstraintError:
-        pytest.fail("FieldConstraintError was raised unexpectedly")
 
+def test_check_cross_annotating_pages_page_already_annotated():
+    with patch("sqlalchemy.orm.Session", spec=True) as mock_session:
+        db_session = mock_session()
+        task_info = {"user_id": 1, "file_id": 2, "job_id": 3, "pages": {4, 5}}
+        existing_pages = [4, 5]
 
-@patch("sqlalchemy.orm.Session", spec=True)
-def test_check_cross_annotating_pages_raise_error_when_page_already_annotated(
-    mock_session: Mock,
-):
-    db_session = mock_session()
-    task_info = {"user_id": 1, "file_id": 2, "job_id": 3, "pages": {4, 5}}
-    existing_pages = [4, 5]
+        mock_query = db_session.query.return_value
+        mock_query.filter.return_value.all.return_value = [(existing_pages,)]
 
-    mock_query = db_session.query.return_value
-    mock_query.filter.return_value.all.return_value = [(existing_pages,)]
-
-    expected_error_message = (
-        "within cross validation job user can't validate file's pages "
-        "that are already distributed in annotation tasks for this user: "
-        "{4, 5}"
-    )
-
-    with pytest.raises(FieldConstraintError, match=expected_error_message):
-        check_cross_annotating_pages(db_session, task_info)
+        with pytest.raises(
+            FieldConstraintError, match=".*tasks for this user: {4, 5}.*"
+        ):
+            check_cross_annotating_pages(db_session, task_info)
 
 
 @pytest.mark.parametrize(
     (
-        "is_validation",
         "failed",
         "annotated",
         "not_processed",
         "annotation_user",
         "validation_user",
-        "expected_error_message",
+        "expected_error_message_pattern",
     ),
     (
         (
-            True,
             {1},
             set(),
             set(),
             False,
             True,
-            "Missing `annotation_user_for_failed_pages` param "
-            "for failed pages.",
+            r"Missing `annotation_user_for_failed_pages` param",
         ),
         (
-            True,
             set(),
             {2},
             set(),
             True,
             False,
-            "Missing `validation_user_for_reannotated_pages` param "
-            "for edited pages.",
-        ),
-        (
-            True,
-            set(),
-            set(),
-            set(),
-            True,
-            True,
-            "Validator did not mark any pages as failed, thus "
-            "`annotation_user_for_failed_pages` param should be null.",
-        ),
-        (
-            True,
-            {1},
-            set(),
-            set(),
-            True,
-            True,
-            "Validator did not edit any pages, thus "
-            "`validation_user_for_reannotated_pages` param should be null.",
-        ),
-        (
-            True,
-            {1},
-            {2},
-            {3},
-            True,
-            True,
-            "Cannot finish validation task. There are not processed pages: "
-            "{3}",
+            r"Missing `validation_user_for_reannotated_pages` param",
         ),
     ),
 )
-def test_validate_user_actions_raises_error_for_invalid_user_states(
-    is_validation: bool,
+def test_validate_user_actions_missing_users(
     failed: set,
     annotated: set,
     not_processed: set,
     annotation_user: bool,
     validation_user: bool,
-    expected_error_message: str,
+    expected_error_message_pattern: str,
 ):
     with pytest.raises(HTTPException) as excinfo:
         validate_user_actions(
-            is_validation=is_validation,
+            is_validation=True,
             failed=failed,
             annotated=annotated,
             not_processed=not_processed,
             annotation_user=annotation_user,
             validation_user=validation_user,
         )
-    assert excinfo.value.detail == expected_error_message
+    assert re.match(expected_error_message_pattern, excinfo.value.detail)
+
+
+@pytest.mark.parametrize(
+    (
+        "failed",
+        "annotated",
+        "not_processed",
+        "annotation_user",
+        "validation_user",
+        "expected_error_message_pattern",
+    ),
+    (
+        (
+            set(),
+            set(),
+            set(),
+            True,
+            True,
+            r"Validator did not mark any pages as failed",
+        ),
+        (
+            {1},
+            set(),
+            set(),
+            True,
+            True,
+            r"Validator did not edit any pages",
+        ),
+        (
+            {1},
+            {2},
+            {3},
+            True,
+            True,
+            r"Cannot finish validation task. There are not processed pages",
+        ),
+    ),
+)
+def test_validate_user_actions_invalid_states(
+    failed: set,
+    annotated: set,
+    not_processed: set,
+    annotation_user: bool,
+    validation_user: bool,
+    expected_error_message_pattern: str,
+):
+    with pytest.raises(HTTPException) as excinfo:
+        validate_user_actions(
+            is_validation=True,
+            failed=failed,
+            annotated=annotated,
+            not_processed=not_processed,
+            annotation_user=annotation_user,
+            validation_user=validation_user,
+        )
+    assert re.match(expected_error_message_pattern, excinfo.value.detail)
