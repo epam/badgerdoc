@@ -1,8 +1,8 @@
 import json
-import string
 import uuid
 from datetime import datetime
 from hashlib import sha1
+from typing import Dict
 from unittest.mock import Mock, patch
 
 import boto3
@@ -53,7 +53,7 @@ def annotator():
 
 
 @pytest.fixture
-def annotation_job(annotator, annotation_file, categories):
+def annotation_job(annotator: User, annotation_file: File, categories: Job):
     yield Job(
         **{
             "job_id": 1,
@@ -165,29 +165,26 @@ def test_row_to_dict_non_table():
     ),
 )
 def test_convert_bucket_name_if_s3prefix(
-    s3_prefix: string,
-    bucket_name: string,
-    expected_string: string,
+    s3_prefix: str,
+    bucket_name: str,
+    expected_string: str,
 ):
     with patch("annotation.annotations.main.S3_PREFIX", s3_prefix):
         result = convert_bucket_name_if_s3prefix(bucket_name=bucket_name)
-        assert result == expected_string
+    assert result == expected_string
 
 
 @pytest.mark.parametrize(
     ("s3_provider",),
-    (
-        ("minio",),
-        ("aws_iam",),
-    ),
+    (("minio",), ("aws_iam",)),
 )
-def test_connect_s3(moto_s3: boto3.resource, s3_provider: string):
+def test_connect_s3(moto_s3: boto3.resource, s3_provider: str):
     with patch("boto3.resource", return_value=moto_s3) as mock_resource, patch(
         "annotation.annotations.main.S3_PROVIDER", s3_provider
     ):
         result_s3 = connect_s3(TEST_TENANT)
         mock_resource.assert_called_once()
-        assert result_s3 == moto_s3
+    assert result_s3 == moto_s3
 
 
 def test_connect_s3_no_provider(moto_s3: boto3.resource):
@@ -211,13 +208,13 @@ def test_get_sha_of_bytes():
 
 
 def test_create_manifest_json(
-    moto_s3: boto3.resource, annotated_doc, annotation_manifest
+    moto_s3: boto3.resource,
+    annotated_doc: AnnotatedDoc,
+    annotation_manifest: Dict[str, any],
 ):
     db = Mock(spec=Session)
     db.query().filter().order_by().all.return_value = []
-    s3_path = (
-        f"annotation/{str(annotated_doc.job_id)}/{str(annotated_doc.file_id)}"
-    )
+    s3_path = f"annotation/{annotated_doc.job_id}/{annotated_doc.file_id}"
     s3_file_path = "path/to/file"
     s3_file_bucket = "file-bucket"
 
