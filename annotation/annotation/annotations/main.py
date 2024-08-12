@@ -9,6 +9,7 @@ from uuid import UUID
 
 import boto3
 from badgerdoc_storage import storage as bd_storage
+from botocore.exceptions import ClientError
 from dotenv import find_dotenv, load_dotenv
 from fastapi import HTTPException
 from sqlalchemy import asc
@@ -77,6 +78,45 @@ def convert_bucket_name_if_s3prefix(bucket_name: str) -> str:
 
 class NotConfiguredException(Exception):
     pass
+
+
+def connect_s3(bucket_name: str) -> boto3.resource:
+    boto3_config = {}
+    if STORAGE_PROVIDER == "minio":
+        boto3_config.update(
+            {
+                "aws_access_key_id": S3_ACCESS_KEY,
+                "aws_secret_access_key": S3_SECRET_KEY,
+                "endpoint_url": S3_ENDPOINT_URL,
+            }
+        )
+    elif STORAGE_PROVIDER == "aws_iam":
+        # No additional updates to config needed - boto3 uses env vars
+        ...
+    else:
+        raise NotConfiguredException(
+            "s3 connection is not properly configured - "
+            "S3_PROVIDER is not set"
+        )
+    s3_resource = boto3.resource("s3", **boto3_config)
+    logger_.debug(f"{STORAGE_PROVIDER=}")
+
+    try:
+        logger_.debug("Connecting to S3 bucket: %s", bucket_name)
+        s3_resource.meta.client.head_bucket(Bucket=bucket_name)
+        # here is some bug or I am missing smth: this line ^
+        # should raise NoSuchBucket
+        # error, if bucket is not available, but for some reason
+        # it responses with TypeError: NoneType object is not
+        # callable, this try/except block should be changed after understanding
+        # what is going on
+
+        # It throws S3 Client Error 404 now
+    except ClientError as e:
+        raise s3_resource.meta.client.exceptions.NoSuchBucket(
+            e.response, e.operation_name
+        ) from e
+    return s3_resource
 
 
 def upload_pages_to_minio(
