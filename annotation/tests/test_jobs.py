@@ -1,5 +1,7 @@
 import uuid
+from typing import Set, Tuple
 from unittest.mock import MagicMock
+from uuid import UUID
 
 import pytest
 
@@ -13,15 +15,8 @@ from annotation.schemas import (
     ValidationSchema,
 )
 
-
-@pytest.fixture
-def job_tenant():
-    return "test"
-
-
-@pytest.fixture
-def job_ids():
-    return (1, 2, 3)
+JOB_TENANT = "test"
+JOB_IDS = (1, 2, 3)
 
 
 ANNOTATORS = (
@@ -32,7 +27,7 @@ ANNOTATORS = (
 
 @pytest.fixture
 def job_annotators():
-    return (
+    yield (
         User(user_id="82533770-a99e-4873-8b23-6bbda86b59ae"),
         User(user_id="ef81a4d0-cc01-447b-9025-a70ed441672d"),
     )
@@ -40,7 +35,7 @@ def job_annotators():
 
 @pytest.fixture
 def categories():
-    return Category(
+    yield Category(
         id="18d3d189e73a4680bfa77ba3fe6ebee5",
         name="Test",
         type=CategoryTypeSchema.box,
@@ -48,75 +43,43 @@ def categories():
 
 
 @pytest.fixture
-def jobs_to_test_progress(annotators, categories):
-    return (
+def jobs_to_test_progress(
+    job_annotators: Tuple[User], categories: Tuple[Category]
+):
+    yield (
         Job(
-            job_id=job_ids[0],
+            job_id=JOB_IDS[0],
             callback_url="http://www.test.com",
-            annotators=[annotators[0], annotators[1]],
+            annotators=[job_annotators[0], job_annotators[1]],
             validation_type=ValidationSchema.cross,
             is_auto_distribution=False,
             categories=categories,
             deadline="2021-10-19T01:01:01",
-            tenant=job_tenant,
-        ),
-        Job(
-            job_id=job_ids[1],
-            callback_url="http://www.test.com",
-            annotators=[],
-            validation_type=ValidationSchema.cross,
-            is_auto_distribution=False,
-            categories=categories,
-            deadline="2021-10-19T01:01:01",
-            tenant=job_tenant,
-        ),
-        Job(
-            job_id=job_ids[2],
-            callback_url="http://www.test.com",
-            annotators=[annotators[0], annotators[1]],
-            validation_type=ValidationSchema.cross,
-            is_auto_distribution=False,
-            categories=categories,
-            deadline="2021-10-19T01:01:01",
-            tenant=job_tenant,
+            tenant=JOB_TENANT,
         ),
     )
 
 
 @pytest.fixture
-def files(jobs_to_test_progress):
-    return (
+def files(jobs_to_test_progress: Tuple[Job]):
+    yield (
         File(
             file_id=1,
-            tenant=job_tenant,
+            tenant=JOB_TENANT,
             job_id=jobs_to_test_progress[0].job_id,
             pages_number=5,
             status=FileStatusEnumSchema.pending,
         ),
-        File(
-            file_id=2,
-            tenant=job_tenant,
-            job_id=jobs_to_test_progress[1].job_id,
-            pages_number=5,
-            status=FileStatusEnumSchema.pending,
-        ),
-        File(
-            file_id=3,
-            tenant=job_tenant,
-            job_id=jobs_to_test_progress[2].job_id,
-            pages_number=5,
-            status=FileStatusEnumSchema.pending,
-        ),
     )
 
 
-def test_update_inner_job_status(job_ids):
+def test_update_inner_job_status():
     mock_session = MagicMock()
     update_inner_job_status(
-        mock_session, job_ids[0], JobStatusEnumSchema.finished
+        mock_session, JOB_IDS[0], JobStatusEnumSchema.finished
     )
     mock_session.query(Job).filter(
-        Job.job_id == job_ids[0]
+        Job.job_id == JOB_IDS[0]
     ).update.assert_called_with({"status": JobStatusEnumSchema.finished})
 
 
@@ -125,15 +88,17 @@ def test_update_inner_job_status(job_ids):
         "validation_type",
         "annotators",
     ),
-    [
-        (ValidationSchema.cross, set((uuid.UUID(ANNOTATORS[0].user_id),))),
+    (
+        (ValidationSchema.cross, {uuid.UUID(ANNOTATORS[0].user_id)}),
         (ValidationSchema.hierarchical, set()),
         (
             ValidationSchema.validation_only,
-            set((uuid.UUID(ANNOTATORS[0].user_id),)),
+            {uuid.UUID(ANNOTATORS[0].user_id)},
         ),
-    ],
+    ),
 )
-def test_check_annotators(validation_type, annotators):
+def test_check_annotators(
+    validation_type: ValidationSchema, annotators: Set[UUID]
+):
     with pytest.raises(FieldConstraintError):
         check_annotators(annotators, validation_type)
