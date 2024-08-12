@@ -27,7 +27,7 @@ commitizen = "^2.18.0"
 black = "^22.3.0"
 flake8 = "^3.9.2"
 pytest = "^6.2.4"
-isort = "^5.9.3"
+isort = "^5.13.2"
 responses = "^0.14.0"
 moto = {extras = ["s3"], version = "^2.2.8"}
 pytest-cov = "^3.0.0"
