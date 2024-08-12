@@ -1295,7 +1295,7 @@ def test_get_page_number_combinations(
         "annotation_tasks",
         "expected_output",
     ),
-    [
+    (
         (
             "",
             ValidationSchema.cross,
@@ -1312,7 +1312,7 @@ def test_get_page_number_combinations(
             [{"user_id": "1"}],
             [{"user_id": "2"}],
         ),
-    ],
+    ),
 )
 def test_choose_validators_users(
     split_multipage_doc_setup: str,
@@ -1322,8 +1322,9 @@ def test_choose_validators_users(
     annotation_tasks: List[Task],
     expected_output: List[User],
 ):
-    with patch.dict(
-        "os.environ", {"SPLIT_MULTIPAGE_DOC": split_multipage_doc_setup}
+    with patch(
+        "annotation.distribution.main.SPLIT_MULTIPAGE_DOC",
+        split_multipage_doc_setup,
     ):
         output = choose_validators_users(
             validation_type, annotators, validators, annotation_tasks
