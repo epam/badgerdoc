@@ -8,6 +8,7 @@ from unittest.mock import Mock, patch
 import boto3
 import pytest
 from sqlalchemy.orm import Session
+from tests.override_app_dependency import TEST_TENANT
 
 from annotation.annotations.main import (
     MANIFEST,
@@ -21,7 +22,6 @@ from annotation.annotations.main import (
 from annotation.models import AnnotatedDoc, Category, File, Job, User
 from annotation.schemas.categories import CategoryTypeSchema
 from annotation.schemas.jobs import JobTypeEnumSchema, ValidationSchema
-from tests.override_app_dependency import TEST_TENANT
 
 
 @pytest.fixture
