@@ -3,12 +3,12 @@ from datetime import datetime
 from unittest.mock import Mock
 
 import pytest
+from tests.override_app_dependency import TEST_TENANT
 
 from annotation.annotations.main import row_to_dict
 from annotation.models import AnnotatedDoc, Category, File, Job, User
 from annotation.schemas.categories import CategoryTypeSchema
 from annotation.schemas.jobs import JobTypeEnumSchema, ValidationSchema
-from tests.override_app_dependency import TEST_TENANT
 
 
 @pytest.fixture

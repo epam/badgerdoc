@@ -12,6 +12,14 @@ from fastapi.testclient import TestClient
 from requests import RequestException
 from sqlalchemy.exc import DBAPIError, SQLAlchemyError
 from sqlalchemy.orm import Session
+from tests.consts import ANNOTATION_PATH
+from tests.override_app_dependency import (
+    TEST_HEADERS,
+    TEST_TENANT,
+    TEST_TOKEN,
+    app,
+)
+from tests.test_tasks_crud_ud import construct_path
 
 from annotation.annotations import (
     MANIFEST,
@@ -51,14 +59,6 @@ from annotation.schemas import (
     TaskStatusEnumSchema,
     ValidationSchema,
 )
-from tests.consts import ANNOTATION_PATH
-from tests.override_app_dependency import (
-    TEST_HEADERS,
-    TEST_TENANT,
-    TEST_TOKEN,
-    app,
-)
-from tests.test_tasks_crud_ud import construct_path
 
 client = TestClient(app)
 
