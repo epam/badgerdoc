@@ -24,7 +24,7 @@ from annotation.schemas.jobs import JobTypeEnumSchema, ValidationSchema
 from tests.override_app_dependency import TEST_TENANT
 
 
-@pytest.fixture()
+@pytest.fixture
 def categories():
     yield [
         Category(
@@ -35,7 +35,7 @@ def categories():
     ]
 
 
-@pytest.fixture()
+@pytest.fixture
 def annotation_file():
     yield File(
         **{
@@ -47,12 +47,12 @@ def annotation_file():
     )
 
 
-@pytest.fixture()
+@pytest.fixture
 def annotator():
     yield User(user_id="6ffab2dd-3605-46d4-98a1-2d20011e132d")
 
 
-@pytest.fixture()
+@pytest.fixture
 def annotation_job(annotator, annotation_file, categories):
     yield Job(
         **{
@@ -70,7 +70,7 @@ def annotation_job(annotator, annotation_file, categories):
     )
 
 
-@pytest.fixture()
+@pytest.fixture
 def annotated_doc(
     annotator: User,
     annotation_file: File,
@@ -92,7 +92,7 @@ def annotated_doc(
     )
 
 
-@pytest.fixture()
+@pytest.fixture
 def annotation_manifest():
     yield {
         "pages": {},
