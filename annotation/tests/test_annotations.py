@@ -146,22 +146,10 @@ def test_row_to_dict_non_table():
 
 
 @pytest.mark.parametrize(
+    ("s3_prefix", "bucket_name", "expected_string"),
     (
-        "s3_prefix",
-        "bucket_name",
-        "expected_string",
-    ),
-    (
-        (
-            "S3_test",
-            "bucket_test",
-            "S3_test-bucket_test",
-        ),
-        (
-            None,
-            "bucket_test",
-            "bucket_test",
-        ),
+        ("S3_test", "bucket_test", "S3_test-bucket_test"),
+        (None, "bucket_test", "bucket_test"),
     ),
 )
 def test_convert_bucket_name_if_s3prefix(
