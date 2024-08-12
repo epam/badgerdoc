@@ -2,7 +2,7 @@ import json
 import uuid
 from datetime import datetime
 from hashlib import sha1
-from typing import Dict
+from typing import Any, Dict
 from unittest.mock import Mock, patch
 
 import boto3
@@ -175,8 +175,8 @@ def test_convert_bucket_name_if_s3prefix(
 
 
 @pytest.mark.parametrize(
-    ("s3_provider",),
-    (("minio",), ("aws_iam",)),
+    "s3_provider",
+    ("minio", "aws_iam"),
 )
 def test_connect_s3(moto_s3: boto3.resource, s3_provider: str):
     with patch("boto3.resource", return_value=moto_s3) as mock_resource, patch(
@@ -210,7 +210,7 @@ def test_get_sha_of_bytes():
 def test_create_manifest_json(
     moto_s3: boto3.resource,
     annotated_doc: AnnotatedDoc,
-    annotation_manifest: Dict[str, any],
+    annotation_manifest: Dict[str, Any],
 ):
     db = Mock(spec=Session)
     db.query().filter().order_by().all.return_value = []
