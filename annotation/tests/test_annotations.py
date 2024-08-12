@@ -40,7 +40,7 @@ def annotator():
 
 
 @pytest.fixture
-def annotation_job(annotator, annotation_file, categories):
+def annotation_job(annotator: User, annotation_file: File, categories: Job):
     yield Job(
         **{
             "job_id": 1,
