@@ -1,7 +1,11 @@
 fail_fast: true
 repos:
   - repo: https://github.com/pycqa/isort
+<<<<<<< HEAD
     rev: 5.13.2
+=======
+    rev: 5.12.0
+>>>>>>> 66ba7aac6c20821425e8e2a65a439147c2ac920f
     hooks:
     - id: isort
       args:
