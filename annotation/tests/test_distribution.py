@@ -1,7 +1,8 @@
 from collections import defaultdict
 from copy import copy
-from typing import List
-from unittest.mock import patch
+from typing import List, Tuple
+from unittest.mock import Mock, patch
+from uuid import UUID
 
 import pytest
 
@@ -20,6 +21,7 @@ from annotation.distribution.main import (
     choose_validators_users,
     distribute_tasks_extensively,
     get_page_number_combinations,
+    prepare_users,
 )
 from annotation.jobs.services import Task
 from annotation.microservice_communication.assets_communication import (
@@ -1330,3 +1332,51 @@ def test_choose_validators_users(
             validation_type, annotators, validators, annotation_tasks
         )
         assert output == expected_output
+
+
+@pytest.mark.parametrize(
+    ("users_id", "example_db", "expected_output"),
+    (
+        (
+            ["b908ccf0-6eab-4b8e-afb7-913372ddf4e5"],
+            ["b908ccf0-6eab-4b8e-afb7-913372ddf4e5"],
+            [User(user_id="b908ccf0-6eab-4b8e-afb7-913372ddf4e5")],
+        ),
+        (
+            [
+                "b908ccf0-6eab-4b8e-afb7-913372ddf4e5",
+                "00d37dc4-b7da-45e5-bcb5-c9b82965351c",
+            ],
+            ["b908ccf0-6eab-4b8e-afb7-913372ddf4e5"],
+            [
+                User(user_id="b908ccf0-6eab-4b8e-afb7-913372ddf4e5"),
+                User(user_id="00d37dc4-b7da-45e5-bcb5-c9b82965351c"),
+            ],
+        ),
+    ),
+)
+def test_prepare_users(
+    users_id: List[UUID], example_db: Tuple[UUID], expected_output: List[User]
+):
+    db = Mock()
+
+    def read_user_side_effect(db, user_id):
+        print("READ ME")
+        if user_id in example_db:
+            return User(user_id=user_id)
+        return None
+
+    def create_user_side_effect(db, user_id):
+        print("CREATE ME")
+        return User(user_id=user_id)
+
+    with patch(
+        "annotation.distribution.main.read_user",
+        side_effect=read_user_side_effect,
+    ), patch(
+        "annotation.distribution.main.create_user",
+        side_effect=create_user_side_effect,
+    ):
+        output = prepare_users(db, users_id)
+        for a, e in zip(output, expected_output):
+            assert a.user_id == e.user_id
