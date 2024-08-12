@@ -11,27 +11,20 @@ from annotation.schemas.jobs import JobTypeEnumSchema, ValidationSchema
 from tests.override_app_dependency import TEST_TENANT
 
 
-@pytest.fixture(scope="function")
-def specific_date_and_time():
-    SPECIFIC_DATE_TIME = datetime(2024, 1, 1, 10, 10, 0)
-    yield SPECIFIC_DATE_TIME
-
-
-@pytest.fixture(scope="function")
+@pytest.fixture()
 def categories():
-    CATEGORIES = [
+    yield [
         Category(
             id="18d3d189e73a4680bfa77ba3fe6ebee5",
             name="Test",
             type=CategoryTypeSchema.box,
         ),
     ]
-    yield CATEGORIES
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture()
 def annotation_file():
-    ANNOTATION_FILE_1 = File(
+    yield File(
         **{
             "file_id": 1,
             "tenant": TEST_TENANT,
@@ -39,18 +32,16 @@ def annotation_file():
             "pages_number": 10,
         }
     )
-    yield ANNOTATION_FILE_1
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture()
 def annotator():
-    ANNOTATION_ANNOTATOR = User(user_id="6ffab2dd-3605-46d4-98a1-2d20011e132d")
-    yield ANNOTATION_ANNOTATOR
+    yield User(user_id="6ffab2dd-3605-46d4-98a1-2d20011e132d")
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture()
 def annotation_job(annotator, annotation_file, categories):
-    ANNOTATION_JOB_1 = Job(
+    yield Job(
         **{
             "job_id": 1,
             "callback_url": "http://www.test.com/test1",
@@ -65,21 +56,18 @@ def annotation_job(annotator, annotation_file, categories):
         }
     )
 
-    yield ANNOTATION_JOB_1
 
-
-@pytest.fixture(scope="function")
+@pytest.fixture()
 def annotated_doc(
     annotator: User,
-    specific_date_and_time: datetime,
     annotation_file: File,
     annotation_job: Job,
 ):
-    ANNOTATION_DOC_CATEGORIES = AnnotatedDoc(
+    yield AnnotatedDoc(
         revision="20fe52cce6a632c6eb09fdc5b3e1594f926eea69",
         user=annotator.user_id,
         pipeline=None,
-        date=specific_date_and_time,
+        date=datetime(2024, 1, 1, 10, 10, 0),
         file_id=annotation_file.file_id,
         job_id=annotation_job.job_id,
         pages={},
@@ -89,7 +77,6 @@ def annotated_doc(
         categories=["foo", "bar"],
         links_json=[],
     )
-    yield ANNOTATION_DOC_CATEGORIES
 
 
 def test_row_to_dict_table(annotated_doc: AnnotatedDoc):
@@ -112,11 +99,11 @@ def test_row_to_dict_table(annotated_doc: AnnotatedDoc):
     assert result == expected_result
 
 
-def test_row_to_dict_non_table(specific_date_and_time: datetime):
+def test_row_to_dict_non_table():
     mock_dict = Mock()
     mock_dict.__dict__ = {
         "uuid_attr": uuid.UUID("34c665fd-ddfb-412c-a3f8-3351d87c6030"),
-        "datetime_attr": specific_date_and_time,
+        "datetime_attr": datetime(2024, 1, 1, 10, 10, 0),
         "str_attr": "test string",
         "int_attr": 1,
     }
