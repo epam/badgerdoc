@@ -19,12 +19,6 @@ JOB_TENANT = "test"
 JOB_IDS = (1, 2, 3)
 
 
-ANNOTATORS = (
-    User(user_id="82533770-a99e-4873-8b23-6bbda86b59ae"),
-    User(user_id="ef81a4d0-cc01-447b-9025-a70ed441672d"),
-)
-
-
 @pytest.fixture
 def job_annotators():
     yield (
@@ -89,11 +83,26 @@ def test_update_inner_job_status():
         "annotators",
     ),
     (
-        (ValidationSchema.cross, {uuid.UUID(ANNOTATORS[0].user_id)}),
+        (
+            ValidationSchema.cross,
+            {
+                uuid.UUID(
+                    User(
+                        user_id="82533770-a99e-4873-8b23-6bbda86b59ae"
+                    ).user_id
+                )
+            },
+        ),
         (ValidationSchema.hierarchical, set()),
         (
             ValidationSchema.validation_only,
-            {uuid.UUID(ANNOTATORS[0].user_id)},
+            {
+                uuid.UUID(
+                    User(
+                        user_id="82533770-a99e-4873-8b23-6bbda86b59ae"
+                    ).user_id
+                )
+            },
         ),
     ),
 )
