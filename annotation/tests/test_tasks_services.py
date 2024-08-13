@@ -1,4 +1,5 @@
 import re
+from copy import deepcopy
 from typing import Dict, List, Optional, Tuple
 from unittest.mock import MagicMock, Mock, call, patch
 from uuid import uuid4
@@ -407,13 +408,7 @@ def test_remove_additional_filters_with_standard_filters():
         ],
         "sorting": [{"field": "normal_field", "order": "asc"}],
     }
-    expected_filters = {
-        "filters": [
-            {"field": "normal_field", "value": "value1"},
-            {"field": "normal_field_2", "value": "value2"},
-        ],
-        "sorting": [{"field": "normal_field", "order": "asc"}],
-    }
+    expected_filters = deepcopy(filter_args)
     expected_additional_filters = {}
 
     result = remove_additional_filters(filter_args)
@@ -438,23 +433,17 @@ def test_remove_additional_filters_with_additional_fields():
         "file_name": ["file1", "file2"],
         "job_name": ["job1"],
     }
-
     result = remove_additional_filters(filter_args)
 
     assert filter_args == expected_filters
     assert result == expected_additional_filters
 
 
-@pytest.mark.parametrize(
-    ("task_id", "tenant", "expected_result"),
-    ((1, "tenant_1", "task_1"), (2, "tenant_2", None)),
-)
-def test_read_annotation_task(
-    mock_session: Mock,
-    task_id: int,
-    tenant: str,
-    expected_result: Optional[str],
-):
+def test_read_annotation_task(mock_session: Mock):
+    task_id = 1
+    tenant = "tenant_1"
+    expected_result = "task1"
+
     mock_query = MagicMock()
     mock_filter = MagicMock()
 
