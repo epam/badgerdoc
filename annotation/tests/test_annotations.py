@@ -1,17 +1,14 @@
 import json
-import string
 import uuid
 from datetime import datetime
 from hashlib import sha1
 from typing import Any, Dict
-from unittest.mock import Mock, patch
+from unittest.mock import ANY, Mock, patch
 
 import boto3
 import pytest
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
-from sqlalchemy.orm import Session
-from tests.override_app_dependency import TEST_TENANT
 
 from annotation.annotations.main import (
     MANIFEST,
@@ -29,6 +26,7 @@ from annotation.models import AnnotatedDoc, Category, File, Job, User
 from annotation.schemas.annotations import DocForSaveSchema
 from annotation.schemas.categories import CategoryTypeSchema
 from annotation.schemas.jobs import JobTypeEnumSchema, ValidationSchema
+from tests.override_app_dependency import TEST_TENANT
 
 
 @pytest.fixture
@@ -114,32 +112,38 @@ def annotation_manifest():
     }
 
 
-DOC_FOR_SAVE = {
-    "base_revision": "20fe52cce6a632c6eb09fdc5b3e1594f926eea69",
-    "user": "6ffab2dd-3605-46d4-98a1-2d20011e132d",
-    "pages": [
-        {
-            "page_num": 1,
-            "size": {"width": 0.0, "height": 0.0},
-            "objs": [
+@pytest.fixture
+def annotation_doc_for_save():
+    yield DocForSaveSchema(
+        **{
+            "base_revision": "20fe52cce6a632c6eb09fdc5b3e1594f926eea69",
+            "user": "6ffab2dd-3605-46d4-98a1-2d20011e132d",
+            "pages": [
                 {
-                    "id": 0,
-                    "type": "string",
-                    "segmentation": {"segment": "string"},
-                    "bbox": [0.0, 0.0, 0.0, 0.0],
-                    "tokens": None,
-                    "links": [{"category_id": 0, "to": 0, "page_num": 1}],
-                    "category": "0",
-                    "data": {},
+                    "page_num": 1,
+                    "size": {"width": 0.0, "height": 0.0},
+                    "objs": [
+                        {
+                            "id": 0,
+                            "type": "string",
+                            "segmentation": {"segment": "string"},
+                            "bbox": [0.0, 0.0, 0.0, 0.0],
+                            "tokens": None,
+                            "links": [
+                                {"category_id": 0, "to": 0, "page_num": 1}
+                            ],
+                            "category": "0",
+                            "data": {},
+                        }
+                    ],
                 }
             ],
+            "validated": [],
+            "failed_validation_pages": [],
+            "task_id": 1,
+            "links_json": [],
         }
-    ],
-    "validated": [],
-    "failed_validation_pages": [],
-    "task_id": 1,
-    "links_json": [],
-}
+    )
 
 
 def test_row_to_dict_table(annotated_doc: AnnotatedDoc):
@@ -272,59 +276,34 @@ def test_create_manifest_json(
         )
 
 
-@pytest.mark.unittest
 @pytest.mark.parametrize(
-    [
-        "is_latest",
-        "new_equal_latest",
-        "db_error",
-    ],
-    [
-        (
-            True,
-            False,
-            False,
-        ),  # Success path
-        (
-            True,
-            True,
-            False,
-        ),  # return latest_doc
-        (
-            False,
-            False,
-            True,
-        ),  # db_error
-    ],
+    ("is_latest", "new_equal_latest"),
+    ((True, False), (True, True)),  # Success path  # return latest_doc
 )
 def test_construct_annotated_doc(
-    moto_s3,
     annotated_doc,
+    annotation_doc_for_save,
     is_latest,
     new_equal_latest,
-    db_error,
 ):
-    doc = DocForSaveSchema(**DOC_FOR_SAVE)
+    doc = annotation_doc_for_save
     latest_doc = annotated_doc
-    s3_path = f"{S3_START_PATH}/{str(1)}/{str(1)}"
+    s3_path = (
+        f"{S3_START_PATH}/{annotated_doc.job_id}/" f"{annotated_doc.file_id}"
+    )
+    s3_file_path = "path"
+    s3_file_bucket = "bucket"
+
+    pages_sha_latest = ({"1": "a"}, "b")
+    pages_sha_non_latest = ({"1": "a"}, "c")
 
     db = Mock()
 
     with patch.object(db, "add") as mock_db_add, patch.object(
         db, "add_all"
-    ) as mock_db_add_all, patch.object(
-        db,
-        "commit",
-        side_effect=IntegrityError(
-            statement="TEST", params=("testuser",), orig=Exception("TESTING")
-        )
-        if db_error
-        else None,
-    ) as mock_db_commit, patch.object(
-        db, "rollback"
-    ) as mock_db_rollback, patch(
+    ) as mock_db_add_all, patch.object(db, "commit",) as mock_db_commit, patch(
         "annotation.annotations.main.get_pages_sha",
-        return_value=({"1": "a"}, "b") if is_latest else ({"1": "a"}, "c"),
+        return_value=pages_sha_latest if is_latest else pages_sha_non_latest,
     ) as mock_get_pages_sha, patch(
         "annotation.annotations.main.check_docs_identity",
         return_value=new_equal_latest,
@@ -332,45 +311,26 @@ def test_construct_annotated_doc(
         "annotation.annotations.main.construct_document_links", return_value=[]
     ) as mock_construct_doc_links, patch(
         "annotation.annotations.main.convert_bucket_name_if_s3prefix",
-        return_value="bucket",
+        return_value=TEST_TENANT,
     ) as mock_convert_bucket, patch(
-        "annotation.annotations.main.connect_s3", return_value=moto_s3
-    ) as mock_connect_s3, patch(
         "annotation.annotations.main.upload_pages_to_minio"
     ) as mock_upload_pages, patch(
         "annotation.annotations.main.create_manifest_json"
     ) as mock_create_manifest:
-        if db_error:
-            with pytest.raises(DuplicateAnnotationError):
-                construct_annotated_doc(
-                    db,
-                    annotated_doc.user,
-                    None,
-                    annotated_doc.job_id,
-                    annotated_doc.file_id,
-                    doc,
-                    TEST_TENANT,
-                    "path",
-                    "bucket",
-                    latest_doc,
-                    1,  # task_id
-                    is_latest,
-                )
-        else:
-            construct_annotated_doc(
-                db,
-                annotated_doc.user,
-                None,
-                annotated_doc.job_id,
-                annotated_doc.file_id,
-                doc,
-                TEST_TENANT,
-                "path",
-                "bucket",
-                latest_doc,
-                1,  # task_id
-                is_latest,
-            )
+        construct_annotated_doc(
+            db,
+            annotated_doc.user,
+            None,
+            annotated_doc.job_id,
+            annotated_doc.file_id,
+            doc,
+            TEST_TENANT,
+            s3_file_path,
+            s3_file_bucket,
+            latest_doc,
+            1,  # task_id
+            is_latest,
+        )
         if is_latest:
             mock_get_pages_sha.assert_called_once_with(
                 doc.pages,
@@ -392,19 +352,75 @@ def test_construct_annotated_doc(
             mock_construct_doc_links.assert_called_once()
             mock_db_add.assert_called_once()
             mock_db_add_all.assert_called_once_with([])
+            mock_db_commit.assert_called_once()
+            mock_convert_bucket.assert_called_once_with(TEST_TENANT)
+            mock_upload_pages.assert_called_once_with(
+                pages=doc.pages,
+                pages_sha=pages_sha_latest[0],
+                s3_path=s3_path,
+                bucket_name=TEST_TENANT,
+                s3_resource=None,
+            )
+            mock_create_manifest.assert_called_once_with(
+                ANY,
+                s3_path,
+                s3_file_path,
+                s3_file_bucket,
+                TEST_TENANT,
+                annotated_doc.job_id,
+                annotated_doc.file_id,
+                db,
+                None,
+            )
 
-            if db_error:
-                mock_db_commit.assert_called_once()
-                mock_db_rollback.assert_called_once()
-            else:
-                mock_db_commit.assert_called_once()
-                mock_convert_bucket.assert_called_once_with(TEST_TENANT)
-                mock_connect_s3.assert_called_once_with("bucket")
-                mock_upload_pages.assert_called_once_with(
-                    pages=doc.pages,
-                    pages_sha={"1": "a"},
-                    s3_path=s3_path,
-                    bucket_name="bucket",
-                    s3_resource=moto_s3,
-                )
-                mock_create_manifest.assert_called_once()
+
+def test_construct_annotated_doc_db_error(
+    annotated_doc,
+    annotation_doc_for_save,
+):
+    is_latest = False
+    new_equal_latest = False
+    doc = annotation_doc_for_save
+    latest_doc = annotated_doc
+    s3_file_path = "path"
+    s3_file_bucket = "bucket"
+
+    pages_sha_latest = ({"1": "a"}, "b")
+    pages_sha_non_latest = ({"1": "a"}, "c")
+
+    db = Mock()
+
+    with patch.object(db, "add"), patch.object(db, "add_all"), patch.object(
+        db,
+        "commit",
+        side_effect=IntegrityError(
+            statement="TEST", params=("testuser",), orig=Exception("TESTING")
+        ),
+    ) as mock_db_commit, patch.object(
+        db, "rollback"
+    ) as mock_db_rollback, patch(
+        "annotation.annotations.main.get_pages_sha",
+        return_value=pages_sha_latest if is_latest else pages_sha_non_latest,
+    ), patch(
+        "annotation.annotations.main.check_docs_identity",
+        return_value=new_equal_latest,
+    ), patch(
+        "annotation.annotations.main.construct_document_links", return_value=[]
+    ):
+        with pytest.raises(DuplicateAnnotationError):
+            construct_annotated_doc(
+                db,
+                annotated_doc.user,
+                None,
+                annotated_doc.job_id,
+                annotated_doc.file_id,
+                doc,
+                TEST_TENANT,
+                s3_file_path,
+                s3_file_bucket,
+                latest_doc,
+                1,  # task_id
+                is_latest,
+            )
+            assert mock_db_commit.assert_called_once()
+            assert mock_db_rollback.assert_called_once()
