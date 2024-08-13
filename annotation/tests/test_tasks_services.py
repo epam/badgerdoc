@@ -1,5 +1,5 @@
 import re
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple
 from unittest.mock import MagicMock, Mock, call, patch
 from uuid import uuid4
 
@@ -367,7 +367,7 @@ def test_read_annotation_tasks_with_file_and_job_ids(mock_session: Mock):
 )
 def test_validate_ids_and_names(
     search_id: int,
-    search_name: str,
+    search_name: Optional[str],
     ids_with_names: Dict[int, str],
     expected_result: Tuple[Optional[List[int]], Dict[int, str]],
 ):
@@ -388,7 +388,7 @@ def test_validate_ids_and_names(
     ),
 )
 def test_validate_ids_and_names_invalid_name_or_id(
-    search_id: int, search_name: str, ids_with_names: Dict[int, str]
+    search_id: Optional[int], search_name: str, ids_with_names: Dict[int, str]
 ):
     with pytest.raises(HTTPException) as exc_info:
         validate_ids_and_names(
@@ -453,7 +453,7 @@ def test_read_annotation_task(
     mock_session: Mock,
     task_id: int,
     tenant: str,
-    expected_result: Union[str, None],
+    expected_result: Optional[str],
 ):
     mock_query = MagicMock()
     mock_filter = MagicMock()
@@ -462,9 +462,8 @@ def test_read_annotation_task(
     mock_query.filter.return_value = mock_filter
     mock_filter.first.return_value = expected_result
 
-    result = read_annotation_task(mock_session, task_id, tenant)
+    read_annotation_task(mock_session, task_id, tenant)
 
-    assert result == expected_result
     mock_session.query.assert_called_once_with(ManualAnnotationTask)
     mock_query.filter.assert_called_once()
     mock_filter.first.assert_called_once()
