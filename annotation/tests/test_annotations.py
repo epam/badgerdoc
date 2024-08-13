@@ -3,12 +3,15 @@ import string
 import uuid
 from datetime import datetime
 from hashlib import sha1
+from typing import Any, Dict
 from unittest.mock import Mock, patch
 
 import boto3
 import pytest
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session
+from tests.override_app_dependency import TEST_TENANT
 
 from annotation.annotations.main import (
     MANIFEST,
@@ -26,7 +29,6 @@ from annotation.models import AnnotatedDoc, Category, File, Job, User
 from annotation.schemas.annotations import DocForSaveSchema
 from annotation.schemas.categories import CategoryTypeSchema
 from annotation.schemas.jobs import JobTypeEnumSchema, ValidationSchema
-from tests.override_app_dependency import TEST_TENANT
 
 
 @pytest.fixture
@@ -179,53 +181,38 @@ def test_row_to_dict_non_table():
 
 
 @pytest.mark.parametrize(
+    ("s3_prefix", "bucket_name", "expected_string"),
     (
-        "s3_prefix",
-        "bucket_name",
-        "expected_string",
-    ),
-    (
-        (
-            "S3_test",
-            "bucket_test",
-            "S3_test-bucket_test",
-        ),
-        (
-            None,
-            "bucket_test",
-            "bucket_test",
-        ),
+        ("S3_test", "bucket_test", "S3_test-bucket_test"),
+        (None, "bucket_test", "bucket_test"),
     ),
 )
 def test_convert_bucket_name_if_s3prefix(
-    s3_prefix: string,
-    bucket_name: string,
-    expected_string: string,
+    s3_prefix: str,
+    bucket_name: str,
+    expected_string: str,
 ):
     with patch("annotation.annotations.main.S3_PREFIX", s3_prefix):
         result = convert_bucket_name_if_s3prefix(bucket_name=bucket_name)
-        assert result == expected_string
+    assert result == expected_string
 
 
 @pytest.mark.parametrize(
-    ("s3_provider",),
-    (
-        ("minio",),
-        ("aws_iam",),
-    ),
+    "s3_provider",
+    ("minio", "aws_iam"),
 )
-def test_connect_s3(moto_s3: boto3.resource, s3_provider: string):
+def test_connect_s3(moto_s3: boto3.resource, s3_provider: str):
     with patch("boto3.resource", return_value=moto_s3) as mock_resource, patch(
-        "annotation.annotations.main.S3_PROVIDER", s3_provider
+        "annotation.annotations.main.STORAGE_PROVIDER", s3_provider
     ):
         result_s3 = connect_s3(TEST_TENANT)
         mock_resource.assert_called_once()
-        assert result_s3 == moto_s3
+    assert result_s3 == moto_s3
 
 
 def test_connect_s3_no_provider(moto_s3: boto3.resource):
     with patch("boto3.resource", return_value=moto_s3), patch(
-        "annotation.annotations.main.S3_PROVIDER", "NO_PROVIDER"
+        "annotation.annotations.main.STORAGE_PROVIDER", "NO_PROVIDER"
     ):
         with pytest.raises(NotConfiguredException):
             connect_s3(TEST_TENANT)
@@ -233,7 +220,7 @@ def test_connect_s3_no_provider(moto_s3: boto3.resource):
 
 def test_connect_s3_no_bucket(moto_s3: boto3.resource):
     with patch("boto3.resource", return_value=moto_s3), patch(
-        "annotation.annotations.main.S3_PROVIDER", "aws_iam"
+        "annotation.annotations.main.STORAGE_PROVIDER", "aws_iam"
     ):
         with pytest.raises(moto_s3.meta.client.exceptions.NoSuchBucket):
             connect_s3("NO_BUCKET")
@@ -246,13 +233,11 @@ def test_get_sha_of_bytes():
 def test_create_manifest_json(
     moto_s3: boto3.resource,
     annotated_doc: AnnotatedDoc,
-    annotation_manifest: dict[str, any],
+    annotation_manifest: Dict[str, Any],
 ):
     db = Mock(spec=Session)
     db.query().filter().order_by().all.return_value = []
-    s3_path = (
-        f"annotation/{str(annotated_doc.job_id)}/{str(annotated_doc.file_id)}"
-    )
+    s3_path = f"annotation/{annotated_doc.job_id}/{annotated_doc.file_id}"
     s3_file_path = "path/to/file"
     s3_file_bucket = "file-bucket"
 

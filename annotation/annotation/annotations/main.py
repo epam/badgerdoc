@@ -1,23 +1,22 @@
+import io
 import json
 import os
+import tempfile
 from datetime import datetime
 from hashlib import sha1
 from typing import Dict, List, Optional, Set, Tuple, Union
 from uuid import UUID
 
 import boto3
+from badgerdoc_storage import storage as bd_storage
 from botocore.exceptions import ClientError
 from dotenv import find_dotenv, load_dotenv
 from fastapi import HTTPException
-from kafka import KafkaProducer
-from kafka.errors import KafkaError
 from sqlalchemy import asc
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from annotation import logger
-from annotation.kafka_client import KAFKA_BOOTSTRAP_SERVER, KAFKA_SEARCH_TOPIC
-from annotation.kafka_client import producers as kafka_producers
 from annotation.models import AnnotatedDoc, DocumentLinks
 from annotation.schemas import (
     AnnotatedDocSchema,
@@ -35,7 +34,7 @@ S3_ACCESS_KEY = os.environ.get("S3_ACCESS_KEY")
 S3_SECRET_KEY = os.environ.get("S3_SECRET_KEY")
 INDEX_NAME = os.environ.get("INDEX_NAME")
 S3_START_PATH = os.environ.get("S3_START_PATH", "annotation")
-S3_PROVIDER = os.environ.get("S3_PROVIDER")
+STORAGE_PROVIDER = os.environ.get("STORAGE_PROVIDER")
 MANIFEST = "manifest.json"
 LATEST = "latest"
 
@@ -63,9 +62,7 @@ def row_to_dict(row) -> dict:
         key: (
             str(value)
             if isinstance(value, UUID)
-            else value.isoformat()
-            if isinstance(value, datetime)
-            else value
+            else value.isoformat() if isinstance(value, datetime) else value
         )
         for key, value in row.__dict__.items()
         if key != "_sa_instance_state"
@@ -85,7 +82,7 @@ class NotConfiguredException(Exception):
 
 def connect_s3(bucket_name: str) -> boto3.resource:
     boto3_config = {}
-    if S3_PROVIDER == "minio":
+    if STORAGE_PROVIDER == "minio":
         boto3_config.update(
             {
                 "aws_access_key_id": S3_ACCESS_KEY,
@@ -93,7 +90,7 @@ def connect_s3(bucket_name: str) -> boto3.resource:
                 "endpoint_url": S3_ENDPOINT_URL,
             }
         )
-    elif S3_PROVIDER == "aws_iam":
+    elif STORAGE_PROVIDER == "aws_iam":
         # No additional updates to config needed - boto3 uses env vars
         ...
     else:
@@ -102,7 +99,7 @@ def connect_s3(bucket_name: str) -> boto3.resource:
             "S3_PROVIDER is not set"
         )
     s3_resource = boto3.resource("s3", **boto3_config)
-    logger_.debug(f"{S3_PROVIDER=}")
+    logger_.debug(f"{STORAGE_PROVIDER=}")
 
     try:
         logger_.debug("Connecting to S3 bucket: %s", bucket_name)
@@ -163,9 +160,8 @@ def upload_json_to_minio(
     :param s3_resource: opened minio connection
     :return: None
     """
-    s3_resource.Bucket(bucket_name).put_object(
-        Body=json_obj,
-        Key=path_to_object,
+    bd_storage.get_storage(bucket_name).upload_obj(
+        target_path=path_to_object, file=io.BytesIO(json_obj.encode("UTF-8"))
     )
 
 
@@ -399,13 +395,12 @@ def construct_annotated_doc(
         ) from err
 
     bucket_name = convert_bucket_name_if_s3prefix(tenant)
-    s3_resource = connect_s3(bucket_name)
     upload_pages_to_minio(
         pages=doc.pages,
         pages_sha=pages_sha,
         s3_path=s3_path,
         bucket_name=bucket_name,
-        s3_resource=s3_resource,
+        s3_resource=None,
     )
     create_manifest_json(
         annotated_doc,
@@ -416,7 +411,7 @@ def construct_annotated_doc(
         job_id,
         file_id,
         db,
-        s3_resource,
+        None,
     )
 
     return annotated_doc
@@ -486,7 +481,6 @@ def check_if_kafka_message_is_needed(
 ) -> None:
     if latest_doc != new_doc:
         db.commit()
-        send_annotation_kafka_message(job_id, file_id, tenant)
 
 
 PageRevision = Dict[str, Union[Optional[str], datetime, bool]]
@@ -679,8 +673,14 @@ def load_page(
             f"{page_revision['file_id']}/{page_revision['page_id']}"
             ".json"
         )
-        page_obj = s3_resource.Object(bucket_name, page_path)
-        loaded_page = json.loads(page_obj.get()["Body"].read().decode("utf-8"))
+        with tempfile.TemporaryDirectory() as dir:
+            file_name = os.path.join(dir, "revision.json")
+            bd_storage.get_storage(bucket_name).download(
+                target_path=page_path,
+                file=file_name,
+            )
+            with open(file_name, "rb") as file:
+                loaded_page = json.loads(file.read().decode("utf-8"))
     else:
         loaded_page = {
             "page_num": page_num,
@@ -703,12 +703,11 @@ def load_all_revisions_pages(
     tenant: str,
 ):
     bucket_name = convert_bucket_name_if_s3prefix(tenant)
-    s3_resource = connect_s3(bucket_name)
     for page_num, page_revisions in pages.items():
         loaded_pages = []
         for page_revision in page_revisions:
             load_page(
-                s3_resource,
+                None,
                 loaded_pages,
                 bucket_name,
                 page_num,
@@ -724,12 +723,11 @@ def load_latest_revision_pages(
     tenant: str,
 ):
     bucket_name = convert_bucket_name_if_s3prefix(tenant)
-    s3_resource = connect_s3(bucket_name)
     for page_num, page_revisions in pages.items():
         loaded_pages = []
         for user_id, page_revision in page_revisions.items():
             load_page(
-                s3_resource,
+                None,
                 loaded_pages,
                 bucket_name,
                 page_num,
@@ -743,19 +741,19 @@ def load_latest_revision_pages(
 def load_annotated_pages_for_particular_rev(
     revision: AnnotatedDoc,
     page_revision: PageRevision,
-    s3_resource: boto3.resource,
+    tenant: str,
     loaded_pages: List[Optional[LoadedPage]],
 ) -> None:
     """
     Loads annotation of revision`s pages from minIO.
     """
+    logger_.debug("load_annotated_pages_for_particular_rev")
     for page_num, page_id in revision.pages.items():
         page_revision["page_id"] = page_id
-        bucket_name = convert_bucket_name_if_s3prefix(revision.tenant)
         load_page(
-            s3_resource,
+            None,
             loaded_pages,
-            bucket_name,
+            tenant,
             page_num,
             revision.user,
             page_revision,
@@ -766,7 +764,7 @@ def load_annotated_pages_for_particular_rev(
 def load_validated_pages_for_particular_rev(
     revision: AnnotatedDoc,
     page_revision: PageRevision,
-    s3_resource: boto3.resource,
+    tenant: str,
     loaded_pages: List[Optional[LoadedPage]],
 ) -> None:
     """
@@ -774,12 +772,13 @@ def load_validated_pages_for_particular_rev(
     have annotation, function sets empty
     annotation (see `load_page` function).
     """
+    logger_.debug("load_validated_pages_for_particular_rev")
     for page_num in revision.validated:
         if str(page_num) not in revision.pages:
             page_revision["page_id"] = None
             bucket_name = convert_bucket_name_if_s3prefix(revision.tenant)
             load_page(
-                s3_resource,
+                None,
                 loaded_pages,
                 bucket_name,
                 page_num,
@@ -812,8 +811,6 @@ def construct_particular_rev_response(
       "failed_validation_pages": [],
     }
     """
-    bucket_name = convert_bucket_name_if_s3prefix(revision.tenant)
-    s3_resource = connect_s3(bucket_name)
 
     page_revision = {
         "job_id": revision.job_id,
@@ -821,12 +818,17 @@ def construct_particular_rev_response(
     }
     loaded_pages = []
 
-    load_annotated_pages_for_particular_rev(
-        revision, page_revision, s3_resource, loaded_pages
-    )
-    load_validated_pages_for_particular_rev(
-        revision, page_revision, s3_resource, loaded_pages
-    )
+    try:
+        load_annotated_pages_for_particular_rev(
+            revision, page_revision, revision.tenant, loaded_pages
+        )
+        load_validated_pages_for_particular_rev(
+            revision, page_revision, revision.tenant, loaded_pages
+        )
+    except Exception:
+        logger_.exception("Can't load annotation")
+        raise
+    logger_.debug("Loaded %s revisions", len(loaded_pages))
     similar_revisions = [
         RevisionLink(
             revision=link.similar_doc.revision,
@@ -836,6 +838,7 @@ def construct_particular_rev_response(
         )
         for link in revision.links or []
     ]
+    logger_.debug("Building response")
     particular_rev = ParticularRevisionSchema(
         revision=revision.revision,
         user=revision.user,
@@ -1008,45 +1011,6 @@ def check_task_pages(
         raise HTTPException(
             status_code=400,
             detail=err_msg,
-        )
-
-
-def _init_search_annotation_producer():
-    try:
-        producer = KafkaProducer(
-            bootstrap_servers=KAFKA_BOOTSTRAP_SERVER,
-            client_id="search_group",
-            value_serializer=lambda m: json.dumps(m).encode("utf8"),
-        )
-        return producer
-    except KafkaError as error:  # KafkaError is parent of all kafka errors
-        logger_.warning(
-            f"Error occurred during kafka producer creating: {error}"
-        )
-
-
-def add_search_annotation_producer() -> KafkaProducer:
-    search_annotation_producer = _init_search_annotation_producer()
-    kafka_producers["search_annotation"] = search_annotation_producer
-    return search_annotation_producer
-
-
-def send_annotation_kafka_message(
-    job_id: int, file_id: int, tenant: str
-) -> None:
-    # if startup failed, try to recreate it
-    search_annotation_producer = (
-        kafka_producers.get("search_annotation")
-        or add_search_annotation_producer()
-    )
-    if search_annotation_producer:
-        search_annotation_producer.send(
-            topic=KAFKA_SEARCH_TOPIC,
-            value={
-                "job_id": job_id,
-                "file_id": file_id,
-                "tenant": tenant,
-            },
         )
 
 

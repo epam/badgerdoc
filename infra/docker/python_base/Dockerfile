@@ -2,6 +2,8 @@ FROM python:3.8.19-slim-bullseye AS base
 
 COPY lib/filter_lib/ /opt/filter_lib/
 COPY lib/tenants/ /opt/tenants/
+COPY lib/badgerdoc_storage /opt/lib/badgerdoc_storage/
+
 RUN python3 -m pip install --upgrade pip && \
     apt update && \
     apt install gcc -y && \
@@ -28,4 +30,4 @@ RUN python3 -m venv env
 RUN . env/bin/activate && pip install -r requirements.txt \
     && pip install -r requirements-dev.txt && isort src --check \
     && black src --check && mypy src && pylint src \
-    && pytest -vv --cov --cov-report=xml && deactivate 
+    && pytest -vv --cov --cov-report=xml && deactivate
