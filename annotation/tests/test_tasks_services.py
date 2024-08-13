@@ -28,21 +28,20 @@ def test_validate_task_info(
     validation_type: ValidationSchema,
     is_validation: bool,
 ):
-    with patch("sqlalchemy.orm.Session", spec=True) as mock_session, patch(
+    with patch(
         "annotation.tasks.services.validate_users_info"
     ) as mock_validate_users_info, patch(
         "annotation.tasks.services.validate_files_info"
     ) as mock_validate_files_info:
 
-        db_session = mock_session()
         task_info = {"is_validation": is_validation}
 
-        validate_task_info(db_session, task_info, validation_type)
+        validate_task_info(None, task_info, validation_type)
 
         mock_validate_users_info.assert_called_once_with(
-            db_session, task_info, validation_type
+            None, task_info, validation_type
         )
-        mock_validate_files_info.assert_called_once_with(db_session, task_info)
+        mock_validate_files_info.assert_called_once_with(None, task_info)
 
 
 def test_validate_task_info_invalid_task_info():
@@ -55,13 +54,7 @@ def test_validate_task_info_invalid_task_info():
             validate_task_info(db_session, task_info, validation_type)
 
 
-@pytest.mark.parametrize(
-    ("is_validation"),
-    (
-        (True),
-        (False),
-    ),
-)
+@pytest.mark.parametrize("is_validation", (True, False))
 def test_validate_users_info(is_validation: bool):
     with patch("sqlalchemy.orm.Session", spec=True) as mock_session:
         db_session = mock_session()
@@ -221,7 +214,6 @@ def test_check_cross_annotating_pages_page_already_annotated():
     (
         "failed",
         "annotated",
-        "not_processed",
         "annotation_user",
         "validation_user",
         "expected_error_message_pattern",
@@ -230,7 +222,6 @@ def test_check_cross_annotating_pages_page_already_annotated():
         (
             {1},
             set(),
-            set(),
             False,
             True,
             r"Missing `annotation_user_for_failed_pages` param",
@@ -238,7 +229,6 @@ def test_check_cross_annotating_pages_page_already_annotated():
         (
             set(),
             {2},
-            set(),
             True,
             False,
             r"Missing `validation_user_for_reannotated_pages` param",
@@ -248,7 +238,6 @@ def test_check_cross_annotating_pages_page_already_annotated():
 def test_validate_user_actions_missing_users(
     failed: set,
     annotated: set,
-    not_processed: set,
     annotation_user: bool,
     validation_user: bool,
     expected_error_message_pattern: str,
@@ -258,7 +247,7 @@ def test_validate_user_actions_missing_users(
             is_validation=True,
             failed=failed,
             annotated=annotated,
-            not_processed=not_processed,
+            not_processed=set(),
             annotation_user=annotation_user,
             validation_user=validation_user,
         )
@@ -270,8 +259,6 @@ def test_validate_user_actions_missing_users(
         "failed",
         "annotated",
         "not_processed",
-        "annotation_user",
-        "validation_user",
         "expected_error_message_pattern",
     ),
     (
@@ -279,24 +266,18 @@ def test_validate_user_actions_missing_users(
             set(),
             set(),
             set(),
-            True,
-            True,
             r"Validator did not mark any pages as failed",
         ),
         (
             {1},
             set(),
             set(),
-            True,
-            True,
             r"Validator did not edit any pages",
         ),
         (
             {1},
             {2},
             {3},
-            True,
-            True,
             r"Cannot finish validation task. There are not processed pages",
         ),
     ),
@@ -305,8 +286,6 @@ def test_validate_user_actions_invalid_states(
     failed: set,
     annotated: set,
     not_processed: set,
-    annotation_user: bool,
-    validation_user: bool,
     expected_error_message_pattern: str,
 ):
     with pytest.raises(HTTPException) as excinfo:
@@ -315,7 +294,7 @@ def test_validate_user_actions_invalid_states(
             failed=failed,
             annotated=annotated,
             not_processed=not_processed,
-            annotation_user=annotation_user,
-            validation_user=validation_user,
+            annotation_user=True,
+            validation_user=True,
         )
     assert re.match(expected_error_message_pattern, excinfo.value.detail)
