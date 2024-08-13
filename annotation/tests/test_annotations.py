@@ -16,12 +16,14 @@ from annotation.annotations.main import (
     S3_START_PATH,
     DuplicateAnnotationError,
     NotConfiguredException,
+    check_if_kafka_message_is_needed,
     connect_s3,
     construct_annotated_doc,
     convert_bucket_name_if_s3prefix,
     create_manifest_json,
     get_sha_of_bytes,
     row_to_dict,
+    update_pages_array,
     upload_json_to_minio,
     upload_pages_to_minio,
 )
@@ -492,3 +494,37 @@ def test_upload_pages_to_minio(moto_s3: boto3.resource):
         mock_upload_json.assert_called_once_with(
             json.dumps(pages[0].dict()), path_to_object, TEST_TENANT, moto_s3
         )
+
+def test_update_pages_array():
+    resulting_set = update_pages_array(
+        {1, 2, 3},
+        {4},
+        {1,2}
+    )
+    assert resulting_set == {3, 4}
+
+
+def test_kafka_message_needed(annotated_doc: AnnotatedDoc):
+    db = Mock()
+    check_if_kafka_message_is_needed(
+        db,
+        annotated_doc,
+        annotated_doc,
+        annotated_doc.job_id,
+        annotated_doc.file_id,
+        TEST_TENANT
+    )
+    
+    
+def test_kafka_message_needed_commit(annotated_doc: AnnotatedDoc):
+    db = Mock()
+    db.commit = Mock()
+    check_if_kafka_message_is_needed(
+        db,
+        annotated_doc,
+        None,
+        annotated_doc.job_id,
+        annotated_doc.file_id,
+        TEST_TENANT
+    )
+    db.commit.assert_called_once()
