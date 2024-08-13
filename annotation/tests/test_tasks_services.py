@@ -90,10 +90,7 @@ def test_validate_users_info_cross_validation():
 
 @pytest.mark.parametrize(
     ("is_validation", "validator_or_annotator"),
-    (
-        (True, "validator"),
-        (False, "annotator"),
-    ),
+    ((True, "validator"), (False, "annotator")),
 )
 def test_validate_users_info_invalid_users_info(
     is_validation: bool,
