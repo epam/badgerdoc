@@ -1,5 +1,6 @@
 import re
 from unittest.mock import Mock, call, patch
+from uuid import uuid4
 
 import pytest
 from fastapi import HTTPException
@@ -7,8 +8,10 @@ from fastapi import HTTPException
 from annotation.errors import FieldConstraintError
 from annotation.jobs.services import ValidationSchema
 from annotation.models import File, ManualAnnotationTask
+from annotation.schemas.tasks import ManualAnnotationTaskInSchema
 from annotation.tasks.services import (
     check_cross_annotating_pages,
+    create_annotation_task,
     validate_files_info,
     validate_task_info,
     validate_user_actions,
@@ -295,3 +298,46 @@ def test_validate_user_actions_invalid_states(
             validation_user=True,
         )
     assert re.match(expected_error_message_pattern, excinfo.value.detail)
+
+
+def test_create_annotation_task_success():
+
+    with patch("sqlalchemy.orm.Session", spec=True) as mock_session, patch(
+        "annotation.jobs.services.update_user_overall_load"
+    ) as mock_update_user_overall_load, patch(
+        "annotation.models.ManualAnnotationTask"
+    ), patch(
+        "annotation.schemas.tasks.ManualAnnotationTaskInSchema"
+    ):
+
+        db_session = mock_session()
+        create_annotation_task(
+            db_session,
+            ManualAnnotationTaskInSchema(
+                file_id=1,
+                pages={1, 2},
+                job_id=2,
+                user_id=uuid4(),
+                is_validation=True,
+                deadline=None,
+            ),
+        )
+
+        assert db_session.add.call_count == 2
+        mock_update_user_overall_load.assert_not_called()
+        db_session.commit.assert_called_once()
+
+
+def test_create_annotation_task_commit_failure():
+
+    with patch("sqlalchemy.orm.Session", spec=True) as mock_session, patch(
+        "annotation.jobs.services.update_user_overall_load"
+    ) as mock_update_user_overall_load:
+        db_session = mock_session()
+        db_session.commit.side_effect = Exception("Commit failed")
+
+        with pytest.raises(Exception):
+            create_annotation_task(db_session, None)
+
+        db_session.commit.assert_not_called()
+        mock_update_user_overall_load.assert_not_called()
