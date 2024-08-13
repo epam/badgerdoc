@@ -22,6 +22,7 @@ from annotation.distribution.main import (
     choose_validators_users,
     distribute_tasks_extensively,
     find_equal_files,
+    find_small_files,
     find_users_share_loads,
     get_page_number_combinations,
     prepare_users,
@@ -1458,3 +1459,48 @@ def test_find_equal_files(
     expected_output: List[Dict[str, int]],
 ):
     assert find_equal_files(files, user_pages) == expected_output
+
+
+@pytest.mark.parametrize(
+    ("files", "user_pages", "SPLIT_MULTIPAGE_DOC_setup", "expected_output"),
+    (
+        (
+            [{"pages_number": 10, "file_id": 0}],
+            20,
+            "",
+            ([{"pages_number": 10, "file_id": 0}], 0),
+        ),
+        (
+            [
+                {"pages_number": 10, "file_id": 0},
+                {"pages_number": 30, "file_id": 1},
+                {"pages_number": 0, "file_id": 2},
+            ],
+            20,
+            "a",
+            ([{"pages_number": 10, "file_id": 0}], 0),
+        ),
+    ),
+)
+def test_find_small_files(
+    files: List[Dict[str, int]],
+    user_pages: int,
+    SPLIT_MULTIPAGE_DOC_setup: str,
+    expected_output,
+):
+    def find_files_for_task_side_effect(files, pages_for_task):
+        lst = []
+        for file in files:
+            if file["pages_number"] and file["pages_number"] in pages_for_task:
+                lst.append(file)
+        return lst
+
+    with patch(
+        "annotation.distribution.main.SPLIT_MULTIPAGE_DOC",
+        SPLIT_MULTIPAGE_DOC_setup,
+    ), patch(
+        "annotation.distribution.main.find_files_for_task",
+        side_effect=find_files_for_task_side_effect,
+    ):
+        output = find_small_files(files, user_pages)
+        assert expected_output == output
