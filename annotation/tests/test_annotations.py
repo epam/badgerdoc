@@ -9,7 +9,6 @@ import boto3
 import pytest
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
-from tests.override_app_dependency import TEST_TENANT
 
 from annotation.annotations.main import (
     MANIFEST,
@@ -31,6 +30,7 @@ from annotation.models import AnnotatedDoc, Category, File, Job, User
 from annotation.schemas.annotations import DocForSaveSchema, PageSchema
 from annotation.schemas.categories import CategoryTypeSchema
 from annotation.schemas.jobs import JobTypeEnumSchema, ValidationSchema
+from tests.override_app_dependency import TEST_TENANT
 
 
 @pytest.fixture
@@ -495,12 +495,9 @@ def test_upload_pages_to_minio(moto_s3: boto3.resource):
             json.dumps(pages[0].dict()), path_to_object, TEST_TENANT, moto_s3
         )
 
+
 def test_update_pages_array():
-    resulting_set = update_pages_array(
-        {1, 2, 3},
-        {4},
-        {1,2}
-    )
+    resulting_set = update_pages_array({1, 2, 3}, {4}, {1, 2})
     assert resulting_set == {3, 4}
 
 
@@ -512,10 +509,11 @@ def test_kafka_message_needed(annotated_doc: AnnotatedDoc):
         annotated_doc,
         annotated_doc.job_id,
         annotated_doc.file_id,
-        TEST_TENANT
+        TEST_TENANT,
     )
-    
-    
+    db.assert_not_called
+
+
 def test_kafka_message_needed_commit(annotated_doc: AnnotatedDoc):
     db = Mock()
     db.commit = Mock()
@@ -525,6 +523,6 @@ def test_kafka_message_needed_commit(annotated_doc: AnnotatedDoc):
         None,
         annotated_doc.job_id,
         annotated_doc.file_id,
-        TEST_TENANT
+        TEST_TENANT,
     )
     db.commit.assert_called_once()
