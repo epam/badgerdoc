@@ -1,10 +1,11 @@
 from collections import defaultdict
 from copy import copy
 from typing import Dict, List, Tuple
-from unittest.mock import Mock, patch
+from unittest.mock import MagicMock, Mock, patch
 from uuid import UUID
 
 import pytest
+from sqlalchemy.orm import Session
 
 from annotation.distribution import (
     add_unassigned_file,
@@ -20,6 +21,7 @@ from annotation.distribution import (
 from annotation.distribution.main import (
     DistributionUser,
     choose_validators_users,
+    distribute,
     distribute_tasks_extensively,
     find_equal_files,
     find_small_files,
@@ -29,6 +31,7 @@ from annotation.distribution.main import (
 )
 from annotation.jobs.services import Task
 from annotation.microservice_communication.assets_communication import (
+    FilesForDistribution,
     prepare_files_for_distribution,
 )
 from annotation.models import File, User
@@ -1486,7 +1489,7 @@ def test_find_small_files(
     files: List[Dict[str, int]],
     user_pages: int,
     SPLIT_MULTIPAGE_DOC_setup: str,
-    expected_output,
+    expected_output: Tuple[List[Dict[str, int]], int],
 ):
     def find_files_for_task_side_effect(files, pages_for_task):
         lst = []
@@ -1504,3 +1507,78 @@ def test_find_small_files(
     ):
         output = find_small_files(files, user_pages)
         assert expected_output == output
+
+
+@pytest.mark.parametrize(
+    (
+        "files",
+        "annotators",
+        "validators",
+        "job_id",
+        "validation_type",
+        "tasks",
+        "expected_output",
+    ),
+    [
+        (
+            [  # Assuming these are lists of dictionaries or
+                # instances as required by the function
+                {"file_id": 0}
+            ],
+            [  # Annotators - assuming they need
+                # to be instances of a User class
+                User(
+                    user_id=1, default_load=10
+                )  # Make sure User class is appropriately defined or imported
+            ],
+            [  # Validators - same assumption as annotators
+                User(user_id=2, default_load=10)
+            ],
+            1,  # job_id, just a plain integer
+            ValidationSchema.cross,
+            [],  # Tasks - Assuming an empty list is valid here
+            [],  # Expected output
+        )
+    ],
+)
+def test_distribute_main_script(
+    files: FilesForDistribution,
+    annotators: DistributionUser,
+    validators: DistributionUser,
+    job_id: int,
+    validation_type: ValidationSchema,
+    tasks,
+    expected_output,
+):
+    mock_db = MagicMock(spec=Session)
+    mock_db.flush.return_value = None
+
+    with patch(
+        "annotation.distribution.main.create_db_tasks", return_value=None
+    ), patch(
+        "annotation.distribution.main.distribute_tasks", return_value=tasks
+    ), patch(
+        "annotation.distribution.main.distribute_tasks_extensively",
+        return_value=tasks,
+    ), patch(
+        "annotation.distribution.main.choose_validators_users", return_value=[]
+    ):
+        output = distribute(
+            mock_db, files, annotators, validators, job_id, validation_type
+        )
+        assert output == expected_output
+    # output = distribute(
+    #     mock_db: Session,
+    #     files: FilesForDistribution,
+    #     annotators: List[User],
+    #     validators: List[User],
+    #     job_id: int,
+    #     validation_type: ValidationSchema,
+    #     validation_files_to_distribute: FilesForDistribution = None,
+    #     annotation_tasks_status: TaskStatusEnumSchema = TaskStatusEnumSchema.pending,  # noqa E501
+    #     validation_tasks_status: TaskStatusEnumSchema = TaskStatusEnumSchema.pending,  # noqa E501
+    #     already_created_tasks: List[Task] = None,
+    #     deadline: Optional[datetime] = None,
+    #     extensive_coverage: int = 1,
+    #     pages_in_work: PagesInWork = None
+    # )
