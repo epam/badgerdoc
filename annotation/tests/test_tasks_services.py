@@ -1,4 +1,5 @@
 import re
+from typing import Dict, List, Optional, Tuple, Union
 from unittest.mock import MagicMock, Mock, call, patch
 from uuid import uuid4
 
@@ -304,35 +305,37 @@ def test_validate_user_actions_invalid_states(
     assert re.match(expected_error_message_pattern, excinfo.value.detail)
 
 
-def test_create_annotation_task():
-    with patch("sqlalchemy.orm.Session", spec=True) as mock_session:
-
-        db_session = mock_session()
-        create_annotation_task(
-            db_session,
-            ManualAnnotationTaskInSchema(
-                file_id=1,
-                pages={1, 2},
-                job_id=2,
-                user_id=uuid4(),
-                is_validation=True,
-                deadline=None,
-            ),
-        )
-
-        assert db_session.add.call_count == 2
-        db_session.commit.assert_called_once()
-
-
 @pytest.fixture
-def mock_db_session():
+def mock_session():
     with patch("sqlalchemy.orm.Session", spec=True) as mock_session:
         yield mock_session()
 
 
-def test_read_annotation_tasks_with_file_and_job_ids(mock_db_session):
+def test_create_annotation_task(mock_session: Mock):
+    result = create_annotation_task(
+        mock_session,
+        ManualAnnotationTaskInSchema(
+            file_id=1,
+            pages={1, 2},
+            job_id=2,
+            user_id=uuid4(),
+            is_validation=True,
+            deadline=None,
+        ),
+    )
 
-    mock_query = mock_db_session.query.return_value
+    assert result.file_id == 1
+    assert result.pages == {1, 2}
+    assert result.job_id == 2
+    assert result.is_validation is True
+    assert result.deadline is None
+
+    assert mock_session.add.call_count == 2
+    mock_session.commit.assert_called_once()
+
+
+def test_read_annotation_tasks_with_file_and_job_ids(mock_session: Mock):
+    mock_query = mock_session.query.return_value
     mock_query.filter_by.return_value = mock_query
     mock_query.filter.return_value = mock_query
     mock_query.count.return_value = 1
@@ -341,7 +344,7 @@ def test_read_annotation_tasks_with_file_and_job_ids(mock_db_session):
     ]
 
     total_objects, annotation_tasks = read_annotation_tasks(
-        db=mock_db_session,
+        db=mock_session,
         search_params={"file_ids": [1, 2], "job_ids": [3]},
         pagination_page_size=10,
         pagination_start_page=1,
@@ -362,8 +365,11 @@ def test_read_annotation_tasks_with_file_and_job_ids(mock_db_session):
         (1, None, {1: "Task 1", 2: "Task 2"}, ([1], {})),
     ),
 )
-def test_validate_ids_and_names_valid_cases(
-    search_id, search_name, ids_with_names, expected_result
+def test_validate_ids_and_names(
+    search_id: int,
+    search_name: str,
+    ids_with_names: Dict[int, str],
+    expected_result: Tuple[Optional[List[int]], Dict[int, str]],
 ):
     result = validate_ids_and_names(
         search_id=search_id,
@@ -375,14 +381,14 @@ def test_validate_ids_and_names_valid_cases(
 
 @pytest.mark.parametrize(
     ("search_id", "search_name", "ids_with_names"),
-    [
+    (
         (3, "Task 3", {1: "Task 1", 2: "Task 2"}),
         (1, "Task 1", {}),
         (None, "Task 2", None),
-    ],
+    ),
 )
-def test_validate_ids_and_names_raises_error(
-    search_id, search_name, ids_with_names
+def test_validate_ids_and_names_invalid_name_or_id(
+    search_id: int, search_name: str, ids_with_names: Dict[int, str]
 ):
     with pytest.raises(HTTPException) as exc_info:
         validate_ids_and_names(
@@ -393,75 +399,72 @@ def test_validate_ids_and_names_raises_error(
     assert exc_info.value.status_code == 404
 
 
-@pytest.mark.parametrize(
-    ("filter_args", "expected_filters", "expected_additional_filters"),
-    (
-        (
-            {
-                "filters": [
-                    {"field": "normal_field", "value": "value1"},
-                    {"field": "normal_field_2", "value": "value2"},
-                ],
-                "sorting": [{"field": "normal_field", "order": "asc"}],
-            },
-            {
-                "filters": [
-                    {"field": "normal_field", "value": "value1"},
-                    {"field": "normal_field_2", "value": "value2"},
-                ],
-                "sorting": [{"field": "normal_field", "order": "asc"}],
-            },
-            {},
-        ),
-        (
-            {
-                "filters": [
-                    {"field": "file_name", "value": ["file1", "file2"]},
-                    {"field": "job_name", "value": "job1"},
-                ],
-                "sorting": [],
-            },
-            {
-                "filters": [],
-                "sorting": [],
-            },
-            {
-                "file_name": ["file1", "file2"],
-                "job_name": ["job1"],
-            },
-        ),
-    ),
-)
-def test_remove_additional_filters_valid_cases(
-    filter_args, expected_filters, expected_additional_filters
-):
+def test_remove_additional_filters_with_standard_filters():
+    filter_args = {
+        "filters": [
+            {"field": "normal_field", "value": "value1"},
+            {"field": "normal_field_2", "value": "value2"},
+        ],
+        "sorting": [{"field": "normal_field", "order": "asc"}],
+    }
+    expected_filters = {
+        "filters": [
+            {"field": "normal_field", "value": "value1"},
+            {"field": "normal_field_2", "value": "value2"},
+        ],
+        "sorting": [{"field": "normal_field", "order": "asc"}],
+    }
+    expected_additional_filters = {}
+
     result = remove_additional_filters(filter_args)
+
+    assert filter_args == expected_filters
+    assert result == expected_additional_filters
+
+
+def test_remove_additional_filters_with_additional_fields():
+    filter_args = {
+        "filters": [
+            {"field": "file_name", "value": ["file1", "file2"]},
+            {"field": "job_name", "value": "job1"},
+        ],
+        "sorting": [],
+    }
+    expected_filters = {
+        "filters": [],
+        "sorting": [],
+    }
+    expected_additional_filters = {
+        "file_name": ["file1", "file2"],
+        "job_name": ["job1"],
+    }
+
+    result = remove_additional_filters(filter_args)
+
     assert filter_args == expected_filters
     assert result == expected_additional_filters
 
 
 @pytest.mark.parametrize(
     ("task_id", "tenant", "expected_result"),
-    (
-        (1, "tenant_1", "task_1"),
-        (2, "tenant_2", None),
-    ),
+    ((1, "tenant_1", "task_1"), (2, "tenant_2", None)),
 )
-def test_read_annotation_task(task_id, tenant, expected_result):
+def test_read_annotation_task(
+    mock_session: Mock,
+    task_id: int,
+    tenant: str,
+    expected_result: Union[str, None],
+):
+    mock_query = MagicMock()
+    mock_filter = MagicMock()
 
-    with patch("sqlalchemy.orm.Session", spec=True) as mock_session:
+    mock_session.query.return_value = mock_query
+    mock_query.filter.return_value = mock_filter
+    mock_filter.first.return_value = expected_result
 
-        mock_query = MagicMock()
-        mock_filter = MagicMock()
+    result = read_annotation_task(mock_session, task_id, tenant)
 
-        mock_session.query.return_value = mock_query
-        mock_query.filter.return_value = mock_filter
-        mock_filter.first.return_value = expected_result
-
-        result = read_annotation_task(mock_session, task_id, tenant)
-
-        assert result == expected_result
-
-        mock_session.query.assert_called_once_with(ManualAnnotationTask)
-        mock_query.filter.assert_called_once()
-        mock_filter.first.assert_called_once()
+    assert result == expected_result
+    mock_session.query.assert_called_once_with(ManualAnnotationTask)
+    mock_query.filter.assert_called_once()
+    mock_filter.first.assert_called_once()
