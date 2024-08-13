@@ -1,6 +1,6 @@
 from collections import defaultdict
 from copy import copy
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 from unittest.mock import Mock, patch
 from uuid import UUID
 
@@ -18,8 +18,11 @@ from annotation.distribution import (
     find_unassigned_pages,
 )
 from annotation.distribution.main import (
+    DistributionUser,
     choose_validators_users,
     distribute_tasks_extensively,
+    find_equal_files,
+    find_users_share_loads,
     get_page_number_combinations,
     prepare_users,
 )
@@ -1380,3 +1383,78 @@ def test_prepare_users(
         output = prepare_users(db, users_id)
         for a, e in zip(output, expected_output):
             assert a.user_id == e.user_id
+
+
+@pytest.mark.parametrize(
+    (
+        "users",
+        "all_job_pages_sum",
+        "average_job_pages",
+        "users_default_load",
+        "users_overall_load",
+        "expected_output",
+        "expected_share_loads",
+    ),
+    (
+        (
+            [{"user_id": "0", "overall_load": 10, "default_load": 10}],
+            10,  # all_job_pages_sum
+            10.0,  # average_job_pages
+            10,  # users_default_load
+            10,  # users_overall_load
+            1.0,  # expected_output
+            [1],  # expected_share_loads
+        ),
+    ),
+)
+def test_find_users_share_loads(
+    users: List[DistributionUser],
+    all_job_pages_sum: int,
+    average_job_pages: float,
+    users_default_load: int,
+    users_overall_load: int,
+    expected_output: float,
+    expected_share_loads: List[float],
+):
+    output = find_users_share_loads(
+        users,
+        all_job_pages_sum,
+        average_job_pages,
+        users_default_load,
+        users_overall_load,
+    )
+    assert output == expected_output
+    for user, expected_share_load in zip(users, expected_share_loads):
+        assert user["share_load"] == expected_share_load
+
+
+@pytest.mark.parametrize(
+    ("files", "user_pages", "expected_output"),
+    (
+        (
+            [{"pages_number": 1, "file_id": 0}],
+            1,
+            [{"pages_number": 1, "file_id": 0}],
+        ),
+        (
+            [
+                {"pages_number": 10, "file_id": 0},
+                {"pages_number": 20, "file_id": 1},
+                {"pages_number": 30, "file_id": 2},
+                {"pages_number": 40, "file_id": 3},
+            ],
+            90,
+            [
+                {"pages_number": 20, "file_id": 1},
+                {"pages_number": 30, "file_id": 2},
+                {"pages_number": 40, "file_id": 3},
+            ],
+        ),
+    ),
+)
+def test_find_equal_files(
+    files: List[Dict[str, int]],
+    user_pages: int,
+    expected_output: List[Dict[str, int]],
+):
+    assert find_equal_files(files, user_pages) == expected_output
