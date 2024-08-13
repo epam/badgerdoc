@@ -301,7 +301,10 @@ def test_construct_annotated_doc(
 
     with patch.object(db, "add") as mock_db_add, patch.object(
         db, "add_all"
-    ) as mock_db_add_all, patch.object(db, "commit",) as mock_db_commit, patch(
+    ) as mock_db_add_all, patch.object(
+        db,
+        "commit",
+    ) as mock_db_commit, patch(
         "annotation.annotations.main.get_pages_sha",
         return_value=pages_sha_latest if is_latest else pages_sha_non_latest,
     ) as mock_get_pages_sha, patch(
