@@ -2,7 +2,7 @@ import os
 import tempfile
 from pathlib import Path
 
-from botocore.client import BaseClient
+from badgerdoc_storage import storage as bd_storage
 
 from convert.converters.base_format.badgerdoc import Badgerdoc
 from convert.converters.pdf.pdf_converter import (
@@ -14,8 +14,8 @@ from convert.models.common import S3Path
 class PDFToBadgerdocConverter:
     badgerdoc_format = Badgerdoc()
 
-    def __init__(self, s3_client: BaseClient) -> None:
-        self.s3_client = s3_client
+    def __init__(self, storage: bd_storage.BadgerDocStorage) -> None:
+        self.storage = storage
 
     def execute(
         self,
@@ -31,9 +31,7 @@ class PDFToBadgerdocConverter:
         with tempfile.TemporaryDirectory() as tmp_dirname:
             tmp_dir = Path(tmp_dirname)
             input_file = tmp_dir / Path(s3_input_pdf.path).name
-            self.s3_client.download_file(
-                s3_input_pdf.bucket, s3_input_pdf.path, input_file
-            )
+            self.storage.download(s3_input_pdf.path, input_file)
             self.badgerdoc_format.tokens_pages = (
                 PlainPDFToBadgerdocTokensConverter().convert(input_file)
             )
@@ -47,8 +45,7 @@ class PDFToBadgerdocConverter:
             )
             s3_output_tokens_dir = os.path.dirname(Path(s3_output_tokens.path))
             for file in Path.iterdir(tmp_dir):
-                self.s3_client.upload_file(
-                    str(badgerdoc_tokens_path) + f"/{file.name}",
-                    s3_output_tokens.bucket,
-                    s3_output_tokens_dir + f"/{file.name}",
+                self.storage.upload(
+                    target_path=s3_output_tokens_dir + f"/{file.name}",
+                    file=str(badgerdoc_tokens_path) + f"/{file.name}",
                 )

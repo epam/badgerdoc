@@ -56,7 +56,7 @@ spec:
             secretKeyRef:
               name: assets
               key: POSTGRES_PASSWORD
-        - name: S3_PROVIDER
+        - name: STORAGE_PROVIDER
           value: "minio"
         - name: S3_ENDPOINT
           value: "minio:80"

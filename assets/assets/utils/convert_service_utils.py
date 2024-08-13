@@ -47,6 +47,7 @@ def post_pdf_to_convert(bucket: str, input_pdf, output_tokens) -> None:
                 "input_pdf": {"bucket": bucket, "path": input_pdf},
                 "output_tokens": {"bucket": bucket, "path": output_tokens},
             },
+            headers={"x-current-tenant": bucket},
         )
         if response.status_code != 201:
             raise UploadError(
@@ -54,4 +55,4 @@ def post_pdf_to_convert(bucket: str, input_pdf, output_tokens) -> None:
             )
     except requests.exceptions.ConnectionError as e:
         LOGGER.error("Connection error - detail: %s", e)
-    LOGGER.info("File %s successfully converted", {input_pdf})
+    LOGGER.info("File %s successfully converted", input_pdf)
