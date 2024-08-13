@@ -9,7 +9,6 @@ import boto3
 import pytest
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
-from tests.override_app_dependency import TEST_TENANT
 
 from annotation.annotations.main import (
     MANIFEST,
@@ -27,6 +26,7 @@ from annotation.models import AnnotatedDoc, Category, File, Job, User
 from annotation.schemas.annotations import DocForSaveSchema
 from annotation.schemas.categories import CategoryTypeSchema
 from annotation.schemas.jobs import JobTypeEnumSchema, ValidationSchema
+from tests.override_app_dependency import TEST_TENANT
 
 
 @pytest.fixture
@@ -58,7 +58,7 @@ def annotator():
 
 
 @pytest.fixture
-def annotation_job(annotator, annotation_file, categories):
+def annotation_job(annotator: User, annotation_file: File, categories: Job):
     yield Job(
         **{
             "job_id": 1,
@@ -276,37 +276,30 @@ def test_create_manifest_json(
         )
 
 
-@pytest.mark.parametrize(
-    ("is_latest", "new_equal_latest"),
-    ((True, False), (True, True)),  # Success path  # return latest_doc
-)
 def test_construct_annotated_doc(
-    annotated_doc,
-    annotation_doc_for_save,
-    is_latest,
-    new_equal_latest,
+    annotated_doc: AnnotatedDoc,
+    annotation_doc_for_save: DocForSaveSchema,
 ):
     doc = annotation_doc_for_save
     latest_doc = annotated_doc
+    is_latest = False
+    new_equal_latest = False
     s3_path = (
         f"{S3_START_PATH}/{annotated_doc.job_id}/" f"{annotated_doc.file_id}"
     )
     s3_file_path = "path"
     s3_file_bucket = "bucket"
 
-    pages_sha_latest = ({"1": "a"}, "b")
     pages_sha_non_latest = ({"1": "a"}, "c")
 
     db = Mock()
+    db.add = Mock()
+    db.add_all = Mock()
+    db.commit = Mock()
 
-    with patch.object(db, "add") as mock_db_add, patch.object(
-        db, "add_all"
-    ) as mock_db_add_all, patch.object(
-        db,
-        "commit",
-    ) as mock_db_commit, patch(
+    with patch(
         "annotation.annotations.main.get_pages_sha",
-        return_value=pages_sha_latest if is_latest else pages_sha_non_latest,
+        return_value=pages_sha_non_latest,
     ) as mock_get_pages_sha, patch(
         "annotation.annotations.main.check_docs_identity",
         return_value=new_equal_latest,
@@ -331,55 +324,95 @@ def test_construct_annotated_doc(
             s3_file_path,
             s3_file_bucket,
             latest_doc,
-            1,  # task_id
+            1,
             is_latest,
         )
-        if is_latest:
-            mock_get_pages_sha.assert_called_once_with(
-                doc.pages,
-                doc.base_revision,
-                doc.validated,
-                doc.failed_validation_pages,
-                doc.user,
-            )
-        else:
-            mock_get_pages_sha.assert_called_once_with(
-                doc.pages,
-                latest_doc.revision,
-                doc.validated,
-                doc.failed_validation_pages,
-                doc.user,
-            )
+
+        mock_get_pages_sha.assert_called_once_with(
+            doc.pages,
+            latest_doc.revision,
+            doc.validated,
+            doc.failed_validation_pages,
+            doc.user,
+        )
         mock_check_docs.assert_called_once()
-        if not new_equal_latest:
-            mock_construct_doc_links.assert_called_once()
-            mock_db_add.assert_called_once()
-            mock_db_add_all.assert_called_once_with([])
-            mock_db_commit.assert_called_once()
-            mock_convert_bucket.assert_called_once_with(TEST_TENANT)
-            mock_upload_pages.assert_called_once_with(
-                pages=doc.pages,
-                pages_sha=pages_sha_latest[0],
-                s3_path=s3_path,
-                bucket_name=TEST_TENANT,
-                s3_resource=None,
-            )
-            mock_create_manifest.assert_called_once_with(
-                ANY,
-                s3_path,
-                s3_file_path,
-                s3_file_bucket,
-                TEST_TENANT,
-                annotated_doc.job_id,
-                annotated_doc.file_id,
-                db,
-                None,
-            )
+
+        mock_construct_doc_links.assert_called_once()
+        db.add.assert_called_once()
+        db.add_all.assert_called_once_with([])
+        db.commit.assert_called_once()
+        mock_convert_bucket.assert_called_once_with(TEST_TENANT)
+        mock_upload_pages.assert_called_once_with(
+            pages=doc.pages,
+            pages_sha=pages_sha_non_latest[0],
+            s3_path=s3_path,
+            bucket_name=TEST_TENANT,
+            s3_resource=None,
+        )
+        mock_create_manifest.assert_called_once_with(
+            ANY,
+            s3_path,
+            s3_file_path,
+            s3_file_bucket,
+            TEST_TENANT,
+            annotated_doc.job_id,
+            annotated_doc.file_id,
+            db,
+            None,
+        )
+
+
+def test_construct_annotated_doc_new_equals_latest(
+    annotated_doc: AnnotatedDoc,
+    annotation_doc_for_save: DocForSaveSchema,
+):
+    doc = annotation_doc_for_save
+    latest_doc = annotated_doc
+    is_latest = True
+    new_equal_latest = True
+
+    s3_file_path = "path"
+    s3_file_bucket = "bucket"
+
+    pages_sha_latest = ({"1": "a"}, "b")
+
+    db = Mock()
+
+    with patch(
+        "annotation.annotations.main.get_pages_sha",
+        return_value=pages_sha_latest,
+    ) as mock_get_pages_sha, patch(
+        "annotation.annotations.main.check_docs_identity",
+        return_value=new_equal_latest,
+    ) as mock_check_docs:
+        construct_annotated_doc(
+            db,
+            annotated_doc.user,
+            None,
+            annotated_doc.job_id,
+            annotated_doc.file_id,
+            doc,
+            TEST_TENANT,
+            s3_file_path,
+            s3_file_bucket,
+            latest_doc,
+            1,
+            is_latest,
+        )
+
+        mock_get_pages_sha.assert_called_once_with(
+            doc.pages,
+            doc.base_revision,
+            doc.validated,
+            doc.failed_validation_pages,
+            doc.user,
+        )
+        mock_check_docs.assert_called_once()
 
 
 def test_construct_annotated_doc_db_error(
-    annotated_doc,
-    annotation_doc_for_save,
+    annotated_doc: AnnotatedDoc,
+    annotation_doc_for_save: DocForSaveSchema,
 ):
     is_latest = False
     new_equal_latest = False
@@ -392,16 +425,15 @@ def test_construct_annotated_doc_db_error(
     pages_sha_non_latest = ({"1": "a"}, "c")
 
     db = Mock()
-
-    with patch.object(db, "add"), patch.object(db, "add_all"), patch.object(
-        db,
-        "commit",
+    db.add = Mock()
+    db.add_all = Mock()
+    db.commit = Mock(
         side_effect=IntegrityError(
             statement="TEST", params=("testuser",), orig=Exception("TESTING")
-        ),
-    ) as mock_db_commit, patch.object(
-        db, "rollback"
-    ) as mock_db_rollback, patch(
+        )
+    )
+    db.rollback = Mock()
+    with patch(
         "annotation.annotations.main.get_pages_sha",
         return_value=pages_sha_latest if is_latest else pages_sha_non_latest,
     ), patch(
@@ -422,8 +454,8 @@ def test_construct_annotated_doc_db_error(
                 s3_file_path,
                 s3_file_bucket,
                 latest_doc,
-                1,  # task_id
+                1,
                 is_latest,
             )
-            assert mock_db_commit.assert_called_once()
-            assert mock_db_rollback.assert_called_once()
+            assert db.commit.assert_called_once()
+            assert db.rollback.assert_called_once()
