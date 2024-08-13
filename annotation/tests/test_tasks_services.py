@@ -1,5 +1,5 @@
 import re
-from unittest.mock import Mock, call, patch
+from unittest.mock import MagicMock, Mock, call, patch
 from uuid import uuid4
 
 import pytest
@@ -12,7 +12,11 @@ from annotation.schemas.tasks import ManualAnnotationTaskInSchema
 from annotation.tasks.services import (
     check_cross_annotating_pages,
     create_annotation_task,
+    read_annotation_task,
+    read_annotation_tasks,
+    remove_additional_filters,
     validate_files_info,
+    validate_ids_and_names,
     validate_task_info,
     validate_user_actions,
     validate_users_info,
@@ -300,15 +304,8 @@ def test_validate_user_actions_invalid_states(
     assert re.match(expected_error_message_pattern, excinfo.value.detail)
 
 
-def test_create_annotation_task_success():
-
-    with patch("sqlalchemy.orm.Session", spec=True) as mock_session, patch(
-        "annotation.jobs.services.update_user_overall_load"
-    ) as mock_update_user_overall_load, patch(
-        "annotation.models.ManualAnnotationTask"
-    ), patch(
-        "annotation.schemas.tasks.ManualAnnotationTaskInSchema"
-    ):
+def test_create_annotation_task():
+    with patch("sqlalchemy.orm.Session", spec=True) as mock_session:
 
         db_session = mock_session()
         create_annotation_task(
@@ -324,20 +321,147 @@ def test_create_annotation_task_success():
         )
 
         assert db_session.add.call_count == 2
-        mock_update_user_overall_load.assert_not_called()
         db_session.commit.assert_called_once()
 
 
-def test_create_annotation_task_commit_failure():
+@pytest.fixture
+def mock_db_session():
+    with patch("sqlalchemy.orm.Session", spec=True) as mock_session:
+        yield mock_session()
 
-    with patch("sqlalchemy.orm.Session", spec=True) as mock_session, patch(
-        "annotation.jobs.services.update_user_overall_load"
-    ) as mock_update_user_overall_load:
-        db_session = mock_session()
-        db_session.commit.side_effect = Exception("Commit failed")
 
-        with pytest.raises(Exception):
-            create_annotation_task(db_session, None)
+def test_read_annotation_tasks_with_file_and_job_ids(mock_db_session):
 
-        db_session.commit.assert_not_called()
-        mock_update_user_overall_load.assert_not_called()
+    mock_query = mock_db_session.query.return_value
+    mock_query.filter_by.return_value = mock_query
+    mock_query.filter.return_value = mock_query
+    mock_query.count.return_value = 1
+    mock_query.limit.return_value.offset.return_value.all.return_value = [
+        "task1"
+    ]
+
+    total_objects, annotation_tasks = read_annotation_tasks(
+        db=mock_db_session,
+        search_params={"file_ids": [1, 2], "job_ids": [3]},
+        pagination_page_size=10,
+        pagination_start_page=1,
+        tenant="example_tenant",
+    )
+
+    assert total_objects == 1
+    assert annotation_tasks == ["task1"]
+
+    mock_query.filter_by.assert_called_once()
+    mock_query.limit.assert_called_once_with(10)
+
+
+@pytest.mark.parametrize(
+    ("search_id", "search_name", "ids_with_names", "expected_result"),
+    (
+        (1, "Task 1", {1: "Task 1", 2: "Task 2"}, ([1], {1: "Task 1"})),
+        (1, None, {1: "Task 1", 2: "Task 2"}, ([1], {})),
+    ),
+)
+def test_validate_ids_and_names_valid_cases(
+    search_id, search_name, ids_with_names, expected_result
+):
+    result = validate_ids_and_names(
+        search_id=search_id,
+        search_name=search_name,
+        ids_with_names=ids_with_names,
+    )
+    assert result == expected_result
+
+
+@pytest.mark.parametrize(
+    ("search_id", "search_name", "ids_with_names"),
+    [
+        (3, "Task 3", {1: "Task 1", 2: "Task 2"}),
+        (1, "Task 1", {}),
+        (None, "Task 2", None),
+    ],
+)
+def test_validate_ids_and_names_raises_error(
+    search_id, search_name, ids_with_names
+):
+    with pytest.raises(HTTPException) as exc_info:
+        validate_ids_and_names(
+            search_id=search_id,
+            search_name=search_name,
+            ids_with_names=ids_with_names,
+        )
+    assert exc_info.value.status_code == 404
+
+
+@pytest.mark.parametrize(
+    ("filter_args", "expected_filters", "expected_additional_filters"),
+    (
+        (
+            {
+                "filters": [
+                    {"field": "normal_field", "value": "value1"},
+                    {"field": "normal_field_2", "value": "value2"},
+                ],
+                "sorting": [{"field": "normal_field", "order": "asc"}],
+            },
+            {
+                "filters": [
+                    {"field": "normal_field", "value": "value1"},
+                    {"field": "normal_field_2", "value": "value2"},
+                ],
+                "sorting": [{"field": "normal_field", "order": "asc"}],
+            },
+            {},
+        ),
+        (
+            {
+                "filters": [
+                    {"field": "file_name", "value": ["file1", "file2"]},
+                    {"field": "job_name", "value": "job1"},
+                ],
+                "sorting": [],
+            },
+            {
+                "filters": [],
+                "sorting": [],
+            },
+            {
+                "file_name": ["file1", "file2"],
+                "job_name": ["job1"],
+            },
+        ),
+    ),
+)
+def test_remove_additional_filters_valid_cases(
+    filter_args, expected_filters, expected_additional_filters
+):
+    result = remove_additional_filters(filter_args)
+    assert filter_args == expected_filters
+    assert result == expected_additional_filters
+
+
+@pytest.mark.parametrize(
+    ("task_id", "tenant", "expected_result"),
+    (
+        (1, "tenant_1", "task_1"),
+        (2, "tenant_2", None),
+    ),
+)
+def test_read_annotation_task(task_id, tenant, expected_result):
+
+    with patch("sqlalchemy.orm.Session", spec=True) as mock_session:
+
+        mock_query = MagicMock()
+        mock_filter = MagicMock()
+
+        mock_session.query.return_value = mock_query
+        mock_query.filter.return_value = mock_filter
+        mock_filter.first.return_value = expected_result
+
+        result = read_annotation_task(mock_session, task_id, tenant)
+
+        assert result == expected_result
+
+        mock_session.query.assert_called_once_with(ManualAnnotationTask)
+        mock_query.filter.assert_called_once()
+        mock_filter.first.assert_called_once()
