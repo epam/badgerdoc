@@ -9,12 +9,12 @@ import boto3
 import pytest
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
-from tests.override_app_dependency import TEST_TENANT
 
 from annotation.annotations.main import (
     MANIFEST,
     S3_START_PATH,
     DuplicateAnnotationError,
+    LatestPageRevision,
     NotConfiguredException,
     PageRevision,
     check_if_kafka_message_is_needed,
@@ -24,6 +24,7 @@ from annotation.annotations.main import (
     create_manifest_json,
     get_sha_of_bytes,
     mark_all_revisions_validated_pages,
+    mark_latest_revision_validated_pages,
     row_to_dict,
     update_pages_array,
     upload_json_to_minio,
@@ -37,6 +38,7 @@ from annotation.schemas.annotations import (
 )
 from annotation.schemas.categories import CategoryTypeSchema
 from annotation.schemas.jobs import JobTypeEnumSchema, ValidationSchema
+from tests.override_app_dependency import TEST_TENANT
 
 
 @pytest.fixture
@@ -157,7 +159,7 @@ def annotation_doc_for_save():
 
 
 @pytest.fixture
-def annotated_doc_schema(annotator):
+def annotated_doc_schema(annotator: User):
     yield AnnotatedDocSchema(
         revision="20fe52cce6a632c6eb09fdc5b3e1594f926eea69",
         user=annotator.user_id,
@@ -182,7 +184,7 @@ def annotated_doc_schema(annotator):
 
 
 @pytest.fixture
-def page_revision_list(annotated_doc_schema):
+def page_revision_list_all(annotated_doc_schema: AnnotatedDocSchema):
     yield {
         1: [
             {
@@ -210,6 +212,36 @@ def page_revision_list(annotated_doc_schema):
                 "categories": annotated_doc_schema.categories,
             }
         ],
+    }
+
+
+@pytest.fixture
+def page_revision_list_latest(annotated_doc_schema: AnnotatedDocSchema):
+    yield {
+        1: {
+            annotated_doc_schema.user: {
+                "pipeline": annotated_doc_schema.pipeline,
+                "job_id": annotated_doc_schema.job_id,
+                "file_id": annotated_doc_schema.file_id,
+                "revision": annotated_doc_schema.revision,
+                "page_id": None,
+                "date": annotated_doc_schema.date,
+                "is_validated": False,
+                "categories": annotated_doc_schema.categories,
+            }
+        },
+        2: {
+            uuid.UUID("82aa573f-43d8-40ab-8837-282b315f7c3a"): {
+                "pipeline": annotated_doc_schema.pipeline,
+                "job_id": annotated_doc_schema.job_id,
+                "file_id": annotated_doc_schema.file_id,
+                "revision": annotated_doc_schema.revision,
+                "page_id": None,
+                "date": annotated_doc_schema.date,
+                "is_validated": False,
+                "categories": annotated_doc_schema.categories,
+            }
+        },
     }
 
 
@@ -615,7 +647,7 @@ def test_kafka_message_needed_commit(annotated_doc: AnnotatedDoc):
 
 
 def test_mark_all_revs_validated_pages(
-    page_revision_list: Dict[int, List[PageRevision]],
+    page_revision_list_all: Dict[int, List[PageRevision]],
     annotated_doc_schema: AnnotatedDocSchema,
 ):
     expected_pages = {
@@ -659,7 +691,53 @@ def test_mark_all_revs_validated_pages(
     }
 
     mark_all_revisions_validated_pages(
-        page_revision_list, annotated_doc_schema, {1, 2}
+        page_revision_list_all, annotated_doc_schema, {1, 2}
     )
 
-    assert page_revision_list == expected_pages
+    assert page_revision_list_all == expected_pages
+
+
+def test_mark_latest_rev_validated_pages(
+    page_revision_list_latest: Dict[int, Dict[str, LatestPageRevision]],
+    annotated_doc_schema: AnnotatedDocSchema,
+):
+    expected_pages = {
+        1: {
+            uuid.UUID("6ffab2dd-3605-46d4-98a1-2d20011e132d"): {
+                "pipeline": None,
+                "job_id": 1,
+                "file_id": 1,
+                "revision": "20fe52cce6a632c6eb09fdc5b3e1594f926eea69",
+                "page_id": None,
+                "date": datetime(2024, 1, 1, 10, 10),
+                "is_validated": True,
+                "categories": {"2", "1"},
+            }
+        },
+        2: {
+            uuid.UUID("82aa573f-43d8-40ab-8837-282b315f7c3a"): {
+                "pipeline": annotated_doc_schema.pipeline,
+                "job_id": annotated_doc_schema.job_id,
+                "file_id": annotated_doc_schema.file_id,
+                "revision": annotated_doc_schema.revision,
+                "page_id": None,
+                "date": annotated_doc_schema.date,
+                "is_validated": False,
+                "categories": annotated_doc_schema.categories,
+            },
+            uuid.UUID("6ffab2dd-3605-46d4-98a1-2d20011e132d"): {
+                "pipeline": None,
+                "job_id": 1,
+                "file_id": 1,
+                "revision": "20fe52cce6a632c6eb09fdc5b3e1594f926eea69",
+                "page_id": None,
+                "date": datetime(2024, 1, 1, 10, 10),
+                "is_validated": True,
+                "categories": {"2", "1"},
+            },
+        },
+    }
+    mark_latest_revision_validated_pages(
+        page_revision_list_latest, annotated_doc_schema, {1, 2}
+    )
+    assert page_revision_list_latest == expected_pages
