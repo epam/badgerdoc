@@ -557,33 +557,29 @@ def test_filter_tasks_db_no_files_or_jobs(
     request = TaskFilter()
     tenant = "test_tenant"
     token = "test_token"
+
     with patch(
-        "annotation.tasks.services.map_request_to_filter"
-    ) as mock_map_request_to_filter, patch(
-        "annotation.tasks.services.remove_additional_filters"
-    ) as mock_remove_additional_filters, patch(
-        "annotation.tasks.services.get_files_by_request"
-    ) as mock_get_files_by_request, patch(
-        "annotation.tasks.services.get_jobs_by_name"
-    ) as mock_get_jobs_by_name, patch(
-        "annotation.tasks.services.form_query"
-    ) as mock_form_query, patch(
-        "annotation.tasks.services.paginate"
-    ) as mock_paginate:
+        "annotation.tasks.services.map_request_to_filter",
+        return_value={"filters": [], "sorting": []},
+    ), patch(
+        "annotation.tasks.services.remove_additional_filters",
+        return_value=additional_filters,
+    ), patch(
+        "annotation.tasks.services.get_files_by_request",
+        return_value=files_by_name,
+    ), patch(
+        "annotation.tasks.services.get_jobs_by_name", return_value=jobs_by_name
+    ), patch(
+        "annotation.tasks.services.form_query",
+        return_value=(MagicMock(), MagicMock()),
+    ), patch(
+        "annotation.tasks.services.paginate",
+        return_value=([MagicMock()], MagicMock()),
+    ):
+
         mock_query = MagicMock()
         mock_session.query.return_value = mock_query
-
-        mock_map_request_to_filter.return_value = {
-            "filters": [],
-            "sorting": [],
-        }
-        mock_remove_additional_filters.return_value = additional_filters
-        mock_get_files_by_request.return_value = files_by_name
-        mock_get_jobs_by_name.return_value = jobs_by_name
-
         mock_query.filter.return_value = mock_query
-        mock_form_query.return_value = (MagicMock(), MagicMock())
-        mock_paginate.return_value = ([MagicMock()], MagicMock())
 
         result = filter_tasks_db(mock_session, request, tenant, token)
 
