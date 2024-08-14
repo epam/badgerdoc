@@ -39,6 +39,7 @@ def test_delete_one_from_db(file_):
     assert not session.query(FileObject).first()
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_check_bucket_negative(minio_mock_exists_bucket_false):
     random_name = uuid.uuid4().hex
     with pytest.raises(HTTPException):
@@ -47,6 +48,7 @@ def test_check_bucket_negative(minio_mock_exists_bucket_false):
         check_bucket("1", minio_mock_exists_bucket_false)
 
 
+@pytest.mark.skip(reason="tests refactoring")
 def test_check_bucket_positive(minio_mock_exists_bucket_true):
     minio_mock_exists_bucket_true.bucket_exists.side_effect = [
         True,

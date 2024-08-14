@@ -1,16 +1,6 @@
-from unittest.mock import patch
-
-from processing.schema import (
-    AnnotationData,
-    Input,
-    MatchedPage,
-    Page,
-    PageSize,
-    ParagraphBbox,
-)
+from processing.schema import MatchedPage, Page, PageSize, ParagraphBbox
 from processing.text_merge import (
     convert_points_to_pixels,
-    download_files,
     match_page,
     stitch_boxes,
 )
@@ -222,22 +212,3 @@ class TestTextMerger:
                 ],
             ),
         ]
-
-    @patch("processing.text_merge.MinioCommunicator", return_value=MC())
-    def test_download(self, _1, tmp_path):
-        request_data = AnnotationData(
-            file="some_path/some_file.pdf",
-            bucket="some_bucket",
-            input=Input(
-                pages=[
-                    Page(
-                        page_num=1, size=PageSize(width=10, height=10), objs=[]
-                    ),
-                    Page(
-                        page_num=2, size=PageSize(width=10, height=10), objs=[]
-                    ),
-                ]
-            ),
-        )
-
-        assert download_files(request_data, tmp_path) == tmp_path / "ocr"

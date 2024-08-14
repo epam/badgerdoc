@@ -127,11 +127,6 @@ from tests.test_post_unassgined_files import (
     ANNOTATORS_POST_UN_FILES,
     JOBS_FILES_TASKS_POST_UN_FILES,
 )
-from tests.test_search_kafka import (
-    ANNOTATION_KAFKA_FILE,
-    ANNOTATION_KAFKA_JOB,
-    ANNOTATION_KAFKA_TASK,
-)
 from tests.test_start_job import CHANGE_STATUSES_JOBS, CHANGE_STATUSES_TASKS
 from tests.test_tasks_crud_cr import CRUD_CR_ANNOTATION_TASKS, CRUD_CR_JOBS
 from tests.test_tasks_crud_cr import FILES as CRUD_CR_FILES
@@ -494,7 +489,6 @@ def prepare_db_for_get_job(db_session):
 
 @pytest.fixture
 def prepare_db_for_finish_task_status_one_task(db_session):
-
     add_objects(db_session, [FINISH_TASK_USER_1])
     add_objects(db_session, [FINISH_TASK_JOB_1])
     add_objects(
@@ -1223,22 +1217,6 @@ def prepare_child_categories_cache():
     cache.clear()
 
     yield cache
-
-
-@pytest.fixture(scope="module")
-def prepare_search_annotation_kafka(db_session):
-    db_session.add_all(
-        [
-            ANNOTATION_KAFKA_JOB,
-            ANNOTATION_KAFKA_FILE,
-            ANNOTATION_KAFKA_TASK,
-        ],
-    )
-    db_session.commit()
-
-    yield db_session
-
-    clear_db()
 
 
 @pytest.fixture
