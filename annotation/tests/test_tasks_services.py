@@ -10,15 +10,24 @@ from fastapi import HTTPException
 from annotation.errors import FieldConstraintError
 from annotation.filters import TaskFilter
 from annotation.jobs.services import ValidationSchema
-from annotation.models import File, ManualAnnotationTask
-from annotation.schemas.tasks import ManualAnnotationTaskInSchema
+from annotation.models import AnnotatedDoc, File, ManualAnnotationTask
+from annotation.schemas.tasks import (
+    ManualAnnotationTaskInSchema,
+    TaskStatusEnumSchema,
+)
 from annotation.tasks.services import (
     check_cross_annotating_pages,
+    count_annotation_tasks,
     create_annotation_task,
+    create_tasks,
     filter_tasks_db,
+    finish_validation_task,
+    get_task_info,
+    get_task_revisions,
     read_annotation_task,
     read_annotation_tasks,
     remove_additional_filters,
+    update_task_status,
     validate_files_info,
     validate_ids_and_names,
     validate_task_info,
@@ -586,3 +595,170 @@ def test_filter_tasks_db_no_files_or_jobs(
         assert len(result[0]) == 2
         assert result[1] == expected_result[1]
         assert result[2] == expected_result[2]
+
+
+def test_create_tasks(mock_session: Mock):
+    tasks = [
+        {"user_id": 1, "file_id": 123, "pages": {1, 2}},
+        {"user_id": 2, "file_id": 456, "pages": {3}},
+    ]
+    job_id = 1
+    expected_user_ids = {1, 2}
+    with patch(
+        "annotation.tasks.services.update_files"
+    ) as mock_update_files, patch(
+        "annotation.tasks.services.update_user_overall_load"
+    ) as mock_update_user_overall_load:
+        mock_bulk_insert_mappings = MagicMock()
+        mock_session.bulk_insert_mappings = mock_bulk_insert_mappings
+        mock_session.flush = MagicMock()
+
+        create_tasks(mock_session, tasks, job_id)
+
+        assert mock_bulk_insert_mappings.call_count == 1
+        assert mock_update_files.call_count == 1
+
+        mock_update_user_overall_load.assert_has_calls(
+            [call(mock_session, user_id) for user_id in expected_user_ids],
+            any_order=True,
+        )
+
+
+def test_create_tasks_with_empty_tasks(mock_session: Mock):
+    tasks = []
+    job_id = 1
+    with patch(
+        "annotation.tasks.services.update_files"
+    ) as mock_update_files, patch(
+        "annotation.tasks.services.update_user_overall_load"
+    ) as mock_update_user_overall_load:
+        mock_bulk_insert_mappings = MagicMock()
+        mock_session.bulk_insert_mappings = mock_bulk_insert_mappings
+        mock_session.flush = MagicMock()
+
+        create_tasks(mock_session, tasks, job_id)
+
+        assert mock_bulk_insert_mappings.call_count == 1
+        assert mock_update_files.call_count == 1
+        mock_update_user_overall_load.assert_not_called()
+
+
+def create_task(status: TaskStatusEnumSchema) -> ManualAnnotationTask:
+    task = MagicMock(spec=ManualAnnotationTask)
+    task.status = status
+    task.id = 1
+    return task
+
+
+def test_update_task_status_ready(mock_session: Mock):
+    task = create_task(TaskStatusEnumSchema.ready)
+
+    update_task_status(mock_session, task)
+
+    assert task.status == TaskStatusEnumSchema.in_progress
+    mock_session.add.assert_called_once_with(task)
+    mock_session.commit.assert_called_once()
+
+
+@pytest.mark.parametrize(
+    ("status", "expected_message"),
+    (
+        (TaskStatusEnumSchema.pending, "Job is not started yet"),
+        (TaskStatusEnumSchema.finished, "Task is already finished"),
+    ),
+)
+def test_update_task_status_error(
+    mock_session: Mock, status: TaskStatusEnumSchema, expected_message: str
+):
+    task = create_task(status)
+    with pytest.raises(FieldConstraintError, match=f".*{expected_message}.*"):
+        update_task_status(mock_session, task)
+
+
+def test_finish_validation_task(mock_session: MagicMock):
+    mock_task = create_task(TaskStatusEnumSchema.ready)
+    mock_query = MagicMock()
+    mock_session.query.return_value = mock_query
+    mock_query.filter.return_value = mock_query
+    mock_query.with_for_update.return_value = mock_query
+    mock_query.update.return_value = None
+
+    finish_validation_task(mock_session, mock_task)
+
+    mock_session.query.assert_called_once_with(ManualAnnotationTask)
+
+    mock_query.with_for_update.assert_called_once()
+    mock_query.update.assert_called_once_with(
+        {ManualAnnotationTask.status: TaskStatusEnumSchema.finished},
+        synchronize_session="fetch",
+    )
+    mock_session.commit.assert_called_once()
+
+
+def test_count_annotation_tasks(mock_session: Mock):
+    mock_task = create_task(TaskStatusEnumSchema.ready)
+    mock_query = MagicMock()
+    mock_session.query.return_value = mock_query
+    mock_query.filter.return_value = mock_query
+    mock_query.count.return_value = 5
+
+    result = count_annotation_tasks(mock_session, mock_task)
+
+    mock_session.query.assert_called_once_with(ManualAnnotationTask)
+    mock_query.count.assert_called_once()
+
+    assert result == 5
+
+
+@pytest.fixture
+def mock_task_revisions() -> List[AnnotatedDoc]:
+    mock_revision = MagicMock(spec=AnnotatedDoc)
+    mock_revision.pages = {"1": ["data1"], "2": ["data2"]}
+    mock_revision.failed_validation_pages = [1, 2]
+    mock_revision.validated = [1, 2]
+    return [mock_revision]
+
+
+def test_get_task_revisions(
+    mock_session: Mock, mock_task_revisions: List[AnnotatedDoc]
+):
+    tenant = "test_tenant"
+    job_id = 1
+    task_id = 1
+    file_id = 1
+    task_pages = [1]
+
+    mock_query = MagicMock()
+    mock_session.query.return_value = mock_query
+    mock_query.filter.return_value = mock_query
+    mock_query.order_by.return_value = mock_query
+    mock_query.all.return_value = mock_task_revisions
+
+    result = get_task_revisions(
+        mock_session, tenant, job_id, task_id, file_id, task_pages
+    )
+
+    mock_session.query.assert_called_once_with(AnnotatedDoc)
+    mock_query.all.assert_called_once()
+
+    assert len(result) == 1
+    assert result[0].pages == {"1": ["data1"]}
+    assert result[0].failed_validation_pages == [1]
+    assert result[0].validated == [1]
+
+
+def test_get_task_info(mock_session: Mock):
+    mock_task = create_task(TaskStatusEnumSchema.ready)
+    task_id = 1
+    tenant = "test_tenant"
+
+    mock_query = MagicMock()
+    mock_session.query.return_value = mock_query
+    mock_query.filter.return_value = mock_query
+    mock_query.first.return_value = mock_task
+
+    result = get_task_info(mock_session, task_id, tenant)
+
+    mock_session.query.assert_called_once_with(ManualAnnotationTask)
+    mock_query.first.assert_called_once()
+    assert result == mock_task
