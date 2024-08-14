@@ -687,7 +687,6 @@ def test_update_task_status_error(
     mock_session: Mock, status: TaskStatusEnumSchema, expected_message: str
 ):
     task = create_task(status)
-
     with pytest.raises(FieldConstraintError, match=f".*{expected_message}.*"):
         update_task_status(mock_session, task)
 
