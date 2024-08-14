@@ -25,6 +25,7 @@ from annotation.distribution.main import (
     find_small_files,
     find_users_share_loads,
     get_page_number_combinations,
+    prepare_response,
     prepare_users,
 )
 from annotation.jobs.services import Task
@@ -1504,3 +1505,24 @@ def test_find_small_files(
     ):
         output = find_small_files(files, user_pages)
         assert expected_output == output
+
+
+def test_prepare_response():
+    tasks = [{"user_id": 5}]
+    expected_output = tasks
+    mock_arg = Mock()
+
+    with patch("annotation.distribution.main.distribute", return_value=tasks):
+        assert (
+            prepare_response(
+                mock_arg,
+                mock_arg,
+                mock_arg,
+                mock_arg,
+                mock_arg,
+                mock_arg,
+                mock_arg,
+                mock_arg,
+            )
+            == expected_output
+        )
