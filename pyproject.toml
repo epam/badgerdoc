@@ -7,6 +7,7 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.8.0"
+azure-storage-blob = "^12.21.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.4.2"

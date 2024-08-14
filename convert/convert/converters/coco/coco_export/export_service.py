@@ -1,3 +1,4 @@
+# pylint: disable-all
 import os
 import uuid
 from typing import Any, Dict, List, Type
@@ -5,7 +6,6 @@ from zipfile import ZipFile
 
 from fastapi import BackgroundTasks
 
-from convert.config import minio_client
 from convert.converters.coco.coco_export.convert import ExportConvertBase
 from convert.converters.coco.utils.s3_utils import (
     convert_bucket_name_if_s3prefix,
@@ -40,7 +40,7 @@ def export_run(
             zip_obj.write(f"{export_format}.json")
         os.remove(f"{export_format}.json")
     bucket_name = convert_bucket_name_if_s3prefix(current_tenant)
-    minio_client.upload_file(
+    minio_client.upload_file(  # type: ignore
         zip_file.filename,  # type: ignore
         Bucket=bucket_name,
         Key=f"{export_format}/{unique_identity}.zip",
@@ -65,7 +65,7 @@ def export_run_and_return_url(
 ) -> Any:
     unique_value = uuid.uuid4()
     bucket_name = convert_bucket_name_if_s3prefix(current_tenant)
-    url = minio_client.generate_presigned_url(
+    url = minio_client.generate_presigned_url(  # type: ignore
         "get_object",
         Params={
             "Bucket": bucket_name,

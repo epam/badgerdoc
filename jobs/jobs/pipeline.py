@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import List, Optional, TypedDict
 
 
 @dataclass
@@ -8,16 +8,15 @@ class PipelineFileInput:
     job_id: int
 
 
-@dataclass
-class PipelineFile:
+class PipelineFile(TypedDict, total=False):
     bucket: str
     input: PipelineFileInput
     input_path: str
     pages: List[int]
-    revision: Optional[str] = None
-    output_path: Optional[str] = None
-    s3_signed_url: Optional[str] = None
-    file_id: Optional[str] = None
+    revision: Optional[str]
+    output_path: Optional[str]
+    signed_url: Optional[str]
+    file_id: Optional[str]
 
 
 @dataclass
