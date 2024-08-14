@@ -125,6 +125,30 @@ class AnnotatedDoc(Base):
         "DocumentLinks.original_job_id]",
     )
 
+    def __eq__(self, other) -> bool:
+        """Overrides the default implementation"""
+        if isinstance(other, AnnotatedDoc):
+            if (
+                self.revision == other.revision
+                and self.file_id == other.file_id
+                and self.job_id == other.job_id
+                and self.user == other.user
+                and self.pipeline == other.pipeline
+                and self.pages == other.pages
+                and (
+                    self.failed_validation_pages
+                    == other.failed_validation_pages
+                )
+                and self.validated == other.validated
+                and self.tenant == other.tenant
+                and self.task_id == other.task_id
+                and self.categories == other.categories
+                and self.links_json == other.links_json
+            ):
+                return True
+        else:
+            return False
+
     def __repr__(self) -> str:
         return (
             "<AnnotatedDoc("
