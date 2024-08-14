@@ -450,8 +450,9 @@ def test_read_annotation_task(mock_session: Mock):
     mock_query.filter.return_value = mock_filter
     mock_filter.first.return_value = expected_result
 
-    read_annotation_task(mock_session, task_id=1, tenant="tenant_1")
+    result = read_annotation_task(mock_session, task_id=1, tenant="tenant_1")
 
+    assert result == expected_result
     mock_session.query.assert_called_once_with(ManualAnnotationTask)
     mock_query.filter.assert_called_once()
     mock_filter.first.assert_called_once()
