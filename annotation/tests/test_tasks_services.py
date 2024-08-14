@@ -557,7 +557,6 @@ def test_filter_tasks_db_no_files_or_jobs(
     request = TaskFilter()
     tenant = "test_tenant"
     token = "test_token"
-
     with patch(
         "annotation.tasks.services.map_request_to_filter",
         return_value={"filters": [], "sorting": []},
