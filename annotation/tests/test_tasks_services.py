@@ -8,12 +8,14 @@ import pytest
 from fastapi import HTTPException
 
 from annotation.errors import FieldConstraintError
+from annotation.filters import TaskFilter
 from annotation.jobs.services import ValidationSchema
 from annotation.models import File, ManualAnnotationTask
 from annotation.schemas.tasks import ManualAnnotationTaskInSchema
 from annotation.tasks.services import (
     check_cross_annotating_pages,
     create_annotation_task,
+    filter_tasks_db,
     read_annotation_task,
     read_annotation_tasks,
     remove_additional_filters,
@@ -456,3 +458,144 @@ def test_read_annotation_task(mock_session: Mock):
     mock_session.query.assert_called_once_with(ManualAnnotationTask)
     mock_query.filter.assert_called_once()
     mock_filter.first.assert_called_once()
+
+
+def test_filter_tasks_db_no_additional_filters(mock_session: Mock):
+    request = TaskFilter()
+    tenant = "test_tenant"
+    token = "test_token"
+
+    with patch(
+        "annotation.tasks.services.map_request_to_filter"
+    ) as mock_map_request_to_filter, patch(
+        "annotation.tasks.services.remove_additional_filters"
+    ) as mock_remove_additional_filters, patch(
+        "annotation.microservice_communication."
+        "assets_communication.get_files_by_request"
+    ) as mock_get_files_by_request, patch(
+        "annotation.jobs.services.get_jobs_by_name"
+    ) as mock_get_jobs_by_name, patch(
+        "annotation.tasks.services.form_query"
+    ) as mock_form_query, patch(
+        "annotation.tasks.services.paginate"
+    ) as mock_paginate:
+
+        mock_query = MagicMock(return_value=[])
+        mock_session.query.return_value = mock_query
+
+        mock_query.filter.return_value = mock_query
+        mock_paginate.return_value = ([], MagicMock())
+
+        mock_map_request_to_filter.return_value = {
+            "filters": [],
+            "sorting": [],
+        }
+        mock_remove_additional_filters.return_value = {}
+        mock_get_files_by_request.return_value = {}
+        mock_get_jobs_by_name.return_value = {}
+        mock_form_query.return_value = (MagicMock(), MagicMock())
+        mock_paginate.return_value = []
+
+        result = filter_tasks_db(mock_session, request, tenant, token)
+
+        assert result == ([], {}, {})
+
+
+def test_filter_tasks_db_file_and_job_name(mock_session: Mock):
+    additional_filters = {"file_name": ["file1"], "job_name": ["job1"]}
+    files_by_name = {"file1": 1}
+    jobs_by_name = {"job1": 1}
+    expected_result = ([MagicMock()], {"file1": 1}, {"job1": 1})
+
+    request = TaskFilter()
+    tenant = "test_tenant"
+    token = "test_token"
+
+    with patch(
+        "annotation.tasks.services.map_request_to_filter"
+    ) as mock_map_request_to_filter, patch(
+        "annotation.tasks.services.remove_additional_filters"
+    ) as mock_remove_additional_filters, patch(
+        "annotation.tasks.services.get_files_by_request"
+    ) as mock_get_files_by_request, patch(
+        "annotation.tasks.services.get_jobs_by_name"
+    ) as mock_get_jobs_by_name, patch(
+        "annotation.tasks.services.form_query"
+    ) as mock_form_query, patch(
+        "annotation.tasks.services.paginate"
+    ) as mock_paginate:
+
+        mock_query = MagicMock()
+        mock_session.query.return_value = mock_query
+
+        mock_map_request_to_filter.return_value = {
+            "filters": [],
+            "sorting": [],
+        }
+        mock_remove_additional_filters.return_value = additional_filters
+        mock_get_files_by_request.return_value = files_by_name
+        mock_get_jobs_by_name.return_value = jobs_by_name
+
+        mock_query.filter.return_value = mock_query
+        mock_form_query.return_value = (MagicMock(), MagicMock())
+        mock_paginate.return_value = ([MagicMock()], MagicMock())
+
+        result = filter_tasks_db(mock_session, request, tenant, token)
+
+        assert len(result[0][0]) == len(expected_result[0])
+        assert result[1] == expected_result[1]
+        assert result[2] == expected_result[2]
+
+
+@pytest.mark.parametrize(
+    ("additional_filters", "files_by_name", "jobs_by_name", "expected_result"),
+    (
+        ({"file_name": ["file1"]}, {}, {}, ([], {}, {})),
+        ({"job_name": ["job1"]}, {}, {}, ([], {}, {})),
+    ),
+)
+def test_filter_tasks_db_no_files_or_jobs(
+    mock_session: Mock,
+    additional_filters: Dict[str, List[str]],
+    files_by_name: Dict,
+    jobs_by_name: Dict,
+    expected_result: Tuple[List, Dict, Dict],
+):
+    request = TaskFilter()
+    tenant = "test_tenant"
+    token = "test_token"
+
+    with patch(
+        "annotation.tasks.services.map_request_to_filter"
+    ) as mock_map_request_to_filter, patch(
+        "annotation.tasks.services.remove_additional_filters"
+    ) as mock_remove_additional_filters, patch(
+        "annotation.tasks.services.get_files_by_request"
+    ) as mock_get_files_by_request, patch(
+        "annotation.tasks.services.get_jobs_by_name"
+    ) as mock_get_jobs_by_name, patch(
+        "annotation.tasks.services.form_query"
+    ) as mock_form_query, patch(
+        "annotation.tasks.services.paginate"
+    ) as mock_paginate:
+
+        mock_query = MagicMock()
+        mock_session.query.return_value = mock_query
+
+        mock_map_request_to_filter.return_value = {
+            "filters": [],
+            "sorting": [],
+        }
+        mock_remove_additional_filters.return_value = additional_filters
+        mock_get_files_by_request.return_value = files_by_name
+        mock_get_jobs_by_name.return_value = jobs_by_name
+
+        mock_query.filter.return_value = mock_query
+        mock_form_query.return_value = (MagicMock(), MagicMock())
+        mock_paginate.return_value = ([MagicMock()], MagicMock())
+
+        result = filter_tasks_db(mock_session, request, tenant, token)
+
+        assert len(result[0]) == 2
+        assert result[1] == expected_result[1]
+        assert result[2] == expected_result[2]
