@@ -1298,7 +1298,6 @@ def test_get_page_number_combinations(
         "split_multipage_doc_setup",
         "validation_type",
         "annotators",
-        "validators",
         "annotation_tasks",
         "expected_output",
     ),
@@ -1307,7 +1306,6 @@ def test_get_page_number_combinations(
             "",
             ValidationSchema.cross,
             [{"user_id": "0"}, {"user_id": "1"}],
-            [{"user_id": "2"}],
             [{"user_id": "0"}, {"user_id": "1"}],
             [],
         ),
@@ -1315,7 +1313,6 @@ def test_get_page_number_combinations(
             "1",
             ValidationSchema.hierarchical,
             [{"user_id": "0"}, {"user_id": "1"}],
-            [{"user_id": "2"}],
             [{"user_id": "1"}],
             [{"user_id": "2"}],
         ),
@@ -1324,11 +1321,11 @@ def test_get_page_number_combinations(
 def test_choose_validators_users(
     split_multipage_doc_setup: str,
     validation_type: ValidationSchema,
-    annotators: List[User],
-    validators: List[User],
+    annotators: List[DistributionUser],
     annotation_tasks: List[Task],
-    expected_output: List[User],
+    expected_output: List[DistributionUser],
 ):
+    validators = [{"user_id": "2"}]
     with patch(
         "annotation.distribution.main.SPLIT_MULTIPAGE_DOC",
         split_multipage_doc_setup,
@@ -1343,19 +1340,24 @@ def test_choose_validators_users(
     ("users_id", "example_db", "expected_output"),
     (
         (
-            ["b908ccf0-6eab-4b8e-afb7-913372ddf4e5"],
-            ["b908ccf0-6eab-4b8e-afb7-913372ddf4e5"],
-            [User(user_id="b908ccf0-6eab-4b8e-afb7-913372ddf4e5")],
+            [UUID("12345678-1234-5678-1234-567812345678")],
+            (
+                UUID("12345678-1234-5678-1234-567812345678"),
+            ),  # Adjusted to a tuple by adding a comma
+            [User(user_id=UUID("12345678-1234-5678-1234-567812345678"))],
         ),
         (
             [
-                "b908ccf0-6eab-4b8e-afb7-913372ddf4e5",
-                "00d37dc4-b7da-45e5-bcb5-c9b82965351c",
+                UUID("12345678-1234-5678-1234-567812345678"),
+                UUID("00d37dc4-b7da-45e5-bcb5-c9b82965351c"),
             ],
-            ["b908ccf0-6eab-4b8e-afb7-913372ddf4e5"],
+            (
+                UUID("12345678-1234-5678-1234-567812345678"),
+                UUID("00d37dc4-b7da-45e5-bcb5-c9b82965351c"),
+            ),  # Ensure this is a tuple
             [
-                User(user_id="b908ccf0-6eab-4b8e-afb7-913372ddf4e5"),
-                User(user_id="00d37dc4-b7da-45e5-bcb5-c9b82965351c"),
+                User(user_id=UUID("12345678-1234-5678-1234-567812345678")),
+                User(user_id=UUID("00d37dc4-b7da-45e5-bcb5-c9b82965351c")),
             ],
         ),
     ),
@@ -1365,26 +1367,17 @@ def test_prepare_users(
 ):
     db = Mock()
 
-    def read_user_side_effect(db, user_id):
-        print("READ ME")
-        if user_id in example_db:
-            return User(user_id=user_id)
-        return None
-
-    def create_user_side_effect(db, user_id):
-        print("CREATE ME")
-        return User(user_id=user_id)
-
     with patch(
         "annotation.distribution.main.read_user",
-        side_effect=read_user_side_effect,
+        side_effect=lambda db, user_id: User(user_id=user_id)
+        if user_id in example_db
+        else None,
     ), patch(
         "annotation.distribution.main.create_user",
-        side_effect=create_user_side_effect,
+        side_effect=lambda db, user_id: User(user_id=user_id),
     ):
         output = prepare_users(db, users_id)
-        for a, e in zip(output, expected_output):
-            assert a.user_id == e.user_id
+        assert output == expected_output
 
 
 @pytest.mark.parametrize(
@@ -1396,6 +1389,7 @@ def test_prepare_users(
         "users_overall_load",
         "expected_output",
         "expected_share_loads",
+        "expected_users",
     ),
     (
         (
@@ -1406,6 +1400,14 @@ def test_prepare_users(
             10,  # users_overall_load
             1.0,  # expected_output
             [1],  # expected_share_loads
+            [
+                {
+                    "user_id": "0",
+                    "overall_load": 10,
+                    "default_load": 10,
+                    "share_load": 1.0,
+                }
+            ],
         ),
     ),
 )
@@ -1417,6 +1419,7 @@ def test_find_users_share_loads(
     users_overall_load: int,
     expected_output: float,
     expected_share_loads: List[float],
+    expected_users: List[DistributionUser],
 ):
     output = find_users_share_loads(
         users,
@@ -1426,8 +1429,7 @@ def test_find_users_share_loads(
         users_overall_load,
     )
     assert output == expected_output
-    for user, expected_share_load in zip(users, expected_share_loads):
-        assert user["share_load"] == expected_share_load
+    assert users == expected_users
 
 
 @pytest.mark.parametrize(
