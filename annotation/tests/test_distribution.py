@@ -1516,29 +1516,107 @@ def test_find_small_files(
         "validators",
         "job_id",
         "validation_type",
+        "validation_files_to_distribute",
+        "extensive_coverage",
+        "pages_in_work",
         "tasks",
         "expected_output",
     ),
     [
         (
-            [  # Assuming these are lists of dictionaries or
-                # instances as required by the function
-                {"file_id": 0}
-            ],
-            [  # Annotators - assuming they need
-                # to be instances of a User class
-                User(
-                    user_id=1, default_load=10
-                )  # Make sure User class is appropriately defined or imported
-            ],
-            [  # Validators - same assumption as annotators
-                User(user_id=2, default_load=10)
-            ],
+            [{"file_id": 0, "pages_number": 6}],
+            [User(user_id=1, default_load=10, overall_load=10)],
+            [User(user_id=2, default_load=10, overall_load=10)],
             1,  # job_id, just a plain integer
             ValidationSchema.cross,
+            None,
+            1,
+            {
+                "annotation": [
+                    {
+                        "task_id": 0,
+                        "file_id": 10,
+                        "pages": [1, 2, 3],
+                        "user_id": 1,
+                    },
+                ]
+            },  # Pages in work
+            [
+                {
+                    "task_id": 0,
+                    "file_id": 10,
+                    "pages": [1, 2, 3],
+                    "user_id": 1,
+                },
+                {
+                    "task_id": 1,
+                    "file_id": 10,
+                    "pages": [4, 5, 6],
+                    "user_id": 2,
+                },
+            ],  # Tasks - Assuming an empty list is valid here
+            [
+                {
+                    "task_id": 0,
+                    "file_id": 10,
+                    "pages": [1, 2, 3],
+                    "user_id": 1,
+                },
+                {
+                    "task_id": 1,
+                    "file_id": 10,
+                    "pages": [4, 5, 6],
+                    "user_id": 2,
+                },
+            ],  # Expected output
+        ),
+        (
+            [{"file_id": 0, "pages_number": 6}],
+            [],  # annotators
+            [User(user_id=2, default_load=10, overall_load=10)],
+            1,  # job_id, just a plain integer
+            ValidationSchema.cross,
+            [{"file_id": 1}],  # Validation files to distribute
+            1,
+            None,
             [],  # Tasks - Assuming an empty list is valid here
             [],  # Expected output
-        )
+        ),
+        (
+            [{"file_id": 0, "pages_number": 6}],
+            [User(user_id=1, default_load=10, overall_load=10)],
+            [User(user_id=2, default_load=10, overall_load=10)],
+            1,  # job_id, just a plain integer
+            ValidationSchema.extensive_coverage,
+            [{"file_id": 1}],  # Validation files to distribute
+            10,
+            {
+                "validation": [
+                    {
+                        "task_id": 0,
+                        "file_id": 10,
+                        "pages": [1, 2, 3],
+                        "user_id": 1,
+                    },
+                ]
+            },  # Pages in work,
+            [
+                {
+                    "task_id": 1,
+                    "file_id": 10,
+                    "pages": [1, 2, 3, 4, 5, 6],
+                    "user_id": 2,
+                }
+            ],  # Tasks - Assuming an empty list is valid here
+            [
+                {
+                    "task_id": 1,
+                    "file_id": 10,
+                    "pages": [1, 2, 3, 4, 5, 6],
+                    "user_id": 2,
+                }
+            ],  # Expected output
+        ),
     ],
 )
 def test_distribute_main_script(
@@ -1547,11 +1625,23 @@ def test_distribute_main_script(
     validators: DistributionUser,
     job_id: int,
     validation_type: ValidationSchema,
+    validation_files_to_distribute: FilesForDistribution,
+    extensive_coverage: int,
+    pages_in_work,
     tasks,
     expected_output,
 ):
     mock_db = MagicMock(spec=Session)
     mock_db.flush.return_value = None
+
+    def remove_pages_in_work_side_effect(
+        annotation_tasks, annotations_in_work
+    ):
+        lst = []
+        for page in annotation_tasks:
+            if page not in annotations_in_work:
+                lst.append(page)
+        return lst
 
     with patch(
         "annotation.distribution.main.create_db_tasks", return_value=None
@@ -1561,24 +1651,18 @@ def test_distribute_main_script(
         "annotation.distribution.main.distribute_tasks_extensively",
         return_value=tasks,
     ), patch(
-        "annotation.distribution.main.choose_validators_users", return_value=[]
+        "annotation.distribution.main.remove_pages_in_work",
+        side_effect=remove_pages_in_work_side_effect,
     ):
         output = distribute(
-            mock_db, files, annotators, validators, job_id, validation_type
+            mock_db,
+            files,
+            annotators,
+            validators,
+            job_id,
+            validation_type,
+            validation_files_to_distribute,
+            extensive_coverage=extensive_coverage,
+            pages_in_work=pages_in_work,
         )
         assert output == expected_output
-    # output = distribute(
-    #     mock_db: Session,
-    #     files: FilesForDistribution,
-    #     annotators: List[User],
-    #     validators: List[User],
-    #     job_id: int,
-    #     validation_type: ValidationSchema,
-    #     validation_files_to_distribute: FilesForDistribution = None,
-    #     annotation_tasks_status: TaskStatusEnumSchema = TaskStatusEnumSchema.pending,  # noqa E501
-    #     validation_tasks_status: TaskStatusEnumSchema = TaskStatusEnumSchema.pending,  # noqa E501
-    #     already_created_tasks: List[Task] = None,
-    #     deadline: Optional[datetime] = None,
-    #     extensive_coverage: int = 1,
-    #     pages_in_work: PagesInWork = None
-    # )
