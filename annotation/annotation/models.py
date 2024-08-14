@@ -125,18 +125,16 @@ class AnnotatedDoc(Base):
         "DocumentLinks.original_job_id]",
     )
 
-    def __eq__(self, other) -> bool:
-        """Overrides the default implementation"""
-        if isinstance(other, AnnotatedDoc):
-            for column in self.__table__.columns:
-                if column.key != "_sa_instance_state":
-                    if self.__getattribute__(
-                        column.key
-                    ) != self.__getattribute__(column.key):
-                        return False
-            return True
-        else:
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, AnnotatedDoc):
             return NotImplemented
+
+        for column in self.__table__.columns:
+            if column.key != "_sa_instance_state" and self.__getattribute__(
+                column.key
+            ) != self.__getattribute__(column.key):
+                return False
+        return True
 
     def __repr__(self) -> str:
         return (
