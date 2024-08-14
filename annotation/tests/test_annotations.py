@@ -3,7 +3,7 @@ import uuid
 from datetime import datetime
 from hashlib import sha1
 from typing import Any, Dict
-from unittest.mock import ANY, Mock, patch
+from unittest.mock import Mock, patch
 
 import boto3
 import pytest
@@ -24,11 +24,9 @@ from annotation.annotations.main import (
     get_sha_of_bytes,
     row_to_dict,
     update_pages_array,
-    upload_json_to_minio,
-    upload_pages_to_minio,
 )
 from annotation.models import AnnotatedDoc, Category, File, Job, User
-from annotation.schemas.annotations import DocForSaveSchema, PageSchema
+from annotation.schemas.annotations import DocForSaveSchema
 from annotation.schemas.categories import CategoryTypeSchema
 from annotation.schemas.jobs import JobTypeEnumSchema, ValidationSchema
 
