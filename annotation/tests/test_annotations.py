@@ -9,7 +9,6 @@ import boto3
 import pytest
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
-from tests.override_app_dependency import TEST_TENANT
 
 from annotation.annotations.main import (
     MANIFEST,
@@ -29,6 +28,7 @@ from annotation.models import AnnotatedDoc, Category, File, Job, User
 from annotation.schemas.annotations import DocForSaveSchema, PageSchema
 from annotation.schemas.categories import CategoryTypeSchema
 from annotation.schemas.jobs import JobTypeEnumSchema, ValidationSchema
+from tests.override_app_dependency import TEST_TENANT
 
 
 @pytest.fixture
@@ -494,9 +494,7 @@ def test_upload_json_to_minio():
     with patch(
         "annotation.annotations.main.bd_storage.get_storage"
     ) as mock_get_storage:
-        mock_get_storage.return_value.upload_obj = Mock()
-
-        upload_json_to_minio(test_json, path_to_object, bucket_name, None)
+        upload_json_to_minio(test_json, path_to_object, bucket_name, Mock())
         mock_get_storage.assert_called_once_with(bucket_name)
         mock_get_storage().upload_obj.assert_called_once_with(
             target_path=path_to_object, file=ANY
