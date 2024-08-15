@@ -251,6 +251,17 @@ class Job(Base):
 
     categories = relationship("Category", secondary=association_job_category)
 
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Job):
+            return NotImplemented
+
+        for column in self.__table__.columns:
+            if column.key != "_sa_instance_state" and self.__getattribute__(
+                column.key
+            ) != self.__getattribute__(column.key):
+                return False
+        return True
+
 
 class File(Base):
     __tablename__ = "files"
