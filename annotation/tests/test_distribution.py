@@ -1388,7 +1388,6 @@ def test_prepare_users(
         "users_default_load",
         "users_overall_load",
         "expected_output",
-        "expected_share_loads",
         "expected_users",
     ),
     (
@@ -1399,7 +1398,6 @@ def test_prepare_users(
             10,  # users_default_load
             10,  # users_overall_load
             1.0,  # expected_output
-            [1],  # expected_share_loads
             [
                 {
                     "user_id": "0",
@@ -1407,7 +1405,32 @@ def test_prepare_users(
                     "default_load": 10,
                     "share_load": 1.0,
                 }
+            ],  # expected_users
+        ),
+        (
+            [
+                {"user_id": "0", "overall_load": 10, "default_load": 10},
+                {"user_id": "1", "overall_load": 40, "default_load": 20},
             ],
+            0,  # all_job_pages_sum
+            25.0,  # average_job_pages
+            10,  # users_default_load
+            0,  # users_overall_load
+            3.0,  # expected_output
+            [
+                {
+                    "user_id": "0",
+                    "overall_load": 10,
+                    "default_load": 10,
+                    "share_load": 1.0,
+                },
+                {
+                    "user_id": "1",
+                    "overall_load": 40,
+                    "default_load": 20,
+                    "share_load": 2.0,
+                },
+            ],  # expected_users
         ),
     ),
 )
@@ -1418,7 +1441,6 @@ def test_find_users_share_loads(
     users_default_load: int,
     users_overall_load: int,
     expected_output: float,
-    expected_share_loads: List[float],
     expected_users: List[DistributionUser],
 ):
     output = find_users_share_loads(
