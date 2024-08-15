@@ -1341,9 +1341,7 @@ def test_choose_validators_users(
     (
         (
             [UUID("12345678-1234-5678-1234-567812345678")],
-            (
-                UUID("12345678-1234-5678-1234-567812345678"),
-            ),  # Adjusted to a tuple by adding a comma
+            (UUID("12345678-1234-5678-1234-567812345678"),),
             [User(user_id=UUID("12345678-1234-5678-1234-567812345678"))],
         ),
         (
@@ -1354,7 +1352,7 @@ def test_choose_validators_users(
             (
                 UUID("12345678-1234-5678-1234-567812345678"),
                 UUID("00d37dc4-b7da-45e5-bcb5-c9b82965351c"),
-            ),  # Ensure this is a tuple
+            ),
             [
                 User(user_id=UUID("12345678-1234-5678-1234-567812345678")),
                 User(user_id=UUID("00d37dc4-b7da-45e5-bcb5-c9b82965351c")),
