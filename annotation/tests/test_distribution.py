@@ -1476,6 +1476,28 @@ def test_find_users_share_loads(
                 {"pages_number": 40, "file_id": 3},
             ],
         ),
+        (
+            [
+                {"pages_number": 10, "file_id": 0},
+                {"pages_number": 10, "file_id": 1},
+                {"pages_number": 30, "file_id": 2},
+                {"pages_number": 40, "file_id": 3},
+            ],
+            40,
+            [
+                {"pages_number": 10, "file_id": 0},
+                {"pages_number": 30, "file_id": 2},
+            ],
+        ),
+        (
+            [
+                {"pages_number": 10, "file_id": 0},
+                {"pages_number": 20, "file_id": 1},
+                {"pages_number": 30, "file_id": 2},
+            ],
+            110,
+            [],
+        ),
     ),
 )
 def test_find_equal_files(
@@ -1487,7 +1509,7 @@ def test_find_equal_files(
 
 
 @pytest.mark.parametrize(
-    ("files", "user_pages", "SPLIT_MULTIPAGE_DOC_setup", "expected_output"),
+    ("files", "user_pages", "split_multipage_doc_setup", "expected_output"),
     (
         (
             [{"pages_number": 10, "file_id": 0}],
@@ -1510,7 +1532,7 @@ def test_find_equal_files(
 def test_find_small_files(
     files: List[Dict[str, int]],
     user_pages: int,
-    SPLIT_MULTIPAGE_DOC_setup: str,
+    split_multipage_doc_setup: str,
     expected_output,
 ):
     def find_files_for_task_side_effect(files, pages_for_task):
@@ -1522,7 +1544,7 @@ def test_find_small_files(
 
     with patch(
         "annotation.distribution.main.SPLIT_MULTIPAGE_DOC",
-        SPLIT_MULTIPAGE_DOC_setup,
+        split_multipage_doc_setup,
     ), patch(
         "annotation.distribution.main.find_files_for_task",
         side_effect=find_files_for_task_side_effect,
