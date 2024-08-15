@@ -1513,7 +1513,7 @@ def test_find_equal_files(
     (
         (
             [{"pages_number": 10, "file_id": 0}],
-            20,
+            10,
             "",
             ([{"pages_number": 10, "file_id": 0}], 0),
         ),
@@ -1527,6 +1527,12 @@ def test_find_equal_files(
             "a",
             ([{"pages_number": 10, "file_id": 0}], 0),
         ),
+        (
+            [],
+            100,
+            "",
+            ([], 0),
+        ),
     ),
 )
 def test_find_small_files(
@@ -1535,19 +1541,9 @@ def test_find_small_files(
     split_multipage_doc_setup: str,
     expected_output,
 ):
-    def find_files_for_task_side_effect(files, pages_for_task):
-        lst = []
-        for file in files:
-            if file["pages_number"] and file["pages_number"] in pages_for_task:
-                lst.append(file)
-        return lst
-
     with patch(
         "annotation.distribution.main.SPLIT_MULTIPAGE_DOC",
         split_multipage_doc_setup,
-    ), patch(
-        "annotation.distribution.main.find_files_for_task",
-        side_effect=find_files_for_task_side_effect,
     ):
         output = find_small_files(files, user_pages)
         assert expected_output == output
