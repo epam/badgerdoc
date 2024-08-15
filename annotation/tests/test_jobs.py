@@ -184,10 +184,10 @@ def test_check_annotators(
 
 def test_collect_job_names_all_db():
     mock_session = MagicMock()
-    MockJob = namedtuple("MockJob", ["job_id", "name"])
+    mock_job = namedtuple("mock_job", ["job_id", "name"])
     mock_session.query().filter().all.return_value = [
-        MockJob(1, "test1"),
-        MockJob(2, "test2"),
+        mock_job(1, "test1"),
+        mock_job(2, "test2"),
     ]
     expected_result = {1: "test1", 2: "test2"}
     result = collect_job_names(mock_session, [1, 2], "test", "token")
@@ -196,15 +196,15 @@ def test_collect_job_names_all_db():
 
 def test_collect_job_names_not_all_db():
     mock_session = MagicMock()
-    MockJob = namedtuple("MockJob", ["job_id", "name"])
+    mock_job = namedtuple("mock_job", ["job_id", "name"])
     mock_session.query().filter().all.return_value = [
-        MockJob(1, "test1"),
-        MockJob(2, None),
+        mock_job(1, "test1"),
+        mock_job(2, None),
     ]
     expected_result = {1: "test1", 2: "test2"}
     with patch(
         "annotation.jobs.services.get_job_names",
-        return_value=[MockJob(2, "test2")],
+        return_value=[mock_job(2, "test2")],
     ), patch(
         "annotation.jobs.services.update_jobs_names"
     ) as mock_update_jobs_names:
@@ -246,11 +246,11 @@ def test_update_jobs_categories_no_job(categories: Category):
 
 def test_update_jobs_categories(categories: Category):
     mock_session = MagicMock()
-    MockJob = namedtuple("MockJob", ["job_id", "categories"])
+    mock_job = namedtuple("mock_job", ["job_id", "categories"])
     mock_categories = MagicMock()
     mock_categories.id = 1
     mock_session.query().filter().with_for_update().first.return_value = (
-        MockJob(1, mock_categories)
+        mock_job(1, mock_categories)
     )
     update_jobs_categories(mock_session, "1", (categories,))
     mock_categories.extend.assert_called_once()
