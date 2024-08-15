@@ -9,7 +9,6 @@ import boto3
 import pytest
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
-from tests.override_app_dependency import TEST_TENANT
 
 from annotation.annotations.main import (
     MANIFEST,
@@ -23,6 +22,8 @@ from annotation.annotations.main import (
     construct_annotated_doc,
     convert_bucket_name_if_s3prefix,
     create_manifest_json,
+    find_all_revisions_pages,
+    find_latest_revision_pages,
     get_sha_of_bytes,
     mark_all_revisions_validated_pages,
     mark_latest_revision_validated_pages,
@@ -39,6 +40,7 @@ from annotation.schemas.annotations import (
 )
 from annotation.schemas.categories import CategoryTypeSchema
 from annotation.schemas.jobs import JobTypeEnumSchema, ValidationSchema
+from tests.override_app_dependency import TEST_TENANT
 
 
 @pytest.fixture
@@ -741,3 +743,66 @@ def test_mark_latest_rev_validated_pages(
         page_revision_list_latest, annotated_doc_schema, {1, 2}
     )
     assert page_revision_list_latest == expected_pages
+
+
+def test_find_all_revisions_pages(
+    annotated_doc: AnnotatedDoc,
+    annotated_doc_schema: AnnotatedDocSchema,
+    page_revision_list_all: Dict[int, List[PageRevision]],
+):
+    annotated_doc.pages[1] = annotated_doc_schema.pages["1"]
+    page_revision_list_all[1][0]["page_id"] = annotated_doc_schema.pages["1"]
+    page_revision_list_all[1][0]["categories"] = {"bar", "foo"}
+
+    annotated_doc.pages[2] = annotated_doc_schema.pages["2"]
+    page_revision_list_all[2][0]["page_id"] = annotated_doc_schema.pages["2"]
+    page_revision_list_all[2][0]["categories"] = {"bar", "foo"}
+    page_revision_list_all[2][0]["user_id"] = page_revision_list_all[1][0][
+        "user_id"
+    ]
+
+    with patch(
+        "annotation.annotations.main.mark_all_revisions_validated_pages"
+    ) as mock_mark:
+        actual_pages = find_all_revisions_pages([annotated_doc], {1, 2})
+        mock_mark.assert_called_once()
+        assert actual_pages == page_revision_list_all
+
+
+def test_find_latest_revision_pages(
+    annotated_doc: AnnotatedDoc,
+    annotated_doc_schema: AnnotatedDocSchema,
+    page_revision_list_latest: Dict[int, Dict[str, LatestPageRevision]],
+):
+    annotated_doc.pages[1] = annotated_doc_schema.pages["1"]
+    annotated_doc.pages[2] = annotated_doc_schema.pages["2"]
+
+    page_revision_list_latest[1][annotated_doc_schema.user][
+        "page_id"
+    ] = annotated_doc_schema.pages["1"]
+    page_revision_list_latest[1][annotated_doc_schema.user]["categories"] = {
+        "foo",
+        "bar",
+    }
+    expected_pages = {
+        1: {
+            annotated_doc_schema.user: {
+                **page_revision_list_latest[1][annotated_doc_schema.user]
+            }
+        },
+        2: {
+            annotated_doc_schema.user: {
+                **page_revision_list_latest[1][annotated_doc_schema.user]
+            }
+        },
+    }
+    expected_pages[2][annotated_doc_schema.user][
+        "page_id"
+    ] = annotated_doc_schema.pages["2"]
+
+    with patch(
+        "annotation.annotations.main.mark_latest_revision_validated_pages"
+    ) as mock_mark:
+        actual_pages = find_latest_revision_pages([annotated_doc], {1, 2})
+        mock_mark.assert_called_once()
+        assert actual_pages == expected_pages
