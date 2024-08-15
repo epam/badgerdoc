@@ -777,9 +777,9 @@ def test_find_latest_revision_pages(
     annotated_doc.pages[1] = annotated_doc_schema.pages["1"]
     annotated_doc.pages[2] = annotated_doc_schema.pages["2"]
 
-    page_revision_list_latest[1][annotated_doc_schema.user][
-        "page_id"
-    ] = annotated_doc_schema.pages["1"]
+    page_revision_list_latest[1][annotated_doc_schema.user]["page_id"] = (
+        annotated_doc_schema.pages["1"]
+    )
     page_revision_list_latest[1][annotated_doc_schema.user]["categories"] = {
         "foo",
         "bar",
@@ -796,9 +796,9 @@ def test_find_latest_revision_pages(
             }
         },
     }
-    expected_pages[2][annotated_doc_schema.user][
-        "page_id"
-    ] = annotated_doc_schema.pages["2"]
+    expected_pages[2][annotated_doc_schema.user]["page_id"] = (
+        annotated_doc_schema.pages["2"]
+    )
 
     with patch(
         "annotation.annotations.main.mark_latest_revision_validated_pages"
