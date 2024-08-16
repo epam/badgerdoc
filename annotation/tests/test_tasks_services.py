@@ -1,32 +1,55 @@
 import re
 from copy import deepcopy
+from datetime import datetime
 from typing import Dict, List, Optional, Tuple
 from unittest.mock import MagicMock, Mock, call, patch
 from uuid import uuid4
 
 import pytest
 from fastapi import HTTPException
+from tenant_dependency import TenantData
 
-from annotation.errors import FieldConstraintError
+from annotation.errors import CheckFieldError, FieldConstraintError
 from annotation.filters import TaskFilter
 from annotation.jobs.services import ValidationSchema
-from annotation.models import AnnotatedDoc, File, ManualAnnotationTask
+from annotation.models import (
+    AnnotatedDoc,
+    AnnotationStatistics,
+    File,
+    ManualAnnotationTask,
+)
 from annotation.schemas.tasks import (
+    AgreementScoreComparingResult,
+    AgreementScoreServiceResponse,
+    AnnotationStatisticsInputSchema,
     ManualAnnotationTaskInSchema,
+    TaskMetric,
     TaskStatusEnumSchema,
 )
 from annotation.tasks.services import (
+    AGREEMENT_SCORE_MIN_MATCH,
+    _MetricScoreTuple,
+    add_task_stats_record,
     check_cross_annotating_pages,
+    compare_agreement_scores,
     count_annotation_tasks,
     create_annotation_task,
+    create_export_csv,
     create_tasks,
+    evaluate_agreement_score,
     filter_tasks_db,
     finish_validation_task,
+    get_file_names_by_file_ids,
+    get_from_cache,
     get_task_info,
     get_task_revisions,
+    get_task_stats_by_id,
+    get_unique_scores,
+    get_user_names_by_user_ids,
     read_annotation_task,
     read_annotation_tasks,
     remove_additional_filters,
+    unblock_validation_tasks,
     update_task_status,
     validate_files_info,
     validate_ids_and_names,
@@ -762,3 +785,536 @@ def test_get_task_info(mock_session: Mock):
     mock_session.query.assert_called_once_with(ManualAnnotationTask)
     mock_query.first.assert_called_once()
     assert result == mock_task
+
+
+@pytest.fixture
+def annotated_file_pages() -> List[int]:
+    return [1, 2, 3]
+
+
+def test_unblock_validation_tasks(
+    mock_session: Mock,
+    mock_task: ManualAnnotationTask,
+    annotated_file_pages: List[int],
+):
+    mock_unblocked_tasks = MagicMock()
+    mock_session.query.return_value.filter.return_value = mock_unblocked_tasks
+    mock_unblocked_tasks.all.return_value = [mock_task]
+
+    result = unblock_validation_tasks(
+        mock_session, mock_task, annotated_file_pages
+    )
+
+    mock_session.query.assert_called_once_with(ManualAnnotationTask)
+    mock_session.query.return_value.filter.assert_called_once()
+    mock_unblocked_tasks.update.assert_called_once_with(
+        {"status": TaskStatusEnumSchema.ready},
+        synchronize_session=False,
+    )
+    assert result == [mock_task]
+
+
+def test_get_task_stats_by_id(mock_session):
+    task_id = 1
+    mock_stats = MagicMock(spec=AnnotationStatistics)
+
+    mock_query = MagicMock()
+    mock_session.query.return_value = mock_query
+    mock_query.filter.return_value.first.return_value = mock_stats
+
+    result = get_task_stats_by_id(mock_session, task_id)
+
+    mock_session.query.assert_called_once_with(AnnotationStatistics)
+    mock_query.filter.assert_called_once()
+    mock_query.filter.return_value.first.assert_called_once()
+
+    assert result == mock_stats
+
+
+def test_add_task_stats_record_existing_stats(mock_session):
+    task_id = 1
+    mock_stats_input = MagicMock(spec=AnnotationStatisticsInputSchema)
+    mock_stats_input.event_type = "open"
+    mock_stats_db = MagicMock(spec=AnnotationStatistics)
+    with patch(
+        "annotation.tasks.services.get_task_stats_by_id"
+    ) as mock_get_task_stats_by_id:
+        mock_get_task_stats_by_id.return_value = mock_stats_db
+
+        result = add_task_stats_record(mock_session, task_id, mock_stats_input)
+
+        mock_get_task_stats_by_id.assert_called_once_with(
+            mock_session, task_id
+        )
+        mock_stats_db.field1 = "value1"
+        mock_stats_db.field2 = "value2"
+        mock_stats_db.updated = datetime.utcnow()
+        mock_session.add.assert_called_once_with(mock_stats_db)
+        mock_session.commit.assert_called_once()
+
+        assert result == mock_stats_db
+
+
+def test_add_task_stats_record_(mock_session):
+    task_id = 1
+    mock_stats_input = MagicMock(spec=AnnotationStatisticsInputSchema)
+    mock_stats_input.event_type = "closed"
+    with patch(
+        "annotation.tasks.services.get_task_stats_by_id"
+    ) as mock_get_task_stats_by_id:
+        mock_get_task_stats_by_id.return_value = None
+
+        with pytest.raises(CheckFieldError):
+            add_task_stats_record(mock_session, task_id, mock_stats_input)
+
+        mock_get_task_stats_by_id.assert_called_once_with(
+            mock_session, task_id
+        )
+        mock_session.add.assert_not_called()
+        mock_session.commit.assert_not_called()
+
+
+def test_get_from_cache():
+    objs_ids = {1, 2, 3}
+    cache_used = MagicMock()
+
+    # Setting up the behavior of the __contains__ method on the mock object
+    # This method is used to check if the object contains a specific key
+    # side_effect returns True if the key is in the set {1, 3},
+    # otherwise returns False
+    cache_used.__contains__.side_effect = lambda key: key in {1, 3}
+
+    # Setting up the behavior of the __getitem__ method on the mock object
+    # This method is used to access values by key
+    # side_effect returns the value from the dictionary for the given key,
+    # or None if the key is not present
+    cache_used.__getitem__.side_effect = {1: "name1", 3: "name3"}.get
+    objs_names_from_cache, not_cached_usernames = get_from_cache(
+        objs_ids, cache_used
+    )
+
+    expected_objs_names_from_cache = {1: "name1", 3: "name3"}
+    expected_not_cached_usernames = {2}
+
+    assert objs_names_from_cache == expected_objs_names_from_cache
+    assert not_cached_usernames == expected_not_cached_usernames
+
+
+def test_get_user_names_by_user_ids():
+    user_ids = {1, 2, 3}
+    tenant = "test_tenant"
+    token = "test_token"
+
+    cached_user_names = {1: "user1", 3: "user3"}
+    not_cached_user_ids = {2}
+    user_names_from_requests = {2: "user2"}
+
+    with patch(
+        "annotation.tasks.services.get_from_cache"
+    ) as mock_get_from_cache, patch(
+        "annotation.tasks.services.get_user_names_by_request"
+    ) as mock_get_user_names_by_request, patch(
+        "annotation.tasks.services.lru_user_id_to_user_name_cache"
+    ) as mock_cache:
+
+        mock_get_from_cache.return_value = (
+            cached_user_names,
+            not_cached_user_ids,
+        )
+        mock_get_user_names_by_request.return_value = user_names_from_requests
+        mock_cache.update = MagicMock()
+
+        result = get_user_names_by_user_ids(user_ids, tenant, token)
+
+        mock_get_from_cache.assert_called_once_with(
+            objs_ids=user_ids, cache_used=mock_cache
+        )
+
+        mock_get_user_names_by_request.assert_called_once_with(
+            user_ids=list(not_cached_user_ids), tenant=tenant, token=token
+        )
+
+        mock_cache.update.assert_called_once_with(user_names_from_requests)
+
+        expected_result = {**cached_user_names, **user_names_from_requests}
+
+        assert result == expected_result
+
+
+def test_get_file_names_by_file_ids():
+    file_ids = {1, 2, 3}
+    tenant = "test_tenant"
+    token = "test_token"
+
+    cached_file_names = {1: "file1", 3: "file3"}
+    not_cached_file_ids = {2}
+    file_names_from_requests = {2: "file2"}
+
+    with patch(
+        "annotation.tasks.services.get_from_cache"
+    ) as mock_get_from_cache, patch(
+        "annotation.tasks.services.get_file_names_by_request"
+    ) as mock_get_file_names_by_request, patch(
+        "annotation.tasks.services.lru_file_id_to_file_name_cache"
+    ) as mock_cache:
+
+        mock_get_from_cache.return_value = (
+            cached_file_names,
+            not_cached_file_ids,
+        )
+        mock_get_file_names_by_request.return_value = file_names_from_requests
+        mock_cache.update = MagicMock()
+
+        result = get_file_names_by_file_ids(file_ids, tenant, token)
+
+        mock_get_from_cache.assert_called_once_with(
+            objs_ids=file_ids, cache_used=mock_cache
+        )
+
+        mock_get_file_names_by_request.assert_called_once_with(
+            file_ids=list(not_cached_file_ids), tenant=tenant, token=token
+        )
+
+        mock_cache.update.assert_called_once_with(file_names_from_requests)
+
+        expected_result = {**cached_file_names, **file_names_from_requests}
+
+        assert result == expected_result
+
+
+@pytest.fixture
+def mock_metric():
+    metric = MagicMock()
+    metric.task_from = datetime(2024, 1, 1)
+    metric.task_to = datetime(2024, 2, 1)
+    metric.agreement_metric = True
+    return metric
+
+
+@pytest.fixture
+def mock_stats(mock_task, mock_metric):
+    stat1 = MagicMock()
+    stat1.task = mock_task
+    stat1.task_id = 1
+    stat1.created = datetime(2024, 1, 1, 12, 0, 0)
+    stat1.updated = datetime(2024, 1, 2, 12, 0, 0)
+    stat1.task.user_id = 2
+    stat1.task.file_id = 3
+    stat1.task.pages = [1, 2, 3]
+    stat1.task.status.value = "completed"
+    stat1.task.agreement_metrics = [mock_metric]
+
+    stat2 = MagicMock()
+    stat2.task = mock_task
+    stat2.task_id = 2
+    stat2.created = datetime(2024, 1, 3, 12, 0, 0)
+    stat2.updated = datetime(2024, 1, 4, 12, 0, 0)
+    stat2.task.user_id = 2
+    stat2.task.file_id = 3
+    stat2.task.pages = [1, 2, 3]
+    stat2.task.status.value = "completed"
+    stat2.task.agreement_metrics = [mock_metric]
+
+    stat3 = MagicMock()
+    stat3.task = mock_task
+    stat3.task_id = 3
+    stat3.created = datetime(2024, 1, 5, 12, 0, 0)
+    stat3.updated = datetime(2024, 1, 6, 12, 0, 0)
+    stat3.task.user_id = 2
+    stat3.task.file_id = 3
+    stat3.task.pages = [1, 2, 3]
+    stat3.task.status.value = "completed"
+    stat3.task.agreement_metrics = [mock_metric]
+
+    return [stat1, stat2, stat3]
+
+
+@pytest.fixture
+def mock_db(mock_stats):
+    mock_db = MagicMock()
+    mock_query = MagicMock()
+    mock_query.filter.return_value.filter.return_value.all.return_value = (
+        mock_stats
+    )
+    mock_db.query.return_value = mock_query
+
+    return mock_db
+
+
+@pytest.fixture
+def mock_user_name():
+    return {2: "user2"}
+
+
+@pytest.fixture
+def mock_file_name():
+    return {3: "file3"}
+
+
+@pytest.mark.parametrize(
+    ("schema", "expected_filename"),
+    (
+        (
+            MagicMock(
+                user_ids=[2],
+                date_from=datetime(2024, 1, 1),
+                date_to=datetime(2024, 1, 6),
+            ),
+            "annotator_stats_export_20240816.csv",
+        ),
+        (
+            MagicMock(
+                user_ids=[999],
+                date_from=datetime(2024, 1, 1),
+                date_to=datetime(2024, 1, 6),
+            ),
+            "annotator_stats_export_20240816.csv",
+        ),
+    ),
+)
+def test_create_export_csv(
+    schema: Mock,
+    expected_filename: str,
+    mock_db: Mock,
+    mock_user_name: Mock,
+    mock_file_name: Mock,
+):
+    with patch(
+        "annotation.tasks.services.get_user_names_by_user_ids"
+    ) as mock_get_user_names_by_user_ids, patch(
+        "annotation.tasks.services.get_file_names_by_file_ids"
+    ) as mock_get_file_names_by_file_ids, patch(
+        "annotation.tasks.services.io.BytesIO"
+    ) as mock_bytes_io, patch(
+        "annotation.tasks.services.io.TextIOWrapper"
+    ) as mock_text_io_wrapper:
+
+        mock_get_user_names_by_user_ids.return_value = mock_user_name
+        mock_get_file_names_by_file_ids.return_value = mock_file_name
+
+        mock_binary = MagicMock()
+        mock_bytes_io.return_value = mock_binary
+        mock_text_file = MagicMock()
+        mock_text_io_wrapper.return_value = mock_text_file
+
+        filename, _ = create_export_csv(mock_db, schema, "tenant", "token")
+
+        assert filename == expected_filename
+
+
+@pytest.fixture
+def mock_task():
+    task = MagicMock(ManualAnnotationTask)
+    task.id = 1
+    task.user_id = 2
+    task.job_id = 10
+    task.file_id = 3
+    task.pages = {1, 2, 3}
+    task.is_validation = False
+    return task
+
+
+@pytest.fixture
+def mock_tenant_data():
+    mock_data = MagicMock(TenantData)
+    mock_data.token = "mock_token"
+    return mock_data
+
+
+def test_evaluate_agreement_score(
+    mock_session: Mock, mock_task: Mock, mock_tenant_data: Mock
+):
+    with patch(
+        "annotation.tasks.services.get_file_path_and_bucket"
+    ) as mock_get_file_path_and_bucket, patch(
+        "annotation.tasks.services.get_agreement_score"
+    ) as mock_get_agreement_score, patch(
+        "annotation.tasks.services.compare_agreement_scores"
+    ) as mock_compare_agreement_scores:
+
+        mock_get_file_path_and_bucket.return_value = (
+            "mock_s3_file_path",
+            "mock_s3_file_bucket",
+        )
+        mock_agreement_score_response = [
+            MagicMock(AgreementScoreServiceResponse)
+        ]
+        mock_get_agreement_score.return_value = mock_agreement_score_response
+        mock_compare_agreement_scores.return_value = MagicMock(
+            AgreementScoreComparingResult
+        )
+
+        mock_query = MagicMock()
+        mock_query.filter.return_value.filter.return_value.all.return_value = [
+            mock_task
+        ]
+        mock_session.query.return_value = mock_query
+
+        result = evaluate_agreement_score(
+            db=mock_session,
+            task=mock_task,
+            tenant="mock_tenant",
+            token=mock_tenant_data,
+        )
+
+        mock_get_file_path_and_bucket.assert_called_once_with(
+            mock_task.file_id, "mock_tenant", mock_tenant_data.token
+        )
+
+        mock_compare_agreement_scores.assert_called_once_with(
+            mock_agreement_score_response, AGREEMENT_SCORE_MIN_MATCH
+        )
+
+        assert isinstance(result, AgreementScoreComparingResult)
+
+
+class ResponseScore:
+    def __init__(self, task_id: int, agreement_score: float):
+        self.task_id = task_id
+        self.agreement_score = agreement_score
+
+
+@pytest.fixture
+def response_scores():
+    return [
+        ResponseScore(task_id=2, agreement_score=0.9),
+        ResponseScore(task_id=3, agreement_score=0.7),
+        ResponseScore(task_id=2, agreement_score=0.9),  # Duplicate
+    ]
+
+
+def test_get_unique_scores(response_scores):
+    unique_scores = set()
+    task_id = 1
+
+    get_unique_scores(task_id, response_scores, unique_scores)
+
+    expected_scores = {
+        _MetricScoreTuple(task_from=1, task_to=2, score=0.9),
+        _MetricScoreTuple(task_from=1, task_to=3, score=0.7),
+    }
+
+    assert unique_scores == expected_scores
+
+
+@pytest.fixture
+def mock_agreement_score_response():
+    mock_response = [
+        MagicMock(spec=AgreementScoreServiceResponse),
+        MagicMock(spec=AgreementScoreServiceResponse),
+    ]
+    mock_response[0].task_id = 1
+    mock_response[0].agreement_score = [
+        MagicMock(spec=ResponseScore, task_id=2, agreement_score=0.95),
+        MagicMock(spec=ResponseScore, task_id=3, agreement_score=0.8),
+    ]
+    mock_response[1].task_id = 2
+    mock_response[1].agreement_score = [
+        MagicMock(spec=ResponseScore, task_id=1, agreement_score=0.95),
+        MagicMock(spec=ResponseScore, task_id=3, agreement_score=0.85),
+    ]
+    return mock_response
+
+
+@pytest.fixture
+def mock_parse_obj_as():
+    with patch("pydantic.parse_obj_as") as mock:
+        yield mock
+
+
+@pytest.fixture
+def mock_get_unique_scores():
+    with patch("annotation.tasks.services.get_unique_scores") as mock:
+        yield mock
+
+
+@pytest.fixture
+def mock_task_metric():
+    with patch("annotation.tasks.services.TaskMetric") as mock:
+        yield mock
+
+
+@pytest.fixture
+def mock_agreement_score_comparing_result():
+    with patch(
+        "annotation.tasks.services.AgreementScoreComparingResult"
+    ) as mock:
+        yield mock
+
+
+def test_compare_agreement_scores_all_above_min_match(
+    mock_agreement_score_response,
+    mock_parse_obj_as,
+    mock_get_unique_scores,
+    mock_task_metric,
+    mock_agreement_score_comparing_result,
+):
+    min_match = 0.8
+    mock_parse_obj_as.return_value = [MagicMock(spec=ResponseScore)]
+    mock_get_unique_scores.return_value = None
+    mock_task_metric.side_effect = (
+        lambda task_from_id, task_to_id, metric_score: MagicMock(
+            spec=TaskMetric,
+            task_from_id=task_from_id,
+            task_to_id=task_to_id,
+            metric_score=metric_score,
+        )
+    )
+    mock_agreement_score_comparing_result.return_value = MagicMock(
+        spec=AgreementScoreComparingResult,
+        agreement_score_reached=True,
+        task_metrics=[
+            mock_task_metric(1, 2, 0.95),
+            mock_task_metric(1, 3, 0.8),
+            mock_task_metric(2, 3, 0.85),
+        ],
+    )
+    result = compare_agreement_scores(mock_agreement_score_response, min_match)
+    assert result.agreement_score_reached
+
+
+def test_compare_agreement_scores_some_below_min_match(
+    mock_agreement_score_response,
+    mock_parse_obj_as,
+    mock_get_unique_scores,
+    mock_task_metric,
+    mock_agreement_score_comparing_result,
+):
+    min_match = 0.9
+    mock_parse_obj_as.return_value = [MagicMock(spec=ResponseScore)]
+    mock_get_unique_scores.return_value = None
+    mock_task_metric.side_effect = (
+        lambda task_from_id, task_to_id, metric_score: MagicMock(
+            spec=TaskMetric,
+            task_from_id=task_from_id,
+            task_to_id=task_to_id,
+            metric_score=metric_score,
+        )
+    )
+    mock_agreement_score_comparing_result.return_value = MagicMock(
+        spec=AgreementScoreComparingResult,
+        agreement_score_reached=False,
+        task_metrics=[mock_task_metric(1, 2, 0.95)],
+    )
+    result = compare_agreement_scores(mock_agreement_score_response, min_match)
+    assert not result.agreement_score_reached
+
+
+def test_compare_agreement_scores_empty_response(
+    mock_parse_obj_as,
+    mock_get_unique_scores,
+    mock_task_metric,
+    mock_agreement_score_comparing_result,
+):
+    min_match = 0.5
+    mock_parse_obj_as.return_value = []
+    mock_get_unique_scores.return_value = None
+    mock_task_metric.return_value = MagicMock(spec=TaskMetric)
+    mock_agreement_score_comparing_result.return_value = MagicMock(
+        spec=AgreementScoreComparingResult,
+        agreement_score_reached=False,
+        task_metrics=[],
+    )
+    result = compare_agreement_scores([], min_match)
+    assert not result.agreement_score_reached
+    assert result.task_metrics == []
