@@ -9,7 +9,6 @@ import boto3
 import pytest
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
-from tests.override_app_dependency import TEST_TENANT
 
 from annotation.annotations.main import (
     MANIFEST,
@@ -41,6 +40,7 @@ from annotation.schemas.annotations import (
 )
 from annotation.schemas.categories import CategoryTypeSchema
 from annotation.schemas.jobs import JobTypeEnumSchema, ValidationSchema
+from tests.override_app_dependency import TEST_TENANT
 
 
 @pytest.fixture
@@ -762,9 +762,28 @@ def test_find_all_revisions_pages(
     ]
 
     with patch(
+        "annotation.annotations.main.AnnotatedDocSchema.from_orm",
+        return_value=AnnotatedDocSchema(
+            revision=annotated_doc.revision,
+            user=annotated_doc.user,
+            pipeline=annotated_doc.pipeline,
+            date=annotated_doc.date,
+            file_id=annotated_doc.file_id,
+            job_id=annotated_doc.job_id,
+            pages=annotated_doc.pages,
+            validated=annotated_doc.validated,
+            failed_validation_pages=annotated_doc.failed_validation_pages,
+            tenant=annotated_doc.tenant,
+            task_id=annotated_doc.task_id,
+            similar_revisions=None,
+            categories=annotated_doc.categories,
+            links_json=annotated_doc.links_json,
+        ),
+    ) as mock_from_orm, patch(
         "annotation.annotations.main.mark_all_revisions_validated_pages"
     ) as mock_mark:
         actual_pages = find_all_revisions_pages([annotated_doc], {1, 2})
+        mock_from_orm.assert_called_once_with(annotated_doc)
         mock_mark.assert_called_once()
         assert actual_pages == page_revision_list_all
 
@@ -777,9 +796,9 @@ def test_find_latest_revision_pages(
     annotated_doc.pages[1] = annotated_doc_schema.pages["1"]
     annotated_doc.pages[2] = annotated_doc_schema.pages["2"]
 
-    page_revision_list_latest[1][annotated_doc_schema.user]["page_id"] = (
-        annotated_doc_schema.pages["1"]
-    )
+    page_revision_list_latest[1][annotated_doc_schema.user][
+        "page_id"
+    ] = annotated_doc_schema.pages["1"]
     page_revision_list_latest[1][annotated_doc_schema.user]["categories"] = {
         "foo",
         "bar",
@@ -796,13 +815,32 @@ def test_find_latest_revision_pages(
             }
         },
     }
-    expected_pages[2][annotated_doc_schema.user]["page_id"] = (
-        annotated_doc_schema.pages["2"]
-    )
+    expected_pages[2][annotated_doc_schema.user][
+        "page_id"
+    ] = annotated_doc_schema.pages["2"]
 
     with patch(
+        "annotation.annotations.main.AnnotatedDocSchema.from_orm",
+        return_value=AnnotatedDocSchema(
+            revision=annotated_doc.revision,
+            user=annotated_doc.user,
+            pipeline=annotated_doc.pipeline,
+            date=annotated_doc.date,
+            file_id=annotated_doc.file_id,
+            job_id=annotated_doc.job_id,
+            pages=annotated_doc.pages,
+            validated=annotated_doc.validated,
+            failed_validation_pages=annotated_doc.failed_validation_pages,
+            tenant=annotated_doc.tenant,
+            task_id=annotated_doc.task_id,
+            similar_revisions=None,
+            categories=annotated_doc.categories,
+            links_json=annotated_doc.links_json,
+        ),
+    ) as mock_from_orm, patch(
         "annotation.annotations.main.mark_latest_revision_validated_pages"
     ) as mock_mark:
         actual_pages = find_latest_revision_pages([annotated_doc], {1, 2})
+        mock_from_orm.assert_called_once_with(annotated_doc)
         mock_mark.assert_called_once()
         assert actual_pages == expected_pages
