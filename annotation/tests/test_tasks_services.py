@@ -1,7 +1,7 @@
 import re
 from copy import deepcopy
 from datetime import datetime
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 from unittest.mock import MagicMock, Mock, call, patch
 from uuid import uuid4
 
@@ -18,6 +18,7 @@ from annotation.models import (
     File,
     ManualAnnotationTask,
 )
+from annotation.schemas.annotations import PageSchema, ParticularRevisionSchema
 from annotation.schemas.tasks import (
     AgreementScoreComparingResult,
     AgreementScoreServiceResponse,
@@ -30,25 +31,39 @@ from annotation.tasks.services import (
     AGREEMENT_SCORE_MIN_MATCH,
     _MetricScoreTuple,
     add_task_stats_record,
+    change_ids,
     check_cross_annotating_pages,
     compare_agreement_scores,
     count_annotation_tasks,
     create_annotation_task,
     create_export_csv,
     create_tasks,
+    create_validation_revisions,
     evaluate_agreement_score,
     filter_tasks_db,
+    find_common_objs,
     finish_validation_task,
+    get_accum_annotations,
+    get_annotation_tasks,
+    get_common_ids,
+    get_common_values,
     get_file_names_by_file_ids,
     get_from_cache,
+    get_links_and_children,
+    get_new_id,
     get_task_info,
     get_task_revisions,
     get_task_stats_by_id,
+    get_tasks_without_ids,
     get_unique_scores,
     get_user_names_by_user_ids,
+    load_annotations,
     read_annotation_task,
     read_annotation_tasks,
     remove_additional_filters,
+    remove_ids,
+    remove_unnecessary_attributes,
+    save_agreement_metrics,
     unblock_validation_tasks,
     update_task_status,
     validate_files_info,
@@ -831,7 +846,7 @@ def test_get_task_stats_by_id(mock_session):
     assert result == mock_stats
 
 
-def test_add_task_stats_record_existing_stats(mock_session):
+def test_add_task_stats_record_existing_stats(mock_session: Mock):
     task_id = 1
     mock_stats_input = MagicMock(spec=AnnotationStatisticsInputSchema)
     mock_stats_input.event_type = "open"
@@ -855,7 +870,7 @@ def test_add_task_stats_record_existing_stats(mock_session):
         assert result == mock_stats_db
 
 
-def test_add_task_stats_record_(mock_session):
+def test_add_task_stats_record(mock_session: Mock):
     task_id = 1
     mock_stats_input = MagicMock(spec=AnnotationStatisticsInputSchema)
     mock_stats_input.event_type = "closed"
@@ -872,6 +887,70 @@ def test_add_task_stats_record_(mock_session):
         )
         mock_session.add.assert_not_called()
         mock_session.commit.assert_not_called()
+
+
+def test_add_task_stats_record_setattr(mock_session: Mock):
+    task_id = 1
+    mock_stats_input = MagicMock(spec=AnnotationStatisticsInputSchema)
+    mock_stats_input.dict.return_value = {
+        "field1": "new_value1",
+        "field2": "new_value2",
+    }
+    mock_stats_db = MagicMock(spec=AnnotationStatistics)
+    mock_stats_db.field1 = "old_value1"
+    mock_stats_db.field2 = "old_value2"
+
+    with patch(
+        "annotation.tasks.services.get_task_stats_by_id"
+    ) as mock_get_task_stats_by_id:
+        mock_get_task_stats_by_id.return_value = mock_stats_db
+
+        result = add_task_stats_record(mock_session, task_id, mock_stats_input)
+
+        mock_get_task_stats_by_id.assert_called_once_with(
+            mock_session, task_id
+        )
+        assert mock_stats_db.field1 == "new_value1"
+        assert mock_stats_db.field2 == "new_value2"
+        assert mock_stats_db.updated is not None
+
+        mock_session.add.assert_called_once_with(mock_stats_db)
+        mock_session.commit.assert_called_once()
+
+        assert result == mock_stats_db
+
+
+def test_add_task_stats_record_create_new(mock_session: Mock):
+    task_id = 1
+    mock_stats_input = MagicMock(spec=AnnotationStatisticsInputSchema)
+    mock_stats_input.event_type = "open"
+    mock_stats_input.dict.return_value = {
+        "field1": "value1",
+        "field2": "value2",
+    }
+
+    with patch(
+        "annotation.tasks.services.get_task_stats_by_id"
+    ) as mock_get_task_stats_by_id, patch(
+        "annotation.tasks.services.AnnotationStatistics"
+    ) as mock_annotation_statistics:
+        mock_get_task_stats_by_id.return_value = None
+
+        mock_stats_db = MagicMock()
+        mock_annotation_statistics.return_value = mock_stats_db
+
+        result = add_task_stats_record(mock_session, task_id, mock_stats_input)
+
+        mock_get_task_stats_by_id.assert_called_once_with(
+            mock_session, task_id
+        )
+        mock_annotation_statistics.assert_called_once_with(
+            task_id=task_id, **mock_stats_input.dict.return_value
+        )
+        mock_session.add.assert_called_once_with(mock_stats_db)
+        mock_session.commit.assert_called_once()
+
+        assert result == mock_stats_db
 
 
 def test_get_from_cache():
@@ -1102,6 +1181,80 @@ def test_create_export_csv(
         assert filename == expected_filename
 
 
+@pytest.mark.parametrize(
+    ("schema", "expected_filename"),
+    (
+        (
+            MagicMock(
+                user_ids=[2],
+                date_from=datetime(2024, 1, 1),
+                date_to=None,
+            ),
+            "annotator_stats_export_20240816.csv",
+        ),
+    ),
+)
+def test_create_export_csv_no_date_to(
+    schema: Mock,
+    expected_filename: str,
+    mock_db: Mock,
+    mock_user_name: Mock,
+    mock_file_name: Mock,
+):
+    with patch(
+        "annotation.tasks.services.get_user_names_by_user_ids"
+    ) as mock_get_user_names_by_user_ids, patch(
+        "annotation.tasks.services.get_file_names_by_file_ids"
+    ) as mock_get_file_names_by_file_ids, patch(
+        "annotation.tasks.services.io.BytesIO"
+    ) as mock_bytes_io, patch(
+        "annotation.tasks.services.io.TextIOWrapper"
+    ) as mock_text_io_wrapper:
+
+        mock_get_user_names_by_user_ids.return_value = mock_user_name
+        mock_get_file_names_by_file_ids.return_value = mock_file_name
+
+        mock_binary = MagicMock()
+        mock_bytes_io.return_value = mock_binary
+        mock_text_file = MagicMock()
+        mock_text_io_wrapper.return_value = mock_text_file
+
+        filename, _ = create_export_csv(mock_db, schema, "tenant", "token")
+
+        assert filename == expected_filename
+
+
+def test_create_export_csv_no_annotation_stats(mock_db):
+    schema = MagicMock(
+        user_ids=[999],
+        date_from=datetime(2024, 1, 1),
+        date_to=datetime(2024, 1, 6),
+    )
+    filter_mock = (
+        mock_db.query.return_value.filter.return_value.filter.return_value
+    )
+    filter_mock.all.return_value = []
+
+    with patch(
+        "annotation.tasks.services.get_user_names_by_user_ids"
+    ) as mock_get_user_names_by_user_ids, patch(
+        "annotation.tasks.services.get_file_names_by_file_ids"
+    ) as mock_get_file_names_by_file_ids, patch(
+        "annotation.tasks.services.io.BytesIO"
+    ), patch(
+        "annotation.tasks.services.io.TextIOWrapper"
+    ):
+
+        mock_get_user_names_by_user_ids.return_value = {}
+        mock_get_file_names_by_file_ids.return_value = {}
+
+        with pytest.raises(HTTPException) as exc_info:
+            create_export_csv(mock_db, schema, "tenant", "token")
+
+        assert exc_info.value.status_code == 406
+        assert exc_info.value.detail == "Export data not found."
+
+
 @pytest.fixture
 def mock_task():
     task = MagicMock(ManualAnnotationTask)
@@ -1179,7 +1332,7 @@ def response_scores():
     return [
         ResponseScore(task_id=2, agreement_score=0.9),
         ResponseScore(task_id=3, agreement_score=0.7),
-        ResponseScore(task_id=2, agreement_score=0.9),  # Duplicate
+        ResponseScore(task_id=2, agreement_score=0.9),
     ]
 
 
@@ -1243,11 +1396,11 @@ def mock_agreement_score_comparing_result():
 
 
 def test_compare_agreement_scores_all_above_min_match(
-    mock_agreement_score_response,
-    mock_parse_obj_as,
-    mock_get_unique_scores,
-    mock_task_metric,
-    mock_agreement_score_comparing_result,
+    mock_agreement_score_response: Mock,
+    mock_parse_obj_as: Mock,
+    mock_get_unique_scores: Mock,
+    mock_task_metric: Mock,
+    mock_agreement_score_comparing_result: Mock,
 ):
     min_match = 0.8
     mock_parse_obj_as.return_value = [MagicMock(spec=ResponseScore)]
@@ -1274,11 +1427,11 @@ def test_compare_agreement_scores_all_above_min_match(
 
 
 def test_compare_agreement_scores_some_below_min_match(
-    mock_agreement_score_response,
-    mock_parse_obj_as,
-    mock_get_unique_scores,
-    mock_task_metric,
-    mock_agreement_score_comparing_result,
+    mock_agreement_score_response: Mock,
+    mock_parse_obj_as: Mock,
+    mock_get_unique_scores: Mock,
+    mock_task_metric: Mock,
+    mock_agreement_score_comparing_result: Mock,
 ):
     min_match = 0.9
     mock_parse_obj_as.return_value = [MagicMock(spec=ResponseScore)]
@@ -1301,10 +1454,10 @@ def test_compare_agreement_scores_some_below_min_match(
 
 
 def test_compare_agreement_scores_empty_response(
-    mock_parse_obj_as,
-    mock_get_unique_scores,
-    mock_task_metric,
-    mock_agreement_score_comparing_result,
+    mock_parse_obj_as: Mock,
+    mock_get_unique_scores: Mock,
+    mock_task_metric: Mock,
+    mock_agreement_score_comparing_result: Mock,
 ):
     min_match = 0.5
     mock_parse_obj_as.return_value = []
@@ -1318,3 +1471,864 @@ def test_compare_agreement_scores_empty_response(
     result = compare_agreement_scores([], min_match)
     assert not result.agreement_score_reached
     assert result.task_metrics == []
+
+
+def test_save_agreement_metrics(mock_session: Mock):
+    mock_scores = MagicMock()
+    mock_scores.task_metrics = []
+    save_agreement_metrics(mock_session, mock_scores)
+
+    mock_session.bulk_save_objects.assert_called_once_with([])
+    mock_session.commit.assert_called_once()
+
+
+def test_get_annotation_tasks(mock_session: Mock):
+    job_id = 1
+    file_id = 2
+    pages = [1, 2, 3]
+    expected_tasks = [MagicMock(), MagicMock()]
+    mock_query = mock_session.query.return_value.filter.return_value
+    mock_query.all.return_value = expected_tasks
+
+    result = get_annotation_tasks(mock_session, job_id, file_id, pages)
+
+    mock_session.query.assert_called_once_with(ManualAnnotationTask)
+    mock_session.query.return_value.filter.assert_called_once()
+    mock_all = mock_session.query.return_value.filter.return_value.all
+    mock_all.assert_called_once()
+    assert result == expected_tasks
+
+
+def test_get_accum_annotations():
+    with patch("annotation.tasks.services.Session") as mock_session, patch(
+        "annotation.tasks.services.accumulate_pages_info"
+    ) as mock_accumulate_pages_info, patch(
+        "annotation.tasks.services.construct_particular_rev_response"
+    ) as mock_construct_particular_rev_response:
+
+        annotation_task = MagicMock(ManualAnnotationTask)
+        annotation_task.job_id = 1
+        annotation_task.id = 2
+        annotation_task.file_id = 3
+
+        expected_revisions = [MagicMock(AnnotatedDoc)]
+        mock_query = mock_session.query.return_value
+        mock_query = mock_query.filter.return_value
+        mock_query = mock_query.order_by.return_value
+        mock_query.all.return_value = expected_revisions
+
+        mock_accumulate_pages_info.return_value = (
+            None,
+            None,
+            [1, 2, 3],
+            None,
+            None,
+            MagicMock(),
+        )
+        mock_accumulate_pages_info.return_value[5].pages = [1, 2, 3]
+
+        mock_construct_particular_rev_response.return_value = MagicMock(
+            ParticularRevisionSchema
+        )
+
+        result = get_accum_annotations(
+            db=mock_session,
+            x_current_tenant="tenant_1",
+            annotation_task=annotation_task,
+        )
+
+        mock_accumulate_pages_info.assert_called_once()
+        mock_construct_particular_rev_response.assert_called_once()
+        assert result == mock_construct_particular_rev_response.return_value
+
+
+def test_get_accum_annotations_no_revisions():
+    with patch("annotation.tasks.services.Session") as mock_session, patch(
+        "annotation.tasks.services.accumulate_pages_info"
+    ) as mock_accumulate_pages_info, patch(
+        "annotation.tasks.services.construct_particular_rev_response"
+    ) as mock_construct_particular_rev_response:
+
+        annotation_task = MagicMock(ManualAnnotationTask)
+        annotation_task.job_id = 1
+        annotation_task.id = 2
+        annotation_task.file_id = 3
+
+        mock_query = mock_session.query.return_value
+        mock_query = mock_query.filter.return_value
+        mock_query = mock_query.order_by.return_value
+        mock_query.all.return_value = []
+
+        result = get_accum_annotations(
+            db=mock_session,
+            x_current_tenant="tenant_1",
+            annotation_task=annotation_task,
+        )
+
+        mock_accumulate_pages_info.assert_not_called()
+        mock_construct_particular_rev_response.assert_not_called()
+        assert result is None
+
+
+def test_get_accum_annotations_no_required_revision():
+    with patch("annotation.tasks.services.Session") as mock_session, patch(
+        "annotation.tasks.services.accumulate_pages_info"
+    ) as mock_accumulate_pages_info, patch(
+        "annotation.tasks.services.construct_particular_rev_response"
+    ) as mock_construct_particular_rev_response:
+
+        annotation_task = MagicMock(ManualAnnotationTask)
+        annotation_task.job_id = 1
+        annotation_task.id = 2
+        annotation_task.file_id = 3
+
+        expected_revisions = [MagicMock(AnnotatedDoc)]
+        mock_query = mock_session.query.return_value
+        mock_query = mock_query.filter.return_value
+        mock_query = mock_query.order_by.return_value
+        mock_query.all.return_value = expected_revisions
+
+        mock_accumulate_pages_info.return_value = (
+            None,
+            None,
+            [1, 2, 3],
+            None,
+            None,
+            None,
+        )
+
+        result = get_accum_annotations(
+            db=mock_session,
+            x_current_tenant="tenant_1",
+            annotation_task=annotation_task,
+        )
+
+        mock_accumulate_pages_info.assert_called_once()
+        mock_construct_particular_rev_response.assert_not_called()
+        assert result is None
+
+
+def test_remove_unnecessary_attributes():
+    categories = {"category1", "category2"}
+
+    page_annotations = MagicMock(spec=PageSchema)
+    page_annotations.size = "A4"
+    page_annotations.objs = [
+        {
+            "type": "text",
+            "data": {
+                "tokens": [
+                    {
+                        "id": 1,
+                        "text": "Sample",
+                        "x": 0,
+                        "y": 0,
+                        "width": 100,
+                        "height": 50,
+                        "extra": "unnecessary",
+                    },
+                    {
+                        "id": 2,
+                        "text": "Another",
+                        "x": 10,
+                        "y": 20,
+                        "width": 200,
+                        "height": 100,
+                    },
+                ],
+                "dataAttributes": ["attr1", "attr2"],
+            },
+        },
+        {"type": "image", "data": {"tokens": []}},
+    ]
+
+    expected_result = {
+        "size": "A4",
+        "objects": [
+            {
+                "type": "text",
+                "data": {
+                    "tokens": [
+                        {
+                            "id": 1,
+                            "text": "Sample",
+                            "x": 0,
+                            "y": 0,
+                            "width": 100,
+                            "height": 50,
+                        },
+                        {
+                            "id": 2,
+                            "text": "Another",
+                            "x": 10,
+                            "y": 20,
+                            "width": 200,
+                            "height": 100,
+                        },
+                    ],
+                    "dataAttributes": ["attr1", "attr2"],
+                },
+            },
+            {"type": "image", "data": {"tokens": []}},
+        ],
+        "categories": categories,
+    }
+
+    result = remove_unnecessary_attributes(categories, page_annotations)
+
+    assert result == expected_result
+
+
+@pytest.mark.parametrize(
+    (
+        "annotation_tasks",
+        "get_accum_annotations_return_value",
+        "expected_result",
+    ),
+    [
+        # Test case to cover the `continue` scenario
+        (
+            [MagicMock(spec=ManualAnnotationTask)],
+            None,  # Return None to trigger `continue`
+            {},
+        ),
+        # Test case to cover typical scenario with empty pages
+        ([MagicMock(spec=ManualAnnotationTask)], MagicMock(pages=[]), {}),
+        # Test case to cover scenario where annotations exist
+        (
+            [MagicMock(spec=ManualAnnotationTask)],
+            MagicMock(
+                pages=[
+                    MagicMock(
+                        page_num=1,
+                        categories={"category1", "category2"},
+                        pages=[MagicMock()],
+                    )
+                ]
+            ),
+            {1: {0: {"size": "A4", "objects": []}}},
+        ),
+    ],
+)
+def test_load_annotations(
+    annotation_tasks: List[Mock],
+    get_accum_annotations_return_value: Mock,
+    expected_result: Dict[int, Dict[int, Dict[str, Any]]],
+):
+    with patch(
+        "annotation.tasks.services.get_accum_annotations"
+    ) as mock_get_accum_annotations, patch(
+        "annotation.tasks.services.remove_unnecessary_attributes"
+    ) as mock_remove_unnecessary_attributes:
+
+        mock_session = MagicMock()
+        mock_tenant = "tenant_1"
+
+        mock_get_accum_annotations.return_value = (
+            get_accum_annotations_return_value
+        )
+        mock_remove_unnecessary_attributes.return_value = {
+            "size": "A4",
+            "objects": [],
+        }
+
+        result = load_annotations(
+            db=mock_session,
+            x_current_tenant=mock_tenant,
+            annotation_tasks=annotation_tasks,
+        )
+
+        assert result == expected_result
+        mock_get_accum_annotations.assert_called_once_with(
+            mock_session,
+            mock_tenant,
+            annotation_tasks[0] if annotation_tasks else None,
+        )
+
+
+@pytest.mark.parametrize(
+    ("old_id", "id_mapping", "expected_result"),
+    (
+        (1, {(1, 2, 3): 100}, 100),
+        (4, {(1, 2, 3): 100, (4, 5, 6): 200}, 200),
+        (7, {(1, 2, 3): 100, (4, 5, 6): 200}, None),
+        (1, {}, None),
+    ),
+)
+def test_get_new_id(
+    old_id: int,
+    id_mapping: Dict[Tuple[int], int],
+    expected_result: Optional[int],
+):
+    result = get_new_id(old_id, id_mapping)
+    assert result == expected_result
+
+
+@pytest.mark.parametrize(
+    ("old_id", "id_mapping", "expected_result"),
+    (
+        (1, {(1, 2, 3): 100}, (1, 2, 3)),
+        (4, {(1, 2, 3): 100, (4, 5, 6): 200}, (4, 5, 6)),
+        (7, {(1, 2, 3): 100, (4, 5, 6): 200}, ()),
+        (1, {}, ()),
+    ),
+)
+def test_get_common_ids(
+    old_id: int, id_mapping: Dict[Tuple[int], int], expected_result: Tuple[int]
+):
+    result = get_common_ids(old_id, id_mapping)
+    assert result == expected_result
+
+
+@pytest.mark.parametrize(
+    (
+        "common_objs_ids",
+        "all_tasks_objs",
+        "id_mapping",
+        "expected_links",
+        "expected_children",
+    ),
+    (
+        (
+            (1, 2),
+            {
+                1: {"links": [{"to": 2}], "children": [3]},
+                2: {"links": [{"to": 3}], "children": []},
+            },
+            {(2,): 200, (3,): 300},
+            [[{"to": 2}], [{"to": 3}]],
+            [[3], []],
+        ),
+        (
+            (1,),
+            {1: {"links": [{"to": 2}], "children": []}},
+            {(2,): 200},
+            [[{"to": 2}]],
+            [[]],
+        ),
+        ((), {}, {}, [], []),
+    ),
+)
+def test_get_links_and_children(
+    common_objs_ids,
+    all_tasks_objs,
+    id_mapping,
+    expected_links,
+    expected_children,
+):
+    with patch("annotation.tasks.services.get_new_id") as mock_get_new_id:
+        mock_get_new_id.side_effect = (
+            lambda old_id, _: old_id if old_id in [2, 3] else None
+        )
+
+        result_links, result_children = get_links_and_children(
+            common_objs_ids, all_tasks_objs, id_mapping
+        )
+
+        assert result_links == expected_links
+        assert result_children == expected_children
+
+
+@pytest.mark.parametrize(
+    ("items", "expected"),
+    (
+        (
+            [
+                [{"a": 1, "b": 2, "c": 3}, {"d": 4}, {"e": 5}],
+                [{"d": 4}, {"f": 6}],
+                [{"d": 4}, {"g": 7}],
+            ],
+            [{"d": 4}],
+        ),
+        (
+            [
+                [{"a": 1}],
+                [],
+                [{"b": 2}],
+            ],
+            [],
+        ),
+        (
+            [
+                [{"a": 1}, {"b": 2}],
+            ],
+            [{"a": 1}, {"b": 2}],
+        ),
+        ([], []),
+    ),
+)
+def test_get_common_values(items: List[List[Any]], expected: List[Any]):
+    assert get_common_values(items) == expected
+
+
+def test_change_ids():
+    all_tasks_objs = {
+        "task1": {"objects": [{"id": 1}, {"id": 2}]},
+        "task2": {"objects": [{"id": 3}, {"id": 4}]},
+    }
+
+    doc_objs = {
+        "doc1": {
+            "objects": [
+                {"id": 1, "links": [2], "children": [3]},
+                {"id": 2},
+                {"id": 3},
+            ]
+        }
+    }
+
+    id_mapping = {(1,): 101, (2,): 102, (3,): 103}
+
+    mock_get_new_id = MagicMock(
+        side_effect=lambda old_id, _: id_mapping.get((old_id,), old_id)
+    )
+    mock_get_common_ids = MagicMock(
+        side_effect=lambda old_id, _: [id_mapping.get((old_id,), old_id)]
+    )
+    mock_get_links_and_children = MagicMock(
+        side_effect=lambda ids, _, __: (
+            [id_mapping.get((i,), i) for i in ids],
+            [],
+        )
+    )
+    mock_get_common_values = MagicMock(side_effect=lambda objs: objs)
+
+    with patch("annotation.tasks.services.get_new_id", mock_get_new_id), patch(
+        "annotation.tasks.services.get_common_ids", mock_get_common_ids
+    ), patch(
+        "annotation.tasks.services.get_links_and_children",
+        mock_get_links_and_children,
+    ), patch(
+        "annotation.tasks.services.get_common_values", mock_get_common_values
+    ):
+
+        change_ids(all_tasks_objs, doc_objs, id_mapping)
+
+    assert doc_objs["doc1"]["objects"][0]["id"] == 101
+    assert doc_objs["doc1"]["objects"][0]["links"] == [101]
+    assert doc_objs["doc1"]["objects"][0]["children"] == [3]
+    assert doc_objs["doc1"]["objects"][1]["id"] == 102
+    assert doc_objs["doc1"]["objects"][2]["id"] == 103
+
+    mock_get_new_id.assert_called()
+    mock_get_common_ids.assert_called()
+    mock_get_links_and_children.assert_called()
+    mock_get_common_values.assert_called()
+
+
+def test_change_ids_with_children():
+    all_tasks_objs = {
+        "task1": {"objects": [{"id": 1}, {"id": 2}, {"id": 3}]},
+        "task2": {"objects": [{"id": 4}, {"id": 5}, {"id": 6}]},
+    }
+
+    doc_objs = {
+        "doc1": {
+            "objects": [
+                {"id": 1, "links": [2], "children": [3, 4]},
+                {"id": 2},
+                {"id": 3},
+            ]
+        }
+    }
+
+    id_mapping = {(1,): 101, (2,): 102, (3,): 103, (4,): 104}
+
+    mock_get_new_id = MagicMock(
+        side_effect=lambda old_id, _: id_mapping.get((old_id,), old_id)
+    )
+    mock_get_common_ids = MagicMock(
+        side_effect=lambda old_id, _: [id_mapping.get((old_id,), old_id)]
+    )
+    mock_get_links_and_children = MagicMock(
+        side_effect=lambda ids, _, __: (
+            [id_mapping.get((i,), i) for i in ids],
+            [id_mapping.get((i,), i) for i in ids],
+        )
+    )
+    mock_get_common_values = MagicMock(side_effect=lambda objs: objs)
+
+    with patch("annotation.tasks.services.get_new_id", mock_get_new_id), patch(
+        "annotation.tasks.services.get_common_ids", mock_get_common_ids
+    ), patch(
+        "annotation.tasks.services.get_links_and_children",
+        mock_get_links_and_children,
+    ), patch(
+        "annotation.tasks.services.get_common_values", mock_get_common_values
+    ):
+
+        change_ids(all_tasks_objs, doc_objs, id_mapping)
+
+    assert doc_objs["doc1"]["objects"][0]["id"] == 101
+    assert doc_objs["doc1"]["objects"][0]["links"] == [101]
+    assert doc_objs["doc1"]["objects"][0]["children"] == [101]
+    assert doc_objs["doc1"]["objects"][1]["id"] == 102
+    assert doc_objs["doc1"]["objects"][2]["id"] == 103
+
+    mock_get_new_id.assert_called()
+    mock_get_common_ids.assert_called()
+    mock_get_links_and_children.assert_called()
+    mock_get_common_values.assert_called()
+
+
+def test_remove_ids():
+    task_obj = {
+        "id": 1,
+        "name": "Task 1",
+        "description": "This is a task.",
+        "links": [2, 3],
+        "children": [4, 5],
+        "extra_info": "Some extra info",
+    }
+
+    expected_result = {
+        "name": "Task 1",
+        "description": "This is a task.",
+        "extra_info": "Some extra info",
+    }
+
+    result = remove_ids(task_obj)
+
+    assert result == expected_result
+    assert "id" not in result
+    assert "links" not in result
+    assert "children" not in result
+
+
+@pytest.fixture
+def setup_data():
+    task_data = {
+        "objects": [
+            {"id": 1, "name": "Object A", "value": "Some Value", "links": [2]},
+            {"id": 2, "name": "Object B", "value": "Another Value"},
+        ]
+    }
+
+    all_tasks = {
+        1: [
+            ({"name": "Object A", "value": "Some Value"}, "1"),
+            ({"name": "Object C", "value": "Different Value"}, "3"),
+        ],
+        2: [({"name": "Object B", "value": "Another Value"}, "2")],
+    }
+
+    return task_data, all_tasks
+
+
+def test_find_common_objs(setup_data):
+    task_data, all_tasks = setup_data
+
+    expected_common_objs = [
+        {"id": 1, "name": "Object A", "value": "Some Value", "links": [2]},
+        {
+            "id": 2,
+            "name": "Object B",
+            "value": "Another Value",
+        },
+    ]
+
+    expected_same_ids = {1: ["1"], 2: ["2"]}
+
+    result_common_objs, result_same_ids = find_common_objs(
+        task_data, all_tasks
+    )
+    assert result_common_objs == expected_common_objs
+    assert result_same_ids == expected_same_ids
+
+
+def test_find_common_objs_no_common_objects():
+    task_data = {
+        "objects": [{"id": 3, "name": "Object D", "value": "Unique Value"}]
+    }
+
+    all_tasks = {
+        1: [({"name": "Object A", "value": "Some Value"}, "1")],
+        2: [({"name": "Object B", "value": "Another Value"}, "2")],
+    }
+
+    expected_common_objs = []
+    expected_same_ids = {}
+
+    result_common_objs, result_same_ids = find_common_objs(
+        task_data, all_tasks
+    )
+
+    assert result_common_objs == expected_common_objs
+    assert result_same_ids == expected_same_ids
+
+
+def test_find_common_objs_empty_data():
+    task_data = {"objects": []}
+
+    all_tasks = {}
+
+    expected_common_objs = []
+    expected_same_ids = {}
+
+    result_common_objs, result_same_ids = find_common_objs(
+        task_data, all_tasks
+    )
+
+    assert result_common_objs == expected_common_objs
+    assert result_same_ids == expected_same_ids
+
+
+@pytest.mark.parametrize(
+    ("tasks", "expected"),
+    (
+        ({}, {}),
+        (
+            {
+                1: {
+                    "objects": [
+                        {
+                            "id": "1",
+                            "name": "Task 1",
+                            "details": {"id": "a1", "info": "Details 1"},
+                        },
+                        {"id": "2", "name": "Task 2"},
+                    ]
+                }
+            },
+            {
+                1: [
+                    (
+                        {
+                            "name": "Task 1",
+                            "details": {"id": "a1", "info": "Details 1"},
+                        },
+                        "1",
+                    ),
+                    ({"name": "Task 2"}, "2"),
+                ]
+            },
+        ),
+        (
+            {
+                2: {
+                    "objects": [
+                        {
+                            "id": "3",
+                            "info": {"id": "b3", "value": "Nested Value"},
+                        },
+                    ]
+                }
+            },
+            {2: [({"info": {"id": "b3", "value": "Nested Value"}}, "3")]},
+        ),
+        (
+            {
+                3: {
+                    "objects": [
+                        {"id": "4", "name": "Task 4"},
+                        {"id": "5", "status": "Complete"},
+                    ]
+                },
+                4: {
+                    "objects": [
+                        {"id": "6", "description": "Task 6"},
+                    ]
+                },
+            },
+            {
+                3: [({"name": "Task 4"}, "4"), ({"status": "Complete"}, "5")],
+                4: [({"description": "Task 6"}, "6")],
+            },
+        ),
+    ),
+)
+def test_get_tasks_without_ids(
+    tasks: Dict[int, Any], expected: Dict[int, Any]
+):
+    assert get_tasks_without_ids(tasks) == expected
+
+
+@pytest.fixture
+def mock_dependencies():
+    with patch(
+        "annotation.tasks.services.get_file_path_and_bucket"
+    ) as mock_get_file_path_and_bucket, patch(
+        "annotation.tasks.services.get_annotation_tasks"
+    ) as mock_get_annotation_tasks, patch(
+        "annotation.tasks.services.construct_annotated_pages"
+    ) as mock_construct_annotated_pages, patch(
+        "annotation.tasks.services.construct_annotated_doc"
+    ) as mock_construct_annotated_doc, patch(
+        "annotation.tasks.services.update_task_status"
+    ) as mock_update_task_status, patch(
+        "annotation.tasks.services.Logger.exception"
+    ) as mock_logger_exception:
+
+        mock_get_file_path_and_bucket.return_value = ("s3/path", "bucket")
+        mock_get_annotation_tasks.return_value = {}
+        mock_construct_annotated_pages.return_value = ([], set())
+        mock_construct_annotated_doc.return_value = None
+        mock_update_task_status.return_value = None
+        mock_logger_exception.return_value = None
+
+        yield {
+            "mock_get_file_path_and_bucket": mock_get_file_path_and_bucket,
+            "mock_get_annotation_tasks": mock_get_annotation_tasks,
+            "mock_construct_annotated_pages": mock_construct_annotated_pages,
+            "mock_construct_annotated_doc": mock_construct_annotated_doc,
+            "mock_update_task_status": mock_update_task_status,
+            "mock_logger_exception": mock_logger_exception,
+        }
+
+
+def test_create_validation_revisions(mock_dependencies: Mock):
+    mock_db = MagicMock()
+    x_current_tenant = "tenant_1"
+    token = MagicMock(token="fake_token")
+    job_id = 123
+    validation_tasks = [
+        ManualAnnotationTask(file_id=1, pages={1}, user_id=1, id=10)
+    ]
+
+    mock_dependencies["mock_construct_annotated_pages"].return_value = (
+        [MagicMock(objs=True)],
+        {"category1"},
+    )
+    mock_dependencies["mock_construct_annotated_doc"].return_value = None
+    mock_dependencies["mock_update_task_status"].return_value = None
+
+    with patch(
+        "annotation.tasks.services.DocForSaveSchema"
+    ) as mock_doc_for_save_schema:
+        mock_doc_instance = mock_doc_for_save_schema.return_value
+        mock_doc_instance.user = validation_tasks[0].user_id
+        mock_doc_instance.pages = [MagicMock(objs=True)]
+        mock_doc_instance.validated = set()
+        mock_doc_instance.failed_validation_pages = set()
+        mock_doc_instance.categories = {"category1"}
+
+        create_validation_revisions(
+            mock_db, x_current_tenant, token, job_id, validation_tasks
+        )
+
+        mock_dependencies[
+            "mock_get_file_path_and_bucket"
+        ].assert_called_once_with(1, x_current_tenant, token.token)
+        mock_dependencies["mock_get_annotation_tasks"].assert_called_once_with(
+            mock_db, job_id, 1, {1}
+        )
+        mock_dependencies[
+            "mock_construct_annotated_pages"
+        ].assert_called_once_with(mock_db, x_current_tenant, {})
+        mock_dependencies[
+            "mock_construct_annotated_doc"
+        ].assert_called_once_with(
+            db=mock_db,
+            user_id=validation_tasks[0].user_id,
+            pipeline_id=None,
+            job_id=job_id,
+            file_id=1,
+            doc=mock_doc_instance,
+            tenant=x_current_tenant,
+            s3_file_path="s3/path",
+            s3_file_bucket="bucket",
+            latest_doc=None,
+            task_id=validation_tasks[0].id,
+            is_latest=True,
+        )
+        mock_dependencies["mock_update_task_status"].assert_called_once_with(
+            mock_db, validation_tasks[0]
+        )
+        mock_dependencies["mock_logger_exception"].assert_not_called()
+
+
+def test_create_validation_revisions_no_annotations(mock_dependencies: Mock):
+    mock_db = MagicMock()
+    x_current_tenant = "tenant_1"
+    token = MagicMock(token="fake_token")
+    job_id = 123
+    validation_tasks = [
+        ManualAnnotationTask(file_id=1, pages={1}, user_id=1, id=10)
+    ]
+
+    mock_dependencies["mock_get_annotation_tasks"].return_value = {}
+    mock_dependencies["mock_construct_annotated_pages"].return_value = (
+        [],
+        set(),
+    )
+
+    create_validation_revisions(
+        mock_db, x_current_tenant, token, job_id, validation_tasks
+    )
+
+    mock_dependencies["mock_get_file_path_and_bucket"].assert_called_with(
+        1, x_current_tenant, token.token
+    )
+    mock_dependencies["mock_get_annotation_tasks"].assert_called_with(
+        mock_db, job_id, 1, {1}
+    )
+    mock_dependencies["mock_construct_annotated_pages"].assert_called_with(
+        mock_db, x_current_tenant, {}
+    )
+    mock_dependencies["mock_construct_annotated_doc"].assert_not_called()
+    mock_dependencies["mock_update_task_status"].assert_not_called()
+    mock_dependencies["mock_logger_exception"].assert_not_called()
+
+
+def test_create_validation_revisions_construct_doc_value_error(
+    mock_dependencies: Mock,
+):
+    mock_db = MagicMock()
+    x_current_tenant = "tenant_1"
+    token = MagicMock(token="fake_token")
+    job_id = 123
+    validation_tasks = [
+        ManualAnnotationTask(file_id=1, pages={1}, user_id=1, id=10)
+    ]
+
+    mock_dependencies["mock_construct_annotated_pages"].return_value = (
+        [MagicMock(objs=True)],
+        {"category1"},
+    )
+    mock_dependencies["mock_construct_annotated_doc"].side_effect = ValueError(
+        "Test error"
+    )
+
+    with patch(
+        "annotation.tasks.services.DocForSaveSchema"
+    ) as mock_doc_for_save_schema:
+        mock_doc_instance = mock_doc_for_save_schema.return_value
+        mock_doc_instance.user = validation_tasks[0].user_id
+        mock_doc_instance.pages = [MagicMock(objs=True)]
+        mock_doc_instance.validated = set()
+        mock_doc_instance.failed_validation_pages = set()
+        mock_doc_instance.categories = {"category1"}
+
+        create_validation_revisions(
+            mock_db, x_current_tenant, token, job_id, validation_tasks
+        )
+
+        mock_dependencies[
+            "mock_get_file_path_and_bucket"
+        ].assert_called_once_with(1, x_current_tenant, token.token)
+        mock_dependencies["mock_get_annotation_tasks"].assert_called_once_with(
+            mock_db, job_id, 1, {1}
+        )
+        mock_dependencies[
+            "mock_construct_annotated_pages"
+        ].assert_called_once_with(mock_db, x_current_tenant, {})
+        mock_dependencies[
+            "mock_construct_annotated_doc"
+        ].assert_called_once_with(
+            db=mock_db,
+            user_id=validation_tasks[0].user_id,
+            pipeline_id=None,
+            job_id=job_id,
+            file_id=1,
+            doc=mock_doc_instance,
+            tenant=x_current_tenant,
+            s3_file_path="s3/path",
+            s3_file_bucket="bucket",
+            latest_doc=None,
+            task_id=validation_tasks[0].id,
+            is_latest=True,
+        )
+        mock_dependencies["mock_logger_exception"].assert_called_once_with(
+            "Cannot save first validation revision."
+        )
+        mock_dependencies["mock_update_task_status"].assert_not_called()
