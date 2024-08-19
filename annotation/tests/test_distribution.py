@@ -28,7 +28,6 @@ from annotation.distribution.main import (
     prepare_response,
     prepare_users,
 )
-from annotation.jobs.services import Task
 from annotation.microservice_communication.assets_communication import (
     prepare_files_for_distribution,
 )
@@ -1298,7 +1297,7 @@ def test_get_page_number_combinations(
         "split_multipage_doc_setup",
         "validation_type",
         "annotation_tasks_ids",
-        "expected_output",
+        "expected_output_ids",
     ),
     (
         (
@@ -1318,8 +1317,8 @@ def test_get_page_number_combinations(
 def test_choose_validators_users(
     split_multipage_doc_setup: str,
     validation_type: ValidationSchema,
-    annotation_tasks_ids: List[Task],
-    expected_output: List[DistributionUser],
+    annotation_tasks_ids: Tuple[int, ...],
+    expected_output_ids: List[int],
 ):
     annotators = [{"user_id": 0}, {"user_id": 1}]
     validators = [{"user_id": 2}]
@@ -1338,7 +1337,7 @@ def test_choose_validators_users(
                 else [{"user_id": annotation_tasks_ids}]
             ),
         )
-        assert [x["user_id"] for x in output] == expected_output
+        assert [x["user_id"] for x in output] == expected_output_ids
 
 
 @pytest.mark.parametrize(
@@ -1457,20 +1456,17 @@ def test_find_users_share_loads(
 
 
 @pytest.mark.parametrize(
-    ("files", "user_pages", "expected_output"),
+    ("files_page_count", "user_pages", "expected_output"),
     (
         (
-            [{"pages_number": 1, "file_id": 0}],
+            [1],
             1,
-            [{"pages_number": 1, "file_id": 0}],
+            [
+                {"pages_number": 1, "file_id": 0},
+            ],
         ),
         (
-            [
-                {"pages_number": 10, "file_id": 0},
-                {"pages_number": 20, "file_id": 1},
-                {"pages_number": 30, "file_id": 2},
-                {"pages_number": 40, "file_id": 3},
-            ],
+            [10, 20, 30, 40],
             90,
             [
                 {"pages_number": 20, "file_id": 1},
@@ -1479,12 +1475,7 @@ def test_find_users_share_loads(
             ],
         ),
         (
-            [
-                {"pages_number": 10, "file_id": 0},
-                {"pages_number": 10, "file_id": 1},
-                {"pages_number": 30, "file_id": 2},
-                {"pages_number": 40, "file_id": 3},
-            ],
+            [10, 20, 30, 40],
             40,
             [
                 {"pages_number": 10, "file_id": 0},
@@ -1492,21 +1483,32 @@ def test_find_users_share_loads(
             ],
         ),
         (
+            [10, 10, 10, 20],
+            40,
             [
                 {"pages_number": 10, "file_id": 0},
-                {"pages_number": 20, "file_id": 1},
-                {"pages_number": 30, "file_id": 2},
+                {"pages_number": 10, "file_id": 1},
+                {"pages_number": 20, "file_id": 3},
             ],
+        ),
+        (
+            [10, 20, 30],
             110,
             [],
         ),
     ),
 )
 def test_find_equal_files(
-    files: List[Dict[str, int]],
+    files_page_count: List[int],
     user_pages: int,
     expected_output: List[Dict[str, int]],
 ):
+    file_count = len(files_page_count)
+    files = [
+        {"pages_number": x, "file_id": i}
+        for x, i in zip(files_page_count, range(file_count))
+    ]
+    print(files)
     assert find_equal_files(files, user_pages) == expected_output
 
 
@@ -1541,7 +1543,7 @@ def test_find_small_files(
     files: List[Dict[str, int]],
     user_pages: int,
     split_multipage_doc_setup: str,
-    expected_output,
+    expected_output: Tuple[List[Dict[str, int]], int],
 ):
     with patch(
         "annotation.distribution.main.SPLIT_MULTIPAGE_DOC",
