@@ -1395,11 +1395,11 @@ def test_prepare_users(
     (
         (
             [{"user_id": "0", "overall_load": 10, "default_load": 10}],
-            10,  # all_job_pages_sum
-            10.0,  # average_job_pages
-            10,  # users_default_load
-            10,  # users_overall_load
-            1.0,  # expected_output
+            10,
+            10.0,
+            10,
+            10,
+            1.0,
             [
                 {
                     "user_id": "0",
@@ -1407,18 +1407,18 @@ def test_prepare_users(
                     "default_load": 10,
                     "share_load": 1.0,
                 }
-            ],  # expected_users
+            ],
         ),
         (
             [
                 {"user_id": "0", "overall_load": 10, "default_load": 10},
                 {"user_id": "1", "overall_load": 40, "default_load": 20},
             ],
-            0,  # all_job_pages_sum
-            25.0,  # average_job_pages
-            10,  # users_default_load
-            0,  # users_overall_load
-            3.0,  # expected_output
+            0,
+            25.0,
+            10,
+            0,
+            3.0,
             [
                 {
                     "user_id": "0",
@@ -1432,7 +1432,7 @@ def test_prepare_users(
                     "default_load": 20,
                     "share_load": 2.0,
                 },
-            ],  # expected_users
+            ],
         ),
     ),
 )
