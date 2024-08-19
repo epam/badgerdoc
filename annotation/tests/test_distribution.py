@@ -1366,7 +1366,9 @@ def test_choose_validators_users(
     ),
 )
 def test_prepare_users(
-    users_id: List[UUID], example_db: Tuple[UUID], expected_output: List[User]
+    users_id: List[UUID],
+    example_db: Tuple[UUID, ...],
+    expected_output: List[User],
 ):
     db = Mock()
 
