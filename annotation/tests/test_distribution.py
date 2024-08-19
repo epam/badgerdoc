@@ -1516,6 +1516,3 @@ def test_prepare_response():
             )
             == expected_output
         )
-
-
-# comment
