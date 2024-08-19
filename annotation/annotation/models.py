@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Callable
+from typing import Any, Callable
 
 from sqlalchemy import (
     BOOLEAN,
@@ -200,7 +200,7 @@ class User(Base):
         "Job", secondary=association_job_owner, back_populates="owners"
     )
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self: "User", other: Any) -> bool:
         if not isinstance(other, User):
             return NotImplemented
 

@@ -1,6 +1,6 @@
 from collections import defaultdict
 from copy import copy
-from typing import Dict, List, Tuple
+from typing import Dict, Iterable, List, Tuple
 from unittest.mock import Mock, patch
 from uuid import UUID
 
@@ -1297,43 +1297,48 @@ def test_get_page_number_combinations(
     (
         "split_multipage_doc_setup",
         "validation_type",
-        "annotators",
-        "annotation_tasks",
+        "annotation_tasks_ids",
         "expected_output",
     ),
     (
         (
             "",
             ValidationSchema.cross,
-            [{"user_id": "0"}, {"user_id": "1"}],
-            [{"user_id": "0"}, {"user_id": "1"}],
+            (0, 1),
             [],
         ),
         (
             "1",
             ValidationSchema.hierarchical,
-            [{"user_id": "0"}, {"user_id": "1"}],
-            [{"user_id": "1"}],
-            [{"user_id": "2"}],
+            1,
+            [2],
         ),
     ),
 )
 def test_choose_validators_users(
     split_multipage_doc_setup: str,
     validation_type: ValidationSchema,
-    annotators: List[DistributionUser],
-    annotation_tasks: List[Task],
+    annotation_tasks_ids: List[Task],
     expected_output: List[DistributionUser],
 ):
-    validators = [{"user_id": "2"}]
+    annotators = [{"user_id": 0}, {"user_id": 1}]
+    validators = [{"user_id": 2}]
+
     with patch(
         "annotation.distribution.main.SPLIT_MULTIPAGE_DOC",
         split_multipage_doc_setup,
     ):
         output = choose_validators_users(
-            validation_type, annotators, validators, annotation_tasks
+            validation_type,
+            annotators,
+            validators,
+            annotation_tasks=(
+                [{"user_id": user_id} for user_id in annotation_tasks_ids]
+                if isinstance(annotation_tasks_ids, Iterable)
+                else [{"user_id": annotation_tasks_ids}]
+            ),
         )
-        assert output == expected_output
+        assert [x["user_id"] for x in output] == expected_output
 
 
 @pytest.mark.parametrize(
