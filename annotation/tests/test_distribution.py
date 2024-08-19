@@ -5,7 +5,6 @@ from unittest.mock import Mock, patch
 from uuid import UUID
 
 import pytest
-from tests.override_app_dependency import TEST_TENANT
 
 from annotation.distribution import (
     add_unassigned_file,
@@ -38,6 +37,7 @@ from annotation.schemas import (
     TaskStatusEnumSchema,
     ValidationSchema,
 )
+from tests.override_app_dependency import TEST_TENANT
 
 JOB_ID = 1
 ANNOTATORS = [
@@ -1516,3 +1516,6 @@ def test_prepare_response():
             )
             == expected_output
         )
+
+
+# comment
