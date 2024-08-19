@@ -207,7 +207,7 @@ class User(Base):
         for column in self.__table__.columns:
             if column.key != "_sa_instance_state" and other.__getattribute__(
                 column.key
-            ) != self.__getattribute__(column.key):
+            ) != other.__getattribute__(column.key):
                 return False
         return True
 
