@@ -1368,7 +1368,9 @@ def test_prepare_users(
 
     with patch(
         "annotation.distribution.main.read_user",
-        side_effect=lambda db, user_id: (User(user_id=user_id) if user_id in example_db else None),
+        side_effect=lambda db, user_id: (
+            User(user_id=user_id) if user_id in example_db else None
+        ),
     ), patch(
         "annotation.distribution.main.create_user",
         side_effect=lambda db, user_id: User(user_id=user_id),
