@@ -1,6 +1,6 @@
 from collections import defaultdict
 from copy import copy
-from typing import Dict, List, Tuple
+from typing import List, Tuple
 from unittest.mock import Mock, patch
 from uuid import UUID
 
@@ -1454,100 +1454,67 @@ def test_find_users_share_loads(
 
 
 @pytest.mark.parametrize(
-    ("files_page_count", "user_pages", "expected_output"),
+    ("files_page_numbers", "user_pages", "expected_output_ids"),
     (
+        ((1,), 1, (0,)),
+        ((10, 20, 30, 40), 90, (1, 2, 3)),
+        ((10, 20, 30, 40), 40, (0, 2)),
+        ((10, 10, 10, 20), 40, (0, 1, 3)),
         (
-            [1],
-            1,
-            [
-                {"pages_number": 1, "file_id": 0},
-            ],
-        ),
-        (
-            [10, 20, 30, 40],
-            90,
-            [
-                {"pages_number": 20, "file_id": 1},
-                {"pages_number": 30, "file_id": 2},
-                {"pages_number": 40, "file_id": 3},
-            ],
-        ),
-        (
-            [10, 20, 30, 40],
-            40,
-            [
-                {"pages_number": 10, "file_id": 0},
-                {"pages_number": 30, "file_id": 2},
-            ],
-        ),
-        (
-            [10, 10, 10, 20],
-            40,
-            [
-                {"pages_number": 10, "file_id": 0},
-                {"pages_number": 10, "file_id": 1},
-                {"pages_number": 20, "file_id": 3},
-            ],
-        ),
-        (
-            [10, 20, 30],
+            (10, 20, 30),
             110,
-            [],
+            (),
         ),
     ),
 )
 def test_find_equal_files(
-    files_page_count: List[int],
+    files_page_numbers: Tuple[int, ...],
     user_pages: int,
-    expected_output: List[Dict[str, int]],
+    expected_output_ids: Tuple[int, ...],
 ):
-    file_count = len(files_page_count)
+    file_count = len(files_page_numbers)
     files = [
         {"pages_number": x, "file_id": i}
-        for x, i in zip(files_page_count, range(file_count))
+        for x, i in zip(files_page_numbers, range(file_count))
     ]
-    assert find_equal_files(files, user_pages) == expected_output
+    assert (
+        tuple(x["file_id"] for x in find_equal_files(files, user_pages))
+        == expected_output_ids
+    )
 
 
 @pytest.mark.parametrize(
-    ("files", "user_pages", "split_multipage_doc_setup", "expected_output"),
     (
-        (
-            [{"pages_number": 10, "file_id": 0}],
-            10,
-            "",
-            ([{"pages_number": 10, "file_id": 0}], 0),
-        ),
-        (
-            [
-                {"pages_number": 10, "file_id": 0},
-                {"pages_number": 30, "file_id": 1},
-                {"pages_number": 0, "file_id": 2},
-            ],
-            20,
-            "a",
-            ([{"pages_number": 10, "file_id": 0}], 0),
-        ),
-        (
-            [],
-            100,
-            "",
-            ([], 0),
-        ),
+        "file_page_numbers",
+        "user_pages",
+        "split_multipage_doc_setup",
+        "expected_file_ids",
+    ),
+    (
+        ((10,), 10, "", (0,)),
+        ((10, 30, 0), 20, "a", (0,)),
+        ((), 100, "", ()),
+        ((10, 10, 25), 20, "", (0, 1)),
     ),
 )
 def test_find_small_files(
-    files: List[Dict[str, int]],
+    file_page_numbers: Tuple[int, ...],
     user_pages: int,
     split_multipage_doc_setup: str,
-    expected_output: Tuple[List[Dict[str, int]], int],
+    expected_file_ids: Tuple[int, ...],
 ):
+    file_count = len(file_page_numbers)
+    files = [
+        {"file_id": i, "pages_number": x}
+        for i, x in zip(range(file_count), file_page_numbers)
+    ]
     with patch(
         "annotation.distribution.main.SPLIT_MULTIPAGE_DOC",
         split_multipage_doc_setup,
     ):
-        output = find_small_files(files, user_pages)
-        assert expected_output == output
+        output, user_page_correction = find_small_files(files, user_pages)
+        assert user_page_correction == 0
+        assert tuple(x["file_id"] for x in output) == expected_file_ids
 
 
 def test_prepare_response():
