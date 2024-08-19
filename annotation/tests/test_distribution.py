@@ -3,9 +3,6 @@ from copy import copy
 from typing import List, Tuple
 from unittest.mock import Mock, patch
 from uuid import UUID
-
-import pytest
-
 from annotation.distribution import (
     add_unassigned_file,
     calculate_users_load,
@@ -38,6 +35,7 @@ from annotation.schemas import (
     ValidationSchema,
 )
 from tests.override_app_dependency import TEST_TENANT
+import pytest
 
 JOB_ID = 1
 ANNOTATORS = [
