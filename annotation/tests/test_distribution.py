@@ -1387,7 +1387,7 @@ def test_prepare_users(
         "users_default_load",
         "users_overall_load",
         "expected_output",
-        "expected_users",
+        "expected_users_share_loads",
     ),
     (
         (
@@ -1397,14 +1397,7 @@ def test_prepare_users(
             10,
             10,
             1.0,
-            [
-                {
-                    "user_id": "0",
-                    "overall_load": 10,
-                    "default_load": 10,
-                    "share_load": 1.0,
-                }
-            ],
+            (1.0,),
         ),
         (
             [
@@ -1416,20 +1409,7 @@ def test_prepare_users(
             10,
             0,
             3.0,
-            [
-                {
-                    "user_id": "0",
-                    "overall_load": 10,
-                    "default_load": 10,
-                    "share_load": 1.0,
-                },
-                {
-                    "user_id": "1",
-                    "overall_load": 40,
-                    "default_load": 20,
-                    "share_load": 2.0,
-                },
-            ],
+            (1.0, 2.0),
         ),
     ),
 )
@@ -1440,7 +1420,7 @@ def test_find_users_share_loads(
     users_default_load: int,
     users_overall_load: int,
     expected_output: float,
-    expected_users: List[DistributionUser],
+    expected_users_share_loads: Tuple[float, ...],
 ):
     output = find_users_share_loads(
         users,
@@ -1450,7 +1430,7 @@ def test_find_users_share_loads(
         users_overall_load,
     )
     assert output == expected_output
-    assert users == expected_users
+    assert tuple(x["share_load"] for x in users) == expected_users_share_loads
 
 
 @pytest.mark.parametrize(

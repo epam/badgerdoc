@@ -200,7 +200,7 @@ class User(Base):
         "Job", secondary=association_job_owner, back_populates="owners"
     )
 
-    def __eq__(self: "User", other: object) -> bool:
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, User):
             return NotImplemented
 
