@@ -1,6 +1,6 @@
 from collections import defaultdict
 from copy import copy
-from typing import Dict, Iterable, List, Tuple
+from typing import Dict, List, Tuple
 from unittest.mock import Mock, patch
 from uuid import UUID
 
@@ -1304,13 +1304,13 @@ def test_get_page_number_combinations(
             "",
             ValidationSchema.cross,
             (0, 1),
-            [],
+            (),
         ),
         (
             "1",
             ValidationSchema.hierarchical,
-            1,
-            [2],
+            (1,),
+            (2,),
         ),
     ),
 )
@@ -1318,7 +1318,7 @@ def test_choose_validators_users(
     split_multipage_doc_setup: str,
     validation_type: ValidationSchema,
     annotation_tasks_ids: Tuple[int, ...],
-    expected_output_ids: List[int],
+    expected_output_ids: Tuple[int, ...],
 ):
     annotators = [{"user_id": 0}, {"user_id": 1}]
     validators = [{"user_id": 2}]
@@ -1331,13 +1331,11 @@ def test_choose_validators_users(
             validation_type,
             annotators,
             validators,
-            annotation_tasks=(
-                [{"user_id": user_id} for user_id in annotation_tasks_ids]
-                if isinstance(annotation_tasks_ids, Iterable)
-                else [{"user_id": annotation_tasks_ids}]
-            ),
+            annotation_tasks=[
+                {"user_id": user_id} for user_id in annotation_tasks_ids
+            ],
         )
-        assert [x["user_id"] for x in output] == expected_output_ids
+        assert tuple(x["user_id"] for x in output) == expected_output_ids
 
 
 @pytest.mark.parametrize(
@@ -1508,7 +1506,6 @@ def test_find_equal_files(
         {"pages_number": x, "file_id": i}
         for x, i in zip(files_page_count, range(file_count))
     ]
-    print(files)
     assert find_equal_files(files, user_pages) == expected_output
 
 

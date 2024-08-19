@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, Callable
+from typing import Callable
 
 from sqlalchemy import (
     BOOLEAN,
@@ -200,14 +200,14 @@ class User(Base):
         "Job", secondary=association_job_owner, back_populates="owners"
     )
 
-    def __eq__(self: "User", other: Any) -> bool:
+    def __eq__(self: "User", other: object) -> bool:
         if not isinstance(other, User):
             return NotImplemented
 
         for column in self.__table__.columns:
             if column.key != "_sa_instance_state" and other.__getattribute__(
                 column.key
-            ) != self.__getattribute__(column.key):
+            ) != other.__getattribute__(column.key):
                 return False
         return True
 
