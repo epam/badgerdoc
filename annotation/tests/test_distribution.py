@@ -39,7 +39,6 @@ from annotation.schemas import (
     ValidationSchema,
 )
 
-
 JOB_ID = 1
 ANNOTATORS = [
     {
