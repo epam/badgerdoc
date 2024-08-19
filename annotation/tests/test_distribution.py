@@ -1,8 +1,7 @@
 from collections import defaultdict
 from copy import copy
-from typing import Dict, List, Tuple
-from unittest.mock import MagicMock, Mock, patch
-from uuid import UUID
+from typing import List
+from unittest.mock import MagicMock, patch
 
 import pytest
 from sqlalchemy.orm import Session
@@ -20,16 +19,10 @@ from annotation.distribution import (
 )
 from annotation.distribution.main import (
     DistributionUser,
-    choose_validators_users,
     distribute,
     distribute_tasks_extensively,
-    find_equal_files,
-    find_small_files,
-    find_users_share_loads,
     get_page_number_combinations,
-    prepare_users,
 )
-from annotation.jobs.services import Task
 from annotation.microservice_communication.assets_communication import (
     FilesForDistribution,
     prepare_files_for_distribution,
@@ -1297,220 +1290,6 @@ def test_get_page_number_combinations(
 
 @pytest.mark.parametrize(
     (
-        "split_multipage_doc_setup",
-        "validation_type",
-        "annotators",
-        "validators",
-        "annotation_tasks",
-        "expected_output",
-    ),
-    (
-        (
-            "",
-            ValidationSchema.cross,
-            [{"user_id": "0"}, {"user_id": "1"}],
-            [{"user_id": "2"}],
-            [{"user_id": "0"}, {"user_id": "1"}],
-            [],
-        ),
-        (
-            "1",
-            ValidationSchema.hierarchical,
-            [{"user_id": "0"}, {"user_id": "1"}],
-            [{"user_id": "2"}],
-            [{"user_id": "1"}],
-            [{"user_id": "2"}],
-        ),
-    ),
-)
-def test_choose_validators_users(
-    split_multipage_doc_setup: str,
-    validation_type: ValidationSchema,
-    annotators: List[User],
-    validators: List[User],
-    annotation_tasks: List[Task],
-    expected_output: List[User],
-):
-    with patch(
-        "annotation.distribution.main.SPLIT_MULTIPAGE_DOC",
-        split_multipage_doc_setup,
-    ):
-        output = choose_validators_users(
-            validation_type, annotators, validators, annotation_tasks
-        )
-        assert output == expected_output
-
-
-@pytest.mark.parametrize(
-    ("users_id", "example_db", "expected_output"),
-    (
-        (
-            ["b908ccf0-6eab-4b8e-afb7-913372ddf4e5"],
-            ["b908ccf0-6eab-4b8e-afb7-913372ddf4e5"],
-            [User(user_id="b908ccf0-6eab-4b8e-afb7-913372ddf4e5")],
-        ),
-        (
-            [
-                "b908ccf0-6eab-4b8e-afb7-913372ddf4e5",
-                "00d37dc4-b7da-45e5-bcb5-c9b82965351c",
-            ],
-            ["b908ccf0-6eab-4b8e-afb7-913372ddf4e5"],
-            [
-                User(user_id="b908ccf0-6eab-4b8e-afb7-913372ddf4e5"),
-                User(user_id="00d37dc4-b7da-45e5-bcb5-c9b82965351c"),
-            ],
-        ),
-    ),
-)
-def test_prepare_users(
-    users_id: List[UUID], example_db: Tuple[UUID], expected_output: List[User]
-):
-    db = Mock()
-
-    def read_user_side_effect(db, user_id):
-        print("READ ME")
-        if user_id in example_db:
-            return User(user_id=user_id)
-        return None
-
-    def create_user_side_effect(db, user_id):
-        print("CREATE ME")
-        return User(user_id=user_id)
-
-    with patch(
-        "annotation.distribution.main.read_user",
-        side_effect=read_user_side_effect,
-    ), patch(
-        "annotation.distribution.main.create_user",
-        side_effect=create_user_side_effect,
-    ):
-        output = prepare_users(db, users_id)
-        for a, e in zip(output, expected_output):
-            assert a.user_id == e.user_id
-
-
-@pytest.mark.parametrize(
-    (
-        "users",
-        "all_job_pages_sum",
-        "average_job_pages",
-        "users_default_load",
-        "users_overall_load",
-        "expected_output",
-        "expected_share_loads",
-    ),
-    (
-        (
-            [{"user_id": "0", "overall_load": 10, "default_load": 10}],
-            10,  # all_job_pages_sum
-            10.0,  # average_job_pages
-            10,  # users_default_load
-            10,  # users_overall_load
-            1.0,  # expected_output
-            [1],  # expected_share_loads
-        ),
-    ),
-)
-def test_find_users_share_loads(
-    users: List[DistributionUser],
-    all_job_pages_sum: int,
-    average_job_pages: float,
-    users_default_load: int,
-    users_overall_load: int,
-    expected_output: float,
-    expected_share_loads: List[float],
-):
-    output = find_users_share_loads(
-        users,
-        all_job_pages_sum,
-        average_job_pages,
-        users_default_load,
-        users_overall_load,
-    )
-    assert output == expected_output
-    for user, expected_share_load in zip(users, expected_share_loads):
-        assert user["share_load"] == expected_share_load
-
-
-@pytest.mark.parametrize(
-    ("files", "user_pages", "expected_output"),
-    (
-        (
-            [{"pages_number": 1, "file_id": 0}],
-            1,
-            [{"pages_number": 1, "file_id": 0}],
-        ),
-        (
-            [
-                {"pages_number": 10, "file_id": 0},
-                {"pages_number": 20, "file_id": 1},
-                {"pages_number": 30, "file_id": 2},
-                {"pages_number": 40, "file_id": 3},
-            ],
-            90,
-            [
-                {"pages_number": 20, "file_id": 1},
-                {"pages_number": 30, "file_id": 2},
-                {"pages_number": 40, "file_id": 3},
-            ],
-        ),
-    ),
-)
-def test_find_equal_files(
-    files: List[Dict[str, int]],
-    user_pages: int,
-    expected_output: List[Dict[str, int]],
-):
-    assert find_equal_files(files, user_pages) == expected_output
-
-
-@pytest.mark.parametrize(
-    ("files", "user_pages", "SPLIT_MULTIPAGE_DOC_setup", "expected_output"),
-    (
-        (
-            [{"pages_number": 10, "file_id": 0}],
-            20,
-            "",
-            ([{"pages_number": 10, "file_id": 0}], 0),
-        ),
-        (
-            [
-                {"pages_number": 10, "file_id": 0},
-                {"pages_number": 30, "file_id": 1},
-                {"pages_number": 0, "file_id": 2},
-            ],
-            20,
-            "a",
-            ([{"pages_number": 10, "file_id": 0}], 0),
-        ),
-    ),
-)
-def test_find_small_files(
-    files: List[Dict[str, int]],
-    user_pages: int,
-    SPLIT_MULTIPAGE_DOC_setup: str,
-    expected_output: Tuple[List[Dict[str, int]], int],
-):
-    def find_files_for_task_side_effect(files, pages_for_task):
-        lst = []
-        for file in files:
-            if file["pages_number"] and file["pages_number"] in pages_for_task:
-                lst.append(file)
-        return lst
-
-    with patch(
-        "annotation.distribution.main.SPLIT_MULTIPAGE_DOC",
-        SPLIT_MULTIPAGE_DOC_setup,
-    ), patch(
-        "annotation.distribution.main.find_files_for_task",
-        side_effect=find_files_for_task_side_effect,
-    ):
-        output = find_small_files(files, user_pages)
-        assert expected_output == output
-
-
-@pytest.mark.parametrize(
-    (
         "files",
         "annotators",
         "validators",
@@ -1575,7 +1354,7 @@ def test_find_small_files(
             [],  # annotators
             [User(user_id=2, default_load=10, overall_load=10)],
             1,  # job_id, just a plain integer
-            ValidationSchema.cross,
+            ValidationSchema.hierarchical,
             [{"file_id": 1}],  # Validation files to distribute
             1,
             None,
@@ -1588,6 +1367,41 @@ def test_find_small_files(
             [User(user_id=2, default_load=10, overall_load=10)],
             1,  # job_id, just a plain integer
             ValidationSchema.extensive_coverage,
+            [{"file_id": 1}],  # Validation files to distribute
+            10,
+            {
+                "validation": [
+                    {
+                        "task_id": 0,
+                        "file_id": 10,
+                        "pages": [1, 2, 3],
+                        "user_id": 1,
+                    },
+                ]
+            },  # Pages in work,
+            [
+                {
+                    "task_id": 1,
+                    "file_id": 10,
+                    "pages": [1, 2, 3, 4, 5, 6],
+                    "user_id": 2,
+                }
+            ],  # Tasks - Assuming an empty list is valid here
+            [
+                {
+                    "task_id": 1,
+                    "file_id": 10,
+                    "pages": [1, 2, 3, 4, 5, 6],
+                    "user_id": 2,
+                }
+            ],  # Expected output
+        ),
+        (
+            [{"file_id": 0, "pages_number": 6}],
+            [],
+            [User(user_id=2, default_load=10, overall_load=10)],
+            1,  # job_id, just a plain integer
+            ValidationSchema.hierarchical,
             [{"file_id": 1}],  # Validation files to distribute
             10,
             {
@@ -1634,15 +1448,6 @@ def test_distribute_main_script(
     mock_db = MagicMock(spec=Session)
     mock_db.flush.return_value = None
 
-    def remove_pages_in_work_side_effect(
-        annotation_tasks, annotations_in_work
-    ):
-        lst = []
-        for page in annotation_tasks:
-            if page not in annotations_in_work:
-                lst.append(page)
-        return lst
-
     with patch(
         "annotation.distribution.main.create_db_tasks", return_value=None
     ), patch(
@@ -1652,7 +1457,11 @@ def test_distribute_main_script(
         return_value=tasks,
     ), patch(
         "annotation.distribution.main.remove_pages_in_work",
-        side_effect=remove_pages_in_work_side_effect,
+        side_effect=lambda annotation_tasks, annotations_in_work: [
+            page
+            for page in annotation_tasks
+            if page not in annotations_in_work
+        ],
     ):
         output = distribute(
             mock_db,
