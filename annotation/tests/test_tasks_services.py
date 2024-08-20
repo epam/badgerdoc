@@ -1312,7 +1312,9 @@ def mock_parse_obj_as():
 
 @pytest.fixture
 def mock_get_unique_scores():
-    with patch("annotation.tasks.services.get_unique_scores") as mock:
+    with patch(
+        "annotation.tasks.services.get_unique_scores", return_value=None
+    ) as mock:
         yield mock
 
 
@@ -1339,7 +1341,6 @@ def test_compare_agreement_scores_all_above_min_match(
 ):
     min_match = 0.8
     mock_parse_obj_as.return_value = [MagicMock(spec=ResponseScore)]
-    mock_get_unique_scores.return_value = None
     mock_task_metric.side_effect = (
         lambda task_from_id, task_to_id, metric_score: MagicMock(
             spec=TaskMetric,
@@ -1370,7 +1371,6 @@ def test_compare_agreement_scores_some_below_min_match(
 ):
     min_match = 0.9
     mock_parse_obj_as.return_value = [MagicMock(spec=ResponseScore)]
-    mock_get_unique_scores.return_value = None
     mock_task_metric.side_effect = (
         lambda task_from_id, task_to_id, metric_score: MagicMock(
             spec=TaskMetric,
@@ -1396,7 +1396,6 @@ def test_compare_agreement_scores_empty_response(
 ):
     min_match = 0.5
     mock_parse_obj_as.return_value = []
-    mock_get_unique_scores.return_value = None
     mock_task_metric.return_value = MagicMock(spec=TaskMetric)
     mock_agreement_score_comparing_result.return_value = MagicMock(
         spec=AgreementScoreComparingResult,
