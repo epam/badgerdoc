@@ -532,7 +532,7 @@ def test_kafka_message_needed(annotated_doc: AnnotatedDoc):
         annotated_doc.file_id,
         TEST_TENANT,
     )
-    db.assert_not_called
+    db.commit.assert_not_called()
 
 
 def test_kafka_message_needed_commit(annotated_doc: AnnotatedDoc):
