@@ -2071,25 +2071,20 @@ def test_get_tasks_without_ids(
 @pytest.fixture
 def mock_dependencies():
     with patch(
-        "annotation.tasks.services.get_file_path_and_bucket"
+        "annotation.tasks.services.get_file_path_and_bucket",
+        return_value=("s3/path", "bucket"),
     ) as mock_get_file_path_and_bucket, patch(
-        "annotation.tasks.services.get_annotation_tasks"
+        "annotation.tasks.services.get_annotation_tasks", return_value={}
     ) as mock_get_annotation_tasks, patch(
-        "annotation.tasks.services.construct_annotated_pages"
+        "annotation.tasks.services.construct_annotated_pages",
+        return_value=([], set()),
     ) as mock_construct_annotated_pages, patch(
-        "annotation.tasks.services.construct_annotated_doc"
+        "annotation.tasks.services.construct_annotated_doc", return_value=None
     ) as mock_construct_annotated_doc, patch(
-        "annotation.tasks.services.update_task_status"
+        "annotation.tasks.services.update_task_status", return_value=None
     ) as mock_update_task_status, patch(
-        "annotation.tasks.services.Logger.exception"
+        "annotation.tasks.services.Logger.exception", return_value=None
     ) as mock_logger_exception:
-
-        mock_get_file_path_and_bucket.return_value = ("s3/path", "bucket")
-        mock_get_annotation_tasks.return_value = {}
-        mock_construct_annotated_pages.return_value = ([], set())
-        mock_construct_annotated_doc.return_value = None
-        mock_update_task_status.return_value = None
-        mock_logger_exception.return_value = None
 
         yield {
             "mock_get_file_path_and_bucket": mock_get_file_path_and_bucket,
