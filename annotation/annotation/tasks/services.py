@@ -437,8 +437,8 @@ def finish_validation_task(db: Session, task: ManualAnnotationTask) -> None:
         ManualAnnotationTask.is_validation.is_(True),
     ).with_for_update().update(
         {
-            ManualAnnotationTask.status: TaskStatusEnumSchema.finished  # noqa: E501
-        },
+            ManualAnnotationTask.status: TaskStatusEnumSchema.finished
+        },  # noqa: E501
         synchronize_session="fetch",
     )
     db.commit()
