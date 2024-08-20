@@ -1520,163 +1520,126 @@ def test_prepare_response():
             == expected_output
         )
 
+@pytest.fixture
+def users_for_test():
+    yield (
+        User(user_id=1, default_load=10, overall_load=10),
+        User(user_id=2, default_load=10, overall_load=10),
+        User(user_id=3, default_load=2, overall_load=2),
+    )
+
+
+@pytest.fixture
+def tasks_for_test():
+    yield (
+        {
+            "task_id": 0,
+            "file_id": 10,
+            "pages": [1, 2, 3],
+            "user_id": 1,
+        },
+        {
+            "task_id": 1,
+            "file_id": 10,
+            "pages": [4, 5, 6],
+            "user_id": 2,
+        },
+        {
+            "task_id": 2,
+            "file_id": 10,
+            "pages": [1, 2, 3, 4, 5, 6],
+            "user_id": 2,
+        },
+    )
+    
+
 @pytest.mark.parametrize(
     (
-        "files",
-        "annotators",
-        "validators",
-        "job_id",
+        "annotators_ids",
+        "validators_ids",
         "validation_type",
-        "validation_files_to_distribute",
+        "validation_files_to_distribute_ids",
         "extensive_coverage",
-        "pages_in_work",
-        "tasks",
-        "expected_output",
+        "pages_in_work_setup",
+        "pages_in_work_ids",
+        "tasks_ids",
+        "expected_tasks_ids",
     ),
     [
         (
-            [{"file_id": 0, "pages_number": 6}],
-            [User(user_id=1, default_load=10, overall_load=10)],
-            [User(user_id=2, default_load=10, overall_load=10)],
-            1,
+            (1,),
+            (2,),
             ValidationSchema.cross,
-            None,
+            (),
             1,
-            {
-                "annotation": [
-                    {
-                        "task_id": 0,
-                        "file_id": 10,
-                        "pages": [1, 2, 3],
-                        "user_id": 1,
-                    },
-                ]
-            },
-            [
-                {
-                    "task_id": 0,
-                    "file_id": 10,
-                    "pages": [1, 2, 3],
-                    "user_id": 1,
-                },
-                {
-                    "task_id": 1,
-                    "file_id": 10,
-                    "pages": [4, 5, 6],
-                    "user_id": 2,
-                },
-            ],
-            [
-                {
-                    "task_id": 0,
-                    "file_id": 10,
-                    "pages": [1, 2, 3],
-                    "user_id": 1,
-                },
-                {
-                    "task_id": 1,
-                    "file_id": 10,
-                    "pages": [4, 5, 6],
-                    "user_id": 2,
-                },
-            ],
+            "annotation",
+            (0,),
+            (0, 1),
+            (0, 1),
         ),
         (
-            [{"file_id": 0, "pages_number": 6}],
-            [],
-            [User(user_id=2, default_load=10, overall_load=10)],
-            1,
+            (),
+            (2,),
             ValidationSchema.hierarchical,
-            [{"file_id": 1}],
+            (1,),
             1,
             None,
-            [],
-            [],
+            None,
+            (),
+            (),
         ),
         (
-            [{"file_id": 0, "pages_number": 6}],
-            [User(user_id=1, default_load=10, overall_load=10)],
-            [User(user_id=2, default_load=10, overall_load=10)],
-            1,  # job_id, just a plain integer
+            (1,),
+            (),
             ValidationSchema.extensive_coverage,
-            [{"file_id": 1}],
+            (1,),
             10,
-            {
-                "validation": [
-                    {
-                        "task_id": 0,
-                        "file_id": 10,
-                        "pages": [1, 2, 3],
-                        "user_id": 1,
-                    },
-                ]
-            },
-            [
-                {
-                    "task_id": 1,
-                    "file_id": 10,
-                    "pages": [1, 2, 3, 4, 5, 6],
-                    "user_id": 2,
-                }
-            ],
-            [
-                {
-                    "task_id": 1,
-                    "file_id": 10,
-                    "pages": [1, 2, 3, 4, 5, 6],
-                    "user_id": 2,
-                }
-            ],
+            None,
+            None,
+            (2,),
+            (2,),
         ),
         (
-            [{"file_id": 0, "pages_number": 6}],
-            [],
-            [User(user_id=2, default_load=10, overall_load=10)],
-            1,
+            (),
+            (2,),
             ValidationSchema.hierarchical,
-            [{"file_id": 1}],
+            (1,),
             10,
-            {
-                "validation": [
-                    {
-                        "task_id": 0,
-                        "file_id": 10,
-                        "pages": [1, 2, 3],
-                        "user_id": 1,
-                    },
-                ]
-            },
-            [
-                {
-                    "task_id": 1,
-                    "file_id": 10,
-                    "pages": [1, 2, 3, 4, 5, 6],
-                    "user_id": 2,
-                }
-            ],
-            [
-                {
-                    "task_id": 1,
-                    "file_id": 10,
-                    "pages": [1, 2, 3, 4, 5, 6],
-                    "user_id": 2,
-                }
-            ],
+            "validation",
+            (0,),
+            (2,),
+            (2,),
         ),
     ],
 )
 def test_distribute_main_script(
-    files: FilesForDistribution,
-    annotators: DistributionUser,
-    validators: DistributionUser,
-    job_id: int,
+    users_for_test: Mock,
+    tasks_for_test: Mock,
+    annotators_ids: Tuple[int, ...],
+    validators_ids: Tuple[int, ...],
     validation_type: ValidationSchema,
-    validation_files_to_distribute: FilesForDistribution,
+    validation_files_to_distribute_ids: Tuple[int, ...],
     extensive_coverage: int,
-    pages_in_work,
-    tasks,
-    expected_output,
+    pages_in_work_setup: str,
+    pages_in_work_ids: Tuple[int, ...],
+    tasks_ids: Tuple[int, ...],
+    expected_tasks_ids: Tuple[int, ...],
 ):
+    files = [{"file_id": 0, "pages_number": 6}]
+    annotators = [users_for_test[i] for i in annotators_ids]
+    validators = [users_for_test[i] for i in validators_ids]
+    job_id = 1
+    validation_files_to_distribute = [
+        tasks_for_test[i] for i in validation_files_to_distribute_ids
+    ]
+    pages_in_work = None
+    if pages_in_work_setup is not None:
+        pages_in_work = {
+            pages_in_work_setup: (tasks_for_test[i] for i in pages_in_work_ids)
+        }
+    tasks = [tasks_for_test[i] for i in tasks_ids]
+    expected_output = [tasks_for_test[i] for i in expected_tasks_ids]
+
     mock_db = MagicMock(spec=Session)
     mock_db.flush.return_value = None
 
@@ -1707,4 +1670,4 @@ def test_distribute_main_script(
             pages_in_work=pages_in_work,
         )
         assert output == expected_output
-        
+     
