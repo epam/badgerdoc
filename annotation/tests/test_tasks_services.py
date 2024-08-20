@@ -916,12 +916,11 @@ def test_add_task_stats_record_create_new(mock_session: Mock):
     }
     mock_stats_db = MagicMock()
     with patch(
-        "annotation.tasks.services.get_task_stats_by_id"
+        "annotation.tasks.services.get_task_stats_by_id", return_value=None
     ) as mock_get_task_stats_by_id, patch(
         "annotation.tasks.services.AnnotationStatistics",
         return_value=mock_stats_db,
     ) as mock_annotation_statistics:
-        mock_get_task_stats_by_id.return_value = None
         result = add_task_stats_record(mock_session, task_id, mock_stats_input)
 
         mock_get_task_stats_by_id.assert_called_once_with(
@@ -972,18 +971,17 @@ def test_get_user_names_by_user_ids():
     user_names_from_requests = {2: "user2"}
 
     with patch(
-        "annotation.tasks.services.get_from_cache"
+        "annotation.tasks.services.get_from_cache",
+        return_value=(
+            cached_user_names,
+            not_cached_user_ids,
+        ),
     ) as mock_get_from_cache, patch(
         "annotation.tasks.services.get_user_names_by_request",
         return_value=user_names_from_requests,
     ) as mock_get_user_names_by_request, patch(
         "annotation.tasks.services.lru_user_id_to_user_name_cache"
     ) as mock_cache:
-
-        mock_get_from_cache.return_value = (
-            cached_user_names,
-            not_cached_user_ids,
-        )
 
         result = get_user_names_by_user_ids(user_ids, tenant, token)
 
@@ -1012,18 +1010,17 @@ def test_get_file_names_by_file_ids():
     file_names_from_requests = {2: "file2"}
 
     with patch(
-        "annotation.tasks.services.get_from_cache"
+        "annotation.tasks.services.get_from_cache",
+        return_value=(
+            cached_file_names,
+            not_cached_file_ids,
+        ),
     ) as mock_get_from_cache, patch(
         "annotation.tasks.services.get_file_names_by_request",
         return_value=file_names_from_requests,
     ) as mock_get_file_names_by_request, patch(
         "annotation.tasks.services.lru_file_id_to_file_name_cache"
     ) as mock_cache:
-
-        mock_get_from_cache.return_value = (
-            cached_file_names,
-            not_cached_file_ids,
-        )
 
         result = get_file_names_by_file_ids(file_ids, tenant, token)
 
@@ -1135,14 +1132,9 @@ def test_create_export_csv(
         return_value=mock_file_name,
     ), patch(
         "annotation.tasks.services.io.BytesIO"
-    ) as mock_bytes_io, patch(
+    ), patch(
         "annotation.tasks.services.io.TextIOWrapper"
-    ) as mock_text_io_wrapper:
-
-        mock_binary = MagicMock()
-        mock_bytes_io.return_value = mock_binary
-        mock_text_file = MagicMock()
-        mock_text_io_wrapper.return_value = mock_text_file
+    ):
 
         filename, _ = create_export_csv(mock_db, schema, "tenant", "token")
 
@@ -1236,23 +1228,21 @@ def test_evaluate_agreement_score(
 ):
     with patch(
         "annotation.tasks.services.get_file_path_and_bucket",
+        return_value=(
+            "mock_s3_file_path",
+            "mock_s3_file_bucket",
+        ),
     ) as mock_get_file_path_and_bucket, patch(
         "annotation.tasks.services.get_agreement_score"
     ) as mock_get_agreement_score, patch(
-        "annotation.tasks.services.compare_agreement_scores"
+        "annotation.tasks.services.compare_agreement_scores",
+        return_value=MagicMock(AgreementScoreComparingResult),
     ) as mock_compare_agreement_scores:
 
-        mock_get_file_path_and_bucket.return_value = (
-            "mock_s3_file_path",
-            "mock_s3_file_bucket",
-        )
         mock_agreement_score_response = [
             MagicMock(AgreementScoreServiceResponse)
         ]
         mock_get_agreement_score.return_value = mock_agreement_score_response
-        mock_compare_agreement_scores.return_value = MagicMock(
-            AgreementScoreComparingResult
-        )
         mock_session.query().all.return_value = [mock_task]
         result = evaluate_agreement_score(
             db=mock_session,

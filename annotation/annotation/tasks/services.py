@@ -282,7 +282,7 @@ def read_annotation_tasks(
 
 
 def validate_ids_and_names(
-    search_id: int,
+    search_id: Optional[int],
     search_name: Optional[str],
     ids_with_names: Dict[int, str],
 ) -> Tuple[List[int], Dict[int, str]]:
