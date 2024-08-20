@@ -186,12 +186,11 @@ def test_check_annotators(
         check_annotators(annotators, validation_type)
 
 
-def test_collect_job_names_all_db():
+def test_collect_job_names_all_db(jobs_to_test_progress: Tuple[Job]):
     mock_session = MagicMock()
-    mock_job = namedtuple("mock_job", ["job_id", "name"])
     mock_session.query().filter().all.return_value = [
-        mock_job(1, "test1"),
-        mock_job(2, "test2"),
+        jobs_to_test_progress[0],
+        jobs_to_test_progress[1],
     ]
     expected_result = {1: "test1", 2: "test2"}
     result = collect_job_names(mock_session, [1, 2], "test", "token")
