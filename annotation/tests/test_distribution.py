@@ -1306,7 +1306,7 @@ def test_get_page_number_combinations(
             [{"file_id": 0, "pages_number": 6}],
             [User(user_id=1, default_load=10, overall_load=10)],
             [User(user_id=2, default_load=10, overall_load=10)],
-            1,  # job_id, just a plain integer
+            1,
             ValidationSchema.cross,
             None,
             1,
@@ -1319,7 +1319,7 @@ def test_get_page_number_combinations(
                         "user_id": 1,
                     },
                 ]
-            },  # Pages in work
+            },
             [
                 {
                     "task_id": 0,
@@ -1333,7 +1333,7 @@ def test_get_page_number_combinations(
                     "pages": [4, 5, 6],
                     "user_id": 2,
                 },
-            ],  # Tasks - Assuming an empty list is valid here
+            ],
             [
                 {
                     "task_id": 0,
@@ -1347,19 +1347,19 @@ def test_get_page_number_combinations(
                     "pages": [4, 5, 6],
                     "user_id": 2,
                 },
-            ],  # Expected output
+            ],
         ),
         (
             [{"file_id": 0, "pages_number": 6}],
-            [],  # annotators
+            [],
             [User(user_id=2, default_load=10, overall_load=10)],
-            1,  # job_id, just a plain integer
+            1,
             ValidationSchema.hierarchical,
-            [{"file_id": 1}],  # Validation files to distribute
+            [{"file_id": 1}],
             1,
             None,
-            [],  # Tasks - Assuming an empty list is valid here
-            [],  # Expected output
+            [],
+            [],
         ),
         (
             [{"file_id": 0, "pages_number": 6}],
@@ -1367,7 +1367,7 @@ def test_get_page_number_combinations(
             [User(user_id=2, default_load=10, overall_load=10)],
             1,  # job_id, just a plain integer
             ValidationSchema.extensive_coverage,
-            [{"file_id": 1}],  # Validation files to distribute
+            [{"file_id": 1}],
             10,
             {
                 "validation": [
@@ -1378,7 +1378,7 @@ def test_get_page_number_combinations(
                         "user_id": 1,
                     },
                 ]
-            },  # Pages in work,
+            },
             [
                 {
                     "task_id": 1,
@@ -1386,7 +1386,7 @@ def test_get_page_number_combinations(
                     "pages": [1, 2, 3, 4, 5, 6],
                     "user_id": 2,
                 }
-            ],  # Tasks - Assuming an empty list is valid here
+            ],
             [
                 {
                     "task_id": 1,
@@ -1394,15 +1394,15 @@ def test_get_page_number_combinations(
                     "pages": [1, 2, 3, 4, 5, 6],
                     "user_id": 2,
                 }
-            ],  # Expected output
+            ],
         ),
         (
             [{"file_id": 0, "pages_number": 6}],
             [],
             [User(user_id=2, default_load=10, overall_load=10)],
-            1,  # job_id, just a plain integer
+            1,
             ValidationSchema.hierarchical,
-            [{"file_id": 1}],  # Validation files to distribute
+            [{"file_id": 1}],
             10,
             {
                 "validation": [
@@ -1413,7 +1413,7 @@ def test_get_page_number_combinations(
                         "user_id": 1,
                     },
                 ]
-            },  # Pages in work,
+            },
             [
                 {
                     "task_id": 1,
@@ -1421,7 +1421,7 @@ def test_get_page_number_combinations(
                     "pages": [1, 2, 3, 4, 5, 6],
                     "user_id": 2,
                 }
-            ],  # Tasks - Assuming an empty list is valid here
+            ],
             [
                 {
                     "task_id": 1,
@@ -1429,7 +1429,7 @@ def test_get_page_number_combinations(
                     "pages": [1, 2, 3, 4, 5, 6],
                     "user_id": 2,
                 }
-            ],  # Expected output
+            ],
         ),
     ],
 )
