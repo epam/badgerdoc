@@ -60,7 +60,7 @@ spec:
           value: "5432"
         - name: PROCESSING_SERVICE_HOST
           value: "processing"
-        - name: S3_PROVIDER
+        - name: STORAGE_PROVIDER
           value: "minio"
         - name: S3_SECURE
           value: "false"

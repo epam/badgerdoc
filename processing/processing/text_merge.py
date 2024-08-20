@@ -1,3 +1,4 @@
+# noqa
 """
 Merging texts from small word bboxes to paragraph texts
 according to annotations.
@@ -17,7 +18,6 @@ from processing import schema
 from processing.schema import AnnotationData, MatchedPage, Page, ParagraphBbox
 from processing.third_party_code.box_util import stitch_boxes_into_lines
 from processing.third_party_code.table import BorderBox
-from processing.utils.minio_utils import MinioCommunicator
 
 logger = logging.getLogger(__name__)
 
@@ -122,32 +122,32 @@ def stitch_boxes(
 def download_files(
     request_data: schema.AnnotationData, directory: Path
 ) -> Optional[Path]:
-    """Download content of path from request to the directory."""
-    communicator = MinioCommunicator()
-    document: Path = Path(request_data.file)
-    file_parent = directory / document.parent
-    file_parent.mkdir(parents=True, exist_ok=True)
-    communicator.client.fget_object(
-        bucket_name=request_data.bucket,
-        object_name=request_data.file,
-        file_path=str(file_parent / document.name),
-    )
-    ocr_parent = None
-    for obj in communicator.client.list_objects(
-        bucket_name=request_data.bucket,
-        prefix=str(request_data.input_path),
-        recursive=True,
-    ):
-        ocr_parent = (directory / Path(obj.object_name)).parent
-        ocr_parent.mkdir(parents=True, exist_ok=True)
+    raise NotImplementedError()
+    # """Download content of path from request to the directory."""
+    # document: Path = Path(request_data.file)
+    # file_parent = directory / document.parent
+    # file_parent.mkdir(parents=True, exist_ok=True)
+    # communicator.client.fget_object(
+    #    bucket_name=request_data.bucket,
+    #    object_name=request_data.file,
+    #    file_path=str(file_parent / document.name),
+    # )
+    # ocr_parent = None
+    # for obj in communicator.client.list_objects(
+    #    bucket_name=request_data.bucket,
+    #    prefix=str(request_data.input_path),
+    #    recursive=True,
+    # ):
+    #    ocr_parent = (directory / Path(obj.object_name)).parent
+    #    ocr_parent.mkdir(parents=True, exist_ok=True)
 
-        communicator.client.fget_object(
-            bucket_name=request_data.bucket,
-            object_name=obj.object_name,
-            file_path=str(Path(ocr_parent) / Path(obj.object_name).name),
-        )
+    #    communicator.client.fget_object(
+    #        bucket_name=request_data.bucket,
+    #        object_name=obj.object_name,
+    #        file_path=str(Path(ocr_parent) / Path(obj.object_name).name),
+    #    )
 
-    return ocr_parent
+    # return ocr_parent
 
 
 def download_ocr_result(

@@ -2,6 +2,8 @@ FROM python:3.12.1-bookworm AS base
 
 COPY lib/filter_lib/ /opt/filter_lib/
 COPY lib/tenants/ /opt/tenants/
+COPY lib/badgerdoc_storage /opt/lib/badgerdoc_storage/
+
 RUN python3 -m pip install --upgrade pip && \
     apt update && \
     apt install gcc -y && \
