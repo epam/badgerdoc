@@ -566,8 +566,7 @@ def test_distribute_whole_files_pages_number_edge_case():
     )
 
 
-# TODO rename this fon
-def test_distribute_whole_files_user_page_correction_edge_case2():
+def test_distribute_whole_files_user_page_correction_edge_case():
     file_list = [
         {"file_id": 1, "pages": 5, "pages_number": 5},
     ]
@@ -595,7 +594,7 @@ def test_distribute_whole_files_user_page_correction_edge_case2():
         ]
 
 
-def test_distribute_whole_files_user_page_correction_edge_case():
+def test_distribute_whole_files_break_edge_case():
     file_list = [
         {"file_id": 1, "pages": 5, "pages_number": 5},
     ]
@@ -614,80 +613,6 @@ def test_distribute_whole_files_user_page_correction_edge_case():
             )
             == []
         )
-
-
-# TODO i tried to put the 2 tests together, didnt work
-
-# @pytest.mark.parametrize(
-#     (
-#         "expected_output",
-#         "files",
-#         "return_files",
-#         "user_list",
-#         "user_page_correction_mock"
-#     ),
-#     (
-#         (
-#             [
-#                {
-#                    'deadline': None,
-#                    'file_id': 1,
-#                    'is_validation': False,
-#                    'job_id': 0,
-#                    'pages': [1, 2, 3, 4, 5],
-#                    'status': TaskStatusEnumSchema.pending,
-#                    'user_id': 0
-#                },
-#             ],
-#             [],
-#             [
-#                 {"file_id": 1, "pages": 5, "pages_number": 5},
-#             ],
-#             [
-#                 {"user_id": 0, "pages_number": 1},
-#                 {"user_id": 1, "pages_number": 1},
-#                 {"user_id": 2, "pages_number": 1},
-#             ],
-#             5,
-#         ),
-#         (
-#             [],
-#             [
-#                 {"file_id": 1, "pages": 5, "pages_number": 5},
-#             ],
-#             [
-#                 {"file_id": 1, "pages": 5, "pages_number": 5},
-#             ],
-#             [
-#                 {"user_id": 0, "pages_number": 10},
-#             ],
-#             15,
-#         )
-#     )
-# )
-# def test_distribute_whole_files_edge_cases(
-#     expected_output,
-#     files,
-#     return_files,
-#     user_list,
-#     user_page_correction_mock
-# ):
-#     with patch(
-#         "annotation.distribution.main.find_small_files",
-#         return_value=(return_files, user_page_correction_mock)
-#     ), patch(
-#         "annotation.distribution.main.create_tasks"
-#     ), patch(
-#         "annotation.distribution.main.find_equal_files",
-#     ):
-#         assert distribute_whole_files(
-#             {},
-#             files,
-#             user_list,
-#             0,
-#             False,
-#             TaskStatusEnumSchema.pending
-#         ) == expected_output
 
 
 ANNOTATOR_PARTIAL = [
