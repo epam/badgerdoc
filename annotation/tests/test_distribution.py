@@ -21,7 +21,6 @@ from annotation.distribution import (
 from annotation.distribution.main import (
     DistributionUser,
     choose_validators_users,
-    distribute,
     distribute_tasks_extensively,
     find_equal_files,
     find_small_files,
