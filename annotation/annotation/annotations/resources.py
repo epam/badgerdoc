@@ -1,4 +1,5 @@
 import logging
+import os
 from typing import Dict, List, Optional, Set
 from uuid import UUID
 
@@ -49,7 +50,6 @@ from .main import (
     LATEST,
     DuplicateAnnotationError,
     accumulate_pages_info,
-    add_search_annotation_producer,
     check_null_fields,
     check_task_pages,
     construct_annotated_doc,
@@ -66,8 +66,8 @@ router = APIRouter(
     responses={500: {"model": ConnectionErrorSchema}},
 )
 
-router.add_event_handler("startup", add_search_annotation_producer)
 logger = logging.getLogger(__name__)
+logger.setLevel(os.getenv("LOG_LEVEL", "DEBUG"))
 
 
 @router.post(
@@ -232,6 +232,7 @@ def post_annotation_by_user(
         logger.exception("Found duplication on resource creation")
         return Response("Not Modified", status_code=304)
     except ValueError as err:
+        logger.exception("Unable to store revision")
         raise HTTPException(
             status_code=404,
             detail=f"Cannot assign similar documents: {err}",
@@ -449,7 +450,9 @@ def get_annotations_up_to_given_revision(
         description="Enables filtering relevant revisions by user_id",
     ),
 ):
+    logger.debug("Getting annotation by user")
     job: Job = db.query(Job).filter(Job.job_id == job_id).first()
+    logger.debug("Job: %s", job)
     if not job:
         raise HTTPException(
             status_code=404,
@@ -462,13 +465,14 @@ def get_annotations_up_to_given_revision(
     ]
     if user_id:
         filters.append(AnnotatedDoc.user.in_((user_id, None)))
-
+    logger.debug("Filters: %s", filters)
     revisions = (
         db.query(AnnotatedDoc)
         .filter(*filters)
         .order_by(AnnotatedDoc.date.asc())
         .all()
     )
+    logger.debug("Found revisions: %s", revisions)
 
     if not revisions:
         return ParticularRevisionSchema(
@@ -496,6 +500,17 @@ def get_annotations_up_to_given_revision(
         specific_pages=page_numbers,
         with_page_hash=True,
     )
+    logger.debug(
+        (
+            "validated: %s, failed: %s, annotated: %s, "
+            "categories: %s, required_revisions: %s"
+        ),
+        validated,
+        failed,
+        annotated,
+        categories,
+        required_revision,
+    )
     # if revision with given id (hash) was not found,
     # response with empty revision will be returned
     if required_revision is None:
@@ -515,7 +530,11 @@ def get_annotations_up_to_given_revision(
     required_revision.failed_validation_pages = failed
     required_revision.categories = categories
 
-    return construct_particular_rev_response(required_revision)
+    try:
+        return construct_particular_rev_response(required_revision)
+    except Exception:
+        logger.exception("Unable to construct revision")
+        raise
 
 
 @router.get(
@@ -559,7 +578,11 @@ def get_annotation_for_given_revision(
     if not latest:
         raise NoSuchRevisionsError
 
-    return construct_particular_rev_response(latest)
+    try:
+        return construct_particular_rev_response(latest)
+    except Exception:
+        logger.exception("Unable build revision")
+        raise
 
 
 @router.get(

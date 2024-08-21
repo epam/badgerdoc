@@ -80,4 +80,4 @@ class DatabricksPipeline(pipeline.BasePipeline):
         files: List[pipeline.PipelineFile],
         current_tenant: str,
     ) -> None:
-        await run(pipeline_id, job_id, files, current_tenant)
+        await run(pipeline_id, int(job_id), files, current_tenant)

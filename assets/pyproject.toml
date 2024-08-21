@@ -18,9 +18,9 @@ pdf2image = "*"
 python-magic = "*"
 sqlalchemy-filters = "*"
 importlib-resources = "*"
-boto3 = "*"
 requests = "*"
 epam-indigo = "^1.18.0"
+badgerdoc-storage = { path = "../lib/badgerdoc_storage" }
 
 [tool.poetry.dev-dependencies]
 pre-commit = "*"

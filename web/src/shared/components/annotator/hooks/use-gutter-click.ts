@@ -3,8 +3,8 @@
 import React, { RefObject, useCallback } from 'react';
 import { Annotation, Maybe, Point, TableGutter, TableGutterMap } from '../typings';
 import { getRefOffset } from '../utils/get-ref-offset';
-import { isPointInsideRect } from '../utils/is-intersected';
 import { gutterToRect } from '../utils/gutter-to-rect';
+import { isPointInsideRect } from '../utils/is-intersected';
 
 export const useGutterClick = (
     panoRef: RefObject<HTMLDivElement>,
