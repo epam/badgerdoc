@@ -757,7 +757,7 @@ def test_find_all_revisions_pages(
 
     with patch(
         "annotation.annotations.main.AnnotatedDocSchema.from_orm",
-        return_value = annotated_doc_schema
+        return_value=annotated_doc_schema,
     ) as mock_from_orm, patch(
         "annotation.annotations.main.mark_all_revisions_validated_pages"
     ) as mock_mark:
@@ -795,7 +795,7 @@ def test_find_latest_revision_pages(
 
     with patch(
         "annotation.annotations.main.AnnotatedDocSchema.from_orm",
-        return_value= annotated_doc_schema
+        return_value=annotated_doc_schema,
     ) as mock_from_orm, patch(
         "annotation.annotations.main.mark_latest_revision_validated_pages"
     ) as mock_mark:
