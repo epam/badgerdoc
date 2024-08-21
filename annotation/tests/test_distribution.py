@@ -1,5 +1,6 @@
 from collections import defaultdict
 from copy import copy
+
 from typing import List
 from unittest.mock import patch
 
@@ -17,8 +18,15 @@ from annotation.distribution import (
     find_unassigned_pages,
 )
 from annotation.distribution.main import (
+    DistributionUser,
+    choose_validators_users,
     distribute_tasks_extensively,
+    find_equal_files,
+    find_small_files,
+    find_users_share_loads,
     get_page_number_combinations,
+    prepare_response,
+    prepare_users,
 )
 from annotation.microservice_communication.assets_communication import (
     prepare_files_for_distribution,
@@ -1289,3 +1297,229 @@ def test_get_page_number_combinations(
     expected: List[int],
 ) -> None:
     assert get_page_number_combinations(file_pages, user_pages) == expected
+
+
+@pytest.mark.parametrize(
+    (
+        "split_multipage_doc_setup",
+        "validation_type",
+        "annotation_tasks_ids",
+        "expected_output_ids",
+    ),
+    (
+        (
+            "",
+            ValidationSchema.cross,
+            (0, 1),
+            (),
+        ),
+        (
+            "1",
+            ValidationSchema.hierarchical,
+            (1,),
+            (2,),
+        ),
+    ),
+)
+def test_choose_validators_users(
+    split_multipage_doc_setup: str,
+    validation_type: ValidationSchema,
+    annotation_tasks_ids: Tuple[int, ...],
+    expected_output_ids: Tuple[int, ...],
+):
+    annotators = [{"user_id": 0}, {"user_id": 1}]
+    validators = [{"user_id": 2}]
+
+    with patch(
+        "annotation.distribution.main.SPLIT_MULTIPAGE_DOC",
+        split_multipage_doc_setup,
+    ):
+        output = choose_validators_users(
+            validation_type,
+            annotators,
+            validators,
+            annotation_tasks=[
+                {"user_id": user_id} for user_id in annotation_tasks_ids
+            ],
+        )
+        assert tuple(x["user_id"] for x in output) == expected_output_ids
+
+
+@pytest.mark.parametrize(
+    ("users_id", "example_db", "expected_output"),
+    (
+        (
+            [UUID("12345678-1234-5678-1234-567812345678")],
+            (UUID("12345678-1234-5678-1234-567812345678"),),
+            [User(user_id=UUID("12345678-1234-5678-1234-567812345678"))],
+        ),
+        (
+            [
+                UUID("12345678-1234-5678-1234-567812345678"),
+                UUID("00d37dc4-b7da-45e5-bcb5-c9b82965351c"),
+            ],
+            (UUID("12345678-1234-5678-1234-567812345678"),),
+            [
+                User(user_id=UUID("12345678-1234-5678-1234-567812345678")),
+                User(user_id=UUID("00d37dc4-b7da-45e5-bcb5-c9b82965351c")),
+            ],
+        ),
+    ),
+)
+def test_prepare_users(
+    users_id: List[UUID],
+    example_db: Tuple[UUID, ...],
+    expected_output: List[User],
+):
+    db = Mock()
+
+    with patch(
+        "annotation.distribution.main.read_user",
+        side_effect=lambda db, user_id: (
+            User(user_id=user_id) if user_id in example_db else None
+        ),
+    ), patch(
+        "annotation.distribution.main.create_user",
+        side_effect=lambda db, user_id: User(user_id=user_id),
+    ):
+        output = prepare_users(db, users_id)
+        assert output == expected_output
+
+
+@pytest.mark.parametrize(
+    (
+        "users",
+        "all_job_pages_sum",
+        "average_job_pages",
+        "users_default_load",
+        "users_overall_load",
+        "expected_output",
+        "expected_users_share_loads",
+    ),
+    (
+        (
+            [{"user_id": "0", "overall_load": 10, "default_load": 10}],
+            10,
+            10.0,
+            10,
+            10,
+            1.0,
+            (1.0,),
+        ),
+        (
+            [
+                {"user_id": "0", "overall_load": 10, "default_load": 10},
+                {"user_id": "1", "overall_load": 40, "default_load": 20},
+            ],
+            0,
+            25.0,
+            10,
+            0,
+            3.0,
+            (1.0, 2.0),
+        ),
+    ),
+)
+def test_find_users_share_loads(
+    users: List[DistributionUser],
+    all_job_pages_sum: int,
+    average_job_pages: float,
+    users_default_load: int,
+    users_overall_load: int,
+    expected_output: float,
+    expected_users_share_loads: Tuple[float, ...],
+):
+    output = find_users_share_loads(
+        users,
+        all_job_pages_sum,
+        average_job_pages,
+        users_default_load,
+        users_overall_load,
+    )
+    assert output == expected_output
+    assert tuple(x["share_load"] for x in users) == expected_users_share_loads
+
+
+@pytest.mark.parametrize(
+    ("files_page_numbers", "user_pages", "expected_output_ids"),
+    (
+        ((1,), 1, (0,)),
+        ((10, 20, 30, 40), 90, (1, 2, 3)),
+        ((10, 20, 30, 40), 40, (0, 2)),
+        ((10, 10, 10, 20), 40, (0, 1, 3)),
+        (
+            (10, 20, 30),
+            110,
+            (),
+        ),
+    ),
+)
+def test_find_equal_files(
+    files_page_numbers: Tuple[int, ...],
+    user_pages: int,
+    expected_output_ids: Tuple[int, ...],
+):
+    file_count = len(files_page_numbers)
+    files = [
+        {"pages_number": x, "file_id": i}
+        for x, i in zip(files_page_numbers, range(file_count))
+    ]
+    assert (
+        tuple(x["file_id"] for x in find_equal_files(files, user_pages))
+        == expected_output_ids
+    )
+
+
+@pytest.mark.parametrize(
+    (
+        "file_page_numbers",
+        "user_pages",
+        "split_multipage_doc_setup",
+        "expected_file_ids",
+    ),
+    (
+        ((10,), 10, "", (0,)),
+        ((10, 30, 0), 20, "a", (0,)),
+        ((), 100, "", ()),
+        ((10, 10, 25), 20, "", (0, 1)),
+    ),
+)
+def test_find_small_files(
+    file_page_numbers: Tuple[int, ...],
+    user_pages: int,
+    split_multipage_doc_setup: str,
+    expected_file_ids: Tuple[int, ...],
+):
+    file_count = len(file_page_numbers)
+    files = [
+        {"file_id": i, "pages_number": x}
+        for i, x in zip(range(file_count), file_page_numbers)
+    ]
+    with patch(
+        "annotation.distribution.main.SPLIT_MULTIPAGE_DOC",
+        split_multipage_doc_setup,
+    ):
+        output, user_page_correction = find_small_files(files, user_pages)
+        assert user_page_correction == 0
+        assert tuple(x["file_id"] for x in output) == expected_file_ids
+
+
+def test_prepare_response():
+    tasks = [{"user_id": 5}]
+    expected_output = tasks
+    mock_arg = Mock()
+
+    with patch("annotation.distribution.main.distribute", return_value=tasks):
+        assert (
+            prepare_response(
+                mock_arg,
+                mock_arg,
+                mock_arg,
+                mock_arg,
+                mock_arg,
+                mock_arg,
+                mock_arg,
+                mock_arg,
+            )
+            == expected_output
+        )
