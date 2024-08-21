@@ -890,7 +890,6 @@ def test_count_annotation_tasks(mock_session: Mock, create_task: Mock):
     mock_session.query.assert_called_once_with(ManualAnnotationTask)
     mock_query.filter.assert_called_once_with(ANY, ANY, ANY)
     mock_query.count.assert_called_once()
-
     assert result == 5
 
 
