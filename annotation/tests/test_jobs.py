@@ -141,30 +141,6 @@ def tasks():
             deadline=None,
         ),
     )
-    yield (
-        Job(
-            job_id=1,
-            name="test1",
-            callback_url="http://www.test.com",
-            annotators=[job_annotators[0], job_annotators[1]],
-            validation_type=ValidationSchema.cross,
-            is_auto_distribution=False,
-            categories=[categories],
-            deadline="2021-10-19T01:01:01",
-            tenant="test",
-        ),
-        Job(
-            job_id=2,
-            name="test2",
-            callback_url="http://www.test.com",
-            annotators=[job_annotators[0], job_annotators[1]],
-            validation_type=ValidationSchema.cross,
-            is_auto_distribution=False,
-            categories=[categories],
-            deadline="2021-10-19T01:01:01",
-            tenant="test",
-        ),
-    )
 
 
 @pytest.fixture
