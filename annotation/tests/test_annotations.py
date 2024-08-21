@@ -9,6 +9,7 @@ import boto3
 import pytest
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
+from tests.override_app_dependency import TEST_TENANT
 
 from annotation.annotations.main import (
     MANIFEST,
@@ -40,7 +41,6 @@ from annotation.schemas.annotations import (
 )
 from annotation.schemas.categories import CategoryTypeSchema
 from annotation.schemas.jobs import JobTypeEnumSchema, ValidationSchema
-from tests.override_app_dependency import TEST_TENANT
 
 
 @pytest.fixture
@@ -794,9 +794,9 @@ def test_find_latest_revision_pages(
     annotated_doc.pages[1] = annotated_doc_schema.pages["1"]
     annotated_doc.pages[2] = annotated_doc_schema.pages["2"]
 
-    page_revision_list_latest[1][annotated_doc_schema.user][
-        "page_id"
-    ] = annotated_doc_schema.pages["1"]
+    page_revision_list_latest[1][annotated_doc_schema.user]["page_id"] = (
+        annotated_doc_schema.pages["1"]
+    )
     page_revision_list_latest[1][annotated_doc_schema.user]["categories"] = {
         "foo",
         "bar",
@@ -813,9 +813,9 @@ def test_find_latest_revision_pages(
             }
         },
     }
-    expected_pages[2][annotated_doc_schema.user][
-        "page_id"
-    ] = annotated_doc_schema.pages["2"]
+    expected_pages[2][annotated_doc_schema.user]["page_id"] = (
+        annotated_doc_schema.pages["2"]
+    )
 
     with patch(
         "annotation.annotations.main.AnnotatedDocSchema.from_orm",
