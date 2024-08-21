@@ -1,8 +1,8 @@
 from collections import defaultdict
 from copy import copy
-
-from typing import List
-from unittest.mock import patch
+from typing import List, Tuple
+from unittest.mock import Mock, patch
+from uuid import UUID
 
 import pytest
 from tests.override_app_dependency import TEST_TENANT
@@ -21,6 +21,7 @@ from annotation.distribution import (
 from annotation.distribution.main import (
     DistributionUser,
     choose_validators_users,
+    distribute,
     distribute_tasks_extensively,
     find_equal_files,
     find_small_files,
@@ -32,8 +33,12 @@ from annotation.distribution.main import (
 from annotation.microservice_communication.assets_communication import (
     prepare_files_for_distribution,
 )
-from annotation.models import File
-from annotation.schemas import FileStatusEnumSchema, TaskStatusEnumSchema
+from annotation.models import File, User
+from annotation.schemas import (
+    FileStatusEnumSchema,
+    TaskStatusEnumSchema,
+    ValidationSchema,
+)
 
 JOB_ID = 1
 ANNOTATORS = [
