@@ -38,11 +38,10 @@ def get_service_uri(prefix: str) -> str:  # noqa
 class Settings(BaseSettings):  # type: ignore
     """Base settings values"""
 
-    s3_endpoint_url: Optional[str] = os.getenv("S3_ENDPOINT_URL")
+    s3_endpoint: Optional[str] = os.getenv("S3_ENDPOINT")
     s3_access_key: Optional[str] = os.getenv("S3_ACCESS_KEY")
     s3_secret_key: Optional[str] = os.getenv("S3_SECRET_KEY")
     s3_prefix: Optional[str] = os.getenv("S3_PREFIX")
-    s3_provider: Optional[str] = os.getenv("S3_PROVIDER", "minio")
     uploading_limit: int = int(os.getenv("UPLOADING_LIMIT", 100))
     coco_image_format: str = "jpg"
     dpi: int = 300
@@ -65,7 +64,7 @@ def get_version() -> str:
 
 
 def singleton(
-    class_: Callable[[VarArg(List[Any]), KwArg(Dict[str, Any])], Any]
+    class_: Callable[[VarArg(List[Any]), KwArg(Dict[str, Any])], Any],
 ) -> Callable[[VarArg(Any)], Any]:
     """Singleton pattern implementation"""
     instances = {}
@@ -96,51 +95,11 @@ def get_request_session(*args: List[Any], **kwargs: Dict[str, Any]) -> Session:
 
 
 settings = Settings()
-logger_.info(f"{settings.s3_provider=}")
 
 
 class NotConfiguredException(Exception):
     pass
 
 
-def create_boto3_config() -> Dict[str, Optional[str]]:
-    boto3_config = {}
-    if settings.s3_provider == "minio":
-        boto3_config.update(
-            {
-                "aws_access_key_id": settings.s3_access_key,
-                "aws_secret_access_key": settings.s3_secret_key,
-                "endpoint_url": settings.s3_endpoint_url,
-            }
-        )
-    elif settings.s3_provider == "aws_iam":
-        # No additional updates to config needed - boto3 uses env vars
-        ...
-    else:
-        raise NotConfiguredException(
-            "s3 connection is not properly configured - "
-            "s3_credentials_provider is not set"
-        )
-    logger_.info(f"S3_Credentials provider - {settings.s3_provider}")
-    return boto3_config
-
-
-def get_minio_client() -> BaseClient:
-    """Initialized s3 client by boto3 client"""
-    boto3_config = create_boto3_config()
-    client = boto3.client("s3", **boto3_config)
-    return client
-
-
-def get_minio_resource() -> BaseClient:
-    """Initialized s3 client by boto3 resource"""
-    boto3_config = create_boto3_config()
-    client = boto3.resource("s3", **boto3_config)
-    return client
-
-
 API_VERSION = get_version()
 API_NAME = "convert"
-
-minio_client = get_minio_client()
-minio_resource = get_minio_resource()

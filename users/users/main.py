@@ -4,32 +4,28 @@ from typing import Any, Callable, Dict, List, Optional
 import aiohttp
 import pydantic
 from aiohttp.web_exceptions import HTTPException as AIOHTTPException
-from apscheduler.schedulers.background import BackgroundScheduler
 from email_validator import EmailNotValidError, validate_email
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from tenant_dependency import TenantData, get_tenant_info
-from urllib3.exceptions import MaxRetryError
 
 import users.config as conf
 import users.keycloak.query as kc_query
 import users.keycloak.schemas as kc_schemas
 import users.keycloak.utils as kc_utils
-from users import s3, service_account, utils
+from users import service_account, utils
 from users.config import (
     KEYCLOAK_ROLE_ADMIN,
     KEYCLOAK_SYSTEM_USER_SECRET,
     ROOT_PATH,
 )
-from users.logger import Logger
 from users.schemas import Users
 
 app = FastAPI(title="users", root_path=ROOT_PATH, version="0.1.3")
 
 realm = conf.KEYCLOAK_REALM
-minio_client = s3.get_minio_client()
 
 KEYCLOAK_HOST = os.getenv("KEYCLOAK_HOST")
 
@@ -197,12 +193,8 @@ async def create_tenant(
 ) -> Dict[str, str]:
     """Create new tenant."""
     check_authorization(token, KEYCLOAK_ROLE_ADMIN)
-    try:
-        s3.create_bucket(minio_client, bucket)
-    except MaxRetryError:
-        raise HTTPException(
-            status_code=503, detail="Cannot connect to the Minio."
-        )
+    raise NotImplementedError("")
+    # TODO: create bucket if possible??
     tenant_ = kc_schemas.Group(name=tenant)
     await kc_query.create_group(realm, token.token, tenant_)
     return {"detail": "Tenant has been created"}
@@ -297,18 +289,3 @@ async def get_idp_names_and_SSOauth_links() -> Dict[str, List[Dict[str, str]]]:
     )
 
     return {"Identity Providers Info": identity_providers_data_needed}
-
-
-@app.on_event("startup")
-def periodic() -> None:
-    # TODO: test if it's still working and needed
-    if not conf.S3_PROVIDER == "aws_iam":
-        Logger.info("Background task 'delete_file_after_7_days' is turned off")
-        scheduler = BackgroundScheduler()
-        scheduler.add_job(
-            utils.delete_file_after_7_days,
-            kwargs={"client": minio_client},
-            trigger="cron",
-            hour="*/1",
-        )
-        scheduler.start()

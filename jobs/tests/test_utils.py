@@ -1128,9 +1128,7 @@ def test_delete_duplicates_4():
 async def test_execute_external_pipeline(sign_s3_links: bool):
     with patch(
         "jobs.utils.airflow_utils.AirflowPipeline", new=FakePipeline
-    ), patch(
-        "jobs.utils.JOBS_RUN_PIPELINES_WITH_SIGNED_URL", new=sign_s3_links
-    ), patch(
+    ), patch("jobs.utils.JOBS_SIGNED_URL_ENABLED", new=sign_s3_links), patch(
         "jobs.utils.create_pre_signed_s3_url",
         new=patched_create_pre_signed_s3_url,
     ):
@@ -1155,7 +1153,7 @@ async def test_execute_external_pipeline(sign_s3_links: bool):
         if sign_s3_links:
             assert (
                 f"/test/files/1/1.{sign_s3_links}.pdf"
-                in FakePipeline.calls[-1]["files"][0].s3_signed_url
+                in FakePipeline.calls[-1]["files"][0].get("signed_url")
             )
         else:
-            assert FakePipeline.calls[-1]["files"][0].s3_signed_url is None
+            assert FakePipeline.calls[-1]["files"][0].get("signed_url") is None
