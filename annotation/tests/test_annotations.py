@@ -3,7 +3,7 @@ import uuid
 from datetime import datetime
 from hashlib import sha1
 from typing import Any, Dict
-from unittest.mock import Mock, patch
+from unittest.mock import ANY, Mock, patch
 
 import boto3
 import pytest
@@ -16,15 +16,19 @@ from annotation.annotations.main import (
     S3_START_PATH,
     DuplicateAnnotationError,
     NotConfiguredException,
+    check_if_kafka_message_is_needed,
     connect_s3,
     construct_annotated_doc,
     convert_bucket_name_if_s3prefix,
     create_manifest_json,
     get_sha_of_bytes,
     row_to_dict,
+    update_pages_array,
+    upload_json_to_minio,
+    upload_pages_to_minio,
 )
 from annotation.models import AnnotatedDoc, Category, File, Job, User
-from annotation.schemas.annotations import DocForSaveSchema
+from annotation.schemas.annotations import DocForSaveSchema, PageSchema
 from annotation.schemas.categories import CategoryTypeSchema
 from annotation.schemas.jobs import JobTypeEnumSchema, ValidationSchema
 
@@ -482,3 +486,64 @@ def test_construct_annotated_doc_db_error(
             )
             assert db.commit.assert_called_once()
             assert db.rollback.assert_called_once()
+
+
+def test_upload_json_to_minio():
+    test_json = json.dumps({"test": 1})
+    path_to_object = "path"
+    bucket_name = TEST_TENANT
+
+    with patch(
+        "annotation.annotations.main.bd_storage.get_storage"
+    ) as mock_get_storage:
+        upload_json_to_minio(test_json, path_to_object, bucket_name, Mock())
+        mock_get_storage.assert_called_once_with(bucket_name)
+        mock_get_storage().upload_obj.assert_called_once_with(
+            target_path=path_to_object, file=ANY
+        )
+
+
+def test_upload_pages_to_minio(moto_s3: boto3.resource):
+    pages = [PageSchema(page_num=1, size={}, objs=[])]
+    pages_sha = {"1": "sha1"}
+    s3_path = "path"
+    with patch(
+        "annotation.annotations.main.upload_json_to_minio"
+    ) as mock_upload_json:
+        upload_pages_to_minio(pages, pages_sha, s3_path, TEST_TENANT, moto_s3)
+        path_to_object = f"{s3_path}/{pages_sha[str(pages[0].page_num)]}.json"
+        mock_upload_json.assert_called_once_with(
+            json.dumps(pages[0].dict()), path_to_object, TEST_TENANT, moto_s3
+        )
+
+
+def test_update_pages_array():
+    resulting_set = update_pages_array({1, 2, 3}, {4}, {1, 2})
+    assert resulting_set == {3, 4}
+
+
+def test_kafka_message_needed(annotated_doc: AnnotatedDoc):
+    db = Mock()
+    check_if_kafka_message_is_needed(
+        db,
+        annotated_doc,
+        annotated_doc,
+        annotated_doc.job_id,
+        annotated_doc.file_id,
+        TEST_TENANT,
+    )
+    db.commit.assert_not_called()
+
+
+def test_kafka_message_needed_commit(annotated_doc: AnnotatedDoc):
+    db = Mock()
+    db.commit = Mock()
+    check_if_kafka_message_is_needed(
+        db,
+        annotated_doc,
+        None,
+        annotated_doc.job_id,
+        annotated_doc.file_id,
+        TEST_TENANT,
+    )
+    db.commit.assert_called_once()
