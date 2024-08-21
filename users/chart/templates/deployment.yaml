@@ -57,7 +57,7 @@ spec:
           value: "users"
         - name: POSTGRES_HOST
           value: "postgres-postgresql"
-        - name: S3_PROVIDER
+        - name: STORAGE_PROVIDER
           value: "minio"
         - name: MINIO_SECURE_CONNECTION
           value: "false"

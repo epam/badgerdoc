@@ -125,6 +125,17 @@ class AnnotatedDoc(Base):
         "DocumentLinks.original_job_id]",
     )
 
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, AnnotatedDoc):
+            return NotImplemented
+
+        for column in self.__table__.columns:
+            if column.key != "_sa_instance_state" and self.__getattribute__(
+                column.key
+            ) != other.__getattribute__(column.key):
+                return False
+        return True
+
     def __repr__(self) -> str:
         return (
             "<AnnotatedDoc("
@@ -199,6 +210,17 @@ class User(Base):
     job_owners = relationship(
         "Job", secondary=association_job_owner, back_populates="owners"
     )
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, User):
+            return NotImplemented
+
+        for column in self.__table__.columns:
+            if column.key != "_sa_instance_state" and other.__getattribute__(
+                column.key
+            ) != other.__getattribute__(column.key):
+                return False
+        return True
 
 
 class Job(Base):

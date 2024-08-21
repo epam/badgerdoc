@@ -1,7 +1,6 @@
 from typing import List, Optional
 
 import fastapi
-import minio
 import sqlalchemy.orm
 import urllib3.exceptions
 
@@ -25,7 +24,6 @@ def download_s3_files(
     session: sqlalchemy.orm.Session = fastapi.Depends(
         db.service.session_scope_for_dependency
     ),
-    storage_: minio.Minio = fastapi.Depends(utils.minio_utils.get_storage),
 ) -> List[schemas.ActionResponse]:
     """
     Provides uploading many files from one s3 bucket to MinIO
@@ -36,7 +34,6 @@ def download_s3_files(
             storage_url: storage endpoint. Example: "http://localhost:9000"
             bucket_s3: s3 storage bucket name from where files to be downloaded
             files_keys: list of files keys, paths to the file in s3 storage.
-            bucket_storage: bucket in MinIO storage where files should be
             uploaded
     """
     try:
@@ -61,13 +58,11 @@ def download_s3_files(
             detail=str(e),
         )
 
-    bucket_name = utils.s3_utils.get_bucket_name(x_current_tenant)
-    utils.minio_utils.check_bucket(bucket_name, storage_)
-
+    bucket_name = x_current_tenant
     s3_files = s3.get_files(s3_data.bucket_s3, s3_data.files_keys)
 
     upload_results = utils.common_utils.process_s3_files(
-        bucket_name, s3_files, session, storage_
+        bucket_name, s3_files, session
     )
 
     return [
