@@ -5,7 +5,6 @@ from unittest.mock import Mock, patch
 from uuid import UUID
 
 import pytest
-from tests.override_app_dependency import TEST_TENANT
 
 from annotation.distribution import (
     add_unassigned_file,
@@ -38,6 +37,7 @@ from annotation.schemas import (
     TaskStatusEnumSchema,
     ValidationSchema,
 )
+from tests.override_app_dependency import TEST_TENANT
 
 JOB_ID = 1
 ANNOTATORS = [
@@ -550,6 +550,144 @@ def test_distribute_annotation_whole_files(
         for task in annotation_tasks
     ]
     assert annotation_tasks == expected_whole_files_tasks
+
+
+def test_distribute_whole_files_pages_number_edge_case():
+    assert (
+        distribute_whole_files(
+            {},
+            [],
+            [{"user_id": 0, "pages_number": 0}],
+            0,
+            False,
+            TaskStatusEnumSchema.pending,
+        )
+        == []
+    )
+
+
+# TODO rename this fon
+def test_distribute_whole_files_user_page_correction_edge_case2():
+    file_list = [
+        {"file_id": 1, "pages": 5, "pages_number": 5},
+    ]
+    user_list = [
+        {"user_id": 0, "pages_number": 1},
+        {"user_id": 1, "pages_number": 1},
+        {"user_id": 2, "pages_number": 1},
+    ]
+    with patch(
+        "annotation.distribution.main.find_small_files",
+        return_value=(file_list, 5),
+    ):
+        assert distribute_whole_files(
+            {}, [], user_list, 0, False, TaskStatusEnumSchema.pending
+        ) == [
+            {
+                "deadline": None,
+                "file_id": 1,
+                "is_validation": False,
+                "job_id": 0,
+                "pages": [1, 2, 3, 4, 5],
+                "status": TaskStatusEnumSchema.pending,
+                "user_id": 0,
+            },
+        ]
+
+
+def test_distribute_whole_files_user_page_correction_edge_case():
+    file_list = [
+        {"file_id": 1, "pages": 5, "pages_number": 5},
+    ]
+    user_list = [
+        {"user_id": 0, "pages_number": 10},
+    ]
+    with patch(
+        "annotation.distribution.main.find_small_files",
+        return_value=(file_list, 15),
+    ), patch("annotation.distribution.main.create_tasks"), patch(
+        "annotation.distribution.main.find_equal_files",
+    ):
+        assert (
+            distribute_whole_files(
+                {}, [], user_list, 0, False, TaskStatusEnumSchema.pending
+            )
+            == []
+        )
+
+
+# TODO i tried to put the 2 tests together, didnt work
+
+# @pytest.mark.parametrize(
+#     (
+#         "expected_output",
+#         "files",
+#         "return_files",
+#         "user_list",
+#         "user_page_correction_mock"
+#     ),
+#     (
+#         (
+#             [
+#                {
+#                    'deadline': None,
+#                    'file_id': 1,
+#                    'is_validation': False,
+#                    'job_id': 0,
+#                    'pages': [1, 2, 3, 4, 5],
+#                    'status': TaskStatusEnumSchema.pending,
+#                    'user_id': 0
+#                },
+#             ],
+#             [],
+#             [
+#                 {"file_id": 1, "pages": 5, "pages_number": 5},
+#             ],
+#             [
+#                 {"user_id": 0, "pages_number": 1},
+#                 {"user_id": 1, "pages_number": 1},
+#                 {"user_id": 2, "pages_number": 1},
+#             ],
+#             5,
+#         ),
+#         (
+#             [],
+#             [
+#                 {"file_id": 1, "pages": 5, "pages_number": 5},
+#             ],
+#             [
+#                 {"file_id": 1, "pages": 5, "pages_number": 5},
+#             ],
+#             [
+#                 {"user_id": 0, "pages_number": 10},
+#             ],
+#             15,
+#         )
+#     )
+# )
+# def test_distribute_whole_files_edge_cases(
+#     expected_output,
+#     files,
+#     return_files,
+#     user_list,
+#     user_page_correction_mock
+# ):
+#     with patch(
+#         "annotation.distribution.main.find_small_files",
+#         return_value=(return_files, user_page_correction_mock)
+#     ), patch(
+#         "annotation.distribution.main.create_tasks"
+#     ), patch(
+#         "annotation.distribution.main.find_equal_files",
+#     ):
+#         assert distribute_whole_files(
+#             {},
+#             files,
+#             user_list,
+#             0,
+#             False,
+#             TaskStatusEnumSchema.pending
+#         ) == expected_output
 
 
 ANNOTATOR_PARTIAL = [
