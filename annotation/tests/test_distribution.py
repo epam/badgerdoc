@@ -1,11 +1,10 @@
 from collections import defaultdict
 from copy import copy
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 from unittest.mock import Mock, patch
 from uuid import UUID
 
 import pytest
-from tests.override_app_dependency import TEST_TENANT
 
 from annotation.distribution import (
     add_unassigned_file,
@@ -38,6 +37,7 @@ from annotation.schemas import (
     TaskStatusEnumSchema,
     ValidationSchema,
 )
+from tests.override_app_dependency import TEST_TENANT
 
 JOB_ID = 1
 ANNOTATORS = [
@@ -1039,10 +1039,9 @@ def test_distribute_annotation_limit_50_pages(
     )
 
 
-@pytest.mark.unittest
 @pytest.mark.parametrize(
-    ["files", "annotators", "extensive_coverage", "split_multipage_doc_setup"],
-    [
+    ("files", "annotators", "extensive_coverage", "split_multipage_doc_setup"),
+    (
         (
             [copy(test_file) for test_file in FILE_LIMIT_50],
             [copy(ANNOTATORS[0]), copy(ANNOTATORS[2]), copy(ANNOTATORS[3])],
@@ -1086,11 +1085,13 @@ def test_distribute_annotation_limit_50_pages(
             1,
             "",
         ),
-    ],
+    ),
 )
-@pytest.mark.unittest
 def test_distribution_with_extensive_coverage(
-    files, annotators, extensive_coverage, split_multipage_doc_setup
+    files: List[Dict[str, int]],
+    annotators: List[DistributionUser],
+    extensive_coverage: int,
+    split_multipage_doc_setup: str,
 ):
     with patch(
         "annotation.distribution.main.SPLIT_MULTIPAGE_DOC",
