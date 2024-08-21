@@ -693,7 +693,6 @@ def test_mark_all_revs_validated_pages(
     mark_all_revisions_validated_pages(
         page_revision_list_all, annotated_doc_schema, {1, 2}
     )
-
     assert page_revision_list_all == expected_pages
 
 
@@ -750,33 +749,15 @@ def test_find_all_revisions_pages(
 ):
     annotated_doc.pages[1] = annotated_doc_schema.pages["1"]
     page_revision_list_all[1][0]["page_id"] = annotated_doc_schema.pages["1"]
-    page_revision_list_all[1][0]["categories"] = {"bar", "foo"}
-
     annotated_doc.pages[2] = annotated_doc_schema.pages["2"]
     page_revision_list_all[2][0]["page_id"] = annotated_doc_schema.pages["2"]
-    page_revision_list_all[2][0]["categories"] = {"bar", "foo"}
     page_revision_list_all[2][0]["user_id"] = page_revision_list_all[1][0][
         "user_id"
     ]
 
     with patch(
         "annotation.annotations.main.AnnotatedDocSchema.from_orm",
-        return_value=AnnotatedDocSchema(
-            revision=annotated_doc.revision,
-            user=annotated_doc.user,
-            pipeline=annotated_doc.pipeline,
-            date=annotated_doc.date,
-            file_id=annotated_doc.file_id,
-            job_id=annotated_doc.job_id,
-            pages=annotated_doc.pages,
-            validated=annotated_doc.validated,
-            failed_validation_pages=annotated_doc.failed_validation_pages,
-            tenant=annotated_doc.tenant,
-            task_id=annotated_doc.task_id,
-            similar_revisions=None,
-            categories=annotated_doc.categories,
-            links_json=annotated_doc.links_json,
-        ),
+        return_value = annotated_doc_schema
     ) as mock_from_orm, patch(
         "annotation.annotations.main.mark_all_revisions_validated_pages"
     ) as mock_mark:
@@ -793,14 +774,9 @@ def test_find_latest_revision_pages(
 ):
     annotated_doc.pages[1] = annotated_doc_schema.pages["1"]
     annotated_doc.pages[2] = annotated_doc_schema.pages["2"]
-
     page_revision_list_latest[1][annotated_doc_schema.user]["page_id"] = (
         annotated_doc_schema.pages["1"]
     )
-    page_revision_list_latest[1][annotated_doc_schema.user]["categories"] = {
-        "foo",
-        "bar",
-    }
     expected_pages = {
         1: {
             annotated_doc_schema.user: {
@@ -819,22 +795,7 @@ def test_find_latest_revision_pages(
 
     with patch(
         "annotation.annotations.main.AnnotatedDocSchema.from_orm",
-        return_value=AnnotatedDocSchema(
-            revision=annotated_doc.revision,
-            user=annotated_doc.user,
-            pipeline=annotated_doc.pipeline,
-            date=annotated_doc.date,
-            file_id=annotated_doc.file_id,
-            job_id=annotated_doc.job_id,
-            pages=annotated_doc.pages,
-            validated=annotated_doc.validated,
-            failed_validation_pages=annotated_doc.failed_validation_pages,
-            tenant=annotated_doc.tenant,
-            task_id=annotated_doc.task_id,
-            similar_revisions=None,
-            categories=annotated_doc.categories,
-            links_json=annotated_doc.links_json,
-        ),
+        return_value= annotated_doc_schema
     ) as mock_from_orm, patch(
         "annotation.annotations.main.mark_latest_revision_validated_pages"
     ) as mock_mark:
