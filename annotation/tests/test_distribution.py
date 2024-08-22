@@ -552,7 +552,7 @@ def test_distribute_annotation_whole_files(
     assert annotation_tasks == expected_whole_files_tasks
 
 
-def test_distribute_whole_files_pages_number_edge_case():
+def test_distribute_whole_files_pages_number():
     assert (
         distribute_whole_files(
             {},
@@ -566,7 +566,7 @@ def test_distribute_whole_files_pages_number_edge_case():
     )
 
 
-def test_distribute_whole_files_user_page_correction_edge_case():
+def test_distribute_whole_files_user_page_correction():
     file_list = [
         {"file_id": 1, "pages": 5, "pages_number": 5},
     ]
@@ -594,7 +594,7 @@ def test_distribute_whole_files_user_page_correction_edge_case():
         ]
 
 
-def test_distribute_whole_files_break_edge_case():
+def test_distribute_whole_files_break():
     file_list = [
         {"file_id": 1, "pages": 5, "pages_number": 5},
     ]
