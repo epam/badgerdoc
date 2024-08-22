@@ -2,7 +2,7 @@ import json
 import uuid
 from datetime import datetime
 from hashlib import sha1
-from typing import Any, Dict
+from typing import Any, Dict, List, Tuple
 from unittest.mock import ANY, Mock, patch
 
 import boto3
@@ -15,20 +15,30 @@ from annotation.annotations.main import (
     MANIFEST,
     S3_START_PATH,
     DuplicateAnnotationError,
+    LatestPageRevision,
     NotConfiguredException,
+    PageRevision,
     check_if_kafka_message_is_needed,
     connect_s3,
     construct_annotated_doc,
     convert_bucket_name_if_s3prefix,
     create_manifest_json,
+    find_all_revisions_pages,
+    find_latest_revision_pages,
     get_sha_of_bytes,
+    mark_all_revisions_validated_pages,
+    mark_latest_revision_validated_pages,
     row_to_dict,
     update_pages_array,
     upload_json_to_minio,
     upload_pages_to_minio,
 )
 from annotation.models import AnnotatedDoc, Category, File, Job, User
-from annotation.schemas.annotations import DocForSaveSchema, PageSchema
+from annotation.schemas.annotations import (
+    AnnotatedDocSchema,
+    DocForSaveSchema,
+    PageSchema,
+)
 from annotation.schemas.categories import CategoryTypeSchema
 from annotation.schemas.jobs import JobTypeEnumSchema, ValidationSchema
 
@@ -147,6 +157,64 @@ def annotation_doc_for_save():
             "task_id": 1,
             "links_json": [],
         }
+    )
+
+
+@pytest.fixture
+def annotated_doc_schema(annotator: User):
+    yield AnnotatedDocSchema(
+        revision="20fe52cce6a632c6eb09fdc5b3e1594f926eea69",
+        user=annotator.user_id,
+        pipeline=None,
+        date=datetime(2024, 1, 1, 10, 10, 0),
+        file_id=1,
+        job_id=1,
+        pages={
+            "1": "19fe52cce6a632c6eb09fdc5b3e1594f926eea69",
+            "2": "adda414648714f01c1c9657646b72ebb4433c8b5",
+        },
+        validated={1, 2, 10},
+        failed_validation_pages={3, 4},
+        tenant="badger-doc",
+        task_id=2,
+        similar_revisions=None,
+        categories={"1", "2"},
+        links_json=[
+            {"to": 2, "category": "my_category", "type": "directional"}
+        ],
+    )
+
+
+@pytest.fixture
+def page_revision_list_all(annotated_doc_schema: AnnotatedDocSchema):
+    elements = {
+        "pipeline": annotated_doc_schema.pipeline,
+        "job_id": annotated_doc_schema.job_id,
+        "file_id": annotated_doc_schema.file_id,
+        "revision": annotated_doc_schema.revision,
+        "page_id": None,
+        "date": annotated_doc_schema.date,
+        "is_validated": False,
+        "categories": annotated_doc_schema.categories,
+    }
+    yield (
+        {
+            1: [{"user_id": annotated_doc_schema.user, **elements}],
+            2: [
+                {
+                    "user_id": uuid.UUID(
+                        "82aa573f-43d8-40ab-8837-282b315f7c3a"
+                    ),
+                    **elements,
+                }
+            ],
+        },
+        {
+            1: {annotated_doc_schema.user: {**elements}},
+            2: {
+                uuid.UUID("82aa573f-43d8-40ab-8837-282b315f7c3a"): {**elements}
+            },
+        },
     )
 
 
@@ -547,3 +615,174 @@ def test_kafka_message_needed_commit(annotated_doc: AnnotatedDoc):
         TEST_TENANT,
     )
     db.commit.assert_called_once()
+
+
+def test_mark_all_revs_validated_pages(
+    page_revision_list_all: Tuple[
+        Dict[int, List[PageRevision]], Dict[int, Dict[str, LatestPageRevision]]
+    ],
+    annotated_doc_schema: AnnotatedDocSchema,
+):
+    expected_pages = {
+        1: [
+            {
+                "user_id": annotated_doc_schema.user,
+                "pipeline": None,
+                "job_id": 1,
+                "file_id": 1,
+                "revision": "20fe52cce6a632c6eb09fdc5b3e1594f926eea69",
+                "page_id": None,
+                "date": datetime(2024, 1, 1, 10, 10),
+                "is_validated": True,
+                "categories": {"2", "1"},
+            }
+        ],
+        2: [
+            {
+                "user_id": uuid.UUID("82aa573f-43d8-40ab-8837-282b315f7c3a"),
+                "pipeline": annotated_doc_schema.pipeline,
+                "job_id": annotated_doc_schema.job_id,
+                "file_id": annotated_doc_schema.file_id,
+                "revision": annotated_doc_schema.revision,
+                "page_id": None,
+                "date": annotated_doc_schema.date,
+                "is_validated": False,
+                "categories": annotated_doc_schema.categories,
+            },
+            {
+                "user_id": annotated_doc_schema.user,
+                "pipeline": None,
+                "job_id": 1,
+                "file_id": 1,
+                "revision": "20fe52cce6a632c6eb09fdc5b3e1594f926eea69",
+                "page_id": None,
+                "date": datetime(2024, 1, 1, 10, 10),
+                "is_validated": True,
+                "categories": {"2", "1"},
+            },
+        ],
+    }
+
+    mark_all_revisions_validated_pages(
+        page_revision_list_all[0], annotated_doc_schema, {1, 2}
+    )
+    assert page_revision_list_all[0] == expected_pages
+
+
+def test_mark_latest_rev_validated_pages(
+    page_revision_list_all: Tuple[
+        Dict[int, List[PageRevision]], Dict[int, Dict[str, LatestPageRevision]]
+    ],
+    annotated_doc_schema: AnnotatedDocSchema,
+):
+    expected_pages = {
+        1: {
+            uuid.UUID("6ffab2dd-3605-46d4-98a1-2d20011e132d"): {
+                "pipeline": None,
+                "job_id": 1,
+                "file_id": 1,
+                "revision": "20fe52cce6a632c6eb09fdc5b3e1594f926eea69",
+                "page_id": None,
+                "date": datetime(2024, 1, 1, 10, 10),
+                "is_validated": True,
+                "categories": {"2", "1"},
+            }
+        },
+        2: {
+            uuid.UUID("82aa573f-43d8-40ab-8837-282b315f7c3a"): {
+                "pipeline": annotated_doc_schema.pipeline,
+                "job_id": annotated_doc_schema.job_id,
+                "file_id": annotated_doc_schema.file_id,
+                "revision": annotated_doc_schema.revision,
+                "page_id": None,
+                "date": annotated_doc_schema.date,
+                "is_validated": False,
+                "categories": annotated_doc_schema.categories,
+            },
+            uuid.UUID("6ffab2dd-3605-46d4-98a1-2d20011e132d"): {
+                "pipeline": None,
+                "job_id": 1,
+                "file_id": 1,
+                "revision": "20fe52cce6a632c6eb09fdc5b3e1594f926eea69",
+                "page_id": None,
+                "date": datetime(2024, 1, 1, 10, 10),
+                "is_validated": True,
+                "categories": {"2", "1"},
+            },
+        },
+    }
+    mark_latest_revision_validated_pages(
+        page_revision_list_all[1], annotated_doc_schema, {1, 2}
+    )
+    assert page_revision_list_all[1] == expected_pages
+
+
+def test_find_all_revisions_pages(
+    annotated_doc: AnnotatedDoc,
+    annotated_doc_schema: AnnotatedDocSchema,
+    page_revision_list_all: Tuple[
+        Dict[int, List[PageRevision]], Dict[int, Dict[str, LatestPageRevision]]
+    ],
+):
+    annotated_doc.pages[1] = annotated_doc_schema.pages["1"]
+    page_revision_list_all[0][1][0]["page_id"] = annotated_doc_schema.pages[
+        "1"
+    ]
+    annotated_doc.pages[2] = annotated_doc_schema.pages["2"]
+    page_revision_list_all[0][2][0]["page_id"] = annotated_doc_schema.pages[
+        "2"
+    ]
+    page_revision_list_all[0][2][0]["user_id"] = page_revision_list_all[0][1][
+        0
+    ]["user_id"]
+
+    with patch(
+        "annotation.annotations.main.AnnotatedDocSchema.from_orm",
+        return_value=annotated_doc_schema,
+    ) as mock_from_orm, patch(
+        "annotation.annotations.main.mark_all_revisions_validated_pages"
+    ) as mock_mark:
+        actual_pages = find_all_revisions_pages([annotated_doc], {1, 2})
+        mock_from_orm.assert_called_once_with(annotated_doc)
+        mock_mark.assert_called_once()
+        assert actual_pages == page_revision_list_all[0]
+
+
+def test_find_latest_revision_pages(
+    annotated_doc: AnnotatedDoc,
+    annotated_doc_schema: AnnotatedDocSchema,
+    page_revision_list_all: Tuple[
+        Dict[int, List[PageRevision]], Dict[int, Dict[str, LatestPageRevision]]
+    ],
+):
+    annotated_doc.pages[1] = annotated_doc_schema.pages["1"]
+    annotated_doc.pages[2] = annotated_doc_schema.pages["2"]
+    page_revision_list_all[1][1][annotated_doc_schema.user]["page_id"] = (
+        annotated_doc_schema.pages["1"]
+    )
+    expected_pages = {
+        1: {
+            annotated_doc_schema.user: {
+                **page_revision_list_all[1][1][annotated_doc_schema.user]
+            }
+        },
+        2: {
+            annotated_doc_schema.user: {
+                **page_revision_list_all[1][1][annotated_doc_schema.user]
+            }
+        },
+    }
+    expected_pages[2][annotated_doc_schema.user]["page_id"] = (
+        annotated_doc_schema.pages["2"]
+    )
+
+    with patch(
+        "annotation.annotations.main.AnnotatedDocSchema.from_orm",
+        return_value=annotated_doc_schema,
+    ) as mock_from_orm, patch(
+        "annotation.annotations.main.mark_latest_revision_validated_pages"
+    ) as mock_mark:
+        actual_pages = find_latest_revision_pages([annotated_doc], {1, 2})
+        mock_from_orm.assert_called_once_with(annotated_doc)
+        mock_mark.assert_called_once()
+        assert actual_pages == expected_pages
