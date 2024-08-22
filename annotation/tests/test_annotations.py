@@ -2,8 +2,8 @@ import json
 import uuid
 from datetime import datetime
 from hashlib import sha1
-from typing import Any, Dict, List, Tuple
-from unittest.mock import ANY, Mock, patch
+from typing import Any, Dict, List, Optional, Tuple
+from unittest.mock import ANY, Mock, call, mock_open, patch
 
 import boto3
 import pytest
@@ -16,16 +16,23 @@ from annotation.annotations.main import (
     S3_START_PATH,
     DuplicateAnnotationError,
     LatestPageRevision,
+    LoadedPage,
     NotConfiguredException,
     PageRevision,
     check_if_kafka_message_is_needed,
     connect_s3,
     construct_annotated_doc,
+    construct_particular_rev_response,
     convert_bucket_name_if_s3prefix,
     create_manifest_json,
     find_all_revisions_pages,
     find_latest_revision_pages,
     get_sha_of_bytes,
+    load_all_revisions_pages,
+    load_annotated_pages_for_particular_rev,
+    load_latest_revision_pages,
+    load_page,
+    load_validated_pages_for_particular_rev,
     mark_all_revisions_validated_pages,
     mark_latest_revision_validated_pages,
     row_to_dict,
@@ -38,6 +45,7 @@ from annotation.schemas.annotations import (
     AnnotatedDocSchema,
     DocForSaveSchema,
     PageSchema,
+    ParticularRevisionSchema,
 )
 from annotation.schemas.categories import CategoryTypeSchema
 from annotation.schemas.jobs import JobTypeEnumSchema, ValidationSchema
@@ -786,3 +794,324 @@ def test_find_latest_revision_pages(
         mock_from_orm.assert_called_once_with(annotated_doc)
         mock_mark.assert_called_once()
         assert actual_pages == expected_pages
+
+
+def test_load_page(
+    page_revision_list_all: Tuple[
+        Dict[int, List[PageRevision]], Dict[int, Dict[str, LatestPageRevision]]
+    ],
+):
+    actual_loaded = []
+    expected_loaded = [
+        {
+            "page_num": 1,
+            "size": {"width": 0.0, "height": 0.0},
+            "objs": [],
+        }
+    ]
+    load_page(
+        Mock(),
+        actual_loaded,
+        bucket_name=TEST_TENANT,
+        page_num=1,
+        user_id=uuid.uuid4(),
+        page_revision=page_revision_list_all[0][1][0],
+        is_not_particular_revision_page=False,
+    )
+    assert actual_loaded == expected_loaded
+
+
+def test_load_page_particular_existing_revision(
+    page_revision_list_all: Tuple[
+        Dict[int, List[PageRevision]], Dict[int, Dict[str, LatestPageRevision]]
+    ]
+):
+    page_revision_list_all[0][1][0]["page_id"] = "sha1"
+    page_path = (
+        f"annotation/{page_revision_list_all[0][1][0]['job_id']}/"
+        f"{page_revision_list_all[0][1][0]['file_id']}/"
+        f"{page_revision_list_all[0][1][0]['page_id']}.json"
+    )
+
+    actual_loaded = []
+    expected_loaded = [
+        {
+            "page_num": 1,
+            "size": {"width": 0.0, "height": 0.0},
+            "objs": [],
+            "revision": page_revision_list_all[0][1][0]["revision"],
+            "user_id": page_revision_list_all[0][1][0]["user_id"],
+            "pipeline": page_revision_list_all[0][1][0]["pipeline"],
+            "date": page_revision_list_all[0][1][0]["date"],
+            "is_validated": page_revision_list_all[0][1][0]["is_validated"],
+            "categories": page_revision_list_all[0][1][0]["categories"],
+        }
+    ]
+
+    with patch(
+        "annotation.annotations.main.S3_START_PATH", new="annotation"
+    ), patch(
+        "annotation.annotations.main.tempfile.TemporaryDirectory",
+        new=mock_open(),
+    ) as mock_tempfile, patch(
+        "annotation.annotations.main.os.path"
+    ) as mock_os_path, patch(
+        "annotation.annotations.main.bd_storage.get_storage"
+    ) as mock_get_storage, patch(
+        "annotation.annotations.main.open",
+        new=mock_open(
+            read_data=b'{"page_num": 1, '
+            b'"size": {"width": 0.0, "height": 0.0}, "objs": []}'
+        ),
+    ) as mock_file_open, patch(
+        "annotation.annotations.main.json.loads",
+        return_value={
+            "page_num": 1,
+            "size": {"width": 0.0, "height": 0.0},
+            "objs": [],
+        },
+    ) as mock_json_loads:
+        mock_os_path.join.return_value = "dir/revision.json"
+
+        load_page(
+            Mock(),
+            actual_loaded,
+            bucket_name=TEST_TENANT,
+            page_num=1,
+            user_id=page_revision_list_all[0][1][0]["user_id"],
+            page_revision=page_revision_list_all[0][1][0],
+            is_not_particular_revision_page=True,
+        )
+        mock_tempfile.assert_called_once()
+        mock_os_path.join.assert_called_once()
+        mock_get_storage.assert_called_once_with(TEST_TENANT)
+        mock_get_storage().download.assert_called_once_with(
+            target_path=page_path, file="dir/revision.json"
+        )
+        mock_file_open.assert_called_once_with("dir/revision.json", "rb")
+        mock_json_loads.assert_called_once_with(
+            '{"page_num": 1, '
+            '"size": {"width": 0.0, "height": 0.0}, "objs": []}'
+        )
+
+        assert actual_loaded == expected_loaded
+
+
+def test_load_all_revs_pages(
+    page_revision_list_all: Tuple[
+        Dict[int, List[PageRevision]], Dict[int, Dict[str, LatestPageRevision]]
+    ]
+):
+    expected_user_1 = page_revision_list_all[0][1][0]["user_id"]
+    expected_page_rev_1 = {**page_revision_list_all[0][1][0]}
+    expected_user_2 = page_revision_list_all[0][2][0]["user_id"]
+    expected_page_rev_2 = {**page_revision_list_all[0][2][0]}
+    expected_pages = {1: [], 2: []}
+
+    with patch(
+        "annotation.annotations.main.convert_bucket_name_if_s3prefix",
+        return_value=TEST_TENANT,
+    ) as mock_convert_prefix, patch(
+        "annotation.annotations.main.load_page"
+    ) as mock_load_page:
+        load_all_revisions_pages(page_revision_list_all[0], TEST_TENANT)
+        mock_convert_prefix.assert_called_once_with(TEST_TENANT)
+        mock_load_page.assert_has_calls(
+            [
+                call(
+                    None,
+                    [],
+                    TEST_TENANT,
+                    1,
+                    expected_user_1,
+                    expected_page_rev_1,
+                    True,
+                ),
+                call(
+                    None,
+                    [],
+                    TEST_TENANT,
+                    2,
+                    expected_user_2,
+                    expected_page_rev_2,
+                    True,
+                ),
+            ]
+        )
+        assert mock_load_page.call_count == 2
+    assert page_revision_list_all[0] == expected_pages
+
+
+def test_load_latest_revs_pages(
+    page_revision_list_all: Tuple[
+        Dict[int, List[PageRevision]], Dict[int, Dict[str, LatestPageRevision]]
+    ]
+):
+    expected_user_1 = list(page_revision_list_all[1][1].keys())[0]
+    expected_user_2 = list(page_revision_list_all[1][2].keys())[0]
+    expected_page_rev_1 = {**page_revision_list_all[1][1][expected_user_1]}
+    expected_page_rev_2 = {**page_revision_list_all[1][2][expected_user_2]}
+    expected_pages = {1: [], 2: []}
+
+    with patch(
+        "annotation.annotations.main.convert_bucket_name_if_s3prefix",
+        return_value=TEST_TENANT,
+    ) as mock_convert_prefix, patch(
+        "annotation.annotations.main.load_page"
+    ) as mock_load_page:
+        load_latest_revision_pages(page_revision_list_all[1], TEST_TENANT)
+        mock_convert_prefix.assert_called_once_with(TEST_TENANT)
+        mock_load_page.assert_has_calls(
+            [
+                call(
+                    None,
+                    [],
+                    TEST_TENANT,
+                    1,
+                    expected_user_1,
+                    expected_page_rev_1,
+                    True,
+                ),
+                call(
+                    None,
+                    [],
+                    TEST_TENANT,
+                    2,
+                    expected_user_2,
+                    expected_page_rev_2,
+                    True,
+                ),
+            ]
+        )
+        assert mock_load_page.call_count == 2
+    assert page_revision_list_all[1] == expected_pages
+
+
+def test_load_annotated_pages_for_particular_rev(
+    annotated_doc: AnnotatedDoc,
+    page_revision_list_all: Tuple[
+        Dict[int, List[PageRevision]], Dict[int, Dict[str, LatestPageRevision]]
+    ],
+):
+    annotated_doc.pages[1] = "sha1"
+    with patch(
+        "annotation.annotations.main.load_page"
+    ) as mock_load_page, patch(
+        "annotation.annotations.main.logger_.debug"
+    ) as mock_debug:
+        load_annotated_pages_for_particular_rev(
+            annotated_doc, page_revision_list_all[0][1][0], TEST_TENANT, []
+        )
+        mock_debug.assert_called_once_with(
+            "load_annotated_pages_for_particular_rev"
+        )
+        mock_load_page.assert_called_once_with(
+            None,
+            [],
+            TEST_TENANT,
+            1,
+            annotated_doc.user,
+            page_revision_list_all[0][1][0],
+            False,
+        )
+    assert page_revision_list_all[0][1][0]["page_id"] == "sha1"
+
+
+def test_load_validated_pages_for_particular_rev(
+    annotated_doc: AnnotatedDoc,
+    page_revision_list_all: Tuple[
+        Dict[int, List[PageRevision]], Dict[int, Dict[str, LatestPageRevision]]
+    ],
+):
+    with patch(
+        "annotation.annotations.main.convert_bucket_name_if_s3prefix",
+        return_value=TEST_TENANT,
+    ) as mock_convert_prefix, patch(
+        "annotation.annotations.main.load_page"
+    ) as mock_load_page, patch(
+        "annotation.annotations.main.logger_.debug"
+    ) as mock_debug:
+        load_validated_pages_for_particular_rev(
+            annotated_doc, page_revision_list_all[0][1][0], TEST_TENANT, []
+        )
+        mock_debug.assert_called_once_with(
+            "load_validated_pages_for_particular_rev"
+        )
+        mock_convert_prefix.assert_called_once_with(TEST_TENANT)
+        mock_load_page.assert_called_once_with(
+            None,
+            [],
+            TEST_TENANT,
+            1,
+            annotated_doc.user,
+            page_revision_list_all[0][1][0],
+            False,
+        )
+    assert page_revision_list_all[0][1][0]["page_id"] is None
+
+
+def test_construct_particular_rev_response(annotated_doc: AnnotatedDoc):
+    page = {
+        "page_num": 1,
+        "size": {"width": 6.0, "height": 9.0},
+        "objs": [],
+    }
+
+    def mock_loaded_pages_append(
+        revision: AnnotatedDoc,
+        page_revision: Dict[str, str],
+        tenant: str,
+        loaded_pages: List[Optional[LoadedPage]],
+    ):
+        loaded_pages.append({**page})
+
+    with patch(
+        "annotation.annotations.main.load_annotated_pages_for_particular_rev",
+        side_effect=mock_loaded_pages_append,
+    ) as mock_load_annotated, patch(
+        "annotation.annotations.main.load_validated_pages_for_particular_rev",
+        side_effect=mock_loaded_pages_append,
+    ) as mock_load_validated, patch(
+        "annotation.annotations.main.logger_.debug"
+    ) as mock_debug:
+        result = construct_particular_rev_response(annotated_doc)
+        mock_debug.assert_has_calls(
+            [call("Loaded %s revisions", 2), call("Building response")]
+        )
+        mock_load_annotated.assert_called_once_with(
+            annotated_doc,
+            {"job_id": annotated_doc.job_id, "file_id": annotated_doc.file_id},
+            annotated_doc.tenant,
+            [{**page}, {**page}],
+        )
+        mock_load_validated.assert_called_once_with(
+            annotated_doc,
+            {"job_id": annotated_doc.job_id, "file_id": annotated_doc.file_id},
+            annotated_doc.tenant,
+            [{**page}, {**page}],
+        )
+
+        expected_result = ParticularRevisionSchema(
+            revision=annotated_doc.revision,
+            user=annotated_doc.user,
+            pipeline=annotated_doc.pipeline,
+            date=annotated_doc.date,
+            pages=[{**page}, {**page}],
+            validated=annotated_doc.validated,
+            failed_validation_pages=annotated_doc.failed_validation_pages,
+            categories=annotated_doc.categories,
+            similar_revisions=None,
+            links_json=annotated_doc.links_json,
+        )
+
+        assert result == expected_result
+
+
+def test_construct_particular_rev_response_error(annotated_doc: AnnotatedDoc):
+    with patch(
+        "annotation.annotations.main.load_annotated_pages_for_particular_rev",
+        side_effect=Exception,
+    ), patch("annotation.annotations.main.logger_.exception") as mock_logger:
+        with pytest.raises(Exception):
+            construct_particular_rev_response(annotated_doc)
+            mock_logger.assert_called_once_with("Can't load annotation")
