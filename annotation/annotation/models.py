@@ -222,6 +222,9 @@ class User(Base):
                 return False
         return True
 
+    def __hash__(self):
+        return hash(self.user_id)
+
 
 class Job(Base):
     __tablename__ = "jobs"
@@ -317,7 +320,7 @@ class File(Base):
         for column in self.__table__.columns:
             if column.key != "_sa_instance_state" and self.__getattribute__(
                 column.key
-            ) != self.__getattribute__(column.key):
+            ) != other.__getattribute__(column.key):
                 return False
         return True
 
