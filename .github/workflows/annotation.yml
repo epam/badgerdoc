@@ -41,6 +41,7 @@ jobs:
           poetry install --no-root
           poetry add ../lib/filter_lib
           poetry add ../lib/tenants
+          poetry add ../lib/badgerdoc_storage
           poetry run pytest
         env:
           POSTGRES_HOST: 127.0.0.1

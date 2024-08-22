@@ -5,7 +5,6 @@ import boto3
 import urllib3.exceptions
 
 from assets import exceptions, logger
-from assets.config import settings
 
 logger_ = logger.get_logger(__name__)
 
@@ -90,7 +89,3 @@ class S3Manager:
         except urllib3.exceptions.MaxRetryError as e:
             logger_.exception(f"Connection error - detail: {e}")
             raise  # type: ignore
-
-
-def get_bucket_name(tenant: str) -> str:
-    return f"{settings.s3_prefix}-{tenant}" if settings.s3_prefix else tenant

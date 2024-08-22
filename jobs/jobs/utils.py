@@ -11,8 +11,9 @@ from jobs import db_service
 from jobs.config import (
     ANNOTATION_SERVICE_HOST,
     ASSETS_SERVICE_HOST,
-    JOBS_RUN_PIPELINES_WITH_SIGNED_URL,
     JOBS_SERVICE_HOST,
+    JOBS_SIGNED_URL_ENABLED,
+    JOBS_SIGNED_URL_KEY_NAME,
     PAGINATION_THRESHOLD,
     PIPELINES_SERVICE_HOST,
     ROOT_PATH,
@@ -293,34 +294,28 @@ def files_data_to_pipeline_arg(
         # todo: change me
         _, job_id, file_id, *_ = file["output_path"].strip().split("/")
 
-        yield pipeline.PipelineFile(
-            revision=file.get("revision"),
-            bucket=file["bucket"],
-            input=pipeline.PipelineFileInput(job_id=job_id),
-            input_path=file["file"],
-            output_path=None,
-            pages=file["pages"],
-            s3_signed_url=None,
-            file_id=file_id,
-        )
+        pipeline_file: pipeline.PipelineFile = {
+            "bucket": file["bucket"],
+            "input": pipeline.PipelineFileInput(job_id=job_id),
+            "input_path": file["file"],
+            "pages": file["pages"],
+            "file_id": file_id,
+        }
+        rev = file.get("revision")
+        if rev:
+            pipeline_file["revision"] = rev
+        yield pipeline_file
 
 
-async def fill_s3_signed_url(files: List[pipeline.PipelineFile]):
-    async def fill(file):
-        file.s3_signed_url = await create_pre_signed_s3_url(
-            bucket=file.bucket, path=file.input_path
-        )
-
-    if not JOBS_RUN_PIPELINES_WITH_SIGNED_URL:
+def fill_signed_url(files: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    logger.debug("Filling signed URL")
+    if not JOBS_SIGNED_URL_ENABLED:
         return files
 
     for file in files:
-        await fill(file)
-
-    # todo: uncomment this when you decide
-    #  to make the signing process parallel
-    # tasks = [fill(f) for f in files]
-    # await asyncio.gather(*tasks)
+        file[JOBS_SIGNED_URL_KEY_NAME] = create_pre_signed_s3_url(
+            bucket=file["bucket"], path=file["input_path"]
+        )
 
     return files
 
@@ -337,7 +332,7 @@ async def execute_external_pipeline(
     kwargs = {
         "pipeline_id": pipeline_id,
         "job_id": job_id,
-        "files": await fill_s3_signed_url(
+        "files": fill_signed_url(
             list(files_data_to_pipeline_arg(files_data, previous_jobs_data))
         ),
         "current_tenant": current_tenant,
