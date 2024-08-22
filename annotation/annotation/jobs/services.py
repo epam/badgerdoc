@@ -693,8 +693,8 @@ def get_tasks_to_delete(
             task
             for task in started_annotation_tasks
             if (
-                task.file_id == validation_task.file_id,
-                task.pages == validation_task.pages,
+                task.file_id == validation_task.file_id
+                and task.pages == validation_task.pages
             )
         ):
             validation_tasks_to_delete.append(validation_task)

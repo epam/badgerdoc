@@ -11,6 +11,8 @@ from annotation.jobs.services import (
     JobNotFoundError,
     check_annotators,
     collect_job_names,
+    get_job_attributes_for_post,
+    get_jobs_by_files,
     get_jobs_by_name,
     get_pages_in_work,
     get_tasks_to_delete,
@@ -182,12 +184,11 @@ def test_check_annotators(
         check_annotators(annotators, validation_type)
 
 
-def test_collect_job_names_all_db():
+def test_collect_job_names_all_db(jobs_to_test_progress: Tuple[Job, ...]):
     mock_session = MagicMock()
-    mock_job = namedtuple("mock_job", ["job_id", "name"])
     mock_session.query().filter().all.return_value = [
-        mock_job(1, "test1"),
-        mock_job(2, "test2"),
+        jobs_to_test_progress[0],
+        jobs_to_test_progress[1],
     ]
     expected_result = {1: "test1", 2: "test2"}
     result = collect_job_names(mock_session, [1, 2], "test", "token")
@@ -271,8 +272,75 @@ def test_get_pages_in_work(tasks: Tuple[ManualAnnotationTask]):
 
 
 def test_get_tasks_to_delete(tasks: Tuple[ManualAnnotationTask]):
-    expected_result = {tasks[3], tasks[2]}
+    expected_result = {tasks[4], tasks[3], tasks[2]}
     result = get_tasks_to_delete(
         [tasks[0], tasks[1], tasks[2], tasks[3], tasks[4], tasks[5]]
     )
     assert result == expected_result
+
+
+def test_get_jobs_by_files():
+    mock_session = MagicMock()
+    mock_session.query().join().order_by().all.return_value = (
+        (1, 1, JobStatusEnumSchema.finished),
+        (1, 2, JobStatusEnumSchema.pending),
+        (2, 3, JobStatusEnumSchema.in_progress),
+    )
+    expected_result = {
+        1: [
+            {
+                "id": 1,
+                "name": "job_name_1",
+                "status": JobStatusEnumSchema.finished,
+            },
+            {
+                "id": 2,
+                "name": "job_name_2",
+                "status": JobStatusEnumSchema.pending,
+            },
+        ],
+        2: [
+            {"id": 3, "name": None, "status": JobStatusEnumSchema.in_progress}
+        ],
+    }
+    with patch(
+        "annotation.jobs.services.collect_job_names",
+        return_value={1: "job_name_1", 2: "job_name_2"},
+    ):
+        result = get_jobs_by_files(mock_session, {1, 2, 3}, "test", "test")
+        assert result == expected_result
+
+
+def test_get_job_attributes_for_post_attribute_job(
+    jobs_to_test_progress: Tuple[Job, ...]
+):
+    job_id = 1
+    mock_session = MagicMock()
+    mock_session.query().filter_by().first.return_value = (
+        jobs_to_test_progress[0]
+    )
+    expected_result = jobs_to_test_progress[0]
+    result = get_job_attributes_for_post(mock_session, job_id, "test", (Job,))
+    assert result == expected_result
+
+
+def test_get_job_attributes_for_post_attribute_columns():
+    job_id = 1
+    mock_session = MagicMock()
+    mock_session.query().filter_by().first.return_value = (
+        "job_name_2",
+        JobStatusEnumSchema.finished,
+    )
+    expected_result = ("job_name_2", JobStatusEnumSchema.finished)
+    result = get_job_attributes_for_post(
+        mock_session, job_id, "test", (Job.name, Job.status)
+    )
+    assert result == expected_result
+
+
+def test_get_job_attributes_for_post_attribute_not_found():
+    job_id = 1
+    mock_session = MagicMock()
+    mock_session.query().filter_by().first.return_value = None
+    with pytest.raises(FieldConstraintError):
+        get_job_attributes_for_post(mock_session, job_id, "test", (Job.name,))

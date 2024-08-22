@@ -1,6 +1,6 @@
 from collections import defaultdict
 from copy import copy
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 from unittest.mock import Mock, patch
 from uuid import UUID
 
@@ -1039,61 +1039,73 @@ def test_distribute_annotation_limit_50_pages(
     )
 
 
-@pytest.mark.unittest
 @pytest.mark.parametrize(
-    ["files", "annotators", "extensive_coverage"],
-    [
+    ("files", "annotators", "extensive_coverage", "split_multipage_doc_setup"),
+    (
         (
             [copy(test_file) for test_file in FILE_LIMIT_50],
             [copy(ANNOTATORS[0]), copy(ANNOTATORS[2]), copy(ANNOTATORS[3])],
             2,
+            "",
         ),
         (
             [copy(test_file) for test_file in FILE_LIMIT_50],
             [copy(ANNOTATORS[0]), copy(ANNOTATORS[2]), copy(ANNOTATORS[3])],
             3,
+            "1",
         ),
         (
             [copy(file) for file in FILES_PARTIAL],
             [copy(ANNOTATORS[0]), copy(ANNOTATORS[2]), copy(ANNOTATORS[3])],
             3,
+            "",
         ),
         (
             [copy(file) for file in FILES_PARTIAL[1:] + FILE_LIMIT_50],
             [copy(ANNOTATORS[0]), copy(ANNOTATORS[2]), copy(ANNOTATORS[3])],
             2,
+            "",
         ),
         (
             [copy(file) for file in FILES_PARTIAL[1:] + FILE_LIMIT_50],
             [copy(ANNOTATORS[0]), copy(ANNOTATORS[2]), copy(ANNOTATORS[3])],
             3,
+            "",
         ),
         # function should work distribute with extensive_coverage==1
         (
             [copy(file) for file in FILES_PARTIAL[1:] + FILE_LIMIT_50],
             [copy(ANNOTATORS[0]), copy(ANNOTATORS[2]), copy(ANNOTATORS[3])],
             1,
+            "",
         ),
         (
             [copy(file) for file in FILES_PARTIAL],
             [copy(ANNOTATORS[0]), copy(ANNOTATORS[2]), copy(ANNOTATORS[3])],
             1,
+            "",
         ),
-    ],
+    ),
 )
-@pytest.mark.unittest
 def test_distribution_with_extensive_coverage(
-    files, annotators, extensive_coverage
+    files: List[Dict[str, int]],
+    annotators: List[DistributionUser],
+    extensive_coverage: int,
+    split_multipage_doc_setup: str,
 ):
-    tasks = distribute_tasks_extensively(
-        files=files,
-        users=annotators,
-        validators_ids=[],
-        job_id=JOB_ID,
-        tasks_status=TASKS_STATUS,
-        is_validation=False,
-        extensive_coverage=extensive_coverage,
-    )
+    with patch(
+        "annotation.distribution.main.SPLIT_MULTIPAGE_DOC",
+        split_multipage_doc_setup,
+    ):
+        tasks = distribute_tasks_extensively(
+            files=files,
+            users=annotators,
+            validators_ids=[],
+            job_id=JOB_ID,
+            tasks_status=TASKS_STATUS,
+            is_validation=False,
+            extensive_coverage=extensive_coverage,
+        )
 
     # check all pages were assigned
     all_tasks_pages = sum(len(x["pages"]) for x in tasks)
