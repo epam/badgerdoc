@@ -1,13 +1,11 @@
 import uuid
 from collections import namedtuple
-from typing import Any, Set, Tuple, Union
+from typing import Set, Tuple
 from unittest.mock import MagicMock, call, patch
 from uuid import UUID
 
 import pytest
-from sqlalchemy.orm.attributes import InstrumentedAttribute
 
-from annotation.database import Base
 from annotation.errors import FieldConstraintError
 from annotation.jobs.services import (
     JobNotFoundError,
@@ -186,7 +184,7 @@ def test_check_annotators(
         check_annotators(annotators, validation_type)
 
 
-def test_collect_job_names_all_db(jobs_to_test_progress: Tuple[Job]):
+def test_collect_job_names_all_db(jobs_to_test_progress: Tuple[Job, ...]):
     mock_session = MagicMock()
     mock_session.query().filter().all.return_value = [
         jobs_to_test_progress[0],
@@ -274,7 +272,7 @@ def test_get_pages_in_work(tasks: Tuple[ManualAnnotationTask]):
 
 
 def test_get_tasks_to_delete(tasks: Tuple[ManualAnnotationTask]):
-    expected_result = {tasks[3], tasks[2]}
+    expected_result = {tasks[4], tasks[3], tasks[2]}
     result = get_tasks_to_delete(
         [tasks[0], tasks[1], tasks[2], tasks[3], tasks[4], tasks[5]]
     )
@@ -313,66 +311,36 @@ def test_get_jobs_by_files():
         assert result == expected_result
 
 
-@pytest.mark.parametrize(
-    ("job_id", "attributes", "expected_result"),
-    (
-        (
-            1,
-            (Job,),
-            Job(
-                job_id=1,
-                name="test1",
-                callback_url="http://www.test.com",
-                annotators=[User(user_id="1")],
-                validation_type=ValidationSchema.cross,
-                is_auto_distribution=False,
-                categories=[categories],
-                deadline="2021-10-19T01:01:01",
-                tenant="test",
-            ),
-        ),
-        (
-            2,
-            (Job.name, Job.status),
-            ("job_name_2", JobStatusEnumSchema.finished),
-        ),
-        (3, (Job.name,), None),
-    ),
-)
-def test_get_job_attributes_for_post(
-    job_id: int,
-    attributes: Union[Tuple[Base], Tuple[InstrumentedAttribute, ...]],
-    expected_result: Union[Job, Tuple[Any]],
+def test_get_job_attributes_for_post_attribute_job(
+    jobs_to_test_progress: Tuple[Job, ...]
 ):
+    job_id = 1
     mock_session = MagicMock()
-    if job_id == 1:
-        mock_session.query().filter_by().first.return_value = Job(
-            job_id=1,
-            name="test1",
-            callback_url="http://www.test.com",
-            annotators=[User(user_id="1")],
-            validation_type=ValidationSchema.cross,
-            is_auto_distribution=False,
-            categories=[categories],
-            deadline="2021-10-19T01:01:01",
-            tenant="test",
-        )
-        result = get_job_attributes_for_post(
-            mock_session, job_id, "test", attributes
-        )
-        assert result == expected_result
-    elif job_id == 2:
-        mock_session.query().filter_by().first.return_value = (
-            "job_name_2",
-            JobStatusEnumSchema.finished,
-        )
-        result = get_job_attributes_for_post(
-            mock_session, job_id, "test", attributes
-        )
-        assert result == expected_result
-    elif job_id == 3:
-        mock_session.query().filter_by().first.return_value = None
-        with pytest.raises(FieldConstraintError):
-            get_job_attributes_for_post(
-                mock_session, job_id, "test", attributes
-            )
+    mock_session.query().filter_by().first.return_value = (
+        jobs_to_test_progress[0]
+    )
+    expected_result = jobs_to_test_progress[0]
+    result = get_job_attributes_for_post(mock_session, job_id, "test", (Job,))
+    assert result == expected_result
+
+
+def test_get_job_attributes_for_post_attribute_columns():
+    job_id = 1
+    mock_session = MagicMock()
+    mock_session.query().filter_by().first.return_value = (
+        "job_name_2",
+        JobStatusEnumSchema.finished,
+    )
+    expected_result = ("job_name_2", JobStatusEnumSchema.finished)
+    result = get_job_attributes_for_post(
+        mock_session, job_id, "test", (Job.name, Job.status)
+    )
+    assert result == expected_result
+
+
+def test_get_job_attributes_for_post_attribute_not_found():
+    job_id = 1
+    mock_session = MagicMock()
+    mock_session.query().filter_by().first.return_value = None
+    with pytest.raises(FieldConstraintError):
+        get_job_attributes_for_post(mock_session, job_id, "test", (Job.name,))
