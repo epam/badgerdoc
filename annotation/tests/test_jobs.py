@@ -67,81 +67,25 @@ def jobs_to_test_progress(job_annotators: Tuple[User], categories: Category):
 
 @pytest.fixture
 def tasks():
-    task_data = (
-        (
-            1,
-            1,
-            [1],
-            1,
-            "7b626e68-857d-430a-b65b-bba0a40417ee",
-            False,
-            TaskStatusEnumSchema.in_progress,
-        ),
-        (
-            2,
-            2,
-            [1],
-            2,
-            "7b626e68-857d-430a-b65b-bba0a40417ee",
-            False,
-            TaskStatusEnumSchema.finished,
-        ),
-        (
-            3,
-            3,
-            [1],
-            2,
-            "7b626e68-857d-430a-b65b-bba0a40417ea",
-            False,
-            TaskStatusEnumSchema.ready,
-        ),
-        (
-            4,
-            4,
-            [1],
-            10,
-            "7b626e68-857d-430a-b65b-bba0a40417eb",
-            False,
-            TaskStatusEnumSchema.pending,
-        ),
-        (
-            5,
-            5,
-            [3],
-            10,
-            "7b626e68-857d-430a-b65b-bba0a40417eb",
-            True,
-            TaskStatusEnumSchema.ready,
-        ),
-        (
-            6,
-            1,
-            [1],
-            10,
-            "7b626e68-857d-430a-b65b-bba0a40417eb",
-            True,
-            TaskStatusEnumSchema.pending,
-        ),
+    status = (
+        TaskStatusEnumSchema.in_progress,
+        TaskStatusEnumSchema.finished,
+        TaskStatusEnumSchema.ready,
+        TaskStatusEnumSchema.pending,
+        TaskStatusEnumSchema.ready,
+        TaskStatusEnumSchema.pending,
     )
     tasks = []
-    for (
-        id,
-        file_id,
-        pages,
-        job_id,
-        user_id,
-        is_validation,
-        status,
-    ) in task_data:
+    for i in range(1, 7):
         tasks.append(
             ManualAnnotationTask(
-                id=id,
-                file_id=file_id,
-                pages=pages,
-                job_id=job_id,
-                user_id=user_id,
-                is_validation=is_validation,
-                status=status,
+                id=i,
+                file_id=i if i != 6 else 1,
+                pages=[1] if i != 5 else [3],
+                job_id=i if i < 4 else 10,
+                user_id="7b626e68-857d-430a-b65b-bba0a40417ee",
+                is_validation=False if i < 5 else True,
+                status=status[i - 1],
                 deadline=None,
             )
         )
@@ -149,7 +93,7 @@ def tasks():
 
 
 @pytest.fixture
-def files(jobs_to_test_progress: Job):
+def files():
     yield (
         File(
             file_id=1,
