@@ -21,10 +21,13 @@ from annotation.schemas import (
 
 
 @pytest.fixture
-def job_annotators():
+def users():
     yield (
-        User(user_id="82533770-a99e-4873-8b23-6bbda86b59ae"),
-        User(user_id="ef81a4d0-cc01-447b-9025-a70ed441672d"),
+        User(user_id=UUID(int=0)),
+        User(user_id=UUID(int=1)),
+        User(user_id=UUID(int=2)),
+        User(user_id=UUID(int=3)),
+        User(user_id=UUID(int=4)),
     )
 
 
@@ -38,29 +41,31 @@ def categories():
 
 
 @pytest.fixture
-def jobs_to_test_progress(job_annotators: Tuple[User], categories: Category):
+def jobs_to_test_progress(users: Tuple[User], categories: Category):
     yield (
         Job(
             job_id=1,
             name="test1",
             callback_url="http://www.test.com",
-            annotators=[job_annotators[0], job_annotators[1]],
+            annotators=[users[0], users[1]],
             validation_type=ValidationSchema.cross,
             is_auto_distribution=False,
             categories=[categories],
             deadline="2021-10-19T01:01:01",
             tenant="test",
+            extensive_coverage=1,
         ),
         Job(
             job_id=2,
             name="test2",
             callback_url="http://www.test.com",
-            annotators=[job_annotators[0], job_annotators[1]],
-            validation_type=ValidationSchema.cross,
+            annotators=[users[0], users[1]],
+            validation_type=ValidationSchema.validation_only,
             is_auto_distribution=False,
             categories=[categories],
             deadline="2021-10-19T01:01:01",
             tenant="test",
+            extensive_coverage=1,
         ),
     )
 
@@ -68,8 +73,8 @@ def jobs_to_test_progress(job_annotators: Tuple[User], categories: Category):
 @pytest.fixture
 def tasks():
     status = (
-        TaskStatusEnumSchema.in_progress,
         TaskStatusEnumSchema.finished,
+        TaskStatusEnumSchema.in_progress,
         TaskStatusEnumSchema.ready,
         TaskStatusEnumSchema.pending,
         TaskStatusEnumSchema.ready,
@@ -335,27 +340,24 @@ def test_recalculate_file_pages(files: Tuple[File]):
     expected_validating_pages = [5, 7]
     expected_annotating_pages = [3, 5, 6, 7]
 
-    def filter_side_effect(*args):
-        if "NOT" in str(args[0]):
-            return MagicMock(
-                all=MagicMock(return_value=[([5, 6, 7],), ([3, 6],)])
-            )
-        else:
-            return MagicMock(all=MagicMock(return_value=[([5, 7],)]))
-
+    filter_side_effect = (
+        lambda *args: MagicMock(
+            all=MagicMock(return_value=[([5, 6, 7],), ([3, 6],)])
+        )
+        if "NOT" in str(args[0])
+        else MagicMock(all=MagicMock(return_value=[([5, 7],)]))
+    )
     mock_result.filter.side_effect = filter_side_effect
     annotation.jobs.services.recalculate_file_pages(mock_session, files[0])
     assert files[0].distributed_validating_pages == expected_validating_pages
     assert files[0].distributed_annotating_pages == expected_annotating_pages
 
 
-def test_read_user(job_annotators: Tuple[User]):
+def test_read_user(users: Tuple[User]):
     mock_session = MagicMock()
-    mock_session.query().get.return_value = job_annotators[0]
-    result = annotation.jobs.services.read_user(
-        mock_session, job_annotators[0]
-    )
-    assert result == job_annotators[0]
+    mock_session.query().get.return_value = users[0]
+    result = annotation.jobs.services.read_user(mock_session, users[0])
+    assert result == users[0]
 
 
 def test_create_user():
@@ -387,14 +389,14 @@ def test_create_job():
             job_id=1,
             name="test1",
             callback_url="http://www.test.com",
-            annotators=[],
-            files=[uuid.UUID("82533770-a99e-4873-8b23-6bbda86b59ae")],
-            validators=[],
-            owners=[uuid.UUID("82533770-a99e-4873-8b23-6bbda86b59ae")],
+            annotators=set(),
+            files={1},
+            validators=set(),
+            owners={uuid.UUID("82533770-a99e-4873-8b23-6bbda86b59ae")},
             previous_jobs=[],
-            datasets=[1, 2],
+            datasets={1, 2},
             is_auto_distribution=False,
-            categories=[],
+            categories=set(),
             deadline=None,
             job_type=JobTypeEnumSchema.ExtractionJob,
             tenant="test",
@@ -403,20 +405,18 @@ def test_create_job():
     assert result == expected_result
 
 
-def test_add_users():
+def test_add_users(users: Tuple[User, ...]):
     mock_session = MagicMock()
-    users = [User(user_id=UUID(int=1)), User(user_id=UUID(int=2))]
+    cur_users = [users[1], users[2]]
     new_user_ids = {UUID(int=3), UUID(int=4)}
     expected_result = [
-        User(user_id=UUID(int=1)),
-        User(user_id=UUID(int=2)),
-        User(user_id=UUID(int=3)),
+        users[1],
+        users[2],
+        users[3],
     ]
-    mock_session.query().filter().all.return_value = [
-        User(user_id=UUID(int=3))
-    ]
+    mock_session.query().filter().all.return_value = [users[3]]
     result = annotation.jobs.services.add_users(
-        mock_session, users, new_user_ids
+        mock_session, cur_users, new_user_ids
     )
     assert result == expected_result
 
@@ -437,7 +437,7 @@ def test_update_job_categories(categories: Category):
 
 
 @pytest.mark.parametrize(
-    ("patch_data", "job"),
+    ("patch_data", "user_id"),
     (
         (
             {
@@ -447,20 +447,16 @@ def test_update_job_categories(categories: Category):
                     User(user_id=UUID(int=2)),
                 ],
             },
-            Job(
-                annotators=[
-                    User(user_id=UUID(int=3)),
-                    User(user_id=UUID(int=4)),
-                ]
+            (
+                3,
+                4,
             ),
         ),
         (
             {"extensive_coverage": 1, "annotators": []},
-            Job(
-                annotators=[
-                    User(user_id=UUID(int=3)),
-                    User(user_id=UUID(int=4)),
-                ]
+            (
+                3,
+                4,
             ),
         ),
         (
@@ -471,32 +467,29 @@ def test_update_job_categories(categories: Category):
                     User(user_id=UUID(int=2)),
                 ],
             },
-            Job(
-                annotators=[
-                    User(user_id=UUID(int=3)),
-                    User(user_id=UUID(int=4)),
-                ]
+            (
+                3,
+                4,
             ),
         ),
         (
             {"extensive_coverage": 5, "annotators": []},
-            Job(
-                annotators=[
-                    User(user_id=UUID(int=3)),
-                    User(user_id=UUID(int=4)),
-                ]
+            (
+                3,
+                4,
             ),
         ),
     ),
 )
-def test_validate_job_extensive_coverage(patch_data: dict, job: Job):
+def test_validate_job_extensive_coverage(
+    patch_data: dict, user_id: Tuple[int], users: Tuple[User, ...]
+):
+    job = Job(annotators=[users[i] for i in user_id])
     if patch_data.get("extensive_coverage") == 5:
         with pytest.raises(FieldConstraintError):
             annotation.jobs.services.validate_job_extensive_coverage(
                 patch_data, job
             )
-    else:
-        pass
 
 
 def test_update_job_files(files: Tuple[File]):
