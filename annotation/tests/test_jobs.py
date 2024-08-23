@@ -332,10 +332,8 @@ def test_recalculate_file_pages(files: Tuple[File]):
     expected_validating_pages = [5, 7]
     expected_annotating_pages = [3, 5, 6, 7]
 
-    filter_side_effect = (
-        lambda *args: MagicMock(
-            all=MagicMock(return_value=[([5, 6, 7],), ([3, 6],)])
-        )
+    filter_side_effect = lambda *args: (
+        MagicMock(all=MagicMock(return_value=[([5, 6, 7],), ([3, 6],)]))
         if "NOT" in str(args[0])
         else MagicMock(all=MagicMock(return_value=[([5, 7],)]))
     )
