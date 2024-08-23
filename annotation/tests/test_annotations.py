@@ -12,12 +12,14 @@ from sqlalchemy.orm import Session
 from tests.override_app_dependency import TEST_TENANT
 
 from annotation.annotations.main import (
+    LATEST,
     MANIFEST,
     S3_START_PATH,
     DuplicateAnnotationError,
     LatestPageRevision,
     NotConfiguredException,
     PageRevision,
+    accumulate_pages_info,
     check_if_kafka_message_is_needed,
     connect_s3,
     construct_annotated_doc,
@@ -786,3 +788,85 @@ def test_find_latest_revision_pages(
         mock_from_orm.assert_called_once_with(annotated_doc)
         mock_mark.assert_called_once()
         assert actual_pages == expected_pages
+
+
+@pytest.mark.parametrize(("stop_revision"), ("not found", None))
+def test_accumulate_pages_info_stop_rev_none(
+    stop_revision: str, annotated_doc: AnnotatedDoc
+):
+    valid, fail, annot, not_proc, categ, required_rev = accumulate_pages_info(
+        task_pages=[1, 2, 3],
+        revisions=[annotated_doc],
+        stop_revision=stop_revision,
+        specific_pages=False,
+        with_page_hash=False,
+        unique_status=False,
+    )
+    assert valid == {1}
+    assert fail == set()
+    assert annot == set()
+    assert not_proc == {2, 3}
+    assert categ == annotated_doc.categories
+    assert required_rev is None
+
+
+@pytest.mark.parametrize(
+    ("stop_revision"), (LATEST, "20fe52cce6a632c6eb09fdc5b3e1594f926eea69")
+)
+def test_accumulate_pages_info_stop_rev_not_none(
+    stop_revision: str, annotated_doc: AnnotatedDoc
+):
+    valid, fail, annot, not_proc, categ, required_rev = accumulate_pages_info(
+        task_pages=[1, 2, 3],
+        revisions=[annotated_doc],
+        stop_revision=stop_revision,
+        specific_pages=False,
+        with_page_hash=False,
+        unique_status=False,
+    )
+    assert valid == {1}
+    assert fail == set()
+    assert annot == set()
+    assert not_proc == {2, 3}
+    assert categ == annotated_doc.categories
+    assert required_rev == annotated_doc
+
+
+def test_accumulate_pages_info_specific_pages_hash(
+    annotated_doc: AnnotatedDoc,
+):
+    annotated_doc.pages["2"] = "sha2"
+    valid, fail, annot, not_proc, categ, required_rev = accumulate_pages_info(
+        task_pages=[1, 2, 3],
+        revisions=[annotated_doc],
+        stop_revision=None,
+        specific_pages={2},
+        with_page_hash=True,
+        unique_status=False,
+    )
+    assert valid == set()
+    assert fail == set()
+    assert annot == {"2": "sha2"}
+    assert not_proc == {1, 2, 3}
+    assert categ == annotated_doc.categories
+    assert required_rev is None
+
+
+def test_accumulate_pages_info_unique_status(annotated_doc: AnnotatedDoc):
+    annotated_doc.pages["2"] = "sha2"
+    annotated_doc.validated.append(2)
+
+    valid, fail, annot, not_proc, categ, required_rev = accumulate_pages_info(
+        task_pages=[1, 2, 3],
+        revisions=[annotated_doc],
+        stop_revision=None,
+        specific_pages=None,
+        with_page_hash=False,
+        unique_status=True,
+    )
+    assert valid == {1, 2}
+    assert fail == set()
+    assert annot == set()
+    assert not_proc == {3}
+    assert categ == annotated_doc.categories
+    assert required_rev is None
