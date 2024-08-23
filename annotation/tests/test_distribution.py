@@ -1555,23 +1555,25 @@ def test_create_tasks(
     expected_pages_number: int,
 ):
     user = {"user_id": 0, "pages_number": 30}
-    files = [
-        {
-            "file_id": 0,
-            "unassigned_pages": list(unassigned_pages),
-            "pages_number": len(unassigned_pages),
-        }
-    ]
     tasks = []
-    job_id = 10
-    is_validation = False
-    status = TaskStatusEnumSchema.pending
-
     with patch(
         "annotation.distribution.main.SPLIT_MULTIPAGE_DOC",
         True,
     ), patch("annotation.distribution.main.MAX_PAGES", 10):
-        create_tasks(tasks, files, user, job_id, is_validation, status)
+        create_tasks(
+            tasks,
+            [
+                {
+                    "file_id": 0,
+                    "unassigned_pages": list(unassigned_pages),
+                    "pages_number": len(unassigned_pages),
+                }
+            ],
+            user,
+            10,
+            False,
+            TaskStatusEnumSchema.pending,
+        )
         assert [task["pages"] for task in tasks] == [
             list(pages) for pages in expected_task_pages
         ]
