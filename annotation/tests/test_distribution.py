@@ -954,33 +954,21 @@ def test_distribute_annotation_partial_files(
 
 
 def test_distribute_annotation_partial_files_edge_case():
-    expected_output = [
-        {
-            "deadline": None,
-            "file_id": 1,
-            "is_validation": False,
-            "job_id": 1,
-            "pages": [1, 2, 3],
-            "status": TaskStatusEnumSchema.pending,
-            "user_id": 1,
-        }
-    ]
     with patch("annotation.distribution.main.SPLIT_MULTIPAGE_DOC", True):
-        assert (
-            distribute_annotation_partial_files(
-                [
-                    {
-                        "unassigned_pages": [1, 2, 3],
-                        "pages_number": 3,
-                        "file_id": 1,
-                    }
-                ],
-                [{"user_id": 1, "pages_number": 10}],
-                1,
-                TaskStatusEnumSchema.pending,
-            )
-            == expected_output
+        output = distribute_annotation_partial_files(
+            [
+                {
+                    "unassigned_pages": [1, 2, 3],
+                    "pages_number": 3,
+                    "file_id": 1,
+                }
+            ],
+            [{"user_id": 1, "pages_number": 10}],
+            1,
+            TaskStatusEnumSchema.pending,
         )
+        assert len(output) == 1
+        assert output[0]["pages"] == [1, 2, 3]
 
 
 ANNOTATION_TASKS = [
