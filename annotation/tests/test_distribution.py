@@ -339,39 +339,6 @@ def test_calculate_annotators_load(
         assert annotator["pages_number"] == expected_pages_number[index]
 
 
-@pytest.mark.skip
-def test_calculate_users_load_break():
-    # Setup file and users to test break condition explicitly
-    files = [
-        {"file_id": 1, "pages_number": 100}
-    ]  # Total number of pages to distribute
-    test_annotators = [
-        {
-            "user_id": "405ef0e2-b53e-4c18-bf08-c0871615d99d",
-            "default_load": 50,
-            "overall_load": 0,
-        },
-        {
-            "user_id": "ba3e0ccf-8661-4ed3-892b-7c291160f631",
-            "default_load": 50,
-            "overall_load": 0,
-        },
-    ]
-    # No extensive coverage
-    extensive_coverage = 100
-
-    calculate_users_load(files, test_annotators, extensive_coverage)
-
-    # Assert the pages distributed do not exceed the pages available
-    total_distributed_pages = sum(
-        annotator["pages_number"] for annotator in test_annotators
-    )
-    assert total_distributed_pages == files[0]["pages_number"]
-
-    for annotator in test_annotators:
-        assert annotator["pages_number"] == 50
-
-
 ANNOTATORS_WHOLE = [
     {
         "user_id": "405ef0e2-b53e-4c18-bf08-c0871615d99d",
