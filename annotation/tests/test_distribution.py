@@ -1911,7 +1911,9 @@ def test_redistribute_error(
         mock_set_task_statuses,
     ) = patch_redistribute_dependencies
 
-    with patch("annotation.distribution.main.delete_tasks",), patch(
+    with patch(
+        "annotation.distribution.main.delete_tasks",
+    ), patch(
         "annotation.distribution.main.update_job_status",
         side_effect=JobUpdateException("Connection timeout"),
     ) as mock_update_job_status, pytest.raises(HTTPException) as exc_info:
@@ -1932,7 +1934,10 @@ def test_create_partial_validation_tasks():
     with patch(
         "annotation.distribution.main.filter_validation_files_pages",
         return_value=validation_files_pages,
-    ), patch("annotation.distribution.main.SPLIT_MULTIPAGE_DOC", True):
+    ), patch(
+        "annotation.distribution.main.SPLIT_MULTIPAGE_DOC",
+        True
+    ):
         create_partial_validation_tasks(
             {},
             [{"user_id": "user1"}, {"user_id": "user2"}],
