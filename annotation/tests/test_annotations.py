@@ -21,6 +21,7 @@ from annotation.annotations.main import (
     check_if_kafka_message_is_needed,
     connect_s3,
     construct_annotated_doc,
+    construct_document_links,
     convert_bucket_name_if_s3prefix,
     create_manifest_json,
     find_all_revisions_pages,
@@ -33,11 +34,19 @@ from annotation.annotations.main import (
     upload_json_to_minio,
     upload_pages_to_minio,
 )
-from annotation.models import AnnotatedDoc, Category, File, Job, User
+from annotation.models import (
+    AnnotatedDoc,
+    Category,
+    DocumentLinks,
+    File,
+    Job,
+    User,
+)
 from annotation.schemas.annotations import (
     AnnotatedDocSchema,
     DocForSaveSchema,
     PageSchema,
+    RevisionLink,
 )
 from annotation.schemas.categories import CategoryTypeSchema
 from annotation.schemas.jobs import JobTypeEnumSchema, ValidationSchema
@@ -786,3 +795,25 @@ def test_find_latest_revision_pages(
         mock_from_orm.assert_called_once_with(annotated_doc)
         mock_mark.assert_called_once()
         assert actual_pages == expected_pages
+
+
+def test_construct_document_links(annotated_doc: AnnotatedDoc):
+    rev_link = RevisionLink(
+        revision=annotated_doc.revision,
+        job_id=annotated_doc.job_id,
+        file_id=annotated_doc.file_id,
+        label="similar",
+    )
+    expected_links = [
+        DocumentLinks(
+            original_revision=annotated_doc.revision,
+            original_file_id=annotated_doc.file_id,
+            original_job_id=annotated_doc.job_id,
+            similar_revision=rev_link.revision,
+            similar_file_id=rev_link.file_id,
+            similar_job_id=rev_link.job_id,
+            label=rev_link.label,
+        )
+    ]
+    links = construct_document_links(annotated_doc, [rev_link])
+    assert links == expected_links

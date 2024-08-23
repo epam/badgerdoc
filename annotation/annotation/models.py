@@ -436,6 +436,17 @@ class DocumentLinks(Base):
             f"label={self.label})>"
         )
 
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, DocumentLinks):
+            return NotImplemented
+
+        for column in self.__table__.columns:
+            if column.key != "_sa_instance_state" and self.__getattribute__(
+                column.key
+            ) != other.__getattribute__(column.key):
+                return False
+        return True
+
 
 class AgreementMetrics(Base):
     __tablename__ = "agreement_metrics"
