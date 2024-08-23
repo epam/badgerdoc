@@ -332,13 +332,14 @@ def test_recalculate_file_pages(files: Tuple[File]):
     expected_validating_pages = [5, 7]
     expected_annotating_pages = [3, 5, 6, 7]
 
-    filter_side_effect = (
-        lambda *args: MagicMock(
-            all=MagicMock(return_value=[([5, 6, 7],), ([3, 6],)])
-        )
-        if "NOT" in str(args[0])
-        else MagicMock(all=MagicMock(return_value=[([5, 7],)]))
-    )
+    def filter_side_effect(*args):
+        if "NOT" in str(args[0]):
+            return MagicMock(
+                all=MagicMock(return_value=[([5, 6, 7],), ([3, 6],)])
+            )
+        else:
+            return MagicMock(all=MagicMock(return_value=[([5, 7],)]))
+
     mock_result.filter.side_effect = filter_side_effect
     services.recalculate_file_pages(mock_session, files[0])
     assert files[0].distributed_validating_pages == expected_validating_pages
