@@ -24,6 +24,7 @@ from annotation.distribution.main import (
     DistributionUser,
     choose_validators_users,
     distribute,
+    create_tasks,
     distribute_tasks_extensively,
     find_equal_files,
     find_small_files,
@@ -635,6 +636,69 @@ def test_distribute_annotation_whole_files(
         for task in annotation_tasks
     ]
     assert annotation_tasks == expected_whole_files_tasks
+
+
+def test_distribute_whole_files_pages_number():
+    assert (
+        distribute_whole_files(
+            {},
+            [],
+            [{"user_id": 0, "pages_number": 0}],
+            0,
+            False,
+            TaskStatusEnumSchema.pending,
+        )
+        == []
+    )
+
+
+def test_distribute_whole_files_user_page_correction():
+    file_list = [
+        {"file_id": 1, "pages": 5, "pages_number": 5},
+    ]
+    user_list = [
+        {"user_id": 0, "pages_number": 1},
+        {"user_id": 1, "pages_number": 1},
+        {"user_id": 2, "pages_number": 1},
+    ]
+    with patch(
+        "annotation.distribution.main.find_small_files",
+        return_value=(file_list, 5),
+    ):
+        assert distribute_whole_files(
+            {}, [], user_list, 0, False, TaskStatusEnumSchema.pending
+        ) == [
+            {
+                "deadline": None,
+                "file_id": 1,
+                "is_validation": False,
+                "job_id": 0,
+                "pages": [1, 2, 3, 4, 5],
+                "status": TaskStatusEnumSchema.pending,
+                "user_id": 0,
+            },
+        ]
+
+
+def test_distribute_whole_files_break():
+    file_list = [
+        {"file_id": 1, "pages": 5, "pages_number": 5},
+    ]
+    user_list = [
+        {"user_id": 0, "pages_number": 10},
+    ]
+    with patch(
+        "annotation.distribution.main.find_small_files",
+        return_value=(file_list, 15),
+    ), patch("annotation.distribution.main.create_tasks"), patch(
+        "annotation.distribution.main.find_equal_files",
+    ):
+        assert (
+            distribute_whole_files(
+                {}, [], user_list, 0, False, TaskStatusEnumSchema.pending
+            )
+            == []
+        )
 
 
 ANNOTATOR_PARTIAL = [
@@ -1615,6 +1679,54 @@ def test_prepare_response():
         )
 
 
+@pytest.mark.parametrize(
+    (
+        "unassigned_pages",
+        "expected_task_pages",
+        "expected_pages_number",
+    ),
+    (
+        ((2, 5, 10), ((2, 5, 10),), 27),
+        (
+            tuple(range(1, 21)),
+            (
+                tuple(range(1, 11)),
+                tuple(range(11, 21)),
+            ),
+            10,
+        ),
+    ),
+)
+def test_create_tasks(
+    unassigned_pages: Tuple[int, ...],
+    expected_task_pages: Tuple[Tuple[int, ...], ...],
+    expected_pages_number: int,
+):
+    user = {"user_id": 0, "pages_number": 30}
+    tasks = []
+    with patch(
+        "annotation.distribution.main.SPLIT_MULTIPAGE_DOC",
+        True,
+    ), patch("annotation.distribution.main.MAX_PAGES", 10):
+        create_tasks(
+            tasks,
+            [
+                {
+                    "file_id": 0,
+                    "unassigned_pages": list(unassigned_pages),
+                    "pages_number": len(unassigned_pages),
+                }
+            ],
+            user,
+            10,
+            False,
+            TaskStatusEnumSchema.pending,
+        )
+        assert [task["pages"] for task in tasks] == [
+            list(pages) for pages in expected_task_pages
+        ]
+        assert user["pages_number"] == expected_pages_number
+
 def test_distribute_main_script(
     mock_db: Mock,
     users_for_test_distribute: Mock,
@@ -1794,3 +1906,4 @@ def test_redistribute_error(
     )
     assert exc_info.value.status_code == 500
     assert "Connection timeout" in str(exc_info.value.detail)
+
