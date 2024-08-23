@@ -5,9 +5,10 @@ from typing import List
 import fitz
 from fitz import Page
 
-from convert.config import DEFAULT_PAGE_BORDER_OFFSET, DEFAULT_PDF_FONT_HEIGHT
-
 from .models.tokens import BadgerdocToken
+
+DEFAULT_PAGE_BORDER_OFFSET = 15
+DEFAULT_PDF_FONT_HEIGHT = 11
 
 
 class Fonts(Enum):
