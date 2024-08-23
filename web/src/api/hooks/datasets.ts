@@ -23,10 +23,10 @@ export const useDatasets: QueryHookType<QueryHookParamsType<Dataset>, PagedRespo
     params,
     options
 ) => {
-    const { searchText, sortConfig, size: pageSize, page: pageNum } = params;
+    const { searchText, sortConfig, size: pageSize, page: pageNum, filters } = params;
     return useQuery(
         ['datasets', searchText, sortConfig, pageSize, pageNum],
-        () => datasetsFetcher(pageNum, pageSize, searchText, sortConfig),
+        () => datasetsFetcher(pageNum, pageSize, searchText, sortConfig, filters),
         options
     );
 };
@@ -40,9 +40,9 @@ export function datasetsFetcher(
     } = {
         field: 'name',
         direction: SortingDirection.ASC
-    }
+    },
+    filters: FilterWithDocumentExtraOption<keyof Dataset>[] = []
 ): Promise<PagedResponse<Dataset>> {
-    const filters: FilterWithDocumentExtraOption<keyof Dataset>[] = [];
     if (searchText) {
         filters.push({
             field: 'name',
@@ -117,3 +117,38 @@ export const useDeleteDatasetMutation: MutationHookType<string, FileDocument> = 
         }
     });
 };
+
+export function datasetPropFetcher(
+    propName: keyof Dataset,
+    page = 1,
+    size = pageSizes._15,
+    keyword: string = ''
+): Promise<PagedResponse<string>> {
+    const sortConfig = {
+        field: propName,
+        direction: SortingDirection.ASC
+    };
+    const filters: FilterWithDocumentExtraOption<keyof Dataset>[] = [];
+    filters.push({
+        field: propName,
+        operator: Operators.DISTINCT
+    });
+    if (keyword) {
+        filters.push({
+            field: propName,
+            operator: Operators.ILIKE,
+            value: `%${keyword}%`
+        });
+    }
+    const body: SearchBody<Dataset> = {
+        pagination: { page_num: page, page_size: size },
+        filters,
+        sorting: [{ direction: sortConfig.direction, field: sortConfig.field as keyof Dataset }]
+    };
+
+    return useBadgerFetch<PagedResponse<string>>({
+        url: `${namespace}/datasets/search`,
+        method: 'post',
+        withCredentials: true
+    })(JSON.stringify(body));
+}
