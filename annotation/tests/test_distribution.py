@@ -7,6 +7,7 @@ from uuid import UUID
 import pytest
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
+from tests.override_app_dependency import TEST_TENANT
 
 from annotation.distribution import (
     add_unassigned_file,
@@ -46,7 +47,6 @@ from annotation.schemas import (
     TaskStatusEnumSchema,
     ValidationSchema,
 )
-from tests.override_app_dependency import TEST_TENANT
 
 
 @pytest.fixture
