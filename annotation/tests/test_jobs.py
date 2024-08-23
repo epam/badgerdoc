@@ -359,11 +359,6 @@ def test_create_user():
     assert result == expected_result
 
 
-# TODO .dict method converts JobInfoSchema values to
-# sets and they need to be list
-# TODO Job constructor needs references to User object instead of UUID
-# for fields annotators, validators, owners
-# TODO same thing for fields files, categories and tasks
 @pytest.mark.skip(reason="can not create Job with JobSchema")
 def test_create_job():
     mock_session = MagicMock()
@@ -429,41 +424,41 @@ def test_update_job_categories(categories: Category):
 
 
 @pytest.mark.parametrize(
-    ("patch_data"),
+    "patch_data",
     (
         {
-            "extensive_coverage": 1,
             "annotators": [
                 User(user_id=UUID(int=1)),
                 User(user_id=UUID(int=2)),
             ],
         },
-        {"extensive_coverage": 1, "annotators": []},
+        {"annotators": []},
     ),
 )
 def test_validate_job_extensive_coverage_success(
     patch_data: dict, users: Tuple[User, ...]
 ):
     job = Job(annotators=list(users[3:4]))
+    patch_data["extensive_coverage"] = 1
     services.validate_job_extensive_coverage(patch_data, job)
 
 
 @pytest.mark.parametrize(
-    ("patch_data"),
+    "patch_data",
     (
         {
-            "extensive_coverage": 5,
             "annotators": [
                 User(user_id=UUID(int=1)),
                 User(user_id=UUID(int=2)),
             ],
         },
-        {"extensive_coverage": 5, "annotators": []},
+        {"annotators": []},
     ),
 )
 def test_validate_job_extensive_coverage_error(
     patch_data: dict, users: Tuple[User, ...]
 ):
+    patch_data["extensive_coverage"] = 5
     job = Job(annotators=list(users[3:4]))
     with pytest.raises(FieldConstraintError):
         services.validate_job_extensive_coverage(patch_data, job)
@@ -473,7 +468,6 @@ def test_update_job_files(files: Tuple[File]):
     mock_session = MagicMock()
     patch_data = {"files": {1, 2}, "datasets": {"dataset1"}}
     expected_calls = list(files[:2])
-
     with patch(
         "annotation.jobs.services.get_files_info",
         return_value=[
