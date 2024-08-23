@@ -20,6 +20,7 @@ from annotation.annotations.main import (
     NotConfiguredException,
     PageRevision,
     check_if_kafka_message_is_needed,
+    check_null_fields,
     connect_s3,
     construct_annotated_doc,
     construct_particular_rev_response,
@@ -1111,3 +1112,14 @@ def test_construct_particular_rev_response_error(annotated_doc: AnnotatedDoc):
     ):
         with pytest.raises(Exception):
             construct_particular_rev_response(annotated_doc)
+
+
+def test_check_null_fields(annotation_doc_for_save: DocForSaveSchema):
+    annotation_doc_for_save.pages = None
+    annotation_doc_for_save.validated = None
+    annotation_doc_for_save.failed_validation_pages = None
+
+    check_null_fields(annotation_doc_for_save)
+    assert annotation_doc_for_save.pages == []
+    assert annotation_doc_for_save.validated == set()
+    assert annotation_doc_for_save.failed_validation_pages == set()
