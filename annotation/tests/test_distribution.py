@@ -1,10 +1,12 @@
 from collections import defaultdict
 from copy import copy
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 from unittest.mock import Mock, patch
 from uuid import UUID
 
 import pytest
+from fastapi import HTTPException
+from sqlalchemy.orm import Session
 from tests.override_app_dependency import TEST_TENANT
 
 from annotation.distribution import (
@@ -21,6 +23,8 @@ from annotation.distribution import (
 from annotation.distribution.main import (
     DistributionUser,
     choose_validators_users,
+    create_tasks,
+    distribute,
     distribute_tasks_extensively,
     find_equal_files,
     find_small_files,
@@ -28,16 +32,96 @@ from annotation.distribution.main import (
     get_page_number_combinations,
     prepare_response,
     prepare_users,
+    redistribute,
 )
 from annotation.microservice_communication.assets_communication import (
     prepare_files_for_distribution,
 )
-from annotation.models import File, User
+from annotation.microservice_communication.jobs_communication import (
+    JobUpdateException,
+)
+from annotation.models import File, Job, ManualAnnotationTask, User
 from annotation.schemas import (
     FileStatusEnumSchema,
+    JobStatusEnumSchema,
     TaskStatusEnumSchema,
     ValidationSchema,
 )
+
+
+@pytest.fixture
+def mock_db(tasks_for_test_redistribute: Tuple[ManualAnnotationTask, ...]):
+    mock_db = Mock(spec=Session, flush=Mock(), rollback=Mock())
+    mock_db.query.return_value.filter.return_value.all.return_value = (
+        tasks_for_test_redistribute
+    )
+    yield mock_db
+
+
+@pytest.fixture
+def users_for_test_distribute():
+    yield (
+        User(user_id=1, default_load=10, overall_load=10),
+        User(user_id=2, default_load=10, overall_load=10),
+        User(user_id=3, default_load=2, overall_load=2),
+    )
+
+
+@pytest.fixture
+def tasks_for_test_distribute():
+    yield (
+        {
+            "task_id": 0,
+            "file_id": 10,
+            "pages": [1, 2, 3],
+            "user_id": 1,
+        },
+        {
+            "task_id": 1,
+            "file_id": 10,
+            "pages": [4, 5, 6],
+            "user_id": 2,
+        },
+        {
+            "task_id": 2,
+            "file_id": 10,
+            "pages": [1, 2, 3, 4, 5, 6],
+            "user_id": 2,
+        },
+    )
+
+
+@pytest.fixture
+def tasks_for_test_redistribute():
+    yield (
+        ManualAnnotationTask(
+            id=0,
+            status=TaskStatusEnumSchema.finished,
+            is_validation=True,
+            file_id=0,
+            pages=[1, 2, 3, 4],
+        ),
+        ManualAnnotationTask(
+            id=1,
+            status=TaskStatusEnumSchema.finished,
+            is_validation=False,
+            file_id=1,
+            pages=list(range(20)),
+        ),
+    )
+
+
+@pytest.fixture
+def patch_redistribute_dependencies():
+    with patch(
+        "annotation.distribution.main.get_pages_in_work",
+    ) as mock_get_pages, patch(
+        "annotation.distribution.main.distribute",
+    ) as mock_distribute, patch(
+        "annotation.distribution.main.set_task_statuses"
+    ) as mock_set_task_statuses:
+        yield mock_get_pages, mock_distribute, mock_set_task_statuses
+
 
 JOB_ID = 1
 ANNOTATORS = [
@@ -552,6 +636,69 @@ def test_distribute_annotation_whole_files(
     assert annotation_tasks == expected_whole_files_tasks
 
 
+def test_distribute_whole_files_pages_number():
+    assert (
+        distribute_whole_files(
+            {},
+            [],
+            [{"user_id": 0, "pages_number": 0}],
+            0,
+            False,
+            TaskStatusEnumSchema.pending,
+        )
+        == []
+    )
+
+
+def test_distribute_whole_files_user_page_correction():
+    file_list = [
+        {"file_id": 1, "pages": 5, "pages_number": 5},
+    ]
+    user_list = [
+        {"user_id": 0, "pages_number": 1},
+        {"user_id": 1, "pages_number": 1},
+        {"user_id": 2, "pages_number": 1},
+    ]
+    with patch(
+        "annotation.distribution.main.find_small_files",
+        return_value=(file_list, 5),
+    ):
+        assert distribute_whole_files(
+            {}, [], user_list, 0, False, TaskStatusEnumSchema.pending
+        ) == [
+            {
+                "deadline": None,
+                "file_id": 1,
+                "is_validation": False,
+                "job_id": 0,
+                "pages": [1, 2, 3, 4, 5],
+                "status": TaskStatusEnumSchema.pending,
+                "user_id": 0,
+            },
+        ]
+
+
+def test_distribute_whole_files_break():
+    file_list = [
+        {"file_id": 1, "pages": 5, "pages_number": 5},
+    ]
+    user_list = [
+        {"user_id": 0, "pages_number": 10},
+    ]
+    with patch(
+        "annotation.distribution.main.find_small_files",
+        return_value=(file_list, 15),
+    ), patch("annotation.distribution.main.create_tasks"), patch(
+        "annotation.distribution.main.find_equal_files",
+    ):
+        assert (
+            distribute_whole_files(
+                {}, [], user_list, 0, False, TaskStatusEnumSchema.pending
+            )
+            == []
+        )
+
+
 ANNOTATOR_PARTIAL = [
     {
         "user_id": "405ef0e2-b53e-4c18-bf08-c0871615d99d",
@@ -1039,61 +1186,73 @@ def test_distribute_annotation_limit_50_pages(
     )
 
 
-@pytest.mark.unittest
 @pytest.mark.parametrize(
-    ["files", "annotators", "extensive_coverage"],
-    [
+    ("files", "annotators", "extensive_coverage", "split_multipage_doc_setup"),
+    (
         (
             [copy(test_file) for test_file in FILE_LIMIT_50],
             [copy(ANNOTATORS[0]), copy(ANNOTATORS[2]), copy(ANNOTATORS[3])],
             2,
+            "",
         ),
         (
             [copy(test_file) for test_file in FILE_LIMIT_50],
             [copy(ANNOTATORS[0]), copy(ANNOTATORS[2]), copy(ANNOTATORS[3])],
             3,
+            "1",
         ),
         (
             [copy(file) for file in FILES_PARTIAL],
             [copy(ANNOTATORS[0]), copy(ANNOTATORS[2]), copy(ANNOTATORS[3])],
             3,
+            "",
         ),
         (
             [copy(file) for file in FILES_PARTIAL[1:] + FILE_LIMIT_50],
             [copy(ANNOTATORS[0]), copy(ANNOTATORS[2]), copy(ANNOTATORS[3])],
             2,
+            "",
         ),
         (
             [copy(file) for file in FILES_PARTIAL[1:] + FILE_LIMIT_50],
             [copy(ANNOTATORS[0]), copy(ANNOTATORS[2]), copy(ANNOTATORS[3])],
             3,
+            "",
         ),
         # function should work distribute with extensive_coverage==1
         (
             [copy(file) for file in FILES_PARTIAL[1:] + FILE_LIMIT_50],
             [copy(ANNOTATORS[0]), copy(ANNOTATORS[2]), copy(ANNOTATORS[3])],
             1,
+            "",
         ),
         (
             [copy(file) for file in FILES_PARTIAL],
             [copy(ANNOTATORS[0]), copy(ANNOTATORS[2]), copy(ANNOTATORS[3])],
             1,
+            "",
         ),
-    ],
+    ),
 )
-@pytest.mark.unittest
 def test_distribution_with_extensive_coverage(
-    files, annotators, extensive_coverage
+    files: List[Dict[str, int]],
+    annotators: List[DistributionUser],
+    extensive_coverage: int,
+    split_multipage_doc_setup: str,
 ):
-    tasks = distribute_tasks_extensively(
-        files=files,
-        users=annotators,
-        validators_ids=[],
-        job_id=JOB_ID,
-        tasks_status=TASKS_STATUS,
-        is_validation=False,
-        extensive_coverage=extensive_coverage,
-    )
+    with patch(
+        "annotation.distribution.main.SPLIT_MULTIPAGE_DOC",
+        split_multipage_doc_setup,
+    ):
+        tasks = distribute_tasks_extensively(
+            files=files,
+            users=annotators,
+            validators_ids=[],
+            job_id=JOB_ID,
+            tasks_status=TASKS_STATUS,
+            is_validation=False,
+            extensive_coverage=extensive_coverage,
+        )
 
     # check all pages were assigned
     all_tasks_pages = sum(len(x["pages"]) for x in tasks)
@@ -1516,3 +1675,233 @@ def test_prepare_response():
             )
             == expected_output
         )
+
+
+@pytest.mark.parametrize(
+    (
+        "unassigned_pages",
+        "expected_task_pages",
+        "expected_pages_number",
+    ),
+    (
+        ((2, 5, 10), ((2, 5, 10),), 27),
+        (
+            tuple(range(1, 21)),
+            (
+                tuple(range(1, 11)),
+                tuple(range(11, 21)),
+            ),
+            10,
+        ),
+    ),
+)
+def test_create_tasks(
+    unassigned_pages: Tuple[int, ...],
+    expected_task_pages: Tuple[Tuple[int, ...], ...],
+    expected_pages_number: int,
+):
+    user = {"user_id": 0, "pages_number": 30}
+    tasks = []
+    with patch(
+        "annotation.distribution.main.SPLIT_MULTIPAGE_DOC",
+        True,
+    ), patch("annotation.distribution.main.MAX_PAGES", 10):
+        create_tasks(
+            tasks,
+            [
+                {
+                    "file_id": 0,
+                    "unassigned_pages": list(unassigned_pages),
+                    "pages_number": len(unassigned_pages),
+                }
+            ],
+            user,
+            10,
+            False,
+            TaskStatusEnumSchema.pending,
+        )
+        assert [task["pages"] for task in tasks] == [
+            list(pages) for pages in expected_task_pages
+        ]
+        assert user["pages_number"] == expected_pages_number
+
+
+def test_distribute_main_script(
+    mock_db: Mock,
+    users_for_test_distribute: Mock,
+    tasks_for_test_distribute: Mock,
+):
+    pages_in_work = {"validation": [tasks_for_test_distribute[0]]}
+    tasks = []
+
+    with patch("annotation.distribution.main.create_db_tasks"), patch(
+        "annotation.distribution.main.distribute_tasks", return_value=tasks
+    ), patch(
+        "annotation.distribution.main.distribute_tasks_extensively",
+        return_value=tasks,
+    ), patch(
+        "annotation.distribution.main.remove_pages_in_work"
+    ):
+        assert (
+            distribute(
+                mock_db,
+                [{"file_id": 0, "pages_number": 6}],
+                [],
+                [users_for_test_distribute[2]],
+                1,
+                ValidationSchema.hierarchical,
+                [tasks_for_test_distribute[1]],
+                extensive_coverage=1,
+                pages_in_work=pages_in_work,
+            )
+            == tasks
+        )
+
+
+def test_distribute_job_validators(
+    mock_db: Mock,
+    users_for_test_distribute: Mock,
+    tasks_for_test_distribute: Mock,
+):
+    pages_in_work = {"annotation": [tasks_for_test_distribute[0]]}
+    tasks = [tasks_for_test_distribute[0], tasks_for_test_distribute[1]]
+
+    with patch("annotation.distribution.main.create_db_tasks"), patch(
+        "annotation.distribution.main.distribute_tasks", return_value=tasks
+    ), patch(
+        "annotation.distribution.main.distribute_tasks_extensively",
+        return_value=tasks,
+    ), patch(
+        "annotation.distribution.main.remove_pages_in_work"
+    ):
+        assert (
+            distribute(
+                mock_db,
+                [{"file_id": 0, "pages_number": 6}],
+                [users_for_test_distribute[1]],
+                [users_for_test_distribute[2]],
+                1,
+                ValidationSchema.cross,
+                [],
+                extensive_coverage=1,
+                pages_in_work=pages_in_work,
+            )
+            == tasks
+        )
+
+
+def test_distribute_extensive_coverage(
+    mock_db: Mock,
+    users_for_test_distribute: Mock,
+    tasks_for_test_distribute: Mock,
+):
+    tasks = [tasks_for_test_distribute[2]]
+
+    with patch("annotation.distribution.main.create_db_tasks"), patch(
+        "annotation.distribution.main.distribute_tasks", return_value=tasks
+    ), patch(
+        "annotation.distribution.main.distribute_tasks_extensively",
+        return_value=tasks,
+    ), patch(
+        "annotation.distribution.main.remove_pages_in_work"
+    ):
+        assert (
+            distribute(
+                mock_db,
+                [{"file_id": 0, "pages_number": 6}],
+                [users_for_test_distribute[1]],
+                [],
+                1,
+                ValidationSchema.extensive_coverage,
+                [tasks_for_test_distribute[1]],
+                extensive_coverage=10,
+                pages_in_work=None,
+            )
+            == tasks
+        )
+
+
+@pytest.mark.parametrize(
+    (
+        "job_files",
+        "job_status",
+    ),
+    (
+        (
+            [
+                File(file_id=0, pages_number=10),
+                File(file_id=1, pages_number=20),
+            ],
+            JobStatusEnumSchema.in_progress,
+        ),
+        ([], JobStatusEnumSchema.finished),
+    ),
+)
+def test_redistribute(
+    tasks_for_test_redistribute: Mock,
+    mock_db: Mock,
+    patch_redistribute_dependencies: Mock,
+    job_files: List[File],
+    job_status: JobStatusEnumSchema,
+):
+    job_id = 0
+    callback_url = "url"
+    job = Job(
+        job_id=job_id,
+        files=job_files,
+        status=job_status,
+        callback_url=callback_url,
+    )
+    (
+        mock_get_pages,
+        mock_distribute,
+        mock_set_task_statuses,
+    ) = patch_redistribute_dependencies
+
+    with patch(
+        "annotation.distribution.main.delete_tasks",
+    ) as mock_delete_tasks, patch(
+        "annotation.distribution.main.update_job_status",
+    ):
+        redistribute(mock_db, "dummy_token", "x_tenant", job)
+        if job.status == "in_progress":
+            mock_set_task_statuses.assert_called_once_with(
+                job, tasks_for_test_redistribute
+            )
+        mock_delete_tasks.assert_called_once_with(mock_db, set())
+
+
+def test_redistribute_error(
+    tasks_for_test_redistribute: Mock,
+    mock_db: Mock,
+    patch_redistribute_dependencies: Mock,
+):
+    job_id = 0
+    callback_url = "url"
+    job = Job(
+        job_id=job_id,
+        files=[],
+        status=JobStatusEnumSchema.in_progress,
+        callback_url=callback_url,
+    )
+    (
+        mock_get_pages,
+        mock_distribute,
+        mock_set_task_statuses,
+    ) = patch_redistribute_dependencies
+
+    with patch(
+        "annotation.distribution.main.delete_tasks",
+    ), patch(
+        "annotation.distribution.main.update_job_status",
+        side_effect=JobUpdateException("Connection timeout"),
+    ) as mock_update_job_status, pytest.raises(HTTPException) as exc_info:
+        redistribute(mock_db, "dummy_token", "x_tenant", job)
+    mock_update_job_status.assert_called_once_with(
+        job.callback_url,
+        JobStatusEnumSchema.finished,
+        "x_tenant",
+        "dummy_token",
+    )
+    assert exc_info.value.status_code == 500
+    assert "Connection timeout" in str(exc_info.value.detail)

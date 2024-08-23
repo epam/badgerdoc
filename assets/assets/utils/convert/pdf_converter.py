@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional
 
 from pdfminer.high_level import extract_pages
 from pdfminer.layout import (
@@ -10,14 +10,9 @@ from pdfminer.layout import (
     LTTextLineHorizontal,
 )
 
-from convert.converters.base_format.models.tokens import (
-    BadgerdocToken,
-    Bbox,
-    Offset,
-    Page,
-    PageSize,
-)
-from convert.converters.utils import filter_printing_tokens
+from assets.utils.convert.badgerdoc import filter_printing_tokens
+
+from .models.tokens import BadgerdocToken, Bbox, Offset, Page, PageSize
 
 
 class PlainPDFToBadgerdocTokensConverter:
