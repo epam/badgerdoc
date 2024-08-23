@@ -7,7 +7,6 @@ from uuid import UUID
 import pytest
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
-from tests.override_app_dependency import TEST_TENANT
 
 from annotation.distribution import (
     add_unassigned_file,
@@ -23,8 +22,8 @@ from annotation.distribution import (
 from annotation.distribution.main import (
     DistributionUser,
     choose_validators_users,
-    distribute,
     create_tasks,
+    distribute,
     distribute_tasks_extensively,
     find_equal_files,
     find_small_files,
@@ -47,12 +46,11 @@ from annotation.schemas import (
     TaskStatusEnumSchema,
     ValidationSchema,
 )
+from tests.override_app_dependency import TEST_TENANT
 
 
 @pytest.fixture
-def mock_db(
-    tasks_for_test_redistribute: Tuple[ManualAnnotationTask, ...]
-):
+def mock_db(tasks_for_test_redistribute: Tuple[ManualAnnotationTask, ...]):
     mock_db = Mock(spec=Session, flush=Mock(), rollback=Mock())
     mock_db.query.return_value.filter.return_value.all.return_value = (
         tasks_for_test_redistribute
@@ -1727,6 +1725,7 @@ def test_create_tasks(
         ]
         assert user["pages_number"] == expected_pages_number
 
+
 def test_distribute_main_script(
     mock_db: Mock,
     users_for_test_distribute: Mock,
@@ -1891,9 +1890,7 @@ def test_redistribute_error(
         mock_set_task_statuses,
     ) = patch_redistribute_dependencies
 
-    with patch(
-        "annotation.distribution.main.delete_tasks",
-    ), patch(
+    with patch("annotation.distribution.main.delete_tasks",), patch(
         "annotation.distribution.main.update_job_status",
         side_effect=JobUpdateException("Connection timeout"),
     ) as mock_update_job_status, pytest.raises(HTTPException) as exc_info:
@@ -1906,4 +1903,3 @@ def test_redistribute_error(
     )
     assert exc_info.value.status_code == 500
     assert "Connection timeout" in str(exc_info.value.detail)
-
