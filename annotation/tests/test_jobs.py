@@ -6,8 +6,8 @@ from uuid import UUID
 
 import pytest
 
-import annotation.jobs.services
 from annotation.errors import FieldConstraintError
+from annotation.jobs import services
 from annotation.models import Category, File, Job, ManualAnnotationTask, User
 from annotation.schemas import (
     CategoryTypeSchema,
@@ -47,7 +47,7 @@ def jobs_to_test_progress(users: Tuple[User], categories: Category):
             job_id=1,
             name="test1",
             callback_url="http://www.test.com",
-            annotators=[users[0], users[1]],
+            annotators=list(users[:2]),
             validation_type=ValidationSchema.cross,
             is_auto_distribution=False,
             categories=[categories],
@@ -59,7 +59,7 @@ def jobs_to_test_progress(users: Tuple[User], categories: Category):
             job_id=2,
             name="test2",
             callback_url="http://www.test.com",
-            annotators=[users[0], users[1]],
+            annotators=list(users[:2]),
             validation_type=ValidationSchema.validation_only,
             is_auto_distribution=False,
             categories=[categories],
@@ -119,7 +119,7 @@ def files():
 
 def test_update_inner_job_status():
     mock_session = MagicMock()
-    annotation.jobs.services.update_inner_job_status(
+    services.update_inner_job_status(
         mock_session, 1, JobStatusEnumSchema.finished
     )
     mock_session.query(Job).filter(Job.job_id == 1).update.assert_called_with(
@@ -148,7 +148,7 @@ def test_check_annotators(
     validation_type: ValidationSchema, annotators: Set[UUID]
 ):
     with pytest.raises(FieldConstraintError):
-        annotation.jobs.services.check_annotators(annotators, validation_type)
+        services.check_annotators(annotators, validation_type)
 
 
 def test_collect_job_names_all_db(jobs_to_test_progress: Tuple[Job, ...]):
@@ -158,9 +158,7 @@ def test_collect_job_names_all_db(jobs_to_test_progress: Tuple[Job, ...]):
         jobs_to_test_progress[1],
     ]
     expected_result = {1: "test1", 2: "test2"}
-    result = annotation.jobs.services.collect_job_names(
-        mock_session, [1, 2], "test", "token"
-    )
+    result = services.collect_job_names(mock_session, [1, 2], "test", "token")
     assert result == expected_result
 
 
@@ -178,7 +176,7 @@ def test_collect_job_names_not_all_db():
     ), patch(
         "annotation.jobs.services.update_jobs_names"
     ) as mock_update_jobs_names:
-        result = annotation.jobs.services.collect_job_names(
+        result = services.collect_job_names(
             mock_session, [1, 2], "test", "token"
         )
         mock_update_jobs_names.assert_called_once()
@@ -192,7 +190,7 @@ def test_get_jobs_by_name():
         (2, "test2"),
     )
     expected_result = {1: "test1", 2: "test2"}
-    result = annotation.jobs.services.get_jobs_by_name(
+    result = services.get_jobs_by_name(
         mock_session, ("test1", "test2"), "test"
     )
     assert result == expected_result
@@ -200,9 +198,7 @@ def test_get_jobs_by_name():
 
 def test_update_jobs_names():
     mock_session = MagicMock()
-    annotation.jobs.services.update_jobs_names(
-        mock_session, {1: "test1", 2: "test2"}
-    )
+    services.update_jobs_names(mock_session, {1: "test1", 2: "test2"})
     expected_calls = [
         call({Job.name: "test1"}),
         call({Job.name: "test2"}),
@@ -216,10 +212,8 @@ def test_update_jobs_names():
 def test_update_jobs_categories_no_job(categories: Category):
     mock_session = MagicMock()
     mock_session.query().filter().with_for_update().first.return_value = None
-    with pytest.raises(annotation.jobs.services.JobNotFoundError):
-        annotation.jobs.services.update_jobs_categories(
-            mock_session, "1", (categories,)
-        )
+    with pytest.raises(services.JobNotFoundError):
+        services.update_jobs_categories(mock_session, "1", (categories,))
 
 
 def test_update_jobs_categories(categories: Category):
@@ -230,9 +224,7 @@ def test_update_jobs_categories(categories: Category):
     mock_session.query().filter().with_for_update().first.return_value = (
         mock_job(1, mock_categories)
     )
-    annotation.jobs.services.update_jobs_categories(
-        mock_session, "1", (categories,)
-    )
+    services.update_jobs_categories(mock_session, "1", (categories,))
     mock_categories.extend.assert_called_once()
     mock_session.commit.assert_called_once()
 
@@ -246,7 +238,7 @@ def test_get_pages_in_work(tasks: Tuple[ManualAnnotationTask, ...]):
             {"file_id": tasks[5].file_id, "pages_number": tasks[5].pages}
         ],
     }
-    result = annotation.jobs.services.get_pages_in_work(
+    result = services.get_pages_in_work(
         {tasks[0], tasks[1], tasks[5]}, {tasks[1]}
     )
     assert result == expected_result
@@ -254,7 +246,7 @@ def test_get_pages_in_work(tasks: Tuple[ManualAnnotationTask, ...]):
 
 def test_get_tasks_to_delete(tasks: Tuple[ManualAnnotationTask, ...]):
     expected_result = {tasks[4], tasks[3], tasks[2]}
-    result = annotation.jobs.services.get_tasks_to_delete(
+    result = services.get_tasks_to_delete(
         [tasks[0], tasks[1], tasks[2], tasks[3], tasks[4], tasks[5]]
     )
     assert result == expected_result
@@ -288,7 +280,7 @@ def test_get_jobs_by_files():
         "annotation.jobs.services.collect_job_names",
         return_value={1: "job_name_1", 2: "job_name_2"},
     ):
-        result = annotation.jobs.services.get_jobs_by_files(
+        result = services.get_jobs_by_files(
             mock_session, {1, 2, 3}, "test", "test"
         )
         assert result == expected_result
@@ -303,7 +295,7 @@ def test_get_job_attributes_for_post_attribute_job(
         jobs_to_test_progress[0]
     )
     expected_result = jobs_to_test_progress[0]
-    result = annotation.jobs.services.get_job_attributes_for_post(
+    result = services.get_job_attributes_for_post(
         mock_session, job_id, "test", (Job,)
     )
     assert result == expected_result
@@ -317,7 +309,7 @@ def test_get_job_attributes_for_post_attribute_columns():
         JobStatusEnumSchema.finished,
     )
     expected_result = ("job_name_2", JobStatusEnumSchema.finished)
-    result = annotation.jobs.services.get_job_attributes_for_post(
+    result = services.get_job_attributes_for_post(
         mock_session, job_id, "test", (Job.name, Job.status)
     )
     assert result == expected_result
@@ -328,7 +320,7 @@ def test_get_job_attributes_for_post_attribute_not_found():
     mock_session = MagicMock()
     mock_session.query().filter_by().first.return_value = None
     with pytest.raises(FieldConstraintError):
-        annotation.jobs.services.get_job_attributes_for_post(
+        services.get_job_attributes_for_post(
             mock_session, job_id, "test", (Job.name,)
         )
 
@@ -348,7 +340,7 @@ def test_recalculate_file_pages(files: Tuple[File]):
         else MagicMock(all=MagicMock(return_value=[([5, 7],)]))
     )
     mock_result.filter.side_effect = filter_side_effect
-    annotation.jobs.services.recalculate_file_pages(mock_session, files[0])
+    services.recalculate_file_pages(mock_session, files[0])
     assert files[0].distributed_validating_pages == expected_validating_pages
     assert files[0].distributed_annotating_pages == expected_annotating_pages
 
@@ -356,19 +348,23 @@ def test_recalculate_file_pages(files: Tuple[File]):
 def test_read_user(users: Tuple[User]):
     mock_session = MagicMock()
     mock_session.query().get.return_value = users[0]
-    result = annotation.jobs.services.read_user(mock_session, users[0])
+    result = services.read_user(mock_session, users[0])
     assert result == users[0]
 
 
 def test_create_user():
     mock_session = MagicMock()
     expected_result = User(user_id=1)
-    result = annotation.jobs.services.create_user(mock_session, 1)
+    result = services.create_user(mock_session, 1)
     assert result == expected_result
 
 
-# can not create Job with JobSchema
-@pytest.mark.skip(reason="Does not work")
+# TODO .dict method converts JobInfoSchema values to
+# sets and they need to be list
+# TODO Job constructor needs references to User object instead of UUID
+# for fields annotators, validators, owners
+# TODO same thing for fields files, categories and tasks
+@pytest.mark.skip(reason="can not create Job with JobSchema")
 def test_create_job():
     mock_session = MagicMock()
     expected_result = Job(
@@ -383,7 +379,7 @@ def test_create_job():
         job_type=JobTypeEnumSchema.ExtractionJob,
         tenant="test",
     )
-    result = annotation.jobs.services.create_job(
+    result = services.create_job(
         mock_session,
         JobInfoSchema(
             job_id=1,
@@ -415,9 +411,7 @@ def test_add_users(users: Tuple[User, ...]):
         users[3],
     ]
     mock_session.query().filter().all.return_value = [users[3]]
-    result = annotation.jobs.services.add_users(
-        mock_session, cur_users, new_user_ids
-    )
+    result = services.add_users(mock_session, cur_users, new_user_ids)
     assert result == expected_result
 
 
@@ -430,73 +424,55 @@ def test_update_job_categories(categories: Category):
         "annotation.jobs.services.fetch_bunch_categories_db",
         return_value=[categories],
     ):
-        annotation.jobs.services.update_job_categories(
-            mock_session, patch_data, tenat
-        )
+        services.update_job_categories(mock_session, patch_data, tenat)
         assert [cat.id for cat in patch_data["categories"]] == expected_result
 
 
 @pytest.mark.parametrize(
-    ("patch_data", "user_id"),
+    ("patch_data"),
     (
-        (
-            {
-                "extensive_coverage": 1,
-                "annotators": [
-                    User(user_id=UUID(int=1)),
-                    User(user_id=UUID(int=2)),
-                ],
-            },
-            (
-                3,
-                4,
-            ),
-        ),
-        (
-            {"extensive_coverage": 1, "annotators": []},
-            (
-                3,
-                4,
-            ),
-        ),
-        (
-            {
-                "extensive_coverage": 5,
-                "annotators": [
-                    User(user_id=UUID(int=1)),
-                    User(user_id=UUID(int=2)),
-                ],
-            },
-            (
-                3,
-                4,
-            ),
-        ),
-        (
-            {"extensive_coverage": 5, "annotators": []},
-            (
-                3,
-                4,
-            ),
-        ),
+        {
+            "extensive_coverage": 1,
+            "annotators": [
+                User(user_id=UUID(int=1)),
+                User(user_id=UUID(int=2)),
+            ],
+        },
+        {"extensive_coverage": 1, "annotators": []},
     ),
 )
-def test_validate_job_extensive_coverage(
-    patch_data: dict, user_id: Tuple[int], users: Tuple[User, ...]
+def test_validate_job_extensive_coverage_success(
+    patch_data: dict, users: Tuple[User, ...]
 ):
-    job = Job(annotators=[users[i] for i in user_id])
-    if patch_data.get("extensive_coverage") == 5:
-        with pytest.raises(FieldConstraintError):
-            annotation.jobs.services.validate_job_extensive_coverage(
-                patch_data, job
-            )
+    job = Job(annotators=list(users[3:4]))
+    services.validate_job_extensive_coverage(patch_data, job)
+
+
+@pytest.mark.parametrize(
+    ("patch_data"),
+    (
+        {
+            "extensive_coverage": 5,
+            "annotators": [
+                User(user_id=UUID(int=1)),
+                User(user_id=UUID(int=2)),
+            ],
+        },
+        {"extensive_coverage": 5, "annotators": []},
+    ),
+)
+def test_validate_job_extensive_coverage_error(
+    patch_data: dict, users: Tuple[User, ...]
+):
+    job = Job(annotators=list(users[3:4]))
+    with pytest.raises(FieldConstraintError):
+        services.validate_job_extensive_coverage(patch_data, job)
 
 
 def test_update_job_files(files: Tuple[File]):
     mock_session = MagicMock()
     patch_data = {"files": {1, 2}, "datasets": {"dataset1"}}
-
-    expected_calls = [files[0], files[1]]
+    expected_calls = list(files[:2])
 
     with patch(
         "annotation.jobs.services.get_files_info",
@@ -505,7 +481,7 @@ def test_update_job_files(files: Tuple[File]):
             {"file_id": 2, "pages_number": 150},
         ],
     ):
-        annotation.jobs.services.update_job_files(
+        services.update_job_files(
             mock_session, patch_data, 1, "tenant", "token"
         )
         mock_session.add_all.assert_called_once_with(expected_calls)
@@ -523,8 +499,6 @@ def test_update_user_overall_load(tasks: Tuple[ManualAnnotationTask]):
         tasks[3],
     )
     mock_session.query().get.return_value = mock_user
-    annotation.jobs.services.update_user_overall_load(
-        mock_session, UUID(int=1)
-    )
+    services.update_user_overall_load(mock_session, UUID(int=1))
     assert mock_user.overall_load == 3
     mock_session.add.assert_called_once_with(mock_user)
