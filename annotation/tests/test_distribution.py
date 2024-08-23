@@ -1934,10 +1934,7 @@ def test_create_partial_validation_tasks():
     with patch(
         "annotation.distribution.main.filter_validation_files_pages",
         return_value=validation_files_pages,
-    ), patch(
-        "annotation.distribution.main.SPLIT_MULTIPAGE_DOC",
-        True
-    ):
+    ), patch("annotation.distribution.main.SPLIT_MULTIPAGE_DOC", True):
         create_partial_validation_tasks(
             {},
             [{"user_id": "user1"}, {"user_id": "user2"}],
