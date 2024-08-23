@@ -21,6 +21,7 @@ from annotation.distribution import (
 from annotation.distribution.main import (
     DistributionUser,
     choose_validators_users,
+    create_tasks,
     distribute_tasks_extensively,
     find_equal_files,
     find_small_files,
@@ -1591,3 +1592,52 @@ def test_prepare_response():
             )
             == expected_output
         )
+
+
+@pytest.mark.parametrize(
+    (
+        "unassigned_pages",
+        "expected_task_pages",
+        "expected_pages_number",
+    ),
+    (
+        ((2, 5, 10), ((2, 5, 10),), 27),
+        (
+            tuple(range(1, 21)),
+            (
+                tuple(range(1, 11)),
+                tuple(range(11, 21)),
+            ),
+            10,
+        ),
+    ),
+)
+def test_create_tasks(
+    unassigned_pages: Tuple[int, ...],
+    expected_task_pages: Tuple[Tuple[int, ...], ...],
+    expected_pages_number: int,
+):
+    user = {"user_id": 0, "pages_number": 30}
+    tasks = []
+    with patch(
+        "annotation.distribution.main.SPLIT_MULTIPAGE_DOC",
+        True,
+    ), patch("annotation.distribution.main.MAX_PAGES", 10):
+        create_tasks(
+            tasks,
+            [
+                {
+                    "file_id": 0,
+                    "unassigned_pages": list(unassigned_pages),
+                    "pages_number": len(unassigned_pages),
+                }
+            ],
+            user,
+            10,
+            False,
+            TaskStatusEnumSchema.pending,
+        )
+        assert [task["pages"] for task in tasks] == [
+            list(pages) for pages in expected_task_pages
+        ]
+        assert user["pages_number"] == expected_pages_number
