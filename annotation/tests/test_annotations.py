@@ -1127,9 +1127,9 @@ def test_check_null_fields(annotation_doc_for_save: DocForSaveSchema):
     assert annotation_doc_for_save.failed_validation_pages == set()
 
 
-@pytest.mark.parametrize(("stop_revision"), ("not found", None))
+@pytest.mark.parametrize("stop_revision", ("not found", None))
 def test_accumulate_pages_info_stop_rev_none(
-    stop_revision: str, annotated_doc: AnnotatedDoc
+    stop_revision: Optional[str], annotated_doc: AnnotatedDoc
 ):
     valid, fail, annot, not_proc, categ, required_rev = accumulate_pages_info(
         task_pages=[1, 2, 3],
@@ -1148,7 +1148,7 @@ def test_accumulate_pages_info_stop_rev_none(
 
 
 @pytest.mark.parametrize(
-    ("stop_revision"), (LATEST, "20fe52cce6a632c6eb09fdc5b3e1594f926eea69")
+    "stop_revision", (LATEST, "20fe52cce6a632c6eb09fdc5b3e1594f926eea69")
 )
 def test_accumulate_pages_info_stop_rev_not_none(
     stop_revision: str, annotated_doc: AnnotatedDoc
