@@ -51,9 +51,7 @@ from annotation.schemas import (
 
 
 @pytest.fixture
-def mock_db(
-    tasks_for_test_redistribute: Tuple[ManualAnnotationTask, ...]
-):
+def mock_db(tasks_for_test_redistribute: Tuple[ManualAnnotationTask, ...]):
     mock_db = Mock(spec=Session, flush=Mock(), rollback=Mock())
     mock_db.query.return_value.filter.return_value.all.return_value = (
         tasks_for_test_redistribute
