@@ -5,7 +5,8 @@ from unittest.mock import Mock, patch
 from uuid import UUID
 
 import pytest
-from tests.override_app_dependency import TEST_TENANT
+from fastapi import HTTPException
+from sqlalchemy.orm import Session
 
 from annotation.distribution import (
     add_unassigned_file,
@@ -21,6 +22,7 @@ from annotation.distribution import (
 from annotation.distribution.main import (
     DistributionUser,
     choose_validators_users,
+    distribute,
     distribute_tasks_extensively,
     find_equal_files,
     find_small_files,
@@ -28,16 +30,99 @@ from annotation.distribution.main import (
     get_page_number_combinations,
     prepare_response,
     prepare_users,
+    redistribute,
 )
 from annotation.microservice_communication.assets_communication import (
     prepare_files_for_distribution,
 )
-from annotation.models import File, User
+from annotation.microservice_communication.jobs_communication import (
+    JobUpdateException,
+)
+from annotation.models import File, Job, ManualAnnotationTask, User
 from annotation.schemas import (
     FileStatusEnumSchema,
+    JobStatusEnumSchema,
     TaskStatusEnumSchema,
     ValidationSchema,
 )
+from tests.override_app_dependency import TEST_TENANT
+
+
+@pytest.fixture
+def mock_session(
+    tasks_for_test_redistribute: Tuple[ManualAnnotationTask, ...]
+):
+    mock_db = Mock(spec=Session, flush=Mock(), rollback=Mock())
+    mock_db.query.return_value.filter.return_value.all.return_value = (
+        tasks_for_test_redistribute
+    )
+    yield mock_db
+
+
+@pytest.fixture
+def users_for_test_distribute():
+    yield (
+        User(user_id=1, default_load=10, overall_load=10),
+        User(user_id=2, default_load=10, overall_load=10),
+        User(user_id=3, default_load=2, overall_load=2),
+    )
+
+
+@pytest.fixture
+def tasks_for_test_distribute():
+    yield (
+        {
+            "task_id": 0,
+            "file_id": 10,
+            "pages": [1, 2, 3],
+            "user_id": 1,
+        },
+        {
+            "task_id": 1,
+            "file_id": 10,
+            "pages": [4, 5, 6],
+            "user_id": 2,
+        },
+        {
+            "task_id": 2,
+            "file_id": 10,
+            "pages": [1, 2, 3, 4, 5, 6],
+            "user_id": 2,
+        },
+    )
+
+
+@pytest.fixture
+def tasks_for_test_redistribute():
+    yield (
+        ManualAnnotationTask(
+            id=0,
+            status=TaskStatusEnumSchema.finished,
+            is_validation=True,
+            file_id=0,
+            pages=[1, 2, 3, 4],
+        ),
+        ManualAnnotationTask(
+            id=1,
+            status=TaskStatusEnumSchema.finished,
+            is_validation=False,
+            file_id=1,
+            pages=list(range(20)),
+        ),
+    )
+
+
+@pytest.fixture
+def patch_redistribute_dependencies():
+    with patch(
+        "annotation.distribution.main.get_pages_in_work",
+    ) as mock_get_pages, patch(
+        "annotation.distribution.main.distribute",
+    ) as mock_distribute, patch(
+        "annotation.distribution.main.set_task_statuses"
+    ) as mock_set_task_statuses:
+        yield mock_get_pages, mock_distribute, mock_set_task_statuses
+
 
 JOB_ID = 1
 ANNOTATORS = [
@@ -1528,3 +1613,182 @@ def test_prepare_response():
             )
             == expected_output
         )
+
+
+def test_distribute_main_script(
+    mock_session: Mock,
+    users_for_test_distribute: Mock,
+    tasks_for_test_distribute: Mock,
+):
+    pages_in_work = {"validation": [tasks_for_test_distribute[0]]}
+    tasks = []
+
+    with patch("annotation.distribution.main.create_db_tasks"), patch(
+        "annotation.distribution.main.distribute_tasks", return_value=tasks
+    ), patch(
+        "annotation.distribution.main.distribute_tasks_extensively",
+        return_value=tasks,
+    ), patch(
+        "annotation.distribution.main.remove_pages_in_work"
+    ):
+        assert (
+            distribute(
+                mock_session,
+                [{"file_id": 0, "pages_number": 6}],
+                [],
+                [users_for_test_distribute[2]],
+                1,
+                ValidationSchema.hierarchical,
+                [tasks_for_test_distribute[1]],
+                extensive_coverage=1,
+                pages_in_work=pages_in_work,
+            )
+            == tasks
+        )
+
+
+def test_distribute_job_validators(
+    mock_session: Mock,
+    users_for_test_distribute: Mock,
+    tasks_for_test_distribute: Mock,
+):
+    pages_in_work = {"annotation": [tasks_for_test_distribute[0]]}
+    tasks = [tasks_for_test_distribute[0], tasks_for_test_distribute[1]]
+
+    with patch("annotation.distribution.main.create_db_tasks"), patch(
+        "annotation.distribution.main.distribute_tasks", return_value=tasks
+    ), patch(
+        "annotation.distribution.main.distribute_tasks_extensively",
+        return_value=tasks,
+    ), patch(
+        "annotation.distribution.main.remove_pages_in_work"
+    ):
+        assert (
+            distribute(
+                mock_session,
+                [{"file_id": 0, "pages_number": 6}],
+                [users_for_test_distribute[1]],
+                [users_for_test_distribute[2]],
+                1,
+                ValidationSchema.cross,
+                [],
+                extensive_coverage=1,
+                pages_in_work=pages_in_work,
+            )
+            == tasks
+        )
+
+
+def test_distribute_extensive_coverage(
+    mock_session: Mock,
+    users_for_test_distribute: Mock,
+    tasks_for_test_distribute: Mock,
+):
+    tasks = [tasks_for_test_distribute[2]]
+
+    with patch("annotation.distribution.main.create_db_tasks"), patch(
+        "annotation.distribution.main.distribute_tasks", return_value=tasks
+    ), patch(
+        "annotation.distribution.main.distribute_tasks_extensively",
+        return_value=tasks,
+    ), patch(
+        "annotation.distribution.main.remove_pages_in_work"
+    ):
+        assert (
+            distribute(
+                mock_session,
+                [{"file_id": 0, "pages_number": 6}],
+                [users_for_test_distribute[1]],
+                [],
+                1,
+                ValidationSchema.extensive_coverage,
+                [tasks_for_test_distribute[1]],
+                extensive_coverage=10,
+                pages_in_work=None,
+            )
+            == tasks
+        )
+
+
+@pytest.mark.parametrize(
+    (
+        "job_files",
+        "job_status",
+    ),
+    (
+        (
+            [
+                File(file_id=0, pages_number=10),
+                File(file_id=1, pages_number=20),
+            ],
+            JobStatusEnumSchema.in_progress,
+        ),
+        ([], JobStatusEnumSchema.finished),
+    ),
+)
+def test_redistribute(
+    tasks_for_test_redistribute: Mock,
+    mock_session: Mock,
+    patch_redistribute_dependencies: Mock,
+    job_files: List[File],
+    job_status: JobStatusEnumSchema,
+):
+    job_id = 0
+    callback_url = "url"
+    job = Job(
+        job_id=job_id,
+        files=job_files,
+        status=job_status,
+        callback_url=callback_url,
+    )
+    (
+        mock_get_pages,
+        mock_distribute,
+        mock_set_task_statuses,
+    ) = patch_redistribute_dependencies
+
+    with patch(
+        "annotation.distribution.main.delete_tasks",
+    ) as mock_delete_tasks, patch(
+        "annotation.distribution.main.update_job_status",
+    ):
+        redistribute(mock_session, "dummy_token", "x_tenant", job)
+        if job.status == "in_progress":
+            mock_set_task_statuses.assert_called_once_with(
+                job, tasks_for_test_redistribute
+            )
+        mock_delete_tasks.assert_called_once_with(mock_session, set())
+
+
+def test_redistribute_error(
+    tasks_for_test_redistribute: Mock,
+    mock_session: Mock,
+    patch_redistribute_dependencies: Mock,
+):
+    job_id = 0
+    callback_url = "url"
+    job = Job(
+        job_id=job_id,
+        files=[],
+        status=JobStatusEnumSchema.in_progress,
+        callback_url=callback_url,
+    )
+    (
+        mock_get_pages,
+        mock_distribute,
+        mock_set_task_statuses,
+    ) = patch_redistribute_dependencies
+
+    with patch("annotation.distribution.main.delete_tasks",), patch(
+        "annotation.distribution.main.update_job_status",
+        side_effect=JobUpdateException("Connection timeout"),
+    ) as mock_update_job_status, pytest.raises(HTTPException) as exc_info:
+        redistribute(mock_session, "dummy_token", "x_tenant", job)
+    mock_update_job_status.assert_called_once_with(
+        job.callback_url,
+        JobStatusEnumSchema.finished,
+        "x_tenant",
+        "dummy_token",
+    )
+    assert exc_info.value.status_code == 500
+    assert "Connection timeout" in str(exc_info.value.detail)
