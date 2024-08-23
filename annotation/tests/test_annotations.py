@@ -832,7 +832,6 @@ def test_load_page_particular_existing_revision(
         f"{page_revision_list_all[0][1][0]['file_id']}/"
         f"{page_revision_list_all[0][1][0]['page_id']}.json"
     )
-
     actual_loaded = []
     expected_loaded = [
         {
@@ -872,7 +871,6 @@ def test_load_page_particular_existing_revision(
         },
     ) as mock_json_loads:
         mock_os_path.join.return_value = "dir/revision.json"
-
         load_page(
             Mock(),
             actual_loaded,
@@ -893,7 +891,6 @@ def test_load_page_particular_existing_revision(
             '{"page_num": 1, '
             '"size": {"width": 0.0, "height": 0.0}, "objs": []}'
         )
-
         assert actual_loaded == expected_loaded
 
 
@@ -1111,7 +1108,6 @@ def test_construct_particular_rev_response_error(annotated_doc: AnnotatedDoc):
     with patch(
         "annotation.annotations.main.load_annotated_pages_for_particular_rev",
         side_effect=Exception,
-    ), patch("annotation.annotations.main.logger_.exception") as mock_logger:
+    ):
         with pytest.raises(Exception):
             construct_particular_rev_response(annotated_doc)
-            mock_logger.assert_called_once_with("Can't load annotation")
