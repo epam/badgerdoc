@@ -19,6 +19,7 @@ from annotation.annotations.main import (
     NotConfiguredException,
     PageRevision,
     check_if_kafka_message_is_needed,
+    check_null_fields,
     connect_s3,
     construct_annotated_doc,
     convert_bucket_name_if_s3prefix,
@@ -786,3 +787,14 @@ def test_find_latest_revision_pages(
         mock_from_orm.assert_called_once_with(annotated_doc)
         mock_mark.assert_called_once()
         assert actual_pages == expected_pages
+
+
+def test_check_null_fields(annotation_doc_for_save: DocForSaveSchema):
+    annotation_doc_for_save.pages = None
+    annotation_doc_for_save.validated = None
+    annotation_doc_for_save.failed_validation_pages = None
+
+    check_null_fields(annotation_doc_for_save)
+    assert annotation_doc_for_save.pages == []
+    assert annotation_doc_for_save.validated == set()
+    assert annotation_doc_for_save.failed_validation_pages == set()
