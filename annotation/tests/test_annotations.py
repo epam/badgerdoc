@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from tests.override_app_dependency import TEST_TENANT
 
 from annotation.annotations.main import (
+    LATEST,
     MANIFEST,
     S3_START_PATH,
     DuplicateAnnotationError,
@@ -19,10 +20,12 @@ from annotation.annotations.main import (
     LoadedPage,
     NotConfiguredException,
     PageRevision,
+    accumulate_pages_info,
     check_if_kafka_message_is_needed,
     check_null_fields,
     connect_s3,
     construct_annotated_doc,
+    construct_document_links,
     construct_particular_rev_response,
     convert_bucket_name_if_s3prefix,
     create_manifest_json,
@@ -41,12 +44,20 @@ from annotation.annotations.main import (
     upload_json_to_minio,
     upload_pages_to_minio,
 )
-from annotation.models import AnnotatedDoc, Category, File, Job, User
+from annotation.models import (
+    AnnotatedDoc,
+    Category,
+    DocumentLinks,
+    File,
+    Job,
+    User,
+)
 from annotation.schemas.annotations import (
     AnnotatedDocSchema,
     DocForSaveSchema,
     PageSchema,
     ParticularRevisionSchema,
+    RevisionLink,
 )
 from annotation.schemas.categories import CategoryTypeSchema
 from annotation.schemas.jobs import JobTypeEnumSchema, ValidationSchema
@@ -1123,3 +1134,107 @@ def test_check_null_fields(annotation_doc_for_save: DocForSaveSchema):
     assert annotation_doc_for_save.pages == []
     assert annotation_doc_for_save.validated == set()
     assert annotation_doc_for_save.failed_validation_pages == set()
+
+
+@pytest.mark.parametrize("stop_revision", ("not found", None))
+def test_accumulate_pages_info_stop_rev_none(
+    stop_revision: Optional[str], annotated_doc: AnnotatedDoc
+):
+    valid, fail, annot, not_proc, categ, required_rev = accumulate_pages_info(
+        task_pages=[1, 2, 3],
+        revisions=[annotated_doc],
+        stop_revision=stop_revision,
+        specific_pages=False,
+        with_page_hash=False,
+        unique_status=False,
+    )
+    assert valid == {1}
+    assert fail == set()
+    assert annot == set()
+    assert not_proc == {2, 3}
+    assert categ == annotated_doc.categories
+    assert required_rev is None
+
+
+@pytest.mark.parametrize(
+    "stop_revision", (LATEST, "20fe52cce6a632c6eb09fdc5b3e1594f926eea69")
+)
+def test_accumulate_pages_info_stop_rev_not_none(
+    stop_revision: str, annotated_doc: AnnotatedDoc
+):
+    valid, fail, annot, not_proc, categ, required_rev = accumulate_pages_info(
+        task_pages=[1, 2, 3],
+        revisions=[annotated_doc],
+        stop_revision=stop_revision,
+        specific_pages=False,
+        with_page_hash=False,
+        unique_status=False,
+    )
+    assert valid == {1}
+    assert fail == set()
+    assert annot == set()
+    assert not_proc == {2, 3}
+    assert categ == annotated_doc.categories
+    assert required_rev == annotated_doc
+
+
+def test_accumulate_pages_info_specific_pages_hash(
+    annotated_doc: AnnotatedDoc,
+):
+    annotated_doc.pages["2"] = "sha2"
+    valid, fail, annot, not_proc, categ, required_rev = accumulate_pages_info(
+        task_pages=[1, 2, 3],
+        revisions=[annotated_doc],
+        stop_revision=None,
+        specific_pages={2},
+        with_page_hash=True,
+        unique_status=False,
+    )
+    assert valid == set()
+    assert fail == set()
+    assert annot == {"2": "sha2"}
+    assert not_proc == {1, 2, 3}
+    assert categ == annotated_doc.categories
+    assert required_rev is None
+
+
+def test_accumulate_pages_info_unique_status(annotated_doc: AnnotatedDoc):
+    annotated_doc.pages["2"] = "sha2"
+    annotated_doc.validated.append(2)
+
+    valid, fail, annot, not_proc, categ, required_rev = accumulate_pages_info(
+        task_pages=[1, 2, 3],
+        revisions=[annotated_doc],
+        stop_revision=None,
+        specific_pages=None,
+        with_page_hash=False,
+        unique_status=True,
+    )
+    assert valid == {1, 2}
+    assert fail == set()
+    assert annot == set()
+    assert not_proc == {3}
+    assert categ == annotated_doc.categories
+    assert required_rev is None
+
+
+def test_construct_document_links(annotated_doc: AnnotatedDoc):
+    rev_link = RevisionLink(
+        revision=annotated_doc.revision,
+        job_id=annotated_doc.job_id,
+        file_id=annotated_doc.file_id,
+        label="similar",
+    )
+    expected_links = [
+        DocumentLinks(
+            original_revision=annotated_doc.revision,
+            original_file_id=annotated_doc.file_id,
+            original_job_id=annotated_doc.job_id,
+            similar_revision=rev_link.revision,
+            similar_file_id=rev_link.file_id,
+            similar_job_id=rev_link.job_id,
+            label=rev_link.label,
+        )
+    ]
+    links = construct_document_links(annotated_doc, [rev_link])
+    assert links == expected_links
