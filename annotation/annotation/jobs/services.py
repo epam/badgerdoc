@@ -452,6 +452,11 @@ def create_user(db: Session, user_id: UUID):
     return user
 
 
+# TODO .dict method converts JobInfoSchema values to
+# sets and they need to be list
+# TODO Job constructor needs references to User object instead of UUID
+# for fields annotators, validators, owners
+# TODO same thing for fields files, categories and tasks
 def create_job(db: Session, job_info: JobInfoSchema):
     job_info = Job(**job_info.dict())
     db.add(job_info)
