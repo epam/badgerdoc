@@ -21,6 +21,9 @@ importlib-resources = "*"
 requests = "*"
 epam-indigo = "^1.18.0"
 badgerdoc-storage = { path = "../lib/badgerdoc_storage" }
+pymupdf = "^1.24.9"
+pdfplumber = "^0.11.4"
+pymupdf-fonts = "^1.0.5"
 
 [tool.poetry.dev-dependencies]
 pre-commit = "*"
