@@ -51,7 +51,7 @@ from annotation.schemas import (
 
 
 @pytest.fixture
-def mock_session(
+def mock_db(
     tasks_for_test_redistribute: Tuple[ManualAnnotationTask, ...]
 ):
     mock_db = Mock(spec=Session, flush=Mock(), rollback=Mock())
@@ -1748,7 +1748,7 @@ def test_create_tasks(
 
 
 def test_distribute_main_script(
-    mock_session: Mock,
+    mock_db: Mock,
     users_for_test_distribute: Mock,
     tasks_for_test_distribute: Mock,
 ):
@@ -1765,7 +1765,7 @@ def test_distribute_main_script(
     ):
         assert (
             distribute(
-                mock_session,
+                mock_db,
                 [{"file_id": 0, "pages_number": 6}],
                 [],
                 [users_for_test_distribute[2]],
@@ -1780,7 +1780,7 @@ def test_distribute_main_script(
 
 
 def test_distribute_job_validators(
-    mock_session: Mock,
+    mock_db: Mock,
     users_for_test_distribute: Mock,
     tasks_for_test_distribute: Mock,
 ):
@@ -1797,7 +1797,7 @@ def test_distribute_job_validators(
     ):
         assert (
             distribute(
-                mock_session,
+                mock_db,
                 [{"file_id": 0, "pages_number": 6}],
                 [users_for_test_distribute[1]],
                 [users_for_test_distribute[2]],
@@ -1812,7 +1812,7 @@ def test_distribute_job_validators(
 
 
 def test_distribute_extensive_coverage(
-    mock_session: Mock,
+    mock_db: Mock,
     users_for_test_distribute: Mock,
     tasks_for_test_distribute: Mock,
 ):
@@ -1828,7 +1828,7 @@ def test_distribute_extensive_coverage(
     ):
         assert (
             distribute(
-                mock_session,
+                mock_db,
                 [{"file_id": 0, "pages_number": 6}],
                 [users_for_test_distribute[1]],
                 [],
@@ -1860,7 +1860,7 @@ def test_distribute_extensive_coverage(
 )
 def test_redistribute(
     tasks_for_test_redistribute: Mock,
-    mock_session: Mock,
+    mock_db: Mock,
     patch_redistribute_dependencies: Mock,
     job_files: List[File],
     job_status: JobStatusEnumSchema,
@@ -1884,17 +1884,17 @@ def test_redistribute(
     ) as mock_delete_tasks, patch(
         "annotation.distribution.main.update_job_status",
     ):
-        redistribute(mock_session, "dummy_token", "x_tenant", job)
+        redistribute(mock_db, "dummy_token", "x_tenant", job)
         if job.status == "in_progress":
             mock_set_task_statuses.assert_called_once_with(
                 job, tasks_for_test_redistribute
             )
-        mock_delete_tasks.assert_called_once_with(mock_session, set())
+        mock_delete_tasks.assert_called_once_with(mock_db, set())
 
 
 def test_redistribute_error(
     tasks_for_test_redistribute: Mock,
-    mock_session: Mock,
+    mock_db: Mock,
     patch_redistribute_dependencies: Mock,
 ):
     job_id = 0
@@ -1917,7 +1917,7 @@ def test_redistribute_error(
         "annotation.distribution.main.update_job_status",
         side_effect=JobUpdateException("Connection timeout"),
     ) as mock_update_job_status, pytest.raises(HTTPException) as exc_info:
-        redistribute(mock_session, "dummy_token", "x_tenant", job)
+        redistribute(mock_db, "dummy_token", "x_tenant", job)
     mock_update_job_status.assert_called_once_with(
         job.callback_url,
         JobStatusEnumSchema.finished,
