@@ -1890,7 +1890,9 @@ def test_redistribute_error(
         mock_set_task_statuses,
     ) = patch_redistribute_dependencies
 
-    with patch("annotation.distribution.main.delete_tasks",), patch(
+    with patch(
+        "annotation.distribution.main.delete_tasks",
+    ), patch(
         "annotation.distribution.main.update_job_status",
         side_effect=JobUpdateException("Connection timeout"),
     ) as mock_update_job_status, pytest.raises(HTTPException) as exc_info:
