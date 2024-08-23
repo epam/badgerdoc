@@ -1,15 +1,15 @@
 _DOCKER_ ?= docker
 
 # Build all microservices
-build_all:  build_base build_base_3.12 build_annotation build_users build_convert build_jobs build_keycloak build_assets build_web  build_processing build_taxonomy clean
+build_all:  build_base build_base_3.12 build_annotation build_users build_jobs build_keycloak build_assets build_web  build_processing build_taxonomy clean
 
 # Build only BadgerDoc microservices
-build_badgerdoc: build_base build_base_3.12 build_annotation build_users build_convert build_jobs build_assets build_web  build_processing build_taxonomy clean
+build_badgerdoc: build_base build_base_3.12 build_annotation build_users build_jobs build_assets build_web  build_processing build_taxonomy clean
 
-build_base: 
+build_base:
 	mkdir -p build_dir
 	cp -r lib/ build_dir/lib
-	cp infra/docker/python_base/Dockerfile build_dir 
+	cp infra/docker/python_base/Dockerfile build_dir
 	${_DOCKER_} build --target base build_dir/ -t 818863528939.dkr.ecr.eu-central-1.amazonaws.com/badgerdoc/python_base:0.1.8
 
 build_base_3.12:
@@ -30,9 +30,6 @@ build_annotation:
 build_users:
 	${_DOCKER_} build --target build users/ -t badgerdoc_users
 
-build_convert:
-	${_DOCKER_} build --target build convert/ -t badgerdoc_convert
-
 build_processing:
 	${_DOCKER_} build --target build processing/ -t badgerdoc_processing
 
@@ -50,3 +47,4 @@ build_taxonomy:
 
 clean:
 	rm -rf build_dir
+	rm -rf build_dir_3.12
