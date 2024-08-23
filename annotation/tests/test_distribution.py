@@ -552,6 +552,69 @@ def test_distribute_annotation_whole_files(
     assert annotation_tasks == expected_whole_files_tasks
 
 
+def test_distribute_whole_files_pages_number():
+    assert (
+        distribute_whole_files(
+            {},
+            [],
+            [{"user_id": 0, "pages_number": 0}],
+            0,
+            False,
+            TaskStatusEnumSchema.pending,
+        )
+        == []
+    )
+
+
+def test_distribute_whole_files_user_page_correction():
+    file_list = [
+        {"file_id": 1, "pages": 5, "pages_number": 5},
+    ]
+    user_list = [
+        {"user_id": 0, "pages_number": 1},
+        {"user_id": 1, "pages_number": 1},
+        {"user_id": 2, "pages_number": 1},
+    ]
+    with patch(
+        "annotation.distribution.main.find_small_files",
+        return_value=(file_list, 5),
+    ):
+        assert distribute_whole_files(
+            {}, [], user_list, 0, False, TaskStatusEnumSchema.pending
+        ) == [
+            {
+                "deadline": None,
+                "file_id": 1,
+                "is_validation": False,
+                "job_id": 0,
+                "pages": [1, 2, 3, 4, 5],
+                "status": TaskStatusEnumSchema.pending,
+                "user_id": 0,
+            },
+        ]
+
+
+def test_distribute_whole_files_break():
+    file_list = [
+        {"file_id": 1, "pages": 5, "pages_number": 5},
+    ]
+    user_list = [
+        {"user_id": 0, "pages_number": 10},
+    ]
+    with patch(
+        "annotation.distribution.main.find_small_files",
+        return_value=(file_list, 15),
+    ), patch("annotation.distribution.main.create_tasks"), patch(
+        "annotation.distribution.main.find_equal_files",
+    ):
+        assert (
+            distribute_whole_files(
+                {}, [], user_list, 0, False, TaskStatusEnumSchema.pending
+            )
+            == []
+        )
+
+
 ANNOTATOR_PARTIAL = [
     {
         "user_id": "405ef0e2-b53e-4c18-bf08-c0871615d99d",
