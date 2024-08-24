@@ -180,7 +180,6 @@ def setup_data():
             {"id": 2, "name": "Object B", "value": "Another Value"},
         ]
     }
-
     all_tasks = {
         1: [
             ({"name": "Object A", "value": "Some Value"}, "1"),
