@@ -746,7 +746,7 @@ def test_filter_tasks_db_no_files_or_jobs(
         "expected_links",
         "expected_children",
     ),
-    (
+    [
         (
             (1, 2),
             {
@@ -765,7 +765,7 @@ def test_filter_tasks_db_no_files_or_jobs(
             [[]],
         ),
         ((), {}, {}, [], []),
-    ),
+    ],
 )
 def test_get_links_and_children(
     common_objs_ids: Tuple[int],
@@ -775,8 +775,8 @@ def test_get_links_and_children(
     expected_children: List[List[int]],
 ):
     with patch("annotation.tasks.services.get_new_id") as mock_get_new_id:
-        mock_get_new_id.side_effect = (
-            lambda old_id, _: old_id if old_id in [2, 3] else None
+        mock_get_new_id.side_effect = lambda old_id, _: (
+            old_id if old_id in [2, 3] else None
         )
         result_links, result_children = services.get_links_and_children(
             common_objs_ids, all_tasks_objs, id_mapping
@@ -787,7 +787,7 @@ def test_get_links_and_children(
 
 @pytest.mark.parametrize(
     ("items", "expected"),
-    (
+    [
         (
             [
                 [{"a": 1, "b": 2, "c": 3}, {"d": 4}, {"e": 5}],
@@ -811,7 +811,7 @@ def test_get_links_and_children(
             [{"a": 1}, {"b": 2}],
         ),
         ([], []),
-    ),
+    ],
 )
 def test_get_common_values(
     items: List[List[Optional[Dict[str, int]]]],
@@ -830,7 +830,7 @@ def test_get_common_values(
         "expected_id",
         "expected_children",
     ),
-    (
+    [
         (
             {
                 "task1": {"objects": [{"id": 1}, {"id": 2}]},
@@ -871,7 +871,7 @@ def test_get_common_values(
             [3, 1],
             [101],
         ),
-    ),
+    ],
 )
 def test_change_ids(
     all_tasks_objs: Dict[str, Any],
