@@ -9,10 +9,6 @@ import pytest
 from fastapi import HTTPException
 from tenant_dependency import TenantData
 
-from annotation.annotation.schemas.annotations import (
-    PageSchema,
-    ParticularRevisionSchema,
-)
 from annotation.errors import FieldConstraintError
 from annotation.filters import TaskFilter
 from annotation.models import (
@@ -21,6 +17,7 @@ from annotation.models import (
     File,
     ManualAnnotationTask,
 )
+from annotation.schemas.annotations import PageSchema, ParticularRevisionSchema
 from annotation.schemas.jobs import ValidationSchema
 from annotation.schemas.tasks import (
     AgreementScoreServiceResponse,
