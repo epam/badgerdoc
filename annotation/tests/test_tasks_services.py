@@ -246,40 +246,32 @@ def test_validate_task_info(
         mock_validate_files_info.assert_called_once_with(None, task_info)
 
 
-def test_validate_task_info_invalid_task_info():
-    with patch("sqlalchemy.orm.Session", spec=True) as mock_session:
-        db_session = mock_session()
-        task_info = {"is_validation": False}
-        validation_type = ValidationSchema.validation_only
+def test_validate_task_info_invalid_task_info(mock_session: Mock):
+    task_info = {"is_validation": False}
+    validation_type = ValidationSchema.validation_only
 
-        with pytest.raises(FieldConstraintError):
-            services.validate_task_info(db_session, task_info, validation_type)
+    with pytest.raises(FieldConstraintError):
+        services.validate_task_info(mock_session, task_info, validation_type)
 
 
 @pytest.mark.parametrize("is_validation", (True, False))
-def test_validate_users_info(is_validation: bool):
-    with patch("sqlalchemy.orm.Session", spec=True) as mock_session:
-        db_session = mock_session()
-        task_info = {
-            "is_validation": is_validation,
-            "user_id": 1,
-            "job_id": 2,
-        }
-
-        db_session.query().filter_by().first().return_value = True
-
-        services.validate_users_info(
-            db_session, task_info, ValidationSchema.validation_only
-        )
-
-        assert db_session.query.call_count == 2
+def test_validate_users_info(mock_session: Mock, is_validation: bool):
+    task_info = {
+        "is_validation": is_validation,
+        "user_id": 1,
+        "job_id": 2,
+    }
+    mock_session.query().filter_by().first().return_value = True
+    services.validate_users_info(
+        mock_session, task_info, ValidationSchema.validation_only
+    )
+    assert mock_session.query.call_count == 2
 
 
-def test_validate_users_info_cross_validation():
-    with patch("sqlalchemy.orm.Session", spec=True) as mock_session, patch(
+def test_validate_users_info_cross_validation(mock_session: Mock):
+    with patch(
         "annotation.tasks.services.check_cross_annotating_pages"
     ) as mock_func:
-        db_session = mock_session()
         task_info = {
             "is_validation": True,
             "user_id": 1,
@@ -287,9 +279,9 @@ def test_validate_users_info_cross_validation():
         }
 
         services.validate_users_info(
-            db_session, task_info, ValidationSchema.cross
+            mock_session, task_info, ValidationSchema.cross
         )
-        mock_func.assert_called_once_with(db_session, task_info)
+        mock_func.assert_called_once_with(mock_session, task_info)
 
 
 @pytest.mark.parametrize(
@@ -297,115 +289,96 @@ def test_validate_users_info_cross_validation():
     ((True, "validator"), (False, "annotator")),
 )
 def test_validate_users_info_invalid_users_info(
+    mock_session: Mock,
     is_validation: bool,
     validator_or_annotator: str,
 ):
-    with patch("sqlalchemy.orm.Session", spec=True) as mock_session:
-        db_session = mock_session()
-        task_info = {
-            "is_validation": is_validation,
-            "user_id": 1,
-            "job_id": 2,
-        }
-        db_session.query().filter_by().first.return_value = None
-
-        expected_error_message = (
-            f"user 1 is not assigned as {validator_or_annotator} for job 2"
+    task_info = {
+        "is_validation": is_validation,
+        "user_id": 1,
+        "job_id": 2,
+    }
+    mock_session.query().filter_by().first.return_value = None
+    expected_error_message = (
+        f"user 1 is not assigned as {validator_or_annotator} for job 2"
+    )
+    with pytest.raises(FieldConstraintError, match=expected_error_message):
+        services.validate_users_info(
+            mock_session, task_info, ValidationSchema.validation_only
         )
 
-        with pytest.raises(FieldConstraintError, match=expected_error_message):
-            services.validate_users_info(
-                db_session, task_info, ValidationSchema.validation_only
-            )
+
+def test_validate_files_info(mock_session: Mock):
+    task_info = {
+        "file_id": 1,
+        "job_id": 2,
+        "pages": [1, 2, 3],
+    }
+    mock_file = Mock(spec=File)
+    mock_file.pages_number = 3
+    mock_query = mock_session.query.return_value
+    mock_query.filter_by.return_value.first.return_value = mock_file
+    services.validate_files_info(mock_session, task_info)
+    assert mock_session.query.call_count == 1
+    mock_session.query.assert_has_calls((call(File),))
+    mock_query.filter_by.assert_called_once_with(file_id=1, job_id=2)
 
 
-def test_validate_files_info():
-    with patch("sqlalchemy.orm.Session", spec=True) as mock_session:
-        db_session = mock_session()
-        task_info = {
-            "file_id": 1,
-            "job_id": 2,
-            "pages": [1, 2, 3],
-        }
-
-        mock_file = Mock(spec=File)
-        mock_file.pages_number = 3
-
-        mock_query = db_session.query.return_value
-        mock_query.filter_by.return_value.first.return_value = mock_file
-
-        services.validate_files_info(db_session, task_info)
-
-        assert db_session.query.call_count == 1
-        db_session.query.assert_has_calls((call(File),))
-        mock_query.filter_by.assert_called_once_with(file_id=1, job_id=2)
+def test_validate_files_info_invalid_page_numbers(mock_session: Mock):
+    task_info = {
+        "file_id": 1,
+        "job_id": 2,
+        "pages": [1, 2, 4],
+    }
+    mock_file = Mock(spec=File, pages_number=3)
+    mock_session.query().filter_by().first.return_value = mock_file
+    expected_error_message_regex = r"pages \(\{4\}\) do not belong to file"
+    with pytest.raises(
+        FieldConstraintError, match=expected_error_message_regex
+    ):
+        services.validate_files_info(mock_session, task_info)
 
 
-def test_validate_files_info_invalid_page_numbers():
-    with patch("sqlalchemy.orm.Session", spec=True) as mock_session:
-        db_session = mock_session()
-        task_info = {
-            "file_id": 1,
-            "job_id": 2,
-            "pages": [1, 2, 4],
-        }
-        mock_file = Mock(spec=File, pages_number=3)
-        db_session.query().filter_by().first.return_value = mock_file
-        expected_error_message_regex = r"pages \(\{4\}\) do not belong to file"
-        with pytest.raises(
-            FieldConstraintError, match=expected_error_message_regex
-        ):
-            services.validate_files_info(db_session, task_info)
+def test_validate_files_info_missing_file(mock_session: Mock):
+    task_info = {
+        "file_id": 1,
+        "job_id": 2,
+        "pages": [1, 2, 3],
+    }
+    mock_session.query().filter_by().first.return_value = None
+
+    expected_error_message_regex = r"file with id 1 is not assigned for job 2"
+    with pytest.raises(
+        FieldConstraintError, match=expected_error_message_regex
+    ):
+        services.validate_files_info(mock_session, task_info)
 
 
-def test_validate_files_info_missing_file():
-    with patch("sqlalchemy.orm.Session", spec=True) as mock_session:
-        db_session = mock_session()
-        task_info = {
-            "file_id": 1,
-            "job_id": 2,
-            "pages": [1, 2, 3],
-        }
-        db_session.query().filter_by().first.return_value = None
+def test_check_cross_annotating_pages(mock_session: Mock):
+    task_info = {"user_id": 1, "file_id": 2, "job_id": 3, "pages": {4, 5}}
+    existing_pages = []
 
-        expected_error_message_regex = (
-            r"file with id 1 is not assigned for job 2"
-        )
-        with pytest.raises(
-            FieldConstraintError, match=expected_error_message_regex
-        ):
-            services.validate_files_info(db_session, task_info)
+    mock_query = mock_session.query.return_value
+    mock_query.filter.return_value.all.return_value = [(existing_pages,)]
+
+    services.check_cross_annotating_pages(mock_session, task_info)
+
+    assert mock_session.query.call_count == 1
+    mock_session.query.assert_has_calls((call(ManualAnnotationTask.pages),))
+    mock_query.filter.assert_called_once()
 
 
-def test_check_cross_annotating_pages():
-    with patch("sqlalchemy.orm.Session", spec=True) as mock_session:
-        db_session = mock_session()
-        task_info = {"user_id": 1, "file_id": 2, "job_id": 3, "pages": {4, 5}}
-        existing_pages = []
-
-        mock_query = db_session.query.return_value
-        mock_query.filter.return_value.all.return_value = [(existing_pages,)]
-
-        services.check_cross_annotating_pages(db_session, task_info)
-
-        assert db_session.query.call_count == 1
-        db_session.query.assert_has_calls((call(ManualAnnotationTask.pages),))
-        mock_query.filter.assert_called_once()
-
-
-def test_check_cross_annotating_pages_page_already_annotated():
-    with patch("sqlalchemy.orm.Session", spec=True) as mock_session:
-        db_session = mock_session()
-        task_info = {"user_id": 1, "file_id": 2, "job_id": 3, "pages": {4, 5}}
-        existing_pages = [4, 5]
-
-        mock_query = db_session.query.return_value
-        mock_query.filter.return_value.all.return_value = [(existing_pages,)]
-
-        with pytest.raises(
-            FieldConstraintError, match=".*tasks for this user: {4, 5}.*"
-        ):
-            services.check_cross_annotating_pages(db_session, task_info)
+def test_check_cross_annotating_pages_page_already_annotated(
+    mock_session: Mock,
+):
+    task_info = {"user_id": 1, "file_id": 2, "job_id": 3, "pages": {4, 5}}
+    existing_pages = [4, 5]
+    mock_query = mock_session.query.return_value
+    mock_query.filter.return_value.all.return_value = [(existing_pages,)]
+    with pytest.raises(
+        FieldConstraintError, match=".*tasks for this user: {4, 5}.*"
+    ):
+        services.check_cross_annotating_pages(mock_session, task_info)
 
 
 @pytest.mark.parametrize(
@@ -530,7 +503,6 @@ def test_read_annotation_tasks_with_file_and_job_ids(mock_session: Mock):
     mock_query.limit.return_value.offset.return_value.all.return_value = [
         "task1"
     ]
-
     total_objects, annotation_tasks = services.read_annotation_tasks(
         db=mock_session,
         search_params={"file_ids": [1, 2], "job_ids": [3]},
@@ -538,10 +510,8 @@ def test_read_annotation_tasks_with_file_and_job_ids(mock_session: Mock):
         pagination_start_page=1,
         tenant="example_tenant",
     )
-
     assert total_objects == 1
     assert annotation_tasks == ["task1"]
-
     mock_query.filter_by.assert_called_once()
     mock_query.limit.assert_called_once_with(10)
 
