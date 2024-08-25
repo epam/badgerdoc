@@ -282,7 +282,7 @@ def read_annotation_tasks(
 
 
 def validate_ids_and_names(
-    search_id: int,
+    search_id: Optional[int],
     search_name: Optional[str],
     ids_with_names: Dict[int, str],
 ) -> Tuple[List[int], Dict[int, str]]:
@@ -770,12 +770,12 @@ def evaluate_agreement_score(
         )
         for task_in in tasks_intersection_pages
     ]
-    agreement_scores: List[AgreementScoreServiceResponse] = (
-        get_agreement_score(
-            agreement_scores_input=agreement_scores_input,
-            tenant=tenant,
-            token=token.token,
-        )
+    agreement_scores: List[
+        AgreementScoreServiceResponse
+    ] = get_agreement_score(
+        agreement_scores_input=agreement_scores_input,
+        tenant=tenant,
+        token=token.token,
     )
     compared_score: AgreementScoreComparingResult = compare_agreement_scores(
         agreement_scores, AGREEMENT_SCORE_MIN_MATCH
@@ -1206,6 +1206,7 @@ def construct_annotated_pages(
                     *(task_data["categories"] for task_data in tasks.values())
                 )
                 for tasks in tasks_annotations.values()
+                if tasks
             )
         )
         if tasks_annotations
