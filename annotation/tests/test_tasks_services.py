@@ -2,7 +2,7 @@ import re
 import uuid
 from copy import deepcopy
 from datetime import datetime
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Set, Tuple, Union
 from unittest.mock import MagicMock, Mock, call, patch
 from uuid import uuid4
 
@@ -19,6 +19,7 @@ from annotation.models import (
     File,
     ManualAnnotationTask,
 )
+from annotation.schemas.annotations import PageSchema
 from annotation.schemas.tasks import (
     AgreementScoreServiceResponse,
     ManualAnnotationTaskInSchema,
@@ -63,23 +64,12 @@ def mock_task():
 def mock_stats(
     mock_task: ManualAnnotationTask, mock_metric: ManualAnnotationTask
 ):
-    stat1 = AnnotatedDoc()
-    stat1.task = mock_task
-    stat1.task_id = 1
-    stat1.created = datetime(2024, 1, 1, 12, 0, 0)
-    stat1.updated = datetime(2024, 1, 2, 12, 0, 0)
-
-    stat2 = AnnotatedDoc()
-    stat2.task = mock_task
-    stat2.task_id = 2
-    stat2.created = datetime(2024, 1, 3, 12, 0, 0)
-    stat2.updated = datetime(2024, 1, 4, 12, 0, 0)
-
-    stat3 = AnnotatedDoc()
-    stat3.task = mock_task
-    stat3.task_id = 3
-    stat3.created = datetime(2024, 1, 5, 12, 0, 0)
-    stat3.updated = datetime(2024, 1, 6, 12, 0, 0)
+    stat1 = AnnotatedDoc(tasks=mock_task, task_id=1)
+    stat2 = AnnotatedDoc(tasks=mock_task, task_id=2)
+    stat3 = AnnotatedDoc(
+        tasks=mock_task,
+        task_id=3,
+    )
     stat3.task.status = TaskStatusEnumSchema.finished
     yield [stat1, stat2, stat3]
 
@@ -196,30 +186,77 @@ def mock_session():
 
 
 @pytest.fixture
-def mock_validation_revisions():
+def mock_get_file_path_and_bucket():
     with patch(
         "annotation.tasks.services.get_file_path_and_bucket",
         return_value=("s3/path", "bucket"),
-    ) as mock_get_file_path_and_bucket, patch(
+    ) as mock:
+        yield mock
+
+
+@pytest.fixture
+def mock_get_annotation_tasks():
+    with patch(
         "annotation.tasks.services.get_annotation_tasks", return_value={}
-    ) as mock_get_annotation_tasks, patch(
-        "annotation.tasks.services.construct_annotated_pages",
-        return_value=([], set()),
-    ) as mock_construct_annotated_pages, patch(
+    ) as mock:
+        yield mock
+
+
+@pytest.fixture
+def mock_construct_annotated_pages():
+    yield PageSchema(
+        page_num=10,
+        size={"width": 10.2, "height": 123.34},
+        objs=[
+            {
+                "id": 2,
+                "type": "string",
+                "original_annotation_id": "int",
+                "segmentation": {"segment": "string"},
+                "bbox": [10.2, 123.34, 34.2, 43.4],
+                "tokens": None,
+                "links": [{"category_id": "1", "to": 2, "page_num": 2}],
+                "text": "text in object",
+                "category": "3",
+                "data": "string",
+                "children": [1, 2, 3],
+            },
+            {
+                "id": 3,
+                "type": "string",
+                "segmentation": {"segment": "string"},
+                "bbox": None,
+                "tokens": ["token-string1", "token-string2", "token-string3"],
+                "links": [{"category_id": "1", "to": 2, "page_num": 3}],
+                "text": "text in object",
+                "category": "3",
+                "data": "string",
+                "children": [1, 2, 3],
+            },
+        ],
+    )
+
+
+@pytest.fixture
+def mock_construct_annotated_doc():
+    with patch(
         "annotation.tasks.services.construct_annotated_doc", return_value=None
-    ) as mock_construct_annotated_doc, patch(
+    ) as mock:
+        yield mock
+
+
+@pytest.fixture
+def mock_update_task_status():
+    with patch(
         "annotation.tasks.services.update_task_status", return_value=None
-    ) as mock_update_task_status, patch(
-        "annotation.tasks.services.Logger.exception", return_value=None
-    ) as mock_logger_exception:
-        yield {
-            "mock_get_file_path_and_bucket": mock_get_file_path_and_bucket,
-            "mock_get_annotation_tasks": mock_get_annotation_tasks,
-            "mock_construct_annotated_pages": mock_construct_annotated_pages,
-            "mock_construct_annotated_doc": mock_construct_annotated_doc,
-            "mock_update_task_status": mock_update_task_status,
-            "mock_logger_exception": mock_logger_exception,
-        }
+    ) as mock:
+        yield mock
+
+
+@pytest.fixture
+def mock_logger_exception():
+    with patch("annotation.tasks.services.Logger.exception") as mock:
+        yield mock
 
 
 @pytest.mark.parametrize(
@@ -497,13 +534,11 @@ def test_create_annotation_task(mock_session: Mock):
                 deadline=None,
             ),
         )
-
         assert result.file_id == 1
         assert result.pages == {1, 2}
         assert result.job_id == 2
         assert result.is_validation is True
         assert result.deadline is None
-
         assert mock_session.add.call_count == 1
         mock_session.commit.assert_called_once()
 
@@ -524,10 +559,8 @@ def test_read_annotation_tasks_with_file_and_job_ids(mock_session: Mock):
         pagination_start_page=1,
         tenant="example_tenant",
     )
-
     assert total_objects == 1
     assert annotation_tasks == ["task1"]
-
     mock_query.filter_by.assert_called_once()
     mock_query.limit.assert_called_once_with(10)
 
@@ -585,9 +618,7 @@ def test_remove_additional_filters_with_standard_filters():
     }
     expected_filters = deepcopy(filter_args)
     expected_additional_filters = {}
-
     result = services.remove_additional_filters(filter_args)
-
     assert filter_args == expected_filters
     assert result == expected_additional_filters
 
@@ -615,18 +646,14 @@ def test_remove_additional_filters_with_additional_fields():
 
 def test_read_annotation_task(mock_session: Mock):
     expected_result = "task1"
-
     mock_query = MagicMock()
     mock_filter = MagicMock()
-
     mock_session.query.return_value = mock_query
     mock_query.filter.return_value = mock_filter
     mock_filter.first.return_value = expected_result
-
     result = services.read_annotation_task(
         mock_session, task_id=1, tenant="tenant_1"
     )
-
     assert result == expected_result
     mock_session.query.assert_called_once_with(ManualAnnotationTask)
     mock_query.filter.assert_called_once()
@@ -666,9 +693,7 @@ def test_filter_tasks_db_no_additional_filters(mock_session: Mock):
         mock_get_jobs_by_name.return_value = {}
         mock_form_query.return_value = (MagicMock(), MagicMock())
         mock_paginate.return_value = []
-
         result = services.filter_tasks_db(mock_session, request, tenant, token)
-
         assert result == ([], {}, {})
 
 
@@ -769,9 +794,9 @@ def test_filter_tasks_db_no_files_or_jobs(
 )
 def test_create_tasks(
     mock_session: Mock,
-    tasks: Dict[str, Union[int, set]],
+    tasks: List[Dict[str, Union[Set[int], int]]],
     job_id: int,
-    expected_user_ids: set,
+    expected_user_ids: Set[int],
 ):
     with patch(
         "annotation.tasks.services.update_files"
