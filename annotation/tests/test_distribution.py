@@ -1942,9 +1942,6 @@ def test_create_partial_validation_tasks():
             TaskStatusEnumSchema.pending,
             True,
         )
-
         assert len(validation_tasks) == 2
-        assert validation_tasks[0]["pages"] == list(range(1,51))
+        assert validation_tasks[0]["pages"] == list(range(1, 51))
         assert validation_tasks[1]["pages"] == list(range(51, 81))
-
-
