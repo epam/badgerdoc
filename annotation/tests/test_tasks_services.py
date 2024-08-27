@@ -4,7 +4,6 @@ from copy import deepcopy
 from datetime import datetime
 from typing import Dict, List, Optional, Set, Tuple, Union
 from unittest.mock import MagicMock, Mock, call, patch
-from uuid import uuid4
 
 import pytest
 from fastapi import HTTPException
@@ -22,11 +21,13 @@ from annotation.models import (
 )
 from annotation.schemas.annotations import PageSchema
 from annotation.schemas.tasks import (
+    AgreementScoreComparingResult,
     AgreementScoreServiceResponse,
     AnnotationStatisticsEventEnumSchema,
     AnnotationStatisticsInputSchema,
     ManualAnnotationTaskInSchema,
     ResponseScore,
+    TaskMetric,
     TaskStatusEnumSchema,
 )
 from annotation.tasks import services
@@ -67,11 +68,23 @@ def mock_task():
 def mock_stats(
     mock_task: ManualAnnotationTask, mock_metric: ManualAnnotationTask
 ):
-    stat1 = AnnotatedDoc(tasks=mock_task, task_id=1)
-    stat2 = AnnotatedDoc(tasks=mock_task, task_id=2)
-    stat3 = AnnotatedDoc(
-        tasks=mock_task,
+    stat1 = AnnotationStatistics(
+        task=mock_task,
+        task_id=1,
+        created=datetime.utcnow(),
+        updated=datetime.utcnow(),
+    )
+    stat2 = AnnotationStatistics(
+        task=mock_task,
+        task_id=2,
+        created=datetime.utcnow(),
+        updated=datetime.utcnow(),
+    )
+    stat3 = AnnotationStatistics(
+        task=mock_task,
         task_id=3,
+        created=datetime.utcnow(),
+        updated=datetime.utcnow(),
     )
     stat3.task.status = TaskStatusEnumSchema.finished
     yield [stat1, stat2, stat3]
@@ -311,20 +324,19 @@ def test_validate_users_info(is_validation: bool):
         assert db_session.query.call_count == 2
 
 
-def test_validate_users_info_cross_validation():
-    with patch("sqlalchemy.orm.Session", spec=True) as mock_session, patch(
+def test_validate_users_info_cross_validation(mock_session: Mock):
+    with patch(
         "annotation.tasks.services.check_cross_annotating_pages"
     ) as mock_func:
-        db_session = mock_session()
         task_info = {
             "is_validation": True,
             "user_id": 1,
             "job_id": 2,
         }
         services.validate_users_info(
-            db_session, task_info, ValidationSchema.cross
+            mock_session, task_info, ValidationSchema.cross
         )
-        mock_func.assert_called_once_with(db_session, task_info)
+        mock_func.assert_called_once_with(mock_session, task_info)
 
 
 @pytest.mark.parametrize(
@@ -332,6 +344,7 @@ def test_validate_users_info_cross_validation():
     ((True, "validator"), (False, "annotator")),
 )
 def test_validate_users_info_invalid_users_info(
+    mock_session: Mock,
     is_validation: bool,
     validator_or_annotator: str,
 ):
@@ -529,7 +542,7 @@ def test_create_annotation_task(mock_session: Mock):
                 file_id=1,
                 pages={1, 2},
                 job_id=2,
-                user_id=uuid4(),
+                user_id=uuid.uuid4(),
                 is_validation=True,
                 deadline=None,
             ),
@@ -1025,3 +1038,172 @@ def test_add_task_stats_record_create_new(mock_session: Mock):
         mock_session.add.assert_called_once_with(mock_stats_db)
         mock_session.commit.assert_called_once()
         assert result == mock_stats_db
+
+
+def test_evaluate_agreement_score(
+    mock_session: Mock, mock_task: Mock, mock_tenant_data: Mock
+):
+    with patch(
+        "annotation.tasks.services.get_file_path_and_bucket",
+        return_value=(
+            "mock_s3_file_path",
+            "mock_s3_file_bucket",
+        ),
+    ) as mock_get_file_path_and_bucket, patch(
+        "annotation.tasks.services.get_agreement_score"
+    ) as mock_get_agreement_score, patch(
+        "annotation.tasks.services.compare_agreement_scores",
+        return_value=AgreementScoreComparingResult(
+            agreement_score_reached=False,
+            annotator_id=uuid.uuid4(),
+            job_id=1,
+            task_id=1,
+            agreement_score=[ResponseScore(task_id=1, agreement_score=0.1)],
+            task_metrics=[
+                TaskMetric(task_from_id=1, task_to_id=2, metric_score=0.1)
+            ],
+        ),
+    ) as mock_compare_agreement_scores:
+        mock_agreement_score_response = [
+            AgreementScoreServiceResponse(
+                agreement_score_reached=True,
+                annotator_id=uuid.uuid4(),
+                job_id=1,
+                task_id=1,
+                agreement_score=[
+                    ResponseScore(task_id=1, agreement_score=0.1)
+                ],
+                task_metrics=[
+                    TaskMetric(task_from_id=1, task_to_id=2, metric_score=0.1)
+                ],
+            )
+        ]
+        mock_get_agreement_score.return_value = mock_agreement_score_response
+        mock_session.query().all.return_value = [mock_task]
+        services.evaluate_agreement_score(
+            db=mock_session,
+            task=mock_task,
+            tenant="mock_tenant",
+            token=mock_tenant_data,
+        )
+        mock_get_file_path_and_bucket.assert_called_once_with(
+            mock_task.file_id, "mock_tenant", mock_tenant_data.token
+        )
+        mock_compare_agreement_scores.assert_called_once_with(
+            mock_agreement_score_response, services.AGREEMENT_SCORE_MIN_MATCH
+        )
+        mock_get_agreement_score.assert_called_once_with(
+            agreement_scores_input=[], tenant="mock_tenant", token="mock_token"
+        )
+
+
+def test_get_unique_scores(response_scores):
+    unique_scores = set()
+    task_id = 1
+    services.get_unique_scores(task_id, response_scores, unique_scores)
+    expected_scores = {
+        services._MetricScoreTuple(task_from=1, task_to=2, score=0.9),
+        services._MetricScoreTuple(task_from=1, task_to=3, score=0.7),
+    }
+    assert unique_scores == expected_scores
+
+
+def test_compare_agreement_scores_all_above_min_match(
+    mock_agreement_score_response: Mock,
+    mock_parse_obj_as: Mock,
+    mock_get_unique_scores: Mock,
+    mock_task_metric: Mock,
+    mock_agreement_score_comparing_result: Mock,
+):
+    min_match = 0.8
+    mock_parse_obj_as.return_value = [
+        ResponseScore(task_id=1, agreement_score=0.2)
+    ]
+
+    def task_metric_side_effect(task_from_id, task_to_id, metric_score):
+        mock_task_metric_instance = TaskMetric(
+            task_from_id=task_from_id,
+            task_to_id=task_to_id,
+            metric_score=metric_score,
+        )
+        return mock_task_metric_instance
+
+    mock_task_metric.side_effect = task_metric_side_effect
+    mock_agreement_score_comparing_result.return_value = (
+        AgreementScoreComparingResult(
+            agreement_score_reached=True,
+            task_metrics=[
+                mock_task_metric(1, 2, 0.95),
+                mock_task_metric(1, 3, 0.8),
+                mock_task_metric(2, 3, 0.85),
+            ],
+        )
+    )
+    result = services.compare_agreement_scores(
+        mock_agreement_score_response, min_match
+    )
+    assert result.agreement_score_reached
+
+
+def test_compare_agreement_scores_some_below_min_match(
+    mock_agreement_score_response: Mock,
+    mock_parse_obj_as: Mock,
+    mock_get_unique_scores: Mock,
+    mock_task_metric: Mock,
+    mock_agreement_score_comparing_result: Mock,
+):
+    min_match = 0.9
+    mock_parse_obj_as.return_value = [
+        ResponseScore(task_id=1, agreement_score=0.2)
+    ]
+
+    def task_metric_side_effect(task_from_id, task_to_id, metric_score):
+        mock_task_metric_instance = TaskMetric(
+            task_from_id=task_from_id,
+            task_to_id=task_to_id,
+            metric_score=metric_score,
+        )
+        return mock_task_metric_instance
+
+    mock_task_metric.side_effect = task_metric_side_effect
+    mock_agreement_score_comparing_result.return_value = (
+        AgreementScoreComparingResult(
+            agreement_score_reached=False,
+            task_metrics=[mock_task_metric(1, 2, 0.95)],
+        )
+    )
+    result = services.compare_agreement_scores(
+        mock_agreement_score_response, min_match
+    )
+    assert not result.agreement_score_reached
+
+
+def test_compare_agreement_scores_empty_response(
+    mock_parse_obj_as: Mock,
+    mock_get_unique_scores: Mock,
+    mock_task_metric: Mock,
+    mock_agreement_score_comparing_result: Mock,
+):
+    min_match = 0.5
+    mock_parse_obj_as.return_value = []
+    mock_task_metric.return_value = TaskMetric(
+        task_from_id=1, task_to_id=2, metric_score=0.5
+    )
+    mock_agreement_score_comparing_result.return_value = (
+        AgreementScoreComparingResult(
+            agreement_score_reached=False,
+            task_metrics=[],
+        )
+    )
+    result = services.compare_agreement_scores([], min_match)
+    assert not result.agreement_score_reached
+    assert result.task_metrics == []
+
+
+def test_save_agreement_metrics(mock_session: Mock):
+    agreement_score = AgreementScoreComparingResult(
+        agreement_score_reached=True, task_metrics=[]
+    )
+    services.save_agreement_metrics(mock_session, agreement_score)
+    mock_session.bulk_save_objects.assert_called_once_with([])
+    mock_session.commit.assert_called_once()
