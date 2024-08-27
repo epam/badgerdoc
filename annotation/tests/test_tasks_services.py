@@ -20,6 +20,7 @@ from annotation.models import (
     File,
     ManualAnnotationTask,
 )
+from annotation.schemas.annotations import PageSchema
 from annotation.schemas.tasks import (
     AgreementScoreServiceResponse,
     AnnotationStatisticsInputSchema,
@@ -186,30 +187,77 @@ def mock_session():
 
 
 @pytest.fixture
-def mock_validation_revisions():
+def mock_get_file_path_and_bucket():
     with patch(
         "annotation.tasks.services.get_file_path_and_bucket",
         return_value=("s3/path", "bucket"),
-    ) as mock_get_file_path_and_bucket, patch(
+    ) as mock:
+        yield mock
+
+
+@pytest.fixture
+def mock_get_annotation_tasks():
+    with patch(
         "annotation.tasks.services.get_annotation_tasks", return_value={}
-    ) as mock_get_annotation_tasks, patch(
-        "annotation.tasks.services.construct_annotated_pages",
-        return_value=([], set()),
-    ) as mock_construct_annotated_pages, patch(
+    ) as mock:
+        yield mock
+
+
+@pytest.fixture
+def mock_construct_annotated_pages():
+    yield PageSchema(
+        page_num=10,
+        size={"width": 10.2, "height": 123.34},
+        objs=[
+            {
+                "id": 2,
+                "type": "string",
+                "original_annotation_id": "int",
+                "segmentation": {"segment": "string"},
+                "bbox": [10.2, 123.34, 34.2, 43.4],
+                "tokens": None,
+                "links": [{"category_id": "1", "to": 2, "page_num": 2}],
+                "text": "text in object",
+                "category": "3",
+                "data": "string",
+                "children": [1, 2, 3],
+            },
+            {
+                "id": 3,
+                "type": "string",
+                "segmentation": {"segment": "string"},
+                "bbox": None,
+                "tokens": ["token-string1", "token-string2", "token-string3"],
+                "links": [{"category_id": "1", "to": 2, "page_num": 3}],
+                "text": "text in object",
+                "category": "3",
+                "data": "string",
+                "children": [1, 2, 3],
+            },
+        ],
+    )
+
+
+@pytest.fixture
+def mock_construct_annotated_doc():
+    with patch(
         "annotation.tasks.services.construct_annotated_doc", return_value=None
-    ) as mock_construct_annotated_doc, patch(
+    ) as mock:
+        yield mock
+
+
+@pytest.fixture
+def mock_update_task_status():
+    with patch(
         "annotation.tasks.services.update_task_status", return_value=None
-    ) as mock_update_task_status, patch(
-        "annotation.tasks.services.Logger.exception", return_value=None
-    ) as mock_logger_exception:
-        yield {
-            "mock_get_file_path_and_bucket": mock_get_file_path_and_bucket,
-            "mock_get_annotation_tasks": mock_get_annotation_tasks,
-            "mock_construct_annotated_pages": mock_construct_annotated_pages,
-            "mock_construct_annotated_doc": mock_construct_annotated_doc,
-            "mock_update_task_status": mock_update_task_status,
-            "mock_logger_exception": mock_logger_exception,
-        }
+    ) as mock:
+        yield mock
+
+
+@pytest.fixture
+def mock_logger_exception():
+    with patch("annotation.tasks.services.Logger.exception") as mock:
+        yield mock
 
 
 @pytest.mark.parametrize(
