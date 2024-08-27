@@ -25,7 +25,7 @@ import styles from './datasets-table-connector.module.scss';
 type DatasetsTableConnectorProps = {
     onRowClick: (id: number) => void;
     onDatasetSelect?: (dataset: number[]) => void;
-    checkedValues?: number[];
+    checkedValues?: number[] | string[];
 };
 const size = pageSizes._100;
 

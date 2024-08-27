@@ -43,6 +43,7 @@ type EditJobConnectorProps = {
     onRedirectAfterFinish?: () => void;
     files?: number[] | null;
     jobs?: number[] | null;
+    datasets?: number[] | string[];
     checkedFiles?: number[];
     initialJob?: Job;
     showNoExtractionTab?: boolean;
@@ -77,6 +78,7 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
     onRedirectAfterFinish,
     files,
     jobs,
+    datasets,
     initialJob,
     showNoExtractionTab
 }) => {
@@ -237,7 +239,7 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
 
             const jobProps: JobVariables = {
                 name: jobName,
-                datasets: [],
+                datasets: datasets ? datasets : [],
                 files,
                 previous_jobs: jobs,
                 type:

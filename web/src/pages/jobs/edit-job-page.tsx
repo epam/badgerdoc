@@ -25,7 +25,7 @@ export const EditJobPage = () => {
 
     const [files, setFiles] = useState<number[]>([]);
     const [jobs, setJobs] = useState<number[]>([]);
-    const [datasets, setDatasets] = useState<number[]>([]);
+    const [datasets, setDatasets] = useState<number[] | string[]>([]);
     const [stepIndex, setStepIndex] = useState(0);
     const [currentTab, onCurrentTabChange] = useState('Documents');
 
@@ -141,6 +141,7 @@ export const EditJobPage = () => {
                     initialJob={job}
                     files={currentTab === 'Documents' ? files : []}
                     jobs={currentTab === 'Jobs' ? jobs : []}
+                    datasets={currentTab === 'Datasets' ? datasets : []}
                     renderWizardButtons={({ save, lens }) => {
                         return (
                             <>
