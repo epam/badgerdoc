@@ -1,9 +1,8 @@
 import logging
 from typing import Dict, List, Union
 
-import requests
+from aiohttp import ClientError, ClientSession, ClientTimeout
 from dotenv import find_dotenv, load_dotenv
-from requests import RequestException
 
 from annotation.microservice_communication.search import (
     AUTHORIZATION,
@@ -23,49 +22,52 @@ logger = logging.getLogger(__name__)
 
 
 class JobUpdateException(Exception):
-    def __init__(self, exc_info: Union[str, RequestException]):
+    def __init__(self, exc_info: Union[str, ClientError]):
         self.exc_info = exc_info
 
 
-def update_job_status(callback_url: str, status: str, tenant: str, token: str):
-    try:
-        job_response = requests.put(
-            callback_url,
-            headers={
-                HEADER_TENANT: tenant,
-                AUTHORIZATION: f"{BEARER} {token}",
-            },
-            json={
-                "status": status,
-            },
-            timeout=5,
-        )
-        if job_response.status_code != 200:
-            raise JobUpdateException(job_response.text)
-    except RequestException as exc:
-        raise JobUpdateException(exc)
+async def update_job_status(
+    callback_url: str, status: str, tenant: str, token: str
+):
+    headers = {
+        HEADER_TENANT: tenant,
+        AUTHORIZATION: f"{BEARER} {token}",
+    }
+    json_data = {"status": status}
+    timeout = ClientTimeout(total=5)
+    async with ClientSession(timeout=timeout) as session:
+        try:
+            async with session.put(
+                callback_url, headers=headers, json=json_data
+            ) as response:
+                if response.status != 200:
+                    text = await response.text()
+                    raise JobUpdateException(text)
+        except ClientError as exc:
+            raise JobUpdateException(exc)
 
 
-def append_job_categories(
+async def append_job_categories(
     job_id: str, categories: List[str], tenant: str, token: str
-) -> None:
-    logger.info("Append categories %s to job %s", categories, job_id)
-    try:
-        job_response = requests.put(
-            f"{JOBS_SERVICE_HOST}/jobs/{job_id}",
-            headers={
-                HEADER_TENANT: tenant,
-                AUTHORIZATION: f"{BEARER} {token}",
-            },
-            json={
-                "categories_append": categories,
-            },
-            timeout=5,
-        )
-        if job_response.status_code != 200:
-            raise JobUpdateException(job_response.text)
-    except RequestException as exc:
-        raise JobUpdateException(exc)
+):
+    logger.info(f"Append categories {categories} to job {job_id}")
+    url = f"{JOBS_SERVICE_HOST}/jobs/{job_id}"
+    headers = {
+        HEADER_TENANT: tenant,
+        AUTHORIZATION: f"{BEARER} {token}",
+    }
+    json_data = {"categories_append": categories}
+    timeout = ClientTimeout(total=5)
+    async with ClientSession(timeout=timeout) as session:
+        try:
+            async with session.put(
+                url, headers=headers, json=json_data
+            ) as response:
+                if response.status != 200:
+                    text = await response.text()
+                    raise JobUpdateException(text)
+        except ClientError as exc:
+            raise JobUpdateException(exc)
 
 
 def get_job_names(

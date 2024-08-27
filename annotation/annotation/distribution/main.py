@@ -1051,7 +1051,9 @@ def prepare_response(
     return annotation_tasks
 
 
-def redistribute(db: Session, token: str, x_current_tenant: str, job: Job):
+async def redistribute(
+    db: Session, token: str, x_current_tenant: str, job: Job
+):
     """Delete unstarted tasks and distribute files without assignment."""
     job_old_tasks = (
         db.query(ManualAnnotationTask)
@@ -1100,7 +1102,7 @@ def redistribute(db: Session, token: str, x_current_tenant: str, job: Job):
     ):
         # finish job
         try:
-            update_job_status(
+            await update_job_status(
                 job.callback_url,
                 JobStatusEnumSchema.finished,
                 x_current_tenant,

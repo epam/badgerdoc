@@ -863,7 +863,7 @@ def get_pages_info(
     },
     summary="Finish task.",
 )
-def finish_task(
+async def finish_task(
     validation_info: Optional[ValidationEndSchema] = Body(None),
     task_id: int = Path(..., example=3),
     db: Session = Depends(get_db),
@@ -1102,7 +1102,7 @@ def finish_task(
     if same_job_tasks_amount == same_job_finished_tasks_amount:
         job = db.query(Job).get(task.job_id)
         try:
-            update_job_status(
+            await update_job_status(
                 job.callback_url,
                 JobStatusEnumSchema.finished,
                 x_current_tenant,
@@ -1135,7 +1135,7 @@ def finish_task(
                 # update a validation task and finish a job
                 finish_validation_task(db=db, task=task)
                 try:
-                    update_job_status(
+                    await update_job_status(
                         job.callback_url,
                         JobStatusEnumSchema.finished,
                         x_current_tenant,

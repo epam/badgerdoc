@@ -1,7 +1,7 @@
 from collections import defaultdict
 from copy import copy
 from typing import Dict, List, Tuple
-from unittest.mock import Mock, patch
+from unittest.mock import AsyncMock, Mock, patch
 from uuid import UUID
 
 import pytest
@@ -1856,7 +1856,8 @@ def test_distribute_extensive_coverage(
         ([], JobStatusEnumSchema.finished),
     ),
 )
-def test_redistribute(
+@pytest.mark.asyncio
+async def test_redistribute(
     tasks_for_test_redistribute: Mock,
     mock_db: Mock,
     patch_redistribute_dependencies: Mock,
@@ -1882,7 +1883,7 @@ def test_redistribute(
     ) as mock_delete_tasks, patch(
         "annotation.distribution.main.update_job_status",
     ):
-        redistribute(mock_db, "dummy_token", "x_tenant", job)
+        await redistribute(mock_db, "dummy_token", "x_tenant", job)
         if job.status == "in_progress":
             mock_set_task_statuses.assert_called_once_with(
                 job, tasks_for_test_redistribute
@@ -1890,7 +1891,8 @@ def test_redistribute(
         mock_delete_tasks.assert_called_once_with(mock_db, set())
 
 
-def test_redistribute_error(
+@pytest.mark.asyncio
+async def test_redistribute_error(
     tasks_for_test_redistribute: Mock,
     mock_db: Mock,
     patch_redistribute_dependencies: Mock,
@@ -1909,14 +1911,20 @@ def test_redistribute_error(
         mock_set_task_statuses,
     ) = patch_redistribute_dependencies
 
+    mock_update_job_status = AsyncMock(
+        side_effect=JobUpdateException("Connection timeout")
+    )
+
     with patch(
         "annotation.distribution.main.delete_tasks",
     ), patch(
         "annotation.distribution.main.update_job_status",
-        side_effect=JobUpdateException("Connection timeout"),
-    ) as mock_update_job_status, pytest.raises(HTTPException) as exc_info:
-        redistribute(mock_db, "dummy_token", "x_tenant", job)
-    mock_update_job_status.assert_called_once_with(
+        new=mock_update_job_status,
+    ) as mock_update_job_status_patch, pytest.raises(
+        HTTPException
+    ) as exc_info:
+        await redistribute(mock_db, "dummy_token", "x_tenant", job)
+    mock_update_job_status_patch.assert_called_once_with(
         job.callback_url,
         JobStatusEnumSchema.finished,
         "x_tenant",
