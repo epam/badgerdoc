@@ -25,7 +25,7 @@ export const EditJobPage = () => {
 
     const [files, setFiles] = useState<number[]>([]);
     const [jobs, setJobs] = useState<number[]>([]);
-    const [datasets, setDatasets] = useState<number[] | string[]>([]);
+    const [datasets, setDatasets] = useState<number[]>([]);
     const [stepIndex, setStepIndex] = useState(0);
     const [currentTab, onCurrentTabChange] = useState('Documents');
 
