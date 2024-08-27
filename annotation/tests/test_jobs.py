@@ -1,6 +1,7 @@
+import unittest
 import uuid
 from collections import namedtuple
-from typing import Set, Tuple
+from typing import Dict, List, Set, Tuple
 from unittest.mock import MagicMock, call, patch
 from uuid import UUID
 
@@ -47,7 +48,8 @@ def jobs_to_test_progress(users: Tuple[User], categories: Category):
             job_id=1,
             name="test1",
             callback_url="http://www.test.com",
-            annotators=list(users[:2]),
+            annotators=list(users[3:5]),
+            validators=list(users[1:3]),
             validation_type=ValidationSchema.cross,
             is_auto_distribution=False,
             categories=[categories],
@@ -59,7 +61,8 @@ def jobs_to_test_progress(users: Tuple[User], categories: Category):
             job_id=2,
             name="test2",
             callback_url="http://www.test.com",
-            annotators=list(users[:2]),
+            validators=list(users[3:5]),
+            annotators=list(users[1:3]),
             validation_type=ValidationSchema.validation_only,
             is_auto_distribution=False,
             categories=[categories],
@@ -88,7 +91,7 @@ def tasks():
                 file_id=i if i != 6 else 1,
                 pages=[1] if i != 5 else [3],
                 job_id=i if i < 4 else 10,
-                user_id="7b626e68-857d-430a-b65b-bba0a40417ee",
+                user_id=UUID(int=i),
                 is_validation=False if i < 5 else True,
                 status=status[i - 1],
                 deadline=None,
@@ -104,13 +107,37 @@ def files():
             file_id=1,
             tenant="tenant",
             job_id=1,
-            pages_number=100,
+            pages_number=10,
             status=FileStatusEnumSchema.pending,
+            distributed_validating_pages=[],
+            distributed_annotating_pages=[],
         ),
         File(
             file_id=2,
             tenant="tenant",
             job_id=1,
+            pages_number=15,
+            status=FileStatusEnumSchema.pending,
+            distributed_validating_pages=[],
+            distributed_annotating_pages=[],
+        ),
+    )
+
+
+@pytest.fixture
+def files_without_disributed_pages():
+    yield (
+        File(
+            file_id=3,
+            tenant="tenant",
+            job_id=2,
+            pages_number=100,
+            status=FileStatusEnumSchema.pending,
+        ),
+        File(
+            file_id=4,
+            tenant="tenant",
+            job_id=2,
             pages_number=150,
             status=FileStatusEnumSchema.pending,
         ),
@@ -439,8 +466,8 @@ def test_update_job_categories(categories: Category):
 def test_validate_job_extensive_coverage_success(
     patch_data: dict, users: Tuple[User, ...]
 ):
-    job = Job(annotators=list(users[3:4]))
     patch_data["extensive_coverage"] = 1
+    job = Job(annotators=list(users[3:4]))
     services.validate_job_extensive_coverage(patch_data, job)
 
 
@@ -465,22 +492,22 @@ def test_validate_job_extensive_coverage_error(
         services.validate_job_extensive_coverage(patch_data, job)
 
 
-def test_update_job_files(files: Tuple[File]):
+def test_update_job_files(files_without_disributed_pages: Tuple[File, ...]):
     mock_session = MagicMock()
-    patch_data = {"files": {1, 2}, "datasets": {"dataset1"}}
-    expected_calls = list(files[:2])
+    patch_data = {"files": {3, 4}, "datasets": {"dataset1"}}
+    expected_calls = list(files_without_disributed_pages)
     with patch(
         "annotation.jobs.services.get_files_info",
         return_value=[
-            {"file_id": 1, "pages_number": 100},
-            {"file_id": 2, "pages_number": 150},
+            {"file_id": 3, "pages_number": 100},
+            {"file_id": 4, "pages_number": 150},
         ],
     ):
         services.update_job_files(
-            mock_session, patch_data, 1, "tenant", "token"
+            mock_session, patch_data, 2, "tenant", "token"
         )
         mock_session.add_all.assert_called_once_with(expected_calls)
-        mock_session.query().filter_by.assert_called_once_with(job_id=1)
+        mock_session.query().filter_by.assert_called_once_with(job_id=2)
         mock_session.query().filter_by().delete.assert_called_once()
 
 
@@ -497,3 +524,350 @@ def test_update_user_overall_load(tasks: Tuple[ManualAnnotationTask]):
     services.update_user_overall_load(mock_session, UUID(int=1))
     assert mock_user.overall_load == 3
     mock_session.add.assert_called_once_with(mock_user)
+
+
+def test_find_users(users: Tuple[User, ...]):
+    mock_session = MagicMock()
+    expected_saved_users = [users[1]]
+    expected_new_users = [users[2]]
+    mock_session.query().filter().all.return_value = [users[1]]
+    result_saved_users, result_new_users = services.find_users(
+        mock_session, set((UUID(int=1), UUID(int=2)))
+    )
+    assert result_saved_users == expected_saved_users
+    assert result_new_users == expected_new_users
+
+
+def test_get_job_error():
+    mock_session = MagicMock()
+    mock_session.query().filter_by().first.return_value = None
+    with pytest.raises(services.WrongJobError):
+        services.get_job(mock_session, 1, "tenant")
+
+
+def test_get_job_success():
+    mock_session = MagicMock()
+    mock_session.query().filter_by().first.return_value = Job(
+        job_id=1, tenant="tenant"
+    )
+    result = services.get_job(mock_session, 1, "tenant")
+    expected_result = Job(job_id=1, tenant="tenant")
+    assert result == expected_result
+
+
+def test_update_files(files: Tuple[File, ...]):
+    mock_session = MagicMock()
+    mock_session.query().filter().with_for_update().all.return_value = [
+        files[0],
+        files[1],
+    ]
+    tasks = [
+        {"file_id": 1, "is_validation": True, "pages": [1, 2, 3]},
+        {"file_id": 2, "is_validation": False, "pages": [4, 5, 6]},
+    ]
+    services.update_files(mock_session, tasks, 1)
+    assert files[0].distributed_validating_pages == [1, 2, 3]
+    assert files[1].distributed_annotating_pages == [4, 5, 6]
+
+
+def test_delete_tasks(
+    tasks: Tuple[ManualAnnotationTask, ...], files: Tuple[File, ...]
+):
+    mock_session = MagicMock()
+    mock_session.query().filter().with_for_update().first.return_value = files[
+        0
+    ]
+    expected_delete_calls = [
+        unittest.mock.call(tasks[0]),
+        unittest.mock.call(tasks[5]),
+    ]
+    expected_recalculate_calls = files[0]
+    expected_user_load_calls = [
+        unittest.mock.call(mock_session, tasks[0].user_id),
+        unittest.mock.call(mock_session, tasks[5].user_id),
+    ]
+    with patch(
+        "annotation.jobs.services.recalculate_file_pages"
+    ) as mock_recalculate_file_pages, patch(
+        "annotation.jobs.services.update_user_overall_load"
+    ) as mock_update_user_overall_load:
+        services.delete_tasks(mock_session, {tasks[0], tasks[5]})
+        mock_session.delete.assert_has_calls(
+            expected_delete_calls, any_order=True
+        )
+        mock_recalculate_file_pages.assert_called_with(
+            mock_session, expected_recalculate_calls
+        )
+        mock_update_user_overall_load.assert_has_calls(
+            expected_user_load_calls, any_order=True
+        )
+
+
+@pytest.mark.parametrize(
+    (
+        "job_id",
+        "new_validators",
+        "new_annotators",
+        "expected_annotators",
+        "expected_validators",
+    ),
+    (
+        (
+            0,
+            {1, 2},
+            {3},
+            {4},
+            set(),
+        ),
+        (
+            1,
+            {3},
+            {2, 1},
+            set(),
+            {4},
+        ),
+    ),
+)
+def test_find_saved_users(
+    job_id: int,
+    new_validators: Set[int],
+    new_annotators: Set[int],
+    expected_annotators: Set[int],
+    expected_validators: Set[int],
+    jobs_to_test_progress: Tuple[Job, ...],
+):
+    mock_session = MagicMock()
+    new_annotators = {UUID(int=id) for id in new_annotators}
+    new_validators = {UUID(int=id) for id in new_validators}
+    expected_annotators = {UUID(int=id) for id in expected_annotators}
+    expected_validators = {UUID(int=id) for id in expected_validators}
+    with patch(
+        "annotation.jobs.services.delete_tasks_for_removed_users",
+        return_value=[ManualAnnotationTask(user_id=UUID(int=4))],
+    ):
+        (
+            result_annotators,
+            result_validators,
+        ) = services.find_saved_users(
+            mock_session,
+            jobs_to_test_progress[job_id],
+            new_annotators,
+            new_validators,
+        )
+        assert result_validators == expected_validators
+        assert result_annotators == expected_annotators
+
+
+@pytest.mark.parametrize(
+    (
+        "patch_data",
+        "is_manual",
+        "expected_deleted",
+    ),
+    (
+        (
+            {
+                "annotators": {UUID(int=5)},
+                "validators": {UUID(int=6)},
+                "owners": {UUID(int=7)},
+            },
+            True,
+            {UUID(int=1), UUID(int=2), UUID(int=3), UUID(int=4)},
+        ),
+        (
+            {
+                "annotators": {UUID(int=1)},
+                "validators": {UUID(int=2)},
+                "owners": {UUID(int=4)},
+            },
+            True,
+            {UUID(int=3)},
+        ),
+        (
+            {
+                "annotators": {UUID(int=1)},
+                "validators": {UUID(int=2)},
+                "owners": {UUID(int=4)},
+            },
+            False,
+            set(),
+        ),
+    ),
+)
+def test_update_jobs_users(
+    patch_data: Dict[str, Set[UUID]],
+    is_manual: bool,
+    expected_deleted: Set[UUID],
+    users: Tuple[User, ...],
+    jobs_to_test_progress: Tuple[Job, ...],
+):
+    mock_session = MagicMock()
+    expected_annotators = set()
+    expected_validators = set()
+    jobs_to_test_progress[0].annotators = list(users[1:3])
+    jobs_to_test_progress[0].validators = list(users[2:4])
+    jobs_to_test_progress[0].owners = [users[4]]
+    with patch(
+        "annotation.jobs.services.find_saved_users",
+        return_value=(set(), set()),
+    ), patch(
+        "annotation.jobs.services.find_users", return_value=([], [])
+    ), patch(
+        "annotation.jobs.services.check_annotators"
+    ) as mock_check_annotators, patch(
+        "annotation.jobs.services.check_validators"
+    ) as mock_check_validators:
+        (
+            deleted_users,
+            annotators_to_save,
+            validators_to_save,
+        ) = services.update_jobs_users(
+            mock_session, jobs_to_test_progress[0], patch_data, is_manual
+        )
+        assert deleted_users == expected_deleted
+        assert annotators_to_save == expected_annotators
+        assert validators_to_save == expected_validators
+        if is_manual:
+            mock_check_annotators.assert_called_once()
+            mock_check_validators.assert_called_once()
+
+
+def test_delete_redudant_users():
+    mock_session = MagicMock()
+    mock_users = MagicMock()
+    mock_session.query().join.return_value = mock_users
+    deleted_uuid = UUID(int=1)
+    active_uuid = UUID(int=2)
+    mock_users.union().union().all.return_value = [User(user_id=active_uuid)]
+    with patch("annotation.jobs.services.User.user_id.in_") as mock_in:
+        services.delete_redundant_users(
+            mock_session, {deleted_uuid, active_uuid}
+        )
+        mock_in.assert_called_once_with({deleted_uuid})
+
+
+def test_set_task_statuses_annotation_task_finished(
+    tasks: Tuple[ManualAnnotationTask, ...],
+    jobs_to_test_progress: Tuple[Job, ...],
+):
+    services.set_task_statuses(jobs_to_test_progress[0], (tasks[0], tasks[5]))
+    assert tasks[5].status == TaskStatusEnumSchema.ready
+    assert tasks[0].status == TaskStatusEnumSchema.finished
+
+
+def test_set_task_statuses_job_validaiton_only(
+    tasks: Tuple[ManualAnnotationTask, ...],
+    jobs_to_test_progress: Tuple[Job, ...],
+):
+    services.set_task_statuses(jobs_to_test_progress[1], (tasks[1], tasks[5]))
+    assert tasks[5].status == TaskStatusEnumSchema.ready
+
+
+def test_set_task_statuses_pages_not_annotated(
+    tasks: Tuple[ManualAnnotationTask, ...],
+    jobs_to_test_progress: Tuple[Job, ...],
+):
+    tasks[5].pages = [1, 2]
+    services.set_task_statuses(jobs_to_test_progress[0], (tasks[0], tasks[5]))
+    assert tasks[5].status == TaskStatusEnumSchema.pending
+
+
+@pytest.mark.parametrize(
+    (
+        "tasks",
+        "pages_in_work",
+        "expected_tasks",
+    ),
+    (
+        (
+            [
+                {"file_id": 1, "pages": [1, 2, 3, 4, 5], "is_urgent": True},
+                {"file_id": 2, "pages": [6, 7, 8, 9, 10], "is_urgent": False},
+                {"file_id": 1, "pages": [11, 12, 13], "is_urgent": True},
+            ],
+            [
+                {"file_id": 1, "pages_number": [1, 2, 3]},
+                {"file_id": 2, "pages_number": [7, 8]},
+            ],
+            [
+                {"file_id": 1, "pages": [4, 5], "is_urgent": True},
+                {"file_id": 2, "pages": [6, 9, 10], "is_urgent": False},
+                {"file_id": 1, "pages": [11, 12, 13], "is_urgent": True},
+            ],
+        ),
+        (
+            [{"file_id": 3, "pages": [14, 15], "is_urgent": True}],
+            [{"file_id": 1, "pages_number": [1, 2, 3]}],
+            [{"file_id": 3, "pages": [14, 15], "is_urgent": True}],
+        ),
+        (
+            [{"file_id": 1, "pages": [1, 2, 3], "is_urgent": True}],
+            [{"file_id": 1, "pages_number": [1, 2, 3]}],
+            [],
+        ),
+    ),
+)
+def test_remove_pages_in_work(
+    tasks: List[services.Task],
+    pages_in_work: List[services.FileInWork],
+    expected_tasks: List[services.Task],
+):
+    services.remove_pages_in_work(tasks, pages_in_work)
+    assert tasks == expected_tasks
+
+
+def test_delete_tasks_for_removed_users(
+    tasks: Tuple[ManualAnnotationTask, ...], users: Tuple[User, ...]
+):
+    mock_session = MagicMock()
+    mock_session.query().filter().all.return_value = [tasks[0], tasks[1]]
+    with patch("annotation.jobs.services.delete_tasks") as mock_delete_tasks:
+        result = services.delete_tasks_for_removed_users(
+            mock_session, {users[0].user_id, users[1].user_id}, 1, False
+        )
+        expected_result = {tasks[0]}
+        assert result == expected_result
+        mock_delete_tasks.assert_called_once_with(mock_session, {tasks[1]})
+
+
+def test_filter_job_categories_success(categories: Category):
+    mock_session = MagicMock()
+    filter_query = MagicMock()
+    page_size = 5
+    page_num = 1
+    query_categories = [categories]
+    with patch(
+        "annotation.jobs.services.map_request_to_filter", return_value={}
+    ) as mock_map_request_to_filter, patch(
+        "annotation.jobs.services.form_query",
+        return_value=(query_categories, {"page_num": 1, "page_size": 5}),
+    ) as mock_form_query, patch(
+        "annotation.jobs.services.paginate", return_value=[]
+    ) as mock_paginate:
+        result = services.filter_job_categories(
+            mock_session, filter_query, page_size, page_num
+        )
+        assert result == []
+        mock_map_request_to_filter.assert_called_once()
+        mock_form_query.assert_called_once()
+        mock_paginate.assert_called_once()
+
+
+def test_filter_job_categories_validation_error():
+    mock_session = MagicMock()
+    filter_query = MagicMock()
+    page_size = 5
+    page_num = 1
+    with patch(
+        "annotation.jobs.services.map_request_to_filter"
+    ) as mock_map_request_to_filter, patch(
+        "annotation.jobs.services.form_query",
+        return_value=(["not_category"], {"page_num": 1, "page_size": 5}),
+    ), patch(
+        "annotation.jobs.services.paginate"
+    ):
+        mock_map_request_to_filter.return_value = {}
+        with pytest.raises(services.EnumValidationError):
+            services.filter_job_categories(
+                mock_session, filter_query, page_size, page_num
+            )
