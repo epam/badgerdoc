@@ -1159,7 +1159,6 @@ def test_create_export_csv_no_annotation_stats(mock_db: Mock):
         date_from=datetime(2024, 1, 1),
         date_to=datetime(2024, 1, 6),
     )
-
     filter_mock = (
         mock_db.query.return_value.filter.return_value.filter.return_value
     )
