@@ -535,13 +535,11 @@ def test_create_annotation_task(mock_session: Mock):
                 deadline=None,
             ),
         )
-
         assert result.file_id == 1
         assert result.pages == {1, 2}
         assert result.job_id == 2
         assert result.is_validation is True
         assert result.deadline is None
-
         assert mock_session.add.call_count == 1
         mock_session.commit.assert_called_once()
 
@@ -562,10 +560,8 @@ def test_read_annotation_tasks_with_file_and_job_ids(mock_session: Mock):
         pagination_start_page=1,
         tenant="example_tenant",
     )
-
     assert total_objects == 1
     assert annotation_tasks == ["task1"]
-
     mock_query.filter_by.assert_called_once()
     mock_query.limit.assert_called_once_with(10)
 
@@ -623,9 +619,7 @@ def test_remove_additional_filters_with_standard_filters():
     }
     expected_filters = deepcopy(filter_args)
     expected_additional_filters = {}
-
     result = services.remove_additional_filters(filter_args)
-
     assert filter_args == expected_filters
     assert result == expected_additional_filters
 
@@ -653,18 +647,14 @@ def test_remove_additional_filters_with_additional_fields():
 
 def test_read_annotation_task(mock_session: Mock):
     expected_result = "task1"
-
     mock_query = MagicMock()
     mock_filter = MagicMock()
-
     mock_session.query.return_value = mock_query
     mock_query.filter.return_value = mock_filter
     mock_filter.first.return_value = expected_result
-
     result = services.read_annotation_task(
         mock_session, task_id=1, tenant="tenant_1"
     )
-
     assert result == expected_result
     mock_session.query.assert_called_once_with(ManualAnnotationTask)
     mock_query.filter.assert_called_once()
@@ -704,9 +694,7 @@ def test_filter_tasks_db_no_additional_filters(mock_session: Mock):
         mock_get_jobs_by_name.return_value = {}
         mock_form_query.return_value = (MagicMock(), MagicMock())
         mock_paginate.return_value = []
-
         result = services.filter_tasks_db(mock_session, request, tenant, token)
-
         assert result == ([], {}, {})
 
 

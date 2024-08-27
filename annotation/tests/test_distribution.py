@@ -7,7 +7,6 @@ from uuid import UUID
 import pytest
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
-from tests.override_app_dependency import TEST_TENANT
 
 from annotation.distribution import (
     add_unassigned_file,
@@ -23,6 +22,7 @@ from annotation.distribution import (
 from annotation.distribution.main import (
     DistributionUser,
     choose_validators_users,
+    create_partial_validation_tasks,
     create_tasks,
     distribute,
     distribute_tasks_extensively,
@@ -47,6 +47,7 @@ from annotation.schemas import (
     TaskStatusEnumSchema,
     ValidationSchema,
 )
+from tests.override_app_dependency import TEST_TENANT
 
 
 @pytest.fixture
@@ -948,6 +949,24 @@ def test_distribute_annotation_partial_files(
         for task in annotation_tasks
     ]
     assert annotation_tasks == expected_partial_files_tasks
+
+
+def test_distribute_annotation_partial_files_edge_case():
+    with patch("annotation.distribution.main.SPLIT_MULTIPAGE_DOC", True):
+        output = distribute_annotation_partial_files(
+            [
+                {
+                    "unassigned_pages": [1, 2, 3],
+                    "pages_number": 3,
+                    "file_id": 1,
+                }
+            ],
+            [{"user_id": 1, "pages_number": 10}],
+            1,
+            TaskStatusEnumSchema.pending,
+        )
+        assert len(output) == 1
+        assert output[0]["pages"] == [1, 2, 3]
 
 
 ANNOTATION_TASKS = [
@@ -1890,9 +1909,7 @@ def test_redistribute_error(
         mock_set_task_statuses,
     ) = patch_redistribute_dependencies
 
-    with patch(
-        "annotation.distribution.main.delete_tasks",
-    ), patch(
+    with patch("annotation.distribution.main.delete_tasks",), patch(
         "annotation.distribution.main.update_job_status",
         side_effect=JobUpdateException("Connection timeout"),
     ) as mock_update_job_status, pytest.raises(HTTPException) as exc_info:
@@ -1905,3 +1922,24 @@ def test_redistribute_error(
     )
     assert exc_info.value.status_code == 500
     assert "Connection timeout" in str(exc_info.value.detail)
+
+
+def test_create_partial_validation_tasks():
+    validation_files_pages = {1: list(range(1, 81))}
+    validation_tasks = []
+    with patch(
+        "annotation.distribution.main.filter_validation_files_pages",
+        return_value=validation_files_pages,
+    ), patch("annotation.distribution.main.SPLIT_MULTIPAGE_DOC", True):
+        create_partial_validation_tasks(
+            {},
+            [{"user_id": "user1"}, {"user_id": "user2"}],
+            {},
+            1,
+            validation_tasks,
+            TaskStatusEnumSchema.pending,
+            True,
+        )
+        assert len(validation_tasks) == 2
+        assert validation_tasks[0]["pages"] == list(range(1, 51))
+        assert validation_tasks[1]["pages"] == list(range(51, 81))
