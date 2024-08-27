@@ -19,7 +19,7 @@ from annotation.models import (
     File,
     ManualAnnotationTask,
 )
-from annotation.schemas.annotations import PageSchema
+from annotation.schemas.annotations import PageSchema, ParticularRevisionSchema
 from annotation.schemas.tasks import (
     AgreementScoreComparingResult,
     AgreementScoreServiceResponse,
@@ -1207,3 +1207,94 @@ def test_save_agreement_metrics(mock_session: Mock):
     services.save_agreement_metrics(mock_session, agreement_score)
     mock_session.bulk_save_objects.assert_called_once_with([])
     mock_session.commit.assert_called_once()
+
+
+def test_get_accum_annotations():
+    with patch("annotation.tasks.services.Session") as mock_session, patch(
+        "annotation.tasks.services.accumulate_pages_info",
+        return_value=(
+            None,
+            None,
+            [1, 2, 3],
+            None,
+            None,
+            MagicMock(),
+        ),
+    ) as mock_accumulate_pages_info, patch(
+        "annotation.tasks.services.construct_particular_rev_response"
+    ) as mock_construct_particular_rev_response:
+        annotation_task = ManualAnnotationTask(id=2, job_id=1, file_id=3)
+        expected_revisions = AnnotatedDoc()
+        mock_query = mock_session.query.return_value
+        mock_query = mock_query.filter.return_value
+        mock_query = mock_query.order_by.return_value
+        mock_query.all.return_value = expected_revisions
+        mock_accumulate_pages_info.return_value[5].pages = [1, 2, 3]
+        mock_construct_particular_rev_response.return_value = (
+            ParticularRevisionSchema(
+                revision="20fe52cce6a632c6eb09fdc5b3e1594f926eea69",
+                user=uuid.uuid4(),
+                pipeline=1,
+                date=datetime(2024, 10, 19, 1, 1, 1),
+                pages=[PageSchema(page_num=1, size={}, objs=[])],
+            )
+        )
+        result = services.get_accum_annotations(
+            db=mock_session,
+            x_current_tenant="tenant_1",
+            annotation_task=annotation_task,
+        )
+        mock_accumulate_pages_info.assert_called_once()
+        mock_construct_particular_rev_response.assert_called_once()
+        assert result == mock_construct_particular_rev_response.return_value
+
+
+def test_get_accum_annotations_no_revisions(mock_session: Mock):
+    with patch(
+        "annotation.tasks.services.accumulate_pages_info"
+    ) as mock_accumulate_pages_info, patch(
+        "annotation.tasks.services.construct_particular_rev_response"
+    ) as mock_construct_particular_rev_response:
+        annotation_task = ManualAnnotationTask(id=2, job_id=1, file_id=3)
+        mock_query = mock_session.query.return_value
+        mock_query = mock_query.filter.return_value
+        mock_query = mock_query.order_by.return_value
+        mock_query.all.return_value = []
+        result = services.get_accum_annotations(
+            db=mock_session,
+            x_current_tenant="tenant_1",
+            annotation_task=annotation_task,
+        )
+        mock_accumulate_pages_info.assert_not_called()
+        mock_construct_particular_rev_response.assert_not_called()
+        assert result is None
+
+
+def test_get_accum_annotations_no_required_revision(mock_session: Mock):
+    with patch(
+        "annotation.tasks.services.accumulate_pages_info",
+        return_value=(
+            None,
+            None,
+            [1, 2, 3],
+            None,
+            None,
+            None,
+        ),
+    ) as mock_accumulate_pages_info, patch(
+        "annotation.tasks.services.construct_particular_rev_response"
+    ) as mock_construct_particular_rev_response:
+        annotation_task = ManualAnnotationTask(id=2, job_id=1, file_id=3)
+        expected_revisions = AnnotatedDoc()
+        mock_query = mock_session.query.return_value
+        mock_query = mock_query.filter.return_value
+        mock_query = mock_query.order_by.return_value
+        mock_query.all.return_value = expected_revisions
+        result = services.get_accum_annotations(
+            db=mock_session,
+            x_current_tenant="tenant_1",
+            annotation_task=annotation_task,
+        )
+        mock_accumulate_pages_info.assert_called_once()
+        mock_construct_particular_rev_response.assert_not_called()
+        assert result is None
