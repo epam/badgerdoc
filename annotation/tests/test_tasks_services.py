@@ -1223,10 +1223,7 @@ def test_get_accum_annotations():
     ) as mock_accumulate_pages_info, patch(
         "annotation.tasks.services.construct_particular_rev_response"
     ) as mock_construct_particular_rev_response:
-        annotation_task = ManualAnnotationTask()
-        annotation_task.job_id = 1
-        annotation_task.id = 2
-        annotation_task.file_id = 3
+        annotation_task = ManualAnnotationTask(id=2, job_id=1, file_id=3)
         expected_revisions = AnnotatedDoc()
         mock_query = mock_session.query.return_value
         mock_query = mock_query.filter.return_value
@@ -1258,10 +1255,7 @@ def test_get_accum_annotations_no_revisions(mock_session: Mock):
     ) as mock_accumulate_pages_info, patch(
         "annotation.tasks.services.construct_particular_rev_response"
     ) as mock_construct_particular_rev_response:
-        annotation_task = ManualAnnotationTask()
-        annotation_task.job_id = 1
-        annotation_task.id = 2
-        annotation_task.file_id = 3
+        annotation_task = ManualAnnotationTask(id=2, job_id=1, file_id=3)
         mock_query = mock_session.query.return_value
         mock_query = mock_query.filter.return_value
         mock_query = mock_query.order_by.return_value
@@ -1290,10 +1284,7 @@ def test_get_accum_annotations_no_required_revision(mock_session: Mock):
     ) as mock_accumulate_pages_info, patch(
         "annotation.tasks.services.construct_particular_rev_response"
     ) as mock_construct_particular_rev_response:
-        annotation_task = ManualAnnotationTask()
-        annotation_task.job_id = 1
-        annotation_task.id = 2
-        annotation_task.file_id = 3
+        annotation_task = ManualAnnotationTask(id=2, job_id=1, file_id=3)
         expected_revisions = AnnotatedDoc()
         mock_query = mock_session.query.return_value
         mock_query = mock_query.filter.return_value
