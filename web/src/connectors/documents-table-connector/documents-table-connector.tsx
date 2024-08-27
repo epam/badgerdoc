@@ -116,7 +116,9 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
     }, [selectedFiles]);
 
     useEffect(() => {
-        onTableValueChange({ ...tableValue, filter: dataset ? {} : undefined });
+        if (!isJobPage) {
+            onTableValueChange({ ...tableValue, filter: dataset ? {} : undefined });
+        }
     }, [dataset]);
 
     useEffect(() => {
