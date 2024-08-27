@@ -9,7 +9,6 @@ import dotenv
 import pydantic
 from fastapi import HTTPException
 from filter_lib import Page, form_query, map_request_to_filter, paginate
-from lru import LRU
 from sqlalchemy import and_, asc, text
 from sqlalchemy.orm import Session
 from tenant_dependency import TenantData
@@ -61,6 +60,37 @@ from annotation.schemas import (
     TaskStatusEnumSchema,
     ValidationSchema,
 )
+
+
+class LRU:
+    def __init__(self, capacity):
+        self.capacity = capacity
+        self.counter = 0
+        self.cache = {}
+        self.lru = {}
+
+    def __contains__(self, item):
+        if item in self.cache:
+            return True
+        else:
+            return False
+
+    def __getitem__(self, key):
+        if key in self.cache:
+            self.lru[key] = self.counter
+            self.counter += 1
+            return self.cache[key]
+        raise KeyError
+
+    def __setitem__(self, key, value):
+        if len(self.cache) >= self.capacity:
+            old_key = min(self.lru.keys(), key=lambda k: self.lru[k])
+            self.cache.pop(old_key)
+            self.lru.pop(old_key)
+        self.cache[key] = value
+        self.lru[key] = self.counter
+        self.counter += 1
+
 
 dotenv.load_dotenv(dotenv.find_dotenv())
 AGREEMENT_SCORE_MIN_MATCH = float(os.getenv("AGREEMENT_SCORE_MIN_MATCH", 0.9))

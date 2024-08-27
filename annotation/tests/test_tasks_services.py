@@ -13,6 +13,7 @@ from annotation.jobs.services import ValidationSchema
 from annotation.models import File, ManualAnnotationTask
 from annotation.schemas.tasks import ManualAnnotationTaskInSchema
 from annotation.tasks.services import (
+    LRU,
     check_cross_annotating_pages,
     create_annotation_task,
     filter_tasks_db,
@@ -585,3 +586,12 @@ def test_filter_tasks_db_no_files_or_jobs(
         assert len(result[0]) == 2
         assert result[1] == expected_result[1]
         assert result[2] == expected_result[2]
+
+
+def test_lru():
+    cache = LRU(2)
+    cache[1] = "test1"
+    cache[2] = "test2"
+    cache[3] = "test3"
+    with pytest.raises(KeyError):
+        cache[1]
