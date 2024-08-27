@@ -2,13 +2,11 @@ import re
 import uuid
 from copy import deepcopy
 from datetime import datetime
-from datetime import datetime
 from typing import Dict, List, Optional, Set, Tuple, Union
 from unittest.mock import MagicMock, Mock, call, patch
 
 import pytest
 from fastapi import HTTPException
-from tenant_dependency import TenantData
 from tenant_dependency import TenantData
 
 from annotation.errors import CheckFieldError, FieldConstraintError
@@ -69,21 +67,24 @@ def mock_task():
 def mock_stats(
     mock_task: ManualAnnotationTask, mock_metric: ManualAnnotationTask
 ):
-    stat1 = AnnotationStatistics(task=mock_task,
-                                 task_id=1,
-                                 created=datetime.utcnow(),
-                                 updated=datetime.utcnow()
-                                 )
-    stat2 = AnnotationStatistics(task=mock_task,
-                                 task_id=2,
-                                 created=datetime.utcnow(),
-                                 updated=datetime.utcnow()
-                                 )
-    stat3 = AnnotationStatistics(task=mock_task,
-                                 task_id=3,
-                                 created=datetime.utcnow(),
-                                 updated=datetime.utcnow()
-                                 )
+    stat1 = AnnotationStatistics(
+        task=mock_task,
+        task_id=1,
+        created=datetime.utcnow(),
+        updated=datetime.utcnow(),
+    )
+    stat2 = AnnotationStatistics(
+        task=mock_task,
+        task_id=2,
+        created=datetime.utcnow(),
+        updated=datetime.utcnow(),
+    )
+    stat3 = AnnotationStatistics(
+        task=mock_task,
+        task_id=3,
+        created=datetime.utcnow(),
+        updated=datetime.utcnow(),
+    )
     stat3.task.status = TaskStatusEnumSchema.finished
     yield [stat1, stat2, stat3]
 
@@ -1158,6 +1159,7 @@ def test_create_export_csv_no_annotation_stats(mock_db: Mock):
         date_from=datetime(2024, 1, 1),
         date_to=datetime(2024, 1, 6),
     )
+
     filter_mock = (
         mock_db.query.return_value.filter.return_value.filter.return_value
     )
@@ -1175,4 +1177,3 @@ def test_create_export_csv_no_annotation_stats(mock_db: Mock):
             services.create_export_csv(mock_db, schema, "tenant", "token")
         assert exc_info.value.status_code == 406
         assert exc_info.value.detail == "Export data not found."
-
