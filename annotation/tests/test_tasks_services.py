@@ -2,7 +2,7 @@ import re
 import uuid
 from copy import deepcopy
 from datetime import datetime
-from typing import Dict, List, Optional, Set, Tuple, Union
+from typing import Any, Dict, List, Optional, Set, Tuple, Union
 from unittest.mock import MagicMock, Mock, call, patch
 
 import pytest
@@ -1298,3 +1298,177 @@ def test_get_accum_annotations_no_required_revision(mock_session: Mock):
         mock_accumulate_pages_info.assert_called_once()
         mock_construct_particular_rev_response.assert_not_called()
         assert result is None
+
+
+def test_remove_unnecessary_attributes():
+    categories = {"category1", "category2"}
+    page_annotations = PageSchema(page_num=1, size={}, objs=[])
+    page_annotations.size = "A4"
+    page_annotations.objs = [
+        {
+            "type": "text",
+            "data": {
+                "tokens": [
+                    {
+                        "id": 1,
+                        "text": "Sample",
+                        "x": 0,
+                        "y": 0,
+                        "width": 100,
+                        "height": 50,
+                        "extra": "unnecessary",
+                    },
+                    {
+                        "id": 2,
+                        "text": "Another",
+                        "x": 10,
+                        "y": 20,
+                        "width": 200,
+                        "height": 100,
+                    },
+                ],
+                "dataAttributes": ["attr1", "attr2"],
+            },
+        },
+        {"type": "image", "data": {"tokens": []}},
+    ]
+
+    expected_result = {
+        "size": "A4",
+        "objects": [
+            {
+                "type": "text",
+                "data": {
+                    "tokens": [
+                        {
+                            "id": 1,
+                            "text": "Sample",
+                            "x": 0,
+                            "y": 0,
+                            "width": 100,
+                            "height": 50,
+                        },
+                        {
+                            "id": 2,
+                            "text": "Another",
+                            "x": 10,
+                            "y": 20,
+                            "width": 200,
+                            "height": 100,
+                        },
+                    ],
+                    "dataAttributes": ["attr1", "attr2"],
+                },
+            },
+            {"type": "image", "data": {"tokens": []}},
+        ],
+        "categories": categories,
+    }
+    result = services.remove_unnecessary_attributes(
+        categories, page_annotations
+    )
+    assert result == expected_result
+
+
+@pytest.mark.parametrize(
+    (
+        "annotation_tasks",
+        "get_accum_annotations_return_value",
+        "expected_result",
+    ),
+    (
+        (
+            [ManualAnnotationTask()],
+            None,
+            {},
+        ),
+        (
+            [ManualAnnotationTask()],
+            ParticularRevisionSchema(
+                revision="20fe52cce6a632c6eb09fdc5b3e1594f926eea69",
+                user=uuid.uuid4(),
+                pipeline=1,
+                date=datetime(2021, 10, 19, 1, 1, 1),
+                pages=[
+                    PageSchema(
+                        page_num=1,
+                        size={},
+                        objs=[],
+                        pages=[MagicMock()],
+                    )
+                ],
+                validated=[2],
+                failed_validation_pages=[],
+                categories={"1", "2"},
+                links_json=[
+                    {"to": 2, "category": "my_category", "type": "directional"}
+                ],
+            ),
+            {1: {0: {"size": "A4", "objects": []}}},
+        ),
+    ),
+)
+def test_load_annotations(
+    mock_session: Mock,
+    annotation_tasks: List[ManualAnnotationTask],
+    get_accum_annotations_return_value: Optional[ParticularRevisionSchema],
+    expected_result: Dict[int, Any],
+):
+    with patch(
+        "annotation.tasks.services.get_accum_annotations",
+        return_value=get_accum_annotations_return_value,
+    ) as mock_get_accum_annotations, patch(
+        "annotation.tasks.services.remove_unnecessary_attributes",
+        return_value={
+            "size": "A4",
+            "objects": [],
+        },
+    ):
+        mock_tenant = "tenant_1"
+        result = services.load_annotations(
+            db=mock_session,
+            x_current_tenant=mock_tenant,
+            annotation_tasks=annotation_tasks,
+        )
+        assert result == expected_result
+        mock_get_accum_annotations.assert_called_once_with(
+            mock_session,
+            mock_tenant,
+            annotation_tasks[0],
+        )
+
+
+@pytest.mark.parametrize(
+    ("old_id", "id_mapping", "expected_result"),
+    (
+        (1, {(1, 2, 3): 100}, 100),
+        (4, {(1, 2, 3): 100, (4, 5, 6): 200}, 200),
+        (7, {(1, 2, 3): 100, (4, 5, 6): 200}, None),
+        (1, {}, None),
+    ),
+)
+def test_get_new_id(
+    old_id: int,
+    id_mapping: Dict[Tuple[int, ...], int],
+    expected_result: Optional[int],
+):
+    result = services.get_new_id(old_id, id_mapping)
+    assert result == expected_result
+
+
+@pytest.mark.parametrize(
+    ("old_id", "id_mapping", "expected_result"),
+    (
+        (1, {(1, 2, 3): 100}, (1, 2, 3)),
+        (4, {(1, 2, 3): 100, (4, 5, 6): 200}, (4, 5, 6)),
+        (7, {(1, 2, 3): 100, (4, 5, 6): 200}, ()),
+        (1, {}, ()),
+    ),
+)
+def test_get_common_ids(
+    old_id: int,
+    id_mapping: Dict[Tuple[int, ...], int],
+    expected_result: Tuple[int, ...],
+):
+    result = services.get_common_ids(old_id, id_mapping)
+    assert result == expected_result
