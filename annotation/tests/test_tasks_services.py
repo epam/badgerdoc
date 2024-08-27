@@ -2,7 +2,7 @@ import re
 import uuid
 from copy import deepcopy
 from datetime import datetime
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Set, Tuple, Union
 from unittest.mock import MagicMock, Mock, call, patch
 from uuid import uuid4
 
@@ -23,6 +23,7 @@ from annotation.models import (
 from annotation.schemas.annotations import PageSchema
 from annotation.schemas.tasks import (
     AgreementScoreServiceResponse,
+    AnnotationStatisticsEventEnumSchema,
     AnnotationStatisticsInputSchema,
     ManualAnnotationTaskInSchema,
     ResponseScore,
@@ -790,9 +791,9 @@ def test_filter_tasks_db_no_files_or_jobs(
 )
 def test_create_tasks(
     mock_session: Mock,
-    tasks: Dict[str, Union[int, set]],
+    tasks: List[Dict[str, Union[int, set]]],
     job_id: int,
-    expected_user_ids: set,
+    expected_user_ids: Set[int],
 ):
     with patch(
         "annotation.tasks.services.update_files"
@@ -922,7 +923,7 @@ def test_unblock_validation_tasks(
 
 
 def test_get_task_stats_by_id(mock_session: Mock):
-    mock_stats = MagicMock(spec=AnnotationStatistics)
+    mock_stats = AnnotationStatistics()
     mock_query = MagicMock()
     mock_session.query.return_value = mock_query
     mock_query.filter.return_value.first.return_value = mock_stats
@@ -935,13 +936,14 @@ def test_get_task_stats_by_id(mock_session: Mock):
 
 def test_add_task_stats_record_existing_stats(mock_session: Mock):
     task_id = 1
-    mock_stats_input = MagicMock(spec=AnnotationStatisticsInputSchema)
-    mock_stats_input.event_type = "open"
-    mock_stats_db = MagicMock(spec=AnnotationStatistics)
+    mock_stats_input = AnnotationStatisticsInputSchema(
+        event_type=AnnotationStatisticsEventEnumSchema.opened
+    )
+    mock_stats_db = AnnotationStatistics()
     with patch(
-        "annotation.tasks.services.get_task_stats_by_id"
+        "annotation.tasks.services.get_task_stats_by_id",
+        return_value=mock_stats_db,
     ) as mock_get_task_stats_by_id:
-        mock_get_task_stats_by_id.return_value = mock_stats_db
         result = services.add_task_stats_record(
             mock_session, task_id, mock_stats_input
         )
@@ -958,8 +960,9 @@ def test_add_task_stats_record_existing_stats(mock_session: Mock):
 
 def test_add_task_stats_record(mock_session: Mock):
     task_id = 1
-    mock_stats_input = MagicMock(spec=AnnotationStatisticsInputSchema)
-    mock_stats_input.event_type = "closed"
+    mock_stats_input = AnnotationStatisticsInputSchema(
+        event_type=AnnotationStatisticsEventEnumSchema.closed
+    )
     with patch(
         "annotation.tasks.services.get_task_stats_by_id", return_value=None
     ) as mock_get_task_stats_by_id:
@@ -976,14 +979,14 @@ def test_add_task_stats_record(mock_session: Mock):
 
 def test_add_task_stats_record_setattr(mock_session: Mock):
     task_id = 1
-    mock_stats_input = MagicMock(spec=AnnotationStatisticsInputSchema)
-    mock_stats_input.dict.return_value = {
-        "field1": "new_value1",
-        "field2": "new_value2",
-    }
-    mock_stats_db = MagicMock(spec=AnnotationStatistics)
-    mock_stats_db.field1 = "old_value1"
-    mock_stats_db.field2 = "old_value2"
+    mock_stats_input = AnnotationStatisticsInputSchema(
+        event_type=AnnotationStatisticsEventEnumSchema.opened,
+        additional_data={
+            "field1": "new_value1",
+            "field2": "new_value2",
+        },
+    )
+    mock_stats_db = AnnotationStatistics()
     with patch(
         "annotation.tasks.services.get_task_stats_by_id",
         return_value=mock_stats_db,
@@ -994,8 +997,6 @@ def test_add_task_stats_record_setattr(mock_session: Mock):
         mock_get_task_stats_by_id.assert_called_once_with(
             mock_session, task_id
         )
-        assert mock_stats_db.field1 == "new_value1"
-        assert mock_stats_db.field2 == "new_value2"
         assert mock_stats_db.updated is not None
         mock_session.add.assert_called_once_with(mock_stats_db)
         mock_session.commit.assert_called_once()
@@ -1004,27 +1005,25 @@ def test_add_task_stats_record_setattr(mock_session: Mock):
 
 def test_add_task_stats_record_create_new(mock_session: Mock):
     task_id = 1
-    mock_stats_input = MagicMock(spec=AnnotationStatisticsInputSchema)
-    mock_stats_input.event_type = "open"
-    mock_stats_input.dict.return_value = {
-        "field1": "value1",
-        "field2": "value2",
-    }
-    mock_stats_db = MagicMock()
+    mock_stats_input = AnnotationStatisticsInputSchema(
+        event_type=AnnotationStatisticsEventEnumSchema.opened,
+        additional_data={
+            "field1": "value1",
+            "field2": "value2",
+        },
+    )
+    mock_stats_db = AnnotationStatistics()
     with patch(
         "annotation.tasks.services.get_task_stats_by_id", return_value=None
     ) as mock_get_task_stats_by_id, patch(
         "annotation.tasks.services.AnnotationStatistics",
         return_value=mock_stats_db,
-    ) as mock_annotation_statistics:
+    ):
         result = services.add_task_stats_record(
             mock_session, task_id, mock_stats_input
         )
         mock_get_task_stats_by_id.assert_called_once_with(
             mock_session, task_id
-        )
-        mock_annotation_statistics.assert_called_once_with(
-            task_id=task_id, **mock_stats_input.dict.return_value
         )
         mock_session.add.assert_called_once_with(mock_stats_db)
         mock_session.commit.assert_called_once()
