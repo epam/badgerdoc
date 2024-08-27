@@ -7,6 +7,7 @@ from uuid import UUID
 import pytest
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
+from tests.override_app_dependency import TEST_TENANT
 
 from annotation.distribution import (
     add_unassigned_file,
@@ -47,7 +48,6 @@ from annotation.schemas import (
     TaskStatusEnumSchema,
     ValidationSchema,
 )
-from tests.override_app_dependency import TEST_TENANT
 
 
 @pytest.fixture
@@ -1909,7 +1909,9 @@ def test_redistribute_error(
         mock_set_task_statuses,
     ) = patch_redistribute_dependencies
 
-    with patch("annotation.distribution.main.delete_tasks",), patch(
+    with patch(
+        "annotation.distribution.main.delete_tasks",
+        ), patch(
         "annotation.distribution.main.update_job_status",
         side_effect=JobUpdateException("Connection timeout"),
     ) as mock_update_job_status, pytest.raises(HTTPException) as exc_info:

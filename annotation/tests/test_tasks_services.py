@@ -409,7 +409,6 @@ def test_check_cross_annotating_pages():
         db_session = mock_session()
         task_info = {"user_id": 1, "file_id": 2, "job_id": 3, "pages": {4, 5}}
         existing_pages = []
-
         mock_query = db_session.query.return_value
         mock_query.filter.return_value.all.return_value = [(existing_pages,)]
         services.check_cross_annotating_pages(db_session, task_info)
@@ -423,7 +422,6 @@ def test_check_cross_annotating_pages_page_already_annotated():
         db_session = mock_session()
         task_info = {"user_id": 1, "file_id": 2, "job_id": 3, "pages": {4, 5}}
         existing_pages = [4, 5]
-
         mock_query = db_session.query.return_value
         mock_query.filter.return_value.all.return_value = [(existing_pages,)]
         with pytest.raises(
@@ -681,10 +679,8 @@ def test_filter_tasks_db_no_additional_filters(mock_session: Mock):
     ) as mock_paginate:
         mock_query = MagicMock(return_value=[])
         mock_session.query.return_value = mock_query
-
         mock_query.filter.return_value = mock_query
         mock_paginate.return_value = ([], MagicMock())
-
         mock_map_request_to_filter.return_value = {
             "filters": [],
             "sorting": [],
@@ -721,7 +717,6 @@ def test_filter_tasks_db_file_and_job_name(mock_session: Mock):
     ) as mock_paginate:
         mock_query = MagicMock()
         mock_session.query.return_value = mock_query
-
         mock_map_request_to_filter.return_value = {
             "filters": [],
             "sorting": [],
