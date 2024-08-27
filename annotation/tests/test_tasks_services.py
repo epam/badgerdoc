@@ -791,7 +791,7 @@ def test_filter_tasks_db_no_files_or_jobs(
 )
 def test_create_tasks(
     mock_session: Mock,
-    tasks: List[Dict[str, Union[int, set]]],
+    tasks: List[Dict[str, Union[int, Set[int]]]],
     job_id: int,
     expected_user_ids: Set[int],
 ):
@@ -939,7 +939,7 @@ def test_add_task_stats_record_existing_stats(mock_session: Mock):
     mock_stats_input = AnnotationStatisticsInputSchema(
         event_type=AnnotationStatisticsEventEnumSchema.opened
     )
-    mock_stats_db = AnnotationStatistics()
+    mock_stats_db = AnnotationStatistics(updated=datetime.utcnow())
     with patch(
         "annotation.tasks.services.get_task_stats_by_id",
         return_value=mock_stats_db,
@@ -950,9 +950,6 @@ def test_add_task_stats_record_existing_stats(mock_session: Mock):
         mock_get_task_stats_by_id.assert_called_once_with(
             mock_session, task_id
         )
-        mock_stats_db.field1 = "value1"
-        mock_stats_db.field2 = "value2"
-        mock_stats_db.updated = datetime.utcnow()
         mock_session.add.assert_called_once_with(mock_stats_db)
         mock_session.commit.assert_called_once()
         assert result == mock_stats_db
