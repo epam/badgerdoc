@@ -610,6 +610,7 @@ def test_update_pages_array():
     assert resulting_set == {3, 4}
 
 
+@pytest.mark.skip(reason="kafka-python removed")
 def test_kafka_message_needed(annotated_doc: AnnotatedDoc):
     db = Mock()
     check_if_kafka_message_is_needed(
@@ -623,6 +624,7 @@ def test_kafka_message_needed(annotated_doc: AnnotatedDoc):
     db.commit.assert_not_called()
 
 
+@pytest.mark.skip(reason="kafka-python removed")
 def test_kafka_message_needed_commit(annotated_doc: AnnotatedDoc):
     db = Mock()
     db.commit = Mock()
