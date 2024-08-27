@@ -10,18 +10,21 @@ import pytest
 from fastapi import HTTPException
 from tenant_dependency import TenantData
 
-from annotation.errors import FieldConstraintError
+from annotation.errors import CheckFieldError, FieldConstraintError
 from annotation.filters import TaskFilter
 from annotation.jobs.services import ValidationSchema
 from annotation.models import (
     AgreementMetrics,
     AnnotatedDoc,
+    AnnotationStatistics,
     File,
     ManualAnnotationTask,
 )
 from annotation.schemas.annotations import PageSchema
 from annotation.schemas.tasks import (
     AgreementScoreServiceResponse,
+    AnnotationStatisticsEventEnumSchema,
+    AnnotationStatisticsInputSchema,
     ManualAnnotationTaskInSchema,
     ResponseScore,
     TaskStatusEnumSchema,
@@ -168,7 +171,6 @@ def setup_data():
             {"id": 2, "name": "Object B", "value": "Another Value"},
         ]
     }
-
     all_tasks = {
         1: [
             ({"name": "Object A", "value": "Some Value"}, "1"),
@@ -408,7 +410,6 @@ def test_check_cross_annotating_pages():
         db_session = mock_session()
         task_info = {"user_id": 1, "file_id": 2, "job_id": 3, "pages": {4, 5}}
         existing_pages = []
-
         mock_query = db_session.query.return_value
         mock_query.filter.return_value.all.return_value = [(existing_pages,)]
         services.check_cross_annotating_pages(db_session, task_info)
@@ -422,7 +423,6 @@ def test_check_cross_annotating_pages_page_already_annotated():
         db_session = mock_session()
         task_info = {"user_id": 1, "file_id": 2, "job_id": 3, "pages": {4, 5}}
         existing_pages = [4, 5]
-
         mock_query = db_session.query.return_value
         mock_query.filter.return_value.all.return_value = [(existing_pages,)]
         with pytest.raises(
@@ -680,10 +680,8 @@ def test_filter_tasks_db_no_additional_filters(mock_session: Mock):
     ) as mock_paginate:
         mock_query = MagicMock(return_value=[])
         mock_session.query.return_value = mock_query
-
         mock_query.filter.return_value = mock_query
         mock_paginate.return_value = ([], MagicMock())
-
         mock_map_request_to_filter.return_value = {
             "filters": [],
             "sorting": [],
@@ -720,7 +718,6 @@ def test_filter_tasks_db_file_and_job_name(mock_session: Mock):
     ) as mock_paginate:
         mock_query = MagicMock()
         mock_session.query.return_value = mock_query
-
         mock_map_request_to_filter.return_value = {
             "filters": [],
             "sorting": [],
@@ -794,7 +791,7 @@ def test_filter_tasks_db_no_files_or_jobs(
 )
 def test_create_tasks(
     mock_session: Mock,
-    tasks: List[Dict[str, Union[Set[int], int]]],
+    tasks: List[Dict[str, Union[int, Set[int]]]],
     job_id: int,
     expected_user_ids: Set[int],
 ):
@@ -890,3 +887,141 @@ def test_get_task_revisions(
     assert result[0].pages == {"1": ["data1"]}
     assert result[0].failed_validation_pages == [1]
     assert result[0].validated == [1]
+
+
+def test_get_task_info(mock_session: Mock, create_task: Mock):
+    mock_task = create_task(TaskStatusEnumSchema.ready)
+    mock_query = MagicMock()
+    mock_session.query.return_value = mock_query
+    mock_query.filter.return_value = mock_query
+    mock_query.first.return_value = mock_task
+    result = services.get_task_info(
+        mock_session, task_id=1, tenant="test_tenant"
+    )
+    mock_session.query.assert_called_once_with(ManualAnnotationTask)
+    mock_query.first.assert_called_once()
+    assert result == mock_task
+
+
+def test_unblock_validation_tasks(
+    mock_session: Mock,
+    mock_task: ManualAnnotationTask,
+):
+    mock_unblocked_tasks = MagicMock()
+    mock_session.query.return_value.filter.return_value = mock_unblocked_tasks
+    mock_unblocked_tasks.all.return_value = [mock_task]
+    result = services.unblock_validation_tasks(
+        mock_session, mock_task, annotated_file_pages=[1, 2, 3]
+    )
+    mock_session.query.assert_called_once_with(ManualAnnotationTask)
+    mock_session.query.return_value.filter.assert_called_once()
+    mock_unblocked_tasks.update.assert_called_once_with(
+        {"status": TaskStatusEnumSchema.ready},
+        synchronize_session=False,
+    )
+    assert result == [mock_task]
+
+
+def test_get_task_stats_by_id(mock_session: Mock):
+    mock_stats = AnnotationStatistics()
+    mock_query = MagicMock()
+    mock_session.query.return_value = mock_query
+    mock_query.filter.return_value.first.return_value = mock_stats
+    result = services.get_task_stats_by_id(mock_session, task_id=1)
+    mock_session.query.assert_called_once_with(AnnotationStatistics)
+    mock_query.filter.assert_called_once()
+    mock_query.filter.return_value.first.assert_called_once()
+    assert result == mock_stats
+
+
+def test_add_task_stats_record_existing_stats(mock_session: Mock):
+    task_id = 1
+    mock_stats_input = AnnotationStatisticsInputSchema(
+        event_type=AnnotationStatisticsEventEnumSchema.opened
+    )
+    mock_stats_db = AnnotationStatistics(updated=datetime.utcnow())
+    with patch(
+        "annotation.tasks.services.get_task_stats_by_id",
+        return_value=mock_stats_db,
+    ) as mock_get_task_stats_by_id:
+        result = services.add_task_stats_record(
+            mock_session, task_id, mock_stats_input
+        )
+        mock_get_task_stats_by_id.assert_called_once_with(
+            mock_session, task_id
+        )
+        mock_session.add.assert_called_once_with(mock_stats_db)
+        mock_session.commit.assert_called_once()
+        assert result == mock_stats_db
+
+
+def test_add_task_stats_record(mock_session: Mock):
+    task_id = 1
+    mock_stats_input = AnnotationStatisticsInputSchema(
+        event_type=AnnotationStatisticsEventEnumSchema.closed
+    )
+    with patch(
+        "annotation.tasks.services.get_task_stats_by_id", return_value=None
+    ) as mock_get_task_stats_by_id:
+        with pytest.raises(CheckFieldError):
+            services.add_task_stats_record(
+                mock_session, task_id, mock_stats_input
+            )
+        mock_get_task_stats_by_id.assert_called_once_with(
+            mock_session, task_id
+        )
+        mock_session.add.assert_not_called()
+        mock_session.commit.assert_not_called()
+
+
+def test_add_task_stats_record_setattr(mock_session: Mock):
+    task_id = 1
+    mock_stats_input = AnnotationStatisticsInputSchema(
+        event_type=AnnotationStatisticsEventEnumSchema.opened,
+        additional_data={
+            "field1": "new_value1",
+            "field2": "new_value2",
+        },
+    )
+    mock_stats_db = AnnotationStatistics()
+    with patch(
+        "annotation.tasks.services.get_task_stats_by_id",
+        return_value=mock_stats_db,
+    ) as mock_get_task_stats_by_id:
+        result = services.add_task_stats_record(
+            mock_session, task_id, mock_stats_input
+        )
+        mock_get_task_stats_by_id.assert_called_once_with(
+            mock_session, task_id
+        )
+        assert mock_stats_db.updated is not None
+        mock_session.add.assert_called_once_with(mock_stats_db)
+        mock_session.commit.assert_called_once()
+        assert result == mock_stats_db
+
+
+def test_add_task_stats_record_create_new(mock_session: Mock):
+    task_id = 1
+    mock_stats_input = AnnotationStatisticsInputSchema(
+        event_type=AnnotationStatisticsEventEnumSchema.opened,
+        additional_data={
+            "field1": "value1",
+            "field2": "value2",
+        },
+    )
+    mock_stats_db = AnnotationStatistics()
+    with patch(
+        "annotation.tasks.services.get_task_stats_by_id", return_value=None
+    ) as mock_get_task_stats_by_id, patch(
+        "annotation.tasks.services.AnnotationStatistics",
+        return_value=mock_stats_db,
+    ):
+        result = services.add_task_stats_record(
+            mock_session, task_id, mock_stats_input
+        )
+        mock_get_task_stats_by_id.assert_called_once_with(
+            mock_session, task_id
+        )
+        mock_session.add.assert_called_once_with(mock_stats_db)
+        mock_session.commit.assert_called_once()
+        assert result == mock_stats_db
