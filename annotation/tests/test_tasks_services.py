@@ -65,23 +65,12 @@ def mock_task():
 def mock_stats(
     mock_task: ManualAnnotationTask, mock_metric: ManualAnnotationTask
 ):
-    stat1 = AnnotatedDoc()
-    stat1.task = mock_task
-    stat1.task_id = 1
-    stat1.created = datetime(2024, 1, 1, 12, 0, 0)
-    stat1.updated = datetime(2024, 1, 2, 12, 0, 0)
-
-    stat2 = AnnotatedDoc()
-    stat2.task = mock_task
-    stat2.task_id = 2
-    stat2.created = datetime(2024, 1, 3, 12, 0, 0)
-    stat2.updated = datetime(2024, 1, 4, 12, 0, 0)
-
-    stat3 = AnnotatedDoc()
-    stat3.task = mock_task
-    stat3.task_id = 3
-    stat3.created = datetime(2024, 1, 5, 12, 0, 0)
-    stat3.updated = datetime(2024, 1, 6, 12, 0, 0)
+    stat1 = AnnotatedDoc(tasks=mock_task, task_id=1)
+    stat2 = AnnotatedDoc(tasks=mock_task, task_id=2)
+    stat3 = AnnotatedDoc(
+        tasks=mock_task,
+        task_id=3,
+    )
     stat3.task.status = TaskStatusEnumSchema.finished
     yield [stat1, stat2, stat3]
 
