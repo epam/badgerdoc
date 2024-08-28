@@ -1632,3 +1632,50 @@ def test_remove_ids():
     assert "id" not in result
     assert "links" not in result
     assert "children" not in result
+
+
+def test_find_common_objs(setup_data: Dict[int, Any]):
+    task_data, all_tasks = setup_data
+    expected_common_objs = [
+        {"id": 1, "name": "Object A", "value": "Some Value", "links": [2]},
+        {
+            "id": 2,
+            "name": "Object B",
+            "value": "Another Value",
+        },
+    ]
+    expected_same_ids = {1: ["1"], 2: ["2"]}
+    result_common_objs, result_same_ids = services.find_common_objs(
+        task_data, all_tasks
+    )
+    assert result_common_objs == expected_common_objs
+    assert result_same_ids == expected_same_ids
+
+
+def test_find_common_objs_no_common_objects():
+    task_data = {
+        "objects": [{"id": 3, "name": "Object D", "value": "Unique Value"}]
+    }
+    all_tasks = {
+        1: [({"name": "Object A", "value": "Some Value"}, "1")],
+        2: [({"name": "Object B", "value": "Another Value"}, "2")],
+    }
+    expected_common_objs = []
+    expected_same_ids = {}
+    result_common_objs, result_same_ids = services.find_common_objs(
+        task_data, all_tasks
+    )
+    assert result_common_objs == expected_common_objs
+    assert result_same_ids == expected_same_ids
+
+
+def test_find_common_objs_empty_data():
+    task_data = {"objects": []}
+    all_tasks = {}
+    expected_common_objs = []
+    expected_same_ids = {}
+    result_common_objs, result_same_ids = services.find_common_objs(
+        task_data, all_tasks
+    )
+    assert result_common_objs == expected_common_objs
+    assert result_same_ids == expected_same_ids
