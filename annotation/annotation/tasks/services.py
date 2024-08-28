@@ -74,7 +74,6 @@ class LRU(OrderedDict):
         return value
 
     def __setitem__(self, key, value):
-        print("Before set: ", self)
         if key in self:
             self.move_to_end(key)
         super().__setitem__(key, value)
