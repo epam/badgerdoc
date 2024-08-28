@@ -65,23 +65,16 @@ from annotation.schemas import (
 
 class LRU(OrderedDict):
     def __init__(self, capacity):
-        super().__init__
+        super().__init__()
         self.capacity = capacity
 
-    def __contains__(self, item):
-        if super().__contains__(item):
-            self.move_to_end(item)
-            return True
-        else:
-            return False
-
     def __getitem__(self, key):
-        if key in self:
-            self.move_to_end(key)
-            return self[key]
-        raise KeyError
+        value = super().__getitem__(key)
+        self.move_to_end(key)
+        return value
 
     def __setitem__(self, key, value):
+        print("Before set: ", self)
         if key in self:
             self.move_to_end(key)
         super().__setitem__(key, value)

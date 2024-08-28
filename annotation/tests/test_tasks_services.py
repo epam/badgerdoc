@@ -1478,6 +1478,14 @@ def test_lru():
     cache = services.LRU(2)
     cache[1] = "test1"
     cache[2] = "test2"
+    assert cache[1] == "test1"
+    assert cache[2] == "test2"
+
+
+def test_lru_key_removed_due_to_capacity():
+    cache = services.LRU(2)
+    cache[1] = "test1"
+    cache[2] = "test2"
     cache[3] = "test3"
     with pytest.raises(KeyError):
         cache[1]
