@@ -1558,11 +1558,11 @@ def test_get_common_values(
 
 @pytest.mark.parametrize(
     ("old_id", "id_mapping", "expected_id"),
-    [
+    (
         (1, {(1,): 101}, 101),
         (2, {(2,): 102}, 102),
         (3, {(3,): 103}, 103),
-    ],
+    ),
 )
 def test_change_ids_get_new_id(
     old_id: int, id_mapping: Dict[Tuple[int], int], expected_id: int
