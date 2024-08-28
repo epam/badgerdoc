@@ -1634,7 +1634,7 @@ def test_remove_ids():
     assert "children" not in result
 
 
-def test_find_common_objs(setup_data: Dict[int, List[Tuple[Dict[str, str]]]]):
+def test_find_common_objs(setup_data: Dict[int, Any]):
     task_data, all_tasks = setup_data
     expected_common_objs = [
         {"id": 1, "name": "Object A", "value": "Some Value", "links": [2]},
