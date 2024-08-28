@@ -608,9 +608,9 @@ def test_validate_ids_and_names(
     ),
 )
 def test_validate_ids_and_names_invalid_name_or_id(
-    search_id: Optional[int],
+    search_id: int,
     search_name: str,
-    ids_with_names: Optional[Dict[int, str]],
+    ids_with_names: Dict[int, str],
 ):
     with pytest.raises(HTTPException) as exc_info:
         services.validate_ids_and_names(
@@ -1449,7 +1449,7 @@ def test_load_annotations(
 )
 def test_get_new_id(
     old_id: int,
-    id_mapping: Dict[Tuple[int, ...], int],
+    id_mapping: Dict[Tuple[int], int],
     expected_result: Optional[int],
 ):
     result = services.get_new_id(old_id, id_mapping)
@@ -1467,7 +1467,7 @@ def test_get_new_id(
 )
 def test_get_common_ids(
     old_id: int,
-    id_mapping: Dict[Tuple[int, ...], int],
+    id_mapping: Dict[Tuple[int], int],
     expected_result: Tuple[int, ...],
 ):
     result = services.get_common_ids(old_id, id_mapping)
@@ -1550,8 +1550,8 @@ def test_get_links_and_children(
     ],
 )
 def test_get_common_values(
-    items: List[List[Optional[Dict[str, int]]]],
-    expected: List[Optional[Dict[str, int]]],
+    items: List[List[Dict[str, int]]],
+    expected: List[Dict[str, int]],
 ):
     assert services.get_common_values(items) == expected
 
