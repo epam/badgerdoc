@@ -83,7 +83,7 @@ class LRU(OrderedDict):
     def __setitem__(self, key, value):
         if key in self:
             self.move_to_end(key)
-        super().__setitem__(key,value)
+        super().__setitem__(key, value)
         if len(self) > self.capacity:
             oldest = next(iter(self))
             del self[oldest]
