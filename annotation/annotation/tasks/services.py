@@ -2,6 +2,7 @@ import copy
 import csv
 import io
 import os
+from collections import OrderedDict
 from datetime import datetime
 from typing import Any, Dict, List, NamedTuple, Optional, Set, Tuple, Union
 
@@ -62,34 +63,30 @@ from annotation.schemas import (
 )
 
 
-class LRU:
+class LRU(OrderedDict):
     def __init__(self, capacity):
         self.capacity = capacity
-        self.counter = 0
-        self.cache = {}
-        self.lru = {}
 
     def __contains__(self, item):
-        if item in self.cache:
+        if super().__contains__(item):
+            self.move_to_end(item)
             return True
         else:
             return False
 
     def __getitem__(self, key):
-        if key in self.cache:
-            self.lru[key] = self.counter
-            self.counter += 1
-            return self.cache[key]
+        if key in self:
+            self.move_to_end(key)
+            return super().__getitem__(key)
         raise KeyError
 
     def __setitem__(self, key, value):
-        if len(self.cache) >= self.capacity:
-            old_key = min(self.lru.keys(), key=lambda k: self.lru[k])
-            self.cache.pop(old_key)
-            self.lru.pop(old_key)
-        self.cache[key] = value
-        self.lru[key] = self.counter
-        self.counter += 1
+        if key in self:
+            self.move_to_end(key)
+        super().__setitem__(key,value)
+        if len(self) > self.capacity:
+            oldest = next(iter(self))
+            del self[oldest]
 
 
 dotenv.load_dotenv(dotenv.find_dotenv())
