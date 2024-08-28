@@ -65,6 +65,7 @@ from annotation.schemas import (
 
 class LRU(OrderedDict):
     def __init__(self, capacity):
+        super().__init__
         self.capacity = capacity
 
     def __contains__(self, item):
@@ -77,7 +78,7 @@ class LRU(OrderedDict):
     def __getitem__(self, key):
         if key in self:
             self.move_to_end(key)
-            return super().__getitem__(key)
+            return self[key]
         raise KeyError
 
     def __setitem__(self, key, value):
