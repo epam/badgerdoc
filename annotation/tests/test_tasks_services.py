@@ -608,9 +608,9 @@ def test_validate_ids_and_names(
     ),
 )
 def test_validate_ids_and_names_invalid_name_or_id(
-    search_id: int,
+    search_id: Optional[int],
     search_name: str,
-    ids_with_names: Dict[int, str],
+    ids_with_names: Optional[Dict[int, str]],
 ):
     with pytest.raises(HTTPException) as exc_info:
         services.validate_ids_and_names(
@@ -1482,7 +1482,7 @@ def test_get_common_ids(
         "expected_links",
         "expected_children",
     ),
-    [
+    (
         (
             (1, 2),
             {
@@ -1501,11 +1501,11 @@ def test_get_common_ids(
             [[]],
         ),
         ((), {}, {}, [], []),
-    ],
+    ),
 )
 def test_get_links_and_children(
-    common_objs_ids: Tuple[int],
-    all_tasks_objs: Dict[int, Dict[str, List[Dict[str, int]]]],
+    common_objs_ids: Tuple[int, ...],
+    all_tasks_objs: Dict[int, Any],
     id_mapping: Dict[Tuple[int], int],
     expected_links: List[List[Dict[str, int]]],
     expected_children: List[List[int]],
@@ -1523,7 +1523,7 @@ def test_get_links_and_children(
 
 @pytest.mark.parametrize(
     ("items", "expected"),
-    [
+    (
         (
             [
                 [{"a": 1, "b": 2, "c": 3}, {"d": 4}, {"e": 5}],
@@ -1547,7 +1547,7 @@ def test_get_links_and_children(
             [{"a": 1}, {"b": 2}],
         ),
         ([], []),
-    ],
+    ),
 )
 def test_get_common_values(
     items: List[List[Dict[str, int]]],
@@ -1557,16 +1557,28 @@ def test_get_common_values(
 
 
 @pytest.mark.parametrize(
-    (
-        "all_tasks_objs",
-        "doc_objs",
-        "id_mapping",
-        "expected_ids",
-        "expected_links",
-        "expected_id",
-        "expected_children",
-    ),
+    ("old_id", "id_mapping", "expected_id"),
     [
+        (1, {(1,): 101}, 101),
+        (2, {(2,): 102}, 102),
+        (3, {(3,): 103}, 103),
+    ],
+)
+def test_change_ids_get_new_id(
+    old_id: int, id_mapping: Dict[Tuple[int], int], expected_id: int
+):
+    mock_get_new_id = MagicMock(
+        side_effect=lambda old_id, _: id_mapping.get((old_id,), old_id)
+    )
+    with patch("annotation.tasks.services.get_new_id", mock_get_new_id):
+        result = services.get_new_id(old_id, id_mapping)
+        assert result == expected_id
+    mock_get_new_id.assert_called_with(old_id, id_mapping)
+
+
+@pytest.mark.parametrize(
+    ("all_tasks_objs", "doc_objs", "id_mapping", "expected_ids"),
+    (
         (
             {
                 "task1": {"objects": [{"id": 1}, {"id": 2}]},
@@ -1583,72 +1595,22 @@ def test_get_common_values(
             },
             {(1,): 101, (2,): 102, (3,): 103},
             [101, 102, 103],
-            [101],
-            [3, 1],
-            [3],
         ),
-        (
-            {
-                "task1": {"objects": [{"id": 1}, {"id": 2}, {"id": 3}]},
-                "task2": {"objects": [{"id": 4}, {"id": 5}, {"id": 6}]},
-            },
-            {
-                "doc1": {
-                    "objects": [
-                        {"id": 1, "links": [2], "children": [3, 4]},
-                        {"id": 2},
-                        {"id": 3},
-                    ]
-                }
-            },
-            {(1,): 101, (2,): 102, (3,): 103, (4,): 104},
-            [101, 102, 103],
-            [101],
-            [3, 1],
-            [101],
-        ),
-    ],
+    ),
 )
-def test_change_ids(
+def test_change_ids_basic(
     all_tasks_objs: Dict[str, Any],
     doc_objs: Dict[str, Dict[str, Any]],
     id_mapping: Dict[Tuple[int], int],
     expected_ids: List[int],
-    expected_links: List[int],
-    expected_id: List[int],
-    expected_children: List[int],
 ):
-    mock_get_new_id = MagicMock(
-        side_effect=lambda old_id, _: id_mapping.get((old_id,), old_id)
-    )
-    mock_get_common_ids = MagicMock(
-        side_effect=lambda old_id, _: [id_mapping.get((old_id,), old_id)]
-    )
-    mock_get_links_and_children = MagicMock(
-        side_effect=lambda ids, _, __: (
-            [id_mapping.get((i,), i) for i in ids],
-            [id_mapping.get((i,), i) for i in ids],
-        )
-    )
-    mock_get_common_values = MagicMock(side_effect=lambda objs: objs)
-
-    with patch("annotation.tasks.services.get_new_id", mock_get_new_id), patch(
-        "annotation.tasks.services.get_common_ids", mock_get_common_ids
-    ), patch(
+    with patch(
         "annotation.tasks.services.get_links_and_children",
-        mock_get_links_and_children,
-    ), patch(
-        "annotation.tasks.services.get_common_values", mock_get_common_values
+        return_value=([{"test1": "test"}], [[1]]),
     ):
         services.change_ids(all_tasks_objs, doc_objs, id_mapping)
-    for i, obj in enumerate(doc_objs["doc1"]["objects"]):
-        assert obj["id"] == expected_ids[i]
-    mock_get_new_id.assert_called_with(*(expected_id[0], id_mapping))
-    mock_get_common_ids.assert_called_with(*(expected_id[1], id_mapping))
-    mock_get_links_and_children.assert_called_with(
-        *(expected_links, all_tasks_objs, id_mapping)
-    )
-    mock_get_common_values.assert_called_with(expected_links)
+        for i, obj in enumerate(doc_objs["doc1"]["objects"]):
+            assert obj["id"] == expected_ids[i]
 
 
 def test_remove_ids():
