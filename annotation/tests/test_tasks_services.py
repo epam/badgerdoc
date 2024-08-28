@@ -1472,3 +1472,163 @@ def test_get_common_ids(
 ):
     result = services.get_common_ids(old_id, id_mapping)
     assert result == expected_result
+
+
+@pytest.mark.parametrize(
+    (
+        "common_objs_ids",
+        "all_tasks_objs",
+        "id_mapping",
+        "expected_links",
+        "expected_children",
+    ),
+    (
+        (
+            (1, 2),
+            {
+                1: {"links": [{"to": 2}], "children": [3]},
+                2: {"links": [{"to": 3}], "children": []},
+            },
+            {(2,): 200, (3,): 300},
+            [[{"to": 2}], [{"to": 3}]],
+            [[3], []],
+        ),
+        (
+            (1,),
+            {1: {"links": [{"to": 2}], "children": []}},
+            {(2,): 200},
+            [[{"to": 2}]],
+            [[]],
+        ),
+        ((), {}, {}, [], []),
+    ),
+)
+def test_get_links_and_children(
+    common_objs_ids: Tuple[int, ...],
+    all_tasks_objs: Dict[int, Any],
+    id_mapping: Dict[Tuple[int], int],
+    expected_links: List[List[Dict[str, int]]],
+    expected_children: List[List[int]],
+):
+    with patch("annotation.tasks.services.get_new_id") as mock_get_new_id:
+        mock_get_new_id.side_effect = lambda old_id, _: (
+            old_id if old_id in [2, 3] else None
+        )
+        result_links, result_children = services.get_links_and_children(
+            common_objs_ids, all_tasks_objs, id_mapping
+        )
+        assert result_links == expected_links
+        assert result_children == expected_children
+
+
+@pytest.mark.parametrize(
+    ("items", "expected"),
+    (
+        (
+            [
+                [{"a": 1, "b": 2, "c": 3}, {"d": 4}, {"e": 5}],
+                [{"d": 4}, {"f": 6}],
+                [{"d": 4}, {"g": 7}],
+            ],
+            [{"d": 4}],
+        ),
+        (
+            [
+                [{"a": 1}],
+                [],
+                [{"b": 2}],
+            ],
+            [],
+        ),
+        (
+            [
+                [{"a": 1}, {"b": 2}],
+            ],
+            [{"a": 1}, {"b": 2}],
+        ),
+        ([], []),
+    ),
+)
+def test_get_common_values(
+    items: List[List[Dict[str, int]]],
+    expected: List[Dict[str, int]],
+):
+    assert services.get_common_values(items) == expected
+
+
+@pytest.mark.parametrize(
+    ("old_id", "id_mapping", "expected_id"),
+    (
+        (1, {(1,): 101}, 101),
+        (2, {(2,): 102}, 102),
+        (3, {(3,): 103}, 103),
+    ),
+)
+def test_change_ids_get_new_id(
+    old_id: int, id_mapping: Dict[Tuple[int], int], expected_id: int
+):
+    mock_get_new_id = MagicMock(
+        side_effect=lambda old_id, _: id_mapping.get((old_id,), old_id)
+    )
+    with patch("annotation.tasks.services.get_new_id", mock_get_new_id):
+        result = services.get_new_id(old_id, id_mapping)
+        assert result == expected_id
+    mock_get_new_id.assert_called_with(old_id, id_mapping)
+
+
+@pytest.mark.parametrize(
+    ("all_tasks_objs", "doc_objs", "id_mapping", "expected_ids"),
+    (
+        (
+            {
+                "task1": {"objects": [{"id": 1}, {"id": 2}]},
+                "task2": {"objects": [{"id": 3}, {"id": 4}]},
+            },
+            {
+                "doc1": {
+                    "objects": [
+                        {"id": 1, "links": [2], "children": [3]},
+                        {"id": 2},
+                        {"id": 3},
+                    ]
+                }
+            },
+            {(1,): 101, (2,): 102, (3,): 103},
+            [101, 102, 103],
+        ),
+    ),
+)
+def test_change_ids_basic(
+    all_tasks_objs: Dict[str, Any],
+    doc_objs: Dict[str, Dict[str, Any]],
+    id_mapping: Dict[Tuple[int], int],
+    expected_ids: List[int],
+):
+    with patch(
+        "annotation.tasks.services.get_links_and_children",
+        return_value=([{"test1": "test"}], [[1]]),
+    ):
+        services.change_ids(all_tasks_objs, doc_objs, id_mapping)
+        for i, obj in enumerate(doc_objs["doc1"]["objects"]):
+            assert obj["id"] == expected_ids[i]
+
+
+def test_remove_ids():
+    task_obj = {
+        "id": 1,
+        "name": "Task 1",
+        "description": "This is a task.",
+        "links": [2, 3],
+        "children": [4, 5],
+        "extra_info": "Some extra info",
+    }
+    expected_result = {
+        "name": "Task 1",
+        "description": "This is a task.",
+        "extra_info": "Some extra info",
+    }
+    result = services.remove_ids(task_obj)
+    assert result == expected_result
+    assert "id" not in result
+    assert "links" not in result
+    assert "children" not in result
