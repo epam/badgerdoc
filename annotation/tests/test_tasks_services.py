@@ -1449,7 +1449,7 @@ def test_load_annotations(
 )
 def test_get_new_id(
     old_id: int,
-    id_mapping: Dict[Tuple[int], int],
+    id_mapping: Dict[Tuple[int, ...], int],
     expected_result: Optional[int],
 ):
     result = services.get_new_id(old_id, id_mapping)
@@ -1467,7 +1467,7 @@ def test_get_new_id(
 )
 def test_get_common_ids(
     old_id: int,
-    id_mapping: Dict[Tuple[int], int],
+    id_mapping: Dict[Tuple[int, ...], int],
     expected_result: Tuple[int, ...],
 ):
     result = services.get_common_ids(old_id, id_mapping)
