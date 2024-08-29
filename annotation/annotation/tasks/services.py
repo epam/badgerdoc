@@ -282,7 +282,7 @@ def read_annotation_tasks(
 
 
 def validate_ids_and_names(
-    search_id: int,
+    search_id: Optional[int],
     search_name: Optional[str],
     ids_with_names: Dict[int, str],
 ) -> Tuple[List[int], Dict[int, str]]:
@@ -1205,7 +1205,7 @@ def construct_annotated_pages(
                 set.intersection(
                     *(task_data["categories"] for task_data in tasks.values())
                 )
-                for tasks in tasks_annotations.values()
+                for tasks in tasks_annotations.values() if tasks
             )
         )
         if tasks_annotations
