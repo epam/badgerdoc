@@ -1751,7 +1751,7 @@ def test_get_tasks_without_ids_with_multiple_task_types():
 def test_create_validation_revisions_successful(
     mock_session: Mock,
     mock_get_file_path_and_bucket: Mock,
-    mock_construct_annotated_pages: Mock,
+    mock_construct_annotated_pages: PageSchema,
     mock_construct_annotated_doc: Mock,
     mock_update_task_status: Mock,
     mock_logger_exception: Mock,
@@ -1775,7 +1775,7 @@ def test_create_validation_revisions_successful(
 def test_create_validation_revisions_multiple_tasks(
     mock_session: Mock,
     mock_get_file_path_and_bucket: Mock,
-    mock_construct_annotated_pages: Mock,
+    mock_construct_annotated_pages: PageSchema,
     mock_construct_annotated_doc: Mock,
     mock_update_task_status: Mock,
     mock_logger_exception: Mock,
@@ -1819,7 +1819,7 @@ def test_create_validation_revisions_multiple_tasks(
 def test_create_validation_revisions_multiple_tasks_value_error(
     mock_session: Mock,
     mock_get_file_path_and_bucket: Mock,
-    mock_construct_annotated_pages: Mock,
+    mock_construct_annotated_pages: PageSchema,
     mock_construct_annotated_doc: Mock,
     mock_update_task_status: Mock,
     mock_logger_exception: Mock,
