@@ -64,7 +64,7 @@ from annotation.schemas import (
 
 
 class LRU(OrderedDict):
-    def __init__(self, capacity:int):
+    def __init__(self, capacity: int):
         self.capacity = capacity
         super().__init__()
 
