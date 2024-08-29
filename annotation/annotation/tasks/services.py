@@ -64,9 +64,9 @@ from annotation.schemas import (
 
 
 class LRU(OrderedDict):
-    def __init__(self, capacity):
-        super().__init__()
+    def __init__(self, capacity:int):
         self.capacity = capacity
+        super().__init__()
 
     def __getitem__(self, key):
         value = super().__getitem__(key)
@@ -74,9 +74,8 @@ class LRU(OrderedDict):
         return value
 
     def __setitem__(self, key, value):
-        if key in self:
-            self.move_to_end(key)
         super().__setitem__(key, value)
+        self.move_to_end(key)
         if len(self) > self.capacity:
             oldest = next(iter(self))
             del self[oldest]
