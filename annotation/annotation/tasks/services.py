@@ -1204,7 +1204,8 @@ def construct_annotated_pages(
                 set.intersection(
                     *(task_data["categories"] for task_data in tasks.values())
                 )
-                for tasks in tasks_annotations.values() if tasks
+                for tasks in tasks_annotations.values()
+                if tasks
             )
         )
         if tasks_annotations

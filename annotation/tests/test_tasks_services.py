@@ -1874,8 +1874,8 @@ def test_construct_annotated_pages(mock_session: Mock):
         pages, categories = services.construct_annotated_pages(
             mock_session, x_current_tenant, []
         )
-        assert pages == []
-        assert categories == set()
+        assert not pages
+        assert not categories
 
 
 def test_construct_annotated_pages_common_objs(mock_session: Mock):
