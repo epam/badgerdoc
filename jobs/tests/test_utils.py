@@ -1142,6 +1142,7 @@ async def test_execute_external_pipeline(sign_s3_links: bool):
                     "file": f"files/1/1.{sign_s3_links}.pdf",
                     "pages": [1, 2, 3],
                     "output_path": f"runs/1/1",
+                    "datasets": ["dataset11"],
                 }
             ],
             previous_jobs_data=[],

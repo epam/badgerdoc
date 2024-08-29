@@ -300,6 +300,7 @@ def files_data_to_pipeline_arg(
             "input_path": file["file"],
             "pages": file["pages"],
             "file_id": file_id,
+            "datasets": file["datasets"],
         }
         rev = file.get("revision")
         if rev:
@@ -329,6 +330,11 @@ async def execute_external_pipeline(
     current_tenant: str,
 ) -> None:
     logger.info("Running pipeline_engine %s", pipeline_engine)
+    all_datasets = []
+    for f in files_data:
+        all_datasets.extend(f["datasets"])
+    all_datasets = list(set(all_datasets))
+
     kwargs = {
         "pipeline_id": pipeline_id,
         "job_id": job_id,
@@ -336,6 +342,7 @@ async def execute_external_pipeline(
             list(files_data_to_pipeline_arg(files_data, previous_jobs_data))
         ),
         "current_tenant": current_tenant,
+        "datasets": all_datasets
     }
     logger.info("Pipeline params: %s", kwargs)
     if pipeline_engine == "airflow":
