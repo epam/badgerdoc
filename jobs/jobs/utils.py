@@ -342,7 +342,7 @@ async def execute_external_pipeline(
             list(files_data_to_pipeline_arg(files_data, previous_jobs_data))
         ),
         "current_tenant": current_tenant,
-        "datasets": all_datasets
+        "datasets": all_datasets,
     }
     logger.info("Pipeline params: %s", kwargs)
     if pipeline_engine == "airflow":
