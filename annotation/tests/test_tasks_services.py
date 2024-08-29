@@ -564,7 +564,6 @@ def test_read_annotation_tasks_with_file_and_job_ids(mock_session: Mock):
     mock_query.limit.return_value.offset.return_value.all.return_value = [
         "task1"
     ]
-
     total_objects, annotation_tasks = services.read_annotation_tasks(
         db=mock_session,
         search_params={"file_ids": [1, 2], "job_ids": [3]},
@@ -1679,3 +1678,71 @@ def test_find_common_objs_empty_data():
     )
     assert result_common_objs == expected_common_objs
     assert result_same_ids == expected_same_ids
+
+
+def test_get_tasks_without_ids_empty():
+    assert services.get_tasks_without_ids({}) == {}
+
+
+def test_get_tasks_without_ids_with_task_data():
+    tasks = {
+        1: {
+            "objects": [
+                {
+                    "id": "1",
+                    "name": "Task 1",
+                    "details": {"id": "a1", "info": "Details 1"},
+                },
+                {"id": "2", "name": "Task 2"},
+            ]
+        }
+    }
+    expected = {
+        1: [
+            (
+                {
+                    "name": "Task 1",
+                    "details": {"id": "a1", "info": "Details 1"},
+                },
+                "1",
+            ),
+            ({"name": "Task 2"}, "2"),
+        ]
+    }
+    assert services.get_tasks_without_ids(tasks) == expected
+
+
+def test_get_tasks_without_ids_with_nested_info():
+    tasks = {
+        2: {
+            "objects": [
+                {
+                    "id": "3",
+                    "info": {"id": "b3", "value": "Nested Value"},
+                },
+            ]
+        }
+    }
+    expected = {2: [({"info": {"id": "b3", "value": "Nested Value"}}, "3")]}
+    assert services.get_tasks_without_ids(tasks) == expected
+
+
+def test_get_tasks_without_ids_with_multiple_task_types():
+    tasks = {
+        3: {
+            "objects": [
+                {"id": "4", "name": "Task 4"},
+                {"id": "5", "status": "Complete"},
+            ]
+        },
+        4: {
+            "objects": [
+                {"id": "6", "description": "Task 6"},
+            ]
+        },
+    }
+    expected = {
+        3: [({"name": "Task 4"}, "4"), ({"status": "Complete"}, "5")],
+        4: [({"description": "Task 6"}, "6")],
+    }
+    assert services.get_tasks_without_ids(tasks) == expected
