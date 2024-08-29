@@ -1746,8 +1746,8 @@ def test_get_tasks_without_ids_with_multiple_task_types():
         4: [({"description": "Task 6"}, "6")],
     }
     assert services.get_tasks_without_ids(tasks) == expected
-    
-    
+
+
 def test_create_validation_revisions_successful(
     mock_session: Mock,
     mock_get_file_path_and_bucket: Mock,
