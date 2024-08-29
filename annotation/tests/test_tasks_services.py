@@ -1746,3 +1746,120 @@ def test_get_tasks_without_ids_with_multiple_task_types():
         4: [({"description": "Task 6"}, "6")],
     }
     assert services.get_tasks_without_ids(tasks) == expected
+    
+    
+def test_create_validation_revisions_successful(
+    mock_session: Mock,
+    mock_get_file_path_and_bucket: Mock,
+    mock_construct_annotated_pages: Mock,
+    mock_construct_annotated_doc: Mock,
+    mock_update_task_status: Mock,
+    mock_logger_exception: Mock,
+):
+    x_current_tenant = "tenant_1"
+    token = MagicMock(token="fake_token")
+    job_id = 123
+    user_id = uuid.uuid4()
+    validation_tasks = [
+        ManualAnnotationTask(file_id=1, pages={1}, user_id=user_id, id=10)
+    ]
+    services.create_validation_revisions(
+        mock_session, x_current_tenant, token, job_id, validation_tasks
+    )
+    mock_get_file_path_and_bucket.assert_called_once_with(
+        1, x_current_tenant, token.token
+    )
+    mock_logger_exception.assert_not_called()
+
+
+def test_create_validation_revisions_multiple_tasks(
+    mock_session: Mock,
+    mock_get_file_path_and_bucket: Mock,
+    mock_construct_annotated_pages: Mock,
+    mock_construct_annotated_doc: Mock,
+    mock_update_task_status: Mock,
+    mock_logger_exception: Mock,
+):
+    x_current_tenant = "tenant_1"
+    token = MagicMock(token="fake_token")
+    job_id = 123
+    validation_tasks = [
+        ManualAnnotationTask(
+            file_id=1, pages={1, 2}, user_id=uuid.uuid4(), id=10
+        ),
+        ManualAnnotationTask(
+            file_id=2, pages={3}, user_id=uuid.uuid4(), id=11
+        ),
+    ]
+    with patch(
+        "annotation.tasks.services.construct_annotated_pages",
+        return_value=(
+            [
+                PageSchema(
+                    page_num=10,
+                    size={"width": 10.2, "height": 123.34},
+                    objs=[
+                        {
+                            "id": 2,
+                        }
+                    ],
+                ),
+            ],
+            set(["tasks1", "tasks2"]),
+        ),
+    ):
+        services.create_validation_revisions(
+            mock_session, x_current_tenant, token, job_id, validation_tasks
+        )
+
+        assert mock_get_file_path_and_bucket.call_count == 2
+        mock_logger_exception.assert_not_called()
+
+
+def test_create_validation_revisions_multiple_tasks_value_error(
+    mock_session: Mock,
+    mock_get_file_path_and_bucket: Mock,
+    mock_construct_annotated_pages: Mock,
+    mock_construct_annotated_doc: Mock,
+    mock_update_task_status: Mock,
+    mock_logger_exception: Mock,
+):
+    x_current_tenant = "tenant_1"
+    token = MagicMock(token="fake_token")
+    job_id = 123
+    validation_tasks = [
+        ManualAnnotationTask(
+            file_id=1, pages={1, 2}, user_id=uuid.uuid4(), id=10
+        ),
+        ManualAnnotationTask(
+            file_id=2, pages={3}, user_id=uuid.uuid4(), id=11
+        ),
+    ]
+    mock_construct_annotated_doc.side_effect = ValueError(
+        "Simulation of a fault"
+    )
+    with patch(
+        "annotation.tasks.services.construct_annotated_pages",
+        return_value=(
+            [
+                PageSchema(
+                    page_num=10,
+                    size={"width": 10.2, "height": 123.34},
+                    objs=[
+                        {
+                            "id": 2,
+                        }
+                    ],
+                ),
+            ],
+            set(["tasks1", "tasks2"]),
+        ),
+    ):
+        services.create_validation_revisions(
+            mock_session, x_current_tenant, token, job_id, validation_tasks
+        )
+    assert mock_get_file_path_and_bucket.call_count == 2
+    mock_logger_exception.assert_called_with(
+        "Cannot save first validation revision."
+    )
+    mock_update_task_status.assert_not_called()
