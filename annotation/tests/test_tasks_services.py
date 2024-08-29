@@ -1863,3 +1863,84 @@ def test_create_validation_revisions_multiple_tasks_value_error(
         "Cannot save first validation revision."
     )
     mock_update_task_status.assert_not_called()
+
+
+def test_construct_annotated_pages(mock_session: Mock):
+    x_current_tenant = "tenant_1"
+    with patch(
+        "annotation.tasks.services.PageSchema",
+        return_value=PageSchema(page_num=1, size={}, objs=[]),
+    ), patch("annotation.tasks.services.load_annotations", return_value={}):
+        pages, categories = services.construct_annotated_pages(
+            mock_session, x_current_tenant, []
+        )
+        assert not pages
+        assert not categories
+
+
+def test_construct_annotated_pages_common_objs(mock_session: Mock):
+    x_current_tenant = "tenant_1"
+    annotation_tasks = [
+        ManualAnnotationTask(file_id=1, pages={1}, user_id=1, id=10),
+        ManualAnnotationTask(file_id=2, pages={1}, user_id=2, id=11),
+    ]
+    mock_tasks_annotations = {
+        1: {
+            1: {
+                "size": (1000, 1000),
+                "objects": [{"id": "1", "type": "rect"}],
+                "categories": {"cat1"},
+            },
+            2: {
+                "size": (1000, 1000),
+                "objects": [{"id": "2", "type": "rect"}],
+                "categories": {"cat1"},
+            },
+        },
+        2: {},
+    }
+    expected_categories = {"cat1"}
+    with patch(
+        "annotation.tasks.services.load_annotations",
+        return_value=mock_tasks_annotations,
+    ), patch(
+        "annotation.tasks.services.PageSchema",
+        return_value=PageSchema(page_num=1000, size={}, objs=[]),
+    ):
+        _, categories = services.construct_annotated_pages(
+            mock_session, x_current_tenant, annotation_tasks
+        )
+        assert categories == expected_categories
+
+
+def test_construct_annotated_pages_no_common_categories(mock_session: Mock):
+    x_current_tenant = "tenant_1"
+    annotation_tasks = [
+        ManualAnnotationTask(file_id=1, pages={1}, user_id=1, id=10),
+    ]
+    mock_tasks_annotations = {
+        1: {
+            1: {
+                "size": (1000, 1000),
+                "objects": [{"id": "1", "type": "rect"}],
+                "categories": {"cat1"},
+            },
+            2: {
+                "size": (1000, 1000),
+                "objects": [{"id": "2", "type": "rect"}],
+                "categories": {"cat2"},
+            },
+        },
+    }
+    expected_categories = set()
+    with patch(
+        "annotation.tasks.services.load_annotations",
+        return_value=mock_tasks_annotations,
+    ), patch(
+        "annotation.tasks.services.PageSchema",
+        return_value=PageSchema(page_num=10, size={}, objs=[]),
+    ):
+        _, categories = services.construct_annotated_pages(
+            mock_session, x_current_tenant, annotation_tasks
+        )
+        assert categories == expected_categories
