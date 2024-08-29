@@ -300,7 +300,6 @@ def validate_ids_and_names(
             if search_name is not None
             else {}
         )
-
         return [search_id], id_with_name
 
     if search_name is not None and not ids_with_names:
