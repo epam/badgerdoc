@@ -41,8 +41,7 @@ async def update_job_status(
                 callback_url, headers=headers, json=json_data
             ) as response:
                 if response.status != 200:
-                    text = await response.text()
-                    raise JobUpdateException(text)
+                    raise JobUpdateException(await response.text())
         except ClientError as exc:
             raise JobUpdateException(exc)
 
@@ -64,8 +63,7 @@ async def append_job_categories(
                 url, headers=headers, json=json_data
             ) as response:
                 if response.status != 200:
-                    text = await response.text()
-                    raise JobUpdateException(text)
+                    raise JobUpdateException(await response.text())
         except ClientError as exc:
             raise JobUpdateException(exc)
 

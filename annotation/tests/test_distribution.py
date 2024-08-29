@@ -1856,7 +1856,6 @@ def test_distribute_extensive_coverage(
         ([], JobStatusEnumSchema.finished),
     ),
 )
-@pytest.mark.asyncio
 async def test_redistribute(
     tasks_for_test_redistribute: Mock,
     mock_db: Mock,
@@ -1891,7 +1890,6 @@ async def test_redistribute(
         mock_delete_tasks.assert_called_once_with(mock_db, set())
 
 
-@pytest.mark.asyncio
 async def test_redistribute_error(
     tasks_for_test_redistribute: Mock,
     mock_db: Mock,
