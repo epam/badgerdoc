@@ -913,8 +913,7 @@ def finish_task(
 
     If all tasks associated with
     job are finished, sends a request to
-    job microservice to put job status to Finished and message to search
-    service via kafka to start indexation for this job.
+    job microservice to update job status to Finished.
     Saves annotated/validated pages in the file.
 
     If all pages of the file are annotated or validated,

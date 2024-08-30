@@ -21,7 +21,6 @@ from annotation.annotations.main import (
     NotConfiguredException,
     PageRevision,
     accumulate_pages_info,
-    check_if_kafka_message_is_needed,
     check_null_fields,
     connect_s3,
     construct_annotated_doc,
@@ -608,33 +607,6 @@ def test_upload_pages_to_minio(moto_s3: boto3.resource):
 def test_update_pages_array():
     resulting_set = update_pages_array({1, 2, 3}, {4}, {1, 2})
     assert resulting_set == {3, 4}
-
-
-def test_kafka_message_needed(annotated_doc: AnnotatedDoc):
-    db = Mock()
-    check_if_kafka_message_is_needed(
-        db,
-        annotated_doc,
-        annotated_doc,
-        annotated_doc.job_id,
-        annotated_doc.file_id,
-        TEST_TENANT,
-    )
-    db.commit.assert_not_called()
-
-
-def test_kafka_message_needed_commit(annotated_doc: AnnotatedDoc):
-    db = Mock()
-    db.commit = Mock()
-    check_if_kafka_message_is_needed(
-        db,
-        annotated_doc,
-        None,
-        annotated_doc.job_id,
-        annotated_doc.file_id,
-        TEST_TENANT,
-    )
-    db.commit.assert_called_once()
 
 
 def test_mark_all_revs_validated_pages(
