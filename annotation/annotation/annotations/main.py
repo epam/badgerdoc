@@ -471,18 +471,6 @@ def update_pages_array(
     return old_pages_to_add - new_pages_to_remove
 
 
-def check_if_kafka_message_is_needed(
-    db: Session,
-    latest_doc: AnnotatedDoc,
-    new_doc: AnnotatedDoc,
-    job_id: int,
-    file_id: int,
-    tenant: str,
-) -> None:
-    if latest_doc != new_doc:
-        db.commit()
-
-
 PageRevision = Dict[str, Union[Optional[str], datetime, bool]]
 
 

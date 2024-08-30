@@ -16,7 +16,6 @@ PyYAML = "^5.4.1"
 requests = "^2.26.0"
 cryptography = "^36.0.1"
 cachetools = "^5.0.0"
-kafka-python = "^2.0.2"
 sqlalchemy-utils = "^0.38.3"
 badgerdoc-storage = { path = "../lib/badgerdoc_storage" }
 
