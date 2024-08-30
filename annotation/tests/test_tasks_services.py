@@ -25,6 +25,7 @@ from annotation.schemas.tasks import (
     AgreementScoreServiceResponse,
     AnnotationStatisticsEventEnumSchema,
     AnnotationStatisticsInputSchema,
+    ExportTaskStatsInput,
     ManualAnnotationTaskInSchema,
     ResponseScore,
     TaskMetric,
