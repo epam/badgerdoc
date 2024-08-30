@@ -2,6 +2,7 @@ import copy
 import csv
 import io
 import os
+from collections import OrderedDict
 from datetime import datetime
 from typing import Any, Dict, List, NamedTuple, Optional, Set, Tuple, Union
 
@@ -9,7 +10,6 @@ import dotenv
 import pydantic
 from fastapi import HTTPException
 from filter_lib import Page, form_query, map_request_to_filter, paginate
-from lru import LRU
 from sqlalchemy import and_, asc, text
 from sqlalchemy.orm import Session
 from tenant_dependency import TenantData
@@ -61,6 +61,25 @@ from annotation.schemas import (
     TaskStatusEnumSchema,
     ValidationSchema,
 )
+
+
+class LRU(OrderedDict):
+    def __init__(self, capacity: int):
+        self.capacity = capacity
+        super().__init__()
+
+    def __getitem__(self, key):
+        value = super().__getitem__(key)
+        self.move_to_end(key)
+        return value
+
+    def __setitem__(self, key, value):
+        super().__setitem__(key, value)
+        self.move_to_end(key)
+        if len(self) > self.capacity:
+            oldest = next(iter(self))
+            del self[oldest]
+
 
 dotenv.load_dotenv(dotenv.find_dotenv())
 AGREEMENT_SCORE_MIN_MATCH = float(os.getenv("AGREEMENT_SCORE_MIN_MATCH", 0.9))
@@ -282,7 +301,7 @@ def read_annotation_tasks(
 
 
 def validate_ids_and_names(
-    search_id: int,
+    search_id: Optional[int],
     search_name: Optional[str],
     ids_with_names: Dict[int, str],
 ) -> Tuple[List[int], Dict[int, str]]:
@@ -300,7 +319,6 @@ def validate_ids_and_names(
             if search_name is not None
             else {}
         )
-
         return [search_id], id_with_name
 
     if search_name is not None and not ids_with_names:
@@ -1206,6 +1224,7 @@ def construct_annotated_pages(
                     *(task_data["categories"] for task_data in tasks.values())
                 )
                 for tasks in tasks_annotations.values()
+                if tasks
             )
         )
         if tasks_annotations
