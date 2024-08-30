@@ -2084,3 +2084,21 @@ def test_create_export_csv_no_annotation_stats(mock_db: Mock):
             services.create_export_csv(mock_db, schema, "tenant", "token")
         assert exc_info.value.status_code == 406
         assert exc_info.value.detail == "Export data not found."
+
+
+def test_lru():
+    cache = services.LRU(2)
+    cache[1] = "test1"
+    cache[2] = "test2"
+    assert cache[1] == "test1"
+    assert cache[2] == "test2"
+
+
+def test_lru_key_removed_due_to_capacity():
+    cache = services.LRU(2)
+    cache[1] = "test1"
+    cache[2] = "test2"
+    cache[3] = "test3"
+    assert len(cache) == 2
+    with pytest.raises(KeyError):
+        cache[1]
