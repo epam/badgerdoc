@@ -10,7 +10,6 @@ import dotenv
 import pydantic
 from fastapi import HTTPException
 from filter_lib import Page, form_query, map_request_to_filter, paginate
-from lru import LRU
 from sqlalchemy import and_, asc, text
 from sqlalchemy.orm import Session
 from tenant_dependency import TenantData
@@ -63,6 +62,7 @@ from annotation.schemas import (
     ValidationSchema,
 )
 
+
 class LRU(OrderedDict):
     def __init__(self, capacity: int):
         self.capacity = capacity
@@ -79,6 +79,7 @@ class LRU(OrderedDict):
         if len(self) > self.capacity:
             oldest = next(iter(self))
             del self[oldest]
+
 
 dotenv.load_dotenv(dotenv.find_dotenv())
 AGREEMENT_SCORE_MIN_MATCH = float(os.getenv("AGREEMENT_SCORE_MIN_MATCH", 0.9))
