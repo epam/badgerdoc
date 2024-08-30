@@ -1945,6 +1945,7 @@ def test_construct_annotated_pages_no_common_categories(mock_session: Mock):
         )
         assert categories == expected_categories
 
+
 def test_get_from_cache():
     objs_ids = {1, 2, 3}
     cache_used = {1: "name1", 3: "name3"}
