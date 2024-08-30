@@ -234,7 +234,7 @@ def post_job(
     },
     summary="Update job by job_id.",
 )
-def update_job(
+async def update_job(
     update_query: JobPatchSchema,
     job_id: int = Path(..., example=1),
     db: Session = Depends(get_db),
@@ -292,7 +292,7 @@ def update_job(
         delete_redundant_users(db, deleted_users)
     if job.is_auto_distribution:
         db.flush()
-        redistribute(db, token.token, x_current_tenant, job)
+        await redistribute(db, token.token, x_current_tenant, job)
     # add saved tasks users who have been removed for redistribution
     job.annotators = add_users(db, job.annotators, annotators_to_save)
     job.validators = add_users(db, job.validators, validators_to_save)
@@ -435,7 +435,7 @@ def get_unassigned_files(
     },
     summary="Start job.",
 )
-def start_job(
+async def start_job(
     job_id: int = Path(..., example=3),
     db: Session = Depends(get_db),
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
@@ -482,7 +482,7 @@ def start_job(
         )
     )
     try:
-        update_job_status(
+        await update_job_status(
             job.callback_url,
             JobStatusEnumSchema.in_progress,
             x_current_tenant,
