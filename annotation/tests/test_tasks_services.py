@@ -1748,6 +1748,204 @@ def test_get_tasks_without_ids_with_multiple_task_types():
     assert services.get_tasks_without_ids(tasks) == expected
 
 
+def test_create_validation_revisions_successful(
+    mock_session: Mock,
+    mock_get_file_path_and_bucket: Mock,
+    mock_construct_annotated_pages: PageSchema,
+    mock_construct_annotated_doc: Mock,
+    mock_update_task_status: Mock,
+    mock_logger_exception: Mock,
+):
+    x_current_tenant = "tenant_1"
+    token = MagicMock(token="fake_token")
+    job_id = 123
+    user_id = uuid.uuid4()
+    validation_tasks = [
+        ManualAnnotationTask(file_id=1, pages={1}, user_id=user_id, id=10)
+    ]
+    services.create_validation_revisions(
+        mock_session, x_current_tenant, token, job_id, validation_tasks
+    )
+    mock_get_file_path_and_bucket.assert_called_once_with(
+        1, x_current_tenant, token.token
+    )
+    mock_logger_exception.assert_not_called()
+
+
+def test_create_validation_revisions_multiple_tasks(
+    mock_session: Mock,
+    mock_get_file_path_and_bucket: Mock,
+    mock_construct_annotated_pages: PageSchema,
+    mock_construct_annotated_doc: Mock,
+    mock_update_task_status: Mock,
+    mock_logger_exception: Mock,
+):
+    x_current_tenant = "tenant_1"
+    token = MagicMock(token="fake_token")
+    job_id = 123
+    validation_tasks = [
+        ManualAnnotationTask(
+            file_id=1, pages={1, 2}, user_id=uuid.uuid4(), id=10
+        ),
+        ManualAnnotationTask(
+            file_id=2, pages={3}, user_id=uuid.uuid4(), id=11
+        ),
+    ]
+    with patch(
+        "annotation.tasks.services.construct_annotated_pages",
+        return_value=(
+            [
+                PageSchema(
+                    page_num=10,
+                    size={"width": 10.2, "height": 123.34},
+                    objs=[
+                        {
+                            "id": 2,
+                        }
+                    ],
+                ),
+            ],
+            set(["tasks1", "tasks2"]),
+        ),
+    ):
+        services.create_validation_revisions(
+            mock_session, x_current_tenant, token, job_id, validation_tasks
+        )
+
+        assert mock_get_file_path_and_bucket.call_count == 2
+        mock_logger_exception.assert_not_called()
+
+
+def test_create_validation_revisions_multiple_tasks_value_error(
+    mock_session: Mock,
+    mock_get_file_path_and_bucket: Mock,
+    mock_construct_annotated_pages: PageSchema,
+    mock_construct_annotated_doc: Mock,
+    mock_update_task_status: Mock,
+    mock_logger_exception: Mock,
+):
+    x_current_tenant = "tenant_1"
+    token = MagicMock(token="fake_token")
+    job_id = 123
+    validation_tasks = [
+        ManualAnnotationTask(
+            file_id=1, pages={1, 2}, user_id=uuid.uuid4(), id=10
+        ),
+        ManualAnnotationTask(
+            file_id=2, pages={3}, user_id=uuid.uuid4(), id=11
+        ),
+    ]
+    mock_construct_annotated_doc.side_effect = ValueError(
+        "Simulation of a fault"
+    )
+    with patch(
+        "annotation.tasks.services.construct_annotated_pages",
+        return_value=(
+            [
+                PageSchema(
+                    page_num=10,
+                    size={"width": 10.2, "height": 123.34},
+                    objs=[
+                        {
+                            "id": 2,
+                        }
+                    ],
+                ),
+            ],
+            set(["tasks1", "tasks2"]),
+        ),
+    ):
+        services.create_validation_revisions(
+            mock_session, x_current_tenant, token, job_id, validation_tasks
+        )
+    assert mock_get_file_path_and_bucket.call_count == 2
+    mock_logger_exception.assert_called_with(
+        "Cannot save first validation revision."
+    )
+    mock_update_task_status.assert_not_called()
+
+
+def test_construct_annotated_pages(mock_session: Mock):
+    x_current_tenant = "tenant_1"
+    with patch(
+        "annotation.tasks.services.PageSchema",
+        return_value=PageSchema(page_num=1, size={}, objs=[]),
+    ), patch("annotation.tasks.services.load_annotations", return_value={}):
+        pages, categories = services.construct_annotated_pages(
+            mock_session, x_current_tenant, []
+        )
+        assert not pages
+        assert not categories
+
+
+def test_construct_annotated_pages_common_objs(mock_session: Mock):
+    x_current_tenant = "tenant_1"
+    annotation_tasks = [
+        ManualAnnotationTask(file_id=1, pages={1}, user_id=1, id=10),
+        ManualAnnotationTask(file_id=2, pages={1}, user_id=2, id=11),
+    ]
+    mock_tasks_annotations = {
+        1: {
+            1: {
+                "size": (1000, 1000),
+                "objects": [{"id": "1", "type": "rect"}],
+                "categories": {"cat1"},
+            },
+            2: {
+                "size": (1000, 1000),
+                "objects": [{"id": "2", "type": "rect"}],
+                "categories": {"cat1"},
+            },
+        },
+        2: {},
+    }
+    expected_categories = {"cat1"}
+    with patch(
+        "annotation.tasks.services.load_annotations",
+        return_value=mock_tasks_annotations,
+    ), patch(
+        "annotation.tasks.services.PageSchema",
+        return_value=PageSchema(page_num=1000, size={}, objs=[]),
+    ):
+        _, categories = services.construct_annotated_pages(
+            mock_session, x_current_tenant, annotation_tasks
+        )
+        assert categories == expected_categories
+
+
+def test_construct_annotated_pages_no_common_categories(mock_session: Mock):
+    x_current_tenant = "tenant_1"
+    annotation_tasks = [
+        ManualAnnotationTask(file_id=1, pages={1}, user_id=1, id=10),
+    ]
+    mock_tasks_annotations = {
+        1: {
+            1: {
+                "size": (1000, 1000),
+                "objects": [{"id": "1", "type": "rect"}],
+                "categories": {"cat1"},
+            },
+            2: {
+                "size": (1000, 1000),
+                "objects": [{"id": "2", "type": "rect"}],
+                "categories": {"cat2"},
+            },
+        },
+    }
+    expected_categories = set()
+    with patch(
+        "annotation.tasks.services.load_annotations",
+        return_value=mock_tasks_annotations,
+    ), patch(
+        "annotation.tasks.services.PageSchema",
+        return_value=PageSchema(page_num=10, size={}, objs=[]),
+    ):
+        _, categories = services.construct_annotated_pages(
+            mock_session, x_current_tenant, annotation_tasks
+        )
+        assert categories == expected_categories
+
+
 def test_lru():
     cache = services.LRU(2)
     cache[1] = "test1"
