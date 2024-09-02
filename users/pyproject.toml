@@ -22,7 +22,6 @@ badgerdoc-storage = { path = "../lib/badgerdoc_storage" }
 
 [tool.poetry.group.dev.dependencies]
 isort = "^5.12.0"
-black = "^22.3.0"
 flake8 = "^3.9.2"
 pytest = "^6.2.5"
 pytest-asyncio = "^0.15.1"

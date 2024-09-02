@@ -34,7 +34,7 @@ COPY tests /sonar/tests
 COPY sonar-project.properties /sonar/sonar-project.properties
 
 CMD sonar-scanner \
-  -Dsonar.projectKey=$SONAR_PROJECT_KEY_USERS \
-  -Dproject.settings=/sonar/sonar-project.properties \
-  -Dsonar.host.url=$SONAR_HOST_URL \
-  -Dsonar.login=$SONAR_TOKEN_USERS
+    -Dsonar.projectKey=$SONAR_PROJECT_KEY_USERS \
+    -Dproject.settings=/sonar/sonar-project.properties \
+    -Dsonar.host.url=$SONAR_HOST_URL \
+    -Dsonar.login=$SONAR_TOKEN_USERS

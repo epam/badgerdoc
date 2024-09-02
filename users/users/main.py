@@ -1,15 +1,17 @@
+import logging
 import os
 from typing import Any, Callable, Dict, List, Optional
 
 import aiohttp
 import pydantic
 from aiohttp.web_exceptions import HTTPException as AIOHTTPException
+from badgerdoc_storage import storage as bd_storage
 from email_validator import EmailNotValidError, validate_email
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
-from tenant_dependency import TenantData, get_tenant_info
+from tenant_dependency import BadgerdocJWT, TenantData, get_tenant_info
 
 import users.config as conf
 import users.keycloak.query as kc_query
@@ -24,6 +26,8 @@ from users.config import (
 from users.schemas import Users
 
 app = FastAPI(title="users", root_path=ROOT_PATH, version="0.1.3")
+logger = logging.getLogger(__name__)
+logger.setLevel(os.getenv("LOG_LEVEL", "INFO"))
 
 realm = conf.KEYCLOAK_REALM
 
@@ -81,7 +85,22 @@ async def login(
         credentials = kc_schemas.TokenRequest.from_fastapi_form(form_data)
     except pydantic.ValidationError as err:
         raise HTTPException(status_code=422, detail=err.errors())
-    return await kc_query.get_token_v2(realm, credentials)
+    token = await kc_query.get_token_v2(realm, credentials)
+    # Check if it's admin and check if tenants directory created
+    badgerdoc_jwt = BadgerdocJWT(
+        KEYCLOAK_SYSTEM_USER_SECRET,
+        algorithm="RS256",
+        url=KEYCLOAK_HOST,
+    )
+    decoded = badgerdoc_jwt.decode_token(token.access_token)
+    if "admin" in decoded.roles:
+        logger.info("User is admin, trying to create tenants folders")
+        for tenant in decoded.tenants:
+            logger.info("Creating tenants folder '%s'", tenant)
+            st = bd_storage.get_storage(tenant)
+            created = st.create_tenant_dir()
+            logger.info("Folder %s created: %s", tenant, created)
+    return token
 
 
 @app.post(

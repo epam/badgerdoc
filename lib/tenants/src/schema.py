@@ -1,5 +1,5 @@
 import enum
-from typing import List, Optional
+from typing import List
 
 from pydantic import BaseModel
 
@@ -8,7 +8,7 @@ class TenantData(BaseModel):
     token: str
     user_id: str
     roles: List[str]
-    tenants: Optional[List[str]]
+    tenants: List[str]
 
 
 class SupportedAlgorithms(str, enum.Enum):

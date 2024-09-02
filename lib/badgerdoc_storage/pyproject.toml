@@ -5,7 +5,7 @@ description = "Library for interacting with various blob or file storage systems
 authors = ["Ruslan Khyurri <ruslan.khyurri@gmail.com>"]
 license = "Apache-2.0"
 readme = "README.md"
-packages = [{include = "badgerdoc_storage", from = "src"}]
+packages = [{ include = "badgerdoc_storage", from = "src" }]
 
 [tool.poetry.dependencies]
 python = "^3.8"
@@ -13,6 +13,22 @@ boto3 = "1.34.144"
 azure-storage-blob = "12.20.0"
 azure-identity = "1.17.1"
 
+[tool.poetry.group.dev.dependencies]
+black = "^24.8.0"
+mypy = "^1.11.2"
+pylint = "^3.2.6"
+isort = "^5.13.2"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.pylint.messages_control]
+max-line-length = 79
+disable = ["missing-docstring"]
+
+[tool.black]
+line-length = 79
+
+[tool.mypy]
+ignore_missing_imports = true

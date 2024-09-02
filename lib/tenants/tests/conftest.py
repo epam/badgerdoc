@@ -79,6 +79,7 @@ def client_token_mock_rs256():
             ]
         },
         "clientId": "pipelines",
+        "tenants": ["tenant1"],
     }
 
     token = create_access_token(

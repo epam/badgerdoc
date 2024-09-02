@@ -88,7 +88,7 @@ def test_client_token_positive(client_token_mock_rs256, test_app_rs256):
             "offline_access",
             "uma_authorization",
         ],
-        "tenants": None,
+        "tenants": [CURRENT_TENANT],
         "token": f"{client_token_mock_rs256}",
         "user_id": "3855eb45-2c11-4b15-8989-257b3a51649c",
     }
