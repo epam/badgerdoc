@@ -14,13 +14,10 @@ logger = logging.getLogger(__name__)
 logger.setLevel(os.getenv("LOG_LEVEL", "INFO"))
 
 
-class TenantDependencyBase:
+class BadgerdocJWT:
+
     def __init__(
-        self,
-        key: str = "",
-        algorithm: str = "RS256",
-        # TODO: Fix type from bagerdoc to badgerdoc
-        url: str = "http://bagerdoc-keycloack",
+        self, key: str = "", algorithm: str = "RS256", url: str = ""
     ) -> None:
         """
         For usage with alg HS256 you must provide 'key' and 'alg' arguments.
@@ -29,62 +26,12 @@ class TenantDependencyBase:
         Args:
             key: a private key for decoding tokens with hs256 alg
             algorithm: an alg for tokens, will be checked in available algorithms  # noqa
-            url: an url to auth service (http://bagerdoc-keycloack, http://dev1.gcov.ru)  # noqa
+            url: an url to auth service  # noqa
         """
         self.key = key
         self.algorithm = self._check_algorithm(algorithm)
         self.jwk_client: jwt.PyJWKClient = jwt.PyJWKClient(
             self._create_url(url)
-        )
-
-    async def __call__(self, request: Request) -> TenantData:
-        authorization: str = request.headers.get("Authorization")
-        if not authorization:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="No authorization provided!",
-            )
-        current_tenant: str = request.headers.get("X-Current-Tenant")
-        if not current_tenant:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="No X-Current-Tenant provided!",
-            )
-        _, token = get_authorization_scheme_param(authorization)
-        decoded: Dict[str, Any] = {}
-        logger.debug("Decoding token with algorithm %s", self.algorithm)
-        if self.algorithm == SupportedAlgorithms.HS256:
-            decoded = self.decode_hs256(token)
-        elif self.algorithm == SupportedAlgorithms.RS256:
-            decoded = self.decode_rs256(token)
-
-        sub = decoded.get("sub")
-        realm_access = decoded.get("realm_access")
-        roles = False
-        if realm_access:
-            roles = realm_access.get("roles")
-        tenants = decoded.get("tenants")
-
-        if decoded.get("clientId") == "pipelines":
-            return TenantData(
-                token=token, user_id=sub, roles=roles, tenants=tenants
-            )
-
-        if not (sub and roles and tenants):
-            logger.debug("Sub %s, roles: %s, tenants: %s", sub, roles, tenants)
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Wrong data provided in jwt!",
-            )
-
-        if current_tenant not in tenants:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="X-Current-Tenant not in jwt tenants!",
-            )
-
-        return TenantData(
-            token=token, user_id=sub, roles=roles, tenants=tenants
         )
 
     def decode_hs256(self, token: str) -> Dict[str, Any]:
@@ -122,6 +69,37 @@ class TenantDependencyBase:
             )
         return decoded
 
+    def decode_token(self, token: str) -> TenantData:
+        decoded: Dict[str, Any] = {}
+        logger.debug("Decoding token with algorithm %s", self.algorithm)
+        if self.algorithm == SupportedAlgorithms.HS256:
+            decoded = self.decode_hs256(token)
+        elif self.algorithm == SupportedAlgorithms.RS256:
+            decoded = self.decode_rs256(token)
+
+        sub = decoded.get("sub")
+        realm_access = decoded.get("realm_access")
+        roles = False
+        if realm_access:
+            roles = realm_access.get("roles")
+        tenants = decoded.get("tenants", [])
+
+        if decoded.get("clientId") == "pipelines":
+            return TenantData(
+                token=token, user_id=sub, roles=roles, tenants=tenants
+            )
+
+        if not (sub and roles and tenants):
+            logger.debug("Sub %s, roles: %s, tenants: %s", sub, roles, tenants)
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Wrong data provided in jwt!",
+            )
+
+        return TenantData(
+            token=token, user_id=sub, roles=roles, tenants=tenants
+        )
+
     @staticmethod
     def _check_algorithm(alg: str) -> str:
         if alg not in SupportedAlgorithms.members():
@@ -136,12 +114,42 @@ class TenantDependencyBase:
         return url.rstrip("/") + "/" + auth_path
 
 
+class TenantDependencyBase:
+    def __init__(
+        self, key: str = "", algorithm: str = "RS256", url: str = ""
+    ) -> None:
+        self.badgerdoc_jwt = BadgerdocJWT(key, algorithm, url)
+
+    async def __call__(self, request: Request) -> TenantData:
+        authorization: str = request.headers.get("Authorization")
+        if not authorization:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="No authorization provided!",
+            )
+        current_tenant: str = request.headers.get("X-Current-Tenant")
+        if not current_tenant:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="No X-Current-Tenant provided!",
+            )
+        _, token = get_authorization_scheme_param(authorization)
+
+        decoded: TenantData = self.badgerdoc_jwt.decode_token(token)
+        if current_tenant not in decoded.tenants:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="X-Current-Tenant not in jwt tenants!",
+            )
+        return decoded
+
+
 class TenantDependencyDocs(TenantDependencyBase, SecurityBase):
     def __init__(
         self,
         key: str = "",
         algorithm: str = "RS256",
-        url: str = "http://bagerdoc-keycloack",
+        url: str = "",
         scheme_name: Optional[str] = None,
         description: Optional[str] = None,
     ) -> None:
@@ -153,7 +161,7 @@ class TenantDependencyDocs(TenantDependencyBase, SecurityBase):
 def get_tenant_info(
     key: str = "",
     algorithm: str = "RS256",
-    url: str = "http://bagerdoc-keycloack",
+    url: str = "",
     scheme_name: Optional[str] = None,
     description: Optional[str] = None,
     debug: bool = True,

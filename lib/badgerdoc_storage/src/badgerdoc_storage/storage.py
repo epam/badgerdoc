@@ -6,9 +6,11 @@ from urllib.parse import urlsplit
 
 import azure.core.exceptions
 import boto3
+from azure.core.exceptions import ResourceExistsError
 from azure.storage.blob import (
     BlobServiceClient,
     ContainerSasPermissions,
+    ContentSettings,
     generate_blob_sas,
 )
 from botocore.exceptions import ClientError
@@ -84,6 +86,8 @@ class BadgerDocStorage(Protocol):
 
     def remove(self, file: str) -> None: ...
 
+    def create_tenant_dir(self) -> bool: ...
+
     @property
     def tenant(self) -> str: ...
 
@@ -93,6 +97,7 @@ class BadgerDocS3Storage:
         self._tenant = tenant
         self._bucket = self.__get_bucket_name()
         self.storage_configuration = create_boto3_config()
+        logger.info("Storage configured: %s", self.storage_configuration)
         self.s3_resource = boto3.resource("s3", **self.storage_configuration)
 
     @property
@@ -105,25 +110,22 @@ class BadgerDocS3Storage:
     def upload(
         self, target_path: str, file: str, content_type: Optional[str] = None
     ) -> None:
-        bucket_name = self.__get_bucket_name()
         params: Dict[str, Any] = {"Filename": file, "Key": target_path}
         if content_type:
             params["ExtraArgs"] = {"ContentType": content_type}
-        self.s3_resource.Bucket(bucket_name).upload_file(**params)
+        self.s3_resource.Bucket(self._bucket).upload_file(**params)
 
     def upload_obj(
         self, target_path: str, file: bytes, content_type: Optional[str] = None
     ) -> None:
-        bucket_name = self.__get_bucket_name()
-        params = {"Fileobj": file, "Key": target_path}
+        params: Dict[str, Any] = {"Fileobj": file, "Key": target_path}
         if content_type:
             params["ExtraArgs"] = {"ContentType": content_type}
-        self.s3_resource.Bucket(bucket_name).upload_fileobj(**params)
+        self.s3_resource.Bucket(self._bucket).upload_fileobj(**params)
 
     def exists(self, target_path: str) -> bool:
-        bucket_name = self.__get_bucket_name()
         try:
-            self.s3_resource.Object(bucket_name, target_path).load()
+            self.s3_resource.Object(self._bucket, target_path).load()
             return True
         except ClientError as err:
             if err.response["Error"]["Code"] == "404":
@@ -131,28 +133,27 @@ class BadgerDocS3Storage:
             raise BadgerDocStorageError() from err
 
     def download(self, target_path: str, file: str) -> None:
-        bucket_name = self.__get_bucket_name()
         try:
-            self.s3_resource.Bucket(bucket_name).download_file(
+            self.s3_resource.Bucket(self._bucket).download_file(
                 Key=target_path, Filename=file
             )
         except ClientError as err:
             raise BadgerDocStorageError(
-                "Unable to download file: %s", target_path
+                f"Unable to download file: {target_path}"
             ) from err
 
     def list_objects(self, target_path: str) -> List[str]:
-        bucket_name = self.__get_bucket_name()
-        bucket = self.s3_resource.Bucket(bucket_name)
+        bucket = self.s3_resource.Bucket(self._bucket)
         objects = bucket.objects.filter(Prefix=target_path)
         return [obj.key for obj in objects]
 
     def gen_signed_url(self, file: str, exp: int) -> str:
-        bucket_name = self.__get_bucket_name()
         signed_url = self.s3_resource.meta.client.generate_presigned_url(
-            "get_object", Params={"Bucket": bucket_name, "Key": file}
+            "get_object",
+            Params={"Bucket": self._bucket, "Key": file},
+            ExpiresIn=exp,
         )
-        if STORAGE_PROVIDER == "MINIO" and MINIO_PUBLIC_HOST is not None:
+        if STORAGE_PROVIDER == "MINIO" and MINIO_PUBLIC_HOST:
             split = urlsplit(signed_url)
             new_url = f"{MINIO_PUBLIC_HOST}{split.path}"
             if split.query is not None:
@@ -160,12 +161,28 @@ class BadgerDocS3Storage:
             return new_url
         return signed_url
 
+    def create_tenant_dir(self) -> bool:
+        try:
+            self.s3_resource.create_bucket(Bucket=self._bucket)
+        except ClientError as err:
+            if err.response["Error"]["Code"] == "BucketAlreadyOwnedByYou":
+                # minio generates this response in case of bucket exists
+                return False
+            raise BadgerDocStorageError(
+                "Unable to create or check tenant dir"
+            ) from err
+        return True
+
     def remove(self, file: str) -> None:
-        pass
+        raise NotImplementedError("Method not implemented")
 
 
 class BadgerDocAzureStorage:
     def __init__(self, tenant: str) -> None:
+        if AZURE_BLOB_STORAGE_CONNECTION_STRING is None:
+            raise BadgerDocStorageError(
+                "AZURE_BLOB_STORAGE_CONNECTION_STRING is not set."
+            )
         self._container_name = tenant
         self._tenant = tenant
         self.blob_service_client = BlobServiceClient.from_connection_string(
@@ -182,6 +199,9 @@ class BadgerDocAzureStorage:
         blob_client = self.blob_service_client.get_blob_client(
             self._container_name, target_path
         )
+        if content_type:
+            blob_headers = ContentSettings(content_type=content_type)
+            blob_client.set_http_headers(blob_headers)
         with open(file, "rb") as data:
             blob_client.upload_blob(data)
 
@@ -192,6 +212,9 @@ class BadgerDocAzureStorage:
             blob_client = self.blob_service_client.get_blob_client(
                 self._container_name, target_path
             )
+            if content_type:
+                blob_headers = ContentSettings(content_type=content_type)
+                blob_client.set_http_headers(blob_headers)
             blob_client.upload_blob(file)
         except azure.core.exceptions.ResourceExistsError as err:
             raise BadgerDocStorageResourceExistsError() from err
@@ -219,7 +242,7 @@ class BadgerDocAzureStorage:
             blob_client.blob_name,
             snapshot=blob_client.snapshot,
             account_key=blob_client.credential.account_key,
-            permission=ContainerSasPermissions(read=True),
+            permission=ContainerSasPermissions(read=True),  # type: ignore
             expiry=datetime.datetime.now() + datetime.timedelta(minutes=exp),
         )
         return blob_client.url + "?" + sas_token
@@ -233,6 +256,13 @@ class BadgerDocAzureStorage:
         blob_iter = container_client.walk_blobs(name_starts_with=target_path)
         return [blob.name for blob in blob_iter]
 
+    def create_tenant_dir(self) -> bool:
+        try:
+            self.blob_service_client.create_container(self._container_name)
+            return True
+        except ResourceExistsError:
+            return False
+
     def remove(self, file: str) -> None:
         blob_client = self.blob_service_client.get_blob_client(
             self._container_name, file
@@ -243,9 +273,6 @@ class BadgerDocAzureStorage:
 def get_storage(tenant: str) -> BadgerDocStorage:
     if STORAGE_PROVIDER in S3_COMPATIBLE:
         return BadgerDocS3Storage(tenant)
-    elif STORAGE_PROVIDER in AZURE_COMPATIBLE:
+    if STORAGE_PROVIDER in AZURE_COMPATIBLE:
         return BadgerDocAzureStorage(tenant)
-    else:
-        raise BadgerDocStorageError(
-            f"Engine {STORAGE_PROVIDER} is not supported"
-        )
+    raise BadgerDocStorageError(f"Engine {STORAGE_PROVIDER} is not supported")

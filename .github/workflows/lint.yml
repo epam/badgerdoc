@@ -7,8 +7,6 @@ on:
 
 env:
   PYTHON_VERSION: 3.8
-  LINT_CONFIG: pyproject.toml
-
 
 jobs:
   lint:
@@ -30,4 +28,4 @@ jobs:
           poetry run isort --diff --check-only .
       - name: Run Black
         run: |
-          poetry run black --config $LINT_CONFIG --diff --check .
+          poetry run black --config pyproject.toml --diff --check .

@@ -1,3 +1,4 @@
+import os
 from contextlib import contextmanager
 from unittest.mock import patch
 
@@ -141,7 +142,12 @@ def test_check_authorization_role_is_right(mock_tenant_data):
 
 
 @patch("users.keycloak.query.get_token_v2", return_value=token_schema)
-def test_login_body(token_schema):
+@patch(
+    "tenant_dependency.BadgerdocJWT.decode_token",
+    return_value=mock_tenant_data,
+)
+@patch("users.main.bd_storage.get_storage")
+def test_login_body(token_schema, tenant_dependency, get_storage):
     response = client.post(
         "/token",
         data={
@@ -151,9 +157,15 @@ def test_login_body(token_schema):
         },
     )
     assert response.json() == token_representation
+    assert get_storage.called
 
 
 @patch("users.keycloak.query.get_token_v2", return_value=token_schema)
+@patch(
+    "tenant_dependency.BadgerdocJWT.decode_token",
+    return_value=mock_tenant_data,
+)
+@patch("users.main.bd_storage.get_storage")
 @pytest.mark.parametrize(
     ("request_body", "status_code"),
     [
@@ -203,7 +215,9 @@ def test_login_body(token_schema):
         ),
     ],
 )
-def test_login_status_code(token_schema, request_body, status_code):
+def test_login_status_code(
+    token_schema, tenant_dependency, get_storage, request_body, status_code
+):
     response = client.post("/token", data=request_body)
     assert response.status_code == status_code
 
@@ -300,6 +314,7 @@ class TestCreateTenant:
 @patch("users.keycloak.query.get_user", return_value=user_1)
 @patch("users.keycloak.schemas.User.add_tenant", return_value=None)
 @patch("users.keycloak.query.update_user", return_value=None)
+@patch("users.config.KEYCLOAK_ROLE_ADMIN", return_value="admin")
 class TestAddUserToTenant:
     @pytest.mark.parametrize(
         ("tenant", "expected_result"),
@@ -314,6 +329,7 @@ class TestAddUserToTenant:
         mock_user,
         add_tenant,
         update_user,
+        tenant_dependency,
         tenant,
         expected_result,
     ):
@@ -333,6 +349,7 @@ class TestAddUserToTenant:
         mock_user,
         add_tenant,
         update_user,
+        tenant_dependency,
         tenant,
         expected_result,
     ):
