@@ -182,11 +182,6 @@ docker-compose -f airflow/docker-compose-dev.yaml up -d
 This docker-compose file was downloaded from the Apache Airflow website:
 https://airflow.apache.org/docs/apache-airflow/2.7.0/docker-compose.yaml with only a few modifications added.
 
-## Set up Azure Blob Storage
-
-### Enable CORS
-https://learn.microsoft.com/en-us/rest/api/storageservices/cross-origin-resource-sharing--cors--support-for-the-azure-storage-services
-
 
 ## How to install required dependencies locally
 
