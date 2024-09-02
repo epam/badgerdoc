@@ -13,6 +13,7 @@ import { JobsTableConnector } from '../../connectors';
 import { JOBS_PAGE } from '../../shared/constants/general';
 import { useJobById } from 'api/hooks/jobs';
 import EditJobConnector from '../../connectors/edit-job-connector/edit-job-connector';
+import { DatasetsTableConnector } from 'connectors/datasets-table-connector';
 
 import wizardStyles from '../../shared/components/wizard/wizard/wizard.module.scss';
 import styles from '../../shared/components/wizard/wizard/wizard.module.scss';
@@ -24,6 +25,7 @@ export const EditJobPage = () => {
 
     const [files, setFiles] = useState<number[]>([]);
     const [jobs, setJobs] = useState<number[]>([]);
+    const [datasets, setDatasets] = useState<number[]>([]);
     const [stepIndex, setStepIndex] = useState(0);
     const [currentTab, onCurrentTabChange] = useState('Documents');
 
@@ -67,6 +69,10 @@ export const EditJobPage = () => {
         {
             id: 'Jobs',
             caption: 'Jobs'
+        },
+        {
+            id: 'Datasets',
+            caption: 'Datasets'
         }
     ];
 
@@ -81,7 +87,7 @@ export const EditJobPage = () => {
                 checkedValues={files}
             />
         );
-    } else {
+    } else if (currentTab === 'Jobs') {
         table = (
             <JobsTableConnector
                 isNewJobPage
@@ -89,6 +95,14 @@ export const EditJobPage = () => {
                 onRowClick={() => null}
                 onAddJob={() => null}
                 checkedValues={jobs}
+            />
+        );
+    } else {
+        table = (
+            <DatasetsTableConnector
+                onDatasetSelect={setDatasets}
+                onRowClick={() => null}
+                checkedValues={datasets}
             />
         );
     }
@@ -127,6 +141,7 @@ export const EditJobPage = () => {
                     initialJob={job}
                     files={currentTab === 'Documents' ? files : []}
                     jobs={currentTab === 'Jobs' ? jobs : []}
+                    datasets={currentTab === 'Datasets' ? datasets : []}
                     renderWizardButtons={({ save, lens }) => {
                         return (
                             <>
