@@ -26,7 +26,7 @@ class BadgerdocJWT:
         Args:
             key: a private key for decoding tokens with hs256 alg
             algorithm: an alg for tokens, will be checked in available algorithms  # noqa
-            url: an url to auth service  # noqa
+            url: a url to auth service  # noqa
         """
         self.key = key
         self.algorithm = self._check_algorithm(algorithm)
