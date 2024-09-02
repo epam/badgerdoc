@@ -328,13 +328,9 @@ async def execute_external_pipeline(
     previous_jobs_data: List[Dict[str, Any]],
     files_data: List[Dict[str, Any]],
     current_tenant: str,
+    datasets: List[Dict],
 ) -> None:
     logger.info("Running pipeline_engine %s", pipeline_engine)
-    all_datasets = []
-    for f in files_data:
-        all_datasets.extend(f["datasets"])
-    all_datasets = list(set(all_datasets))
-
     kwargs = {
         "pipeline_id": pipeline_id,
         "job_id": job_id,
@@ -342,7 +338,7 @@ async def execute_external_pipeline(
             list(files_data_to_pipeline_arg(files_data, previous_jobs_data))
         ),
         "current_tenant": current_tenant,
-        "datasets": all_datasets,
+        "datasets": datasets,
     }
     logger.info("Pipeline params: %s", kwargs)
     if pipeline_engine == "airflow":
@@ -778,6 +774,47 @@ async def get_annotation_revisions(
         raise fastapi.HTTPException(
             status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=f"Failed request to the Annotation Manager: {err}",
+        )
+
+    return response
+
+
+async def search_datasets_by_ids(
+    datasets_ids: List[int], current_tenant: str, jw_token: str
+) -> Dict[str, Any]:
+    """Search datasets by a list of IDs.
+    Returns a list of datasets that match the given IDs."""
+
+    try:
+        logger.info(
+            f"Sending request to the dataset manager "
+            f"to search datasets by IDs: {datasets_ids}"
+        )
+        status, response = await fetch(
+            method="POST",
+            url=f"{ASSETS_SERVICE_HOST}/datasets/search",
+            headers={
+                "X-Current-Tenant": current_tenant,
+                "Authorization": f"Bearer {jw_token}",
+            },
+            body={
+                "filters": [
+                    {"field": "id", "operator": "in", "value": datasets_ids}
+                ],
+            },
+            raise_for_status=True,
+        )
+        if status == 404:
+            logger.error(
+                f"Failed to find datasets: {datasets_ids}, resp: {response}"
+            )
+            return {}
+
+    except aiohttp.client_exceptions.ClientError as err:
+        logger.exception(f"Failed request to get datasets info: {err}")
+        raise fastapi.HTTPException(
+            status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Failed request to get datasets info: {err}",
         )
 
     return response

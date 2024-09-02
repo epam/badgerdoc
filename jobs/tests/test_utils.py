@@ -1147,6 +1147,7 @@ async def test_execute_external_pipeline(sign_s3_links: bool):
             ],
             previous_jobs_data=[],
             current_tenant="test_tenant",
+            datasets=[{"id": 1, "name": "dataset11"}],
         )
 
         assert FakePipeline.calls

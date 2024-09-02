@@ -55,7 +55,7 @@ class FileResponse(BaseModel):
     last_modified: datetime.datetime
     status: FileProcessingStatus
     path: str
-    datasets: List[str]
+    datasets: List[dict]
 
     class Config:
         orm_mode = True
@@ -63,10 +63,10 @@ class FileResponse(BaseModel):
     @validator("datasets", pre=True)
     def validate_datasets(  # pylint: disable=E0213
         cls, v: Optional[List[Datasets]]
-    ) -> List[str]:
+    ) -> List[dict]:
         if not v:
             return []
-        return [el.name for el in v]
+        return [{"id": el.id, "name": el.name} for el in v]
 
 
 class DatasetResponse(BaseModel):
