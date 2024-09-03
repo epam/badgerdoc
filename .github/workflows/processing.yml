@@ -1,4 +1,4 @@
-name: processing linters and tests
+name: processing
 
 on:
   push:
@@ -10,25 +10,25 @@ on:
       - processing/**
       - .github/worlflows/processing.yml
 jobs:
-  processing-pre-commit-actions:
+  linters:
     strategy:
       matrix:
-        python-version: [ "3.8.15" ]
+        python-version: ["3.8.15"]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-          cache: 'pip'
+          cache: "pip"
       - run: pip install flake8
       - run: flake8 --extend-ignore=E203 processing
 
-  processing-build:
+  tests:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [ "3.8.15" ]
+        python-version: ["3.8.15"]
     services:
       postgres-postgresql:
         image: postgres:13
@@ -42,7 +42,7 @@ jobs:
           USE_TEST_DB: True
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
       minio:
-        image: 'bitnami/minio:latest'
+        image: "bitnami/minio:latest"
         ports:
           - 9000:9000
         env:
@@ -54,7 +54,7 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-          cache: 'pip'
+          cache: "pip"
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
