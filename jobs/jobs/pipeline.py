@@ -13,6 +13,7 @@ class PipelineFile(TypedDict, total=False):
     input: PipelineFileInput
     input_path: str
     pages: List[int]
+    datasets: List[int]
     revision: Optional[str]
     output_path: Optional[str]
     signed_url: Optional[str]
