@@ -2,7 +2,7 @@ import datetime
 import enum
 from typing import List, Optional
 
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, Field, validator
 
 from assets.db.models import Datasets
 
@@ -13,7 +13,7 @@ class MinioObjects(BaseModel):
 
 class Dataset(BaseModel):
     name: str
-    id: Optional[int]
+    id: Optional[int] = Field(default=None)
 
 
 class Bucket(Dataset):
