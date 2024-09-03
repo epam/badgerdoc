@@ -10,7 +10,7 @@ on:
       - lib/badgerdoc_storage/**
       - .github/worlflows/badgerdoc_storage.yml
 jobs:
-  badgerdoc-storage-linters:
+  linters:
     strategy:
       matrix:
         python-version: ["3.8.15", "3.12"]

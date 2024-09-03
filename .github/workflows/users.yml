@@ -1,4 +1,4 @@
-name: users service checks and tests
+name: users
 
 on:
   push:
@@ -11,28 +11,28 @@ on:
       - .github/worlflows/users.yml
 
 jobs:
-   users-linters-and-tests:
-     runs-on: ubuntu-latest
-     strategy:
-       matrix:
-         python-version: [ "3.8.15" ]
-     steps:
-       - uses: actions/checkout@v4
-       - uses: actions/setup-python@v4
-         with:
-           python-version: ${{ matrix.python-version }}
-       - name: Install dependencies
-         working-directory: ./users
-         run: |
-           python -m pip install --upgrade pip
-           pip install poetry>=1.1.13
-           poetry install --no-root
-           poetry add ../lib/tenants
-       - name: Run linters and checkers [flake8]
-         working-directory: ./users
-         run: |
-           poetry run flake8 --extend-ignore=E203 users/
-       - name: Run tests
-         working-directory: ./users
-         run: |
-           poetry run pytest tests/
+  linters-and-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.8.15"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        working-directory: ./users
+        run: |
+          python -m pip install --upgrade pip
+          pip install poetry>=1.1.13
+          poetry install --no-root
+          poetry add ../lib/tenants
+      - name: Run linters and checkers [flake8]
+        working-directory: ./users
+        run: |
+          poetry run flake8 --extend-ignore=E203 users/
+      - name: Run tests
+        working-directory: ./users
+        run: |
+          poetry run pytest tests/
