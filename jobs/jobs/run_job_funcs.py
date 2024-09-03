@@ -43,6 +43,16 @@ async def run_extraction_job(
         current_tenant,
         job_to_run.pipeline_engine,
     )
+
+    datasets_resp = await utils.search_datasets_by_ids(
+        datasets_ids=job_to_run.datasets,
+        current_tenant=current_tenant,
+        jw_token=jw_token,
+    )
+    datasets = [
+        {"id": d["id"], "name": d["name"]} for d in datasets_resp["data"]
+    ]
+
     await utils.execute_external_pipeline(
         pipeline_id=job_to_run.pipeline_id,
         pipeline_engine=job_to_run.pipeline_engine,
@@ -50,6 +60,7 @@ async def run_extraction_job(
         previous_jobs_data=converted_previous_jobs_data,
         files_data=converted_files_data,
         current_tenant=current_tenant,
+        datasets=datasets,
     )
 
     return None
