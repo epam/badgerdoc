@@ -13,10 +13,7 @@ class MinioObjects(BaseModel):
 
 class Dataset(BaseModel):
     name: str
-
-
-class DatasetObj(Dataset):
-    id: int
+    id: Optional[int]
 
 
 class Bucket(Dataset):
@@ -59,7 +56,7 @@ class FileResponse(BaseModel):
     last_modified: datetime.datetime
     status: FileProcessingStatus
     path: str
-    datasets: List[DatasetObj]
+    datasets: List[Dataset]
 
     class Config:
         orm_mode = True
