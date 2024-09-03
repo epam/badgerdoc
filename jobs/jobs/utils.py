@@ -300,7 +300,7 @@ def files_data_to_pipeline_arg(
             "input_path": file["file"],
             "pages": file["pages"],
             "file_id": file_id,
-            "datasets": file["datasets"],
+            "datasets": file["datasets"] if not previous_jobs_data else [],
         }
         rev = file.get("revision")
         if rev:
