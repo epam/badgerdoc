@@ -15,6 +15,10 @@ class Dataset(BaseModel):
     name: str
 
 
+class DatasetObj(Dataset):
+    id: int
+
+
 class Bucket(Dataset):
     pass
 
@@ -55,7 +59,7 @@ class FileResponse(BaseModel):
     last_modified: datetime.datetime
     status: FileProcessingStatus
     path: str
-    datasets: List[dict]
+    datasets: List[DatasetObj]
 
     class Config:
         orm_mode = True
