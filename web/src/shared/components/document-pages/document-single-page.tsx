@@ -104,11 +104,15 @@ const DocumentSinglePage: FC<RenderPageParams> = ({
     );
 
     const { isCellMode } = useTableAnnotatorContext();
-    const handleAnnotationAdded = (ann: Pick<Annotation, 'bound' | 'boundType' | 'id'>) => {
-        onAnnotationCreated(pageNum, {
-            ...ann,
-            category: selectedCategory?.id
-        });
+    const handleAnnotationAdded = (
+        ann: Pick<Annotation, 'bound' | 'boundType' | 'id' | 'text' | 'tokens'>
+    ) => {
+        if (selectedCategory?.id) {
+            onAnnotationCreated(pageNum, {
+                ...ann,
+                category: selectedCategory?.id
+            });
+        }
     };
     const handleAnnotationDeleted = (annotationId: string | number) => {
         onAnnotationDeleted(pageNum, annotationId);
@@ -227,7 +231,8 @@ const DocumentSinglePage: FC<RenderPageParams> = ({
                         table: annotationStyle,
                         text: annotationStyle,
                         table_cell: annotationStyle,
-                        polygon: annotationStyle
+                        polygon: annotationStyle,
+                        document: annotationStyle
                     }}
                     selectionStyle={annotationStyle}
                     selectionType={selectionType}

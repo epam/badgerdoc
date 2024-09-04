@@ -11,7 +11,7 @@ import {
     TableFilters
 } from '../../api/typings';
 import { useColumnPickerFilter } from '../components/filters/column-picker';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 
 export const getSource = <DataSourceType>(
     data: PagedResponse<DataSourceType> | undefined,
@@ -132,3 +132,19 @@ export const applyTableConfigs = <TFilter, TSorting, TDirection, TOperator, TVal
 };
 export const mapUndefString = (fn: (s: string) => void) => (val: string | undefined) =>
     fn(val || '');
+
+export const useOutsideClick = (ref: any, callback: () => void) => {
+    const handleClick = (e: { target: any }) => {
+        if (ref.current && !ref.current.contains(e.target)) {
+            callback();
+        }
+    };
+
+    useEffect(() => {
+        document.addEventListener('click', handleClick);
+
+        return () => {
+            document.removeEventListener('click', handleClick);
+        };
+    });
+};

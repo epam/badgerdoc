@@ -57,7 +57,8 @@ const resizeSelectionCast = {
     box: 'free-box',
     'free-box': 'free-box',
     text: 'text',
-    table: 'table'
+    table: 'table',
+    document: 'document'
 } as Record<
     AnnotationBoundType | AnnotationLinksBoundType | AnnotationImageToolType,
     AnnotationBoundType | AnnotationLinksBoundType | AnnotationImageToolType
@@ -66,7 +67,9 @@ const resizeSelectionCast = {
 export type AnnotatorProps = PropsWithChildren<{
     // --- Callbacks --- //
 
-    onAnnotationAdded?: (ann: Pick<Annotation, 'bound' | 'boundType' | 'id'>) => void;
+    onAnnotationAdded?: (
+        ann: Pick<Annotation, 'bound' | 'boundType' | 'id' | 'text' | 'tokens'>
+    ) => void;
     onAnnotationContextMenu?: (
         event: React.MouseEvent,
         annotationId: string | number,
@@ -177,7 +180,7 @@ export const Annotator: FC<AnnotatorProps> = ({
         panoRef,
         annotations,
         scale,
-        ['box', 'free-box', 'table', 'text'],
+        ['box', 'free-box', 'table', 'text', 'document'],
         handleAnnotationSelected,
         unSelectAnnotation
     );
@@ -517,6 +520,13 @@ export const Annotator: FC<AnnotatorProps> = ({
                 role="none"
                 ref={panoRef}
                 onClick={(e) => {
+                    if (selectionType === 'document') {
+                        const ann = {
+                            boundType: 'document' as AnnotationBoundType,
+                            bound: { X: 0, y: 0, with: 0, height: 0 }
+                        };
+                        onAnnotationAdded(ann);
+                    }
                     const target = e.target as HTMLElement;
                     if (
                         target.classList.contains(ANNOTATION_LABEL_CLASS) ||

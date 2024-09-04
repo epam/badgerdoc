@@ -154,6 +154,8 @@ export const useSubmitAnnotation = (
             return tableSubmit;
         case 'polygon':
             return polygonSubmit;
+        case 'document':
+            return () => {}; // TODO: refactor
         default:
             return defaultSubmit;
     }

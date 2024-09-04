@@ -34,7 +34,8 @@ export const CategoriesSelectionModeToggle: React.FC<SelectionModeSelectorProps>
         { id: 'box', name: 'box' },
         { id: 'text', name: 'text' },
         { id: 'free-box', name: 'free-box' },
-        { id: 'table', name: 'table' }
+        { id: 'table', name: 'table' },
+        { id: 'document', name: 'document' }
     ];
     const linksSelectionTypes = [
         { id: 'Chain', name: 'Chain' },
@@ -44,7 +45,8 @@ export const CategoriesSelectionModeToggle: React.FC<SelectionModeSelectorProps>
         { id: 'free-box', name: 'free-box' },
         { id: 'box', name: 'box' },
         { id: 'text', name: 'text' },
-        { id: 'table', name: 'table' }
+        { id: 'table', name: 'table' },
+        { id: 'document', name: 'document' }
     ];
 
     const getSelectionType = () => {

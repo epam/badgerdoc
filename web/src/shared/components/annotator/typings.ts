@@ -2,7 +2,14 @@ import { Category, Link } from 'api/typings';
 import React, { RefObject } from 'react';
 import paper from 'paper';
 
-export type AnnotationBoundType = 'box' | 'free-box' | 'table' | 'text' | 'table_cell' | 'polygon';
+export type AnnotationBoundType =
+    | 'box'
+    | 'free-box'
+    | 'table'
+    | 'text'
+    | 'table_cell'
+    | 'polygon'
+    | 'document';
 
 export type NumberBounds = {
     value: number;
