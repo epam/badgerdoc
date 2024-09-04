@@ -1,6 +1,6 @@
 // temporary_disabled_rules
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-redeclare */
-import { FC, FocusEvent, useCallback, useEffect, useRef, useState } from 'react';
+import { FC, useCallback, useEffect, useState } from 'react';
 
 import { ANNOTATION_FLOW_ITEM_ID_PREFIX } from 'shared/constants/annotations';
 import { getAnnotationLabelColors, isContrastColor } from 'shared/helpers/annotations';
@@ -9,7 +9,7 @@ import { Links } from './links';
 import { TAnnotationProps } from './types';
 import { useTaskAnnotatorContext } from 'connectors/task-annotator-connector/task-annotator-context';
 import { Annotation } from 'shared';
-import { useOutsideClick } from 'shared/helpers/utils';
+// import { useOutsideClick } from 'shared/helpers/utils';
 
 import { ReactComponent as closeIcon } from '@epam/assets/icons/common/navigation-close-12.svg';
 import { IconButton, Text, TextInput } from '@epam/loveship';
