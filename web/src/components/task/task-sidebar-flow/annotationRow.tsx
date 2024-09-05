@@ -154,14 +154,16 @@ export const AnnotationRow: FC<TAnnotationProps> = ({
                         />
                     </form>
                 )}
-                <div
-                    role="button"
-                    onClick={() => setIsEditMode(true)}
-                    onKeyPress={() => setIsEditMode(true)}
-                    tabIndex={0}
-                >
-                    <ContentEditFillIcon className={styles.editIcon} />
-                </div>
+                {annotation?.boundType !== 'table' && (
+                    <div
+                        role="button"
+                        onClick={() => setIsEditMode(true)}
+                        onKeyPress={() => setIsEditMode(true)}
+                        tabIndex={0}
+                    >
+                        <ContentEditFillIcon className={styles.editIcon} />
+                    </div>
+                )}
             </div>
         </div>
     );
