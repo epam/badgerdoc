@@ -80,12 +80,18 @@ async def create_job(
         )
         if not job_params.is_draft:
             logger.info("Running jobs")
-            await run_job_funcs.run_extraction_job(
-                db=db,
-                job_to_run=created_extraction_job,
-                current_tenant=current_tenant,
-                jw_token=jw_token,
-            )
+            try:
+                await run_job_funcs.run_extraction_job(
+                    db=db,
+                    job_to_run=created_extraction_job,
+                    current_tenant=current_tenant,
+                    jw_token=jw_token,
+                )
+            except KeyError:
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="Invalid file data",
+                )
             await run_job_funcs.run_annotation_job(
                 job_to_run=created_extraction_job,
                 current_tenant=current_tenant,

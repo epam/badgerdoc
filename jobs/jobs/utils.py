@@ -154,6 +154,7 @@ def generate_file_data(
         "pages": pages,
         "file_id": file_data["id"],
         "output_path": f"runs/{job_id}/{file_data['id']}",
+        "datasets": file_data["datasets"],
     }
     if batch_id:
         converted_file_data["output_path"] += f"/{batch_id}"
@@ -291,21 +292,26 @@ def files_data_to_pipeline_arg(
 ) -> Iterator[pipeline.PipelineFile]:
     data = previous_jobs_data if previous_jobs_data else files_data
     for file in data:
-        # todo: change me
-        _, job_id, file_id, *_ = file["output_path"].strip().split("/")
+        try:
+            # todo: change me
+            _, job_id, file_id, *_ = file["output_path"].strip().split("/")
 
-        pipeline_file: pipeline.PipelineFile = {
-            "bucket": file["bucket"],
-            "input": pipeline.PipelineFileInput(job_id=job_id),
-            "input_path": file["file"],
-            "pages": file["pages"],
-            "file_id": file_id,
-            "datasets": file["datasets"],
-        }
-        rev = file.get("revision")
-        if rev:
-            pipeline_file["revision"] = rev
-        yield pipeline_file
+            pipeline_file: pipeline.PipelineFile = {
+                "bucket": file["bucket"],
+                "input": pipeline.PipelineFileInput(job_id=job_id),
+                "input_path": file["file"],
+                "pages": file["pages"],
+                "file_id": file_id,
+                "datasets": file["datasets"],
+            }
+        except KeyError as err:
+            logger.exception(f"Unable to process file: {err}")
+            raise err
+        else:
+            rev = file.get("revision")
+            if rev:
+                pipeline_file["revision"] = rev
+            yield pipeline_file
 
 
 def fill_signed_url(files: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
