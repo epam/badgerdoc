@@ -154,6 +154,7 @@ def generate_file_data(
         "pages": pages,
         "file_id": file_data["id"],
         "output_path": f"runs/{job_id}/{file_data['id']}",
+        "datasets": file_data["datasets"],
     }
     if batch_id:
         converted_file_data["output_path"] += f"/{batch_id}"
