@@ -193,3 +193,17 @@
     margin-top: 5px;
     margin-right: 5px;
 }
+
+.item:hover .editIcon {
+    display: block;
+}
+
+.editIcon {
+    width: 14px;
+    margin-top: 8px;
+    display: none;
+}
+
+.editIcon:hover {
+    fill: #008ace;
+}
