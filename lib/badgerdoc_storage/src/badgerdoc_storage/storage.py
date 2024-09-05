@@ -212,12 +212,16 @@ class BadgerDocAzureStorage:
             blob_client = self.blob_service_client.get_blob_client(
                 self._container_name, target_path
             )
+            blob_client.upload_blob(file)
             if content_type:
                 blob_headers = ContentSettings(content_type=content_type)
                 blob_client.set_http_headers(blob_headers)
-            blob_client.upload_blob(file)
         except azure.core.exceptions.ResourceExistsError as err:
             raise BadgerDocStorageResourceExistsError() from err
+        except Exception as err:
+            raise BadgerDocStorageError(
+                f"Unable to upload file into {target_path}"
+            ) from err
 
     def exists(self, target_path: str) -> bool:
         blob_client = self.blob_service_client.get_blob_client(
