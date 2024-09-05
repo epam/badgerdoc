@@ -112,6 +112,15 @@ const submitTextAnnotation = (
     cb(ann);
 };
 
+const submitDocumentAnnotation = (cb: (ann: Pick<Annotation, 'bound' | 'boundType'>) => void) => {
+    const ann = {
+        boundType: 'document' as AnnotationBoundType,
+        bound: {} as Bound
+    };
+
+    cb(ann);
+};
+
 export const useSubmitAnnotation = (
     selectionType: AnnotationBoundType | AnnotationLinksBoundType | AnnotationImageToolType,
     tokens: PageToken[],
@@ -143,6 +152,11 @@ export const useSubmitAnnotation = (
         [selectionType, onBoundCreated, tokens, tokens.length]
     );
 
+    const documentSubmit = useCallback(
+        () => submitDocumentAnnotation(onBoundCreated),
+        [selectionType, onBoundCreated]
+    );
+
     switch (selectionType) {
         case 'free-box':
             return defaultSubmit;
@@ -155,7 +169,7 @@ export const useSubmitAnnotation = (
         case 'polygon':
             return polygonSubmit;
         case 'document':
-            return () => {}; // TODO: refactor
+            return documentSubmit;
         default:
             return defaultSubmit;
     }
