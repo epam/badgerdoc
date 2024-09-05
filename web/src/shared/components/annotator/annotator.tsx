@@ -525,7 +525,8 @@ export const Annotator: FC<AnnotatorProps> = ({
                             boundType: 'document' as AnnotationBoundType,
                             bound: { X: 0, y: 0, with: 0, height: 0 }
                         };
-                        onAnnotationAdded(ann);
+                        createdIdRef.current = Date.now();
+                        onAnnotationAdded({ id: createdIdRef.current, ...ann } as any);
                     }
                     const target = e.target as HTMLElement;
                     if (

@@ -38,7 +38,7 @@ export const AnnotationRow: FC<TAnnotationProps> = ({
     onCloseIconClick
 }) => {
     const [isEditMode, setIsEditMode] = useState<boolean>(false);
-    const [annotationText, setAnnotationText] = useState<string | undefined>(text);
+    const [annotationText, setAnnotationText] = useState<string | undefined>();
     const [annotation, setAnnotation] = useState<Annotation>();
 
     const { allAnnotations, currentPage, onAnnotationEdited } = useTaskAnnotatorContext();
@@ -53,13 +53,19 @@ export const AnnotationRow: FC<TAnnotationProps> = ({
     );
 
     useEffect(() => {
-        if (allAnnotations) {
-            const annotation = allAnnotations[currentPage];
-            if (annotation) {
-                setAnnotation(annotation[0]);
-            }
+        if (annotation) {
+            setAnnotationText(annotation.text);
         }
-    }, [allAnnotations, currentPage]);
+    }, [annotation]);
+
+    useEffect(() => {
+        if (allAnnotations) {
+            const ann = allAnnotations[currentPage].find((ann: any) => {
+                return ann.id === id;
+            });
+            setAnnotation(ann);
+        }
+    }, [allAnnotations, currentPage, id]);
 
     const handleAnnotationTextChange = (value: string | undefined) => {
         setAnnotationText(value);
