@@ -8,12 +8,17 @@ class PipelineFileInput:
     job_id: int
 
 
+class Dataset(TypedDict, total=False):
+    id: int
+    name: str
+
+
 class PipelineFile(TypedDict, total=False):
     bucket: str
     input: PipelineFileInput
     input_path: str
     pages: List[int]
-    datasets: List[int]
+    datasets: List[Dataset]
     revision: Optional[str]
     output_path: Optional[str]
     signed_url: Optional[str]
@@ -25,6 +30,7 @@ class PipelineRunArgs:
     job_id: int
     tenant: str
     files_data: List[PipelineFile]
+    datasets: List[Dataset]
 
 
 @dataclass
@@ -44,5 +50,6 @@ class BasePipeline(metaclass=ABCMeta):
         job_id: str,
         files: List[PipelineFile],
         current_tenant: str,
+        datasets: List[Dataset],
     ) -> None:
         raise NotImplementedError()
