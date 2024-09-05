@@ -12,7 +12,7 @@ import { Annotation } from 'shared';
 import { useOutsideClick } from 'shared/helpers/utils';
 
 import { ReactComponent as closeIcon } from '@epam/assets/icons/common/navigation-close-12.svg';
-import { IconButton, Text, TextInput } from '@epam/loveship';
+import { IconButton, Text, TextArea, TextInput } from '@epam/loveship';
 import { cx } from '@epam/uui';
 import { ReactComponent as ContentEditFillIcon } from '@epam/assets/icons/common/content-edit-24.svg';
 
@@ -38,7 +38,7 @@ export const AnnotationRow: FC<TAnnotationProps> = ({
     onCloseIconClick
 }) => {
     const [isEditMode, setIsEditMode] = useState<boolean>(false);
-    const [annotationText, setAnnotationText] = useState<string | undefined>();
+    const [annotationText, setAnnotationText] = useState<string>('');
     const [annotation, setAnnotation] = useState<Annotation>();
 
     const { allAnnotations, currentPage, onAnnotationEdited } = useTaskAnnotatorContext();
@@ -59,7 +59,7 @@ export const AnnotationRow: FC<TAnnotationProps> = ({
 
     useEffect(() => {
         if (annotation) {
-            setAnnotationText(annotation.text);
+            setAnnotationText(annotation.text ? annotation.text : '');
         }
     }, [annotation]);
 
@@ -72,13 +72,12 @@ export const AnnotationRow: FC<TAnnotationProps> = ({
         }
     }, [allAnnotations, currentPage, id]);
 
-    const handleAnnotationTextChange = (value: string | undefined) => {
+    const handleAnnotationTextChange = (value: string) => {
         setAnnotationText(value);
         if (annotation) {
             onAnnotationEdited(currentPage, annotation.id, {
                 text: value
             });
-            // setTableCellsModified(true);
         }
     };
 
@@ -141,8 +140,9 @@ export const AnnotationRow: FC<TAnnotationProps> = ({
                 )}
                 {isEditMode && (
                     <form onSubmit={() => setIsEditMode(false)}>
-                        <TextInput
+                        <TextArea
                             value={annotationText}
+                            autoSize
                             cx="c-m-t-5"
                             onValueChange={handleAnnotationTextChange}
                             onBlur={() => setIsEditMode(false)}
