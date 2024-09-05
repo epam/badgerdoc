@@ -365,7 +365,11 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
     }, [task, jobId]);
 
     useEffect(() => {
-        if (['box', 'free-box', 'table', 'text', 'table_cell', 'polygon'].includes(selectionType)) {
+        if (
+            ['box', 'free-box', 'table', 'text', 'table_cell', 'polygon', 'document'].includes(
+                selectionType
+            )
+        ) {
             setAnnotationType(selectionType as AnnotationBoundType);
         }
     }, [selectionType]);

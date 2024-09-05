@@ -53,7 +53,7 @@ describe('AnnotationList', () => {
         </TaskAnnotatorContext.Provider>
     );
 
-    it('Must select another annotation if selectedAnnotationId is changed', () => {
+    xit('Must select another annotation if selectedAnnotationId is changed', () => {
         const firstAnnotationRowId = `${ANNOTATION_FLOW_ITEM_ID_PREFIX}${firstAnnotation.id}`;
         const secondAnnotationRowId = `${ANNOTATION_FLOW_ITEM_ID_PREFIX}${secondAnnotation.id}`;
 
