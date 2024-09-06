@@ -305,7 +305,7 @@ def files_data_to_pipeline_arg(
                 "datasets": file["datasets"],
             }
         except KeyError as err:
-            logger.exception(f"Unable to process file: {err}")
+            logger.error(f"Unable to process file: {file}, error: {err}")
             raise err
         else:
             rev = file.get("revision")
