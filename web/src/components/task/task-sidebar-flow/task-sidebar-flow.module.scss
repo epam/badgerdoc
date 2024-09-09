@@ -50,6 +50,7 @@
     overflow: unset;
     text-overflow: unset;
     word-break: break-word;
+    min-height: 36px;
 }
 
 .toolbar {
@@ -206,4 +207,8 @@
 
 .editIcon:hover {
     fill: #008ace;
+}
+
+.textAreaForm {
+    min-height: 36px;
 }

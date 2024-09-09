@@ -8,6 +8,14 @@ import { ANNOTATION_PATH_SEPARATOR } from '../constants';
 import { ANNOTATION_FLOW_ITEM_ID_PREFIX } from 'shared/constants/annotations';
 import { stringToRGBA } from 'shared/components/annotator/utils/string-to-rgba';
 
+jest.mock('connectors/task-annotator-connector/task-annotator-context', () => ({
+    useTaskAnnotatorContext: () => ({
+        allAnnotations: { '1': [{}, {}] },
+        currentPage: 1,
+        onAnnotationEdited: () => {}
+    })
+}));
+
 describe('AnnotationRow', () => {
     const props = {
         id: '1',
@@ -27,7 +35,7 @@ describe('AnnotationRow', () => {
         boundType: 'text' as AnnotationBoundType,
         bound: { y: 10, x: 100, width: 0, height: 0 }
     };
-    xit('Must render annotation with full path', () => {
+    it('Must render annotation with full path', () => {
         const { getByText, getByTestId } = render(<AnnotationRow {...props} />);
 
         const path = getByTestId('flow-path');
@@ -40,7 +48,7 @@ describe('AnnotationRow', () => {
         expect(text).toBeVisible();
         expect(label).toBeVisible();
     });
-    xit('Must render annotation label with proper color', () => {
+    it('Must render annotation label with proper color', () => {
         const { getById, rerender } = render(<AnnotationRow {...props} />);
 
         const rowContainer = getById(`${ANNOTATION_FLOW_ITEM_ID_PREFIX}${props.id}`);
