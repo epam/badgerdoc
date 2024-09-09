@@ -1,4 +1,4 @@
-[![badgerdoc build](https://github.com/epam/badgerdoc/actions/workflows/badgerdoc-build.yml/badge.svg?branch=main)](https://github.com/epam/badgerdoc/actions/workflows/badgerdoc-build.yml)
+[![badgerdoc build](https://github.com/epam/badgerdoc/actions/workflows/badgerdoc.yml/badge.svg?branch=main)](https://github.com/epam/badgerdoc/actions/workflows/badgerdoc.yml)
 
 # What is BadgerDoc
 
