@@ -37,11 +37,11 @@ export const EditJobPage = () => {
     );
 
     useEffect(() => {
-            const searchParams = new URLSearchParams(document.location.search);
-            const revisionId = searchParams.get('revisionId') || null;
-            if (revisionId) {
-                setStepIndex(1);
-            }
+        const searchParams = new URLSearchParams(document.location.search);
+        const revisionId = searchParams.get('revisionId') || null;
+        if (revisionId) {
+            setStepIndex(1);
+        }
     }, [stepIndex]);
 
     useEffect(() => {
