@@ -41,7 +41,8 @@ export const AnnotationRow: FC<TAnnotationProps> = ({
     const [annotationText, setAnnotationText] = useState<string>('');
     const [annotation, setAnnotation] = useState<Annotation>();
 
-    const { allAnnotations, currentPage, onAnnotationEdited } = useTaskAnnotatorContext();
+    const { allAnnotations, currentPage, onAnnotationEdited, revisionId } =
+        useTaskAnnotatorContext();
 
     const labelList = label.split('.');
     const onIconClick = useCallback(
@@ -92,7 +93,7 @@ export const AnnotationRow: FC<TAnnotationProps> = ({
                 <Text cx={styles.labelText} rawProps={{ 'data-testid': 'flow-label' }}>
                     {labelList[labelList.length - 1]}
                 </Text>
-                {isClosable && (
+                {isClosable && !revisionId && (
                     <IconButton
                         icon={closeIcon}
                         cx={styles.close}
@@ -154,7 +155,7 @@ export const AnnotationRow: FC<TAnnotationProps> = ({
                         />
                     </form>
                 )}
-                {annotation?.boundType !== 'table' && (
+                {annotation?.boundType !== 'table' && !revisionId && (
                     <div
                         role="button"
                         onClick={() => setIsEditMode(true)}
