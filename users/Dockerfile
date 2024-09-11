@@ -20,21 +20,3 @@ RUN : \
 
 CMD ["uvicorn", "users.main:app", "--host", "0.0.0.0", "--port", "8080"]
 EXPOSE 8080
-
-FROM build AS test
-
-COPY tests tests
-RUN poetry install --no-root
-CMD pytest -vvv
-
-FROM sonarsource/sonar-scanner-cli:4.6 AS sonar
-
-COPY users /sonar/users
-COPY tests /sonar/tests
-COPY sonar-project.properties /sonar/sonar-project.properties
-
-CMD sonar-scanner \
-    -Dsonar.projectKey=$SONAR_PROJECT_KEY_USERS \
-    -Dproject.settings=/sonar/sonar-project.properties \
-    -Dsonar.host.url=$SONAR_HOST_URL \
-    -Dsonar.login=$SONAR_TOKEN_USERS
