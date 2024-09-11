@@ -31,6 +31,7 @@ class PipelineRunArgs:
     tenant: str
     files_data: List[PipelineFile]
     datasets: List[Dataset]
+    revisions: List[str]
 
 
 @dataclass

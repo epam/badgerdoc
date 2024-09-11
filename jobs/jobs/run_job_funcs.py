@@ -63,6 +63,7 @@ async def run_extraction_job(
         files_data=converted_files_data,
         current_tenant=current_tenant,
         datasets=datasets,
+        revisions=job_to_run.revisions,
     )
 
     return None
