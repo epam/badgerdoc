@@ -12,7 +12,7 @@ import { Annotation } from 'shared';
 import { useOutsideClick } from 'shared/helpers/utils';
 
 import { ReactComponent as closeIcon } from '@epam/assets/icons/common/navigation-close-12.svg';
-import { IconButton, Text, TextArea, TextInput } from '@epam/loveship';
+import { IconButton, Text, TextArea } from '@epam/loveship';
 import { cx } from '@epam/uui';
 import { ReactComponent as ContentEditFillIcon } from '@epam/assets/icons/common/content-edit-24.svg';
 
@@ -41,7 +41,8 @@ export const AnnotationRow: FC<TAnnotationProps> = ({
     const [annotationText, setAnnotationText] = useState<string>('');
     const [annotation, setAnnotation] = useState<Annotation>();
 
-    const { allAnnotations, currentPage, onAnnotationEdited } = useTaskAnnotatorContext();
+    const { allAnnotations, currentPage, onAnnotationEdited, revisionId } =
+        useTaskAnnotatorContext();
 
     const labelList = label.split('.');
     const onIconClick = useCallback(
@@ -65,7 +66,7 @@ export const AnnotationRow: FC<TAnnotationProps> = ({
 
     useEffect(() => {
         if (allAnnotations) {
-            const ann = allAnnotations[currentPage].find((ann: any) => {
+            const ann = allAnnotations[currentPage]?.find((ann: Annotation) => {
                 return ann.id === id;
             });
             setAnnotation(ann);
@@ -92,7 +93,7 @@ export const AnnotationRow: FC<TAnnotationProps> = ({
                 <Text cx={styles.labelText} rawProps={{ 'data-testid': 'flow-label' }}>
                     {labelList[labelList.length - 1]}
                 </Text>
-                {isClosable && (
+                {isClosable && !revisionId && (
                     <IconButton
                         icon={closeIcon}
                         cx={styles.close}
@@ -139,7 +140,7 @@ export const AnnotationRow: FC<TAnnotationProps> = ({
                     </Text>
                 )}
                 {isEditMode && (
-                    <form onSubmit={() => setIsEditMode(false)}>
+                    <form onSubmit={() => setIsEditMode(false)} className={styles.textAreaForm}>
                         <TextArea
                             value={annotationText}
                             autoSize
@@ -154,7 +155,7 @@ export const AnnotationRow: FC<TAnnotationProps> = ({
                         />
                     </form>
                 )}
-                {annotation?.boundType !== 'table' && (
+                {annotation?.boundType !== 'table' && !revisionId && (
                     <div
                         role="button"
                         onClick={() => setIsEditMode(true)}
