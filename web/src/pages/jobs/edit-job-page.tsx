@@ -18,6 +18,7 @@ import { DatasetsTableConnector } from 'connectors/datasets-table-connector';
 import wizardStyles from '../../shared/components/wizard/wizard/wizard.module.scss';
 import styles from '../../shared/components/wizard/wizard/wizard.module.scss';
 import pageStyles from './edit-job-page.module.scss';
+import { RevisionsTableConnector } from 'connectors/revisions-table-connector';
 
 export const EditJobPage = () => {
     const history = useHistory();
@@ -26,6 +27,7 @@ export const EditJobPage = () => {
     const [files, setFiles] = useState<number[]>([]);
     const [jobs, setJobs] = useState<number[]>([]);
     const [datasets, setDatasets] = useState<number[]>([]);
+    const [revisions, setRevivisions] = useState<number[] | string[]>([]);
     const [stepIndex, setStepIndex] = useState(0);
     const [currentTab, onCurrentTabChange] = useState('Documents');
 
@@ -81,6 +83,10 @@ export const EditJobPage = () => {
         {
             id: 'Datasets',
             caption: 'Datasets'
+        },
+        {
+            id: 'Revisions',
+            caption: 'Revisions'
         }
     ];
 
@@ -105,10 +111,18 @@ export const EditJobPage = () => {
                 checkedValues={jobs}
             />
         );
-    } else {
+    } else if (currentTab === 'Datasets') {
         table = (
             <DatasetsTableConnector
                 onDatasetSelect={setDatasets}
+                onRowClick={() => null}
+                checkedValues={datasets}
+            />
+        );
+    } else {
+        table = (
+            <RevisionsTableConnector
+                onRevisionSelect={setRevivisions}
                 onRowClick={() => null}
                 checkedValues={datasets}
             />
@@ -150,6 +164,7 @@ export const EditJobPage = () => {
                     files={currentTab === 'Documents' ? files : []}
                     jobs={currentTab === 'Jobs' ? jobs : []}
                     datasets={currentTab === 'Datasets' ? datasets : []}
+                    revisions={currentTab === 'Revisions' ? revisions : []}
                     renderWizardButtons={({ save, lens }) => {
                         return (
                             <>

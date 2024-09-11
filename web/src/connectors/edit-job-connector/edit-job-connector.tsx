@@ -44,6 +44,7 @@ type EditJobConnectorProps = {
     files?: number[] | null;
     jobs?: number[] | null;
     datasets?: number[] | null;
+    revisions?: number[] | string[] | null;
     checkedFiles?: number[];
     initialJob?: Job;
     showNoExtractionTab?: boolean;
@@ -79,9 +80,13 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
     files,
     jobs,
     datasets,
+    revisions,
     initialJob,
     showNoExtractionTab
 }) => {
+    const searchParams = new URLSearchParams(document.location.search);
+    const revisionId = searchParams.get('revisionId') || null;
+
     const getMetadata = (state: JobValues) => {
         const { jobType, validationType, pipeline, categories } = state;
 
@@ -239,6 +244,7 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
 
             const jobProps: JobVariables = {
                 name: jobName,
+                revisions: revisionId ? [revisionId] : revisions,
                 datasets,
                 files,
                 previous_jobs: jobs,
@@ -288,6 +294,7 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
                     delete editData.files;
                     delete editData.previous_jobs;
                     delete editData.datasets;
+                    delete editData.revisions;
                     await editJobMutation.mutateAsync({
                         id: initialJob.id,
                         data: editData
@@ -295,8 +302,10 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
                     return { form: values };
                 }
 
-                const response = await addJobMutation.mutateAsync(jobProps);
-                values.addedJobId = response.id;
+                console.log('jobProps', jobProps);
+
+                // const response = await addJobMutation.mutateAsync(jobProps);
+                // values.addedJobId = response.id;
                 return { form: values };
             } catch (err: any) {
                 svc.uuiNotifications.show(

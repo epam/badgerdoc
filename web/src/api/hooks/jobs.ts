@@ -44,6 +44,7 @@ export type JobVariables = {
     files?: string[] | number[] | null;
     previous_jobs?: number[] | null;
     datasets?: number[] | null;
+    revisions?: number[] | string[] | null;
     pipeline_name?: string | undefined;
     pipeline_id?: number;
     pipeline_engine?: string;
