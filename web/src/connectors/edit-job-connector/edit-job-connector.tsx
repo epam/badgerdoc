@@ -302,10 +302,8 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
                     return { form: values };
                 }
 
-                console.log('jobProps', jobProps);
-
-                // const response = await addJobMutation.mutateAsync(jobProps);
-                // values.addedJobId = response.id;
+                const response = await addJobMutation.mutateAsync(jobProps);
+                values.addedJobId = response.id;
                 return { form: values };
             } catch (err: any) {
                 svc.uuiNotifications.show(
