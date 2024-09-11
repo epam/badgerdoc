@@ -2,11 +2,10 @@
 # This docker-compose file should only be used for local
 # installations.
 #
-# docker-compose sets up all services to be served by Reproxy
+# docker-compose sets up all services to be served by nginx
 # and exposes the following ports:
 #
-# - 8080 for BadgerDoc microservices
-# - 8081 for Reproxy management
+# - 8080 for BadgerDoc microservices through nginx
 # - 5432 for PostgreSQL (the port can be changed in the .env
 #   file for local needs)
 # - 8082 for Keycloak.
@@ -15,29 +14,19 @@
 #
 ###################################################################
 services:
-  # Reproxy is used for serving all services throught one host
-
-  reproxy:
-    image: ghcr.io/umputun/reproxy:v1.2.2
-    container_name: badgerdoc-reproxy
-    command: >
-      reproxy --docker.enabled --docker.auto --logger.enabled --logger.stdout
-      --docker.network=badgerdoc_badgerdoc
-      --mgmt.enabled
-      --docker.exclude=badgerdoc-reproxy
-      --docker.exclude=badgerdoc-postgresql
-      --docker.exclude=badgerdoc-keycloak
-      --docker.exclude=badgerdoc-web
-      --timeout.read-header=900s
-      --timeout.resp-header=900s
-      --max=${MAX_REQ_SIZE}
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+  nginx:
+    image: badgerdoc_nginx
+    container_name: badgerdoc_nginx
     networks:
       - badgerdoc
+    depends_on:
+      - badgerdoc-annotation
+      - badgerdoc-users
+      - badgerdoc-processing
+      - badgerdoc-jobs
+      - badgerdoc-assets
     ports:
-      - 8080:8080
-      - 8081:8081
+      - "8080:8080"
 
   # BadgerDoc dependencies
 
