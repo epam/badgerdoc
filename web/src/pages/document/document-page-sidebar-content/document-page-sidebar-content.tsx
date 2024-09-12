@@ -103,7 +103,7 @@ export const DocumentPageSidebarContent = ({
                             onClick={() =>
                                 onAddJob(documentJobRevisionsInfo.selectedDocumentJobRevisionId)
                             }
-                            caption="New Job"
+                            caption="New job from revision"
                         />
                     </>
                 )}

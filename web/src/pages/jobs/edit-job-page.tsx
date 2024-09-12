@@ -30,6 +30,7 @@ export const EditJobPage = () => {
     const [revisions, setRevivisions] = useState<number[] | string[]>([]);
     const [stepIndex, setStepIndex] = useState(0);
     const [currentTab, onCurrentTabChange] = useState('Documents');
+    const [revisionId, setRevisionId] = useState<string | null>(null);
 
     const { data: job } = useJobById(
         { jobId: Number(jobId) },
@@ -43,6 +44,7 @@ export const EditJobPage = () => {
         const revisionId = searchParams.get('revisionId') || null;
         if (revisionId) {
             setStepIndex(1);
+            setRevisionId(revisionId);
         }
     }, [stepIndex]);
 
@@ -168,13 +170,15 @@ export const EditJobPage = () => {
                     renderWizardButtons={({ save, lens }) => {
                         return (
                             <>
-                                <Button
-                                    fill="light"
-                                    cx={styles.button}
-                                    caption="Previous"
-                                    onClick={handlePrev}
-                                    isDisabled={isDisabled}
-                                />
+                                {!revisionId && (
+                                    <Button
+                                        fill="light"
+                                        cx={styles.button}
+                                        caption="Previous"
+                                        onClick={handlePrev}
+                                        isDisabled={isDisabled}
+                                    />
+                                )}
                                 <Button
                                     cx={styles.button}
                                     caption="Save as Draft"
@@ -198,5 +202,12 @@ export const EditJobPage = () => {
         }
     ];
 
-    return <Wizard steps={steps} returnUrl={`${JOBS_PAGE}/${jobId}`} stepIndex={stepIndex} />;
+    return (
+        <Wizard
+            steps={steps}
+            returnUrl={`${JOBS_PAGE}/${jobId}`}
+            stepIndex={stepIndex}
+            revisionId={revisionId}
+        />
+    );
 };
