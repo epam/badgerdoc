@@ -1,6 +1,7 @@
 // temporary_disabled_rules
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-redeclare */
-import { FC, useCallback, useEffect, useRef, useState } from 'react';
+import { FC, useCallback, useEffect, useState } from 'react';
+import { svc } from 'services';
 
 import { ANNOTATION_FLOW_ITEM_ID_PREFIX } from 'shared/constants/annotations';
 import { getAnnotationLabelColors, isContrastColor } from 'shared/helpers/annotations';
@@ -9,12 +10,11 @@ import { Links } from './links';
 import { TAnnotationProps } from './types';
 import { useTaskAnnotatorContext } from 'connectors/task-annotator-connector/task-annotator-context';
 import { Annotation } from 'shared';
-import { useOutsideClick } from 'shared/helpers/utils';
-
 import { ReactComponent as closeIcon } from '@epam/assets/icons/common/navigation-close-12.svg';
-import { IconButton, Text, TextArea } from '@epam/loveship';
+import { IconButton, Text } from '@epam/loveship';
 import { cx } from '@epam/uui';
 import { ReactComponent as ContentEditFillIcon } from '@epam/assets/icons/common/content-edit-24.svg';
+import { EditAnnotationModal } from './edit-annotation-modal';
 
 import styles from './task-sidebar-flow.module.scss';
 
@@ -37,7 +37,6 @@ export const AnnotationRow: FC<TAnnotationProps> = ({
     onLinkDeleted,
     onCloseIconClick
 }) => {
-    const [isEditMode, setIsEditMode] = useState<boolean>(false);
     const [annotationText, setAnnotationText] = useState<string>('');
     const [annotation, setAnnotation] = useState<Annotation>();
 
@@ -52,11 +51,6 @@ export const AnnotationRow: FC<TAnnotationProps> = ({
         },
         [pageNum, id, onCloseIconClick]
     );
-    const ref = useRef(null);
-
-    useOutsideClick(ref, () => {
-        setIsEditMode(false);
-    });
 
     useEffect(() => {
         if (annotation) {
@@ -66,20 +60,38 @@ export const AnnotationRow: FC<TAnnotationProps> = ({
 
     useEffect(() => {
         if (allAnnotations) {
-            const ann = allAnnotations[currentPage]?.find((ann: Annotation) => {
+            const allAnnsWithoutPage: Annotation[] = [];
+            for (const pageNum in allAnnotations) {
+                allAnnotations[pageNum].forEach((ann) => {
+                    allAnnsWithoutPage.push(ann);
+                });
+            }
+            const ann = allAnnsWithoutPage.find((ann: Annotation) => {
                 return ann.id === id;
             });
             setAnnotation(ann);
         }
     }, [allAnnotations, currentPage, id]);
 
-    const handleAnnotationTextChange = (value: string) => {
-        setAnnotationText(value);
+    const handleAnnotationTextChange = (formValues: any) => {
         if (annotation) {
-            onAnnotationEdited(currentPage, annotation.id, {
-                text: value
+            const page = annotation.pageNum ? annotation.pageNum : currentPage;
+            onAnnotationEdited(page, annotation.id, {
+                text: formValues.text
             });
         }
+    };
+
+    const showModal = () => {
+        return svc.uuiModals
+            .show((modalProps) => (
+                <EditAnnotationModal
+                    {...modalProps}
+                    handleAnnotationTextChange={handleAnnotationTextChange}
+                    annotationText={annotationText}
+                />
+            ))
+            .catch(() => {});
     };
 
     return (
@@ -125,42 +137,25 @@ export const AnnotationRow: FC<TAnnotationProps> = ({
                     {labelList.join(` ${ANNOTATION_PATH_SEPARATOR} `)}
                 </Text>
             )}
-            <div className="flex-row flex-start justify-between" ref={ref}>
-                {!isEditMode && (
-                    <Text
-                        cx={styles.text}
-                        color="night500"
-                        rawProps={{
-                            style: {
-                                marginRight: '8px'
-                            }
-                        }}
-                    >
-                        {text}
-                    </Text>
-                )}
-                {isEditMode && (
-                    <form onSubmit={() => setIsEditMode(false)} className={styles.textAreaForm}>
-                        <TextArea
-                            value={annotationText}
-                            autoSize
-                            cx="c-m-t-5"
-                            onValueChange={handleAnnotationTextChange}
-                            onBlur={() => setIsEditMode(false)}
-                            rawProps={{
-                                style: {
-                                    marginRight: '8px'
-                                }
-                            }}
-                        />
-                    </form>
-                )}
+            <div className="flex-row flex-start justify-between">
+                <Text
+                    cx={styles.text}
+                    color="night500"
+                    rawProps={{
+                        style: {
+                            marginRight: '8px'
+                        }
+                    }}
+                >
+                    {text}
+                </Text>
                 {annotation?.boundType !== 'table' && !revisionId && (
                     <div
                         role="button"
-                        onClick={() => setIsEditMode(true)}
-                        onKeyPress={() => setIsEditMode(true)}
+                        onClick={showModal}
+                        onKeyPress={showModal}
                         tabIndex={0}
+                        className={styles.editIconContainer}
                     >
                         <ContentEditFillIcon className={styles.editIcon} />
                     </div>
