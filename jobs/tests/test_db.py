@@ -120,6 +120,8 @@ def create_mock_extraction_job_in_db(testing_session):
         all_files_data=all_files_data,
         status=schemas.Status.pending,
         categories=["label"],
+        pipeline_engine="airflow",
+        previous_jobs=[100],
     )
     return result
 

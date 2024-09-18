@@ -211,7 +211,7 @@ def change_job(
     new_job_params: schemas.JobParamsToChange,
 ) -> None:
     """Changes any parameter of any job in db"""
-    new_job_params_dict = new_job_params.dict()
+    new_job_params_dict = new_job_params.dict(exclude_unset=True)
     for job_param_key in new_job_params_dict:
         if new_job_params_dict[job_param_key] is not None:
             setattr(job, job_param_key, new_job_params_dict[job_param_key])
