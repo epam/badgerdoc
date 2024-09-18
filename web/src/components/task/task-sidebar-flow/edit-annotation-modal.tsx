@@ -79,6 +79,7 @@ export const EditAnnotationModal: FC<any> = ({
                                     label="Few-shot-learning"
                                     {...lens.prop('few_shot_learning').toProps()}
                                     cx={styles.fewShotLearning}
+                                    isReadonly={annotationValues.few_shot_learning}
                                 />
                             </FlexCell>
                         </FlexRow>
