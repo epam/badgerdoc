@@ -94,7 +94,7 @@ export type Annotation = {
     text?: string;
     pageNum?: number;
     comment?: string;
-    llm_fine_tune?: boolean;
+    few_shot_learning?: boolean;
 };
 
 export type Bound = {

@@ -439,6 +439,8 @@ export type PageInfoObjs = {
     children?: number[] | string[];
     segments?: number[][];
     original_annotation_id?: number;
+    comment?: string;
+    few_shot_learning?: boolean;
 };
 export type PageInfo = {
     size?: { width: number; height: number };

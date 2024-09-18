@@ -57,7 +57,9 @@ export const AnnotationRow: FC<TAnnotationProps> = ({
             setAnnotationValues({
                 text: annotation.text ? annotation.text : '',
                 comment: annotation.comment ? annotation.comment : '',
-                llm_fine_tune: annotation.llm_fine_tune ? annotation.llm_fine_tune : false
+                few_shot_learning: annotation.few_shot_learning
+                    ? annotation.few_shot_learning
+                    : false
             });
         }
     }, [annotation]);
@@ -81,7 +83,9 @@ export const AnnotationRow: FC<TAnnotationProps> = ({
         if (annotation) {
             const page = annotation.pageNum ? annotation.pageNum : currentPage;
             onAnnotationEdited(page, annotation.id, {
-                text: formValues.text
+                text: formValues.text,
+                ...(formValues.comment && { comment: formValues.comment }),
+                ...(formValues.few_shot_learning && { few_shot_learning: true })
             });
         }
     };

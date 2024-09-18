@@ -23,7 +23,7 @@ import styles from './task-sidebar-flow.module.scss';
 export interface EditAnnotation {
     text?: string | undefined;
     comment?: string | undefined;
-    llm_fine_tune?: boolean | undefined;
+    few_shot_learning?: boolean | undefined;
 }
 
 export const EditAnnotationModal: FC<any> = ({
@@ -36,7 +36,7 @@ export const EditAnnotationModal: FC<any> = ({
         value: {
             text: annotationValues.text,
             comment: annotationValues.comment,
-            llm_fine_tune: annotationValues.llm_fine_tune
+            few_shot_learning: annotationValues.few_shot_learning
         },
         onSave: (value) => {
             handleAnnotationChange(value);
@@ -76,9 +76,9 @@ export const EditAnnotationModal: FC<any> = ({
                         <FlexRow padding="24" vPadding="12">
                             <FlexCell grow={1}>
                                 <Checkbox
-                                    label="LLM fine-tune"
-                                    {...lens.prop('llm_fine_tune').toProps()}
-                                    cx={styles.fineTune}
+                                    label="Few-shot-learning"
+                                    {...lens.prop('few_shot_learning').toProps()}
+                                    cx={styles.fewShotLearning}
                                 />
                             </FlexCell>
                         </FlexRow>
