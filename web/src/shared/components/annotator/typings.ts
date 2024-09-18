@@ -93,6 +93,8 @@ export type Annotation = {
     originalAnnotationId?: number;
     text?: string;
     pageNum?: number;
+    comment?: string;
+    llm_fine_tune?: boolean;
 };
 
 export type Bound = {

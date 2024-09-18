@@ -14,7 +14,7 @@ import { ReactComponent as closeIcon } from '@epam/assets/icons/common/navigatio
 import { IconButton, Text } from '@epam/loveship';
 import { cx } from '@epam/uui';
 import { ReactComponent as ContentEditFillIcon } from '@epam/assets/icons/common/content-edit-24.svg';
-import { EditAnnotationModal } from './edit-annotation-modal';
+import { EditAnnotation, EditAnnotationModal } from './edit-annotation-modal';
 
 import styles from './task-sidebar-flow.module.scss';
 
@@ -37,7 +37,7 @@ export const AnnotationRow: FC<TAnnotationProps> = ({
     onLinkDeleted,
     onCloseIconClick
 }) => {
-    const [annotationText, setAnnotationText] = useState<string>('');
+    const [annotationValues, setAnnotationValues] = useState<EditAnnotation>({});
     const [annotation, setAnnotation] = useState<Annotation>();
 
     const { allAnnotations, currentPage, onAnnotationEdited, revisionId } =
@@ -54,7 +54,11 @@ export const AnnotationRow: FC<TAnnotationProps> = ({
 
     useEffect(() => {
         if (annotation) {
-            setAnnotationText(annotation.text ? annotation.text : '');
+            setAnnotationValues({
+                text: annotation.text ? annotation.text : '',
+                comment: annotation.comment ? annotation.comment : '',
+                llm_fine_tune: annotation.llm_fine_tune ? annotation.llm_fine_tune : false
+            });
         }
     }, [annotation]);
 
@@ -73,7 +77,7 @@ export const AnnotationRow: FC<TAnnotationProps> = ({
         }
     }, [allAnnotations, currentPage, id]);
 
-    const handleAnnotationTextChange = (formValues: any) => {
+    const handleAnnotationTextChange = (formValues: EditAnnotation) => {
         if (annotation) {
             const page = annotation.pageNum ? annotation.pageNum : currentPage;
             onAnnotationEdited(page, annotation.id, {
@@ -88,7 +92,7 @@ export const AnnotationRow: FC<TAnnotationProps> = ({
                 <EditAnnotationModal
                     {...modalProps}
                     handleAnnotationTextChange={handleAnnotationTextChange}
-                    annotationText={annotationText}
+                    annotationValues={annotationValues}
                 />
             ))
             .catch(() => {});
