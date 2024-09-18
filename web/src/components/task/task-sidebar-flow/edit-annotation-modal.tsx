@@ -28,7 +28,7 @@ export interface EditAnnotation {
 
 export const EditAnnotationModal: FC<any> = ({
     abort,
-    handleAnnotationTextChange,
+    handleAnnotationChange,
     annotationValues,
     ...modalProps
 }) => {
@@ -39,7 +39,7 @@ export const EditAnnotationModal: FC<any> = ({
             llm_fine_tune: annotationValues.llm_fine_tune
         },
         onSave: (value) => {
-            handleAnnotationTextChange(value);
+            handleAnnotationChange(value);
             abort();
             return Promise.resolve({ form: value });
         }

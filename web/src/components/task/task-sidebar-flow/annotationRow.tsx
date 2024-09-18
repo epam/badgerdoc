@@ -77,7 +77,7 @@ export const AnnotationRow: FC<TAnnotationProps> = ({
         }
     }, [allAnnotations, currentPage, id]);
 
-    const handleAnnotationTextChange = (formValues: EditAnnotation) => {
+    const handleAnnotationChange = (formValues: EditAnnotation) => {
         if (annotation) {
             const page = annotation.pageNum ? annotation.pageNum : currentPage;
             onAnnotationEdited(page, annotation.id, {
@@ -91,7 +91,7 @@ export const AnnotationRow: FC<TAnnotationProps> = ({
             .show((modalProps) => (
                 <EditAnnotationModal
                     {...modalProps}
-                    handleAnnotationTextChange={handleAnnotationTextChange}
+                    handleAnnotationChange={handleAnnotationChange}
                     annotationValues={annotationValues}
                 />
             ))
