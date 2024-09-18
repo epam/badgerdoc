@@ -84,8 +84,8 @@ export const AnnotationRow: FC<TAnnotationProps> = ({
             const page = annotation.pageNum ? annotation.pageNum : currentPage;
             onAnnotationEdited(page, annotation.id, {
                 text: formValues.text,
-                ...(formValues.comment && { comment: formValues.comment }),
-                ...(formValues.few_shot_learning && { few_shot_learning: true })
+                comment: formValues.comment,
+                few_shot_learning: formValues.few_shot_learning
             });
         }
     };
@@ -159,7 +159,7 @@ export const AnnotationRow: FC<TAnnotationProps> = ({
                     )}
                     {annotationValues.few_shot_learning && (
                         <Checkbox
-                            label="Few-shot-learning"
+                            label="Few-Shot Learning"
                             cx={styles.fewShotLearning}
                             value={annotationValues.few_shot_learning}
                             isReadonly

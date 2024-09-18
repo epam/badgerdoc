@@ -76,10 +76,9 @@ export const EditAnnotationModal: FC<any> = ({
                         <FlexRow padding="24" vPadding="12">
                             <FlexCell grow={1}>
                                 <Checkbox
-                                    label="Few-shot-learning"
+                                    label="Few-Shot Learning"
                                     {...lens.prop('few_shot_learning').toProps()}
                                     cx={styles.fewShotLearning}
-                                    isReadonly={annotationValues.few_shot_learning}
                                 />
                             </FlexCell>
                         </FlexRow>
