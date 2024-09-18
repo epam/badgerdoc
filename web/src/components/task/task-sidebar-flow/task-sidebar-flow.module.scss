@@ -47,11 +47,24 @@
     }
 }
 
-.text {
+.annData {
+    margin-right: 8px;
+}
+
+.text, .comment {
     overflow: unset;
     text-overflow: unset;
     word-break: break-word;
     min-height: 36px;
+}
+
+.comment {
+    padding-top: 0;
+    margin-top: 0;
+}
+
+.commentLabel label {
+    margin: 0 !important;
 }
 
 .toolbar {

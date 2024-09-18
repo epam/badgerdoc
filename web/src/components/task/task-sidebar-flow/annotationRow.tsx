@@ -11,7 +11,7 @@ import { TAnnotationProps } from './types';
 import { useTaskAnnotatorContext } from 'connectors/task-annotator-connector/task-annotator-context';
 import { Annotation } from 'shared';
 import { ReactComponent as closeIcon } from '@epam/assets/icons/common/navigation-close-12.svg';
-import { IconButton, Text } from '@epam/loveship';
+import { Checkbox, IconButton, LabeledInput, Text } from '@epam/loveship';
 import { cx } from '@epam/uui';
 import { ReactComponent as ContentEditFillIcon } from '@epam/assets/icons/common/content-edit-24.svg';
 import { EditAnnotation, EditAnnotationModal } from './edit-annotation-modal';
@@ -146,17 +146,27 @@ export const AnnotationRow: FC<TAnnotationProps> = ({
                 </Text>
             )}
             <div className="flex-row flex-start justify-between">
-                <Text
-                    cx={styles.text}
-                    color="night500"
-                    rawProps={{
-                        style: {
-                            marginRight: '8px'
-                        }
-                    }}
-                >
-                    {text}
-                </Text>
+                <div className={styles.annData}>
+                    <Text cx={styles.text} color="night500">
+                        {text}
+                    </Text>
+                    {annotationValues.comment && (
+                        <LabeledInput label="Comment" cx={styles.commentLabel}>
+                            <Text cx={styles.comment} color="night500">
+                                {annotationValues.comment}
+                            </Text>
+                        </LabeledInput>
+                    )}
+                    {annotationValues.few_shot_learning && (
+                        <Checkbox
+                            label="Few-shot-learning"
+                            cx={styles.fewShotLearning}
+                            value={annotationValues.few_shot_learning}
+                            isReadonly
+                            onValueChange={() => {}}
+                        />
+                    )}
+                </div>
                 {annotation?.boundType !== 'table' && !revisionId && (
                     <div
                         role="button"
