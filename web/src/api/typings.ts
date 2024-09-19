@@ -71,7 +71,7 @@ export type Dataset = {
 
 export type Revision = {
     name: string;
-    created: string;
+    date: string;
 };
 
 export type Preprocessor = {

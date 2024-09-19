@@ -16,9 +16,9 @@ export const revisionsColumns: DataColumnProps<Revision>[] = [
         width: 150
     },
     {
-        key: 'created',
+        key: 'date',
         caption: 'CREATED DATE',
-        render: (file) => <Text>{new Date(file.created).toLocaleDateString()}</Text>,
+        render: (file) => <Text>{new Date(file.date).toLocaleDateString()}</Text>,
         grow: 0,
         minWidth: 100,
         isSortable: true,

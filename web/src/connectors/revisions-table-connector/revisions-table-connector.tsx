@@ -17,14 +17,14 @@ import {
     prepareFiltersToSet,
     saveFiltersToStorage
 } from '../../shared/helpers/set-filters';
-import { datasetPropFetcher, useDatasets } from 'api/hooks/datasets';
+import { revisionPropFetcher, useRevisions } from 'api/hooks/revisions';
 
 //TODO: move out styles from the connector
 import styles from './revisions-table-connector.module.scss';
 
 type RevisionsTableConnectorProps = {
     onRowClick: (id: number) => void;
-    onRevisionSelect?: (dataset: number[]) => void;
+    onRevisionSelect?: (revision: number[]) => void;
     checkedValues?: number[] | string[];
 };
 const size = pageSizes._100;
@@ -47,11 +47,11 @@ export const RevisionsTableConnector: FC<RevisionsTableConnectorProps> = ({
         setSortConfig,
         setFilters,
         filters
-    } = usePageTable<Revision>('created');
+    } = usePageTable<Revision>('date');
     const { page, pageSize } = pageConfig;
     const { checked } = tableValue;
 
-    const { data, isFetching, refetch } = useDatasets(
+    const { data, isFetching, refetch } = useRevisions(
         { searchText, sortConfig, page, size, filters },
         { cacheTime: 0 }
     );
@@ -118,7 +118,7 @@ export const RevisionsTableConnector: FC<RevisionsTableConnectorProps> = ({
             isSelectable: true,
             onClick: ({ id }) => onRowClick(id)
         }),
-        sortBy: (dataset, sorting) => {
+        sortBy: (revision, sorting) => {
             const { field, direction } = sorting;
             if (field !== sortConfig?.field || direction !== sortConfig?.direction) {
                 setSortConfig({
@@ -143,33 +143,33 @@ export const RevisionsTableConnector: FC<RevisionsTableConnectorProps> = ({
         search: string;
     };
 
-    const loadDatasetNames = createPagingCachedLoader<string, string>(
+    const loadRevisionsNames = createPagingCachedLoader<string, string>(
         namesCache,
         async (pageNumber, pageSize, keyword) =>
-            await datasetPropFetcher('name', pageNumber, pageSize, keyword)
+            await revisionPropFetcher('name', pageNumber, pageSize, keyword)
     );
 
-    const datasetNames = useLazyDataSource<string, string, unknown>(
+    const revisionNames = useLazyDataSource<string, string, unknown>(
         {
-            api: loadDatasetNames,
+            api: loadRevisionsNames,
             getId: (name) => name
         },
         []
     );
 
     const renderNameFilter = useColumnPickerFilter<string, string, unknown, 'name'>(
-        datasetNames,
+        revisionNames,
         'name',
         { showSearch: true }
     );
 
-    const renderCreationDateFilter = useDateRangeFilter('created');
+    const renderCreationDateFilter = useDateRangeFilter('date');
 
     const columns = useMemo(() => {
         const nameColumn = revisionsColumns.find(({ key }) => key === 'name');
         nameColumn!.renderFilter = renderNameFilter;
 
-        const createdDateColumn = revisionsColumns.find(({ key }) => key === 'created');
+        const createdDateColumn = revisionsColumns.find(({ key }) => key === 'date');
         createdDateColumn!.renderFilter = renderCreationDateFilter;
 
         return revisionsColumns;
