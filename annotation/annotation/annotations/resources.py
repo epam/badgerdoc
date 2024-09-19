@@ -3,6 +3,7 @@ import os
 from typing import Dict, List, Optional, Set
 from uuid import UUID
 
+import filter_lib
 from fastapi import (
     APIRouter,
     Depends,
@@ -22,6 +23,7 @@ from annotation.categories.services import (
 )
 from annotation.database import get_db
 from annotation.errors import NoSuchRevisionsError
+from annotation.filters import AnnotationRequestFilter
 from annotation.jobs.services import update_jobs_categories
 from annotation.microservice_communication import jobs_communication
 from annotation.microservice_communication.assets_communication import (
@@ -68,6 +70,39 @@ router = APIRouter(
 
 logger = logging.getLogger(__name__)
 logger.setLevel(os.getenv("LOG_LEVEL", "DEBUG"))
+
+
+@router.post(
+    "",
+    status_code=status.HTTP_200_OK,
+    response_model=filter_lib.Page[AnnotatedDocSchema],
+    summary="Get annotations by filters",
+    tags=[ANNOTATION_TAG],
+)
+async def get_annotations(
+    request: AnnotationRequestFilter,
+    x_current_tenant: str = X_CURRENT_TENANT_HEADER,
+    token: TenantData = Depends(TOKEN),
+    db: Session = Depends(get_db),
+) -> filter_lib.Page[AnnotatedDocSchema]:
+    filter_args = filter_lib.map_request_to_filter(
+        request.dict(), AnnotatedDoc.__name__
+    )
+    # TODO: distinct on revision, fix filter_lib to work with
+    #  distinct and sorting
+    subquery = (
+        db.query(AnnotatedDoc)
+        .filter(AnnotatedDoc.tenant == x_current_tenant)
+        .distinct(AnnotatedDoc.revision)
+        .subquery()
+    )
+    query = db.query(AnnotatedDoc).join(
+        subquery, AnnotatedDoc.revision == subquery.c.revision
+    )
+    query, pagination = filter_lib.form_query(filter_args, query)
+    return filter_lib.paginate(
+        [AnnotatedDocSchema.from_orm(el) for el in query], pagination
+    )
 
 
 @router.post(

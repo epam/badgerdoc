@@ -31,3 +31,5 @@ TaskFilter = create_filter_model(
     ],
     include=ADDITIONAL_TASK_FIELDS,
 )
+
+AnnotationRequestFilter = create_filter_model(AnnotatedDoc)
