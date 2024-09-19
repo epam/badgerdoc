@@ -1,4 +1,5 @@
 @import '@epam/assets/scss/promo/colors.scss';
+@import '../../../pallete';
 
 .annotation-container {
     height: 100%;
@@ -46,11 +47,24 @@
     }
 }
 
-.text {
+.annData {
+    margin-right: 8px;
+}
+
+.text, .comment {
     overflow: unset;
     text-overflow: unset;
     word-break: break-word;
     min-height: 36px;
+}
+
+.comment {
+    padding-top: 0;
+    margin-top: 0;
+}
+
+.commentLabel label {
+    margin: 0 !important;
 }
 
 .toolbar {
@@ -199,9 +213,15 @@
     display: block;
 }
 
+.editIconContainer {
+    width: 14px !important;
+    min-width: 14px !important;
+    height: 14px;
+    margin-top: 8px;
+}
+
 .editIcon {
     width: 14px;
-    margin-top: 8px;
     display: none;
 }
 
@@ -211,4 +231,17 @@
 
 .textAreaForm {
     min-height: 36px;
+}
+
+.textArea textarea {
+    max-height: 100% !important;
+    border: 1px solid $border_default !important;
+}
+
+.textArea textarea:focus {
+    border: 1px solid $border_active !important;
+}
+
+.fewShotLearning {
+    font-weight: 600;
 }

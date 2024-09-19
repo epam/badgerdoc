@@ -193,7 +193,9 @@ const mapAnnotationToApi = (
             children: ann.children,
             text: tokensByAnnotation,
             links: ann.links,
-            segments: ann.segments
+            segments: ann.segments,
+            ...(ann.comment && { comment: ann.comment }),
+            ...(ann.few_shot_learning && { few_shot_learning: ann.few_shot_learning })
         }
     ];
 };
@@ -325,7 +327,9 @@ export const mapAnnotationFromApi = (
         tableCells: (obj.type as AnnotationBoundType) === 'table' ? [] : undefined,
         segments: obj.segments,
         text: obj.text,
-        pageNum
+        pageNum,
+        ...(obj.comment && { comment: obj.comment }),
+        ...(obj.few_shot_learning && { few_shot_learning: obj.few_shot_learning })
     };
 };
 
