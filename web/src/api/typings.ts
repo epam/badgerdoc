@@ -70,8 +70,9 @@ export type Dataset = {
 };
 
 export type Revision = {
-    name: string;
+    revision: string;
     date: string;
+    id: string | number;
 };
 
 export type Preprocessor = {

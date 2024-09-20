@@ -7,9 +7,9 @@ import React from 'react';
 
 export const revisionsColumns: DataColumnProps<Revision>[] = [
     {
-        key: 'name',
+        key: 'revision',
         caption: 'REVISION ID',
-        render: (file) => <Text>{file.name}</Text>,
+        render: (file) => <Text>{file.revision}</Text>,
         grow: 1,
         minWidth: 100,
         isSortable: true,

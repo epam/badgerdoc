@@ -23,8 +23,8 @@ import { revisionPropFetcher, useRevisions } from 'api/hooks/revisions';
 import styles from './revisions-table-connector.module.scss';
 
 type RevisionsTableConnectorProps = {
-    onRowClick: (id: number) => void;
-    onRevisionSelect?: (revision: number[]) => void;
+    onRowClick: (id: number | string) => void;
+    onRevisionSelect?: (revision: number[] | string[]) => void;
     checkedValues?: number[] | string[];
 };
 const size = pageSizes._100;
@@ -34,7 +34,7 @@ export const RevisionsTableConnector: FC<RevisionsTableConnectorProps> = ({
     onRevisionSelect,
     checkedValues
 }) => {
-    const [selectedRevisions, setSelectedRevisions] = useState<number[] | []>([]);
+    const [selectedRevisions, setSelectedRevisions] = useState<number[] | string[] | []>([]);
     const {
         pageConfig,
         onPageChange,
@@ -102,9 +102,25 @@ export const RevisionsTableConnector: FC<RevisionsTableConnectorProps> = ({
         refetch();
     }, [filters]);
 
+    const transformedData = useMemo(() => {
+        return (
+            data?.data &&
+            data.data
+                .map((revision) => {
+                    return [
+                        {
+                            ...revision,
+                            id: revision.revision
+                        }
+                    ];
+                })
+                .flat()
+        );
+    }, [data?.data]);
+
     const { dataSource } = useAsyncSourceTable<Revision, number>(
         isFetching,
-        data?.data ?? [],
+        transformedData ?? [],
         page,
         pageSize,
         searchText,
@@ -146,34 +162,34 @@ export const RevisionsTableConnector: FC<RevisionsTableConnectorProps> = ({
     const loadRevisionsNames = createPagingCachedLoader<string, string>(
         namesCache,
         async (pageNumber, pageSize, keyword) =>
-            await revisionPropFetcher('name', pageNumber, pageSize, keyword)
+            await revisionPropFetcher('revision', pageNumber, pageSize, keyword)
     );
 
     const revisionNames = useLazyDataSource<string, string, unknown>(
         {
             api: loadRevisionsNames,
-            getId: (name) => name
+            getId: (revision) => revision
         },
         []
     );
 
-    const renderNameFilter = useColumnPickerFilter<string, string, unknown, 'name'>(
+    const renderNameFilter = useColumnPickerFilter<string, string, unknown, 'revision'>(
         revisionNames,
-        'name',
+        'revision',
         { showSearch: true }
     );
 
     const renderCreationDateFilter = useDateRangeFilter('date');
 
     const columns = useMemo(() => {
-        const nameColumn = revisionsColumns.find(({ key }) => key === 'name');
+        const nameColumn = revisionsColumns.find(({ key }) => key === 'revision');
         nameColumn!.renderFilter = renderNameFilter;
 
         const createdDateColumn = revisionsColumns.find(({ key }) => key === 'date');
         createdDateColumn!.renderFilter = renderCreationDateFilter;
 
         return revisionsColumns;
-    }, [revisionsColumns, renderNameFilter]);
+    }, [revisionsColumns, renderNameFilter, renderCreationDateFilter]);
 
     return (
         <div className={styles.wrapper}>

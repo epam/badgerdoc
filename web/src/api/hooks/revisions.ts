@@ -35,14 +35,14 @@ export function revisionsFetcher(
         field: keyof Revision;
         direction: SortingDirection;
     } = {
-        field: 'name',
+        field: 'revision',
         direction: SortingDirection.ASC
     },
     filters: FilterWithDocumentExtraOption<keyof Revision>[] = []
 ): Promise<PagedResponse<Revision>> {
     if (searchText) {
         filters.push({
-            field: 'name',
+            field: 'revision',
             operator: Operators.ILIKE,
             value: `%${searchText.trim().toLowerCase()}%`
         });
