@@ -1,8 +1,8 @@
 // temporary_disabled_rules
 /* eslint-disable @typescript-eslint/no-unused-vars, react-hooks/exhaustive-deps */
 import { DataTable } from '@epam/loveship';
-import React, { FC, useEffect, useMemo, useRef, useState } from 'react';
-import { useLazyDataSource } from '@epam/uui';
+import React, { FC, useEffect, useMemo, useState } from 'react';
+import { useArrayDataSource } from '@epam/uui';
 import { useAsyncSourceTable } from 'shared/hooks/async-source-table';
 import { Revision, SortingDirection } from 'api/typings';
 import { pageSizes, TableWrapper, usePageTable } from 'shared';
@@ -11,13 +11,12 @@ import {
     useColumnPickerFilter,
     useDateRangeFilter
 } from '../../shared/components/filters/column-picker';
-import { createPagingCachedLoader } from 'shared/helpers/create-paging-cached-loader';
 import {
     getFiltersFromStorage,
     prepareFiltersToSet,
     saveFiltersToStorage
 } from '../../shared/helpers/set-filters';
-import { revisionPropFetcher, useRevisions } from 'api/hooks/revisions';
+import { useRevisions } from 'api/hooks/revisions';
 
 //TODO: move out styles from the connector
 import styles from './revisions-table-connector.module.scss';
@@ -147,28 +146,18 @@ export const RevisionsTableConnector: FC<RevisionsTableConnectorProps> = ({
 
     useEffect(() => () => dataSource.unsubscribeView(onTableValueChange), []);
 
-    const namesCache = useRef<PagingCache>({
-        page: -1,
-        cache: [],
-        search: ''
-    });
+    const revisions = useMemo(() => {
+        return data?.data
+            ? data.data.map((revision) => {
+                  return revision.revision;
+              })
+            : [];
+    }, [data?.data]);
 
-    type PagingCache = {
-        page: number;
-        cache: Array<string>;
-        search: string;
-    };
-
-    const loadRevisionsNames = createPagingCachedLoader<string, string>(
-        namesCache,
-        async (pageNumber, pageSize, keyword) =>
-            await revisionPropFetcher('revision', pageNumber, pageSize, keyword)
-    );
-
-    const revisionNames = useLazyDataSource<string, string, unknown>(
+    const revisionNames = useArrayDataSource<string, string, unknown>(
         {
-            api: loadRevisionsNames,
-            getId: (revision) => revision
+            items: revisions,
+            getId: (item) => item.toString()
         },
         []
     );
@@ -176,7 +165,7 @@ export const RevisionsTableConnector: FC<RevisionsTableConnectorProps> = ({
     const renderNameFilter = useColumnPickerFilter<string, string, unknown, 'revision'>(
         revisionNames,
         'revision',
-        { showSearch: true }
+        { showSearch: true, isPickByEntity: true }
     );
 
     const renderCreationDateFilter = useDateRangeFilter('date');
