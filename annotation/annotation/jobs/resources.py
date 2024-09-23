@@ -11,11 +11,18 @@ from tenant_dependency import TenantData
 
 import annotation.categories.services
 from annotation import logger as app_logger
+from annotation.annotations import construct_annotated_doc
+from annotation.annotations.main import (
+    construct_particular_rev_response,
+    get_annotations_by_revision,
+)
 from annotation.categories import fetch_bunch_categories_db
 from annotation.database import get_db
 from annotation.distribution import distribute, redistribute
+from annotation.errors import NoSuchRevisionsError
 from annotation.filters import CategoryFilter
 from annotation.microservice_communication.assets_communication import (
+    get_file_path_and_bucket,
     get_files_info,
 )
 from annotation.microservice_communication.jobs_communication import (
@@ -29,6 +36,7 @@ from annotation.schemas import (
     BadRequestErrorSchema,
     CategoryResponseSchema,
     ConnectionErrorSchema,
+    DocForSaveSchema,
     FileStatusEnumSchema,
     JobFilesInfoSchema,
     JobInfoSchema,
@@ -140,6 +148,13 @@ def post_job(
         )
     )
 
+    # Revision based job if any revisions are provided
+    annotated_doc_revisions = get_annotations_by_revision(
+        job_info.revisions, db
+    )
+    if len(annotated_doc_revisions) != len(job_info.revisions):
+        raise NoSuchRevisionsError
+
     files = []
 
     if job_info.previous_jobs:
@@ -161,8 +176,9 @@ def post_job(
             ]
             files += tmp_files
     else:
+        revision_file_ids = [rev.file_id for rev in annotated_doc_revisions]
         files += get_files_info(
-            job_info.files,
+            revision_file_ids or job_info.files,
             job_info.datasets,
             x_current_tenant,
             token.token,
@@ -219,7 +235,41 @@ def post_job(
             deadline=job_info.deadline,
             extensive_coverage=job_info.extensive_coverage,
         )
-
+    if job_info.revisions:  # revision based job
+        # for each existing revision from other jobs we copy them over
+        for annotated_doc in annotated_doc_revisions:
+            rev_annotation = construct_particular_rev_response(annotated_doc)
+            doc = DocForSaveSchema(
+                base_revision=annotated_doc.revision,
+                user=annotated_doc.user,
+                pipeline=annotated_doc.pipeline,
+                pages=rev_annotation.pages,
+                validated=rev_annotation.validated,
+                failed_validation_pages=rev_annotation.failed_validation_pages,
+                similar_revisions=rev_annotation.similar_revisions,
+                categories=rev_annotation.categories,
+                links_json=rev_annotation.links_json,
+            )
+            s3_file_path, s3_file_bucket = get_file_path_and_bucket(
+                file_id=annotated_doc.file_id,
+                tenant=x_current_tenant,
+                token=token.token,
+            )
+            construct_annotated_doc(
+                db=db,
+                # assume user_id is always the same as original revision
+                user_id=annotated_doc.user,
+                pipeline_id=None,
+                job_id=job_id,
+                file_id=annotated_doc.file_id,
+                doc=doc,
+                tenant=x_current_tenant,
+                s3_file_path=s3_file_path,
+                s3_file_bucket=s3_file_bucket,
+                latest_doc=None,
+                task_id=None,
+                is_latest=True,
+            )
     db.commit()
 
 

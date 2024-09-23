@@ -1019,3 +1019,15 @@ def construct_document_links(
             )
         )
     return links
+
+
+def get_annotations_by_revision(
+    revisions: Set[str], db: Session
+) -> List[AnnotatedDoc]:
+    if not revisions:
+        return []
+    return (
+        db.query(AnnotatedDoc)
+        .filter(AnnotatedDoc.revision.in_(revisions))
+        .all()
+    )

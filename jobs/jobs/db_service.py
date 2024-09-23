@@ -32,6 +32,7 @@ def create_extraction_job(
     previous_jobs: List[int],
     status: schemas.Status,
     categories: List[str],
+    revisions: List[str],
 ) -> dbm.CombinedJob:
     """Creates new ExtractionJob in the database"""
     job_row = dbm.CombinedJob(
@@ -49,6 +50,7 @@ def create_extraction_job(
         pipeline_engine=pipeline_engine,
         creation_datetime=datetime.utcnow(),
         categories=categories,
+        revisions=revisions or [],
     )
     db.add(job_row)
     db.commit()
@@ -79,6 +81,7 @@ def create_annotation_job(
         extensive_coverage=annotation_job_input.extensive_coverage,
         available_annotation_types=annotation_job_input.available_annotation_types,  # noqa: E501
         available_link_types=annotation_job_input.available_link_types,
+        revisions=list(annotation_job_input.revisions),
     )
     db.add(job_row)
     db.commit()
@@ -123,6 +126,7 @@ def create_extraction_annotation_job(
         all_files_data=all_files_data,
         start_manual_job_automatically=extraction_annotation_job_input.start_manual_job_automatically,  # noqa: E501
         extensive_coverage=extraction_annotation_job_input.extensive_coverage,  # noqa: E501
+        revisions=list(extraction_annotation_job_input.revisions),
     )
     db.add(job_row)
     db.commit()

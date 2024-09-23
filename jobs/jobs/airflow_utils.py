@@ -66,6 +66,7 @@ async def run(
     files: List[pipeline.PipelineFile],
     current_tenant: str,
     datasets: List[pipeline.Dataset],
+    revisions: List[str],
 ) -> None:
     configuration = get_configuration()
     with client.ApiClient(configuration) as api_client:
@@ -79,6 +80,7 @@ async def run(
                     tenant=current_tenant,
                     files_data=files,
                     datasets=datasets,
+                    revisions=revisions,
                 )
             ),
         )
@@ -97,5 +99,8 @@ class AirflowPipeline(pipeline.BasePipeline):
         files: List[pipeline.PipelineFile],
         current_tenant: str,
         datasets: List[pipeline.Dataset],
+        revisions: List[str],
     ) -> None:
-        return await run(pipeline_id, job_id, files, current_tenant, datasets)
+        return await run(
+            pipeline_id, job_id, files, current_tenant, datasets, revisions
+        )

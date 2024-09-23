@@ -68,6 +68,13 @@ class JobInfoSchema(BaseModel):
     )
     files: Set[int] = Field(..., example={1, 2, 3})
     datasets: Set[int] = Field(..., example={1, 2, 3})
+    revisions: Set[str] = Field(
+        set(),
+        example={
+            "35b7b50a056d00048b0977b195f7f8e9f9f7400f",
+            "4dc503a9ade7d7cb55d6be671748a312d663bb0a",
+        },
+    )
     previous_jobs: List[PreviousJobInfoSchema] = Field(...)
     is_auto_distribution: bool = Field(default=False, example=False)
     categories: Optional[Set[str]] = Field(None, example={"1", "2"})
@@ -83,20 +90,21 @@ class JobInfoSchema(BaseModel):
     @root_validator
     def check_files_datasets_previous_jobs(cls, values):
         """
-        Files and datasets should not be empty at the same time.
+        Files and datasets and revisions should not be empty at the same time.
         """
         files, datasets = values.get("files"), values.get("datasets")
+        revisions = values.get("revisions")
         previous_jobs = values.get("previous_jobs")
 
         job_type = values.get("job_type")
 
         if (
-            not (bool(previous_jobs) ^ bool(files or datasets))
+            not (bool(previous_jobs) ^ bool(files or datasets or revisions))
             and job_type != JobTypeEnumSchema.ImportJob
         ):
             raise ValueError(
                 "Only one field must be specified: "
-                "either previous_jobs or files/datasets"
+                "either previous_jobs or files/datasets/revisions"
             )
         return values
 

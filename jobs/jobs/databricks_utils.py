@@ -46,6 +46,7 @@ async def run(
     files: List[pipeline.PipelineFile],
     current_tenant: str,
     datasets: List[pipeline.Dataset],
+    revisions: List[str],
 ) -> None:
     logger.info(
         "Running pipeline %s, job_id %s, current_tenant: %s with arguments %s",
@@ -65,6 +66,7 @@ async def run(
                         tenant=current_tenant,
                         files_data=files,
                         datasets=datasets,
+                        revisions=revisions,
                     )
                 )
             )
@@ -84,7 +86,13 @@ class DatabricksPipeline(pipeline.BasePipeline):
         files: List[pipeline.PipelineFile],
         current_tenant: str,
         datasets: List[pipeline.Dataset],
+        revisions: List[str],
     ) -> None:
         await run(
-            pipeline_id, int(job_id), files, current_tenant, datasets=datasets
+            pipeline_id,
+            int(job_id),
+            files,
+            current_tenant,
+            datasets=datasets,
+            revisions=revisions,
         )

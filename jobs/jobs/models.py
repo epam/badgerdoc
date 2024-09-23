@@ -1,7 +1,15 @@
 from typing import Any, Dict, List
 
 from filter_lib import create_filter_model
-from sqlalchemy import Boolean, Column, DateTime, Integer, String, inspect
+from sqlalchemy import (
+    ARRAY,
+    Boolean,
+    Column,
+    DateTime,
+    Integer,
+    String,
+    inspect,
+)
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -22,6 +30,7 @@ class Job(Base):  # type: ignore
     files = Column(JSONB)
     datasets = Column(JSONB)
     previous_jobs = Column(JSONB)
+    revisions = Column(ARRAY(String(50)), nullable=False)
     creation_datetime = Column(DateTime)
     type = Column(String(30))
     mode = Column(String(30))

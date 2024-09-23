@@ -335,6 +335,7 @@ async def execute_external_pipeline(
     files_data: List[Dict[str, Any]],
     current_tenant: str,
     datasets: List[Dict],
+    revisions: List[str],
 ) -> None:
     logger.info("Running pipeline_engine %s", pipeline_engine)
     kwargs = {
@@ -345,6 +346,7 @@ async def execute_external_pipeline(
         ),
         "current_tenant": current_tenant,
         "datasets": datasets,
+        "revisions": revisions,
     }
     logger.info("Pipeline params: %s", kwargs)
     if pipeline_engine == "airflow":
@@ -432,6 +434,7 @@ async def execute_in_annotation_microservice(
         "categories": created_job.categories,
         "deadline": fastapi.encoders.jsonable_encoder(created_job.deadline),
         "extensive_coverage": created_job.extensive_coverage,
+        "revisions": created_job.revisions,
     }
     if created_job.validation_type:
         json["validation_type"] = created_job.validation_type

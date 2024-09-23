@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Set, Union
 
 from pydantic import BaseModel, Field, validator
 from pydantic.fields import ModelField
@@ -41,6 +41,7 @@ class ExtractionJobParams(BaseModel):
     files: List[int] = []
     datasets: List[int] = []
     previous_jobs: Optional[List[int]] = []
+    revisions: Set[str] = set()
     pipeline_name: str
     pipeline_version: Optional[str]
     pipeline_engine: Optional[str]
@@ -66,6 +67,7 @@ class AnnotationJobParams(BaseModel):
     files: Optional[List[int]] = []
     datasets: Optional[List[int]] = []
     previous_jobs: Optional[List[int]] = []
+    revisions: Set[str] = set()
     annotators: List[str]
     validators: List[str]
     owners: List[str]
@@ -108,6 +110,7 @@ class JobParams(BaseModel):
     type: JobType
     files: Optional[List[int]] = []
     datasets: Optional[List[int]] = []
+    revisions: Set[str] = set()
     previous_jobs: Optional[List[int]] = []
     is_draft: bool = False
     # ---- AnnotationJob and ExtractionWithAnnotationJob attributes ---- #
@@ -140,10 +143,10 @@ class JobParams(BaseModel):
         if values.get("type") != JobType.ImportJob:
             files = values.get("files")
             datasets = values.get("datasets")
-
-            assert bool(v) ^ bool(files or datasets), (
+            revisions = values.get("revisions")
+            assert bool(v) ^ bool(files or datasets or revisions), (
                 "Only one field must be specified: "
-                "either previous_jobs or files/datasets"
+                "either previous_jobs or files/datasets/revisions"
             )
 
         return v

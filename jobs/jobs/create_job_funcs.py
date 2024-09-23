@@ -41,39 +41,17 @@ async def get_all_datasets_and_files_data(
     return files_data, valid_dataset_tags, valid_separate_files_uuids
 
 
-# noinspection PyUnreachableCode
 async def create_extraction_job(
-    extraction_job_input: ExtractionJobParams,
+    extraction_job_input: ExtractionJobParams,  # todo: should be JobParams
     current_tenant: str,
     jw_token: str,
     db: Session = Depends(db_service.get_session),
 ) -> dbm.CombinedJob:
     """Creates new ExtractionJob and saves it in the database"""
-
-    if False:
-        # old pipelines service
-        pipeline_instance = await utils.get_pipeline_instance_by_its_name(
-            pipeline_name=extraction_job_input.pipeline_name,
-            current_tenant=current_tenant,
-            jw_token=jw_token,
-            pipeline_version=extraction_job_input.pipeline_version,
-        )
-
-        pipeline_id = (
-            extraction_job_input.pipeline_name
-            if extraction_job_input.pipeline_name.endswith(":airflow")
-            else pipeline_instance.get("id")
-        )
-
-        pipeline_categories = pipeline_instance.get("meta", {}).get(
-            "categories", []
-        )
-
-    else:
-        pipeline_id = extraction_job_input.pipeline_id
-        pipeline_engine = extraction_job_input.pipeline_engine
-        # check if categories passed and then append all categories to job
-        pipeline_categories = []
+    pipeline_id = extraction_job_input.pipeline_id
+    pipeline_engine = extraction_job_input.pipeline_engine
+    # check if categories passed and then append all categories to job
+    pipeline_categories = []
 
     (
         files_data,
@@ -119,6 +97,7 @@ async def create_extraction_job(
         extraction_job_input.previous_jobs,
         initial_status,
         pipeline_categories,
+        list(extraction_job_input.revisions),
     )
 
     return job_in_db
@@ -150,28 +129,10 @@ async def create_extraction_annotation_job(
     db: Session = Depends(db_service.get_session),
 ) -> dbm.CombinedJob:
     """Creates new ExtractionWithAnnotationJob and saves it in the database"""
-    if False:
-        pipeline_instance = await utils.get_pipeline_instance_by_its_name(
-            pipeline_name=extraction_annotation_job_input.pipeline_name,
-            current_tenant=current_tenant,
-            jw_token=jw_token,
-            pipeline_version=extraction_annotation_job_input.pipeline_version,
-        )
-        pipeline_id = (
-            extraction_annotation_job_input.pipeline_name
-            if extraction_annotation_job_input.pipeline_name.endswith(
-                ":airflow"
-            )
-            else pipeline_instance.get("id")
-        )
-        pipeline_categories = pipeline_instance.get("meta", {}).get(
-            "categories", []
-        )
-    else:
-        pipeline_id = extraction_annotation_job_input.pipeline_id
-        pipeline_engine = extraction_annotation_job_input.pipeline_engine
-        # check if categories passed and then append all categories to job
-        pipeline_categories = []
+    pipeline_id = extraction_annotation_job_input.pipeline_id
+    pipeline_engine = extraction_annotation_job_input.pipeline_engine
+    # check if categories passed and then append all categories to job
+    pipeline_categories = []
 
     (
         files_data,
