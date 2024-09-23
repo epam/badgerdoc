@@ -88,8 +88,8 @@ async def get_annotations(
     filter_args = filter_lib.map_request_to_filter(
         request.dict(), AnnotatedDoc.__name__
     )
-    # TODO: distinct on revision, fix filter_lib to work with
-    #  distinct and sorting
+    # Distinct on revision, filter_lib doesn't work right with
+    # distinct and sorting
     subquery = (
         db.query(AnnotatedDoc)
         .filter(AnnotatedDoc.tenant == x_current_tenant)
