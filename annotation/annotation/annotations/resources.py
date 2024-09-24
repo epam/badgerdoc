@@ -667,7 +667,7 @@ def get_all_revisions(
     )
 
     if not revisions:
-        file: File = next((f for f in job.files if f.id == file_id), None)
+        file: File = next((f for f in job.files if f.file_id == file_id), None)
         filters[0] = AnnotatedDoc.job_id == file.previous_job_id
         revisions = (
             db.query(AnnotatedDoc)
