@@ -153,7 +153,7 @@ def post_job(
         job_info.revisions, db
     )
     if len(annotated_doc_revisions) != len(job_info.revisions):
-        raise NoSuchRevisionsError
+        raise NoSuchRevisionsError("Some of the revisions were not found.")
 
     files = []
 
