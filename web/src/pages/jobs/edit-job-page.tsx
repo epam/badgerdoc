@@ -18,6 +18,7 @@ import { DatasetsTableConnector } from 'connectors/datasets-table-connector';
 import wizardStyles from '../../shared/components/wizard/wizard/wizard.module.scss';
 import styles from '../../shared/components/wizard/wizard/wizard.module.scss';
 import pageStyles from './edit-job-page.module.scss';
+import { RevisionsTableConnector } from 'connectors/revisions-table-connector';
 
 export const EditJobPage = () => {
     const history = useHistory();
@@ -26,8 +27,10 @@ export const EditJobPage = () => {
     const [files, setFiles] = useState<number[]>([]);
     const [jobs, setJobs] = useState<number[]>([]);
     const [datasets, setDatasets] = useState<number[]>([]);
+    const [revisions, setRevivisions] = useState<string[]>([]);
     const [stepIndex, setStepIndex] = useState(0);
     const [currentTab, onCurrentTabChange] = useState('Documents');
+    const [revisionId, setRevisionId] = useState<string | null>(null);
 
     const { data: job } = useJobById(
         { jobId: Number(jobId) },
@@ -35,6 +38,15 @@ export const EditJobPage = () => {
             enabled: !!jobId
         }
     );
+
+    useEffect(() => {
+        const searchParams = new URLSearchParams(document.location.search);
+        const revisionId = searchParams.get('revisionId') || null;
+        if (revisionId) {
+            setStepIndex(1);
+            setRevisionId(revisionId);
+        }
+    }, [stepIndex]);
 
     useEffect(() => {
         if (!job) return;
@@ -73,6 +85,10 @@ export const EditJobPage = () => {
         {
             id: 'Datasets',
             caption: 'Datasets'
+        },
+        {
+            id: 'Revisions',
+            caption: 'Revisions'
         }
     ];
 
@@ -97,12 +113,20 @@ export const EditJobPage = () => {
                 checkedValues={jobs}
             />
         );
-    } else {
+    } else if (currentTab === 'Datasets') {
         table = (
             <DatasetsTableConnector
                 onDatasetSelect={setDatasets}
                 onRowClick={() => null}
                 checkedValues={datasets}
+            />
+        );
+    } else {
+        table = (
+            <RevisionsTableConnector
+                onRevisionSelect={setRevivisions}
+                onRowClick={() => null}
+                checkedValues={revisions}
             />
         );
     }
@@ -142,16 +166,19 @@ export const EditJobPage = () => {
                     files={currentTab === 'Documents' ? files : []}
                     jobs={currentTab === 'Jobs' ? jobs : []}
                     datasets={currentTab === 'Datasets' ? datasets : []}
+                    revisions={currentTab === 'Revisions' ? revisions : []}
                     renderWizardButtons={({ save, lens }) => {
                         return (
                             <>
-                                <Button
-                                    fill="light"
-                                    cx={styles.button}
-                                    caption="Previous"
-                                    onClick={handlePrev}
-                                    isDisabled={isDisabled}
-                                />
+                                {!revisionId && (
+                                    <Button
+                                        fill="light"
+                                        cx={styles.button}
+                                        caption="Previous"
+                                        onClick={handlePrev}
+                                        isDisabled={isDisabled}
+                                    />
+                                )}
                                 <Button
                                     cx={styles.button}
                                     caption="Save as Draft"
@@ -175,5 +202,12 @@ export const EditJobPage = () => {
         }
     ];
 
-    return <Wizard steps={steps} returnUrl={`${JOBS_PAGE}/${jobId}`} stepIndex={stepIndex} />;
+    return (
+        <Wizard
+            steps={steps}
+            returnUrl={`${JOBS_PAGE}/${jobId}`}
+            stepIndex={stepIndex}
+            revisionId={revisionId}
+        />
+    );
 };

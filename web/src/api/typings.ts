@@ -69,6 +69,12 @@ export type Dataset = {
     name: string;
 };
 
+export type Revision = {
+    revision: string;
+    date: string;
+    id: string;
+};
+
 export type Preprocessor = {
     modelId: string;
     name: string;
