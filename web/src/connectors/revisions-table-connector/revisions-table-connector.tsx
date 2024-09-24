@@ -23,8 +23,8 @@ import styles from './revisions-table-connector.module.scss';
 
 type RevisionsTableConnectorProps = {
     onRowClick: (id: number | string) => void;
-    onRevisionSelect?: (revision: number[] | string[]) => void;
-    checkedValues?: number[] | string[];
+    onRevisionSelect?: (revision: string[]) => void;
+    checkedValues?: string[];
 };
 const size = pageSizes._100;
 
@@ -33,7 +33,7 @@ export const RevisionsTableConnector: FC<RevisionsTableConnectorProps> = ({
     onRevisionSelect,
     checkedValues
 }) => {
-    const [selectedRevisions, setSelectedRevisions] = useState<number[] | string[] | []>([]);
+    const [selectedRevisions, setSelectedRevisions] = useState<string[] | []>([]);
     const {
         pageConfig,
         onPageChange,
@@ -67,13 +67,13 @@ export const RevisionsTableConnector: FC<RevisionsTableConnectorProps> = ({
     useEffect(() => {
         setSelectedRevisions(checked || []);
         if (onRevisionSelect) {
-            onRevisionSelect(checked as number[]);
+            onRevisionSelect(checked as string[]);
         }
     }, [checked]);
 
     useEffect(() => {
         if (onRevisionSelect) {
-            onRevisionSelect(selectedRevisions as number[]);
+            onRevisionSelect(selectedRevisions as string[]);
         }
     }, [selectedRevisions]);
 

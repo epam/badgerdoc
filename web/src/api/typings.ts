@@ -72,7 +72,7 @@ export type Dataset = {
 export type Revision = {
     revision: string;
     date: string;
-    id: string | number;
+    id: string;
 };
 
 export type Preprocessor = {

@@ -44,7 +44,7 @@ type EditJobConnectorProps = {
     files?: number[] | null;
     jobs?: number[] | null;
     datasets?: number[] | null;
-    revisions?: number[] | string[] | null;
+    revisions?: string[] | null;
     checkedFiles?: number[];
     initialJob?: Job;
     showNoExtractionTab?: boolean;

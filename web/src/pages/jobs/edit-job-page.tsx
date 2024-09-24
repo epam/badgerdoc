@@ -27,7 +27,7 @@ export const EditJobPage = () => {
     const [files, setFiles] = useState<number[]>([]);
     const [jobs, setJobs] = useState<number[]>([]);
     const [datasets, setDatasets] = useState<number[]>([]);
-    const [revisions, setRevivisions] = useState<number[] | string[]>([]);
+    const [revisions, setRevivisions] = useState<string[]>([]);
     const [stepIndex, setStepIndex] = useState(0);
     const [currentTab, onCurrentTabChange] = useState('Documents');
     const [revisionId, setRevisionId] = useState<string | null>(null);
@@ -126,7 +126,7 @@ export const EditJobPage = () => {
             <RevisionsTableConnector
                 onRevisionSelect={setRevivisions}
                 onRowClick={() => null}
-                checkedValues={datasets}
+                checkedValues={revisions}
             />
         );
     }

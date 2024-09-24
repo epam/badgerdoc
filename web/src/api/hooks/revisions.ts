@@ -44,7 +44,7 @@ export function revisionsFetcher(
         filters.push({
             field: 'revision',
             operator: Operators.ILIKE,
-            value: `%${searchText.trim().toLowerCase()}%`
+            value: `%${searchText.trim()}%`
         });
     }
     const body: SearchBody<Revision> = {
