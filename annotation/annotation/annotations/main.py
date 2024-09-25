@@ -62,7 +62,9 @@ def row_to_dict(row) -> dict:
         key: (
             str(value)
             if isinstance(value, UUID)
-            else value.isoformat() if isinstance(value, datetime) else value
+            else value.isoformat()
+            if isinstance(value, datetime)
+            else value
         )
         for key, value in row.__dict__.items()
         if key != "_sa_instance_state"
@@ -394,12 +396,12 @@ def construct_annotated_doc(
             "No such documents or labels to link to"
         ) from err
 
-    bucket_name = convert_bucket_name_if_s3prefix(tenant)
+    # bucket_name = convert_bucket_name_if_s3prefix(tenant)
     upload_pages_to_minio(
         pages=doc.pages,
         pages_sha=pages_sha,
         s3_path=s3_path,
-        bucket_name=bucket_name,
+        bucket_name=tenant,  # TODO: TENANT!
         s3_resource=None,
     )
     create_manifest_json(
@@ -407,7 +409,7 @@ def construct_annotated_doc(
         s3_path,
         s3_file_path,
         s3_file_bucket,
-        bucket_name,
+        tenant,  # TODO: TENANT!
         job_id,
         file_id,
         db,
