@@ -161,6 +161,10 @@ def get_job_in_db_by_id(
         job_needed = db.query(dbm.CombinedJob).with_for_update().get(job_id)
     else:
         job_needed = db.query(dbm.CombinedJob).get(job_id)
+
+    previous_jobs = get_jobs_in_db_by_ids(db, job_needed.previous_jobs)
+    for j in previous_jobs:
+        job_needed.files.extend(j.files)
     return job_needed
 
 
