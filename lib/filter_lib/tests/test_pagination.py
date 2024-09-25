@@ -60,15 +60,16 @@ def test_paginate_positive(sequence, pag_params):
 
 
 @pytest.mark.parametrize(
-    "start, stop, page_num, page_size, page_offset, found_items, expected_result",
+    "start, stop, page_num, page_size, page_offset, "
+    "found_items, expected_result",
     [
         (1, 150, 1, 15, None, 15, (1, 15, 10, 149, False, 0)),
         (1, 151, 1, 15, None, 15, (1, 15, 10, 150, False, 0)),
-        (1, 152, 1, 15, None, 15, (1, 15, 10, 150, True, 0)),
-        (1, 150, 11, 15, None, 0, (11, 15, 0, 0, False, 150)),
-        (1, 151, 5, 10, None, 10, (5, 10, 10, 100, True, 40)),
-        (1, 151, 6, 10, None, 10, (6, 10, 10, 100, False, 50)),
-        (1, 151, 7, 10, None, 10, (7, 10, 9, 90, False, 60)),
+        (1, 152, 1, 15, None, 15, (1, 15, 10, 151, True, 0)),
+        (1, 150, 11, 15, None, 0, (11, 15, 0, 149, False, 150)),
+        (1, 151, 5, 10, None, 10, (5, 10, 10, 150, True, 40)),
+        (1, 151, 6, 10, None, 10, (6, 10, 10, 150, False, 50)),
+        (1, 151, 7, 10, None, 10, (7, 10, 9, 150, False, 60)),
     ],
 )
 def test_make_pagination_max_count(
@@ -181,11 +182,7 @@ def test_paginate_uii_compatible_format(
     start_slice_num = page_offset
     stop_slice_num = page_offset + page_size
 
-    if page_offset + page_size > len(user_instances_to_create):
-        expected_total = len(user_instances_to_create) - page_offset
-    else:
-        expected_total = page_size
-
+    expected_total = len(user_instances_to_create)
     paginated_data = paginate(query.all(), pag)
 
     assert paginated_data == Page(

@@ -533,11 +533,7 @@ def test_form_query_uii_compatible_format(
     start_slice_num = page_offset
     stop_slice_num = page_offset + page_size
 
-    if page_offset + page_size > len(user_instances_to_create):
-        expected_total = len(user_instances_to_create) - page_offset
-    else:
-        expected_total = page_size
-
+    expected_total = len(user_instances_to_create)
     assert (
         query.all() == user_instances_to_create[start_slice_num:stop_slice_num]
     )
