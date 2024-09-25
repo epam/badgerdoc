@@ -26,7 +26,6 @@ from annotation.annotations.main import (
     construct_annotated_doc,
     construct_document_links,
     construct_particular_rev_response,
-    convert_bucket_name_if_s3prefix,
     create_manifest_json,
     find_all_revisions_pages,
     find_latest_revision_pages,
@@ -276,23 +275,6 @@ def test_row_to_dict_non_table():
 
 
 @pytest.mark.parametrize(
-    ("s3_prefix", "bucket_name", "expected_string"),
-    (
-        ("S3_test", "bucket_test", "S3_test-bucket_test"),
-        (None, "bucket_test", "bucket_test"),
-    ),
-)
-def test_convert_bucket_name_if_s3prefix(
-    s3_prefix: str,
-    bucket_name: str,
-    expected_string: str,
-):
-    with patch("annotation.annotations.main.S3_PREFIX", s3_prefix):
-        result = convert_bucket_name_if_s3prefix(bucket_name=bucket_name)
-    assert result == expected_string
-
-
-@pytest.mark.parametrize(
     "s3_provider",
     ("minio", "aws_iam"),
 )
@@ -406,9 +388,6 @@ def test_construct_annotated_doc(
     ) as mock_check_docs, patch(
         "annotation.annotations.main.construct_document_links", return_value=[]
     ) as mock_construct_doc_links, patch(
-        "annotation.annotations.main.convert_bucket_name_if_s3prefix",
-        return_value=TEST_TENANT,
-    ) as mock_convert_bucket, patch(
         "annotation.annotations.main.upload_pages_to_minio"
     ) as mock_upload_pages, patch(
         "annotation.annotations.main.create_manifest_json"
@@ -445,7 +424,6 @@ def test_construct_annotated_doc(
         db.add.assert_called_once()
         db.add_all.assert_called_once_with([])
         db.commit.assert_called_once()
-        mock_convert_bucket.assert_called_once_with(TEST_TENANT)
         mock_upload_pages.assert_called_once_with(
             pages=doc.pages,
             pages_sha=pages_sha_non_latest[0],
@@ -889,14 +867,8 @@ def test_load_all_revs_pages(
     expected_page_rev_2 = {**page_revision_list_all[0][2][0]}
     expected_pages = {1: [], 2: []}
 
-    with patch(
-        "annotation.annotations.main.convert_bucket_name_if_s3prefix",
-        return_value=TEST_TENANT,
-    ) as mock_convert_prefix, patch(
-        "annotation.annotations.main.load_page"
-    ) as mock_load_page:
+    with patch("annotation.annotations.main.load_page") as mock_load_page:
         load_all_revisions_pages(page_revision_list_all[0], TEST_TENANT)
-        mock_convert_prefix.assert_called_once_with(TEST_TENANT)
         mock_load_page.assert_has_calls(
             [
                 call(
@@ -934,14 +906,8 @@ def test_load_latest_revs_pages(
     expected_page_rev_2 = {**page_revision_list_all[1][2][expected_user_2]}
     expected_pages = {1: [], 2: []}
 
-    with patch(
-        "annotation.annotations.main.convert_bucket_name_if_s3prefix",
-        return_value=TEST_TENANT,
-    ) as mock_convert_prefix, patch(
-        "annotation.annotations.main.load_page"
-    ) as mock_load_page:
+    with patch("annotation.annotations.main.load_page") as mock_load_page:
         load_latest_revision_pages(page_revision_list_all[1], TEST_TENANT)
-        mock_convert_prefix.assert_called_once_with(TEST_TENANT)
         mock_load_page.assert_has_calls(
             [
                 call(
@@ -1005,9 +971,6 @@ def test_load_validated_pages_for_particular_rev(
     ],
 ):
     with patch(
-        "annotation.annotations.main.convert_bucket_name_if_s3prefix",
-        return_value=TEST_TENANT,
-    ) as mock_convert_prefix, patch(
         "annotation.annotations.main.load_page"
     ) as mock_load_page, patch(
         "annotation.annotations.main.logger_.debug"
@@ -1018,7 +981,6 @@ def test_load_validated_pages_for_particular_rev(
         mock_debug.assert_called_once_with(
             "load_validated_pages_for_particular_rev"
         )
-        mock_convert_prefix.assert_called_once_with(TEST_TENANT)
         mock_load_page.assert_called_once_with(
             None,
             [],

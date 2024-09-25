@@ -62,20 +62,11 @@ def row_to_dict(row) -> dict:
         key: (
             str(value)
             if isinstance(value, UUID)
-            else value.isoformat()
-            if isinstance(value, datetime)
-            else value
+            else value.isoformat() if isinstance(value, datetime) else value
         )
         for key, value in row.__dict__.items()
         if key != "_sa_instance_state"
     }
-
-
-def convert_bucket_name_if_s3prefix(bucket_name: str) -> str:
-    if S3_PREFIX:
-        return f"{S3_PREFIX}-{bucket_name}"
-    else:
-        return bucket_name
 
 
 class NotConfiguredException(Exception):
@@ -396,12 +387,11 @@ def construct_annotated_doc(
             "No such documents or labels to link to"
         ) from err
 
-    # bucket_name = convert_bucket_name_if_s3prefix(tenant)
     upload_pages_to_minio(
         pages=doc.pages,
         pages_sha=pages_sha,
         s3_path=s3_path,
-        bucket_name=tenant,  # TODO: TENANT!
+        bucket_name=tenant,
         s3_resource=None,
     )
     create_manifest_json(
@@ -409,7 +399,7 @@ def construct_annotated_doc(
         s3_path,
         s3_file_path,
         s3_file_bucket,
-        tenant,  # TODO: TENANT!
+        tenant,
         job_id,
         file_id,
         db,
@@ -692,14 +682,13 @@ def load_all_revisions_pages(
     pages: Dict[int, List[PageRevision]],
     tenant: str,
 ):
-    bucket_name = convert_bucket_name_if_s3prefix(tenant)
     for page_num, page_revisions in pages.items():
         loaded_pages = []
         for page_revision in page_revisions:
             load_page(
                 None,
                 loaded_pages,
-                bucket_name,
+                tenant,
                 page_num,
                 page_revision["user_id"],
                 page_revision,
@@ -712,14 +701,13 @@ def load_latest_revision_pages(
     pages: Dict[int, Dict[str, LatestPageRevision]],
     tenant: str,
 ):
-    bucket_name = convert_bucket_name_if_s3prefix(tenant)
     for page_num, page_revisions in pages.items():
         loaded_pages = []
         for user_id, page_revision in page_revisions.items():
             load_page(
                 None,
                 loaded_pages,
-                bucket_name,
+                tenant,
                 page_num,
                 user_id,
                 page_revision,
@@ -766,11 +754,10 @@ def load_validated_pages_for_particular_rev(
     for page_num in revision.validated:
         if str(page_num) not in revision.pages:
             page_revision["page_id"] = None
-            bucket_name = convert_bucket_name_if_s3prefix(revision.tenant)
             load_page(
                 None,
                 loaded_pages,
-                bucket_name,
+                revision.tenant,
                 page_num,
                 revision.user,
                 page_revision,
