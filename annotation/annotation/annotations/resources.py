@@ -13,7 +13,7 @@ from fastapi import (
     Response,
     status,
 )
-from sqlalchemy import and_, desc
+from sqlalchemy import and_, desc, func
 from sqlalchemy.orm import Session
 from tenant_dependency import TenantData
 
@@ -89,15 +89,22 @@ async def get_annotations(
         request.dict(), AnnotatedDoc.__name__
     )
     # Distinct on revision, filter_lib doesn't work right with
-    # distinct and sorting
-    subquery = (
-        db.query(AnnotatedDoc)
-        .filter(AnnotatedDoc.tenant == x_current_tenant)
-        .distinct(AnnotatedDoc.revision)
+    # distinct and sorting. Prioritize latest revisions first
+    revision_subquery = (
+        db.query(
+            AnnotatedDoc.revision, func.max(AnnotatedDoc.date).label("latest")
+        )
+        .group_by(AnnotatedDoc.revision)
         .subquery()
     )
-    query = db.query(AnnotatedDoc).join(
-        subquery, AnnotatedDoc.revision == subquery.c.revision
+    query = (
+        db.query(AnnotatedDoc)
+        .join(
+            revision_subquery,
+            (AnnotatedDoc.revision == revision_subquery.c.revision)
+            & (AnnotatedDoc.date == revision_subquery.c.latest),
+        )
+        .filter(AnnotatedDoc.tenant == x_current_tenant)
     )
     query, pagination = filter_lib.form_query(filter_args, query)
     return filter_lib.paginate(
