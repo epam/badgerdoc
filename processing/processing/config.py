@@ -51,8 +51,8 @@ class Settings(BaseSettings):
 
     aws_region: Optional[str]
     s3_endpoint: str
-    s3_secret_key: str
-    s3_access_key: str
+    s3_secret_key: Optional[str]
+    s3_access_key: Optional[str]
     s3_secure: bool
 
     postgres_user: str
