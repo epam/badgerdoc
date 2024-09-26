@@ -76,31 +76,24 @@ class BadgerDocStorage(Protocol):
         target_path: str,
         file: bytes,
         content_type: Optional[str] = None,
-        overwrite: bool = False,
+        **kwargs: Any,
     ) -> None:
         pass
 
-    def exists(self, target_path: str) -> bool:
-        ...
+    def exists(self, target_path: str) -> bool: ...
 
-    def download(self, target_path: str, file: str) -> None:
-        ...
+    def download(self, target_path: str, file: str) -> None: ...
 
-    def gen_signed_url(self, file: str, exp: int) -> str:
-        ...
+    def gen_signed_url(self, file: str, exp: int) -> str: ...
 
-    def list_objects(self, target_path: str) -> List[str]:
-        ...
+    def list_objects(self, target_path: str) -> List[str]: ...
 
-    def remove(self, file: str) -> None:
-        ...
+    def remove(self, file: str) -> None: ...
 
-    def create_tenant_dir(self) -> bool:
-        ...
+    def create_tenant_dir(self) -> bool: ...
 
     @property
-    def tenant(self) -> str:
-        ...
+    def tenant(self) -> str: ...
 
 
 class BadgerDocS3Storage:
@@ -131,7 +124,7 @@ class BadgerDocS3Storage:
         target_path: str,
         file: bytes,
         content_type: Optional[str] = None,
-        overwrite: bool = False,
+        **kwargs: Any,
     ) -> None:
         params: Dict[str, Any] = {"Fileobj": file, "Key": target_path}
         if content_type:

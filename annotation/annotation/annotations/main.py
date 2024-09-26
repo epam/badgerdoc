@@ -62,9 +62,7 @@ def row_to_dict(row) -> dict:
         key: (
             str(value)
             if isinstance(value, UUID)
-            else value.isoformat()
-            if isinstance(value, datetime)
-            else value
+            else value.isoformat() if isinstance(value, datetime) else value
         )
         for key, value in row.__dict__.items()
         if key != "_sa_instance_state"
