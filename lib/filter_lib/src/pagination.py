@@ -27,6 +27,9 @@ def make_pagination(
     max_count: int,
     page_num: Optional[int] = None,
 ) -> Tuple[Query, PaginationParams]:
+    # calculate total number of records in the database for the query
+    total_records = initial_query.count()
+
     # get query for current page output
     output_query = initial_query.offset(page_offset).limit(page_size)
 
@@ -46,7 +49,7 @@ def make_pagination(
         page_num,
         page_size,
         min_pages_left,
-        total_results_count,
+        total_records,
         has_more,
         page_offset,
     )
