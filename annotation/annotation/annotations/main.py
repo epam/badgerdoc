@@ -62,7 +62,9 @@ def row_to_dict(row) -> dict:
         key: (
             str(value)
             if isinstance(value, UUID)
-            else value.isoformat() if isinstance(value, datetime) else value
+            else value.isoformat()
+            if isinstance(value, datetime)
+            else value
         )
         for key, value in row.__dict__.items()
         if key != "_sa_instance_state"
@@ -154,7 +156,9 @@ def upload_json_to_minio(
     :return: None
     """
     bd_storage.get_storage(bucket_name).upload_obj(
-        target_path=path_to_object, file=io.BytesIO(json_obj.encode("UTF-8"))
+        target_path=path_to_object,
+        file=io.BytesIO(json_obj.encode("UTF-8")),
+        overwrite=True,
     )
 
 
