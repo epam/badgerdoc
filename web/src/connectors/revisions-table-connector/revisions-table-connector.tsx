@@ -26,7 +26,7 @@ type RevisionsTableConnectorProps = {
     onRevisionSelect?: (revision: string[]) => void;
     checkedValues?: string[];
 };
-const size = pageSizes._100;
+const size = pageSizes._15;
 
 export const RevisionsTableConnector: FC<RevisionsTableConnectorProps> = ({
     onRowClick,
