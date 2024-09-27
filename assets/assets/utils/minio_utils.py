@@ -150,9 +150,6 @@ def put_file_to_minio(
     except urllib3.exceptions.MaxRetryError as e:
         logger_.error(f"Connection error - detail: {e}")
         return False
-    except bd_storage.BadgerDocStorageResourceExistsError:
-        logger_.info("File %s already exists", file_obj.original_name)
-        return True
     logger_.info(f"File {file_obj.original_name} successfully uploaded")
     return True
 
@@ -229,9 +226,6 @@ def upload_thumbnail(
     except urllib3.exceptions.MaxRetryError as e:
         logger_.error(f"Connection error - detail: {e}")
         return False
-    except bd_storage.BadgerDocStorageResourceExistsError:
-        logger_.info("Thumbnail %s exists", path)
-        return True
     logger_.info("Thumbnail %s uploaded", path)
     return True
 

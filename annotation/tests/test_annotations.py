@@ -564,7 +564,7 @@ def test_upload_json_to_minio():
         upload_json_to_minio(test_json, path_to_object, bucket_name, Mock())
         mock_get_storage.assert_called_once_with(bucket_name)
         mock_get_storage().upload_obj.assert_called_once_with(
-            target_path=path_to_object, file=ANY, overwrite=True
+            target_path=path_to_object, file=ANY
         )
 
 

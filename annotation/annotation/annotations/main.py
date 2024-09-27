@@ -156,7 +156,6 @@ def upload_json_to_minio(
     bd_storage.get_storage(bucket_name).upload_obj(
         target_path=path_to_object,
         file=io.BytesIO(json_obj.encode("UTF-8")),
-        overwrite=True,
     )
 
 

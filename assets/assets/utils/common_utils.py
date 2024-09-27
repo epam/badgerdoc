@@ -317,13 +317,10 @@ class FileConverter:
             return tmp_file.read()
 
     def convert_pdf(self) -> bytes:
-        try:
-            self.storage.upload_obj(
-                target_path=self._output_pdf_path,
-                file=BytesIO(self.file_bytes),
-            )
-        except badgerdoc_storage.storage.BadgerDocStorageResourceExistsError:
-            logger_.warning("File %s exists", self._output_pdf_path)
+        self.storage.upload_obj(
+            target_path=self._output_pdf_path,
+            file=BytesIO(self.file_bytes),
+        )
         logger_.debug("File has been uploaded", self.file_name)
         post_pdf_to_convert(
             self.bucket_storage,
