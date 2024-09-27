@@ -218,8 +218,9 @@ class BadgerDocAzureStorage:
         target_path: str,
         file: bytes,
         content_type: Optional[str] = None,
-        overwrite: bool = False,
+        **kwargs: Any,
     ) -> None:
+        overwrite = kwargs.get("overwrite", False)
         try:
             blob_client = self.blob_service_client.get_blob_client(
                 self._container_name, target_path
