@@ -4,7 +4,6 @@ import os
 from typing import Any, Dict, List, Optional, Protocol
 from urllib.parse import urlsplit
 
-import azure.core.exceptions
 import boto3
 from azure.core.exceptions import ResourceExistsError
 from azure.storage.blob import (
@@ -61,10 +60,6 @@ class BadgerDocStorageError(Exception):
     pass
 
 
-class BadgerDocStorageResourceExistsError(BadgerDocStorageError):
-    pass
-
-
 class BadgerDocStorage(Protocol):
     def upload(
         self, target_path: str, file: str, content_type: Optional[str] = None
@@ -72,7 +67,10 @@ class BadgerDocStorage(Protocol):
         pass
 
     def upload_obj(
-        self, target_path: str, file: bytes, content_type: Optional[str] = None
+        self,
+        target_path: str,
+        file: bytes,
+        content_type: Optional[str] = None,
     ) -> None:
         pass
 
@@ -116,7 +114,10 @@ class BadgerDocS3Storage:
         self.s3_resource.Bucket(self._bucket).upload_file(**params)
 
     def upload_obj(
-        self, target_path: str, file: bytes, content_type: Optional[str] = None
+        self,
+        target_path: str,
+        file: bytes,
+        content_type: Optional[str] = None,
     ) -> None:
         params: Dict[str, Any] = {"Fileobj": file, "Key": target_path}
         if content_type:
@@ -206,18 +207,19 @@ class BadgerDocAzureStorage:
             blob_client.upload_blob(data)
 
     def upload_obj(
-        self, target_path: str, file: bytes, content_type: Optional[str] = None
+        self,
+        target_path: str,
+        file: bytes,
+        content_type: Optional[str] = None,
     ) -> None:
         try:
             blob_client = self.blob_service_client.get_blob_client(
                 self._container_name, target_path
             )
-            blob_client.upload_blob(file)
+            blob_client.upload_blob(file, overwrite=True)
             if content_type:
                 blob_headers = ContentSettings(content_type=content_type)
                 blob_client.set_http_headers(blob_headers)
-        except azure.core.exceptions.ResourceExistsError as err:
-            raise BadgerDocStorageResourceExistsError() from err
         except Exception as err:
             raise BadgerDocStorageError(
                 f"Unable to upload file into {target_path}"

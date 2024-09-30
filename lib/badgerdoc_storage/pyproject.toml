@@ -26,6 +26,7 @@ build-backend = "poetry.core.masonry.api"
 [tool.pylint.messages_control]
 max-line-length = 79
 disable = ["missing-docstring"]
+ignored-argument-names="args|kwargs"
 
 [tool.black]
 line-length = 79
