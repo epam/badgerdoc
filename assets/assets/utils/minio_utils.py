@@ -236,15 +236,16 @@ def upload_thumbnail(
     return True
 
 
-def delete_one_from_minio(bucket: str, obj: str, client: minio.Minio) -> bool:
+def delete_one_from_storage(
+    bucket: str, obj: str, storage: bd_storage.BadgerDocStorage
+) -> bool:
     try:
-        objects = client.list_objects(bucket, obj, recursive=True)
-        names = [a.object_name for a in objects]
-        if not names:
+        objects = storage.list_objects(obj)
+        if not objects:
             logger_.error(f"{obj} does not exist in bucket {bucket}")
             return False
-        for name in names:
-            client.remove_object(bucket, name)
+        for name in objects:
+            remove_recursive(name, storage)
     except urllib3.exceptions.MaxRetryError as e:
         logger_.error(f"Connection error - detail: {e}")
         return False
@@ -253,6 +254,14 @@ def delete_one_from_minio(bucket: str, obj: str, client: minio.Minio) -> bool:
         return False
     logger_.info(f"Object {obj} successfully removed")
     return True
+
+
+def remove_recursive(path: str, storage: bd_storage.BadgerDocStorage) -> None:
+    if not path.endswith("/"):
+        storage.remove(path)
+        return None
+    for _path in storage.list_objects(path):
+        remove_recursive(_path, storage)
 
 
 def stream_minio(
