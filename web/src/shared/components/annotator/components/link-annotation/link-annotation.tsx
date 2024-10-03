@@ -11,7 +11,6 @@ import styles from './link-annotation.module.scss';
 export const LinkAnnotation = ({
     pointStart,
     pointFinish,
-    category,
     linkType,
     onDeleteLink,
     onLinkSelect,
@@ -31,13 +30,6 @@ export const LinkAnnotation = ({
         position: 'absolute',
         transformOrigin: 'left'
     };
-
-    const getStyleFromLink = useMemo(() => {
-        return {
-            ...getStyledLinkByBounds(pointStart, pointFinish),
-            ...commonStyles
-        };
-    }, [pointStart, pointFinish]);
 
     const getStyleFromLink1 = useMemo(() => {
         return {
@@ -83,7 +75,7 @@ export const LinkAnnotation = ({
         };
     }, [pointStart, pointFinish, xBound]);
 
-    const NewLink = (
+    return (
         <>
             <div
                 style={getStyleFromLink1 as CSSProperties}
@@ -134,39 +126,4 @@ export const LinkAnnotation = ({
             </div>
         </>
     );
-
-    const OldLink = (
-        <div
-            style={getStyleFromLink as CSSProperties}
-            className={styles.link}
-            onClick={onLinkSelect}
-            role="none"
-        >
-            <div className={styles.container} style={{ color: category.metadata?.color }}>
-                <div
-                    className={`${styles.arrow} ${styles.arrowBottom}`}
-                    style={{ visibility: !reversed ? 'hidden' : undefined }}
-                >
-                    <ArrowIcon />
-                </div>
-                <div className={styles.label}>
-                    <IconButton
-                        icon={closeIcon}
-                        onClick={onDeleteLink}
-                        color={category.metadata?.color as EpamColor}
-                        iconPosition={'right'}
-                    />
-                </div>
-                <div
-                    className={styles.arrow}
-                    style={{ visibility: reversed ? 'hidden' : undefined }}
-                >
-                    <ArrowIcon />
-                </div>
-            </div>
-        </div>
-    );
-
-    return NewLink;
-    // OldLink
 };
