@@ -110,9 +110,23 @@ export const AnnotationRow: FC<TAnnotationProps> = ({
             className={cx(styles.item, id === selectedAnnotationId && styles.selectedAnnotation)}
         >
             <div className={styles.label} style={getAnnotationLabelColors(color)}>
-                <Text cx={styles.labelText} rawProps={{ 'data-testid': 'flow-label' }}>
-                    {labelList[labelList.length - 1]}
-                </Text>
+                <div className={styles.linksText}>
+                    {!links?.length && !incomingLinks?.length ? null : (
+                        <Links
+                            isEditable={isEditable}
+                            onSelect={onSelectById}
+                            links={links}
+                            annotationId={id}
+                            annotationPageNum={pageNum}
+                            incomingLinks={incomingLinks}
+                            onLinkDeleted={onLinkDeleted}
+                            annotationNameById={annotationNameById}
+                        />
+                    )}
+                    <Text cx={styles.labelText} rawProps={{ 'data-testid': 'flow-label' }}>
+                        {labelList[labelList.length - 1]}
+                    </Text>
+                </div>
                 {isClosable && !revisionId && (
                     <IconButton
                         icon={closeIcon}
@@ -120,18 +134,6 @@ export const AnnotationRow: FC<TAnnotationProps> = ({
                         iconPosition={'right'}
                         onClick={onIconClick}
                         color={isContrastColor(color) ? 'white' : 'night900'}
-                    />
-                )}
-                {!links?.length && !incomingLinks?.length ? null : (
-                    <Links
-                        isEditable={isEditable}
-                        onSelect={onSelectById}
-                        links={links}
-                        annotationId={id}
-                        annotationPageNum={pageNum}
-                        incomingLinks={incomingLinks}
-                        onLinkDeleted={onLinkDeleted}
-                        annotationNameById={annotationNameById}
                     />
                 )}
             </div>

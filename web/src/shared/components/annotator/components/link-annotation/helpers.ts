@@ -9,6 +9,8 @@ export type LinkAnnotationProps = {
     onDeleteLink: (e: Event) => void;
     onLinkSelect: () => void;
     reversed: boolean;
+    color: string | undefined;
+    xBound: number;
 };
 
 export const getAngleFromPoints = (lower: Point, higher: Point, add_rotation: number = 0) => {

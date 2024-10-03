@@ -39,6 +39,9 @@ export type PointSet = {
     link: Link;
     category: Category;
     type: string;
+    color: string | undefined;
+    xBound: number;
+    annotationId: number | string;
 };
 
 const getCategoryById = (id: string | number, categories: Category[] | undefined): Category => {
@@ -69,7 +72,8 @@ export const getPointsForLinks = (
     links: Link[],
     pageNum: number,
     annotationsById: Record<string, Annotation>,
-    categories: Category[] | undefined
+    categories: Category[] | undefined,
+    color: string | undefined
 ): PointSet[] => {
     let firstChildStart: DOMRectWithId, lastChildStart: DOMRectWithId;
     const elementStart = document.getElementById(getAnnotationElementId(pageNum, id))!;
@@ -104,7 +108,9 @@ export const getPointsForLinks = (
                     bound: [
                         { ...firstChildBound, top: additionalTopOffset + firstChildBound.top },
                         { ...lastChildBound, top: additionalTopOffset + lastChildBound.top }
-                    ]
+                    ],
+                    color,
+                    annotationId: id
                 };
             }
 
@@ -115,7 +121,9 @@ export const getPointsForLinks = (
                 category,
                 linkType: link.type,
                 boundType: boundType,
-                bound: { ...linkBound, top: additionalTopOffset + linkBound.top }
+                bound: { ...linkBound, top: additionalTopOffset + linkBound.top },
+                color,
+                annotationId: id
             };
         });
 
@@ -228,7 +236,9 @@ export const getPointsForLinks = (
             finish: linkPointB,
             link: bound.link,
             category: bound.category,
-            type: bound.linkType
+            type: bound.linkType,
+            color: bound.color,
+            annotationId: bound.annotationId
         } as PointSet;
     });
     return points;
