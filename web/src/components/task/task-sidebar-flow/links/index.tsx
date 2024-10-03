@@ -8,7 +8,6 @@ import { ReactComponent as linksIcon } from '@epam/assets/icons/common/navigatio
 import { ReactComponent as outgoingLinkIcon } from '@epam/assets/icons/common/navigation-chevron-down-18.svg';
 import { ReactComponent as incomingLinkIcon } from '@epam/assets/icons/common/navigation-chevron-up-18.svg';
 import { Link } from 'api/typings';
-
 import { LinkRow } from './link-row';
 
 export const Links: FC<{
@@ -74,6 +73,11 @@ export const Links: FC<{
                     onClick={(event: Event) => {
                         event.stopPropagation();
                         onClick?.(event);
+                    }}
+                    rawProps={{
+                        style: {
+                            fill: 'white'
+                        }
                     }}
                 />
             )}
