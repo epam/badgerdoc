@@ -175,7 +175,13 @@ class BadgerDocS3Storage:
         return True
 
     def remove(self, file: str) -> None:
-        raise NotImplementedError("Method not implemented")
+        bucket_name = self.__get_bucket_name()
+        try:
+            self.s3_resource.Object(bucket_name, file).delete()
+        except ClientError as err:
+            raise BadgerDocStorageError(
+                "Unable to delete file: %s", file
+            ) from err
 
 
 class BadgerDocAzureStorage:
