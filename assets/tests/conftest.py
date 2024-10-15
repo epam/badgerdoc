@@ -131,7 +131,9 @@ def client_app_main(
     )
     app.dependency_overrides[tenant] = lambda: setup_tenant
 
-    with patch.object(minio_utils, "delete_one_from_minio", return_value=True):
+    with patch.object(
+        minio_utils, "delete_one_from_storage", return_value=True
+    ):
         client = TestClient(app)
         yield client
 

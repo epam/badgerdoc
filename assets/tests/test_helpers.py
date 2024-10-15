@@ -11,7 +11,7 @@ from assets.db.service import (
     update_file_status,
 )
 from assets.schemas import FileProcessingStatus
-from assets.utils.minio_utils import check_bucket, delete_one_from_minio
+from assets.utils.minio_utils import check_bucket, delete_one_from_storage
 
 
 @pytest.fixture
@@ -63,18 +63,18 @@ def test_check_bucket_positive(minio_mock_exists_bucket_true):
         check_bucket(random_name, minio_mock_exists_bucket_true)
 
 
-def test_delete_one_from_minio(minio_mock_exists_bucket_true):
-    with patch("tests.test_helpers.delete_one_from_minio") as mock_:
+def test_delete_one_from_storage(minio_mock_exists_bucket_true):
+    with patch("tests.test_helpers.delete_one_from_storage") as mock_:
         mock_.side_effect = [True, False]
         random_name = uuid.uuid4().hex
         minio_mock_exists_bucket_true.fput_object(
             random_name, "testfile", Mock()
         )
-        x = delete_one_from_minio(
+        x = delete_one_from_storage(
             random_name, "testfile", minio_mock_exists_bucket_true
         )
         assert x
-        y = delete_one_from_minio(
+        y = delete_one_from_storage(
             random_name, "testfile", minio_mock_exists_bucket_true
         )
         assert not y
