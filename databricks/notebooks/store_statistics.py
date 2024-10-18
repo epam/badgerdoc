@@ -1,12 +1,12 @@
 # Databricks notebook source
 import json
 
-from databricks.sdk.runtime import dbutils
-
 import lib.spark_helper.predictions as predictions_helper
 from lib.repository.configs.service import load_config
 from lib.spark_helper.db_service import SparkDBService
 from lib.spark_helper.storage_service import SparkStorageService
+
+from databricks.sdk.runtime import dbutils
 
 configs = load_config(project_name=dbutils.widgets.get("project_name"))
 db_service = SparkDBService(configs)

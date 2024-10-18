@@ -3,7 +3,6 @@ import os
 from datetime import datetime
 
 from databricks.sdk import WorkspaceClient
-
 from pipelines.schemas import PipelineOut
 
 logger = logging.getLogger(__name__)

@@ -1,13 +1,13 @@
 from typing import Any, Dict, Optional
 
-from databricks.sdk.runtime import spark
-from pyspark.sql import functions as F
-
 from lib.repository.ground_truth.models import Revision
 from lib.spark_helper.ground_truth import (
     GroundTruthDBStorage,
     GroundTruthFileStorage,
 )
+from pyspark.sql import functions as F
+
+from databricks.sdk.runtime import spark
 
 
 class GroundTruthHelper:

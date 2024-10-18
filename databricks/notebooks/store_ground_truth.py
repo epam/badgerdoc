@@ -1,12 +1,12 @@
 # Databricks notebook source
 import json
 
-from databricks.sdk.runtime import dbutils
-
 from lib.badgerdoc.service import BadgerDocService
 from lib.repository.configs.service import load_config
 from lib.repository.ground_truth.helpers import GroundTruthHelper
 from lib.repository.ground_truth.revision_factory import RevisionFactory
+
+from databricks.sdk.runtime import dbutils
 
 job_parameters = json.loads(dbutils.widgets.get("badgerdoc_job_parameters"))
 tenant = job_parameters["tenant"]

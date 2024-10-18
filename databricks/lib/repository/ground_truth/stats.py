@@ -1,11 +1,10 @@
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
-from sklearn.metrics import accuracy_score, precision_score, recall_score
-from tabulate import tabulate
-
 import lib.spark_helper.predictions as predictions_helper
 from lib.spark_helper.ground_truth import GroundTruthFileStorage
 from lib.spark_helper.predictions import Prediction
+from sklearn.metrics import accuracy_score, precision_score, recall_score
+from tabulate import tabulate
 
 
 def replace_values(

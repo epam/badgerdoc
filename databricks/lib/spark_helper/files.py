@@ -1,9 +1,8 @@
 from io import BytesIO
 from typing import Any, Dict
 
-from pypdf import PdfReader
-
 from lib.spark_helper.storage_service import SparkStorageService
+from pypdf import PdfReader
 
 
 def extract_text_from_pdf(pdf_content: bytes) -> str:
