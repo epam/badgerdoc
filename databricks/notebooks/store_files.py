@@ -2,10 +2,10 @@
 import json
 
 import requests
-from databricks.sdk.runtime import dbutils
-
 from lib.repository.configs.service import load_config
 from lib.spark_helper.files import FilesStorage
+
+from databricks.sdk.runtime import dbutils
 
 configs = load_config(project_name=dbutils.widgets.get("project_name"))
 files_storage = FilesStorage(configs)

@@ -2,9 +2,9 @@
 import json
 from typing import Any
 
-from databricks.sdk.runtime import dbutils
-
 from lib.badgerdoc.service import BadgerDocService
+
+from databricks.sdk.runtime import dbutils
 
 secrets_scope = dbutils.widgets.get("secrets_scope")
 

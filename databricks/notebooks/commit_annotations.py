@@ -3,12 +3,12 @@ import json
 import random
 from typing import Any, Dict, Generator, List, Tuple
 
-from databricks.sdk.runtime import dbutils
-
 import lib.spark_helper.predictions as predictions_helper
 from lib.badgerdoc.service import BadgerDocService
 from lib.repository.configs.service import load_config
 from lib.spark_helper.storage_service import SparkStorageService
+
+from databricks.sdk.runtime import dbutils
 
 configs = load_config(project_name=dbutils.widgets.get("project_name"))
 
