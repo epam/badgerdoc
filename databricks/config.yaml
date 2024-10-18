@@ -1,0 +1,4 @@
+badgerdoc_develop:
+  databricks:
+    catalog: badgerdoc
+    schema: badgerdoc_develop

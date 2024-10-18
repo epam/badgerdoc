@@ -5,9 +5,8 @@ import os
 from datetime import datetime
 from typing import Iterator, List
 
-from databricks.sdk import WorkspaceClient
-
 import jobs.pipeline as pipeline
+from databricks.sdk import WorkspaceClient
 from jobs.schemas import Pipeline
 
 logger = logging.getLogger(__name__)
