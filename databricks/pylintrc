@@ -1,0 +1,12 @@
+[REPORTS]
+fail-under = 9.0
+
+[FORMAT]
+max-line-length = 79
+
+[MESSAGES CONTROL]
+disable = missing-module-docstring,
+          missing-class-docstring,
+          missing-function-docstring,
+          astroid-error,
+          too-few-public-methods,
