@@ -12,8 +12,9 @@ from azure.storage.blob import (
     ContentSettings,
     generate_blob_sas,
 )
-from botocore.exceptions import ClientError
 from botocore.client import Config
+from botocore.exceptions import ClientError
+
 
 logger = logging.getLogger(__name__)
 logger.setLevel(os.getenv("LOG_LEVEL", "INFO"))
@@ -45,14 +46,15 @@ def create_boto3_config() -> Dict[str, Optional[str]]:
         })
 
     if s3_endpoint:
-        boto3_config["endpoint_url"] = f"{'https' if s3_secure else 'http'}://{s3_endpoint}"
+        boto3_config["endpoint_url"] = f"{
+            'https' if s3_secure else 'http'
+            }://{s3_endpoint}"
 
     if S3_REGION:
         boto3_config["region_name"] = S3_REGION
 
-    # Adding support for Signature Version 4, which is required for generating pre-signed URLs in almost all regions.
     boto3_config["config"] = Config(signature_version="s3v4")
-    
+
     logger.debug("S3 configured")
     return boto3_config
 
