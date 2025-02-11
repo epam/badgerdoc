@@ -13,6 +13,7 @@ from azure.storage.blob import (
     generate_blob_sas,
 )
 from botocore.exceptions import ClientError
+from botocore.client import Config
 
 logger = logging.getLogger(__name__)
 logger.setLevel(os.getenv("LOG_LEVEL", "INFO"))
@@ -23,6 +24,7 @@ MINIO_PUBLIC_HOST = os.getenv("MINIO_PUBLIC_HOST")
 
 S3_ACCESS_KEY = os.getenv("S3_ACCESS_KEY")
 S3_PREFIX = os.getenv("S3_PREFIX")
+S3_REGION = os.getenv("S3_REGION")
 AZURE_BLOB_STORAGE_CONNECTION_STRING = os.getenv(
     "AZURE_BLOB_STORAGE_CONNECTION_STRING"
 )
@@ -33,25 +35,24 @@ AZURE_COMPATIBLE = {"AZURE"}
 
 def create_boto3_config() -> Dict[str, Optional[str]]:
     logger.debug("Configure boto3 with %s", STORAGE_PROVIDER)
-    boto3_config = {}
+    boto3_config: Dict[str, Optional[str]] = {}
+    s3_secure = os.getenv("S3_SECURE", "").upper() == "TRUE"
+    s3_endpoint = os.getenv("S3_ENDPOINT")
     if S3_ACCESS_KEY is not None:
-        s3_secure = os.getenv("S3_SECURE", "").upper() == "TRUE"
-        s3_endpoint = os.getenv("S3_ENDPOINT")
-        boto3_config.update(
-            {
-                "aws_access_key_id": S3_ACCESS_KEY,
-                "aws_secret_access_key": os.getenv("S3_SECRET_KEY"),
-                "endpoint_url": (
-                    (("https" if s3_secure else "http") + "://" + s3_endpoint)
-                    if s3_endpoint
-                    else None
-                ),
-            }
-        )
-        s3_region = os.getenv("S3_REGION")
-        if s3_region:
-            boto3_config["region_name"] = s3_region
+        boto3_config.update({
+            "aws_access_key_id": S3_ACCESS_KEY,
+            "aws_secret_access_key": os.getenv("S3_SECRET_KEY"),
+        })
 
+    if s3_endpoint:
+        boto3_config["endpoint_url"] = f"{'https' if s3_secure else 'http'}://{s3_endpoint}"
+
+    if S3_REGION:
+        boto3_config["region_name"] = S3_REGION
+
+    # Adding support for Signature Version 4, which is required for generating pre-signed URLs in almost all regions.
+    boto3_config["config"] = Config(signature_version="s3v4")
+    
     logger.debug("S3 configured")
     return boto3_config
 
@@ -164,7 +165,13 @@ class BadgerDocS3Storage:
 
     def create_tenant_dir(self) -> bool:
         try:
-            self.s3_resource.create_bucket(Bucket=self._bucket)
+            if S3_REGION and STORAGE_PROVIDER == "S3":
+                self.s3_resource.create_bucket(
+                    Bucket=self._bucket,
+                    CreateBucketConfiguration={'LocationConstraint': S3_REGION}
+                )
+            else:
+                self.s3_resource.create_bucket(Bucket=self._bucket)
         except ClientError as err:
             if err.response["Error"]["Code"] == "BucketAlreadyOwnedByYou":
                 # minio generates this response in case of bucket exists
