@@ -15,7 +15,6 @@ from azure.storage.blob import (
 from botocore.client import Config
 from botocore.exceptions import ClientError
 
-
 logger = logging.getLogger(__name__)
 logger.setLevel(os.getenv("LOG_LEVEL", "INFO"))
 
@@ -45,10 +44,9 @@ def create_boto3_config() -> Dict[str, Optional[str]]:
             "aws_secret_access_key": os.getenv("S3_SECRET_KEY"),
         })
 
-    if s3_endpoint:
-        boto3_config["endpoint_url"] = f"{
-            'https' if s3_secure else 'http'
-            }://{s3_endpoint}"
+    s3_endpoint and boto3_config.update({
+        "endpoint_url": f"{'https' if s3_secure else 'http'}://{s3_endpoint}"
+    })
 
     if S3_REGION:
         boto3_config["region_name"] = S3_REGION
