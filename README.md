@@ -127,6 +127,20 @@ This will solve the issue with presigned URLs.
 
 For any other installation, we highly recommend using AWS S3 or Azure Blob Storage instead of Minio.
 
+## AWS S3 storage configuration
+
+Change your .env file as follows:
+- Set `STORAGE_PROVIDER` to `s3`
+- Set `S3_REGION` to a valid region identifier (e.g., `eu-central-1`)
+It is recommended to use IAM roles (for example, via an EC2 Instance Profile) for accessing S3 buckets. If you are running BadgerDoc in Docker containers, increase the HTTP hop limit to support IMDSv2 by running:
+`aws ec2 modify-instance-metadata-options --instance-id <EC2_INSTANCE_ID> --http-put-response-hop-limit 2`
+It is required for IMDSv2 support from Docker containers with an EC2 Instance Profile role.
+
+Alternatively, you can configure `S3_ACCESS_KEY` and `S3_SECRET_KEY` to use IAM user credentials for accessing an S3 bucket. However, this approach is less secure and is not recommended.
+
+Finally, ensure that the S3 bucket’s CORS settings are configured to allow access from the domain where BadgerDoc is hosted. For more details, see
+[Configuring cross-origin resource sharing (CORS)]([https://docs.aws.amazon.com/AmazonS3/latest/userguide/enabling-cors-examples.html]).
+
 ## Azure blob storage configuration
 
 Change `STORAGE_PROVIDER=azure` in `.env` file and set `AZURE_STORAGE_CONNECTION_STRING` to the connection string
