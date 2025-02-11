@@ -47,8 +47,13 @@ def create_boto3_config() -> Dict[str, Optional[str]]:
         )
 
     if s3_endpoint:
+        if s3_secure:
+            endpoint_url_scheme = "https://"
+        else:
+            endpoint_url_scheme = "http://"
+
         boto3_config.update(
-            {"endpoint_url": f"{'https' if s3_secure else 'http'}://{s3_endpoint}"}
+            {"endpoint_url": f"{endpoint_url_scheme}{s3_endpoint}"}
         )
 
     if S3_REGION:
