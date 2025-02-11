@@ -39,14 +39,17 @@ def create_boto3_config() -> Dict[str, Optional[str]]:
     s3_secure = os.getenv("S3_SECURE", "").upper() == "TRUE"
     s3_endpoint = os.getenv("S3_ENDPOINT")
     if S3_ACCESS_KEY is not None:
-        boto3_config.update({
-            "aws_access_key_id": S3_ACCESS_KEY,
-            "aws_secret_access_key": os.getenv("S3_SECRET_KEY"),
-        })
+        boto3_config.update(
+            {
+                "aws_access_key_id": S3_ACCESS_KEY,
+                "aws_secret_access_key": os.getenv("S3_SECRET_KEY"),
+            }
+        )
 
-    s3_endpoint and boto3_config.update({
-        "endpoint_url": f"{'https' if s3_secure else 'http'}://{s3_endpoint}"
-    })
+    if s3_endpoint:
+        boto3_config.update(
+            {"endpoint_url": f"{'https' if s3_secure else 'http'}://{s3_endpoint}"}
+        )
 
     if S3_REGION:
         boto3_config["region_name"] = S3_REGION
@@ -168,7 +171,9 @@ class BadgerDocS3Storage:
             if S3_REGION and STORAGE_PROVIDER == "S3":
                 self.s3_resource.create_bucket(
                     Bucket=self._bucket,
-                    CreateBucketConfiguration={'LocationConstraint': S3_REGION}
+                    CreateBucketConfiguration={
+                        "LocationConstraint": S3_REGION
+                    },
                 )
             else:
                 self.s3_resource.create_bucket(Bucket=self._bucket)
