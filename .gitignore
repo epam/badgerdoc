@@ -11,3 +11,4 @@ airflow/.env
 venv/
 build/
 *.egg-info/
+.vscode/

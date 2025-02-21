@@ -1,10 +1,10 @@
 _DOCKER_ ?= docker
 
 # Build all microservices
-build_all:  build_base build_base_3.12 build_nginx build_annotation build_users build_jobs build_keycloak build_assets build_web  build_processing build_taxonomy clean
+build_all:  build_base build_base_3.12 build_nginx build_annotation build_users build_jobs build_keycloak build_assets build_web  build_processing build_taxonomy build_ml_server clean
 
 # Build only BadgerDoc microservices
-build_badgerdoc: build_base build_base_3.12 build_annotation build_users build_jobs build_assets build_web  build_processing build_taxonomy clean
+build_badgerdoc: build_base build_base_3.12 build_annotation build_users build_jobs build_assets build_web  build_processing build_taxonomy build_ml_server clean
 
 build_base:
 	mkdir -p build_dir
@@ -49,6 +49,9 @@ build_web:
 
 build_taxonomy:
 	${_DOCKER_} build --target build taxonomy/ -t badgerdoc_taxonomy
+
+build_ml_server:
+	${_DOCKER_} build ml_server/ -t badgerdoc_ml_server
 
 clean:
 	rm -rf build_dir
