@@ -7,6 +7,7 @@ import filter_lib
 import minio
 import sqlalchemy.orm
 import sqlalchemy_filters.exceptions
+from badgerdoc_storage import storage as bd_storage
 
 from assets import db, exceptions, schemas, utils
 
@@ -148,16 +149,17 @@ async def delete_files(
             )
             continue
 
+        storage = bd_storage.get_storage(x_current_tenant)
         f_name = file.original_name
         minio_file_name = "files/" + str(file_id)
         f_original_ext = file.original_ext
-        minio_ = utils.minio_utils.delete_one_from_minio(
+        minio_ = utils.minio_utils.delete_one_from_storage(
             bucket_name, minio_file_name, storage
         )
         minio_originals = 1
         if f_original_ext:
             minio_origin_file_name = "files/origins/" + str(file_id)
-            minio_originals = utils.minio_utils.delete_one_from_minio(
+            minio_originals = utils.minio_utils.delete_one_from_storage(
                 bucket_name, minio_origin_file_name, storage
             )
         db_ = db.service.delete_file_from_db(session, file_id)
