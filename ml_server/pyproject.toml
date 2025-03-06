@@ -26,11 +26,6 @@ line_length = "79"
 profile = "black"
 line_length = "79"
 
-[tool.pylint.settings]
-errors-only = "True"
-disable = "E0401,E0611"
-max-line-length = "79"
-
 [tool.mypy]
 plugins = "pydantic.mypy"
 ignore_missing_imports = true

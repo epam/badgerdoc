@@ -1,8 +1,6 @@
 ARG base_image=818863528939.dkr.ecr.eu-central-1.amazonaws.com/badgerdoc/python_base_3.12:0.2.0
 FROM ${base_image} as build
 
-# Without it pip show warnings when installing packages as root
-ENV PIP_ROOT_USER_ACTION ignore
 ENV PYTHONUNBUFFERED 1
 
 WORKDIR /opt/ml_server
