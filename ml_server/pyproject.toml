@@ -1,0 +1,39 @@
+[project]
+name = "ml_server"
+version = "0.1.0"
+description = "Simple service that hosts ML models for Named Entity Recognition"
+authors = [{name="BadgerDoc team"}]
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi ~= 0.115.0",
+    "uvicorn[standard] ~= 0.34.0",
+    "pydantic >= 2.10",
+    "gliner ~= 0.2.16"
+]
+
+[tool.poetry.group.dev.dependencies]
+mypy = "~1.15.0"
+isort = "~6.0.1"
+black = "~25.1.0"
+flake8 = "~7.1.2"
+pre-commit = "*"
+
+
+[tool.black]
+line_length = "79"
+
+[tool.isort]
+profile = "black"
+line_length = "79"
+
+[tool.mypy]
+plugins = "pydantic.mypy"
+ignore_missing_imports = true
+scripts_are_modules = true
+allow_untyped_decorators = true
+strict = true
+implicit_reexport = true
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
