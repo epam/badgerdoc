@@ -51,7 +51,7 @@ build_taxonomy:
 	${_DOCKER_} build --target build taxonomy/ -t badgerdoc_taxonomy
 
 build_ml_server:
-	${_DOCKER_} build ml_server/ -t badgerdoc_ml_server
+	${_DOCKER_} build --target build ml_server/ -t badgerdoc_ml_server
 
 clean:
 	rm -rf build_dir

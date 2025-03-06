@@ -5,7 +5,7 @@
 This is very simple HTTP web server running on python fastapi and uvicorn. It accepts POST request with 4 post request parameters:
 
  - model_id: ID of the model to run
- - threshold: Threshold parameter for the NER model (used in gliner type models)
+ - threshold: Threshold parameter for the NER model (used in gliner type models). Value should be float in range <0, 1>
  - labels: List of labels(entities) to search for in text
  - text: Text to process
 
@@ -18,12 +18,16 @@ Workflow of the server is simple:
 
 ## How to run
 
-1. Make sure you have python 3 and pip installed
-1. Install dependencies
+1. Make sure you have python>=3.12, pip and poetry>=2.0 installed
+1. Install run dependencies with poetry in editable mode
 
     ```bash
-    pip3 install -r requirements.txt
+    poetry install --no-root --only main
     ```
+
+1. Project needs dependencies from artifactory base image specified in Dockerfile.  
+
+    To run app locally you should also install 'tenant_dependency' from **lib/tenants** folder
 
 1. Run uvicorn application
 
