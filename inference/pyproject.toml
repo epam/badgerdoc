@@ -1,0 +1,31 @@
+[project]
+name = "inference"
+version = "0.1.0"
+description = "Inference service to integrate DEPS with badgerdoc"
+authors = [{name="BadgerDoc team"}]
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi ~= 0.115.0",
+    "uvicorn[standard] ~= 0.34.0",
+    "pydantic >= 2.10",
+    "aiohttp ~= 3.11.13"
+]
+
+[tool.black]
+line_length = "79"
+
+[tool.isort]
+profile = "black"
+line_length = "79"
+
+[tool.mypy]
+plugins = "pydantic.mypy"
+ignore_missing_imports = true
+scripts_are_modules = true
+allow_untyped_decorators = true
+strict = true
+implicit_reexport = true
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
