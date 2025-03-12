@@ -25,6 +25,7 @@ services:
       - badgerdoc-processing
       - badgerdoc-jobs
       - badgerdoc-assets
+      - badgerdoc-ml-server
     ports:
       - "8080:8080"
 
@@ -186,6 +187,21 @@ services:
         condition: service_healthy
     restart: on-failure
 
+  badgerdoc-ml-server:
+    image: badgerdoc_ml_server
+    container_name: ml-server
+    env_file:
+      - .env
+    environment:
+      - ROOT_PATH=/ml-server
+    networks:
+      - badgerdoc
+    depends_on:
+      badgerdoc-postgresql:
+        condition: service_healthy
+      badgerdoc-keycloak:
+        condition: service_started
+        
   # TBD: Gotenberg
 
 networks:
