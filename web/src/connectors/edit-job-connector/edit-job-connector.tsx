@@ -86,6 +86,7 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
 }) => {
     const searchParams = new URLSearchParams(document.location.search);
     const revisionId = searchParams.get('revisionId') || null;
+    const fileId = searchParams.get('fileId') || null;
 
     const getMetadata = (state: JobValues) => {
         const { jobType, validationType, pipeline, categories } = state;
@@ -246,7 +247,7 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
                 name: jobName,
                 revisions: revisionId ? [revisionId] : revisions,
                 datasets,
-                files,
+                files: files?.length ? files : fileId ? [fileId] : [],
                 previous_jobs: jobs,
                 type:
                     jobType === 'ExtractionJob'

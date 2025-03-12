@@ -52,8 +52,8 @@ export const DocumentPageSidebarContent = ({
     );
     const history = useHistory();
 
-    const onAddJob = (revisionId: string) => {
-        history.push(`/jobs/add?revisionId=${revisionId}`);
+    const onAddJob = (revisionId: string, fileId: number) => {
+        history.push(`/jobs/add?revisionId=${revisionId}&fileId=${fileId}`);
     };
 
     return (
@@ -101,7 +101,7 @@ export const DocumentPageSidebarContent = ({
                         <Button
                             cx={styles['add-job']}
                             onClick={() =>
-                                onAddJob(documentJobRevisionsInfo.selectedDocumentJobRevisionId)
+                                onAddJob(documentJobRevisionsInfo.selectedDocumentJobRevisionId, fileMetaInfo.id)
                             }
                             caption="New job from revision"
                         />
