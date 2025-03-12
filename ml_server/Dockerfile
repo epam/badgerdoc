@@ -5,7 +5,7 @@ ENV PYTHONUNBUFFERED 1
 
 WORKDIR /opt/ml_server
 
-COPY pyproject.toml version.txt poetry.lock ./
+COPY main.py pyproject.toml version.txt poetry.lock ./
 RUN python3 -m pip install --upgrade pip \
     && pip install 'poetry>=2.0' -U \
     && poetry config virtualenvs.create false \
