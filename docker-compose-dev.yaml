@@ -189,7 +189,7 @@ services:
 
   badgerdoc-ml-server:
     image: badgerdoc_ml_server
-    container_name: ml_server
+    container_name: ml-server
     env_file:
       - .env
     environment:
