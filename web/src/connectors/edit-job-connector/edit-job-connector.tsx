@@ -247,7 +247,7 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
                 name: jobName,
                 revisions: revisionId ? [revisionId] : revisions,
                 datasets,
-                files: (files?.length ?? 0) > 0 ? files : fileId ? [fileId] : [],
+                files: files?.length ? files : fileId ? [fileId] : [],
                 previous_jobs: jobs,
                 type:
                     jobType === 'ExtractionJob'
