@@ -60,6 +60,26 @@ async def create_job(
     logger.info("Create job with job_params: %s", job_params)
     jw_token = token_data.token
 
+    # check if the job name is already taken
+    is_job_name_taken = db_service.is_job_exists_by_name(db, job_params.name)
+    if is_job_name_taken:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"The job name '{job_params.name}' is already being used",
+        )
+
+    # check if the given files exist in assets_files table
+    if len(job_params.files) > 0:
+        _, matched_file_ids_in_db = await utils.get_files_data_from_separate_files(job_params.files,
+                                                                             current_tenant,
+                                                                             token_data.token)
+        non_existing_file_ids = list(set(job_params.files).difference(matched_file_ids_in_db))
+        if len(non_existing_file_ids) > 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Some of these files do not exist: {non_existing_file_ids}",
+            )
+
     if job_params.previous_jobs:
         previous_jobs = db_service.get_jobs_in_db_by_ids(
             db, job_params.previous_jobs

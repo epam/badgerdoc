@@ -224,3 +224,9 @@ def change_job(
         if new_job_params_dict[job_param_key] is not None:
             setattr(job, job_param_key, new_job_params_dict[job_param_key])
     db.commit()
+
+
+def is_job_exists_by_name(db: Session, job_name: str) -> bool:
+    """ Check if a job record exist in db with the 'job_name' """
+    job_count_by_name = db.query(dbm.CombinedJob).filter(dbm.CombinedJob.name == job_name).count()
+    return job_count_by_name > 0
