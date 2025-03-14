@@ -5,14 +5,17 @@ ENV PYTHONUNBUFFERED 1
 
 WORKDIR /opt/inference
 
-COPY pyproject.toml version.txt poetry.lock ./
+COPY inference inference
+
+# COPY pyproject.toml version.txt poetry.lock ./
+COPY pyproject.toml version.txt ./
 RUN python3 -m pip install --upgrade pip \
     && pip install 'poetry>=2.0' -U \
     && poetry config virtualenvs.create false \
     && poetry install --no-root --only main \
     && :
 
-CMD uvicorn main:app --port 8080 --host 0.0.0.0
+CMD uvicorn inference.main:app --port 8080 --host 0.0.0.0
 
 EXPOSE 8080
 

@@ -8,8 +8,20 @@ dependencies = [
     "fastapi ~= 0.115.0",
     "uvicorn[standard] ~= 0.34.0",
     "pydantic >= 2.10",
-    "aiohttp ~= 3.11.13"
+    "aiohttp ~= 3.11.13",
+    "python-multipart",
+    "apache-airflow-client >= 2.10"
 ]
+
+[tool.poetry.group.dev.dependencies]
+mypy = "~1.15.0"
+isort = "~6.0.1"
+black = "~25.1.0"
+flake8 = "~7.1.2"
+pre-commit = "*"
+
+[tool.poetry.dependencies]
+apache-airflow-client = {python = ">=3.12,<4.0" }
 
 [tool.black]
 line_length = "79"
