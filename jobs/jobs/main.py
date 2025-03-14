@@ -77,7 +77,7 @@ async def create_job(
         if len(non_existing_file_ids) > 0:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Some of these files do not exist: {non_existing_file_ids}",
+                detail=f"Some of these files do not exist",
             )
 
     if job_params.previous_jobs:
