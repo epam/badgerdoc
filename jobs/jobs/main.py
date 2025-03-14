@@ -70,8 +70,10 @@ async def create_job(
 
     # check if the given files exist in assets_files table
     if len(job_params.files) > 0:
-        _, matched_file_ids_in_db = await utils.get_files_data_from_separate_files(
-            job_params.files, current_tenant, token_data.token
+        _, matched_file_ids_in_db = (
+            await utils.get_files_data_from_separate_files(
+                job_params.files, current_tenant, token_data.token
+            )
         )
 
         non_existing_file_ids = list(
@@ -81,7 +83,7 @@ async def create_job(
         if len(non_existing_file_ids) > 0:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Some of these files do not exist",
+                detail="Some of these files do not exist",
             )
 
     if job_params.previous_jobs:
