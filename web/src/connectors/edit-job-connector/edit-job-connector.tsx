@@ -275,6 +275,10 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
                 delete jobProps.start_manual_job_automatically;
             }
 
+            if (jobProps.extensive_coverage && validationType !== ValidationType.extensiveCoverage) {
+                delete jobProps.extensive_coverage
+            }
+
             if (selected_taxonomies) {
                 jobProps.categories = jobProps.categories?.map((categoryId) => {
                     const currentTaxonomy = selected_taxonomies[categoryId as string | number];
