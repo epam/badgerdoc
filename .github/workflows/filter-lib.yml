@@ -4,10 +4,12 @@ on:
   push:
     paths:
       - lib/filter_lib/**
+      - lib/python3.12/filter_lib/**
       - .github/worlflows/filter-lib.yml
   pull_request:
     paths:
       - lib/filter_lib/**
+      - lib/python3.12/filter_lib/**
       - .github/worlflows/filter-lib.yml
 jobs:
   linters:
