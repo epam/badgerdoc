@@ -30,20 +30,6 @@ API_current_version = get_version()
 
 ROOT_PATH = os.environ.get("ROOT_PATH", default="/")
 
-# Postgres config
-# POSTGRES_HOST = os.getenv("POSTGRES_HOST")
-# POSTGRES_PORT = os.getenv("POSTGRES_PORT")
-# POSTGRES_USER = os.getenv("POSTGRES_USER")
-# POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
-# POSTGRES_DB = os.getenv("POSTGRES_DB")
-
-# POSTGRESQL_JOBMANAGER_DATABASE_URI = (
-#     "postgresql+psycopg2://"
-#     f"{POSTGRES_USER}:{POSTGRES_PASSWORD}"
-#     f"@{POSTGRES_HOST}:{POSTGRES_PORT}"
-#     f"/{POSTGRES_DB}"
-# )
-
 KEYCLOAK_HOST = os.environ.get("KEYCLOAK_HOST", "")
 USERS_HOST = get_service_uri("USERS_")
 
@@ -52,3 +38,12 @@ ASSETS_SERVICE_HOST = get_service_uri("ASSETS_")
 ANNOTATION_SERVICE_HOST = get_service_uri("ANNOTATION_")
 JOBS_SERVICE_HOST = get_service_uri("JOBS_")
 
+# Airflow config
+AIRFLOW_USERNAME = os.getenv("AIRFLOW_USERNAME")
+AIRFLOW_PASSWORD = os.getenv("AIRFLOW_PASSWORD")
+AIRFLOW_SERVICE_PORT = os.getenv("AIRFLOW_SERVICE_PORT")
+AIRFLOW_SERVICE_SCHEME = os.getenv("AIRFLOW_SERVICE_SCHEME")
+AIRFLOW_SERVICE_HOST = os.getenv("AIRFLOW_SERVICE_HOST")
+AIRFLOW_SERVICE_PATH_PREFIX = os.getenv("AIRFLOW_SERVICE_PATH_PREFIX")
+
+BADGERDOC_EXTERNAL_PORT = os.getenv("BADGERDOC_EXTERNAL_PORT")
