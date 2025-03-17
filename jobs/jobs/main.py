@@ -70,7 +70,9 @@ async def create_job(
 
     # check if the given files exist in assets_files table
     if len(job_params.files) > 0:
-        matched_jobs_in_db = db_service.get_jobs_in_db_by_ids(db, job_params.files)
+        matched_jobs_in_db = db_service.get_jobs_in_db_by_ids(
+            db, job_params.files
+        )
 
         if len(job_params.files) > len(matched_jobs_in_db):
             raise HTTPException(
