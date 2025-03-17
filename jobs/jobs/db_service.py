@@ -226,11 +226,11 @@ def change_job(
     db.commit()
 
 
-def is_job_exists_by_name(db: Session, job_name: str) -> bool:
-    """Check if a job record exist in db with the 'job_name'"""
-    job_count_by_name = (
+def get_jobs_by_name(db: Session, job_name: str) -> List[dbm.CombinedJob]:
+    """Retrieve jobs from database by name"""
+    result = (
         db.query(dbm.CombinedJob)
         .filter(dbm.CombinedJob.name == job_name)
-        .count()
+        .all()
     )
-    return job_count_by_name > 0
+    return result
