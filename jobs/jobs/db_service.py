@@ -228,9 +228,8 @@ def change_job(
 
 def get_jobs_by_name(db: Session, job_name: str) -> List[dbm.CombinedJob]:
     """Retrieve jobs from database by name"""
-    result = (
+    return (
         db.query(dbm.CombinedJob)
         .filter(dbm.CombinedJob.name == job_name)
         .all()
     )
-    return result
