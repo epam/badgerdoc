@@ -1,0 +1,7 @@
+pytest
+requests
+pytest-cov
+black
+isort==5.9.1
+pylint
+mypy==0.910

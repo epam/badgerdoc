@@ -12,3 +12,4 @@ venv/
 build/
 *.egg-info/
 .vscode/
+*venv*
