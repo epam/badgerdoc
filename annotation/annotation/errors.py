@@ -47,6 +47,11 @@ class SelfParentError(Exception):
         self.message = message
 
 
+class CyclicParentError(Exception):
+    def __init__(self, message: str):
+        self.message = message
+
+
 class AgreementScoreServiceException(Exception):
     def __init__(self, exc: str):
         self.exc = exc
@@ -157,4 +162,11 @@ def agreement_score_service_error_handler(
     return JSONResponse(
         status_code=400,
         content={"detail": f"Agreement score service error. {exc}"},
+    )
+
+
+def cyclic_parent_error_handler(request: Request, exc: CyclicParentError):
+    return JSONResponse(
+        status_code=400,
+        content={"detail": f"Cyclic parent error. {exc.message}"},
     )
