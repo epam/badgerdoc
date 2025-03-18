@@ -831,9 +831,7 @@ async def search_datasets_by_ids(
 
 async def validate_create_job_files(db: Session, file_ids: List[int]):
     """Validate job's files if they all exist in database"""
-    matched_jobs_in_db = db_service.get_jobs_in_db_by_ids(
-        db, file_ids
-    )
+    matched_jobs_in_db = db_service.get_jobs_in_db_by_ids(db, file_ids)
     if len(file_ids) > len(matched_jobs_in_db):
         raise fastapi.HTTPException(
             status_code=fastapi.status.HTTP_400_BAD_REQUEST,
@@ -851,11 +849,12 @@ async def validate_create_job_name(db: Session, job_name: str):
         )
 
 
-async def validate_create_job_previous_jobs(db: Session, previous_jobs_ids: List[int]) -> List[int]:
+async def validate_create_job_previous_jobs(
+        db: Session,
+        previous_jobs_ids: List[int]
+) -> List[int]:
     """validate given previous job ids in database, return the found ids"""
-    previous_jobs = db_service.get_jobs_in_db_by_ids(
-        db, previous_jobs_ids
-    )
+    previous_jobs = db_service.get_jobs_in_db_by_ids(db, previous_jobs_ids)
     if not previous_jobs:
         raise fastapi.HTTPException(
             status_code=fastapi.status.HTTP_404_NOT_FOUND,

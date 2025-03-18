@@ -66,7 +66,11 @@ async def create_job(
         await utils.validate_create_job_files(db, job_params.files)
 
     if job_params.previous_jobs:
-        job_params.previous_jobs = await utils.validate_create_job_previous_jobs(db, job_params.previous_jobs)
+        job_params.previous_jobs = (
+            await utils.validate_create_job_previous_jobs(
+                db, job_params.previous_jobs
+            )
+        )
 
     if job_params.type == schemas.JobType.ExtractionJob:
         created_extraction_job = await create_job_funcs.create_extraction_job(
