@@ -60,36 +60,13 @@ async def create_job(
     logger.info("Create job with job_params: %s", job_params)
     jw_token = token_data.token
 
-    # check if the job name is already taken
-    existing_jobs_by_name = db_service.get_jobs_by_name(db, job_params.name)
-    if len(existing_jobs_by_name) > 0:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"The job name '{job_params.name}' is already being used",
-        )
+    await utils.validate_create_job_name(db, job_params.name)
 
-    # check if the given files exist in assets_files table
     if len(job_params.files) > 0:
-        matched_jobs_in_db = db_service.get_jobs_in_db_by_ids(
-            db, job_params.files
-        )
-
-        if len(job_params.files) > len(matched_jobs_in_db):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Some of these files do not exist",
-            )
+        await utils.validate_create_job_files(db, job_params.files)
 
     if job_params.previous_jobs:
-        previous_jobs = db_service.get_jobs_in_db_by_ids(
-            db, job_params.previous_jobs
-        )
-        if not previous_jobs:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Jobs with these ids do not exist.",
-            )
-        job_params.previous_jobs = [j.id for j in previous_jobs]
+        job_params.previous_jobs = await utils.validate_create_job_previous_jobs(db, job_params.previous_jobs)
 
     if job_params.type == schemas.JobType.ExtractionJob:
         created_extraction_job = await create_job_funcs.create_extraction_job(
