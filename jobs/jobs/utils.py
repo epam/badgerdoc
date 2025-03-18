@@ -850,7 +850,7 @@ async def validate_create_job_name(db: Session, job_name: str):
 
 
 async def validate_create_job_previous_jobs(
-        db: Session, previous_jobs_ids: List[int]
+    db: Session, previous_jobs_ids: List[int]
 ) -> List[int]:
     """validate given previous job ids in database, return the found ids"""
     previous_jobs = db_service.get_jobs_in_db_by_ids(db, previous_jobs_ids)
