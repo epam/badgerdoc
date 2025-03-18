@@ -1,0 +1,32 @@
+name: badgerdoc_storage
+run-name: badgerdoc_storage
+on:
+  push:
+    paths:
+      - lib/python3.12/badgerdoc_storage/**
+      - .github/worlflows/python3.12/badgerdoc_storage.yml
+  pull_request:
+    paths:
+      - lib/python3.12/badgerdoc_storage/**
+      - .github/worlflows/python3.12/badgerdoc_storage.yml
+jobs:
+  linters:
+    strategy:
+      matrix:
+        python-version: ["3.12"]
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./lib/python3.12/badgerdoc_storage
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: "pip"
+      - run: pip install poetry==1.7.1
+      - run: poetry install
+      - run: poetry run pylint src/
+      - run: poetry run mypy src/
+      - run: poetry run black --check src/
+      - run: poetry run isort --check src/
