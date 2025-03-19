@@ -16,6 +16,7 @@ from annotation.distribution import resources as distribution_resources
 from annotation.errors import (
     AgreementScoreServiceException,
     CheckFieldError,
+    CyclicParentError,
     EnumValidationError,
     FieldConstraintError,
     ForeignKeyError,
@@ -23,11 +24,11 @@ from annotation.errors import (
     NoSuchRevisionsError,
     SelfParentError,
     WrongJobError,
-    CyclicParentError,
     agreement_score_service_error_handler,
     category_foreign_key_error_handler,
     category_parent_child_error_handler,
     category_unique_field_error_handler,
+    cyclic_parent_error_handler,
     db_dbapi_error_handler,
     db_s3_error_handler,
     db_sa_error_handler,
@@ -38,7 +39,6 @@ from annotation.errors import (
     no_such_category_error_handler,
     no_such_revisions_error_handler,
     wrong_job_error_handler,
-    cyclic_parent_error_handler,
 )
 from annotation.jobs import resources as jobs_resources
 from annotation.metadata import resources as metadata_resources
