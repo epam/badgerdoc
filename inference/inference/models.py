@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Optional, Union
+from typing import Any, Optional, Union
 
 from pydantic import AnyUrl, BaseModel
 
@@ -43,13 +43,20 @@ class InferenceStatus(str, Enum):
 class StartInferenceResponse(BaseModel):
     status: InferenceStatus
     job_id: Union[int, None]
-    message: Optional[str] = ""
+    files_data: dict[Any, Any]
+    message: Optional[str]
 
 
 class UploadResponse(BaseModel):
     asset_ids: list[int]
 
 
+class InferenceStatusFileData(BaseModel):
+    file_id: int
+    filename: str
+    annotation_url: str
+
+
 class InferenceStatusResponse(BaseModel):
     status: str
-    data: dict[str, AnyUrl]
+    files_data: list[InferenceStatusFileData]

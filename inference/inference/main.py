@@ -11,17 +11,14 @@ from fastapi import (
     File,
     Header,
     HTTPException,
-    Request,
     UploadFile,
     status,
 )
 from tenant_dependency import TenantData, get_tenant_info
 
-from inference.airflow_utils import get_dags
 from inference.config import (
     ANNOTATION_SERVICE_HOST,
     ASSETS_SERVICE_HOST,
-    BADGERDOC_EXTERNAL_PORT,
     JOBS_SERVICE_HOST,
     KEYCLOAK_HOST,
     ROOT_PATH,
@@ -30,6 +27,7 @@ from inference.config import (
 from inference.models import (
     BadgerDocAsset,
     InferenceInput,
+    InferenceStatusFileData,
     InferenceStatusResponse,
     ModelInfo,
     ModelParam,
@@ -63,14 +61,16 @@ class IncorrectParam(BaseInferenceError):
     pass
 
 
-async def validate_model_params(inference_input: InferenceInput):
+async def validate_model_params(
+    inference_input: InferenceInput, available_models: list[ModelInfo]
+):
     """Check correctness of model parameters in incomming request
 
     Args:
         inference_input (InferenceInput): Incomming request with
             model parameters
+        available_models (list[ModelInfo]): supported models info
     """
-    available_models = await models()
     model_params = None
     input_params = inference_input.model_params
     for model in available_models:
@@ -167,8 +167,8 @@ async def get_asset_by_field(
 async def get_or_set_categories(
     categories: list[str], tenant: str, jw_token: str
 ) -> list[str]:
-    """Searches for existing categories in annotation service and adding
-         categories that doesn't exist there
+    """Search for existing categories in annotation service and add
+         categories that don't exist there
 
     Args:
         categories (list[str]): list of categories to get/create
@@ -202,7 +202,6 @@ async def get_or_set_categories(
         async with aiohttp.request(
             method="POST",
             url=f"{ANNOTATION_SERVICE_HOST}/categories",
-            # TODO make sure that's a proper category type
             json={"name": missing_category, "type": "box"},
             headers={
                 "X-Current-Tenant": tenant,
@@ -218,6 +217,17 @@ async def get_or_set_categories(
 async def _process_inference_file(
     file: UploadFile, tenant: str, jw_token: str
 ) -> int:
+    """Helper function to process uploaded files
+
+    Process and send uploaded file to Assets service
+    Args:
+        file (UploadFile): file to process
+        tenant (str): current tenant to send request to Assets service
+        jw_token (str): token to send request to Assets service
+
+    Returns:
+        int: asset ID under which it's stored in BadgerDoc
+    """
     file_name = file.filename
     headers = {
         "X-Current-Tenant": tenant,
@@ -265,6 +275,17 @@ async def _process_inference_file(
 async def _process_url_asset(
     asset: UrlAsset, tenant: str, jw_token: str
 ) -> int:
+    """Helper function to process assets from urls
+
+    Download asset from url and send request to Assets service to store it.
+    Args:
+        asset (UrlAsset): url asset to download
+        tenant (str): current tenant to send request to Assets service
+        jw_token (str): token to send request to Assets service
+
+    Returns:
+        int: asset ID under which it's stored in BadgerDoc
+    """
     logger.debug("Processing URL asset: %s", asset.url)
     # Process URL asset
     asset_url = str(asset.url)
@@ -273,15 +294,16 @@ async def _process_url_asset(
         "X-Current-Tenant": tenant,
         "Authorization": f"Bearer {jw_token}",
     }
-    asset = await get_asset_by_field(
-        field_name="original_name",
-        field_value=file_name,
-        tenant=tenant,
-        jw_token=jw_token,
-    )
-    if asset and asset.get("id"):
-        logger.debug("Asset with name '%s' found in BadgerDoc", file_name)
-        return asset["id"]
+    # TODO responsibility of checking duplicates should be moved to assets/
+    # asset = await get_asset_by_field(
+    #     field_name="original_name",
+    #     field_value=file_name,
+    #     tenant=tenant,
+    #     jw_token=jw_token,
+    # )
+    # if asset and asset.get("id"):
+    #     logger.debug("Asset with name '%s' found in BadgerDoc", file_name)
+    #     return asset["id"]
 
     logger.debug("Asset with name '%s' is not found in BadgerDoc", file_name)
     async with aiohttp.request(
@@ -307,27 +329,68 @@ async def _process_url_asset(
                 data=form_data,
             ) as resp:
                 response_json = await resp.json()
+                logger.debug("Response from assets: %s", response_json)
                 if response_json:
                     asset_id = response_json[0]["id"]
+
+    if asset_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Asset with url '{asset_url}' can't be processed",
+        )
     return asset_id
 
 
-# TODO make databricks integration check jobs?/annotations? how it's done there
+# TODO make request to jobs/ to get pipelines info instead of going straight
+# to Airflow/Databricks
 @app.get("/models")
-async def models() -> list[ModelInfo]:
+async def models(
+    x_current_tenant: Optional[str] = Header(None, alias="X-Current-Tenant"),
+    token_data: TenantData = Depends(TENANT),
+) -> list[ModelInfo]:
     """Get list of available ML models with their parameters"""
-    dags = await get_dags()
-    logger.debug(dags)
+    headers = {
+        "X-Current-Tenant": x_current_tenant,
+        "Authorization": f"Bearer {token_data.token}",
+    }
     models_list = []
-    # TODO thing if we need mapping of 'dag' -> 'model'
-    for dag in dags.get("dags", []):
-        dag_id = dag.get("dag_id", "Unknown DAG ID")
-        params = [
-            ModelParam(param_name="param1", param_type="int", required=True),
-            ModelParam(param_name="param2", param_type="str", required=False),
-        ]
-        model = ModelInfo(model_name=dag_id, model_params=params)
-        models_list.append(model)
+    engines_resources = []
+    # Get available pipelines engines to exctract pipelines from them after
+    async with aiohttp.request(
+        method="GET",
+        url=f"{JOBS_SERVICE_HOST}/pipelines/support",
+        headers=headers,
+        raise_for_status=True,
+    ) as resp:
+        pipeline_engines = (await resp.json())["data"]
+        logger.debug("Got next pipelines support: %s", pipeline_engines)
+        for engine in pipeline_engines:
+            if engine.get("enabled"):
+                engines_resources.append(engine.get("resource"))
+
+    for resource in engines_resources:
+        async with aiohttp.request(
+            method="GET",
+            url=f"{JOBS_SERVICE_HOST}{resource}",
+            headers=headers,
+            raise_for_status=True,
+        ) as resp:
+            pipelines = (await resp.json())["data"]
+            logger.debug("Got next pipelines: %s", pipelines)
+            for pipeline in pipelines:
+                name = pipeline.get("name")
+                # TODO each model should have set of accepeted parameters
+                # configured  we should think of were to keep it
+                params = [
+                    ModelParam(
+                        param_name="param1", param_type="int", required=True
+                    ),
+                    ModelParam(
+                        param_name="param2", param_type="str", required=False
+                    ),
+                ]
+                model = ModelInfo(model_name=name, model_params=params)
+                models_list.append(model)
 
     return models_list
 
@@ -365,13 +428,17 @@ async def start_inference(
 ) -> StartInferenceResponse:
     job_id = None
     asset_ids = []
+    files_data = dict()
     headers = {
         "X-Current-Tenant": x_current_tenant,
         "Authorization": f"Bearer {token_data.token}",
     }
 
     try:
-        await validate_model_params(inference_params)
+        available_models = await models(
+            x_current_tenant=x_current_tenant, token_data=token_data
+        )
+        await validate_model_params(inference_params, available_models)
     except BaseInferenceError as ex:
         logger.exception("Error while processing start inference request")
         raise HTTPException(
@@ -390,6 +457,7 @@ async def start_inference(
                 asset_id = await _process_url_asset(
                     asset, x_current_tenant, token_data.token
                 )
+                files_data[asset.url] = asset_id
                 asset_ids.append(asset_id)
         except (aiohttp.ClientError, HTTPException) as err:
             logger.exception("Failed file download from '%s'", asset.url)
@@ -406,6 +474,7 @@ async def start_inference(
                 jw_token=token_data.token,
             )
             if bd_asset and "id" in bd_asset:
+                files_data[asset.asset_id] = bd_asset["id"]
                 asset_ids.append(bd_asset["id"])
             else:
                 asset_id = asset.asset_id
@@ -460,47 +529,49 @@ async def start_inference(
     job_status = response_json["status"]
 
     return StartInferenceResponse(
-        status=job_status, job_id=job_id, message="Inference job started"
+        status=job_status,
+        job_id=job_id,
+        files_data=files_data,
+        message="Inference job started",
     )
 
 
 @app.get("/result/{job_id}")
 async def get_inference_result(
     job_id: int,
-    request: Request,
     x_current_tenant: Optional[str] = Header(None, alias="X-Current-Tenant"),
     token_data: TenantData = Depends(TENANT),
 ) -> InferenceStatusResponse:
-    logger.debug("incomming request url: %s", request.url)
     headers = {
         "X-Current-Tenant": x_current_tenant,
         "Authorization": f"Bearer {token_data.token}",
     }
-    data = {}
+    files_data = []
     async with aiohttp.request(
         "GET",
         url=f"{JOBS_SERVICE_HOST}/jobs/{job_id}",
         headers=headers,
         raise_for_status=True,
     ) as resp:
-        # TODO now there is no easy way to get external Badgerdock port to
-        # create redicretinon link.
-        # As of now it's set by environment variable in compose.
         json_resp = await resp.json()
         status = json_resp["status"]
 
+        # TODO add files_data only if job is finished
         for file_data in json_resp["all_files_data"]:
             file_id = file_data["id"]
             file_name = file_data["original_name"]
-            scheme = request.base_url.scheme
-            hostname = request.base_url.hostname
-            base_url = f"{scheme}://{hostname}:{BADGERDOC_EXTERNAL_PORT}"
-            file_result_link = (
-                f"{base_url}/documents/{file_id}?job_id={job_id}"
+            annotation_url = (
+                "annotation/annotation/" f"{job_id}/{file_id}/latest"
             )
-            data[file_name] = file_result_link
+            files_data.append(
+                InferenceStatusFileData(
+                    file_id=file_id,
+                    filename=file_name,
+                    annotation_url=annotation_url,
+                )
+            )
 
-    return InferenceStatusResponse(status=status, data=data)
+    return InferenceStatusResponse(status=status, files_data=files_data)
 
 
 # TODO decide how to generate inference names
