@@ -201,6 +201,24 @@ services:
         condition: service_healthy
       badgerdoc-keycloak:
         condition: service_started
+
+  badgerdoc-inference:
+    image: badgerdoc_inference
+    container_name: inference
+    command: uvicorn inference.main:app --port 8080 --host 0.0.0.0 --reload
+    env_file:
+      - .env
+    environment:
+      - ROOT_PATH=/inference
+    volumes:
+      - ./inference:/opt/inference
+    networks:
+      - badgerdoc
+    depends_on:
+      badgerdoc-jobs:
+        condition: service_started
+      badgerdoc-assets:
+        condition: service_started
         
   # TBD: Gotenberg
 

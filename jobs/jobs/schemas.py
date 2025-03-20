@@ -34,6 +34,16 @@ class ValidationType(str, Enum):
     extensive_coverage = "extensive_coverage"
 
 
+class CategoryLinkInput(BaseModel):
+    category_id: str = Field(..., example="123abc")
+    taxonomy_id: str = Field(..., example="my_taxonomy_id")
+    taxonomy_version: Optional[int] = Field(..., example=1)
+
+
+class CategoryLinkParams(CategoryLinkInput):
+    job_id: str = Field(..., example="123abc")
+
+
 class ExtractionJobParams(BaseModel):
     name: str
     type: JobType = JobType.ExtractionJob
@@ -46,6 +56,7 @@ class ExtractionJobParams(BaseModel):
     pipeline_version: Optional[str]
     pipeline_engine: Optional[str]
     is_draft: bool = False
+    categories: Optional[List[str]]
 
 
 class AvailableAnnotationTypes(str, Enum):
@@ -92,16 +103,6 @@ class ImportJobParams(BaseModel):
     type: JobType = JobType.ImportJob
     import_source: Optional[str]
     import_format: Optional[str]
-
-
-class CategoryLinkInput(BaseModel):
-    category_id: str = Field(..., example="123abc")
-    taxonomy_id: str = Field(..., example="my_taxonomy_id")
-    taxonomy_version: Optional[int] = Field(..., example=1)
-
-
-class CategoryLinkParams(CategoryLinkInput):
-    job_id: str = Field(..., example="123abc")
 
 
 class JobParams(BaseModel):
@@ -179,26 +180,26 @@ class JobParams(BaseModel):
 
         return v
 
-    @validator(
-        "categories",
-        always=True,
-    )  # pylint: disable=no-self-argument
-    def check_categories_for_annotationjob_attributes(
-        cls,
-        v: Union[List[str], List[Union[str, CategoryLinkInput]]],
-        values: Dict[str, Any],
-        field: ModelField,
-    ) -> Union[List[int], List[str]]:
-        job_type = values.get("type")
-        if v:
-            if job_type == JobType.ExtractionJob:
-                raise ValueError(
-                    f"{field.name} cannot be assigned to ExtractionJob"
-                )
-        elif job_type == JobType.AnnotationJob:
-            raise ValueError(f"{field.name} should be passed for {job_type}")
+    # @validator(
+    #     "categories",
+    #     always=True,
+    # )  # pylint: disable=no-self-argument
+    # def check_categories_for_annotationjob_attributes(
+    #     cls,
+    #     v: Union[List[str], List[Union[str, CategoryLinkInput]]],
+    #     values: Dict[str, Any],
+    #     field: ModelField,
+    # ) -> Union[List[int], List[str]]:
+    #     job_type = values.get("type")
+    #     if v:
+    #         if job_type == JobType.ExtractionJob:
+    #             raise ValueError(
+    #                 f"{field.name} cannot be assigned to ExtractionJob"
+    #             )
+    #     elif job_type == JobType.AnnotationJob:
+    #         raise ValueError(f"{field.name} should be passed for {job_type}")
 
-        return v
+    #     return v
 
     @validator("annotators")
     def check_annotators(  # pylint: disable=no-self-argument
