@@ -16,6 +16,7 @@ from annotation.distribution import resources as distribution_resources
 from annotation.errors import (
     AgreementScoreServiceException,
     CheckFieldError,
+    CyclicParentError,
     EnumValidationError,
     FieldConstraintError,
     ForeignKeyError,
@@ -27,6 +28,7 @@ from annotation.errors import (
     category_foreign_key_error_handler,
     category_parent_child_error_handler,
     category_unique_field_error_handler,
+    cyclic_parent_error_handler,
     db_dbapi_error_handler,
     db_s3_error_handler,
     db_sa_error_handler,
@@ -117,3 +119,4 @@ app.add_exception_handler(SQLAlchemyError, db_sa_error_handler)
 app.add_exception_handler(DBAPIError, db_dbapi_error_handler)
 app.add_exception_handler(SelfParentError, category_parent_child_error_handler)
 app.add_exception_handler(Exception, debug_exception_handler)
+app.add_exception_handler(CyclicParentError, cyclic_parent_error_handler)
