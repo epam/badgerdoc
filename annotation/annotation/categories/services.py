@@ -373,8 +373,8 @@ def filter_category_db(
     return paginate(
         _compose_response(
             child_categories,
-            _get_leaves(db, child_categories, tenant, job_id),
-            _get_parents(db, child_categories, tenant, job_id),
+            _get_leaves(db, child_categories, tenant),
+            _get_parents(db, child_categories, tenant),
         ),
         pagination,
     )
