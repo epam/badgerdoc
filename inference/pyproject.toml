@@ -10,7 +10,6 @@ dependencies = [
     "pydantic >= 2.10",
     "aiohttp ~= 3.11.13",
     "python-multipart",
-    "apache-airflow-client >= 2.10"
 ]
 
 [tool.poetry.group.dev.dependencies]

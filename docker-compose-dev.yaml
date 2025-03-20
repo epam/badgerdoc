@@ -210,10 +210,6 @@ services:
       - .env
     environment:
       - ROOT_PATH=/inference
-      # It the easiest way to access external BadgerDoc
-      # port to create redirect to documnets annotations.
-      # TODO check if it can't be accessed in other way. 
-      - BADGERDOC_EXTERNAL_PORT=8083
     volumes:
       - ./inference:/opt/inference
     networks:
