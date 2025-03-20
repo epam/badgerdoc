@@ -12,10 +12,10 @@ from sqlalchemy_utils import Ltree
 from annotation import logger as app_logger
 from annotation.errors import (
     CheckFieldError,
+    CyclicParentError,
     ForeignKeyError,
     NoSuchCategoryError,
     SelfParentError,
-    CyclicParentError,
 )
 from annotation.filters import CategoryFilter
 from annotation.models import Category, Job
