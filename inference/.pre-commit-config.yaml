@@ -1,0 +1,27 @@
+fail_fast: true
+repos:
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+    - id: isort
+      args:
+        - --profile=black
+        - --filter-files
+        - --line-length=79
+  - repo: https://github.com/psf/black
+    rev: 22.3.0
+    hooks:
+      - id: black
+        args:
+          - --line-length=79
+  - repo: https://github.com/pycqa/flake8
+    rev: 7.1.2
+    hooks:
+      - id: flake8
+        args:
+          - --extend-ignore=E203
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: v2.17.11
+    hooks:
+      - id: commitizen
+        stages: [commit-msg]

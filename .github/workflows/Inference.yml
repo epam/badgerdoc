@@ -1,0 +1,25 @@
+name: inference
+run-name: inference
+on:
+  push:
+    paths:
+      - "inference/**"
+      - ".github/workflows/inference.yml"
+  pull_request:
+    paths:
+      - "inference/**"
+      - ".github/workflows/inference.yml"
+jobs:
+  linters:
+    strategy:
+      matrix:
+        python-version: ["3.12.1"]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: "pip"
+      - run: pip install flake8
+      - run: flake8 --extend-ignore=E203 ml_server
