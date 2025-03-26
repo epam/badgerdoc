@@ -7,7 +7,6 @@ from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.exc import DBAPIError, SQLAlchemyError
 from starlette.requests import Request
-from starlette.responses import JSONResponse
 
 from annotation import database
 from annotation import logger as app_logger
