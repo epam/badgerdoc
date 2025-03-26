@@ -372,8 +372,8 @@ def filter_category_db(
     return paginate(
         _compose_response(
             child_categories,
-            _get_leaves(db, child_categories, tenant, job_id),
-            _get_parents(db, child_categories, tenant, job_id),
+            _get_leaves(db, child_categories, tenant),
+            _get_parents(db, child_categories, tenant),
         ),
         pagination,
     )
@@ -416,6 +416,9 @@ def update_category_db(
 
     if parent_db and parent_db.tenant not in [tenant, None]:
         raise ForeignKeyError("Category with this id doesn't exist.")
+
+    if parent_db:
+        check_cyclic_parenting(db, category_id, parent_db)
 
     name = (update_query["name"],)
     check_unique = (
@@ -462,3 +465,16 @@ def combine_categories(
             if cat:
                 pages_categories.add(cat)
     return categories | pages_categories
+
+
+def check_cyclic_parenting(
+    db: Session, category_id: str, new_parent_category: Category
+) -> None:
+    """check if the category is already the parent of the parent"""
+    parents_of_parent_cat = fetch_category_parents(db, new_parent_category)
+    parent_ids_of_parent = [p.id for p in parents_of_parent_cat]
+    if category_id in parent_ids_of_parent:
+        raise ValueError(
+            f"'{new_parent_category.name}' is invalid as parent"
+            " due to being a child of the category"
+        )

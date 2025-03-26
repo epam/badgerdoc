@@ -153,9 +153,16 @@ def update_category(
     """
     Updates category by id and returns updated category.
     """
-    category_db = update_category_db(
-        db, category_id, query.dict(), x_current_tenant
-    )
+    try:
+        category_db = update_category_db(
+            db, category_id, query.dict(), x_current_tenant
+        )
+    except ValueError as error:
+        raise HTTPException(
+            status_code=400,
+            detail=f"{error}",
+        )
+
     if not category_db:
         raise NoSuchCategoryError("Cannot update category parameters")
     return response_object_from_db(category_db)
