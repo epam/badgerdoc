@@ -475,5 +475,6 @@ def check_cyclic_parenting(
     parent_ids_of_parent = [p.id for p in parents_of_parent_cat]
     if category_id in parent_ids_of_parent:
         raise ValueError(
-            f"'{new_parent_category.name}' is invalid as a parent due to being a child of the category"
+            f"'{new_parent_category.name}' is invalid as parent"
+            " due to being a child of the category"
         )
