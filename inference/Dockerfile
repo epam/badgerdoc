@@ -7,8 +7,7 @@ WORKDIR /opt/inference
 
 COPY inference inference
 
-# COPY pyproject.toml version.txt poetry.lock ./
-COPY pyproject.toml version.txt ./
+COPY pyproject.toml version.txt poetry.lock ./
 RUN python3 -m pip install --upgrade pip \
     && pip install 'poetry>=2.0' -U \
     && poetry config virtualenvs.create false \
