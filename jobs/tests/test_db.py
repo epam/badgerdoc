@@ -122,6 +122,7 @@ def create_mock_extraction_job_in_db(testing_session):
         categories=["label"],
         pipeline_engine="airflow",
         previous_jobs=[100],
+        revisions=[],
     )
     return result
 
@@ -149,6 +150,25 @@ def create_mock_annotation_job_in_db(
         status=schemas.Status.pending,
     )
     return result
+
+
+def create_mock_annotation_extraction_job_in_db(testing_session, mock_Extraction_AnnotationJobParams):
+    """Creates a mock Extraction and Annotation job in the database."""
+    
+    result = db_service.create_extraction_annotation_job(
+        db=testing_session,
+        extraction_annotation_job_input=mock_Extraction_AnnotationJobParams,
+        pipeline_id="1",
+        pipeline_engine="airflow",
+        valid_separate_files_ids=[1, 2],
+        valid_dataset_ids=[1, 2],
+        previous_jobs=[],
+        all_files_data=all_files_data,
+        categories=["cat1", "cat22"],
+    )
+    
+    return result
+
 
 
 @pytest.mark.skip(reason="tests refactoring")

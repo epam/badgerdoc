@@ -29,6 +29,7 @@ from jobs.schemas import (
     CategoryLinkParams,
     JobMode,
     JobParamsToChange,
+    Status,
 )
 
 
@@ -553,6 +554,8 @@ async def update_job_in_annotation(
     return {key: value for key, value in changed_params.items() if value}
 
 
+
+
 async def get_job_progress(
     job_id: int, session: Session, current_tenant: Optional[str], jw_token: str
 ) -> Optional[Dict[str, int]]:
@@ -563,29 +566,81 @@ async def get_job_progress(
         logger.warning(f"job with id={job_id} not present in the database.")
         return None
 
-    url: str = ""
-    if job.mode == JobMode.Automatic:
-        url = f"{PIPELINES_SERVICE_HOST}/jobs/{job_id}/progress"
-    elif job.mode == JobMode.Manual:
-        url = f"{ANNOTATION_SERVICE_HOST}/jobs/{job_id}/progress"
+    url = f"{ANNOTATION_SERVICE_HOST}/jobs/{job_id}/progress"
+    
     headers = {
         "X-Current-Tenant": current_tenant,
         "Authorization": f"Bearer: {jw_token}",
     }
+    
     timeout = aiohttp.ClientTimeout(total=5)
+    
     try:
         _, response = await fetch(
-            method="GET", url=url, headers=headers, timeout=timeout
+            method="GET", url=url, headers=headers, timeout=timeout 
         )
     except aiohttp.client_exceptions.ClientError as err:
         logger.exception(f"Failed request url = {url}, error = {err}")
         raise fastapi.HTTPException(
             status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=f"Failed request to the Annotation Manager: {err}",
-        )
-
+            )
+    
     response.update({"mode": str(job.mode)})
-    return response  # type: ignore
+    
+    if job.mode == JobMode.Manual:
+        await update_manual_job(session, job, response)
+        return response
+
+    elif job.mode == JobMode.Automatic:
+        return await handle_automatic_job(session, job, response, job_id)
+    
+    
+    
+async def update_manual_job(session, job, response):
+    """Updates the job status based on the DAG execution response."""
+    if response.get("finished", 0) > 0:
+        if response["finished"] == response["total"]:
+            db_service.update_job_status(session, job, Status.finished)
+        else:
+            db_service.update_job_status(session, job, Status.in_progress)
+    
+
+
+async def handle_automatic_job(session, job, response, job_id):
+    """Handles the logic for automatic jobs and manuel jobs that have pipeline."""
+    
+    # if job is an Extraction job, we use pipeline status to show progress bar
+    if response.get("total", 0) == 0:   
+        pipeline_id = job.pipeline_id
+        dag_run_id = f"{pipeline_id}:{job_id}"
+
+        db_service.update_job_status(session, job, Status.in_progress)
+
+        is_dag_completed = await airflow_utils.wait_for_dag_completion_async(pipeline_id, dag_run_id, 3, 300)
+        if is_dag_completed == "Timeout reached":
+            logger.exception("Timeout occurred while waiting for pipeline result")
+            db_service.update_job_status(session, job, Status.failed)
+            raise fastapi.HTTPException(status_code=500, detail="Timeout waiting for DAG completion")
+
+        pipeline_result = await airflow_utils.get_dag_status(pipeline_id, job_id)
+        if "error" in pipeline_result:
+            logger.exception("Error retrieving pipeline result")
+            db_service.update_job_status(session, job, Status.failed)
+            raise fastapi.HTTPException(status_code=500, detail="Error retrieving DAG status")
+
+        response["total"] = pipeline_result["total"]  # Always 1
+        response["finished"] = pipeline_result["finished"]  # 0 or 1
+
+        new_status = Status.finished if response["finished"] == 1 else Status.failed
+        db_service.update_job_status(session, job, new_status)
+
+    # If job is an Extraction and Annnotation job, We treat them as manual jobs, with progress bars updating based on completed tasks.
+    else:  
+        await update_manual_job(session, job, response)
+
+    return response
+
 
 
 async def fetch(
