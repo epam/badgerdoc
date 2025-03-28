@@ -224,3 +224,12 @@ def change_job(
         if new_job_params_dict[job_param_key] is not None:
             setattr(job, job_param_key, new_job_params_dict[job_param_key])
     db.commit()
+
+
+def get_jobs_by_name(db: Session, job_name: str) -> List[dbm.CombinedJob]:
+    """Retrieve jobs from database by name"""
+    return (
+        db.query(dbm.CombinedJob)
+        .filter(dbm.CombinedJob.name == job_name)
+        .all()
+    )
