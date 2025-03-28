@@ -1,11 +1,14 @@
 from unittest.mock import patch
 
 import aiohttp.client_exceptions
+from tests.test_db import create_mock_annotation_extraction_job_in_db, create_mock_annotation_job_in_db, create_mock_extraction_job_in_db
+
 import pytest
 from fastapi import HTTPException
 from tests.conftest import FakePipeline, patched_create_pre_signed_s3_url
 
 import jobs.utils as utils
+from jobs.schemas import Status, JobMode
 
 # --------------TEST get_files_data_from_datasets---------------
 
@@ -553,6 +556,158 @@ async def test_execute_pipeline_positive(jw_token):
             )
             is None
         )
+        
+ # -------------------- TESTING job_progress -------------------------------       
+
+@pytest.mark.asyncio
+async def test_get_extraction_job_progress_success(testing_session, jw_token: str):
+    """Test successful retrieval of job progress."""
+    
+    job = create_mock_extraction_job_in_db(testing_session)
+    job.mode = JobMode.Automatic.value 
+    job.pipeline_id = "1" 
+
+    with patch("jobs.utils.fetch", return_value=(200, {"total": 0, "finished": 0})), \
+         patch("jobs.airflow_utils.wait_for_dag_completion_async", return_value="success"), \
+         patch("jobs.airflow_utils.get_dag_status", return_value={"total": 1, "finished": 1}):
+        
+        progress = await utils.get_job_progress(
+            job_id=job.id,
+            session=testing_session,
+            current_tenant="test_tenant",
+            jw_token=jw_token,
+        )
+
+    assert progress is not None
+    assert "finished" in progress
+    assert progress["total"] == 1
+    assert progress["finished"] == 1
+    assert "mode" in progress
+    assert progress["mode"] == str(job.mode)
+
+
+@pytest.mark.asyncio
+async def test_get_extraction_job_progress_fail(testing_session, jw_token: str):
+    """Test fail retrieval of job progress."""
+    
+    job = create_mock_extraction_job_in_db(testing_session)
+    job.mode = JobMode.Automatic.value 
+    job.pipeline_id = "1" 
+
+    with patch("jobs.utils.fetch", return_value=(200, {"total": 0, "finished": 0})), \
+         patch("jobs.airflow_utils.wait_for_dag_completion_async", return_value="failed"), \
+         patch("jobs.airflow_utils.get_dag_status", return_value={"total": 1, "finished": 0}):
+        
+        progress = await utils.get_job_progress(
+            job_id=job.id,
+            session=testing_session,
+            current_tenant="test_tenant",
+            jw_token=jw_token,
+        )
+
+    assert progress is not None
+    assert "finished" in progress
+    assert progress["total"] == 1
+    assert progress["finished"] == 0
+    assert "mode" in progress
+    assert progress["mode"] == str(job.mode)
+    
+
+@pytest.mark.asyncio
+async def test_get_annotation_job_progress_success(testing_session, jw_token: str, mock_AnnotationJobParams):
+    
+    job = create_mock_annotation_job_in_db(testing_session, mock_AnnotationJobParams)
+    job.mode = JobMode.Manual.value 
+
+    with patch("jobs.utils.fetch", return_value=(200, {"total": 2, "finished": 2})):
+        
+        progress = await utils.get_job_progress(
+            job_id=job.id,
+            session=testing_session,
+            current_tenant="test_tenant",
+            jw_token=jw_token,
+        )
+
+    assert progress is not None
+    assert "finished" in progress
+    assert progress["total"] == 2
+    assert progress["finished"] == 2
+    assert "mode" in progress
+    assert job.status == "Finished"
+    assert progress["mode"] == str(job.mode)
+
+@pytest.mark.asyncio
+async def test_get_annotation_job_progress_inProgress(testing_session, jw_token: str, mock_AnnotationJobParams):
+    
+    job = create_mock_annotation_job_in_db(testing_session, mock_AnnotationJobParams)
+    job.mode = JobMode.Manual.value 
+    
+
+    with patch("jobs.utils.fetch", return_value=(200, {"total": 3, "finished": 2})):
+        
+        progress = await utils.get_job_progress(
+            job_id=job.id,
+            session=testing_session,
+            current_tenant="test_tenant",
+            jw_token=jw_token,
+        )
+
+    assert progress is not None
+    assert "finished" in progress
+    assert progress["total"] == 3
+    assert progress["finished"] == 2
+    assert "mode" in progress
+    assert job.status == "In Progress"
+    assert progress["mode"] == str(job.mode)
+
+
+@pytest.mark.asyncio
+async def test_get_extraction_annotation_job_progress_success(testing_session, jw_token: str, mock_Extraction_AnnotationJobParams):
+    
+    job = create_mock_annotation_extraction_job_in_db(testing_session, mock_Extraction_AnnotationJobParams)
+    job.mode = JobMode.Automatic.value
+
+    with patch("jobs.utils.fetch", return_value=(200, {"total": 2, "finished": 2})):
+        
+        progress = await utils.get_job_progress(
+            job_id=job.id,
+            session=testing_session,
+            current_tenant="test_tenant",
+            jw_token=jw_token,
+        )
+
+    assert progress is not None
+    assert "finished" in progress
+    assert progress["total"] == 2
+    assert progress["finished"] == 2
+    assert "mode" in progress
+    assert job.status == "Finished"
+    assert progress["mode"] == str(job.mode)
+
+
+
+@pytest.mark.asyncio
+async def test_get_extraction_annotation_job_progress_inProgress(testing_session, jw_token: str, mock_Extraction_AnnotationJobParams):
+    
+    job = create_mock_annotation_extraction_job_in_db(testing_session, mock_Extraction_AnnotationJobParams)
+    job.mode = "Automatic" 
+
+    with patch("jobs.utils.fetch", return_value=(200, {"total": 3, "finished": 2})):
+        
+        progress = await utils.get_job_progress(
+            job_id=job.id,
+            session=testing_session,
+            current_tenant="test_tenant",
+            jw_token=jw_token,
+        )
+
+    assert progress is not None
+    assert "finished" in progress
+    assert progress["total"] == 3
+    assert progress["finished"] == 2
+    assert "mode" in progress
+    assert job.status == "In Progress"
+    assert progress["mode"] == str(job.mode)
 
 
 # -------------------- TESTING list_split -------------------------------
