@@ -160,8 +160,8 @@ def update_category(
     except ValueError as error:
         raise HTTPException(
             status_code=400,
-            detail=f"{error}",
-        )
+            detail="Selected parent is invalid due to being a child of the target category",
+        ) from error
 
     if not category_db:
         raise NoSuchCategoryError("Cannot update category parameters")
