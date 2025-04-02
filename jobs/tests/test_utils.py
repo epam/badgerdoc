@@ -1,14 +1,18 @@
 from unittest.mock import patch
 
 import aiohttp.client_exceptions
-from tests.test_db import create_mock_annotation_extraction_job_in_db, create_mock_annotation_job_in_db, create_mock_extraction_job_in_db
 
 import pytest
 from fastapi import HTTPException
 from tests.conftest import FakePipeline, patched_create_pre_signed_s3_url
+from tests.test_db import (
+    create_mock_annotation_extraction_job_in_db,
+    create_mock_annotation_job_in_db,
+    create_mock_extraction_job_in_db,
+)
 
 import jobs.utils as utils
-from jobs.schemas import Status, JobMode
+from jobs.schemas import JobMode, Status
 
 # --------------TEST get_files_data_from_datasets---------------
 

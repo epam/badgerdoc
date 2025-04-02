@@ -5,12 +5,12 @@ import time
 from typing import Any, Dict, Iterator, List
 
 import airflow_client.client as client
+from airflow_client.client.api import task_instance_api
 from airflow_client.client.api.dag_api import DAGApi
 from airflow_client.client.api.dag_run_api import DAGRunApi
-from airflow_client.client.model.dag_run import DAGRun
-from airflow_client.client.api import task_instance_api
-from airflow_client.client.rest import ApiException
 from airflow_client.client.model.dag import DAG
+from airflow_client.client.model.dag_run import DAGRun
+from airflow_client.client.rest import ApiException
 
 import jobs.pipeline as pipeline
 
