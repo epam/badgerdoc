@@ -26,50 +26,52 @@ const DocumentsPage = () => {
     const { path } = useRouteMatch();
 
     const [activeDataset, setActiveDataset] = useState<Dataset | null | undefined>(null);
-    const [fileIds, setFileIds] = useState<Array<number>>([]);
-
+    const [selectedFiles, setSelectedFiles] = useState<number[]>([]);
     const [isFileOver, setFileOver] = useState<boolean>(false);
 
-    const onFileSelect = useCallback((ids) => {
-        setFileIds(ids);
+    const onFilesSelect = useCallback((ids: number[]) => {
+        setSelectedFiles(ids);
     }, []);
 
     const handleUploadWizardButtonClick = useCallback(() => {
         history.push(`${path}/upload-wizard`);
-    }, []);
+    }, [history, path]);
 
     const onSearchClick = useCallback(() => {
         history.push(`${path}/search`);
-    }, []);
+    }, [history, path]);
 
     const handleDatasetSelected = (dataset?: Dataset | null) => {
         setActiveDataset(dataset);
+        setSelectedFiles([]); // Reset selection when dataset changes
         return history.push(`${path}`);
     };
 
-    const handleJobAddClick = () => {
+    const handleJobAddClick = useCallback(() => {
+        if (selectedFiles.length === 0) {
+            console.warn('No files selected for job addition');
+        }
         return history.push({
             pathname: `${JOBS_PAGE}/add`,
-            state: {
-                files: fileIds
-            }
+            state: { files: selectedFiles }
         });
-    };
+    }, [selectedFiles, history]);
 
-    const handleRowClick = (id: number) =>
-        history.push({
-            pathname: `${path}/${id}`
-        });
+    const handleRowClick = useCallback(
+        (id: number) =>
+            history.push({
+                pathname: `${path}/${id}`
+            }),
+        [history, path]
+    );
 
-    const rowRender = (dataset: Dataset) => {
-        return (
-            <DatasetRow
-                dataset={dataset}
-                onDatasetClick={handleDatasetSelected}
-                activeDataset={activeDataset}
-            />
-        );
-    };
+    const rowRender = (dataset: Dataset) => (
+        <DatasetRow
+            dataset={dataset}
+            onDatasetClick={handleDatasetSelected}
+            activeDataset={activeDataset}
+        />
+    );
 
     const renderCreateBtn: RenderCreateBtn = ({ onCreated }) => (
         <AddDatasetConnector onCreated={onCreated} />
@@ -109,8 +111,8 @@ const DocumentsPage = () => {
                                         <DocumentsTableConnector
                                             dataset={activeDataset}
                                             onRowClick={handleRowClick}
-                                            fileIds={fileIds}
-                                            onFilesSelect={onFileSelect}
+                                            onFilesSelect={onFilesSelect}
+                                            checkedValues={selectedFiles}
                                             handleJobAddClick={handleJobAddClick}
                                             withHeader
                                         />
@@ -144,7 +146,7 @@ const DocumentsPage = () => {
                             >
                                 <DocumentsDropZone dataset={activeDataset}>
                                     {!isFileOver && (
-                                        <DocumentsCardConnector onFilesSelect={onFileSelect} />
+                                        <DocumentsCardConnector onFilesSelect={onFilesSelect} />
                                     )}
                                 </DocumentsDropZone>
                             </div>

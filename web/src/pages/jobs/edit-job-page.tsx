@@ -1,8 +1,7 @@
 // temporary_disabled_rules
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useEffect, useState } from 'react';
-
-import { useHistory, useParams } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useHistory, useParams, useLocation } from 'react-router-dom';
 import { Button, MultiSwitch } from '@epam/loveship';
 import Wizard, {
     renderWizardButtons,
@@ -14,17 +13,20 @@ import { JOBS_PAGE } from '../../shared/constants/general';
 import { useJobById } from 'api/hooks/jobs';
 import EditJobConnector from '../../connectors/edit-job-connector/edit-job-connector';
 import { DatasetsTableConnector } from 'connectors/datasets-table-connector';
-
 import wizardStyles from '../../shared/components/wizard/wizard/wizard.module.scss';
 import styles from '../../shared/components/wizard/wizard/wizard.module.scss';
 import pageStyles from './edit-job-page.module.scss';
 import { RevisionsTableConnector } from 'connectors/revisions-table-connector';
+import { useUuiContext } from '@epam/uui-core';
+import JobPopup from './job-popup';
 
 export const EditJobPage = () => {
     const history = useHistory();
-    const { jobId } = useParams() as { jobId: string };
+    const { jobId } = useParams<{ jobId: string }>();
+    const uuiContext = useUuiContext();
+    const location = useLocation<{ files: number[] }>();
 
-    const [files, setFiles] = useState<number[]>([]);
+    const [files, setFiles] = useState<number[]>(location.state?.files || []);
     const [jobs, setJobs] = useState<number[]>([]);
     const [datasets, setDatasets] = useState<number[]>([]);
     const [revisions, setRevivisions] = useState<string[]>([]);
@@ -32,12 +34,13 @@ export const EditJobPage = () => {
     const [currentTab, onCurrentTabChange] = useState('Documents');
     const [revisionId, setRevisionId] = useState<string | null>(null);
 
-    const { data: job } = useJobById(
-        { jobId: Number(jobId) },
-        {
-            enabled: !!jobId
+    const { data: job } = useJobById({ jobId: Number(jobId) }, { enabled: !!jobId });
+
+    useEffect(() => {
+        if (job) {
+            setFiles(job.files || []);
         }
-    );
+    }, [job]);
 
     useEffect(() => {
         const searchParams = new URLSearchParams(document.location.search);
@@ -46,16 +49,7 @@ export const EditJobPage = () => {
             setStepIndex(1);
             setRevisionId(revisionId);
         }
-    }, [stepIndex]);
-
-    useEffect(() => {
-        if (!job) return;
-        setFiles(job.files);
-    }, [job]);
-
-    const handleJobAdded = (id: number) => {
-        history.push(`${JOBS_PAGE}/${id}`);
-    };
+    }, []);
 
     useEffect(() => {
         if (jobId) {
@@ -63,11 +57,20 @@ export const EditJobPage = () => {
         }
     }, [jobId]);
 
-    const handleNext = () => {
-        setStepIndex(stepIndex + 1);
+    const handleJobAdded = (id: number) => {
+        history.push(`${JOBS_PAGE}/${id}`);
     };
-    const handlePrev = () => {
-        setStepIndex(stepIndex - 1);
+
+    const handleNext = () => setStepIndex(stepIndex + 1);
+    const handlePrev = () => setStepIndex(stepIndex - 1);
+
+    const handleJobAddClick = () => {
+        if (files.length === 0) {
+            return;
+        }
+        uuiContext.uuiModals.show((modalProps) => (
+            <JobPopup popupType="extraction" closePopup={modalProps.abort} selectedFiles={files} />
+        ));
     };
 
     const finishButtonCaption = jobId ? 'Save Edits' : 'New Job';
@@ -101,6 +104,7 @@ export const EditJobPage = () => {
                 onFilesSelect={setFiles}
                 onRowClick={() => null}
                 checkedValues={files}
+                handleJobAddClick={handleJobAddClick}
             />
         );
     } else if (currentTab === 'Jobs') {
@@ -146,7 +150,7 @@ export const EditJobPage = () => {
                                     value={currentTab}
                                 />
                             </div>
-                            <div className={`form-wrapper`}>{table}</div>
+                            <div className="form-wrapper">{table}</div>
                         </div>
                     </div>
                     <div className={wizardStyles['content__footer']}>
@@ -167,36 +171,34 @@ export const EditJobPage = () => {
                     jobs={currentTab === 'Jobs' ? jobs : []}
                     datasets={currentTab === 'Datasets' ? datasets : []}
                     revisions={currentTab === 'Revisions' ? revisions : []}
-                    renderWizardButtons={({ save, lens }) => {
-                        return (
-                            <>
-                                {!revisionId && (
-                                    <Button
-                                        fill="light"
-                                        cx={styles.button}
-                                        caption="Previous"
-                                        onClick={handlePrev}
-                                        isDisabled={isDisabled}
-                                    />
-                                )}
+                    renderWizardButtons={({ save, lens }) => (
+                        <>
+                            {!revisionId && (
                                 <Button
+                                    fill="light"
                                     cx={styles.button}
-                                    caption="Save as Draft"
+                                    caption="Previous"
+                                    onClick={handlePrev}
                                     isDisabled={isDisabled}
-                                    fill="none"
-                                    onClick={() => {
-                                        lens.prop('is_draft').set(true);
-                                        save();
-                                    }}
                                 />
-                                <Button
-                                    cx={styles.button}
-                                    caption={finishButtonCaption}
-                                    onClick={save}
-                                />
-                            </>
-                        );
-                    }}
+                            )}
+                            <Button
+                                cx={styles.button}
+                                caption="Save as Draft"
+                                isDisabled={isDisabled}
+                                fill="none"
+                                onClick={() => {
+                                    lens.prop('is_draft').set(true);
+                                    save();
+                                }}
+                            />
+                            <Button
+                                cx={styles.button}
+                                caption={finishButtonCaption}
+                                onClick={save}
+                            />
+                        </>
+                    )}
                 />
             )
         }

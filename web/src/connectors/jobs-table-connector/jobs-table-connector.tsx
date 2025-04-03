@@ -105,7 +105,23 @@ export const JobsTableConnector: FC<JobsTableConnectorProps> = ({
             const filtersToSet = prepareFiltersToSet<Job, unknown>(tableValue);
             saveFiltersToStorage(filtersToSet, 'jobs');
 
-            setFilters(filtersToSet);
+            setFilters(
+                filtersToSet.map((filter) =>
+                    filter
+                        ? {
+                              ...filter,
+                              value: filter.value as
+                                  | string
+                                  | number
+                                  | boolean
+                                  | number[]
+                                  | string[]
+                                  | boolean[]
+                                  | undefined
+                          }
+                        : filter
+                )
+            );
         }
     }, [tableValue.filter]);
 
@@ -305,7 +321,11 @@ export const JobsTableConnector: FC<JobsTableConnectorProps> = ({
                 </Panel>
 
                 {shownPopup ? (
-                    <JobPopup popupType={shownPopup} closePopup={() => shownPopupChange(null)} />
+                    <JobPopup
+                        popupType={shownPopup}
+                        closePopup={() => shownPopupChange(null)}
+                        selectedFiles={selectedFiles}
+                    />
                 ) : null}
             </Panel>
         );
