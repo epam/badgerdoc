@@ -1,6 +1,7 @@
 // temporary_disabled_rules
 /* eslint-disable @typescript-eslint/no-redeclare, react-hooks/exhaustive-deps */
 import React, { useEffect, useMemo, useRef, useState, useContext } from 'react';
+import { debounce } from 'lodash';
 import styles from './documents-table-connector.module.scss';
 import {
     Button,
@@ -19,7 +20,6 @@ import {
     SortingDirection
 } from '../../api/typings';
 import { useDeleteFilesMutation, useDocuments } from '../../api/hooks/documents';
-
 import { TableWrapper, usePageTable } from 'shared';
 import { pageSizes } from 'shared/primitives';
 import { documentColumns } from './documents-columns';
@@ -47,11 +47,11 @@ import { saveFiltersToStorage } from '../../shared/helpers/set-filters';
 type DocumentsTableConnectorProps = {
     dataset?: Dataset | null | undefined;
     onRowClick: (id: number) => void;
-    onFilesSelect?: (files: number[]) => void;
-    checkedValues?: number[];
+    onFilesSelect: (files: number[]) => void;
+    checkedValues: number[];
     fileIds?: number[];
     isJobPage?: boolean;
-    handleJobAddClick?: () => void;
+    handleJobAddClick: () => void;
     withHeader?: boolean;
 };
 
@@ -59,8 +59,8 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
     dataset,
     onRowClick,
     onFilesSelect,
-    fileIds,
     checkedValues,
+    fileIds,
     isJobPage,
     handleJobAddClick,
     withHeader
@@ -85,35 +85,34 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
     const mutation = useAddFilesToDatasetMutation();
     const deleteFilesMutation = useDeleteFilesMutation();
 
-    const [selectedFiles, setSelectedFiles] = useState<number[] | []>([]);
     const isTableView = isJobPage || documentView === 'table';
-
     const filtersRef = useRef(filters);
     filtersRef.current = filters;
 
     const [jobs, setJobs] = useState<FileJobs>();
 
+    const debouncedOnFilesSelect = useMemo(() => debounce(onFilesSelect, 100), [onFilesSelect]);
+
     useEffect(() => {
-        if (checkedValues) {
+        if (JSON.stringify(checkedValues) !== JSON.stringify(checked)) {
             onTableValueChange({
                 ...tableValue,
                 checked: checkedValues
             });
         }
-    }, []);
+    }, [checkedValues]);
 
     useEffect(() => {
-        setSelectedFiles(checked || []);
-        if (onFilesSelect) {
-            onFilesSelect(checked as number[]);
+        if (checked && JSON.stringify(checked) !== JSON.stringify(checkedValues)) {
+            debouncedOnFilesSelect(checked as number[]);
         }
     }, [checked]);
 
     useEffect(() => {
-        if (onFilesSelect) {
-            onFilesSelect(selectedFiles as number[]);
-        }
-    }, [selectedFiles]);
+        return () => {
+            debouncedOnFilesSelect.cancel();
+        };
+    }, [debouncedOnFilesSelect]);
 
     useEffect(() => {
         if (!isJobPage) {
@@ -128,20 +127,20 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
             filtersToSet = filters.flatMap((item) => {
                 const field = item as keyof FileDocument;
                 const filter = tableValue.filter![field as keyof FileDocument];
-                const operator = Object.keys(
-                    tableValue.filter![field as keyof FileDocument]!
-                )[0] as Operators;
                 const operatorsArray = Object.keys(filter!);
                 if (operatorsArray.length === 1) {
-                    return {
-                        field,
-                        operator: operatorsArray[0] as Operators,
-                        value: filter![operator]! as string[]
-                    };
+                    const operator = operatorsArray[0] as Operators;
+                    return [
+                        {
+                            field,
+                            operator,
+                            value: filter![operator]! as string[]
+                        }
+                    ];
                 } else if ('from' in filter! && 'to' in filter) {
                     return [
-                        { field, operator: Operators.GE, value: filter['from'] },
-                        { field, operator: Operators.LE, value: filter['to'] }
+                        { field, operator: Operators.GE, value: filter['from'] as string[] },
+                        { field, operator: Operators.LE, value: filter['to'] as string[] }
                     ];
                 } else {
                     return [];
@@ -164,15 +163,7 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
         }
     }, [tableValue.filter, dataset]);
 
-    useEffect(() => {
-        refetch();
-    }, [filters]);
-
-    const {
-        data: files,
-        isFetching,
-        refetch
-    } = useDocuments(
+    const { data: files, isFetching } = useDocuments(
         {
             page: pageConfig.page,
             size: pageConfig.pageSize,
@@ -193,7 +184,7 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
 
     useEffect(() => {
         if (files?.data) {
-            onTotalCountChange(files.pagination.total);
+            onTotalCountChange(files.pagination.total || 0);
         }
     }, [files?.data]);
 
@@ -227,13 +218,12 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
     useEffect(() => {
         setPageConfig({ page: 1, pageSize: pageSizes._15 });
     }, [dataset]);
-    // IMPORTANT! Unsubscribe view from DataSource when you don't need it more.
 
     useEffect(() => () => dataSource.unsubscribeView(onTableValueChange), []);
 
     useEffect(() => {
         if (files?.data?.length) {
-            fileJobsFetcher(files?.data.map((e) => e.id)).then((e) => setJobs(e as any));
+            fileJobsFetcher(files.data.map((e) => e.id)).then((e) => setJobs(e as any));
         }
     }, [files]);
 
@@ -272,19 +262,10 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
     const renderLastModifiedFilter = useDateRangeFilter('last_modified');
 
     const handleSelectAllClick = () => {
-        if (selectedFiles?.length) {
-            setSelectedFiles([]);
-            onTableValueChange({
-                ...tableValue,
-                checked: []
-            });
-        } else {
-            const allFiles = files?.data.map((el) => el.id);
-            setSelectedFiles(allFiles || []);
-            onTableValueChange({
-                ...tableValue,
-                checked: allFiles
-            });
+        if (files?.data) {
+            const allFiles = files.data.map((file) => file.id);
+            const newChecked = checked?.length === allFiles.length ? [] : allFiles;
+            onTableValueChange({ ...tableValue, checked: newChecked });
         }
     };
 
@@ -292,14 +273,14 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
         const typeColumn = documentColumns.find(({ key }) => key === 'original_name');
         typeColumn!.renderFilter = renderNameFilter;
 
-        const lastModifiedColumn = documentColumns.find(({ key }) => key === 'last_modified');
+        const lastModifiedColumn = documentColumns.find(({ key }) => key === 'original_name');
         lastModifiedColumn!.renderFilter = renderLastModifiedFilter;
 
         return documentColumns;
-    }, [documentColumns, renderNameFilter, renderLastModifiedFilter]);
+    }, [renderNameFilter, renderLastModifiedFilter]);
 
     const onChooseDataset = async (dataset: DatasetWithFiles) => {
-        dataset.objects = fileIds || [];
+        dataset.objects = fileIds || checkedValues;
         try {
             await mutation.mutateAsync(dataset);
         } catch (err) {
@@ -335,8 +316,8 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
 
     const handleFileDeleteClick = async () => {
         try {
-            await deleteFilesMutation.mutateAsync(selectedFiles);
-            setSelectedFiles([]);
+            await deleteFilesMutation.mutateAsync(checked as number[]);
+            onTableValueChange({ ...tableValue, checked: [] });
         } catch (err) {
             svc.uuiNotifications.show(
                 (props: INotification) => (
@@ -357,14 +338,14 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
                         <FlexRow padding="6">
                             <Checkbox
                                 label={
-                                    (selectedFiles?.length && `${selectedFiles.length} selected`) ||
+                                    (checkedValues.length && `${checkedValues.length} selected`) ||
                                     'Select All'
                                 }
-                                value={!!selectedFiles?.length}
+                                value={!!checkedValues.length}
                                 onValueChange={handleSelectAllClick}
                                 indeterminate={
-                                    selectedFiles?.length > 0 &&
-                                    selectedFiles?.length !== files?.data.length
+                                    checkedValues.length > 0 &&
+                                    checkedValues.length !== files?.data?.length
                                 }
                             />
                         </FlexRow>
@@ -374,7 +355,7 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
                                 caption="Add to dataset"
                                 onClick={showModal}
                                 fill="light"
-                                isDisabled={!selectedFiles?.length}
+                                isDisabled={!checkedValues.length}
                             />
                         </FlexRow>
                         <FlexRow padding="6">
@@ -383,7 +364,7 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
                                 caption="Preprocess"
                                 onClick={() => {}}
                                 fill="light"
-                                isDisabled={!selectedFiles?.length}
+                                isDisabled={!checkedValues.length}
                             />
                         </FlexRow>
                         <FlexRow padding="6">
@@ -392,7 +373,7 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
                                 caption="Add to extraction"
                                 onClick={handleJobAddClick}
                                 fill="light"
-                                isDisabled={!selectedFiles?.length}
+                                isDisabled={!checkedValues.length}
                             />
                         </FlexRow>
                         <div className={styles.divider} />
@@ -402,17 +383,17 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
                                 caption="Delete"
                                 onClick={handleFileDeleteClick}
                                 fill="light"
-                                isDisabled={!selectedFiles?.length}
+                                isDisabled={!checkedValues.length}
                             />
                         </FlexRow>
                     </FlexRow>
                 )}
                 <div className={styles.wrapper}>
                     <TableWrapper
-                        page={pageConfig.page}
-                        pageSize={pageConfig.pageSize}
-                        totalCount={totalCount}
-                        hasMore={files?.pagination.has_more}
+                        page={pageConfig.page || 1}
+                        pageSize={pageConfig.pageSize || pageSizes._15}
+                        totalCount={totalCount || 0}
+                        hasMore={files?.pagination?.has_more ?? false}
                         onPageChange={onPageChange}
                     >
                         <DataTable
@@ -436,14 +417,14 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
                     <FlexRow padding="6">
                         <Checkbox
                             label={
-                                (selectedFiles?.length && `${selectedFiles.length} selected`) ||
+                                (checkedValues.length && `${checkedValues.length} selected`) ||
                                 'Select All'
                             }
-                            value={!!selectedFiles?.length}
+                            value={!!checkedValues.length}
                             onValueChange={handleSelectAllClick}
                             indeterminate={
-                                selectedFiles?.length > 0 &&
-                                selectedFiles?.length !== files?.data.length
+                                checkedValues.length > 0 &&
+                                checkedValues.length !== files?.data?.length
                             }
                         />
                     </FlexRow>
@@ -453,7 +434,7 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
                             caption="Add to dataset"
                             onClick={showModal}
                             fill="light"
-                            isDisabled={!selectedFiles?.length}
+                            isDisabled={!checkedValues.length}
                         />
                     </FlexRow>
                     <FlexRow padding="6">
@@ -462,7 +443,7 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
                             caption="Preprocess"
                             onClick={() => {}}
                             fill="light"
-                            isDisabled={!selectedFiles?.length}
+                            isDisabled={!checkedValues.length}
                         />
                     </FlexRow>
                     <FlexRow padding="6">
@@ -471,7 +452,7 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
                             caption="Add to extraction"
                             onClick={handleJobAddClick}
                             fill="light"
-                            isDisabled={!selectedFiles?.length}
+                            isDisabled={!checkedValues.length}
                         />
                     </FlexRow>
                     <div className={styles.divider} />
@@ -481,15 +462,15 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
                             caption="Delete"
                             onClick={handleFileDeleteClick}
                             fill="light"
-                            isDisabled={!selectedFiles?.length}
+                            isDisabled={!checkedValues.length}
                         />
                     </FlexRow>
                 </FlexRow>
                 <TableWrapper
-                    page={pageConfig.page}
-                    pageSize={pageConfig.pageSize}
-                    totalCount={totalCount}
-                    hasMore={files?.pagination.has_more}
+                    page={pageConfig.page || 1}
+                    pageSize={pageConfig.pageSize || pageSizes._15}
+                    totalCount={totalCount || 0}
+                    hasMore={files?.pagination?.has_more ?? false}
                     onPageChange={onPageChange}
                 >
                     <div className={styles['card-container']}>
@@ -501,8 +482,8 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
                                 lastModified={last_modified}
                                 jobs={(jobs as any)[id] as any}
                                 thumbnails={thumbnails}
-                                selectedFiles={selectedFiles}
-                                setSelectedFiles={setSelectedFiles}
+                                selectedFiles={checkedValues}
+                                setSelectedFiles={onFilesSelect}
                             />
                         ))}
                     </div>

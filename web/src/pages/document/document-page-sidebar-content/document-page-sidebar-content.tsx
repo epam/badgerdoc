@@ -101,7 +101,10 @@ export const DocumentPageSidebarContent = ({
                         <Button
                             cx={styles['add-job']}
                             onClick={() =>
-                                onAddJob(documentJobRevisionsInfo.selectedDocumentJobRevisionId, fileMetaInfo.id)
+                                onAddJob(
+                                    documentJobRevisionsInfo.selectedDocumentJobRevisionId,
+                                    fileMetaInfo.id
+                                )
                             }
                             caption="New job from revision"
                         />
