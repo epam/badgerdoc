@@ -1,18 +1,18 @@
 from unittest.mock import patch
 
 import aiohttp.client_exceptions
-
 import pytest
 from fastapi import HTTPException
+
+import jobs.utils as utils
+from jobs.airflow_utils import airflow_connection
+from jobs.schemas import AirflowPiplineStatus, JobMode, Status
 from tests.conftest import FakePipeline, patched_create_pre_signed_s3_url
 from tests.test_db import (
     create_mock_annotation_extraction_job_in_db,
     create_mock_annotation_job_in_db,
     create_mock_extraction_job_in_db,
 )
-
-import jobs.utils as utils
-from jobs.schemas import JobMode, Status
 
 # --------------TEST get_files_data_from_datasets---------------
 
@@ -560,26 +560,38 @@ async def test_execute_pipeline_positive(jw_token):
             )
             is None
         )
-        
- # -------------------- TESTING job_progress -------------------------------       
+
+
+# -------------------- TESTING job_progress -------------------------------
+
 
 @pytest.mark.asyncio
-async def test_get_extraction_job_progress_success(testing_session, jw_token: str):
+async def test_get_extraction_job_progress_success(
+    testing_session, jw_token: str
+):
     """Test successful retrieval of job progress."""
-    
     job = create_mock_extraction_job_in_db(testing_session)
-    job.mode = JobMode.Automatic.value 
-    job.pipeline_id = "1" 
 
-    with patch("jobs.utils.fetch", return_value=(200, {"total": 0, "finished": 0})), \
-         patch("jobs.airflow_utils.wait_for_dag_completion_async", return_value="success"), \
-         patch("jobs.airflow_utils.get_dag_status", return_value={"total": 1, "finished": 1}):
-        
+    job.mode = JobMode.Automatic.value
+    job.pipeline_id = "1"
+
+    api_client = airflow_connection()
+
+    with patch(
+        "jobs.utils.fetch", return_value=(200, {"total": 0, "finished": 0})
+    ), patch("jobs.airflow_utils.activate_dag", return_value=None), patch(
+        "jobs.airflow_utils.wait_for_dag_completion_async",
+        return_value="success",
+    ), patch(
+        "jobs.airflow_utils.get_dag_status",
+        return_value=AirflowPiplineStatus.success.value,
+    ):
         progress = await utils.get_job_progress(
             job_id=job.id,
             session=testing_session,
             current_tenant="test_tenant",
             jw_token=jw_token,
+            api_client=api_client,
         )
 
     assert progress is not None
@@ -591,22 +603,32 @@ async def test_get_extraction_job_progress_success(testing_session, jw_token: st
 
 
 @pytest.mark.asyncio
-async def test_get_extraction_job_progress_fail(testing_session, jw_token: str):
+async def test_get_extraction_job_progress_fail(
+    testing_session, jw_token: str
+):
     """Test fail retrieval of job progress."""
-    
     job = create_mock_extraction_job_in_db(testing_session)
-    job.mode = JobMode.Automatic.value 
-    job.pipeline_id = "1" 
 
-    with patch("jobs.utils.fetch", return_value=(200, {"total": 0, "finished": 0})), \
-         patch("jobs.airflow_utils.wait_for_dag_completion_async", return_value="failed"), \
-         patch("jobs.airflow_utils.get_dag_status", return_value={"total": 1, "finished": 0}):
-        
+    job.mode = JobMode.Automatic.value
+    job.pipeline_id = "1"
+
+    api_client = airflow_connection()
+
+    with patch(
+        "jobs.utils.fetch", return_value=(200, {"total": 0, "finished": 0})
+    ), patch("jobs.airflow_utils.activate_dag", return_value=None), patch(
+        "jobs.airflow_utils.wait_for_dag_completion_async",
+        return_value="failed",
+    ), patch(
+        "jobs.airflow_utils.get_dag_status",
+        return_value={"total": 1, "finished": 0},
+    ):
         progress = await utils.get_job_progress(
             job_id=job.id,
             session=testing_session,
             current_tenant="test_tenant",
             jw_token=jw_token,
+            api_client=api_client,
         )
 
     assert progress is not None
@@ -615,21 +637,29 @@ async def test_get_extraction_job_progress_fail(testing_session, jw_token: str):
     assert progress["finished"] == 0
     assert "mode" in progress
     assert progress["mode"] == str(job.mode)
-    
+
 
 @pytest.mark.asyncio
-async def test_get_annotation_job_progress_success(testing_session, jw_token: str, mock_AnnotationJobParams):
-    
-    job = create_mock_annotation_job_in_db(testing_session, mock_AnnotationJobParams)
-    job.mode = JobMode.Manual.value 
+async def test_get_annotation_job_progress_success(
+    testing_session, jw_token: str, mock_AnnotationJobParams
+):
+    job = create_mock_annotation_job_in_db(
+        testing_session, mock_AnnotationJobParams
+    )
 
-    with patch("jobs.utils.fetch", return_value=(200, {"total": 2, "finished": 2})):
-        
+    job.mode = JobMode.Manual.value
+
+    api_client = airflow_connection()
+
+    with patch(
+        "jobs.utils.fetch", return_value=(200, {"total": 2, "finished": 2})
+    ):
         progress = await utils.get_job_progress(
             job_id=job.id,
             session=testing_session,
             current_tenant="test_tenant",
             jw_token=jw_token,
+            api_client=api_client,
         )
 
     assert progress is not None
@@ -640,20 +670,28 @@ async def test_get_annotation_job_progress_success(testing_session, jw_token: st
     assert job.status == "Finished"
     assert progress["mode"] == str(job.mode)
 
-@pytest.mark.asyncio
-async def test_get_annotation_job_progress_inProgress(testing_session, jw_token: str, mock_AnnotationJobParams):
-    
-    job = create_mock_annotation_job_in_db(testing_session, mock_AnnotationJobParams)
-    job.mode = JobMode.Manual.value 
-    
 
-    with patch("jobs.utils.fetch", return_value=(200, {"total": 3, "finished": 2})):
-        
+@pytest.mark.asyncio
+async def test_get_annotation_job_progress_inProgress(
+    testing_session, jw_token: str, mock_AnnotationJobParams
+):
+    job = create_mock_annotation_job_in_db(
+        testing_session, mock_AnnotationJobParams
+    )
+
+    job.mode = JobMode.Manual.value
+
+    api_client = airflow_connection()
+
+    with patch(
+        "jobs.utils.fetch", return_value=(200, {"total": 3, "finished": 2})
+    ):
         progress = await utils.get_job_progress(
             job_id=job.id,
             session=testing_session,
             current_tenant="test_tenant",
             jw_token=jw_token,
+            api_client=api_client,
         )
 
     assert progress is not None
@@ -666,18 +704,26 @@ async def test_get_annotation_job_progress_inProgress(testing_session, jw_token:
 
 
 @pytest.mark.asyncio
-async def test_get_extraction_annotation_job_progress_success(testing_session, jw_token: str, mock_Extraction_AnnotationJobParams):
-    
-    job = create_mock_annotation_extraction_job_in_db(testing_session, mock_Extraction_AnnotationJobParams)
+async def test_get_extraction_annotation_job_progress_success(
+    testing_session, jw_token: str, mock_Extraction_AnnotationJobParams
+):
+    job = create_mock_annotation_extraction_job_in_db(
+        testing_session, mock_Extraction_AnnotationJobParams
+    )
+
     job.mode = JobMode.Automatic.value
 
-    with patch("jobs.utils.fetch", return_value=(200, {"total": 2, "finished": 2})):
-        
+    api_client = airflow_connection()
+
+    with patch(
+        "jobs.utils.fetch", return_value=(200, {"total": 2, "finished": 2})
+    ):
         progress = await utils.get_job_progress(
             job_id=job.id,
             session=testing_session,
             current_tenant="test_tenant",
             jw_token=jw_token,
+            api_client=api_client,
         )
 
     assert progress is not None
@@ -689,20 +735,27 @@ async def test_get_extraction_annotation_job_progress_success(testing_session, j
     assert progress["mode"] == str(job.mode)
 
 
-
 @pytest.mark.asyncio
-async def test_get_extraction_annotation_job_progress_inProgress(testing_session, jw_token: str, mock_Extraction_AnnotationJobParams):
-    
-    job = create_mock_annotation_extraction_job_in_db(testing_session, mock_Extraction_AnnotationJobParams)
-    job.mode = "Automatic" 
+async def test_get_extraction_annotation_job_progress_inProgress(
+    testing_session, jw_token: str, mock_Extraction_AnnotationJobParams
+):
+    job = create_mock_annotation_extraction_job_in_db(
+        testing_session, mock_Extraction_AnnotationJobParams
+    )
 
-    with patch("jobs.utils.fetch", return_value=(200, {"total": 3, "finished": 2})):
-        
+    job.mode = "Automatic"
+
+    api_client = airflow_connection()
+
+    with patch(
+        "jobs.utils.fetch", return_value=(200, {"total": 3, "finished": 2})
+    ):
         progress = await utils.get_job_progress(
             job_id=job.id,
             session=testing_session,
             current_tenant="test_tenant",
             jw_token=jw_token,
+            api_client=api_client,
         )
 
     assert progress is not None
