@@ -898,12 +898,18 @@ async def validate_create_job_previous_jobs(
     return [j.id for j in previous_jobs]
 
 
-async def get_file_ids_of_revisions(
-    revisions: List[str], current_tenant: str, jwt_token: str
-) -> Optional[List[int]]:
-
+async def update_create_job_params_using_revisions(
+    job_params: schemas.JobParams, current_tenant: str, jwt_token: str
+) -> None:
     response = await get_annotations_by_revisions(
-        current_tenant=current_tenant, jw_token=jwt_token, revisions=revisions
+        current_tenant=current_tenant,
+        jw_token=jwt_token,
+        revisions=list(job_params.revisions),
     )
 
-    return list({data["file_id"] for data in response.get("data", [])})
+    unique_file_ids_of_revisions = set(
+        [data["file_id"] for data in response.get("data", [])]
+    )
+    job_params.files = list(
+        unique_file_ids_of_revisions.union(job_params.files)
+    )

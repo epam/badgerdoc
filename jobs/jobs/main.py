@@ -73,8 +73,8 @@ async def create_job(
         )
 
     if len(job_params.revisions) > 0:
-        job_params.files = await utils.get_file_ids_of_revisions(
-            revisions=list(job_params.revisions),
+        await utils.update_create_job_params_using_revisions(
+            job_params=job_params,
             current_tenant=current_tenant,
             jwt_token=jw_token,
         )
