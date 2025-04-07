@@ -1,4 +1,13 @@
-from typing import Any, Dict, Generator, Iterator, List, Optional, Tuple, Union, Set
+from typing import (
+    Any,
+    Dict,
+    Generator,
+    Iterator,
+    List,
+    Optional,
+    Tuple,
+    Union,
+)
 
 import aiohttp.client_exceptions
 import fastapi.encoders
@@ -815,7 +824,7 @@ async def get_annotations_by_revisions(
             body=post_data,
         )
     except aiohttp.client_exceptions.ClientError as err:
-        logger.exception(f"Failed request to get annotations by filters")
+        logger.exception("Failed request to get annotations by revisions")
         raise fastapi.HTTPException(
             status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=f"Failed request to the Annotation Manager: {err}",
