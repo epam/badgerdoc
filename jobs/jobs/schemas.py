@@ -26,6 +26,13 @@ class Status(str, Enum):
     ready_for_annotation = "Ready For Annotation"
     draft = "Draft"
 
+# There are other States but these are enough. Other States can be added here if needed.
+class AirflowPiplineStatus(str, Enum):
+    running = "running"
+    queued = "queued"
+    success = "success"
+    failed = "failed"
+
 
 class ValidationType(str, Enum):
     cross = "cross"
