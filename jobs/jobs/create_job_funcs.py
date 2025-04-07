@@ -52,6 +52,8 @@ async def create_extraction_job(
     pipeline_engine = extraction_job_input.pipeline_engine
     # check if categories passed and then append all categories to job
     pipeline_categories = []
+    if extraction_job_input.categories:
+        pipeline_categories = extraction_job_input.categories
 
     (
         files_data,
