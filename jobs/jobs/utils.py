@@ -1,4 +1,4 @@
-from typing import Any, Dict, Generator, Iterator, List, Optional, Tuple, Union
+from typing import Any, Dict, Generator, Iterator, List, Optional, Tuple, Union, Set
 
 import aiohttp.client_exceptions
 import fastapi.encoders
@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 import jobs.airflow_utils as airflow_utils
 import jobs.databricks_utils as databricks_utils
 import jobs.pipeline as pipeline
-from jobs import db_service
+from jobs import db_service, schemas
 from jobs.config import (
     ANNOTATION_SERVICE_HOST,
     ASSETS_SERVICE_HOST,
@@ -788,6 +788,42 @@ async def get_annotation_revisions(
     return response
 
 
+async def get_annotations_by_revisions(
+    current_tenant: Optional[str], jw_token: str, revisions: List[str]
+) -> Optional[Dict[str, Any]]:
+    """Get annotations by filtering"""
+
+    headers = {
+        "X-Current-Tenant": current_tenant,
+        "Authorization": f"Bearer: {jw_token}",
+    }
+
+    timeout = aiohttp.ClientTimeout(total=5)
+
+    post_data = {
+        "filters": [
+            {"field": "revision", "operator": "in", "value": revisions}
+        ]
+    }
+
+    try:
+        _, response = await fetch(
+            method="POST",
+            url=f"{ANNOTATION_SERVICE_HOST}/annotation",
+            headers=headers,
+            timeout=timeout,
+            body=post_data,
+        )
+    except aiohttp.client_exceptions.ClientError as err:
+        logger.exception(f"Failed request to get annotations by filters")
+        raise fastapi.HTTPException(
+            status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Failed request to the Annotation Manager: {err}",
+        )
+
+    return response
+
+
 async def search_datasets_by_ids(
     datasets_ids: List[int], current_tenant: str, jw_token: str
 ) -> Dict[str, Any]:
@@ -860,3 +896,14 @@ async def validate_create_job_previous_jobs(
             detail="Jobs with these ids do not exist.",
         )
     return [j.id for j in previous_jobs]
+
+
+async def get_file_ids_of_revisions(
+    revisions: List[str], current_tenant: str, jwt_token: str
+) -> Optional[List[int]]:
+
+    response = await get_annotations_by_revisions(
+        current_tenant=current_tenant, jw_token=jwt_token, revisions=revisions
+    )
+
+    return list({data["file_id"] for data in response.get("data", [])})

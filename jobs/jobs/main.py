@@ -72,6 +72,13 @@ async def create_job(
             )
         )
 
+    if len(job_params.revisions) > 0:
+        job_params.files = await utils.get_file_ids_of_revisions(
+            revisions=list(job_params.revisions),
+            current_tenant=current_tenant,
+            jwt_token=jw_token,
+        )
+
     if job_params.type == schemas.JobType.ExtractionJob:
         created_extraction_job = await create_job_funcs.create_extraction_job(
             extraction_job_input=job_params,  # type: ignore
