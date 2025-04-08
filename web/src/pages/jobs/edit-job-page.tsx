@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useEffect, useState } from 'react';
 
-import { useHistory, useParams } from 'react-router-dom';
+import { useHistory, useParams, useLocation } from 'react-router-dom';
 import { Button, MultiSwitch } from '@epam/loveship';
 import Wizard, {
     renderWizardButtons,
@@ -20,8 +20,14 @@ import styles from '../../shared/components/wizard/wizard/wizard.module.scss';
 import pageStyles from './edit-job-page.module.scss';
 import { RevisionsTableConnector } from 'connectors/revisions-table-connector';
 
+interface LocationState {
+    files?: number[];
+}
+
 export const EditJobPage = () => {
     const history = useHistory();
+    const location = useLocation();
+    const fileIds = (location.state as LocationState)?.files || [];
     const { jobId } = useParams() as { jobId: string };
 
     const [files, setFiles] = useState<number[]>([]);
@@ -99,6 +105,7 @@ export const EditJobPage = () => {
             <DocumentsTableConnector
                 isJobPage
                 onFilesSelect={setFiles}
+                fileIds={fileIds}
                 onRowClick={() => null}
                 checkedValues={files}
             />

@@ -275,8 +275,11 @@ const EditJobConnector: FC<EditJobConnectorProps> = ({
                 delete jobProps.start_manual_job_automatically;
             }
 
-            if (jobProps.extensive_coverage && validationType !== ValidationType.extensiveCoverage) {
-                delete jobProps.extensive_coverage
+            if (
+                jobProps.extensive_coverage &&
+                validationType !== ValidationType.extensiveCoverage
+            ) {
+                delete jobProps.extensive_coverage;
             }
 
             if (selected_taxonomies) {

@@ -60,7 +60,6 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
     onRowClick,
     onFilesSelect,
     fileIds,
-    checkedValues,
     isJobPage,
     handleJobAddClick,
     withHeader
@@ -94,10 +93,10 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
     const [jobs, setJobs] = useState<FileJobs>();
 
     useEffect(() => {
-        if (checkedValues) {
+        if (fileIds) {
             onTableValueChange({
                 ...tableValue,
-                checked: checkedValues
+                checked: fileIds
             });
         }
     }, []);
@@ -128,20 +127,20 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
             filtersToSet = filters.flatMap((item) => {
                 const field = item as keyof FileDocument;
                 const filter = tableValue.filter![field as keyof FileDocument];
-                const operator = Object.keys(
-                    tableValue.filter![field as keyof FileDocument]!
-                )[0] as Operators;
                 const operatorsArray = Object.keys(filter!);
                 if (operatorsArray.length === 1) {
-                    return {
-                        field,
-                        operator: operatorsArray[0] as Operators,
-                        value: filter![operator]! as string[]
-                    };
+                    const operator = operatorsArray[0] as Operators;
+                    return [
+                        {
+                            field,
+                            operator,
+                            value: filter![operator]! as string[]
+                        }
+                    ];
                 } else if ('from' in filter! && 'to' in filter) {
                     return [
-                        { field, operator: Operators.GE, value: filter['from'] },
-                        { field, operator: Operators.LE, value: filter['to'] }
+                        { field, operator: Operators.GE, value: filter['from'] as string[] },
+                        { field, operator: Operators.LE, value: filter['to'] as string[] }
                     ];
                 } else {
                     return [];
