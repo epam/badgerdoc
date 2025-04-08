@@ -60,7 +60,6 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
     onRowClick,
     onFilesSelect,
     fileIds,
-    checkedValues,
     isJobPage,
     handleJobAddClick,
     withHeader
