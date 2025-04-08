@@ -20,11 +20,14 @@ import styles from '../../shared/components/wizard/wizard/wizard.module.scss';
 import pageStyles from './edit-job-page.module.scss';
 import { RevisionsTableConnector } from 'connectors/revisions-table-connector';
 
+interface LocationState {
+    files?: number[];
+}
+
 export const EditJobPage = () => {
     const history = useHistory();
     const location = useLocation();
-
-    const fileIds = (location.state as any)?.files || [];
+    const fileIds = (location.state as LocationState)?.files || [];
     const { jobId } = useParams() as { jobId: string };
 
     const [files, setFiles] = useState<number[]>([]);
