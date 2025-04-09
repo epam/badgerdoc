@@ -1,4 +1,4 @@
-from unittest.mock import patch, Mock, AsyncMock
+from unittest.mock import AsyncMock, Mock, patch
 
 import aiohttp.client_exceptions
 import pytest
