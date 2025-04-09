@@ -1,8 +1,10 @@
-from unittest.mock import patch
+from unittest.mock import patch, Mock, AsyncMock
 
 import aiohttp.client_exceptions
 import pytest
 from fastapi import HTTPException
+
+from jobs.schemas import JobParams, JobType
 from tests.conftest import FakePipeline, patched_create_pre_signed_s3_url
 
 import jobs.utils as utils
@@ -1193,3 +1195,71 @@ async def test_execute_external_pipeline(sign_s3_links: bool):
             )
         else:
             assert FakePipeline.calls[-1]["files"][0].get("signed_url") is None
+
+
+@pytest.mark.asyncio
+async def test_update_create_job_params_using_revisions(monkeypatch):
+    job_params = JobParams(
+        name="name_1",
+        type=JobType.ExtractionJob,
+        pipeline_name="pipeline_name_1",
+        files=[1],
+        revisions=["revision_id_1", "revision_id_2", "revision_id_3"],
+    )
+
+    mock_response = {
+        "data": [
+            {"file_id": 2, "revision": "revision_id_1"},
+            {"file_id": 3, "revision": "revision_id_2"},
+            {"file_id": 3, "revision": "revision_id_3"},
+        ]
+    }
+
+    mock_current_tenant = Mock()
+    mock_jwt_token = Mock()
+    mock_get_annotations_by_revisions = AsyncMock(return_value=mock_response)
+
+    monkeypatch.setattr(
+        utils,
+        "get_annotations_by_revisions",
+        mock_get_annotations_by_revisions,
+    )
+
+    await utils.update_create_job_params_using_revisions(
+        job_params, mock_current_tenant, mock_jwt_token
+    )
+
+    mock_get_annotations_by_revisions.assert_called_once()
+
+    assert job_params.files == [1, 2, 3]
+
+
+@pytest.mark.asyncio
+async def test_get_annotations_by_revisions(monkeypatch):
+    revisions = ["revision_id_1", "revision_id_2"]
+
+    mock_fetch_response_status = Mock()
+    mock_fetch_response_json = Mock()
+
+    def mock_fetch_side_effect(**kwargs):
+        assert kwargs["url"].endswith("/annotation")
+        assert kwargs["method"] == "POST"
+        assert kwargs["body"]["filters"][0] == {
+            "field": "revision",
+            "operator": "in",
+            "value": revisions,
+        }
+
+        return mock_fetch_response_status, mock_fetch_response_json
+
+    mock_fetch = AsyncMock(side_effect=mock_fetch_side_effect)
+    mock_current_tenant = Mock()
+    mock_jw_token = Mock()
+
+    monkeypatch.setattr(utils, "fetch", mock_fetch)
+
+    await utils.get_annotations_by_revisions(
+        mock_current_tenant, mock_jw_token, revisions
+    )
+
+    mock_fetch.assert_called_once()

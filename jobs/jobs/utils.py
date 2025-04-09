@@ -903,7 +903,11 @@ async def update_create_job_params_using_revisions(
     )
 
     unique_file_ids_of_revisions = set(
-        [data["file_id"] for data in response.get("data", []) if "file_id" in data]
+        [
+            data["file_id"]
+            for data in response.get("data", [])
+            if "file_id" in data
+        ]
     )
     job_params.files = list(
         unique_file_ids_of_revisions.union(job_params.files)
