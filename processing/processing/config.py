@@ -40,7 +40,7 @@ class Settings(BaseSettings):
     retry_attempts: int = 3
     retry_statuses: Set[int] = {501, 502, 503} | {i for i in range(505, 600)}
     delay_between_retry_attempts: int = 1  # in seconds
-    request_timeout: int = 3 * 60 * 60
+    request_timeout: int = 60  # in seconds
 
     root_path: str
 

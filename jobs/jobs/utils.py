@@ -16,6 +16,7 @@ from jobs.config import (
     JOBS_SIGNED_URL_KEY_NAME,
     PAGINATION_THRESHOLD,
     PIPELINES_SERVICE_HOST,
+    REQUEST_TIMEOUT,
     ROOT_PATH,
     TAXONOMY_SERVICE_HOST,
     USERS_HOST,
@@ -572,11 +573,8 @@ async def get_job_progress(
         "X-Current-Tenant": current_tenant,
         "Authorization": f"Bearer: {jw_token}",
     }
-    timeout = aiohttp.ClientTimeout(total=5)
     try:
-        _, response = await fetch(
-            method="GET", url=url, headers=headers, timeout=timeout
-        )
+        _, response = await fetch(method="GET", url=url, headers=headers)
     except aiohttp.client_exceptions.ClientError as err:
         logger.exception(f"Failed request url = {url}, error = {err}")
         raise fastapi.HTTPException(
@@ -596,6 +594,8 @@ async def fetch(
     headers: Optional[Dict[str, Any]] = None,
     **kwargs: Any,
 ) -> Tuple[int, Any]:
+    if "timeout" not in kwargs:
+        kwargs["timeout"] = aiohttp.ClientTimeout(total=REQUEST_TIMEOUT)
     async with aiohttp.request(
         method=method, url=url, json=body, headers=headers, data=data, **kwargs
     ) as resp:
@@ -767,13 +767,11 @@ async def get_annotation_revisions(
         "X-Current-Tenant": current_tenant,
         "Authorization": f"Bearer: {jw_token}",
     }
-    timeout = aiohttp.ClientTimeout(total=5)
     try:
         _, response = await fetch(
             method="GET",
             url=f"{ANNOTATION_SERVICE_HOST}/revisions/{job_id}/{file_id}",
             headers=headers,
-            timeout=timeout,
         )
     except aiohttp.client_exceptions.ClientError as err:
         logger.exception(
@@ -798,8 +796,6 @@ async def get_annotations_by_revisions(
         "Authorization": f"Bearer: {jw_token}",
     }
 
-    timeout = aiohttp.ClientTimeout(total=5)
-
     post_data = {
         "filters": [
             {"field": "revision", "operator": "in", "value": revisions}
@@ -811,7 +807,6 @@ async def get_annotations_by_revisions(
             method="POST",
             url=f"{ANNOTATION_SERVICE_HOST}/annotation",
             headers=headers,
-            timeout=timeout,
             body=post_data,
         )
     except aiohttp.client_exceptions.ClientError as err:
