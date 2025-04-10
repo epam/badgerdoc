@@ -63,7 +63,9 @@ async def create_job(
     await utils.validate_create_job_name(db, job_params.name)
 
     if len(job_params.files) > 0:
-        await utils.validate_create_job_files(db, job_params.files)
+        await utils.validate_create_job_files(
+            job_params.files, current_tenant, jw_token
+        )
 
     if job_params.previous_jobs:
         job_params.previous_jobs = (

@@ -829,10 +829,14 @@ async def search_datasets_by_ids(
     return response
 
 
-async def validate_create_job_files(db: Session, file_ids: List[int]):
+async def validate_create_job_files(
+    file_ids: List[int], current_tenant: str, jw_token: str
+) -> None:
     """Validate job's files if they all exist in database"""
-    matched_jobs_in_db = db_service.get_jobs_in_db_by_ids(db, file_ids)
-    if len(file_ids) > len(matched_jobs_in_db):
+    _, matched_file_ids_in_db = await get_files_data_from_separate_files(
+        file_ids, current_tenant, jw_token
+    )
+    if len(file_ids) > len(matched_file_ids_in_db):
         raise fastapi.HTTPException(
             status_code=fastapi.status.HTTP_400_BAD_REQUEST,
             detail="Some of these files do not exist",
