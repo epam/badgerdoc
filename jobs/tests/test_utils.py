@@ -4,10 +4,9 @@ import aiohttp.client_exceptions
 import pytest
 from fastapi import HTTPException
 
+import jobs.utils as utils
 from jobs.schemas import JobParams, JobType
 from tests.conftest import FakePipeline, patched_create_pre_signed_s3_url
-
-import jobs.utils as utils
 
 # --------------TEST get_files_data_from_datasets---------------
 
