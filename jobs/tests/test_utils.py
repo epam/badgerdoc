@@ -1196,7 +1196,6 @@ async def test_execute_external_pipeline(sign_s3_links: bool):
             assert FakePipeline.calls[-1]["files"][0].get("signed_url") is None
 
 
-@pytest.mark.asyncio
 async def test_update_create_job_params_using_revisions(monkeypatch):
     job_params = JobParams(
         name="name_1",

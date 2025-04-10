@@ -815,7 +815,8 @@ async def get_annotations_by_revisions(
         )
         raise fastapi.HTTPException(
             status_code=fastapi.status.HTTP_400_BAD_REQUEST,
-            detail=f"Could not retrieve selected annotations: {', '.join(revisions)}",
+            detail="Could not retrieve selected annotations:"
+            f" {', '.join(revisions)}",
         ) from err
 
     return response
