@@ -810,13 +810,13 @@ async def get_annotations_by_revisions(
             body=post_data,
         )
     except aiohttp.client_exceptions.ClientError as err:
-        logger.exception("Failed request to get annotations by revisions")
+        logger.exception(
+            f"Failed request to get annotations by revisions: {revisions}"
+        )
         raise fastapi.HTTPException(
             status_code=fastapi.status.HTTP_400_BAD_REQUEST,
-            detail="Could not retrieve annotations from selected revisions, "
-                   "Please try again or select different revisions. "
-                   f"Selected revisions: {revisions}",
-        )
+            detail=f"Could not retrieve selected annotations: {', '.join(revisions)}",
+        ) from err
 
     return response
 
