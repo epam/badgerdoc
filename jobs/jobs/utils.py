@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 import jobs.airflow_utils as airflow_utils
 import jobs.databricks_utils as databricks_utils
 import jobs.pipeline as pipeline
-from jobs import db_service
+from jobs import db_service, schemas
 from jobs.config import (
     ANNOTATION_SERVICE_HOST,
     ASSETS_SERVICE_HOST,
@@ -16,6 +16,7 @@ from jobs.config import (
     JOBS_SIGNED_URL_KEY_NAME,
     PAGINATION_THRESHOLD,
     PIPELINES_SERVICE_HOST,
+    REQUEST_TIMEOUT,
     ROOT_PATH,
     TAXONOMY_SERVICE_HOST,
     USERS_HOST,
@@ -572,11 +573,8 @@ async def get_job_progress(
         "X-Current-Tenant": current_tenant,
         "Authorization": f"Bearer: {jw_token}",
     }
-    timeout = aiohttp.ClientTimeout(total=5)
     try:
-        _, response = await fetch(
-            method="GET", url=url, headers=headers, timeout=timeout
-        )
+        _, response = await fetch(method="GET", url=url, headers=headers)
     except aiohttp.client_exceptions.ClientError as err:
         logger.exception(f"Failed request url = {url}, error = {err}")
         raise fastapi.HTTPException(
@@ -596,6 +594,8 @@ async def fetch(
     headers: Optional[Dict[str, Any]] = None,
     **kwargs: Any,
 ) -> Tuple[int, Any]:
+    if "timeout" not in kwargs:
+        kwargs["timeout"] = aiohttp.ClientTimeout(total=REQUEST_TIMEOUT)
     async with aiohttp.request(
         method=method, url=url, json=body, headers=headers, data=data, **kwargs
     ) as resp:
@@ -767,13 +767,11 @@ async def get_annotation_revisions(
         "X-Current-Tenant": current_tenant,
         "Authorization": f"Bearer: {jw_token}",
     }
-    timeout = aiohttp.ClientTimeout(total=5)
     try:
         _, response = await fetch(
             method="GET",
             url=f"{ANNOTATION_SERVICE_HOST}/revisions/{job_id}/{file_id}",
             headers=headers,
-            timeout=timeout,
         )
     except aiohttp.client_exceptions.ClientError as err:
         logger.exception(
@@ -784,6 +782,42 @@ async def get_annotation_revisions(
             status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=f"Failed request to the Annotation Manager: {err}",
         )
+
+    return response
+
+
+async def get_annotations_by_revisions(
+    current_tenant: Optional[str], jw_token: str, revisions: List[str]
+) -> Optional[Dict[str, Any]]:
+    """Get annotations by filtering"""
+
+    headers = {
+        "X-Current-Tenant": current_tenant,
+        "Authorization": f"Bearer: {jw_token}",
+    }
+
+    post_data = {
+        "filters": [
+            {"field": "revision", "operator": "in", "value": revisions}
+        ]
+    }
+
+    try:
+        _, response = await fetch(
+            method="POST",
+            url=f"{ANNOTATION_SERVICE_HOST}/annotation",
+            headers=headers,
+            body=post_data,
+        )
+    except aiohttp.client_exceptions.ClientError as err:
+        logger.exception(
+            f"Failed request to get annotations by revisions: {revisions}"
+        )
+        raise fastapi.HTTPException(
+            status_code=fastapi.status.HTTP_400_BAD_REQUEST,
+            detail="Could not retrieve selected annotations:"
+            f" {', '.join(revisions)}",
+        ) from err
 
     return response
 
@@ -864,3 +898,24 @@ async def validate_create_job_previous_jobs(
             detail="Jobs with these ids do not exist.",
         )
     return [j.id for j in previous_jobs]
+
+
+async def update_create_job_params_using_revisions(
+    job_params: schemas.JobParams, current_tenant: str, jwt_token: str
+) -> None:
+    response = await get_annotations_by_revisions(
+        current_tenant=current_tenant,
+        jw_token=jwt_token,
+        revisions=list(job_params.revisions),
+    )
+
+    unique_file_ids_of_revisions = set(
+        [
+            data["file_id"]
+            for data in response.get("data", [])
+            if "file_id" in data
+        ]
+    )
+    job_params.files = list(
+        unique_file_ids_of_revisions.union(job_params.files)
+    )
