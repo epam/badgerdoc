@@ -1233,7 +1233,6 @@ async def test_update_create_job_params_using_revisions(monkeypatch):
     assert job_params.files == [1, 2, 3]
 
 
-@pytest.mark.asyncio
 async def test_get_annotations_by_revisions(monkeypatch):
     revisions = ["revision_id_1", "revision_id_2"]
 

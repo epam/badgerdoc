@@ -812,8 +812,10 @@ async def get_annotations_by_revisions(
     except aiohttp.client_exceptions.ClientError as err:
         logger.exception("Failed request to get annotations by revisions")
         raise fastapi.HTTPException(
-            status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=f"Failed request to the Annotation Manager: {err}",
+            status_code=fastapi.status.HTTP_400_BAD_REQUEST,
+            detail="Could not retrieve annotations from selected revisions, "
+                   "Please try again or select different revisions. "
+                   f"Selected revisions: {revisions}",
         )
 
     return response
