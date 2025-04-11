@@ -79,7 +79,7 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
     } = usePageTable<FileDocument>('last_modified');
     const { checked } = tableValue;
 
-    const { documentView, documentsSort, query } = useContext(DocumentsSearch);
+    const { documentView, documentsSort, documentsSortOrder, query } = useContext(DocumentsSearch);
     const svc = useUuiContext();
     const mutation = useAddFilesToDatasetMutation();
     const deleteFilesMutation = useDeleteFilesMutation();
@@ -180,7 +180,7 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
             sortConfig: isTableView
                 ? sortConfig
                 : {
-                      direction: SortingDirection.DESC,
+                      direction: documentsSortOrder,
                       field: documentsSort as keyof FileDocument
                   }
         },
