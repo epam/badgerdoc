@@ -8,7 +8,6 @@ import { DocumentView, FileDocument } from 'api/typings';
 import { Breadcrumbs } from 'api/typings/documents';
 import { SortingDirection } from 'api/typings';
 
-
 type DocumentsSearchContext = {
     query: string;
     facetFilter: FacetFilter;
