@@ -75,12 +75,28 @@ async def get_dag_status(
             # if other states like "queued", "running", etc.
             raise RuntimeError(f"Unexpected DAG run state: {dag_state}")
 
-    except ApiException as e:
+    except ApiException:
         raise RuntimeError(f"Error fetching DAG run status. Job id: {job_id}")
-    except (ValueError, TypeError) as e:
+    except (ValueError, TypeError):
         raise RuntimeError(f"Error processing DAG state. Job id: {job_id}")
-    except AttributeError as e:
+    except AttributeError:
         raise RuntimeError(f"Error while passing attributes. Job id: {job_id}")
+
+
+async def is_dag_active(dag_id: int, api_client: client.ApiClient) -> bool:
+    try:
+        api_instance = DAGApi(api_client)
+        dag = api_instance.get_dag(dag_id)
+
+        if dag.is_paused:
+            return False
+
+        return True
+
+    except ApiException as e:
+        raise RuntimeError(f"Failed to fetch DAG state. DAG id: {dag_id}")
+    except AttributeError as e:
+        raise RuntimeError(f"Error while passing attributes. DAG id: {dag_id}")
 
 
 async def activate_dag(dag_id: str, api_client: client.ApiClient) -> None:
@@ -95,6 +111,31 @@ async def activate_dag(dag_id: str, api_client: client.ApiClient) -> None:
         raise RuntimeError(f"Failed to fetch or update DAG state. DAG id: {dag_id}")
     except AttributeError as e:
         raise RuntimeError(f"Error while passing attributes. DAG id: {dag_id}")
+
+
+async def is_dag_finished(
+    dag_id: str,
+    dag_run_id: str,
+    api_client: client.ApiClient,
+) -> bool:
+    try: 
+        api_instance = DAGRunApi(api_client)
+        api_response = api_instance.get_dag_run(dag_id, dag_run_id)
+        dag_state = api_response.state.value
+
+        if dag_state in [AirflowPiplineStatus.success.value, AirflowPiplineStatus.failed.value]:
+            return True
+        if dag_state == AirflowPiplineStatus.running.value:
+            return False
+
+    except ApiException:
+        raise RuntimeError(f"Error fetching DAG run status. Job id: {dag_id}")
+    except (ValueError, TypeError):
+        raise RuntimeError(f"Error processing DAG state. Job id: {dag_id}")
+    except AttributeError:
+        raise RuntimeError(f"Error while passing attributes. Job id: {dag_id}")
+
+    raise RuntimeError(f"Unexpected DAG run state: {dag_state}")
 
 
 async def wait_for_dag_completion_async(
