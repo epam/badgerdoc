@@ -445,7 +445,7 @@ async def get_jobs_progress(
     session: Session = Depends(db_service.get_session),
     current_tenant: Optional[str] = Header(None, alias="X-Current-Tenant"),
     token_data: TenantData = Depends(tenant),
-    api_client: client.ApiClient = Depends(airflow_utils.airflow_connection),
+    api_client: client.ApiClient = Depends(airflow_utils.get_api_instance),
 ) -> Dict[int, Dict[str, int]]:
     jw_token = token_data.token
     progress_tasks = [

@@ -1,5 +1,7 @@
 import asyncio
+from contextlib import contextmanager
 import dataclasses
+import logging
 import os
 import time
 from typing import Any, Dict, Iterator, List, Literal
@@ -37,15 +39,13 @@ def get_configuration():
     )
 
 
-def get_api_instance(configuration):
-    with client.ApiClient(configuration) as api_client:
-        return api_client
-
-
-def airflow_connection():
-    conf = get_configuration()
-    api_client = get_api_instance(conf)
-    return api_client
+def get_api_instance():
+    configuration = get_configuration()
+    api_client = client.ApiClient(configuration)
+    try:
+        yield api_client
+    finally:
+        api_client.close()
 
 
 async def get_dags() -> List[pipeline.AnyPipeline]:
@@ -60,13 +60,10 @@ async def get_dag_status(
     dag_id: str, job_id: int, api_client: client.ApiClient
 ) -> str:
     """Fetches the DAG run status for the given DAG ID."""
-
-    # api_client = airflow_connection()
+    dag_run_id = f"{dag_id}:{job_id}"
+    api_instance = DAGRunApi(api_client)
 
     try:
-        dag_run_id = f"{dag_id}:{job_id}"
-        api_instance = DAGRunApi(api_client)
-
         api_response = api_instance.get_dag_run(dag_id, dag_run_id)
 
         dag_state = api_response.state.value.lower()
@@ -79,9 +76,11 @@ async def get_dag_status(
             raise RuntimeError(f"Unexpected DAG run state: {dag_state}")
 
     except ApiException as e:
-        raise RuntimeError(f"Error fetching DAG run status: {e}") from e
-    except Exception as e:
-        raise RuntimeError(f"Unexpected error occurred: {e}") from e
+        raise RuntimeError(f"Error fetching DAG run status. Job id: {job_id}")
+    except (ValueError, TypeError) as e:
+        raise RuntimeError(f"Error processing DAG state. Job id: {job_id}")
+    except AttributeError as e:
+        raise RuntimeError(f"Error while passing attributes. Job id: {job_id}")
 
 
 async def activate_dag(dag_id: str, api_client: client.ApiClient) -> None:
@@ -93,37 +92,42 @@ async def activate_dag(dag_id: str, api_client: client.ApiClient) -> None:
             updated_dag = DAG(is_paused=False)
             api_instance.patch_dag(dag_id, updated_dag)
     except ApiException as e:
-        raise RuntimeError(f"Failed to fetch or update DAG state: {e}") from e
-    except Exception as e:
-        raise RuntimeError(f"Unexpected error: {e}") from e
+        raise RuntimeError(f"Failed to fetch or update DAG state. DAG id: {dag_id}")
+    except AttributeError as e:
+        raise RuntimeError(f"Error while passing attributes. DAG id: {dag_id}")
 
 
 async def wait_for_dag_completion_async(
     dag_id: str,
     dag_run_id: str,
     api_client: client.ApiClient,
-    poll_interval=2,
-    timeout=600,
-) -> Literal["success", "failed"]:
+    poll_interval: int = 2,
+    timeout: int = 30000, # 50 min
+) -> Literal[AirflowPiplineStatus.success.value, AirflowPiplineStatus.failed.value]: # type: ignore
     """waiting for DAG completion. If DAG does not finish within the given time, a timeout error is returned."""
-    try:
-        api_instance = DAGRunApi(api_client)
+    api_instance = DAGRunApi(api_client)
+    num_iterations = timeout // poll_interval
 
-        start_time = time.time()
-        while time.time() - start_time < timeout:
+    for _ in range(num_iterations):
+        try:
             api_response = api_instance.get_dag_run(dag_id, dag_run_id)
             dag_state = api_response.state.value
 
-            if dag_state in ["success", "failed"]:
+            if dag_state in [AirflowPiplineStatus.success.value, AirflowPiplineStatus.failed.value]:
                 return dag_state
 
-            await asyncio.sleep(poll_interval)
+        except ApiException as e:
+            raise RuntimeError(f"error fetching DAG state.  Job id and DAG id: {dag_run_id}")
+        except (ValueError, TypeError) as e:
+            raise RuntimeError(f"Error processing DAG state.  Job id and DAG id: {dag_run_id}")
+        except AttributeError as e:
+            raise RuntimeError(f"Error while passing attribute.  Job id and DAG id: {dag_run_id}")
 
-    except ApiException as e:
-        raise RuntimeError(f"error fetching DAG state: {e}") from e
-    except Exception as e:
-        raise RuntimeError(f"Unexpected error: {e}") from e
-    raise TimeoutError("Timeout reached")
+        await asyncio.sleep(poll_interval)
+
+    raise TimeoutError(f"Timeout reached. Job id and DAG id: {dag_run_id}")
+
+    
 
 
 # todo: should we remove this?

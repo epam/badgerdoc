@@ -594,7 +594,7 @@ async def get_job_progress(
         await update_manual_job_status(session, job, response)
         return response
 
-    elif job.mode == JobMode.Automatic:
+    if job.mode == JobMode.Automatic:
         return await handle_automatic_job(
             session, job, response, job_id, api_client
         )
@@ -609,7 +609,8 @@ async def get_job_progress(
 async def update_manual_job_status(
     session: Session, job: CombinedJob, response: Dict[str, int]
 ) -> None:
-    """Updates the job status based on the DAG execution response."""
+    """Updates the job status based on the complated tasks."""
+    # if the number of completed jobs is greater than zero, the job status changes accordingly.
     if response.get("finished", 0) > 0:
         if response["finished"] == response["total"]:
             db_service.update_job_status(session, job, Status.finished)
@@ -629,9 +630,9 @@ async def handle_automatic_job(
         return await handle_pipeline_driven_job(
             session, job, response, job_id, api_client
         )
-    else:
-        await update_manual_job_status(session, job, response)
-        return response
+
+    await update_manual_job_status(session, job, response)
+    return response
 
 
 async def handle_pipeline_driven_job(
@@ -645,6 +646,7 @@ async def handle_pipeline_driven_job(
     pipeline_id = job.pipeline_id
     dag_run_id = f"{pipeline_id}:{job_id}"
 
+    # activate pipline if is not active
     await activate_pipline(pipeline_id, api_client)
     db_service.update_job_status(session, job, Status.in_progress)
 
@@ -681,11 +683,11 @@ async def get_pipline_status(
         )
     except RuntimeError as e:
         logger.exception(
-            "Runtime error occurred while getting DAG status result"
+            f"Runtime error occurred while getting DAG status result: {e}"
         )
         db_service.update_job_status(session, job, Status.failed)
         raise fastapi.HTTPException(
-            status_code=500, detail=f"Failed to fetch DAG status: {e}"
+            status_code=500, detail=f"Failed to fetch pipeline status."
         )
     return pipeline_result
 
@@ -705,19 +707,19 @@ async def wait_for_pipline_completion(
             poll_interval=3,
             timeout=300,
         )
-    except TimeoutError:
-        logger.exception("Timeout occurred while waiting for DAG completion")
+    except TimeoutError as e:
+        logger.exception(f"Timeout occurred while waiting for DAG completion: {e}")
         db_service.update_job_status(session, job, Status.failed)
         raise fastapi.HTTPException(
-            status_code=504, detail="Timeout while waiting for DAG completion"
+            status_code=504, detail="Timeout occurred while waiting for pipeline to complete."
         )
     except RuntimeError as e:
         logger.exception(
-            "Runtime error occurred while waiting for DAG completion"
+            f"Runtime error occurred while waiting for DAG completion: {e}"
         )
         db_service.update_job_status(session, job, Status.failed)
         raise fastapi.HTTPException(
-            status_code=500, detail=f"Error fetching DAG state: {e}"
+            status_code=500, detail=f"Failed to fetch pipeline status. Please try again later."
         )
 
 
@@ -727,9 +729,9 @@ async def activate_pipline(
     try:
         await airflow_utils.activate_dag(pipeline_id, api_client)
     except RuntimeError as e:
-        logger.exception(f"Failed to activate DAG for pipeline {pipeline_id}")
+        logger.exception(f"Failed to activate DAG for pipeline: {e}")
         raise fastapi.HTTPException(
-            status_code=500, detail=f"Failed to activate DAG: {e}"
+            status_code=500, detail=f"Failed to fetch pipeline status"
         )
 
 
