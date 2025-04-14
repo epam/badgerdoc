@@ -31,7 +31,7 @@ export const CategoriesSelectionModeToggle: React.FC<SelectionModeSelectorProps>
     isDisabled = false
 }: SelectionModeSelectorProps) => {
     const regularSelectionTypes = [
-        { id: 'box', name: 'box' },
+        { id: 'text-box', name: 'text-box' },
         { id: 'text', name: 'text' },
         { id: 'free-box', name: 'free-box' },
         { id: 'table', name: 'table' },
@@ -43,7 +43,7 @@ export const CategoriesSelectionModeToggle: React.FC<SelectionModeSelectorProps>
     ];
     const picSelectionTypes = [
         { id: 'free-box', name: 'free-box' },
-        { id: 'box', name: 'box' },
+        { id: 'text-box', name: 'text-box' },
         { id: 'text', name: 'text' },
         { id: 'table', name: 'table' },
         { id: 'document', name: 'document' }
