@@ -142,6 +142,11 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
 
     const isValidationDisabled = (!currentPage && !splitValidation) || !isAnnotatable;
 
+    const isAnnotationTypeVisible = useMemo(() => {
+        if (!isValidation || viewMode || splitValidation) return true;
+        return editPage;
+    }, [isValidation, viewMode, splitValidation, editPage]);
+
     const { refetch } = useGetPageSummary({ taskId: task?.id, taskType: task?.is_validation }, {});
 
     const [cell, setCell] = useState<string | undefined>('');
@@ -444,6 +449,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
                                             selectedTool={selectedTool}
                                             onChangeSelectedTool={onChangeSelectedTool}
                                             isDisabled={!isAnnotatable}
+                                            isVisible={isAnnotationTypeVisible}
                                         />
                                     )}
                                 </>

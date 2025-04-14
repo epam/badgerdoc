@@ -19,6 +19,7 @@ type SelectionModeSelectorProps = {
     selectedTool: AnnotationImageToolType;
     onChangeSelectedTool: (newTool: AnnotationImageToolType) => void;
     isDisabled?: boolean;
+    isVisible?: boolean;
 };
 
 export const CategoriesSelectionModeToggle: React.FC<SelectionModeSelectorProps> = ({
@@ -28,7 +29,8 @@ export const CategoriesSelectionModeToggle: React.FC<SelectionModeSelectorProps>
     fileMetaInfo,
     selectedTool,
     onChangeSelectedTool,
-    isDisabled = false
+    isDisabled = false,
+    isVisible = true
 }: SelectionModeSelectorProps) => {
     const regularSelectionTypes = [
         { id: 'box', name: 'box' },
@@ -53,7 +55,6 @@ export const CategoriesSelectionModeToggle: React.FC<SelectionModeSelectorProps>
         if (fileMetaInfo.extension === '.jpg') {
             return picSelectionTypes;
         }
-
         if (selectionMode === 'link') return linksSelectionTypes;
         return regularSelectionTypes;
     };
@@ -62,10 +63,12 @@ export const CategoriesSelectionModeToggle: React.FC<SelectionModeSelectorProps>
         if (fileMetaInfo.extension === '.jpg') {
             return 'Annotation type';
         }
-
         if (selectionMode === 'link') return 'Links type';
         return 'Annotation type';
     };
+
+    if (!isVisible) return null;
+
     return (
         <div className="selection-mode-wrapper">
             <div className="selection-mode-title">{`${getSelectionLabel()}`}</div>
