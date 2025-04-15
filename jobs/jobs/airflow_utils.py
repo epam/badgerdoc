@@ -15,7 +15,7 @@ from airflow_client.client.rest import ApiException
 from fastapi import Depends
 
 import jobs.pipeline as pipeline
-from jobs.schemas import AirflowPiplineStatus
+from jobs.schemas import AirflowPipelineStatus
 
 AIRFLOW_USERNAME = os.getenv("AIRFLOW_USERNAME")
 AIRFLOW_PASSWORD = os.getenv("AIRFLOW_PASSWORD")
@@ -56,49 +56,6 @@ async def get_dags() -> List[pipeline.AnyPipeline]:
         return dag_api.get_dags()
 
 
-async def get_dag_status(
-    dag_id: str, job_id: int, api_client: client.ApiClient
-) -> str:
-    """Fetches the DAG run status for the given DAG ID."""
-    dag_run_id = f"{dag_id}:{job_id}"
-    api_instance = DAGRunApi(api_client)
-
-    try:
-        api_response = api_instance.get_dag_run(dag_id, dag_run_id)
-
-        dag_state = api_response.state.value.lower()
-        if dag_state == AirflowPiplineStatus.success.value:
-            return AirflowPiplineStatus.success.value
-        elif dag_state == AirflowPiplineStatus.failed.value:
-            return AirflowPiplineStatus.failed.value
-        else:
-            # if other states like "queued", "running", etc.
-            raise RuntimeError(f"Unexpected DAG run state: {dag_state}")
-
-    except ApiException:
-        raise RuntimeError(f"Error fetching DAG run status. Job id: {job_id}")
-    except (ValueError, TypeError):
-        raise RuntimeError(f"Error processing DAG state. Job id: {job_id}")
-    except AttributeError:
-        raise RuntimeError(f"Error while passing attributes. Job id: {job_id}")
-
-
-async def is_dag_active(dag_id: int, api_client: client.ApiClient) -> bool:
-    try:
-        api_instance = DAGApi(api_client)
-        dag = api_instance.get_dag(dag_id)
-
-        if dag.is_paused:
-            return False
-
-        return True
-
-    except ApiException as e:
-        raise RuntimeError(f"Failed to fetch DAG state. DAG id: {dag_id}")
-    except AttributeError as e:
-        raise RuntimeError(f"Error while passing attributes. DAG id: {dag_id}")
-
-
 async def activate_dag(dag_id: str, api_client: client.ApiClient) -> None:
     try:
         api_instance = DAGApi(api_client)
@@ -107,68 +64,35 @@ async def activate_dag(dag_id: str, api_client: client.ApiClient) -> None:
         if dag.is_paused:
             updated_dag = DAG(is_paused=False)
             api_instance.patch_dag(dag_id, updated_dag)
-    except ApiException as e:
+    except ApiException:
         raise RuntimeError(f"Failed to fetch or update DAG state. DAG id: {dag_id}")
-    except AttributeError as e:
+    except AttributeError:
         raise RuntimeError(f"Error while passing attributes. DAG id: {dag_id}")
 
 
-async def is_dag_finished(
+async def fetch_dag_status(
     dag_id: str,
     dag_run_id: str,
     api_client: client.ApiClient,
-) -> bool:
-    try: 
+) -> AirflowPipelineStatus:
+    try:
         api_instance = DAGRunApi(api_client)
         api_response = api_instance.get_dag_run(dag_id, dag_run_id)
         dag_state = api_response.state.value
 
-        if dag_state in [AirflowPiplineStatus.success.value, AirflowPiplineStatus.failed.value]:
-            return True
-        if dag_state == AirflowPiplineStatus.running.value:
-            return False
-
     except ApiException:
         raise RuntimeError(f"Error fetching DAG run status. Job id: {dag_id}")
-    except (ValueError, TypeError):
-        raise RuntimeError(f"Error processing DAG state. Job id: {dag_id}")
-    except AttributeError:
-        raise RuntimeError(f"Error while passing attributes. Job id: {dag_id}")
+    except (ValueError, TypeError, AttributeError):
+        raise RuntimeError(f"Error ApiClient incorrectly configured. DAG id: {dag_id}")
+
+    if dag_state in [
+        AirflowPipelineStatus.success.value,
+        AirflowPipelineStatus.failed.value,
+        AirflowPipelineStatus.running.value,
+    ]:
+        return dag_state
 
     raise RuntimeError(f"Unexpected DAG run state: {dag_state}")
-
-
-async def wait_for_dag_completion_async(
-    dag_id: str,
-    dag_run_id: str,
-    api_client: client.ApiClient,
-    poll_interval: int = 2,
-    timeout: int = 30000, # 50 min
-) -> Literal[AirflowPiplineStatus.success.value, AirflowPiplineStatus.failed.value]: # type: ignore
-    """waiting for DAG completion. If DAG does not finish within the given time, a timeout error is returned."""
-    api_instance = DAGRunApi(api_client)
-    num_iterations = timeout // poll_interval
-
-    for _ in range(num_iterations):
-        try:
-            api_response = api_instance.get_dag_run(dag_id, dag_run_id)
-            dag_state = api_response.state.value
-
-            if dag_state in [AirflowPiplineStatus.success.value, AirflowPiplineStatus.failed.value]:
-                return dag_state
-
-        except ApiException as e:
-            raise RuntimeError(f"error fetching DAG state.  Job id and DAG id: {dag_run_id}")
-        except (ValueError, TypeError) as e:
-            raise RuntimeError(f"Error processing DAG state.  Job id and DAG id: {dag_run_id}")
-        except AttributeError as e:
-            raise RuntimeError(f"Error while passing attribute.  Job id and DAG id: {dag_run_id}")
-
-        await asyncio.sleep(poll_interval)
-
-    raise TimeoutError(f"Timeout reached. Job id and DAG id: {dag_run_id}")
-
-    
 
 
 # todo: should we remove this?

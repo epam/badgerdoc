@@ -25,11 +25,11 @@ from jobs.logger import logger
 from jobs.models import CombinedJob
 from jobs.s3 import create_pre_signed_s3_url
 from jobs.schemas import (
-    AirflowPiplineStatus,
+    AirflowPipelineStatus,
     AnnotationJobUpdateParamsInAnnotation,
     CategoryLinkInput,
     CategoryLinkParams,
-    JobMode,
+    JobType,
     JobParamsToChange,
     Status,
 )
@@ -588,51 +588,62 @@ async def get_job_progress(
             status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=f"Failed request to the Annotation Manager: {err}",
         )
-
+    
     response.update({"mode": str(job.mode)})
-    if job.mode == JobMode.Manual:
-        await update_manual_job_status(session, job, response)
+
+    if job.type in [JobType.AnnotationJob, JobType.ExtractionJob, JobType.ExtractionWithAnnotationJob]:
+        await update_job_status_by_type(session, job, response, job_id, api_client)
         return response
 
-    if job.mode == JobMode.Automatic:
-        return await handle_automatic_job(
-            session, job, response, job_id, api_client
-        )
-
     logger.warning(
-        f"Unknown job mode: {job.mode}, treating as manual by default."
+        f"Unknown job type: {job.type}, treating as manual by default."
     )
     await update_manual_job_status(session, job, response)
     return response
 
 
-async def update_manual_job_status(
-    session: Session, job: CombinedJob, response: Dict[str, int]
-) -> None:
-    """Updates the job status based on the complated tasks."""
-    # if the number of completed jobs is greater than zero, the job status changes accordingly.
-    if response.get("finished", 0) > 0:
-        if response["finished"] == response["total"]:
-            db_service.update_job_status(session, job, Status.finished)
-        else:
-            db_service.update_job_status(session, job, Status.in_progress)
-
-
-async def handle_automatic_job(
+async def update_job_status_by_type(
     session: Session,
     job: CombinedJob,
     response: Dict[str, int],
     job_id: int,
     api_client: client.ApiClient,
-) -> Dict[str, int]:
-    """Handles automatic jobs with or without a pipeline."""
-    if response.get("total", 0) == 0:
-        return await handle_pipeline_driven_job(
+) -> None:
+    job_type = job.type
+
+    if job_type in [JobType.AnnotationJob, JobType.ExtractionWithAnnotationJob]:
+        await update_manual_job_status(session, job, response)
+    
+    else: # JobType.ExtractionJob
+        await handle_pipeline_driven_job(
             session, job, response, job_id, api_client
         )
 
-    await update_manual_job_status(session, job, response)
-    return response
+
+async def update_manual_job_status(
+    session: Session, job: CombinedJob, response: Dict[str, int]
+) -> None:
+    """Update the job status based on the number of completed tasks in the response.
+
+    If 'finished' > 0:
+    - Set status to 'finished' if all tasks are done.
+    - Set status to 'in_progress' if some tasks are done.
+    Otherwise, the job status remains unchanged.
+    """
+    finished = response.get("finished")
+    total = response.get("total")
+
+    if finished is None or total is None:
+        logger.warning("Missing keys in response for job %s", job.id)
+        return
+
+    if finished == 0: # If no tasks are completed, the job will remain in a pending state.
+        return
+
+    if finished == total:
+        db_service.update_job_status(session, job, Status.finished)
+    else:
+        db_service.update_job_status(session, job, Status.in_progress)
 
 
 async def handle_pipeline_driven_job(
@@ -641,128 +652,61 @@ async def handle_pipeline_driven_job(
     response: Dict[str, int],
     job_id: int,
     api_client: client.ApiClient,
-) -> Dict[str, int]:
-    """Handles automatic jobs that rely on pipeline DAG execution."""
+) -> None:
+    """Handle Extraction jobs that depend on pipeline execution."""
     pipeline_id = job.pipeline_id
     dag_run_id = f"{pipeline_id}:{job_id}"
+    # To display progress for extraction jobs, response["total"] will always be 1. The value of response["finished"] will be either 0 or 1, indicating whether the pipeline has completed successfully.
     response["total"] = 1
-    
-    
-    if await check_pipline_is_active(pipeline_id, api_client):
-        if await check_pipline_is_finished(pipeline_id, dag_run_id, api_client):
-            pipeline_result = await get_pipline_status(
-                session, job, job_id, pipeline_id, api_client
-            )
 
-            progress_bar_value = (
-                1 if pipeline_result == AirflowPiplineStatus.success.value else 0
-            )
-            response["finished"] = progress_bar_value
+    # Activate the pipeline if it’s not already active, this will ensure the pipeline is running.
+    await activate_pipeline(pipeline_id, api_client)
 
-            new_status = Status.finished if progress_bar_value == 1 else Status.failed
-            db_service.update_job_status(session, job, new_status)
+    pipeline_status = await fetch_pipeline_status(pipeline_id, dag_run_id, api_client)
 
-        else:
-            if job.status != Status.in_progress:
-                db_service.update_job_status(session, job, Status.in_progress)
-
-    return response
+    if pipeline_status == AirflowPipelineStatus.success.value:
+        db_service.update_job_status(session, job, Status.finished)
+        response["finished"] = 1
+    elif pipeline_status == AirflowPipelineStatus.failed.value:
+        db_service.update_job_status(session, job, Status.failed)
+        response["finished"] = 0
+    elif pipeline_status == AirflowPipelineStatus.running.value:
+        db_service.update_job_status(session, job, Status.in_progress)
+        response["finished"] = 0
+    else:
+        logger.warning(f"Unexpected pipeline status '{pipeline_status}' for job {job_id}")
 
 
-async def get_pipline_status(
-    session: Session,
-    job: CombinedJob,
-    job_id: int,
+async def fetch_pipeline_status(
     pipeline_id: str,
+    dag_run_id: str,
     api_client: client.ApiClient,
-) -> str:
+) -> bool:
     try:
-        pipeline_result = await airflow_utils.get_dag_status(
-            pipeline_id, job_id, api_client
+        result = await airflow_utils.fetch_dag_status(
+            pipeline_id,
+            dag_run_id,
+            api_client=api_client,
         )
     except RuntimeError as e:
         logger.exception(
-            f"Runtime error occurred while getting DAG status result: {e}"
+            f"Runtime error occurred while fetching pipeline status: {e}"
         )
-        db_service.update_job_status(session, job, Status.failed)
         raise fastapi.HTTPException(
             status_code=500, detail=f"Failed to fetch pipeline status."
         )
-    return pipeline_result
-
-
-async def check_pipline_is_finished(
-    pipeline_id: str,
-    dag_run_id: str,
-    api_client: client.ApiClient,
-) -> bool:
-    try:
-        result = await airflow_utils.is_dag_finished(
-            pipeline_id,
-            dag_run_id,
-            api_client=api_client,
-        )
-    except RuntimeError as e:
-        logger.exception(
-            f"Runtime error occurred while checking if DAG finish: {e}"
-        )
-        raise fastapi.HTTPException(
-            status_code=500, detail=f"Failed to fetch pipeline status. Please try again later."
-        )
     return result
 
-async def wait_for_pipline_completion(
-    session: Session,
-    job: CombinedJob,
-    pipeline_id: str,
-    dag_run_id: str,
-    api_client: client.ApiClient,
-) -> None:
-    try:
-        await airflow_utils.wait_for_dag_completion_async(
-            pipeline_id,
-            dag_run_id,
-            api_client=api_client,
-            poll_interval=3,
-            timeout=300,
-        )
-    except TimeoutError as e:
-        logger.exception(f"Timeout occurred while waiting for DAG completion: {e}")
-        db_service.update_job_status(session, job, Status.failed)
-        raise fastapi.HTTPException(
-            status_code=504, detail="Timeout occurred while waiting for pipeline to complete."
-        )
-    except RuntimeError as e:
-        logger.exception(
-            f"Runtime error occurred while waiting for DAG completion: {e}"
-        )
-        db_service.update_job_status(session, job, Status.failed)
-        raise fastapi.HTTPException(
-            status_code=500, detail=f"Failed to fetch pipeline status. Please try again later."
-        )
 
-
-async def check_pipline_is_active(
-    pipeline_id: str, api_client: client.ApiClient
-) -> bool:
-    try:
-        status = await airflow_utils.is_dag_active(pipeline_id, api_client)
-    except RuntimeError as e:
-        logger.exception(f"Failed to fetch pipline status: {e}")
-        raise fastapi.HTTPException(
-            status_code=500, detail=f"Failed to fetch pipeline status"
-        )
-    return status
-
-async def activate_pipline(
+async def activate_pipeline(
     pipeline_id: str, api_client: client.ApiClient
 ) -> None:
     try:
         await airflow_utils.activate_dag(pipeline_id, api_client)
     except RuntimeError as e:
-        logger.exception(f"Failed to activate DAG for pipeline: {e}")
+        logger.exception(f"Failed to activate DAG: {e}")
         raise fastapi.HTTPException(
-            status_code=500, detail=f"Failed to fetch pipeline status"
+            status_code=500, detail=f"Failed to activate pipline"
         )
 
 

@@ -5,8 +5,8 @@ import pytest
 from fastapi import HTTPException
 
 import jobs.utils as utils
-from jobs.airflow_utils import airflow_connection
-from jobs.schemas import AirflowPiplineStatus, JobMode, Status
+from jobs.airflow_utils import get_api_instance
+from jobs.schemas import AirflowPipelineStatus, JobMode, Status
 from tests.conftest import FakePipeline, patched_create_pre_signed_s3_url
 from tests.test_db import (
     create_mock_annotation_extraction_job_in_db,
@@ -575,16 +575,13 @@ async def test_get_extraction_job_progress_success(
     job.mode = JobMode.Automatic.value
     job.pipeline_id = "1"
 
-    api_client = airflow_connection()
+    api_client = next(get_api_instance())
 
     with patch(
         "jobs.utils.fetch", return_value=(200, {"total": 0, "finished": 0})
     ), patch("jobs.airflow_utils.activate_dag", return_value=None), patch(
-        "jobs.airflow_utils.wait_for_dag_completion_async",
-        return_value="success",
-    ), patch(
-        "jobs.airflow_utils.get_dag_status",
-        return_value=AirflowPiplineStatus.success.value,
+        "jobs.airflow_utils.fetch_dag_status",
+        return_value=AirflowPipelineStatus.success.value,
     ):
         progress = await utils.get_job_progress(
             job_id=job.id,
@@ -612,16 +609,13 @@ async def test_get_extraction_job_progress_fail(
     job.mode = JobMode.Automatic.value
     job.pipeline_id = "1"
 
-    api_client = airflow_connection()
+    api_client = next(get_api_instance())
 
     with patch(
         "jobs.utils.fetch", return_value=(200, {"total": 0, "finished": 0})
     ), patch("jobs.airflow_utils.activate_dag", return_value=None), patch(
-        "jobs.airflow_utils.wait_for_dag_completion_async",
-        return_value="failed",
-    ), patch(
-        "jobs.airflow_utils.get_dag_status",
-        return_value={"total": 1, "finished": 0},
+        "jobs.airflow_utils.fetch_dag_status",
+        return_value=AirflowPipelineStatus.failed.value,
     ):
         progress = await utils.get_job_progress(
             job_id=job.id,
@@ -649,7 +643,7 @@ async def test_get_annotation_job_progress_success(
 
     job.mode = JobMode.Manual.value
 
-    api_client = airflow_connection()
+    api_client = next(get_api_instance())
 
     with patch(
         "jobs.utils.fetch", return_value=(200, {"total": 2, "finished": 2})
@@ -681,7 +675,7 @@ async def test_get_annotation_job_progress_inProgress(
 
     job.mode = JobMode.Manual.value
 
-    api_client = airflow_connection()
+    api_client = next(get_api_instance())
 
     with patch(
         "jobs.utils.fetch", return_value=(200, {"total": 3, "finished": 2})
@@ -713,7 +707,7 @@ async def test_get_extraction_annotation_job_progress_success(
 
     job.mode = JobMode.Automatic.value
 
-    api_client = airflow_connection()
+    api_client = next(get_api_instance())
 
     with patch(
         "jobs.utils.fetch", return_value=(200, {"total": 2, "finished": 2})
@@ -745,7 +739,7 @@ async def test_get_extraction_annotation_job_progress_inProgress(
 
     job.mode = "Automatic"
 
-    api_client = airflow_connection()
+    api_client = next(get_api_instance())
 
     with patch(
         "jobs.utils.fetch", return_value=(200, {"total": 3, "finished": 2})
