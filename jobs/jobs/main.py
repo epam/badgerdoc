@@ -64,13 +64,22 @@ async def create_job(
     await utils.validate_create_job_name(db, job_params.name)
 
     if len(job_params.files) > 0:
-        await utils.validate_create_job_files(db, job_params.files)
+        await utils.validate_create_job_files(
+            job_params.files, current_tenant, jw_token
+        )
 
     if job_params.previous_jobs:
         job_params.previous_jobs = (
             await utils.validate_create_job_previous_jobs(
                 db, job_params.previous_jobs
             )
+        )
+
+    if len(job_params.revisions) > 0:
+        await utils.update_create_job_params_using_revisions(
+            job_params=job_params,
+            current_tenant=current_tenant,
+            jwt_token=jw_token,
         )
 
     if job_params.type == schemas.JobType.ExtractionJob:
