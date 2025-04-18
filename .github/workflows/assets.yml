@@ -13,7 +13,7 @@ jobs:
   linters:
     strategy:
       matrix:
-        python-version: ["3.8.15"]
+        python-version: ["3.12.1"]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.8.15"]
+        python-version: ["3.12.1"]
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
