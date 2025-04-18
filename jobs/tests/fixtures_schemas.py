@@ -1,5 +1,5 @@
 import datetime
-from typing import Any
+from typing import Any, Generator
 
 import pytest
 
@@ -63,8 +63,8 @@ def mock_AnnotationJobParams2():
 
 
 @pytest.fixture
-def mock_Extraction_AnnotationJobParams():
-    mockExtractionAnnotationJobParams = schemas.ExtractionWithAnnotationJobParams(
+def mock_extraction_annotation_job_params() -> Generator[schemas.ExtractionWithAnnotationJobParams, None, None]:
+    yield schemas.ExtractionWithAnnotationJobParams(
         name="MockExtractionWithAnnotationJob",
         files=[1, 2],
         datasets=[1, 2],
@@ -78,4 +78,3 @@ def mock_Extraction_AnnotationJobParams():
         deadline=datetime.datetime.utcnow() + datetime.timedelta(days=1),
         validation_type="cross",
     )
-    return mockExtractionAnnotationJobParams

@@ -587,7 +587,11 @@ async def get_job_progress(
     
     response.update({"mode": str(job.mode)})
 
-    if job.type in [JobType.AnnotationJob, JobType.ExtractionJob, JobType.ExtractionWithAnnotationJob]:
+    if job.type in (
+        JobType.AnnotationJob,
+        JobType.ExtractionJob,
+        JobType.ExtractionWithAnnotationJob,
+    ):
         await update_job_status_by_type(session, job, response, job_id, api_client)
         return response
 
@@ -607,7 +611,10 @@ async def update_job_status_by_type(
 ) -> None:
     job_type = job.type
 
-    if job_type in [JobType.AnnotationJob, JobType.ExtractionWithAnnotationJob]:
+    if job_type in (
+        JobType.AnnotationJob,
+        JobType.ExtractionWithAnnotationJob
+    ):
         await update_manual_job_status(session, job, response)
     
     else: # JobType.ExtractionJob
@@ -660,18 +667,22 @@ async def handle_pipeline_driven_job(
 
     pipeline_status = await fetch_pipeline_status(pipeline_id, dag_run_id, api_client)
 
+    new_state = Status.pending
+    pipeline_completion = 0
     if pipeline_status == AirflowPipelineStatus.success.value:
-        db_service.update_job_status(session, job, Status.finished)
-        response["finished"] = 1
+        new_state = Status.finished
+        pipeline_completion = 1
     elif pipeline_status == AirflowPipelineStatus.failed.value:
-        db_service.update_job_status(session, job, Status.failed)
-        response["finished"] = 0
+        new_state = Status.failed
+        pipeline_completion = 0
     elif pipeline_status == AirflowPipelineStatus.running.value:
-        db_service.update_job_status(session, job, Status.in_progress)
-        response["finished"] = 0
+        new_state = Status.in_progress
+        pipeline_completion = 0
     else:
         logger.warning(f"Unexpected pipeline status '{pipeline_status}' for job {job_id}")
 
+    db_service.update_job_status(session, job, new_state)
+    response["finished"] = pipeline_completion
 
 async def fetch_pipeline_status(
     pipeline_id: str,
@@ -689,8 +700,8 @@ async def fetch_pipeline_status(
             f"Runtime error occurred while fetching pipeline status: {e}"
         )
         raise fastapi.HTTPException(
-            status_code=500, detail=f"Failed to fetch pipeline status."
-        )
+            status_code=500, detail="Failed to fetch pipeline status."
+        ) from e
     return result
 
 
@@ -702,8 +713,8 @@ async def activate_pipeline(
     except RuntimeError as e:
         logger.exception(f"Failed to activate DAG: {e}")
         raise fastapi.HTTPException(
-            status_code=500, detail=f"Failed to activate pipline"
-        )
+            status_code=500, detail="Failed to activate pipline"
+        ) from e
 
 
 async def fetch(

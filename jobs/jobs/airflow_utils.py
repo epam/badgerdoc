@@ -64,10 +64,10 @@ async def activate_dag(dag_id: str, api_client: client.ApiClient) -> None:
         if dag.is_paused:
             updated_dag = DAG(is_paused=False)
             api_instance.patch_dag(dag_id, updated_dag)
-    except ApiException:
-        raise RuntimeError(f"Failed to fetch or update DAG state. DAG id: {dag_id}")
+    except ApiException as err:
+        raise RuntimeError(f"Failed to fetch or update DAG state. DAG id: {dag_id}") from err
     except AttributeError:
-        raise RuntimeError(f"Error while passing attributes. DAG id: {dag_id}")
+        raise RuntimeError(f"Error while passing attributes. DAG id: {dag_id}") from err
 
 
 async def fetch_dag_status(
@@ -80,10 +80,10 @@ async def fetch_dag_status(
         api_response = api_instance.get_dag_run(dag_id, dag_run_id)
         dag_state = api_response.state.value
 
-    except ApiException:
-        raise RuntimeError(f"Error fetching DAG run status. Job id: {dag_id}")
-    except (ValueError, TypeError, AttributeError):
-        raise RuntimeError(f"Error ApiClient incorrectly configured. DAG id: {dag_id}")
+    except ApiException as err:
+        raise RuntimeError(f"Error fetching DAG run status. Job id: {dag_id}") from err
+    except (ValueError, TypeError, AttributeError) as err:
+        raise RuntimeError(f"Error ApiClient incorrectly configured. DAG id: {dag_id}") from err
 
     if dag_state in [
         AirflowPipelineStatus.success.value,

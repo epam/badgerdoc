@@ -4,6 +4,7 @@ import jobs.db_service as db_service
 import jobs.models as dbm
 import jobs.schemas as schemas
 
+from sqlalchemy.orm import Session
 
 @pytest.mark.skip(reason="tests refactoring")
 def test_check_connection(testing_session):
@@ -151,13 +152,16 @@ def create_mock_annotation_job_in_db(
     )
     return result
 
-
-def create_mock_annotation_extraction_job_in_db(testing_session, mock_Extraction_AnnotationJobParams):
+@pytest.fixture
+def create_mock_annotation_extraction_job_in_db(
+    testing_session: Session,
+    mock_extraction_annotation_job_params: schemas.ExtractionWithAnnotationJobParams,
+):
     """Creates a mock Extraction and Annotation job in the database."""
-    
-    result = db_service.create_extraction_annotation_job(
+
+    yield db_service.create_extraction_annotation_job(
         db=testing_session,
-        extraction_annotation_job_input=mock_Extraction_AnnotationJobParams,
+        extraction_annotation_job_input=mock_extraction_annotation_job_params,
         pipeline_id="1",
         pipeline_engine="airflow",
         valid_separate_files_ids=[1, 2],
@@ -166,9 +170,6 @@ def create_mock_annotation_extraction_job_in_db(testing_session, mock_Extraction
         all_files_data=all_files_data,
         categories=["cat1", "cat22"],
     )
-    
-    return result
-
 
 
 @pytest.mark.skip(reason="tests refactoring")
