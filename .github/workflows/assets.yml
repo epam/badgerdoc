@@ -41,10 +41,10 @@ jobs:
           cd assets
           sudo apt-get update && sudo apt-get -y install poppler-utils
           pip install poetry>=1.7.1
+          pip install ../lib/filter_lib
+          pip install ../lib/tenants
+          pip install ../lib/badgerdoc_storage
           poetry install --no-root --no-interaction
-          poetry run pip install ../lib/filter_lib
-          poetry run pip install ../lib/tenants
-          poetry run pip install ../lib/badgerdoc_storage
       - name: Test with pytest
         run: |
           cd assets
