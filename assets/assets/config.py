@@ -52,7 +52,9 @@ class Config(BaseSettings):
     convert_service_port: Optional[int] = None
     convert_service_pdf_endpoint: Optional[str] = None
     convert_service_txt_endpoint: Optional[str] = None
-    model_config = SettingsConfigDict(env_file_encoding="utf-8", env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file_encoding="utf-8", env_file=".env", extra="ignore"
+    )
 
     @property
     def service_convert_pdf(self):
