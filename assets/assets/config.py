@@ -1,8 +1,8 @@
 from pathlib import Path
 from typing import List, Optional
 
-from dotenv.main import find_dotenv
-from pydantic import BaseSettings, Field
+from pydantic import Field
+from pydantic_settings import SettingsConfigDict, BaseSettings
 
 
 def get_version() -> str:
@@ -17,8 +17,8 @@ def get_version() -> str:
 
 
 class Config(BaseSettings):
-    uploading_limit: int = Field(100, env="UPLOADING_LIMIT")
-    width: int = Field(450, env="WIDTH")
+    uploading_limit: int = Field(100, validation_alias="UPLOADING_LIMIT")
+    width: int = Field(450, validation_alias="WIDTH")
     bbox_ext: int = 100
     app_name: Optional[str] = "assets"
     app_version: Optional[str] = Field(default_factory=get_version)
@@ -34,10 +34,10 @@ class Config(BaseSettings):
     s3_secret_key: Optional[str]
     s3_prefix: Optional[str]
     s3_secure: Optional[bool] = False
-    preprocessing_url: Optional[str]
+    preprocessing_url: Optional[str] = None
     sqlalchemy_pool_size: Optional[int] = 10
-    aws_region: Optional[str]
-    preprocessing_chunk_size: Optional[int]
+    aws_region: Optional[str] = None
+    preprocessing_chunk_size: Optional[int] = None
     root_path: Optional[str] = ""
     log_file: Optional[bool] = False
     keycloak_host: Optional[str]
@@ -46,16 +46,13 @@ class Config(BaseSettings):
     gotenberg_chromium_endpoint: Optional[str]
     gotenberg_formats: List[str]
     image_formats: List[str]
-    aws_profile_name: Optional[str]
+    aws_profile_name: Optional[str] = None
     convert_service_scheme: Optional[str]
     convert_service_host: Optional[str]
     convert_service_port: Optional[int]
     convert_service_pdf_endpoint: Optional[str]
     convert_service_txt_endpoint: Optional[str]
-
-    class Config:
-        env_file: str = find_dotenv(".env")
-        env_file_encoding = "utf-8"
+    model_config = SettingsConfigDict(env_file_encoding="utf-8", env_file=".env", extra="ignore")
 
     @property
     def service_convert_pdf(self):
