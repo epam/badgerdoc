@@ -22,17 +22,17 @@ class Config(BaseSettings):
     bbox_ext: int = 100
     app_name: Optional[str] = "assets"
     app_version: Optional[str] = Field(default_factory=get_version)
-    postgres_user: Optional[str]
-    postgres_password: Optional[str]
-    postgres_db: Optional[str]
-    postgres_host: Optional[str]
-    postgres_port: Optional[str]
-    database_url: Optional[str]
-    storage_provider: Optional[str]
-    s3_endpoint: Optional[str]
-    s3_access_key: Optional[str]
-    s3_secret_key: Optional[str]
-    s3_prefix: Optional[str]
+    postgres_user: Optional[str] = None
+    postgres_password: Optional[str] = None
+    postgres_db: Optional[str] = None
+    postgres_host: Optional[str] = None
+    postgres_port: Optional[str] = None
+    database_url: Optional[str] = None
+    storage_provider: Optional[str] = None
+    s3_endpoint: Optional[str] = None
+    s3_access_key: Optional[str] = None
+    s3_secret_key: Optional[str] = None
+    s3_prefix: Optional[str] = None
     s3_secure: Optional[bool] = False
     preprocessing_url: Optional[str] = None
     sqlalchemy_pool_size: Optional[int] = 10
@@ -40,18 +40,18 @@ class Config(BaseSettings):
     preprocessing_chunk_size: Optional[int] = None
     root_path: Optional[str] = ""
     log_file: Optional[bool] = False
-    keycloak_host: Optional[str]
-    gotenberg_host: Optional[str]
-    gotenberg_libre_office_endpoint: Optional[str]
-    gotenberg_chromium_endpoint: Optional[str]
+    keycloak_host: Optional[str] = None
+    gotenberg_host: Optional[str] = None
+    gotenberg_libre_office_endpoint: Optional[str] = None
+    gotenberg_chromium_endpoint: Optional[str] = None
     gotenberg_formats: List[str]
     image_formats: List[str]
     aws_profile_name: Optional[str] = None
-    convert_service_scheme: Optional[str]
-    convert_service_host: Optional[str]
-    convert_service_port: Optional[int]
-    convert_service_pdf_endpoint: Optional[str]
-    convert_service_txt_endpoint: Optional[str]
+    convert_service_scheme: Optional[str] = None
+    convert_service_host: Optional[str] = None
+    convert_service_port: Optional[int] = None
+    convert_service_pdf_endpoint: Optional[str] = None
+    convert_service_txt_endpoint: Optional[str] = None
     model_config = SettingsConfigDict(env_file_encoding="utf-8", env_file=".env", extra="ignore")
 
     @property
