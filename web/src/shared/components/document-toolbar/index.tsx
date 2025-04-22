@@ -34,10 +34,11 @@ export const DocumentToolbar: FC<TDocumentToolbar> = ({
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter') {
             const pageNumber = parseInt(pageInputValue, 10);
-            if (!isNaN(pageNumber)) {
-                const validPage = Math.min(Math.max(1, pageNumber), countOfPages);
-                onPickerValueChange(validPage);
-                setPageInputValue(String(validPage));
+            if (!isNaN(pageNumber) && pageNumber >= 1 && pageNumber <= countOfPages) {
+                onPickerValueChange(pageNumber);
+                setPageInputValue(String(pageNumber));
+            } else {
+                setPageInputValue(String(currentOrderPageNumber + 1));
             }
         }
     };
@@ -94,7 +95,6 @@ export const DocumentToolbar: FC<TDocumentToolbar> = ({
                     valueType="id"
                     rawProps={{
                         input: {
-                            defaultValue: pageInputValue,
                             onChange: handlePageInputChange,
                             onKeyDown: handleKeyDown
                         }
