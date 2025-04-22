@@ -31,7 +31,7 @@ class Obj(BaseModel):
     bbox: Tuple[float, float, float, float]
     tokens: List[int] = []
     category: str
-    data: Optional[Any]
+    data: Optional[Any] = None
     links: List[AnnotationLink] = []
 
 
