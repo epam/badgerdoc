@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import List, Optional
 
 from pydantic import Field
-from pydantic_settings import SettingsConfigDict, BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 def get_version() -> str:
