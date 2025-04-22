@@ -141,3 +141,55 @@
     margin-top: 16px;
     margin-left: 8px;
 }
+
+.modalWindow {
+    width: 500px;
+    max-width: 90vw;
+}
+
+.modalPanel {
+    padding: 0;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.modalHeader {
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--uui-divider);
+}
+
+.modalContent {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    // min-height: 100px;
+    padding: 24px;
+}
+
+.modalText {
+    color: var(--uui-text-primary);
+    text-align: center;
+    line-height: 1.5;
+}
+
+.modalFooter {
+    padding: 16px 24px;
+    border-top: 1px solid var(--uui-divider);
+}
+
+.buttonRow {
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.cancelButton {
+    min-width: 100px;
+}
+
+.saveButton {
+    min-width: 140px;
+}
+
+.discardButton {
+    min-width: 140px;
+}

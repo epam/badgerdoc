@@ -11,12 +11,15 @@ import {
     RadioGroup,
     TabButton,
     Tooltip,
-    TextInput
+    TextInput,
+    ModalBlocker,
+    ModalWindow,
+    ModalHeader,
+    ModalFooter,
+    ScrollBars
 } from '@epam/loveship';
 import { useGetPageSummary } from 'api/hooks/tasks';
 import { useTaskAnnotatorContext } from 'connectors/task-annotator-connector/task-annotator-context';
-
-import { CategoriesSelectionModeToggle } from 'components/categories/categories-selection-mode-toggle/categories-selection-mode-toggle';
 import { useTableAnnotatorContext } from '../../../shared/components/annotator/context/table-annotator-context';
 import { TaskSidebarData } from '../task-sidebar-data/task-sidebar-data';
 import {
@@ -37,7 +40,7 @@ import { TaskSidebarLabelsLinks } from './task-sidebar-labels-links/task-sidebar
 import { NoData } from 'shared/no-data';
 import { ReactComponent as MergeIcon } from '@epam/assets/icons/common/editor-table_merge_cells-24.svg';
 import { ReactComponent as SplitIcon } from '@epam/assets/icons/common/editor-table_split_cells-24.svg';
-
+import { CategoriesSelectionModeToggle } from 'components/categories/categories-selection-mode-toggle/categories-selection-mode-toggle';
 import { getCategoryDataAttrs } from 'connectors/task-annotator-connector/task-annotator-utils';
 import { FinishButton } from './finish-button/finish-button';
 import { TABS, VISIBILITY_SETTING_ID } from './constants';
@@ -46,8 +49,10 @@ import { ReactComponent as closeIcon } from '@epam/assets/icons/common/navigatio
 import { ReactComponent as Copy } from '@epam/assets/icons/common/copy_content-12.svg';
 import { handleCopy } from 'shared/helpers/copy-text';
 import { getSaveButtonTooltipContent } from './utils';
-
 import styles from './task-sidebar.module.scss';
+import { useHistory, useLocation, Prompt } from 'react-router-dom';
+/* eslint-disable @typescript-eslint/no-redeclare */
+import { Location } from 'history';
 
 type TaskSidebarProps = {
     jobSettings?: ReactElement;
@@ -62,6 +67,12 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
     });
     const [tableModeValues, setTableModeValues] = useState<string>('');
     const [boundModeSwitch, setBoundModeSwitch] = useState<AnnotationBoundMode>('box');
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [nextLocation, setNextLocation] = useState<Location | null>(null);
+    const [allowNavigation, setAllowNavigation] = useState(false);
+
+    const history = useHistory();
+    const location = useLocation();
 
     const {
         annDataAttrs,
@@ -206,6 +217,46 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
         documentLinksChanged,
         annotationSaved
     ]);
+
+    const hasUnsavedChanges = !isSaveButtonDisabled;
+
+    useEffect(() => {
+        if (allowNavigation) {
+            setAllowNavigation(false);
+        }
+    }, [location]);
+
+    useEffect(() => {
+        const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+            if (hasUnsavedChanges) {
+                event.preventDefault();
+                event.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+            }
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    }, [hasUnsavedChanges]);
+
+    const handleSaveAndLeave = async () => {
+        onSaveTask();
+        setAllowNavigation(true);
+        setIsModalOpen(false);
+        if (nextLocation) {
+            history.push(nextLocation.pathname);
+        }
+    };
+
+    const handleDiscardAndLeave = () => {
+        onClearTouchedPages();
+        onClearModifiedPages();
+        clearAnnotationsChanges();
+        setAllowNavigation(true);
+        setIsModalOpen(false);
+        if (nextLocation) {
+            history.push(nextLocation.pathname);
+        }
+    };
 
     useEffect(() => {
         if (tableModeValues === 'cells') setIsCellMode(true);
@@ -391,6 +442,14 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
 
     return (
         <Panel cx={styles.wrapper}>
+            <Prompt
+                when={hasUnsavedChanges && !allowNavigation}
+                message={(location: Location) => {
+                    setNextLocation(location);
+                    setIsModalOpen(true);
+                    return false;
+                }}
+            />
             <Button
                 fill="none"
                 cx={styles.hideIcon}
@@ -673,6 +732,57 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
                         taskStatus={task?.status}
                     />
                 </div>
+            )}
+            {isModalOpen && (
+                <ModalBlocker
+                    key="unsaved-changes-modal"
+                    zIndex={1000}
+                    blockerShadow="dark"
+                    isActive={isModalOpen}
+                    abort={() => setIsModalOpen(false)}
+                    success={() => {}}
+                >
+                    <ModalWindow cx={styles.modalWindow}>
+                        <Panel cx={styles.modalPanel}>
+                            <ModalHeader
+                                title="You have unsaved changes"
+                                onClose={() => setIsModalOpen(false)}
+                                cx={styles.modalHeader}
+                            />
+                            <ScrollBars hasTopShadow hasBottomShadow>
+                                <FlexRow padding="24" cx={styles.modalContent}>
+                                    <span className={styles.modalText}>
+                                        Are you sure you wish to close the document?
+                                    </span>
+                                </FlexRow>
+                            </ScrollBars>
+                            <ModalFooter cx={styles.modalFooter}>
+                                <FlexRow spacing="12" cx={styles.buttonRow}>
+                                    <Button
+                                        fill="white"
+                                        color="sky"
+                                        caption="Cancel"
+                                        onClick={() => setIsModalOpen(false)}
+                                        cx={styles.cancelButton}
+                                    />
+                                    <Button
+                                        fill="solid"
+                                        color="sky"
+                                        caption="Save Changes"
+                                        onClick={handleSaveAndLeave}
+                                        cx={styles.saveButton}
+                                    />
+                                    <Button
+                                        color="fire"
+                                        caption="Leave and Discard"
+                                        onClick={handleDiscardAndLeave}
+                                        cx={styles.discardButton}
+                                    />
+                                </FlexRow>
+                            </ModalFooter>
+                        </Panel>
+                    </ModalWindow>
+                </ModalBlocker>
             )}
         </Panel>
     );
