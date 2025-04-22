@@ -631,7 +631,7 @@ async def update_manual_job_status(
     If 'finished' > 0:
     - Set status to 'finished' if all tasks are done.
     - Set status to 'in_progress' if some tasks are done.
-    Otherwise, the job status remains unchanged.
+    Otherwise, the job status remains pending.
     """
     finished = response.get("finished")
     total = response.get("total")
@@ -661,6 +661,7 @@ async def handle_pipeline_driven_job(
     dag_run_id = f"{pipeline_id}:{job_id}"
     # To display progress for extraction jobs, response["total"] will always be 1. The value of response["finished"] will be either 0 or 1, indicating whether the pipeline has completed successfully.
     response["total"] = 1
+    response["finished"] = 0
 
     # Activate the pipeline if it’s not already active, this will ensure the pipeline is running.
     await activate_pipeline(pipeline_id, api_client)
@@ -668,21 +669,17 @@ async def handle_pipeline_driven_job(
     pipeline_status = await fetch_pipeline_status(pipeline_id, dag_run_id, api_client)
 
     new_state = Status.pending
-    pipeline_completion = 0
     if pipeline_status == AirflowPipelineStatus.success.value:
         new_state = Status.finished
-        pipeline_completion = 1
+        response["finished"] = 1
     elif pipeline_status == AirflowPipelineStatus.failed.value:
         new_state = Status.failed
-        pipeline_completion = 0
     elif pipeline_status == AirflowPipelineStatus.running.value:
         new_state = Status.in_progress
-        pipeline_completion = 0
     else:
         logger.warning(f"Unexpected pipeline status '{pipeline_status}' for job {job_id}")
 
     db_service.update_job_status(session, job, new_state)
-    response["finished"] = pipeline_completion
 
 async def fetch_pipeline_status(
     pipeline_id: str,

@@ -565,8 +565,8 @@ async def test_execute_pipeline_positive(jw_token):
 
 
 @pytest.mark.parametrize(
-    "dag_status, expected_progress",
-    [
+    ("dag_status", "expected_progress"),
+    (
         (
             AirflowPipelineStatus.success.value,
             {"total": 1, "finished": 1, "mode": str(JobMode.Automatic)},
@@ -575,14 +575,14 @@ async def test_execute_pipeline_positive(jw_token):
             AirflowPipelineStatus.failed.value,
             {"total": 1, "finished": 0, "mode": str(JobMode.Automatic)},
         ),
-    ],
+    ),
 )
 async def test_get_extraction_job_progress_states(
     jw_token: str,
     monkeypatch: MonkeyPatch,
     dag_status: AirflowPipelineStatus,
     expected_progress: Dict[str, any],
-):
+) -> None:
     def get_job_in_db_by_id_side_effect(*args, **kwargs):
         job = MagicMock()
         job.id = 99
@@ -616,8 +616,8 @@ async def test_get_extraction_job_progress_states(
 
 
 @pytest.mark.parametrize(
-    "job_mode, job_type, fetch_result, expected_progress",
-    [
+    ("job_mode", "job_type", "fetch_result", "expected_progress"),
+    (
         (
             JobMode.Manual,
             JobType.AnnotationJob,
@@ -642,7 +642,7 @@ async def test_get_extraction_job_progress_states(
             {"total": 3, "finished": 2},
             {"total": 3, "finished": 2, "mode": str(JobMode.Automatic)},
         ),
-    ],
+    ),
 )
 async def test_get_job_progress_states(
     jw_token: str,
@@ -651,7 +651,7 @@ async def test_get_job_progress_states(
     job_type: JobType,
     fetch_result: Dict[str, int],
     expected_progress: Dict[str, any],
-):
+) -> None:
     "Annotation and ExtractionAnnotation jobs tests"
     def get_job_in_db_by_id_side_effect(*args, **kwargs):
         job = MagicMock()

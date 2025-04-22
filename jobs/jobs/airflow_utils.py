@@ -79,17 +79,16 @@ async def fetch_dag_status(
         api_instance = DAGRunApi(api_client)
         api_response = api_instance.get_dag_run(dag_id, dag_run_id)
         dag_state = api_response.state.value
-
     except ApiException as err:
         raise RuntimeError(f"Error fetching DAG run status. Job id: {dag_id}") from err
     except (ValueError, TypeError, AttributeError) as err:
         raise RuntimeError(f"Error ApiClient incorrectly configured. DAG id: {dag_id}") from err
 
-    if dag_state in [
+    if dag_state in (
         AirflowPipelineStatus.success.value,
         AirflowPipelineStatus.failed.value,
         AirflowPipelineStatus.running.value,
-    ]:
+    ):
         return dag_state
 
     raise RuntimeError(f"Unexpected DAG run state: {dag_state}")
