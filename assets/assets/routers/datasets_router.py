@@ -14,7 +14,7 @@ router = fastapi.APIRouter(prefix="/datasets", tags=["datasets"])
 
 @router.post(
     "/search",
-    response_model=Union[filter_lib.Page[schemas.DatasetResponse], filter_lib.Page[Any]],  # type: ignore
+    response_model=filter_lib.Page[schemas.DatasetResponse],  # type: ignore
     name="searches for datasets",
 )
 async def search_datasets(
@@ -129,7 +129,7 @@ async def delete_dataset(
 
 @router.post(
     "/{dataset}/files/search",
-    response_model=Union[filter_lib.Page[schemas.FileResponse], filter_lib.Page[Any]],  # type: ignore
+    response_model=filter_lib.Page[schemas.FileResponse],  # type: ignore
     name="searches for files inside selected dataset",
 )
 async def get_files_by_dataset(
