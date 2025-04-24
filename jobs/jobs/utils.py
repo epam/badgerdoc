@@ -877,16 +877,6 @@ async def validate_create_job_files(
         )
 
 
-async def validate_create_job_name(db: Session, job_name: str):
-    """Check if the job name is already taken"""
-    existing_jobs_by_name = db_service.get_jobs_by_name(db, job_name)
-    if len(existing_jobs_by_name) > 0:
-        raise fastapi.HTTPException(
-            status_code=fastapi.status.HTTP_400_BAD_REQUEST,
-            detail=f"The job name '{job_name}' is already being used",
-        )
-
-
 async def validate_create_job_previous_jobs(
     db: Session, previous_jobs_ids: List[int]
 ) -> List[int]:
