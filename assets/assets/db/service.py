@@ -162,7 +162,7 @@ def get_files_in_dataset_query(
     query = (
         session.query(FileObject)
         .options(selectinload(FileObject.datasets))
-        .join(Association, Datasets)
+        .join(FileObject.datasets)
         .filter(Datasets.name == dataset)
     )
     query, pag = form_query(filter_args, query)
@@ -186,7 +186,7 @@ def is_bounded(
 ) -> Optional[FileObject]:
     bond = (
         session.query(FileObject)
-        .join(Association, Datasets)
+        .join(FileObject.datasets)
         .options(load_only(FileObject.id))
         .filter(FileObject.id == file_id, Datasets.name == ds_name)
         .first()
@@ -249,7 +249,7 @@ def get_all_files_by_ds_id(session: Session, ds_id: int) -> Query:
     query = (
         session.query(FileObject)
         .options(selectinload(FileObject.datasets))
-        .join(Association, Datasets)
+        .join(FileObject.datasets)
         .filter(Datasets.id == ds_id)
     )
     return query
