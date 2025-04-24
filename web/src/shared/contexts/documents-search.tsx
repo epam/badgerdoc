@@ -6,6 +6,7 @@ import { noop } from 'lodash';
 import { FacetFilter } from 'api/typings/search';
 import { DocumentView, FileDocument } from 'api/typings';
 import { Breadcrumbs } from 'api/typings/documents';
+import { SortingDirection } from 'api/typings';
 
 type DocumentsSearchContext = {
     query: string;
@@ -13,10 +14,12 @@ type DocumentsSearchContext = {
     documentView: DocumentView;
     breadcrumbs: Breadcrumbs[];
     documentsSort: string;
+    documentsSortOrder: SortingDirection;
     setQuery: (query: string) => void;
     setFacetFilter: (facetFilter: any) => void;
     setDocumentView: (view: DocumentView) => void;
     setDocumentsSort: (view: DocumentView) => void;
+    toggleSortOrder: () => void;
 };
 
 const defaultFacetFilters = {
@@ -44,10 +47,12 @@ export const DocumentsSearch = React.createContext<DocumentsSearchContext>({
     documentView: 'card',
     breadcrumbs: [],
     documentsSort: '',
+    documentsSortOrder: SortingDirection.ASC,
     setQuery: noop,
     setFacetFilter: noop,
     setDocumentView: noop,
-    setDocumentsSort: noop
+    setDocumentsSort: noop,
+    toggleSortOrder: noop
 });
 
 export const DocumentsSearchProvider: FC = ({ children }) => {
@@ -58,6 +63,9 @@ export const DocumentsSearchProvider: FC = ({ children }) => {
     const [breadcrumbs, setBreadcrumbs] = useState<Breadcrumbs[]>([]);
     const [documentsSort, setDocumentsSort] = useState<string | keyof FileDocument>(
         'last_modified'
+    );
+    const [sortOrder, setSortOrder] = useState<SortingDirection>(
+        'asc' as SortingDirection
     );
 
     const isDocuments = history.location.pathname === '/documents';
@@ -92,10 +100,18 @@ export const DocumentsSearchProvider: FC = ({ children }) => {
         history.push({ search: url });
     };
 
+    const toggleSortOrder = () => {
+        setSortOrder(prev => {
+            if (prev === SortingDirection.ASC) return SortingDirection.DESC;
+            return SortingDirection.ASC;
+        })
+    }
+
     useEffect(() => {
         if (isDocuments) {
             setBreadcrumbs(documentsBreadcrumbs);
             setDocumentsSort('last_modified');
+            setSortOrder(SortingDirection.ASC)
             setQuery('');
         }
         if (isSearch) {
@@ -116,11 +132,13 @@ export const DocumentsSearchProvider: FC = ({ children }) => {
             documentView,
             breadcrumbs,
             documentsSort,
+            documentsSortOrder: sortOrder,
             setQuery,
             setFacetFilter,
             setDocumentView,
-            setDocumentsSort
+            setDocumentsSort,
+            toggleSortOrder
         };
-    }, [query, facetFilter, documentView, breadcrumbs, documentsSort]);
+    }, [query, facetFilter, documentView, breadcrumbs, documentsSort, sortOrder]);
     return <DocumentsSearch.Provider value={value}>{children}</DocumentsSearch.Provider>;
 };
