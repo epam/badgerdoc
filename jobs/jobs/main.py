@@ -61,8 +61,6 @@ async def create_job(
     logger.info("Create job with job_params: %s", job_params)
     jw_token = token_data.token
 
-    await utils.validate_create_job_name(db, job_params.name)
-
     if len(job_params.files) > 0:
         await utils.validate_create_job_files(
             job_params.files, current_tenant, jw_token
