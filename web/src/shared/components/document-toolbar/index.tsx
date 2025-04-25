@@ -1,4 +1,4 @@
-import { FC, SetStateAction, useCallback } from 'react';
+import { FC, SetStateAction, useCallback, useEffect, useState } from 'react';
 import { FlexRow } from '@epam/uui-components';
 import { Button, PickerInput } from '@epam/loveship';
 import styles from './styles.module.scss';
@@ -25,6 +25,27 @@ export const DocumentToolbar: FC<TDocumentToolbar> = ({
     const { currentOrderPageNumber, pageNumbers, onCurrentPageChange } = useTaskAnnotatorContext();
     const isLastPage = currentOrderPageNumber === countOfPages - 1;
     const isFirstPage = currentOrderPageNumber === 0;
+    const [pageInputValue, setPageInputValue] = useState(String(currentOrderPageNumber + 1));
+
+    useEffect(() => {
+        setPageInputValue(String(currentOrderPageNumber + 1));
+    }, [currentOrderPageNumber]);
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            const pageNumber = parseInt(pageInputValue, 10);
+            if (!isNaN(pageNumber) && pageNumber >= 1 && pageNumber <= countOfPages) {
+                onPickerValueChange(pageNumber);
+                setPageInputValue(String(pageNumber));
+            } else {
+                setPageInputValue(String(currentOrderPageNumber + 1));
+            }
+        }
+    };
+
+    const handlePageInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setPageInputValue(e.target.value);
+    };
 
     const pagesDataSource = useArrayDataSource(
         {
@@ -70,6 +91,14 @@ export const DocumentToolbar: FC<TDocumentToolbar> = ({
                     getName={(item) => String(item)}
                     selectionMode="single"
                     disableClear={true}
+                    searchPosition="input"
+                    valueType="id"
+                    rawProps={{
+                        input: {
+                            onChange: handlePageInputChange,
+                            onKeyDown: handleKeyDown
+                        }
+                    }}
                 />
                 <FlexRow>
                     <span>of {countOfPages}</span>
