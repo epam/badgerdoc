@@ -41,11 +41,8 @@ def get_configuration():
 
 def get_api_instance():
     configuration = get_configuration()
-    api_client = client.ApiClient(configuration)
-    try:
+    with client.ApiClient(configuration) as api_client:
         yield api_client
-    finally:
-        api_client.close()
 
 
 async def get_dags() -> List[pipeline.AnyPipeline]:
