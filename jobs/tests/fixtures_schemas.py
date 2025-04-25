@@ -61,9 +61,10 @@ def mock_AnnotationJobParams2():
     return mockAnnotationJobParams2
 
 
-
 @pytest.fixture
-def mock_extraction_annotation_job_params() -> Generator[schemas.ExtractionWithAnnotationJobParams, None, None]:
+def mock_extraction_annotation_job_params() -> (
+    Generator[schemas.ExtractionWithAnnotationJobParams, None, None]
+):
     yield schemas.ExtractionWithAnnotationJobParams(
         name="MockExtractionWithAnnotationJob",
         files=[1, 2],

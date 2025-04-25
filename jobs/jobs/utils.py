@@ -30,8 +30,8 @@ from jobs.schemas import (
     AnnotationJobUpdateParamsInAnnotation,
     CategoryLinkInput,
     CategoryLinkParams,
-    JobType,
     JobParamsToChange,
+    JobType,
     Status,
 )
 
@@ -469,7 +469,7 @@ async def execute_in_annotation_microservice(
 
 
 def delete_duplicates(
-    files_data: List[Dict[str, Any]]
+    files_data: List[Dict[str, Any]],
 ) -> List[Dict[str, Any]]:
     """Delete duplicates"""
     used_file_ids = set()
@@ -584,7 +584,7 @@ async def get_job_progress(
             status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=f"Failed request to the Annotation Manager: {err}",
         )
-    
+
     response.update({"mode": str(job.mode)})
 
     if job.type in (
@@ -592,7 +592,9 @@ async def get_job_progress(
         JobType.ExtractionJob,
         JobType.ExtractionWithAnnotationJob,
     ):
-        await update_job_status_by_type(session, job, response, job_id, api_client)
+        await update_job_status_by_type(
+            session, job, response, job_id, api_client
+        )
         return response
 
     logger.warning(
@@ -613,11 +615,11 @@ async def update_job_status_by_type(
 
     if job_type in (
         JobType.AnnotationJob,
-        JobType.ExtractionWithAnnotationJob
+        JobType.ExtractionWithAnnotationJob,
     ):
         await update_manual_job_status(session, job, response)
-    
-    else: # JobType.ExtractionJob
+
+    else:  # JobType.ExtractionJob
         await handle_pipeline_driven_job(
             session, job, response, job_id, api_client
         )
@@ -640,7 +642,9 @@ async def update_manual_job_status(
         logger.warning("Missing keys in response for job %s", job.id)
         return
 
-    if finished == 0: # If no tasks are completed, the job will remain in a pending state.
+    if (
+        finished == 0
+    ):  # If no tasks are completed, the job will remain in a pending state.
         return
 
     if finished == total:
@@ -666,7 +670,9 @@ async def handle_pipeline_driven_job(
     # Activate the pipeline if it’s not already active, this will ensure the pipeline is running.
     await activate_pipeline(pipeline_id, api_client)
 
-    pipeline_status = await fetch_pipeline_status(pipeline_id, dag_run_id, api_client)
+    pipeline_status = await fetch_pipeline_status(
+        pipeline_id, dag_run_id, api_client
+    )
 
     new_state = Status.pending
     if pipeline_status == AirflowPipelineStatus.success.value:
@@ -677,9 +683,12 @@ async def handle_pipeline_driven_job(
     elif pipeline_status == AirflowPipelineStatus.running.value:
         new_state = Status.in_progress
     else:
-        logger.warning(f"Unexpected pipeline status '{pipeline_status}' for job {job_id}")
+        logger.warning(
+            f"Unexpected pipeline status '{pipeline_status}' for job {job_id}"
+        )
 
     db_service.update_job_status(session, job, new_state)
+
 
 async def fetch_pipeline_status(
     pipeline_id: str,

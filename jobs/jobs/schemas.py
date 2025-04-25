@@ -26,6 +26,7 @@ class Status(str, Enum):
     ready_for_annotation = "Ready For Annotation"
     draft = "Draft"
 
+
 # There are other States but these are enough. Other States can be added here if needed.
 class AirflowPipelineStatus(str, Enum):
     running = "running"

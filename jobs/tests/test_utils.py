@@ -1,18 +1,15 @@
 from typing import Dict
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
-from sqlalchemy.orm import Session
-
 import aiohttp.client_exceptions
 import pytest
+from _pytest.monkeypatch import MonkeyPatch
 from fastapi import HTTPException
 
 import jobs.utils as utils
-from jobs.schemas import AirflowPipelineStatus, JobMode, JobParams, JobType, Status
+from jobs.schemas import AirflowPipelineStatus, JobMode, JobParams, JobType
 from tests.conftest import FakePipeline, patched_create_pre_signed_s3_url
 
-
-from _pytest.monkeypatch import MonkeyPatch
 # --------------TEST get_files_data_from_datasets---------------
 
 
@@ -599,9 +596,11 @@ async def test_get_extraction_job_progress_states(
 
     monkeypatch.setattr(utils.db_service, "update_job_status", Mock())
 
-    with patch("jobs.utils.fetch", return_value=(200, {"total": 0, "finished": 0})), \
-         patch("jobs.airflow_utils.activate_dag", return_value=None), \
-         patch("jobs.airflow_utils.fetch_dag_status", return_value=dag_status):
+    with patch(
+        "jobs.utils.fetch", return_value=(200, {"total": 0, "finished": 0})
+    ), patch("jobs.airflow_utils.activate_dag", return_value=None), patch(
+        "jobs.airflow_utils.fetch_dag_status", return_value=dag_status
+    ):
 
         progress = await utils.get_job_progress(
             job_id=99,
@@ -653,6 +652,7 @@ async def test_get_job_progress_states(
     expected_progress: Dict[str, any],
 ) -> None:
     "Annotation and ExtractionAnnotation jobs tests"
+
     def get_job_in_db_by_id_side_effect(*args, **kwargs):
         job = MagicMock()
         job.id = 17  # Dummy job ID

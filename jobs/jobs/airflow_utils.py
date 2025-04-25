@@ -1,9 +1,5 @@
-import asyncio
-from contextlib import contextmanager
 import dataclasses
-import logging
 import os
-import time
 from typing import Any, Dict, Iterator, List, Literal
 
 import airflow_client.client as client
@@ -12,7 +8,6 @@ from airflow_client.client.api.dag_run_api import DAGRunApi
 from airflow_client.client.model.dag import DAG
 from airflow_client.client.model.dag_run import DAGRun
 from airflow_client.client.rest import ApiException
-from fastapi import Depends
 
 import jobs.pipeline as pipeline
 from jobs.schemas import AirflowPipelineStatus
@@ -62,9 +57,13 @@ async def activate_dag(dag_id: str, api_client: client.ApiClient) -> None:
             updated_dag = DAG(is_paused=False)
             api_instance.patch_dag(dag_id, updated_dag)
     except ApiException as err:
-        raise RuntimeError(f"Failed to fetch or update DAG state. DAG id: {dag_id}") from err
-    except AttributeError:
-        raise RuntimeError(f"Error while passing attributes. DAG id: {dag_id}") from err
+        raise RuntimeError(
+            f"Failed to fetch or update DAG state. DAG id: {dag_id}"
+        ) from err
+    except AttributeError as err:
+        raise RuntimeError(
+            f"Error while passing attributes. DAG id: {dag_id}"
+        ) from err
 
 
 async def fetch_dag_status(
@@ -77,9 +76,13 @@ async def fetch_dag_status(
         api_response = api_instance.get_dag_run(dag_id, dag_run_id)
         dag_state = api_response.state.value
     except ApiException as err:
-        raise RuntimeError(f"Error fetching DAG run status. Job id: {dag_id}") from err
+        raise RuntimeError(
+            f"Error fetching DAG run status. Job id: {dag_id}"
+        ) from err
     except (ValueError, TypeError, AttributeError) as err:
-        raise RuntimeError(f"Error ApiClient incorrectly configured. DAG id: {dag_id}") from err
+        raise RuntimeError(
+            f"Error ApiClient incorrectly configured. DAG id: {dag_id}"
+        ) from err
 
     if dag_state in (
         AirflowPipelineStatus.success.value,

@@ -1,10 +1,10 @@
 import pytest
+from sqlalchemy.orm import Session
 
 import jobs.db_service as db_service
 import jobs.models as dbm
 import jobs.schemas as schemas
 
-from sqlalchemy.orm import Session
 
 @pytest.mark.skip(reason="tests refactoring")
 def test_check_connection(testing_session):
@@ -151,6 +151,7 @@ def create_mock_annotation_job_in_db(
         status=schemas.Status.pending,
     )
     return result
+
 
 @pytest.fixture
 def create_mock_annotation_extraction_job_in_db(
