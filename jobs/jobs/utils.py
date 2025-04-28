@@ -628,7 +628,7 @@ async def update_job_status_by_type(
 async def update_manual_job_status(
     session: Session, job: CombinedJob, response: Dict[str, int]
 ) -> None:
-    """Update the job status based on the number of completed tasks in the response.
+    """# Update job status based on completed tasks.
 
     If 'finished' > 0:
     - Set status to 'finished' if all tasks are done.
@@ -663,11 +663,11 @@ async def handle_pipeline_driven_job(
     """Handle Extraction jobs that depend on pipeline execution."""
     pipeline_id = job.pipeline_id
     dag_run_id = f"{pipeline_id}:{job_id}"
-    # To display progress for extraction jobs, response["total"] will always be 1. The value of response["finished"] will be either 0 or 1, indicating whether the pipeline has completed successfully.
+    # For extraction jobs, total is 1; finished is 0 or 1 to show completion.
     response["total"] = 1
     response["finished"] = 0
 
-    # Activate the pipeline if it’s not already active, this will ensure the pipeline is running.
+    # Activate pipeline if not already running.
     await activate_pipeline(pipeline_id, api_client)
 
     pipeline_status = await fetch_pipeline_status(

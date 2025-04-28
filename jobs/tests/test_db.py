@@ -156,13 +156,13 @@ def create_mock_annotation_job_in_db(
 @pytest.fixture
 def create_mock_annotation_extraction_job_in_db(
     testing_session: Session,
-    mock_extraction_annotation_job_params: schemas.ExtractionWithAnnotationJobParams,
+    mock_extract_annot_job_params: schemas.ExtractionWithAnnotationJobParams,
 ):
     """Creates a mock Extraction and Annotation job in the database."""
 
     yield db_service.create_extraction_annotation_job(
         db=testing_session,
-        extraction_annotation_job_input=mock_extraction_annotation_job_params,
+        extraction_annotation_job_input=mock_extract_annot_job_params,
         pipeline_id="1",
         pipeline_engine="airflow",
         valid_separate_files_ids=[1, 2],

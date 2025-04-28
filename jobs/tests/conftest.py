@@ -4,6 +4,8 @@ from typing import List, Literal
 from unittest.mock import patch
 
 import pytest
+from alembic import command
+from alembic.config import Config
 from fastapi.testclient import TestClient
 from pydantic import BaseModel
 from sqlalchemy import create_engine  # type: ignore
@@ -17,8 +19,6 @@ from sqlalchemy_utils import (  # type: ignore
 
 import jobs.db_service as service
 import jobs.main as main
-from alembic import command
-from alembic.config import Config
 from jobs import pipeline
 
 pytest_plugins = [
@@ -53,7 +53,12 @@ def use_temp_env_var():
 
 @pytest.fixture
 def test_db_url():
-    yield "postgresql+psycopg2://postgres:postgres@badgerdoc-postgresql:5432/test_db"
+    user = "postgres"
+    password = "postgres"
+    host = "badgerdoc-postgresql"
+    port = "5432"
+    db = "test_db"
+    yield f"postgresql+psycopg2://{user}:{password}@{host}:{port}/{db}"
 
 
 @pytest.fixture

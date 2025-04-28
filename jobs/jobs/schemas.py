@@ -27,7 +27,7 @@ class Status(str, Enum):
     draft = "Draft"
 
 
-# There are other States but these are enough. Other States can be added here if needed.
+# Other states exist but can be added if needed.
 class AirflowPipelineStatus(str, Enum):
     running = "running"
     queued = "queued"

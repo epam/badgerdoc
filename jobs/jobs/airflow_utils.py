@@ -1,6 +1,6 @@
 import dataclasses
 import os
-from typing import Any, Dict, Iterator, List, Literal
+from typing import Any, Dict, Iterator, List
 
 import airflow_client.client as client
 from airflow_client.client.api.dag_api import DAGApi
