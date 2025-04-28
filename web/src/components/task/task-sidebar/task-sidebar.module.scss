@@ -162,7 +162,6 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    // min-height: 100px;
     padding: 24px;
 }
 
@@ -178,18 +177,16 @@
 }
 
 .buttonRow {
-    justify-content: flex-end;
-    gap: 12px;
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
 }
 
-.cancelButton {
-    min-width: 100px;
-}
-
+.cancelButton,
 .saveButton {
-    min-width: 140px;
+    margin-left: 12px;
 }
 
 .discardButton {
-    min-width: 140px;
+    margin-right: auto;
 }

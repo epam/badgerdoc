@@ -238,16 +238,23 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
         return () => window.removeEventListener('beforeunload', handleBeforeUnload);
     }, [hasUnsavedChanges]);
 
-    const handleSaveAndLeave = async () => {
+    useEffect(() => {
+        if (!isModalOpen) {
+            setNextLocation(null);
+        }
+    }, [isModalOpen]);
+
+    const handleSaveAndExit = async () => {
         onSaveTask();
         setAllowNavigation(true);
         setIsModalOpen(false);
         if (nextLocation) {
             history.push(nextLocation.pathname);
+            setNextLocation(null);
         }
     };
 
-    const handleDiscardAndLeave = () => {
+    const handleExitWithoutSaving = () => {
         onClearTouchedPages();
         onClearModifiedPages();
         clearAnnotationsChanges();
@@ -255,6 +262,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
         setIsModalOpen(false);
         if (nextLocation) {
             history.push(nextLocation.pathname);
+            setNextLocation(null);
         }
     };
 
@@ -740,7 +748,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
                     blockerShadow="dark"
                     isActive={isModalOpen}
                     abort={() => setIsModalOpen(false)}
-                    success={() => {}}
+                    success={handleSaveAndExit}
                 >
                     <ModalWindow cx={styles.modalWindow}>
                         <Panel cx={styles.modalPanel}>
@@ -752,32 +760,36 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
                             <ScrollBars hasTopShadow hasBottomShadow>
                                 <FlexRow padding="24" cx={styles.modalContent}>
                                     <span className={styles.modalText}>
-                                        Are you sure you wish to close the document?
+                                        You have made changes on this page that haven’t been saved
+                                        yet. What would you like to do before leaving?
                                     </span>
                                 </FlexRow>
                             </ScrollBars>
                             <ModalFooter cx={styles.modalFooter}>
-                                <FlexRow spacing="12" cx={styles.buttonRow}>
+                                <FlexRow cx={styles.buttonRow}>
                                     <Button
-                                        fill="white"
-                                        color="sky"
-                                        caption="Cancel"
-                                        onClick={() => setIsModalOpen(false)}
-                                        cx={styles.cancelButton}
-                                    />
-                                    <Button
-                                        fill="solid"
-                                        color="sky"
-                                        caption="Save Changes"
-                                        onClick={handleSaveAndLeave}
-                                        cx={styles.saveButton}
-                                    />
-                                    <Button
+                                        fill="none"
                                         color="fire"
-                                        caption="Leave and Discard"
-                                        onClick={handleDiscardAndLeave}
+                                        caption="Exit Without Saving"
+                                        onClick={handleExitWithoutSaving}
                                         cx={styles.discardButton}
                                     />
+                                    <FlexRow spacing="12">
+                                        <Button
+                                            fill="white"
+                                            color="sky"
+                                            caption="Keep Editing"
+                                            onClick={() => setIsModalOpen(false)}
+                                            cx={styles.cancelButton}
+                                        />
+                                        <Button
+                                            fill="solid"
+                                            color="sky"
+                                            caption="Save & Exit"
+                                            onClick={handleSaveAndExit}
+                                            cx={styles.saveButton}
+                                        />
+                                    </FlexRow>
                                 </FlexRow>
                             </ModalFooter>
                         </Panel>
