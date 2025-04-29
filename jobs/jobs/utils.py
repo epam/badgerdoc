@@ -1,6 +1,7 @@
 from typing import Any, Dict, Generator, Iterator, List, Optional, Tuple, Union
 
 import aiohttp.client_exceptions
+import airflow_client.client as client
 import fastapi.encoders
 from sqlalchemy.orm import Session
 
@@ -25,11 +26,13 @@ from jobs.logger import logger
 from jobs.models import CombinedJob
 from jobs.s3 import create_pre_signed_s3_url
 from jobs.schemas import (
+    AirflowPipelineStatus,
     AnnotationJobUpdateParamsInAnnotation,
     CategoryLinkInput,
     CategoryLinkParams,
-    JobMode,
     JobParamsToChange,
+    JobType,
+    Status,
 )
 
 
@@ -466,7 +469,7 @@ async def execute_in_annotation_microservice(
 
 
 def delete_duplicates(
-    files_data: List[Dict[str, Any]]
+    files_data: List[Dict[str, Any]],
 ) -> List[Dict[str, Any]]:
     """Delete duplicates"""
     used_file_ids = set()
@@ -555,7 +558,11 @@ async def update_job_in_annotation(
 
 
 async def get_job_progress(
-    job_id: int, session: Session, current_tenant: Optional[str], jw_token: str
+    job_id: int,
+    session: Session,
+    current_tenant: Optional[str],
+    jw_token: str,
+    api_client: client.ApiClient,
 ) -> Optional[Dict[str, int]]:
     """Get progress of the job with 'job_id' from Pipelines
     or Annotation Manager depending on 'job_mode'."""
@@ -564,11 +571,7 @@ async def get_job_progress(
         logger.warning(f"job with id={job_id} not present in the database.")
         return None
 
-    url: str = ""
-    if job.mode == JobMode.Automatic:
-        url = f"{PIPELINES_SERVICE_HOST}/jobs/{job_id}/progress"
-    elif job.mode == JobMode.Manual:
-        url = f"{ANNOTATION_SERVICE_HOST}/jobs/{job_id}/progress"
+    url = f"{ANNOTATION_SERVICE_HOST}/jobs/{job_id}/progress"
     headers = {
         "X-Current-Tenant": current_tenant,
         "Authorization": f"Bearer: {jw_token}",
@@ -583,7 +586,141 @@ async def get_job_progress(
         )
 
     response.update({"mode": str(job.mode)})
-    return response  # type: ignore
+
+    if job.type in (
+        JobType.AnnotationJob,
+        JobType.ExtractionJob,
+        JobType.ExtractionWithAnnotationJob,
+    ):
+        await update_job_status_by_type(
+            session, job, response, job_id, api_client
+        )
+        return response
+
+    logger.warning(
+        f"Unknown job type: {job.type}, treating as manual by default."
+    )
+    await update_manual_job_status(session, job, response)
+    return response
+
+
+async def update_job_status_by_type(
+    session: Session,
+    job: CombinedJob,
+    response: Dict[str, int],
+    job_id: int,
+    api_client: client.ApiClient,
+) -> None:
+    job_type = job.type
+
+    if job_type in (
+        JobType.AnnotationJob,
+        JobType.ExtractionWithAnnotationJob,
+    ):
+        await update_manual_job_status(session, job, response)
+
+    else:  # JobType.ExtractionJob
+        await handle_pipeline_driven_job(
+            session, job, response, job_id, api_client
+        )
+
+
+async def update_manual_job_status(
+    session: Session, job: CombinedJob, response: Dict[str, int]
+) -> None:
+    """# Update job status based on completed tasks.
+
+    If 'finished' > 0:
+    - Set status to 'finished' if all tasks are done.
+    - Set status to 'in_progress' if some tasks are done.
+    Otherwise, the job status remains pending.
+    """
+    finished = response.get("finished")
+    total = response.get("total")
+
+    if finished is None or total is None:
+        logger.warning("Missing keys in response for job %s", job.id)
+        return
+
+    if (
+        finished == 0
+    ):  # If no tasks are completed, the job will remain in a pending state.
+        return
+
+    if finished == total:
+        db_service.update_job_status(session, job, Status.finished)
+    else:
+        db_service.update_job_status(session, job, Status.in_progress)
+
+
+async def handle_pipeline_driven_job(
+    session: Session,
+    job: CombinedJob,
+    response: Dict[str, int],
+    job_id: int,
+    api_client: client.ApiClient,
+) -> None:
+    """Handle Extraction jobs that depend on pipeline execution."""
+    pipeline_id = job.pipeline_id
+    dag_run_id = f"{pipeline_id}:{job_id}"
+    # For extraction jobs, total is 1; finished is 0 or 1 to show completion.
+    response["total"] = 1
+    response["finished"] = 0
+
+    # Activate pipeline if not already running.
+    await activate_pipeline(pipeline_id, api_client)
+
+    pipeline_status = await fetch_pipeline_status(
+        pipeline_id, dag_run_id, api_client
+    )
+
+    new_state = Status.pending
+    if pipeline_status == AirflowPipelineStatus.success.value:
+        new_state = Status.finished
+        response["finished"] = 1
+    elif pipeline_status == AirflowPipelineStatus.failed.value:
+        new_state = Status.failed
+    elif pipeline_status == AirflowPipelineStatus.running.value:
+        new_state = Status.in_progress
+    else:
+        logger.warning(
+            f"Unexpected pipeline status '{pipeline_status}' for job {job_id}"
+        )
+
+    db_service.update_job_status(session, job, new_state)
+
+
+async def fetch_pipeline_status(
+    pipeline_id: str,
+    dag_run_id: str,
+    api_client: client.ApiClient,
+) -> bool:
+    try:
+        result = await airflow_utils.fetch_dag_status(
+            pipeline_id,
+            dag_run_id,
+            api_client=api_client,
+        )
+    except RuntimeError as e:
+        logger.exception(
+            f"Runtime error occurred while fetching pipeline status: {e}"
+        )
+        raise fastapi.HTTPException(
+            status_code=500, detail="Failed to fetch pipeline status."
+        ) from e
+    return result
+
+
+async def activate_pipeline(
+    pipeline_id: str, api_client: client.ApiClient
+) -> None:
+    try:
+        await airflow_utils.activate_dag(pipeline_id, api_client)
+    except RuntimeError as e:
+        logger.exception(f"Failed to activate DAG: {e}")
+        raise fastapi.HTTPException(
+            status_code=500, detail="Failed to activate pipline"
+        ) from e
 
 
 async def fetch(

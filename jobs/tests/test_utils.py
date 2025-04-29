@@ -1,12 +1,14 @@
-from unittest.mock import AsyncMock, Mock, patch
+from typing import Dict
+from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
 import aiohttp.client_exceptions
 import pytest
+from _pytest.monkeypatch import MonkeyPatch
 from fastapi import HTTPException
 from tests.conftest import FakePipeline, patched_create_pre_signed_s3_url
 
 import jobs.utils as utils
-from jobs.schemas import JobParams, JobType
+from jobs.schemas import AirflowPipelineStatus, JobMode, JobParams, JobType
 
 # --------------TEST get_files_data_from_datasets---------------
 
@@ -554,6 +556,129 @@ async def test_execute_pipeline_positive(jw_token):
             )
             is None
         )
+
+
+# -------------------- TESTING job_progress -------------------------------
+
+
+@pytest.mark.parametrize(
+    ("dag_status", "expected_progress"),
+    (
+        (
+            AirflowPipelineStatus.success.value,
+            {"total": 1, "finished": 1, "mode": str(JobMode.Automatic)},
+        ),
+        (
+            AirflowPipelineStatus.failed.value,
+            {"total": 1, "finished": 0, "mode": str(JobMode.Automatic)},
+        ),
+    ),
+)
+async def test_get_extraction_job_progress_states(
+    jw_token: str,
+    monkeypatch: MonkeyPatch,
+    dag_status: AirflowPipelineStatus,
+    expected_progress: Dict[str, any],
+) -> None:
+    def get_job_in_db_by_id_side_effect(*args, **kwargs):
+        job = MagicMock()
+        job.id = 99
+        job.mode = JobMode.Automatic
+        job.type = JobType.ExtractionJob
+        job.pipeline_id = "pipeline_123"
+        return job
+
+    monkeypatch.setattr(
+        utils.db_service,
+        "get_job_in_db_by_id",
+        Mock(side_effect=get_job_in_db_by_id_side_effect),
+    )
+
+    monkeypatch.setattr(utils.db_service, "update_job_status", Mock())
+
+    with patch(
+        "jobs.utils.fetch", return_value=(200, {"total": 0, "finished": 0})
+    ), patch("jobs.airflow_utils.activate_dag", return_value=None), patch(
+        "jobs.airflow_utils.fetch_dag_status", return_value=dag_status
+    ):
+
+        progress = await utils.get_job_progress(
+            job_id=99,
+            session=Mock(),
+            current_tenant="test_tenant",
+            jw_token=jw_token,
+            api_client=Mock(),
+        )
+
+    assert progress == expected_progress
+    utils.db_service.update_job_status.assert_called_once()
+
+
+@pytest.mark.parametrize(
+    ("job_mode", "job_type", "fetch_result", "expected_progress"),
+    (
+        (
+            JobMode.Manual,
+            JobType.AnnotationJob,
+            {"total": 2, "finished": 2},
+            {"total": 2, "finished": 2, "mode": str(JobMode.Manual)},
+        ),
+        (
+            JobMode.Manual,
+            JobType.AnnotationJob,
+            {"total": 3, "finished": 2},
+            {"total": 3, "finished": 2, "mode": str(JobMode.Manual)},
+        ),
+        (
+            JobMode.Automatic,
+            JobType.ExtractionWithAnnotationJob,
+            {"total": 2, "finished": 2},
+            {"total": 2, "finished": 2, "mode": str(JobMode.Automatic)},
+        ),
+        (
+            JobMode.Automatic,
+            JobType.ExtractionWithAnnotationJob,
+            {"total": 3, "finished": 2},
+            {"total": 3, "finished": 2, "mode": str(JobMode.Automatic)},
+        ),
+    ),
+)
+async def test_get_job_progress_states(
+    jw_token: str,
+    monkeypatch: MonkeyPatch,
+    job_mode: JobMode,
+    job_type: JobType,
+    fetch_result: Dict[str, int],
+    expected_progress: Dict[str, any],
+) -> None:
+    "Annotation and ExtractionAnnotation jobs tests"
+
+    def get_job_in_db_by_id_side_effect(*args, **kwargs):
+        job = MagicMock()
+        job.id = 17  # Dummy job ID
+        job.mode = job_mode
+        job.type = job_type
+        return job
+
+    monkeypatch.setattr(
+        utils.db_service,
+        "get_job_in_db_by_id",
+        Mock(side_effect=get_job_in_db_by_id_side_effect),
+    )
+
+    monkeypatch.setattr(utils.db_service, "update_job_status", Mock())
+
+    with patch("jobs.utils.fetch", return_value=(200, fetch_result)):
+        progress = await utils.get_job_progress(
+            job_id=17,
+            session=Mock(),
+            current_tenant="test_tenant",
+            jw_token=jw_token,
+            api_client=Mock(),
+        )
+
+    assert progress == expected_progress
+    utils.db_service.update_job_status.assert_called_once()
 
 
 # -------------------- TESTING list_split -------------------------------

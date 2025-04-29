@@ -27,6 +27,14 @@ class Status(str, Enum):
     draft = "Draft"
 
 
+# Other states exist but can be added if needed.
+class AirflowPipelineStatus(str, Enum):
+    running = "running"
+    queued = "queued"
+    success = "success"
+    failed = "failed"
+
+
 class ValidationType(str, Enum):
     cross = "cross"
     hierarchical = "hierarchical"

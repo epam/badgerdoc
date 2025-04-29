@@ -3,6 +3,7 @@ import logging
 import os
 from typing import Any, Dict, List, Optional, Union
 
+import airflow_client.client as client
 from fastapi import Depends, FastAPI, Header, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from filter_lib import Page, form_query, map_request_to_filter, paginate
@@ -451,10 +452,13 @@ async def get_jobs_progress(
     session: Session = Depends(db_service.get_session),
     current_tenant: Optional[str] = Header(None, alias="X-Current-Tenant"),
     token_data: TenantData = Depends(tenant),
+    api_client: client.ApiClient = Depends(airflow_utils.get_api_instance),
 ) -> Dict[int, Dict[str, int]]:
     jw_token = token_data.token
     progress_tasks = [
-        utils.get_job_progress(job_id, session, current_tenant, jw_token)
+        utils.get_job_progress(
+            job_id, session, current_tenant, jw_token, api_client
+        )
         for job_id in job_ids
     ]
     jobs_progress = await asyncio.gather(*progress_tasks)
