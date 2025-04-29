@@ -1,7 +1,8 @@
 from enum import Enum
 from typing import List, Optional, Union
 
-from pydantic import BaseModel, constr
+from pydantic import StringConstraints, BaseModel
+from typing_extensions import Annotated
 
 
 class FieldRole(str, Enum):
@@ -47,10 +48,11 @@ class OperatorUserUserName(str, Enum):
 class FilterUserUserName(BaseModel):
     field: FieldUserUserName
     operator: OperatorUserUserName
-    value: constr(min_length=1)  # type: ignore
+    value: Annotated[str, StringConstraints(min_length=1)]  # type: ignore
 
 
 class Users(BaseModel):
     filters: Optional[
         List[Union[FilterUserUserName, FilterUserUserID, FilterRole]]
-    ]
+    ] = None
+

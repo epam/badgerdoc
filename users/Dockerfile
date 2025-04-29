@@ -1,4 +1,4 @@
-ARG base_image=818863528939.dkr.ecr.eu-central-1.amazonaws.com/badgerdoc/python_base:0.1.8
+ARG base_image=818863528939.dkr.ecr.eu-central-1.amazonaws.com/badgerdoc/python_base_3.12:0.2.0
 FROM ${base_image} as build
 
 WORKDIR /opt/users
@@ -13,7 +13,7 @@ RUN : \
 
 RUN : \
     && python3 -m pip install --upgrade pip \
-    && pip install poetry>=1.1.13 \
+    && pip install poetry>=1.7.1 \
     && poetry config virtualenvs.create false \
     && poetry install --no-root --only main \
     && :
