@@ -2,7 +2,7 @@ import datetime
 import enum
 from typing import List, Optional
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from assets.db.models import Datasets
 
@@ -49,19 +49,18 @@ class FileResponse(BaseModel):
     original_name: str
     bucket: str
     size_in_bytes: int
-    extension: Optional[str]
-    original_ext: Optional[str]
+    extension: Optional[str] = None
+    original_ext: Optional[str] = None
     content_type: str
-    pages: Optional[int]
+    pages: Optional[int] = None
     last_modified: datetime.datetime
     status: FileProcessingStatus
     path: str
     datasets: List[Dataset]
+    model_config = ConfigDict(from_attributes=True)
 
-    class Config:
-        orm_mode = True
-
-    @validator("datasets", pre=True)
+    @field_validator("datasets", mode="before")
+    @classmethod
     def validate_datasets(  # pylint: disable=E0213
         cls, v: Optional[List[Datasets]]
     ) -> List[dict]:
@@ -73,11 +72,9 @@ class FileResponse(BaseModel):
 class DatasetResponse(BaseModel):
     id: int
     name: str
-    count: Optional[int]
+    count: Optional[int] = None
     created: datetime.datetime
-
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class AssociationResponse(BaseModel):
@@ -87,7 +84,7 @@ class AssociationResponse(BaseModel):
 
 class ActionResponse(BaseModel):
     file_name: Optional[str] = None
-    id: Optional[int]
+    id: Optional[int] = None
     action: str
     status: bool
     message: str

@@ -1,5 +1,5 @@
 import datetime
-from typing import Any
+from typing import Any, Generator
 
 import pytest
 
@@ -59,3 +59,23 @@ def mock_AnnotationJobParams2():
         deadline=datetime.datetime.utcnow() + datetime.timedelta(days=1),
     )
     return mockAnnotationJobParams2
+
+
+@pytest.fixture
+def mock_extraction_annotation_job_params() -> (
+    Generator[schemas.ExtractionWithAnnotationJobParams, None, None]
+):
+    yield schemas.ExtractionWithAnnotationJobParams(
+        name="MockExtractionWithAnnotationJob",
+        files=[1, 2],
+        datasets=[1, 2],
+        pipeline_name="1",
+        pipeline_engine="Airflow",
+        annotators=["annotator1", "annotator2"],
+        validators=["validator1", "validator2"],
+        owners=["owner1"],
+        categories=["category1", "category2"],
+        is_auto_distribution=False,
+        deadline=datetime.datetime.utcnow() + datetime.timedelta(days=1),
+        validation_type="cross",
+    )

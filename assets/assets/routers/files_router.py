@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 @router.post(
     "/search",
-    response_model=Union[filter_lib.Page[schemas.FileResponse], filter_lib.Page[Any]],  # type: ignore
+    response_model=filter_lib.Page[schemas.FileResponse],  # type: ignore
     name="searches for files",
 )
 async def search_files(

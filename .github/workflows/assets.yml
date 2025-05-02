@@ -13,7 +13,7 @@ jobs:
   linters:
     strategy:
       matrix:
-        python-version: ["3.8.15"]
+        python-version: ["3.12.1"]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.8.15"]
+        python-version: ["3.12.1"]
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
@@ -40,11 +40,11 @@ jobs:
           python -m pip install --upgrade pip
           cd assets
           sudo apt-get update && sudo apt-get -y install poppler-utils
-          pip install poetry>=1.1.13
+          pip install poetry>=1.7.1
           poetry install --no-root --no-interaction
-          poetry add ../lib/filter_lib
-          poetry add ../lib/tenants
-          poetry add ../lib/badgerdoc_storage
+          poetry add ../lib/python3.12/filter_lib
+          poetry add ../lib/python3.12/tenants
+          poetry add ../lib/python3.12/badgerdoc_storage
       - name: Test with pytest
         run: |
           cd assets

@@ -53,7 +53,12 @@ def use_temp_env_var():
 
 @pytest.fixture
 def test_db_url():
-    yield "postgresql+psycopg2://admin:admin@localhost:5432/test_db"
+    user = "postgres"
+    password = "postgres"
+    host = "badgerdoc-postgresql"
+    port = "5432"
+    db = "test_db"
+    yield f"postgresql+psycopg2://{user}:{password}@{host}:{port}/{db}"
 
 
 @pytest.fixture

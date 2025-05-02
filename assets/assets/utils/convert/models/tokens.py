@@ -20,13 +20,13 @@ class BadgerdocToken(BaseModel):
 
 
 class PageSize(BaseModel):
-    width: float = Field(..., example=200.0)
-    height: float = Field(..., example=300.0)
+    width: float = Field(..., examples=[200.0])
+    height: float = Field(..., examples=[300.0])
 
 
 class Page(BaseModel):
     """A model for the field with bboxes."""
 
-    page_num: int = Field(..., example=1)
+    page_num: int = Field(..., examples=[1])
     size: PageSize
     objs: List[BadgerdocToken]

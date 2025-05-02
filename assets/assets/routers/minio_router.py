@@ -11,7 +11,9 @@ router = fastapi.APIRouter(tags=["minio"])
 
 
 @router.get(
-    "/download", name="gets file from minio with original content-type"
+    "/download",
+    name="gets file from minio with original content-type",
+    response_model=None,
 )
 async def get_from_minio(
     file_id: int,
