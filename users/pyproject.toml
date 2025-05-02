@@ -6,14 +6,14 @@ authors = ["BadgerDoc team"]
 
 [tool.poetry.dependencies]
 python = "^3.12.1"
-fastapi = "^0.115.0"
+fastapi = "^0.105.0"
 aiohttp = "^3.8.1"
 requests = "^2.26.0"
 uvicorn = "^0.34.0"
 python-dotenv = "^0.19.1"
 python-multipart = "0.0.19"
 minio = "^7.1.0"
-cryptography = "^37.0.0"
+cryptography = "44.0.1"
 email-validator = "*"
 apscheduler = "^3.9.1"
 pyjwt = "^2.6.0"

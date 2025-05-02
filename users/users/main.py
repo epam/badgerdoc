@@ -115,7 +115,7 @@ async def refresh_token(
     return await kc_query.get_token_v2(realm, request_data)
 
 
-@app.post("/user/registration", status_code=201, tags=["users"])
+@app.post("/users/registration", status_code=201, tags=["users"])
 async def user_registration(
     email: str,
     token: TenantData = Depends(tenant),
@@ -143,7 +143,7 @@ async def user_registration(
 
 
 @app.get(
-    "/user/current",
+    "/users/current",
     status_code=200,
     response_model=kc_schemas.User,
     tags=["users"],
@@ -157,7 +157,7 @@ async def get_user_data_from_jwt(
     return await kc_query.get_user(realm, token.token, token.user_id)
 
 
-@app.get("/user/current_v2", status_code=200, tags=["users"])
+@app.get("/users/current_v2", status_code=200, tags=["users"])
 async def get_user_info_from_token_introspection(
     token: TenantData = Depends(tenant),
     current_tenant: Optional[str] = Header(None, alias="X-Current-Tenant"),
@@ -167,7 +167,7 @@ async def get_user_info_from_token_introspection(
 
 
 @app.get(
-    "/user/{user_id}",
+    "/users/{user_id}",
     status_code=200,
     response_model=kc_schemas.User,
     tags=["users"],
@@ -262,7 +262,7 @@ async def remove_user_from_tenant(
     return {"detail": "User has been removed from the tenant"}
 
 
-@app.post("/user/search", tags=["users"])
+@app.post("/users/search", tags=["users"])
 async def get_users_by_filter(
     users: Users,
     token: TenantData = Depends(tenant),
