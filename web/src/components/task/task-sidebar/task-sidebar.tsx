@@ -51,8 +51,7 @@ import { handleCopy } from 'shared/helpers/copy-text';
 import { getSaveButtonTooltipContent } from './utils';
 import styles from './task-sidebar.module.scss';
 import { useHistory, useLocation, Prompt } from 'react-router-dom';
-/* eslint-disable @typescript-eslint/no-redeclare */
-import { Location } from 'history';
+import { Location as HistoryLocation } from 'history';
 
 type TaskSidebarProps = {
     jobSettings?: ReactElement;
@@ -68,7 +67,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
     const [tableModeValues, setTableModeValues] = useState<string>('');
     const [boundModeSwitch, setBoundModeSwitch] = useState<AnnotationBoundMode>('box');
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [nextLocation, setNextLocation] = useState<Location | null>(null);
+    const [nextLocation, setNextLocation] = useState<HistoryLocation | null>(null);
     const [allowNavigation, setAllowNavigation] = useState(false);
 
     const history = useHistory();
@@ -221,9 +220,8 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
     const hasUnsavedChanges = !isSaveButtonDisabled;
 
     useEffect(() => {
-        if (allowNavigation) {
-            setAllowNavigation(false);
-        }
+        if (!allowNavigation) return;
+        setAllowNavigation(false);
     }, [location]);
 
     useEffect(() => {
@@ -452,7 +450,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
         <Panel cx={styles.wrapper}>
             <Prompt
                 when={hasUnsavedChanges && !allowNavigation}
-                message={(location: Location) => {
+                message={(location: HistoryLocation) => {
                     setNextLocation(location);
                     setIsModalOpen(true);
                     return false;
