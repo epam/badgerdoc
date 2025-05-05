@@ -1,7 +1,7 @@
 import enum
 from typing import Any, Generic, List, Optional, Sequence, Type, TypeVar
 
-from pydantic import field_validator, model_validator, BaseModel, Field
+from pydantic import BaseModel, Field, field_validator, model_validator
 from sqlalchemy.ext.declarative import DeclarativeMeta
 
 from .enum_generator import get_enum_from_orm
@@ -118,7 +118,7 @@ class Page(BaseModel, Generic[TypeC]):
     @field_validator("data", mode="before")
     @classmethod
     def custom_validator(  # pylint: disable=no-self-argument
-            cls, v: Any
+        cls, v: Any
     ) -> Any:
         """Custom validator applied to data in case of using 'distinct'
         statement and getting result as 'sqlalchemy.util._collections.result'
@@ -166,9 +166,9 @@ class Page(BaseModel, Generic[TypeC]):
 
 
 def create_filter_model(
-        model: Type[DeclarativeMeta],
-        exclude: Optional[List[str]] = None,
-        include: Optional[List[str]] = None,
+    model: Type[DeclarativeMeta],
+    exclude: Optional[List[str]] = None,
+    include: Optional[List[str]] = None,
 ) -> Type[_BadgerdocSearch]:  # type: ignore
     enum_orm_fields = get_enum_from_orm(
         model, exclude=exclude, include=include
