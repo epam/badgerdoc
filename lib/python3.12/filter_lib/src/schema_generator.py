@@ -1,7 +1,7 @@
 import enum
 from typing import Any, Generic, List, Optional, Sequence, Type, TypeVar
 
-from pydantic import BaseModel, Field, root_validator, validator
+from pydantic import field_validator, model_validator, BaseModel, Field
 from sqlalchemy.ext.declarative import DeclarativeMeta
 
 from .enum_generator import get_enum_from_orm
@@ -50,7 +50,7 @@ class _FilterPagesize(enum.IntEnum):
 class _Filters(BaseModel, Generic[TypeT]):
     field: TypeT
     operator: _FilterOperations
-    value: Any
+    value: Any = None
 
 
 class _Sorts(BaseModel, Generic[TypeT]):
@@ -63,7 +63,8 @@ class Pagination(BaseModel):
     page_offset: Optional[int] = Field(None, ge=0, le=100)
     page_size: _FilterPagesize
 
-    @root_validator(skip_on_failure=True)
+    @model_validator(mode="before")
+    @classmethod
     def root_validate(  # pylint: disable=no-self-argument
         cls, values: Any
     ) -> Any:
@@ -84,9 +85,10 @@ class Pagination(BaseModel):
 
 
 class BaseSearch(BaseModel):
-    pagination: Optional[Pagination]
+    pagination: Optional[Pagination] = None
 
-    @root_validator(skip_on_failure=True)
+    @model_validator(mode="before")
+    @classmethod
     def root_validate(  # pylint: disable=no-self-argument
         cls, values: Any
     ) -> Any:
@@ -96,8 +98,8 @@ class BaseSearch(BaseModel):
 
 
 class _BadgerdocSearch(BaseSearch, Generic[TypeT]):
-    filters: Optional[List[_Filters[TypeT]]]
-    sorting: Optional[List[_Sorts[TypeT]]]
+    filters: Optional[List[_Filters[TypeT]]] = None
+    sorting: Optional[List[_Sorts[TypeT]]] = None
 
 
 class PaginationOut(BaseModel):
@@ -113,9 +115,10 @@ class Page(BaseModel, Generic[TypeC]):
     pagination: PaginationOut
     data: Sequence[TypeC]
 
-    @validator("data")
+    @field_validator("data", mode="before")
+    @classmethod
     def custom_validator(  # pylint: disable=no-self-argument
-        cls, v: Any
+            cls, v: Any
     ) -> Any:
         """Custom validator applied to data in case of using 'distinct'
         statement and getting result as 'sqlalchemy.util._collections.result'
@@ -163,9 +166,9 @@ class Page(BaseModel, Generic[TypeC]):
 
 
 def create_filter_model(
-    model: Type[DeclarativeMeta],
-    exclude: Optional[List[str]] = None,
-    include: Optional[List[str]] = None,
+        model: Type[DeclarativeMeta],
+        exclude: Optional[List[str]] = None,
+        include: Optional[List[str]] = None,
 ) -> Type[_BadgerdocSearch]:  # type: ignore
     enum_orm_fields = get_enum_from_orm(
         model, exclude=exclude, include=include
