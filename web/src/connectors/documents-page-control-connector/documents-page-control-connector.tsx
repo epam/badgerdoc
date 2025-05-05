@@ -12,6 +12,7 @@ import {
     MultiSwitch,
     UploadFileToggler
 } from '@epam/loveship';
+import { SortIcon } from 'icons/sort-icon/sort-icon'
 import { useHistory } from 'react-router-dom';
 import { useArrayDataSource } from '@epam/uui';
 import { getError } from 'shared/helpers/get-error';
@@ -68,9 +69,11 @@ export const DocumentsPageControlConnector = ({
         documentView,
         breadcrumbs,
         documentsSort,
+        documentsSortOrder,
         setQuery,
         setDocumentView,
-        setDocumentsSort
+        setDocumentsSort,
+        toggleSortOrder
     } = useContext(DocumentsSearch);
 
     const isCard = documentView === 'card';
@@ -169,6 +172,7 @@ export const DocumentsPageControlConnector = ({
                             selectionMode="single"
                             valueType={'id'}
                         />
+                        <SortIcon sortDirection={documentsSortOrder} handleSorting={toggleSortOrder} />
                     </FlexRow>
                 )}
                 <FlexRow>

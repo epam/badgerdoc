@@ -75,6 +75,7 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
         setFilters,
         filters
     } = usePageTable<FileDocument>('last_modified');
+
     const { documentView, documentsSort, query, selectedFiles, setSelectedFiles } =
         useContext(DocumentsSearch);
     const svc = useUuiContext();
@@ -172,7 +173,7 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
             sortConfig: isTableView
                 ? sortConfig
                 : {
-                      direction: SortingDirection.DESC,
+                      direction: documentsSortOrder,
                       field: documentsSort as keyof FileDocument
                   }
         },

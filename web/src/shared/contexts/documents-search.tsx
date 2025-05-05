@@ -6,6 +6,7 @@ import { noop } from 'lodash';
 import { FacetFilter } from 'api/typings/search';
 import { DocumentView, FileDocument } from 'api/typings';
 import { Breadcrumbs } from 'api/typings/documents';
+import { SortingDirection } from 'api/typings';
 
 type DocumentsSearchContext = {
     query: string;
@@ -13,6 +14,7 @@ type DocumentsSearchContext = {
     documentView: DocumentView;
     breadcrumbs: Breadcrumbs[];
     documentsSort: string;
+
     selectedFiles: number[];
     setQuery: (query: string) => void;
     setFacetFilter: (facetFilter: any) => void;
@@ -63,8 +65,8 @@ export const DocumentsSearchProvider: FC = ({ children }) => {
     const [documentsSort, setDocumentsSort] = useState<string | keyof FileDocument>(
         'last_modified'
     );
-    const [selectedFiles, setSelectedFiles] = useState<number[]>([]);
 
+    const [selectedFiles, setSelectedFiles] = useState<number[]>([]);
     const isDocuments = history.location.pathname === '/documents';
     const isSearch = history.location.pathname === '/documents/search';
 
@@ -97,10 +99,18 @@ export const DocumentsSearchProvider: FC = ({ children }) => {
         history.push({ search: url });
     };
 
+    const toggleSortOrder = () => {
+        setSortOrder(prev => {
+            if (prev === SortingDirection.ASC) return SortingDirection.DESC;
+            return SortingDirection.ASC;
+        })
+    }
+
     useEffect(() => {
         if (isDocuments) {
             setBreadcrumbs(documentsBreadcrumbs);
             setDocumentsSort('last_modified');
+            setSortOrder(SortingDirection.ASC)
             setQuery('');
             setSelectedFiles([]);
         }
