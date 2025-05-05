@@ -13,10 +13,12 @@ type DocumentsSearchContext = {
     documentView: DocumentView;
     breadcrumbs: Breadcrumbs[];
     documentsSort: string;
+    selectedFiles: number[];
     setQuery: (query: string) => void;
     setFacetFilter: (facetFilter: any) => void;
     setDocumentView: (view: DocumentView) => void;
-    setDocumentsSort: (view: DocumentView) => void;
+    setDocumentsSort: (sort: string) => void;
+    setSelectedFiles: (files: number[]) => void;
 };
 
 const defaultFacetFilters = {
@@ -44,10 +46,12 @@ export const DocumentsSearch = React.createContext<DocumentsSearchContext>({
     documentView: 'card',
     breadcrumbs: [],
     documentsSort: '',
+    selectedFiles: [],
     setQuery: noop,
     setFacetFilter: noop,
     setDocumentView: noop,
-    setDocumentsSort: noop
+    setDocumentsSort: noop,
+    setSelectedFiles: noop
 });
 
 export const DocumentsSearchProvider: FC = ({ children }) => {
@@ -59,6 +63,7 @@ export const DocumentsSearchProvider: FC = ({ children }) => {
     const [documentsSort, setDocumentsSort] = useState<string | keyof FileDocument>(
         'last_modified'
     );
+    const [selectedFiles, setSelectedFiles] = useState<number[]>([]);
 
     const isDocuments = history.location.pathname === '/documents';
     const isSearch = history.location.pathname === '/documents/search';
@@ -97,11 +102,13 @@ export const DocumentsSearchProvider: FC = ({ children }) => {
             setBreadcrumbs(documentsBreadcrumbs);
             setDocumentsSort('last_modified');
             setQuery('');
+            setSelectedFiles([]);
         }
         if (isSearch) {
             setBreadcrumbs(searchBreadcrumbs);
             setDocumentsSort('relevancy');
             setQuery('');
+            setSelectedFiles([]);
         }
     }, [history.location.pathname]);
 
@@ -109,18 +116,26 @@ export const DocumentsSearchProvider: FC = ({ children }) => {
         if (isSearch) pushSearchUrl();
     }, [query, documentsSort, facetFilter]);
 
-    const value: DocumentsSearchContext = useMemo<DocumentsSearchContext>(() => {
-        return {
+    useEffect(() => {
+        setSelectedFiles([]);
+    }, [query, facetFilter]);
+
+    const value: DocumentsSearchContext = useMemo<DocumentsSearchContext>(
+        () => ({
             query,
             facetFilter,
             documentView,
             breadcrumbs,
             documentsSort,
+            selectedFiles,
             setQuery,
             setFacetFilter,
             setDocumentView,
-            setDocumentsSort
-        };
-    }, [query, facetFilter, documentView, breadcrumbs, documentsSort]);
+            setDocumentsSort,
+            setSelectedFiles
+        }),
+        [query, facetFilter, documentView, breadcrumbs, documentsSort, selectedFiles]
+    );
+
     return <DocumentsSearch.Provider value={value}>{children}</DocumentsSearch.Provider>;
 };

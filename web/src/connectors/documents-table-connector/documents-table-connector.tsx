@@ -19,7 +19,6 @@ import {
     SortingDirection
 } from '../../api/typings';
 import { useDeleteFilesMutation, useDocuments } from '../../api/hooks/documents';
-
 import { TableWrapper, usePageTable } from 'shared';
 import { pageSizes } from 'shared/primitives';
 import { documentColumns } from './documents-columns';
@@ -58,7 +57,6 @@ type DocumentsTableConnectorProps = {
 export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = ({
     dataset,
     onRowClick,
-    onFilesSelect,
     fileIds,
     isJobPage,
     handleJobAddClick,
@@ -77,14 +75,12 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
         setFilters,
         filters
     } = usePageTable<FileDocument>('last_modified');
-    const { checked } = tableValue;
-
-    const { documentView, documentsSort, query } = useContext(DocumentsSearch);
+    const { documentView, documentsSort, query, selectedFiles, setSelectedFiles } =
+        useContext(DocumentsSearch);
     const svc = useUuiContext();
     const mutation = useAddFilesToDatasetMutation();
     const deleteFilesMutation = useDeleteFilesMutation();
 
-    const [selectedFiles, setSelectedFiles] = useState<number[] | []>([]);
     const isTableView = isJobPage || documentView === 'table';
 
     const filtersRef = useRef(filters);
@@ -93,26 +89,22 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
     const [jobs, setJobs] = useState<FileJobs>();
 
     useEffect(() => {
-        if (fileIds) {
+        if (JSON.stringify(tableValue.checked) !== JSON.stringify(selectedFiles)) {
             onTableValueChange({
                 ...tableValue,
-                checked: fileIds
+                checked: selectedFiles
             });
         }
-    }, []);
-
-    useEffect(() => {
-        setSelectedFiles(checked || []);
-        if (onFilesSelect) {
-            onFilesSelect(checked as number[]);
-        }
-    }, [checked]);
-
-    useEffect(() => {
-        if (onFilesSelect) {
-            onFilesSelect(selectedFiles as number[]);
-        }
     }, [selectedFiles]);
+
+    useEffect(() => {
+        if (
+            tableValue.checked &&
+            JSON.stringify(tableValue.checked) !== JSON.stringify(selectedFiles)
+        ) {
+            setSelectedFiles(tableValue.checked as number[]);
+        }
+    }, [tableValue.checked]);
 
     useEffect(() => {
         if (!isJobPage) {
@@ -273,17 +265,9 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
     const handleSelectAllClick = () => {
         if (selectedFiles?.length) {
             setSelectedFiles([]);
-            onTableValueChange({
-                ...tableValue,
-                checked: []
-            });
         } else {
             const allFiles = files?.data.map((el) => el.id);
             setSelectedFiles(allFiles || []);
-            onTableValueChange({
-                ...tableValue,
-                checked: allFiles
-            });
         }
     };
 
