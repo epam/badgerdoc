@@ -50,7 +50,7 @@ class _FilterPagesize(enum.IntEnum):
 class _Filters(BaseModel, Generic[TypeT]):
     field: TypeT
     operator: _FilterOperations
-    value: Any = None
+    value: Any
 
 
 class _Sorts(BaseModel, Generic[TypeT]):
