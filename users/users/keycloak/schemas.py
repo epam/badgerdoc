@@ -6,7 +6,7 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Union
 
 from fastapi.security import OAuth2PasswordRequestForm
-from pydantic import ConfigDict, BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 logger = logging.getLogger(__name__)
 logger.setLevel(os.getenv("LOG_LEVEL", "INFO"))

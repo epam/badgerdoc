@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import List, Optional, Union
 
-from pydantic import StringConstraints, BaseModel
+from pydantic import BaseModel, StringConstraints
 from typing_extensions import Annotated
 
 

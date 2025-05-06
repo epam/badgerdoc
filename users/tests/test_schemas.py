@@ -1,4 +1,4 @@
-from users.schemas import Users
+from users.schemas import Users, FilterUserUserName, FieldUserUserName
 
 
 def test_users_schemas():
@@ -9,7 +9,9 @@ def test_users_schemas():
         ]
     )
 
-    assert users.filters == [
+    result_to_check = [f.model_dump(mode="json") for f in users.filters]
+
+    assert result_to_check == [
         {"field": "name", "operator": "like", "value": "h"},
         {"field": "role", "operator": "eq", "value": "role-annotator"},
     ]

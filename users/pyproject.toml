@@ -6,7 +6,7 @@ authors = ["BadgerDoc team"]
 
 [tool.poetry.dependencies]
 python = "^3.12.1"
-fastapi = "^0.105.0"
+fastapi = "^0.107.0"
 aiohttp = "^3.8.1"
 requests = "^2.26.0"
 uvicorn = "^0.34.0"
@@ -18,6 +18,7 @@ email-validator = "*"
 apscheduler = "^3.9.1"
 pyjwt = "^2.6.0"
 badgerdoc-storage = { path = "../lib/badgerdoc_storage" }
+httpx = "^0.26.0"
 
 [tool.poetry.group.dev.dependencies]
 isort = "^5.12.0"
