@@ -7,7 +7,7 @@ from users import config
 
 
 def extract_idp_data_needed(
-    identity_providers_data: List[Dict[str, Any]]
+    identity_providers_data: List[Dict[str, Any]],
 ) -> List[Dict[str, str]]:
     IDP_aliases = [IDP_data["alias"] for IDP_data in identity_providers_data]
     IDPs_info = []

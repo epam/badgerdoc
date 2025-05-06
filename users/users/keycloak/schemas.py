@@ -25,7 +25,11 @@ class UserConsent(BaseModel):
     created_date: Optional[int] = None
     granted_client_scopes: Optional[List[str]] = None
     last_update_date: Optional[int] = None
-    model_config = ConfigDict(alias_generator=camelize, str_strip_whitespace=True, populate_by_name=True)
+    model_config = ConfigDict(
+        alias_generator=camelize,
+        str_strip_whitespace=True,
+        populate_by_name=True,
+    )
 
 
 class Credential(BaseModel):
@@ -40,7 +44,11 @@ class Credential(BaseModel):
     type: Optional[str] = None
     user_label: Optional[str] = None
     value: Optional[str] = None
-    model_config = ConfigDict(alias_generator=camelize, str_strip_whitespace=True, populate_by_name=True)
+    model_config = ConfigDict(
+        alias_generator=camelize,
+        str_strip_whitespace=True,
+        populate_by_name=True,
+    )
 
 
 class FederatedIdentity(BaseModel):
@@ -49,7 +57,11 @@ class FederatedIdentity(BaseModel):
     identity_provider: Optional[str] = None
     user_id: Optional[str] = None
     user_name: Optional[str] = None
-    model_config = ConfigDict(alias_generator=camelize, str_strip_whitespace=True, populate_by_name=True)
+    model_config = ConfigDict(
+        alias_generator=camelize,
+        str_strip_whitespace=True,
+        populate_by_name=True,
+    )
 
 
 class User(BaseModel):
@@ -80,7 +92,12 @@ class User(BaseModel):
     username: Optional[str] = None
     # TODO[pydantic]: The following keys were removed: `underscore_attrs_are_private`.
     # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-config for more information.
-    model_config = ConfigDict(alias_generator=camelize, str_strip_whitespace=True, populate_by_name=True, underscore_attrs_are_private=True)
+    model_config = ConfigDict(
+        alias_generator=camelize,
+        str_strip_whitespace=True,
+        populate_by_name=True,
+        underscore_attrs_are_private=True,
+    )
 
     @staticmethod
     def filter_users(
@@ -137,7 +154,11 @@ class Group(BaseModel):
     path: Optional[str] = None
     realm_roles: Optional[List[str]] = None
     sub_groups: Optional[List[Group]] = None
-    model_config = ConfigDict(alias_generator=camelize, str_strip_whitespace=True, populate_by_name=True)
+    model_config = ConfigDict(
+        alias_generator=camelize,
+        str_strip_whitespace=True,
+        populate_by_name=True,
+    )
 
 
 Group.update_forward_refs()

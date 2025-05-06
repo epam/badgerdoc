@@ -1,4 +1,4 @@
-from users.schemas import Users, FilterUserUserName, FieldUserUserName
+from users.schemas import Users
 
 
 def test_users_schemas():
