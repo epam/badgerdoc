@@ -90,13 +90,10 @@ class User(BaseModel):
     self: Optional[str] = None
     service_account_client_id: Optional[str] = None
     username: Optional[str] = None
-    # TODO[pydantic]: The following keys were removed: `underscore_attrs_are_private`.
-    # Check https://docs.pydantic.dev/dev-v2/migration/#changes-to-config for more information.
     model_config = ConfigDict(
         alias_generator=camelize,
         str_strip_whitespace=True,
         populate_by_name=True,
-        underscore_attrs_are_private=True,
     )
 
     @staticmethod
