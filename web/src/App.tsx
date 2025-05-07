@@ -28,7 +28,8 @@ import {
     JOBS_PAGE,
     MODELS_PAGE,
     PIPELINES_PAGE,
-    REPORTS_PAGE
+    REPORTS_PAGE,
+    CATEGORIES_PAGE
 } from './shared/constants/general';
 import { ProtectedRoute } from 'shared/components/protected-route';
 import { CategoriesTableConnector } from './connectors/categories-table-connector';
@@ -61,10 +62,10 @@ export const App = () => {
                         <ProtectedRoute path={DOCUMENTS_PAGE} component={DocumentsPage} />
                         <ProtectedRoute path={PIPELINES_PAGE} component={PipelinesPage} />
                         <ProtectedRoute path={JOBS_PAGE} component={JobsPage} />
+                        <ProtectedRoute path={CATEGORIES_PAGE} component={CategoriesTableConnector} />
                         <Route path={DASHBOARD_PAGE} component={DashboardPage} />
                         <Route path="/login" component={LoginPage} />
                         <Route path="/tasks/:taskId" component={TaskPage} />
-                        <Route path="/categories" component={CategoriesTableConnector} />
                         <Route path={MODELS_PAGE} component={ModelsPage} />
                         <Route path={BASEMENTS_PAGE} component={BasementsPage} />
                         <Route path={REPORTS_PAGE} component={ReportsPage} />
