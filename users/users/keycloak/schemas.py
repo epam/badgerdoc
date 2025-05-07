@@ -312,3 +312,38 @@ class RefreshTokenRequest(OAuthRequest):
     client_id: str = "admin-cli"
     grant_type: str = "refresh_token"
     refresh_token: str
+
+
+class RealmAccess(BaseModel):
+    roles: List[str] = Field(default_factory=list)
+
+
+class ResourceAccessItem(BaseModel):
+    roles: List[str] = Field(default_factory=list)
+
+
+class IntrospectTokenResponse(BaseModel):
+    exp: Optional[int] = None
+    iat: Optional[int] = None
+    jti: Optional[str] = None
+    iss: Optional[str] = None
+    sub: Optional[str] = None
+    typ: Optional[str] = None
+    azp: Optional[str] = None
+    session_state: Optional[str] = None
+    preferred_username: Optional[str] = None
+    email: Optional[str] = None
+    email_verified: Optional[bool] = None
+    acr: Optional[str] = None
+    realm_access: Optional[RealmAccess] = None
+    resource_access: Optional[Dict[str, ResourceAccessItem]] = None
+    scope: Optional[str] = None
+    sid: Optional[str] = None
+    tenants: Optional[List[str]] = None
+    client_id: Optional[str] = None
+    name: Optional[str] = None
+    family_name: Optional[str] = None
+    given_name: Optional[str] = None
+    username: Optional[str] = None
+    auth_time: Optional[int] = None
+    active: bool
