@@ -19,7 +19,6 @@ import {
     SortingDirection
 } from '../../api/typings';
 import { useDeleteFilesMutation, useDocuments } from '../../api/hooks/documents';
-
 import { TableWrapper, usePageTable } from 'shared';
 import { pageSizes } from 'shared/primitives';
 import { documentColumns } from './documents-columns';
@@ -47,18 +46,15 @@ import { saveFiltersToStorage } from '../../shared/helpers/set-filters';
 type DocumentsTableConnectorProps = {
     dataset?: Dataset | null | undefined;
     onRowClick: (id: number) => void;
-    onFilesSelect?: (files: number[]) => void;
-    checkedValues?: number[];
     fileIds?: number[];
     isJobPage?: boolean;
-    handleJobAddClick?: () => void;
+    handleJobAddClick: (selectedFiles: number[]) => void;
     withHeader?: boolean;
 };
 
 export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = ({
     dataset,
     onRowClick,
-    onFilesSelect,
     fileIds,
     isJobPage,
     handleJobAddClick,
@@ -79,40 +75,53 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
     } = usePageTable<FileDocument>('last_modified');
     const { checked } = tableValue;
 
-    const { documentView, documentsSort, documentsSortOrder, query } = useContext(DocumentsSearch);
+    const { documentView, documentsSort, query, documentsSortOrder } = useContext(DocumentsSearch);
     const svc = useUuiContext();
     const mutation = useAddFilesToDatasetMutation();
     const deleteFilesMutation = useDeleteFilesMutation();
 
-    const [selectedFiles, setSelectedFiles] = useState<number[] | []>([]);
-    const isTableView = isJobPage || documentView === 'table';
+    const [selectedFiles, setSelectedFiles] = useState<number[]>(fileIds || []);
+    const [jobs, setJobs] = useState<FileJobs>();
 
+    console.log('DocumentsTableConnector: selectedFiles:', selectedFiles);
+    console.log('DocumentsTableConnector: tableValue.checked:', tableValue.checked);
+
+    const isTableView = isJobPage || documentView === 'table';
     const filtersRef = useRef(filters);
     filtersRef.current = filters;
 
-    const [jobs, setJobs] = useState<FileJobs>();
+    const arraysEqual = (a: number[] = [], b: number[] = []) => {
+        const setA = new Set(a);
+        const setB = new Set(b);
+        return a.length === b.length && [...setA].every((id) => setB.has(id));
+    };
 
     useEffect(() => {
-        if (fileIds) {
+        if (fileIds && !arraysEqual(fileIds, selectedFiles)) {
+            console.log(
+                'DocumentsTableConnector: Initializing selectedFiles with fileIds:',
+                fileIds
+            );
+            setSelectedFiles(fileIds);
+        }
+    }, [fileIds]);
+
+    useEffect(() => {
+        if (!arraysEqual(selectedFiles, tableValue.checked)) {
+            console.log('DocumentsTableConnector: Syncing tableValue.checked to:', selectedFiles);
             onTableValueChange({
                 ...tableValue,
-                checked: fileIds
+                checked: [...selectedFiles]
             });
         }
-    }, []);
+    }, [selectedFiles]);
 
     useEffect(() => {
-        setSelectedFiles(checked || []);
-        if (onFilesSelect) {
-            onFilesSelect(checked as number[]);
+        if (checked && !arraysEqual(checked, selectedFiles)) {
+            console.log('DocumentsTableConnector: Updating selectedFiles with checked:', checked);
+            setSelectedFiles([...checked]);
         }
     }, [checked]);
-
-    useEffect(() => {
-        if (onFilesSelect) {
-            onFilesSelect(selectedFiles as number[]);
-        }
-    }, [selectedFiles]);
 
     useEffect(() => {
         if (!isJobPage) {
@@ -163,15 +172,7 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
         }
     }, [tableValue.filter, dataset]);
 
-    useEffect(() => {
-        refetch();
-    }, [filters]);
-
-    const {
-        data: files,
-        isFetching,
-        refetch
-    } = useDocuments(
+    const { data: files, isFetching } = useDocuments(
         {
             page: pageConfig.page,
             size: pageConfig.pageSize,
@@ -187,7 +188,6 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
         { refetchOnReconnect: false }
     );
 
-    // @ts-ignore
     const thumbnails = useThumbnail([...new Set(files?.data.map((file) => file.id))]);
 
     useEffect(() => {
@@ -226,13 +226,12 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
     useEffect(() => {
         setPageConfig({ page: 1, pageSize: pageSizes._15 });
     }, [dataset]);
-    // IMPORTANT! Unsubscribe view from DataSource when you don't need it more.
 
     useEffect(() => () => dataSource.unsubscribeView(onTableValueChange), []);
 
     useEffect(() => {
         if (files?.data?.length) {
-            fileJobsFetcher(files?.data.map((e) => e.id)).then((e) => setJobs(e as any));
+            fileJobsFetcher(files.data.map((e) => e.id)).then((e) => setJobs(e as any));
         }
     }, [files]);
 
@@ -271,34 +270,25 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
     const renderLastModifiedFilter = useDateRangeFilter('last_modified');
 
     const handleSelectAllClick = () => {
-        if (selectedFiles?.length) {
-            setSelectedFiles([]);
-            onTableValueChange({
-                ...tableValue,
-                checked: []
-            });
-        } else {
-            const allFiles = files?.data.map((el) => el.id);
-            setSelectedFiles(allFiles || []);
-            onTableValueChange({
-                ...tableValue,
-                checked: allFiles
-            });
-        }
+        const allFiles = files?.data.map((file) => file.id) || [];
+        const isAllSelected = allFiles.every((id) => selectedFiles.includes(id));
+        const newSelected = isAllSelected ? [] : allFiles;
+        console.log('DocumentsTableConnector: Select all, new selectedFiles:', newSelected);
+        setSelectedFiles(newSelected);
     };
 
     const columns = useMemo(() => {
         const typeColumn = documentColumns.find(({ key }) => key === 'original_name');
         typeColumn!.renderFilter = renderNameFilter;
 
-        const lastModifiedColumn = documentColumns.find(({ key }) => key === 'last_modified');
+        const lastModifiedColumn = documentColumns.find(({ key }) => key === 'original_name');
         lastModifiedColumn!.renderFilter = renderLastModifiedFilter;
 
         return documentColumns;
-    }, [documentColumns, renderNameFilter, renderLastModifiedFilter]);
+    }, [renderNameFilter, renderLastModifiedFilter]);
 
     const onChooseDataset = async (dataset: DatasetWithFiles) => {
-        dataset.objects = fileIds || [];
+        dataset.objects = fileIds || selectedFiles || tableValue.checked || [];
         try {
             await mutation.mutateAsync(dataset);
         } catch (err) {
@@ -335,6 +325,7 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
     const handleFileDeleteClick = async () => {
         try {
             await deleteFilesMutation.mutateAsync(selectedFiles);
+            onTableValueChange({ ...tableValue, checked: [] });
             setSelectedFiles([]);
         } catch (err) {
             svc.uuiNotifications.show(
@@ -348,6 +339,15 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
         }
     };
 
+    const selectionCount = selectedFiles.length;
+    const allFilesCount = files?.data?.length || 0;
+    const isAllSelected = allFilesCount > 0 && selectionCount === allFilesCount;
+
+    const handleAddToExtraction = () => {
+        console.log('DocumentsTableConnector: Submitting selection:', selectedFiles);
+        handleJobAddClick(selectedFiles);
+    };
+
     if (isTableView) {
         return (
             <>
@@ -356,15 +356,12 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
                         <FlexRow padding="6">
                             <Checkbox
                                 label={
-                                    (selectedFiles?.length && `${selectedFiles.length} selected`) ||
+                                    (selectionCount > 0 && `${selectionCount} selected`) ||
                                     'Select All'
                                 }
-                                value={!!selectedFiles?.length}
+                                value={isAllSelected}
                                 onValueChange={handleSelectAllClick}
-                                indeterminate={
-                                    selectedFiles?.length > 0 &&
-                                    selectedFiles?.length !== files?.data.length
-                                }
+                                indeterminate={selectionCount > 0 && !isAllSelected}
                             />
                         </FlexRow>
                         <FlexRow padding="6">
@@ -373,7 +370,7 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
                                 caption="Add to dataset"
                                 onClick={showModal}
                                 fill="light"
-                                isDisabled={!selectedFiles?.length}
+                                isDisabled={selectionCount === 0}
                             />
                         </FlexRow>
                         <FlexRow padding="6">
@@ -382,16 +379,16 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
                                 caption="Preprocess"
                                 onClick={() => {}}
                                 fill="light"
-                                isDisabled={!selectedFiles?.length}
+                                isDisabled={selectionCount === 0}
                             />
                         </FlexRow>
                         <FlexRow padding="6">
                             <Button
                                 icon={ListPlusIcon}
                                 caption="Add to extraction"
-                                onClick={handleJobAddClick}
+                                onClick={handleAddToExtraction}
                                 fill="light"
-                                isDisabled={!selectedFiles?.length}
+                                isDisabled={selectionCount === 0}
                             />
                         </FlexRow>
                         <div className={styles.divider} />
@@ -401,20 +398,21 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
                                 caption="Delete"
                                 onClick={handleFileDeleteClick}
                                 fill="light"
-                                isDisabled={!selectedFiles?.length}
+                                isDisabled={selectionCount === 0}
                             />
                         </FlexRow>
                     </FlexRow>
                 )}
                 <div className={styles.wrapper}>
                     <TableWrapper
-                        page={pageConfig.page}
-                        pageSize={pageConfig.pageSize}
-                        totalCount={totalCount}
-                        hasMore={files?.pagination.has_more}
+                        page={pageConfig.page || 1}
+                        pageSize={pageConfig.pageSize || pageSizes._15}
+                        totalCount={totalCount || 0}
+                        hasMore={files?.pagination?.has_more ?? false}
                         onPageChange={onPageChange}
                     >
                         <DataTable
+                            key={selectedFiles.join(',')}
                             {...view.getListProps()}
                             getRows={view.getVisibleRows}
                             value={tableValue}
@@ -435,15 +433,11 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
                     <FlexRow padding="6">
                         <Checkbox
                             label={
-                                (selectedFiles?.length && `${selectedFiles.length} selected`) ||
-                                'Select All'
+                                (selectionCount > 0 && `${selectionCount} selected`) || 'Select All'
                             }
-                            value={!!selectedFiles?.length}
+                            value={isAllSelected}
                             onValueChange={handleSelectAllClick}
-                            indeterminate={
-                                selectedFiles?.length > 0 &&
-                                selectedFiles?.length !== files?.data.length
-                            }
+                            indeterminate={selectionCount > 0 && !isAllSelected}
                         />
                     </FlexRow>
                     <FlexRow padding="6">
@@ -452,43 +446,43 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
                             caption="Add to dataset"
                             onClick={showModal}
                             fill="light"
-                            isDisabled={!selectedFiles?.length}
+                            isDisabled={selectionCount === 0}
                         />
-                    </FlexRow>
-                    <FlexRow padding="6">
-                        <Button
-                            icon={PreprocessorIcon}
-                            caption="Preprocess"
-                            onClick={() => {}}
-                            fill="light"
-                            isDisabled={!selectedFiles?.length}
-                        />
-                    </FlexRow>
-                    <FlexRow padding="6">
-                        <Button
-                            icon={ListPlusIcon}
-                            caption="Add to extraction"
-                            onClick={handleJobAddClick}
-                            fill="light"
-                            isDisabled={!selectedFiles?.length}
-                        />
-                    </FlexRow>
-                    <div className={styles.divider} />
-                    <FlexRow padding="6">
-                        <Button
-                            icon={DeleteIcon}
-                            caption="Delete"
-                            onClick={handleFileDeleteClick}
-                            fill="light"
-                            isDisabled={!selectedFiles?.length}
-                        />
+                        <FlexRow padding="6">
+                            <Button
+                                icon={PreprocessorIcon}
+                                caption="Preprocess"
+                                onClick={() => {}}
+                                fill="light"
+                                isDisabled={selectionCount === 0}
+                            />
+                        </FlexRow>
+                        <FlexRow padding="6">
+                            <Button
+                                icon={ListPlusIcon}
+                                caption="Add to extraction"
+                                onClick={handleAddToExtraction}
+                                fill="light"
+                                isDisabled={selectionCount === 0}
+                            />
+                        </FlexRow>
+                        <div className={styles.divider} />
+                        <FlexRow padding="6">
+                            <Button
+                                icon={DeleteIcon}
+                                caption="Delete"
+                                onClick={handleFileDeleteClick}
+                                fill="light"
+                                isDisabled={selectionCount === 0}
+                            />
+                        </FlexRow>
                     </FlexRow>
                 </FlexRow>
                 <TableWrapper
-                    page={pageConfig.page}
-                    pageSize={pageConfig.pageSize}
-                    totalCount={totalCount}
-                    hasMore={files?.pagination.has_more}
+                    page={pageConfig.page || 1}
+                    pageSize={pageConfig.pageSize || pageSizes._15}
+                    totalCount={totalCount || 0}
+                    hasMore={files?.pagination?.has_more ?? false}
                     onPageChange={onPageChange}
                 >
                     <div className={styles['card-container']}>

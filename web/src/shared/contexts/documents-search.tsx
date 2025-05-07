@@ -15,11 +15,13 @@ type DocumentsSearchContext = {
     breadcrumbs: Breadcrumbs[];
     documentsSort: string;
     documentsSortOrder: SortingDirection;
+    selectedFiles: number[];
     setQuery: (query: string) => void;
     setFacetFilter: (facetFilter: any) => void;
     setDocumentView: (view: DocumentView) => void;
     setDocumentsSort: (view: DocumentView) => void;
     toggleSortOrder: () => void;
+    setSelectedFiles: (files: number[]) => void;
 };
 
 const defaultFacetFilters = {
@@ -47,11 +49,13 @@ export const DocumentsSearch = React.createContext<DocumentsSearchContext>({
     documentView: 'card',
     breadcrumbs: [],
     documentsSort: '',
+    selectedFiles: [],
     documentsSortOrder: SortingDirection.ASC,
     setQuery: noop,
     setFacetFilter: noop,
     setDocumentView: noop,
     setDocumentsSort: noop,
+    setSelectedFiles: noop,
     toggleSortOrder: noop
 });
 
@@ -64,10 +68,9 @@ export const DocumentsSearchProvider: FC = ({ children }) => {
     const [documentsSort, setDocumentsSort] = useState<string | keyof FileDocument>(
         'last_modified'
     );
-    const [sortOrder, setSortOrder] = useState<SortingDirection>(
-        'asc' as SortingDirection
-    );
+    const [sortOrder, setSortOrder] = useState<SortingDirection>('asc' as SortingDirection);
 
+    const [selectedFiles, setSelectedFiles] = useState<number[]>([]);
     const isDocuments = history.location.pathname === '/documents';
     const isSearch = history.location.pathname === '/documents/search';
 
@@ -101,23 +104,25 @@ export const DocumentsSearchProvider: FC = ({ children }) => {
     };
 
     const toggleSortOrder = () => {
-        setSortOrder(prev => {
+        setSortOrder((prev) => {
             if (prev === SortingDirection.ASC) return SortingDirection.DESC;
             return SortingDirection.ASC;
-        })
-    }
+        });
+    };
 
     useEffect(() => {
         if (isDocuments) {
             setBreadcrumbs(documentsBreadcrumbs);
             setDocumentsSort('last_modified');
-            setSortOrder(SortingDirection.ASC)
+            setSortOrder(SortingDirection.ASC);
             setQuery('');
+            setSelectedFiles([]);
         }
         if (isSearch) {
             setBreadcrumbs(searchBreadcrumbs);
             setDocumentsSort('relevancy');
             setQuery('');
+            setSelectedFiles([]);
         }
     }, [history.location.pathname]);
 
@@ -125,20 +130,28 @@ export const DocumentsSearchProvider: FC = ({ children }) => {
         if (isSearch) pushSearchUrl();
     }, [query, documentsSort, facetFilter]);
 
-    const value: DocumentsSearchContext = useMemo<DocumentsSearchContext>(() => {
-        return {
+    useEffect(() => {
+        setSelectedFiles([]);
+    }, [query, facetFilter]);
+
+    const value: DocumentsSearchContext = useMemo<DocumentsSearchContext>(
+        () => ({
             query,
             facetFilter,
             documentView,
             breadcrumbs,
             documentsSort,
             documentsSortOrder: sortOrder,
+            selectedFiles,
             setQuery,
             setFacetFilter,
             setDocumentView,
             setDocumentsSort,
-            toggleSortOrder
-        };
-    }, [query, facetFilter, documentView, breadcrumbs, documentsSort, sortOrder]);
+            toggleSortOrder,
+            setSelectedFiles
+        }),
+        [query, facetFilter, documentView, breadcrumbs, documentsSort, sortOrder, selectedFiles]
+    );
+
     return <DocumentsSearch.Provider value={value}>{children}</DocumentsSearch.Provider>;
 };

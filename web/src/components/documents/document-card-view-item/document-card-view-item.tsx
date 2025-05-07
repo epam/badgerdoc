@@ -25,6 +25,8 @@ type DocumentCardViewProps = {
     selectedFiles?: number[];
     bbox?: number[];
     setSelectedFiles?: (files: number[]) => void;
+    isSelected?: boolean;
+    onToggleSelect?: (documentId: number) => void;
 };
 
 const isDocumentId = (selectedFiles: number[] | undefined, documentId: number) => {
