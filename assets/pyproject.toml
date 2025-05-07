@@ -24,6 +24,9 @@ badgerdoc-storage = { path = "../lib/badgerdoc_storage" }
 pymupdf = "^1.24.9"
 pdfplumber = "^0.11.4"
 pymupdf-fonts = "^1.0.5"
+azure-core = "^1.33.0"
+azure-ai-documentintelligence = "^1.0.2"
+aiohttp = "^3.11.18"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "*"
