@@ -21,6 +21,7 @@ import jobs.run_job_funcs as run_job_funcs
 import jobs.schemas as schemas
 import jobs.utils as utils
 from jobs.config import KEYCLOAK_HOST, ROOT_PATH, API_current_version
+from jobs.pipeline import OtherPipeline
 
 tenant = get_tenant_info(url=KEYCLOAK_HOST, algorithm="RS256", debug=True)
 logger = logging.getLogger(__name__)
@@ -66,11 +67,19 @@ async def create_job(
             job_params.files, current_tenant, jw_token
         )
 
+    logger.info("Previous jobs: %s", job_params.previous_jobs)
     if job_params.previous_jobs:
         job_params.previous_jobs = (
             await utils.validate_create_job_previous_jobs(
                 db, job_params.previous_jobs
             )
+        )
+
+    if len(job_params.revisions) > 0:
+        await utils.update_create_job_params_using_revisions(
+            job_params=job_params,
+            current_tenant=current_tenant,
+            jwt_token=jw_token,
         )
 
     if len(job_params.revisions) > 0:
@@ -487,6 +496,7 @@ async def support(
     default_pipelines = {
         "airflow": AIRFLOW_ENABLED,
         "databricks": DATABRICKS_ENABLED,
+        "other": True,
     }
     pipeline_engines = []
     for pipeline_name, enabled in default_pipelines.items():
@@ -545,3 +555,13 @@ async def databricks(
 ) -> schemas.Pipelines:
     pipelines = list(databricks_utils.get_pipelines())
     return schemas.Pipelines(data=pipelines)
+
+
+# Other
+
+
+@app.get("/pipelines/other", tags=["pipelines", "other"])
+async def other(
+    _: Optional[str] = Header(None, alias="X-Current-Tenant"),
+) -> schemas.Pipelines:
+    return await OtherPipeline().list()

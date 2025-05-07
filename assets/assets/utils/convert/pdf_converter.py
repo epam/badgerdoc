@@ -74,7 +74,7 @@ class PlainPDFToBadgerdocTokensConverter:
     def _get_char_bbox(self, char: LTChar) -> Bbox:
         if not self.page_size:
             raise AttributeError("Page size isn't initialized")
-        x0, y0, x1, y1 = map(float, (char.x0, char.y0, char.x1, char.y1))
+        x0, y0, x1, y1 = map(round, (char.x0, char.y0, char.x1, char.y1))
         return x0, self.page_size.height - y1, x1, self.page_size.height - y0
 
     def _form_virtrual_symbol_bbox(

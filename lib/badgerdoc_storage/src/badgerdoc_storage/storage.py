@@ -183,7 +183,11 @@ class BadgerDocS3Storage:
             else:
                 self.s3_resource.create_bucket(Bucket=self._bucket)
         except ClientError as err:
-            if err.response["Error"]["Code"] == "BucketAlreadyOwnedByYou":
+            logger.error("Response code %s", err.response["Error"]["Code"])
+            if err.response["Error"]["Code"] in (
+                "BucketAlreadyOwnedByYou",
+                "InvalidLocationConstraint",
+            ):
                 # minio generates this response in case of bucket exists
                 return False
             raise BadgerDocStorageError(

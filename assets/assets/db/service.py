@@ -4,7 +4,14 @@ from filter_lib import PaginationParams, form_query, map_request_to_filter
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Query, Session, load_only, selectinload
 
-from assets.db.models import Association, Datasets, FileObject, SessionLocal
+from assets.db.models import (
+    Association,
+    Datasets,
+    ExtractionStatus,
+    FileObject,
+    FilesExtractions,
+    SessionLocal,
+)
 from assets.logger import get_logger
 from assets.schemas import FileProcessingStatusForUpdate
 
@@ -129,6 +136,16 @@ def update_file_status(
 
 def get_file_by_id(session: Session, file_id: int) -> Optional[FileObject]:
     return session.query(FileObject).get(file_id)
+
+
+def get_file_by_id_and_tenant(
+    session: Session, file_id: int, tenant: str
+) -> Optional[FileObject]:
+    return (
+        session.query(FileObject)
+        .filter(FileObject.id == file_id, FileObject.bucket == tenant)
+        .first()
+    )
 
 
 def get_dataset_by_name(session: Session, name: str) -> Optional[Datasets]:
@@ -257,3 +274,69 @@ def get_all_files_by_ds_id(session: Session, ds_id: int) -> Query:
 
 def get_dataset_by_id(session: Session, ds_id: int) -> Optional[Datasets]:
     return session.query(Datasets).get(ds_id)
+
+
+def get_extraction_by_id(
+    session: Session, extraction_id: int, tenant: str
+) -> Optional[FilesExtractions]:
+    return (
+        session.query(FilesExtractions)
+        .join(FileObject, FilesExtractions.file_id == FileObject.id)
+        .filter(
+            FilesExtractions.id == extraction_id, FileObject.bucket == tenant
+        )
+        .first()
+    )
+
+
+def get_all_extractions(
+    session: Session, request: Dict[str, Any], tenant: str
+) -> Tuple[Query, PaginationParams]:
+    filter_args = map_request_to_filter(request, "FilesExtractions")
+    query = (
+        session.query(FilesExtractions)
+        .join(FileObject, FilesExtractions.file_id == FileObject.id)
+        .filter(FileObject.bucket == tenant)
+        .options(selectinload(FilesExtractions.file))
+    )
+    query, pag = form_query(filter_args, query)
+    return query, pag
+
+
+def create_extraction(
+    session: Session,
+    file_id: int,
+    engine: str,
+    file_path: str,
+    page_count: int,
+    file_extension: str,
+) -> FilesExtractions:
+    extraction = FilesExtractions(
+        file_id=file_id,
+        engine=engine,
+        file_path=file_path,
+        page_count=page_count,
+        status=ExtractionStatus.started,
+        file_extension=file_extension,
+    )
+    try:
+        session.add(extraction)
+        session.commit()
+        session.refresh(extraction)
+    except Exception:
+        session.rollback()
+        raise
+    return extraction
+
+
+def finish_extraction(
+    session: Session, extraction: FilesExtractions
+) -> FilesExtractions:
+    extraction.status = ExtractionStatus.finished
+    try:
+        extraction.status = ExtractionStatus.finished
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
+    return extraction

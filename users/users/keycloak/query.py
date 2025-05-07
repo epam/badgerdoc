@@ -120,6 +120,7 @@ async def get_users_v2(
     url = resources.users_uri.substitute(realm=realm)
     method = "GET"
     headers = create_bearer_header(token)
+
     async with aiohttp.request(
         method=method,
         url=url,

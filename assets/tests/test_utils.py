@@ -60,10 +60,13 @@ def test_to_obj(data, expected_result):
 
 
 def test_file_processor_is_extension_correct():
+    # TODO: remove Minio
+    storage = Minio("play.min.io")
+    storage.tenant = "some_tenant"
     mock_instance = FileProcessor(
         file=BytesIO(),
         session=Session(),
-        storage=Minio("play.min.io"),
+        storage=storage,
         file_key="some_file.pdf",
     )
 
@@ -71,10 +74,13 @@ def test_file_processor_is_extension_correct():
 
 
 def test_file_processor_is_extension_correct_without_extension():
+    # TODO: remove Minio
+    storage = Minio("play.min.io")
+    storage.tenant = "some_tenant"
     mock_instance = FileProcessor(
         file=BytesIO(),
         session=Session(),
-        storage=Minio("play.min.io"),
+        storage=storage,
         file_key="some_file",
     )
 
@@ -118,10 +124,13 @@ def test_file_processor_is_extension_correct_without_extension():
 
 @patch("assets.utils.minio_utils.upload_in_minio")
 def test_file_processor_is_uploaded_to_storage_file_uploaded(upload_in_minio):
+    # TODO: remove Minio
+    storage = Minio("play.min.io")
+    storage.tenant = "some_tenant"
     file_processor = FileProcessor(
         file=BytesIO(),
         session=Session(),
-        storage=Minio("play.min.io"),
+        storage=storage,
         file_key="some_file",
     )
     upload_in_minio.return_value = True
@@ -134,10 +143,13 @@ def test_file_processor_is_uploaded_to_storage_file_uploaded(upload_in_minio):
 def test_file_processor_is_uploaded_to_storage_not_uploaded(
     upload_in_minio, update_file_status
 ):
+    # TODO: remove Minio
+    storage = Minio("play.min.io")
+    storage.tenant = "some_tenant"
     file_processor = FileProcessor(
         file=BytesIO(),
         session=Session(),
-        storage=Minio("play.min.io"),
+        storage=storage,
         file_key="some_file",
     )
     file_processor.new_file = SimpleNamespace(id=1)
@@ -151,10 +163,13 @@ def test_file_processor_is_uploaded_to_storage_not_uploaded(
 
 @patch("assets.utils.common_utils.db.service.update_file_status")
 def test_file_processor_is_file_updated_status_updated(update_file_status):
+    # TODO: remove Minio
+    storage = Minio("play.min.io")
+    storage.tenant = "some_tenant"
     file_processor = FileProcessor(
         file=BytesIO(),
         session=Session(),
-        storage=Minio("play.min.io"),
+        storage=storage,
         file_key="some_file",
     )
     file_processor.new_file = SimpleNamespace(id=1)
@@ -166,10 +181,13 @@ def test_file_processor_is_file_updated_status_updated(update_file_status):
 
 @patch("assets.utils.common_utils.db.service.update_file_status")
 def test_file_processor_is_file_updated_status_not_updated(update_file_status):
+    # TODO: remove Minio
+    storage = Minio("play.min.io")
+    storage.tenant = "some_tenant"
     file_processor = FileProcessor(
         file=BytesIO(),
         session=Session(),
-        storage=Minio("play.min.io"),
+        storage=storage,
         file_key="some_file",
     )
     file_processor.new_file = SimpleNamespace(id=1)
@@ -197,10 +215,13 @@ def test_file_processor_run_all_stages_passed(
     is_original_file_uploaded_to_storage,
     is_file_updated,
 ):
+    # TODO: remove Minio
+    storage = Minio("play.min.io")
+    storage.tenant = "some_tenant"
     file_processor = FileProcessor(
         file=BytesIO(),
         session=Session(),
-        storage=Minio("play.min.io"),
+        storage=storage,
         file_key="some_file",
     )
 
@@ -232,10 +253,13 @@ def test_file_processor_run_extension_check_failed(
     is_uploaded_to_storage,
     is_file_updated,
 ):
+    # TODO: remove Minio
+    storage = Minio("play.min.io")
+    storage.tenant = "some_tenant"
     file_processor = FileProcessor(
         file=BytesIO(),
         session=Session(),
-        storage=Minio("play.min.io"),
+        storage=storage,
         file_key="some_file",
     )
 

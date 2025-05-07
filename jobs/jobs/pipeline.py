@@ -1,6 +1,9 @@
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
+from datetime import datetime
 from typing import List, Optional, TypedDict
+
+import jobs.schemas as schemas
 
 
 @dataclass
@@ -54,3 +57,36 @@ class BasePipeline(metaclass=ABCMeta):
         datasets: List[Dataset],
     ) -> None:
         raise NotImplementedError()
+
+
+AI_PIPELINE = {"name": "AI by MCP", "id": "ai_by_mcp"}
+
+
+class OtherPipeline(BasePipeline):
+    async def list(self) -> List[AnyPipeline]:
+        return schemas.Pipelines(
+            data=[
+                schemas.Pipeline(
+                    name=AI_PIPELINE["name"],
+                    id=AI_PIPELINE["id"],
+                    version=0,
+                    type="other",
+                    date=datetime.today(),
+                    meta={},
+                    steps=[],
+                )
+            ]
+        )
+
+    async def run(
+        self,
+        pipeline_id: str,
+        job_id: str,
+        files: List[PipelineFile],
+        current_tenant: str,
+        datasets: List[Dataset],
+        **kwargs: dict,
+    ) -> None:
+        if pipeline_id == AI_PIPELINE["id"]:
+            return None
+        raise ValueError(f"Pipeline {pipeline_id} not found")
