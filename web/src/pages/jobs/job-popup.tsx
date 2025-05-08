@@ -1,18 +1,27 @@
 import styles from './job-popup.module.scss';
 import { Button, Checkbox, IconContainer, SearchInput, TextInput } from '@epam/loveship';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ReactComponent as closeIcon } from '@epam/assets/icons/common/navigation-close-24.svg';
 
 interface JobPopupProps {
     popupType: 'extraction' | 'annotation' | null;
     closePopup: () => void;
+    selectedFiles: number[];
 }
 
-const JobPopup: React.FC<JobPopupProps> = ({ popupType, closePopup }) => {
+const JobPopup: React.FC<JobPopupProps> = ({ popupType, closePopup, selectedFiles }) => {
     const [searchDataset, searchDatasetChange] = useState<string>('');
     const [searchPipeline, searchPipelineChange] = useState<string>('');
     const [hasOnlySelectedDoc, hasOnlySelectedDocChange] = useState<boolean>(false);
     const [validators, validatorsChange] = useState<string | undefined>('1');
+
+    useEffect(() => {
+        if (selectedFiles && selectedFiles.length > 0) {
+            hasOnlySelectedDocChange(true);
+        } else {
+            hasOnlySelectedDocChange(false);
+        }
+    }, [selectedFiles]);
 
     return (
         <>
