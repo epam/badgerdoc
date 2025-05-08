@@ -161,9 +161,10 @@ async def get_user_data_from_jwt(
 async def get_user_info_from_token_introspection(
     token: TenantData = Depends(tenant),
     current_tenant: Optional[str] = Header(None, alias="X-Current-Tenant"),
-) -> kc_query.Token_Data:
+) -> kc_schemas.IntrospectTokenResponse:
     """Get user_info from realm through JWT introspection"""
-    return await kc_query.introspect_token(token.token)
+    token_data = await kc_query.introspect_token(token.token)
+    return kc_schemas.IntrospectTokenResponse.parse_obj(token_data)
 
 
 @app.get(

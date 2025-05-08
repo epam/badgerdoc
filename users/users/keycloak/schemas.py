@@ -6,7 +6,7 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Union
 
 from fastapi.security import OAuth2PasswordRequestForm
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 logger = logging.getLogger(__name__)
 logger.setLevel(os.getenv("LOG_LEVEL", "INFO"))
@@ -21,81 +21,80 @@ def camelize(string: str) -> str:
 class UserConsent(BaseModel):
     """UserConsentRepresentation."""
 
-    client_id: Optional[str]
-    created_date: Optional[int]
-    granted_client_scopes: Optional[List[str]]
-    last_update_date: Optional[int]
-
-    class Config:
-        alias_generator = camelize
-        anystr_strip_whitespace = True
-        allow_population_by_field_name = True
+    client_id: Optional[str] = None
+    created_date: Optional[int] = None
+    granted_client_scopes: Optional[List[str]] = None
+    last_update_date: Optional[int] = None
+    model_config = ConfigDict(
+        alias_generator=camelize,
+        str_strip_whitespace=True,
+        populate_by_name=True,
+    )
 
 
 class Credential(BaseModel):
     """CredentialRepresentation."""
 
-    created_date: Optional[int]
-    credential_data: Optional[str]
-    id: Optional[str]
-    priority: Optional[int]
-    secret_data: Optional[str]
-    temporary: Optional[bool]
-    type: Optional[str]
-    user_label: Optional[str]
-    value: Optional[str]
-
-    class Config:
-        alias_generator = camelize
-        anystr_strip_whitespace = True
-        allow_population_by_field_name = True
+    created_date: Optional[int] = None
+    credential_data: Optional[str] = None
+    id: Optional[str] = None
+    priority: Optional[int] = None
+    secret_data: Optional[str] = None
+    temporary: Optional[bool] = None
+    type: Optional[str] = None
+    user_label: Optional[str] = None
+    value: Optional[str] = None
+    model_config = ConfigDict(
+        alias_generator=camelize,
+        str_strip_whitespace=True,
+        populate_by_name=True,
+    )
 
 
 class FederatedIdentity(BaseModel):
     """FederatedIdentityRepresentation."""
 
-    identity_provider: Optional[str]
-    user_id: Optional[str]
-    user_name: Optional[str]
-
-    class Config:
-        alias_generator = camelize
-        anystr_strip_whitespace = True
-        allow_population_by_field_name = True
+    identity_provider: Optional[str] = None
+    user_id: Optional[str] = None
+    user_name: Optional[str] = None
+    model_config = ConfigDict(
+        alias_generator=camelize,
+        str_strip_whitespace=True,
+        populate_by_name=True,
+    )
 
 
 class User(BaseModel):
     """UserRepresentation."""
 
-    access: Optional[Dict[str, Any]]
-    attributes: Optional[Dict[str, Any]]
-    client_consents: Optional[List[UserConsent]]
-    client_roles: Optional[Dict[str, Any]]
-    created_timestamp: Optional[int]
-    credentials: Optional[List[Credential]]
-    disableable_credential_types: Optional[List[str]]
-    email: Optional[str]
-    email_verified: Optional[bool]
-    enabled: Optional[bool]
-    federated_identities: Optional[List[FederatedIdentity]]
-    federation_link: Optional[str]
-    first_name: Optional[str]
-    groups: Optional[List[str]]
-    id: Optional[str]
-    last_name: Optional[str]
-    not_before: Optional[int]
-    origin: Optional[str]
-    realm_roles: Optional[List[str]]
-    required_actions: Optional[List[str]]
-    self: Optional[str]
-    service_account_client_id: Optional[str]
-    username: Optional[str]
-
-    class Config:
-        alias_generator = camelize
-        anystr_strip_whitespace = True
-        allow_population_by_field_name = True
-        underscore_attrs_are_private = True
+    access: Optional[Dict[str, Any]] = None
+    attributes: Optional[Dict[str, Any]] = None
+    client_consents: Optional[List[UserConsent]] = None
+    client_roles: Optional[Dict[str, Any]] = None
+    created_timestamp: Optional[int] = None
+    credentials: Optional[List[Credential]] = None
+    disableable_credential_types: Optional[List[str]] = None
+    email: Optional[str] = None
+    email_verified: Optional[bool] = None
+    enabled: Optional[bool] = None
+    federated_identities: Optional[List[FederatedIdentity]] = None
+    federation_link: Optional[str] = None
+    first_name: Optional[str] = None
+    groups: Optional[List[str]] = None
+    id: Optional[str] = None
+    last_name: Optional[str] = None
+    not_before: Optional[int] = None
+    origin: Optional[str] = None
+    realm_roles: Optional[List[str]] = None
+    required_actions: Optional[List[str]] = None
+    self: Optional[str] = None
+    service_account_client_id: Optional[str] = None
+    username: Optional[str] = None
+    model_config = ConfigDict(
+        alias_generator=camelize,
+        str_strip_whitespace=True,
+        populate_by_name=True,
+    )
 
     @staticmethod
     def filter_users(
@@ -144,19 +143,19 @@ class User(BaseModel):
 class Group(BaseModel):
     """GroupRepresentation."""
 
-    access: Optional[Dict[str, Any]]
-    attributes: Optional[Dict[str, Any]]
-    clientRoles: Optional[Dict[str, Any]]
-    id: Optional[str]
-    name: Optional[str]
-    path: Optional[str]
-    realm_roles: Optional[List[str]]
-    sub_groups: Optional[List[Group]]
-
-    class Config:
-        alias_generator = camelize
-        anystr_strip_whitespace = True
-        allow_population_by_field_name = True
+    access: Optional[Dict[str, Any]] = None
+    attributes: Optional[Dict[str, Any]] = None
+    clientRoles: Optional[Dict[str, Any]] = None
+    id: Optional[str] = None
+    name: Optional[str] = None
+    path: Optional[str] = None
+    realm_roles: Optional[List[str]] = None
+    sub_groups: Optional[List[Group]] = None
+    model_config = ConfigDict(
+        alias_generator=camelize,
+        str_strip_whitespace=True,
+        populate_by_name=True,
+    )
 
 
 Group.update_forward_refs()
@@ -165,33 +164,29 @@ Group.update_forward_refs()
 class AddressClaimSet(BaseModel):
     """AddressClaimSet."""
 
-    country: Optional[str]
-    formatted: Optional[str]
-    locality: Optional[str]
-    postal_code: Optional[str]
-    region: Optional[str]
-    street_address: Optional[str]
-
-    class Config:
-        anystr_strip_whitespace = True
+    country: Optional[str] = None
+    formatted: Optional[str] = None
+    locality: Optional[str] = None
+    postal_code: Optional[str] = None
+    region: Optional[str] = None
+    street_address: Optional[str] = None
+    model_config = ConfigDict(str_strip_whitespace=True)
 
 
 class Permission(BaseModel):
     """Permission."""
 
-    claims: Optional[Dict[str, Any]]
-    rsid: Optional[str]
-    rsname: Optional[str]
-    scopes: Optional[List[str]]
-
-    class Config:
-        anystr_strip_whitespace = True
+    claims: Optional[Dict[str, Any]] = None
+    rsid: Optional[str] = None
+    rsname: Optional[str] = None
+    scopes: Optional[List[str]] = None
+    model_config = ConfigDict(str_strip_whitespace=True)
 
 
 class AccessTokenAuthorization(BaseModel):
     """AccessToken-Authorization."""
 
-    permissions: Optional[List[Permission]]
+    permissions: Optional[List[Permission]] = None
 
 
 class AccessTokenCategory(str, Enum):
@@ -207,91 +202,83 @@ class AccessTokenCategory(str, Enum):
 class AccessTokenAccess(BaseModel):
     """AccessToken-Access."""
 
-    roles: Optional[List[str]]
-    verify_caller: Optional[bool]
-
-    class Config:
-        anystr_strip_whitespace = True
+    roles: Optional[List[str]] = None
+    verify_caller: Optional[bool] = None
+    model_config = ConfigDict(str_strip_whitespace=True)
 
 
 class AccessToken(BaseModel):
     """AccessToken."""
 
-    acr: Optional[str]
-    address: Optional[AddressClaimSet]
+    acr: Optional[str] = None
+    address: Optional[AddressClaimSet] = None
     allowed_origins: Optional[List[str]] = Field(None, alias="allowed-origins")
-    at_hash: Optional[str]
-    auth_time: Optional[int]
-    authorization: Optional[AccessTokenAuthorization]
-    azp: Optional[str]
-    birthdate: Optional[str]
-    c_hash: Optional[str]
-    category: Optional[AccessTokenCategory]
-    claims_locales: Optional[str]
+    at_hash: Optional[str] = None
+    auth_time: Optional[int] = None
+    authorization: Optional[AccessTokenAuthorization] = None
+    azp: Optional[str] = None
+    birthdate: Optional[str] = None
+    c_hash: Optional[str] = None
+    category: Optional[AccessTokenCategory] = None
+    claims_locales: Optional[str] = None
     cnf: Optional[str] = Field(None, alias="x5t#S256")
-    email: Optional[str]
-    email_verified: Optional[bool]
-    exp: Optional[int]
-    family_name: Optional[str]
-    gender: Optional[str]
-    given_name: Optional[str]
-    iat: Optional[int]
-    iss: Optional[str]
-    jti: Optional[str]
-    locale: Optional[str]
-    middle_name: Optional[str]
-    name: Optional[str]
-    nbf: Optional[int]
-    nickname: Optional[str]
-    nonce: Optional[str]
+    email: Optional[str] = None
+    email_verified: Optional[bool] = None
+    exp: Optional[int] = None
+    family_name: Optional[str] = None
+    gender: Optional[str] = None
+    given_name: Optional[str] = None
+    iat: Optional[int] = None
+    iss: Optional[str] = None
+    jti: Optional[str] = None
+    locale: Optional[str] = None
+    middle_name: Optional[str] = None
+    name: Optional[str] = None
+    nbf: Optional[int] = None
+    nickname: Optional[str] = None
+    nonce: Optional[str] = None
     other_claims: Optional[Dict[str, Any]] = Field(None, alias="otherClaims")
-    phone_number: Optional[str]
-    phone_number_verified: Optional[bool]
-    picture: Optional[str]
-    preferred_username: Optional[str]
-    profile: Optional[str]
-    realm_access: Optional[AccessTokenAccess]
-    s_hash: Optional[str]
-    scope: Optional[str]
-    session_state: Optional[str]
-    sid: Optional[str]
-    sub: Optional[str]
-    tenants: Optional[List[str]]
+    phone_number: Optional[str] = None
+    phone_number_verified: Optional[bool] = None
+    picture: Optional[str] = None
+    preferred_username: Optional[str] = None
+    profile: Optional[str] = None
+    realm_access: Optional[AccessTokenAccess] = None
+    s_hash: Optional[str] = None
+    scope: Optional[str] = None
+    session_state: Optional[str] = None
+    sid: Optional[str] = None
+    sub: Optional[str] = None
+    tenants: Optional[List[str]] = None
     trusted_certs: Optional[List[str]] = Field(None, alias="trusted-certs")
-    typ: Optional[str]
-    updated_at: Optional[int]
-    website: Optional[str]
-    zoneinfo: Optional[str]
-
-    class Config:
-        anystr_strip_whitespace = True
-        allow_population_by_field_name = True
+    typ: Optional[str] = None
+    updated_at: Optional[int] = None
+    website: Optional[str] = None
+    zoneinfo: Optional[str] = None
+    model_config = ConfigDict(str_strip_whitespace=True, populate_by_name=True)
 
 
 class TokenResponse(BaseModel):
     """Represent Keycloak token response."""
 
     access_token: str
-    expires_in: Optional[int]
-    refresh_expires_in: Optional[int]
-    refresh_token: Optional[str]
+    expires_in: Optional[int] = None
+    refresh_expires_in: Optional[int] = None
+    refresh_token: Optional[str] = None
     token_type: str
-    id_token: Optional[str]
+    id_token: Optional[str] = None
     not_before_policy: Optional[int] = Field(None, alias="not-before-policy")
-    session_state: Optional[str]
-    scope: Optional[str]
-
-    class Config:
-        anystr_strip_whitespace = True
-        allow_population_by_field_name = True
+    session_state: Optional[str] = None
+    scope: Optional[str] = None
+    model_config = ConfigDict(str_strip_whitespace=True, populate_by_name=True)
 
 
 class OAuthRequest(BaseModel):
     """Base class for authorization requests"""
 
-    client_id: Optional[str]
+    client_id: Optional[str] = None
     grant_type: str
-    client_secret: Optional[str]
+    client_secret: Optional[str] = None
 
 
 class TokenRequest(OAuthRequest):
@@ -301,9 +288,7 @@ class TokenRequest(OAuthRequest):
     password: str
     grant_type: str = "password"
     scope: Optional[str] = None
-
-    class Config:
-        anystr_strip_whitespace = True
+    model_config = ConfigDict(str_strip_whitespace=True)
 
     @staticmethod
     def from_fastapi_form(
@@ -327,3 +312,38 @@ class RefreshTokenRequest(OAuthRequest):
     client_id: str = "admin-cli"
     grant_type: str = "refresh_token"
     refresh_token: str
+
+
+class RealmAccess(BaseModel):
+    roles: List[str] = Field(default_factory=list)
+
+
+class ResourceAccessItem(BaseModel):
+    roles: List[str] = Field(default_factory=list)
+
+
+class IntrospectTokenResponse(BaseModel):
+    exp: Optional[int] = None
+    iat: Optional[int] = None
+    jti: Optional[str] = None
+    iss: Optional[str] = None
+    sub: Optional[str] = None
+    typ: Optional[str] = None
+    azp: Optional[str] = None
+    session_state: Optional[str] = None
+    preferred_username: Optional[str] = None
+    email: Optional[str] = None
+    email_verified: Optional[bool] = None
+    acr: Optional[str] = None
+    realm_access: Optional[RealmAccess] = None
+    resource_access: Optional[Dict[str, ResourceAccessItem]] = None
+    scope: Optional[str] = None
+    sid: Optional[str] = None
+    tenants: Optional[List[str]] = None
+    client_id: Optional[str] = None
+    name: Optional[str] = None
+    family_name: Optional[str] = None
+    given_name: Optional[str] = None
+    username: Optional[str] = None
+    auth_time: Optional[int] = None
+    active: bool
