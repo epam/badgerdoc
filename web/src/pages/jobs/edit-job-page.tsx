@@ -108,10 +108,8 @@ export const EditJobPage = () => {
         table = (
             <DocumentsTableConnector
                 isJobPage
-                // onFilesSelect={setFiles}
+                // fileIds={fileIds}
                 onRowClick={() => null}
-                // checkedValues={files}
-                handleJobAddClick={handleJobAddClick}
             />
         );
     } else if (currentTab === 'Jobs') {

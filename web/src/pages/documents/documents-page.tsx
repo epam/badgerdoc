@@ -111,8 +111,7 @@ const DocumentsPage = () => {
                                         <DocumentsTableConnector
                                             dataset={activeDataset}
                                             onRowClick={handleRowClick}
-                                            // onFilesSelect={onFilesSelect}
-                                            // checkedValues={selectedFiles}
+                                            // fileIds={fileIds}
                                             handleJobAddClick={handleJobAddClick}
                                             withHeader
                                         />

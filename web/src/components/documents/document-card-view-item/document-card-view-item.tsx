@@ -1,6 +1,6 @@
 // temporary_disabled_rules
-/* eslint-disable @typescript-eslint/no-unused-vars, react-hooks/exhaustive-deps*/
-import React, { FC, useCallback, useEffect, useState } from 'react';
+/* eslint-disable @typescript-eslint/no-unused-vars, react-hooks/exhaustive-deps */
+import React, { FC, useCallback, useContext } from 'react';
 import { IconButton, Dropdown, Checkbox } from '@epam/loveship';
 import { ReactComponent as jobsPicture } from '@epam/assets/icons/common/navigation-chevron-down-24.svg';
 import { ReactComponent as FileDownloadFillIcon } from '@epam/assets/icons/common/file-download-24.svg';
@@ -10,6 +10,7 @@ import { mapStatusForJobs } from 'shared/helpers/map-statuses';
 import { Job, JobStatus } from 'api/typings/jobs';
 import { Link } from 'react-router-dom';
 import { fetchLatestAnnotations, useThumbnailPiece } from 'api/hooks/assets';
+import { SelectedFilesContext } from 'shared/contexts/SelectedFilesContext';
 import styles from './document-card-view-item.module.scss';
 import { getError } from 'shared/helpers/get-error';
 import { svc } from 'services';
@@ -21,19 +22,12 @@ type DocumentCardViewProps = {
     jobs: Job[];
     documentId: number;
     documentName: string | number;
-    thumbnails?: {};
-    selectedFiles?: number[];
+    thumbnails?: Record<number, string>;
     bbox?: number[];
-    setSelectedFiles?: (files: number[]) => void;
-    isSelected?: boolean;
-    onToggleSelect?: (documentId: number) => void;
 };
 
-const isDocumentId = (selectedFiles: number[] | undefined, documentId: number) => {
-    if (selectedFiles) {
-        return !!selectedFiles.filter((el) => el === documentId).length;
-    }
-    return false;
+const isDocumentId = (selectedFiles: number[], documentId: number): boolean => {
+    return selectedFiles.includes(documentId);
 };
 
 export const DocumentCardViewItem: FC<DocumentCardViewProps> = ({
@@ -44,24 +38,18 @@ export const DocumentCardViewItem: FC<DocumentCardViewProps> = ({
     documentId,
     documentName,
     thumbnails,
-    selectedFiles,
-    bbox,
-    setSelectedFiles
+    bbox
 }) => {
-    const [chooseFile, setChooseFile] = useState<boolean>(isDocumentId(selectedFiles, documentId));
+    const { selectedFiles, setSelectedFiles } = useContext(SelectedFilesContext);
     const thumbnailPiece = useThumbnailPiece(
         { fileId: documentId, pageNum: documentPage, bbox },
         {}
     );
 
-    useEffect(() => {
-        setChooseFile(isDocumentId(selectedFiles, documentId));
-    }, [selectedFiles]);
-
-    const renderJobsDropdown = (jobs: any) => {
+    const renderJobsDropdown = (jobs: Job[]) => {
         return (
             <div className={styles['list']}>
-                {jobs.map((job: { name: string; id: number; status: JobStatus }) => (
+                {jobs.map((job) => (
                     <Link to={getDocumentPath(job.id)} key={job.id} className={styles['list-item']}>
                         {job.status && (
                             <Status
@@ -78,7 +66,7 @@ export const DocumentCardViewItem: FC<DocumentCardViewProps> = ({
         );
     };
 
-    const getDocumentPath = (nextJobId: null | number) => {
+    const getDocumentPath = (nextJobId: number | null): string => {
         let path = `/documents/${documentId}`;
         if (jobs && jobs.length) {
             return path + `?jobId=${nextJobId ?? jobs[0].id}`;
@@ -86,7 +74,7 @@ export const DocumentCardViewItem: FC<DocumentCardViewProps> = ({
         return path;
     };
 
-    const handleError = useCallback((err) => {
+    const handleError = useCallback((err: unknown) => {
         svc.uuiNotifications.show(
             (props: INotification) => (
                 <ErrorNotification {...props}>
@@ -97,26 +85,35 @@ export const DocumentCardViewItem: FC<DocumentCardViewProps> = ({
         );
     }, []);
 
-    const downloadFile = (blob: any, fileName: string) => {
+    const downloadFile = (blob: Blob, fileName: string) => {
         const link = document.createElement('a');
-        link.href = URL.createObjectURL(new Blob([blob]));
+        link.href = URL.createObjectURL(blob);
         link.download = fileName;
-        document.body.append(link);
+        document.body.appendChild(link);
         link.click();
         link.remove();
         URL.revokeObjectURL(link.href);
     };
 
-    const handleDownloadDocument = async (event: any) => {
+    const handleDownloadDocument = async (event: React.MouseEvent) => {
         event.preventDefault();
-
-        const blob = await fetchLatestAnnotations(documentId);
-
         try {
+            const blob = await fetchLatestAnnotations(documentId);
             downloadFile(blob, String(documentName));
         } catch (error) {
             handleError(error);
         }
+    };
+
+    const handleCheckboxChange = (newValue: boolean) => {
+        const newSelectedFiles = newValue
+            ? [...selectedFiles, documentId]
+            : selectedFiles.filter((id) => id !== documentId);
+        setSelectedFiles(newSelectedFiles);
+    };
+
+    const handleCheckboxClick = (event: React.MouseEvent) => {
+        event.stopPropagation(); // Prevent click from triggering Link navigation
     };
 
     return (
@@ -130,7 +127,7 @@ export const DocumentCardViewItem: FC<DocumentCardViewProps> = ({
                                 <div
                                     role="button"
                                     onClick={handleDownloadDocument}
-                                    onKeyPress={handleDownloadDocument}
+                                    onKeyPress={(e) => e.key === 'Enter' && handleDownloadDocument}
                                     tabIndex={0}
                                 >
                                     <FileDownloadFillIcon
@@ -139,35 +136,15 @@ export const DocumentCardViewItem: FC<DocumentCardViewProps> = ({
                                 </div>
                                 {/* temporary_disabled_rules */}
                                 {/* eslint-disable jsx-a11y/no-static-element-interactions, jsx-a11y/click-events-have-key-events */}
-                                <div
-                                    onClick={(event) => {
-                                        if (setSelectedFiles) {
-                                            event.preventDefault();
-                                            if (isDocumentId(selectedFiles, documentId)) {
-                                                // @ts-ignore
-                                                setSelectedFiles((prevState) => {
-                                                    const copy = [...prevState].filter(
-                                                        (el) => el !== documentId
-                                                    );
-                                                    return copy;
-                                                });
-                                                setChooseFile(false);
-                                            } else {
-                                                // @ts-ignore
-                                                setSelectedFiles((prevState) => {
-                                                    const copy = [...prevState];
-                                                    copy.push(documentId);
-                                                    return copy;
-                                                });
-                                                setChooseFile(true);
-                                            }
-                                        }
-                                    }}
-                                >
-                                    {!isPieces && (
-                                        <Checkbox value={chooseFile} onValueChange={() => {}} />
-                                    )}
-                                </div>
+                                {!isPieces && (
+                                    <div onClick={handleCheckboxClick}>
+                                        <Checkbox
+                                            value={isDocumentId(selectedFiles, documentId)}
+                                            onValueChange={handleCheckboxChange}
+                                            aria-label={`Select document ${documentName}`}
+                                        />
+                                    </div>
+                                )}
                             </div>
                         </div>
                         {jobs && jobs.length ? (
