@@ -24,6 +24,7 @@ from jobs.config import (
 )
 from jobs.logger import logger
 from jobs.models import CombinedJob
+from jobs.pipeline import OtherPipeline
 from jobs.s3 import create_pre_signed_s3_url
 from jobs.schemas import (
     AirflowPipelineStatus,
@@ -355,10 +356,10 @@ async def execute_external_pipeline(
     logger.info("Pipeline params: %s", kwargs)
     if pipeline_engine == "airflow":
         pipeline = airflow_utils.AirflowPipeline()
-    # return await airflow_utils.run(**kwargs)
     elif pipeline_engine == "databricks":
         pipeline = databricks_utils.DatabricksPipeline()
-        # return await databricks_utils.run(**kwargs)
+    elif pipeline_engine == "other":
+        pipeline = OtherPipeline()
     else:
         raise UnsupportedEngine(f"Unknown engine: {pipeline_engine}")
     return await pipeline.run(**kwargs)
@@ -469,7 +470,7 @@ async def execute_in_annotation_microservice(
 
 
 def delete_duplicates(
-    files_data: List[Dict[str, Any]],
+    files_data: List[Dict[str, Any]]
 ) -> List[Dict[str, Any]]:
     """Delete duplicates"""
     used_file_ids = set()

@@ -4,7 +4,7 @@ FROM ${base_image} as build
 WORKDIR /opt/users
 
 COPY users ./users
-COPY pyproject.toml poetry.lock .env version.txt ./
+COPY pyproject.toml poetry.lock version.txt ./
 
 RUN : \
     && apt-get update \

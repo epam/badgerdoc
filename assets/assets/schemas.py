@@ -100,3 +100,19 @@ class S3Data(BaseModel):
     secret_access_key: str
     bucket_s3: str
     files_keys: List[str]
+
+
+class ExtractionBase(BaseModel):
+    file_id: int
+    engine: str
+
+
+class ExtractionResponse(ExtractionBase):
+    id: int
+    file_id: int
+    file_extension: str
+    file_path: str
+    status: str
+
+    class Config:
+        orm_mode = True
