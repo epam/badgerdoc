@@ -487,8 +487,8 @@ def delete_duplicates(
 def pick_params_for_annotation(
     new_job_params: JobParamsToChange,
 ) -> AnnotationJobUpdateParamsInAnnotation:
-    picked_params = AnnotationJobUpdateParamsInAnnotation.parse_obj(
-        new_job_params
+    picked_params = AnnotationJobUpdateParamsInAnnotation.model_validate(
+        new_job_params.model_dump()
     )
     return picked_params
 
