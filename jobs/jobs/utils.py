@@ -578,13 +578,16 @@ async def get_job_progress(
         "Authorization": f"Bearer: {jw_token}",
     }
     try:
-        _, response = await fetch(method="GET", url=url, headers=headers)
+        req_status_code, response = await fetch(method="GET", url=url, headers=headers)
     except aiohttp.client_exceptions.ClientError as err:
         logger.exception(f"Failed request url = {url}, error = {err}")
         raise fastapi.HTTPException(
             status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=f"Failed request to the Annotation Manager: {err}",
         )
+
+    if req_status_code == 404:
+        return None
 
     response.update({"mode": str(job.mode)})
 
