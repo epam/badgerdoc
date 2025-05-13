@@ -578,7 +578,9 @@ async def get_job_progress(
         "Authorization": f"Bearer: {jw_token}",
     }
     try:
-        req_status_code, response = await fetch(method="GET", url=url, headers=headers)
+        req_status_code, response = await fetch(
+            method="GET", url=url, headers=headers
+        )
     except aiohttp.client_exceptions.ClientError as err:
         logger.exception(f"Failed request url = {url}, error = {err}")
         raise fastapi.HTTPException(
