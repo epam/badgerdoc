@@ -64,9 +64,7 @@ export const DocumentsSearchProvider: FC = ({ children }) => {
     const [documentsSort, setDocumentsSort] = useState<string | keyof FileDocument>(
         'last_modified'
     );
-    const [sortOrder, setSortOrder] = useState<SortingDirection>(
-        'asc' as SortingDirection
-    );
+    const [sortOrder, setSortOrder] = useState<SortingDirection>('asc' as SortingDirection);
 
     const isDocuments = history.location.pathname === '/documents';
     const isSearch = history.location.pathname === '/documents/search';
@@ -101,17 +99,17 @@ export const DocumentsSearchProvider: FC = ({ children }) => {
     };
 
     const toggleSortOrder = () => {
-        setSortOrder(prev => {
+        setSortOrder((prev) => {
             if (prev === SortingDirection.ASC) return SortingDirection.DESC;
             return SortingDirection.ASC;
-        })
-    }
+        });
+    };
 
     useEffect(() => {
         if (isDocuments) {
             setBreadcrumbs(documentsBreadcrumbs);
             setDocumentsSort('last_modified');
-            setSortOrder(SortingDirection.ASC)
+            setSortOrder(SortingDirection.ASC);
             setQuery('');
         }
         if (isSearch) {
