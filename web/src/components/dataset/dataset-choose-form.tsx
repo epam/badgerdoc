@@ -75,7 +75,7 @@ export const DatasetChooseForm: FC<IProps> = ({ onChooseDataset, ...modalProps }
                         onClick={() => handleLeave().then(modalProps.abort)}
                         caption="Cancel"
                     />
-                    <Button color="sky" caption="Choose" onClick={save} />
+                    <Button color="sky" caption="Choose" onClick={() => {save(); modalProps.abort()}} />
                 </ModalFooter>
             </>
         );
