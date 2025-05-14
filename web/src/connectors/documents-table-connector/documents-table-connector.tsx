@@ -43,6 +43,7 @@ import { DatasetChooseForm, DatasetWithFiles } from '../../components';
 import { getError } from '../../shared/helpers/get-error';
 import { useAddFilesToDatasetMutation } from '../../api/hooks/datasets';
 import { saveFiltersToStorage } from '../../shared/helpers/set-filters';
+import { isEqual } from 'lodash';
 
 type DocumentsTableConnectorProps = {
     dataset?: Dataset | null | undefined;
@@ -84,7 +85,7 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
     const mutation = useAddFilesToDatasetMutation();
     const deleteFilesMutation = useDeleteFilesMutation();
 
-    const [selectedFiles, setSelectedFiles] = useState<number[] | []>([]);
+    const [selectedFiles, setSelectedFiles] = useState<number[]>(fileIds || checked || []);
     const isTableView = isJobPage || documentView === 'table';
 
     const filtersRef = useRef(filters);
@@ -94,17 +95,17 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
 
     useEffect(() => {
         if (fileIds) {
+            setSelectedFiles(fileIds);
             onTableValueChange({
                 ...tableValue,
                 checked: fileIds
             });
         }
-    }, []);
+    }, [fileIds]);
 
     useEffect(() => {
-        setSelectedFiles(checked || []);
-        if (onFilesSelect) {
-            onFilesSelect(checked as number[]);
+        if (!isEqual(checked || [], selectedFiles)) {
+            setSelectedFiles(checked || []);
         }
     }, [checked]);
 
@@ -273,17 +274,9 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
     const handleSelectAllClick = () => {
         if (selectedFiles?.length) {
             setSelectedFiles([]);
-            onTableValueChange({
-                ...tableValue,
-                checked: []
-            });
         } else {
-            const allFiles = files?.data.map((el) => el.id);
-            setSelectedFiles(allFiles || []);
-            onTableValueChange({
-                ...tableValue,
-                checked: allFiles
-            });
+            const allFiles = files?.data.map((el) => el.id) || [];
+            setSelectedFiles(allFiles);
         }
     };
 
