@@ -43,7 +43,7 @@ import { DatasetChooseForm, DatasetWithFiles } from '../../components';
 import { getError } from '../../shared/helpers/get-error';
 import { useAddFilesToDatasetMutation } from '../../api/hooks/datasets';
 import { saveFiltersToStorage } from '../../shared/helpers/set-filters';
-import { arraysEqual } from 'shared/helpers/utils';
+import { isEqual } from 'lodash';
 
 type DocumentsTableConnectorProps = {
     dataset?: Dataset | null | undefined;
@@ -104,7 +104,7 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
     }, [fileIds]);
 
     useEffect(() => {
-        if (!arraysEqual(checked || [], selectedFiles)) {
+        if (!isEqual(checked || [], selectedFiles)) {
             setSelectedFiles(checked || []);
         }
     }, [checked]);

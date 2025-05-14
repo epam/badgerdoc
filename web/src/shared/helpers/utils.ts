@@ -149,7 +149,3 @@ export const useOutsideClick = (ref: any, callback: () => void) => {
     });
 };
 
-export const arraysEqual = (a: number[], b: number[]): boolean => {
-  if (a.length !== b.length) return false;
-  return a.every((value, index) => value === b[index]);
-};
