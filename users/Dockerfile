@@ -18,5 +18,5 @@ RUN : \
     && poetry install --no-root --only main \
     && :
 
-CMD ["uvicorn", "users.main:app", "--host", "0.0.0.0", "--port", "8080"]
+CMD uvicorn users.main:app --root-path $ROOT_PATH --host 0.0.0.0 --port 8080
 EXPOSE 8080

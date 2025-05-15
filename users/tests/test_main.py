@@ -9,6 +9,7 @@ from tenant_dependency import TenantData
 import users.keycloak.schemas as kc_schemas
 from users.main import app, check_authorization, tenant
 
+app.root_path = ""
 client = TestClient(app)
 
 token = {"access_token": "token", "token_type": "Bearer"}
