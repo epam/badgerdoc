@@ -149,6 +149,14 @@ def testing_app(testing_engine, testing_session, setup_tenant):
         main.app.dependency_overrides[service.get_session] = (
             lambda: testing_session
         )
+
+        # TODO: remove this workaround once the FastAPI issue is officially fixed.
+        # This is a workaround solution for "Not Found" issues introduced in fastapi 0.109.0
+        # This bug affects routes that start with the same text as the 'root_path' value
+        # Example: root_path= "/users" , route= "/users/{user_id}"
+        # When this issue is fixed officially, this workaround can be removed
+        main.app.root_path = ""
+
         client = TestClient(main.app)
         yield client
 
