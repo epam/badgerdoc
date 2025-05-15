@@ -1,6 +1,6 @@
 // temporary_disabled_rules
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 
 import { useHistory, useParams, useLocation } from 'react-router-dom';
 import { Button, MultiSwitch } from '@epam/loveship';
@@ -14,11 +14,13 @@ import { JOBS_PAGE } from '../../shared/constants/general';
 import { useJobById } from 'api/hooks/jobs';
 import EditJobConnector from '../../connectors/edit-job-connector/edit-job-connector';
 import { DatasetsTableConnector } from 'connectors/datasets-table-connector';
-
+import { RevisionsTableConnector } from 'connectors/revisions-table-connector';
 import wizardStyles from '../../shared/components/wizard/wizard/wizard.module.scss';
 import styles from '../../shared/components/wizard/wizard/wizard.module.scss';
 import pageStyles from './edit-job-page.module.scss';
-import { RevisionsTableConnector } from 'connectors/revisions-table-connector';
+import { INotification } from '@epam/uui';
+import { ErrorNotification } from '@epam/loveship';
+import { svc } from 'services';
 
 interface LocationState {
     files?: number[];
@@ -28,12 +30,12 @@ export const EditJobPage = () => {
     const history = useHistory();
     const location = useLocation();
     const fileIds = (location.state as LocationState)?.files || [];
-    const { jobId } = useParams() as { jobId: string };
+    const { jobId } = useParams<{ jobId: string }>();
 
     const [files, setFiles] = useState<number[]>([]);
     const [jobs, setJobs] = useState<number[]>([]);
     const [datasets, setDatasets] = useState<number[]>([]);
-    const [revisions, setRevivisions] = useState<string[]>([]);
+    const [revisions, setRevisions] = useState<string[]>([]);
     const [stepIndex, setStepIndex] = useState(0);
     const [currentTab, onCurrentTabChange] = useState('Documents');
     const [revisionId, setRevisionId] = useState<string | null>(null);
@@ -69,11 +71,57 @@ export const EditJobPage = () => {
         }
     }, [jobId]);
 
-    const handleNext = () => {
-        setStepIndex(stepIndex + 1);
-    };
+    const handleError = useCallback(
+        (error: Error) => {
+            svc.uuiNotifications.show(
+                (props: INotification) => (
+                    <ErrorNotification {...props}>
+                        <div>{error.message}</div>
+                    </ErrorNotification>
+                ),
+                {
+                    duration: 2,
+                    position: 'top-center'
+                }
+            );
+        },
+        []
+    );
+
     const handlePrev = () => {
         setStepIndex(stepIndex - 1);
+    };
+
+    const handleNext = () => {
+        let selection;
+        let itemType;
+        switch (currentTab) {
+            case 'Documents':
+                selection = files;
+                itemType = 'document';
+                break;
+            case 'Jobs':
+                selection = jobs;
+                itemType = 'job';
+                break;
+            case 'Datasets':
+                selection = datasets;
+                itemType = 'dataset';
+                break;
+            case 'Revisions':
+                selection = revisions;
+                itemType = 'revision';
+                break;
+            default:
+                selection = [];
+                itemType = 'item';
+        }
+
+        if (selection.length === 0) {
+            handleError(new Error(`Please select at least one ${itemType} to proceed.`));
+        } else {
+            setStepIndex(stepIndex + 1);
+        }
     };
 
     const finishButtonCaption = jobId ? 'Save Edits' : 'New Job';
@@ -131,7 +179,7 @@ export const EditJobPage = () => {
     } else {
         table = (
             <RevisionsTableConnector
-                onRevisionSelect={setRevivisions}
+                onRevisionSelect={setRevisions}
                 onRowClick={() => null}
                 checkedValues={revisions}
             />
