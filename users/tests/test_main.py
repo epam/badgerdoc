@@ -10,6 +10,7 @@ import users.keycloak.schemas as kc_schemas
 from users.main import app, check_authorization, tenant
 
 # TODO: remove this workaround once the FastAPI issue is officially fixed.
+# The issue's discussion: https://github.com/fastapi/fastapi/discussions/11015
 # This is a workaround solution for "Not Found" issues introduced in fastapi 0.109.0
 # This bug affects routes that start with the same text as the 'root_path' value
 # Example: root_path= "/users" , route= "/users/{user_id}"
