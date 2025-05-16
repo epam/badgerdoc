@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import os
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 import airflow_client.client as client
 from fastapi import Depends, FastAPI, Header, HTTPException, status
@@ -56,7 +56,7 @@ async def create_job(
     current_tenant: Optional[str] = Header(None, alias="X-Current-Tenant"),
     db: Session = Depends(db_service.get_session),
     token_data: TenantData = Depends(tenant),
-) -> Union[Dict[str, Any], None]:
+) -> Dict[str, Any]:
     """Creates ExtractionJob, AnnotationJob or ExtractionWithAnnotationJob.
     If it is not 'Draft' - runs it"""
     logger.info("Create job with job_params: %s", job_params)
@@ -192,7 +192,7 @@ async def run_job(
     current_tenant: Optional[str] = Header(None, alias="X-Current-Tenant"),
     db: Session = Depends(db_service.get_session),
     token_data: TenantData = Depends(tenant),
-) -> Union[Dict[str, Any], HTTPException]:
+) -> Dict[str, Any]:
     """Runs any type of Job"""
     jw_token = token_data.token
     job_to_run = db_service.get_job_in_db_by_id(db, job_id)
@@ -257,7 +257,7 @@ async def change_job(
     token_data: TenantData = Depends(tenant),
     current_tenant: Optional[str] = Header(None, alias="X-Current-Tenant"),
     db: Session = Depends(db_service.get_session),
-) -> Union[Dict[str, Any], HTTPException]:
+) -> Dict[str, Any]:
     """Provides an ability to change any value
     of any field of any Job in the database"""
 
@@ -381,7 +381,6 @@ async def search_jobs(
     db: Session = Depends(db_service.get_session),
 ) -> Page[Dict[str, Any]]:
     """Returns a list of Jobs in line with filters specified"""
-
     query = db.query(dbm.CombinedJob)
     filter_args = map_request_to_filter(request.dict(), "CombinedJob")
     try:
@@ -391,7 +390,8 @@ async def search_jobs(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=f"{e}",
         )
-    return paginate([element for element in query], pag)
+    query_result = [element for element in query]
+    return paginate([obj.as_dict for obj in query_result], pag)
 
 
 @app.get("/jobs/{job_id}")
@@ -422,7 +422,7 @@ async def delete_job(
     current_tenant: Optional[str] = Header(None, alias="X-Current-Tenant"),
     db: Session = Depends(db_service.get_session),
     token_data: TenantData = Depends(tenant),
-) -> Union[Dict[str, Any], HTTPException]:
+) -> Dict[str, Any]:
     """Deletes Job instance by its id"""
     jw_token = token_data.token
     job_to_delete = db_service.get_job_in_db_by_id(db, job_id)

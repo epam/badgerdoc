@@ -487,8 +487,8 @@ def delete_duplicates(
 def pick_params_for_annotation(
     new_job_params: JobParamsToChange,
 ) -> AnnotationJobUpdateParamsInAnnotation:
-    picked_params = AnnotationJobUpdateParamsInAnnotation.parse_obj(
-        new_job_params
+    picked_params = AnnotationJobUpdateParamsInAnnotation.model_validate(
+        new_job_params.model_dump()
     )
     return picked_params
 
@@ -578,13 +578,18 @@ async def get_job_progress(
         "Authorization": f"Bearer: {jw_token}",
     }
     try:
-        _, response = await fetch(method="GET", url=url, headers=headers)
+        req_status_code, response = await fetch(
+            method="GET", url=url, headers=headers
+        )
     except aiohttp.client_exceptions.ClientError as err:
         logger.exception(f"Failed request url = {url}, error = {err}")
         raise fastapi.HTTPException(
             status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=f"Failed request to the Annotation Manager: {err}",
         )
+
+    if req_status_code == 404:
+        return None
 
     response.update({"mode": str(job.mode)})
 
