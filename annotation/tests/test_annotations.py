@@ -9,7 +9,6 @@ import boto3
 import pytest
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
-from tests.override_app_dependency import TEST_TENANT
 
 from annotation.annotations.main import (
     LATEST,
@@ -59,6 +58,7 @@ from annotation.schemas.annotations import (
 )
 from annotation.schemas.categories import CategoryTypeSchema
 from annotation.schemas.jobs import JobTypeEnumSchema, ValidationSchema
+from tests.override_app_dependency import TEST_TENANT
 
 
 @pytest.fixture
@@ -578,7 +578,10 @@ def test_upload_pages_to_minio(moto_s3: boto3.resource):
         upload_pages_to_minio(pages, pages_sha, s3_path, TEST_TENANT, moto_s3)
         path_to_object = f"{s3_path}/{pages_sha[str(pages[0].page_num)]}.json"
         mock_upload_json.assert_called_once_with(
-            json.dumps(pages[0].dict()), path_to_object, TEST_TENANT, moto_s3
+            json.dumps(pages[0].model_dump()),
+            path_to_object,
+            TEST_TENANT,
+            moto_s3,
         )
 
 
@@ -786,7 +789,7 @@ def test_load_page(
 def test_load_page_particular_existing_revision(
     page_revision_list_all: Tuple[
         Dict[int, List[PageRevision]], Dict[int, Dict[str, LatestPageRevision]]
-    ]
+    ],
 ):
     page_revision_list_all[0][1][0]["page_id"] = "sha1"
     page_path = (
@@ -859,7 +862,7 @@ def test_load_page_particular_existing_revision(
 def test_load_all_revs_pages(
     page_revision_list_all: Tuple[
         Dict[int, List[PageRevision]], Dict[int, Dict[str, LatestPageRevision]]
-    ]
+    ],
 ):
     expected_user_1 = page_revision_list_all[0][1][0]["user_id"]
     expected_page_rev_1 = {**page_revision_list_all[0][1][0]}
@@ -898,7 +901,7 @@ def test_load_all_revs_pages(
 def test_load_latest_revs_pages(
     page_revision_list_all: Tuple[
         Dict[int, List[PageRevision]], Dict[int, Dict[str, LatestPageRevision]]
-    ]
+    ],
 ):
     expected_user_1 = list(page_revision_list_all[1][1].keys())[0]
     expected_user_2 = list(page_revision_list_all[1][2].keys())[0]

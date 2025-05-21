@@ -111,8 +111,8 @@ def add_category_db(
 
 
 def response_object_from_db(category_db: Category) -> CategoryResponseSchema:
-    category_orm = CategoryORMSchema.from_orm(category_db).dict()
-    return CategoryResponseSchema.parse_obj(category_orm)
+    category_orm = CategoryORMSchema.model_validate(category_db).model_dump()
+    return CategoryResponseSchema.model_validate(category_orm)
 
 
 def fetch_category_parents(
@@ -317,16 +317,20 @@ def _compose_response(
             )
             for cat in parents[parent_path]
         ]
+
     return [
         CategoryResponseSchema.parse_obj(
             {
                 **CategoryORMSchema.from_orm(cat).dict(),
                 "is_leaf": leaves.get(cat.id, False),
-                "parents": (
-                    converted_parents.get(cat.tree.path, [])
-                    if cat.tree
-                    else []
-                ),
+                "parents": [
+                    parent.dict()
+                    for parent in (
+                        converted_parents.get(cat.tree.path, [])
+                        if cat.tree
+                        else []
+                    )
+                ],
             }
         )
         for cat in categories

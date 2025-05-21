@@ -3,10 +3,6 @@ from copy import deepcopy
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.exc import DBAPIError, SQLAlchemyError
-from tests.consts import CRUD_TASKS_PATH
-from tests.override_app_dependency import TEST_HEADERS, TEST_TENANT, app
-from tests.test_post import check_files_distributed_pages
-from tests.test_tasks_crud_ud import BAD_ID, NOT_EXISTING_ID
 
 from annotation.annotations import row_to_dict
 from annotation.models import Category, File, Job, ManualAnnotationTask, User
@@ -15,6 +11,10 @@ from annotation.schemas import (
     TaskStatusEnumSchema,
     ValidationSchema,
 )
+from tests.consts import CRUD_TASKS_PATH
+from tests.override_app_dependency import TEST_HEADERS, TEST_TENANT, app
+from tests.test_post import check_files_distributed_pages
+from tests.test_tasks_crud_ud import BAD_ID, NOT_EXISTING_ID
 
 client = TestClient(app)
 
@@ -126,8 +126,8 @@ PENDING_READY_IDS = [TASK_PENDING["id"], TASK_READY["id"]]
 def test_delete_batch_tasks_status_codes(
     prepare_db_for_batch_delete_tasks, tasks_id, job_id, expected_code
 ):
-    response = client.delete(
-        CRUD_TASKS_PATH, json=tasks_id, headers=TEST_HEADERS
+    response = client.request(
+        "DELETE", CRUD_TASKS_PATH, json=tasks_id, headers=TEST_HEADERS
     )
     assert response.status_code == expected_code
     check_files_distributed_pages(prepare_db_for_batch_delete_tasks, job_id)
@@ -146,8 +146,11 @@ def test_delete_batch_tasks_exceptions(
     monkeypatch,
     db_errors,
 ):
-    response = client.delete(
-        CRUD_TASKS_PATH, json=[TASK_PENDING["id"]], headers=TEST_HEADERS
+    response = client.request(
+        "DELETE",
+        CRUD_TASKS_PATH,
+        json=[TASK_PENDING["id"]],
+        headers=TEST_HEADERS,
     )
     assert response.status_code == 500
 
@@ -197,12 +200,12 @@ def test_delete_task(
     assert tasks == tasks_before_removing
 
     if expected_response:
-        response = client.delete(
-            CRUD_TASKS_PATH, json=tasks_id, headers=TEST_HEADERS
+        response = client.request(
+            "DELETE", CRUD_TASKS_PATH, json=tasks_id, headers=TEST_HEADERS
         ).json()
     else:
-        response = client.delete(
-            CRUD_TASKS_PATH, json=tasks_id, headers=TEST_HEADERS
+        response = client.request(
+            "DELETE", CRUD_TASKS_PATH, json=tasks_id, headers=TEST_HEADERS
         ).content
 
     tasks = (

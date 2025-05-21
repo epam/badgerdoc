@@ -3,8 +3,7 @@ import os
 import sqlalchemy
 from dotenv import find_dotenv, load_dotenv
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import declarative_base, sessionmaker
 
 load_dotenv(find_dotenv())
 

@@ -3,12 +3,12 @@ from unittest.mock import Mock
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.exc import DBAPIError, SQLAlchemyError
-from tests.consts import POST_JOBS_PATH
-from tests.override_app_dependency import TEST_HEADERS, TEST_TENANT, app
 
 from annotation.jobs.services import get_jobs_by_files
 from annotation.models import File, Job, User
 from annotation.schemas import JobStatusEnumSchema, ValidationSchema
+from tests.consts import POST_JOBS_PATH
+from tests.override_app_dependency import TEST_HEADERS, TEST_TENANT, app
 
 client = TestClient(app)
 
@@ -318,6 +318,8 @@ def test_get_jobs_info_by_files_db_errors(db_errors, monkeypatch):
     response = client.get(
         POST_JOBS_PATH,
         headers=TEST_HEADERS,
-        params={"file_ids": {1, 2}},
+        params={"file_ids": [1, 2]},
     )
+    print("response je", response)
+    print(response.json())
     assert response.status_code == 500

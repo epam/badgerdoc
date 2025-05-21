@@ -2,7 +2,6 @@ import pytest
 import responses
 from fastapi import HTTPException
 from requests import ConnectionError, RequestException, Timeout
-from tests.override_app_dependency import TEST_HEADERS, TEST_TENANT, TEST_TOKEN
 
 from annotation.microservice_communication.search import (
     PAGE_SIZE,
@@ -16,6 +15,7 @@ from annotation.schemas import (
     ExpandedManualAnnotationTaskSchema,
     TaskStatusEnumSchema,
 )
+from tests.override_app_dependency import TEST_HEADERS, TEST_TENANT, TEST_TOKEN
 
 AMOUNT_OF_ELEMENTS = 150
 

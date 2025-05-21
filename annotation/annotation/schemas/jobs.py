@@ -1,9 +1,9 @@
 from datetime import datetime
 from enum import Enum
-from typing import List, Optional, Set
+from typing import Annotated, List, Optional, Set
 from uuid import UUID
 
-from pydantic import BaseModel, Field, root_validator
+from pydantic import BaseModel, Field, model_validator
 
 DEFAULT_LOAD = 100
 CROSS_MIN_ANNOTATORS_NUMBER = 2
@@ -40,63 +40,73 @@ class PreviousJobInfoSchema(BaseModel):
 
 
 class JobInfoSchema(BaseModel):
-    callback_url: str = Field(..., example="http://jobs/jobs/1")
-    name: str = Field(None, example="job_name")
+    callback_url: str = Field(..., examples=["http://jobs/jobs/1"])
+    name: str = Field(None, examples=["job_name"])
     annotators: Set[UUID] = Field(
         ...,
-        example={
-            "f0474853-f733-41c0-b897-90b788b822e3",
-            "b44156f8-e634-48a6-b5f3-c8b1462a2d67",
-        },
+        examples=[
+            {
+                "f0474853-f733-41c0-b897-90b788b822e3",
+                "b44156f8-e634-48a6-b5f3-c8b1462a2d67",
+            }
+        ],
     )
     validators: Set[UUID] = Field(
         ...,
-        example={
-            "f0474853-f733-41c0-b897-90b788b822e3",
-            "b44156f8-e634-48a6-b5f3-c8b1462a2d67",
-        },
+        examples=[
+            {
+                "f0474853-f733-41c0-b897-90b788b822e3",
+                "b44156f8-e634-48a6-b5f3-c8b1462a2d67",
+            }
+        ],
     )
     owners: Set[UUID] = Field(
         ...,
-        example={
-            "f0474853-f733-41c0-b897-90b788b822e3",
-            "b44156f8-e634-48a6-b5f3-c8b1462a2d67",
-        },
+        examples=[
+            {
+                "f0474853-f733-41c0-b897-90b788b822e3",
+                "b44156f8-e634-48a6-b5f3-c8b1462a2d67",
+            }
+        ],
     )
     validation_type: ValidationSchema = Field(
-        default=ValidationSchema.cross, example=ValidationSchema.cross
+        default=ValidationSchema.cross, examples=[ValidationSchema.cross]
     )
-    files: Set[int] = Field(..., example={1, 2, 3})
-    datasets: Set[int] = Field(..., example={1, 2, 3})
+    files: Set[int] = Field(..., examples=[{1, 2, 3}])
+    datasets: Set[int] = Field(..., examples=[{1, 2, 3}])
     revisions: Set[str] = Field(
         set(),
-        example={
-            "35b7b50a056d00048b0977b195f7f8e9f9f7400f",
-            "4dc503a9ade7d7cb55d6be671748a312d663bb0a",
-        },
+        examples=[
+            {
+                "35b7b50a056d00048b0977b195f7f8e9f9f7400f",
+                "4dc503a9ade7d7cb55d6be671748a312d663bb0a",
+            }
+        ],
     )
     previous_jobs: List[PreviousJobInfoSchema] = Field(...)
-    is_auto_distribution: bool = Field(default=False, example=False)
-    categories: Optional[Set[str]] = Field(None, example={"1", "2"})
-    deadline: Optional[datetime] = Field(None, example="2021-10-19 01:01:01")
+    is_auto_distribution: bool = Field(default=False, examples=[False])
+    categories: Optional[Set[str]] = Field(None, examples=[{"1", "2"}])
+    deadline: Optional[datetime] = Field(
+        None, examples=["2021-10-19 01:01:01"]
+    )
     job_type: JobTypeEnumSchema = Field(
-        ..., example=JobTypeEnumSchema.ExtractionJob
+        ..., examples=[JobTypeEnumSchema.ExtractionJob]
     )
     extensive_coverage: int = Field(
         1,
-        example=1,
+        examples=[1],
     )
 
-    @root_validator
+    @model_validator(mode="after")
     def check_files_datasets_previous_jobs(cls, values):
         """
         Files and datasets and revisions should not be empty at the same time.
         """
-        files, datasets = values.get("files"), values.get("datasets")
-        revisions = values.get("revisions")
-        previous_jobs = values.get("previous_jobs")
-
-        job_type = values.get("job_type")
+        files = getattr(values, "files", None)
+        datasets = getattr(values, "datasets", None)
+        revisions = getattr(values, "revisions", None)
+        previous_jobs = getattr(values, "previous_jobs", None)
+        job_type = getattr(values, "job_type", None)
 
         if (
             not (bool(previous_jobs) ^ bool(files or datasets or revisions))
@@ -108,7 +118,7 @@ class JobInfoSchema(BaseModel):
             )
         return values
 
-    @root_validator
+    @model_validator(mode="after")
     def check_users_and_validation(cls, values):
         """
         If the validation type is cross validation, annotators field should
@@ -119,12 +129,12 @@ class JobInfoSchema(BaseModel):
         empty.
         """
         validation_type, validators, annotators, extensive_coverage = (
-            values.get("validation_type"),
-            values.get("validators"),
-            values.get("annotators"),
-            values.get("extensive_coverage"),
+            getattr(values, "validation_type", None),
+            getattr(values, "validators", None),
+            getattr(values, "annotators", None),
+            getattr(values, "extensive_coverage", None),
         )
-        job_type = values.get("job_type")
+        job_type = getattr(values, "job_type", None)
         if job_type in AUTOMATIC_JOBS:
             if annotators or validators:
                 raise ValueError(
@@ -177,31 +187,31 @@ class JobInfoSchema(BaseModel):
 class JobPatchOutSchema(BaseModel):
     annotators: Set[UUID] = Field(
         None,
-        example={"f0474853-f733-41c0-b897-90b788b822e3"},
+        examples=[{"f0474853-f733-41c0-b897-90b788b822e3"}],
     )
     validators: Set[UUID] = Field(
         None,
-        example={"b44156f8-e634-48a6-b5f3-c8b1462a2d67"},
+        examples=[{"b44156f8-e634-48a6-b5f3-c8b1462a2d67"}],
     )
-    categories: Set[str] = Field(None, example={"1", "2"})
+    categories: Set[str] = Field(None, examples=[{"1", "2"}])
 
 
 class JobPatchSchema(JobPatchOutSchema):
-    callback_url: str = Field(None, example="http://jobs/jobs/1")
-    name: str = Field(None, example="job_name")
+    callback_url: str = Field(None, examples=["http://jobs/jobs/1"])
+    name: str = Field(None, examples=["job_name"])
     owners: Set[UUID] = Field(
         None,
-        example={"b44156f8-e634-48a6-b5f3-c8b1462a2d67"},
+        examples=[{"b44156f8-e634-48a6-b5f3-c8b1462a2d67"}],
     )
-    files: Set[int] = Field(None, example={1, 2, 3})
-    datasets: Set[int] = Field(None, example={1, 2, 3})
-    deadline: datetime = Field(None, example="2021-10-19 01:01:01")
-    extensive_coverage: int = Field(None, example=1)
+    files: Set[int] = Field(None, examples=[{1, 2, 3}])
+    datasets: Set[int] = Field(None, examples=[{1, 2, 3}])
+    deadline: datetime = Field(None, examples=["2021-10-19 01:01:01"])
+    extensive_coverage: int = Field(None, examples=[1])
 
 
 class JobOutSchema(BaseModel):
-    job_id: int = Field(..., example=1)
-    is_manual: bool = Field(..., example=True)
+    job_id: int = Field(..., examples=[1])
+    is_manual: bool = Field(..., examples=[True])
 
 
 class FileStatusEnumSchema(str, Enum):
@@ -211,36 +221,41 @@ class FileStatusEnumSchema(str, Enum):
 
 
 class FileInfoSchema(BaseModel):
-    id: int = Field(..., example=1)
+    id: int = Field(..., examples=[1])
     status: FileStatusEnumSchema = Field(
-        ..., example=FileStatusEnumSchema.pending
+        ..., examples=[FileStatusEnumSchema.pending]
     )
 
 
 class JobFilesInfoSchema(BaseModel):
-    tenant: str = Field(..., example="test")
-    job_id: int = Field(..., example=1)
-    total_objects: int = Field(..., example=10)
-    current_page: int = Field(..., example=1)
-    page_size: int = Field(..., example=50)
+    tenant: str = Field(..., examples=["test"])
+    job_id: int = Field(..., examples=[1])
+    total_objects: int = Field(..., examples=[10])
+    current_page: int = Field(..., examples=[1])
+    page_size: int = Field(..., examples=[50])
     files: List[FileInfoSchema]
 
 
 class UnassignedFileSchema(BaseModel):
-    id: int = Field(..., example=1)
-    pages_to_annotate: Set[int] = Field(..., ge=1, example={1, 2, 3})
-    pages_to_validate: Set[int] = Field(..., ge=1, example={1, 2, 3})
+    id: int = Field(..., examples=[1])
+    pages_to_annotate: Annotated[
+        Set[Annotated[int, Field(ge=1)]], Field(examples=[{1, 2, 3}])
+    ]
+
+    pages_to_validate: Annotated[
+        Set[Annotated[int, Field(ge=1)]], Field(examples=[{1, 2, 3}])
+    ]
 
 
 class UnassignedFilesInfoSchema(BaseModel):
-    tenant: str = Field(..., example="test")
-    job_id: int = Field(..., example=1)
-    total_objects: int = Field(..., example=1)
-    current_page: int = Field(..., example=1)
-    page_size: int = Field(..., example=50)
+    tenant: str = Field(..., examples=["test"])
+    job_id: int = Field(..., examples=[1])
+    total_objects: int = Field(..., examples=[1])
+    current_page: int = Field(..., examples=[1])
+    page_size: int = Field(..., examples=[50])
     unassigned_files: List[UnassignedFileSchema]
 
 
 class JobProgressSchema(BaseModel):
-    finished: int = Field(..., example=1)
-    total: int = Field(..., example=1)
+    finished: int = Field(..., examples=[1])
+    total: int = Field(..., examples=[1])

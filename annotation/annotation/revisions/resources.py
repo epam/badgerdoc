@@ -27,8 +27,8 @@ router = APIRouter(
     "and file_id without annotation of pages.",
 )
 def get_revisions_without_annotation(
-    job_id: int = Path(..., example=1),
-    file_id: int = Path(..., example=1),
+    job_id: int = Path(..., examples=[1]),
+    file_id: int = Path(..., examples=[1]),
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
     db: Session = Depends(get_db),
 ):

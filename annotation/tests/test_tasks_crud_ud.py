@@ -1,9 +1,6 @@
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.exc import DBAPIError, SQLAlchemyError
-from tests.consts import CRUD_TASKS_PATH
-from tests.override_app_dependency import TEST_HEADERS, TEST_TENANT, app
-from tests.test_post import check_files_distributed_pages
 
 from annotation.annotations import row_to_dict
 from annotation.models import Category, File, Job, ManualAnnotationTask, User
@@ -12,6 +9,9 @@ from annotation.schemas import (
     TaskStatusEnumSchema,
     ValidationSchema,
 )
+from tests.consts import CRUD_TASKS_PATH
+from tests.override_app_dependency import TEST_HEADERS, TEST_TENANT, app
+from tests.test_post import check_files_distributed_pages
 
 client = TestClient(app)
 
@@ -466,7 +466,8 @@ def test_delete_task_status_codes(
     indirect=["db_errors"],
 )
 def test_delete_task_exceptions(monkeypatch, db_errors):
-    response = client.delete(
+    response = client.request(
+        "DELETE",
         construct_path(CRUD_TASKS_PATH, CRUD_UD_TASK_ID),
         headers=TEST_HEADERS,
         json=EMPTY_UD_TASK,
@@ -514,13 +515,15 @@ def test_delete_task(
     assert task == task_before_removing
 
     if expected_response:
-        response = client.delete(
+        response = client.request(
+            "DELETE",
             construct_path(CRUD_TASKS_PATH, task_id),
             json=task_id,
             headers=TEST_HEADERS,
         ).json()
     else:
-        response = client.delete(
+        response = client.request(
+            "DELETE",
             construct_path(CRUD_TASKS_PATH, task_id),
             json=task_id,
             headers=TEST_HEADERS,
