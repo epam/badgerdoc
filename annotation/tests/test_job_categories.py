@@ -5,14 +5,6 @@ from uuid import UUID
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
-
-from annotation.microservice_communication.search import (
-    AUTHORIZATION,
-    BEARER,
-    HEADER_TENANT,
-)
-from annotation.models import Category, Job
-from annotation.schemas import JobTypeEnumSchema, ValidationSchema
 from tests.consts import POST_JOBS_PATH
 from tests.override_app_dependency import (
     TEST_HEADERS,
@@ -21,6 +13,14 @@ from tests.override_app_dependency import (
     app,
 )
 from tests.test_category_crud import prepare_category_body
+
+from annotation.microservice_communication.search import (
+    AUTHORIZATION,
+    BEARER,
+    HEADER_TENANT,
+)
+from annotation.models import Category, Job
+from annotation.schemas import JobTypeEnumSchema, ValidationSchema
 
 JOBS_PATH = "/jobs"
 MOCK_ID = 1

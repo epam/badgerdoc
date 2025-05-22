@@ -7,6 +7,13 @@ from fastapi.testclient import TestClient
 from requests import ConnectionError, RequestException, Timeout
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
+from tests.override_app_dependency import (
+    TEST_HEADERS,
+    TEST_TENANT,
+    TEST_TOKEN,
+    app,
+)
+from tests.test_tasks_crud_cr import USERS_SEARCH_RESPONSE
 
 from annotation.microservice_communication.assets_communication import (
     ASSETS_FILES_URL,
@@ -23,13 +30,6 @@ from annotation.schemas import (
     TaskStatusEnumSchema,
     ValidationSchema,
 )
-from tests.override_app_dependency import (
-    TEST_HEADERS,
-    TEST_TENANT,
-    TEST_TOKEN,
-    app,
-)
-from tests.test_tasks_crud_cr import USERS_SEARCH_RESPONSE
 
 client = TestClient(app)
 
