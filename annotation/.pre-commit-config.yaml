@@ -4,6 +4,8 @@ repos:
     rev: 5.13.2
     hooks:
     - id: isort
+      args:
+        - --line-length=79
   - repo: https://github.com/psf/black
     rev: 25.1.0
     hooks:
@@ -17,7 +19,7 @@ repos:
         args:
           - --extend-ignore=E203
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: v4.7.2
+    rev: v4.8.2
     hooks:
       - id: commitizen
         stages: [commit-msg]
