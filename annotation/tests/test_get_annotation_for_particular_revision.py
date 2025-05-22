@@ -3,8 +3,6 @@ from unittest.mock import Mock
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.exc import DBAPIError, SQLAlchemyError
-from tests.consts import ANNOTATION_PATH
-from tests.override_app_dependency import TEST_TENANT, TEST_TOKEN, app
 
 from annotation.microservice_communication.search import (
     AUTHORIZATION,
@@ -12,6 +10,8 @@ from annotation.microservice_communication.search import (
     HEADER_TENANT,
 )
 from annotation.models import AnnotatedDoc, User
+from tests.consts import ANNOTATION_PATH
+from tests.override_app_dependency import TEST_TENANT, TEST_TOKEN, app
 
 client = TestClient(app)
 

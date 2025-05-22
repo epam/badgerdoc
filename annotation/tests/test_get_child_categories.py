@@ -6,15 +6,6 @@ import responses
 from fastapi.testclient import TestClient
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
-from tests.consts import CATEGORIES_PATH, POST_JOBS_PATH
-from tests.override_app_dependency import (
-    TEST_HEADERS,
-    TEST_TENANT,
-    TEST_TOKEN,
-    app,
-)
-from tests.test_job_categories import prepare_job_body
-from tests.test_post_next_task import ASSETS_RESPONSE
 
 from annotation.microservice_communication.assets_communication import (
     ASSETS_FILES_URL,
@@ -26,6 +17,15 @@ from annotation.microservice_communication.search import (
 )
 from annotation.models import Category
 from annotation.schemas import CategoryTypeSchema
+from tests.consts import CATEGORIES_PATH, POST_JOBS_PATH
+from tests.override_app_dependency import (
+    TEST_HEADERS,
+    TEST_TENANT,
+    TEST_TOKEN,
+    app,
+)
+from tests.test_job_categories import prepare_job_body
+from tests.test_post_next_task import ASSETS_RESPONSE
 
 #  Cyclic categories have tree hierarchical structure of ids:
 #  "1" -> "2" -> "4" -> "1"

@@ -9,16 +9,40 @@ import boto3
 import pytest
 import sqlalchemy
 import sqlalchemy_utils
-import tests.test_get_accumulated_revisions as accumulated_revs
-import tests.test_get_jobs_info_by_files as jobs_info_by_files
-import tests.test_validation as validation
-from alembic import command
-from alembic.config import Config
 from moto import mock_s3
 from sqlalchemy.engine import create_engine
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.orm.exc import FlushError
+
+import tests.test_get_accumulated_revisions as accumulated_revs
+import tests.test_get_jobs_info_by_files as jobs_info_by_files
+import tests.test_validation as validation
+from alembic import command
+from alembic.config import Config
+from annotation.annotations import MANIFEST, S3_START_PATH
+from annotation.categories import cache
+from annotation.database import SQLALCHEMY_DATABASE_URL, Base
+from annotation.jobs import update_user_overall_load
+from annotation.models import (
+    AnnotatedDoc,
+    Category,
+    DocumentLinks,
+    File,
+    Job,
+    ManualAnnotationTask,
+    User,
+)
+from annotation.schemas import (
+    AnnotationStatisticsInputSchema,
+    CategoryTypeSchema,
+    FileStatusEnumSchema,
+    JobStatusEnumSchema,
+    TaskStatusEnumSchema,
+    ValidationSchema,
+)
+from annotation.tasks import add_task_stats_record
+from annotation.utils import get_test_db_url
 from tests.override_app_dependency import TEST_TENANT
 from tests.test_annotators_overall_load import (
     OVERALL_LOAD_CREATED_TASKS,
@@ -151,30 +175,6 @@ from tests.test_update_job import (
     UPDATE_JOBS,
     UPDATE_USER_NO_JOBS,
 )
-
-from annotation.annotations import MANIFEST, S3_START_PATH
-from annotation.categories import cache
-from annotation.database import SQLALCHEMY_DATABASE_URL, Base
-from annotation.jobs import update_user_overall_load
-from annotation.models import (
-    AnnotatedDoc,
-    Category,
-    DocumentLinks,
-    File,
-    Job,
-    ManualAnnotationTask,
-    User,
-)
-from annotation.schemas import (
-    AnnotationStatisticsInputSchema,
-    CategoryTypeSchema,
-    FileStatusEnumSchema,
-    JobStatusEnumSchema,
-    TaskStatusEnumSchema,
-    ValidationSchema,
-)
-from annotation.tasks import add_task_stats_record
-from annotation.utils import get_test_db_url
 
 DEFAULT_REGION = "us-east-1"
 

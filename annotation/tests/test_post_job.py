@@ -6,9 +6,6 @@ from fastapi.testclient import TestClient
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.declarative import DeclarativeMeta
 from sqlalchemy.orm import Session
-from tests.consts import POST_JOBS_PATH
-from tests.override_app_dependency import TEST_HEADERS, TEST_TENANT, app
-from tests.test_post import check_files_distributed_pages
 
 from annotation.annotations import row_to_dict
 from annotation.jobs import get_job_attributes_for_post
@@ -30,6 +27,9 @@ from annotation.schemas import (
     JobTypeEnumSchema,
     ValidationSchema,
 )
+from tests.consts import POST_JOBS_PATH
+from tests.override_app_dependency import TEST_HEADERS, TEST_TENANT, app
+from tests.test_post import check_files_distributed_pages
 
 client = TestClient(app)
 

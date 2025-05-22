@@ -6,13 +6,6 @@ import responses
 from fastapi.testclient import TestClient
 from sqlalchemy import asc
 from sqlalchemy.exc import SQLAlchemyError
-from tests.consts import POST_JOBS_PATH
-from tests.override_app_dependency import (
-    TEST_HEADERS,
-    TEST_TENANT,
-    TEST_TOKEN,
-    app,
-)
 
 from annotation.annotations import row_to_dict
 from annotation.microservice_communication import jobs_communication
@@ -34,6 +27,13 @@ from annotation.schemas import (
     JobTypeEnumSchema,
     TaskStatusEnumSchema,
     ValidationSchema,
+)
+from tests.consts import POST_JOBS_PATH
+from tests.override_app_dependency import (
+    TEST_HEADERS,
+    TEST_TENANT,
+    TEST_TOKEN,
+    app,
 )
 
 JOBS_SEARCH_URL = jobs_communication.JOBS_SEARCH_URL
@@ -609,7 +609,7 @@ def test_update_files_and_datasets_for_already_started_job(
         Mock(return_value={UPDATE_JOB_IDS[5]: "JobName"}),
     )
     response = client.patch(
-        f"{POST_JOBS_PATH}/{ UPDATE_JOB_IDS[5]}",
+        f"{POST_JOBS_PATH}/{UPDATE_JOB_IDS[5]}",
         json={field: [1, 2]},
         headers=TEST_HEADERS,
     )

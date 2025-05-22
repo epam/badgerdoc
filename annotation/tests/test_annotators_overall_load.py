@@ -5,9 +5,6 @@ import responses
 from fastapi.testclient import TestClient
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
-from tests.consts import CRUD_TASKS_PATH, FINISH_TASK_PATH
-from tests.override_app_dependency import TEST_HEADERS, TEST_TENANT
-from tests.test_tasks_crud_ud import construct_path
 
 from annotation.jobs import update_user_overall_load
 from annotation.main import app
@@ -29,6 +26,9 @@ from annotation.schemas import (
     JobTypeEnumSchema,
     ValidationSchema,
 )
+from tests.consts import CRUD_TASKS_PATH, FINISH_TASK_PATH
+from tests.override_app_dependency import TEST_HEADERS, TEST_TENANT
+from tests.test_tasks_crud_ud import construct_path
 
 client = TestClient(app)
 

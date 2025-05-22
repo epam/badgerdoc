@@ -6,11 +6,11 @@ from botocore.exceptions import BotoCoreError
 from fastapi.testclient import TestClient
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
-from tests.consts import ANNOTATION_PATH
-from tests.override_app_dependency import TEST_HEADERS, TEST_TENANT, app
 
 from annotation.annotations import S3_START_PATH
 from annotation.models import DocumentLinks
+from tests.consts import ANNOTATION_PATH
+from tests.override_app_dependency import TEST_HEADERS, TEST_TENANT, app
 
 JOBS_IDS = (
     10,
