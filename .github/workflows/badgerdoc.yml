@@ -34,7 +34,8 @@ jobs:
       - name: Run Isort
         run: |
           poetry run isort --version
-          poetry run isort --line-length=79  --diff --check-only .
+          poetry run isort --show-config
+          poetry run isort --diff --check-only .
       - name: Run Black
         run: |
           poetry run black --config pyproject.toml --diff --check .
