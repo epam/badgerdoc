@@ -1,17 +1,18 @@
 from typing import List, Optional
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from taxonomy.errors import CheckFieldError
 
 
 class TaxonBaseSchema(BaseModel):
-    name: str = Field(..., example="taxon_name")
-    taxonomy_id: str = Field(..., example="my_taxonomy_id")
-    parent_id: Optional[str] = Field(None, example="null")
-    taxonomy_version: Optional[int] = Field(None, example=1)
+    name: str = Field(..., examples=["taxon_name"])
+    taxonomy_id: str = Field(..., examples=["my_taxonomy_id"])
+    parent_id: Optional[str] = Field(None, examples=["null"])
+    taxonomy_version: Optional[int] = Field(None, examples=[1])
 
-    @validator("name")
+    @field_validator("name")
+    @classmethod
     def validate_name(cls, value):
         if not value or value == "null":
             raise CheckFieldError("Taxon name can not be empty.")
@@ -21,11 +22,12 @@ class TaxonBaseSchema(BaseModel):
 class TaxonInputSchema(TaxonBaseSchema):
     id: Optional[str] = Field(
         None,
-        example="my_taxon_id",
+        examples=["my_taxon_id"],
         description="If id is not provided, generates it as a UUID.",
     )
 
-    @validator("id")
+    @field_validator("id")
+    @classmethod
     def alphanumeric_validator(cls, value):
         if value and not value.replace("_", "").isalnum():
             raise CheckFieldError("Taxon id must be alphanumeric.")
@@ -35,18 +37,15 @@ class TaxonInputSchema(TaxonBaseSchema):
 class TaxonResponseSchema(TaxonInputSchema):
     parents: List[dict] = Field(default=[])
     is_leaf: Optional[bool] = Field(default=None)
-
-    class Config:
-        allow_population_by_field_name = True
-        orm_mode = True
+    model_config = ConfigDict(populate_by_name=True, from_attributes=True)
 
 
 class ParentsConcatenateResponseSchema(BaseModel):
-    taxon_id: str = Field(..., example="my_taxon_id")
-    taxon_name: str = Field(..., example="taxon_name")
+    taxon_id: str = Field(..., examples=["my_taxon_id"])
+    taxon_name: str = Field(..., examples=["taxon_name"])
     parent_ids_concat: Optional[str] = Field(
-        ..., example="parent_id_1.parent_id_2"
+        ..., examples=["parent_id_1.parent_id_2"]
     )
     parent_names_concat: Optional[str] = Field(
-        ..., example="parent_name_1.parent_name_2"
+        ..., examples=["parent_name_1.parent_name_2"]
     )
