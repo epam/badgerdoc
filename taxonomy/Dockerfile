@@ -18,7 +18,7 @@ RUN : \
     && poetry install --no-root --only main \
     && :
 
-CMD alembic upgrade head && uvicorn taxonomy.main:app --host 0.0.0.0 --port 8080
+CMD alembic upgrade head && uvicorn taxonomy.main:app --root-path $ROOT_PATH --host 0.0.0.0 --port 8080
 EXPOSE 8080
 
 FROM build as development

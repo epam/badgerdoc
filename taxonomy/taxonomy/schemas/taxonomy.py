@@ -1,6 +1,6 @@
 from typing import Optional
 
-from pydantic import ConfigDict, BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class TaxonomyBaseSchema(BaseModel):
