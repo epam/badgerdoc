@@ -33,8 +33,6 @@ jobs:
           poetry install --only dev
       - name: Run Isort
         run: |
-          poetry run isort --version
-          poetry run isort --show-config
           poetry run isort --diff --check-only .
       - name: Run Black
         run: |
