@@ -139,7 +139,7 @@ def post_tasks(
     "files and pages for given job_id.",
 )
 def post_tasks_for_unassigned_files(
-    job_id: int = Path(..., example=3),
+    job_id: int = Path(..., examples=[3]),
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
     db: Session = Depends(get_db),
 ):

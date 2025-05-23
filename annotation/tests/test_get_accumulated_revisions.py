@@ -383,6 +383,7 @@ def test_get_annotation_for_latest_revision_status_codes(
 def test_get_annotation_for_latest_revision_db_exceptions(
     monkeypatch, db_errors
 ):
+
     response = client.get(
         construct_accumulated_revs_path(
             DOCS[0].job_id,

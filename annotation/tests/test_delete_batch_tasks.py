@@ -126,8 +126,8 @@ PENDING_READY_IDS = [TASK_PENDING["id"], TASK_READY["id"]]
 def test_delete_batch_tasks_status_codes(
     prepare_db_for_batch_delete_tasks, tasks_id, job_id, expected_code
 ):
-    response = client.delete(
-        CRUD_TASKS_PATH, json=tasks_id, headers=TEST_HEADERS
+    response = client.request(
+        "DELETE", CRUD_TASKS_PATH, json=tasks_id, headers=TEST_HEADERS
     )
     assert response.status_code == expected_code
     check_files_distributed_pages(prepare_db_for_batch_delete_tasks, job_id)
@@ -146,8 +146,11 @@ def test_delete_batch_tasks_exceptions(
     monkeypatch,
     db_errors,
 ):
-    response = client.delete(
-        CRUD_TASKS_PATH, json=[TASK_PENDING["id"]], headers=TEST_HEADERS
+    response = client.request(
+        "DELETE",
+        CRUD_TASKS_PATH,
+        json=[TASK_PENDING["id"]],
+        headers=TEST_HEADERS,
     )
     assert response.status_code == 500
 
@@ -197,12 +200,12 @@ def test_delete_task(
     assert tasks == tasks_before_removing
 
     if expected_response:
-        response = client.delete(
-            CRUD_TASKS_PATH, json=tasks_id, headers=TEST_HEADERS
+        response = client.request(
+            "DELETE", CRUD_TASKS_PATH, json=tasks_id, headers=TEST_HEADERS
         ).json()
     else:
-        response = client.delete(
-            CRUD_TASKS_PATH, json=tasks_id, headers=TEST_HEADERS
+        response = client.request(
+            "DELETE", CRUD_TASKS_PATH, json=tasks_id, headers=TEST_HEADERS
         ).content
 
     tasks = (

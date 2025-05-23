@@ -105,7 +105,7 @@ def mock_db(mock_stats: List[AnnotatedDoc]):
 @pytest.fixture
 def mock_tenant_data():
     yield TenantData(
-        user_id=1,
+        user_id=str(1),
         roles=[],
         token="mock_token",
         tenants=["local"],

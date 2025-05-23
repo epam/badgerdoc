@@ -131,7 +131,7 @@ def upload_pages_to_minio(
     :return: None
     """
     for page in pages:
-        json_page = json.dumps(page.dict())
+        json_page = json.dumps(page.model_dump())
         path_to_object = f"{s3_path}/{pages_sha[str(page.page_num)]}.json"
         upload_json_to_minio(
             json_page, path_to_object, bucket_name, s3_resource
@@ -189,7 +189,7 @@ def get_pages_sha(
         b_pages = base_revision.encode()
 
     for page in pages:
-        json_page = json.dumps(page.dict())
+        json_page = json.dumps(page.model_dump())
         b_page = json_page.encode()
         b_pages += b_page
 

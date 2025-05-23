@@ -583,7 +583,7 @@ def add_task_stats_record(
     stats_db = get_task_stats_by_id(db, task_id)
 
     if stats_db:
-        for name, value in stats.dict().items():
+        for name, value in stats.model_dump().items():
             setattr(stats_db, name, value)
         stats_db.updated = datetime.utcnow()
     else:
@@ -1145,7 +1145,7 @@ def find_common_objs(
 
 
 def get_tasks_without_ids(
-    tasks: Dict[int, Dict[str, Any]]
+    tasks: Dict[int, Dict[str, Any]],
 ) -> Dict[int, List[Tuple[Dict[str, Any], str]]]:
     """
     Remove ids from all tasks objects, objects links and children.
