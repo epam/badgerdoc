@@ -293,7 +293,10 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
     const onChooseDataset = async (dataset: DatasetWithFiles) => {
         dataset.objects = fileIds || [];
         try {
-            await mutation.mutateAsync(dataset);
+            const updatedDataset = await mutation.mutateAsync(dataset);
+            return {
+                form: updatedDataset
+            };
         } catch (err) {
             svc.uuiNotifications.show(
                 (props: INotification) => (
@@ -315,7 +318,7 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
                 svc.uuiNotifications.show(
                     (props: INotification) => (
                         <SuccessNotification {...props}>
-                            <Text>Data has been saved!</Text>
+                            <Text>File successfully added to dataset</Text>
                         </SuccessNotification>
                     ),
                     { duration: 2 }
