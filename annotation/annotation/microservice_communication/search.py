@@ -244,8 +244,6 @@ def expand_response(
             )
         response_task["user"] = attribute_user_dict
 
-        print("response task:", response_task)
-
         response.append(ExpandedManualAnnotationTaskSchema(**response_task))
     return response
 

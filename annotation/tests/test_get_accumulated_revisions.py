@@ -3,9 +3,6 @@ from unittest.mock import Mock
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.exc import DBAPIError, SQLAlchemyError
-from tests.consts import ANNOTATION_PATH
-from tests.override_app_dependency import TEST_TOKEN, app
-from tests.test_post_annotation import POST_ANNOTATION_PG_DOC
 
 from annotation.annotations import LATEST
 from annotation.microservice_communication.search import (
@@ -14,6 +11,9 @@ from annotation.microservice_communication.search import (
     HEADER_TENANT,
 )
 from annotation.models import AnnotatedDoc, User
+from tests.consts import ANNOTATION_PATH
+from tests.override_app_dependency import TEST_TOKEN, app
+from tests.test_post_annotation import POST_ANNOTATION_PG_DOC
 
 client = TestClient(app)
 
@@ -383,10 +383,7 @@ def test_get_annotation_for_latest_revision_status_codes(
 def test_get_annotation_for_latest_revision_db_exceptions(
     monkeypatch, db_errors
 ):
-    print("DOCS SU")
-    print(DOCS[0].revision)
-    print(DOCS[0].job_id)
-    print(DOCS[0].file_id)
+
     response = client.get(
         construct_accumulated_revs_path(
             DOCS[0].job_id,
@@ -398,5 +395,4 @@ def test_get_annotation_for_latest_revision_db_exceptions(
             AUTHORIZATION: f"{BEARER} {TEST_TOKEN}",
         },
     )
-    print("response u get annont je", response.json())
     assert response.status_code == 500
