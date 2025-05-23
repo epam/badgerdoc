@@ -10,7 +10,6 @@ from annotation.jobs.services import get_jobs_by_files
 from annotation.models import File, Job, User
 from annotation.schemas import JobStatusEnumSchema, ValidationSchema
 
-
 client = TestClient(app)
 
 
