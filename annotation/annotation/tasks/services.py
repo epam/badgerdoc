@@ -256,7 +256,7 @@ def validate_user_actions(
 def create_annotation_task(
     db: Session, annotation_task: ManualAnnotationTaskInSchema
 ):
-    annotation_task = ManualAnnotationTask(**annotation_task.dict())
+    annotation_task = ManualAnnotationTask(**annotation_task.model_dump())
 
     db.add(annotation_task)
     db.flush()
@@ -591,7 +591,7 @@ def add_task_stats_record(
             raise CheckFieldError(
                 "Attribute event_type can not start from closed."
             )
-        stats_db = AnnotationStatistics(task_id=task_id, **stats.dict())
+        stats_db = AnnotationStatistics(task_id=task_id, **stats.model_dump())
 
     db.add(stats_db)
     db.commit()

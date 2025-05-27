@@ -441,7 +441,7 @@ def get_jobs_by_file_id(
 def get_latest_revision_by_user(
     job_id: int = Path(..., examples=[3]),
     file_id: int = Path(..., examples=[4]),
-    page_numbers: Set[int] = Query(..., min_length=1, example={3, 4, 1}),
+    page_numbers: Set[int] = Query(..., min_length=1, examples=[{3, 4, 1}]),
     user_id: Optional[UUID] = Query(
         None, examples=["1843c251-564b-4c2f-8d42-c61fdac369a1"]
     ),
@@ -486,8 +486,8 @@ def get_annotations_up_to_given_revision(
     file_id: int = Path(..., examples=[1]),
     revision: str = Path(..., examples=["latest"]),
     page_numbers: Set[int] = Query(
-        None, min_length=1, example={3, 4, 1}
-    ),  # ge=1
+        None, min_length=1, examples=[{3, 4, 1}]
+    ),
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
     db: Session = Depends(get_db),
     user_id: Optional[UUID] = Query(

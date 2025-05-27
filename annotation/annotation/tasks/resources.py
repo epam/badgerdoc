@@ -629,7 +629,7 @@ def update_task(
     user_id or (and) is_validation. By task`s id
     in path, updates task with tasks file and returns updated task.
     """
-    patch_data = update_query.dict(exclude_unset=True)
+    patch_data = update_query.model_dump(exclude_unset=True)
     if not patch_data:
         return (
             db.query(ManualAnnotationTask)
