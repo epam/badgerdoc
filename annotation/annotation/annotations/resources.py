@@ -485,9 +485,7 @@ def get_annotations_up_to_given_revision(
     job_id: int = Path(..., examples=[1]),
     file_id: int = Path(..., examples=[1]),
     revision: str = Path(..., examples=["latest"]),
-    page_numbers: Set[int] = Query(
-        None, min_length=1, examples=[{3, 4, 1}]
-    ),
+    page_numbers: Set[int] = Query(None, min_length=1, examples=[{3, 4, 1}]),
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
     db: Session = Depends(get_db),
     user_id: Optional[UUID] = Query(
