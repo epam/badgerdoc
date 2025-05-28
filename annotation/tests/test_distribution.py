@@ -1,5 +1,5 @@
 from collections import defaultdict
-from copy import copy
+from copy import copy, deepcopy
 from typing import Dict, List, Tuple
 from unittest.mock import AsyncMock, Mock, patch
 from uuid import UUID
@@ -1783,9 +1783,15 @@ def test_distribute_job_validators(
     tasks_for_test_distribute: Mock,
 ):
     pages_in_work = {"annotation": [tasks_for_test_distribute[0]]}
-    tasks = [tasks_for_test_distribute[0], tasks_for_test_distribute[1]]
 
-    with patch("annotation.distribution.main.create_db_tasks"), patch(
+    tasks = [tasks_for_test_distribute[2]]
+    tasks_create = deepcopy(tasks)
+    tasks_create[0]["id"] = 1
+
+    with patch(
+        "annotation.distribution.main.create_db_tasks",
+        return_value=tasks_create,
+    ), patch(
         "annotation.distribution.main.distribute_tasks", return_value=tasks
     ), patch(
         "annotation.distribution.main.distribute_tasks_extensively",
@@ -1805,7 +1811,7 @@ def test_distribute_job_validators(
                 extensive_coverage=1,
                 pages_in_work=pages_in_work,
             )
-            == tasks
+            == tasks_create
         )
 
 
@@ -1815,8 +1821,13 @@ def test_distribute_extensive_coverage(
     tasks_for_test_distribute: Mock,
 ):
     tasks = [tasks_for_test_distribute[2]]
+    tasks_create = deepcopy(tasks)
+    tasks_create[0]["id"] = 1
 
-    with patch("annotation.distribution.main.create_db_tasks"), patch(
+    with patch(
+        "annotation.distribution.main.create_db_tasks",
+        return_value=tasks_create,
+    ), patch(
         "annotation.distribution.main.distribute_tasks", return_value=tasks
     ), patch(
         "annotation.distribution.main.distribute_tasks_extensively",
@@ -1836,7 +1847,7 @@ def test_distribute_extensive_coverage(
                 extensive_coverage=10,
                 pages_in_work=None,
             )
-            == tasks
+            == tasks_create
         )
 
 

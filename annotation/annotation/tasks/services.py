@@ -10,7 +10,7 @@ import dotenv
 import pydantic
 from fastapi import HTTPException
 from filter_lib import Page, form_query, map_request_to_filter, paginate
-from sqlalchemy import and_, asc, text
+from sqlalchemy import and_, asc, insert, text
 from sqlalchemy.orm import Session
 from tenant_dependency import TenantData
 
@@ -416,13 +416,25 @@ def read_annotation_task(db: Session, task_id: int, tenant: str):
 
 
 def create_tasks(db: Session, tasks: list, job_id: int):
-    db.bulk_insert_mappings(ManualAnnotationTask, tasks, return_defaults=True)
+    if not tasks:
+        return None
+
+    stmt = insert(ManualAnnotationTask).returning(
+        *ManualAnnotationTask.__table__.columns
+    )
+    result = db.execute(stmt, tasks)
+
+    # Collect all rows with full field values
+    inserted_tasks = result.mappings().all()
+
     update_files(db, tasks, job_id)
 
     db.flush()
     user_ids = set(user["user_id"] for user in tasks)
     for user_id in user_ids:
         update_user_overall_load(db, user_id)
+
+    return inserted_tasks
 
 
 def update_task_status(db: Session, task: ManualAnnotationTask) -> None:
