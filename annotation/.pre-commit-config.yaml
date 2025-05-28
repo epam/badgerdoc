@@ -8,6 +8,7 @@ repos:
         - --profile=black
         - --filter-files
         - --line-length=79
+        - --src annotation
   - repo: https://github.com/psf/black
     rev: 25.1.0
     hooks:
