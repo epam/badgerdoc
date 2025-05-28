@@ -1,7 +1,7 @@
 import re
 import uuid
 from copy import deepcopy
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Set, Tuple, Union
 from unittest.mock import MagicMock, Mock, call, patch
 
@@ -72,20 +72,20 @@ def mock_stats(
     stat1 = AnnotationStatistics(
         task=mock_task,
         task_id=1,
-        created=datetime.utcnow(),
-        updated=datetime.utcnow(),
+        created=datetime.now(timezone.utc),
+        updated=datetime.now(timezone.utc),
     )
     stat2 = AnnotationStatistics(
         task=mock_task,
         task_id=2,
-        created=datetime.utcnow(),
-        updated=datetime.utcnow(),
+        created=datetime.now(timezone.utc),
+        updated=datetime.now(timezone.utc),
     )
     stat3 = AnnotationStatistics(
         task=mock_task,
         task_id=3,
-        created=datetime.utcnow(),
-        updated=datetime.utcnow(),
+        created=datetime.now(timezone.utc),
+        updated=datetime.now(timezone.utc),
     )
     stat3.task.status = TaskStatusEnumSchema.finished
     yield [stat1, stat2, stat3]

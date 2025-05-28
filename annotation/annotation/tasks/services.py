@@ -3,7 +3,7 @@ import csv
 import io
 import os
 from collections import OrderedDict
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, NamedTuple, Optional, Set, Tuple, Union
 
 import dotenv
@@ -597,14 +597,13 @@ def add_task_stats_record(
     if stats_db:
         for name, value in stats.model_dump().items():
             setattr(stats_db, name, value)
-        stats_db.updated = datetime.utcnow()
+        stats_db.updated = datetime.now(timezone.utc)
     else:
         if stats.event_type == "closed":
             raise CheckFieldError(
                 "Attribute event_type can not start from closed."
             )
         stats_db = AnnotationStatistics(task_id=task_id, **stats.model_dump())
-
     db.add(stats_db)
     db.commit()
     return stats_db

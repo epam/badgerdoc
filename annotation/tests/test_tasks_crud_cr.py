@@ -1,5 +1,5 @@
 import re
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, List, Optional
 from unittest.mock import Mock, patch
 from uuid import uuid4
@@ -656,7 +656,7 @@ def validate_datetime(reponse_content: dict, is_updated: bool = False) -> bool:
         if not field:
             continue
         timestamp = datetime.fromisoformat(field)
-        if datetime.utcnow() - timestamp > timedelta(minutes=5):
+        if datetime.now(timezone.utc) - timestamp > timedelta(minutes=5):
             return False
     return True
 
