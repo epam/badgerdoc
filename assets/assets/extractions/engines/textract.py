@@ -4,9 +4,9 @@ import os
 
 import boto3
 
+from assets import logger
 from assets.db.models import FileObject
 from assets.extractions.base import Extraction
-from assets import logger
 
 logger = logger.get_logger(__name__)
 
@@ -118,7 +118,9 @@ class TextractExtraction(Extraction):
 
         try:
             if not AWS_ACCESS_KEY or not AWS_SECRET_KEY:
-                textract_client = boto3.client("textract", region_name=AWS_REGION)
+                textract_client = boto3.client(
+                    "textract", region_name=AWS_REGION
+                )
             else:
                 textract_client = boto3.client(
                     "textract",
