@@ -1,7 +1,4 @@
 import os
-from typing import Collection
-
-from fastapi import HTTPException
 
 
 def get_test_db_url(main_db_url: str) -> str:
@@ -25,25 +22,3 @@ def get_service_uri(prefix: str) -> str:  # noqa
     if service_port and service_host and service_scheme:
         return f"{service_scheme}://{service_host}:{service_port}"
     return ""
-
-
-def validate_ge(
-    collection: Collection, ge_value: int = 1, field_name: str = "collection"
-):
-    """
-    Ensures all items in a collection are >= ge_value.
-
-    :param collection: List, Set, etc.
-    :param ge_value: Minimum allowed value.
-    :param field_name: Name of the field for error messages.
-    :raises HTTPException: If any item is below ge_value.
-    """
-    invalid_items = [item for item in collection if item < ge_value]
-    if invalid_items:
-        raise HTTPException(
-            status_code=422,
-            detail=(
-                f"All elements in '{field_name}' must be >= {ge_value}. "
-                f"Invalid: {invalid_items}."
-            ),
-        )

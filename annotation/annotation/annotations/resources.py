@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import Dict, List, Optional, Set
+from typing import Annotated, Dict, List, Optional, Set
 from uuid import UUID
 
 import filter_lib
@@ -45,7 +45,6 @@ from annotation.schemas import (
 )
 from annotation.tags import ANNOTATION_TAG, JOBS_TAG, REVISION_TAG
 from annotation.tasks import update_task_status
-from annotation.utils import validate_ge
 
 from ..models import AnnotatedDoc, File, Job, ManualAnnotationTask
 from ..token_dependency import TOKEN
@@ -439,16 +438,23 @@ def get_jobs_by_file_id(
     tags=[REVISION_TAG, ANNOTATION_TAG],
 )
 def get_latest_revision_by_user(
+    page_numbers: Annotated[
+        Set[Annotated[int, Query(ge=1)]],
+        Query(
+            ...,
+            min_length=1,
+            examples=[{3, 4, 1}],
+        ),
+    ],
     job_id: int = Path(..., examples=[3]),
     file_id: int = Path(..., examples=[4]),
-    page_numbers: Set[int] = Query(..., min_length=1, examples=[{3, 4, 1}]),
     user_id: Optional[UUID] = Query(
         None, examples=["1843c251-564b-4c2f-8d42-c61fdac369a1"]
     ),
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
     db: Session = Depends(get_db),
 ):
-    validate_ge(collection=page_numbers, field_name="page_numbers")
+
     filters = [
         AnnotatedDoc.job_id == job_id,
         AnnotatedDoc.file_id == file_id,
@@ -482,10 +488,19 @@ def get_latest_revision_by_user(
     tags=[REVISION_TAG, ANNOTATION_TAG],
 )
 def get_annotations_up_to_given_revision(
+    page_numbers: Annotated[
+        Set[
+            Annotated[int, Query(ge=1)]
+        ],  # Each integer in the set must satisfy `ge=1`
+        Query(
+            ...,
+            min_length=1,
+            examples=[{3, 4, 1}],
+        ),
+    ],
     job_id: int = Path(..., examples=[1]),
     file_id: int = Path(..., examples=[1]),
     revision: str = Path(..., examples=["latest"]),
-    page_numbers: Set[int] = Query(None, min_length=1, examples=[{3, 4, 1}]),
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
     db: Session = Depends(get_db),
     user_id: Optional[UUID] = Query(
@@ -495,8 +510,6 @@ def get_annotations_up_to_given_revision(
     ),
 ):
     logger.debug("Getting annotation by user")
-    if page_numbers is not None:
-        validate_ge(collection=page_numbers, field_name="page_numbers")
     job: Job = db.query(Job).filter(Job.job_id == job_id).first()
     logger.debug("Job: %s", job)
     if not job:
@@ -647,7 +660,14 @@ def get_annotation_for_given_revision(
 def get_all_revisions(
     job_id: int,
     file_id: int,
-    page_numbers: Set[int] = Query(..., min_length=1),
+    page_numbers: Annotated[
+        Set[Annotated[int, Query(ge=1)]],
+        Query(
+            ...,
+            min_length=1,
+            examples=[{3, 4, 1}],
+        ),
+    ],
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
     user_id: Optional[UUID] = Query(
         None,
@@ -658,7 +678,7 @@ def get_all_revisions(
     ),
     db: Session = Depends(get_db),
 ):
-    validate_ge(collection=page_numbers, field_name="page_numbers")
+
     job: Job = db.query(Job).filter(Job.job_id == job_id).first()
     if not job:
         raise HTTPException(
