@@ -1,14 +1,14 @@
 import asyncio
 import json
-import logging
 import os
 
 import boto3
 
 from assets.db.models import FileObject
 from assets.extractions.base import Extraction
+from assets import logger
 
-logger = logging.getLogger(__name__)
+logger = logger.get_logger(__name__)
 
 # AWS Textract configuration
 AWS_REGION = os.environ.get("ASSETS_AWS_TEXTRACT_REGION", "us-east-1")
@@ -118,16 +118,15 @@ class TextractExtraction(Extraction):
 
         try:
             if not AWS_ACCESS_KEY or not AWS_SECRET_KEY:
-                raise ValueError("AWS Textract credentials not configured")
-
-            textract_client = boto3.client(
-                "textract",
-                region_name=AWS_REGION,
-                aws_access_key_id=AWS_ACCESS_KEY,
-                aws_secret_access_key=AWS_SECRET_KEY,
-            )
+                textract_client = boto3.client("textract", region_name=AWS_REGION)
+            else:
+                textract_client = boto3.client(
+                    "textract",
+                    region_name=AWS_REGION,
+                    aws_access_key_id=AWS_ACCESS_KEY,
+                    aws_secret_access_key=AWS_SECRET_KEY,
+                )
             # TODO: this part is copypasted from badgerdoc_storage
-
             s3_bucket = (
                 f"{S3_PREFIX}-{self.tenant}" if S3_PREFIX else self.tenant
             )
