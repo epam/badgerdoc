@@ -1753,7 +1753,9 @@ def test_distribute_main_script(
     pages_in_work = {"validation": [tasks_for_test_distribute[0]]}
     tasks = []
 
-    with patch("annotation.distribution.main.create_db_tasks"), patch(
+    with patch(
+        "annotation.distribution.main.create_db_tasks", return_value=tasks
+    ), patch(
         "annotation.distribution.main.distribute_tasks", return_value=tasks
     ), patch(
         "annotation.distribution.main.distribute_tasks_extensively",

@@ -863,7 +863,7 @@ def test_create_tasks(
             mock_update_files.assert_not_called()
             mock_update_user_overall_load.assert_not_called()
 
-            assert inserted_tasks is None
+            assert not inserted_tasks
 
 
 def test_update_task_status_ready(mock_session: Mock, create_task: Mock):
