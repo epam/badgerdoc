@@ -493,11 +493,10 @@ def get_annotations_up_to_given_revision(
             Annotated[int, Query(ge=1)]
         ],  # Each integer in the set must satisfy `ge=1`
         Query(
-            ...,
             min_length=1,
             examples=[{3, 4, 1}],
         ),
-    ],
+    ] = None,
     job_id: int = Path(..., examples=[1]),
     file_id: int = Path(..., examples=[1]),
     revision: str = Path(..., examples=["latest"]),
