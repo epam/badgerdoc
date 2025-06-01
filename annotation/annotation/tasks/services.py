@@ -417,7 +417,7 @@ def read_annotation_task(db: Session, task_id: int, tenant: str):
 
 def create_tasks(db: Session, tasks: list, job_id: int):
     if not tasks:
-        return None
+        return []
 
     stmt = insert(ManualAnnotationTask).returning(
         *ManualAnnotationTask.__table__.columns
@@ -593,7 +593,6 @@ def add_task_stats_record(
     stats: AnnotationStatisticsInputSchema,
 ) -> AnnotationStatistics:
     stats_db = get_task_stats_by_id(db, task_id)
-
     if stats_db:
         for name, value in stats.model_dump().items():
             setattr(stats_db, name, value)

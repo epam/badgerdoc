@@ -122,8 +122,7 @@ def distribute(
         validation_files = deepcopy(files)
     tasks = already_created_tasks if already_created_tasks else []
 
-    if tasks:
-        tasks = create_db_tasks(db, tasks, job_id)
+    tasks = create_db_tasks(db, tasks, job_id)
     db.flush()
 
     annotated_files_pages = {}  # no pages distributed for annotation yet
@@ -166,8 +165,7 @@ def distribute(
             annotations_in_work = pages_in_work.get("annotation")
             if annotations_in_work:
                 remove_pages_in_work(annotation_tasks, annotations_in_work)
-        if annotation_tasks:
-            annotation_tasks = create_db_tasks(db, annotation_tasks, job_id)
+        annotation_tasks = create_db_tasks(db, annotation_tasks, job_id)
         db.flush()
         tasks.extend(annotation_tasks)
 
@@ -190,8 +188,8 @@ def distribute(
             validations_in_work = pages_in_work.get("validation")
             if validations_in_work:
                 remove_pages_in_work(validation_tasks, validations_in_work)
-        if validation_tasks:
-            validation_tasks = create_db_tasks(db, validation_tasks, job_id)
+
+        validation_tasks = create_db_tasks(db, validation_tasks, job_id)
         db.flush()
         tasks.extend(validation_tasks)
     return tasks
