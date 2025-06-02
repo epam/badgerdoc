@@ -80,14 +80,12 @@ class ParticularRevisionSchema(BaseModel):
     pipeline: Optional[int] = Field(..., examples=[1])
     date: Optional[datetime] = Field(..., examples=["2021-10-19 01:01:01"])
     pages: List[PageSchema]
-    validated: Optional[List[int]] = Field(None, examples=[[2]])
+    validated: Optional[
+        Annotated[List[Annotated[int, Field(ge=1)]], Field()]
+    ] = Field(None, examples=[[2]])
+
     failed_validation_pages: Optional[
-        Annotated[
-            List[Annotated[int, Field(ge=1)]],
-            Field(
-                description="A list of integers where each value must be >= 1."
-            ),
-        ]
+        Annotated[List[Annotated[int, Field(ge=1)]], Field()]
     ] = Field(None, examples=[[]])
 
     similar_revisions: Optional[List[RevisionLink]] = Field(None)
