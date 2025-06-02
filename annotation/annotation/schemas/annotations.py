@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Annotated, Dict, List, Optional, Set
+from typing import Annotated, Dict, List, Optional, Self, Set
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -135,35 +135,28 @@ class DocForSaveSchema(BaseModel):
     )
 
     @model_validator(mode="after")
-    def one_field_empty_other_filled_check(cls, values):
+    def one_field_empty_other_filled_check(self) -> Self:
         """
-        When user_id is null, pipeline_id should not be null
-        and vice versa.
+        Ensure that either 'user' or 'pipeline' is filled, but not both.
         """
-        user_id, pipeline_id = (
-            getattr(values, "user", None),
-            getattr(values, "pipeline", None),
-        )
-        if (user_id is None and pipeline_id is None) or (
-            user_id is not None and pipeline_id is not None
+        if (self.user is None and self.pipeline is None) or (
+            self.user is not None and self.pipeline is not None
         ):
             raise ValueError(
-                "Fields user_id and pipeline_id should "
-                "not be empty or filled at the same time."
+                "Fields 'user' and 'pipeline' should not be empty "
+                "or filled at the same time."
             )
-        return values
+        return self
 
     @model_validator(mode="after")
-    def check_not_intersecting_pages(cls, values):
+    def check_not_intersecting_pages(self) -> Self:
         """
-        Same pages should not be in annotated or failed
-        arrays at the same time.
+        Same pages should not be in annotated or
+        failed arrays at the same time.
         """
-        annotated, validated, failed = (
-            set(i.page_num for i in (getattr(values, "pages", []) or [])),
-            getattr(values, "validated", set()) or set(),
-            getattr(values, "failed_validation_pages", set()) or set(),
-        )
+        annotated = set(i.page_num for i in (self.pages or []))
+        validated = self.validated or set()
+        failed = self.failed_validation_pages or set()
 
         intersecting_pages = annotated.intersection(failed)
         intersecting_pages.update(validated.intersection(failed))
@@ -171,32 +164,31 @@ class DocForSaveSchema(BaseModel):
         if intersecting_pages:
             raise ValueError(
                 f"Pages {intersecting_pages} "
-                "should not be in annotated (pages), and "
-                "failed validation arrays at the "
-                "same time. "
+                "should not be in annotated (pages), validated, "
+                "and failed validation arrays at the same time."
             )
-        return values
+        return self
 
     @model_validator(mode="after")
-    def pages_for_save_check(cls, values):
+    def pages_for_save_check(self) -> Self:
         """
-        Arrays pages, validated, failed and categories
-        should not be empty at the same time.
+        Arrays pages, validated, failed and categories should not
+        be empty at the same time.
         """
-        pages, validated, failed, categories = (
-            getattr(values, "pages", None),
-            getattr(values, "validated", None),
-            getattr(values, "failed_validation_pages", None),
-            getattr(values, "categories", None),
-        )
-
-        if all(i is None for i in (pages, validated, failed, categories)):
+        if all(
+            i is None
+            for i in (
+                self.pages,
+                self.validated,
+                self.failed_validation_pages,
+                self.categories,
+            )
+        ):
             raise ValueError(
-                "Fields pages, "
-                "validated, failed validation pages "
+                "Fields pages, validated, failed validation pages, "
                 "and categories are empty. Nothing to save."
             )
-        return values
+        return self
 
 
 class AnnotatedDocSchema(BaseModel):

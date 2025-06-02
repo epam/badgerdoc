@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import Enum
-from typing import Annotated, List, Optional, Set
+from typing import Annotated, List, Optional, Self, Set
 from uuid import UUID
 
 from pydantic import BaseModel, Field, model_validator
@@ -98,90 +98,79 @@ class JobInfoSchema(BaseModel):
     )
 
     @model_validator(mode="after")
-    def check_files_datasets_previous_jobs(cls, values):
+    def check_files_datasets_previous_jobs(self) -> Self:
         """
-        Files and datasets and revisions should not be empty at the same time.
+        Ensure either previous_jobs or files/datasets/revisions is specified,
+        but not both, except for specific job types.
         """
-        files = getattr(values, "files", None)
-        datasets = getattr(values, "datasets", None)
-        revisions = getattr(values, "revisions", None)
-        previous_jobs = getattr(values, "previous_jobs", None)
-        job_type = getattr(values, "job_type", None)
-
         if (
-            not (bool(previous_jobs) ^ bool(files or datasets or revisions))
-            and job_type != JobTypeEnumSchema.ImportJob
+            not (
+                bool(self.previous_jobs)
+                ^ bool(self.files or self.datasets or self.revisions)
+            )
+            and self.job_type != "ImportJob"
+            # Assuming JobTypeEnumSchema.ImportJob
+            # resolves as a string "ImportJob"
         ):
             raise ValueError(
                 "Only one field must be specified: "
                 "either previous_jobs or files/datasets/revisions"
             )
-        return values
+        return self
 
     @model_validator(mode="after")
-    def check_users_and_validation(cls, values):
+    def check_users_and_validation(self) -> Self:
         """
-        If the validation type is cross validation, annotators field should
-        have min 2 annotators and validators field should be empty. If the
-        validation type is hierarchical, annotators and validators should not
-        be empty at the same time. If the validation type is validation_only,
-        annotators field should be empty and validators field should not be
-        empty.
+        Validate constraints on annotators and
+        validators depending on validation_type.
         """
-        validation_type, validators, annotators, extensive_coverage = (
-            getattr(values, "validation_type", None),
-            getattr(values, "validators", None),
-            getattr(values, "annotators", None),
-            getattr(values, "extensive_coverage", None),
-        )
-        job_type = getattr(values, "job_type", None)
-        if job_type in AUTOMATIC_JOBS:
-            if annotators or validators:
+        if self.job_type in AUTOMATIC_JOBS:
+            if self.annotators or self.validators:
                 raise ValueError(
-                    f"If the job type is {job_type}, annotators and "
+                    f"If the job type is {self.job_type}, annotators and "
                     "validators field should be empty."
                 )
-            return values
-        if validation_type == ValidationSchema.cross and (
-            len(annotators) < CROSS_MIN_ANNOTATORS_NUMBER or validators
+            return self
+        if self.validation_type == ValidationSchema["cross"] and (
+            len(self.annotators) < CROSS_MIN_ANNOTATORS_NUMBER
+            or self.validators
         ):
             raise ValueError(
                 "If the validation type is cross validation, annotators "
                 "field should have min 2 annotators and the validators field "
                 "should be empty."
             )
-        if validation_type == ValidationSchema.hierarchical and (
-            not annotators or not validators
+        if self.validation_type == ValidationSchema["hierarchical"] and (
+            not self.annotators or not self.validators
         ):
             raise ValueError(
                 "If the validation type is hierarchical, annotators field "
                 "and validators field should not be empty at the same time."
             )
-        if validation_type == ValidationSchema.validation_only and (
-            annotators or not validators
+        if self.validation_type == ValidationSchema["validation_only"] and (
+            self.annotators or not self.validators
         ):
             raise ValueError(
                 "If the validation type is validation_only, annotators field "
                 "should be empty and validators field should not be empty."
             )
         if (
-            validation_type == ValidationSchema.extensive_coverage
-            and not extensive_coverage
+            self.validation_type == ValidationSchema["extensive_coverage"]
+            and not self.extensive_coverage
         ):
             raise ValueError(
-                "If the validation type is extensive_coverage value "
-                "configuring this field should be provided to "
-                "extensive_coverage parameter."
+                "If the validation type is extensive_coverage, "
+                "a value for this parameter must be specified."
             )
-        if validation_type == ValidationSchema.extensive_coverage and (
-            len(annotators) < extensive_coverage
+        if self.validation_type == ValidationSchema["extensive_coverage"] and (
+            len(self.annotators) < self.extensive_coverage
         ):
             raise ValueError(
-                "If the validation type is extensive_coverage number of "
-                "annotators should equal or less then provided "
+                "If the validation type is extensive_coverage, the number of "
+                "annotators must be equal to or greater than the provided "
                 "extensive_coverage number."
             )
-        return values
+        return self
 
 
 class JobPatchOutSchema(BaseModel):

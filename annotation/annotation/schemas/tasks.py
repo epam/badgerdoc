@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import Enum
-from typing import Annotated, List, Optional, Set
+from typing import Annotated, List, Optional, Self, Set
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -101,19 +101,16 @@ class TaskInfoSchema(BaseModel):
     )
 
     @model_validator(mode="after")
-    def both_fields_not_empty_check(cls, values):
+    def both_fields_not_empty_check(self) -> Self:
         """
-        Fields files and datasets should not be empty at
-        the same time.
+        Fields files and datasets should not be empty at the same time.
         """
-        files = getattr(values, "files", None)
-        datasets = getattr(values, "datasets", None)
-        if not files and not datasets:
+        if not self.files and not self.datasets:
             raise ValueError(
-                "Fields files and datasets should "
-                "not be empty at the same time."
+                "Fields files and datasets should not "
+                "be empty at the same time."
             )
-        return values
+        return self
 
 
 class PagesInfoSchema(BaseModel):
