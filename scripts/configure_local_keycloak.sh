@@ -231,3 +231,82 @@ curl -X PUT "http://localhost:8082/auth/admin/realms/master" \
   -d '{
     "accessTokenLifespan": 86400
   }'
+
+# Set up Airflow as a pipeline service in local mode
+# Setup service account. Login into Keycloak using url http://127.0.0.1:8082/auth and admin:admin as credentials. Select Clients -> badgerdoc-internal -> Service Accounts Roles -> Find Service Account User and click "service-account-badgerdoc-internal". Then select Attributes tab and add tenants:local attribute like you did it for admin.
+curl -X PUT http://localhost:8082/auth/admin/realms/master/users/${SERVICE_ACCOUNT_USER_ID}/ \
+  -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "attributes": {
+      "tenants": ["local"]
+    }
+  }'
+if [ $? -ne 0 ]; then
+  echo "Failed to add tenant attribute to badgerdoc-internal service account user."
+  exit 1
+else
+  echo "Tenant attribute added to badgerdoc-internal service account user successfully."
+fi
+
+# Go to Role Mappings and assign admin and default-roles-master
+ADMIN_ROLE_ID=$(curl -s -X GET "http://localhost:8082/auth/admin/realms/master/roles/admin" \
+  -H "Authorization: Bearer ${ACCESS_TOKEN}" | jq -r '.id')
+
+DEFAULT_ROLES_ID=$(curl -s -X GET "http://localhost:8082/auth/admin/realms/master/roles/default-roles-master" \
+  -H "Authorization: Bearer ${ACCESS_TOKEN}" | jq -r '.id')
+
+# Assign roles
+curl -X POST "http://localhost:8082/auth/admin/realms/master/users/$SERVICE_ACCOUNT_USER_ID/role-mappings/realm" \
+  -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+  -H "Content-Type: application/json" \
+  -d '[
+    {"id": "'$ADMIN_ROLE_ID'", "name": "admin"},
+    {"id": "'$DEFAULT_ROLES_ID'", "name": "default-roles-master"}
+  ]'
+if [ $? -ne 0 ]; then
+  echo "Failed to assign roles to badgerdoc-internal service account user."
+  exit 1
+else
+  echo "Roles assigned to badgerdoc-internal service account user successfully."
+fi
+
+# Go to Clients -> badgerdoc-internal -> Mappers -> Create and fill form:
+
+# Param	Value
+# Protocol	openid-connect
+# Name	tenants
+# Mapper Type	User Attribute
+# User Attribute	tenants
+# Token Claim Name	tenants
+# Claim JSON Type	string
+# Add to ID token	On
+# Add to access token	On
+# Add to userinfo	On
+# Multivalued	On
+# Aggregate attribute values	On
+curl -X POST http://localhost:8082/auth/admin/realms/master/clients/${CLIENT_UUID}/protocol-mappers/models \
+  -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "tenants",
+    "protocol": "openid-connect",
+    "protocolMapper": "oidc-usermodel-attribute-mapper",
+    "consentRequired": false,
+    "config": {
+      "user.attribute": "tenants",
+      "claim.name": "tenants",
+      "jsonType.label": "String",
+      "access.token.claim": true,
+      "id.token.claim": true,
+      "userinfo.token.claim": true,
+      "multivalued": true,
+      "aggregate.attrs": true
+    }
+  }'
+if [ $? -ne 0 ]; then
+  echo "Failed to create tenants mapper."
+  exit 1
+else
+  echo "Tenants mapper created successfully."
+fi
