@@ -3,12 +3,13 @@ import json
 import os
 
 import boto3
+from badgerdoc_storage import storage as bd_storage
 
 from assets import logger
 from assets.db.models import FileObject
 from assets.extractions.base import Extraction
 
-logger = logger.get_logger(__name__)
+logger_ = logger.get_logger(__name__)
 
 # AWS Textract configuration
 AWS_REGION = os.environ.get("ASSETS_AWS_TEXTRACT_REGION", "us-east-1")
@@ -96,13 +97,13 @@ class TextractExtraction(Extraction):
         """Start extraction process for the given file ID
         using AWS Textract."""
 
-        logger.info(
+        logger_.info(
             "Starting AWS Textract extraction for file %s",
             file.id,
         )
 
         if file.extension != ".pdf":
-            logger.info(
+            logger_.info(
                 "AWS Textract extraction is only supported "
                 "for PDF files, skipping file %s",
                 file.id,
@@ -111,16 +112,16 @@ class TextractExtraction(Extraction):
 
         started = await self.start(file)
         if not started:
-            logger.info(
+            logger_.info(
                 "AWS Textract extraction is disabled",
             )
             return
 
         try:
             if not AWS_ACCESS_KEY or not AWS_SECRET_KEY:
-                textract_client = boto3.client(
-                    "textract", region_name=AWS_REGION
-                )
+                boto3_config = bd_storage.create_boto3_config()
+                boto3_config["region_name"] = AWS_REGION
+                textract_client = boto3.client("textract", **boto3_config)
             else:
                 textract_client = boto3.client(
                     "textract",
@@ -134,7 +135,7 @@ class TextractExtraction(Extraction):
             )
             s3_object = {"Bucket": s3_bucket, "Name": file.path}
 
-            logger.debug("Downloading object from S3 %s", s3_object)
+            logger_.debug("Downloading object from S3 %s", s3_object)
 
             # Start the analysis process
             # Using Textract's detect_document_text for basic text extraction
@@ -144,7 +145,7 @@ class TextractExtraction(Extraction):
             )
 
             job_id = start_response["JobId"]
-            logger.info(
+            logger_.info(
                 "Started asynchronous Textract job %s for file %s",
                 job_id,
                 file.id,
@@ -159,13 +160,13 @@ class TextractExtraction(Extraction):
                 page_num=1, data=json.dumps(extraction_result).encode("utf-8")
             )
 
-            logger.info(
+            logger_.info(
                 "Completed AWS Textract extraction for file %s",
                 file.id,
             )
 
         except Exception:
-            logger.exception(
+            logger_.exception(
                 "Error during AWS Textract extraction for file %s", file.id
             )
             raise
