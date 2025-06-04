@@ -145,11 +145,7 @@ export const UploadWizardPage = () => {
             content: (
                 <>
                     <div className={wizardStyles['content__body']}>
-                        <UploadFilesControl
-                            value={files}
-                            onValueChange={setFiles}
-                            isLoading={isLoading}
-                        />
+                        <UploadFilesControl value={files} onValueChange={setFiles} />
                     </div>
                     <div className={wizardStyles['content__footer']}>
                         {renderWizardButtons({
@@ -183,7 +179,10 @@ export const UploadWizardPage = () => {
             content: (
                 <>
                     <div className={wizardStyles['content__body']}>
-                        <UploadWizardPreprocessor onChange={setPreprocessorStepData} />
+                        <UploadWizardPreprocessor
+                            onChange={setPreprocessorStepData}
+                            isLoading={isLoading}
+                        />
                     </div>
                     <div className={wizardStyles['content__footer']}>
                         {renderWizardButtons({
@@ -191,7 +190,9 @@ export const UploadWizardPage = () => {
                                 await uploadFilesHandler();
                                 handleNext();
                             },
-                            onPreviousClick: handlePrev
+                            onPreviousClick: handlePrev,
+                            disableNextButton: isLoading,
+                            disablePrevButton: isLoading
                         })}
                     </div>
                 </>

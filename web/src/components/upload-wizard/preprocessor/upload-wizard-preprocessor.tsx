@@ -4,6 +4,7 @@ import React, { FC, useEffect, useState } from 'react';
 import { FlexRow, IconButton, PickerInput, RadioInput, Text, Tooltip } from '@epam/loveship';
 import { ReactComponent as InfoIcon } from '@epam/assets/icons/common/notification-info-outline-18.svg';
 import { useArrayDataSource } from '@epam/uui';
+import { Blocker } from '@epam/loveship';
 
 import styles from './upload-wizard-preprocessor.module.scss';
 import { Operators, SortingDirection } from '../../../api/typings';
@@ -29,6 +30,7 @@ export type UploadWizardPreprocessorResult = {
 
 type UploadWizardPreprocessorProps = {
     onChange: (data: UploadWizardPreprocessorResult) => void;
+    isLoading?: boolean;
 };
 
 const languages = [
@@ -40,7 +42,7 @@ const languages = [
     { id: 6, language: 'Portuguese' }
 ];
 
-const UploadWizardPreprocessor: FC<UploadWizardPreprocessorProps> = ({ onChange }) => {
+const UploadWizardPreprocessor: FC<UploadWizardPreprocessorProps> = ({ onChange, isLoading }) => {
     const [preprocessor, setPreprocessor] = useState<number | null>(null);
     const [selectedLanguages, setLanguages] = useState<any[]>([]);
 
@@ -155,6 +157,7 @@ const UploadWizardPreprocessor: FC<UploadWizardPreprocessorProps> = ({ onChange 
                     getName={(item) => item?.language || ''}
                 />
             </div>
+            {isLoading && <Blocker isEnabled={isLoading} />}
         </div>
     );
 };

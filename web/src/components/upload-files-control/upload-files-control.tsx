@@ -1,21 +1,15 @@
 // temporary_disabled_rules
 /* eslint-disable @typescript-eslint/no-unused-vars, react-hooks/exhaustive-deps */
 import React, { FC, useCallback } from 'react';
-import { Blocker } from '@epam/loveship';
 
 import { UploadForm, AttachedFiles } from 'components';
 
 type UploadFilesControlProps = {
     value: File[];
-    isLoading: boolean;
     onValueChange: (value: File[]) => void;
 };
 
-export const UploadFilesControl: FC<UploadFilesControlProps> = ({
-    value,
-    isLoading,
-    onValueChange
-}) => {
+export const UploadFilesControl: FC<UploadFilesControlProps> = ({ value, onValueChange }) => {
     const onFilesAdded = useCallback(
         (files: Array<File>) => {
             const changedValue = [...value];
@@ -46,7 +40,6 @@ export const UploadFilesControl: FC<UploadFilesControlProps> = ({
         >
             <UploadForm onFilesAdded={onFilesAdded}></UploadForm>
             <AttachedFiles files={value} onFileRemove={onFileRemove} />
-            {isLoading && <Blocker isEnabled={isLoading} />}
         </div>
     );
 };
