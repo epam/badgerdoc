@@ -208,12 +208,8 @@ export const UploadWizardPage = () => {
                     renderWizardButtons={({ save, disableNextButton, finishButtonCaption }) =>
                         renderWizardButtons({
                             onNextClick: async () => {
-                                try {
-                                    await runFinalization();
-                                    await save();
-                                } catch (error) {
-                                    notifyError(<Text>{getError(error)}</Text>);
-                                }
+                                await runFinalization();
+                                await save();
                             },
                             nextButtonCaption: finishButtonCaption,
                             disableNextButton
