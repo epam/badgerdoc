@@ -5,7 +5,7 @@ WORKDIR /opt/core
 
 COPY core ./core
 COPY alembic alembic
-COPY pyproject.toml poetry.lock version.txt ./
+COPY pyproject.toml poetry.lock version.txt alembic.ini ./
 
 RUN : \
     && apt-get update \
