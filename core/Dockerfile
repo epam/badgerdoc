@@ -4,6 +4,7 @@ FROM ${base_image} as build
 WORKDIR /opt/core
 
 COPY core ./core
+COPY alembic alembic
 COPY pyproject.toml poetry.lock version.txt ./
 
 RUN : \
@@ -18,6 +19,6 @@ RUN : \
     && poetry install --no-root --only main \
     && :
 
-CMD uvicorn core.main:app --root-path $ROOT_PATH --host 0.0.0.0 --port 8080
+CMD alembic upgrade head && uvicorn core.main:app --root-path $ROOT_PATH --host 0.0.0.0 --port 8080
 EXPOSE 8080
 
