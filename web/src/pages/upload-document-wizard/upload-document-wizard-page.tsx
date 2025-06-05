@@ -119,8 +119,24 @@ export const UploadWizardPage = () => {
         ]);
     };
 
+    const runFinalization = async () => {
+        try {
+            setIsLoading(true);
+            await datasetHandler();
+            await preprocessorHandler();
+        } catch (error) {
+            notifyError(<Text>{getError(error)}</Text>);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     const handleNext = () => {
         setStepIndex(stepIndex + 1);
+    };
+
+    const handlePrev = () => {
+        setStepIndex(stepIndex - 1);
     };
 
     const steps: WizardPropsStep[] = [
@@ -129,18 +145,12 @@ export const UploadWizardPage = () => {
             content: (
                 <>
                     <div className={wizardStyles['content__body']}>
-                        <UploadFilesControl
-                            value={files}
-                            onValueChange={setFiles}
-                            isLoading={isLoading}
-                        />
+                        <UploadFilesControl value={files} onValueChange={setFiles} />
                     </div>
                     <div className={wizardStyles['content__footer']}>
                         {renderWizardButtons({
-                            onNextClick: () => {
-                                uploadFilesHandler();
-                                handleNext();
-                            },
+                            onNextClick: handleNext,
+                            onPreviousClick: history.goBack,
                             disableNextButton: !files.length
                         })}
                     </div>
@@ -156,10 +166,8 @@ export const UploadWizardPage = () => {
                     </div>
                     <div className={wizardStyles['content__footer']}>
                         {renderWizardButtons({
-                            onNextClick: () => {
-                                datasetHandler();
-                                handleNext();
-                            },
+                            onNextClick: handleNext,
+                            onPreviousClick: handlePrev,
                             disableNextButton: isDatasetStepNextDisabled()
                         })}
                     </div>
@@ -171,14 +179,20 @@ export const UploadWizardPage = () => {
             content: (
                 <>
                     <div className={wizardStyles['content__body']}>
-                        <UploadWizardPreprocessor onChange={setPreprocessorStepData} />
+                        <UploadWizardPreprocessor
+                            onChange={setPreprocessorStepData}
+                            isLoading={isLoading}
+                        />
                     </div>
                     <div className={wizardStyles['content__footer']}>
                         {renderWizardButtons({
-                            onNextClick: () => {
-                                preprocessorHandler();
+                            onNextClick: async () => {
+                                await uploadFilesHandler();
                                 handleNext();
-                            }
+                            },
+                            onPreviousClick: handlePrev,
+                            disableNextButton: isLoading,
+                            disablePrevButton: isLoading
                         })}
                     </div>
                 </>
@@ -193,7 +207,10 @@ export const UploadWizardPage = () => {
                     files={uploadedFilesIds}
                     renderWizardButtons={({ save, disableNextButton, finishButtonCaption }) =>
                         renderWizardButtons({
-                            onNextClick: save,
+                            onNextClick: async () => {
+                                await runFinalization();
+                                await save();
+                            },
                             nextButtonCaption: finishButtonCaption,
                             disableNextButton
                         })

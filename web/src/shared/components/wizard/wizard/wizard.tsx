@@ -23,17 +23,24 @@ export const renderWizardButtons = ({
     onPreviousClick,
     onNextClick,
     nextButtonCaption,
-    disableNextButton
+    disableNextButton,
+    disablePrevButton
 }: {
     onPreviousClick?: any;
     onNextClick: any;
     nextButtonCaption?: string;
     disableNextButton?: boolean;
+    disablePrevButton?: boolean;
 }) => {
     return (
         <>
             {onPreviousClick ? (
-                <Button fill="light" caption="Previous" onClick={onPreviousClick} />
+                <Button
+                    fill="light"
+                    caption="Previous"
+                    onClick={onPreviousClick}
+                    isDisabled={disablePrevButton}
+                />
             ) : null}
             <Button
                 caption={nextButtonCaption || 'Next'}
