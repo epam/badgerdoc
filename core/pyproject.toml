@@ -1,0 +1,42 @@
+[tool.poetry]
+name = "core"
+version = "1.0.0"
+description = "Core microservice for BadgerDoc"
+authors = ["Ruslan Khyurri <ruslan.khyurri@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+fastapi = ">=0.115.0,<0.116.0"
+uvicorn = {extras = ["standard"], version = "^0.34.0"}
+pydantic = "^2.10.0"
+aiohttp = "^3.11.13"
+python-multipart = "*"
+sqlalchemy = "2.0.23"
+alembic = "1.15.2"
+
+[tool.poetry.group.dev.dependencies]
+mypy = "^1.15.0"
+isort = "^6.0.1"
+black = "^25.1.0"
+flake8 = "^7.1.2"
+pre-commit = "*"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line_length = 79
+
+[tool.isort]
+profile = "black"
+line_length = 79
+
+[tool.mypy]
+plugins = "pydantic.mypy"
+ignore_missing_imports = true
+scripts_are_modules = true
+allow_untyped_decorators = true
+strict = true
+implicit_reexport = true
