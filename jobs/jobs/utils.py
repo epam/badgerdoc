@@ -1,13 +1,14 @@
 from typing import Any, Dict, Generator, Iterator, List, Optional, Tuple, Union
 
 import aiohttp.client_exceptions
+import airflow_client.client as client
 import fastapi.encoders
 from sqlalchemy.orm import Session
 
 import jobs.airflow_utils as airflow_utils
 import jobs.databricks_utils as databricks_utils
 import jobs.pipeline as pipeline
-from jobs import db_service
+from jobs import db_service, schemas
 from jobs.config import (
     ANNOTATION_SERVICE_HOST,
     ASSETS_SERVICE_HOST,
@@ -16,19 +17,23 @@ from jobs.config import (
     JOBS_SIGNED_URL_KEY_NAME,
     PAGINATION_THRESHOLD,
     PIPELINES_SERVICE_HOST,
+    REQUEST_TIMEOUT,
     ROOT_PATH,
     TAXONOMY_SERVICE_HOST,
     USERS_HOST,
 )
 from jobs.logger import logger
 from jobs.models import CombinedJob
+from jobs.pipeline import OtherPipeline
 from jobs.s3 import create_pre_signed_s3_url
 from jobs.schemas import (
+    AirflowPipelineStatus,
     AnnotationJobUpdateParamsInAnnotation,
     CategoryLinkInput,
     CategoryLinkParams,
-    JobMode,
     JobParamsToChange,
+    JobType,
+    Status,
 )
 
 
@@ -351,10 +356,10 @@ async def execute_external_pipeline(
     logger.info("Pipeline params: %s", kwargs)
     if pipeline_engine == "airflow":
         pipeline = airflow_utils.AirflowPipeline()
-    # return await airflow_utils.run(**kwargs)
     elif pipeline_engine == "databricks":
         pipeline = databricks_utils.DatabricksPipeline()
-        # return await databricks_utils.run(**kwargs)
+    elif pipeline_engine == "other":
+        pipeline = OtherPipeline()
     else:
         raise UnsupportedEngine(f"Unknown engine: {pipeline_engine}")
     return await pipeline.run(**kwargs)
@@ -482,8 +487,8 @@ def delete_duplicates(
 def pick_params_for_annotation(
     new_job_params: JobParamsToChange,
 ) -> AnnotationJobUpdateParamsInAnnotation:
-    picked_params = AnnotationJobUpdateParamsInAnnotation.parse_obj(
-        new_job_params
+    picked_params = AnnotationJobUpdateParamsInAnnotation.model_validate(
+        new_job_params.model_dump()
     )
     return picked_params
 
@@ -554,7 +559,11 @@ async def update_job_in_annotation(
 
 
 async def get_job_progress(
-    job_id: int, session: Session, current_tenant: Optional[str], jw_token: str
+    job_id: int,
+    session: Session,
+    current_tenant: Optional[str],
+    jw_token: str,
+    api_client: client.ApiClient,
 ) -> Optional[Dict[str, int]]:
     """Get progress of the job with 'job_id' from Pipelines
     or Annotation Manager depending on 'job_mode'."""
@@ -563,19 +572,14 @@ async def get_job_progress(
         logger.warning(f"job with id={job_id} not present in the database.")
         return None
 
-    url: str = ""
-    if job.mode == JobMode.Automatic:
-        url = f"{PIPELINES_SERVICE_HOST}/jobs/{job_id}/progress"
-    elif job.mode == JobMode.Manual:
-        url = f"{ANNOTATION_SERVICE_HOST}/jobs/{job_id}/progress"
+    url = f"{ANNOTATION_SERVICE_HOST}/jobs/{job_id}/progress"
     headers = {
         "X-Current-Tenant": current_tenant,
         "Authorization": f"Bearer: {jw_token}",
     }
-    timeout = aiohttp.ClientTimeout(total=5)
     try:
-        _, response = await fetch(
-            method="GET", url=url, headers=headers, timeout=timeout
+        req_status_code, response = await fetch(
+            method="GET", url=url, headers=headers
         )
     except aiohttp.client_exceptions.ClientError as err:
         logger.exception(f"Failed request url = {url}, error = {err}")
@@ -584,8 +588,145 @@ async def get_job_progress(
             detail=f"Failed request to the Annotation Manager: {err}",
         )
 
+    if req_status_code == 404:
+        return None
+
     response.update({"mode": str(job.mode)})
-    return response  # type: ignore
+
+    if job.type in (
+        JobType.AnnotationJob,
+        JobType.ExtractionJob,
+        JobType.ExtractionWithAnnotationJob,
+    ):
+        await update_job_status_by_type(
+            session, job, response, job_id, api_client
+        )
+        return response
+
+    logger.warning(
+        f"Unknown job type: {job.type}, treating as manual by default."
+    )
+    await update_manual_job_status(session, job, response)
+    return response
+
+
+async def update_job_status_by_type(
+    session: Session,
+    job: CombinedJob,
+    response: Dict[str, int],
+    job_id: int,
+    api_client: client.ApiClient,
+) -> None:
+    job_type = job.type
+
+    if job_type in (
+        JobType.AnnotationJob,
+        JobType.ExtractionWithAnnotationJob,
+    ):
+        await update_manual_job_status(session, job, response)
+
+    else:  # JobType.ExtractionJob
+        await handle_pipeline_driven_job(
+            session, job, response, job_id, api_client
+        )
+
+
+async def update_manual_job_status(
+    session: Session, job: CombinedJob, response: Dict[str, int]
+) -> None:
+    """# Update job status based on completed tasks.
+
+    If 'finished' > 0:
+    - Set status to 'finished' if all tasks are done.
+    - Set status to 'in_progress' if some tasks are done.
+    Otherwise, the job status remains pending.
+    """
+    finished = response.get("finished")
+    total = response.get("total")
+
+    if finished is None or total is None:
+        logger.warning("Missing keys in response for job %s", job.id)
+        return
+
+    if (
+        finished == 0
+    ):  # If no tasks are completed, the job will remain in a pending state.
+        return
+
+    if finished == total:
+        db_service.update_job_status(session, job, Status.finished)
+    else:
+        db_service.update_job_status(session, job, Status.in_progress)
+
+
+async def handle_pipeline_driven_job(
+    session: Session,
+    job: CombinedJob,
+    response: Dict[str, int],
+    job_id: int,
+    api_client: client.ApiClient,
+) -> None:
+    """Handle Extraction jobs that depend on pipeline execution."""
+    pipeline_id = job.pipeline_id
+    dag_run_id = f"{pipeline_id}:{job_id}"
+    # For extraction jobs, total is 1; finished is 0 or 1 to show completion.
+    response["total"] = 1
+    response["finished"] = 0
+
+    # Activate pipeline if not already running.
+    await activate_pipeline(pipeline_id, api_client)
+
+    pipeline_status = await fetch_pipeline_status(
+        pipeline_id, dag_run_id, api_client
+    )
+
+    new_state = Status.pending
+    if pipeline_status == AirflowPipelineStatus.success.value:
+        new_state = Status.finished
+        response["finished"] = 1
+    elif pipeline_status == AirflowPipelineStatus.failed.value:
+        new_state = Status.failed
+    elif pipeline_status == AirflowPipelineStatus.running.value:
+        new_state = Status.in_progress
+    else:
+        logger.warning(
+            f"Unexpected pipeline status '{pipeline_status}' for job {job_id}"
+        )
+
+    db_service.update_job_status(session, job, new_state)
+
+
+async def fetch_pipeline_status(
+    pipeline_id: str,
+    dag_run_id: str,
+    api_client: client.ApiClient,
+) -> bool:
+    try:
+        result = await airflow_utils.fetch_dag_status(
+            pipeline_id,
+            dag_run_id,
+            api_client=api_client,
+        )
+    except RuntimeError as e:
+        logger.exception(
+            f"Runtime error occurred while fetching pipeline status: {e}"
+        )
+        raise fastapi.HTTPException(
+            status_code=500, detail="Failed to fetch pipeline status."
+        ) from e
+    return result
+
+
+async def activate_pipeline(
+    pipeline_id: str, api_client: client.ApiClient
+) -> None:
+    try:
+        await airflow_utils.activate_dag(pipeline_id, api_client)
+    except RuntimeError as e:
+        logger.exception(f"Failed to activate DAG: {e}")
+        raise fastapi.HTTPException(
+            status_code=500, detail="Failed to activate pipline"
+        ) from e
 
 
 async def fetch(
@@ -596,6 +737,8 @@ async def fetch(
     headers: Optional[Dict[str, Any]] = None,
     **kwargs: Any,
 ) -> Tuple[int, Any]:
+    if "timeout" not in kwargs:
+        kwargs["timeout"] = aiohttp.ClientTimeout(total=REQUEST_TIMEOUT)
     async with aiohttp.request(
         method=method, url=url, json=body, headers=headers, data=data, **kwargs
     ) as resp:
@@ -767,13 +910,11 @@ async def get_annotation_revisions(
         "X-Current-Tenant": current_tenant,
         "Authorization": f"Bearer: {jw_token}",
     }
-    timeout = aiohttp.ClientTimeout(total=5)
     try:
         _, response = await fetch(
             method="GET",
             url=f"{ANNOTATION_SERVICE_HOST}/revisions/{job_id}/{file_id}",
             headers=headers,
-            timeout=timeout,
         )
     except aiohttp.client_exceptions.ClientError as err:
         logger.exception(
@@ -784,6 +925,42 @@ async def get_annotation_revisions(
             status_code=fastapi.status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=f"Failed request to the Annotation Manager: {err}",
         )
+
+    return response
+
+
+async def get_annotations_by_revisions(
+    current_tenant: Optional[str], jw_token: str, revisions: List[str]
+) -> Optional[Dict[str, Any]]:
+    """Get annotations by filtering"""
+
+    headers = {
+        "X-Current-Tenant": current_tenant,
+        "Authorization": f"Bearer: {jw_token}",
+    }
+
+    post_data = {
+        "filters": [
+            {"field": "revision", "operator": "in", "value": revisions}
+        ]
+    }
+
+    try:
+        _, response = await fetch(
+            method="POST",
+            url=f"{ANNOTATION_SERVICE_HOST}/annotation",
+            headers=headers,
+            body=post_data,
+        )
+    except aiohttp.client_exceptions.ClientError as err:
+        logger.exception(
+            f"Failed request to get annotations by revisions: {revisions}"
+        )
+        raise fastapi.HTTPException(
+            status_code=fastapi.status.HTTP_400_BAD_REQUEST,
+            detail="Could not retrieve selected annotations:"
+            f" {', '.join(revisions)}",
+        ) from err
 
     return response
 
@@ -829,23 +1006,17 @@ async def search_datasets_by_ids(
     return response
 
 
-async def validate_create_job_files(db: Session, file_ids: List[int]):
+async def validate_create_job_files(
+    file_ids: List[int], current_tenant: str, jw_token: str
+) -> None:
     """Validate job's files if they all exist in database"""
-    matched_jobs_in_db = db_service.get_jobs_in_db_by_ids(db, file_ids)
-    if len(file_ids) > len(matched_jobs_in_db):
+    _, matched_file_ids_in_db = await get_files_data_from_separate_files(
+        file_ids, current_tenant, jw_token
+    )
+    if len(file_ids) > len(matched_file_ids_in_db):
         raise fastapi.HTTPException(
             status_code=fastapi.status.HTTP_400_BAD_REQUEST,
             detail="Some of these files do not exist",
-        )
-
-
-async def validate_create_job_name(db: Session, job_name: str):
-    """Check if the job name is already taken"""
-    existing_jobs_by_name = db_service.get_jobs_by_name(db, job_name)
-    if len(existing_jobs_by_name) > 0:
-        raise fastapi.HTTPException(
-            status_code=fastapi.status.HTTP_400_BAD_REQUEST,
-            detail=f"The job name '{job_name}' is already being used",
         )
 
 
@@ -860,3 +1031,24 @@ async def validate_create_job_previous_jobs(
             detail="Jobs with these ids do not exist.",
         )
     return [j.id for j in previous_jobs]
+
+
+async def update_create_job_params_using_revisions(
+    job_params: schemas.JobParams, current_tenant: str, jwt_token: str
+) -> None:
+    response = await get_annotations_by_revisions(
+        current_tenant=current_tenant,
+        jw_token=jwt_token,
+        revisions=list(job_params.revisions),
+    )
+
+    unique_file_ids_of_revisions = set(
+        [
+            data["file_id"]
+            for data in response.get("data", [])
+            if "file_id" in data
+        ]
+    )
+    job_params.files = list(
+        unique_file_ids_of_revisions.union(job_params.files)
+    )

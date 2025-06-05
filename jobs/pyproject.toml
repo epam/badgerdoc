@@ -5,13 +5,13 @@ description = "Jobs microservice for BadgerDoc project"
 authors = ["BadgerDoc team"]
 
 [tool.poetry.dependencies]
-python = "^3.8.0"
+python = "^3.12.1"
 alembic = "^1.7.4"
-SQLAlchemy = "1.3.24"
+SQLAlchemy = "2.0.23"
 sqlalchemy_utils = "^0.38.3"
-fastapi = "^0.68.1"
+fastapi = "^0.115.0"
 python-dotenv = "^0.19.0"
-uvicorn = "^0.15.0"
+uvicorn = "^0.34.0"
 apache-airflow-client = "^2.7.0"
 databricks-sdk = "^0.26.0"
 aiohttp = "^3.9.5"

@@ -1,8 +1,9 @@
 import asyncio
 import logging
 import os
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
+import airflow_client.client as client
 from fastapi import Depends, FastAPI, Header, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from filter_lib import Page, form_query, map_request_to_filter, paginate
@@ -20,6 +21,7 @@ import jobs.run_job_funcs as run_job_funcs
 import jobs.schemas as schemas
 import jobs.utils as utils
 from jobs.config import KEYCLOAK_HOST, ROOT_PATH, API_current_version
+from jobs.pipeline import OtherPipeline
 
 tenant = get_tenant_info(url=KEYCLOAK_HOST, algorithm="RS256", debug=True)
 logger = logging.getLogger(__name__)
@@ -54,22 +56,37 @@ async def create_job(
     current_tenant: Optional[str] = Header(None, alias="X-Current-Tenant"),
     db: Session = Depends(db_service.get_session),
     token_data: TenantData = Depends(tenant),
-) -> Union[Dict[str, Any], None]:
+) -> Dict[str, Any]:
     """Creates ExtractionJob, AnnotationJob or ExtractionWithAnnotationJob.
     If it is not 'Draft' - runs it"""
     logger.info("Create job with job_params: %s", job_params)
     jw_token = token_data.token
 
-    await utils.validate_create_job_name(db, job_params.name)
-
     if len(job_params.files) > 0:
-        await utils.validate_create_job_files(db, job_params.files)
+        await utils.validate_create_job_files(
+            job_params.files, current_tenant, jw_token
+        )
 
+    logger.info("Previous jobs: %s", job_params.previous_jobs)
     if job_params.previous_jobs:
         job_params.previous_jobs = (
             await utils.validate_create_job_previous_jobs(
                 db, job_params.previous_jobs
             )
+        )
+
+    if len(job_params.revisions) > 0:
+        await utils.update_create_job_params_using_revisions(
+            job_params=job_params,
+            current_tenant=current_tenant,
+            jwt_token=jw_token,
+        )
+
+    if len(job_params.revisions) > 0:
+        await utils.update_create_job_params_using_revisions(
+            job_params=job_params,
+            current_tenant=current_tenant,
+            jwt_token=jw_token,
         )
 
     if job_params.type == schemas.JobType.ExtractionJob:
@@ -175,7 +192,7 @@ async def run_job(
     current_tenant: Optional[str] = Header(None, alias="X-Current-Tenant"),
     db: Session = Depends(db_service.get_session),
     token_data: TenantData = Depends(tenant),
-) -> Union[Dict[str, Any], HTTPException]:
+) -> Dict[str, Any]:
     """Runs any type of Job"""
     jw_token = token_data.token
     job_to_run = db_service.get_job_in_db_by_id(db, job_id)
@@ -240,7 +257,7 @@ async def change_job(
     token_data: TenantData = Depends(tenant),
     current_tenant: Optional[str] = Header(None, alias="X-Current-Tenant"),
     db: Session = Depends(db_service.get_session),
-) -> Union[Dict[str, Any], HTTPException]:
+) -> Dict[str, Any]:
     """Provides an ability to change any value
     of any field of any Job in the database"""
 
@@ -364,7 +381,6 @@ async def search_jobs(
     db: Session = Depends(db_service.get_session),
 ) -> Page[Dict[str, Any]]:
     """Returns a list of Jobs in line with filters specified"""
-
     query = db.query(dbm.CombinedJob)
     filter_args = map_request_to_filter(request.dict(), "CombinedJob")
     try:
@@ -374,7 +390,8 @@ async def search_jobs(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=f"{e}",
         )
-    return paginate([element for element in query], pag)
+    query_result = [element for element in query]
+    return paginate([obj.as_dict for obj in query_result], pag)
 
 
 @app.get("/jobs/{job_id}")
@@ -405,7 +422,7 @@ async def delete_job(
     current_tenant: Optional[str] = Header(None, alias="X-Current-Tenant"),
     db: Session = Depends(db_service.get_session),
     token_data: TenantData = Depends(tenant),
-) -> Union[Dict[str, Any], HTTPException]:
+) -> Dict[str, Any]:
     """Deletes Job instance by its id"""
     jw_token = token_data.token
     job_to_delete = db_service.get_job_in_db_by_id(db, job_id)
@@ -444,10 +461,13 @@ async def get_jobs_progress(
     session: Session = Depends(db_service.get_session),
     current_tenant: Optional[str] = Header(None, alias="X-Current-Tenant"),
     token_data: TenantData = Depends(tenant),
+    api_client: client.ApiClient = Depends(airflow_utils.get_api_instance),
 ) -> Dict[int, Dict[str, int]]:
     jw_token = token_data.token
     progress_tasks = [
-        utils.get_job_progress(job_id, session, current_tenant, jw_token)
+        utils.get_job_progress(
+            job_id, session, current_tenant, jw_token, api_client
+        )
         for job_id in job_ids
     ]
     jobs_progress = await asyncio.gather(*progress_tasks)
@@ -476,6 +496,7 @@ async def support(
     default_pipelines = {
         "airflow": AIRFLOW_ENABLED,
         "databricks": DATABRICKS_ENABLED,
+        "other": True,
     }
     pipeline_engines = []
     for pipeline_name, enabled in default_pipelines.items():
@@ -534,3 +555,13 @@ async def databricks(
 ) -> schemas.Pipelines:
     pipelines = list(databricks_utils.get_pipelines())
     return schemas.Pipelines(data=pipelines)
+
+
+# Other
+
+
+@app.get("/pipelines/other", tags=["pipelines", "other"])
+async def other(
+    _: Optional[str] = Header(None, alias="X-Current-Tenant"),
+) -> schemas.Pipelines:
+    return await OtherPipeline().list()

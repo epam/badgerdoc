@@ -16,6 +16,7 @@ app = FastAPI(
     root_path=settings.root_path,
     servers=[{"url": settings.root_path}],
     dependencies=[Depends(tenant)],
+    openapi_version="3.0.2",
 )
 
 if WEB_CORS := os.getenv("WEB_CORS", ""):
@@ -26,8 +27,9 @@ if WEB_CORS := os.getenv("WEB_CORS", ""):
         allow_headers=["*"],
     )
 
-app.include_router(routers.minio_router.router)
+app.include_router(routers.download_router.router)
 app.include_router(routers.files_router.router)
 app.include_router(routers.datasets_router.router)
 app.include_router(routers.bonds_router.router)
 app.include_router(routers.s3_router.router)
+app.include_router(routers.extractions_router.router)

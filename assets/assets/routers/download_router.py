@@ -1,19 +1,21 @@
-from typing import Dict, Optional, Tuple, Union
+from typing import Optional, Tuple, Union
 
 import fastapi.responses
 import sqlalchemy.orm
 from badgerdoc_storage import storage as bd_storage
 
-from assets import db, schemas, utils
+from assets import db, utils
 from assets.config import settings
 
-router = fastapi.APIRouter(tags=["minio"])
+router = fastapi.APIRouter(tags=["download"])
 
 
 @router.get(
-    "/download", name="gets file from minio with original content-type"
+    "/download",
+    name="gets file from storage with original content-type",
+    response_model=None,
 )
-async def get_from_minio(
+async def get_file(
     file_id: int,
     background_tasks: fastapi.BackgroundTasks,
     x_current_tenant: Optional[str] = fastapi.Header(
@@ -31,8 +33,8 @@ async def get_from_minio(
     corresponding content-type.
 
         Args:\n
-            id: int id of a file in minio
-            bucket: a bucket name in minio
+            id: int id of a file
+            bucket: a bucket name
             original: determines file format. "false" for converted,
             and "true" for original
 
@@ -55,7 +57,7 @@ async def get_from_minio(
 @router.get(
     "/download/thumbnail", name="get thumbnail of original file in jpg format"
 )
-async def get_preview_from_minio(
+async def get_preview(
     file_id: int,
     background_tasks: fastapi.BackgroundTasks,
     session: sqlalchemy.orm.Session = fastapi.Depends(
@@ -116,32 +118,3 @@ async def get_image_piece(
     return fastapi.responses.StreamingResponse(
         response.stream(), media_type=response.headers["Content-Type"]
     )
-
-
-@router.post(
-    "/bucket",
-    status_code=fastapi.status.HTTP_201_CREATED,
-    name="creates new bucket in minio",
-)
-async def create_bucket(
-    bucket: schemas.Bucket,
-    x_current_tenant: Optional[str] = fastapi.Header(
-        None, alias="X-Current-Tenant"
-    ),
-) -> Dict[str, str]:
-    """
-    Creates bucket into Minio. If bucket exists HTTPException will be
-    raised with status code 400. Status code 400 will be raised as well
-    if bucket name is less than 3 characters or name is invalid.
-
-        Args:\n
-            name: name for a new bucket
-
-        Returns:\n
-            result for creating bucket
-
-        Raises:\n
-            HTTPException status 400
-
-    """
-    raise NotImplementedError("This method is not supported")

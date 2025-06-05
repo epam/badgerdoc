@@ -53,7 +53,12 @@ def use_temp_env_var():
 
 @pytest.fixture
 def test_db_url():
-    yield "postgresql+psycopg2://admin:admin@localhost:5432/test_db"
+    user = "postgres"
+    password = "postgres"
+    host = "badgerdoc-postgresql"
+    port = "5432"
+    db = "test_db"
+    yield f"postgresql+psycopg2://{user}:{password}@{host}:{port}/{db}"
 
 
 @pytest.fixture
@@ -144,6 +149,15 @@ def testing_app(testing_engine, testing_session, setup_tenant):
         main.app.dependency_overrides[service.get_session] = (
             lambda: testing_session
         )
+
+        # TODO: remove this workaround once the FastAPI issue is officially fixed.
+        # The issue's discussion: https://github.com/fastapi/fastapi/discussions/11015
+        # This is a workaround solution for "Not Found" issues introduced in fastapi 0.109.0
+        # This bug affects routes that start with the same text as the 'root_path' value
+        # Example: root_path= "/users" , route= "/users/{user_id}"
+        # When this issue is fixed officially, this workaround can be removed
+        main.app.root_path = ""
+
         client = TestClient(main.app)
         yield client
 

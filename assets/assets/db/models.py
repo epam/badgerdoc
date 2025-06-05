@@ -1,4 +1,5 @@
 import datetime
+import enum
 from typing import Any, Dict, Optional
 
 import sqlalchemy as sa
@@ -37,7 +38,6 @@ class TSVector(TypeDecorator):  # type: ignore
 
 
 class Association(Base):  # type: ignore
-
     __tablename__ = "association"
 
     dataset_id = sa.Column(
@@ -64,7 +64,6 @@ class Association(Base):  # type: ignore
 
 
 class Datasets(Base):  # type: ignore
-
     __tablename__ = "datasets"
 
     id = sa.Column(
@@ -104,7 +103,6 @@ class Datasets(Base):  # type: ignore
 
 
 class FileObject(Base):  # type: ignore
-
     __tablename__ = "assets_files"
 
     id = sa.Column(sa.Integer, autoincrement=True, primary_key=True)
@@ -131,6 +129,9 @@ class FileObject(Base):  # type: ignore
     )
     datasets = relationship(
         "Datasets", secondary="association", backref="assets_files"
+    )
+    extractions = relationship(
+        "FilesExtractions", back_populates="file", cascade="all, delete-orphan"
     )
 
     __table_args__ = (sa.Index("ix_name", ts_vector, postgresql_using="gin"),)
@@ -168,5 +169,54 @@ class FileObject(Base):  # type: ignore
         return f"{self.as_dict}"
 
 
+class ExtractionStatus(enum.StrEnum):
+    started = "started"
+    finished = "finished"
+
+
+class FilesExtractions(Base):
+    __tablename__ = "files_extractions"
+
+    id = sa.Column(sa.Integer, autoincrement=True, primary_key=True)
+    file_id = sa.Column(
+        sa.Integer,
+        sa.ForeignKey("assets_files.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    engine = sa.Column(sa.String(150), nullable=False)
+    file_path = sa.Column(sa.String(255), nullable=False)
+    file_extension = sa.Column(sa.String(5), nullable=False)
+    page_count = sa.Column(sa.Integer, nullable=False)
+    status = sa.Column(
+        sa.Enum(ExtractionStatus),
+        nullable=False,
+        default=ExtractionStatus.started,
+    )
+    last_modified = sa.Column(
+        sa.DateTime,
+        default=datetime.datetime.utcnow,
+        onupdate=datetime.datetime.utcnow,
+        nullable=False,
+    )
+
+    file = relationship("FileObject", back_populates="extractions")
+
+    @property
+    def as_dict(self) -> Dict[str, Any]:
+        return {
+            "id": self.id,
+            "file_id": self.file_id,
+            "engine": self.engine,
+            "file_path": self.file_path,
+            "page_count": self.page_count,
+            "status": self.status.value if self.status else None,
+            "last_modified": self.last_modified,
+        }
+
+    def __repr__(self) -> str:
+        return f"{self.as_dict}"
+
+
 FileRequest = create_filter_model(FileObject)
 DatasetRequest = create_filter_model(Datasets)
+ExtractionRequest = create_filter_model(FilesExtractions)

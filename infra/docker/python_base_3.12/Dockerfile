@@ -1,8 +1,8 @@
 FROM python:3.12.1-bookworm AS base
 
-COPY lib/filter_lib/ /opt/filter_lib/
-COPY lib/tenants/ /opt/tenants/
-COPY lib/badgerdoc_storage /opt/lib/badgerdoc_storage/
+COPY lib/python3.12/filter_lib/ /opt/filter_lib/
+COPY lib/python3.12/tenants/ /opt/tenants/
+COPY lib/python3.12/badgerdoc_storage /opt/lib/badgerdoc_storage/
 
 RUN python3 -m pip install --upgrade pip && \
     apt update && \

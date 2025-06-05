@@ -54,6 +54,9 @@ JOBS_SERVICE_HOST = get_service_uri("JOBS_")
 PAGINATION_THRESHOLD = 7
 PROVIDE_JWT_IF_NO_ANY = True
 
+# request settings
+REQUEST_TIMEOUT = 60  # in seconds
+
 # S3 settings
 STORAGE_PROVIDER = os.getenv("STORAGE_PROVIDER")
 JOBS_SIGNED_URL_ENABLED = (

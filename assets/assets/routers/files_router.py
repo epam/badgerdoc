@@ -1,25 +1,23 @@
 # flake8: noqa: F501
-import logging
-from typing import Any, List, Optional, Union
+from typing import List, Optional
 
 import fastapi
 import filter_lib
-import minio
 import sqlalchemy.orm
 import sqlalchemy_filters.exceptions
 from badgerdoc_storage import storage as bd_storage
 
-from assets import db, exceptions, schemas, utils
+from assets import db, logger, schemas, utils
 
 router = fastapi.APIRouter(prefix="/files", tags=["files"])
 
 
-logger = logging.getLogger(__name__)
+logger_ = logger.get_logger(__name__)
 
 
 @router.post(
     "/search",
-    response_model=Union[filter_lib.Page[schemas.FileResponse], filter_lib.Page[Any]],  # type: ignore
+    response_model=filter_lib.Page[schemas.FileResponse],  # type: ignore
     name="searches for files",
 )
 async def search_files(
@@ -58,7 +56,7 @@ async def search_files(
     response_model=List[schemas.ActionResponse],
     name="uploads files into minio bucket",
 )
-def upload_files(
+async def upload_files(
     x_current_tenant: str = fastapi.Header(..., alias="X-Current-Tenant"),
     files: List[fastapi.UploadFile] = fastapi.File(...),
     session: sqlalchemy.orm.Session = fastapi.Depends(
@@ -92,14 +90,32 @@ def upload_files(
             less than 3 characters
 
     """
-    logger.debug(f"{x_current_tenant} bucket has been checked")
+    logger_.debug("%s bucket has been checked", x_current_tenant)
     upload_results = utils.common_utils.process_form_files(
         x_current_tenant, files, session
     )
-    logger.debug("files has been uploaded")
+    logger_.debug("files has been uploaded")
+    logger_.debug("extracting data using extractions")
+    for result, file in zip(upload_results[0], upload_results[1]):
+        logger_.debug(
+            "Extracting data from file %s with status %s",
+            file,
+            result.get("status"),
+        )
+        if result.get("status"):
+            try:
+                await utils.common_utils.run_data_extraction(
+                    session, x_current_tenant, file
+                )
+            except Exception:
+                logger_.exception(
+                    "Error with extracting data from file %s", file.id
+                )
+        else:
+            logger_.error("Extraction skipped for file %s", file)
     return [
         schemas.ActionResponse.parse_obj(response)
-        for response in upload_results
+        for response in upload_results[0]
     ]
 
 

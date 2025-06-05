@@ -5,9 +5,12 @@ from typing import Any, Dict, Iterator, List
 import airflow_client.client as client
 from airflow_client.client.api.dag_api import DAGApi
 from airflow_client.client.api.dag_run_api import DAGRunApi
+from airflow_client.client.model.dag import DAG
 from airflow_client.client.model.dag_run import DAGRun
+from airflow_client.client.rest import ApiException
 
 import jobs.pipeline as pipeline
+from jobs.schemas import AirflowPipelineStatus
 
 AIRFLOW_USERNAME = os.getenv("AIRFLOW_USERNAME")
 AIRFLOW_PASSWORD = os.getenv("AIRFLOW_PASSWORD")
@@ -33,7 +36,6 @@ def get_configuration():
 
 def get_api_instance():
     configuration = get_configuration()
-
     with client.ApiClient(configuration) as api_client:
         yield api_client
 
@@ -44,6 +46,52 @@ async def get_dags() -> List[pipeline.AnyPipeline]:
         dag_api = DAGApi(api_client)
         # todo: map result to pipeline.AnyPipeline
         return dag_api.get_dags()
+
+
+async def activate_dag(dag_id: str, api_client: client.ApiClient) -> None:
+    try:
+        api_instance = DAGApi(api_client)
+
+        dag = api_instance.get_dag(dag_id)
+        if dag.is_paused:
+            updated_dag = DAG(is_paused=False)
+            api_instance.patch_dag(dag_id, updated_dag)
+    except ApiException as err:
+        raise RuntimeError(
+            f"Failed to fetch or update DAG state. DAG id: {dag_id}"
+        ) from err
+    except AttributeError as err:
+        raise RuntimeError(
+            f"Error while passing attributes. DAG id: {dag_id}"
+        ) from err
+
+
+async def fetch_dag_status(
+    dag_id: str,
+    dag_run_id: str,
+    api_client: client.ApiClient,
+) -> AirflowPipelineStatus:
+    try:
+        api_instance = DAGRunApi(api_client)
+        api_response = api_instance.get_dag_run(dag_id, dag_run_id)
+        dag_state = api_response.state.value
+    except ApiException as err:
+        raise RuntimeError(
+            f"Error fetching DAG run status. Job id: {dag_id}"
+        ) from err
+    except (ValueError, TypeError, AttributeError) as err:
+        raise RuntimeError(
+            f"Error ApiClient incorrectly configured. DAG id: {dag_id}"
+        ) from err
+
+    if dag_state in (
+        AirflowPipelineStatus.success.value,
+        AirflowPipelineStatus.failed.value,
+        AirflowPipelineStatus.running.value,
+    ):
+        return dag_state
+
+    raise RuntimeError(f"Unexpected DAG run state: {dag_state}")
 
 
 # todo: should we remove this?

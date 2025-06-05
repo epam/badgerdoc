@@ -2,8 +2,8 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set, Union
 
-from pydantic import BaseModel, Field, validator
-from pydantic.fields import ModelField
+from pydantic import BaseModel, Field, field_validator
+from pydantic_core.core_schema import FieldValidationInfo
 
 
 class JobType(str, Enum):
@@ -27,6 +27,14 @@ class Status(str, Enum):
     draft = "Draft"
 
 
+# Other states exist but can be added if needed.
+class AirflowPipelineStatus(str, Enum):
+    running = "running"
+    queued = "queued"
+    success = "success"
+    failed = "failed"
+
+
 class ValidationType(str, Enum):
     cross = "cross"
     hierarchical = "hierarchical"
@@ -35,13 +43,13 @@ class ValidationType(str, Enum):
 
 
 class CategoryLinkInput(BaseModel):
-    category_id: str = Field(..., example="123abc")
-    taxonomy_id: str = Field(..., example="my_taxonomy_id")
-    taxonomy_version: Optional[int] = Field(..., example=1)
+    category_id: str = Field(..., examples=["123abc"])
+    taxonomy_id: str = Field(..., examples=["my_taxonomy_id"])
+    taxonomy_version: Optional[int] = Field(..., examples=[1])
 
 
 class CategoryLinkParams(CategoryLinkInput):
-    job_id: str = Field(..., example="123abc")
+    job_id: str = Field(..., examples=["123abc"])
 
 
 class ExtractionJobParams(BaseModel):
@@ -53,10 +61,10 @@ class ExtractionJobParams(BaseModel):
     previous_jobs: Optional[List[int]] = []
     revisions: Set[str] = set()
     pipeline_name: str
-    pipeline_version: Optional[str]
-    pipeline_engine: Optional[str]
+    pipeline_version: Optional[str] = None
+    pipeline_engine: Optional[str] = None
     is_draft: bool = False
-    categories: Optional[List[str]]
+    categories: Optional[List[str]] = None
 
 
 class AvailableAnnotationTypes(str, Enum):
@@ -101,8 +109,8 @@ class ExtractionWithAnnotationJobParams(
 class ImportJobParams(BaseModel):
     name: str
     type: JobType = JobType.ImportJob
-    import_source: Optional[str]
-    import_format: Optional[str]
+    import_source: Optional[str] = None
+    import_format: Optional[str] = None
 
 
 class JobParams(BaseModel):
@@ -116,35 +124,36 @@ class JobParams(BaseModel):
     is_draft: bool = False
     # ---- AnnotationJob and ExtractionWithAnnotationJob attributes ---- #
     is_auto_distribution: Optional[bool] = False
-    validation_type: Optional[ValidationType]
-    annotators: Optional[List[str]]
-    owners: Optional[List[str]]
-    categories: Optional[List[Union[str, CategoryLinkInput]]]
+    validation_type: Optional[ValidationType] = None
+    annotators: Optional[List[str]] = None
+    owners: Optional[List[str]] = None
+    categories: Optional[List[Union[str, CategoryLinkInput]]] = None
     available_annotation_types: List[AvailableAnnotationTypes] = []
     available_link_types: List[AvailableLinkTypes] = []
-    deadline: Optional[datetime]
-    validators: Optional[List[str]]
-    extensive_coverage: Optional[int]
+    deadline: Optional[datetime] = None
+    validators: Optional[List[str]] = None
+    extensive_coverage: Optional[int] = None
     # ---- ExtractionJob and ExtractionWithAnnotationJob attributes ---- #
-    pipeline_name: Optional[str]
-    pipeline_id: Optional[str]
+    pipeline_name: Optional[str] = None
+    pipeline_id: Optional[str] = None
     pipeline_engine: Optional[str] = Field(default="airflow")
     pipeline_version: Optional[str] = None
     # ---- ExtractionWithAnnotationJob attributes ---- #
     start_manual_job_automatically: Optional[bool] = True
     # ----- ImportJob attributes ---- #
-    import_source: Optional[str]
-    import_format: Optional[str]
+    import_source: Optional[str] = None
+    import_format: Optional[str] = None
 
     # ---- common attributes ---- #
-    @validator("previous_jobs", always=True)
+    @field_validator("previous_jobs", mode="before")
+    @classmethod
     def check_files_datasets_previous_jobs(  # pylint: disable=no-self-argument  # noqa: E501
-        cls, v: List[int], values: Dict[str, Any]
+        cls, v: List[int], info: FieldValidationInfo
     ) -> List[int]:
-        if values.get("type") != JobType.ImportJob:
-            files = values.get("files")
-            datasets = values.get("datasets")
-            revisions = values.get("revisions")
+        if info.data.get("type") != JobType.ImportJob:
+            files = info.data.get("files")
+            datasets = info.data.get("datasets")
+            revisions = info.data.get("revisions")
             assert bool(v) ^ bool(files or datasets or revisions), (
                 "Only one field must be specified: "
                 "either previous_jobs or files/datasets/revisions"
@@ -153,30 +162,30 @@ class JobParams(BaseModel):
         return v
 
     # ---- AnnotationJob and ExtractionWithAnnotationJob attributes ---- #
-    @validator("is_auto_distribution", always=True)
+    @field_validator("is_auto_distribution", mode="before")
+    @classmethod
     def check_is_auto_distribution(  # pylint: disable=no-self-argument
-        cls, v: bool, values: Dict[str, Any]
+        cls, v: bool, info: FieldValidationInfo
     ) -> bool:
-        if values.get("type") == JobType.ExtractionJob and v:
+        if info.data.get("type") == JobType.ExtractionJob and v:
             raise ValueError(
                 "is_auto_distribution cannot be assigned to ExtractionJob"
             )
         return v
 
-    @validator(
+    @field_validator(
         "validation_type",
         "owners",
-        always=True,
+        mode="before",
     )  # pylint: disable=no-self-argument
     def check_annotationjob_attributes(
         cls,
         v: Union[List[str], List[Union[str, CategoryLinkInput]]],
-        values: Dict[str, Any],
-        field: ModelField,
+        info: FieldValidationInfo,
     ) -> Union[List[int], List[str]]:
-        job_type = values.get("type")
+        job_type = info.data.get("type")
         if not v and job_type == JobType.AnnotationJob:
-            raise ValueError(f"{field.name} cannot be empty for {job_type}")
+            raise ValueError(f"{info.name} cannot be empty for {job_type}")
 
         return v
 
@@ -201,15 +210,16 @@ class JobParams(BaseModel):
 
     #     return v
 
-    @validator("annotators")
+    @field_validator("annotators", mode="before")
+    @classmethod
     def check_annotators(  # pylint: disable=no-self-argument
-        cls, v: List[str], values: Dict[str, Any], field: ModelField
+        cls, v: List[str], info: FieldValidationInfo
     ) -> List[str]:
-        job_type = values.get("type")
-        validation_type = values.get("validation_type")
+        job_type = info.data.get("type")
+        validation_type = info.data.get("validation_type")
         if job_type == JobType.ExtractionJob and v:
             raise ValueError(
-                f"{field.name} cannot be assigned to ExtractionJob"
+                f"{info.name} cannot be assigned to ExtractionJob"
             )
 
         require_annotators = {
@@ -218,32 +228,33 @@ class JobParams(BaseModel):
         }
         if v and validation_type == ValidationType.validation_only:
             raise ValueError(
-                f"{field.name} should be empty with {validation_type=}"
+                f"{info.name} should be empty with {validation_type=}"
             )
 
         elif not v and validation_type in require_annotators:
             raise ValueError(
-                f"{field.name} cannot be empty with {validation_type=}"
+                f"{info.name} cannot be empty with {validation_type=}"
             )
 
         elif len(v) < 2 and validation_type == ValidationType.cross:
             raise ValueError(
-                f"{field.name} should include at least 2 annotators "
+                f"{info.name} should include at least 2 annotators "
                 f"with {validation_type=}"
             )
 
         return v
 
-    @validator("validators")
+    @field_validator("validators", mode="before")
+    @classmethod
     def check_validators(  # pylint: disable=no-self-argument
-        cls, v: List[str], values: Dict[str, Any], field: ModelField
+        cls, v: List[str], info: FieldValidationInfo
     ) -> List[str]:
-        job_type = values.get("type")
-        validation_type = values.get("validation_type")
+        job_type = info.data.get("type")
+        validation_type = info.data.get("validation_type")
 
         if job_type == JobType.ExtractionJob and v:
             raise ValueError(
-                f"{field.name} cannot be assigned to ExtractionJob"
+                f"{info.name} cannot be assigned to ExtractionJob"
             )
 
         if (
@@ -256,110 +267,111 @@ class JobParams(BaseModel):
             and not v
         ):
             raise ValueError(
-                f"{field.name} cannot be empty with {validation_type=}"
+                f"{info.name} cannot be empty with {validation_type=}"
             )
 
         if validation_type == ValidationType.cross and v:
             raise ValueError(
-                f"{field.name} should be empty with {validation_type=}"
+                f"{info.name} should be empty with {validation_type=}"
             )
 
         return v
 
-    @validator("import_source", "import_format", always=True)
+    @field_validator("import_source", "import_format", mode="before")
+    @classmethod
     def check_import_job_attributes(  # pylint: disable=no-self-argument
-        cls, v: str, values: Dict[str, Any], field: ModelField
+        cls, v: str, info: FieldValidationInfo
     ) -> str:
-        job_type = values.get("type")
+        job_type = info.data.get("type")
         if job_type != JobType.ImportJob and v:
-            raise ValueError(f"{field.name} cannot be assigned to {job_type}")
+            raise ValueError(f"{info.name} cannot be assigned to {job_type}")
         if job_type == JobType.ImportJob and not v:
             raise ValueError(
-                f"{field.name} cannot be empty in {JobType.ImportJob}"
+                f"{info.name} cannot be empty in {JobType.ImportJob}"
             )
         return v
 
-    @validator("extensive_coverage")
-    def check_extensive_coverage(
-        cls, v: int, values: Dict[str, Any], field: ModelField
-    ):
-        validation_type = values.get("validation_type")
+    @field_validator("extensive_coverage", mode="before")
+    @classmethod
+    def check_extensive_coverage(cls, v: int, info: FieldValidationInfo):
+        validation_type = info.data.get("validation_type")
         if validation_type != ValidationType.extensive_coverage and v:
             raise ValueError(
-                f"{field.name} cannot be assigned to {validation_type}."
+                f"{info.name} cannot be assigned to {validation_type}."
             )
         if validation_type != ValidationType.extensive_coverage and not v:
             raise ValueError(
-                f"{field.name} cannot be empty with {validation_type=}."
+                f"{info.name} cannot be empty with {validation_type=}."
             )
-        annotators = values.get("annotators")
+        annotators = info.data.get("annotators")
         if v > len(annotators):
             raise ValueError(
-                f"{field.name} cannot be less then number of annotators."
+                f"{info.name} cannot be less then number of annotators."
             )
         return v
 
     # ---- ExtractionJob and ExtractionWithAnnotationJob attributes ---- #
-    @validator("pipeline_name", always=True)
+    @field_validator("pipeline_name", mode="before")
+    @classmethod
     def check_pipeline_name(  # pylint: disable=no-self-argument
-        cls, v: str, values: Dict[str, Any]
+        cls, v: str, info: FieldValidationInfo
     ) -> str:
-        if values.get("type") == JobType.AnnotationJob and v:
+        if info.data.get("type") == JobType.AnnotationJob and v:
             raise ValueError(
                 "pipeline_name cannot be assigned to AnnotationJob"
             )
         if (
-            values.get("type") == JobType.ExtractionJob
-            or values.get("type") == JobType.ExtractionWithAnnotationJob
+            info.data.get("type") == JobType.ExtractionJob
+            or info.data.get("type") == JobType.ExtractionWithAnnotationJob
         ) and not v:
             raise ValueError(
-                f'pipeline cannot be empty for {values.get("type")}'
+                f'pipeline cannot be empty for {info.data.get("type")}'
             )
         return v
 
 
 class JobParamsToChange(BaseModel):
-    name: Optional[str]
-    type: Optional[JobType]
+    name: Optional[str] = None
+    type: Optional[JobType] = None
     files: Optional[List[int]] = []
     datasets: Optional[List[int]] = []
     previous_jobs: Optional[List[int]] = []
-    status: Optional[Status]
-    is_draft: Optional[bool]
-    mode: Optional[JobMode]
+    status: Optional[Status] = None
+    is_draft: Optional[bool] = None
+    mode: Optional[JobMode] = None
     # ---- AnnotationJob and ExtractionWithAnnotationJob attributes ---- #
-    is_auto_distribution: Optional[bool]
-    annotators: Optional[List[str]]
-    validators: Optional[List[str]]
-    owners: Optional[List[str]]
-    categories: Optional[List[Union[str, CategoryLinkInput]]]
-    categories_append: Optional[List[Union[str, CategoryLinkInput]]]
-    deadline: Optional[datetime]
-    validation_type: Optional[ValidationType]
-    extensive_coverage: Optional[int]
+    is_auto_distribution: Optional[bool] = None
+    annotators: Optional[List[str]] = None
+    validators: Optional[List[str]] = None
+    owners: Optional[List[str]] = None
+    categories: Optional[List[Union[str, CategoryLinkInput]]] = None
+    categories_append: Optional[List[Union[str, CategoryLinkInput]]] = None
+    deadline: Optional[datetime] = None
+    validation_type: Optional[ValidationType] = None
+    extensive_coverage: Optional[int] = None
     # ---- ExtractionJob and ExtractionWithAnnotationJob attributes ---- #
-    pipeline_id: Optional[int]
+    pipeline_id: Optional[int] = None
     # ----- ImportJob attributes ---- #
-    import_source: Optional[str]
-    import_format: Optional[str]
+    import_source: Optional[str] = None
+    import_format: Optional[str] = None
 
 
 class AnnotationJobUpdateParamsInAnnotation(BaseModel):
     files: Optional[List[int]] = []
     datasets: Optional[List[int]] = []
     previous_jobs: Optional[List[int]] = []
-    annotators: Optional[List[str]]
-    validators: Optional[List[str]]
-    owners: Optional[List[str]]
-    categories: Optional[List[str]]
-    deadline: Optional[datetime]
-    extensive_coverage: Optional[int]
+    annotators: Optional[List[str]] = None
+    validators: Optional[List[str]] = None
+    owners: Optional[List[str]] = None
+    categories: Optional[List[str]] = None
+    deadline: Optional[datetime] = None
+    extensive_coverage: Optional[int] = None
 
 
 class JobProgress(BaseModel):
-    finished: int = Field(..., example=1)
-    total: int = Field(..., example=1)
-    mode: str = Field(..., example="Automatic")
+    finished: int = Field(..., examples=[1])
+    total: int = Field(..., examples=[1])
+    mode: str = Field(..., examples=["Automatic"])
 
 
 class PipelineEngine(BaseModel):

@@ -1,3 +1,4 @@
+import os
 from io import BytesIO
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, TypedDict, Union
@@ -13,10 +14,16 @@ import starlette.datastructures
 
 from assets import db, exceptions, logger, schemas
 from assets.config import settings
+from assets.extractions.engines import azure, textract
 from assets.utils import chem_utils, minio_utils
 from assets.utils.convert_service_utils import post_pdf_to_convert
 
 logger_ = logger.get_logger(__name__)
+
+
+ASSETS_EXTRACTOR_ENABLED = (
+    os.getenv("ASSETS_EXTRACTOR_ENABLED", "false").lower() == "true"
+)
 
 
 def converter_by_extension(ext: str) -> Callable[[bytes], Any]:
@@ -136,11 +143,12 @@ def process_form_files(
     tenant: str,
     form_files: List[Any],
     session: sqlalchemy.orm.Session,
-) -> List[ActionResponseTypedDict]:
+) -> tuple[list[ActionResponseTypedDict], list[db.models.FileObject]]:
     """
     Applies file processing to each form uploaded files
     """
     result = []
+    file_obj = []
     bd_storage = badgerdoc_storage.storage.get_storage(tenant)
     for file_ in form_files:
         file_processor = FileProcessor(
@@ -148,8 +156,9 @@ def process_form_files(
         )
         file_processor.run()
         result.append(file_processor.response)
+        file_obj.append(file_processor.new_file)
 
-    return result
+    return result, file_obj
 
 
 def is_gotenberg_returns_file(gotenberg_output: bytes) -> bool:
@@ -321,7 +330,7 @@ class FileConverter:
             target_path=self._output_pdf_path,
             file=BytesIO(self.file_bytes),
         )
-        logger_.debug("File has been uploaded", self.file_name)
+        logger_.debug("File %s has been uploaded", self.file_name)
         post_pdf_to_convert(
             self.bucket_storage,
             self._output_pdf_path,
@@ -329,7 +338,7 @@ class FileConverter:
         )
         self.converted_ext = ".pdf"
         self.conversion_status = schemas.ConvertionStatus.CONVERTED_TO_PDF
-        logger_.debug(f"Got converted {self.file_name}")
+        logger_.debug("Got converted %s", self.file_name)
         # TODO: It's should be removed,
         # because no real temporary dir is used here
         self.storage.download(self._output_pdf_path, self._tmp_file_name)
@@ -375,6 +384,7 @@ class FileProcessor:
         self.session = session
         self.new_file: Optional[db.models.FileObject] = None
         self.storage = storage
+        self.tenant = storage.tenant
         self.ext: Optional[str] = None
         if isinstance(file, BytesIO):
             self.file_bytes = file.read()
@@ -613,4 +623,22 @@ class FileProcessor:
             and self.is_uploaded_to_storage()
             and self.is_original_file_uploaded_to_storage()
             and self.is_file_updated()
+        )
+
+
+async def run_data_extraction(
+    session: sqlalchemy.orm.Session,
+    tenant: str,
+    file: db.models.FileObject,
+) -> bool:
+    """
+    Function runs data extraction using extractors
+    Can be turned on by environment variable
+    """
+    if not ASSETS_EXTRACTOR_ENABLED:
+        return True
+    extractors = (azure.AzureExtraction, textract.TextractExtraction)
+    for extractor in extractors:
+        await extractor(session=session, tenant=tenant).extract(
+            file=file,
         )

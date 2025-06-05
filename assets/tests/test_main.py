@@ -466,7 +466,7 @@ def test_download_negative(client_app_main):
 @pytest.mark.skip(reason="tests refactoring")
 def test_download_positive(client_app_main):
     with patch(
-        "assets.routers.minio_router.fastapi.responses.StreamingResponse"
+        "assets.routers.download_router.fastapi.responses.StreamingResponse"
     ):
         with NamedTemporaryFile(suffix=".jpg") as file:
             data = {"files": file}
@@ -496,7 +496,7 @@ def test_download_positive_originals(
     response.status_code = 201
     gotenberg.return_value = response
     with patch(
-        "assets.routers.minio_router.fastapi.responses.StreamingResponse"
+        "assets.routers.download_router.fastapi.responses.StreamingResponse"
     ):
         with NamedTemporaryFile(suffix=".doc", prefix="some_file") as file:
             data = {"files": file}
