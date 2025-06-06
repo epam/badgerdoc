@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.8.15"]
+        python-version: ["3.12.1"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v4
@@ -24,10 +24,10 @@ jobs:
         working-directory: ./taxonomy
         run: |
           python -m pip install --upgrade pip
-          pip install poetry>=1.1.13
+          pip install poetry>=1.7.1
           poetry install --no-root
-          poetry add ../lib/filter_lib
-          poetry add ../lib/tenants
+          poetry add ../lib/python3.12/filter_lib
+          poetry add ../lib/python3.12/tenants
       - name: Run linters and checkers [flake8]
         working-directory: ./taxonomy
         run: |
