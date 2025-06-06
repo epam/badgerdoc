@@ -489,9 +489,7 @@ def get_latest_revision_by_user(
 )
 def get_annotations_up_to_given_revision(
     page_numbers: Annotated[
-        Set[
-            Annotated[int, Query(ge=1)]
-        ],  # Each integer in the set must satisfy `ge=1`
+        Set[Annotated[int, Query(ge=1)]],
         Query(
             min_length=1,
             examples=[{3, 4, 1}],
