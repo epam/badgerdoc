@@ -62,7 +62,10 @@ export const App = () => {
                         <ProtectedRoute path={DOCUMENTS_PAGE} component={DocumentsPage} />
                         <ProtectedRoute path={PIPELINES_PAGE} component={PipelinesPage} />
                         <ProtectedRoute path={JOBS_PAGE} component={JobsPage} />
-                        <ProtectedRoute path={CATEGORIES_PAGE} component={CategoriesTableConnector} />
+                        <ProtectedRoute
+                            path={CATEGORIES_PAGE}
+                            component={CategoriesTableConnector}
+                        />
                         <Route path={DASHBOARD_PAGE} component={DashboardPage} />
                         <Route path="/login" component={LoginPage} />
                         <Route path="/tasks/:taskId" component={TaskPage} />

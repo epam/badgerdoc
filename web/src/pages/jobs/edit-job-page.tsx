@@ -71,22 +71,19 @@ export const EditJobPage = () => {
         }
     }, [jobId]);
 
-    const handleError = useCallback(
-        (error: Error) => {
-            svc.uuiNotifications.show(
-                (props: INotification) => (
-                    <ErrorNotification {...props}>
-                        <div>{error.message}</div>
-                    </ErrorNotification>
-                ),
-                {
-                    duration: 2,
-                    position: 'top-center'
-                }
-            );
-        },
-        []
-    );
+    const handleError = useCallback((error: Error) => {
+        svc.uuiNotifications.show(
+            (props: INotification) => (
+                <ErrorNotification {...props}>
+                    <div>{error.message}</div>
+                </ErrorNotification>
+            ),
+            {
+                duration: 2,
+                position: 'top-center'
+            }
+        );
+    }, []);
 
     const handlePrev = () => {
         setStepIndex(stepIndex - 1);
