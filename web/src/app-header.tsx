@@ -28,6 +28,8 @@ export const AppHeader = () => {
     const { currentUser, setCurrentUser, menu, isSimple, isAnnotator, isEngineer } =
         useContext(CurrentUser);
     const { menuItems } = useAppMenu();
+
+    // Fallback to default menu if no custom menu items are provided
     const navItems = isEmpty(menuItems) ? menu : menuItems;
     const avatarUrl: string = useMemo(
         () =>
