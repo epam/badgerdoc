@@ -19,13 +19,26 @@ import { useHistory } from 'react-router-dom';
 import startCase from 'lodash/startCase';
 import { CurrentUser } from 'shared/contexts/current-user';
 import { FlexSpacer } from '@epam/uui-components';
-import { cloneDeep } from 'lodash';
+import { cloneDeep, isEmpty } from 'lodash';
 import { clearAuthDetails } from 'shared/helpers/auth-tools';
+import { useAppMenu } from 'shared/contexts/app-menu';
+
+interface AppMenuItem {
+    name: string;
+    url: string;
+    is_external?: boolean;
+    is_iframe?: boolean;
+    iframe_url?: string;
+    children?: AppMenuItem[];
+}
 
 export const AppHeader = () => {
     const history = useHistory();
     const { currentUser, setCurrentUser, menu, isSimple, isAnnotator, isEngineer } =
         useContext(CurrentUser);
+    const { menuItems } = useAppMenu();
+
+    const navItems = isEmpty(menuItems) ? menu : menuItems;
 
     const avatarUrl: string = useMemo(
         () =>
@@ -69,40 +82,55 @@ export const AppHeader = () => {
     return (
         <FlexCell>
             <MainMenu appLogoUrl="/svg/logo.svg" logoHref={getLogoLink()}>
-                {menu.map((item) => {
+                {navItems.map((item) => {
                     const pathMatches = (path: string) => {
                         return history.location.pathname.indexOf(`/${path}`) === 0;
                     };
 
-                    const renderMenuButton = (item: string) => {
+                    const getLinkTarget = (item: AppMenuItem) => {
+                        if (item.is_external) {
+                            return { pathname: item.url };
+                        } else if (item.is_iframe) {
+                            return { pathname: '/iframe', search: `?url=${item.iframe_url}` };
+                        } else {
+                            return { pathname: item.url };
+                        }
+                    };
+
+                    const renderMenuButton = (item: AppMenuItem) => {
                         return (
                             <MainMenuButton
-                                isLinkActive={pathMatches(item)}
-                                link={{ pathname: `/${item}` }}
-                                rawProps={{
-                                    'data-page': item
-                                }}
-                                key={item}
+                                isLinkActive={pathMatches(item.url)}
+                                link={getLinkTarget(item)}
+                                key={item.name}
                                 collapseToMore
-                                caption={startCase(item)}
+                                caption={startCase(item.name)}
                                 priority={0}
                                 estimatedWidth={145}
+                                rawProps={{
+                                    'data-page': item.name
+                                }}
+                                {...(item.is_external
+                                    ? { target: '_blank', rel: 'noopener noreferrer' }
+                                    : {})}
                             />
                         );
                     };
 
-                    if (typeof item === 'object') {
+                    if (typeof item === 'object' && item.children && item.children.length > 0) {
                         const hasActiveChild =
-                            item.items.findIndex((child) => pathMatches(child)) !== -1;
+                            item.children?.findIndex((child) => pathMatches(child.name)) !== -1;
                         return (
                             <MainMenuDropdown
                                 isLinkActive={hasActiveChild}
-                                key={item.caption}
-                                caption={item.caption}
+                                key={item.name}
+                                caption={item.name}
                                 priority={2}
                                 estimatedWidth={128}
                             >
-                                {item.items.map((innerItem: string) => renderMenuButton(innerItem))}
+                                {item.children.map((innerItem: AppMenuItem) =>
+                                    renderMenuButton(innerItem)
+                                )}
                             </MainMenuDropdown>
                         );
                     } else {

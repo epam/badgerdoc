@@ -3,6 +3,7 @@
 import React, { FC, useEffect, useMemo, useState } from 'react';
 import { User } from 'api/typings';
 import { noop, uniq } from 'lodash';
+import { AppMenuItem } from './app-menu';
 
 type UserContext = {
     currentUser: User | null;
@@ -10,7 +11,7 @@ type UserContext = {
     isEngineer: boolean;
     isAnnotator: boolean;
     isSimple: boolean;
-    menu: (string | SubMenu)[];
+    menu: AppMenuItem[];
     isPipelinesDisabled: boolean;
 };
 
@@ -25,11 +26,6 @@ export const CurrentUser = React.createContext<UserContext>({
     menu: [],
     isPipelinesDisabled: isPipelinesDisabled
 });
-
-export type SubMenu = {
-    caption: string;
-    items: string[];
-};
 
 type UserRole = 'annotator' | 'engineer' | 'viewer' | 'simple_flow';
 
@@ -62,21 +58,37 @@ export const UserContextProvider: FC<{ currentUser: User | null }> = ({
     const isSimple = isUserInRole('simple_flow');
 
     const menu = useMemo(() => {
-        const menu: (string | SubMenu)[] = [];
+        const items: AppMenuItem[] = [];
+
+        const addItems = (newItems: AppMenuItem[]) => {
+            for (const item of newItems) {
+                if (!items.some((i) => i.url === item.url)) {
+                    items.push(item);
+                }
+            }
+        };
+
         switch (true) {
             case isEngineer:
-                menu.push('documents', 'jobs', 'my tasks', 'categories', 'reports');
+                addItems([
+                    { name: 'Documents', url: '/documents' },
+                    { name: 'Jobs', url: '/jobs' },
+                    { name: 'My Tasks', url: '/my tasks' },
+                    { name: 'Categories', url: '/categories' },
+                    { name: 'Reports', url: '/reports' }
+                ]);
                 break;
             case isAnnotator:
-                menu.push('my tasks');
+                addItems([{ name: 'My Tasks', url: '/my tasks' }]);
                 break;
             case isSimple:
-                menu.push('my documents');
+                addItems([{ name: 'My Documents', url: '/my documents' }]);
                 break;
             default:
                 break;
         }
-        return uniq(menu);
+
+        return uniq(items);
     }, [isEngineer, isAnnotator, isSimple]);
 
     const value: UserContext = useMemo<UserContext>(() => {
