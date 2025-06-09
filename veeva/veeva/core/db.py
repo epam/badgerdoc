@@ -19,6 +19,16 @@ LOCAL_SESSION = async_sessionmaker(bind=create_async_engine(SQLALCHEMY_DATABASE_
 
 
 async def get_session() -> AsyncGenerator[AsyncSession, None]:
+    """
+    Dependency function that yields a SQLAlchemy async session.
+
+    Usage:
+        @app.get("/example")
+        async def example_route(session: AsyncSession = Depends(get_session)):
+            # Use the session here
+
+    The session is automatically closed when the request is complete.
+    """
     session = LOCAL_SESSION()
     try:
         yield session

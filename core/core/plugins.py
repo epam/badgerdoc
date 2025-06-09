@@ -61,8 +61,8 @@ async def register_plugin(
         tenant=tenant,
     )
     db_session.add(new_plugin)
-    logger.info("Created new plugin '%s' for tenant: %s", name, tenant)
     await db_session.commit()
+    logger.info("Created new plugin '%s' for tenant: %s", name, tenant)
 
 
 async def get_plugins(db_session: AsyncSession, tenant: str) -> list[Plugin]:
