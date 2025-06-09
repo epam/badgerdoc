@@ -94,7 +94,7 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
     const [jobs, setJobs] = useState<FileJobs>();
 
     useEffect(() => {
-        if (fileIds) {
+        if (fileIds && fileIds.length) {
             setSelectedFiles(fileIds);
             onTableValueChange({
                 ...tableValue,
