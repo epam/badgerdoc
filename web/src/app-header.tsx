@@ -13,20 +13,19 @@ import {
     MainMenuButton,
     MainMenuCustomElement,
     MainMenuDropdown,
-    Text
+    Text,
+    FlexSpacer
 } from '@epam/loveship';
 import { useHistory } from 'react-router-dom';
 import startCase from 'lodash/startCase';
-import { CurrentUser } from 'shared/contexts/current-user';
-import { FlexSpacer } from '@epam/uui-components';
-import { cloneDeep } from 'lodash';
+import { AppMenuItem, CurrentUser } from 'shared/contexts/current-user';
+import { cloneDeep, isEmpty } from 'lodash';
 import { clearAuthDetails } from 'shared/helpers/auth-tools';
 
 export const AppHeader = () => {
     const history = useHistory();
     const { currentUser, setCurrentUser, menu, isSimple, isAnnotator, isEngineer } =
         useContext(CurrentUser);
-
     const avatarUrl: string = useMemo(
         () =>
             currentUser?.id
@@ -66,48 +65,58 @@ export const AppHeader = () => {
         }
     };
 
+    const pathMatches = (path: string) => {
+        return history.location.pathname.indexOf(`/${path}`) === 0;
+    };
+
+    const getLinkTarget = (item: AppMenuItem) => {
+        if (item.is_external) {
+            return { pathname: item.url };
+        } else if (item.is_iframe) {
+            return { pathname: '/iframe', search: `?url=${item.iframe_url}` };
+        } else {
+            return { pathname: item.url };
+        }
+    };
+
+    const renderMenuButton = (item: AppMenuItem) => (
+        <MainMenuButton
+            key={item.name}
+            caption={startCase(item.name)}
+            isLinkActive={pathMatches(item.url)}
+            link={getLinkTarget(item)}
+            rawProps={{ 'data-page': item.url }}
+            collapseToMore
+            priority={0}
+            estimatedWidth={145}
+            {...(item.is_external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+        />
+    );
+
     return (
         <FlexCell>
             <MainMenu appLogoUrl="/svg/logo.svg" logoHref={getLogoLink()}>
                 {menu.map((item) => {
-                    const pathMatches = (path: string) => {
-                        return history.location.pathname.indexOf(`/${path}`) === 0;
-                    };
-
-                    const renderMenuButton = (item: string) => {
-                        return (
-                            <MainMenuButton
-                                isLinkActive={pathMatches(item)}
-                                link={{ pathname: `/${item}` }}
-                                rawProps={{
-                                    'data-page': item
-                                }}
-                                key={item}
-                                collapseToMore
-                                caption={startCase(item)}
-                                priority={0}
-                                estimatedWidth={145}
-                            />
+                    // Check if there are children (nesting level 2 maximum)
+                    if (item.children && !isEmpty(item.children)) {
+                        // Rendering a Dropdown with Child Items
+                        const hasActiveChild = item.children.some((child) =>
+                            pathMatches(child.url)
                         );
-                    };
-
-                    if (typeof item === 'object') {
-                        const hasActiveChild =
-                            item.items.findIndex((child) => pathMatches(child)) !== -1;
                         return (
                             <MainMenuDropdown
+                                key={item.name}
+                                caption={item.name}
                                 isLinkActive={hasActiveChild}
-                                key={item.caption}
-                                caption={item.caption}
                                 priority={2}
                                 estimatedWidth={128}
                             >
-                                {item.items.map((innerItem: string) => renderMenuButton(innerItem))}
+                                {item.children.map((child) => renderMenuButton(child))}
                             </MainMenuDropdown>
                         );
-                    } else {
-                        return renderMenuButton(item);
                     }
+                    // Rendering a simple MainMenuButton
+                    return renderMenuButton(item);
                 })}
                 <FlexSpacer />
                 {currentUser && (
