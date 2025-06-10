@@ -20,7 +20,7 @@ import { useHistory } from 'react-router-dom';
 import startCase from 'lodash/startCase';
 import { AppMenuItem, useAppMenu } from 'shared/contexts/app-menu';
 import { CurrentUser } from 'shared/contexts/current-user';
-import { cloneDeep, isEmpty } from 'lodash';
+import { cloneDeep, isArray, isEmpty } from 'lodash';
 import { clearAuthDetails } from 'shared/helpers/auth-tools';
 
 export const AppHeader = () => {
@@ -28,9 +28,8 @@ export const AppHeader = () => {
     const { currentUser, setCurrentUser, menu, isSimple, isAnnotator, isEngineer } =
         useContext(CurrentUser);
     const { menuItems } = useAppMenu();
-
     // Fallback to default menu if no custom menu items are provided
-    const navItems = isEmpty(menuItems) ? menu : menuItems;
+    const navItems = !isEmpty(menuItems) && isArray(menuItems) ? menuItems : menu;
     const avatarUrl: string = useMemo(
         () =>
             currentUser?.id
