@@ -19,7 +19,7 @@ import {
 import { useHistory } from 'react-router-dom';
 import startCase from 'lodash/startCase';
 import { AppMenuItem, CurrentUser } from 'shared/contexts/current-user';
-import { cloneDeep, isArray, isEmpty } from 'lodash';
+import { cloneDeep, isEmpty } from 'lodash';
 import { clearAuthDetails } from 'shared/helpers/auth-tools';
 
 export const AppHeader = () => {

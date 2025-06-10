@@ -80,7 +80,7 @@ export const UserContextProvider: FC<{ currentUser: User | null }> = ({
                 });
                 const data = await response.json();
 
-                if (isArray(data) && !isEmpty(data.length)) {
+                if (isArray(data) && !isEmpty(data)) {
                     setFetchedMenuItems(data);
                 }
             } catch (error) {
