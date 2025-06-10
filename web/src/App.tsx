@@ -56,8 +56,8 @@ export const App = () => {
     setUpdateTokenInterval();
 
     return (
-        <AppMenuProvider>
-            <UserContextProvider currentUser={currentUser}>
+        <UserContextProvider currentUser={currentUser}>
+            <AppMenuProvider>
                 <div className={css.app}>
                     <Route component={AppHeader} />
                     <main className={css.main}>
@@ -79,7 +79,7 @@ export const App = () => {
                         </Switch>
                     </main>
                 </div>
-            </UserContextProvider>
-        </AppMenuProvider>
+            </AppMenuProvider>
+        </UserContextProvider>
     );
 };
