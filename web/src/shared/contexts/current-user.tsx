@@ -79,7 +79,8 @@ export const UserContextProvider: FC<{ currentUser: User | null }> = ({
                     headers: getAuthHeaders()
                 });
                 const data = await response.json();
-                if (Array.isArray(data) && data.length > 0) {
+
+                if (isArray(data) && !isEmpty(data.length)) {
                     setFetchedMenuItems(data);
                 }
             } catch (error) {
@@ -121,8 +122,7 @@ export const UserContextProvider: FC<{ currentUser: User | null }> = ({
         return uniq(items);
     }, [isEngineer, isAnnotator, isSimple]);
 
-    const menu =
-        isArray(fetchedMenuItems) && !isEmpty(fetchedMenuItems) ? fetchedMenuItems : fallbackMenu;
+    const menu = fetchedMenuItems ?? fallbackMenu;
 
     const value: UserContext = useMemo<UserContext>(() => {
         return {
