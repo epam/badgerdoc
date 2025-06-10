@@ -7,5 +7,6 @@ export const PIPELINES_PAGE = '/pipelines';
 export const ANNOTATION_PAGE = '/annotation/tasks';
 export const BASEMENTS_PAGE = '/basements';
 export const REPORTS_PAGE = '/reports';
+export const IFRAME_PAGE = '/iframe';
 
 export const PREVIOUS_PAGE_JOB = 'extraction';
