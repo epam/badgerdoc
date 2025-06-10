@@ -2,6 +2,7 @@ import { Blocker, Panel, Text as ErrorText } from '@epam/loveship';
 import React, { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useNotifications } from 'shared/components/notifications';
+import { getError } from 'shared/helpers/get-error';
 
 import styles from './iframe-page.module.scss';
 
@@ -30,11 +31,11 @@ export const IframePage: React.FC = () => {
 
     const { notifyError } = useNotifications();
 
-    const handleError = (err: Error) => {
+    const handleError = (error: Error) => {
         setIsLoading(false);
         notifyError(
             <Panel>
-                <ErrorText>{`Failed to load iframe: ${err.message}`}</ErrorText>
+                <ErrorText>{getError(error)}</ErrorText>
             </Panel>
         );
     };
