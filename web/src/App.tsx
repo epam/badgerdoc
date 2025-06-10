@@ -33,7 +33,6 @@ import {
 } from './shared/constants/general';
 import { ProtectedRoute } from 'shared/components/protected-route';
 import { CategoriesTableConnector } from './connectors/categories-table-connector';
-import { AppMenuProvider } from 'shared/contexts/app-menu';
 import { IframePage } from 'pages/iframe/iframe-page';
 
 export const App = () => {
@@ -57,29 +56,27 @@ export const App = () => {
 
     return (
         <UserContextProvider currentUser={currentUser}>
-            <AppMenuProvider>
-                <div className={css.app}>
-                    <Route component={AppHeader} />
-                    <main className={css.main}>
-                        <Switch>
-                            <ProtectedRoute path={DOCUMENTS_PAGE} component={DocumentsPage} />
-                            <ProtectedRoute path={PIPELINES_PAGE} component={PipelinesPage} />
-                            <ProtectedRoute path={JOBS_PAGE} component={JobsPage} />
-                            <Route path={DASHBOARD_PAGE} component={DashboardPage} />
-                            <Route path="/login" component={LoginPage} />
-                            <Route path="/tasks/:taskId" component={TaskPage} />
-                            <Route path="/categories" component={CategoriesTableConnector} />
-                            <Route path={MODELS_PAGE} component={ModelsPage} />
-                            <Route path={BASEMENTS_PAGE} component={BasementsPage} />
-                            <Route path={REPORTS_PAGE} component={ReportsPage} />
-                            <Route path="/my documents" component={SkillHunterDashboardPage} />
-                            <Route path={`${ANNOTATION_PAGE}/:taskId`} component={TaskPage} />
-                            <Route path={IFRAME_PAGE} component={IframePage} />
-                            <Redirect to="/documents" />
-                        </Switch>
-                    </main>
-                </div>
-            </AppMenuProvider>
+            <div className={css.app}>
+                <Route component={AppHeader} />
+                <main className={css.main}>
+                    <Switch>
+                        <ProtectedRoute path={DOCUMENTS_PAGE} component={DocumentsPage} />
+                        <ProtectedRoute path={PIPELINES_PAGE} component={PipelinesPage} />
+                        <ProtectedRoute path={JOBS_PAGE} component={JobsPage} />
+                        <Route path={DASHBOARD_PAGE} component={DashboardPage} />
+                        <Route path="/login" component={LoginPage} />
+                        <Route path="/tasks/:taskId" component={TaskPage} />
+                        <Route path="/categories" component={CategoriesTableConnector} />
+                        <Route path={MODELS_PAGE} component={ModelsPage} />
+                        <Route path={BASEMENTS_PAGE} component={BasementsPage} />
+                        <Route path={REPORTS_PAGE} component={ReportsPage} />
+                        <Route path="/my documents" component={SkillHunterDashboardPage} />
+                        <Route path={`${ANNOTATION_PAGE}/:taskId`} component={TaskPage} />
+                        <Route path={IFRAME_PAGE} component={IframePage} />
+                        <Redirect to="/documents" />
+                    </Switch>
+                </main>
+            </div>
         </UserContextProvider>
     );
 };

@@ -18,8 +18,7 @@ import {
 } from '@epam/loveship';
 import { useHistory } from 'react-router-dom';
 import startCase from 'lodash/startCase';
-import { AppMenuItem, useAppMenu } from 'shared/contexts/app-menu';
-import { CurrentUser } from 'shared/contexts/current-user';
+import { AppMenuItem, CurrentUser } from 'shared/contexts/current-user';
 import { cloneDeep, isArray, isEmpty } from 'lodash';
 import { clearAuthDetails } from 'shared/helpers/auth-tools';
 
@@ -27,9 +26,6 @@ export const AppHeader = () => {
     const history = useHistory();
     const { currentUser, setCurrentUser, menu, isSimple, isAnnotator, isEngineer } =
         useContext(CurrentUser);
-    const { menuItems } = useAppMenu();
-    // Fallback to default menu if no custom menu items are provided
-    const navItems = !isEmpty(menuItems) && isArray(menuItems) ? menuItems : menu;
     const avatarUrl: string = useMemo(
         () =>
             currentUser?.id
@@ -100,7 +96,7 @@ export const AppHeader = () => {
     return (
         <FlexCell>
             <MainMenu appLogoUrl="/svg/logo.svg" logoHref={getLogoLink()}>
-                {navItems.map((item) => {
+                {menu.map((item) => {
                     // Check if there are children (nesting level 2 maximum)
                     if (item.children && !isEmpty(item.children)) {
                         // Rendering a Dropdown with Child Items
