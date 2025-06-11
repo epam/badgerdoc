@@ -322,7 +322,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         const annotationTaskResponse = useTaskById({ taskId }, {});
         task = annotationTaskResponse.data;
         isTaskLoading = annotationTaskResponse.isLoading;
-        taskPages = annotationTaskResponse.data?.pages ?? [];
+        taskPages = annotationTaskResponse.data?.pages.sort() ?? [];
         refetchTask = annotationTaskResponse.refetch;
     }
 
