@@ -1,6 +1,7 @@
 // temporary_disabled_rules
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-redeclare, react-hooks/exhaustive-deps, no-restricted-globals */
 import React, { useContext, useMemo, useCallback } from 'react';
+import { cloneDeep, isEmpty } from 'lodash';
 import {
     Dropdown,
     DropdownMenuBody,
@@ -18,8 +19,8 @@ import {
 } from '@epam/loveship';
 import { useHistory } from 'react-router-dom';
 import startCase from 'lodash/startCase';
-import { AppMenuItem, CurrentUser } from 'shared/contexts/current-user';
-import { cloneDeep, isEmpty } from 'lodash';
+import { CurrentUser } from 'shared/contexts/current-user';
+import { AppMenuItem } from 'api/typings';
 import { clearAuthDetails } from 'shared/helpers/auth-tools';
 
 export const AppHeader = () => {
@@ -66,29 +67,28 @@ export const AppHeader = () => {
     };
 
     const pathMatches = (path: string) => {
-        return history.location.pathname.indexOf(`/${path}`) === 0;
+        return history.location.pathname.indexOf(path) === 0;
     };
 
     const getLinkTarget = (item: AppMenuItem) => {
-        if (item.is_external) {
-            return { pathname: item.url };
-        } else if (item.is_iframe) {
-            return { pathname: '/iframe', search: `?url=${item.iframe_url}` };
+        if (item.is_iframe) {
+            return { pathname: '/iframe', search: `?url=${item.url}` };
         } else {
-            return { pathname: item.url };
+            return { pathname: item.badgerdoc_path };
         }
     };
 
-    const renderMenuButton = (item: AppMenuItem) => (
+    const renderMenuButton = (item: AppMenuItem, isDropdown?: boolean) => (
         <MainMenuButton
             key={item.name}
             caption={startCase(item.name)}
-            isLinkActive={pathMatches(item.url)}
+            isLinkActive={pathMatches(item.badgerdoc_path)}
             link={getLinkTarget(item)}
-            rawProps={{ 'data-page': item.url }}
+            rawProps={{ 'data-page': item.badgerdoc_path }}
             collapseToMore
             priority={0}
             estimatedWidth={145}
+            onClick={() => isDropdown && close()}
             {...(item.is_external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
         />
     );
@@ -100,8 +100,8 @@ export const AppHeader = () => {
                     // Check if there are children (nesting level 2 maximum)
                     if (item.children && !isEmpty(item.children)) {
                         // Rendering a Dropdown with Child Items
-                        const hasActiveChild = item.children.some((child) =>
-                            pathMatches(child.url)
+                        const hasActiveChild = item.children.some((child: AppMenuItem) =>
+                            pathMatches(child.badgerdoc_path)
                         );
                         return (
                             <MainMenuDropdown
@@ -111,7 +111,9 @@ export const AppHeader = () => {
                                 priority={2}
                                 estimatedWidth={128}
                             >
-                                {item.children.map((child) => renderMenuButton(child))}
+                                {item.children.map((child: AppMenuItem) =>
+                                    renderMenuButton(child, true)
+                                )}
                             </MainMenuDropdown>
                         );
                     }
