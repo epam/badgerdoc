@@ -1,0 +1,24 @@
+ARG base_image=818863528939.dkr.ecr.eu-central-1.amazonaws.com/badgerdoc/python_base_3.12:0.2.0
+FROM ${base_image} as build
+
+WORKDIR /opt/core
+
+COPY core ./core
+COPY alembic alembic
+COPY pyproject.toml poetry.lock version.txt alembic.ini ./
+
+RUN : \
+    && apt-get update \
+    && apt-get install -y build-essential \
+    && :
+
+RUN : \
+    && python3 -m pip install --upgrade pip \
+    && pip install poetry>=1.7.1 \
+    && poetry config virtualenvs.create false \
+    && poetry install --no-root --only main \
+    && :
+
+CMD alembic upgrade head && uvicorn core.main:app --root-path $ROOT_PATH --host 0.0.0.0 --port 8080
+EXPOSE 8080
+

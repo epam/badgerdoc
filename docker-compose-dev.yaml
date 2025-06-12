@@ -23,6 +23,7 @@ services:
       - badgerdoc-annotation
       - badgerdoc-users
       - badgerdoc-processing
+      - badgerdoc-core
       - badgerdoc-jobs
       - badgerdoc-assets
       - badgerdoc-ml-server
@@ -164,6 +165,19 @@ services:
         condition: service_healthy
       badgerdoc-keycloak:
         condition: service_started
+
+  badgerdoc-core:
+    image: badgerdoc_core
+    container_name: core
+    env_file:
+      - .env
+    environment:
+      - ROOT_PATH=/core
+    networks:
+      - badgerdoc
+    depends_on:
+      badgerdoc-postgresql:
+        condition: service_healthy
 
   badgerdoc-web:
     image: badgerdoc_web
