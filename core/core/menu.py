@@ -12,21 +12,21 @@ KEYCLOAK_HOST = os.getenv("KEYCLOAK_HOST")
 @dataclass
 class MenuItem:
     name: str
-    url: str
+    badgerdoc_path: str
     is_external: bool = False
     is_iframe: bool = False
-    iframe_url: str = ""
+    url: str = ""
     children: Optional[list["MenuItem"]] = None
 
 
 AUTHORIZED_USER_COMMON_MENU = [
     MenuItem(
         name="Documents",
-        url="/documents",
+        badgerdoc_path="/documents",
     ),
     MenuItem(
         name="My Tasks",
-        url="/my tasks",
+        badgerdoc_path="/my tasks",
     ),
 ]
 
@@ -34,32 +34,46 @@ AUTHORIZED_USER_COMMON_MENU = [
 ADMIN_USER_MENU = [
     MenuItem(
         name="Jobs",
-        url="/jobs",
+        badgerdoc_path="/jobs",
     ),
     MenuItem(
         name="Categories",
-        url="/categories",
+        badgerdoc_path="/categories",
     ),
     MenuItem(
         name="Reports",
-        url="/reports",
+        badgerdoc_path="/reports",
     ),
     MenuItem(
         name="Settings",
-        url="/settings",
+        badgerdoc_path="/settings",
         children=[
             MenuItem(
                 name="Plugins",
-                url="/plugins",
+                badgerdoc_path="/plugins",
             ),
             MenuItem(
                 name="Keycloak",
-                url=KEYCLOAK_HOST,
+                badgerdoc_path="/keycloak",
                 is_external=True,
+                url=KEYCLOAK_HOST,
             ),
         ],
     ),
 ]
+
+
+def form_path(menu_name: str) -> str:
+    """
+    Form the path for the menu item based on its name.
+
+    Args:
+        menu_name: The name of the menu item.
+
+    Returns:
+        A formatted path string.
+    """
+    return f"/{menu_name.lower().replace(' ', '-')}"
 
 
 async def get_menu(
@@ -85,14 +99,14 @@ async def get_menu(
         menu.append(
             MenuItem(
                 name="Plugins",
-                url="/plugins",
+                badgerdoc_path="/plugins",
                 is_iframe=False,
                 children=[
                     MenuItem(
-                        name=plugin.menu_name,
-                        url=plugin.menu_name,
-                        is_iframe=True,
-                        iframe_url=plugin.url,
+                        name=f"{plugin.menu_name} ({plugin.version})",
+                        badgerdoc_path=form_path(plugin.menu_name),
+                        is_iframe=plugin.is_iframe,
+                        url=plugin.url,
                     )
                     for plugin in plugins
                 ],

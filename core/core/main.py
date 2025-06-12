@@ -2,7 +2,7 @@ import logging
 import os
 from typing import Optional
 
-from fastapi import Depends, FastAPI, Header
+from fastapi import Depends, FastAPI, Header, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from tenant_dependency import TenantData, get_tenant_info
@@ -51,9 +51,7 @@ async def get_menu(
     Get the menu for the current tenant.
     """
     logger.debug("Fetching menu for roles: %s", token_data.roles)
-    return await core.menu.get_menu(
-        db_session, token_data.roles, current_tenant
-    )
+    return await core.menu.get_menu(db_session, token_data.roles, current_tenant)
 
 
 class Plugin(BaseModel):
@@ -62,6 +60,7 @@ class Plugin(BaseModel):
     description: str
     version: str
     url: str
+    is_iframe: bool
 
 
 @app.post("/plugins", tags=["plugins"])
@@ -81,17 +80,19 @@ async def register_plugin(
     logger.debug("Creating plugin for tenant: %s", current_tenant)
     await core.plugins.register_plugin(
         db_session,
-        plugin.name,
-        plugin.menu_name,
-        plugin.description,
-        plugin.version,
-        plugin.url,
-        current_tenant,
+        name=plugin.name,
+        menu_name=plugin.menu_name,
+        description=plugin.description,
+        version=plugin.version,
+        url=plugin.url,
+        is_iframe=plugin.is_iframe,
+        tenant=current_tenant,
     )
     return {"message": "Plugin created successfully", "tenant": current_tenant}
 
 
 class PluginResponse(BaseModel):
+    id: int
     name: str
     menu_name: str
     description: Optional[str]
@@ -119,6 +120,7 @@ async def list_plugins(
     # Convert SQLAlchemy model objects to Pydantic models
     plugins = [
         PluginResponse(
+            id=plugin.id,
             name=plugin.name,
             menu_name=plugin.menu_name,
             description=plugin.description,
@@ -133,3 +135,65 @@ async def list_plugins(
         "plugins": plugins,
         "tenant": current_tenant,
     }
+
+
+class PluginUpdate(BaseModel):
+    menu_name: str
+    description: str | None = None
+    url: str
+    is_iframe: bool
+
+
+class UpdatedPluginResponse(BaseModel):
+    id: int
+
+
+@app.put("/plugins/{plugin_id}", tags=["plugins"])
+async def update_plugin(
+    plugin_id: int,
+    plugin: PluginUpdate,
+    token_data: TenantData = Depends(tenant),
+    current_tenant: str | None = Header(None, alias="X-Current-Tenant"),
+    db_session=Depends(get_session),
+) -> UpdatedPluginResponse:
+    """
+    Update an existing plugin for the current tenant.
+
+    Name and version cannot be updated as they form a unique constraint.
+    Only menu_name, description, URL and display settings can be modified.
+    """
+    if "admin" not in token_data.roles:
+        logger.error("Unauthorized access attempt user: %s", token_data)
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin role required to update plugins",
+        )
+
+    logger.debug("Updating plugin %s for tenant: %s", plugin_id, current_tenant)
+
+    try:
+        await core.plugins.update_plugin(
+            db_session,
+            plugin_id=plugin_id,
+            menu_name=plugin.menu_name,
+            description=plugin.description,
+            url=plugin.url,
+            is_iframe=plugin.is_iframe,
+        )
+
+        # if not updated_plugin:
+        #    raise HTTPException(
+        #        status_code=status.HTTP_404_NOT_FOUND,
+        #        detail=f"Plugin with ID {plugin_id} not found for tenant {current_tenant}",
+        #    )
+
+        return UpdatedPluginResponse(
+            id=plugin_id,
+        )
+
+    except Exception as e:
+        logger.error("Error updating plugin: %s", str(e))
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error updating plugin: {str(e)}",
+        )
