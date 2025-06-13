@@ -21,35 +21,22 @@ import {
 import { IPluginProps, TPluginFormValues } from './types';
 import { getError } from 'shared/helpers/get-error';
 import { useAddPluginMutation, useUpdatePluginMutation } from 'api/hooks/plugins';
-import { PluginType } from 'api/typings';
 import { useNotifications } from 'shared/components/notifications';
+import { getDefaultValues, isValidUrl } from './utils';
+
+const VALIDATION_MESSAGE = 'Please enter a valid URL starting with http://';
 
 export const PluginModal: FC<IPluginProps> = ({ pluginValue, abort: onClose, ...props }) => {
     const { notifyError, notifySuccess } = useNotifications();
     const addPluginMutation = useAddPluginMutation();
     const updatePluginMutation = useUpdatePluginMutation();
 
-    const getDefaultValues = (plugin: PluginType | undefined) => {
-        const {
-            url = '',
-            name = '',
-            menu_name = '',
-            description = '',
-            version = '',
-            is_iframe = true
-        } = plugin || {};
-
-        return {
-            name,
-            menu_name,
-            description,
-            version,
-            url,
-            is_iframe
-        };
-    };
-
     const savePlugin = async (formValues: TPluginFormValues) => {
+        if (!isValidUrl(formValues.url)) {
+            notifyError(<UiText>{VALIDATION_MESSAGE}</UiText>);
+            return;
+        }
+
         try {
             if (pluginValue) {
                 await updatePluginMutation.mutateAsync({
@@ -120,7 +107,14 @@ export const PluginModal: FC<IPluginProps> = ({ pluginValue, abort: onClose, ...
                         <FlexRow padding="24" vPadding="12">
                             <FlexCell grow={1}>
                                 <LabeledInput label="URL" isRequired>
-                                    <TextInput {...lens.prop('url').toProps()} />
+                                    <TextInput
+                                        {...lens.prop('url').toProps()}
+                                        isInvalid={
+                                            !!lens.prop('url').toProps().value &&
+                                            !isValidUrl(lens.prop('url').toProps().value)
+                                        }
+                                        placeholder="http://example.com/plugin"
+                                    />
                                 </LabeledInput>
                             </FlexCell>
                         </FlexRow>

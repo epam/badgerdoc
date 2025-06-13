@@ -22,11 +22,14 @@ import startCase from 'lodash/startCase';
 import { CurrentUser } from 'shared/contexts/current-user';
 import { AppMenuItem } from 'api/typings';
 import { clearAuthDetails } from 'shared/helpers/auth-tools';
+import { useIsInIframe } from 'api/hooks/iframe';
 
 export const AppHeader = () => {
     const history = useHistory();
     const { currentUser, setCurrentUser, menu, isSimple, isAnnotator, isEngineer } =
         useContext(CurrentUser);
+    const isInIframe = useIsInIframe();
+
     const avatarUrl: string = useMemo(
         () =>
             currentUser?.id
@@ -93,6 +96,7 @@ export const AppHeader = () => {
         />
     );
 
+    if (isInIframe) return null;
     return (
         <FlexCell>
             <MainMenu appLogoUrl="/svg/logo.svg" logoHref={getLogoLink()}>

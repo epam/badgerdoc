@@ -1,30 +1,13 @@
-import { Button, DataTable, Panel, Text as UiText } from '@epam/loveship';
+import { Button, DataTable, Panel } from '@epam/loveship';
 import { PluginType } from 'api/typings';
 import { usePlugins } from 'api/hooks/plugins';
 import { TableWrapper, usePageTable } from 'shared';
 import { useArrayDataSource, useUuiContext } from '@epam/uui';
 import { PluginModal } from 'connectors/plugins-modal-connector/plugins-modal-connector';
 import { PluginValidationValues } from 'connectors/plugins-modal-connector/types';
+import { pluginsColumns } from './plugin-columns';
 
 import styles from './plugins-table-connector.module.scss';
-
-const columns = [
-    {
-        key: 'name',
-        caption: 'Name',
-        render: (plugin: PluginType) => {
-            return (
-                <UiText key={plugin.name}>
-                    <div>{plugin.name}</div>
-                </UiText>
-            );
-        },
-        isSortable: true,
-        grow: 1,
-        shrink: 1,
-        width: 300
-    }
-];
 
 export const PluginsTableConnector = () => {
     const { tableValue, onTableValueChange, onPageChange, totalCount, pageConfig } =
@@ -76,7 +59,7 @@ export const PluginsTableConnector = () => {
                     getRows={view.getVisibleRows}
                     value={tableValue}
                     onValueChange={onTableValueChange}
-                    columns={columns}
+                    columns={pluginsColumns}
                     headerTextCase="upper"
                 />
             </TableWrapper>
