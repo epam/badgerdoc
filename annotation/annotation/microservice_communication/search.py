@@ -103,7 +103,7 @@ PAGE_SIZE = 100  # max page size in assets
 HEADER_TENANT = "X-Current-Tenant"
 AUTHORIZATION = "Authorization"
 BEARER = "Bearer"
-X_CURRENT_TENANT_HEADER = Header(..., alias=HEADER_TENANT, example="test")
+X_CURRENT_TENANT_HEADER = Header(..., alias=HEADER_TENANT, examples=["test"])
 USERS_SERVICE_HOST = get_service_uri("USERS_")
 USERS_SEARCH_URL = f"{USERS_SERVICE_HOST}/users/search"
 

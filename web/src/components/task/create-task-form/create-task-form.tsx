@@ -60,9 +60,18 @@ export const CreateTaskForm: FC<CreateTaskFormProps> = ({
         (value: Date, lens: ILens<FormTaskModel>) => {
             setDeadlineDate(value);
             if (value) {
-                const date = `${value.getFullYear()}-${value.getMonth() + 1}-${value.getDate()}`;
-                const time = `${value.getHours()}:${value.getMinutes()}:${value.getSeconds()}`;
+                const year = value.getFullYear();
+                const month = (value.getMonth() + 1).toString().padStart(2, "0");
+                const day = value.getDate().toString().padStart(2, "0");
+
+                const hours = value.getHours().toString().padStart(2, "0");
+                const minutes = value.getMinutes().toString().padStart(2, "0");
+                const seconds = value.getSeconds().toString().padStart(2, "0");
+
+                const date = `${year}-${month}-${day}`;
+                const time = `${hours}:${minutes}:${seconds}`;
                 lens.prop('deadline').set(`${date} ${time}`);
+
             } else {
                 lens.prop('deadline').set('');
             }

@@ -15,6 +15,9 @@ def test_get_entities_statuses_successful_response():
     expected_status_code = 200
 
     response = client.get("/metadata", headers=TEST_HEADERS)
+    expected_test_statuses = [
+        el.value for el in expected_result.model_dump()["task_statuses"]
+    ]
 
-    assert response.json() == expected_result
+    assert response.json()["task_statuses"] == expected_test_statuses
     assert response.status_code == expected_status_code

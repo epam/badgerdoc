@@ -3,14 +3,14 @@ import csv
 import io
 import os
 from collections import OrderedDict
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, NamedTuple, Optional, Set, Tuple, Union
 
 import dotenv
 import pydantic
 from fastapi import HTTPException
 from filter_lib import Page, form_query, map_request_to_filter, paginate
-from sqlalchemy import and_, asc, text
+from sqlalchemy import and_, asc, insert, text
 from sqlalchemy.orm import Session
 from tenant_dependency import TenantData
 
@@ -256,7 +256,7 @@ def validate_user_actions(
 def create_annotation_task(
     db: Session, annotation_task: ManualAnnotationTaskInSchema
 ):
-    annotation_task = ManualAnnotationTask(**annotation_task.dict())
+    annotation_task = ManualAnnotationTask(**annotation_task.model_dump())
 
     db.add(annotation_task)
     db.flush()
@@ -416,13 +416,25 @@ def read_annotation_task(db: Session, task_id: int, tenant: str):
 
 
 def create_tasks(db: Session, tasks: list, job_id: int):
-    db.bulk_insert_mappings(ManualAnnotationTask, tasks, return_defaults=True)
+    if not tasks:
+        return []
+
+    stmt = insert(ManualAnnotationTask).returning(
+        *ManualAnnotationTask.__table__.columns
+    )
+    result = db.execute(stmt, tasks)
+
+    # Collect all rows with full field values
+    inserted_tasks = result.mappings().all()
+
     update_files(db, tasks, job_id)
 
     db.flush()
     user_ids = set(user["user_id"] for user in tasks)
     for user_id in user_ids:
         update_user_overall_load(db, user_id)
+
+    return inserted_tasks
 
 
 def update_task_status(db: Session, task: ManualAnnotationTask) -> None:
@@ -581,18 +593,16 @@ def add_task_stats_record(
     stats: AnnotationStatisticsInputSchema,
 ) -> AnnotationStatistics:
     stats_db = get_task_stats_by_id(db, task_id)
-
     if stats_db:
-        for name, value in stats.dict().items():
+        for name, value in stats.model_dump().items():
             setattr(stats_db, name, value)
-        stats_db.updated = datetime.utcnow()
+        stats_db.updated = datetime.now(timezone.utc)
     else:
         if stats.event_type == "closed":
             raise CheckFieldError(
                 "Attribute event_type can not start from closed."
             )
-        stats_db = AnnotationStatistics(task_id=task_id, **stats.dict())
-
+        stats_db = AnnotationStatistics(task_id=task_id, **stats.model_dump())
     db.add(stats_db)
     db.commit()
     return stats_db
@@ -1145,7 +1155,7 @@ def find_common_objs(
 
 
 def get_tasks_without_ids(
-    tasks: Dict[int, Dict[str, Any]]
+    tasks: Dict[int, Dict[str, Any]],
 ) -> Dict[int, List[Tuple[Dict[str, Any], str]]]:
     """
     Remove ids from all tasks objects, objects links and children.

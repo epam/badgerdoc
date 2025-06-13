@@ -179,7 +179,9 @@ def _construct_not_found_content(entity, entity_id):
     summary="Get one annotation task from assigned to a user.",
 )
 def get_next_annotation_task(
-    user: UUID = Header(..., example="40b6b526-d6f4-45e8-8af3-d26b5a404018"),
+    user: UUID = Header(
+        ..., examples=["40b6b526-d6f4-45e8-8af3-d26b5a404018"]
+    ),
     db: Session = Depends(get_db),
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
     token: TenantData = Depends(TOKEN),
@@ -242,8 +244,10 @@ def get_next_annotation_task(
     response_model=PreviousAndNextTasksSchema,
 )
 def get_next_and_previous_annotation_tasks(
-    user: UUID = Header(..., example="40b6b526-d6f4-45e8-8af3-d26b5a404018"),
-    task_id: int = Query(..., example=1, gt=0),
+    user: UUID = Header(
+        ..., examples=["40b6b526-d6f4-45e8-8af3-d26b5a404018"]
+    ),
+    task_id: int = Query(..., examples=[1], gt=0),
     db: Session = Depends(get_db),
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
 ):
@@ -423,7 +427,7 @@ def export_stats(
     summary="Get manual annotation task by id.",
 )
 def get_task(
-    task_id: int = Path(..., example=1),
+    task_id: int = Path(..., examples=[1]),
     db: Session = Depends(get_db),
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
     token: TenantData = Depends(TOKEN),
@@ -460,19 +464,23 @@ def get_task(
     "on search parameters.",
 )
 def get_tasks(
-    file_id: Optional[int] = Query(None, example=5),
-    file_name: Optional[str] = Query(None, example="File 1"),
-    job_id: Optional[int] = Query(None, example=6),
-    job_name: Optional[str] = Query(None, example="Job 1"),
+    file_id: Optional[int] = Query(None, examples=[5]),
+    file_name: Optional[str] = Query(None, examples=["File 1"]),
+    job_id: Optional[int] = Query(None, examples=[6]),
+    job_name: Optional[str] = Query(None, examples=["Job 1"]),
     user_id: Optional[UUID] = Query(
-        None, example="2016a913-47f2-417d-afdb-032165b9330d"
+        None, examples=["2016a913-47f2-417d-afdb-032165b9330d"]
     ),
-    deadline: Optional[datetime] = Query(None, example="2021-10-19 01:01:01"),
+    deadline: Optional[datetime] = Query(
+        None, examples=["2021-10-19 01:01:01"]
+    ),
     task_status: Optional[str] = Query(
-        None, example=TaskStatusEnumSchema.ready
+        None, examples=[TaskStatusEnumSchema.ready]
     ),
-    pagination_page_size: Optional[int] = Query(50, gt=0, le=100, example=25),
-    pagination_start_page: Optional[int] = Query(1, gt=0, example=1),
+    pagination_page_size: Optional[int] = Query(
+        50, gt=0, le=100, examples=[25]
+    ),
+    pagination_start_page: Optional[int] = Query(1, gt=0, examples=[1]),
     db: Session = Depends(get_db),
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
     token: TenantData = Depends(TOKEN),
@@ -612,7 +620,7 @@ def search_tasks(
 )
 def update_task(
     update_query: TaskPatchSchema,
-    task_id: int = Path(..., example=5),
+    task_id: int = Path(..., examples=[5]),
     db: Session = Depends(get_db),
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
 ):
@@ -621,7 +629,7 @@ def update_task(
     user_id or (and) is_validation. By task`s id
     in path, updates task with tasks file and returns updated task.
     """
-    patch_data = update_query.dict(exclude_unset=True)
+    patch_data = update_query.model_dump(exclude_unset=True)
     if not patch_data:
         return (
             db.query(ManualAnnotationTask)
@@ -724,7 +732,7 @@ def update_task(
     summary="Delete task by id.",
 )
 def delete_task(
-    task_id: int = Path(..., example=3),
+    task_id: int = Path(..., examples=[3]),
     db: Session = Depends(get_db),
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
 ):
@@ -773,7 +781,7 @@ def delete_task(
     summary="Delete batch of tasks.",
 )
 def delete_batch_tasks(
-    task_ids: List[int] = Body(..., example=[1, 3, 4]),
+    task_ids: List[int] = Body(..., examples=[1, 3, 4]),
     db: Session = Depends(get_db),
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
 ):
@@ -865,7 +873,7 @@ def get_pages_info(
 )
 async def finish_task(
     validation_info: Optional[ValidationEndSchema] = Body(None),
-    task_id: int = Path(..., example=3),
+    task_id: int = Path(..., examples=[3]),
     db: Session = Depends(get_db),
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
     token: TenantData = Depends(TOKEN),

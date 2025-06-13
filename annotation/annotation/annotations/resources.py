@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import Dict, List, Optional, Set
+from typing import Annotated, Dict, List, Optional, Set
 from uuid import UUID
 
 import filter_lib
@@ -127,7 +127,7 @@ async def get_annotations(
 )
 def post_annotation_by_user(
     doc: DocForSaveSchema,
-    task_id: int = Path(..., example=5),
+    task_id: int = Path(..., examples=[5]),
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
     token: TenantData = Depends(TOKEN),
     db: Session = Depends(get_db),
@@ -297,8 +297,8 @@ def post_annotation_by_user(
 )
 def post_annotation_by_pipeline(
     doc: DocForSaveSchema,
-    job_id: int = Path(..., example=3),
-    file_id: int = Path(..., example=4),
+    job_id: int = Path(..., examples=[3]),
+    file_id: int = Path(..., examples=[4]),
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
     token: TenantData = Depends(TOKEN),
     db: Session = Depends(get_db),
@@ -397,7 +397,7 @@ def post_annotation_by_pipeline(
     tags=[JOBS_TAG],
 )
 def get_jobs_by_file_id(
-    file_id: int = Path(..., example=4),
+    file_id: int = Path(..., examples=[4]),
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
     db: Session = Depends(get_db),
 ):
@@ -438,15 +438,23 @@ def get_jobs_by_file_id(
     tags=[REVISION_TAG, ANNOTATION_TAG],
 )
 def get_latest_revision_by_user(
-    job_id: int = Path(..., example=3),
-    file_id: int = Path(..., example=4),
-    page_numbers: Set[int] = Query(..., min_items=1, ge=1, example={3, 4, 1}),
+    page_numbers: Annotated[
+        Set[Annotated[int, Query(ge=1)]],
+        Query(
+            ...,
+            min_length=1,
+            examples=[{3, 4, 1}],
+        ),
+    ],
+    job_id: int = Path(..., examples=[3]),
+    file_id: int = Path(..., examples=[4]),
     user_id: Optional[UUID] = Query(
-        None, example="1843c251-564b-4c2f-8d42-c61fdac369a1"
+        None, examples=["1843c251-564b-4c2f-8d42-c61fdac369a1"]
     ),
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
     db: Session = Depends(get_db),
 ):
+
     filters = [
         AnnotatedDoc.job_id == job_id,
         AnnotatedDoc.file_id == file_id,
@@ -480,15 +488,21 @@ def get_latest_revision_by_user(
     tags=[REVISION_TAG, ANNOTATION_TAG],
 )
 def get_annotations_up_to_given_revision(
-    job_id: int = Path(..., example=1),
-    file_id: int = Path(..., example=1),
-    revision: str = Path(..., example="latest"),
-    page_numbers: Set[int] = Query(None, min_items=1, ge=1, example={3, 4, 1}),
+    page_numbers: Annotated[
+        Set[Annotated[int, Query(ge=1)]],
+        Query(
+            min_length=1,
+            examples=[{3, 4, 1}],
+        ),
+    ] = None,
+    job_id: int = Path(..., examples=[1]),
+    file_id: int = Path(..., examples=[1]),
+    revision: str = Path(..., examples=["latest"]),
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
     db: Session = Depends(get_db),
     user_id: Optional[UUID] = Query(
         None,
-        example="1843c251-564b-4c2f-8d42-c61fdac369a1",
+        examples=["1843c251-564b-4c2f-8d42-c61fdac369a1"],
         description="Enables filtering relevant revisions by user_id",
     ),
 ):
@@ -591,12 +605,13 @@ def get_annotations_up_to_given_revision(
     tags=[REVISION_TAG, ANNOTATION_TAG],
 )
 def get_annotation_for_given_revision(
-    job_id: int = Path(..., example=1),
-    file_id: int = Path(..., example=1),
-    revision: str = Path(..., example="latest"),
+    job_id: int = Path(..., examples=[1]),
+    file_id: int = Path(..., examples=[1]),
+    revision: str = Path(..., examples=["latest"]),
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
     db: Session = Depends(get_db),
 ):
+
     if revision == LATEST:
         latest = (
             db.query(AnnotatedDoc)
@@ -642,17 +657,25 @@ def get_annotation_for_given_revision(
 def get_all_revisions(
     job_id: int,
     file_id: int,
-    page_numbers: Set[int] = Query(..., min_items=1, ge=1),
+    page_numbers: Annotated[
+        Set[Annotated[int, Query(ge=1)]],
+        Query(
+            ...,
+            min_length=1,
+            examples=[{3, 4, 1}],
+        ),
+    ],
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
     user_id: Optional[UUID] = Query(
         None,
-        example="1843c251-564b-4c2f-8d42-c61fdac369a1",
+        examples=["1843c251-564b-4c2f-8d42-c61fdac369a1"],
         description=(
             "Required in case job validation type is extensive_coverage"
         ),
     ),
     db: Session = Depends(get_db),
 ):
+
     job: Job = db.query(Job).filter(Job.job_id == job_id).first()
     if not job:
         raise HTTPException(

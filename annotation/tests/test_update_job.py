@@ -609,7 +609,7 @@ def test_update_files_and_datasets_for_already_started_job(
         Mock(return_value={UPDATE_JOB_IDS[5]: "JobName"}),
     )
     response = client.patch(
-        f"{POST_JOBS_PATH}/{ UPDATE_JOB_IDS[5]}",
+        f"{POST_JOBS_PATH}/{UPDATE_JOB_IDS[5]}",
         json={field: [1, 2]},
         headers=TEST_HEADERS,
     )
