@@ -1,7 +1,9 @@
 import { Path } from 'history';
 import React, { useContext } from 'react';
 import { Redirect, Route, RouteProps } from 'react-router';
-import { AppMenuItem, CurrentUser } from 'shared/contexts/current-user';
+import { CurrentUser } from 'shared/contexts/current-user';
+import { AppMenuItem } from 'api/typings';
+
 interface ProtectedRouteProps extends RouteProps {}
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = (props) => {

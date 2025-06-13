@@ -7,5 +7,6 @@ export const ANNOTATION_PAGE = '/annotation/tasks';
 export const BASEMENTS_PAGE = '/basements';
 export const REPORTS_PAGE = '/reports';
 export const IFRAME_PAGE = '/iframe';
+export const PLUGINS_PAGE = '/plugins';
 
 export const PREVIOUS_PAGE_JOB = 'extraction';
