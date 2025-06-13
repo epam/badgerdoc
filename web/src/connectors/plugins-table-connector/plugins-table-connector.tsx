@@ -3,9 +3,10 @@ import { PluginType } from 'api/typings';
 import { usePlugins } from 'api/hooks/plugins';
 import { TableWrapper, usePageTable } from 'shared';
 import { useArrayDataSource, useUuiContext } from '@epam/uui';
+import { PluginModal } from 'connectors/plugins-modal-connector/plugins-modal-connector';
+import { PluginValidationValues } from 'connectors/plugins-modal-connector/types';
 
 import styles from './plugins-table-connector.module.scss';
-import { PluginModal } from 'connectors/plugins-modal-connector/plugins-modal-connector';
 
 const columns = [
     {
@@ -13,7 +14,7 @@ const columns = [
         caption: 'Name',
         render: (plugin: PluginType) => {
             return (
-                <UiText key={plugin.id}>
+                <UiText key={plugin.name}>
                     <div>{plugin.name}</div>
                 </UiText>
             );
@@ -42,7 +43,12 @@ export const PluginsTableConnector = () => {
     //@ts-ignore
     const view = pluginsSource.useView(tableValue, onTableValueChange, {
         getRowOptions: () => ({
-            isSelectable: true
+            isSelectable: true,
+            onClick: (item) => {
+                return uuiModals.show<PluginValidationValues>((props) => (
+                    <PluginModal pluginValue={item.value} {...props} />
+                ));
+            }
         })
     });
     const { uuiModals } = useUuiContext();
@@ -51,7 +57,11 @@ export const PluginsTableConnector = () => {
         <Panel cx={`${styles['container']} flex-col`}>
             <div className={`${styles['title']} flex justify-end align-vert-center`}>
                 <Button
-                    onClick={() => uuiModals.show((props) => <PluginModal {...props} />)}
+                    onClick={() =>
+                        uuiModals.show<PluginValidationValues>((props) => (
+                            <PluginModal {...props} />
+                        ))
+                    }
                     caption="Add Plugin"
                 />
             </div>
