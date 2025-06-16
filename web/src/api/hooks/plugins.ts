@@ -10,9 +10,10 @@ type PluginResponse = {
 };
 
 type UpdatePluginPayload = {
-    name: string;
-    menu_name: string;
+    menu_name: string,
+    description: string,
     url: string;
+    is_iframe: boolean;
 };
 
 export async function pluginsFetcher(): Promise<PluginResponse> {
@@ -29,10 +30,7 @@ export const usePlugins = () => {
         ['plugins'],
         pluginsFetcher,
         {
-            select: (data) => data.plugins.map((plugin) => ({
-                    ...plugin,
-                    id: plugin.name.toLowerCase()
-                }))
+            select: (data) => data.plugins
         }
     );
 };
@@ -55,19 +53,24 @@ export const useAddPluginMutation: MutationHookType<CreatePlugin, any> = () => {
     });
 };
 
-const updatePlugin = async (data: UpdatePluginPayload): Promise<PluginType> => {
-    const { name, ...rest } = data;
+export const updatePlugin = async (
+    id: number,
+    data: UpdatePluginPayload
+): Promise<PluginType> => {
     return useBadgerFetch<PluginType>({
-        url: `${PLUGINS_API}/${name}`,
+        url: `${PLUGINS_API}/${id}`,
         method: 'put',
-        withCredentials: true,
-    })(JSON.stringify(rest));
+        withCredentials: true
+    })(JSON.stringify(data));
 };
 
-export const useUpdatePluginMutation: MutationHookType<UpdatePluginPayload, any> = () => {
+export const useUpdatePluginMutation: MutationHookType<
+    { id: number; data: UpdatePluginPayload },
+    any
+> = () => {
     const queryClient = useQueryClient();
 
-    return useMutation(updatePlugin, {
+    return useMutation(({ id, data }) => updatePlugin(id, data), {
         onSuccess: () => {
             queryClient.invalidateQueries('plugins');
         }

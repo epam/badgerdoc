@@ -29,7 +29,7 @@ const VALIDATION_MESSAGE = 'Please enter a valid URL starting with http://';
 export const PluginModal: FC<IPluginProps> = ({ pluginValue, abort: onClose, ...props }) => {
     const { notifyError, notifySuccess } = useNotifications();
     const addPluginMutation = useAddPluginMutation();
-    const updatePluginMutation = useUpdatePluginMutation();
+    const { mutateAsync: updatePluginMutate } = useUpdatePluginMutation();
 
     const savePlugin = async (formValues: TPluginFormValues) => {
         if (!isValidUrl(formValues.url)) {
@@ -39,10 +39,14 @@ export const PluginModal: FC<IPluginProps> = ({ pluginValue, abort: onClose, ...
 
         try {
             if (pluginValue) {
-                await updatePluginMutation.mutateAsync({
-                    name: pluginValue.name,
-                    menu_name: formValues.menu_name,
-                    url: formValues.url
+                await updatePluginMutate({
+                    id: Number(pluginValue.id),
+                    data: {
+                        menu_name: formValues.menu_name,
+                        description: formValues.description,
+                        url: formValues.url,
+                        is_iframe: formValues.is_iframe
+                    }
                 });
                 notifySuccess(<UiText>The plugin was successfully updated</UiText>);
             } else {
@@ -70,7 +74,7 @@ export const PluginModal: FC<IPluginProps> = ({ pluginValue, abort: onClose, ...
                     <ScrollBars>
                         <FlexRow padding="24" vPadding="12">
                             <FlexCell grow={1}>
-                                <LabeledInput label="Plugin Name" isRequired>
+                                <LabeledInput label="Plugin Name" isRequired={!pluginValue}>
                                     <TextInput
                                         {...lens.prop('name').toProps()}
                                         isDisabled={!!pluginValue}
@@ -85,18 +89,16 @@ export const PluginModal: FC<IPluginProps> = ({ pluginValue, abort: onClose, ...
                                 </LabeledInput>
                             </FlexCell>
                         </FlexRow>
-                        {!pluginValue && (
-                            <FlexRow padding="24" vPadding="12">
-                                <FlexCell grow={1}>
-                                    <LabeledInput label="Description">
-                                        <TextInput {...lens.prop('description').toProps()} />
-                                    </LabeledInput>
-                                </FlexCell>
-                            </FlexRow>
-                        )}
                         <FlexRow padding="24" vPadding="12">
                             <FlexCell grow={1}>
-                                <LabeledInput label="Version" isRequired>
+                                <LabeledInput label="Description">
+                                    <TextInput {...lens.prop('description').toProps()} />
+                                </LabeledInput>
+                            </FlexCell>
+                        </FlexRow>
+                        <FlexRow padding="24" vPadding="12">
+                            <FlexCell grow={1}>
+                                <LabeledInput label="Version" isRequired={!pluginValue}>
                                     <TextInput
                                         {...lens.prop('version').toProps()}
                                         isDisabled={!!pluginValue}

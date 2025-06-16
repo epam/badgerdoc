@@ -521,7 +521,7 @@ export type AppMenuItem = {
 };
 
 export type PluginType = {
-    id?: string;
+    id: string;
     description: string;
     menu_name?: string;
     name: string;
