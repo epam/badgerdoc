@@ -22,7 +22,7 @@ import startCase from 'lodash/startCase';
 import { CurrentUser } from 'shared/contexts/current-user';
 import { AppMenuItem } from 'api/typings';
 import { clearAuthDetails } from 'shared/helpers/auth-tools';
-import { useIsInIframe } from 'api/hooks/iframe';
+import { useIsInIframe } from 'api/hooks/useIsInIframe';
 
 export const AppHeader = () => {
     const history = useHistory();
