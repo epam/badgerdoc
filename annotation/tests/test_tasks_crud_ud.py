@@ -466,7 +466,8 @@ def test_delete_task_status_codes(
     indirect=["db_errors"],
 )
 def test_delete_task_exceptions(monkeypatch, db_errors):
-    response = client.delete(
+    response = client.request(
+        "DELETE",
         construct_path(CRUD_TASKS_PATH, CRUD_UD_TASK_ID),
         headers=TEST_HEADERS,
         json=EMPTY_UD_TASK,
@@ -514,13 +515,15 @@ def test_delete_task(
     assert task == task_before_removing
 
     if expected_response:
-        response = client.delete(
+        response = client.request(
+            "DELETE",
             construct_path(CRUD_TASKS_PATH, task_id),
             json=task_id,
             headers=TEST_HEADERS,
         ).json()
     else:
-        response = client.delete(
+        response = client.request(
+            "DELETE",
             construct_path(CRUD_TASKS_PATH, task_id),
             json=task_id,
             headers=TEST_HEADERS,

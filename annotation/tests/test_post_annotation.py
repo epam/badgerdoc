@@ -337,7 +337,7 @@ PAGES_SCHEMA = [
     )
     for i in range(1, PAGES_AMOUNT + 1)
 ]
-PAGES = [page.dict() for page in PAGES_SCHEMA]
+PAGES = [page.model_dump() for page in PAGES_SCHEMA]
 
 DIFF_FIRST_PAGE = copy.deepcopy(PAGES[1])
 DIFF_FIRST_PAGE["page_num"] = 1
@@ -643,7 +643,7 @@ ANNOTATED_DOC_WITH_DIFFERENT_JOB_AND_FILE["task_id"] = POST_ANNOTATION_TASK_2[
 PAGES_SHA = {}
 B_PAGES = b""
 for page in PAGES_SCHEMA:
-    b_page = json.dumps(page.dict()).encode()
+    b_page = json.dumps(page.model_dump()).encode()
     PAGES_SHA[str(page.page_num)] = sha1(b_page).hexdigest()
     B_PAGES += b_page
 

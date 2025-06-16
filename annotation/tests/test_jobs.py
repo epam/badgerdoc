@@ -314,7 +314,7 @@ def test_get_jobs_by_files():
 
 
 def test_get_job_attributes_for_post_attribute_job(
-    jobs_to_test_progress: Tuple[Job, ...]
+    jobs_to_test_progress: Tuple[Job, ...],
 ):
     job_id = 1
     mock_session = MagicMock()
@@ -732,18 +732,29 @@ def test_update_jobs_users(
             mock_check_validators.assert_called_once()
 
 
-def test_delete_redudant_users():
+def test_delete_redundant_users():
     mock_session = MagicMock()
+    mock_query = MagicMock()
     mock_users = MagicMock()
+    mock_filter = MagicMock()
+
+    mock_session.query.return_value = mock_query
     mock_session.query().join.return_value = mock_users
+    mock_query.filter.return_value = mock_filter
+    mock_filter.delete = MagicMock()
+
     deleted_uuid = UUID(int=1)
     active_uuid = UUID(int=2)
+
     mock_users.union().union().all.return_value = [User(user_id=active_uuid)]
-    with patch("annotation.jobs.services.User.user_id.in_") as mock_in:
-        services.delete_redundant_users(
-            mock_session, {deleted_uuid, active_uuid}
-        )
-        mock_in.assert_called_once_with({deleted_uuid})
+
+    services.delete_redundant_users(mock_session, {deleted_uuid, active_uuid})
+
+    mock_query.filter.assert_called_once()
+    args_used_in_filter = mock_query.filter.call_args[0]
+    assert "IN" in str(args_used_in_filter[0])
+    assert args_used_in_filter[0].right.value[0] == deleted_uuid
+    mock_filter.delete.assert_called_once_with(synchronize_session=False)
 
 
 def test_set_task_statuses_annotation_task_finished(

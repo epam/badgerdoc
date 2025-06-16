@@ -1,7 +1,7 @@
 import re
 import uuid
 from copy import deepcopy
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Set, Tuple, Union
 from unittest.mock import MagicMock, Mock, call, patch
 
@@ -72,20 +72,20 @@ def mock_stats(
     stat1 = AnnotationStatistics(
         task=mock_task,
         task_id=1,
-        created=datetime.utcnow(),
-        updated=datetime.utcnow(),
+        created=datetime.now(timezone.utc),
+        updated=datetime.now(timezone.utc),
     )
     stat2 = AnnotationStatistics(
         task=mock_task,
         task_id=2,
-        created=datetime.utcnow(),
-        updated=datetime.utcnow(),
+        created=datetime.now(timezone.utc),
+        updated=datetime.now(timezone.utc),
     )
     stat3 = AnnotationStatistics(
         task=mock_task,
         task_id=3,
-        created=datetime.utcnow(),
-        updated=datetime.utcnow(),
+        created=datetime.now(timezone.utc),
+        updated=datetime.now(timezone.utc),
     )
     stat3.task.status = TaskStatusEnumSchema.finished
     yield [stat1, stat2, stat3]
@@ -105,7 +105,7 @@ def mock_db(mock_stats: List[AnnotatedDoc]):
 @pytest.fixture
 def mock_tenant_data():
     yield TenantData(
-        user_id=1,
+        user_id=str(1),
         roles=[],
         token="mock_token",
         tenants=["local"],
@@ -794,17 +794,28 @@ def test_filter_tasks_db_no_files_or_jobs(
 
 
 @pytest.mark.parametrize(
-    ("tasks", "job_id", "expected_user_ids"),
+    ("tasks", "job_id", "expected_user_ids", "expected_inserted_tasks"),
     (
         (
+            # Test case 1: Non-empty tasks
             [
                 {"user_id": 1, "file_id": 123, "pages": {1, 2}},
                 {"user_id": 2, "file_id": 456, "pages": {3}},
             ],
             1,
             {1, 2},
+            [  # Simulating rows returned after insertion
+                {"id": 101, "user_id": 1, "file_id": 123, "pages": {1, 2}},
+                {"id": 102, "user_id": 2, "file_id": 456, "pages": {3}},
+            ],
         ),
-        ([], 1, set()),
+        (
+            # Test case 2: Empty tasks
+            [],
+            1,
+            set(),
+            None,  # No operations should occur, and None is returned
+        ),
     ),
 )
 def test_create_tasks(
@@ -812,19 +823,47 @@ def test_create_tasks(
     tasks: List[Dict[str, Union[int, Set[int]]]],
     job_id: int,
     expected_user_ids: Set[int],
+    expected_inserted_tasks: List[Dict[str, Union[int, Set[int]]]],
 ):
-    with patch(
+    with patch("annotation.tasks.services.insert") as mock_insert, patch(
         "annotation.tasks.services.update_files"
     ) as mock_update_files, patch(
         "annotation.tasks.services.update_user_overall_load"
     ) as mock_update_user_overall_load:
-        services.create_tasks(mock_session, tasks, job_id)
-        mock_session.bulk_insert_mappings.assert_called_once()
-        mock_update_files.assert_called_once_with(mock_session, tasks, job_id)
-        mock_update_user_overall_load.assert_has_calls(
-            [call(mock_session, user_id) for user_id in expected_user_ids],
-            any_order=True,
-        )
+
+        mock_execute_result = Mock()
+        if tasks:
+            mock_execute_result.mappings.return_value.all.return_value = (
+                expected_inserted_tasks
+            )
+            mock_session.execute.return_value = mock_execute_result
+
+        inserted_tasks = services.create_tasks(mock_session, tasks, job_id)
+
+        if tasks:
+
+            mock_insert.assert_called_once_with(ManualAnnotationTask)
+            mock_session.execute.assert_called_once()
+            mock_execute_result.mappings.return_value.all.assert_called_once()
+
+            assert inserted_tasks == expected_inserted_tasks
+
+            mock_update_files.assert_called_once_with(
+                mock_session, tasks, job_id
+            )
+
+            mock_update_user_overall_load.assert_has_calls(
+                [call(mock_session, user_id) for user_id in expected_user_ids],
+                any_order=True,
+            )
+        else:
+
+            mock_insert.assert_not_called()
+            mock_session.execute.assert_not_called()
+            mock_update_files.assert_not_called()
+            mock_update_user_overall_load.assert_not_called()
+
+            assert not inserted_tasks
 
 
 def test_update_task_status_ready(mock_session: Mock, create_task: Mock):

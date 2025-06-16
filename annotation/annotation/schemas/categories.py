@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import List, Optional
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from annotation.errors import CheckFieldError
 
@@ -33,24 +33,25 @@ class CategoryDataAttributeNames(str, Enum):
 
 
 class CategoryBaseSchema(BaseModel):
-    name: str = Field(..., example="Title")
-    parent: Optional[str] = Field(None, example="null")
-    metadata: Optional[dict] = Field(None, example={"color": "blue"})
-    type: CategoryTypeSchema = Field(..., example=CategoryTypeSchema.box)
-    editor: Optional[str] = Field(None, example="http://editor/")
+    name: str = Field(..., examples=["Title"])
+    parent: Optional[str] = Field(None, examples=["null"])
+    metadata: Optional[dict] = Field(None, examples=[{"color": "blue"}])
+    type: CategoryTypeSchema = Field(..., examples=[CategoryTypeSchema.box])
+    editor: Optional[str] = Field(None, examples=["http://editor/"])
     data_attributes: Optional[List[dict]] = Field(
-        None, example=[{"attr_1": "value_1"}, {"attr_2": "value_2"}]
+        None, examples=[[{"attr_1": "value_1"}, {"attr_2": "value_2"}]]
     )
 
 
 class CategoryInputSchema(CategoryBaseSchema):
     id: Optional[str] = Field(
         None,
-        example="my_category",
+        examples=["my_category"],
         description="If id is not provided, generates it as a UUID.",
     )
 
-    @validator("id")
+    @field_validator("id")
+    @classmethod
     def alphanumeric_validator(cls, value):
         if value and not value.replace("_", "").isalnum():
             raise CheckFieldError("Category id must be alphanumeric.")
@@ -58,21 +59,17 @@ class CategoryInputSchema(CategoryBaseSchema):
 
 
 class SubCategoriesOutSchema(BaseModel):
-    id: str = Field(..., example="123")
+    id: str = Field(..., examples=["123"])
 
 
 class CategoryORMSchema(CategoryInputSchema):
     metadata: Optional[dict] = Field(
-        None, example={"color": "blue"}, alias="metadata_"
+        None, examples=[{"color": "blue"}], alias="metadata_"
     )
-
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class CategoryResponseSchema(CategoryInputSchema):
-    parents: Optional[List[dict]] = Field()
-    is_leaf: Optional[bool] = Field()
-
-    class Config:
-        allow_population_by_field_name = True
+    parents: Optional[List[dict]] = Field(None)
+    is_leaf: Optional[bool] = Field(None)
+    model_config = ConfigDict(populate_by_name=True)

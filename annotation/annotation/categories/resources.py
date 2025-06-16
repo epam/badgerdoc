@@ -69,7 +69,7 @@ def save_category(
     summary="Get category by id.",
 )
 def fetch_category(
-    category_id: str = Path(..., example="1"),
+    category_id: str = Path(..., examples=["1"]),
     db: Session = Depends(get_db),
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
 ) -> CategoryResponseSchema:
@@ -90,7 +90,7 @@ def fetch_category(
     summary="Get list of child categories ids for category with category_id.",
 )
 def get_child_categories(
-    category_id: str = Path(..., example="Table"),
+    category_id: str = Path(..., examples=["Table"]),
     db: Session = Depends(get_db),
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
 ) -> List[SubCategoriesOutSchema]:
@@ -146,7 +146,7 @@ def search_categories(
 )
 def update_category(
     query: CategoryBaseSchema,
-    category_id: str = Path(..., example="1"),
+    category_id: str = Path(..., examples=["1"]),
     db: Session = Depends(get_db),
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
 ) -> CategoryResponseSchema:
@@ -177,7 +177,7 @@ def update_category(
     summary="Delete category by id.",
 )
 def delete_category(
-    category_id: str = Path(..., example="1"),
+    category_id: str = Path(..., examples=["1"]),
     db: Session = Depends(get_db),
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
 ) -> Response:

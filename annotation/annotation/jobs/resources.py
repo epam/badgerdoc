@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Set, Union
+from typing import Annotated, Dict, List, Optional, Union
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
@@ -96,7 +96,7 @@ router = APIRouter(
 )
 def post_job(
     job_info: JobInfoSchema,
-    job_id: int = Path(..., example=3),
+    job_id: int = Path(..., examples=[3]),
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
     token: TenantData = Depends(TOKEN),
     db: Session = Depends(get_db),
@@ -286,12 +286,12 @@ def post_job(
 )
 async def update_job(
     update_query: JobPatchSchema,
-    job_id: int = Path(..., example=1),
+    job_id: int = Path(..., examples=[1]),
     db: Session = Depends(get_db),
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
     token: TenantData = Depends(TOKEN),
 ) -> JobPatchOutSchema:
-    patch_data = update_query.dict(exclude_unset=True)
+    patch_data = update_query.model_dump(exclude_unset=True)
     if not patch_data:
         return JobPatchOutSchema()
     job = get_job(db, job_id, x_current_tenant)
@@ -486,7 +486,7 @@ def get_unassigned_files(
     summary="Start job.",
 )
 async def start_job(
-    job_id: int = Path(..., example=3),
+    job_id: int = Path(..., examples=[3]),
     db: Session = Depends(get_db),
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
     token: TenantData = Depends(TOKEN),
@@ -560,7 +560,7 @@ async def start_job(
     summary="Get list of annotators ids and their overall load for job id.",
 )
 def get_users_for_job(
-    job_id: int = Path(..., example=1),
+    job_id: int = Path(..., examples=[1]),
     db: Session = Depends(get_db),
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
 ):
@@ -589,9 +589,11 @@ def get_users_for_job(
     },
 )
 def fetch_job_categories(
-    job_id: int = Path(..., example=1),
-    page_size: Optional[int] = Query(50, ge=1, le=100, example=15),
-    page_num: Optional[int] = Query(1, ge=1, example=1),
+    page_size: Optional[
+        Annotated[int, Query(50, examples=[15], ge=1, le=100)]
+    ],
+    page_num: Optional[Annotated[int, Query(1, examples=[1], ge=1)]],
+    job_id: int = Path(..., examples=[1]),
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
     db: Session = Depends(get_db),
 ) -> Page[Union[CategoryResponseSchema, str, dict]]:
@@ -622,7 +624,7 @@ def fetch_job_categories(
 )
 def search_job_categories(
     request: CategoryFilter,
-    job_id: int = Path(..., example=1),
+    job_id: int = Path(..., examples=[1]),
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
     db: Session = Depends(get_db),
 ) -> Page[Union[CategoryResponseSchema, str, dict]]:
@@ -654,11 +656,19 @@ def search_job_categories(
     summary="Get info about jobs, in which provided file ids participate",
 )
 def get_jobs_info_by_files(
-    file_ids: Set[int] = Query(..., min_items=1, ge=1, example={3, 4, 1}),
+    file_ids: Annotated[
+        List[Annotated[int, Query(ge=1)]],
+        Query(
+            ...,
+            min_length=1,
+            examples=[[1, 2, 10]],
+        ),
+    ],
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
     db: Session = Depends(get_db),
     token: TenantData = Depends(TOKEN),
 ):
+
     grouped_by_file_jobs_info = get_jobs_by_files(
         db, file_ids, x_current_tenant, token.token
     )
@@ -681,7 +691,7 @@ def get_jobs_info_by_files(
     "and total amount of job's tasks.",
 )
 def get_job_progress(
-    job_id: int = Path(..., example=1),
+    job_id: int = Path(..., examples=[1]),
     db: Session = Depends(get_db),
     x_current_tenant: str = X_CURRENT_TENANT_HEADER,
 ):

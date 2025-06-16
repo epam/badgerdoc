@@ -318,6 +318,7 @@ def test_get_jobs_info_by_files_db_errors(db_errors, monkeypatch):
     response = client.get(
         POST_JOBS_PATH,
         headers=TEST_HEADERS,
-        params={"file_ids": {1, 2}},
+        params={"file_ids": [1, 2]},
     )
+
     assert response.status_code == 500
