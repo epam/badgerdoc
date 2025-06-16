@@ -28,10 +28,12 @@ import {
     JOBS_PAGE,
     MODELS_PAGE,
     PIPELINES_PAGE,
-    REPORTS_PAGE
+    REPORTS_PAGE,
+    IFRAME_PAGE
 } from './shared/constants/general';
 import { ProtectedRoute } from 'shared/components/protected-route';
 import { CategoriesTableConnector } from './connectors/categories-table-connector';
+import { IframePage } from 'pages/iframe/iframe-page';
 
 export const App = () => {
     const history = useHistory();
@@ -70,6 +72,7 @@ export const App = () => {
                         <Route path={REPORTS_PAGE} component={ReportsPage} />
                         <Route path="/my documents" component={SkillHunterDashboardPage} />
                         <Route path={`${ANNOTATION_PAGE}/:taskId`} component={TaskPage} />
+                        <Route path={IFRAME_PAGE} component={IframePage} />
                         <Redirect to="/documents" />
                     </Switch>
                 </main>
