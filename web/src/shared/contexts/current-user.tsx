@@ -1,12 +1,10 @@
 // temporary_disabled_rules
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { FC, useEffect, useMemo, useState } from 'react';
-import { Text as ErrorText } from '@epam/loveship';
-import { isArray, isEmpty, noop, uniq } from 'lodash';
+import { noop, uniq } from 'lodash';
 import { User } from 'api/typings';
-import { useNotifications } from 'shared/components/notifications';
-import { getAuthHeaders } from 'shared/helpers/auth-tools';
-import { getError } from 'shared/helpers/get-error';
+import { useMenuItems } from 'api/hooks/menu';
+import { AppMenuItem } from 'api/typings';
 
 type UserContext = {
     currentUser: User | null;
@@ -17,15 +15,6 @@ type UserContext = {
     menu: AppMenuItem[];
     isPipelinesDisabled: boolean;
 };
-
-export interface AppMenuItem {
-    name: string;
-    url: string;
-    is_external?: boolean;
-    is_iframe?: boolean;
-    iframe_url?: string;
-    children?: AppMenuItem[];
-}
 
 const isPipelinesDisabled = process.env.REACT_APP_PIPELINES_DISABLED === 'true';
 
@@ -54,8 +43,9 @@ export const UserContextProvider: FC<{ currentUser: User | null }> = ({
     children
 }) => {
     const [rolesList, setRoleList] = useState<string[]>([]);
-    const [fetchedMenuItems, setFetchedMenuItems] = useState<AppMenuItem[] | null>(null);
-    const { notifyError } = useNotifications();
+    const { data: menuItems } = useMenuItems({
+        enabled: !!currentUser
+    });
 
     const isUserInRole = (role: UserRole) => {
         return rolesList.includes(role);
@@ -71,25 +61,6 @@ export const UserContextProvider: FC<{ currentUser: User | null }> = ({
     const isAnnotator = isUserInRole('annotator');
     const isSimple = isUserInRole('simple_flow');
 
-    // Fetch dynamic menu items
-    useEffect(() => {
-        const fetchMenu = async () => {
-            try {
-                const response = await fetch('http://demo.badgerdoc.com:8080/core/menu', {
-                    headers: getAuthHeaders()
-                });
-                const data = await response.json();
-
-                if (isArray(data) && !isEmpty(data)) {
-                    setFetchedMenuItems(data);
-                }
-            } catch (error) {
-                notifyError(<ErrorText>{getError(error)}</ErrorText>);
-            }
-        };
-        fetchMenu();
-    }, [notifyError]);
-
     const fallbackMenu = useMemo(() => {
         const items: AppMenuItem[] = [];
 
@@ -104,25 +75,78 @@ export const UserContextProvider: FC<{ currentUser: User | null }> = ({
         switch (true) {
             case isEngineer:
                 addItems([
-                    { name: 'Documents', url: '/documents' },
-                    { name: 'Jobs', url: '/jobs' },
-                    { name: 'My Tasks', url: '/my tasks' },
-                    { name: 'Categories', url: '/categories' },
-                    { name: 'Reports', url: '/reports' }
+                    {
+                        name: 'Documents',
+                        url: '/documents',
+                        badgerdoc_path: '/documents',
+                        is_external: false,
+                        is_iframe: false,
+                        children: null
+                    },
+                    {
+                        name: 'Jobs',
+                        url: '/jobs',
+                        badgerdoc_path: '/jobs',
+                        is_external: false,
+                        is_iframe: false,
+                        children: null
+                    },
+                    {
+                        name: 'My Tasks',
+                        url: '/my tasks',
+                        badgerdoc_path: '/my tasks',
+                        is_external: false,
+                        is_iframe: false,
+                        children: null
+                    },
+                    {
+                        name: 'Categories',
+                        url: '/categories',
+                        badgerdoc_path: '/categories',
+                        is_external: false,
+                        is_iframe: false,
+                        children: null
+                    },
+                    {
+                        name: 'Reports',
+                        url: '/reports',
+                        badgerdoc_path: '/reports',
+                        is_external: false,
+                        is_iframe: false,
+                        children: null
+                    }
                 ]);
                 break;
             case isAnnotator:
-                addItems([{ name: 'My Tasks', url: '/my tasks' }]);
+                addItems([
+                    {
+                        name: 'My Tasks',
+                        url: '/my tasks',
+                        badgerdoc_path: '/my tasks',
+                        is_external: false,
+                        is_iframe: false,
+                        children: null
+                    }
+                ]);
                 break;
             case isSimple:
-                addItems([{ name: 'My Documents', url: '/my documents' }]);
+                addItems([
+                    {
+                        name: 'My Documents',
+                        url: '/my documents',
+                        badgerdoc_path: '/my documents',
+                        is_external: false,
+                        is_iframe: false,
+                        children: null
+                    }
+                ]);
                 break;
         }
 
         return uniq(items);
     }, [isEngineer, isAnnotator, isSimple]);
 
-    const menu = fetchedMenuItems ?? fallbackMenu;
+    const menu = menuItems ?? fallbackMenu;
 
     const value: UserContext = useMemo<UserContext>(() => {
         return {
