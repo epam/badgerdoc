@@ -23,6 +23,7 @@ import { getError } from 'shared/helpers/get-error';
 import { useAddPluginMutation, useUpdatePluginMutation, usePlugins } from 'api/hooks/plugins';
 import { useNotifications } from 'shared/components/notifications';
 import { getDefaultValues, isValidUrl } from './utils';
+import { useMenuItems } from 'api/hooks/menu';
 
 const VALIDATION_MESSAGE = 'Please enter a valid URL starting with http://';
 
@@ -31,6 +32,7 @@ export const PluginModal: FC<IPluginProps> = ({ pluginValue, abort: onClose, ...
     const addPluginMutation = useAddPluginMutation();
     const { mutateAsync: updatePluginMutate } = useUpdatePluginMutation();
     const { refetch: refetchPlugins } = usePlugins();
+    const { refetch: refetchMenu } = useMenuItems();
 
     const savePlugin = async (formValues: TPluginFormValues) => {
         if (!isValidUrl(formValues.url)) {
@@ -55,6 +57,7 @@ export const PluginModal: FC<IPluginProps> = ({ pluginValue, abort: onClose, ...
                 notifySuccess(<UiText>The plugin was successfully added</UiText>);
             }
             await refetchPlugins();
+            await refetchMenu();
             onClose();
         } catch (err: any) {
             notifyError(<UiText>{getError(err)}</UiText>);

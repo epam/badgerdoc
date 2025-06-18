@@ -43,7 +43,9 @@ export const UserContextProvider: FC<{ currentUser: User | null }> = ({
     children
 }) => {
     const [rolesList, setRoleList] = useState<string[]>([]);
-    const menuItems = useMenuItems();
+    const { data: menuItems } = useMenuItems({
+        enabled: !!currentUser
+    });
 
     const isUserInRole = (role: UserRole) => {
         return rolesList.includes(role);

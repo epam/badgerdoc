@@ -30,7 +30,6 @@ export const AppHeader = () => {
     const { currentUser, setCurrentUser, menu, isSimple, isAnnotator, isEngineer } =
         useContext(CurrentUser);
     const isInIframe = useIsInIframe();
-
     const avatarUrl: string = useMemo(
         () =>
             currentUser?.id

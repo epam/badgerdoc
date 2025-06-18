@@ -1,31 +1,24 @@
-import { useEffect, useState } from "react";
-import { isArray, isEmpty } from "lodash";
-
 import { MENU_API } from "shared/constants/api";
 import { AppMenuItem } from "api/typings";
-import { getAuthHeaders } from "shared/helpers/auth-tools";
-import { getError } from "shared/helpers/get-error";
+import { useQuery, UseQueryOptions } from "react-query";
+import { useBadgerFetch } from "./api";
 
-export const useMenuItems = () => {
-    const [menuItems, setMenuItems] = useState<AppMenuItem[]>([]);
+export async function menuItemsFetcher(): Promise<AppMenuItem[]> {
+    const badgerFetcher = useBadgerFetch;
+    return badgerFetcher<AppMenuItem[]>({
+        url: MENU_API,
+        method: 'get',
+        withCredentials: true
+    })();
+}
 
-    useEffect(() => {
-        const fetchMenu = async () => {
-            try {
-                const response = await fetch(MENU_API, {
-                    headers: getAuthHeaders()
-                });
-                const data = await response.json();
-
-                if (isArray(data) && !isEmpty(data)) {
-                    setMenuItems(data);
-                }
-            } catch (error) {
-                console.error(`Failed to fetch menu: ${getError(error)}`);;
-            }
-        };
-        fetchMenu();
-    }, []);
-
-    return menuItems;
+export const useMenuItems = (options?: UseQueryOptions<AppMenuItem[], Error>) => {
+    return useQuery<AppMenuItem[], Error>(
+        ['menu'],
+        menuItemsFetcher,
+        {
+            select: (data) => data,
+            ...options
+        }
+    );
 };

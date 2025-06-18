@@ -14,7 +14,6 @@ export const PluginsTableConnector = () => {
         usePageTable<PluginType>('name');
 
     const { page, pageSize } = pageConfig;
-
     const { data } = usePlugins();
     const pluginsSource = useArrayDataSource<PluginType, number, unknown>(
         {
