@@ -8,8 +8,8 @@ export const pluginsColumns = [
         caption: 'Name',
         render: (plugin: PluginType) => {
             return (
-                <UiText key={plugin.name}>
-                    <div>{plugin.name}</div>
+                <UiText key={plugin.menu_name}>
+                    <div>{plugin.menu_name}</div>
                 </UiText>
             );
         },

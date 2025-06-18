@@ -1,5 +1,6 @@
 export const JOBS_PAGE = '/jobs';
 export const DOCUMENTS_PAGE = '/documents';
+export const MY_DOCUMENTS_PAGE = '/my documents';
 export const DASHBOARD_PAGE = '/my tasks';
 export const MODELS_PAGE = '/models';
 export const PIPELINES_PAGE = '/pipelines';

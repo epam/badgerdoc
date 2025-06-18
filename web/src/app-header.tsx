@@ -23,6 +23,7 @@ import { CurrentUser } from 'shared/contexts/current-user';
 import { AppMenuItem } from 'api/typings';
 import { clearAuthDetails } from 'shared/helpers/auth-tools';
 import { useIsInIframe } from 'api/hooks/useIsInIframe';
+import { DASHBOARD_PAGE, DOCUMENTS_PAGE, MY_DOCUMENTS_PAGE } from 'shared';
 
 export const AppHeader = () => {
     const history = useHistory();
@@ -59,13 +60,13 @@ export const AppHeader = () => {
     const getLogoLink = () => {
         switch (true) {
             case isEngineer:
-                return '/documents';
+                return DOCUMENTS_PAGE;
             case isSimple:
-                return '/my documents';
+                return MY_DOCUMENTS_PAGE;
             case isAnnotator:
-                return '/my tasks';
+                return DASHBOARD_PAGE;
             default:
-                return '/documents';
+                return DOCUMENTS_PAGE;
         }
     };
 

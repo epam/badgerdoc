@@ -20,7 +20,7 @@ import {
 } from '@epam/loveship';
 import { IPluginProps, TPluginFormValues } from './types';
 import { getError } from 'shared/helpers/get-error';
-import { useAddPluginMutation, useUpdatePluginMutation } from 'api/hooks/plugins';
+import { useAddPluginMutation, useUpdatePluginMutation, usePlugins } from 'api/hooks/plugins';
 import { useNotifications } from 'shared/components/notifications';
 import { getDefaultValues, isValidUrl } from './utils';
 
@@ -30,6 +30,7 @@ export const PluginModal: FC<IPluginProps> = ({ pluginValue, abort: onClose, ...
     const { notifyError, notifySuccess } = useNotifications();
     const addPluginMutation = useAddPluginMutation();
     const { mutateAsync: updatePluginMutate } = useUpdatePluginMutation();
+    const { refetch: refetchPlugins } = usePlugins();
 
     const savePlugin = async (formValues: TPluginFormValues) => {
         if (!isValidUrl(formValues.url)) {
@@ -53,6 +54,7 @@ export const PluginModal: FC<IPluginProps> = ({ pluginValue, abort: onClose, ...
                 await addPluginMutation.mutateAsync(formValues);
                 notifySuccess(<UiText>The plugin was successfully added</UiText>);
             }
+            await refetchPlugins();
             onClose();
         } catch (err: any) {
             notifyError(<UiText>{getError(err)}</UiText>);
