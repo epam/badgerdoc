@@ -1,22 +1,20 @@
 import os
-from dataclasses import dataclass
-from typing import Optional
 
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.plugins import get_plugins
+from core.services import plugin
 
 KEYCLOAK_HOST = os.getenv("KEYCLOAK_HOST")
 
 
-@dataclass
-class MenuItem:
+class MenuItem(BaseModel):
     name: str
     badgerdoc_path: str
     is_external: bool = False
     is_iframe: bool = False
     url: str = ""
-    children: Optional[list["MenuItem"]] = None
+    children: list["MenuItem"] | None = None
 
 
 AUTHORIZED_USER_COMMON_MENU = [
@@ -94,7 +92,7 @@ async def get_menu(
     if "admin" in roles:
         menu.extend(ADMIN_USER_MENU)
 
-    plugins = await get_plugins(db_session, tenant)
+    plugins = await plugin.get_plugins(db_session, tenant)
     if plugins:
         menu.append(
             MenuItem(

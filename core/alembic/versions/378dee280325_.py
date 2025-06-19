@@ -9,6 +9,7 @@ Create Date: 2025-06-05 15:51:15.939395
 from typing import Sequence, Union
 
 import sqlalchemy as sa
+
 from alembic import op
 
 # revision identifiers, used by Alembic.
@@ -29,12 +30,19 @@ def upgrade() -> None:
         sa.Column("menu_name", sa.String(16), nullable=False),
         sa.Column("description", sa.String(10_000), nullable=True),
         sa.Column("url", sa.String(256), nullable=False),
-        sa.Column("is_iframe", sa.Boolean(), nullable=False, server_default="false"),
         sa.Column(
-            "is_autoinstalled", sa.Boolean(), nullable=False, server_default="false"
+            "is_iframe", sa.Boolean(), nullable=False, server_default="false"
+        ),
+        sa.Column(
+            "is_autoinstalled",
+            sa.Boolean(),
+            nullable=False,
+            server_default="false",
         ),
         sa.PrimaryKeyConstraint("id"),
-        sa.UniqueConstraint("name", "version", name="uq_core_plugins_name_version"),
+        sa.UniqueConstraint(
+            "name", "version", name="uq_core_plugins_name_version"
+        ),
     )
 
 

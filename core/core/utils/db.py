@@ -15,7 +15,9 @@ SQLALCHEMY_DATABASE_URL = "postgresql+asyncpg://{0}:{1}@{2}:{3}/{4}".format(
     os.environ.get("POSTGRES_DB"),
 )
 
-LOCAL_SESSION = async_sessionmaker(bind=create_async_engine(SQLALCHEMY_DATABASE_URL))
+LOCAL_SESSION = async_sessionmaker(
+    bind=create_async_engine(SQLALCHEMY_DATABASE_URL)
+)
 
 
 async def get_session() -> AsyncGenerator[AsyncSession, None]:
