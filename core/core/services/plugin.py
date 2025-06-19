@@ -73,7 +73,7 @@ class Plugin(BaseModel):
         )
         return self.from_orm(new_plugin)
 
-    async def get_plugins(self, db_session: AsyncSession) -> list[orm.Plugin]:
+    async def get_all(self, db_session: AsyncSession) -> list[orm.Plugin]:
         result = await db_session.execute(
             orm.Plugin.__table__.select().where(
                 orm.Plugin.tenant == self.tenant

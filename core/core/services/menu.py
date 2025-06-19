@@ -92,7 +92,7 @@ async def get_menu(
     if "admin" in roles:
         menu.extend(ADMIN_USER_MENU)
 
-    plugins = await plugin.get_plugins(db_session, tenant)
+    plugins = await plugin.Plugin(tenant=tenant).get_all(db_session)
     if plugins:
         menu.append(
             MenuItem(
