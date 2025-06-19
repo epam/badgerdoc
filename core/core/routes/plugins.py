@@ -2,7 +2,7 @@ import logging
 from typing import Optional
 
 from fastapi import APIRouter, Depends, Header, HTTPException, status
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from tenant_dependency import TenantData
 
 from core.routes import dependencies
@@ -25,7 +25,6 @@ class PluginRequest(BaseModel):
     version: str
     url: str
     is_iframe: bool
-    is_autoinstalled: bool
 
 
 @router.post("", tags=["plugins"])
@@ -49,6 +48,7 @@ async def register_plugin(
             url=plugin_request.url,
             is_iframe=plugin_request.is_iframe,
             tenant=current_tenant,
+            is_autoinstalled=False,
         ).register(
             db_session,
         )
@@ -68,7 +68,29 @@ async def list_plugins(
     db_session=Depends(db.get_session),
 ) -> list[plugin.Plugin]:
     logger.debug("Listing plugins for tenant: %s", current_tenant)
-    return await plugin.Plugin(tenant=current_tenant).get_plugins(db_session)
+    return await plugin.Plugin(tenant=current_tenant).get_all(db_session)
+
+
+@router.get("/{plugin_id}", tags=["plugins"])
+async def get_plugin(
+    plugin_id: int,
+    _: TenantData = Depends(dependencies.require_admin_role),
+    current_tenant: Optional[str] = Header(None, alias="X-Current-Tenant"),
+    db_session=Depends(db.get_session),
+) -> plugin.Plugin:
+    logger.debug(
+        "Fetching plugin %s for tenant: %s", plugin_id, current_tenant
+    )
+    try:
+        return await plugin.Plugin(
+            id=plugin_id, tenant=current_tenant
+        ).get_plugin(db_session)
+    except plugin.PluginNotFoundError as e:
+        logger.error("Plugin not found: %s", str(e))
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Plugin with ID {plugin_id} not found for tenant {current_tenant}",
+        )
 
 
 class PluginUpdateRequest(BaseModel):
@@ -78,7 +100,7 @@ class PluginUpdateRequest(BaseModel):
     is_iframe: bool
 
 
-@router.put("/plugins/{plugin_id}", tags=["plugins"])
+@router.put("/{plugin_id}", tags=["plugins"])
 async def update_plugin(
     plugin_id: int,
     plugin_request: PluginUpdateRequest,
@@ -110,7 +132,7 @@ async def update_plugin(
         )
 
 
-@router.delete("/plugins/{plugin_id}", tags=["plugins"])
+@router.delete("/{plugin_id}", tags=["plugins"])
 async def delete_plugin(
     plugin_id: int,
     _: TenantData = Depends(dependencies.require_admin_role),

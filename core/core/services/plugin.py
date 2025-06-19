@@ -39,6 +39,38 @@ class Plugin(BaseModel):
             }
         )
 
+    async def get_plugin(
+        self,
+        db_session: AsyncSession,
+    ) -> "Plugin":
+        """
+        Retrieve a plugin by its ID and tenant.
+
+        Args:
+            db_session: SQLAlchemy AsyncSession for database operations
+        """
+        logger.debug(
+            "Retrieving plugin %d for tenant: %s", self.id, self.tenant
+        )
+        stmt = (
+            sqlalchemy.select(orm.Plugin)
+            .where(orm.Plugin.id == self.id)
+            .where(orm.Plugin.tenant == self.tenant)
+        )
+        result = await db_session.execute(stmt)
+        plugin_record = result.scalar_one_or_none()
+        if not plugin_record:
+            logger.warning(
+                "Plugin %d not found for tenant: %s", self.id, self.tenant
+            )
+            raise PluginNotFoundError(
+                f"Plugin with ID {self.id} not found for tenant: {self.tenant}"
+            )
+        logger.debug(
+            "Retrieved plugin %d for tenant: %s", self.id, self.tenant
+        )
+        return self.from_orm(plugin_record)
+
     async def register(
         self,
         session: AsyncSession,

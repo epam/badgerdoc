@@ -48,11 +48,11 @@ ADMIN_USER_MENU = [
         children=[
             MenuItem(
                 name="Plugins",
-                badgerdoc_path="/plugins",
+                badgerdoc_path="/settings/plugins",
             ),
             MenuItem(
                 name="Keycloak",
-                badgerdoc_path="/keycloak",
+                badgerdoc_path="/settings/keycloak",
                 is_external=True,
                 url=KEYCLOAK_HOST,
             ),
@@ -71,7 +71,7 @@ def form_path(menu_name: str) -> str:
     Returns:
         A formatted path string.
     """
-    return f"/{menu_name.lower().replace(' ', '-')}"
+    return f"/plugins/{menu_name.lower().replace(' ', '-')}"
 
 
 async def get_menu(
@@ -97,12 +97,12 @@ async def get_menu(
         menu.append(
             MenuItem(
                 name="Plugins",
-                badgerdoc_path="/plugins",
+                badgerdoc_path="/plugins/",
                 is_iframe=False,
                 children=[
                     MenuItem(
                         name=f"{plugin.menu_name} ({plugin.version})",
-                        badgerdoc_path=form_path(plugin.menu_name),
+                        badgerdoc_path=f"/plugins/{plugin.id}",
                         is_iframe=plugin.is_iframe,
                         url=plugin.url,
                     )
