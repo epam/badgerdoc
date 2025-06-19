@@ -5,10 +5,6 @@ import { PLUGINS_API } from "shared/constants/api";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import { CreatePlugin, MutationHookType, PluginType } from "api/typings";
 
-type PluginResponse = {
-    plugins: PluginType[];
-};
-
 type UpdatePluginPayload = {
     menu_name: string,
     description: string,
@@ -16,9 +12,10 @@ type UpdatePluginPayload = {
     is_iframe: boolean;
 };
 
-export async function pluginsFetcher(): Promise<PluginResponse> {
+// Fetch all plugins
+export async function pluginsFetcher(): Promise< PluginType[]> {
     const badgerFetcher = useBadgerFetch;
-    return badgerFetcher<PluginResponse>({
+    return badgerFetcher<PluginType[]>({
         url: PLUGINS_API,
         method: 'get',
         withCredentials: true
@@ -26,11 +23,11 @@ export async function pluginsFetcher(): Promise<PluginResponse> {
 }
 
 export const usePlugins = () => {
-    return useQuery<PluginResponse, Error, PluginType[]>(
+    return useQuery<PluginType[], Error>(
         ['plugins'],
         pluginsFetcher,
         {
-            select: (data) => data.plugins
+            select: (data) => data
         }
     );
 };
@@ -53,6 +50,7 @@ export const useAddPluginMutation: MutationHookType<CreatePlugin, any> = () => {
     });
 };
 
+// Update an existing plugin
 export const updatePlugin = async (
     id: number,
     data: UpdatePluginPayload
@@ -75,4 +73,23 @@ export const useUpdatePluginMutation: MutationHookType<
             queryClient.invalidateQueries('plugins');
         }
     });
+};
+
+// Fetch a plugin by its ID
+const fetchPluginById = async (id: number | string): Promise<PluginType> => {
+    return useBadgerFetch<PluginType>({
+        url: `${PLUGINS_API}/${id}`,
+        method: 'get',
+        withCredentials: true
+    })();
+};
+
+export const usePluginById = (id?: number | string) => {
+    return useQuery<PluginType, Error>(
+        ['plugin', id],
+        () => fetchPluginById(id!),
+        {
+            enabled: !!id
+        }
+    );
 };
