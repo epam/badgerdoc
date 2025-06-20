@@ -1,2 +1,2 @@
-export const MENU_API = 'http://demo.badgerdoc.com:8080/core/menu';
-export const PLUGINS_API = 'http://demo.badgerdoc.com:8080/core/plugins';
+export const MENU_API = process.env.REACT_APP_MENU!;
+export const PLUGINS_API = process.env.REACT_APP_PLUGINS!;
