@@ -73,20 +73,12 @@ export const AppHeader = () => {
         return history.location.pathname.indexOf(path) === 0;
     };
 
-    const getLinkTarget = (item: AppMenuItem) => {
-        if (item.is_iframe) {
-            return { pathname: '/iframe', search: `?url=${item.url}` };
-        } else {
-            return { pathname: item.badgerdoc_path };
-        }
-    };
-
     const renderMenuButton = (item: AppMenuItem, isDropdown?: boolean) => (
         <MainMenuButton
             key={item.name}
             caption={startCase(item.name)}
             isLinkActive={pathMatches(item.badgerdoc_path)}
-            link={getLinkTarget(item)}
+            link={{ pathname: item.badgerdoc_path }}
             rawProps={{ 'data-page': item.badgerdoc_path }}
             collapseToMore
             priority={0}
