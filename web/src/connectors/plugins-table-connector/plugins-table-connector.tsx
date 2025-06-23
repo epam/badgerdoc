@@ -1,13 +1,21 @@
-import { Button, DataTable, Panel } from '@epam/loveship';
+import {
+    Button,
+    DataTable,
+    Panel,
+    SuccessNotification,
+    ErrorNotification,
+    Text as UiText
+} from '@epam/loveship';
 import { PluginType } from 'api/typings';
-import { usePlugins } from 'api/hooks/plugins';
+import { useDeletePluginMutation, usePlugins } from 'api/hooks/plugins';
 import { TableWrapper, usePageTable } from 'shared';
 import { useArrayDataSource, useUuiContext } from '@epam/uui';
 import { PluginModal } from 'connectors/plugins-modal-connector/plugins-modal-connector';
 import { PluginValidationValues } from 'connectors/plugins-modal-connector/types';
-import { pluginsColumns } from './plugin-columns';
+import { getPluginsColumns } from './plugin-columns';
 
 import styles from './plugins-table-connector.module.scss';
+import { ConfirmModal } from 'components/confirm-modal/confirm-modal';
 
 export const PluginsTableConnector = () => {
     const { tableValue, onTableValueChange, onPageChange, totalCount, pageConfig } =
@@ -15,6 +23,9 @@ export const PluginsTableConnector = () => {
 
     const { page, pageSize } = pageConfig;
     const { data } = usePlugins();
+    const { uuiModals, uuiNotifications } = useUuiContext();
+    const { mutate: deletePlugin } = useDeletePluginMutation();
+
     const pluginsSource = useArrayDataSource<PluginType, number, unknown>(
         {
             items: data ?? []
@@ -33,7 +44,35 @@ export const PluginsTableConnector = () => {
             }
         })
     });
-    const { uuiModals } = useUuiContext();
+
+    const showConfirmModal = (plugin: PluginType) => {
+        if (plugin.is_autoinstalled) {
+            uuiNotifications.show((props) => (
+                <ErrorNotification {...props}>
+                    <UiText>Cannot delete autoinstalled plugin!</UiText>
+                </ErrorNotification>
+            ));
+            return;
+        }
+        uuiModals
+            .show<string>((props) => (
+                <ConfirmModal
+                    modalProps={props}
+                    confirmationText={`Are you sure you want to delete ${plugin.menu_name}?`}
+                />
+            ))
+            .then(() => {
+                deletePlugin(plugin.id, {
+                    onSuccess: () => {
+                        uuiNotifications.show((props) => (
+                            <SuccessNotification {...props}>
+                                <UiText>{plugin.menu_name} deleted successfully!</UiText>
+                            </SuccessNotification>
+                        ));
+                    }
+                });
+            });
+    };
 
     return (
         <Panel cx={`${styles['container']} flex-col`}>
@@ -58,7 +97,7 @@ export const PluginsTableConnector = () => {
                     getRows={view.getVisibleRows}
                     value={tableValue}
                     onValueChange={onTableValueChange}
-                    columns={pluginsColumns}
+                    columns={getPluginsColumns(showConfirmModal)}
                     headerTextCase="upper"
                 />
             </TableWrapper>

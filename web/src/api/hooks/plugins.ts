@@ -93,3 +93,22 @@ export const usePluginById = (id?: number | string) => {
         }
     );
 };
+
+// Delete a plugin by its ID
+export const deletePlugin = async (id: number): Promise<void> => {
+    return useBadgerFetch<void>({
+        url: `${PLUGINS_API}/${id}`,
+        method: 'delete',
+        withCredentials: true
+    })();
+};
+
+export const useDeletePluginMutation: MutationHookType<number, any> = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation(deletePlugin, {
+        onSuccess: () => {
+            queryClient.invalidateQueries('plugins');
+        }
+    });
+};

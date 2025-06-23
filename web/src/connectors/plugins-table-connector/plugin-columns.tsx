@@ -2,7 +2,7 @@ import { IconButton, Text as UiText } from '@epam/loveship';
 import { PluginType } from 'api/typings';
 import { ReactComponent as DeleteIcon } from '@epam/assets/icons/common/action-delete-18.svg';
 
-export const pluginsColumns = [
+export const getPluginsColumns = (onDelete: (plugin: PluginType) => void) => [
     {
         key: 'name',
         caption: 'Name',
@@ -24,7 +24,11 @@ export const pluginsColumns = [
         render: (plugin: PluginType) => {
             return (
                 <UiText key={plugin.name}>
-                    <IconButton icon={DeleteIcon} onClick={() => {}} />
+                    <IconButton
+                        icon={DeleteIcon}
+                        onClick={() => onDelete(plugin)}
+                        isDisabled={plugin.is_autoinstalled}
+                    />
                 </UiText>
             );
         },
