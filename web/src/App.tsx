@@ -34,8 +34,8 @@ import {
 } from './shared/constants/general';
 import { ProtectedRoute } from 'shared/components/protected-route';
 import { CategoriesTableConnector } from './connectors/categories-table-connector';
-import { IframePage } from 'pages/iframe/iframe-page';
 import { PluginsTableConnector } from 'connectors/plugins-table-connector/plugins-table-connector';
+import { PluginPage } from 'pages/plugin/plugin-page';
 
 export const App = () => {
     const history = useHistory();
@@ -75,7 +75,7 @@ export const App = () => {
                         <Route path="/my documents" component={SkillHunterDashboardPage} />
                         <Route path={`${ANNOTATION_PAGE}/:taskId`} component={TaskPage} />
                         <Route path={PLUGINS_PAGE} component={PluginsTableConnector} />
-                        <Route path={IFRAME_PAGE} component={IframePage} />
+                        <Route path="/plugins/:id" component={PluginPage} />
                         <Redirect to="/documents" />
                     </Switch>
                 </main>

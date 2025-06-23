@@ -1,7 +1,7 @@
 // temporary_disabled_rules
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { FC, useEffect, useMemo, useState } from 'react';
-import { noop, uniq } from 'lodash';
+import { noop } from 'lodash';
 import { User } from 'api/typings';
 import { useMenuItems } from 'api/hooks/menu';
 import { AppMenuItem } from 'api/typings';
@@ -61,92 +61,7 @@ export const UserContextProvider: FC<{ currentUser: User | null }> = ({
     const isAnnotator = isUserInRole('annotator');
     const isSimple = isUserInRole('simple_flow');
 
-    const fallbackMenu = useMemo(() => {
-        const items: AppMenuItem[] = [];
-
-        const addItems = (newItems: AppMenuItem[]) => {
-            for (const item of newItems) {
-                if (!items.some((i) => i.url === item.url)) {
-                    items.push(item);
-                }
-            }
-        };
-
-        switch (true) {
-            case isEngineer:
-                addItems([
-                    {
-                        name: 'Documents',
-                        url: '/documents',
-                        badgerdoc_path: '/documents',
-                        is_external: false,
-                        is_iframe: false,
-                        children: null
-                    },
-                    {
-                        name: 'Jobs',
-                        url: '/jobs',
-                        badgerdoc_path: '/jobs',
-                        is_external: false,
-                        is_iframe: false,
-                        children: null
-                    },
-                    {
-                        name: 'My Tasks',
-                        url: '/my tasks',
-                        badgerdoc_path: '/my tasks',
-                        is_external: false,
-                        is_iframe: false,
-                        children: null
-                    },
-                    {
-                        name: 'Categories',
-                        url: '/categories',
-                        badgerdoc_path: '/categories',
-                        is_external: false,
-                        is_iframe: false,
-                        children: null
-                    },
-                    {
-                        name: 'Reports',
-                        url: '/reports',
-                        badgerdoc_path: '/reports',
-                        is_external: false,
-                        is_iframe: false,
-                        children: null
-                    }
-                ]);
-                break;
-            case isAnnotator:
-                addItems([
-                    {
-                        name: 'My Tasks',
-                        url: '/my tasks',
-                        badgerdoc_path: '/my tasks',
-                        is_external: false,
-                        is_iframe: false,
-                        children: null
-                    }
-                ]);
-                break;
-            case isSimple:
-                addItems([
-                    {
-                        name: 'My Documents',
-                        url: '/my documents',
-                        badgerdoc_path: '/my documents',
-                        is_external: false,
-                        is_iframe: false,
-                        children: null
-                    }
-                ]);
-                break;
-        }
-
-        return uniq(items);
-    }, [isEngineer, isAnnotator, isSimple]);
-
-    const menu = menuItems ?? fallbackMenu;
+    const menu = menuItems ?? [];
 
     const value: UserContext = useMemo<UserContext>(() => {
         return {

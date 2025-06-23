@@ -513,6 +513,7 @@ export type Report = {
 
 export type AppMenuItem = {
     name: string;
+    menu_name?: string;
     url: string;
     badgerdoc_path: string;
     is_external: boolean;
@@ -521,14 +522,15 @@ export type AppMenuItem = {
 };
 
 export type PluginType = {
-    id: string;
-    description: string;
-    menu_name?: string;
     name: string;
-    tenant?: string;
-    url: string;
+    menu_name: string;
+    description: string;
     version: string;
+    url: string;
     is_iframe: boolean;
+    is_autoinstalled: boolean;
+    tenant: string;
+    id: number;
 };
 
 export type CreatePlugin = {

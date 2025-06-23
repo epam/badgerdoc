@@ -1,35 +1,32 @@
 import { Blocker, Panel, Text as ErrorText } from '@epam/loveship';
 import React, { useEffect, useRef, useState } from 'react';
-import { useLocation } from 'react-router-dom';
 import { useNotifications } from 'shared/components/notifications';
 import { getError } from 'shared/helpers/get-error';
 
 import styles from './iframe-page.module.scss';
 
-export const IframePage: React.FC = () => {
+type IframePageProps = {
+    src: string;
+    title?: string;
+};
+
+export const IframePage: React.FC<IframePageProps> = ({ src, title = 'Iframe' }) => {
     const [isLoading, setIsLoading] = useState(true);
     const iframeRef = useRef<HTMLIFrameElement>(null);
-    const location = useLocation();
-    const searchParams = new URLSearchParams(location.search);
-    const iframeUrl = searchParams.get('url') ?? '';
-    const title = searchParams.get('name') ?? 'Iframe';
+    const { notifyError } = useNotifications();
 
-    // Clear the iframe source when the component unmounts to prevent memory leaks
+    useEffect(() => {
+        setIsLoading(true);
+    }, [src]);
+
     useEffect(() => {
         const iframeEl = iframeRef.current;
-
         return () => {
             if (iframeEl) {
                 iframeEl.src = '';
             }
         };
     }, []);
-
-    useEffect(() => {
-        setIsLoading(true);
-    }, [iframeUrl]);
-
-    const { notifyError } = useNotifications();
 
     const handleError = (error: Error) => {
         setIsLoading(false);
@@ -40,16 +37,12 @@ export const IframePage: React.FC = () => {
         );
     };
 
-    useEffect(() => {
-        setIsLoading(true);
-    }, [iframeUrl]);
-
     return (
         <div className={styles['iframe-page']}>
             <Blocker isEnabled={isLoading} />
             <iframe
                 ref={iframeRef}
-                src={iframeUrl}
+                src={src}
                 title={title}
                 onLoad={() => setIsLoading(false)}
                 onError={() => handleError(new Error('Unable to load iframe content'))}
