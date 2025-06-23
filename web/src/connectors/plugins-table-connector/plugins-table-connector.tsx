@@ -8,7 +8,7 @@ import {
 } from '@epam/loveship';
 import { PluginType } from 'api/typings';
 import { useDeletePluginMutation, usePlugins } from 'api/hooks/plugins';
-import { TableWrapper, usePageTable } from 'shared';
+import { usePageTable } from 'shared';
 import { useArrayDataSource, useUuiContext } from '@epam/uui';
 import { PluginModal } from 'connectors/plugins-modal-connector/plugins-modal-connector';
 import { PluginValidationValues } from 'connectors/plugins-modal-connector/types';
@@ -18,10 +18,8 @@ import styles from './plugins-table-connector.module.scss';
 import { ConfirmModal } from 'components/confirm-modal/confirm-modal';
 
 export const PluginsTableConnector = () => {
-    const { tableValue, onTableValueChange, onPageChange, totalCount, pageConfig } =
-        usePageTable<PluginType>('name');
+    const { tableValue, onTableValueChange } = usePageTable<PluginType>('name');
 
-    const { page, pageSize } = pageConfig;
     const { data } = usePlugins();
     const { uuiModals, uuiNotifications } = useUuiContext();
     const { mutate: deletePlugin } = useDeletePluginMutation();
@@ -86,21 +84,15 @@ export const PluginsTableConnector = () => {
                     caption="Add Plugin"
                 />
             </div>
-            <TableWrapper
-                page={page}
-                pageSize={pageSize}
-                totalCount={totalCount}
-                onPageChange={onPageChange}
-            >
-                <DataTable
-                    {...view.getListProps()}
-                    getRows={view.getVisibleRows}
-                    value={tableValue}
-                    onValueChange={onTableValueChange}
-                    columns={getPluginsColumns(showConfirmModal)}
-                    headerTextCase="upper"
-                />
-            </TableWrapper>
+
+            <DataTable
+                {...view.getListProps()}
+                getRows={view.getVisibleRows}
+                value={tableValue}
+                onValueChange={onTableValueChange}
+                columns={getPluginsColumns(showConfirmModal)}
+                headerTextCase="upper"
+            />
         </Panel>
     );
 };
