@@ -2,7 +2,7 @@ import logging
 from typing import Optional
 
 from fastapi import APIRouter, Depends, Header, HTTPException, status
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from tenant_dependency import TenantData
 
 from core.routes import dependencies
@@ -78,13 +78,11 @@ async def get_plugin(
     current_tenant: Optional[str] = Header(None, alias="X-Current-Tenant"),
     db_session=Depends(db.get_session),
 ) -> plugin.Plugin:
-    logger.debug(
-        "Fetching plugin %s for tenant: %s", plugin_id, current_tenant
-    )
+    logger.debug("Fetching plugin %s for tenant: %s", plugin_id, current_tenant)
     try:
-        return await plugin.Plugin(
-            id=plugin_id, tenant=current_tenant
-        ).get_plugin(db_session)
+        return await plugin.Plugin(id=plugin_id, tenant=current_tenant).get_plugin(
+            db_session
+        )
     except plugin.PluginNotFoundError as e:
         logger.error("Plugin not found: %s", str(e))
         raise HTTPException(
@@ -108,9 +106,7 @@ async def update_plugin(
     current_tenant: str | None = Header(None, alias="X-Current-Tenant"),
     db_session=Depends(db.get_session),
 ) -> plugin.Plugin:
-    logger.debug(
-        "Updating plugin %s for tenant: %s", plugin_id, current_tenant
-    )
+    logger.debug("Updating plugin %s for tenant: %s", plugin_id, current_tenant)
 
     try:
         return await plugin.Plugin(
@@ -139,13 +135,11 @@ async def delete_plugin(
     current_tenant: Optional[str] = Header(None, alias="X-Current-Tenant"),
     db_session=Depends(db.get_session),
 ) -> plugin.Plugin:
-    logger.debug(
-        "Deleting plugin %s for tenant: %s", plugin_id, current_tenant
-    )
+    logger.debug("Deleting plugin %s for tenant: %s", plugin_id, current_tenant)
     try:
-        return await plugin.Plugin(
-            id=plugin_id, tenant=current_tenant
-        ).delete_plugin(db_session)
+        return await plugin.Plugin(id=plugin_id, tenant=current_tenant).delete_plugin(
+            db_session
+        )
     except plugin.PluginNotFoundError:
         logger.error(
             "Plugin with ID %s not found for tenant %s",

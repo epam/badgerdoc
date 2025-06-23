@@ -5,6 +5,7 @@ Revises:
 Create Date: 2025-06-06 12:10:54.866515
 
 """
+
 from typing import Sequence, Union
 
 import sqlalchemy as sa
@@ -25,20 +26,35 @@ def upgrade() -> None:
     op.create_table(
         "veeva_pm_configurations",
         sa.Column("id", sa.Integer(), nullable=False, autoincrement=True),
-        sa.Column("tenant", sa.String(), nullable=False),
-        sa.Column("created_by", sa.String(), nullable=False),
+        sa.Column("title", sa.String(255), nullable=False),
+        sa.Column("tenant", sa.String(32), nullable=False),
+        sa.Column("created_by", sa.String(64), nullable=False),
         sa.Column(
-            "created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False
+            "created_at",
+            sa.DateTime(),
+            nullable=False,
+            server_default=sa.func.now(),
         ),
-        sa.Column("updated_by", sa.String(), nullable=True),
-        sa.Column("updated_at", sa.DateTime(), nullable=True),
-        sa.Column("sync_type", sa.String(), nullable=False),
-        sa.Column("protocol", sa.String(), nullable=False),
-        sa.Column("veeva_pm_host", sa.String(), nullable=False),
-        sa.Column("veeva_pm_login", sa.String(), nullable=False),
-        sa.Column("veeva_pm_password", sa.String(), nullable=False),
-        sa.Column("veeva_pm_vql", sa.String(), nullable=True),
-        sa.Column("soft_deleted", sa.Boolean(), server_default="false", nullable=False),
+        sa.Column("updated_by", sa.String(64), nullable=True),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(),
+            nullable=False,
+            server_default=sa.func.now(),
+            onupdate=sa.func.now(),
+        ),
+        sa.Column("sync_type", sa.String(16), nullable=False),
+        sa.Column("protocol", sa.String(16), nullable=False),
+        sa.Column("veeva_pm_host", sa.String(2083), nullable=False),
+        sa.Column("veeva_pm_login", sa.String(255), nullable=False),
+        sa.Column("veeva_pm_password", sa.String(255), nullable=False),
+        sa.Column("veeva_pm_vql", sa.String(10_000), nullable=True),
+        sa.Column(
+            "soft_deleted",
+            sa.Boolean(),
+            server_default="false",
+            nullable=False,
+        ),
         sa.PrimaryKeyConstraint("id"),
     )
 
@@ -50,24 +66,34 @@ def upgrade() -> None:
         sa.Column(
             "status",
             postgresql.ENUM(
-                "queued",
+                "pending",
                 "in_progress",
                 "finished",
+                "cancelled",
                 "timed_out",
+                "failed",
                 name="veeva_pm_synchronization_status_enum",
                 create_type=True,
             ),
             nullable=False,
         ),
-        sa.Column("created_by", sa.String(), nullable=False),
+        sa.Column("created_by", sa.String(64), nullable=False),
         sa.Column(
-            "created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False
+            "created_at",
+            sa.DateTime(),
+            server_default=sa.text("now()"),
+            nullable=False,
         ),
         sa.Column(
-            "updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False
+            "updated_at",
+            sa.DateTime(),
+            server_default=sa.text("now()"),
+            nullable=False,
         ),
         sa.ForeignKeyConstraint(
-            ["configuration_id"], ["veeva_pm_configurations.id"], ondelete="CASCADE"
+            ["configuration_id"],
+            ["veeva_pm_configurations.id"],
+            ondelete="CASCADE",
         ),
         sa.PrimaryKeyConstraint("id"),
     )
@@ -79,7 +105,10 @@ def upgrade() -> None:
         sa.Column("veeva_document_id", sa.String(), nullable=False),
         sa.Column("badgerdoc_file_id", sa.Integer(), nullable=False),
         sa.Column(
-            "created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False
+            "created_at",
+            sa.DateTime(),
+            server_default=sa.text("now()"),
+            nullable=False,
         ),
         sa.Column("source_file", sa.String(), nullable=True),
         sa.Column("viewable_rendition", sa.String(), nullable=True),
@@ -100,7 +129,10 @@ def upgrade() -> None:
         sa.Column("minor_version", sa.Integer(), nullable=False),
         sa.Column("version_modified_date", sa.DateTime(), nullable=False),
         sa.Column(
-            "created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False
+            "created_at",
+            sa.DateTime(),
+            server_default=sa.text("now()"),
+            nullable=False,
         ),
         sa.Column("synchronization_id", sa.Integer(), nullable=False),
         sa.Column("metadata", postgresql.JSONB(), nullable=False),
@@ -128,9 +160,12 @@ def upgrade() -> None:
         sa.Column("id", sa.Integer(), nullable=False, autoincrement=True),
         sa.Column("synchronization_id", sa.Integer(), nullable=False),
         sa.Column(
-            "created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False
+            "created_at",
+            sa.DateTime(),
+            server_default=sa.func.now(),
+            nullable=False,
         ),
-        sa.Column("message", sa.String(), nullable=False),
+        sa.Column("message", sa.String(10_000), nullable=False),
         sa.ForeignKeyConstraint(
             ["synchronization_id"],
             ["veeva_pm_synchronization_runs.id"],
@@ -142,15 +177,26 @@ def upgrade() -> None:
     # Create veeva_pm_mappings table
     op.create_table(
         "veeva_pm_mappings",
-        sa.Column("veeva_mapping_id", sa.Integer(), nullable=False, autoincrement=True),
+        sa.Column(
+            "veeva_mapping_id",
+            sa.Integer(),
+            nullable=False,
+            autoincrement=True,
+        ),
         sa.Column("synchronization_id", sa.Integer(), nullable=False),
         sa.Column("key", sa.String(), nullable=False),
         sa.Column("value", sa.String(), nullable=False),
         sa.Column(
-            "created_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False
+            "created_at",
+            sa.DateTime(),
+            server_default=sa.text("now()"),
+            nullable=False,
         ),
         sa.Column(
-            "updated_at", sa.DateTime(), server_default=sa.text("now()"), nullable=False
+            "updated_at",
+            sa.DateTime(),
+            server_default=sa.text("now()"),
+            nullable=False,
         ),
         sa.ForeignKeyConstraint(
             ["synchronization_id"],
