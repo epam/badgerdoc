@@ -9,7 +9,7 @@ import styles from './finish-button.module.scss';
 import { ValidationType } from '../../../../api/typings';
 import { TaskStatus } from '../../../../api/typings/tasks';
 import { createTooltip } from './utils';
-import { ConfirmModal } from './confirm-modal/confirm-modal';
+import { ConfirmModal } from '../../../confirm-modal/confirm-modal';
 import { useUuiContext } from '@epam/uui-core';
 
 type TaskSidebarProps = {
@@ -87,7 +87,11 @@ export const FinishButton: FC<TaskSidebarProps> = ({
         if (confirmWindowNeed === 'true') {
             uuiModals
                 .show<string>((props) => (
-                    <ConfirmModal modalProps={props} isValidation={isValidation} />
+                    <ConfirmModal
+                        modalProps={props}
+                        confirmationText={`Are you sure you want to stop 
+                            ${isValidation ? 'validating' : 'annotating'} this document?`}
+                    />
                 ))
                 .then(() => {
                     finishingValidation();
