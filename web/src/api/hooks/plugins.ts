@@ -103,7 +103,7 @@ export const deletePlugin = async (id: number): Promise<void> => {
     })();
 };
 
-export const useDeletePluginMutation: MutationHookType<number, any> = () => {
+export const useDeletePluginMutation: MutationHookType<number, void> = () => {
     const queryClient = useQueryClient();
 
     return useMutation(deletePlugin, {
