@@ -18,7 +18,6 @@ import {
     FlexSpacer
 } from '@epam/loveship';
 import { useHistory } from 'react-router-dom';
-import startCase from 'lodash/startCase';
 import { CurrentUser } from 'shared/contexts/current-user';
 import { AppMenuItem } from 'api/typings';
 import { clearAuthDetails } from 'shared/helpers/auth-tools';
@@ -73,12 +72,20 @@ export const AppHeader = () => {
         return history.location.pathname.indexOf(path) === 0;
     };
 
+    const getLinkTarget = (item: AppMenuItem) => {
+        if (item.is_external) {
+            return { target: '_blank', pathname: item.url };
+        } else {
+            return { pathname: item.badgerdoc_path };
+        }
+    };
+
     const renderMenuButton = (item: AppMenuItem, isDropdown?: boolean) => (
         <MainMenuButton
             key={item.name}
-            caption={startCase(item.name)}
+            caption={item.name}
             isLinkActive={pathMatches(item.badgerdoc_path)}
-            link={{ pathname: item.badgerdoc_path }}
+            link={getLinkTarget(item)}
             rawProps={{ 'data-page': item.badgerdoc_path }}
             collapseToMore
             priority={0}
