@@ -62,7 +62,7 @@ Now services are running, but to start using BadgerDoc, some additional configur
 
 ## Keycloak local configuration
 
-_It's a good idea to automate this section_
+_You can run [configure_local_keycloak](scripts/configure_local_keycloak.sh) script which will update local Keycloak config (steps 2 to 10) for you. Note: you should have `jq` installed!_
 
 Important! This is not secure configuration, follow [KeyCloak best practices](https://www.keycloak.org/server/configuration-production) to setup on production environment
 
@@ -164,7 +164,7 @@ Airflow runs using its own resources (PostgreSQL, Redis, Flower) without sharing
 cp airflow/.env.example airflow/.env
 ```
 
-To setup service account you need to configure Keycloak for BadgerDoc first.
+To setup service account you need to configure Keycloak for BadgerDoc first. _If you used [configure_local_keycloak](scripts/configure_local_keycloak.sh) script to setup local Keycloak - steps 2 to 4 should already be done_
 
 2. Setup service account. Login into Keycloak using url http://127.0.0.1:8082/auth and `admin:admin` as credentials. Select Clients -> badgerdoc-internal -> Service Accounts Roles -> Find Service Account User and click "service-account-badgerdoc-internal". Then select Attributes tab and add `tenants:local` attribute like you did it for `admin`.
 
