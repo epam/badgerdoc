@@ -16,20 +16,17 @@ import { IModal } from '@epam/uui-core';
 
 interface ConfirmModalProps {
     modalProps: IModal<string>;
-    isValidation: boolean;
+    confirmationText: string;
 }
 
-export const ConfirmModal = ({ modalProps, isValidation }: ConfirmModalProps) => (
+export const ConfirmModal = ({ modalProps, confirmationText }: ConfirmModalProps) => (
     <ModalBlocker {...modalProps} blockerShadow="dark">
         <ModalWindow>
             <Panel>
                 <ModalHeader title="Attention" onClose={() => modalProps.abort()} />
                 <ScrollBars hasTopShadow hasBottomShadow>
                     <FlexRow padding="24">
-                        <Text size="36">
-                            Are you sure you want to stop{' '}
-                            {isValidation ? 'validating' : 'annotating'} this document?
-                        </Text>
+                        <Text size="36">{confirmationText}</Text>
                     </FlexRow>
                 </ScrollBars>
                 <ModalFooter>

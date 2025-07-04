@@ -510,3 +510,34 @@ export type Report = {
     to: string;
     validationType?: ValidationType;
 };
+
+export type AppMenuItem = {
+    name: string;
+    menu_name?: string;
+    url: string;
+    badgerdoc_path: string;
+    is_external: boolean;
+    is_iframe: boolean;
+    children: AppMenuItem[] | null;
+};
+
+export type PluginType = {
+    name: string;
+    menu_name: string;
+    description: string;
+    version: string;
+    url: string;
+    is_iframe: boolean;
+    is_autoinstalled: boolean;
+    tenant: string;
+    id: number;
+};
+
+export type CreatePlugin = {
+    name: string;
+    menu_name: string;
+    description: string;
+    version: string;
+    url: string;
+    is_iframe?: boolean;
+};
