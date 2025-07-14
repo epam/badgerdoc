@@ -163,6 +163,12 @@ export type TTaskAnnotatorContext = SplitValidationValue &
         setTableCellCategory: (s: string | number | undefined) => void;
         selectedToolParams: PaperToolParams;
         setSelectedToolParams: (nt: PaperToolParams) => void;
+        storedParams: { [k in typeof toolNames[number]]: Maybe<PaperToolParams> };
+        setStoredParams: React.Dispatch<
+            React.SetStateAction<{
+                [k in typeof toolNames[number]]: Maybe<PaperToolParams>;
+            }>
+        >;
         setSelectedAnnotation: (annotation: Annotation | undefined) => void;
         selectedLabels: Label[];
         onLabelsSelected: (labels: Label[]) => void;
@@ -259,7 +265,7 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
     const [tabValue, setTabValue] = useState<string>('Categories');
     const [selectionType, setSelectionType] = useState<
         AnnotationBoundType | AnnotationLinksBoundType | AnnotationImageToolType
-    >('free-box');
+    >('box');
     const [annotationType, setAnnotationType] = useState<AnnotationBoundType>('box');
     const [selectedTool, setSelectedTool] = useState<AnnotationImageToolType>('pen');
     const [selectedAnnotation, setSelectedAnnotation] = useState<Annotation | undefined>();
@@ -1178,6 +1184,8 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
             setSelectedTool,
             selectedToolParams,
             setSelectedToolParams,
+            storedParams,
+            setStoredParams,
             onChangeSelectedTool,
             tableMode,
             isNeedToSaveTable,
@@ -1265,6 +1273,8 @@ export const TaskAnnotatorContextProvider: React.FC<ProviderProps> = ({
         tableCellCategory,
         isDataTabDisabled,
         selectedToolParams,
+        storedParams,
+        setStoredParams,
         splitValidation,
         SyncedContainer,
         selectedLabels,
