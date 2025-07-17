@@ -1,6 +1,7 @@
 // temporary_disabled_rules
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { FC, ReactElement, useEffect, useMemo, useState } from 'react';
+import React, { FC, ReactElement, useEffect, useMemo, useRef, useState } from 'react';
+import cloneDeep from 'lodash/cloneDeep';
 import {
     Button,
     FlexRow,
@@ -27,7 +28,8 @@ import {
     AnnotationBoundMode,
     AnnotationBoundType,
     AnnotationImageToolType,
-    AnnotationLinksBoundType
+    AnnotationLinksBoundType,
+    PaperToolParams
 } from 'shared';
 import { Status } from 'shared/components/status';
 import { mapStatusForValidationPage } from 'shared/helpers/map-statuses';
@@ -69,6 +71,8 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [nextLocation, setNextLocation] = useState<HistoryLocation | null>(null);
     const [allowNavigation, setAllowNavigation] = useState(false);
+    const [cell, setCell] = useState<string | undefined>('');
+    const [annotation, setAnnotation] = useState<Annotation>();
 
     const history = useHistory();
     const location = useLocation();
@@ -112,6 +116,8 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
         onChangeSelectedTool,
         selectedToolParams,
         setSelectedToolParams,
+        storedParams,
+        setStoredParams,
         onLabelsSelected,
         setSelectedLabels,
         selectedLabels,
@@ -143,6 +149,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
         onSplitCellsClicked,
         selectedCellsCanBeSplitted
     } = useTableAnnotatorContext();
+
     const isValidation = task?.is_validation;
     const isAnnotatable = task?.status === 'In Progress' || task?.status === 'Ready';
     const isValid = validPages.includes(currentPage);
@@ -157,10 +164,30 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
         return editPage;
     }, [isValidation, viewMode, splitValidation, editPage]);
 
+    // Initial state to reset the sidebar when the user clicks "Cancel" or "Save"
+    const initialState = useRef({
+        selectionType,
+        selectedTool,
+        selectedLabels: selectedLabels ?? [],
+        cell,
+        tableModeColumns,
+        tableModeRows,
+        tableCellCategory
+    });
     const { refetch } = useGetPageSummary({ taskId: task?.id, taskType: task?.is_validation }, {});
 
-    const [cell, setCell] = useState<string | undefined>('');
-    const [annotation, setAnnotation] = useState<Annotation>();
+    // Reference to store the initial selected tool params
+    const initialSelectedToolParams = useRef<PaperToolParams | null>(null);
+
+    // Initialize initialSelectedToolParams when selectedToolParams is set
+    useEffect(() => {
+        if (selectedToolParams && selectedToolParams.values && !initialSelectedToolParams.current) {
+            initialSelectedToolParams.current = {
+                type: selectedToolParams.type,
+                values: cloneDeep(selectedToolParams.values)
+            };
+        }
+    }, [selectedToolParams]);
 
     useEffect(() => {
         setCell(currentCell?.text);
@@ -400,10 +427,54 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
         </>
     );
 
+    const handleCancel = () => {
+        onCancelClick();
+        // Resetting the selected tool params to the initial values
+        if (initialSelectedToolParams.current) {
+            setSelectedToolParams({
+                type: initialSelectedToolParams.current.type,
+                values: cloneDeep(initialSelectedToolParams.current.values)
+            });
+            setStoredParams({
+                ...storedParams,
+                [selectedTool]: {
+                    type: initialSelectedToolParams.current.type,
+                    values: cloneDeep(initialSelectedToolParams.current.values)
+                }
+            });
+        }
+
+        // Resetting the state to the initial values
+        onChangeSelectedTool(initialState.current.selectedTool);
+        onChangeSelectionType(initialState.current.selectionType);
+        setSelectedLabels(initialState.current.selectedLabels);
+        setCell(initialState.current.cell);
+        setTableModeColumns(initialState.current.tableModeColumns as number);
+        setTableModeRows(initialState.current.tableModeRows as number);
+        setTableCellCategory(initialState.current.tableCellCategory);
+
+        setBoundModeSwitch('box');
+        setTableModeValues('');
+
+        clearAnnotationsChanges?.();
+        refetch();
+    };
+
     const handleSave = async () => {
         await onSaveTask();
         onClearTouchedPages();
         onClearModifiedPages();
+        // Resetting the state to the initial values
+        initialState.current = {
+            selectionType,
+            selectedTool,
+            selectedLabels,
+            cell,
+            tableModeColumns,
+            tableModeRows,
+            tableCellCategory
+        };
+
         clearAnnotationsChanges();
         refetch();
     };
@@ -694,7 +765,7 @@ const TaskSidebar: FC<TaskSidebarProps> = ({ jobSettings, viewMode, isNextTaskPr
                                                 caption="CANCEL"
                                                 fill="none"
                                                 color="sky"
-                                                onClick={onCancelClick}
+                                                onClick={handleCancel}
                                                 isDisabled={isValidationDisabled}
                                             />
                                             <Button
