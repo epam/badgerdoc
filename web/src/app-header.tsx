@@ -18,13 +18,13 @@ import {
     FlexSpacer,
     Burger
 } from '@epam/loveship';
+import { AdaptiveItemProps, MainMenuLogo } from '@epam/uui-components';
 import { useHistory } from 'react-router-dom';
 import { CurrentUser } from 'shared/contexts/current-user';
 import { AppMenuItem } from 'api/typings';
 import { clearAuthDetails } from 'shared/helpers/auth-tools';
 import { useIsInIframe } from 'api/hooks/useIsInIframe';
 import { DASHBOARD_PAGE, DOCUMENTS_PAGE, MY_DOCUMENTS_PAGE } from 'shared';
-import { AdaptiveItemProps, MainMenuLogo } from '@epam/uui-components';
 
 export const AppHeader = () => {
     const history = useHistory();
@@ -156,13 +156,13 @@ export const AppHeader = () => {
                 id: 'burger',
                 priority: 100,
                 collapsedContainer: true,
-                render: (item, hiddenItems) => (
+                render: (param, hiddenItems) => (
                     <Burger
-                        key={item.id}
-                        renderBurgerContent={(item) => {
+                        key={param.id}
+                        renderBurgerContent={(param) => {
                             return (hiddenItems ?? [])
                                 .filter((i) => i.id !== 'burger' && i.id !== 'logo')
-                                .map((i) => i.render({ ...i, onClose: item.onClose }));
+                                .map((i) => i.render({ ...i, onClose: param.onClose }));
                         }}
                     />
                 )
@@ -183,13 +183,13 @@ export const AppHeader = () => {
                 id: 'moreContainer',
                 priority: 8,
                 collapsedContainer: true,
-                render: (item, hiddenItems) => (
-                    <MainMenuDropdown caption="More" key={item.id}>
-                        {hiddenItems?.map((i) => i.render({ ...i, onClose: item.onClose }))}
+                render: (param, hiddenItems) => (
+                    <MainMenuDropdown caption="More" key={param.id}>
+                        {hiddenItems?.map((i) => i.render({ ...i, onClose: param.onClose }))}
                     </MainMenuDropdown>
                 )
             },
-            { id: 'flexSpacer', priority: 100, render: (p) => <FlexSpacer key={p.id} /> },
+            { id: 'flexSpacer', priority: 100, render: (param) => <FlexSpacer key={param.id} /> },
             {
                 id: 'account',
                 priority: 100,
