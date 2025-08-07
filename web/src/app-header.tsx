@@ -1,6 +1,6 @@
 // temporary_disabled_rules
 /* eslint-disable @typescript-eslint/no-unused-vars, @typescript-eslint/no-redeclare, react-hooks/exhaustive-deps, no-restricted-globals */
-import React, { useContext, useMemo, useCallback, ReactNode } from 'react';
+import React, { useContext, useMemo, useCallback } from 'react';
 import { cloneDeep, isEmpty } from 'lodash';
 import {
     Dropdown,
@@ -16,7 +16,8 @@ import {
     MainMenuDropdown,
     Text,
     FlexSpacer,
-    Burger
+    Burger,
+    DropdownContainer
 } from '@epam/loveship';
 import { AdaptiveItemProps, MainMenuLogo } from '@epam/uui-components';
 import { useHistory } from 'react-router-dom';
@@ -185,7 +186,37 @@ export const AppHeader = () => {
                 collapsedContainer: true,
                 render: (param, hiddenItems) => (
                     <MainMenuDropdown caption="More" key={param.id}>
-                        {hiddenItems?.map((i) => i.render({ ...i, onClose: param.onClose }))}
+                        {hiddenItems?.map((i) => {
+                            const item = menu.find((m) => m.name === i.id);
+                            if (!item) return null;
+
+                            if (item.children && item.children.length > 0) {
+                                return (
+                                    <Dropdown
+                                        key={item.name}
+                                        placement="right-start"
+                                        renderTarget={(props) => (
+                                            <DropdownMenuButton
+                                                {...props}
+                                                caption={item.name}
+                                                isDropdown={true}
+                                            />
+                                        )}
+                                        renderBody={(props) => (
+                                            <DropdownContainer
+                                                {...props}
+                                                style={{ backgroundColor: '#303240' }}
+                                            >
+                                                {item?.children?.map((child) =>
+                                                    renderMenuButton(child)
+                                                )}
+                                            </DropdownContainer>
+                                        )}
+                                    />
+                                );
+                            }
+                            return renderMenuButton(item);
+                        })}
                     </MainMenuDropdown>
                 )
             },
