@@ -235,18 +235,6 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
         }
     }, [files]);
 
-    const namesCache = useRef<PagingCache>({
-        page: -1,
-        cache: [],
-        search: ''
-    });
-
-    type PagingCache = {
-        page: number;
-        cache: Array<string>;
-        search: string;
-    };
-
     const documentNames = useArrayDataSource<string, string, unknown>(
         {
             items: files?.data.map((f) => f.original_name) ?? [],
