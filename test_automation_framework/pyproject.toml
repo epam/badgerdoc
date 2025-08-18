@@ -1,0 +1,15 @@
+[project]
+name = "badgerdoc_taf"
+version = "0.1.0"
+description = "Default template for PDM package"
+authors = [
+    {name = "asobolev", email = "aleksei_sobolev@epam.com"},
+]
+dependencies = ["PyYAML==6.0.2", "dotenv==0.9.9", "httpx==0.28.1", "pre-commit==4.3.0", "pydantic-settings==2.10.1", "pydantic==2.11.7", "pytest==8.4.1"]
+requires-python = "==3.13.*"
+readme = "README.md"
+license = {text = "MIT"}
+
+
+[tool.pdm]
+distribution = false

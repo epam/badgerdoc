@@ -1,0 +1,7 @@
+BASE_URL: "http://demo.badgerdoc.com:8080"
+TIMEOUT_SECONDS: 30
+MAX_WORKERS: 4
+USE_MOCK_LLM: true
+LOG_LEVEL: "INFO"
+API_USER: "user@example.com"
+API_PASS: "changeme"
