@@ -1,8 +1,8 @@
 // temporary_disabled_rules
 /* eslint-disable @typescript-eslint/no-unused-vars, react-hooks/exhaustive-deps */
 import { Button, DataTable, Panel, FlexRow, Checkbox } from '@epam/loveship';
-import React, { FC, useEffect, useMemo, useRef, useState } from 'react';
-import { useLazyDataSource } from '@epam/uui';
+import { FC, useEffect, useMemo, useRef, useState } from 'react';
+import { useArrayDataSource, useLazyDataSource } from '@epam/uui';
 import { useAsyncSourceTable } from 'shared/hooks/async-source-table';
 import { PagingCache, SortingDirection } from 'api/typings';
 import JobPopup from 'pages/jobs/job-popup';
@@ -136,12 +136,6 @@ export const JobsTableConnector: FC<JobsTableConnectorProps> = ({
         }
     });
 
-    const namesCache = useRef<PagingCache<string>>({
-        page: -1,
-        cache: [],
-        search: ''
-    });
-
     const typesCache = useRef<PagingCache<string>>({
         page: -1,
         cache: [],
@@ -153,12 +147,6 @@ export const JobsTableConnector: FC<JobsTableConnectorProps> = ({
         cache: [],
         search: ''
     });
-
-    const loadJobNames = createPagingCachedLoader<string, string>(
-        namesCache,
-        async (pageNumber, pageSize, keyword) =>
-            await jobPropFetcher('name', pageNumber, pageSize, keyword)
-    );
 
     const loadJobTypes = createPagingCachedLoader<string, string>(
         typesCache,
@@ -172,25 +160,24 @@ export const JobsTableConnector: FC<JobsTableConnectorProps> = ({
             await jobPropFetcher('status', pageNumber, pageSize, keyword)
     );
 
-    const jobNames = useLazyDataSource<string, string, unknown>(
+    const jobNames = useArrayDataSource<string, string, unknown>(
         {
-            api: loadJobNames,
+            items: data?.data.map((job) => job.name) ?? [],
             getId: (name) => name
         },
         []
     );
 
-    const jobTypes = useLazyDataSource<string, string, unknown>(
+    const jobTypes = useArrayDataSource<string, string, unknown>(
         {
-            api: loadJobTypes,
+            items: Array.from(new Set(data?.data.map((job) => job.type) ?? [])),
             getId: (type) => type
         },
         []
     );
-
-    const jobStatuses = useLazyDataSource<string, string, unknown>(
+    const jobStatuses = useArrayDataSource<string, string, unknown>(
         {
-            api: loadJobStatuses,
+            items: Array.from(new Set(data?.data.map((job) => String(job.status)) ?? [])),
             getId: (type) => type
         },
         []

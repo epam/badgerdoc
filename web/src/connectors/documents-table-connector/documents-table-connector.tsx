@@ -28,9 +28,7 @@ import {
     useColumnPickerFilter,
     useDateRangeFilter
 } from '../../shared/components/filters/column-picker';
-import { INotification, useLazyDataSource, useUuiContext } from '@epam/uui';
-import { documentNamesFetcher } from '../../api/hooks/document';
-import { createPagingCachedLoader } from '../../shared/helpers/create-paging-cached-loader';
+import { INotification, useArrayDataSource, useUuiContext } from '@epam/uui';
 import { DocumentCardViewItem } from 'components/documents/document-card-view-item/document-card-view-item';
 import { FileJobs, fileJobsFetcher } from '../../api/hooks/annotations';
 import { DocumentsSearch } from 'shared/contexts/documents-search';
@@ -249,16 +247,10 @@ export const DocumentsTableConnector: React.FC<DocumentsTableConnectorProps> = (
         search: string;
     };
 
-    const loadDocumentNames = createPagingCachedLoader(
-        namesCache,
-        async (pageNumber, pageSize, keyword) =>
-            await documentNamesFetcher(pageNumber, pageSize, filtersRef.current, keyword)
-    );
-
-    const documentNames = useLazyDataSource<string, string, unknown>(
+    const documentNames = useArrayDataSource<string, string, unknown>(
         {
-            api: loadDocumentNames,
-            getId: (type) => type
+            items: files?.data.map((f) => f.original_name) ?? [],
+            getId: (item) => item.toString()
         },
         []
     );

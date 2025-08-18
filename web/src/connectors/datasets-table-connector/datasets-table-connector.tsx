@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars, react-hooks/exhaustive-deps */
 import { DataTable } from '@epam/loveship';
 import React, { FC, useEffect, useMemo, useRef, useState } from 'react';
-import { useLazyDataSource } from '@epam/uui';
+import { useArrayDataSource, useLazyDataSource } from '@epam/uui';
 import { useAsyncSourceTable } from 'shared/hooks/async-source-table';
 import { Dataset, SortingDirection } from 'api/typings';
 import { pageSizes, TableWrapper, usePageTable } from 'shared';
@@ -11,7 +11,6 @@ import {
     useColumnPickerFilter,
     useDateRangeFilter
 } from '../../shared/components/filters/column-picker';
-import { createPagingCachedLoader } from 'shared/helpers/create-paging-cached-loader';
 import {
     getFiltersFromStorage,
     prepareFiltersToSet,
@@ -131,27 +130,9 @@ export const DatasetsTableConnector: FC<DatasetsTableConnectorProps> = ({
 
     useEffect(() => () => dataSource.unsubscribeView(onTableValueChange), []);
 
-    const namesCache = useRef<PagingCache>({
-        page: -1,
-        cache: [],
-        search: ''
-    });
-
-    type PagingCache = {
-        page: number;
-        cache: Array<string>;
-        search: string;
-    };
-
-    const loadDatasetNames = createPagingCachedLoader<string, string>(
-        namesCache,
-        async (pageNumber, pageSize, keyword) =>
-            await datasetPropFetcher('name', pageNumber, pageSize, keyword)
-    );
-
-    const datasetNames = useLazyDataSource<string, string, unknown>(
+    const datasetNames = useArrayDataSource<string, string, unknown>(
         {
-            api: loadDatasetNames,
+            items: data?.data.map((d) => d.name) ?? [],
             getId: (name) => name
         },
         []
