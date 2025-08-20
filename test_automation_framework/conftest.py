@@ -18,9 +18,7 @@ def auth_service(base_client) -> AuthService:
 
 @pytest.fixture(scope="session")
 def auth_token(auth_service, settings) -> tuple[str, str]:
-    return auth_service.get_token(
-        settings.API_USER, settings.API_PASS.get_secret_value()
-    )
+    return auth_service.get_token(settings.API_USER, settings.API_PASS.get_secret_value())
 
 
 @pytest.fixture(scope="session")

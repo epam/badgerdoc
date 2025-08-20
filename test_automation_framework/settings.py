@@ -28,6 +28,9 @@ def load_settings() -> Settings:
 
     env_data = dotenv_values(".env")
 
-    merged = {**yaml_defaults, **{k: v for k, v in env_data.items() if v is not None}}
+    merged = {
+        **yaml_defaults,
+        **{k: v for k, v in env_data.items() if v is not None},
+    }
 
     return Settings(**merged)

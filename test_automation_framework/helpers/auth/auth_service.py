@@ -19,9 +19,7 @@ class AuthService:
     def __init__(self, client: BaseClient) -> None:
         self.client = client
 
-    def get_token(
-        self, username: str, password: str, client_id: str = "admin-cli"
-    ) -> tuple[str, str]:
+    def get_token(self, username: str, password: str, client_id: str = "admin-cli") -> tuple[str, str]:
         resp = self.client.post(
             "/users/token",
             data={
@@ -35,9 +33,7 @@ class AuthService:
         result = TokenResponse.model_validate(resp.json())
         return result.access_token, result.refresh_token
 
-    def refresh_token(
-        self, refresh_token: str, client_id: str = "admin-cli"
-    ) -> tuple[str, str]:
+    def refresh_token(self, refresh_token: str, client_id: str = "admin-cli") -> tuple[str, str]:
         resp = self.client.post(
             "/users/refresh_token",
             json={

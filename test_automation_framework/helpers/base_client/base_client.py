@@ -47,9 +47,7 @@ class BaseClient:
             ) from exc
         except httpx.RequestError as exc:
             logger.exception(f"Request failed: {method} {self.base_url}{rel_path}")
-            raise HTTPError(
-                f"request failed: {method} {self.base_url}{rel_path}"
-            ) from exc
+            raise HTTPError(f"request failed: {method} {self.base_url}{rel_path}") from exc
 
     def get(self, path: str, **kwargs: Any) -> httpx.Response:
         return self._request("GET", path, **kwargs)
