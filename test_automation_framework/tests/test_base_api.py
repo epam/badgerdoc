@@ -100,9 +100,8 @@ class TestDatasetClient:
             except ValueError:
                 pytest.fail(f"Dataset created date is not ISO format: {dataset['created']}")
 
-    def test_search_sorting(self, auth_token, settings):
+    def test_search_sorting(self, auth_token, settings, tenant):
         access_token, _ = auth_token
-        tenant = "demo-badgerdoc"
         client = DatasetClient(settings.BASE_URL, access_token, tenant)
 
         result = client.search(sorting=[{"direction": "desc", "field": "name"}])
@@ -110,11 +109,33 @@ class TestDatasetClient:
         names = [d["name"] for d in data]
         assert names == sorted(names, reverse=True), "Datasets are not sorted descending by name"
 
-    def test_search_pagination(self, auth_token, settings):
+    def test_search_pagination(self, auth_token, settings, tenant):
         access_token, _ = auth_token
-        tenant = "demo-badgerdoc"
         client = DatasetClient(settings.BASE_URL, access_token, tenant)
 
         result = client.search(page_num=1, page_size=15)
         assert len(result["data"]) <= 15, "Page size exceeded"
         assert result["pagination"]["page_num"] == 1
+
+    def test_selection(self, auth_token, settings, tenant):
+        access_token, _ = auth_token
+        client = DatasetClient(settings.BASE_URL, access_token, tenant)
+
+        datasets = client.search()["data"]
+        assert datasets, "No datasets found"
+        dataset_id = datasets[0]["id"]
+
+        files_selected = client.search_files(dataset_id=dataset_id)["data"]
+        assert isinstance(files_selected, list), "Files response is not a list"
+
+        for f in files_selected:
+            assert any(
+                d["id"] == dataset_id for d in f.get("datasets", [])
+            ), f"File {f['original_name']} does not belong to dataset {dataset_id}"
+
+        files_all = client.search_files()["data"]  # no dataset_id
+        assert isinstance(files_all, list), "Files response is not a list"
+
+        has_dataset = any(f.get("datasets") for f in files_all)
+        has_no_dataset = any(not f.get("datasets") for f in files_all)
+        assert has_dataset or has_no_dataset, "Unexpected empty file list"

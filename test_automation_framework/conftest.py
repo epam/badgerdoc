@@ -24,3 +24,8 @@ def auth_token(auth_service, settings) -> tuple[str, str]:
 @pytest.fixture(scope="session")
 def settings():
     return load_settings()
+
+
+@pytest.fixture(scope="session")
+def tenant():
+    return "demo-badgerdoc"
