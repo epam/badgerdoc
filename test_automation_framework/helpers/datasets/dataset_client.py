@@ -1,5 +1,9 @@
 from __future__ import annotations
+
 from helpers.base_client.base_client import BaseClient
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class DatasetClient(BaseClient):
@@ -62,4 +66,34 @@ class DatasetClient(BaseClient):
                 "Content-Type": "application/json",
             },
         )
+        return resp.json()
+
+    def create_dataset(self, name: str) -> dict:
+        payload = {"name": name}
+        resp = self.post(
+            "/assets/datasets",
+            json=payload,
+            headers={
+                "Authorization": f"Bearer {self._token}",
+                "X-Current-Tenant": self._tenant,
+                "Content-Type": "application/json",
+            },
+        )
+        resp.raise_for_status()
+        logger.info(f"Created dataset {name}")
+        return resp.json()
+
+    def delete_dataset(self, name: str) -> dict:
+        payload = {"name": name}
+        resp = self.delete(
+            "/assets/datasets",
+            json=payload,
+            headers={
+                "Authorization": f"Bearer {self._token}",
+                "X-Current-Tenant": self._tenant,
+                "Content-Type": "application/json",
+            },
+        )
+        resp.raise_for_status()
+        logger.info(f"Deleted dataset {name}")
         return resp.json()

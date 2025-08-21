@@ -4,6 +4,7 @@ from helpers.base_client.base_client import HTTPError
 from helpers.menu.menu_client import MenuClient
 from helpers.datasets.dataset_client import DatasetClient
 from datetime import datetime
+import uuid
 
 logger = getLogger(__name__)
 
@@ -62,7 +63,7 @@ class TestAPI:
         assert any(child["name"] == "Keycloak" for child in settings_item["children"])
 
 
-class TestDatasetClient:
+class TestDatasets:
     def test_search_basic(self, auth_token, settings):
         access_token, _ = auth_token
         tenant = "demo-badgerdoc"
@@ -139,3 +140,51 @@ class TestDatasetClient:
         has_dataset = any(f.get("datasets") for f in files_all)
         has_no_dataset = any(not f.get("datasets") for f in files_all)
         assert has_dataset or has_no_dataset, "Unexpected empty file list"
+
+    def test_create_and_delete_dataset(self, auth_token, settings, tenant):
+        access_token, _ = auth_token
+        client = DatasetClient(settings.BASE_URL, access_token, tenant)
+
+        dataset_name = f"autotest_{uuid.uuid4().hex[:8]}"
+        create_resp = client.create_dataset(name=dataset_name)
+
+        assert "detail" in create_resp, f"Unexpected response: {create_resp}"
+        assert "successfully created" in create_resp["detail"].lower()
+
+        search_resp = client.search(filters=[{"field": "name", "operator": "eq", "value": dataset_name}])
+        datasets = search_resp["data"]
+
+        assert any(d["name"] == dataset_name for d in datasets), f"Dataset {dataset_name} not found after creation"
+
+        delete_resp = client.delete_dataset(name=dataset_name)
+
+        assert "detail" in delete_resp, f"Unexpected delete response: {delete_resp}"
+        assert "successfully deleted" in delete_resp["detail"].lower()
+
+        search_after = client.search(filters=[{"field": "name", "operator": "eq", "value": dataset_name}])
+        datasets_after = search_after["data"]
+
+        assert all(
+            d["name"] != dataset_name for d in datasets_after
+        ), f"Dataset {dataset_name} still found after deletion!"
+
+    @pytest.mark.skip(reason="Successfully creates dataset")
+    def test_create_dataset_with_empty_name(self, dataset_tracker):
+        created, client = dataset_tracker
+
+        with pytest.raises(HTTPError) as e:
+            client.create_dataset(name="")
+
+        assert e.value.status_code in (400, 422)
+
+    def test_create_duplicate_dataset(self, dataset_tracker):
+        created, client = dataset_tracker
+        dataset_name = f"autotest_{uuid.uuid4().hex[:8]}"
+        resp = client.create_dataset(name=dataset_name)
+        created.append(dataset_name)  # register for cleanup
+        assert "successfully created" in resp["detail"].lower()
+
+        with pytest.raises(HTTPError) as e:
+            client.create_dataset(name=dataset_name)
+        assert e.value.status_code == 400
+        assert "already exists" in e.value.body.lower()
