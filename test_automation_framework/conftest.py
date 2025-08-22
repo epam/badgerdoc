@@ -5,6 +5,7 @@ from helpers.base_client.base_client import BaseClient
 import logging
 from helpers.datasets.dataset_client import DatasetClient
 from logging import getLogger
+from helpers.files.file_client import FileClient
 
 
 logger = getLogger(__name__)
@@ -60,3 +61,22 @@ def dataset_tracker(auth_token, settings, tenant):
             logger.info(f"[dataset_tracker] Deleted dataset {name}: {resp['detail']}")
         except Exception as e:
             logger.warning(f"[dataset_tracker] Failed to delete dataset {name}: {e}")
+
+
+@pytest.fixture
+def file_tracker(auth_token, settings, tenant):
+    """Tracks uploaded files and deletes them after the test session."""
+    access_token, _ = auth_token
+    client = FileClient(settings.BASE_URL, access_token, tenant)
+
+    created_files = []
+
+    yield created_files, client
+
+    if created_files:
+        ids = [f["id"] for f in created_files]
+        try:
+            result = client.delete_files(ids)
+            logger.info(f"Deleted files: {ids}, response={result}")
+        except Exception as e:
+            logger.error(f"Failed to cleanup files {ids}: {e}")

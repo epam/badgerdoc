@@ -5,6 +5,8 @@ from helpers.menu.menu_client import MenuClient
 from helpers.datasets.dataset_client import DatasetClient
 from datetime import datetime
 import uuid
+import shutil
+from pathlib import Path
 
 logger = getLogger(__name__)
 
@@ -188,3 +190,55 @@ class TestDatasets:
             client.create_dataset(name=dataset_name)
         assert e.value.status_code == 400
         assert "already exists" in e.value.body.lower()
+
+
+class TestFiles:
+    def test_upload_and_delete_file(self, file_tracker, tmp_path):
+        created_files, client = file_tracker
+
+        data_dir = Path(__file__).parent.parent / "data"
+        original_file = data_dir / "multivitamin.pdf"
+
+        unique_name = f"{uuid.uuid4().hex}_multivitamin.pdf"
+        temp_file = tmp_path / unique_name
+        shutil.copy(original_file, temp_file)
+
+        try:
+            result = client.upload_file(str(temp_file))
+            assert isinstance(result, list)
+            file_info = result[0]
+            assert file_info["status"] is True
+            assert "id" in file_info
+            assert "file_name" in file_info
+
+            created_files.append(file_info)
+
+            search = client.search_files()
+            ids = [f["id"] for f in search["data"]]
+            assert file_info["id"] in ids, "Uploaded file not found in search"
+
+            delete_result = client.delete_files([file_info["id"]])
+            assert delete_result[0]["status"] is True
+            assert delete_result[0]["action"] == "delete"
+
+            search_after = client.search_files()
+            ids_after = [f["id"] for f in search_after["data"]]
+            assert file_info["id"] not in ids_after, "File was not deleted properly"
+
+            created_files.clear()
+
+        finally:
+            if temp_file.exists():
+                temp_file.unlink()
+
+    @pytest.mark.parametrize("content", ["", " "])
+    def test_upload_empty_file(self, file_tracker, tmp_path, content):
+        _, client = file_tracker
+
+        empty_file = tmp_path / f"{uuid.uuid4().hex}_empty.pdf"
+        empty_file.write_text(content)
+
+        with pytest.raises(HTTPError) as e:
+            client.upload_file(str(empty_file))
+        assert e.value.status_code == 500
+        assert "Internal Server Error" in e.value.body
