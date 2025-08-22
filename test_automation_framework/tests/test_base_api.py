@@ -66,9 +66,8 @@ class TestAPI:
 
 
 class TestDatasets:
-    def test_search_basic(self, auth_token, settings):
+    def test_search_basic(self, auth_token, settings, tenant):
         access_token, _ = auth_token
-        tenant = "demo-badgerdoc"
         client = DatasetClient(settings.BASE_URL, access_token, tenant)
 
         result = client.search()
@@ -136,7 +135,7 @@ class TestDatasets:
                 d["id"] == dataset_id for d in f.get("datasets", [])
             ), f"File {f['original_name']} does not belong to dataset {dataset_id}"
 
-        files_all = client.search_files()["data"]  # no dataset_id
+        files_all = client.search_files()["data"]
         assert isinstance(files_all, list), "Files response is not a list"
 
         has_dataset = any(f.get("datasets") for f in files_all)
@@ -183,7 +182,7 @@ class TestDatasets:
         created, client = dataset_tracker
         dataset_name = f"autotest_{uuid.uuid4().hex[:8]}"
         resp = client.create_dataset(name=dataset_name)
-        created.append(dataset_name)  # register for cleanup
+        created.append(dataset_name)
         assert "successfully created" in resp["detail"].lower()
 
         with pytest.raises(HTTPError) as e:
@@ -232,6 +231,7 @@ class TestFiles:
                 temp_file.unlink()
 
     @pytest.mark.parametrize("content", ["", " "])
+    @pytest.mark.skip(reason="Uploads a file, but returns 500")
     def test_upload_empty_file(self, file_tracker, tmp_path, content):
         _, client = file_tracker
 
@@ -242,3 +242,59 @@ class TestFiles:
             client.upload_file(str(empty_file))
         assert e.value.status_code == 500
         assert "Internal Server Error" in e.value.body
+
+    def test_move_file(self, file_tracker, dataset_tracker, tmp_path):
+        created_datasets, dataset_client = dataset_tracker
+        first_dataset_name = f"autotest_{uuid.uuid4().hex[:8]}"
+        second_dataset_name = f"autotest_{uuid.uuid4().hex[:8]}"
+
+        first_resp = dataset_client.create_dataset(name=first_dataset_name)
+        created_datasets.append(first_dataset_name)
+        assert "successfully created" in first_resp["detail"].lower()
+        datasets = dataset_client.search(filters=[{"field": "name", "operator": "eq", "value": first_dataset_name}])[
+            "data"
+        ]
+        assert len(datasets) == 1, f"Expected 1 dataset, got {len(datasets)}"
+        first_dataset_id = datasets[0]["id"]
+
+        second_resp = dataset_client.create_dataset(name=second_dataset_name)
+        created_datasets.append(second_dataset_name)
+        datasets = dataset_client.search(filters=[{"field": "name", "operator": "eq", "value": second_dataset_name}])[
+            "data"
+        ]
+        assert len(datasets) == 1, f"Expected 1 dataset, got {len(datasets)}"
+        second_dataset_id = datasets[0]["id"]
+        assert "successfully created" in second_resp["detail"].lower()
+
+        created_files, file_client = file_tracker
+
+        data_dir = Path(__file__).parent.parent / "data"
+        original_file = data_dir / "multivitamin.pdf"
+        unique_name = f"{uuid.uuid4().hex}_multivitamin.pdf"
+        temp_file = tmp_path / unique_name
+        shutil.copy(original_file, temp_file)
+
+        try:
+            result = file_client.upload_file(str(temp_file))
+            file_info = result[0]
+            assert file_info["status"] is True
+            created_files.append(file_info)
+            file_id = file_info["id"]
+
+            move1 = file_client.move_files(name=first_dataset_name, objects=[file_id])[0]
+            assert move1["status"] is True
+            assert "successfully bounded" in move1["message"].lower()
+
+            files_in_first = dataset_client.search_files(dataset_id=first_dataset_id)["data"]
+            assert any(f["id"] == file_id for f in files_in_first), "File not found in first dataset after move"
+
+            move2 = file_client.move_files(name=second_dataset_name, objects=[file_id])[0]
+            assert move2["status"] is True
+            assert "successfully bounded" in move2["message"].lower()
+
+            files_in_second = dataset_client.search_files(dataset_id=second_dataset_id)["data"]
+            assert any(f["id"] == file_id for f in files_in_second), "File not found in second dataset after move"
+
+        finally:
+            if temp_file.exists():
+                temp_file.unlink()

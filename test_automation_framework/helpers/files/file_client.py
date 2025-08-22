@@ -59,3 +59,18 @@ class FileClient(BaseClient):
             },
         )
         return resp.json()
+
+    def move_files(self, name: str, objects: list) -> dict:
+        payload = {"name": name, "objects": objects}
+        resp = self.post(
+            "/assets/datasets/bonds",
+            json=payload,
+            headers={
+                "Authorization": f"Bearer {self._token}",
+                "X-Current-Tenant": self._tenant,
+                "Content-Type": "application/json",
+            },
+        )
+        resp.raise_for_status()
+        logger.info(f"Moved object {objects} to the dataset {name}")
+        return resp.json()
