@@ -1,25 +1,36 @@
+import logging
+from logging import getLogger
+from typing import Tuple
+
 import pytest
+
 from settings import load_settings
 from helpers.auth.auth_service import AuthService
 from helpers.base_client.base_client import BaseClient
-import logging
 from helpers.datasets.dataset_client import DatasetClient
-from logging import getLogger
 from helpers.files.file_client import FileClient
-
+from helpers.jobs.jobs_client import JobsClient
+from helpers.menu.menu_client import MenuClient
 
 logger = getLogger(__name__)
 
 
-def pytest_configure(config):
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-    )
+def pytest_configure():
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 
 
 @pytest.fixture(scope="session")
-def base_client(settings):
+def settings():
+    return load_settings()
+
+
+@pytest.fixture(scope="session")
+def tenant(settings) -> str:
+    return getattr(settings, "TENANT", "demo-badgerdoc")
+
+
+@pytest.fixture(scope="session")
+def base_client(settings) -> BaseClient:
     client = BaseClient(settings.BASE_URL, timeout=10)
     yield client
     client.close()
@@ -31,52 +42,71 @@ def auth_service(base_client) -> AuthService:
 
 
 @pytest.fixture(scope="session")
-def auth_token(auth_service, settings) -> tuple[str, str]:
+def auth_token(auth_service, settings) -> Tuple[str, str]:
     return auth_service.get_token(settings.API_USER, settings.API_PASS.get_secret_value())
 
 
-@pytest.fixture(scope="session")
-def settings():
-    return load_settings()
+@pytest.fixture
+def access_token(auth_token) -> str:
+    return auth_token[0]
 
 
-@pytest.fixture(scope="session")
-def tenant():
-    return "demo-badgerdoc"
+@pytest.fixture
+def menu_client(settings, access_token, tenant) -> MenuClient:
+    return MenuClient(settings.BASE_URL, access_token, tenant)
 
 
-@pytest.fixture(scope="session")
-def dataset_tracker(auth_token, settings, tenant):
-    access_token, _ = auth_token
+@pytest.fixture
+def dataset_client(settings, access_token, tenant) -> DatasetClient:
+    return DatasetClient(settings.BASE_URL, access_token, tenant)
 
-    client = DatasetClient(settings.BASE_URL, access_token, tenant)
-    created = []
 
-    yield created, client
+@pytest.fixture
+def file_client(settings, access_token, tenant) -> FileClient:
+    return FileClient(settings.BASE_URL, access_token, tenant)
 
-    # cleanup step
+
+@pytest.fixture
+def jobs_client(settings, access_token, tenant) -> JobsClient:
+    return JobsClient(settings.BASE_URL, access_token, tenant)
+
+
+@pytest.fixture
+def dataset_tracker(dataset_client):
+    created: list[str] = []
+    yield created, dataset_client
     for name in created:
         try:
-            resp = client.delete_dataset(name=name)
-            logger.info(f"[dataset_tracker] Deleted dataset {name}: {resp['detail']}")
+            resp = dataset_client.delete_dataset(name=name)
+            logger.info(f"[dataset_tracker] Deleted dataset {name}: {resp.get('detail')}")
         except Exception as e:
             logger.warning(f"[dataset_tracker] Failed to delete dataset {name}: {e}")
 
 
 @pytest.fixture
-def file_tracker(auth_token, settings, tenant):
-    """Tracks uploaded files and deletes them after the test session."""
-    access_token, _ = auth_token
-    client = FileClient(settings.BASE_URL, access_token, tenant)
-
-    created_files = []
-
-    yield created_files, client
-
+def file_tracker(file_client):
+    created_files: list[dict] = []
+    yield created_files, file_client
     if created_files:
-        ids = [f["id"] for f in created_files]
+        ids = [f["id"] for f in created_files if f.get("id") is not None]
+        if ids:
+            try:
+                result = file_client.delete_files(ids)
+                logger.info(f"[file_tracker] Deleted files: {ids}, response={result}")
+            except Exception as e:
+                logger.warning(f"[file_tracker] Failed to cleanup files {ids}: {e}")
+
+
+@pytest.fixture
+def job_tracker(jobs_client):
+    created: list[dict] = []
+    yield created, jobs_client
+    for job in created:
+        job_id = job.get("id") or job.get("job_id") or (job.get("job") or {}).get("id")
+        if not job_id:
+            continue
         try:
-            result = client.delete_files(ids)
-            logger.info(f"Deleted files: {ids}, response={result}")
+            jobs_client.post("/jobs/jobs/cancel", json={"id": job_id}, headers=jobs_client._default_headers())
+            logger.info(f"[job_tracker] Cancelled job {job_id}")
         except Exception as e:
-            logger.error(f"Failed to cleanup files {ids}: {e}")
+            logger.warning(f"[job_tracker] Could not cancel job {job_id}: {e}")

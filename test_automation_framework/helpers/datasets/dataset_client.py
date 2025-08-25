@@ -8,9 +8,7 @@ logger = logging.getLogger(__name__)
 
 class DatasetClient(BaseClient):
     def __init__(self, base_url: str, token: str, tenant: str) -> None:
-        super().__init__(base_url)
-        self._token = token
-        self._tenant = tenant
+        super().__init__(base_url, token=token, tenant=tenant)
 
     def search(
         self,
@@ -24,16 +22,9 @@ class DatasetClient(BaseClient):
             "filters": filters or [],
             "sorting": sorting or [{"direction": "asc", "field": "name"}],
         }
-        resp = self.post(
-            "/assets/datasets/search",
-            json=payload,
-            headers={
-                "Authorization": f"Bearer {self._token}",
-                "X-Current-Tenant": self._tenant,
-                "Content-Type": "application/json",
-            },
+        return self.post_json(
+            "/assets/datasets/search", json=payload, headers=self._default_headers(content_type_json=True)
         )
-        return resp.json()
 
     def search_files(
         self,
@@ -41,10 +32,6 @@ class DatasetClient(BaseClient):
         page_num: int = 1,
         page_size: int = 15,
     ) -> dict:
-        """
-        Fetch files. If dataset_id is provided, filter by dataset.
-        Otherwise, fetch all files.
-        """
         filters = []
         if dataset_id is not None:
             filters.append({"field": "datasets.id", "operator": "eq", "value": dataset_id})
@@ -57,43 +44,18 @@ class DatasetClient(BaseClient):
             "sorting": [{"direction": "desc", "field": "last_modified"}],
         }
 
-        resp = self.post(
-            "/assets/files/search",
-            json=payload,
-            headers={
-                "Authorization": f"Bearer {self._token}",
-                "X-Current-Tenant": self._tenant,
-                "Content-Type": "application/json",
-            },
+        return self.post_json(
+            "/assets/files/search", json=payload, headers=self._default_headers(content_type_json=True)
         )
-        return resp.json()
 
     def create_dataset(self, name: str) -> dict:
         payload = {"name": name}
-        resp = self.post(
-            "/assets/datasets",
-            json=payload,
-            headers={
-                "Authorization": f"Bearer {self._token}",
-                "X-Current-Tenant": self._tenant,
-                "Content-Type": "application/json",
-            },
-        )
-        resp.raise_for_status()
+        resp = self.post_json("/assets/datasets", json=payload, headers=self._default_headers(content_type_json=True))
         logger.info(f"Created dataset {name}")
-        return resp.json()
+        return resp
 
     def delete_dataset(self, name: str) -> dict:
         payload = {"name": name}
-        resp = self.delete(
-            "/assets/datasets",
-            json=payload,
-            headers={
-                "Authorization": f"Bearer {self._token}",
-                "X-Current-Tenant": self._tenant,
-                "Content-Type": "application/json",
-            },
-        )
-        resp.raise_for_status()
+        resp = self.delete_json("/assets/datasets", json=payload, headers=self._default_headers(content_type_json=True))
         logger.info(f"Deleted dataset {name}")
-        return resp.json()
+        return resp

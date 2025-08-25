@@ -1,42 +1,30 @@
 from __future__ import annotations
 from helpers.base_client.base_client import BaseClient
 import logging
+from typing import List
 
 logger = logging.getLogger(__name__)
 
 
 class FileClient(BaseClient):
     def __init__(self, base_url: str, token: str, tenant: str) -> None:
-        super().__init__(base_url)
-        self._token = token
-        self._tenant = tenant
+        super().__init__(base_url, token=token, tenant=tenant)
 
     def upload_file(self, file_path: str) -> dict:
         with open(file_path, "rb") as f:
             files = {"files": (file_path.split("/")[-1], f, "application/pdf")}
-            resp = self.post(
-                "/assets/files",
-                files=files,
-                headers={
-                    "Authorization": f"Bearer {self._token}",
-                    "X-Current-Tenant": self._tenant,
-                },
-            )
+            resp = self.post("/assets/files", files=files, headers=self._default_headers())
         logger.info(f"Uploaded file {file_path}")
         return resp.json()
 
-    def delete_files(self, ids: list[int]) -> dict:
-        resp = self.delete(
+    def delete_files(self, ids: List[int]) -> dict:
+        resp = self.delete_json(
             "/assets/files",
             json={"objects": ids},
-            headers={
-                "Authorization": f"Bearer {self._token}",
-                "X-Current-Tenant": self._tenant,
-                "Content-Type": "application/json",
-            },
+            headers=self._default_headers(content_type_json=True),
         )
         logger.info(f"Deleted file {ids}")
-        return resp.json()
+        return resp
 
     def search_files(
         self,
@@ -49,28 +37,14 @@ class FileClient(BaseClient):
             "filters": filters or [{"field": "original_name", "operator": "ilike", "value": "%%"}],
             "sorting": [{"direction": "desc", "field": "last_modified"}],
         }
-        resp = self.post(
-            "/assets/files/search",
-            json=payload,
-            headers={
-                "Authorization": f"Bearer {self._token}",
-                "X-Current-Tenant": self._tenant,
-                "Content-Type": "application/json",
-            },
+        return self.post_json(
+            "/assets/files/search", json=payload, headers=self._default_headers(content_type_json=True)
         )
-        return resp.json()
 
     def move_files(self, name: str, objects: list) -> dict:
         payload = {"name": name, "objects": objects}
-        resp = self.post(
-            "/assets/datasets/bonds",
-            json=payload,
-            headers={
-                "Authorization": f"Bearer {self._token}",
-                "X-Current-Tenant": self._tenant,
-                "Content-Type": "application/json",
-            },
+        resp = self.post_json(
+            "/assets/datasets/bonds", json=payload, headers=self._default_headers(content_type_json=True)
         )
-        resp.raise_for_status()
         logger.info(f"Moved object {objects} to the dataset {name}")
-        return resp.json()
+        return resp

@@ -20,16 +20,39 @@ class HTTPError(RuntimeError):
 
 
 class BaseClient:
-    def __init__(self, base_url: str, timeout: int = 30) -> None:
+    def __init__(
+        self, base_url: str, timeout: int = 30, token: Optional[str] = None, tenant: Optional[str] = None
+    ) -> None:
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
+        self._token = token
+        self._tenant = tenant
         self._client = httpx.Client(base_url=self.base_url, timeout=self.timeout)
 
-    def _request(self, method: str, path: str, **kwargs: Any) -> httpx.Response:
+    def set_token(self, token: str | None) -> None:
+        self._token = token
+
+    def set_tenant(self, tenant: str | None) -> None:
+        self._tenant = tenant
+
+    def _default_headers(self, content_type_json: bool = False, extra: dict[str, str] | None = None) -> dict[str, str]:
+        headers: dict[str, str] = {}
+        if self._token:
+            headers["Authorization"] = f"Bearer {self._token}"
+        if self._tenant:
+            headers["X-Current-Tenant"] = self._tenant
+        if content_type_json:
+            headers["Content-Type"] = "application/json"
+        if extra:
+            headers.update(extra)
+        return headers
+
+    def _request(self, method: str, path: str, headers: dict | None = None, **kwargs: Any) -> httpx.Response:
         rel_path = path if path.startswith("/") else "/" + path
         start = time.perf_counter()
+        merged_headers = {**self._default_headers(), **(headers or {})}
         try:
-            resp = self._client.request(method, rel_path, **kwargs)
+            resp = self._client.request(method, rel_path, headers=merged_headers, **kwargs)
             resp.raise_for_status()
             logger.debug(
                 f"HTTP {method} {self.base_url}{rel_path} -> {resp.status_code} in {time.perf_counter() - start:.3f}s"
@@ -60,6 +83,18 @@ class BaseClient:
 
     def delete(self, path: str, **kwargs: Any) -> httpx.Response:
         return self._request("DELETE", path, **kwargs)
+
+    def get_json(self, path: str, headers: dict | None = None, **kwargs: Any) -> Any:
+        return self._request("GET", path, headers=headers, **kwargs).json()
+
+    def post_json(self, path: str, headers: dict | None = None, **kwargs: Any) -> Any:
+        return self._request("POST", path, headers=headers, **kwargs).json()
+
+    def put_json(self, path: str, headers: dict | None = None, **kwargs: Any) -> Any:
+        return self._request("PUT", path, headers=headers, **kwargs).json()
+
+    def delete_json(self, path: str, headers: dict | None = None, **kwargs: Any) -> Any:
+        return self._request("DELETE", path, headers=headers, **kwargs).json()
 
     def close(self) -> None:
         self._client.close()
