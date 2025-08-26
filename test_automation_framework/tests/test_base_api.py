@@ -7,6 +7,7 @@ import shutil
 import pytest
 
 from helpers.base_client.base_client import HTTPError
+from helpers.constants import OWNER_UUID
 
 logger = getLogger(__name__)
 
@@ -162,8 +163,7 @@ class TestFiles:
         empty_file.write_text(content)
         with pytest.raises(HTTPError) as exc:
             file_client.upload_file(str(empty_file))
-        assert exc.value.status_code == 500
-        assert "Internal Server Error" in exc.value.body
+        assert exc.value.status_code == 400
 
     def test_move_file(self, file_tracker, dataset_tracker, tmp_path):
         created_datasets, dataset_client = dataset_tracker
@@ -235,11 +235,8 @@ class TestJobs:
         job_name = f"test_job_{uuid.uuid4().hex[:8]}"
         create_resp = jobs_client.create_job(
             name=job_name,
-            pipeline_id="print",
             file_ids=[file_id],
-            datasets=[],
-            owners=["0dc326e4-b190-4881-8d05-12359052abbf"],
-            pipeline_engine="airflow",
+            owners=[OWNER_UUID],
         )
         job_tracker[0].append(create_resp)
         job_id = create_resp.get("id")

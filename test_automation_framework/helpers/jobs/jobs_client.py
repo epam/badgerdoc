@@ -2,6 +2,7 @@ from __future__ import annotations
 from typing import Any, Dict, List
 import time
 import logging
+from helpers.constants import AIRFLOW_PIPELINE, PRINT_PIPELINE
 
 from helpers.base_client.base_client import BaseClient
 
@@ -22,9 +23,9 @@ class JobsClient(BaseClient):
         self,
         name: str,
         file_ids: list[int],
-        pipeline_id: str,
-        pipeline_engine: str,
         owners: list[str],
+        pipeline_id: str = PRINT_PIPELINE,
+        pipeline_engine: str = AIRFLOW_PIPELINE,
         datasets: list[int] | None = None,
         categories: list[str] | None = None,
         annotators: list[str] | None = None,
