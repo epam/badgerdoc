@@ -65,7 +65,7 @@ class JobsClient(BaseClient):
 
     def get_progress(self, job_id: int) -> Dict[str, Any]:
         return self.post_json(
-            "/jobs/jobs/progress", json={"ids": [job_id]}, headers=self._default_headers(content_type_json=True)
+            "/jobs/jobs/progress", json=[job_id], headers=self._default_headers(content_type_json=True)
         )
 
     def poll_until_finished(
