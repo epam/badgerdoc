@@ -12,6 +12,7 @@ from helpers.files.file_client import FileClient
 from helpers.jobs.jobs_client import JobsClient
 from helpers.menu.menu_client import MenuClient
 from helpers.users.users import UsersClient
+from helpers.reports.reports_client import ReportsClient
 
 logger = getLogger(__name__)
 
@@ -70,6 +71,11 @@ def file_client(settings, access_token, tenant) -> FileClient:
 @pytest.fixture
 def jobs_client(settings, access_token, tenant) -> JobsClient:
     return JobsClient(settings.BASE_URL, access_token, tenant)
+
+
+@pytest.fixture
+def reports_client(settings, access_token, tenant) -> ReportsClient:
+    return ReportsClient(settings.BASE_URL, access_token, tenant)
 
 
 @pytest.fixture

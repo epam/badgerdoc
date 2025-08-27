@@ -245,3 +245,14 @@ class TestJobs:
         assert str(status).lower() in {"finished", "success", "completed"}
         job_files = final_job.get("files") or []
         assert file_id in job_files
+
+
+class TestReports:
+    def test_export_tasks_csv(self, reports_client, user_uuid):
+        csv_text = reports_client.export_tasks(
+            user_ids=[user_uuid],
+            date_from="2025-05-01 00:00:00",
+            date_to="2025-08-31 00:00:00",
+        )
+        assert "annotator_id" in csv_text
+        assert "task_id" in csv_text
