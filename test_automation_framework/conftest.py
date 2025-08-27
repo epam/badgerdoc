@@ -12,6 +12,7 @@ from helpers.files.file_client import FileClient
 from helpers.jobs.jobs_client import JobsClient
 from helpers.menu.menu_client import MenuClient
 from helpers.category.categories import CategoriesClient
+from helpers.users.users import UsersClient
 
 logger = getLogger(__name__)
 
@@ -70,6 +71,13 @@ def file_client(settings, access_token, tenant) -> FileClient:
 @pytest.fixture
 def jobs_client(settings, access_token, tenant) -> JobsClient:
     return JobsClient(settings.BASE_URL, access_token, tenant)
+
+
+@pytest.fixture
+def user_uuid(settings, access_token, tenant) -> str:
+    users_client = UsersClient(settings.BASE_URL, access_token, tenant)
+    users = users_client.search_users()
+    return next((u.id for u in users if u.username == "admin"), None)
 
 
 @pytest.fixture

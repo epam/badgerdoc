@@ -7,7 +7,6 @@ import shutil
 import pytest
 
 from helpers.base_client.base_client import HTTPError
-from helpers.constants import OWNER_UUID
 
 logger = getLogger(__name__)
 
@@ -213,7 +212,7 @@ class TestFiles:
 
 
 class TestJobs:
-    def test_create_and_poll_job(self, jobs_client, file_tracker, dataset_tracker, job_tracker, tmp_path):
+    def test_create_and_poll_job(self, jobs_client, file_tracker, dataset_tracker, job_tracker, tmp_path, user_uuid):
         created_files, file_client = file_tracker
         created_datasets, dataset_client = dataset_tracker
         data_dir = Path(__file__).parent.parent / "data"
@@ -236,7 +235,7 @@ class TestJobs:
         create_resp = jobs_client.create_job(
             name=job_name,
             file_ids=[file_id],
-            owners=[OWNER_UUID],
+            owners=[user_uuid],
         )
         job_tracker[0].append(create_resp)
         job_id = create_resp.get("id")
