@@ -13,6 +13,8 @@ from helpers.jobs.jobs_client import JobsClient
 from helpers.menu.menu_client import MenuClient
 from helpers.category.categories import CategoriesClient
 from helpers.users.users import UsersClient
+from helpers.reports.reports_client import ReportsClient
+from helpers.plugins.plugins_client import PluginsClient
 
 logger = getLogger(__name__)
 
@@ -74,6 +76,16 @@ def jobs_client(settings, access_token, tenant) -> JobsClient:
 
 
 @pytest.fixture
+def reports_client(settings, access_token, tenant) -> ReportsClient:
+    return ReportsClient(settings.BASE_URL, access_token, tenant)
+
+
+@pytest.fixture
+def plugins_client(settings, access_token, tenant) -> PluginsClient:
+    return PluginsClient(settings.BASE_URL, access_token, tenant)
+
+
+@pytest.fixture
 def user_uuid(settings, access_token, tenant) -> str:
     users_client = UsersClient(settings.BASE_URL, access_token, tenant)
     users = users_client.search_users()
@@ -124,3 +136,15 @@ def job_tracker(jobs_client):
             logger.info(f"[job_tracker] Cancelled job {job_id}")
         except Exception as e:
             logger.warning(f"[job_tracker] Could not cancel job {job_id}: {e}")
+
+
+@pytest.fixture
+def plugins_tracker(plugins_client):
+    created: list[int] = []
+    yield created, plugins_client
+    for id in created:
+        try:
+            plugins_client.delete_plugin(plugin_id=id)
+            logger.info(f"[plugins_tracker] Deleted plugin {id}")
+        except Exception as e:
+            logger.warning(f"[plugins_tracker] Failed to delete plugin {id}: {e}")
