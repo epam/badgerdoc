@@ -2,6 +2,9 @@ from __future__ import annotations
 from helpers.base_client.base_client import BaseClient
 import logging
 from typing import List
+import shutil
+import uuid
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -48,3 +51,15 @@ class FileClient(BaseClient):
         )
         logger.info(f"Moved object {objects} to the dataset {name}")
         return resp
+
+    @staticmethod
+    def upload_temp_file(client, file_tracker, tmp_path, suffix="pdf"):
+        data_dir = Path(__file__).parent.parent.parent / "data"
+        original_file = data_dir / "multivitamin.pdf"
+        unique_name = f"{uuid.uuid4().hex}.{suffix}"
+        temp_file = tmp_path / unique_name
+        shutil.copy(original_file, temp_file)
+        result = client.upload_file(str(temp_file))
+        file_info = result[0]
+        file_tracker[0].append(file_info)
+        return file_info, temp_file
