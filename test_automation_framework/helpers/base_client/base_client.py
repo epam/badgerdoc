@@ -18,6 +18,12 @@ class HTTPError(RuntimeError):
         self.status_code = status_code
         self.body = body
 
+    def __str__(self):
+        base = super().__str__()
+        if self.body:
+            return f"{base}\nResponse body: {self.body}"
+        return base
+
 
 class BaseClient:
     def __init__(
@@ -51,6 +57,13 @@ class BaseClient:
         rel_path = path if path.startswith("/") else "/" + path
         start = time.perf_counter()
         merged_headers = {**self._default_headers(), **(headers or {})}
+
+        # Log the request details for debugging
+        logger.debug(f"Making {method} request to {self.base_url}{rel_path}")
+        logger.debug(f"Headers: {merged_headers}")
+        if "json" in kwargs:
+            logger.debug(f"JSON payload: {kwargs['json']}")
+
         try:
             resp = self._client.request(method, rel_path, headers=merged_headers, **kwargs)
             resp.raise_for_status()
@@ -60,13 +73,19 @@ class BaseClient:
             return resp
         except httpx.HTTPStatusError as exc:
             resp = exc.response
+            error_body = resp.text
             logger.error(
-                f"Bad response: {resp.status_code} for {method} {self.base_url}{rel_path} - body: {resp.text[:500]}"
+                f"Bad response: {resp.status_code} for {method} {self.base_url}{rel_path} - body: {error_body[:500]}"
             )
+            # Create a more informative error message
+            error_message = f"{method} {self.base_url}{rel_path} -> {resp.status_code}"
+            if error_body:
+                error_message += f"\nServer response: {error_body}"
+
             raise HTTPError(
-                f"{method} {self.base_url}{rel_path} -> {resp.status_code}",
+                error_message,
                 status_code=resp.status_code,
-                body=resp.text,
+                body=error_body,
             ) from exc
         except httpx.RequestError as exc:
             logger.exception(f"Request failed: {method} {self.base_url}{rel_path}")
