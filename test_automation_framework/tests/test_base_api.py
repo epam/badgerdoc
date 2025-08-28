@@ -51,7 +51,7 @@ class TestAPI:
 
 
 class TestDatasets:
-    def test_search_basic(self, dataset_client):
+    def test_clear_search_for_datasets(self, dataset_client):
         result = dataset_client.search()
         assert "pagination" in result
         assert "data" in result
@@ -124,19 +124,41 @@ class TestDatasets:
         assert exc.value.status_code == 400
         assert "already exists" in exc.value.body.lower()
 
+    def test_search_existing_dataset(self, dataset_tracker):
+        created, client = dataset_tracker
+        dataset_name = f"autotest_{uuid.uuid4().hex[:8]}"
+        resp = client.create_dataset(name=dataset_name)
+        created.append(dataset_name)
+        assert "successfully created" in resp["detail"].lower()
+
+        search_resp = client.search(filters=[{"field": "name", "operator": "eq", "value": dataset_name}])
+        names = [d["name"] for d in search_resp["data"]]
+        assert dataset_name in names
+
+    def test_search_non_existing_dataset(self, dataset_client):
+        search_resp = dataset_client.search(
+            filters=[{"field": "name", "operator": "eq", "value": "non_existing_dataset"}]
+        )
+        assert search_resp["data"] == []
+
+    def test_search_multiple_existing_datasets(self, dataset_tracker):
+        created, client = dataset_tracker
+        names = [f"autotest_{uuid.uuid4().hex[:8]}" for _ in range(2)]
+        for n in names:
+            resp = client.create_dataset(name=n)
+            created.append(n)
+            assert "successfully created" in resp["detail"].lower()
+
+        search_resp = client.search(filters=[{"field": "name", "operator": "in", "value": names}])
+        found_names = {d["name"] for d in search_resp["data"]}
+        assert set(names) <= found_names
+
 
 class TestFiles:
     def test_upload_and_delete_file(self, file_tracker, tmp_path):
         created_files, client = file_tracker
-        data_dir = Path(__file__).parent.parent / "data"
-        original_file = data_dir / "multivitamin.pdf"
-        unique_name = f"{uuid.uuid4().hex}_multivitamin.pdf"
-        temp_file = tmp_path / unique_name
-        shutil.copy(original_file, temp_file)
         try:
-            result = client.upload_file(str(temp_file))
-            assert isinstance(result, list)
-            file_info = result[0]
+            file_info, temp_file = client.upload_temp_file(client, file_tracker, tmp_path)
             assert file_info["status"] is True
             assert "id" in file_info
             assert "file_name" in file_info
@@ -166,42 +188,35 @@ class TestFiles:
 
     def test_move_file(self, file_tracker, dataset_tracker, tmp_path):
         created_datasets, dataset_client = dataset_tracker
+
         first_dataset_name = f"autotest_{uuid.uuid4().hex[:8]}"
         second_dataset_name = f"autotest_{uuid.uuid4().hex[:8]}"
+
         first_resp = dataset_client.create_dataset(name=first_dataset_name)
         created_datasets.append(first_dataset_name)
         assert "successfully created" in first_resp["detail"].lower()
-        datasets = dataset_client.search(filters=[{"field": "name", "operator": "eq", "value": first_dataset_name}])[
-            "data"
-        ]
-        assert len(datasets) == 1
-        first_dataset_id = datasets[0]["id"]
+        first_dataset_id = dataset_client.search(
+            filters=[{"field": "name", "operator": "eq", "value": first_dataset_name}]
+        )["data"][0]["id"]
+
         second_resp = dataset_client.create_dataset(name=second_dataset_name)
         created_datasets.append(second_dataset_name)
-        datasets = dataset_client.search(filters=[{"field": "name", "operator": "eq", "value": second_dataset_name}])[
-            "data"
-        ]
-        assert len(datasets) == 1
-        second_dataset_id = datasets[0]["id"]
         assert "successfully created" in second_resp["detail"].lower()
-        created_files, file_client = file_tracker
-        data_dir = Path(__file__).parent.parent / "data"
-        original_file = data_dir / "multivitamin.pdf"
-        unique_name = f"{uuid.uuid4().hex}_multivitamin.pdf"
-        temp_file = tmp_path / unique_name
-        shutil.copy(original_file, temp_file)
+        second_dataset_id = dataset_client.search(
+            filters=[{"field": "name", "operator": "eq", "value": second_dataset_name}]
+        )["data"][0]["id"]
+
+        created_files, client = file_tracker
+        file_info, temp_file = client.upload_temp_file(client, file_tracker, tmp_path)
+        created_files.append(file_info)
+        file_id = file_info["id"]
         try:
-            result = file_client.upload_file(str(temp_file))
-            file_info = result[0]
-            assert file_info["status"] is True
-            created_files.append(file_info)
-            file_id = file_info["id"]
-            move1 = file_client.move_files(name=first_dataset_name, objects=[file_id])[0]
+            move1 = client.move_files(name=first_dataset_name, objects=[file_id])[0]
             assert move1["status"] is True
             assert "successfully bounded" in move1["message"].lower()
             files_in_first = dataset_client.search_files(dataset_id=first_dataset_id)["data"]
             assert any(f["id"] == file_id for f in files_in_first)
-            move2 = file_client.move_files(name=second_dataset_name, objects=[file_id])[0]
+            move2 = client.move_files(name=second_dataset_name, objects=[file_id])[0]
             assert move2["status"] is True
             assert "successfully bounded" in move2["message"].lower()
             files_in_second = dataset_client.search_files(dataset_id=second_dataset_id)["data"]
@@ -209,6 +224,39 @@ class TestFiles:
         finally:
             if temp_file.exists():
                 temp_file.unlink()
+
+    def test_search_existing_file(self, file_tracker, tmp_path):
+        created_files, client = file_tracker
+        try:
+            file_info, temp_file = client.upload_temp_file(client, file_tracker, tmp_path)
+            assert file_info["status"] is True
+            search_resp = client.search_files(
+                filters=[{"field": "original_name", "operator": "eq", "value": file_info["file_name"]}]
+            )
+            names = [f["original_name"] for f in search_resp["data"]]
+            assert file_info["file_name"] in names
+        finally:
+            if temp_file.exists():
+                temp_file.unlink()
+
+    def test_search_non_existing_file(self, file_client):
+        search_resp = file_client.search_files(
+            filters=[{"field": "original_name", "operator": "eq", "value": "definitely_not_a_file.pdf"}]
+        )
+        assert search_resp["data"] == []
+
+    def test_search_multiple_existing_files(self, file_tracker, tmp_path):
+        created_files, client = file_tracker
+        f1, t1 = client.upload_temp_file(client, file_tracker, tmp_path)
+        f2, t2 = client.upload_temp_file(client, file_tracker, tmp_path)
+        names = [f1["file_name"], f2["file_name"]]
+
+        search = client.search_files(filters=[{"field": "original_name", "operator": "in", "value": names}])
+        found_names = {f["original_name"] for f in search["data"]}
+        assert set(names) <= found_names
+
+        t1.unlink(missing_ok=True)
+        t2.unlink(missing_ok=True)
 
 
 class TestJobs:
