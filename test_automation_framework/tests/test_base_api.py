@@ -257,6 +257,23 @@ class TestFiles:
         t1.unlink(missing_ok=True)
         t2.unlink(missing_ok=True)
 
+    def test_download_existing_file(self, file_tracker, tmp_path):
+        created_files, client = file_tracker
+        file_info, temp_file = client.upload_temp_file(client, file_tracker, tmp_path)
+        file_id = file_info["id"]
+
+        content = client.download_file(file_id)
+        assert isinstance(content, (bytes, bytearray))
+        assert len(content) > 100
+        assert content.startswith(b"%PDF")
+
+        temp_file.unlink(missing_ok=True)
+
+    def test_download_nonexistent_file(self, file_client):
+        with pytest.raises(HTTPError) as exc:
+            file_client.download_file(9999999)
+        assert exc.value.status_code == 404
+
 
 class TestJobs:
     def test_create_and_poll_job(
