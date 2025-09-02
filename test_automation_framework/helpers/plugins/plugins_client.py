@@ -31,7 +31,6 @@ class PluginsClient(BaseClient):
             "is_iframe": is_iframe,
         }
 
-        # Enhanced headers to match the successful request exactly
         headers = self._default_headers(content_type_json=True)
         headers.update(
             {
@@ -47,10 +46,6 @@ class PluginsClient(BaseClient):
                 "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:138.0) Gecko/20100101 Firefox/138.0",
             }
         )
-
-        # Log the request for debugging
-        logger.info(f"Creating plugin with payload: {payload}")
-        logger.info(f"Using headers: {headers}")
 
         try:
             return self.post_json(

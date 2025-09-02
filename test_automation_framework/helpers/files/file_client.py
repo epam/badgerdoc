@@ -5,6 +5,8 @@ from typing import List
 import shutil
 import uuid
 from pathlib import Path
+import httpx
+from helpers.base_client.base_client import HTTPError
 
 logger = logging.getLogger(__name__)
 
@@ -61,5 +63,31 @@ class FileClient(BaseClient):
         shutil.copy(original_file, temp_file)
         result = client.upload_file(str(temp_file))
         file_info = result[0]
+        assert file_info["status"] is True
         file_tracker[0].append(file_info)
         return file_info, temp_file
+
+    def download_file(self, file_id: int) -> bytes:
+        resp = self._client.get(
+            f"{self.base_url}/assets/download?file_id={file_id}",
+            headers=self._default_headers(),
+            follow_redirects=False,
+        )
+
+        if resp.status_code >= 400:
+            raise HTTPError(
+                f"GET {resp.request.url} -> {resp.status_code}",
+                status_code=resp.status_code,
+                body=resp.text,
+            )
+
+        if resp.status_code == 302 and "location" in resp.headers:
+            s3_resp = httpx.get(resp.headers["location"])
+            s3_resp.raise_for_status()
+            return s3_resp.content
+
+        raise HTTPError(
+            f"Unexpected response {resp.status_code} for file_id={file_id}",
+            status_code=resp.status_code,
+            body=resp.text,
+        )
