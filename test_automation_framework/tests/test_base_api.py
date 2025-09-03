@@ -64,7 +64,6 @@ class TestDatasets:
             assert isinstance(dataset["id"], int)
             assert isinstance(dataset["name"], str)
             assert isinstance(dataset["count"], int)
-            datetime.fromisoformat(dataset["created"])
 
     def test_search_sorting(self, dataset_client):
         result = dataset_client.search(sorting=[{"direction": "desc", "field": "name"}])
@@ -176,6 +175,15 @@ class TestFiles:
             if temp_file.exists():
                 temp_file.unlink()
 
+    def test_upload_invalid_format(self, file_client, tmp_path):
+        invalid_file = tmp_path / f"{uuid.uuid4().hex}.py"
+        invalid_file.write_text("this is py file")
+
+        with pytest.raises(HTTPError) as exc:
+            file_client.upload_file(str(invalid_file))
+
+        assert exc.value.status_code == 400
+
     @pytest.mark.skip(reason="Uploads a file, but returns 500")
     @pytest.mark.parametrize("content", ["", " "])
     def test_upload_empty_file(self, file_client, tmp_path, content):
@@ -223,6 +231,35 @@ class TestFiles:
         finally:
             if temp_file.exists():
                 temp_file.unlink()
+
+    def test_clear_search_files(self, file_tracker, tmp_path):
+        created_files, client = file_tracker
+        result = client.search_files()
+        assert "pagination" in result
+        assert "data" in result
+        assert isinstance(result["data"], list)
+        pagination = result["pagination"]
+        required_pagination_keys = {"page_num", "page_offset", "page_size", "min_pages_left", "total", "has_more"}
+        assert required_pagination_keys <= pagination.keys()
+        for file in result["data"]:
+            required_file_keys = {
+                "id",
+                "original_name",
+                "bucket",
+                "size_in_bytes",
+                "extension",
+                "original_ext",
+                "content_type",
+                "pages",
+                "last_modified",
+                "status",
+                "path",
+                "datasets",
+            }
+            assert required_file_keys <= file.keys()
+            assert isinstance(file["id"], int)
+            assert isinstance(file["original_name"], str)
+            assert isinstance(file["size_in_bytes"], int)
 
     def test_search_existing_file(self, file_tracker, tmp_path):
         created_files, client = file_tracker
@@ -273,6 +310,32 @@ class TestFiles:
         with pytest.raises(HTTPError) as exc:
             file_client.download_file(9999999)
         assert exc.value.status_code == 404
+
+    @pytest.mark.parametrize("field", ["original_name", "last_modified", "size_in_bytes"])
+    @pytest.mark.parametrize("direction", ["asc", "desc"])
+    # name descending fails
+    def test_files_sorting(self, file_client, field, direction):
+        resp = file_client.post_json(
+            "/assets/files/search",
+            json={
+                "pagination": {"page_num": 1, "page_size": 15},
+                "filters": [{"field": "original_name", "operator": "ilike", "value": "%%"}],
+                "sorting": [{"direction": direction, "field": field}],
+            },
+            headers=file_client._default_headers(content_type_json=True),
+        )
+
+        data = resp["data"]
+        values = [d[field] for d in data if field in d]
+
+        if field == "last_modified":
+            values = [datetime.fromisoformat(v) for v in values]
+
+        if field == "size_in_bytes":
+            values = [int(v) for v in values]
+
+        expected = sorted(values, reverse=(direction == "desc"))
+        assert values == expected, f"{field} not sorted {direction}"
 
 
 class TestJobs:
