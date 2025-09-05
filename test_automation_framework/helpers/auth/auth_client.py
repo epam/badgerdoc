@@ -15,7 +15,7 @@ class TokenResponse(BaseModel):
     expires_in: Optional[int] = None
 
 
-class AuthService:
+class AuthClient:
     def __init__(self, client: BaseClient) -> None:
         self.client = client
 

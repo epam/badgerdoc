@@ -90,6 +90,33 @@ class TestFiles:
             if temp_file.exists():
                 temp_file.unlink()
 
+    def test_add_file_to_dataset_twice(self, file_tracker, dataset_tracker, tmp_path):
+        created_datasets, dataset_client = dataset_tracker
+        dataset_name = f"autotest_{uuid.uuid4().hex[:8]}"
+        dataset = dataset_client.create_dataset(name=dataset_name)
+        created_datasets.append(dataset_name)
+        assert "successfully created" in dataset["detail"].lower()
+        first_dataset_id = dataset_client.search(filters=[{"field": "name", "operator": "eq", "value": dataset_name}])[
+            "data"
+        ][0]["id"]
+
+        created_files, client = file_tracker
+        file_info, temp_file = client.upload_temp_file(client, file_tracker, tmp_path)
+        created_files.append(file_info)
+        file_id = file_info["id"]
+        try:
+            move1 = client.move_files(name=dataset_name, objects=[file_id])[0]
+            assert move1["status"] is True
+            assert "successfully bounded" in move1["message"].lower()
+            files_in_first = dataset_client.search_files(dataset_id=first_dataset_id)["data"]
+            assert any(f["id"] == file_id for f in files_in_first)
+            move2 = client.move_files(name=dataset_name, objects=[file_id])[0]
+            assert move2["status"] is False
+            assert "already bounded" in move2["message"].lower()
+        finally:
+            if temp_file.exists():
+                temp_file.unlink()
+
     def test_clear_search_files(self, file_tracker, tmp_path):
         created_files, client = file_tracker
         result = client.search_files()

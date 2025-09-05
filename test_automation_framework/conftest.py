@@ -5,7 +5,7 @@ from typing import Tuple
 import pytest
 
 from settings import load_settings
-from helpers.auth.auth_service import AuthService
+from helpers.auth.auth_client import AuthClient
 from helpers.base_client.base_client import BaseClient
 from helpers.datasets.dataset_client import DatasetClient
 from helpers.files.file_client import FileClient
@@ -15,6 +15,8 @@ from helpers.category.categories import CategoriesClient
 from helpers.users.users import UsersClient
 from helpers.reports.reports_client import ReportsClient
 from helpers.plugins.plugins_client import PluginsClient
+
+from playwright.sync_api import Page
 
 logger = getLogger(__name__)
 
@@ -41,8 +43,8 @@ def base_client(settings) -> BaseClient:
 
 
 @pytest.fixture(scope="session")
-def auth_service(base_client) -> AuthService:
-    return AuthService(base_client)
+def auth_service(base_client) -> AuthClient:
+    return AuthClient(base_client)
 
 
 @pytest.fixture(scope="session")
@@ -148,3 +150,12 @@ def plugins_tracker(plugins_client):
             logger.info(f"[plugins_tracker] Deleted plugin {id}")
         except Exception as e:
             logger.warning(f"[plugins_tracker] Failed to delete plugin {id}: {e}")
+
+
+@pytest.fixture
+def logged_in_page(page: Page) -> Page:
+    page.goto("http://demo.badgerdoc.com:8083/login")
+    page.get_by_role("textbox", name="Username").fill("admin")
+    page.get_by_role("textbox", name="Password").fill("admin")
+    page.get_by_role("button", name="Login", exact=True).click()
+    return page
