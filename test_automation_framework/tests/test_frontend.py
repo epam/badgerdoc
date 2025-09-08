@@ -93,3 +93,32 @@ class TestIconViewSelection:
                 expect(cb).to_be_checked()
             else:
                 expect(cb).not_to_be_checked()
+
+    @pytest.mark.parametrize("select_all", [True, False])
+    def test_add_to_dataset_empty_field(self, logged_in_page: Page, select_all: bool):
+        page = logged_in_page
+
+        page.locator("rect").nth(0).click(force=True)
+
+        if select_all:
+            page.locator("label:has-text('Select All') div").first.click(force=True)
+        else:
+            item = page.locator("a[class^='document-card-view-item_card-item']").first
+            item.scroll_into_view_if_needed()
+
+            input_el = item.locator("input[type='checkbox']").first
+            label = item.locator("label.uui-checkbox-container")
+            uui_div = item.locator("div.uui-checkbox")
+
+            click_target = label.first if label.count() else uui_div.first if uui_div.count() else input_el
+            click_target.click(force=True)
+            expect(input_el).to_be_checked()
+
+        add_button = page.get_by_role("button", name="Add to dataset")
+        add_button.click()
+
+        choose_button = page.get_by_role("button", name="Choose")
+        choose_button.click()
+
+        error_label = page.locator("div.uui-invalid-message[role='alert']")
+        expect(error_label).to_have_text("The field is mandatory")
