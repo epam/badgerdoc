@@ -61,6 +61,17 @@ class JobsClient(BaseClient):
             "/jobs/jobs/create_job", json=payload, headers=self._default_headers(content_type_json=True)
         )
 
+    def search_jobs(
+        self,
+        page_num: int = 1,
+        page_size: int = 15,
+    ) -> dict:
+        payload = {
+            "pagination": {"page_num": page_num, "page_size": page_size},
+            "sorting": [{"direction": "desc", "field": "creation_datetime"}],
+        }
+        return self.post_json("/jobs/jobs/search", json=payload, headers=self._default_headers(content_type_json=True))
+
     def get_job(self, job_id: int) -> Dict[str, Any]:
         return self.get_json(f"/jobs/jobs/{job_id}", headers=self._default_headers())
 
