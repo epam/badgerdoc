@@ -24,9 +24,7 @@ class FrontendFileHelper:
         return temp_files
 
     @staticmethod
-    def upload_files(
-        page: Page, temp_files, file_tracker=None, client=None, base_file="multivitamin.pdf", timeout_seconds=30
-    ):
+    def upload_files(page: Page, temp_files, file_tracker=None, client=None, timeout_seconds=30):
         page.locator("input[type='file']").set_input_files([str(f) for f in temp_files])
 
         page.get_by_role("button", name="Next").click()
@@ -48,7 +46,7 @@ class FrontendFileHelper:
                     )
                     if search_resp["data"]:
                         file_info = search_resp["data"][0]
-                        file_tracker.append(file_info)
+                        file_tracker[0].append(file_info)
                         uploaded_infos.append(file_info)
                         break
                     time.sleep(1)
