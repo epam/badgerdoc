@@ -4,6 +4,7 @@ from playwright.sync_api import Page, expect
 from helpers.files.file_client_frontend import FrontendFileHelper
 from logging import getLogger
 from pathlib import Path
+import datetime
 
 
 logger = getLogger(__name__)
@@ -54,7 +55,7 @@ class TestUploadWizard:
         page.get_by_role("textbox", name="Job name").fill(job_name)
 
         logger.info("Select pipeline dropdown")
-        page.locator(".uui-icon.uui-enabled.uui-icon-dropdown").click()
+        page.get_by_role("textbox", name="Select pipeline").click()
         page.get_by_text("print", exact=True).click()
 
         logger.info("Start extraction")
@@ -67,6 +68,44 @@ class TestUploadWizard:
         jobs_client.poll_until_finished(job_id, timeout_seconds=180)
         page.reload()
         expect(page.get_by_text("Finished")).to_be_visible(timeout=10000)
+
+    def select_human_in_the_loop_and_start(
+        self,
+        page: Page,
+        jobs_client,
+        job_name: str,
+        validation_type: str = "Cross validation",
+        day: str | None = None,
+        annotator: str = "admin",
+        categories: list[str] = ["Age"],
+    ):
+        logger.info("Select Human in the loop")
+        page.get_by_role("tab", name="Human in the Loop").click()
+
+        logger.info("Select validation type")
+        page.get_by_role("textbox", name="Select validation type").click()
+        page.get_by_text(validation_type, exact=True).click()
+
+        page.get_by_role("textbox", name="DD/MM/YYYY").click()
+        if not day:
+            day = datetime.datetime.today().day + 1
+        logger.info(f"Select date {day}")
+        page.get_by_text(str(day), exact=True).click()
+
+        logger.info("Select annotator")
+        page.get_by_role("textbox", name="Select Annotators and").click()
+        page.get_by_role("listbox").get_by_text(annotator).click(force=True)
+        page.locator(".uui-input-box.-clickable.uui-focus").click()
+
+        page.get_by_role("textbox", name="Select categories").click()
+        for category in categories:
+            logger.info(f"Select category: {category}")
+            page.get_by_text(category, exact=True).click()
+
+        logger.info("Distribute annotation tasks")
+        page.get_by_text("Distribute annotation tasks").click()
+
+        self.fill_job_and_start(page, jobs_client, job_name)
 
     def run_upload_workflow(
         self,
@@ -82,6 +121,7 @@ class TestUploadWizard:
         language: str = None,
         preprocessor: str = None,
         job_name: str = None,
+        human_in_loop: bool = False,
     ):
         logger.info("Open wizard")
         page.get_by_role("button", name="Upload Wizard").click()
@@ -96,7 +136,10 @@ class TestUploadWizard:
 
         self.select_language(page, language)
 
-        return self.fill_job_and_start(page, jobs_client, job_name=job_name)
+        if human_in_loop:
+            self.select_human_in_the_loop_and_start(page, jobs_client, job_name)
+        else:
+            self.fill_job_and_start(page, jobs_client, job_name=job_name)
 
     @pytest.mark.parametrize("num_files", [1, 3])
     def test_upload_documents_without_dataset(
@@ -341,3 +384,21 @@ class TestUploadWizard:
             logger.info("Error message appeared as expected")
         except TimeoutError:
             pytest.fail("Expected error message did not appear")
+
+    @pytest.mark.skip(reason="Returns 500 even in browser")
+    @pytest.mark.parametrize("num_files", [1, 3])
+    def test_human_in_the_loop(self, logged_in_page: Page, num_files, file_tracker, jobs_client, tmp_path):
+        page = logged_in_page
+        created_files, client = file_tracker
+        frontend_file_helper = FrontendFileHelper()
+        self.run_upload_workflow(
+            page,
+            frontend_file_helper,
+            num_files,
+            file_tracker,
+            client,
+            jobs_client,
+            dataset_type="none",
+            tmp_path=tmp_path,
+            human_in_loop=True,
+        )

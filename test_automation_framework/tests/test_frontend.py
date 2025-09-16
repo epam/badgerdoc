@@ -122,3 +122,94 @@ class TestIconViewSelection:
 
         error_label = page.locator("div.uui-invalid-message[role='alert']")
         expect(error_label).to_have_text("The field is mandatory")
+
+
+class TestControls:
+    def test_scroll_documents(self, logged_in_page: Page):
+        page = logged_in_page
+
+        last_doc = page.locator('a[class*="document-card-view-item_card-item"]').last
+        last_doc.scroll_into_view_if_needed()
+        expect(last_doc).to_be_visible()
+
+        first_doc = page.locator('a[class*="document-card-view-item_card-item"]').first
+        first_doc.scroll_into_view_if_needed()
+        expect(first_doc).to_be_visible()
+
+    def test_pagination_by_page_number(self, logged_in_page: Page):
+        page = logged_in_page
+
+        nav = page.locator('nav[role="navigation"]')
+        nav.wait_for(state="visible", timeout=10000)
+        list_selector = 'a[class*="document-card-view-item_card-item"]'
+        first_doc = page.locator(list_selector).first
+        expect(first_doc).to_be_visible(timeout=10000)
+
+        old_text = first_doc.text_content()
+
+        nav.get_by_role("button", name="2", exact=True).click()
+
+        try:
+            expect(nav.get_by_role("button", name="2")).to_have_attribute("aria-current", "true", timeout=10000)
+        except AssertionError:
+            expect(page.locator(list_selector).first).not_to_have_text(old_text, timeout=10000)
+
+        active_attr = nav.get_by_role("button", name="2").get_attribute("aria-current")
+        assert active_attr == "true" or page.locator(list_selector).first.text_content() != old_text
+
+    def test_pagination_by_arrows(self, logged_in_page: Page):
+        page = logged_in_page
+
+        nav = page.locator('nav[role="navigation"]')
+        nav.wait_for(state="visible", timeout=10000)
+        list_selector = 'a[class*="document-card-view-item_card-item"]'
+        first_doc = page.locator(list_selector).first
+        expect(first_doc).to_be_visible(timeout=10000)
+
+        old_text = first_doc.text_content()
+
+        nav.locator("button").last.click()
+        try:
+            expect(nav.get_by_role("button", name="2", exact=True)).to_have_attribute(
+                "aria-current", "true", timeout=10000
+            )
+        except AssertionError:
+            expect(page.locator(list_selector).first).not_to_have_text(old_text, timeout=10000)
+
+        old_text_back = page.locator(list_selector).first.text_content()
+        nav.locator("button").first.click()
+        try:
+            expect(nav.get_by_role("button", name="1", exact=True)).to_have_attribute(
+                "aria-current", "true", timeout=10000
+            )
+        except AssertionError:
+            expect(page.locator(list_selector).first).not_to_have_text(old_text_back, timeout=10000)
+
+        active_attr_1 = nav.get_by_role("button", name="1", exact=True).get_attribute("aria-current")
+        assert active_attr_1 == "true" or page.locator(list_selector).first.text_content() != old_text_back
+
+    def test_show_on_page(self, logged_in_page: Page):
+        page = logged_in_page
+
+        list_selector = 'a[class*="document-card-view-item_card-item"]'
+        cards = page.locator(list_selector)
+
+        page_size_container = page.locator("div:has(> div > span:has-text('Show on page'))")
+        page_size_input = page_size_container.locator("input[aria-haspopup='true']")
+
+        page_size_input.click()
+        options = page.locator("div[role='option']")
+        option_texts = [options.nth(i).inner_text() for i in range(options.count())]
+        page_size_input.click()
+
+        for value in option_texts:
+            page_size_input.click()
+
+            option = page.locator("div[role='option']", has_text=value).first
+            option.wait_for(state="visible", timeout=5000)
+            option.click()
+
+            expect(cards.first).to_be_visible(timeout=10000)
+            count = cards.count()
+            print(f"Expected at most {value} cards, got {count}")
+            assert count <= int(value), f"Expected at most {value} cards, got {count}"
