@@ -211,5 +211,59 @@ class TestControls:
 
             expect(cards.first).to_be_visible(timeout=10000)
             count = cards.count()
-            print(f"Expected at most {value} cards, got {count}")
             assert count <= int(value), f"Expected at most {value} cards, got {count}"
+
+    @pytest.mark.parametrize(
+        "flow",
+        [
+            {"after_cancel": "Discard"},
+            {"after_cancel": "Save"},
+            {"choose_first": True, "after_cancel": None},
+        ],
+    )
+    def test_add_to_dataset_cancel(self, logged_in_page: Page, flow):
+        page = logged_in_page
+        first_card = page.locator("a[class*='document-card-view-item_card-item']").first
+        expect(first_card).to_be_visible(timeout=10000)
+        first_card.scroll_into_view_if_needed()
+        input_el = first_card.locator("input[type='checkbox']").first
+        label = first_card.locator("label.uui-checkbox-container")
+        uui_div = first_card.locator("div.uui-checkbox")
+
+        click_target = label.first if label.count() else uui_div.first if uui_div.count() else input_el
+        click_target.click(force=True)
+        expect(input_el).to_be_checked(timeout=5000)
+
+        page.get_by_role("button", name="Add to dataset").click()
+        dataset_input = page.get_by_role("textbox", name="Please select dataset")
+        dataset_input.click()
+        first_option = page.locator("div[role='option']").first
+        first_option.wait_for(state="visible", timeout=5000)
+        first_option.click()
+
+        if flow.get("choose_first"):
+            page.get_by_role("button", name="Choose").click()
+        page.get_by_role("button", name="Cancel").click()
+
+        if flow.get("after_cancel"):
+            page.get_by_role("button", name=flow["after_cancel"]).click()
+
+        expect(page.get_by_role("button", name="Choose")).not_to_be_visible(timeout=5000)
+
+    def test_click_preprocess(self, logged_in_page: Page):
+        page = logged_in_page
+        first_card = page.locator("a[class*='document-card-view-item_card-item']").first
+        expect(first_card).to_be_visible(timeout=10000)
+        first_card.scroll_into_view_if_needed()
+        input_el = first_card.locator("input[type='checkbox']").first
+        label = first_card.locator("label.uui-checkbox-container")
+        uui_div = first_card.locator("div.uui-checkbox")
+
+        click_target = label.first if label.count() else uui_div.first if uui_div.count() else input_el
+        click_target.click(force=True)
+        expect(input_el).to_be_checked(timeout=5000)
+
+        preprocess_btn = page.get_by_role("button", name="Preprocess")
+        expect(preprocess_btn).to_be_visible(timeout=5000)
+        preprocess_btn.click()
+        # what are we checking?
