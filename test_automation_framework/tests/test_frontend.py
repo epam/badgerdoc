@@ -1,5 +1,6 @@
 import pytest
 from playwright.sync_api import Page, expect
+import uuid
 
 
 class Locators:
@@ -267,3 +268,108 @@ class TestControls:
         expect(preprocess_btn).to_be_visible(timeout=5000)
         preprocess_btn.click()
         # what are we checking?
+
+    def test_add_to_extraction(
+        self,
+        logged_in_page: Page,
+        jobs_client,
+    ):
+        page = logged_in_page
+
+        first_card = page.locator("a[class*='document-card-view-item_card-item']").first
+        expect(first_card).to_be_visible(timeout=10000)
+        first_card.scroll_into_view_if_needed()
+
+        checkbox = first_card.locator("input[type='checkbox']").first
+        label = first_card.locator("label.uui-checkbox-container")
+        uui_div = first_card.locator("div.uui-checkbox")
+
+        click_target = label.first if label.count() else uui_div.first if uui_div.count() else checkbox
+        click_target.click(force=True)
+        expect(checkbox).to_be_checked(timeout=5000)
+
+        page.get_by_role("button", name="Add to extraction").click()
+
+        first_cell = page.get_by_role("cell").first
+        first_cell.locator("label div").click()
+        expect(first_cell.locator("input[type='checkbox']")).to_be_checked(timeout=5000)
+
+        page.get_by_role("button", name="Next").click()
+
+        job_name = f"extraction_job_{uuid.uuid4().hex[:8]}"
+        page.get_by_role("textbox", name="Job name").fill(job_name)
+        page.get_by_role("textbox", name="Select pipeline").click()
+        page.get_by_text("print", exact=True).click()
+
+        page.get_by_role("button", name="Start Extraction").click()
+
+        page.wait_for_url("**/jobs/**", timeout=20000)
+        jobs = jobs_client.search_jobs()
+        job_id = next((j["id"] for j in jobs["data"] if j["name"] == job_name), None)
+        assert job_id, f"Job with name {job_name} not found!"
+        jobs_client.poll_until_finished(job_id, timeout_seconds=180)
+        page.reload()
+        expect(page.get_by_text("Finished")).to_be_visible(timeout=10000)
+
+    @pytest.mark.parametrize("num_files", [1, 3])
+    @pytest.mark.parametrize("view_mode", ["card", "list"])
+    def test_delete_files(self, logged_in_page: Page, file_tracker, tmp_path, num_files, view_mode):
+        # list view fails because deleted lines does not disappear
+        page = logged_in_page
+        created_files, client = file_tracker
+        temp_files = []
+        uploaded_files = []
+
+        for _ in range(num_files):
+            file_info, temp_file = client.upload_temp_file(client, file_tracker, tmp_path)
+            assert file_info["status"] is True
+            uploaded_files.append(file_info)
+            created_files.append(file_info)
+            temp_files.append(temp_file)
+
+        page.reload()
+
+        if view_mode == "list":
+            page.locator("rect").nth(1).click(force=True)
+            rows_selector = "div.uui-table-row-container[role='row']"
+            items = page.locator(rows_selector)
+        else:
+            cards_selector = 'a[class*="document-card-view-item_card-item"]'
+            items = page.locator(cards_selector)
+
+        expect(items.first).to_be_visible(timeout=10000)
+
+        selected_names = []
+        for f in uploaded_files:
+            name = f["file_name"]
+            element = items.filter(has_text=name).first
+            expect(element).to_be_visible(timeout=10000)
+
+            checkbox = element.locator("input[type='checkbox']").first
+            label = element.locator("label.uui-checkbox-container")
+            uui_div = element.locator("div.uui-checkbox")
+            click_target = label.first if label.count() else uui_div.first if uui_div.count() else checkbox
+
+            element.scroll_into_view_if_needed()
+            click_target.click(force=True)
+            expect(checkbox).to_be_checked(timeout=5000)
+
+            selected_names.append(name)
+
+        delete_button = page.get_by_role("button", name="Delete")
+        delete_button.click(force=True)
+
+        for name in selected_names:
+            expect(page.get_by_text(name)).not_to_be_visible(timeout=10000)
+
+        remaining = client.search_files()["data"]
+        remaining_ids = {f["id"] for f in remaining}
+        for f in uploaded_files:
+            assert f["id"] not in remaining_ids, f"File {f['file_name']} was not deleted"
+        for f in created_files:
+            if f not in uploaded_files:
+                assert f["id"] in remaining_ids, f"Unrelated file {f['file_name']} was deleted"
+
+        for temp in temp_files:
+            if temp.exists():
+                temp.unlink()
