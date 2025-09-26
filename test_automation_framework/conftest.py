@@ -1,6 +1,8 @@
 import logging
 from logging import getLogger
 from typing import Tuple
+from playwright.sync_api import expect
+
 
 import pytest
 
@@ -37,7 +39,7 @@ def tenant(settings) -> str:
 
 @pytest.fixture(scope="session")
 def base_client(settings) -> BaseClient:
-    client = BaseClient(settings.BASE_URL, timeout=10)
+    client = BaseClient(f"{settings.BASE_URL}:{settings.BASE_PORT}", timeout=10)
     yield client
     client.close()
 
@@ -59,44 +61,44 @@ def access_token(auth_token) -> str:
 
 @pytest.fixture
 def menu_client(settings, access_token, tenant) -> MenuClient:
-    return MenuClient(settings.BASE_URL, access_token, tenant)
+    return MenuClient(f"{settings.BASE_URL}:{settings.BASE_PORT}", access_token, tenant)
 
 
 @pytest.fixture
 def dataset_client(settings, access_token, tenant) -> DatasetClient:
-    return DatasetClient(settings.BASE_URL, access_token, tenant)
+    return DatasetClient(f"{settings.BASE_URL}:{settings.BASE_PORT}", access_token, tenant)
 
 
 @pytest.fixture
 def file_client(settings, access_token, tenant) -> FileClient:
-    return FileClient(settings.BASE_URL, access_token, tenant)
+    return FileClient(f"{settings.BASE_URL}:{settings.BASE_PORT}", access_token, tenant)
 
 
 @pytest.fixture
 def jobs_client(settings, access_token, tenant) -> JobsClient:
-    return JobsClient(settings.BASE_URL, access_token, tenant)
+    return JobsClient(f"{settings.BASE_URL}:{settings.BASE_PORT}", access_token, tenant)
 
 
 @pytest.fixture
 def reports_client(settings, access_token, tenant) -> ReportsClient:
-    return ReportsClient(settings.BASE_URL, access_token, tenant)
+    return ReportsClient(f"{settings.BASE_URL}:{settings.BASE_PORT}", access_token, tenant)
 
 
 @pytest.fixture
 def plugins_client(settings, access_token, tenant) -> PluginsClient:
-    return PluginsClient(settings.BASE_URL, access_token, tenant)
+    return PluginsClient(f"{settings.BASE_URL}:{settings.BASE_PORT}", access_token, tenant)
 
 
 @pytest.fixture
 def user_uuid(settings, access_token, tenant) -> str:
-    users_client = UsersClient(settings.BASE_URL, access_token, tenant)
+    users_client = UsersClient(f"{settings.BASE_URL}:{settings.BASE_PORT}", access_token, tenant)
     users = users_client.search_users()
     return next((u.id for u in users if u.username == "admin"), None)
 
 
 @pytest.fixture
 def categories_client(settings, access_token, tenant) -> CategoriesClient:
-    return CategoriesClient(settings.BASE_URL, access_token, tenant)
+    return CategoriesClient(f"{settings.BASE_URL}:{settings.BASE_PORT}", access_token, tenant)
 
 
 @pytest.fixture
@@ -153,9 +155,20 @@ def plugins_tracker(plugins_client):
 
 
 @pytest.fixture
-def logged_in_page(page: Page) -> Page:
-    page.goto("http://demo.badgerdoc.com:8083/login")
+def logged_in_page(page: Page, settings) -> Page:
+    page.goto(f"{settings.BASE_URL}:8083/login", timeout=180000)
     page.get_by_role("textbox", name="Username").fill("admin")
     page.get_by_role("textbox", name="Password").fill("admin")
     page.get_by_role("button", name="Login", exact=True).click()
+    return page
+
+
+@pytest.fixture
+def plugins_page(logged_in_page, settings) -> Page:
+    page = logged_in_page
+    items = page.locator("a[class^='document-card-view-item_card-item']")
+    expect(items.first).to_be_visible(timeout=100000)
+    page.goto(f"{settings.BASE_URL}:8083/settings/plugins")
+    row_cells = page.locator("div[role='row'] div[role='cell']:first-child div div")
+    expect(row_cells.first).to_be_visible(timeout=100000)
     return page

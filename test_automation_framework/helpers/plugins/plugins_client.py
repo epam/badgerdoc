@@ -1,6 +1,20 @@
-from typing import Any, Dict, List
+from typing import List
 import logging
 from helpers.base_client.base_client import BaseClient
+from dataclasses import dataclass
+
+
+@dataclass
+class Plugin:
+    id: int
+    name: str
+    description: str
+    version: str
+    menu_name: str
+    url: str
+    tenant: str
+    is_autoinstalled: bool
+    is_iframe: bool
 
 
 logger = logging.getLogger(__name__)
@@ -10,8 +24,9 @@ class PluginsClient(BaseClient):
     def __init__(self, base_url: str, token: str, tenant: str) -> None:
         super().__init__(base_url, token=token, tenant=tenant)
 
-    def get_plugins(self) -> List[Dict[str, Any]]:
-        return self.get_json("/core/plugins", headers=self._default_headers())
+    def get_plugins(self) -> List[Plugin]:
+        raw = self.get_json("/core/plugins", headers=self._default_headers())
+        return [Plugin(**item) for item in raw]
 
     def create_plugin(
         self,
@@ -21,7 +36,7 @@ class PluginsClient(BaseClient):
         version: str = "1",
         description: str = "",
         is_iframe: bool = True,
-    ) -> dict:
+    ) -> Plugin:
         payload = {
             "name": name,
             "menu_name": menu_name,
@@ -48,26 +63,29 @@ class PluginsClient(BaseClient):
         )
 
         try:
-            return self.post_json(
+            resp = self.post_json(
                 "/core/plugins",
                 json=payload,
                 headers=headers,
             )
+            return Plugin(**resp)
         except Exception as e:
             logger.error(f"Failed to create plugin: {e}")
             if hasattr(e, "body"):
                 logger.error(f"Response body: {e.body}")
             raise
 
-    def update_plugin(self, plugin_id: int, **fields) -> dict:
-        return self.put_json(
+    def update_plugin(self, plugin_id: int, **fields) -> Plugin:
+        resp = self.put_json(
             f"/core/plugins/{plugin_id}",
             json=fields,
             headers=self._default_headers(content_type_json=True),
         )
+        return Plugin(**resp)
 
-    def delete_plugin(self, plugin_id: int) -> dict:
-        return self.delete_json(
+    def delete_plugin(self, plugin_id: int) -> Plugin:
+        resp = self.delete_json(
             f"/core/plugins/{plugin_id}",
             headers=self._default_headers(content_type_json=True),
         )
+        return Plugin(**resp)

@@ -9,6 +9,7 @@ DEFAULTS_PATH = ROOT / "config" / "defaults.yaml"
 
 class Settings(BaseSettings):
     BASE_URL: str
+    BASE_PORT: int
     API_USER: str
     API_PASS: SecretStr
     TIMEOUT_SECONDS: int = 30
