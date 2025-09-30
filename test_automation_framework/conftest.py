@@ -160,15 +160,24 @@ def logged_in_page(page: Page, settings) -> Page:
     page.get_by_role("textbox", name="Username").fill("admin")
     page.get_by_role("textbox", name="Password").fill("admin")
     page.get_by_role("button", name="Login", exact=True).click()
+    items = page.locator("a[class^='document-card-view-item_card-item']")
+    expect(items.first).to_be_visible(timeout=100000)
     return page
 
 
 @pytest.fixture
 def plugins_page(logged_in_page, settings) -> Page:
     page = logged_in_page
-    items = page.locator("a[class^='document-card-view-item_card-item']")
-    expect(items.first).to_be_visible(timeout=100000)
     page.goto(f"{settings.BASE_URL}:8083/settings/plugins")
     row_cells = page.locator("div[role='row'] div[role='cell']:first-child div div")
     expect(row_cells.first).to_be_visible(timeout=100000)
+    return page
+
+
+@pytest.fixture
+def jobs_page(logged_in_page, settings) -> Page:
+    page = logged_in_page
+    page.goto(f"{settings.BASE_URL}:8083/jobs")
+    rows = page.locator("div[role='row']").locator("xpath=..").locator("div[role='row']:not(.uui-table-header-row)")
+    expect(rows.first).to_be_visible(timeout=5000)
     return page

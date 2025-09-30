@@ -1,6 +1,8 @@
 from logging import getLogger
 from datetime import datetime, timedelta
 import uuid
+from playwright.sync_api import Page, expect
+from helpers.steps.jobs_creation import run_new_job_workflow
 
 import pytest
 
@@ -39,7 +41,7 @@ class TestJobs:
     @pytest.mark.parametrize("field", ["name", "type", "status", "deadline", "creation_datetime"])
     @pytest.mark.parametrize("direction", ["asc", "desc"])
     # descending name sorting works weird
-    def test_sorting(self, jobs_client, field, direction):
+    def test_jobs_sorting(self, jobs_client, field, direction):
         resp = jobs_client.post_json(
             "/jobs/jobs/search",
             json={
@@ -97,7 +99,7 @@ class TestJobs:
         assert job_id in job_ids
 
     @pytest.mark.parametrize("field", ["creation_datetime", "deadline"])
-    def test_date_range_filter(self, jobs_client, field):
+    def test_jobs_date_range_filter(self, jobs_client, field):
         start = (datetime.utcnow() - timedelta(days=365)).replace(microsecond=0).isoformat()
         end = (datetime.utcnow() + timedelta(days=365)).replace(microsecond=0).isoformat()
 
@@ -118,3 +120,113 @@ class TestJobs:
             if field in job and job[field] is not None:
                 date_val = datetime.fromisoformat(job[field])
                 assert datetime.fromisoformat(start) <= date_val <= datetime.fromisoformat(end)
+
+
+class TestJobsFrontend:
+    def test_jobs_scroll(self, jobs_page: Page):
+        page = jobs_page
+
+        page_size_container = page.locator("div:has(> div > span:has-text('Show on page'))")
+        page_size_input = page_size_container.locator("input[aria-haspopup='true']")
+        page_size_input.click()
+        page.locator("div[role='option']", has_text="100").click()
+
+        rows = page.locator("div[role='row']").filter(has_not=page.locator("div[role='columnheader']"))
+
+        last_row = rows.last
+        last_row.scroll_into_view_if_needed()
+        expect(last_row).to_be_visible()
+
+        first_row = rows.first
+        first_row.scroll_into_view_if_needed()
+        expect(first_row).to_be_visible()
+
+    def test_jobs_pagination_by_page_number(self, jobs_page: Page):
+        page = jobs_page
+        nav = page.locator('nav[role="navigation"]')
+        nav.wait_for(state="visible", timeout=10000)
+
+        rows = page.locator("div[role='row']").filter(has_not=page.locator("div[role='columnheader']"))
+        first_row = rows.first
+        expect(first_row).to_be_visible(timeout=10000)
+
+        old_text = first_row.text_content()
+
+        nav.get_by_role("button", name="2", exact=True).click()
+
+        try:
+            expect(nav.get_by_role("button", name="2")).to_have_attribute("aria-current", "true", timeout=10000)
+        except AssertionError:
+            expect(rows.first).not_to_have_text(old_text, timeout=10000)
+
+        active_attr = nav.get_by_role("button", name="2").get_attribute("aria-current")
+        assert active_attr == "true" or rows.first.text_content() != old_text
+
+    def test_jobs_pagination_by_arrows(self, jobs_page: Page):
+        page = jobs_page
+
+        nav = page.locator('nav[role="navigation"]')
+        nav.wait_for(state="visible", timeout=10000)
+
+        rows = page.locator("div[role='row']").filter(has_not=page.locator("div[role='columnheader']"))
+        first_row = rows.first
+        expect(first_row).to_be_visible(timeout=10000)
+
+        old_text = first_row.text_content()
+
+        nav.locator("button").last.click()
+        try:
+            expect(nav.get_by_role("button", name="2", exact=True)).to_have_attribute(
+                "aria-current", "true", timeout=10000
+            )
+        except AssertionError:
+            expect(rows.first).not_to_have_text(old_text, timeout=10000)
+
+        old_text_back = rows.first.text_content()
+        nav.locator("button").first.click()
+        try:
+            expect(nav.get_by_role("button", name="1", exact=True)).to_have_attribute(
+                "aria-current", "true", timeout=10000
+            )
+        except AssertionError:
+            expect(rows.first).not_to_have_text(old_text_back, timeout=10000)
+
+        active_attr_1 = nav.get_by_role("button", name="1", exact=True).get_attribute("aria-current")
+        assert active_attr_1 == "true" or rows.first.text_content() != old_text_back
+
+    def test_jobs_show_on_page(self, jobs_page: Page):
+        page = jobs_page
+
+        rows = page.locator("div[role='row']").locator("xpath=..").locator("div[role='row']:not(.uui-table-header-row)")
+
+        page_size_container = page.locator("div:has(> div > span:has-text('Show on page'))")
+        page_size_input = page_size_container.locator("input[aria-haspopup='true']")
+
+        page_size_input.click()
+        options = page.locator("div[role='option']")
+        option_texts = [options.nth(i).inner_text() for i in range(options.count())]
+        page_size_input.click()
+
+        for value in option_texts:
+            page_size_input.click()
+
+            option = page.locator("div[role='option']", has_text=value).first
+            option.wait_for(state="visible", timeout=5000)
+            option.click()
+
+            expect(rows.first).to_be_visible(timeout=10000)
+            count = rows.count()
+            assert count <= int(value), f"Expected at most {value} rows, got {count}"
+
+    @pytest.mark.parametrize("num_files", [1, 3])
+    @pytest.mark.parametrize("manager", [None, "Airflow", "Databricks"])
+    def test_create_job(self, jobs_page: Page, file_tracker, tmp_path, jobs_client, file_client, num_files, manager):
+        page = jobs_page
+        run_new_job_workflow(
+            page=page,
+            num_files=num_files,
+            file_tracker=file_tracker,
+            jobs_client=jobs_client,
+            tmp_path=tmp_path,
+            pipeline_manager=manager,
+        )
