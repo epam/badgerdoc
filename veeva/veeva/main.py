@@ -30,8 +30,10 @@ async def synchronization_worker():
     logger.info("Synchronization worker started")
     try:
         while True:
-            pending_syncs = await synchronization.run_next_pending_synchronization(
-                LOCAL_SESSION()
+            pending_syncs = (
+                await synchronization.run_next_pending_synchronization(
+                    LOCAL_SESSION()
+                )
             )
             logger.info("Synchronization worker cycle completed")
             await sleep(60)

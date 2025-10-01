@@ -53,7 +53,9 @@ class Configuration:
         self,
         session: AsyncSession,
     ) -> "Configuration":
-        logger.debug("Creating Veeva PM configuration for tenant: %s", self.tenant)
+        logger.debug(
+            "Creating Veeva PM configuration for tenant: %s", self.tenant
+        )
         new_config = orm.Configuration(
             tenant=self.tenant,
             created_by=self.created_by,
@@ -67,7 +69,9 @@ class Configuration:
         )
         session.add(new_config)
         await session.commit()
-        await session.refresh(new_config)  # Refresh to get the ID from the database
+        await session.refresh(
+            new_config
+        )  # Refresh to get the ID from the database
 
         logger.debug(
             "Created new Veeva PM configuration with ID %d for tenant %s",
