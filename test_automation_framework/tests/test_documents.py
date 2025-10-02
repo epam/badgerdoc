@@ -24,7 +24,6 @@ class TestDocumentsAPI:
             assert file_info["status"] is True
             assert "id" in file_info
             assert "file_name" in file_info
-            created_files.append(file_info)
             search = client.search_files()
             ids = [f["id"] for f in search["data"]]
             assert file_info["id"] in ids
@@ -80,7 +79,6 @@ class TestDocumentsAPI:
 
         created_files, client = file_tracker
         file_info, temp_file = client.upload_temp_file(client, file_tracker, tmp_path)
-        created_files.append(file_info)
         file_id = file_info["id"]
         try:
             move1 = client.move_files(name=first_dataset_name, objects=[file_id])[0]
@@ -109,7 +107,6 @@ class TestDocumentsAPI:
 
         created_files, client = file_tracker
         file_info, temp_file = client.upload_temp_file(client, file_tracker, tmp_path)
-        created_files.append(file_info)
         file_id = file_info["id"]
         try:
             move1 = client.move_files(name=dataset_name, objects=[file_id])[0]
@@ -429,7 +426,6 @@ class TestDocumentsFrontend:
             file_info, temp_file = client.upload_temp_file(client, file_tracker, tmp_path)
             assert file_info["status"] is True
             uploaded_files.append(file_info)
-            created_files.append(file_info)
             temp_files.append(temp_file)
 
         page.reload()

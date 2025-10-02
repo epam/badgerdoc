@@ -2,7 +2,13 @@ from logging import getLogger
 from datetime import datetime, timedelta
 import uuid
 from playwright.sync_api import Page, expect
-from helpers.steps.jobs_creation import run_new_job_workflow
+from helpers.steps.jobs_creation import (
+    run_new_job_documents_workflow,
+    run_new_job_first_line_workflow,
+    run_new_job_multi_tab_workflow,
+    run_new_job_dataset_without_documents_workflow,
+)
+from helpers.base_client.base_client import HTTPError
 
 import pytest
 
@@ -121,6 +127,36 @@ class TestJobs:
                 date_val = datetime.fromisoformat(job[field])
                 assert datetime.fromisoformat(start) <= date_val <= datetime.fromisoformat(end)
 
+    def test_create_job_with_existing_name(
+        self, file_client, jobs_client, file_tracker, dataset_tracker, job_tracker, tmp_path, user_uuid
+    ):
+        created_files, client = file_tracker
+        file_info, temp_file = client.upload_temp_file(client, file_tracker, tmp_path)
+        created_datasets, dataset_client = dataset_tracker
+
+        dataset_name = f"autotest_ds_{uuid.uuid4().hex[:8]}"
+        dataset_client.create_dataset(name=dataset_name)
+        created_datasets.append(dataset_name)
+        move_resp = file_client.move_files(name=dataset_name, objects=[file_info["id"]])[0]
+        assert move_resp["status"] is True
+        job_name = f"test_job_{uuid.uuid4().hex[:8]}"
+        create_resp_first = jobs_client.create_job(
+            name=job_name,
+            file_ids=[file_info["id"]],
+            owners=[user_uuid],
+        )
+        job_tracker[0].append(create_resp_first)
+        job_id = create_resp_first.get("id")
+        assert job_id
+
+        with pytest.raises(HTTPError) as exc:
+            jobs_client.create_job(
+                name=job_name,
+                file_ids=[file_info["id"]],
+                owners=[user_uuid],
+            )
+        assert exc.value.status_code == 400
+
 
 class TestJobsFrontend:
     def test_jobs_scroll(self, jobs_page: Page):
@@ -219,14 +255,86 @@ class TestJobsFrontend:
             assert count <= int(value), f"Expected at most {value} rows, got {count}"
 
     @pytest.mark.parametrize("num_files", [1, 3])
-    @pytest.mark.parametrize("manager", [None, "Airflow", "Databricks"])
-    def test_create_job(self, jobs_page: Page, file_tracker, tmp_path, jobs_client, file_client, num_files, manager):
+    @pytest.mark.parametrize("manager", ["Airflow", "Databricks", "Other"])
+    def test_create_job_documents_tab(
+        self, jobs_page: Page, file_tracker, tmp_path, jobs_client, file_client, dataset_tracker, num_files, manager
+    ):
         page = jobs_page
-        run_new_job_workflow(
+        run_new_job_documents_workflow(
             page=page,
             num_files=num_files,
             file_tracker=file_tracker,
+            dataset_tracker=dataset_tracker,
             jobs_client=jobs_client,
             tmp_path=tmp_path,
             pipeline_manager=manager,
         )
+
+    @pytest.mark.parametrize("manager", ["Airflow", "Databricks"])
+    @pytest.mark.parametrize("tab", ["Jobs", "Datasets", "Revisions"])
+    def test_create_job_other_tabs(
+        self, jobs_page: Page, file_tracker, tmp_path, jobs_client, file_client, tab, manager, dataset_tracker
+    ):
+        page = jobs_page
+        run_new_job_first_line_workflow(
+            page=page,
+            num_files=1,
+            file_tracker=file_tracker,
+            dataset_tracker=dataset_tracker,
+            jobs_client=jobs_client,
+            tmp_path=tmp_path,
+            pipeline_manager=manager,
+            tab_button=tab,
+        )
+
+    @pytest.mark.parametrize("manager", ["Airflow", "Databricks"])
+    @pytest.mark.parametrize(
+        "tabs",
+        [
+            ["Documents", "Jobs"],
+            ["Documents", "Datasets"],
+            ["Documents", "Revisions"],
+            ["Documents", "Jobs", "Datasets", "Revisions"],
+        ],
+    )
+    def test_create_job_multi_tabs(
+        self, jobs_page: Page, file_tracker, tmp_path, jobs_client, dataset_tracker, manager, tabs
+    ):
+        page = jobs_page
+        run_new_job_multi_tab_workflow(
+            page=page,
+            jobs_client=jobs_client,
+            tabs=tabs,
+            file_tracker=file_tracker,
+            dataset_tracker=dataset_tracker,
+            tmp_path=tmp_path,
+            pipeline_manager=manager,
+        )
+
+    def test_create_job_zero_dataset(
+        self,
+        jobs_page: Page,
+        file_tracker,
+        tmp_path,
+        jobs_client,
+        dataset_tracker,
+    ):
+        # outcome?
+        page = jobs_page
+        run_new_job_dataset_without_documents_workflow(
+            page=page,
+            jobs_client=jobs_client,
+            dataset_tracker=dataset_tracker,
+        )
+
+    def test_create_job_without_name(
+        self,
+        jobs_page: Page,
+    ):
+        page = jobs_page
+        logger.info("Open wizard")
+        page.get_by_role("button", name="New job").click()
+        page.get_by_role("button", name="Next").click()
+        page.get_by_role("button", name="New Job").click()
+        error_label = page.locator("div[role='alert'].uui-invalid-message").nth(0)
+        expect(error_label).to_have_text("The field is mandatory", timeout=5000)

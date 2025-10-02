@@ -44,7 +44,7 @@ def select_language(page: Page, language: str = None):
         page.get_by_role("button", name="Next").click()
 
 
-def fill_job_and_start(page: Page, jobs_client, job_name: str, pipeline_manager=None):
+def fill_job_and_start(page: Page, jobs_client, job_name: str, pipeline_manager=None, pipeline="print"):
     job_name = job_name if job_name else f"test_job_{uuid.uuid4().hex[:8]}"
     logger.info(f"Fill job name: {job_name}")
     page.get_by_role("textbox", name="Job name").fill(job_name)
@@ -55,7 +55,7 @@ def fill_job_and_start(page: Page, jobs_client, job_name: str, pipeline_manager=
 
     logger.info("Select pipeline dropdown")
     page.get_by_role("textbox", name="Select pipeline").click()
-    page.get_by_text("print", exact=True).click()
+    page.get_by_text(pipeline, exact=True).click()
 
     logger.info("Start extraction")
 
@@ -76,8 +76,10 @@ def select_human_in_the_loop_and_start(
     validation_type: str = "Cross validation",
     day: str | None = None,
     annotator: str = "admin",
-    categories: list[str] = ["Age"],
+    categories: list[str] = None,
 ):
+    if not categories:
+        categories = ["Age"]
     logger.info("Select Human in the loop")
     page.get_by_role("tab", name="Human in the Loop").click()
 
@@ -118,10 +120,16 @@ def select_files(page: Page, document_names):
     logger.info(f"Select files: {document_names}")
     for file_name in document_names:
         row = page.locator(f"text={file_name}").first
+        print(f'clicking file "{file_name}"')
         checkbox_label = row.locator("xpath=preceding-sibling::label")
         checkbox_label.click(force=True)
 
-    page.get_by_role("button", name="Next").click()
+
+def select_first_element(page: Page):
+    logger.info("Select first element in the table")
+    first_row = page.locator('div[role="row"]').nth(1)
+    checkbox = first_row.locator("label.uui-checkbox-container")
+    checkbox.click(force=True)
 
 
 def run_upload_workflow(
@@ -157,26 +165,153 @@ def run_upload_workflow(
         fill_job_and_start(page, jobs_client, job_name=job_name, pipeline_manager=pipeline_manager)
 
 
-def run_new_job_workflow(
+def create_file_in_dataset(
+    dataset_tracker,
+    file_tracker,
+    tmp_path,
+    num_files,
+):
+    created_datasets, dataset_client = dataset_tracker
+    dataset_name = f"autotest_{uuid.uuid4().hex[:8]}"
+    dataset = dataset_client.create_dataset(name=dataset_name)
+    created_datasets.append(dataset_name)
+    assert "successfully created" in dataset["detail"].lower()
+    first_dataset_id = dataset_client.search(filters=[{"field": "name", "operator": "eq", "value": dataset_name}])[
+        "data"
+    ][0]["id"]
+
+    created_files, client = file_tracker
+    for i in range(num_files):
+        file_info, temp_file = client.upload_temp_file(client, file_tracker, tmp_path)
+        file_id = file_info["id"]
+        move1 = client.move_files(name=dataset_name, objects=[file_id])[0]
+        assert move1["status"] is True
+        assert "successfully bounded" in move1["message"].lower()
+        files_in_first = dataset_client.search_files(dataset_id=first_dataset_id)["data"]
+        assert any(f["id"] == file_id for f in files_in_first)
+    files = [file["file_name"] for file in created_files]
+    return dataset_name, files
+
+
+def run_new_job_documents_workflow(
     page: Page,
     num_files: int,
     file_tracker,
     jobs_client,
+    dataset_tracker,
     tmp_path=None,
     job_name: str = None,
     human_in_loop: bool = False,
     pipeline_manager: str = None,
 ):
-    for i in range(num_files):
-        created_files, client = file_tracker
-        file_info, temp_file = client.upload_temp_file(client, file_tracker, tmp_path)
-        assert file_info["status"] is True
-    files = [file["file_name"] for file in created_files]
+    dataset_name, files = create_file_in_dataset(
+        dataset_tracker=dataset_tracker, tmp_path=tmp_path, num_files=num_files, file_tracker=file_tracker
+    )
 
     logger.info("Open wizard")
     page.get_by_role("button", name="New job").click()
 
     select_files(page, files)
+    page.get_by_role("button", name="Next").click()
+
+    if human_in_loop:
+        select_human_in_the_loop_and_start(page, jobs_client, job_name)
+    else:
+        if pipeline_manager == "Other":
+            fill_job_and_start(
+                page, jobs_client, job_name=job_name, pipeline_manager=pipeline_manager, pipeline="AI by MCP"
+            )
+        else:
+            fill_job_and_start(page, jobs_client, job_name=job_name, pipeline_manager=pipeline_manager)
+
+
+def run_new_job_first_line_workflow(
+    page: Page,
+    num_files: int,
+    file_tracker,
+    jobs_client,
+    dataset_tracker,
+    tab_button,
+    tmp_path=None,
+    job_name: str = None,
+    human_in_loop: bool = False,
+    pipeline_manager: str = None,
+):
+    dataset_name, files = create_file_in_dataset(
+        dataset_tracker=dataset_tracker, tmp_path=tmp_path, num_files=num_files, file_tracker=file_tracker
+    )
+    logger.info("Open wizard")
+    page.get_by_role("button", name="New job").click()
+    page.get_by_role("tab", name=tab_button, exact=True).click()
+    if tab_button == "Datasets":
+        select_files(page, [dataset_name])
+    else:
+        select_first_element(page)
+    page.get_by_role("button", name="Next").click()
+
+    if human_in_loop:
+        select_human_in_the_loop_and_start(page, jobs_client, job_name)
+    else:
+        fill_job_and_start(page, jobs_client, job_name=job_name, pipeline_manager=pipeline_manager)
+
+
+def run_new_job_multi_tab_workflow(
+    page: Page,
+    jobs_client,
+    file_tracker,
+    dataset_tracker,
+    tmp_path,
+    tabs: list[str],
+    num_files=1,
+    job_name: str = None,
+    human_in_loop: bool = False,
+    pipeline_manager: str = None,
+):
+    logger.info(f"Preparing temp document for tabs: {tabs}")
+    dataset_name, files = create_file_in_dataset(
+        dataset_tracker=dataset_tracker, tmp_path=tmp_path, num_files=num_files, file_tracker=file_tracker
+    )
+
+    logger.info("Open wizard")
+    page.get_by_role("button", name="New job").click()
+
+    for tab in tabs:
+        logger.info(f"Go to tab: {tab}")
+        page.get_by_role("tab", name=tab, exact=True).click()
+
+        if tab == "Documents":
+            select_files(page, files)
+        else:
+            select_first_element(page)
+
+    page.get_by_role("button", name="Next").click()
+
+    if human_in_loop:
+        select_human_in_the_loop_and_start(page, jobs_client, job_name)
+    else:
+        fill_job_and_start(page, jobs_client, job_name=job_name, pipeline_manager=pipeline_manager)
+
+
+def run_new_job_dataset_without_documents_workflow(
+    page: Page,
+    jobs_client,
+    dataset_tracker,
+    job_name: str = None,
+    human_in_loop: bool = False,
+    pipeline_manager: str = None,
+):
+    created_datasets, dataset_client = dataset_tracker
+    dataset_name = f"autotest_{uuid.uuid4().hex[:8]}"
+    dataset = dataset_client.create_dataset(name=dataset_name)
+    created_datasets.append(dataset_name)
+    assert "successfully created" in dataset["detail"].lower()
+
+    logger.info("Open wizard")
+    page.get_by_role("button", name="New job").click()
+    page.get_by_role("tab", name="Datasets", exact=True).click()
+
+    select_files(page, [dataset_name])
+    page.get_by_role("button", name="Next").click()
 
     if human_in_loop:
         select_human_in_the_loop_and_start(page, jobs_client, job_name)
