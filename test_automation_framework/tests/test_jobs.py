@@ -338,3 +338,51 @@ class TestJobsFrontend:
         page.get_by_role("button", name="New Job").click()
         error_label = page.locator("div[role='alert'].uui-invalid-message").nth(0)
         expect(error_label).to_have_text("The field is mandatory", timeout=5000)
+
+    def test_create_job_save_draft(
+        self, jobs_page: Page, file_tracker, tmp_path, jobs_client, file_client, dataset_tracker
+    ):
+        page = jobs_page
+        run_new_job_first_line_workflow(
+            page=page,
+            num_files=1,
+            file_tracker=file_tracker,
+            dataset_tracker=dataset_tracker,
+            jobs_client=jobs_client,
+            tmp_path=tmp_path,
+            tab_button="Jobs",
+            save_as_draft=True,
+        )
+
+    @pytest.mark.parametrize(
+        "validation_type", ["Cross validation", "Extensive validation", "Hierarchical validation", "Validation only"]
+    )
+    def test_create_job_human_in_the_loop(
+        self, jobs_page: Page, file_tracker, tmp_path, jobs_client, dataset_tracker, validation_type
+    ):
+        page = jobs_page
+        run_new_job_documents_workflow(
+            page=page,
+            num_files=1,
+            jobs_client=jobs_client,
+            file_tracker=file_tracker,
+            dataset_tracker=dataset_tracker,
+            tmp_path=tmp_path,
+            human_in_loop=True,
+            validation_type=validation_type,
+        )
+
+    def test_create_job_human_in_the_loop_distribute(
+        self, jobs_page: Page, file_tracker, tmp_path, jobs_client, dataset_tracker
+    ):
+        page = jobs_page
+        run_new_job_documents_workflow(
+            page=page,
+            num_files=1,
+            jobs_client=jobs_client,
+            file_tracker=file_tracker,
+            dataset_tracker=dataset_tracker,
+            tmp_path=tmp_path,
+            human_in_loop=True,
+            distribute_tasks=True,
+        )

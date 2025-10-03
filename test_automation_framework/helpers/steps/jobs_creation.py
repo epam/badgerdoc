@@ -44,7 +44,9 @@ def select_language(page: Page, language: str = None):
         page.get_by_role("button", name="Next").click()
 
 
-def fill_job_and_start(page: Page, jobs_client, job_name: str, pipeline_manager=None, pipeline="print"):
+def fill_job_and_start(
+    page: Page, jobs_client, job_name: str, pipeline_manager=None, pipeline="print", save_as_draft=False
+):
     job_name = job_name if job_name else f"test_job_{uuid.uuid4().hex[:8]}"
     logger.info(f"Fill job name: {job_name}")
     page.get_by_role("textbox", name="Job name").fill(job_name)
@@ -57,16 +59,23 @@ def fill_job_and_start(page: Page, jobs_client, job_name: str, pipeline_manager=
     page.get_by_role("textbox", name="Select pipeline").click()
     page.get_by_text(pipeline, exact=True).click()
 
-    logger.info("Start extraction")
-
-    page.get_by_role("button", name="Start Extraction").click()
+    if save_as_draft:
+        logger.info("Save as draft")
+        page.get_by_role("button", name="Save as Draft").click()
+    else:
+        logger.info("Start extraction")
+        page.get_by_role("button", name="Start Extraction").click()
     page.wait_for_url("**/jobs/**", timeout=20000)
     jobs = jobs_client.search_jobs()
     job_id = next((j["id"] for j in jobs["data"] if j["name"] == job_name), None)
     assert job_id, f"Job with name {job_name} not found!"
-    jobs_client.poll_until_finished(job_id, timeout_seconds=180)
-    page.reload()
-    expect(page.get_by_text("Finished")).to_be_visible(timeout=10000)
+    if not save_as_draft:
+        jobs_client.poll_until_finished(job_id, timeout_seconds=180)
+        page.reload()
+        expect(page.get_by_text("Finished")).to_be_visible(timeout=10000)
+    else:
+        page.reload()
+        expect(page.get_by_text("Draft")).to_be_visible(timeout=10000)
 
 
 def select_human_in_the_loop_and_start(
@@ -77,6 +86,7 @@ def select_human_in_the_loop_and_start(
     day: str | None = None,
     annotator: str = "admin",
     categories: list[str] = None,
+    distribute_tasks: bool = False,
 ):
     if not categories:
         categories = ["Age"]
@@ -103,8 +113,9 @@ def select_human_in_the_loop_and_start(
         logger.info(f"Select category: {category}")
         page.get_by_text(category, exact=True).click()
 
-    logger.info("Distribute annotation tasks")
-    page.get_by_text("Distribute annotation tasks").click()
+    if distribute_tasks:
+        logger.info("Distribute annotation tasks")
+        page.get_by_text("Distribute annotation tasks").click()
 
     fill_job_and_start(page, jobs_client, job_name)
 
@@ -202,7 +213,9 @@ def run_new_job_documents_workflow(
     tmp_path=None,
     job_name: str = None,
     human_in_loop: bool = False,
+    validation_type="Cross validation",
     pipeline_manager: str = None,
+    distribute_tasks: bool = False,
 ):
     dataset_name, files = create_file_in_dataset(
         dataset_tracker=dataset_tracker, tmp_path=tmp_path, num_files=num_files, file_tracker=file_tracker
@@ -215,7 +228,9 @@ def run_new_job_documents_workflow(
     page.get_by_role("button", name="Next").click()
 
     if human_in_loop:
-        select_human_in_the_loop_and_start(page, jobs_client, job_name)
+        select_human_in_the_loop_and_start(
+            page, jobs_client, job_name, validation_type=validation_type, distribute_tasks=distribute_tasks
+        )
     else:
         if pipeline_manager == "Other":
             fill_job_and_start(
@@ -236,6 +251,7 @@ def run_new_job_first_line_workflow(
     job_name: str = None,
     human_in_loop: bool = False,
     pipeline_manager: str = None,
+    save_as_draft: bool = False,
 ):
     dataset_name, files = create_file_in_dataset(
         dataset_tracker=dataset_tracker, tmp_path=tmp_path, num_files=num_files, file_tracker=file_tracker
@@ -252,7 +268,9 @@ def run_new_job_first_line_workflow(
     if human_in_loop:
         select_human_in_the_loop_and_start(page, jobs_client, job_name)
     else:
-        fill_job_and_start(page, jobs_client, job_name=job_name, pipeline_manager=pipeline_manager)
+        fill_job_and_start(
+            page, jobs_client, job_name=job_name, pipeline_manager=pipeline_manager, save_as_draft=save_as_draft
+        )
 
 
 def run_new_job_multi_tab_workflow(
