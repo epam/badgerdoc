@@ -11,6 +11,7 @@ from helpers.steps.jobs_creation import (
 from helpers.base_client.base_client import HTTPError
 
 import pytest
+import re
 
 
 logger = getLogger(__name__)
@@ -386,3 +387,65 @@ class TestJobsFrontend:
             human_in_loop=True,
             distribute_tasks=True,
         )
+
+    def test_open_any_job_from_table(self, jobs_page: Page):
+        page = jobs_page
+        rows = page.locator("div[role='row']").filter(has_not=page.locator("div[role='columnheader']"))
+        expect(rows.first).to_be_visible(timeout=10000)
+        first_job = rows.first.locator("div").nth(1)
+        job_name = first_job.text_content().strip()
+        first_job.click()
+        expect(page).to_have_url(re.compile(r".*/jobs/.*"), timeout=10000)
+        expect(page.get_by_text(job_name)).to_be_visible(timeout=10000)
+
+    def test_open_job_panel_load_bar(self, jobs_page: Page):
+        page = jobs_page
+
+        rows = page.locator("div[role='row']").filter(has_not=page.locator("div[role='columnheader']"))
+        expect(rows.first).to_be_visible(timeout=10000)
+        rows.first.click()
+
+        sidebar = page.locator("div[class*='job-page_job-page-sidebar-content']")
+        expect(sidebar).to_be_visible(timeout=10000)
+
+        progress_text = sidebar.locator("p[class*='job-sidebar-header_progressBarText']")
+        expect(progress_text).to_be_visible(timeout=10000)
+
+        progress_bar = sidebar.locator("div[class*='job-sidebar-header_bar']")
+        count = progress_bar.count()
+        assert count > 0, "Progress bar element not found in DOM"
+
+    def test_open_job_panel_hide_unhide(self, jobs_page: Page):
+        page = jobs_page
+
+        rows = page.locator("div[role='row']").filter(has_not=page.locator("div[role='columnheader']"))
+        expect(rows.first).to_be_visible(timeout=10000)
+        rows.first.click()
+
+        sidebar = page.locator("div[class*='job-page_job-page-sidebar-content']")
+        expect(sidebar).to_be_visible(timeout=10000)
+
+        panel_title = sidebar.locator("h2")
+        expect(panel_title).to_have_text("Automatic", timeout=10000)
+
+        panel_wrapper = sidebar.locator("div[class*='jod-detailed-sidebar-connector_sidebar-panel-wrapper']")
+        toggle_button = sidebar.locator("button[class*='jod-detailed-sidebar-connector_close-icon']")
+        expect(toggle_button).to_be_visible(timeout=5000)
+
+        initial_classes = panel_wrapper.first.get_attribute("class") or ""
+        assert "sidebar-panel-opened" in initial_classes, f"Expected opened class, got: {initial_classes}"
+
+        toggle_button.click()
+
+        page.wait_for_timeout(300)
+        closed_classes = panel_wrapper.first.get_attribute("class") or ""
+        assert "sidebar-panel-closed" in closed_classes, f"Expected closed class, got: {closed_classes}"
+
+        open_icon_button = sidebar.locator("button[class*='jod-detailed-sidebar-connector_open-icon']")
+        expect(open_icon_button).to_be_visible(timeout=5000)
+
+        open_icon_button.click()
+
+        page.wait_for_timeout(300)
+        reopened_classes = panel_wrapper.first.get_attribute("class") or ""
+        assert "sidebar-panel-opened" in reopened_classes, f"Expected reopened class, got: {reopened_classes}"
