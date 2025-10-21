@@ -181,3 +181,21 @@ def jobs_page(logged_in_page, settings) -> Page:
     rows = page.locator("div[role='row']").locator("xpath=..").locator("div[role='row']:not(.uui-table-header-row)")
     expect(rows.first).to_be_visible(timeout=5000)
     return page
+
+
+@pytest.fixture
+def categories_page(logged_in_page, settings) -> Page:
+    page = logged_in_page
+    page.goto(f"{settings.BASE_URL}:8083/categories")
+    rows = page.locator("div[role='row']").locator("xpath=..").locator("div[role='row']:not(.uui-table-header-row)")
+    expect(rows.first).to_be_visible(timeout=5000)
+    return page
+
+
+@pytest.fixture
+def tasks_page(logged_in_page, settings) -> Page:
+    page = logged_in_page
+    page.goto(f"{settings.BASE_URL}:8083/my tasks")
+    rows = page.locator("div[role='row']").locator("xpath=..").locator("div[role='row']:not(.uui-table-header-row)")
+    expect(rows.first).to_be_visible(timeout=5000)
+    return page

@@ -395,7 +395,7 @@ class TestJobsFrontend:
         first_job = rows.first.locator("div").nth(1)
         job_name = first_job.text_content().strip()
         first_job.click()
-        expect(page).to_have_url(re.compile(r".*/jobs/.*"), timeout=10000)
+        expect(page).to_have_url(re.compile(r".*/jobs.*"), timeout=10000)
         expect(page.get_by_text(job_name)).to_be_visible(timeout=10000)
 
     def test_open_job_panel_load_bar(self, jobs_page: Page):

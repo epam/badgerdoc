@@ -1,35 +1,13 @@
 from logging import getLogger
-import uuid
 from playwright.sync_api import Page, expect
 
-
-import pytest
 
 logger = getLogger(__name__)
 
 
-class TestCategories:
-    @pytest.mark.skip(reason="Creation works, but deletion not implemented, will be cluttered by multiple runs")
-    def test_create_and_delete_category(self, auth_token, settings, tenant, categories_client):
-        access_token, _ = auth_token
-
-        unique_id = f"test_cat_{uuid.uuid4().hex[:6]}"
-        created = categories_client.create_category(category_id=unique_id, name=unique_id, parent="example")
-        assert created.id == unique_id
-        search_result = categories_client.search_categories(page_size=100)
-        ids = [c.id for c in search_result.data]
-        assert unique_id in ids, f"Category {unique_id} not found after creation"
-
-        deleted = categories_client.delete_category(unique_id)
-        assert deleted.get("detail") or deleted.get("status") or "success" in str(deleted).lower()
-        search_after_delete = categories_client.search_categories(page_size=100)
-        ids_after = [c.id for c in search_after_delete.data]
-        assert unique_id not in ids_after, f"Category {unique_id} still present after deletion"
-
-
-class TestCategoriesFrontend:
-    def test_categories_scroll(self, categories_page: Page):
-        page = categories_page
+class TestTasksFrontend:
+    def test_tasks_scroll(self, tasks_page: Page):
+        page = tasks_page
 
         page_size_container = page.locator("div:has(> div > span:has-text('Show on page'))")
         page_size_input = page_size_container.locator("input[aria-haspopup='true']")
@@ -46,8 +24,8 @@ class TestCategoriesFrontend:
         first_row.scroll_into_view_if_needed()
         expect(first_row).to_be_visible()
 
-    def test_categories_pagination_by_page_number(self, categories_page: Page):
-        page = categories_page
+    def test_tasks_pagination_by_page_number(self, tasks_page: Page):
+        page = tasks_page
         nav = page.locator('nav[role="navigation"]')
         nav.wait_for(state="visible", timeout=10000)
 
@@ -67,8 +45,8 @@ class TestCategoriesFrontend:
         active_attr = nav.get_by_role("button", name="2").get_attribute("aria-current")
         assert active_attr == "true" or rows.first.text_content() != old_text
 
-    def test_categories_pagination_by_arrows(self, categories_page: Page):
-        page = categories_page
+    def test_tasks_pagination_by_arrows(self, tasks_page: Page):
+        page = tasks_page
 
         nav = page.locator('nav[role="navigation"]')
         nav.wait_for(state="visible", timeout=10000)
@@ -99,8 +77,8 @@ class TestCategoriesFrontend:
         active_attr_1 = nav.get_by_role("button", name="1", exact=True).get_attribute("aria-current")
         assert active_attr_1 == "true" or rows.first.text_content() != old_text_back
 
-    def test_categories_show_on_page(self, categories_page: Page):
-        page = categories_page
+    def test_tasks_show_on_page(self, tasks_page: Page):
+        page = tasks_page
 
         rows = page.locator("div[role='row']").locator("xpath=..").locator("div[role='row']:not(.uui-table-header-row)")
 
@@ -118,7 +96,15 @@ class TestCategoriesFrontend:
             option = page.locator("div[role='option']", has_text=value).first
             option.wait_for(state="visible", timeout=5000)
             option.click()
-
             expect(rows.first).to_be_visible(timeout=10000)
+            page.wait_for_timeout(1000)
+            page.wait_for_function(
+                """(expected) => {
+                    const rows = document.querySelectorAll("div[role='row']:not(.uui-table-header-row)");
+                    return rows.length <= expected;
+                }""",
+                arg=int(value),
+                timeout=5000,
+            )
             count = rows.count()
             assert count <= int(value), f"Expected at most {value} rows, got {count}"
