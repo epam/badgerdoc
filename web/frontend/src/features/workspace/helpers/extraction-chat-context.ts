@@ -66,7 +66,9 @@ export function normalizeExtractionContext(
 
   const pages = uniqueSortedPages(context.pages ?? [])
   const pageSet = new Set(pages)
-  const blocks = uniqueBlocks((context.blocks ?? []).filter((block) => !pageSet.has(block.pageNumber)))
+  const blocks = uniqueBlocks(
+    (context.blocks ?? []).filter((block) => !pageSet.has(block.pageNumber))
+  )
 
   if (pages.length === 0 && blocks.length === 0) {
     return EMPTY_EXTRACTION_CONTEXT

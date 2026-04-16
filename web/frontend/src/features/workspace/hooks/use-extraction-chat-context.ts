@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import type { BadgerDocExtractionPage } from '@/shared/api/badgerdoc'
 import {
   EMPTY_EXTRACTION_CONTEXT,
@@ -25,43 +25,67 @@ export function useExtractionChatContext({
   extractionPages,
   activeTag,
 }: UseExtractionChatContextParams) {
-  const [context, setContext] = useState(EMPTY_EXTRACTION_CONTEXT)
-
   const extractionId = extractionPages?.[0]?.extraction_id ?? null
+  const contextKey = `${documentId}:${extractionId ?? 'none'}:${activeTag ?? 'overview'}`
+  const [contextState, setContextState] = useState({
+    key: contextKey,
+    context: EMPTY_EXTRACTION_CONTEXT,
+  })
 
-  useEffect(() => {
-    setContext(EMPTY_EXTRACTION_CONTEXT)
-  }, [documentId, extractionId, activeTag])
+  if (contextState.key !== contextKey) {
+    setContextState({
+      key: contextKey,
+      context: EMPTY_EXTRACTION_CONTEXT,
+    })
+  }
 
   const addWholeDocument = useCallback(() => {
-    setContext(addDocumentToContext())
+    setContextState((prev) => ({ ...prev, context: addDocumentToContext() }))
   }, [])
 
   const removePage = useCallback((pageNumber: number) => {
-    setContext((prev) => removePageFromContext(prev, pageNumber))
+    setContextState((prev) => ({
+      ...prev,
+      context: removePageFromContext(prev.context, pageNumber),
+    }))
   }, [])
 
   const togglePage = useCallback((pageNumber: number) => {
-    setContext((prev) => togglePageInContext(prev, pageNumber))
+    setContextState((prev) => ({
+      ...prev,
+      context: togglePageInContext(prev.context, pageNumber),
+    }))
   }, [])
 
   const toggleBlock = useCallback((block: ExtractionContextBlock) => {
-    setContext((prev) => toggleBlockInContext(prev, block))
+    setContextState((prev) => ({
+      ...prev,
+      context: toggleBlockInContext(prev.context, block),
+    }))
   }, [])
 
   const removeBlock = useCallback((blockId: string) => {
-    setContext((prev) => removeBlockFromContext(prev, blockId))
+    setContextState((prev) => ({
+      ...prev,
+      context: removeBlockFromContext(prev.context, blockId),
+    }))
   }, [])
 
   const clearAll = useCallback(() => {
-    setContext(clearExtractionContext())
+    setContextState((prev) => ({ ...prev, context: clearExtractionContext() }))
   }, [])
 
   const removeDeletedBlock = useCallback((blockId: string) => {
-    setContext((prev) => removeDeletedBlockFromContext(prev, blockId))
+    setContextState((prev) => ({
+      ...prev,
+      context: removeDeletedBlockFromContext(prev.context, blockId),
+    }))
   }, [])
 
-  const normalizedContext = useMemo(() => normalizeExtractionContext(context), [context])
+  const normalizedContext = useMemo(
+    () => normalizeExtractionContext(contextState.context),
+    [contextState.context]
+  )
   const payload = useMemo(
     () =>
       buildExtractionContextPayload({

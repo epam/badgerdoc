@@ -47,7 +47,11 @@ export function createExtractionChatScopePlugin() {
         const selectedBlockIds = new Set(pluginState?.blockIdsInChatScope ?? [])
         const selectedPageNumbers = new Set(pluginState?.pageNumbersInChatScope ?? [])
         const isWholeDocumentSelected = pluginState?.isWholeDocumentInChatScope ?? false
-        if (!isWholeDocumentSelected && selectedBlockIds.size === 0 && selectedPageNumbers.size === 0) {
+        if (
+          !isWholeDocumentSelected &&
+          selectedBlockIds.size === 0 &&
+          selectedPageNumbers.size === 0
+        ) {
           return DecorationSet.empty
         }
 
@@ -60,7 +64,11 @@ export function createExtractionChatScopePlugin() {
             const isPageSelected =
               Number.isFinite(pageNumber) && selectedPageNumbers.has(pageNumber)
 
-            if (isWholeDocumentSelected || isPageSelected || (blockId && selectedBlockIds.has(blockId))) {
+            if (
+              isWholeDocumentSelected ||
+              isPageSelected ||
+              (blockId && selectedBlockIds.has(blockId))
+            ) {
               decorations.push(
                 Decoration.node(pos, pos + node.nodeSize, {
                   class: 'bg-primary/5',

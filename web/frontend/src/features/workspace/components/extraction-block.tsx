@@ -20,7 +20,9 @@ export function ExtractionBlock({ node, editor, extension, deleteNode }: Extract
   const chatScopePluginState = extractionChatScopePluginKey.getState(editor.state)
   const parsedPage = Number(page)
   const pageNumber = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : null
-  const isExplicitlyInChatScope = (chatScopePluginState?.blockIdsInChatScope ?? []).includes(blockId)
+  const isExplicitlyInChatScope = (chatScopePluginState?.blockIdsInChatScope ?? []).includes(
+    blockId
+  )
   const isPageInChatScope =
     pageNumber !== null && (chatScopePluginState?.pageNumbersInChatScope ?? []).includes(pageNumber)
   const isWholeDocumentInChatScope = chatScopePluginState?.isWholeDocumentInChatScope ?? false
