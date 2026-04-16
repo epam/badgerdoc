@@ -19,6 +19,7 @@ import { useTasksQueue } from '@/shared/api/hooks/use-tasks'
 import { useExtractionState } from '@/features/workspace/hooks/use-extraction-state'
 import { useExtractionApi } from '@/features/workspace/hooks/use-extraction-api'
 import { useReloadDraftAutosave } from '@/features/workspace/hooks/use-reload-draft-autosave'
+import { useExtractionChatContext } from '@/features/workspace/hooks/use-extraction-chat-context'
 import { WorkspaceLoadingSkeleton } from '@/features/workspace/components/workspace-loading-skeleton.tsx'
 import {
   TaskFiltersSearch,
@@ -113,6 +114,23 @@ export function WorkspacePage() {
     extractionPages,
     activeTag: activeTagName,
   })
+  const {
+    contextPayload,
+    isWholeDocumentSelected,
+    selectedPages,
+    selectedBlocks,
+    addWholeDocument,
+    removePage,
+    togglePage,
+    toggleBlock,
+    removeBlock,
+    removeDeletedBlock,
+    clearAll,
+  } = useExtractionChatContext({
+    documentId,
+    extractionPages: scopedExtractionPages,
+    activeTag: activeTagName,
+  })
 
   const {
     saveExtractionPages,
@@ -149,6 +167,14 @@ export function WorkspacePage() {
     setActiveBlockId(null)
     setIsEditMode(false)
   }, [revertChanges, setActiveBlockId])
+
+  const handleToggleBlockContext = useCallback(
+    (blockId: string, pageNumber: number | null) => {
+      if (pageNumber === null) return
+      toggleBlock({ blockId, pageNumber })
+    },
+    [toggleBlock]
+  )
 
   const handleTabChange = useCallback(
     (tab: string) => {
@@ -263,13 +289,28 @@ export function WorkspacePage() {
         onSaveExtraction={handleSaveExtraction}
         onRevertChanges={handleRevertClick}
         onAcceptChanges={handleAcceptClick}
-        onBlockDelete={onBlockDelete}
+        onBlockDelete={(blockId, pageNumber) => {
+          onBlockDelete(blockId, pageNumber)
+          removeDeletedBlock(blockId)
+        }}
         isSaving={isApiPending}
         activeBlockId={activeBlockId}
         onBlockSelect={setActiveBlockId}
         onPageNavigate={setCurrentPage}
         currentPage={currentPage}
         documentId={documentId}
+        chatContext={{
+          contextPayload,
+          isWholeDocumentSelected,
+          selectedPages,
+          selectedBlocks,
+          onAddWholeDocument: addWholeDocument,
+          onAddCurrentPage: () => togglePage(currentPage),
+          onToggleBlock: handleToggleBlockContext,
+          onRemovePage: removePage,
+          onRemoveBlock: removeBlock,
+          onClear: clearAll,
+        }}
       />
     )
   }
@@ -337,6 +378,15 @@ export function WorkspacePage() {
               onHighlightUpdate={handleBlockBoundingBoxUpdate}
               onHighlightCreate={handleBlockCreate}
               createdHighlightIds={createdBlockIds}
+              pageChatContext={{
+                canAddCurrentPageToContext: !isOverviewTab,
+                isCurrentPageInContext: selectedPages.includes(currentPage),
+                isCurrentPageContextDisabled: isWholeDocumentSelected,
+                currentPageContextTooltip: isWholeDocumentSelected
+                  ? 'Whole document already added to context'
+                  : undefined,
+                onAddCurrentPageToContext: () => togglePage(currentPage),
+              }}
             />
           }
           right={

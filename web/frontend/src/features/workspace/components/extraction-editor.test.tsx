@@ -50,6 +50,10 @@ describe('ExtractionEditor', () => {
         onRevertChanges={vi.fn()}
         onAcceptChanges={vi.fn().mockResolvedValue(undefined)}
         onBlockDelete={vi.fn()}
+        selectedContextBlockIds={[]}
+        selectedContextPages={[]}
+        isWholeDocumentSelected={false}
+        onToggleBlockContext={vi.fn()}
         activeBlockId="block_1_1"
         onBlockSelect={onBlockSelect}
       />
@@ -81,6 +85,10 @@ describe('ExtractionEditor', () => {
         onRevertChanges={vi.fn()}
         onAcceptChanges={vi.fn().mockResolvedValue(undefined)}
         onBlockDelete={vi.fn()}
+        selectedContextBlockIds={[]}
+        selectedContextPages={[]}
+        isWholeDocumentSelected={false}
+        onToggleBlockContext={vi.fn()}
         activeBlockId="block_2_1"
         onBlockSelect={onBlockSelect}
       />
@@ -115,6 +123,10 @@ describe('ExtractionEditor', () => {
         onRevertChanges={vi.fn()}
         onAcceptChanges={onAcceptChanges}
         onBlockDelete={vi.fn()}
+        selectedContextBlockIds={[]}
+        selectedContextPages={[]}
+        isWholeDocumentSelected={false}
+        onToggleBlockContext={vi.fn()}
         activeBlockId="block_1_1"
         onBlockSelect={onBlockSelect}
       />
@@ -150,6 +162,10 @@ describe('ExtractionEditor', () => {
         onRevertChanges={vi.fn()}
         onAcceptChanges={onAcceptChanges}
         onBlockDelete={vi.fn()}
+        selectedContextBlockIds={[]}
+        selectedContextPages={[]}
+        isWholeDocumentSelected={false}
+        onToggleBlockContext={vi.fn()}
         activeBlockId="block_2_1"
         onBlockSelect={onBlockSelect}
       />

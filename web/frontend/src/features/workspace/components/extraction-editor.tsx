@@ -16,6 +16,10 @@ interface ExtractionEditorProps {
   onRevertChanges: () => void
   onAcceptChanges: () => Promise<void>
   onBlockDelete: (blockId: string, pageNumber: number | null) => void
+  selectedContextBlockIds: string[]
+  selectedContextPages: number[]
+  isWholeDocumentSelected: boolean
+  onToggleBlockContext: (blockId: string, pageNumber: number | null) => void
   activeBlockId: string | null
   onBlockSelect: (blockId: string | null, pageNumber: number | null) => void
 }
@@ -30,6 +34,10 @@ const ExtractionEditor = ({
   onRevertChanges,
   onAcceptChanges,
   onBlockDelete,
+  selectedContextBlockIds,
+  selectedContextPages,
+  isWholeDocumentSelected,
+  onToggleBlockContext,
   activeBlockId,
   onBlockSelect,
 }: ExtractionEditorProps) => {
@@ -60,10 +68,11 @@ const ExtractionEditor = ({
       ExtractionBlockExtension.configure({
         onBlockSelect: handleBlockSelectFromEditor,
         onBlockDelete,
+        onToggleBlockContext,
         onWillDeleteNode: handleWillDeleteNode,
       }),
     ],
-    [handleBlockSelectFromEditor, onBlockDelete, handleWillDeleteNode]
+    [handleBlockSelectFromEditor, onBlockDelete, onToggleBlockContext, handleWillDeleteNode]
   )
 
   const editor = useEditor({
@@ -202,6 +211,19 @@ const ExtractionEditor = ({
       onBaselineReady(editor.getHTML())
     },
     [editor, content, onBaselineReady]
+  )
+
+  useEffect(
+    function syncChatContextBlocks() {
+      if (!editor) return
+
+      editor.commands.setBlockChatScope({
+        blockIds: selectedContextBlockIds,
+        pageNumbers: selectedContextPages,
+        isWholeDocumentSelected,
+      })
+    },
+    [editor, selectedContextBlockIds, selectedContextPages, isWholeDocumentSelected]
   )
 
   useEffect(

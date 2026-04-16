@@ -17,8 +17,7 @@ declare module '@tiptap/core' {
     extractionBlock: {
       scrollToExtractionBlock: (blockId: string | null) => ReturnType
       setSelectedExtractionBlock: (blockId: string | null) => ReturnType
-      clearBlockChatScope: () => ReturnType
-      setBlockChatScope: (blockId: string) => ReturnType
+      setBlockChatScope: (scope: ChatScopePluginMeta) => ReturnType
     }
   }
 }
@@ -26,9 +25,8 @@ declare module '@tiptap/core' {
 interface ExtractionBlockOptions {
   onBlockSelect?: (blockId: string | null, pageNumber: number | null) => void
   onBlockDelete?: (blockId: string, pageNumber: number | null) => void
+  onToggleBlockContext?: (blockId: string, pageNumber: number | null) => void
   onWillDeleteNode?: () => void
-  addBlockToScope: (blockId: string) => void
-  removeBlockFromScope: (blockId: string) => void
 }
 
 export const ExtractionBlockExtension = Node.create<ExtractionBlockOptions>({
@@ -44,9 +42,8 @@ export const ExtractionBlockExtension = Node.create<ExtractionBlockOptions>({
     return {
       onBlockSelect: undefined,
       onBlockDelete: undefined,
+      onToggleBlockContext: undefined,
       onWillDeleteNode: undefined,
-      addBlockToScope: () => undefined,
-      removeBlockFromScope: () => undefined,
     }
   },
 
@@ -149,31 +146,11 @@ export const ExtractionBlockExtension = Node.create<ExtractionBlockOptions>({
           blockElement.scrollIntoView({ block: 'start', behavior: 'smooth' })
           return true
         },
-      clearBlockChatScope:
-        () =>
-        ({ tr, dispatch, state }) => {
-          if (dispatch) {
-            // Get current block in scope to notify removal
-            const pluginState = extractionChatScopePluginKey.getState(state)
-            const currentBlockId = pluginState?.blockIdInChatScope
-
-            const meta: ChatScopePluginMeta = { blockId: null }
-            dispatch(tr.setMeta(extractionChatScopePluginKey, meta))
-
-            // Notify removal callback if there was a block in scope
-            if (currentBlockId) {
-              this.options.removeBlockFromScope(currentBlockId)
-            }
-          }
-          return true
-        },
       setBlockChatScope:
-        (blockId: string) =>
+        (scope: ChatScopePluginMeta) =>
         ({ tr, dispatch }) => {
           if (dispatch) {
-            const meta: ChatScopePluginMeta = { blockId }
-            dispatch(tr.setMeta(extractionChatScopePluginKey, meta))
-            this.options.addBlockToScope(blockId)
+            dispatch(tr.setMeta(extractionChatScopePluginKey, scope))
           }
           return true
         },

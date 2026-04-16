@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import {
   ZoomIn,
   ZoomOut,
@@ -8,6 +9,8 @@ import {
   Pencil,
   Maximize2,
   Download,
+  MessageCircleOff,
+  MessageCirclePlus,
 } from 'lucide-react'
 import {
   NEXT_BTN_ID,
@@ -15,6 +18,14 @@ import {
   ZOOM_IN_BTN_ID,
   ZOOM_OUT_BTN_ID,
 } from '@/components/collection-viewer/config'
+
+export interface PageChatContext {
+  canAddCurrentPageToContext?: boolean
+  isCurrentPageInContext?: boolean
+  isCurrentPageContextDisabled?: boolean
+  currentPageContextTooltip?: string
+  onAddCurrentPageToContext?: () => void
+}
 
 interface ViewerToolbarProps {
   currentPage: number
@@ -28,6 +39,7 @@ interface ViewerToolbarProps {
   onToggleEditMode: () => void
   onDownloadOriginal: () => void
   isDownloading: boolean
+  pageChatContext?: PageChatContext
 }
 
 export function ViewerToolbar({
@@ -42,8 +54,18 @@ export function ViewerToolbar({
   onToggleEditMode,
   onDownloadOriginal,
   isDownloading,
+  pageChatContext,
 }: ViewerToolbarProps) {
   const showPagination = totalPages > 1
+  const canAddCurrentPageToContext = pageChatContext?.canAddCurrentPageToContext ?? false
+  const isCurrentPageInContext = pageChatContext?.isCurrentPageInContext ?? false
+  const isCurrentPageContextDisabled = pageChatContext?.isCurrentPageContextDisabled ?? false
+  const onAddCurrentPageToContext = pageChatContext?.onAddCurrentPageToContext
+  const pageContextTooltip =
+    pageChatContext?.currentPageContextTooltip ??
+    (isCurrentPageInContext
+      ? `Remove Page ${currentPage} from context`
+      : `Add Page ${currentPage} to context`)
 
   return (
     <div className="flex items-center justify-between gap-2 px-3 py-2 border-b border-border bg-card">
@@ -75,6 +97,30 @@ export function ViewerToolbar({
             >
               <ChevronRight className="h-4 w-4 m-auto" />
             </Button>
+            {canAddCurrentPageToContext && onAddCurrentPageToContext && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="inline-flex">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="ml-2 h-8 gap-1.5 px-2 text-xs"
+                      onClick={onAddCurrentPageToContext}
+                      disabled={isCurrentPageContextDisabled}
+                    >
+                      {isCurrentPageInContext ? (
+                        <MessageCircleOff className="h-4 w-4" />
+                      ) : (
+                        <MessageCirclePlus className="h-4 w-4" />
+                      )}
+                      {isCurrentPageInContext ? 'Added' : 'Add page'}
+                    </Button>
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side="top">{pageContextTooltip}</TooltipContent>
+              </Tooltip>
+            )}
           </>
         )}
       </div>

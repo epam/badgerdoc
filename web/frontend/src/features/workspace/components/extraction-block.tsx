@@ -15,19 +15,30 @@ export function ExtractionBlock({ node, editor, extension, deleteNode }: Extract
   const { blockId, title, type, page, isNew } = node.attrs
   const onBlockSelect = extension.options.onBlockSelect
   const onBlockDelete = extension.options.onBlockDelete
+  const onToggleBlockContext = extension.options.onToggleBlockContext
 
   const chatScopePluginState = extractionChatScopePluginKey.getState(editor.state)
-  const isInChatScope = chatScopePluginState?.blockIdInChatScope === blockId
+  const parsedPage = Number(page)
+  const pageNumber = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : null
+  const isExplicitlyInChatScope = (chatScopePluginState?.blockIdsInChatScope ?? []).includes(blockId)
+  const isPageInChatScope =
+    pageNumber !== null && (chatScopePluginState?.pageNumbersInChatScope ?? []).includes(pageNumber)
+  const isWholeDocumentInChatScope = chatScopePluginState?.isWholeDocumentInChatScope ?? false
+  const isBlockedByHigherLevelContext = isPageInChatScope || isWholeDocumentInChatScope
+  const isInChatScope = isExplicitlyInChatScope || isBlockedByHigherLevelContext
+  const blockContextTitle = isWholeDocumentInChatScope
+    ? 'Whole document already in context'
+    : isPageInChatScope
+      ? `Page ${pageNumber} already in context`
+      : isExplicitlyInChatScope
+        ? 'Remove block from context'
+        : 'Add block to context'
 
   const handleToggleBlockScope = (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault()
     event.stopPropagation()
 
-    if (isInChatScope) {
-      editor.commands.clearBlockChatScope()
-      return
-    }
-    editor.commands.setBlockChatScope(blockId)
+    onToggleBlockContext?.(blockId, pageNumber)
   }
 
   const handleWrapperMouseDown = (event: MouseEvent<HTMLDivElement>) => {
@@ -51,8 +62,6 @@ export function ExtractionBlock({ node, editor, extension, deleteNode }: Extract
 
   const handleHeaderClick = () => {
     if (!onBlockSelect || !blockId) return
-    const parsedPage = Number(page)
-    const pageNumber = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : null
     onBlockSelect(blockId, pageNumber)
   }
 
@@ -64,14 +73,8 @@ export function ExtractionBlock({ node, editor, extension, deleteNode }: Extract
       return
     }
 
-    if (isInChatScope) {
-      editor.commands.clearBlockChatScope()
-    }
-
     extension.options.onWillDeleteNode?.()
     deleteNode()
-    const parsedPage = Number(page)
-    const pageNumber = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : null
     onBlockDelete?.(blockId, pageNumber)
   }
 
@@ -105,7 +108,9 @@ export function ExtractionBlock({ node, editor, extension, deleteNode }: Extract
             size="icon-sm"
             onClick={handleToggleBlockScope}
             className="cursor-pointer size-7"
-            title={isInChatScope ? 'Remove block from chat scope' : 'Add block to chat scope'}
+            title={blockContextTitle}
+            aria-label={blockContextTitle}
+            disabled={isBlockedByHigherLevelContext}
           >
             {isInChatScope ? <MessageCircleOff /> : <MessageCirclePlus />}
           </Button>

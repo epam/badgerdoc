@@ -1,4 +1,4 @@
-import { ViewerToolbar } from '@/components/collection-viewer/viewer-toolbar'
+import { ViewerToolbar, type PageChatContext } from '@/components/collection-viewer/viewer-toolbar'
 import { useViewerNavigation } from '@/components/collection-viewer/use-viewer-navigation'
 import { useOsdViewer } from '@/components/collection-viewer/use-osd-viewer'
 import { OverlayBox } from '@/shared/api/badgerdoc/types'
@@ -31,6 +31,7 @@ interface CollectionViewerProps {
     bbox: { x: number; y: number; width: number; height: number }
   ) => void
   createdHighlightIds: Set<string>
+  pageChatContext?: PageChatContext
 }
 
 export function CollectionViewer({
@@ -46,6 +47,7 @@ export function CollectionViewer({
   onHighlightUpdate,
   onHighlightCreate,
   createdHighlightIds,
+  pageChatContext,
 }: CollectionViewerProps) {
   const { data: pages, isLoading } = useDocumentPages(documentId)
   const [isDownloading, setIsDownloading] = useState(false)
@@ -136,6 +138,7 @@ export function CollectionViewer({
         onToggleEditMode={onToggleEditMode}
         onDownloadOriginal={handleDownloadOriginal}
         isDownloading={isDownloading}
+        pageChatContext={pageChatContext}
       />
       {isLoading ? (
         <Skeleton className="h-6 w-96" />

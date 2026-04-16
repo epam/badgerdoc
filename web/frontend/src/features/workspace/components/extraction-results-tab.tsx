@@ -5,6 +5,23 @@ import { BadgerDocExtractionPage } from '@/shared/api/badgerdoc'
 import ExtractionEditor from '@/features/workspace/components/extraction-editor'
 import { ExtractionChat } from '@/features/workspace/components/extraction-chat'
 import { useFormattedExtractionContent } from '@/features/workspace/hooks/use-formatted-extraction-content'
+import type {
+  ExtractionContextBlock,
+  ExtractionContextPayload,
+} from '@/features/workspace/helpers/extraction-chat-context'
+
+interface ExtractionChatContextProps {
+  contextPayload: ExtractionContextPayload | null
+  isWholeDocumentSelected: boolean
+  selectedPages: number[]
+  selectedBlocks: ExtractionContextBlock[]
+  onAddWholeDocument: () => void
+  onAddCurrentPage: () => void
+  onToggleBlock: (blockId: string, pageNumber: number | null) => void
+  onRemovePage: (pageNumber: number) => void
+  onRemoveBlock: (blockId: string) => void
+  onClear: () => void
+}
 
 interface ExtractionResultsTabProps {
   isLoading: boolean
@@ -23,6 +40,7 @@ interface ExtractionResultsTabProps {
   onPageNavigate: Dispatch<SetStateAction<number>>
   currentPage: number
   documentId: string
+  chatContext: ExtractionChatContextProps
 }
 
 function ExtractionEmptyState({ tag }: { tag: string }) {
@@ -52,6 +70,7 @@ export function ExtractionResultsTab({
   onPageNavigate,
   currentPage,
   documentId,
+  chatContext,
 }: ExtractionResultsTabProps) {
   const [isRunningInference, setIsRunningInference] = useState(false)
   const isEmpty = !extractionPages || extractionPages.length === 0
@@ -89,6 +108,10 @@ export function ExtractionResultsTab({
             onRevertChanges={onRevertChanges}
             onAcceptChanges={onAcceptChanges}
             onBlockDelete={onBlockDelete}
+            selectedContextBlockIds={chatContext.selectedBlocks.map((block) => block.blockId)}
+            selectedContextPages={chatContext.selectedPages}
+            isWholeDocumentSelected={chatContext.isWholeDocumentSelected}
+            onToggleBlockContext={chatContext.onToggleBlock}
             activeBlockId={activeBlockId}
             onBlockSelect={handleBlockSelect}
           />
@@ -97,6 +120,17 @@ export function ExtractionResultsTab({
       <ExtractionChat
         documentId={documentId}
         currentPage={currentPage}
+        canAddWholeDocument
+        canAddCurrentPage
+        contextPayload={chatContext.contextPayload}
+        isWholeDocumentSelected={chatContext.isWholeDocumentSelected}
+        selectedPages={chatContext.selectedPages}
+        selectedBlocks={chatContext.selectedBlocks}
+        onAddWholeDocument={chatContext.onAddWholeDocument}
+        onAddCurrentPage={chatContext.onAddCurrentPage}
+        onRemovePage={chatContext.onRemovePage}
+        onRemoveBlock={chatContext.onRemoveBlock}
+        onClearContext={chatContext.onClear}
         disabled={isLoading || hasUnsavedChanges || isSaving}
         isProcessing={isRunningInference}
         setIsRunningInference={setIsRunningInference}

@@ -4,11 +4,15 @@ import { Decoration, DecorationSet } from '@tiptap/pm/view'
 export const extractionChatScopePluginKey = new PluginKey('extractionBlockChatScope')
 
 interface ChatScopePluginState {
-  blockIdInChatScope: string | null
+  blockIdsInChatScope: string[]
+  pageNumbersInChatScope: number[]
+  isWholeDocumentInChatScope: boolean
 }
 
 export interface ChatScopePluginMeta {
-  blockId: string | null
+  blockIds: string[]
+  pageNumbers: number[]
+  isWholeDocumentSelected: boolean
 }
 
 export function createExtractionChatScopePlugin() {
@@ -18,7 +22,9 @@ export function createExtractionChatScopePlugin() {
     state: {
       init(): ChatScopePluginState {
         return {
-          blockIdInChatScope: null,
+          blockIdsInChatScope: [],
+          pageNumbersInChatScope: [],
+          isWholeDocumentInChatScope: false,
         }
       },
 
@@ -28,7 +34,9 @@ export function createExtractionChatScopePlugin() {
           return value
         }
         return {
-          blockIdInChatScope: meta.blockId ?? null,
+          blockIdsInChatScope: meta.blockIds ?? [],
+          pageNumbersInChatScope: meta.pageNumbers ?? [],
+          isWholeDocumentInChatScope: meta.isWholeDocumentSelected ?? false,
         }
       },
     },
@@ -36,7 +44,10 @@ export function createExtractionChatScopePlugin() {
     props: {
       decorations(state) {
         const pluginState = extractionChatScopePluginKey.getState(state)
-        if (!pluginState || !pluginState.blockIdInChatScope) {
+        const selectedBlockIds = new Set(pluginState?.blockIdsInChatScope ?? [])
+        const selectedPageNumbers = new Set(pluginState?.pageNumbersInChatScope ?? [])
+        const isWholeDocumentSelected = pluginState?.isWholeDocumentInChatScope ?? false
+        if (!isWholeDocumentSelected && selectedBlockIds.size === 0 && selectedPageNumbers.size === 0) {
           return DecorationSet.empty
         }
 
@@ -45,7 +56,11 @@ export function createExtractionChatScopePlugin() {
         state.doc.descendants((node, pos) => {
           if (node.type.name === 'extractionBlock') {
             const blockId = node.attrs.blockId as string
-            if (blockId && blockId === pluginState.blockIdInChatScope) {
+            const pageNumber = Number(node.attrs.page)
+            const isPageSelected =
+              Number.isFinite(pageNumber) && selectedPageNumbers.has(pageNumber)
+
+            if (isWholeDocumentSelected || isPageSelected || (blockId && selectedBlockIds.has(blockId))) {
               decorations.push(
                 Decoration.node(pos, pos + node.nodeSize, {
                   class: 'bg-primary/5',
