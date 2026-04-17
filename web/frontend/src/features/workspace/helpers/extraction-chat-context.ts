@@ -127,6 +127,8 @@ export function togglePageInContext(
   context: NormalizedExtractionContext,
   pageNumber: number
 ): NormalizedExtractionContext {
+  if (context.kind === 'document') return context
+
   if (context.pages.includes(pageNumber)) {
     return removePageFromContext(context, pageNumber)
   }
@@ -168,18 +170,13 @@ export function toggleBlockInContext(
   context: NormalizedExtractionContext,
   block: ExtractionContextBlock
 ): NormalizedExtractionContext {
+  if (context.kind === 'document') return context
+
   if (context.blocks.some((item) => item.blockId === block.blockId)) {
     return removeBlockFromContext(context, block.blockId)
   }
 
   return addBlockToContext(context, block)
-}
-
-export function removeDeletedBlockFromContext(
-  context: NormalizedExtractionContext,
-  blockId: string
-): NormalizedExtractionContext {
-  return removeBlockFromContext(context, blockId)
 }
 
 export function buildExtractionContextPayload({
@@ -212,20 +209,36 @@ export function buildExtractionContextPayload({
     document_id: documentId,
     extraction_id: extractionId,
     pages: normalized.pages.map((pageNumber) => ({ page_number: pageNumber })),
-    blocks: normalized.blocks.map((block) => ({
-      ...block,
-      extraction_id: extractionId,
-      xpath: `//*[@id="${block.blockId}"]`,
-      path: `/document/${documentId}/extraction/${extractionId ?? 'unknown'}/page/${block.pageNumber}/xpath//*[@id="${block.blockId}"]`,
-    })),
+    blocks: normalized.blocks.map((block) => {
+      const safeBlockId = /^block_\d+_\w+$/.test(block.blockId) ? block.blockId : ''
+      return {
+        ...block,
+        extraction_id: extractionId,
+        xpath: `//*[@id="${safeBlockId}"]`,
+        path: `/document/${documentId}/extraction/${extractionId ?? 'unknown'}/page/${block.pageNumber}/xpath//*[@id="${safeBlockId}"]`,
+      }
+    }),
   }
 }
 
 export function getContextBlockLabel(blockId: string) {
   const match = blockId.match(/^block_(\d+)_(.+)$/)
   if (!match) {
-    return `Block ${blockId}`
+    return 'Block (unknown)'
   }
 
   return `Block ${match[1]}.${match[2]}`
+}
+
+export interface ExtractionChatContextProps {
+  contextPayload: ExtractionContextPayload | null
+  isWholeDocumentSelected: boolean
+  selectedPages: number[]
+  selectedBlocks: ExtractionContextBlock[]
+  onAddWholeDocument: () => void
+  onAddCurrentPage: () => void
+  onToggleBlock: (blockId: string, pageNumber: number | null) => void
+  onRemovePage: (pageNumber: number) => void
+  onRemoveBlock: (blockId: string) => void
+  onClear: () => void
 }

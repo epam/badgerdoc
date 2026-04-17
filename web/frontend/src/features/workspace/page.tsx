@@ -124,7 +124,6 @@ export function WorkspacePage() {
     togglePage,
     toggleBlock,
     removeBlock,
-    removeDeletedBlock,
     clearAll,
   } = useExtractionChatContext({
     documentId,
@@ -174,6 +173,58 @@ export function WorkspacePage() {
       toggleBlock({ blockId, pageNumber })
     },
     [toggleBlock]
+  )
+
+  const handleAddCurrentPage = useCallback(() => {
+    togglePage(currentPage)
+  }, [togglePage, currentPage])
+
+  const handleBlockDelete = useCallback(
+    (blockId: string, pageNumber: number | null) => {
+      onBlockDelete(blockId, pageNumber)
+      removeBlock(blockId)
+    },
+    [onBlockDelete, removeBlock]
+  )
+
+  const chatContext = useMemo(
+    () => ({
+      contextPayload,
+      isWholeDocumentSelected,
+      selectedPages,
+      selectedBlocks,
+      onAddWholeDocument: addWholeDocument,
+      onAddCurrentPage: handleAddCurrentPage,
+      onToggleBlock: handleToggleBlockContext,
+      onRemovePage: removePage,
+      onRemoveBlock: removeBlock,
+      onClear: clearAll,
+    }),
+    [
+      contextPayload,
+      isWholeDocumentSelected,
+      selectedPages,
+      selectedBlocks,
+      addWholeDocument,
+      handleAddCurrentPage,
+      handleToggleBlockContext,
+      removePage,
+      removeBlock,
+      clearAll,
+    ]
+  )
+
+  const pageChatContext = useMemo(
+    () => ({
+      canAddCurrentPageToContext: !isOverviewTab,
+      isCurrentPageInContext: selectedPages.includes(currentPage),
+      isCurrentPageContextDisabled: isWholeDocumentSelected,
+      currentPageContextTooltip: isWholeDocumentSelected
+        ? 'Whole document already added to context'
+        : undefined,
+      onAddCurrentPageToContext: handleAddCurrentPage,
+    }),
+    [isOverviewTab, selectedPages, currentPage, isWholeDocumentSelected, handleAddCurrentPage]
   )
 
   const handleTabChange = useCallback(
@@ -289,28 +340,14 @@ export function WorkspacePage() {
         onSaveExtraction={handleSaveExtraction}
         onRevertChanges={handleRevertClick}
         onAcceptChanges={handleAcceptClick}
-        onBlockDelete={(blockId, pageNumber) => {
-          onBlockDelete(blockId, pageNumber)
-          removeDeletedBlock(blockId)
-        }}
+        onBlockDelete={handleBlockDelete}
         isSaving={isApiPending}
         activeBlockId={activeBlockId}
         onBlockSelect={setActiveBlockId}
         onPageNavigate={setCurrentPage}
         currentPage={currentPage}
         documentId={documentId}
-        chatContext={{
-          contextPayload,
-          isWholeDocumentSelected,
-          selectedPages,
-          selectedBlocks,
-          onAddWholeDocument: addWholeDocument,
-          onAddCurrentPage: () => togglePage(currentPage),
-          onToggleBlock: handleToggleBlockContext,
-          onRemovePage: removePage,
-          onRemoveBlock: removeBlock,
-          onClear: clearAll,
-        }}
+        chatContext={chatContext}
       />
     )
   }
@@ -378,15 +415,7 @@ export function WorkspacePage() {
               onHighlightUpdate={handleBlockBoundingBoxUpdate}
               onHighlightCreate={handleBlockCreate}
               createdHighlightIds={createdBlockIds}
-              pageChatContext={{
-                canAddCurrentPageToContext: !isOverviewTab,
-                isCurrentPageInContext: selectedPages.includes(currentPage),
-                isCurrentPageContextDisabled: isWholeDocumentSelected,
-                currentPageContextTooltip: isWholeDocumentSelected
-                  ? 'Whole document already added to context'
-                  : undefined,
-                onAddCurrentPageToContext: () => togglePage(currentPage),
-              }}
+              pageChatContext={pageChatContext}
             />
           }
           right={

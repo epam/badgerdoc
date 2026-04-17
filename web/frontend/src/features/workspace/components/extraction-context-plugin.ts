@@ -1,5 +1,4 @@
 import { Plugin, PluginKey } from '@tiptap/pm/state'
-import { Decoration, DecorationSet } from '@tiptap/pm/view'
 
 export const extractionChatScopePluginKey = new PluginKey('extractionBlockChatScope')
 
@@ -38,47 +37,6 @@ export function createExtractionChatScopePlugin() {
           pageNumbersInChatScope: meta.pageNumbers ?? [],
           isWholeDocumentInChatScope: meta.isWholeDocumentSelected ?? false,
         }
-      },
-    },
-
-    props: {
-      decorations(state) {
-        const pluginState = extractionChatScopePluginKey.getState(state)
-        const selectedBlockIds = new Set(pluginState?.blockIdsInChatScope ?? [])
-        const selectedPageNumbers = new Set(pluginState?.pageNumbersInChatScope ?? [])
-        const isWholeDocumentSelected = pluginState?.isWholeDocumentInChatScope ?? false
-        if (
-          !isWholeDocumentSelected &&
-          selectedBlockIds.size === 0 &&
-          selectedPageNumbers.size === 0
-        ) {
-          return DecorationSet.empty
-        }
-
-        const decorations: Decoration[] = []
-
-        state.doc.descendants((node, pos) => {
-          if (node.type.name === 'extractionBlock') {
-            const blockId = node.attrs.blockId as string
-            const pageNumber = Number(node.attrs.page)
-            const isPageSelected =
-              Number.isFinite(pageNumber) && selectedPageNumbers.has(pageNumber)
-
-            if (
-              isWholeDocumentSelected ||
-              isPageSelected ||
-              (blockId && selectedBlockIds.has(blockId))
-            ) {
-              decorations.push(
-                Decoration.node(pos, pos + node.nodeSize, {
-                  class: 'bg-primary/5',
-                })
-              )
-            }
-          }
-        })
-
-        return DecorationSet.create(state.doc, decorations)
       },
     },
   })

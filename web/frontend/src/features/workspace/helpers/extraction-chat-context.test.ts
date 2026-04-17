@@ -87,6 +87,13 @@ describe('extraction chat context helpers', () => {
     expect(withoutBlock).toEqual(EMPTY_EXTRACTION_CONTEXT)
   })
 
+  it('toggle functions are no-ops when whole document is selected', () => {
+    const doc = addDocumentToContext()
+
+    expect(togglePageInContext(doc, 3)).toEqual(doc)
+    expect(toggleBlockInContext(doc, { blockId: 'block_1_1', pageNumber: 1 })).toEqual(doc)
+  })
+
   it('builds a normalized backend payload for mixed context', () => {
     const payload = buildExtractionContextPayload({
       context: normalizeExtractionContext({

@@ -7,7 +7,6 @@ import {
   clearExtractionContext,
   normalizeExtractionContext,
   removeBlockFromContext,
-  removeDeletedBlockFromContext,
   removePageFromContext,
   toggleBlockInContext,
   togglePageInContext,
@@ -75,13 +74,6 @@ export function useExtractionChatContext({
     setContextState((prev) => ({ ...prev, context: clearExtractionContext() }))
   }, [])
 
-  const removeDeletedBlock = useCallback((blockId: string) => {
-    setContextState((prev) => ({
-      ...prev,
-      context: removeDeletedBlockFromContext(prev.context, blockId),
-    }))
-  }, [])
-
   const normalizedContext = useMemo(
     () => normalizeExtractionContext(contextState.context),
     [contextState.context]
@@ -109,7 +101,6 @@ export function useExtractionChatContext({
     togglePage,
     toggleBlock,
     removeBlock,
-    removeDeletedBlock,
     clearAll,
   }
 }

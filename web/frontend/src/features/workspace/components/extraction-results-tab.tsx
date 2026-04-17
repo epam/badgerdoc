@@ -5,23 +5,7 @@ import { BadgerDocExtractionPage } from '@/shared/api/badgerdoc'
 import ExtractionEditor from '@/features/workspace/components/extraction-editor'
 import { ExtractionChat } from '@/features/workspace/components/extraction-chat'
 import { useFormattedExtractionContent } from '@/features/workspace/hooks/use-formatted-extraction-content'
-import type {
-  ExtractionContextBlock,
-  ExtractionContextPayload,
-} from '@/features/workspace/helpers/extraction-chat-context'
-
-interface ExtractionChatContextProps {
-  contextPayload: ExtractionContextPayload | null
-  isWholeDocumentSelected: boolean
-  selectedPages: number[]
-  selectedBlocks: ExtractionContextBlock[]
-  onAddWholeDocument: () => void
-  onAddCurrentPage: () => void
-  onToggleBlock: (blockId: string, pageNumber: number | null) => void
-  onRemovePage: (pageNumber: number) => void
-  onRemoveBlock: (blockId: string) => void
-  onClear: () => void
-}
+import type { ExtractionChatContextProps } from '@/features/workspace/helpers/extraction-chat-context'
 
 interface ExtractionResultsTabProps {
   isLoading: boolean

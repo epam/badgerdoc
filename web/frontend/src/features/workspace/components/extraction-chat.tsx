@@ -290,6 +290,8 @@ export const ExtractionChat = ({
   }, [availableScopes, contextPayload])
 
   useEffect(() => {
+    // Defer to next frame to avoid setState during React's render phase
+    // when selectedWorkflow is derived from workflows list on first load.
     const frame = requestAnimationFrame(() => {
       if (selectedWorkflow && selectedWorkflow.id !== selectedWorkflowId) {
         setSelectedWorkflowId(selectedWorkflow.id)
@@ -302,6 +304,8 @@ export const ExtractionChat = ({
   const { data: workflowStatus } = useWorkflowStatus(workflowToPoll)
 
   useEffect(() => {
+    // Defer state cleanup and side effects (toast, cache invalidation) to
+    // avoid triggering them synchronously inside the polling render cycle.
     if (workflowStatus?.status === 'Finished') {
       const frame = requestAnimationFrame(() => {
         setWorkflowToPoll(null)
@@ -349,7 +353,6 @@ export const ExtractionChat = ({
 
       setWorkflowToPoll(result.workflow_id)
       setPrompt('')
-      setIsRunningInference?.(false)
     } catch {
       setIsRunningInference?.(false)
       toast.error('Failed to trigger workflow')
