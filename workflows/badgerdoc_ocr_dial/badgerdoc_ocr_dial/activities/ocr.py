@@ -7,7 +7,6 @@ from io import BytesIO
 from bs4 import BeautifulSoup
 from PIL import Image, ImageOps, UnidentifiedImageError
 from temporalio import activity
-
 from badgerdoc_common import trigger
 from badgerdoc_common.activities.extraction import (
     ListExtractionPagesRequest,
@@ -39,10 +38,27 @@ _OCR_JUDGE_SYSTEM_PROMPT = (
 _HOCR_EXTRACTION_PROMPT = (
     "Compare OCR results given in dictionary format and produce the best possible OCR result using the source image as a reference.\n"
     "Combine best blocks from different engines by choosing right key-value pairs based on the jury text evaluation and return result in same format.\n"
+    "If higher scored OCR engine is missing some blocks that are present in lower scored engine result, include these blocks in the final result.\n"
     "Pay close attention to the accuracy of the extracted text especially subscripts, superscripts and registered marks.\n"
     "Be sure to highlight subscripts and superscripts using LaTeX notation or mark like this`^{*1,2}`, `^{*}`.\n"
+    "Do not include page dimension metadata.\n"
     "DO NOT change any keys in dictionary.\n"
-    #    "Output only the final dictionary result without any explanations."
+)
+
+_OCR_CLERK_SYSTEM_PROMPT = (
+    "You are pedantic and precise worker.\n"
+    "Your task is to take OCR results in hOCR format sort them in human readable order,\n"
+    " and classify text blocks according to source image formatting."
+)
+
+_HOCR_SORTING_AND_CLASSIFICATION_PROMPT = (
+    "Sort hOCR blocks from top to bottom and from left to right adjusting blocks ids where first digit it is page number.\n"
+    "Classify text blocks according to the following rules:\n"
+    "1) If block contains an unordered list add <ul> and <li> tags accordingly.\n"
+    "2) If block contains bold, italic or underlined text add <b>, <i> or <u> tags accordingly.\n"
+    "3) If block contains multiple lines add <br> tag at the end of each line.\n"
+    "4) Make sure to wrap all subscript and superscript text in <sub> and <sup> tags accordingly.\n"
+    "Output only the final hOCR content without any explanations."
 )
 
 
@@ -146,10 +162,9 @@ def hocr_page_to_html(
     body_html: str, page_width: int, page_height: int, page_num: int
 ) -> str:
     header = (
-        '<?xml version="1.0" encoding="UTF-8"?>\n'
         '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"'
         ' "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">\n'
-        '<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">\n'
+        '<html xmlns="http://www.w3.org/1999/xhtml" lang="en">\n'
         "<head>\n"
         "<title></title>\n"
         '<meta http-equiv="content-type" content="text/html; charset=utf-8" />\n'
@@ -157,7 +172,6 @@ def hocr_page_to_html(
         '<meta name="ocr-capabilities"'
         ' content="ocr_page ocr_carea ocr_par ocr_header ocr_line" />\n'
         '<meta name="ocr-langs" content="en" />\n'
-        '<meta name="ocr-number-of-pages" content="1" />\n'
         "</head>\n"
         "<body>\n"
         f'<div class="ocr_page" id="page_{page_num}"'
@@ -196,7 +210,7 @@ def _escape_html(text):
 
 def lines_to_hocr(
     lines: dict[str, str],
-    page_number: int = 1,
+    page_number: int,
 ) -> str:
     """Convert a bbox→text dict back into an hOCR body fragment."""
     parts: list[str] = []
@@ -337,6 +351,7 @@ async def trial_process(
     buffer = BytesIO()
     await badgerdoc_download(buffer, params.document_to_ocr)
     compressed_bytes, _, _ = compress_image_for_llm_request(buffer.getvalue())
+
     ocr_judge_agent: Agent[None, dict] = Agent(
         model,
         instructions=_OCR_JUDGE_SYSTEM_PROMPT,
@@ -358,11 +373,40 @@ async def trial_process(
         ]
     )
 
+
     hocr_body = lines_to_hocr(judge_result.output, page_number)
     hocr_content = hocr_page_to_html(
         hocr_body, page_width, page_height, page_number
     )
+
     hocr_buffer = BytesIO(hocr_content.encode("utf-8"))
+    hocr_path = await storage.badgerdoc_store_perm(
+        hocr_buffer, storage_params, f"middle_{page_number}.hocr"
+    )
+    hocr_buffer.seek(0)
+    hocr_buffer.truncate(0)
+    # --- Step 3: Sorting and classification of hOCR content ---
+
+    ocr_clerk_agent: Agent[None, str] = Agent(
+        model,
+        instructions=_OCR_CLERK_SYSTEM_PROMPT,
+        output_type=str,
+    )
+
+
+
+    clerk_result = await ocr_clerk_agent.run(
+        [
+            f"Evaluated hOCR content:"
+            f" {hocr_content}",
+            f"Page number: {page_number}",
+            _HOCR_SORTING_AND_CLASSIFICATION_PROMPT,
+            BinaryContent(data=compressed_bytes, media_type="image/jpeg"),
+        ]
+    )
+
+
+    hocr_buffer = BytesIO(clerk_result.output.encode("utf-8"))
     hocr_path = await storage.badgerdoc_store_perm(
         hocr_buffer, storage_params, f"page_{page_number}.hocr"
     )

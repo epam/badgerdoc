@@ -121,6 +121,17 @@ services:
       - badgerdoc
     networks:
       - badgerdoc-network
+
+  badgerdoc_ocr_dial:
+    build:
+      context: ./workflows/badgerdoc_ocr_dial
+    env_file: .env
+    depends_on:
+      - temporal
+      - minio
+      - badgerdoc
+    networks:
+      - badgerdoc-network
     
 
 volumes:
