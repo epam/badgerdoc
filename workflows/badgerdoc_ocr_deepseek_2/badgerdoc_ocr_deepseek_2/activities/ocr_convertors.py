@@ -44,7 +44,7 @@ def _blocks_to_hocr(  # pylint: disable=too-many-locals
     blocks: list[dict],
 ) -> list[str]:
     hocr: list[str] = []
-    carea_id = par_id = line_id = word_id = 1
+    carea_id = par_id = line_id = 1
 
     for block in blocks:
         x0, y0, x1, y1 = block["bbox"]
@@ -65,26 +65,12 @@ def _blocks_to_hocr(  # pylint: disable=too-many-locals
         for i, line_text in enumerate(lines):
             ly0 = round(y0 + i * line_height)
             ly1 = round(y0 + (i + 1) * line_height)
-            words = line_text.split()
-            total_chars = sum(len(w) for w in words) or 1
-            line_width = x1 - x0
 
             hocr.append(
                 f'  <span class="ocr_line" id="line_{page_number}_{line_id}" title="bbox {x0} {ly0} {x1} {ly1}">'
+                f"{_escape_html(line_text)}</span>"
             )
             line_id += 1
-
-            wx = x0
-            for word in words:
-                wx1 = wx + round(line_width * len(word) / total_chars)
-                hocr.append(
-                    f'    <span class="ocrx_word" id="word_{page_number}_{word_id}" '
-                    f'title="bbox {wx} {ly0} {wx1} {ly1}">{_escape_html(word)}</span>'
-                )
-                word_id += 1
-                wx = wx1
-
-            hocr.append("  </span>")
 
         hocr.append("</p>")
         hocr.append("</div>")
@@ -135,7 +121,7 @@ async def deepseek_ocr_2_results_to_hocr(  # pylint: disable=too-many-locals
         "<title></title>",
         '<meta http-equiv="Content-Type" content="text/html;charset=utf-8">',
         "<meta name='ocr-system' content='deepseek-ocr-2'>",
-        "<meta name='ocr-capabilities' content='ocr_page ocr_carea ocr_par ocr_line ocrx_word'>",
+        "<meta name='ocr-capabilities' content='ocr_page ocr_carea ocr_par ocr_line'>",
         "</head>",
         "<body>",
         f'<div class="ocr_page" id="page_{page_num}" '

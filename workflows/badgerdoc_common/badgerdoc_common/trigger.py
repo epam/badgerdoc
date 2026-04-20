@@ -16,7 +16,7 @@ class BadgerodocTrigger(TypedDict):
     workflow_registry_id: int
     task_id: int | None
     page_number: int | None
-    extraction_id: int | None
+    extraction_ids: list | None
     llm_params: dict | None
 
 

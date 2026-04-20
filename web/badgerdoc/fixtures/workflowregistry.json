@@ -115,5 +115,24 @@
         "page"
       ]
     }
+  },
+      {
+    "model": "badgerdoc.workflowregistry",
+    "pk": 16,
+    "fields": {
+      "created_at": "2026-03-26T09:44:09.748Z",
+      "updated_at": "2026-03-26T09:44:09.748Z",
+      "created_by": 1,
+      "event_entity": null,
+      "event_type": null,
+      "document_types": [],
+      "temporal_workflow_type": "BadgerdocOCRDialWorkflow",
+      "temporal_queue": "badgerdoc_ocr_dial",
+      "is_active": true,
+      "trigger": "manual",
+      "extraction_scope": [
+        "page"
+      ]
+    }
   }
 ]

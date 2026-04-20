@@ -112,7 +112,7 @@ def start_manual_workflow(registry, validated_data: dict[str, Any]) -> str:
         "workflow_registry_id": registry.id,
         "task_id": validated_data.get("task_id"),
         "page_number": validated_data.get("page_number"),
-        "extraction_id": validated_data.get("extraction_id"),
+        "extraction_ids": validated_data.get("extraction_ids"),
         "llm_params": (
             validated_data.get("parameters", {}).get("llm_params")
             if validated_data.get("parameters")
@@ -216,7 +216,9 @@ class WorkflowEventCommonFields(serializers.Serializer):
 class WorkflowTriggerBaseSerializer(WorkflowEventCommonFields):
     document_id = serializers.IntegerField(required=False)
     task_id = serializers.IntegerField(required=False)
-    extraction_id = serializers.IntegerField(required=False)
+    extraction_ids = serializers.ListField(
+        child=serializers.IntegerField(), required=False
+    )
     page_number = serializers.IntegerField(required=False)
     scope = serializers.CharField(required=False)
 

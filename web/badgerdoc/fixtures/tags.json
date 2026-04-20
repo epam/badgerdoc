@@ -34,5 +34,14 @@
       "literal": "Paddle OCR",
       "order": 4
     }
-  }
+  },
+  {
+    "model": "badgerdoc.tag",
+    "pk": 5,
+    "fields": {
+      "tag": "dial-ocr",
+      "literal": "Dial OCR",
+      "order": 5
+    } 
+   }
 ]
