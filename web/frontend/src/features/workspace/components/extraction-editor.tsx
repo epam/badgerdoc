@@ -299,7 +299,7 @@ const ExtractionEditor = ({
         </div>
       </div>
       {hasChanges && (
-        <div className="absolute bottom-4 left-1/2 z-50 flex -translate-x-1/2 gap-3">
+        <div className="flex shrink-0 justify-center gap-3 border-t bg-card px-4 py-3">
           <Button
             onMouseDown={() => {
               isRevertingRef.current = true
