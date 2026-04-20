@@ -1,0 +1,23 @@
+[project]
+name = "badgerdoc-lifecycle"
+version = "0.1.0"
+description = "BadgerDoc workflows package"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "temporalio>=1.18.2",
+    "aiohttp>=3.8.0",
+    "badgerdoc-common",
+]
+
+[tool.uv.sources]
+badgerdoc-common = { path = "../badgerdoc_common" }
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

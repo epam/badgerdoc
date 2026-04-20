@@ -1,0 +1,133 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15-alpine
+    env_file: .env
+    environment:
+      POSTGRES_DB: badgerdoc
+      POSTGRES_USER: badgerdoc
+      POSTGRES_PASSWORD: badgerdoc
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - badgerdoc-network
+
+  minio:
+    image: minio/minio:latest
+    env_file: .env
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - badgerdoc-network
+
+  web:
+    build:
+      context: ./web
+    env_file: .env
+    depends_on:
+      - db
+      - minio
+      - temporal
+    networks:
+      - badgerdoc-network
+
+  badgerdoc:
+    build:
+      context: ./infra/local/nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - web
+    networks:
+      - badgerdoc-network
+
+  temporal:
+    image: temporalio/auto-setup:1.29.3
+    env_file: .env
+    user: root
+    ports:
+      - "7233:7233"
+    depends_on:
+      - db
+    networks:
+      - badgerdoc-network
+
+  temporal-ui:
+    image: temporalio/ui:latest
+    env_file: .env
+    ports:
+      - "8080:8080"
+    depends_on:
+      - temporal
+    networks:
+      - badgerdoc-network
+
+  badgerdoc_lifecycle:
+    build:
+      context: ./workflows/badgerdoc_lifecycle
+    env_file: .env
+    depends_on:
+      - temporal
+      - minio
+      - badgerdoc
+    networks:
+      - badgerdoc-network
+
+  badgerdoc_convert:
+    build:
+      context: ./workflows/badgerdoc_convert
+    env_file: .env
+    depends_on:
+      - temporal
+      - minio
+      - badgerdoc
+    networks:
+      - badgerdoc-network
+
+  badgerdoc_ocr_deepseek_2:
+    build:
+      context: ./workflows/badgerdoc_ocr_deepseek_2
+    env_file: .env
+    depends_on:
+      - temporal
+      - minio
+      - badgerdoc
+    networks:
+      - badgerdoc-network
+
+  badgerdoc_ocr_mineru:
+    build:
+      context: ./workflows/badgerdoc_ocr_mineru
+    env_file: .env
+    depends_on:
+      - temporal
+      - minio
+      - badgerdoc
+    networks:
+      - badgerdoc-network
+
+  badgerdoc_ocr_paddle:
+    build:
+      context: ./workflows/badgerdoc_ocr_paddle
+    env_file: .env
+    depends_on:
+      - temporal
+      - minio
+      - badgerdoc
+    networks:
+      - badgerdoc-network
+    
+
+volumes:
+  db_data:
+  minio_data:
+  temporal_db_data:
+
+
+networks:
+  badgerdoc-network:

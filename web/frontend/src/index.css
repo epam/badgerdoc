@@ -1,0 +1,370 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@font-face {
+  font-family: 'Museo Sans';
+  src: url('/fonts/museo-sans/exljbris - MuseoSans-300.otf') format('opentype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Museo Sans';
+  src: url('/fonts/museo-sans/exljbris - MuseoSans-300Italic.otf') format('opentype');
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Museo Sans';
+  src: url('/fonts/museo-sans/exljbris - MuseoSans-500.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Museo Sans';
+  src: url('/fonts/museo-sans/exljbris - MuseoSans-500Italic.otf') format('opentype');
+  font-weight: 500;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Museo Sans';
+  src: url('/fonts/museo-sans/exljbris - MuseoSans-700.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Museo Sans';
+  src: url('/fonts/museo-sans/exljbris - MuseoSans-700Italic.otf') format('opentype');
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Museo Sans';
+  src: url('/fonts/museo-sans/exljbris - MuseoSans-900.otf') format('opentype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Source Sans Pro';
+  src: url('/fonts/source-sans-pro/OTF/SourceSansPro-Light.otf') format('opentype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Source Sans Pro';
+  src: url('/fonts/source-sans-pro/OTF/SourceSansPro-LightIt.otf') format('opentype');
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Source Sans Pro';
+  src: url('/fonts/source-sans-pro/OTF/SourceSansPro-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Source Sans Pro';
+  src: url('/fonts/source-sans-pro/OTF/SourceSansPro-It.otf') format('opentype');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Source Sans Pro';
+  src: url('/fonts/source-sans-pro/OTF/SourceSansPro-Semibold.otf') format('opentype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Source Sans Pro';
+  src: url('/fonts/source-sans-pro/OTF/SourceSansPro-SemiboldIt.otf') format('opentype');
+  font-weight: 600;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Source Sans Pro';
+  src: url('/fonts/source-sans-pro/OTF/SourceSansPro-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Source Sans Pro';
+  src: url('/fonts/source-sans-pro/OTF/SourceSansPro-BoldIt.otf') format('opentype');
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --radius: 0.625rem;
+
+  /* EPAM Dark Mode Accent Colors */
+  --epam-sea: oklch(0.90 0.13 192);
+  --epam-mint: oklch(0.92 0.14 175);
+  --epam-lilac: oklch(0.72 0.14 295);
+  --epam-sky: oklch(0.73 0.11 255);
+  --epam-night: oklch(0.05 0 0);
+
+  /* EPAM Light Mode Colors */
+  --epam-cobalt: oklch(0.48 0.22 264);
+  --epam-aqua: oklch(0.54 0.12 230);
+  --epam-iris: oklch(0.52 0.16 290);
+  --epam-slate: oklch(0.54 0.10 255);
+  --epam-snow: oklch(0.98 0 0);
+
+  /* Readable text colors (darker versions for light backgrounds) */
+  --color-sky-text: oklch(0.45 0.12 250);
+  --color-sea-text: oklch(0.45 0.14 192);
+  --color-mint-text: oklch(0.45 0.14 165);
+  --color-lilac-text: oklch(0.48 0.16 290);
+
+  --background: var(--epam-snow);
+  --foreground: oklch(0.15 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.15 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.15 0 0);
+  --primary: var(--epam-cobalt);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.96 0.01 255);
+  --secondary-foreground: oklch(0.15 0 0);
+  --muted: oklch(0.96 0.005 255);
+  --muted-foreground: oklch(0.45 0.02 255);
+  --accent: var(--epam-iris);
+  --accent-foreground: oklch(1 0 0);
+  --destructive: oklch(0.55 0.22 27);
+  --border: oklch(0.88 0.01 255);
+  --input: oklch(0.97 0.005 255);
+  --ring: var(--epam-cobalt);
+  --chart-1: var(--epam-cobalt);
+  --chart-2: var(--epam-aqua);
+  --chart-3: var(--epam-iris);
+  --chart-4: var(--epam-slate);
+  --chart-5: oklch(0.65 0.15 145);
+  --sidebar: oklch(0.98 0 0);
+  --sidebar-foreground: oklch(0.15 0 0);
+  --sidebar-primary: var(--epam-cobalt);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.94 0.01 255);
+  --sidebar-accent-foreground: oklch(0.15 0 0);
+  --sidebar-border: oklch(0.90 0.01 255);
+  --sidebar-ring: var(--epam-cobalt);
+}
+
+.dark {
+  --background: var(--epam-night);
+  --foreground: oklch(0.95 0 0);
+  --card: oklch(0.12 0.005 255);
+  --card-foreground: oklch(0.95 0 0);
+  --popover: oklch(0.12 0.005 255);
+  --popover-foreground: oklch(0.95 0 0);
+  --primary: var(--epam-sea);
+  --primary-foreground: var(--epam-night);
+  --secondary: oklch(0.18 0.01 255);
+  --secondary-foreground: oklch(0.95 0 0);
+  --muted: oklch(0.18 0.01 255);
+  --muted-foreground: oklch(0.65 0.02 255);
+  --accent: var(--epam-lilac);
+  --accent-foreground: var(--epam-night);
+  --destructive: oklch(0.65 0.20 25);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 8%);
+  --ring: var(--epam-sea);
+  --chart-1: var(--epam-sea);
+  --chart-2: var(--epam-mint);
+  --chart-3: var(--epam-lilac);
+  --chart-4: var(--epam-sky);
+  --chart-5: oklch(0.75 0.12 145);
+  --sidebar: oklch(0.08 0.005 255);
+  --sidebar-foreground: oklch(0.95 0 0);
+  --sidebar-primary: var(--epam-sea);
+  --sidebar-primary-foreground: var(--epam-night);
+  --sidebar-accent: oklch(0.15 0.01 255);
+  --sidebar-accent-foreground: oklch(0.95 0 0);
+  --sidebar-border: oklch(1 0 0 / 8%);
+  --sidebar-ring: var(--epam-sea);
+}
+
+@theme inline {
+  /* Semantic radius scale */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --color-sea: var(--epam-sea);
+  --color-mint: var(--epam-mint);
+  --color-lilac: var(--epam-lilac);
+  --color-sky: var(--epam-sky);
+  --color-night: var(--epam-night);
+
+  /* Text-safe colors for numbers and labels */
+  --color-sky-readable: var(--color-sky-text);
+  --color-sea-readable: var(--color-sea-text);
+  --color-mint-readable: var(--color-mint-text);
+  --color-lilac-readable: var(--color-lilac-text);
+
+  --font-heading: 'Museo Sans', system-ui, -apple-system, sans-serif;
+  --font-body: 'Source Sans Pro', system-ui, -apple-system, sans-serif;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
+    letter-spacing: -0.01em;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+  }
+  h1 { font-size: 2.25rem; font-weight: 700; }
+  h2 { font-size: 1.75rem; font-weight: 600; }
+  h3 { font-size: 1.25rem; font-weight: 600; }
+  h4 { font-size: 1rem; font-weight: 600; }
+  #root {
+    min-height: 100vh;
+  }
+}
+
+/* Professional shadow system */
+@layer utilities {
+  .shadow-subtle {
+    box-shadow: 0 1px 2px oklch(0 0 0 / 4%);
+  }
+  .shadow-soft {
+    box-shadow: 0 1px 3px oklch(0 0 0 / 8%), 0 1px 2px oklch(0 0 0 / 4%);
+  }
+  .shadow-soft-md {
+    box-shadow: 0 4px 6px oklch(0 0 0 / 7%), 0 2px 4px oklch(0 0 0 / 5%);
+  }
+  .shadow-soft-lg {
+    box-shadow: 0 10px 15px oklch(0 0 0 / 8%), 0 4px 6px oklch(0 0 0 / 4%);
+  }
+
+  /* Professional focus ring - visible but not harsh */
+  .focus-ring {
+    @apply outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background transition-shadow duration-150;
+  }
+
+  /* Smooth transitions for interactive elements */
+  .interactive {
+    @apply transition-colors duration-150 ease-out;
+  }
+  .interactive-all {
+    @apply transition-all duration-150 ease-out;
+  }
+}
+
+/* Shimmer animation for skeleton loading states */
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Progress bar loading animation */
+@keyframes loading {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(200%);
+  }
+}
+
+@theme inline {
+  --animate-shimmer: shimmer 1.5s infinite;
+}
+
+/* Thin scrollbar utility for tables and constrained content */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: oklch(0.7 0 0 / 30%) transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: oklch(0.7 0 0 / 30%);
+  border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background-color: oklch(0.6 0 0 / 50%);
+}

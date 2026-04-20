@@ -1,0 +1,123 @@
+[
+  {
+    "model": "badgerdoc.taskstatus",
+    "pk": 7,
+    "fields": {
+      "name": "Not processed",
+      "order": 1,
+      "parent": []
+    }
+  },
+  {
+    "model": "badgerdoc.taskstatus",
+    "pk": 8,
+    "fields": {
+      "name": "Duplicates check",
+      "order": 2,
+      "parent": [
+        7,
+        15
+      ]
+    }
+  },
+  {
+    "model": "badgerdoc.taskstatus",
+    "pk": 9,
+    "fields": {
+      "name": "Continue processing",
+      "order": 3,
+      "parent": [
+        8
+      ]
+    }
+  },
+  {
+    "model": "badgerdoc.taskstatus",
+    "pk": 10,
+    "fields": {
+      "name": "Ready for relevance check",
+      "order": 4,
+      "parent": [
+        9
+      ]
+    }
+  },
+  {
+    "model": "badgerdoc.taskstatus",
+    "pk": 11,
+    "fields": {
+      "name": "Confirm",
+      "order": 5,
+      "parent": [
+        10
+      ]
+    }
+  },
+  {
+    "model": "badgerdoc.taskstatus",
+    "pk": 12,
+    "fields": {
+      "name": "Ready for curation",
+      "order": 6,
+      "parent": [
+        11
+      ]
+    }
+  },
+  {
+    "model": "badgerdoc.taskstatus",
+    "pk": 13,
+    "fields": {
+      "name": "Finish curation",
+      "order": 7,
+      "parent": [
+        12
+      ]
+    }
+  },
+  {
+    "model": "badgerdoc.taskstatus",
+    "pk": 14,
+    "fields": {
+      "name": "Curated",
+      "order": 8,
+      "parent": [
+        13
+      ]
+    }
+  },
+  {
+    "model": "badgerdoc.taskstatus",
+    "pk": 15,
+    "fields": {
+      "name": "Reject duplicate",
+      "order": 11,
+      "parent": [
+        8
+      ]
+    }
+  },
+  {
+    "model": "badgerdoc.taskstatus",
+    "pk": 16,
+    "fields": {
+      "name": "Reject",
+      "order": 9,
+      "parent": [
+        7,
+        10
+      ]
+    }
+  },
+  {
+    "model": "badgerdoc.taskstatus",
+    "pk": 17,
+    "fields": {
+      "name": "Reject with reason",
+      "order": 10,
+      "parent": [
+        12
+      ]
+    }
+  }
+]

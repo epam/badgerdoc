@@ -1,0 +1,31 @@
+import asyncio
+
+from temporalio.worker import Worker
+
+from badgerdoc_common import helpers, sentry
+from badgerdoc_ocr_paddle import activities, ocr_processing
+
+helpers.configure_logging()
+
+
+async def worker():
+    client = await helpers.connect_to_client()
+    sentry_config = sentry.get_sentry_worker_configuration(
+        "badgerdoc_ocr_paddle"
+    )
+    await helpers.start_worker(
+        Worker(
+            client,
+            task_queue="badgerdoc_ocr_paddle",
+            workflows=[ocr_processing.BadgerdocOCRPaddleWorkflow],
+            activities=[
+                activities.ocr_requests.paddle_ocr,
+                activities.ocr_convertors.paddle_ocr_results_to_hocr,
+            ],
+            **sentry_config,
+        )
+    )
+
+
+if __name__ == "__main__":
+    asyncio.run(worker())

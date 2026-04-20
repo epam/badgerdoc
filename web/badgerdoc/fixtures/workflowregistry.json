@@ -1,0 +1,119 @@
+[
+  {
+    "model": "badgerdoc.workflowregistry",
+    "pk": 10,
+    "fields": {
+      "created_at": "2026-03-13T11:37:47.509Z",
+      "updated_at": "2026-03-16T11:29:44.449Z",
+      "created_by": 1,
+      "event_entity": "document",
+      "event_type": "on_create",
+      "document_types": ["pdf"],
+      "temporal_workflow_type": "BadgerdocPNGConvertWorkflow",
+      "temporal_queue": "badgerdoc_convert",
+      "is_active": true,
+      "trigger": "automatic",
+      "name": null,
+      "tags": [],
+      "extraction_scope": []
+    }
+  },
+  {
+    "model": "badgerdoc.workflowregistry",
+    "pk": 11,
+    "fields": {
+      "created_at": "2026-03-16T12:08:40.218Z",
+      "updated_at": "2026-03-16T14:35:58.493Z",
+      "created_by": 1,
+      "event_entity": "document",
+      "event_type": "on_create",
+      "document_types": ["png"],
+      "entity_tags": ["rendition"],
+      "temporal_workflow_type": "BadgerdocDZIConvertWorkflow",
+      "temporal_queue": "badgerdoc_convert",
+      "is_active": true,
+      "trigger": "automatic",
+      "name": null,
+      "tags": [],
+      "extraction_scope": []
+    }
+  },
+  {
+    "model": "badgerdoc.workflowregistry",
+    "pk": 12,
+    "fields": {
+      "created_at": "2026-03-26T09:44:09.748Z",
+      "updated_at": "2026-03-26T09:44:09.748Z",
+      "created_by": 1,
+      "event_entity": null,
+      "event_type": null,
+      "document_types": [],
+      "temporal_workflow_type": "BadgerdocOCRMinerUWorkflow",
+      "temporal_queue": "badgerdoc_ocr_mineru",
+      "is_active": true,
+      "trigger": "manual",
+      "name": "Mineru OCR",
+      "tags": ["ai-inference", "mineru-ocr"],
+      "extraction_scope": ["page"]
+    }
+  },
+  {
+    "model": "badgerdoc.workflowregistry",
+    "pk": 13,
+    "fields": {
+      "created_at": "2026-03-26T09:44:09.748Z",
+      "updated_at": "2026-03-26T09:44:09.748Z",
+      "created_by": 1,
+      "event_entity": null,
+      "event_type": null,
+      "document_types": [],
+      "temporal_workflow_type": "BadgerdocOCRDotsOCRWorkflow",
+      "temporal_queue": "badgerdoc_ocr_dotsocr",
+      "is_active": true,
+      "trigger": "manual",
+      "name": "Dots OCR",
+      "tags": ["ai-inference", "dots-ocr"],
+      "extraction_scope": ["page"]
+    }
+  },
+  {
+    "model": "badgerdoc.workflowregistry",
+    "pk": 14,
+    "fields": {
+      "created_at": "2026-03-26T09:44:09.748Z",
+      "updated_at": "2026-03-26T09:44:09.748Z",
+      "created_by": 1,
+      "event_entity": null,
+      "event_type": null,
+      "document_types": [],
+      "temporal_workflow_type": "BadgerdocDeepseek2Workflow",
+      "temporal_queue": "badgerdoc_ocr_deepseek_2",
+      "is_active": true,
+      "trigger": "manual",
+      "name": "DeepSeek OCR 2",
+      "tags": ["ai-inference", "deepseek-ocr-2"],
+      "extraction_scope": ["page"]
+    }
+  },
+    {
+    "model": "badgerdoc.workflowregistry",
+    "pk": 15,
+    "fields": {
+      "created_at": "2026-03-26T09:44:09.748Z",
+      "updated_at": "2026-03-26T09:44:09.748Z",
+      "created_by": 1,
+      "event_entity": null,
+      "event_type": null,
+      "document_types": [],
+      "temporal_workflow_type": "BadgerdocOCRPaddleWorkflow",
+      "temporal_queue": "badgerdoc_ocr_paddle",
+      "is_active": true,
+      "trigger": "manual",
+      "name": "Paddle OCR",
+      "tags": ["ai-inference", "paddle-ocr"],
+      "extraction_scope": [
+        "page"
+      ]
+    }
+  }
+]
