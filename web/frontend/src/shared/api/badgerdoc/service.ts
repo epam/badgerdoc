@@ -173,13 +173,14 @@ export const badgerDocService = {
    */
   async getDocumentExtractionPages(
     documentId: string,
-    tags?: string
+    tags?: string,
+    status: string = 'Completed'
   ): Promise<BadgerDocExtractionPage[]> {
     logger.debug(`[BadgerDoc] getDocumentExtractionPages(${documentId}, ${tags})`)
 
     const response = await badgerDocClient.get<BadgerDocExtractionPagesResponse>(
       ENDPOINTS.extractionPageLatest(documentId),
-      { params: tags ? { tags } : undefined }
+      { params: { tags, status } }
     )
 
     const pages = response.data.results || []

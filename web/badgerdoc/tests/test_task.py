@@ -57,6 +57,10 @@ class TaskTestCase(TestCase):
             "badgerdoc.signals.trigger_automatic.workflow.trigger"
         )
         self.mock_trigger_workflow = self.trigger_workflow_patch.start()
+        patch(
+            "badgerdoc.signals.workflow.get_supported_workflows",
+            return_value=["workflow name"],
+        ).start()
 
         file_content = b"test document content"
         file = SimpleUploadedFile(
