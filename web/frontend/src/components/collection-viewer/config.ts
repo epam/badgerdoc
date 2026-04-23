@@ -27,6 +27,13 @@ export const DEFAULT_OSD_CONFIG: Options = {
   homeFillsViewer: false,
   minZoomImageRatio: 1,
   autoResize: true,
+  // Performance on iOS: snap pan/zoom to finger instead of using slow spring physics
+  springStiffness: 15,
+  animationTime: 0.4,
+  gestureSettingsTouch: {
+    flickEnabled: false,
+    pinchToZoom: true,
+  },
   // layout settings
   collectionMode: true,
   collectionRows: 1,
