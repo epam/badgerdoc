@@ -27,7 +27,8 @@ services:
 
   web:
     build:
-      context: ./web
+      context: .
+      dockerfile: ./web/Dockerfile
     env_file: .env
     depends_on:
       - db
@@ -121,13 +122,11 @@ services:
       - badgerdoc
     networks:
       - badgerdoc-network
-    
 
 volumes:
   db_data:
   minio_data:
   temporal_db_data:
-
 
 networks:
   badgerdoc-network:

@@ -48,7 +48,6 @@ class DocumentTriggerWorkflow:
         try:
             workflow_ = await self.get_workflow(
                 request_data.get("workflow_registry_id"),
-                request_data.get("scope"),
             )
             document_ = await self.get_document(
                 request_data.get("document_id")
@@ -56,22 +55,26 @@ class DocumentTriggerWorkflow:
             task_obj = await self.get_task(
                 request_data.get("task_id"), document_
             )
-            prev_extractions = await self.get_extractions(
-                request_data.get("extraction_ids"), document_, task_obj
+            linked_extractions = await self.get_extractions(
+                request_data.get("linked_extraction_ids"), document_, task_obj
             )
-            new_extraction = await self.create_extraction(document_, task_obj)
+            linked_extraction_pages = await self.get_extraction_pages(
+                request_data.get("linked_extraction_pages")
+            )
+            linked_extraction_xpaths = await self.get_extraction_xpaths(
+                request_data.get("linked_extraction_xpaths")
+            )
+            target_extraction = await self.create_extraction(document_, task_obj)
             trigger_params = trigger.DocumentTriggerParams(
                 workflow=workflow_,
                 original_document=document_,
-                document_to_ocr=await self.get_document_to_ocr(
-                    document_,
-                    request_data.get("page_number"),
-                    request_data.get("scope"),
-                ),
-                task=task_obj,
-                prev_extractions=prev_extractions,
-                new_extraction=new_extraction,
-                badgerdoc_trigger_params=request_data,
+                original_document_rendition=document_,
+                original_task=task_obj,
+                linked_extractions=linked_extractions,
+                linked_extraction_pages=linked_extraction_pages,
+                linked_extraction_xpaths=linked_extraction_xpaths,
+                target_extraction=target_extraction,
+                llm_params=request_data.get("llm_params"),
             )
 
             workflow_params = workflow_execution.BadgerdocWorkflowParams(
@@ -262,7 +265,7 @@ class DocumentTriggerWorkflow:
         return extractions
 
     async def get_workflow(
-        self, workflow_registry_id: int | None, scope: str | None
+        self, workflow_registry_id: int | None
     ) -> badgerdoc_event.BadgerdocWorkflow:
         if not workflow_registry_id:
             raise DocumentTriggerError("workflow_registry_id is required")
@@ -279,12 +282,67 @@ class DocumentTriggerWorkflow:
                 "No such workflow or workflow is not active"
             ) from err
 
-        if scope and scope not in workflow_obj.extraction_scope:
-            raise DocumentTriggerError(
-                "Scope is not supported by this workflow"
-            )
-
         return workflow_obj
+
+    async def get_extraction_pages(
+        self,
+        linked_extraction_pages_data: list[dict] | None,
+    ) -> list[extraction.BadgerdocExtractionPage] | None:
+        if not linked_extraction_pages_data:
+            return None
+
+        extraction_pages = []
+        for page_data in linked_extraction_pages_data:
+            try:
+                page = await workflow.execute_activity(
+                    extraction.badgerdoc_get_extraction_page,
+                    page_data["id"],
+                    start_to_close_timeout=helpers.BADGERDOC_REST_API_START_TO_CLOSE_TIMEOUT,
+                    retry_policy=helpers.BadgerdocRestAPIRetryPolicy,
+                )
+                extraction_pages.append(page)
+            except Exception as err:
+                logger.warning(
+                    "Failed to fetch extraction page id=%s: %s",
+                    page_data.get("id"),
+                    err,
+                )
+
+        return extraction_pages if extraction_pages else None
+
+    async def get_extraction_xpaths(
+        self,
+        linked_extraction_xpaths_data: list[dict] | None,
+    ) -> list[extraction.BadgerdocExtractionXpath] | None:
+        if not linked_extraction_xpaths_data:
+            return None
+
+        extraction_xpaths = []
+        for xpath_data in linked_extraction_xpaths_data:
+            try:
+                page = await workflow.execute_activity(
+                    extraction.badgerdoc_get_extraction_page_by_extraction_and_page,
+                    extraction.GetExtractionPageByExtractionAndPageRequest(
+                        extraction_id=xpath_data["extraction_id"],
+                        page_number=xpath_data["page_number"],
+                    ),
+                    start_to_close_timeout=helpers.BADGERDOC_REST_API_START_TO_CLOSE_TIMEOUT,
+                    retry_policy=helpers.BadgerdocRestAPIRetryPolicy,
+                )
+                xpath_ref = extraction.BadgerdocExtractionXpath(
+                    extraction_page=page,
+                    xpath=xpath_data["xpath"],
+                )
+                extraction_xpaths.append(xpath_ref)
+            except Exception as err:
+                logger.warning(
+                    "Failed to fetch extraction xpath for extraction_id=%s, page=%s: %s",
+                    xpath_data.get("extraction_id"),
+                    xpath_data.get("page_number"),
+                    err,
+                )
+
+        return extraction_xpaths if extraction_xpaths else None
 
     async def create_extraction(
         self,

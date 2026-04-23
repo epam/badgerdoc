@@ -11,7 +11,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from badgerdoc import temporal_client
+from badgerdoc import llm_params_parser, permissions, temporal_client
 from badgerdoc.models import (
     document,
     extraction,
@@ -24,6 +24,44 @@ logger = logging.getLogger(__name__)
 
 
 def validate_manual_trigger(validated_data: dict[str, Any]) -> Response | None:
+    scope = validated_data.get("scope")
+    if not scope:
+        return Response(
+            {"error": "scope is required for manual workflows"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    valid_scopes = [
+        choice[0]
+        for choice in workflow_registry.WorkflowRegistry.EXTRACTION_SCOPE_CHOICES
+    ]
+    if scope not in valid_scopes:
+        return Response(
+            {
+                "error": f"Invalid scope '{scope}'. Valid options: {', '.join(valid_scopes)}"
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    document_id = validated_data.get("document_id")
+    if not document_id:
+        return Response(
+            {"error": "document_id is required for manual workflows"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if scope == "page" and not validated_data.get("page_number"):
+        return Response(
+            {"error": "page_number is required for page scope"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if scope == "extraction" and not validated_data.get("extraction_id"):
+        return Response(
+            {"error": "extraction_id is required for extraction scope"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
     scope = validated_data.get("scope")
     if not scope:
         return Response(
@@ -235,6 +273,41 @@ class WorkflowTriggerBaseSerializer(WorkflowEventCommonFields):
         return value
 
 
+class ManualWorkflowTriggerSerializer(serializers.Serializer):
+    document_id = serializers.IntegerField(required=True)
+    task_id = serializers.IntegerField(required=False, allow_null=True)
+    llm_params = serializers.CharField(required=True, allow_blank=False)
+
+    def validate_document_id(self, value: int) -> int:
+        try:
+            doc = document.Document.objects.get(id=value)
+        except document.Document.DoesNotExist:
+            raise serializers.ValidationError("Document not found.")
+
+        request = self.context.get("request")
+        if request and request.user:
+            if doc.uploaded_by != request.user and not permissions.can_view_other_users_document(request.user):
+                raise serializers.ValidationError("No permission to access this document.")
+
+        return value
+
+    def validate_task_id(self, value: int | None) -> int | None:
+        if value is None:
+            return value
+
+        try:
+            task_obj = task.Task.objects.get(id=value)
+        except task.Task.DoesNotExist:
+            raise serializers.ValidationError("Task not found.")
+
+        request = self.context.get("request")
+        if request and request.user:
+            if task_obj.user != request.user and not permissions.can_view_other_users_tasks(request.user):
+                raise serializers.ValidationError("No permission to access this task.")
+
+        return value
+
+
 class DocumentEventSerializer(WorkflowEventCommonFields):
     document_id = serializers.IntegerField(required=True)
 
@@ -427,6 +500,99 @@ def workflow_registry_trigger(
             {"error": f"Failed to start workflow: {str(e)}"},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
+
+
+@swagger_auto_schema(
+    method="post",
+    operation_description="Trigger a manual workflow with document context parsed from llm_params",
+    operation_summary="Manual Workflow Trigger",
+    tags=["Workflow Registry"],
+    request_body=ManualWorkflowTriggerSerializer,
+    responses={
+        200: openapi.Response(
+            description="Success",
+            schema=openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    "status": openapi.Schema(
+                        type=openapi.TYPE_STRING,
+                        description="Status of the request",
+                    ),
+                },
+            ),
+        ),
+        400: "Bad Request - validation error",
+        401: "Unauthorized - Authentication required",
+    },
+)
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def workflow_registry_manual_trigger(
+    request: Request, workflow_registry_id: int
+) -> Response[dict[str, Any]]:
+    try:
+        serializer = ManualWorkflowTriggerSerializer(
+            data=request.data, context={"request": request}
+        )
+        if not serializer.is_valid():
+            return Response(
+                serializer.errors, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        validated_data = serializer.validated_data
+        llm_params = validated_data.get("llm_params")
+
+        parsed_params = llm_params_parser.parse(request.user.id, llm_params)
+
+        response_data = {
+            "linked_documents": [
+                {"id": doc.id, "name": doc.name} for doc in parsed_params.linked_documents
+            ],
+            "linked_extractions": (
+                [{"id": ext.id} for ext in parsed_params.linked_extractions]
+                if parsed_params.linked_extractions
+                else None
+            ),
+            "linked_extraction_pages": (
+                [
+                    {
+                        "id": page.id,
+                        "extraction_id": page.extraction_id,
+                        "page_number": page.page_number,
+                    }
+                    for page in parsed_params.linked_extraction_pages
+                ]
+                if parsed_params.linked_extraction_pages
+                else None
+            ),
+            "linked_extraction_xpaths": (
+                [
+                    {
+                        "extraction_id": xpath.extraction_page.extraction_id,
+                        "page_number": xpath.extraction_page.page_number,
+                        "xpath": xpath.xpath,
+                    }
+                    for xpath in parsed_params.linked_extraction_xpaths
+                ]
+                if parsed_params.linked_extraction_xpaths
+                else None
+            ),
+            "prompt_text": parsed_params.prompt_text,
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        logger.exception(
+            "Failed to parse llm_params for workflow registry %s",
+            workflow_registry_id,
+        )
+        return Response(
+            {"error": f"Failed to parse llm_params: {str(e)}"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+
 
 
 @swagger_auto_schema(

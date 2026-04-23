@@ -273,6 +273,12 @@ class BadgerdocExtractionPage:
 
 
 @dataclass
+class BadgerdocExtractionXpath:
+    extraction_page: BadgerdocExtractionPage
+    xpath: str
+
+
+@dataclass
 class CreateExtractionPageRequest:
     extraction_id: int
     page_number: int
@@ -298,6 +304,12 @@ class GetLatestExtractionPageRequest:
     ) = "Completed"
     temporal_job_id: None | str = None
     tags: None | list[str] = None
+
+
+@dataclass
+class GetExtractionPageByExtractionAndPageRequest:
+    extraction_id: int
+    page_number: int
 
 
 @dataclass
@@ -399,6 +411,71 @@ async def badgerdoc_get_latest_extraction_page(
         logger.warning(
             "Missing key in latest extraction page response: %s", response_data
         )
+        raise
+
+    return extraction_page
+
+
+@activity.defn
+async def badgerdoc_get_extraction_page(
+    page_id: int,
+) -> BadgerdocExtractionPage:
+    logger.info("Executing badgerdoc_get_extraction_page activity")
+
+    endpoint = f"/badgerdoc/extraction-page/{page_id}/"
+
+    response_data = await badgerdoc_http.badgerdoc_get(endpoint)
+    logger.info("Extraction page retrieved: %s", response_data)
+
+    try:
+        extraction_page = BadgerdocExtractionPage(
+            id=response_data["id"],
+            extraction_id=response_data["extraction_id"],
+            page_number=response_data["page_number"],
+            content=response_data.get("content"),
+        )
+    except KeyError as e:
+        logger.warning("Missing key in extraction page response: %s", e)
+        raise
+
+    return extraction_page
+
+
+@activity.defn
+async def badgerdoc_get_extraction_page_by_extraction_and_page(
+    filters: GetExtractionPageByExtractionAndPageRequest,
+) -> BadgerdocExtractionPage:
+    logger.info("Executing badgerdoc_get_extraction_page_by_extraction_and_page activity")
+
+    endpoint = "/badgerdoc/extraction-pages/"
+    payload = {
+        "extraction_id": filters.extraction_id,
+        "page_number": filters.page_number,
+    }
+
+    response_data = await badgerdoc_http.badgerdoc_get(endpoint, payload)
+    logger.info("Extraction page by extraction and page retrieved: %s", response_data)
+
+    if not response_data or not isinstance(response_data, dict):
+        raise ValueError(f"Invalid response from API: {response_data}")
+
+    results = response_data.get("results", [])
+    if not results:
+        raise ValueError(
+            f"No extraction page found for extraction_id={filters.extraction_id}, "
+            f"page_number={filters.page_number}"
+        )
+
+    page_data = results[0]
+    try:
+        extraction_page = BadgerdocExtractionPage(
+            id=page_data["id"],
+            extraction_id=page_data["extraction_id"],
+            page_number=page_data["page_number"],
+            content=page_data.get("content"),
+        )
+    except KeyError as e:
+        logger.warning("Missing key in extraction page response: %s", e)
         raise
 
     return extraction_page

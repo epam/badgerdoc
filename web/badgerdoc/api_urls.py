@@ -37,6 +37,7 @@ from badgerdoc.views.user import get_current_user_info
 from badgerdoc.views.workflow import (
     get_workflow_registry_by_id,
     workflow_registry_list,
+    workflow_registry_manual_trigger,
     workflow_registry_trigger,
     workflow_status,
 )
@@ -116,6 +117,11 @@ urlpatterns = [
         "workflow-registry/trigger/<int:workflow_registry_id>/",
         workflow_registry_trigger,
         name="workflow-registry-trigger",
+    ),
+    path(
+        "workflow-registry/manual-trigger/<int:workflow_registry_id>/",
+        workflow_registry_manual_trigger,
+        name="workflow-registry-manual-trigger",
     ),
     path(
         "workflow-registry/workflow/status/<str:workflow_id>/",
