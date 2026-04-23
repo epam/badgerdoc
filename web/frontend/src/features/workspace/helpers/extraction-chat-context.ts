@@ -3,37 +3,120 @@ export interface ExtractionContextBlock {
   pageNumber: number
 }
 
-export interface NormalizedExtractionContext {
-  kind: 'empty' | 'document' | 'mixed'
-  pages: number[]
-  blocks: ExtractionContextBlock[]
-}
-
-export interface ExtractionContextPayloadBlock extends ExtractionContextBlock {
-  extraction_id: number | null
-  xpath: string
+export interface PromptContextToken {
+  raw: string
   path: string
+  kind: 'document' | 'document-page' | 'extraction-page' | 'block'
+  documentId: number
+  extractionId?: number
+  pageNumber?: number
+  blockId?: string
 }
 
-export interface ExtractionContextPayload {
-  kind: 'document' | 'mixed'
-  document_id: number
-  extraction_id: number | null
-  pages: Array<{ page_number: number }>
-  blocks: ExtractionContextPayloadBlock[]
+export interface PromptContextLinkMatch {
+  raw: string
+  path: string
+  index: number
 }
 
-export const EMPTY_EXTRACTION_CONTEXT: NormalizedExtractionContext = {
-  kind: 'empty',
-  pages: [],
-  blocks: [],
+export interface PromptContextSummary {
+  tokens: PromptContextToken[]
+  hasContext: boolean
+  isWholeDocumentSelected: boolean
+  selectedPages: number[]
+  selectedBlocks: ExtractionContextBlock[]
+  primaryScope: 'document' | 'page' | null
+  primaryPage: number | null
 }
 
-function uniqueSortedPages(pages: number[]) {
-  return [...new Set(pages)].sort((a, b) => a - b)
+export const BADGERDOC_CONTEXT_LINK_PATTERN =
+  /(?<!\\)\{\{(\/badgerdoc\/document\/\d+\/(?:page\/\d+\/?|extraction\/\d+\/page\/\d+\/(?:\([^{}]+\))?)?)\}\}/g
+
+const DOCUMENT_PATH_PATTERN = /^\/badgerdoc\/document\/(\d+)\/$/
+const DOCUMENT_PAGE_PATH_PATTERN = /^\/badgerdoc\/document\/(\d+)\/page\/(\d+)\/?$/
+const EXTRACTION_PAGE_PATH_PATTERN =
+  /^\/badgerdoc\/document\/(\d+)\/extraction\/(\d+)\/page\/(\d+)\/$/
+const EXTRACTION_BLOCK_PATH_PATTERN =
+  /^\/badgerdoc\/document\/(\d+)\/extraction\/(\d+)\/page\/(\d+)\/\((.+)\)$/
+const BLOCK_ID_XPATH_PATTERN = /^\/\/div\[@id='([^']+)'\]$/
+
+function numberFromMatch(value: string) {
+  return Number(value)
 }
 
-function uniqueBlocks(blocks: ExtractionContextBlock[]) {
+export function parsePromptContextPath(path: string): PromptContextToken | null {
+  const documentMatch = path.match(DOCUMENT_PATH_PATTERN)
+  if (documentMatch) {
+    return {
+      raw: formatPromptContextLink(path),
+      path,
+      kind: 'document',
+      documentId: numberFromMatch(documentMatch[1]),
+    }
+  }
+
+  const documentPageMatch = path.match(DOCUMENT_PAGE_PATH_PATTERN)
+  if (documentPageMatch) {
+    return {
+      raw: formatPromptContextLink(path),
+      path,
+      kind: 'document-page',
+      documentId: numberFromMatch(documentPageMatch[1]),
+      pageNumber: numberFromMatch(documentPageMatch[2]),
+    }
+  }
+
+  const extractionPageMatch = path.match(EXTRACTION_PAGE_PATH_PATTERN)
+  if (extractionPageMatch) {
+    return {
+      raw: formatPromptContextLink(path),
+      path,
+      kind: 'extraction-page',
+      documentId: numberFromMatch(extractionPageMatch[1]),
+      extractionId: numberFromMatch(extractionPageMatch[2]),
+      pageNumber: numberFromMatch(extractionPageMatch[3]),
+    }
+  }
+
+  const extractionBlockMatch = path.match(EXTRACTION_BLOCK_PATH_PATTERN)
+  if (extractionBlockMatch) {
+    const blockId = extractionBlockMatch[4].match(BLOCK_ID_XPATH_PATTERN)?.[1]
+
+    return {
+      raw: formatPromptContextLink(path),
+      path,
+      kind: 'block',
+      documentId: numberFromMatch(extractionBlockMatch[1]),
+      extractionId: numberFromMatch(extractionBlockMatch[2]),
+      pageNumber: numberFromMatch(extractionBlockMatch[3]),
+      blockId,
+    }
+  }
+
+  return null
+}
+
+export function findPromptContextLinks(text: string): PromptContextLinkMatch[] {
+  BADGERDOC_CONTEXT_LINK_PATTERN.lastIndex = 0
+
+  return Array.from(text.matchAll(BADGERDOC_CONTEXT_LINK_PATTERN)).map((match) => ({
+    raw: match[0],
+    path: match[1],
+    index: match.index ?? 0,
+  }))
+}
+
+export function parsePromptContextLinks(prompt: string): PromptContextToken[] {
+  return findPromptContextLinks(prompt)
+    .map((match) => parsePromptContextPath(match.path))
+    .filter((token): token is PromptContextToken => token !== null)
+}
+
+function uniqueSortedNumbers(values: number[]) {
+  return [...new Set(values)].sort((left, right) => left - right)
+}
+
+function uniqueSortedBlocks(blocks: ExtractionContextBlock[]) {
   const next = new Map<string, ExtractionContextBlock>()
 
   blocks.forEach((block) => {
@@ -49,176 +132,100 @@ function uniqueBlocks(blocks: ExtractionContextBlock[]) {
   })
 }
 
-export function normalizeExtractionContext(
-  context: Partial<NormalizedExtractionContext> | null | undefined
-): NormalizedExtractionContext {
-  if (!context || context.kind === 'empty') {
-    return EMPTY_EXTRACTION_CONTEXT
-  }
-
-  if (context.kind === 'document') {
-    return {
-      kind: 'document',
-      pages: [],
-      blocks: [],
-    }
-  }
-
-  const pages = uniqueSortedPages(context.pages ?? [])
-  const pageSet = new Set(pages)
-  const blocks = uniqueBlocks(
-    (context.blocks ?? []).filter((block) => !pageSet.has(block.pageNumber))
+export function summarizePromptContext(prompt: string): PromptContextSummary {
+  const tokens = parsePromptContextLinks(prompt)
+  const selectedPages = uniqueSortedNumbers(
+    tokens.flatMap((token) =>
+      (token.kind === 'document-page' || token.kind === 'extraction-page') && token.pageNumber
+        ? [token.pageNumber]
+        : []
+    )
   )
-
-  if (pages.length === 0 && blocks.length === 0) {
-    return EMPTY_EXTRACTION_CONTEXT
-  }
+  const selectedBlocks = uniqueSortedBlocks(
+    tokens.flatMap((token) =>
+      token.kind === 'block' && token.blockId && token.pageNumber
+        ? [{ blockId: token.blockId, pageNumber: token.pageNumber }]
+        : []
+    )
+  )
+  const firstContextToken = tokens[0]
 
   return {
-    kind: 'mixed',
-    pages,
-    blocks,
+    tokens,
+    hasContext: tokens.length > 0,
+    isWholeDocumentSelected: tokens.some((token) => token.kind === 'document'),
+    selectedPages,
+    selectedBlocks,
+    primaryScope: firstContextToken
+      ? firstContextToken.kind === 'document'
+        ? 'document'
+        : 'page'
+      : null,
+    primaryPage: firstContextToken?.pageNumber ?? null,
   }
 }
 
-export function addDocumentToContext(): NormalizedExtractionContext {
-  return {
-    kind: 'document',
-    pages: [],
-    blocks: [],
-  }
+export function buildDocumentContextPath(documentId: string | number) {
+  return `/badgerdoc/document/${documentId}/`
 }
 
-export function clearExtractionContext(): NormalizedExtractionContext {
-  return EMPTY_EXTRACTION_CONTEXT
-}
-
-export function addPageToContext(
-  context: NormalizedExtractionContext,
-  pageNumber: number
-): NormalizedExtractionContext {
-  if (context.kind === 'document') {
-    return context
-  }
-
-  return normalizeExtractionContext({
-    kind: 'mixed',
-    pages: [...context.pages, pageNumber],
-    blocks: context.blocks.filter((block) => block.pageNumber !== pageNumber),
-  })
-}
-
-export function removePageFromContext(
-  context: NormalizedExtractionContext,
-  pageNumber: number
-): NormalizedExtractionContext {
-  if (context.kind === 'document') {
-    return context
-  }
-
-  return normalizeExtractionContext({
-    kind: 'mixed',
-    pages: context.pages.filter((page) => page !== pageNumber),
-    blocks: context.blocks,
-  })
-}
-
-export function togglePageInContext(
-  context: NormalizedExtractionContext,
-  pageNumber: number
-): NormalizedExtractionContext {
-  if (context.kind === 'document') return context
-
-  if (context.pages.includes(pageNumber)) {
-    return removePageFromContext(context, pageNumber)
-  }
-
-  return addPageToContext(context, pageNumber)
-}
-
-export function addBlockToContext(
-  context: NormalizedExtractionContext,
-  block: ExtractionContextBlock
-): NormalizedExtractionContext {
-  if (context.kind === 'document' || context.pages.includes(block.pageNumber)) {
-    return context
-  }
-
-  return normalizeExtractionContext({
-    kind: 'mixed',
-    pages: context.pages,
-    blocks: [...context.blocks, block],
-  })
-}
-
-export function removeBlockFromContext(
-  context: NormalizedExtractionContext,
-  blockId: string
-): NormalizedExtractionContext {
-  if (context.kind === 'document') {
-    return context
-  }
-
-  return normalizeExtractionContext({
-    kind: 'mixed',
-    pages: context.pages,
-    blocks: context.blocks.filter((block) => block.blockId !== blockId),
-  })
-}
-
-export function toggleBlockInContext(
-  context: NormalizedExtractionContext,
-  block: ExtractionContextBlock
-): NormalizedExtractionContext {
-  if (context.kind === 'document') return context
-
-  if (context.blocks.some((item) => item.blockId === block.blockId)) {
-    return removeBlockFromContext(context, block.blockId)
-  }
-
-  return addBlockToContext(context, block)
-}
-
-export function buildExtractionContextPayload({
-  context,
+export function buildPageContextPath({
   documentId,
   extractionId,
+  pageNumber,
 }: {
-  context: NormalizedExtractionContext
-  documentId: number
+  documentId: string | number
   extractionId: number | null
-}): ExtractionContextPayload | null {
-  const normalized = normalizeExtractionContext(context)
+  pageNumber: number
+}) {
+  if (extractionId !== null) {
+    return `/badgerdoc/document/${documentId}/extraction/${extractionId}/page/${pageNumber}/`
+  }
 
-  if (normalized.kind === 'empty') {
+  return `/badgerdoc/document/${documentId}/page/${pageNumber}`
+}
+
+export function buildBlockContextPath({
+  documentId,
+  extractionId,
+  pageNumber,
+  blockId,
+}: {
+  documentId: string | number
+  extractionId: number | null
+  pageNumber: number
+  blockId: string
+}) {
+  if (extractionId === null) {
     return null
   }
 
-  if (normalized.kind === 'document') {
-    return {
-      kind: 'document',
-      document_id: documentId,
-      extraction_id: extractionId,
-      pages: [],
-      blocks: [],
-    }
+  return `/badgerdoc/document/${documentId}/extraction/${extractionId}/page/${pageNumber}/(//div[@id='${blockId}'])`
+}
+
+export function formatPromptContextLink(path: string) {
+  return `{{${path}}}`
+}
+
+export function appendPromptContextLink(prompt: string, path: string) {
+  const link = formatPromptContextLink(path)
+
+  if (!prompt) {
+    return link
   }
 
-  return {
-    kind: 'mixed',
-    document_id: documentId,
-    extraction_id: extractionId,
-    pages: normalized.pages.map((pageNumber) => ({ page_number: pageNumber })),
-    blocks: normalized.blocks.map((block) => {
-      const safeBlockId = /^block_\d+_\w+$/.test(block.blockId) ? block.blockId : ''
-      return {
-        ...block,
-        extraction_id: extractionId,
-        xpath: `//*[@id="${safeBlockId}"]`,
-        path: `/document/${documentId}/extraction/${extractionId ?? 'unknown'}/page/${block.pageNumber}/xpath//*[@id="${safeBlockId}"]`,
-      }
-    }),
-  }
+  return /\s$/.test(prompt) ? `${prompt}${link}` : `${prompt} ${link}`
+}
+
+export function removePromptContextLinks(
+  prompt: string,
+  predicate: (token: PromptContextToken) => boolean
+) {
+  return prompt.replace(BADGERDOC_CONTEXT_LINK_PATTERN, (raw, path: string) => {
+    const token = parsePromptContextPath(path)
+
+    return token && predicate(token) ? '' : raw
+  })
 }
 
 export function getContextBlockLabel(blockId: string) {
@@ -231,14 +238,12 @@ export function getContextBlockLabel(blockId: string) {
 }
 
 export interface ExtractionChatContextProps {
-  contextPayload: ExtractionContextPayload | null
+  prompt: string
   isWholeDocumentSelected: boolean
   selectedPages: number[]
   selectedBlocks: ExtractionContextBlock[]
+  onPromptChange: (prompt: string) => void
   onAddWholeDocument: () => void
   onAddCurrentPage: () => void
   onToggleBlock: (blockId: string, pageNumber: number | null) => void
-  onRemovePage: (pageNumber: number) => void
-  onRemoveBlock: (blockId: string) => void
-  onClear: () => void
 }

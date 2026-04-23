@@ -1,15 +1,12 @@
 import { useCallback, useMemo, useState } from 'react'
 import type { BadgerDocExtractionPage } from '@/shared/api/badgerdoc'
 import {
-  EMPTY_EXTRACTION_CONTEXT,
-  addDocumentToContext,
-  buildExtractionContextPayload,
-  clearExtractionContext,
-  normalizeExtractionContext,
-  removeBlockFromContext,
-  removePageFromContext,
-  toggleBlockInContext,
-  togglePageInContext,
+  appendPromptContextLink,
+  buildBlockContextPath,
+  buildDocumentContextPath,
+  buildPageContextPath,
+  removePromptContextLinks,
+  summarizePromptContext,
   type ExtractionContextBlock,
 } from '@/features/workspace/helpers/extraction-chat-context'
 
@@ -25,82 +22,78 @@ export function useExtractionChatContext({
   activeTag,
 }: UseExtractionChatContextParams) {
   const extractionId = extractionPages?.[0]?.extraction_id ?? null
-  const contextKey = `${documentId}:${extractionId ?? 'none'}:${activeTag ?? 'overview'}`
-  const [contextState, setContextState] = useState({
-    key: contextKey,
-    context: EMPTY_EXTRACTION_CONTEXT,
+  const promptKey = `${documentId}:${extractionId ?? 'none'}:${activeTag ?? 'overview'}`
+  const [promptState, setPromptState] = useState({
+    key: promptKey,
+    prompt: '',
   })
 
-  if (contextState.key !== contextKey) {
-    setContextState({
-      key: contextKey,
-      context: EMPTY_EXTRACTION_CONTEXT,
+  if (promptState.key !== promptKey) {
+    setPromptState({
+      key: promptKey,
+      prompt: '',
     })
   }
 
+  const setPrompt = useCallback((prompt: string) => {
+    setPromptState((prev) => ({ ...prev, prompt }))
+  }, [])
+
+  const appendContextPath = useCallback((path: string) => {
+    setPromptState((prev) => ({
+      ...prev,
+      prompt: appendPromptContextLink(prev.prompt, path),
+    }))
+  }, [])
+
   const addWholeDocument = useCallback(() => {
-    setContextState((prev) => ({ ...prev, context: addDocumentToContext() }))
-  }, [])
+    appendContextPath(buildDocumentContextPath(documentId))
+  }, [appendContextPath, documentId])
 
-  const removePage = useCallback((pageNumber: number) => {
-    setContextState((prev) => ({
-      ...prev,
-      context: removePageFromContext(prev.context, pageNumber),
-    }))
-  }, [])
+  const addPage = useCallback(
+    (pageNumber: number) => {
+      appendContextPath(buildPageContextPath({ documentId, extractionId, pageNumber }))
+    },
+    [appendContextPath, documentId, extractionId]
+  )
 
-  const togglePage = useCallback((pageNumber: number) => {
-    setContextState((prev) => ({
-      ...prev,
-      context: togglePageInContext(prev.context, pageNumber),
-    }))
-  }, [])
+  const toggleBlock = useCallback(
+    (block: ExtractionContextBlock) => {
+      const path = buildBlockContextPath({
+        documentId,
+        extractionId,
+        pageNumber: block.pageNumber,
+        blockId: block.blockId,
+      })
 
-  const toggleBlock = useCallback((block: ExtractionContextBlock) => {
-    setContextState((prev) => ({
-      ...prev,
-      context: toggleBlockInContext(prev.context, block),
-    }))
-  }, [])
+      if (!path) return
+
+      appendContextPath(path)
+    },
+    [appendContextPath, documentId, extractionId]
+  )
 
   const removeBlock = useCallback((blockId: string) => {
-    setContextState((prev) => ({
+    setPromptState((prev) => ({
       ...prev,
-      context: removeBlockFromContext(prev.context, blockId),
+      prompt: removePromptContextLinks(prev.prompt, (token) => token.blockId === blockId),
     }))
   }, [])
 
-  const clearAll = useCallback(() => {
-    setContextState((prev) => ({ ...prev, context: clearExtractionContext() }))
-  }, [])
-
-  const normalizedContext = useMemo(
-    () => normalizeExtractionContext(contextState.context),
-    [contextState.context]
-  )
-  const payload = useMemo(
-    () =>
-      buildExtractionContextPayload({
-        context: normalizedContext,
-        documentId: Number(documentId),
-        extractionId,
-      }),
-    [documentId, extractionId, normalizedContext]
-  )
+  const prompt = promptState.prompt
+  const summary = useMemo(() => summarizePromptContext(prompt), [prompt])
 
   return {
-    context: normalizedContext,
-    contextPayload: payload,
+    prompt,
     extractionId,
-    hasContext: normalizedContext.kind !== 'empty',
-    isWholeDocumentSelected: normalizedContext.kind === 'document',
-    selectedPages: normalizedContext.pages,
-    selectedBlocks: normalizedContext.blocks,
+    hasContext: summary.hasContext,
+    isWholeDocumentSelected: summary.isWholeDocumentSelected,
+    selectedPages: summary.selectedPages,
+    selectedBlocks: summary.selectedBlocks,
     addWholeDocument,
-    removePage,
-    togglePage,
+    togglePage: addPage,
     toggleBlock,
     removeBlock,
-    clearAll,
+    setPrompt,
   }
 }

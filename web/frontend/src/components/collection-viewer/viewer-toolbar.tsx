@@ -9,7 +9,6 @@ import {
   Pencil,
   Maximize2,
   Download,
-  MessageCircleOff,
   MessageCirclePlus,
 } from 'lucide-react'
 import {
@@ -64,7 +63,7 @@ export function ViewerToolbar({
   const pageContextTooltip =
     pageChatContext?.currentPageContextTooltip ??
     (isCurrentPageInContext
-      ? `Remove Page ${currentPage} from context`
+      ? `Add another Page ${currentPage} reference`
       : `Add Page ${currentPage} to context`)
 
   return (
@@ -109,12 +108,8 @@ export function ViewerToolbar({
                       onClick={onAddCurrentPageToContext}
                       disabled={isCurrentPageContextDisabled}
                     >
-                      {isCurrentPageInContext ? (
-                        <MessageCircleOff className="h-4 w-4" />
-                      ) : (
-                        <MessageCirclePlus className="h-4 w-4" />
-                      )}
-                      {isCurrentPageInContext ? 'Added' : 'Add page'}
+                      <MessageCirclePlus className="h-4 w-4" />
+                      Add page
                     </Button>
                   </span>
                 </TooltipTrigger>

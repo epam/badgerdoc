@@ -106,15 +106,12 @@ export function ExtractionResultsTab({
         currentPage={currentPage}
         canAddWholeDocument
         canAddCurrentPage
-        contextPayload={chatContext.contextPayload}
+        prompt={chatContext.prompt}
         isWholeDocumentSelected={chatContext.isWholeDocumentSelected}
         selectedPages={chatContext.selectedPages}
-        selectedBlocks={chatContext.selectedBlocks}
+        onPromptChange={chatContext.onPromptChange}
         onAddWholeDocument={chatContext.onAddWholeDocument}
         onAddCurrentPage={chatContext.onAddCurrentPage}
-        onRemovePage={chatContext.onRemovePage}
-        onRemoveBlock={chatContext.onRemoveBlock}
-        onClearContext={chatContext.onClear}
         disabled={isLoading || hasUnsavedChanges || isSaving}
         isProcessing={isRunningInference}
         setIsRunningInference={setIsRunningInference}

@@ -1,6 +1,6 @@
 import { NodeViewContent, NodeViewWrapper, NodeViewProps } from '@tiptap/react'
 import type { Transaction } from '@tiptap/pm/state'
-import { MessageCirclePlus, MessageCircleOff, Trash2 } from 'lucide-react'
+import { MessageCirclePlus, Trash2 } from 'lucide-react'
 import { useEffect, useState, type MouseEvent } from 'react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -30,14 +30,12 @@ export function ExtractionBlock({ node, editor, extension, deleteNode }: Extract
   const isPageInChatScope =
     pageNumber !== null && (chatScopePluginState?.pageNumbersInChatScope ?? []).includes(pageNumber)
   const isWholeDocumentInChatScope = chatScopePluginState?.isWholeDocumentInChatScope ?? false
-  const isBlockedByHigherLevelContext = isPageInChatScope || isWholeDocumentInChatScope
-  const isInChatScope = isExplicitlyInChatScope || isBlockedByHigherLevelContext
   const blockContextTitle = isWholeDocumentInChatScope
-    ? 'Whole document already in context'
+    ? 'Whole document is also in context. Add block reference'
     : isPageInChatScope
-      ? `Page ${pageNumber} already in context`
+      ? `Page ${pageNumber} is also in context. Add block reference`
       : isExplicitlyInChatScope
-        ? 'Remove block from context'
+        ? 'Add another block reference'
         : 'Add block to context'
 
   useEffect(() => {
@@ -143,9 +141,8 @@ export function ExtractionBlock({ node, editor, extension, deleteNode }: Extract
                   onClick={handleToggleBlockScope}
                   className="cursor-pointer size-7"
                   aria-label={blockContextTitle}
-                  disabled={isBlockedByHigherLevelContext}
                 >
-                  {isInChatScope ? <MessageCircleOff /> : <MessageCirclePlus />}
+                  <MessageCirclePlus />
                 </Button>
               </span>
             </TooltipTrigger>

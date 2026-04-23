@@ -115,16 +115,15 @@ export function WorkspacePage() {
     activeTag: activeTagName,
   })
   const {
-    contextPayload,
+    prompt,
     isWholeDocumentSelected,
     selectedPages,
     selectedBlocks,
+    setPrompt,
     addWholeDocument,
-    removePage,
     togglePage,
     toggleBlock,
     removeBlock,
-    clearAll,
   } = useExtractionChatContext({
     documentId,
     extractionPages: scopedExtractionPages,
@@ -189,28 +188,24 @@ export function WorkspacePage() {
 
   const chatContext = useMemo(
     () => ({
-      contextPayload,
+      prompt,
       isWholeDocumentSelected,
       selectedPages,
       selectedBlocks,
+      onPromptChange: setPrompt,
       onAddWholeDocument: addWholeDocument,
       onAddCurrentPage: handleAddCurrentPage,
       onToggleBlock: handleToggleBlockContext,
-      onRemovePage: removePage,
-      onRemoveBlock: removeBlock,
-      onClear: clearAll,
     }),
     [
-      contextPayload,
+      prompt,
       isWholeDocumentSelected,
       selectedPages,
       selectedBlocks,
+      setPrompt,
       addWholeDocument,
       handleAddCurrentPage,
       handleToggleBlockContext,
-      removePage,
-      removeBlock,
-      clearAll,
     ]
   )
 
@@ -218,13 +213,13 @@ export function WorkspacePage() {
     () => ({
       canAddCurrentPageToContext: !isOverviewTab,
       isCurrentPageInContext: selectedPages.includes(currentPage),
-      isCurrentPageContextDisabled: isWholeDocumentSelected,
-      currentPageContextTooltip: isWholeDocumentSelected
-        ? 'Whole document already added to context'
+      isCurrentPageContextDisabled: false,
+      currentPageContextTooltip: selectedPages.includes(currentPage)
+        ? `Add another Page ${currentPage} reference`
         : undefined,
       onAddCurrentPageToContext: handleAddCurrentPage,
     }),
-    [isOverviewTab, selectedPages, currentPage, isWholeDocumentSelected, handleAddCurrentPage]
+    [isOverviewTab, selectedPages, currentPage, handleAddCurrentPage]
   )
 
   const handleTabChange = useCallback(
