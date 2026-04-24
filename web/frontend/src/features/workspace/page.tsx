@@ -120,6 +120,7 @@ export function WorkspacePage() {
     selectedPages,
     selectedBlocks,
     setPrompt,
+    registerPromptContextInserter,
     addWholeDocument,
     togglePage,
     toggleBlock,
@@ -193,6 +194,7 @@ export function WorkspacePage() {
       selectedPages,
       selectedBlocks,
       onPromptChange: setPrompt,
+      registerPromptContextInserter,
       onAddWholeDocument: addWholeDocument,
       onAddCurrentPage: handleAddCurrentPage,
       onToggleBlock: handleToggleBlockContext,
@@ -203,6 +205,7 @@ export function WorkspacePage() {
       selectedPages,
       selectedBlocks,
       setPrompt,
+      registerPromptContextInserter,
       addWholeDocument,
       handleAddCurrentPage,
       handleToggleBlockContext,
@@ -213,13 +216,24 @@ export function WorkspacePage() {
     () => ({
       canAddCurrentPageToContext: !isOverviewTab,
       isCurrentPageInContext: selectedPages.includes(currentPage),
-      isCurrentPageContextDisabled: false,
-      currentPageContextTooltip: selectedPages.includes(currentPage)
-        ? `Add another Page ${currentPage} reference`
-        : undefined,
+      isCurrentPageContextDisabled: extractionLoading || hasChanges || isApiPending,
+      currentPageContextTooltip:
+        extractionLoading || hasChanges || isApiPending
+          ? 'Prompt context is unavailable while you have unsaved changes.'
+          : selectedPages.includes(currentPage)
+            ? `Add another Page ${currentPage} reference`
+            : undefined,
       onAddCurrentPageToContext: handleAddCurrentPage,
     }),
-    [isOverviewTab, selectedPages, currentPage, handleAddCurrentPage]
+    [
+      isOverviewTab,
+      selectedPages,
+      currentPage,
+      extractionLoading,
+      hasChanges,
+      isApiPending,
+      handleAddCurrentPage,
+    ]
   )
 
   const handleTabChange = useCallback(

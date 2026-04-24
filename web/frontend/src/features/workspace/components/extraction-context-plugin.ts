@@ -6,12 +6,14 @@ interface ChatScopePluginState {
   blockIdsInChatScope: string[]
   pageNumbersInChatScope: number[]
   isWholeDocumentInChatScope: boolean
+  isInteractionDisabled: boolean
 }
 
 export interface ChatScopePluginMeta {
   blockIds: string[]
   pageNumbers: number[]
   isWholeDocumentSelected: boolean
+  isInteractionDisabled?: boolean
 }
 
 export function createExtractionChatScopePlugin() {
@@ -24,6 +26,7 @@ export function createExtractionChatScopePlugin() {
           blockIdsInChatScope: [],
           pageNumbersInChatScope: [],
           isWholeDocumentInChatScope: false,
+          isInteractionDisabled: false,
         }
       },
 
@@ -36,6 +39,7 @@ export function createExtractionChatScopePlugin() {
           blockIdsInChatScope: meta.blockIds ?? [],
           pageNumbersInChatScope: meta.pageNumbers ?? [],
           isWholeDocumentInChatScope: meta.isWholeDocumentSelected ?? false,
+          isInteractionDisabled: meta.isInteractionDisabled ?? false,
         }
       },
     },

@@ -1,10 +1,11 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import type { BadgerDocExtractionPage } from '@/shared/api/badgerdoc'
 import {
   appendPromptContextLink,
   buildBlockContextPath,
   buildDocumentContextPath,
   buildPageContextPath,
+  type PromptContextPathInserter,
   removePromptContextLinks,
   summarizePromptContext,
   type ExtractionContextBlock,
@@ -27,6 +28,7 @@ export function useExtractionChatContext({
     key: promptKey,
     prompt: '',
   })
+  const promptContextInserterRef = useRef<PromptContextPathInserter | null>(null)
 
   if (promptState.key !== promptKey) {
     setPromptState({
@@ -39,7 +41,19 @@ export function useExtractionChatContext({
     setPromptState((prev) => ({ ...prev, prompt }))
   }, [])
 
+  const registerPromptContextInserter = useCallback(
+    (inserter: PromptContextPathInserter | null) => {
+      promptContextInserterRef.current = inserter
+    },
+    []
+  )
+
   const appendContextPath = useCallback((path: string) => {
+    if (promptContextInserterRef.current) {
+      promptContextInserterRef.current(path)
+      return
+    }
+
     setPromptState((prev) => ({
       ...prev,
       prompt: appendPromptContextLink(prev.prompt, path),
@@ -90,6 +104,7 @@ export function useExtractionChatContext({
     isWholeDocumentSelected: summary.isWholeDocumentSelected,
     selectedPages: summary.selectedPages,
     selectedBlocks: summary.selectedBlocks,
+    registerPromptContextInserter,
     addWholeDocument,
     togglePage: addPage,
     toggleBlock,

@@ -10,7 +10,10 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/helpers/utils'
-import { summarizePromptContext } from '@/features/workspace/helpers/extraction-chat-context'
+import {
+  summarizePromptContext,
+  type PromptContextPathInserterRegistration,
+} from '@/features/workspace/helpers/extraction-chat-context'
 import { extractionPagesKeys } from '@/shared/api/hooks/use-badgerdoc-extraction-pages'
 import {
   useChatWorkflows,
@@ -80,7 +83,14 @@ function ContextActionButton({
     <Tooltip>
       <TooltipTrigger asChild>
         <span className="inline-flex">
-          <Button type="button" variant={variant} size="xs" onClick={onClick} disabled={disabled}>
+          <Button
+            type="button"
+            variant={variant}
+            size="xs"
+            onMouseDown={(event) => event.preventDefault()}
+            onClick={onClick}
+            disabled={disabled}
+          >
             {icon}
             {children}
           </Button>
@@ -100,6 +110,7 @@ interface ExtractionChatProps {
   isWholeDocumentSelected: boolean
   selectedPages: number[]
   onPromptChange: (prompt: string) => void
+  registerPromptContextInserter: PromptContextPathInserterRegistration
   onAddWholeDocument: () => void
   onAddCurrentPage: () => void
   disabled?: boolean
@@ -117,6 +128,7 @@ export const ExtractionChat = ({
   isWholeDocumentSelected,
   selectedPages,
   onPromptChange,
+  registerPromptContextInserter,
   onAddWholeDocument,
   onAddCurrentPage,
   disabled,
@@ -150,9 +162,12 @@ export const ExtractionChat = ({
   const canUsePageContext = availableScopes.includes('page')
   const contextSummary = useMemo(() => summarizePromptContext(prompt), [prompt])
   const hasContext = contextSummary.hasContext
+  const hasPromptText = prompt.trim().length > 0
+  const hasSendContent = hasPromptText || hasContext
   const isCurrentPageSelected = selectedPages.includes(currentPage)
+  // When no context chips are present the prompt is plain text, which is always valid.
   const isContextCompatible = useMemo(() => {
-    if (!hasContext) return false
+    if (!hasContext) return true
     if (contextSummary.primaryScope === 'document') {
       return availableScopes.includes('document')
     }
@@ -202,7 +217,7 @@ export const ExtractionChat = ({
   }, [workflowStatus, setIsRunningInference, queryClient, documentId, activeTag])
 
   const handleSendMessage = useCallback(async () => {
-    if (!selectedWorkflow || !hasContext || !isContextCompatible) return
+    if (!selectedWorkflow || !hasSendContent || !isContextCompatible) return
 
     setIsRunningInference?.(true)
 
@@ -224,7 +239,7 @@ export const ExtractionChat = ({
   }, [
     selectedWorkflow,
     documentId,
-    hasContext,
+    hasSendContent,
     isContextCompatible,
     onPromptChange,
     prompt,
@@ -241,28 +256,41 @@ export const ExtractionChat = ({
     isCurrentPageSelected,
     currentPage,
   })
+  const isSendDisabled =
+    disabled ||
+    isWorkflowsLoading ||
+    !selectedWorkflow ||
+    !hasSendContent ||
+    !isContextCompatible ||
+    triggerWorkflow.isPending
 
   return (
-    <div
-      className={cn(
-        'flex flex-col items-center justify-between bg-card focus-within:border-t-2 focus-within:border-blue-500'
-      )}
-    >
-      <PromptContextEditor
-        placeholder="Ask for changes..."
-        disabled={disabled || isProcessing || isWorkflowsLoading}
-        value={prompt}
-        onChange={onPromptChange}
-      />
-      {selectedWorkflow && !selectedWorkflow.supportPrompts && (
-        <div className="text-destructive text-sm pt-2 px-2">
-          This model does not support prompts. Your input will be ignored.
+    <div className="shadow-soft-top relative z-10 flex flex-col items-center justify-between border-t border-border bg-card">
+      <div className="flex w-full flex-col gap-2 px-3 pt-3">
+        <div className="shadow-subtle overflow-hidden rounded-2xl border border-border bg-background">
+          <PromptContextEditor
+            placeholder="Ask for changes..."
+            disabled={disabled || isProcessing || isWorkflowsLoading}
+            value={prompt}
+            onChange={onPromptChange}
+            canSubmit={!isSendDisabled}
+            onSubmitShortcut={handleSendMessage}
+            onRegisterContextInserter={registerPromptContextInserter}
+          />
         </div>
-      )}
+        {selectedWorkflow && !selectedWorkflow.supportPrompts && (
+          <div className="px-1 text-xs text-muted-foreground">
+            Input will be ignored for this model
+          </div>
+        )}
+      </div>
       <div
-        className={cn('flex w-full items-center justify-between gap-2 bg-card px-2 py-2', {
-          'pointer-events-none opacity-60': disabled || isWorkflowsLoading,
-        })}
+        className={cn(
+          'mt-3 flex w-full items-center justify-between gap-2 border-t border-border/70 bg-card px-3 py-3',
+          {
+            'pointer-events-none opacity-60': disabled || isWorkflowsLoading,
+          }
+        )}
         aria-disabled={disabled || isWorkflowsLoading}
       >
         <div className="flex w-full items-center justify-between gap-2">
@@ -317,14 +345,8 @@ export const ExtractionChat = ({
             size="xs"
             type="button"
             className={cn('size-8 rounded-full', isProcessing ? 'bg-blue-500 text-white' : '')}
-            disabled={
-              disabled ||
-              isWorkflowsLoading ||
-              !selectedWorkflow ||
-              !hasContext ||
-              !isContextCompatible ||
-              triggerWorkflow.isPending
-            }
+            aria-label="Send prompt"
+            disabled={isSendDisabled}
             onClick={handleSendMessage}
           >
             {triggerWorkflow.isPending ? (

@@ -3,6 +3,11 @@ export interface ExtractionContextBlock {
   pageNumber: number
 }
 
+export type PromptContextPathInserter = (path: string) => void
+export type PromptContextPathInserterRegistration = (
+  inserter: PromptContextPathInserter | null
+) => void
+
 export interface PromptContextToken {
   raw: string
   path: string
@@ -243,6 +248,7 @@ export interface ExtractionChatContextProps {
   selectedPages: number[]
   selectedBlocks: ExtractionContextBlock[]
   onPromptChange: (prompt: string) => void
+  registerPromptContextInserter: PromptContextPathInserterRegistration
   onAddWholeDocument: () => void
   onAddCurrentPage: () => void
   onToggleBlock: (blockId: string, pageNumber: number | null) => void

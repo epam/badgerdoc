@@ -58,6 +58,7 @@ export function ExtractionResultsTab({
 }: ExtractionResultsTabProps) {
   const [isRunningInference, setIsRunningInference] = useState(false)
   const isEmpty = !extractionPages || extractionPages.length === 0
+  const isChatDisabled = isLoading || hasUnsavedChanges || isSaving
 
   const extractionHtmlContent = useFormattedExtractionContent(extractionPages)
 
@@ -96,6 +97,7 @@ export function ExtractionResultsTab({
             selectedContextPages={chatContext.selectedPages}
             isWholeDocumentSelected={chatContext.isWholeDocumentSelected}
             onToggleBlockContext={chatContext.onToggleBlock}
+            isContextInteractionDisabled={isChatDisabled}
             activeBlockId={activeBlockId}
             onBlockSelect={handleBlockSelect}
           />
@@ -110,9 +112,10 @@ export function ExtractionResultsTab({
         isWholeDocumentSelected={chatContext.isWholeDocumentSelected}
         selectedPages={chatContext.selectedPages}
         onPromptChange={chatContext.onPromptChange}
+        registerPromptContextInserter={chatContext.registerPromptContextInserter}
         onAddWholeDocument={chatContext.onAddWholeDocument}
         onAddCurrentPage={chatContext.onAddCurrentPage}
-        disabled={isLoading || hasUnsavedChanges || isSaving}
+        disabled={isChatDisabled}
         isProcessing={isRunningInference}
         setIsRunningInference={setIsRunningInference}
         activeTag={tag}

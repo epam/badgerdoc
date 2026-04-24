@@ -70,54 +70,60 @@ export function ViewerToolbar({
     <div className="flex items-center justify-between gap-2 px-3 py-2 border-b border-border bg-card">
       <div className="flex items-center gap-1">
         {isLoading && <Skeleton className="h-8 w-40" />}
-        {!isLoading && showPagination && (
-          <>
-            <Button
-              id={PREV_BTN_ID}
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={onPrevClick}
-            >
-              <ChevronLeft className="h-4 w-4 m-auto" />
-            </Button>
-            <span className="text-sm tabular-nums min-w-20 text-center">
-              <>
-                <span className="font-medium">{currentPage}</span>
-                <span className="text-muted-foreground"> / {totalPages}</span>
-              </>
-            </span>
-            <Button
-              id={NEXT_BTN_ID}
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={onNextClick}
-            >
-              <ChevronRight className="h-4 w-4 m-auto" />
-            </Button>
-            {canAddCurrentPageToContext && onAddCurrentPageToContext && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span className="inline-flex">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="ml-2 h-8 gap-1.5 px-2 text-xs"
-                      onClick={onAddCurrentPageToContext}
-                      disabled={isCurrentPageContextDisabled}
-                    >
-                      <MessageCirclePlus className="h-4 w-4" />
-                      Add page
-                    </Button>
+        {!isLoading &&
+          (showPagination || (canAddCurrentPageToContext && onAddCurrentPageToContext)) && (
+            <>
+              {showPagination && (
+                <>
+                  <Button
+                    id={PREV_BTN_ID}
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={onPrevClick}
+                  >
+                    <ChevronLeft className="h-4 w-4 m-auto" />
+                  </Button>
+                  <span className="text-sm tabular-nums min-w-20 text-center">
+                    <>
+                      <span className="font-medium">{currentPage}</span>
+                      <span className="text-muted-foreground"> / {totalPages}</span>
+                    </>
                   </span>
-                </TooltipTrigger>
-                <TooltipContent side="top">{pageContextTooltip}</TooltipContent>
-              </Tooltip>
-            )}
-          </>
-        )}
+                  <Button
+                    id={NEXT_BTN_ID}
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={onNextClick}
+                  >
+                    <ChevronRight className="h-4 w-4 m-auto" />
+                  </Button>
+                </>
+              )}
+              {canAddCurrentPageToContext && onAddCurrentPageToContext && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="inline-flex">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="ml-2 h-8 gap-1.5 px-2 text-xs"
+                        onMouseDown={(event) => event.preventDefault()}
+                        onClick={onAddCurrentPageToContext}
+                        disabled={isCurrentPageContextDisabled}
+                      >
+                        <MessageCirclePlus className="h-4 w-4" />
+                        Add page to context
+                      </Button>
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">{pageContextTooltip}</TooltipContent>
+                </Tooltip>
+              )}
+            </>
+          )}
       </div>
       <div className="w-px h-5 bg-border mx-1" />
 

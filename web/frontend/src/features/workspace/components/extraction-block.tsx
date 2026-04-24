@@ -30,13 +30,16 @@ export function ExtractionBlock({ node, editor, extension, deleteNode }: Extract
   const isPageInChatScope =
     pageNumber !== null && (chatScopePluginState?.pageNumbersInChatScope ?? []).includes(pageNumber)
   const isWholeDocumentInChatScope = chatScopePluginState?.isWholeDocumentInChatScope ?? false
-  const blockContextTitle = isWholeDocumentInChatScope
-    ? 'Whole document is also in context. Add block reference'
-    : isPageInChatScope
-      ? `Page ${pageNumber} is also in context. Add block reference`
-      : isExplicitlyInChatScope
-        ? 'Add another block reference'
-        : 'Add block to context'
+  const isContextInteractionDisabled = chatScopePluginState?.isInteractionDisabled ?? false
+  const blockContextTitle = isContextInteractionDisabled
+    ? 'Prompt context is unavailable while you have unsaved changes.'
+    : isWholeDocumentInChatScope
+      ? 'Whole document is also in context. Add block reference'
+      : isPageInChatScope
+        ? `Page ${pageNumber} is also in context. Add block reference`
+        : isExplicitlyInChatScope
+          ? 'Add another block reference'
+          : 'Add block to context'
 
   useEffect(() => {
     const syncChatScopeState = ({ transaction }: { transaction: Transaction }) => {
@@ -57,6 +60,10 @@ export function ExtractionBlock({ node, editor, extension, deleteNode }: Extract
   const handleToggleBlockScope = (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault()
     event.stopPropagation()
+
+    if (isContextInteractionDisabled) {
+      return
+    }
 
     onToggleBlockContext?.(blockId, pageNumber)
   }
@@ -141,6 +148,7 @@ export function ExtractionBlock({ node, editor, extension, deleteNode }: Extract
                   onClick={handleToggleBlockScope}
                   className="cursor-pointer size-7"
                   aria-label={blockContextTitle}
+                  disabled={isContextInteractionDisabled}
                 >
                   <MessageCirclePlus />
                 </Button>

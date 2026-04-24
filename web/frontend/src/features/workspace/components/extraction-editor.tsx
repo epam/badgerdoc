@@ -20,6 +20,7 @@ interface ExtractionEditorProps {
   selectedContextPages: number[]
   isWholeDocumentSelected: boolean
   onToggleBlockContext: (blockId: string, pageNumber: number | null) => void
+  isContextInteractionDisabled?: boolean
   activeBlockId: string | null
   onBlockSelect: (blockId: string | null, pageNumber: number | null) => void
 }
@@ -38,6 +39,7 @@ const ExtractionEditor = ({
   selectedContextPages,
   isWholeDocumentSelected,
   onToggleBlockContext,
+  isContextInteractionDisabled = false,
   activeBlockId,
   onBlockSelect,
 }: ExtractionEditorProps) => {
@@ -72,7 +74,12 @@ const ExtractionEditor = ({
         onWillDeleteNode: handleWillDeleteNode,
       }),
     ],
-    [handleBlockSelectFromEditor, onBlockDelete, onToggleBlockContext, handleWillDeleteNode]
+    [
+      handleBlockSelectFromEditor,
+      onBlockDelete,
+      onToggleBlockContext,
+      handleWillDeleteNode,
+    ]
   )
 
   const editor = useEditor({
@@ -221,9 +228,16 @@ const ExtractionEditor = ({
         blockIds: selectedContextBlockIds,
         pageNumbers: selectedContextPages,
         isWholeDocumentSelected,
+        isInteractionDisabled: isContextInteractionDisabled,
       })
     },
-    [editor, selectedContextBlockIds, selectedContextPages, isWholeDocumentSelected]
+    [
+      editor,
+      selectedContextBlockIds,
+      selectedContextPages,
+      isWholeDocumentSelected,
+      isContextInteractionDisabled,
+    ]
   )
 
   useEffect(
@@ -293,38 +307,44 @@ const ExtractionEditor = ({
           </div>
         </div>
       )}
+      {hasChanges && (
+        <div className="shadow-subtle z-10 flex shrink-0 items-center justify-between gap-4 border-b border-border bg-muted/30 px-4 py-3">
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-foreground">You have unsaved changes</p>
+            <p className="text-xs text-muted-foreground">Review changes before continuing</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              onMouseDown={() => {
+                isRevertingRef.current = true
+              }}
+              disabled={isSaving && !isRevertingRef.current}
+              size="sm"
+              variant="ghost"
+              onClick={handleRevertChanges}
+              title="Revert changes"
+            >
+              Revert
+            </Button>
+            <Button
+              onMouseDown={() => {
+                isAcceptingRef.current = true
+              }}
+              disabled={isSaving && !isAcceptingRef.current}
+              size="sm"
+              onClick={handleAcceptChanges}
+              title="Accept changes"
+            >
+              Accept
+            </Button>
+          </div>
+        </div>
+      )}
       <div className="min-h-0 flex-1 overflow-hidden bg-card">
         <div className="h-full overflow-auto">
           <EditorContent editor={editor} />
         </div>
       </div>
-      {hasChanges && (
-        <div className="flex shrink-0 justify-center gap-3 border-t bg-card px-4 py-3">
-          <Button
-            onMouseDown={() => {
-              isRevertingRef.current = true
-            }}
-            disabled={isSaving && !isRevertingRef.current}
-            size="sm"
-            variant="outline"
-            onClick={handleRevertChanges}
-            title="Revert changes"
-          >
-            Revert
-          </Button>
-          <Button
-            onMouseDown={() => {
-              isAcceptingRef.current = true
-            }}
-            disabled={isSaving && !isAcceptingRef.current}
-            size="sm"
-            onClick={handleAcceptChanges}
-            title="Accept changes"
-          >
-            Accept
-          </Button>
-        </div>
-      )}
     </div>
   )
 }
