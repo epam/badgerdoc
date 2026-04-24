@@ -15,6 +15,7 @@
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:ui": "vitest --ui",
+    "test:e2e": "playwright test",
     "types:check": "tsc --noEmit --project tsconfig.app.json"
   },
   "dependencies": {
@@ -51,6 +52,7 @@
   "devDependencies": {
     "@eslint/js": "^9.39.1",
     "@tanstack/router-plugin": "^1.141.1",
+    "@playwright/test": "^1.54.2",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.1",
     "@types/node": "^24.10.1",
