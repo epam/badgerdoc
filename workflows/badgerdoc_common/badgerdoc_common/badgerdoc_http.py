@@ -1,4 +1,3 @@
-import json
 import logging
 import os
 from typing import Any, BinaryIO
@@ -11,110 +10,73 @@ TEMPORAL_BADGERDOC_ADDRESS = os.environ.get("TEMPORAL_BADGERDOC_ADDRESS", "")
 BADGERDOC_TOKEN = os.environ.get("BADGERDOC_TOKEN", "")
 
 
-async def badgerdoc_get(
-    url: str, params: dict[str, Any] | None = None
-) -> list[dict[str, Any]] | dict[str, Any]:
-    logger.info(
-        "Getting workflows from Badgerdoc: %s", TEMPORAL_BADGERDOC_ADDRESS
+class BadgerdocAPIError(aiohttp.ClientResponseError):
+    """Base class for Badgerdoc API response errors."""
+
+
+class BadgerdocDoesNotExist(BadgerdocAPIError):
+    """Raised when the requested resource does not exist (HTTP 404)."""
+
+
+class BadgerdocUserError(BadgerdocAPIError):
+    """Raised for client-side errors (HTTP 4xx except 404)."""
+
+
+class BadgerdocInternalError(BadgerdocAPIError):
+    """Raised for server-side errors (HTTP 500)."""
+
+
+def _raise_mapped_response_error(
+    response: aiohttp.ClientResponse,
+    response_text: str,
+    action: str = "Request",
+) -> None:
+    status = response.status
+    message = f"{action} failed: {response_text}"
+    headers = getattr(response, "headers", None)
+
+    if status == 404:
+        raise BadgerdocDoesNotExist(
+            response.request_info,
+            response.history,
+            status=status,
+            message=message,
+            headers=headers,
+        )
+    if 400 <= status < 500:
+        raise BadgerdocUserError(
+            response.request_info,
+            response.history,
+            status=status,
+            message=message,
+            headers=headers,
+        )
+    if status == 500:
+        raise BadgerdocInternalError(
+            response.request_info,
+            response.history,
+            status=status,
+            message=message,
+            headers=headers,
+        )
+
+    raise aiohttp.ClientResponseError(
+        request_info=response.request_info,
+        history=response.history,
+        status=response.status,
+        message=f"Request failed: {response_text}",
     )
-
-    if not BADGERDOC_TOKEN:
-        logger.warning("Badgerdoc token seems empty")
-
-    if not url.startswith("/"):
-        raise ValueError("URL must start with '/'")
-
-    async with aiohttp.ClientSession() as session:
-        headers = {"Authorization": f"Token {BADGERDOC_TOKEN}"}
-        async with session.get(
-            f"{TEMPORAL_BADGERDOC_ADDRESS}{url}",
-            headers=headers,
-            params=params,
-        ) as response:
-            logger.info("Response status: %s", response.status)
-            logger.debug("Response headers: %s", response.headers)
-            response_text = await response.text()
-            logger.debug("Response body: %s", response_text)
-
-            if response.status >= 400:
-                logger.error(
-                    "Request failed with status %s: %s",
-                    response.status,
-                    response_text,
-                )
-                raise aiohttp.ClientResponseError(
-                    request_info=response.request_info,
-                    history=response.history,
-                    status=response.status,
-                    message=f"Request failed: {response_text}",
-                )
-
-            return json.loads(response_text)
-
-
-async def badgerdoc_upload(
-    file: BinaryIO,
-    filename: str,
-    metadata: dict | None = None,
-    tags: list[str] | None = None,
-    parent_document_id: int | None = None,
-    extension: str | None = None,
-) -> dict[str, Any]:
-    logger.info("Uploading document to Badgerdoc: %s", filename)
-
-    if not BADGERDOC_TOKEN:
-        logger.warning("Badgerdoc token seems empty")
-
-    async with aiohttp.ClientSession() as session:
-        headers = {"Authorization": f"Token {BADGERDOC_TOKEN}"}
-
-        data = aiohttp.FormData()
-        data.add_field("file", file, filename=filename)
-
-        if metadata:
-            data.add_field("metadata", json.dumps(metadata))
-
-        if tags:
-            data.add_field("tags", json.dumps(tags))
-
-        if parent_document_id:
-            data.add_field("parent_document_id", str(parent_document_id))
-
-        if extension:
-            data.add_field("extension", str(extension))
-
-        async with session.post(
-            f"{TEMPORAL_BADGERDOC_ADDRESS}/badgerdoc/document/",
-            data=data,
-            headers=headers,
-        ) as response:
-            logger.info("Upload response status: %s", response.status)
-            logger.debug("Upload response headers: %s", response.headers)
-
-            response_text = await response.text()
-            logger.debug("Upload response body: %s", response_text)
-
-            if response.status >= 400:
-                logger.error(
-                    "Failed to upload document. Status: %s, Response: %s",
-                    response.status,
-                    response_text,
-                )
-                raise aiohttp.ClientResponseError(
-                    request_info=response.request_info,
-                    history=response.history,
-                    status=response.status,
-                    message=f"Upload failed: {response_text}",
-                )
-
-            return await response.json()
 
 
 async def _make_json_request(
-    method: str, url: str, payload: dict[str, Any]
+    method: str,
+    url: str,
+    payload: dict[str, Any] | None = None,
+    params: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     logger.info("Making %s request to Badgerdoc: %s", method, url)
     logger.info("Payload: %s", payload)
+    logger.info("Params: %s", params)
 
     if not BADGERDOC_TOKEN:
         logger.warning("Badgerdoc token seems empty")
@@ -133,6 +95,8 @@ async def _make_json_request(
             f"{TEMPORAL_BADGERDOC_ADDRESS}{url}",
             json=payload,
             headers=headers,
+            params=params,
+            allow_redirects=True,
         ) as response:
             logger.info("%s response status: %s", method, response.status)
             logger.debug("%s response headers: %s", method, response.headers)
@@ -147,26 +111,17 @@ async def _make_json_request(
                     response.status,
                     response_text,
                 )
-                raise aiohttp.ClientResponseError(
-                    request_info=response.request_info,
-                    history=response.history,
-                    status=response.status,
-                    message=f"{method} request failed: {response_text}",
+                _raise_mapped_response_error(
+                    response, response_text, action=method
                 )
 
             return await response.json()
 
 
-async def badgerdoc_post(url: str, payload: dict[str, Any]) -> dict[str, Any]:
-    return await _make_json_request("POST", url, payload)
-
-
-async def badgerdoc_patch(url: str, payload: dict[str, Any]) -> dict[str, Any]:
-    return await _make_json_request("PATCH", url, payload)
-
-
-async def badgerdoc_delete(url: str) -> None:
-    logger.info("Making DELETE request to Badgerdoc: %s", url)
+async def _make_form_request(
+    method: str, url: str, form: aiohttp.FormData
+) -> dict[str, Any]:
+    logger.info("Making %s form request to Badgerdoc: %s", method, url)
 
     if not BADGERDOC_TOKEN:
         logger.warning("Badgerdoc token seems empty")
@@ -177,26 +132,62 @@ async def badgerdoc_delete(url: str) -> None:
     async with aiohttp.ClientSession() as session:
         headers = {"Authorization": f"Token {BADGERDOC_TOKEN}"}
 
-        async with session.delete(
+        async with session.request(
+            method,
             f"{TEMPORAL_BADGERDOC_ADDRESS}{url}",
+            data=form,
             headers=headers,
         ) as response:
-            logger.info("DELETE response status: %s", response.status)
-            logger.debug("DELETE response headers: %s", response.headers)
+            logger.info("%s response status: %s", method, response.status)
+            logger.debug("%s response headers: %s", method, response.headers)
+
+            response_text = await response.text()
+            logger.debug("%s response body: %s", method, response_text)
 
             if response.status >= 400:
-                response_text = await response.text()
                 logger.error(
-                    "DELETE request failed. Status: %s, Response: %s",
+                    "%s form request failed. Status: %s, Response: %s",
+                    method,
                     response.status,
                     response_text,
                 )
-                raise aiohttp.ClientResponseError(
-                    request_info=response.request_info,
-                    history=response.history,
-                    status=response.status,
-                    message=f"DELETE request failed: {response_text}",
+                _raise_mapped_response_error(
+                    response, response_text, action=f"{method} form"
                 )
+
+            return await response.json()
+
+
+async def badgerdoc_post(url: str, payload: dict[str, Any]) -> dict[str, Any]:
+    return await _make_json_request("POST", url, payload=payload)
+
+
+async def badgerdoc_patch(url: str, payload: dict[str, Any]) -> dict[str, Any]:
+    return await _make_json_request("PATCH", url, payload=payload)
+
+
+async def badgerdoc_get(
+    url: str, params: dict[str, Any] | None = None
+) -> list[dict[str, Any]] | dict[str, Any]:
+    return await _make_json_request("GET", url, params=params)
+
+
+async def badgerdoc_delete(
+    url: str, params: dict[str, Any] | None = None
+) -> list[dict[str, Any]] | dict[str, Any]:
+    return await _make_json_request("DELETE", url, params=params)
+
+
+async def badgerdoc_form_post(
+    url: str, form: aiohttp.FormData
+) -> dict[str, Any]:
+    return await _make_form_request("POST", url, form)
+
+
+async def badgerdoc_form_patch(
+    url: str, form: aiohttp.FormData
+) -> dict[str, Any]:
+    return await _make_form_request("PATCH", url, form)
 
 
 async def badgerdoc_download(buffer: BinaryIO, document: Any) -> None:
@@ -219,7 +210,9 @@ async def badgerdoc_download(buffer: BinaryIO, document: Any) -> None:
 
     async with aiohttp.ClientSession() as session:
         headers = {"Authorization": f"Token {BADGERDOC_TOKEN}"}
-        async with session.get(file_url, headers=headers) as response:
+        async with session.get(
+            file_url, headers=headers, allow_redirects=True
+        ) as response:
             logger.info("Download response status: %s", response.status)
             logger.debug("Download response headers: %s", response.headers)
 
@@ -230,11 +223,8 @@ async def badgerdoc_download(buffer: BinaryIO, document: Any) -> None:
                     response.status,
                     response_text,
                 )
-                raise aiohttp.ClientResponseError(
-                    request_info=response.request_info,
-                    history=response.history,
-                    status=response.status,
-                    message=f"Download failed: {response_text}",
+                _raise_mapped_response_error(
+                    response, response_text, action="Download"
                 )
 
             async for chunk in response.content.iter_chunked(8192):
@@ -242,35 +232,3 @@ async def badgerdoc_download(buffer: BinaryIO, document: Any) -> None:
 
     buffer.seek(0)
     logger.info("Document file downloaded successfully")
-
-
-async def badgerdoc_update_file(
-    document_id: int, file: BinaryIO, filename: str, extension: str
-) -> dict[str, Any]:
-    async with aiohttp.ClientSession() as session:
-        headers = {"Authorization": f"Token {BADGERDOC_TOKEN}"}
-
-        data = aiohttp.FormData()
-        data.add_field("file", file, filename=filename)
-        data.add_field("extension", str(extension))
-
-        async with session.patch(
-            f"{TEMPORAL_BADGERDOC_ADDRESS}/badgerdoc/document/{document_id}/",
-            data=data,
-            headers=headers,
-        ) as response:
-            response_text = await response.text()
-            if response.status >= 400:
-                logger.error(
-                    "Failed to upload document file. Status: %s, Response: %s",
-                    response.status,
-                    response_text,
-                )
-                raise aiohttp.ClientResponseError(
-                    request_info=response.request_info,
-                    history=response.history,
-                    status=response.status,
-                    message=f"Upload failed: {response_text}",
-                )
-
-            return await response.json()

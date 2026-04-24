@@ -1,11 +1,8 @@
 import logging
 import math
-import os
 import xml.etree.ElementTree as ET  # nosec B405
 from dataclasses import dataclass
 from io import BytesIO
-from pathlib import Path
-from tempfile import TemporaryDirectory
 
 from PIL import Image
 from temporalio import activity
@@ -112,13 +109,15 @@ class DZIConverter:
                         logger.warning("Setting default page")
                         page = 1
 
-                    uploaded_doc = await badgerdoc_http.badgerdoc_upload(
+                    uploaded_doc = await document.badgerdoc_upload_document(
+                        document.BadgerdocDocument(
+                            name=f"{level}_{col}_{row}.png",
+                            metadata={"page": page},
+                            tags=["dzi", tile_path],
+                            parent_document_id=source_document.id,
+                            extension="png",
+                        ),
                         tile_buffer,
-                        f"{level}_{col}_{row}.png",
-                        metadata={"page": page},
-                        tags=["dzi", tile_path],
-                        parent_document_id=source_document.id,
-                        extension="png",
                     )
 
                     logger.info("Uploaded tile: %s", uploaded_doc)
@@ -126,7 +125,7 @@ class DZIConverter:
                     tile_data.append(
                         TileData(
                             path=tile_path,
-                            document_id=uploaded_doc["id"],
+                            document_id=uploaded_doc.id,
                             tags=["dzi", tile_path],
                         )
                     )
@@ -197,13 +196,15 @@ class DZIConverter:
             logger.warning("Setting default page")
             page = 1
 
-        dzi_upload_result = await badgerdoc_http.badgerdoc_upload(
+        dzi_upload_result = await document.badgerdoc_upload_document(
+            document.BadgerdocDocument(
+                name=dzi_filename,
+                metadata={"page": page},
+                tags=["dzi", "xml"],
+                parent_document_id=source_document.id,
+                extension="xml",
+            ),
             dzi_buffer,
-            dzi_filename,
-            metadata={"page": page},
-            tags=["dzi", "xml"],
-            parent_document_id=source_document.id,
-            extension="png",
         )
 
         levels = self.calculate_pyramid_levels(image_width, image_height)
@@ -227,7 +228,7 @@ class DZIConverter:
             total_tiles_created += result.tiles_created
 
         return DZIConvertResult(
-            dzi_document_id=dzi_upload_result["id"],
+            dzi_document_id=dzi_upload_result.id,
             dzi_tags=["dzi", "xml"],
             tiles=all_tiles,
             total_tiles_created=total_tiles_created,
