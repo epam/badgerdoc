@@ -60,13 +60,12 @@ COPY web/uv.lock ./uv.lock
 COPY web/README.md ./README.md
 
 RUN uv sync --frozen --no-dev && \
-    rm -rf $UV_CACHE_DIR && \
-    chown -R django:django /app/.venv
+    rm -rf $UV_CACHE_DIR
 
 COPY web/ .
 COPY --from=frontend-builder /build/dist /app/staticfiles/badgerdoc-frontend
 COPY --from=docs-builder /app/docs/site /app/docs/site
-RUN mkdir -p /app/staticfiles && chown -R django:django /app/staticfiles
+RUN mkdir -p /app/staticfiles && chown -R django:django /app
 
 
 

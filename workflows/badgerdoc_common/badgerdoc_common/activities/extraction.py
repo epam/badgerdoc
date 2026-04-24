@@ -445,7 +445,9 @@ async def badgerdoc_get_extraction_page(
 async def badgerdoc_get_extraction_page_by_extraction_and_page(
     filters: GetExtractionPageByExtractionAndPageRequest,
 ) -> BadgerdocExtractionPage:
-    logger.info("Executing badgerdoc_get_extraction_page_by_extraction_and_page activity")
+    logger.info(
+        "Executing badgerdoc_get_extraction_page_by_extraction_and_page activity"
+    )
 
     endpoint = "/badgerdoc/extraction-pages/"
     payload = {
@@ -454,7 +456,9 @@ async def badgerdoc_get_extraction_page_by_extraction_and_page(
     }
 
     response_data = await badgerdoc_http.badgerdoc_get(endpoint, payload)
-    logger.info("Extraction page by extraction and page retrieved: %s", response_data)
+    logger.info(
+        "Extraction page by extraction and page retrieved: %s", response_data
+    )
 
     if not response_data or not isinstance(response_data, dict):
         raise ValueError(f"Invalid response from API: {response_data}")

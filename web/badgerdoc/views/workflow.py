@@ -143,27 +143,17 @@ def start_automatic_workflow(registry, validated_data: dict[str, Any]) -> str:
     return workflow_id
 
 
-def start_manual_workflow(registry, validated_data: dict[str, Any]) -> str:
-    trigger_data = {
-        "scope": validated_data.get("scope"),
-        "document_id": validated_data.get("document_id"),
-        "workflow_registry_id": registry.id,
-        "task_id": validated_data.get("task_id"),
-        "page_number": validated_data.get("page_number"),
-        "extraction_id": validated_data.get("extraction_id"),
-        "llm_params": (
-            validated_data.get("parameters", {}).get("llm_params")
-            if validated_data.get("parameters")
-            else None
-        ),
-    }
+def start_manual_workflow(
+    registry, workflow_input_data: dict[str, Any]
+) -> str:
+    original_document_id = workflow_input_data["original_document"]["id"]
 
-    workflow_id = f"manual-DocumentTriggerWorkflow-{registry.id}-{trigger_data['document_id']}-{uuid4().hex[:5]}"
+    workflow_id = f"manual-DocumentTriggerWorkflow-{registry.id}-{original_document_id}-{uuid4().hex[:5]}"
     temporal_client.start_workflow(
         workflow_type="DocumentTriggerWorkflow",
         task_queue="badgerdoc_lifecycle",
         workflow_id=workflow_id,
-        args=[trigger_data],
+        args=[workflow_input_data],
     )
 
     return workflow_id
@@ -281,13 +271,18 @@ class ManualWorkflowTriggerSerializer(serializers.Serializer):
     def validate_document_id(self, value: int) -> int:
         try:
             doc = document.Document.objects.get(id=value)
-        except document.Document.DoesNotExist:
-            raise serializers.ValidationError("Document not found.")
+        except document.Document.DoesNotExist as err:
+            raise serializers.ValidationError("Document not found.") from err
 
         request = self.context.get("request")
         if request and request.user:
-            if doc.uploaded_by != request.user and not permissions.can_view_other_users_document(request.user):
-                raise serializers.ValidationError("No permission to access this document.")
+            if (
+                doc.uploaded_by != request.user
+                and not permissions.can_view_other_users_document(request.user)
+            ):
+                raise serializers.ValidationError(
+                    "No permission to access this document."
+                )
 
         return value
 
@@ -297,13 +292,18 @@ class ManualWorkflowTriggerSerializer(serializers.Serializer):
 
         try:
             task_obj = task.Task.objects.get(id=value)
-        except task.Task.DoesNotExist:
-            raise serializers.ValidationError("Task not found.")
+        except task.Task.DoesNotExist as err:
+            raise serializers.ValidationError("Task not found.") from err
 
         request = self.context.get("request")
         if request and request.user:
-            if task_obj.user != request.user and not permissions.can_view_other_users_tasks(request.user):
-                raise serializers.ValidationError("No permission to access this task.")
+            if (
+                task_obj.user != request.user
+                and not permissions.can_view_other_users_tasks(request.user)
+            ):
+                raise serializers.ValidationError(
+                    "No permission to access this task."
+                )
 
         return value
 
@@ -502,6 +502,98 @@ def workflow_registry_trigger(
         )
 
 
+def _serialize_document(doc: document.Document) -> dict[str, Any]:
+    return {
+        "id": doc.id,
+        "name": doc.name,
+        "extension": doc.extension,
+        "metadata": doc.metadata,
+        "tags": doc.tags,
+        "parent_document_id": doc.parent_document_id,
+        "file": doc.file.url if doc.file else None,
+        "uploaded_by": str(doc.uploaded_by),
+        "created_at": doc.created_at.isoformat(),
+        "updated_at": doc.updated_at.isoformat(),
+    }
+
+
+def _prepare_workflow_request(
+    parsed_params: llm_params_parser.BadgerdocParsedParams,
+    registry: workflow_registry.WorkflowRegistry,
+    original_doc: document.Document,
+) -> dict[str, Any]:
+    return {
+        "workflow": {
+            "id": registry.id,
+            "name": registry.name,
+            "tags": registry.tags,
+            "created_by": registry.created_by_id,
+            "event_entity": registry.event_entity,
+            "event_type": registry.event_type,
+            "document_types": registry.document_types,
+            "entity_tags": registry.entity_tags,
+            "temporal_workflow_type": registry.temporal_workflow_type,
+            "temporal_queue": registry.temporal_queue,
+            "is_active": registry.is_active,
+            "trigger": registry.trigger,
+            "extraction_scope": registry.extraction_scope,
+            "support_prompts": registry.support_prompts,
+            "created_at": registry.created_at.isoformat(),
+            "updated_at": registry.updated_at.isoformat(),
+        },
+        "original_document": _serialize_document(original_doc),
+        "linked_documents": (
+            [
+                {"id": doc.id, "name": doc.name}
+                for doc in parsed_params.linked_documents
+            ]
+            if parsed_params.linked_documents
+            else None
+        ),
+        "linked_document_pages": (
+            [
+                {
+                    "document": _serialize_document(page.document),
+                    "page_num": page.page_num,
+                }
+                for page in parsed_params.linked_document_pages
+            ]
+            if parsed_params.linked_document_pages
+            else None
+        ),
+        "linked_extractions": (
+            [{"id": ext.id} for ext in parsed_params.linked_extractions]
+            if parsed_params.linked_extractions
+            else None
+        ),
+        "linked_extraction_pages": (
+            [
+                {
+                    "id": page.id,
+                    "extraction_id": page.extraction_id,
+                    "page_number": page.page_number,
+                }
+                for page in parsed_params.linked_extraction_pages
+            ]
+            if parsed_params.linked_extraction_pages
+            else None
+        ),
+        "linked_extraction_xpaths": (
+            [
+                {
+                    "extraction_id": xpath.extraction_page.extraction_id,
+                    "page_number": xpath.extraction_page.page_number,
+                    "xpath": xpath.xpath,
+                }
+                for xpath in parsed_params.linked_extraction_xpaths
+            ]
+            if parsed_params.linked_extraction_xpaths
+            else None
+        ),
+        "prompt_text": parsed_params.prompt_text,
+    }
+
+
 @swagger_auto_schema(
     method="post",
     operation_description="Trigger a manual workflow with document context parsed from llm_params",
@@ -542,45 +634,33 @@ def workflow_registry_manual_trigger(
         validated_data = serializer.validated_data
         llm_params = validated_data.get("llm_params")
 
+        registry = workflow_registry.WorkflowRegistry.objects.filter(
+            id=workflow_registry_id
+        ).first()
+        if not registry:
+            return Response(
+                {"error": "Workflow registry entry not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        document_id = validated_data.get("document_id")
+        original_doc = document.Document.objects.get(id=document_id)
+
         parsed_params = llm_params_parser.parse(request.user.id, llm_params)
 
-        response_data = {
-            "linked_documents": [
-                {"id": doc.id, "name": doc.name} for doc in parsed_params.linked_documents
-            ],
-            "linked_extractions": (
-                [{"id": ext.id} for ext in parsed_params.linked_extractions]
-                if parsed_params.linked_extractions
-                else None
-            ),
-            "linked_extraction_pages": (
-                [
-                    {
-                        "id": page.id,
-                        "extraction_id": page.extraction_id,
-                        "page_number": page.page_number,
-                    }
-                    for page in parsed_params.linked_extraction_pages
-                ]
-                if parsed_params.linked_extraction_pages
-                else None
-            ),
-            "linked_extraction_xpaths": (
-                [
-                    {
-                        "extraction_id": xpath.extraction_page.extraction_id,
-                        "page_number": xpath.extraction_page.page_number,
-                        "xpath": xpath.xpath,
-                    }
-                    for xpath in parsed_params.linked_extraction_xpaths
-                ]
-                if parsed_params.linked_extraction_xpaths
-                else None
-            ),
-            "prompt_text": parsed_params.prompt_text,
-        }
+        workflow_input_data = _prepare_workflow_request(
+            parsed_params, registry, original_doc
+        )
 
-        return Response(response_data, status=status.HTTP_200_OK)
+        workflow_id = start_manual_workflow(registry, workflow_input_data)
+
+        return Response(
+            {
+                "workflow_id": workflow_id,
+                "workflow_input_data": workflow_input_data,
+            },
+            status=status.HTTP_200_OK,
+        )
 
     except Exception as e:
         logger.exception(
@@ -591,8 +671,6 @@ def workflow_registry_manual_trigger(
             {"error": f"Failed to parse llm_params: {str(e)}"},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
-
-
 
 
 @swagger_auto_schema(

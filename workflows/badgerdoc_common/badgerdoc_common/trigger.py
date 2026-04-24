@@ -10,23 +10,19 @@ from badgerdoc_common.activities import (
 )
 
 
-class BadgerodocTrigger(TypedDict):
-    document_id: int
-    workflow_registry_id: int
-    task_id: int | None
-    llm_params: str
-    linked_document_ids: list[int]
-    linked_extraction_ids: list[int] | None
-    linked_extraction_pages: list[dict] | None
-    linked_extraction_xpaths: list[dict] | None
+@dataclass
+class BadgerdocDocumentPage:
+    page_num: int
+    document: document.BadgerdocDocument
 
 
 @dataclass
 class DocumentTriggerParams:
     workflow: badgerdoc_event.BadgerdocWorkflow
     original_document: document.BadgerdocDocument
-    original_document_rendition: document.BadgerdocDocument
     original_task: task.BadgerdocTask | None
+    linked_documents: list[document.BadgerdocDocument]
+    linked_document_pages: list[BadgerdocDocumentPage]
     linked_extractions: list[extraction.BadgerdocExtraction] | None
     linked_extraction_pages: list[extraction.BadgerdocExtractionPage] | None
     linked_extraction_xpaths: list[extraction.BadgerdocExtractionXpath] | None

@@ -4,18 +4,25 @@ from dataclasses import dataclass
 from django.contrib.auth.models import User
 from lxml import etree
 
-from badgerdoc.models import document, extraction, extraction_page
-from badgerdoc.models import extraction_helpers
+from badgerdoc.models import (
+    document,
+    extraction,
+    extraction_helpers,
+    extraction_page,
+)
 
 logger = logging.getLogger(__name__)
 
 
 @dataclass
 class BadgerdocParsedParams:
-    linked_documents: list[document.Document]
+    linked_documents: list[document.Document] | None
+    linked_document_pages: list[document.Page] | None
     linked_extractions: list[extraction.Extraction] | None
     linked_extraction_pages: list[extraction_page.ExtractionPage] | None
-    linked_extraction_xpaths: list[extraction_helpers.BadgerdocExtractionXpath] | None
+    linked_extraction_xpaths: (
+        list[extraction_helpers.BadgerdocExtractionXpath] | None
+    )
     prompt_text: str
 
 
@@ -34,12 +41,14 @@ def parse(user_id: int, llm_params: str) -> BadgerdocParsedParams:
     validated_refs = validate_and_normalize_references(user, references)
 
     linked_docs = collect_documents(validated_refs)
+    linked_doc_pages = collect_document_pages(validated_refs)
     linked_exts = collect_extractions(validated_refs)
     linked_ext_pages = collect_extraction_pages(validated_refs)
     linked_xpaths = collect_xpaths(validated_refs)
 
     return BadgerdocParsedParams(
-        linked_documents=linked_docs,
+        linked_documents=linked_docs if linked_docs else None,
+        linked_document_pages=linked_doc_pages if linked_doc_pages else None,
         linked_extractions=linked_exts if linked_exts else None,
         linked_extraction_pages=linked_ext_pages if linked_ext_pages else None,
         linked_extraction_xpaths=linked_xpaths if linked_xpaths else None,
@@ -49,7 +58,7 @@ def parse(user_id: int, llm_params: str) -> BadgerdocParsedParams:
 
 def extract_references(llm_params: str) -> list[ParsedReference]:
     references = []
-    start_marker = '{{/badgerdoc/'
+    start_marker = "{{/badgerdoc/"
 
     pos = 0
     while True:
@@ -57,7 +66,7 @@ def extract_references(llm_params: str) -> list[ParsedReference]:
         if start_pos == -1:
             break
 
-        if start_pos > 0 and llm_params[start_pos - 1] == '\\':
+        if start_pos > 0 and llm_params[start_pos - 1] == "\\":
             pos = start_pos + len(start_marker)
             continue
 
@@ -65,11 +74,15 @@ def extract_references(llm_params: str) -> list[ParsedReference]:
         i = start_pos + len(start_marker)
         end_pos = -1
         while i < len(llm_params) - 1:
-            if llm_params[i] == '(':
+            if llm_params[i] == "(":
                 paren_depth += 1
-            elif llm_params[i] == ')':
+            elif llm_params[i] == ")":
                 paren_depth -= 1
-            elif llm_params[i] == '}' and llm_params[i + 1] == '}' and paren_depth == 0:
+            elif (
+                llm_params[i] == "}"
+                and llm_params[i + 1] == "}"
+                and paren_depth == 0
+            ):
                 end_pos = i
                 break
             i += 1
@@ -77,20 +90,22 @@ def extract_references(llm_params: str) -> list[ParsedReference]:
         if end_pos == -1:
             break
 
-        url_content = llm_params[start_pos + len(start_marker):end_pos]
+        url_content = llm_params[start_pos + len(start_marker) : end_pos]
 
         xpath = None
-        xpath_start = url_content.find('(')
+        xpath_start = url_content.find("(")
         if xpath_start != -1:
-            xpath_end = url_content.find(')', xpath_start)
+            xpath_end = url_content.find(")", xpath_start)
             if xpath_end != -1:
-                xpath = url_content[xpath_start + 1:xpath_end]
-                url_content = url_content[:xpath_start] + url_content[xpath_end + 1:]
+                xpath = url_content[xpath_start + 1 : xpath_end]
+                url_content = (
+                    url_content[:xpath_start] + url_content[xpath_end + 1 :]
+                )
 
-        url_content = url_content.rstrip('/')
-        parts = url_content.split('/')
+        url_content = url_content.rstrip("/")
+        parts = url_content.split("/")
 
-        if len(parts) < 2 or parts[0] != 'document':
+        if len(parts) < 2 or parts[0] != "document":
             pos = end_pos + 1
             continue
 
@@ -105,13 +120,13 @@ def extract_references(llm_params: str) -> list[ParsedReference]:
 
         i = 2
         while i < len(parts):
-            if parts[i] == 'page' and i + 1 < len(parts):
+            if parts[i] == "page" and i + 1 < len(parts):
                 try:
                     page_num = int(parts[i + 1])
                 except ValueError:
                     pass
                 i += 2
-            elif parts[i] == 'extraction' and i + 1 < len(parts):
+            elif parts[i] == "extraction" and i + 1 < len(parts):
                 try:
                     ext_id = int(parts[i + 1])
                 except ValueError:
@@ -145,7 +160,12 @@ def validate_and_normalize_references(
             validate_reference(user, ref)
 
             if ref.xpath:
-                key = (ref.document_id, ref.extraction_id, ref.page_number, ref.xpath)
+                key = (
+                    ref.document_id,
+                    ref.extraction_id,
+                    ref.page_number,
+                    ref.xpath,
+                )
             elif ref.extraction_id:
                 key = (ref.document_id, ref.extraction_id, ref.page_number)
             elif ref.page_number:
@@ -186,7 +206,9 @@ def validate_reference(user: User, ref: ParsedReference) -> None:
         validate_document_page_exists(doc, ref.page_number)
 
 
-def validate_document_access(user: User, document_id: int) -> document.Document:
+def validate_document_access(
+    user: User, document_id: int
+) -> document.Document:
     try:
         doc = document.Document.objects.get(id=document_id)
     except document.Document.DoesNotExist as e:
@@ -287,10 +309,40 @@ def collect_documents(
     return list(document.Document.objects.filter(id__in=doc_ids))
 
 
+def collect_document_pages(
+    references: list[ParsedReference],
+) -> list[document.Page]:
+    page_keys = set()
+    for ref in references:
+        if not ref.extraction_id and ref.page_number:
+            page_keys.add((ref.document_id, ref.page_number))
+
+    if not page_keys:
+        return []
+
+    pages = []
+    for doc_id, page_num in page_keys:
+        try:
+            doc = document.Document.objects.get(id=doc_id)
+            pages.append(document.Page(page_num=page_num, document=doc))
+        except document.Document.DoesNotExist:
+            logger.warning(
+                "Document not found for page: document_id=%s, page_number=%s",
+                doc_id,
+                page_num,
+            )
+
+    return pages
+
+
 def collect_extractions(
     references: list[ParsedReference],
 ) -> list[extraction.Extraction]:
-    ext_ids = {ref.extraction_id for ref in references if ref.extraction_id and not ref.page_number}
+    ext_ids = {
+        ref.extraction_id
+        for ref in references
+        if ref.extraction_id and not ref.page_number
+    }
 
     if not ext_ids:
         return []
@@ -339,7 +391,8 @@ def collect_xpaths(
                 seen.add(key)
                 try:
                     page = extraction_page.ExtractionPage.objects.get(
-                        extraction_id=ref.extraction_id, page_number=ref.page_number
+                        extraction_id=ref.extraction_id,
+                        page_number=ref.page_number,
                     )
                     xpath_refs.append(
                         extraction_helpers.BadgerdocExtractionXpath(

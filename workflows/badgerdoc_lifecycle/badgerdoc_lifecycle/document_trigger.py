@@ -40,7 +40,7 @@ class DocumentTriggerWorkflow:
 
     @workflow.run
     async def run(
-        self, request_data: trigger.BadgerodocTrigger
+        self, request_data: trigger.DocumentTriggerParams
     ) -> DocumentTriggerWorkflowResult:
         logger.info("Starting DocumentTriggerWorkflow")
 
@@ -64,7 +64,9 @@ class DocumentTriggerWorkflow:
             linked_extraction_xpaths = await self.get_extraction_xpaths(
                 request_data.get("linked_extraction_xpaths")
             )
-            target_extraction = await self.create_extraction(document_, task_obj)
+            target_extraction = await self.create_extraction(
+                document_, task_obj
+            )
             trigger_params = trigger.DocumentTriggerParams(
                 workflow=workflow_,
                 original_document=document_,

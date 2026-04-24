@@ -249,6 +249,7 @@ class ParseFunctionTestCase(TestCase):
 
         self.assertEqual(len(result.linked_documents), 1)
         self.assertEqual(result.linked_documents[0].id, self.doc.id)
+        self.assertIsNone(result.linked_document_pages)
         self.assertIsNone(result.linked_extractions)
         self.assertIsNone(result.linked_extraction_pages)
         self.assertIsNone(result.linked_extraction_xpaths)
@@ -259,20 +260,47 @@ class ParseFunctionTestCase(TestCase):
 
         result = llm_params_parser.parse(self.owner.id, llm_params)
 
-        self.assertEqual(len(result.linked_documents), 0)
+        self.assertIsNone(result.linked_documents)
+        self.assertEqual(len(result.linked_document_pages), 1)
+        self.assertEqual(result.linked_document_pages[0].page_num, 1)
+        self.assertEqual(
+            result.linked_document_pages[0].document.id, self.doc.id
+        )
         self.assertIsNone(result.linked_extractions)
         self.assertIsNone(result.linked_extraction_pages)
         self.assertIsNone(result.linked_extraction_xpaths)
+
+    def test_parse_document_page_access_denied(self):
+        llm_params = f"{{{{/badgerdoc/document/{self.doc.id}/page/1}}}}"
+
+        result = llm_params_parser.parse(self.other_user.id, llm_params)
+
+        self.assertIsNone(result.linked_documents)
+        self.assertIsNone(result.linked_document_pages)
+
+    def test_parse_multiple_document_pages_deduplication(self):
+        llm_params = f"{{{{/badgerdoc/document/{self.doc.id}/page/1}}}}{{{{/badgerdoc/document/{self.doc.id}/page/1}}}}"
+
+        result = llm_params_parser.parse(self.owner.id, llm_params)
+
+        self.assertIsNone(result.linked_documents)
+        self.assertEqual(len(result.linked_document_pages), 1)
+        self.assertEqual(result.linked_document_pages[0].page_num, 1)
+        self.assertEqual(
+            result.linked_document_pages[0].document.id, self.doc.id
+        )
 
     def test_parse_success_extraction_page(self):
         llm_params = f"{{{{/badgerdoc/document/{self.doc.id}/extraction/{self.extraction.id}/page/1/}}}}"
 
         result = llm_params_parser.parse(self.owner.id, llm_params)
 
-        self.assertEqual(len(result.linked_documents), 0)
+        self.assertIsNone(result.linked_documents)
         self.assertIsNone(result.linked_extractions)
         self.assertEqual(len(result.linked_extraction_pages), 1)
-        self.assertEqual(result.linked_extraction_pages[0].id, self.extraction_page.id)
+        self.assertEqual(
+            result.linked_extraction_pages[0].id, self.extraction_page.id
+        )
         self.assertIsNone(result.linked_extraction_xpaths)
 
     def test_parse_success_xpath(self):
@@ -280,19 +308,24 @@ class ParseFunctionTestCase(TestCase):
 
         result = llm_params_parser.parse(self.owner.id, llm_params)
 
-        self.assertEqual(len(result.linked_documents), 0)
+        self.assertIsNone(result.linked_documents)
         self.assertIsNone(result.linked_extractions)
         self.assertIsNone(result.linked_extraction_pages)
         self.assertEqual(len(result.linked_extraction_xpaths), 1)
-        self.assertEqual(result.linked_extraction_xpaths[0].extraction_page.id, self.extraction_page.id)
-        self.assertEqual(result.linked_extraction_xpaths[0].xpath, "//div[@id='block_1']")
+        self.assertEqual(
+            result.linked_extraction_xpaths[0].extraction_page.id,
+            self.extraction_page.id,
+        )
+        self.assertEqual(
+            result.linked_extraction_xpaths[0].xpath, "//div[@id='block_1']"
+        )
 
     def test_parse_document_access_denied(self):
         llm_params = f"{{{{/badgerdoc/document/{self.doc.id}/}}}}"
 
         result = llm_params_parser.parse(self.other_user.id, llm_params)
 
-        self.assertEqual(len(result.linked_documents), 0)
+        self.assertIsNone(result.linked_documents)
         self.assertIsNone(result.linked_extractions)
         self.assertIsNone(result.linked_extraction_pages)
         self.assertIsNone(result.linked_extraction_xpaths)
@@ -310,7 +343,7 @@ class ParseFunctionTestCase(TestCase):
 
         result = llm_params_parser.parse(self.other_user.id, llm_params)
 
-        self.assertEqual(len(result.linked_documents), 0)
+        self.assertIsNone(result.linked_documents)
         self.assertIsNone(result.linked_extractions)
         self.assertIsNone(result.linked_extraction_pages)
         self.assertIsNone(result.linked_extraction_xpaths)
@@ -320,10 +353,12 @@ class ParseFunctionTestCase(TestCase):
 
         result = llm_params_parser.parse(self.admin_user.id, llm_params)
 
-        self.assertEqual(len(result.linked_documents), 0)
+        self.assertIsNone(result.linked_documents)
         self.assertIsNone(result.linked_extractions)
         self.assertEqual(len(result.linked_extraction_pages), 1)
-        self.assertEqual(result.linked_extraction_pages[0].id, self.extraction_page.id)
+        self.assertEqual(
+            result.linked_extraction_pages[0].id, self.extraction_page.id
+        )
 
     def test_parse_mixed_references(self):
         llm_params = f"Compare {{{{/badgerdoc/document/{self.doc.id}/}}}} with {{{{/badgerdoc/document/{self.doc.id}/extraction/{self.extraction.id}/page/1/}}}}"
