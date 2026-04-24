@@ -110,6 +110,7 @@ export function WorkspacePage() {
     handleBlockBoundingBoxUpdate,
     handleBlockCreate,
     createdBlockIds,
+    deletedBlockIds,
   } = useExtractionState({
     extractionPages,
     activeTag: activeTagName,
@@ -124,11 +125,10 @@ export function WorkspacePage() {
     addWholeDocument,
     togglePage,
     toggleBlock,
-    removeBlock,
+    removeBlocks,
   } = useExtractionChatContext({
     documentId,
     extractionPages: scopedExtractionPages,
-    activeTag: activeTagName,
   })
 
   const {
@@ -148,10 +148,13 @@ export function WorkspacePage() {
   const handleAcceptClick = useCallback(async () => {
     if (!pendingPayload?.length) return
 
+    const deletedBlockIdsToPrune = deletedBlockIds
+
     await acceptExtraction(pendingPayload)
     acceptChanges(pendingPayload)
+    removeBlocks(deletedBlockIdsToPrune)
     setIsEditMode(false)
-  }, [acceptChanges, acceptExtraction, pendingPayload])
+  }, [acceptChanges, acceptExtraction, deletedBlockIds, pendingPayload, removeBlocks])
 
   useReloadDraftAutosave({
     documentId,
@@ -182,9 +185,8 @@ export function WorkspacePage() {
   const handleBlockDelete = useCallback(
     (blockId: string, pageNumber: number | null) => {
       onBlockDelete(blockId, pageNumber)
-      removeBlock(blockId)
     },
-    [onBlockDelete, removeBlock]
+    [onBlockDelete]
   )
 
   const chatContext = useMemo(

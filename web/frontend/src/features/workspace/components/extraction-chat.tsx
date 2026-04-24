@@ -231,7 +231,6 @@ export const ExtractionChat = ({
       })
 
       setWorkflowToPoll(result.workflow_id)
-      onPromptChange('')
     } catch {
       setIsRunningInference?.(false)
       toast.error('Failed to trigger workflow')
@@ -241,7 +240,6 @@ export const ExtractionChat = ({
     documentId,
     hasSendContent,
     isContextCompatible,
-    onPromptChange,
     prompt,
     setIsRunningInference,
     triggerWorkflow,
@@ -256,13 +254,14 @@ export const ExtractionChat = ({
     isCurrentPageSelected,
     currentPage,
   })
+  const isSending = Boolean(isProcessing || triggerWorkflow.isPending)
   const isSendDisabled =
     disabled ||
+    isSending ||
     isWorkflowsLoading ||
     !selectedWorkflow ||
     !hasSendContent ||
-    !isContextCompatible ||
-    triggerWorkflow.isPending
+    !isContextCompatible
 
   return (
     <div className="shadow-soft-top relative z-10 flex flex-col items-center justify-between border-t border-border bg-card">
@@ -349,11 +348,7 @@ export const ExtractionChat = ({
             disabled={isSendDisabled}
             onClick={handleSendMessage}
           >
-            {triggerWorkflow.isPending ? (
-              <Spinner size="sm" />
-            ) : (
-              <SendHorizonal className="h-4 w-4" />
-            )}
+            {isSending ? <Spinner size="sm" /> : <SendHorizonal className="h-4 w-4" />}
           </Button>
         </div>
       </div>

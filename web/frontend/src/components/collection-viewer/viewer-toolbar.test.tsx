@@ -47,7 +47,8 @@ describe('ViewerToolbar', () => {
         pageChatContext={{
           canAddCurrentPageToContext: true,
           isCurrentPageContextDisabled: true,
-          currentPageContextTooltip: 'Prompt context is unavailable while you have unsaved changes.',
+          currentPageContextTooltip:
+            'Prompt context is unavailable while you have unsaved changes.',
           onAddCurrentPageToContext,
         }}
       />

@@ -46,7 +46,8 @@ vi.mock('./prompt-context-editor', () => ({
   ),
 }))
 
-function renderExtractionChat() {
+function renderExtractionChat(props: Partial<React.ComponentProps<typeof ExtractionChat>> = {}) {
+  const onPromptChange = vi.fn()
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: { retry: false },
@@ -54,7 +55,7 @@ function renderExtractionChat() {
     },
   })
 
-  return render(
+  const renderResult = render(
     <QueryClientProvider client={queryClient}>
       <ExtractionChat
         documentId="123"
@@ -62,14 +63,20 @@ function renderExtractionChat() {
         prompt="Summarize this document"
         isWholeDocumentSelected={false}
         selectedPages={[]}
-        onPromptChange={vi.fn()}
+        onPromptChange={onPromptChange}
         registerPromptContextInserter={vi.fn()}
         onAddWholeDocument={vi.fn()}
         onAddCurrentPage={vi.fn()}
         activeTag="summary"
+        {...props}
       />
     </QueryClientProvider>
   )
+
+  return {
+    onPromptChange,
+    ...renderResult,
+  }
 }
 
 describe('ExtractionChat', () => {
@@ -95,5 +102,24 @@ describe('ExtractionChat', () => {
         },
       })
     })
+  })
+
+  it('keeps the prompt draft after a successful send', async () => {
+    const { onPromptChange } = renderExtractionChat()
+
+    fireEvent.click(screen.getByRole('button', { name: /send/i }))
+
+    await waitFor(() => {
+      expect(mutateAsync).toHaveBeenCalledTimes(1)
+    })
+
+    expect(onPromptChange).not.toHaveBeenCalled()
+  })
+
+  it('shows a loading spinner in the send button while processing', () => {
+    renderExtractionChat({ isProcessing: true })
+
+    expect(screen.getByRole('button', { name: /send prompt/i })).toBeDisabled()
+    expect(screen.getByRole('status', { name: /loading/i })).toBeInTheDocument()
   })
 })

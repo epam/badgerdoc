@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { BadgerDocExtractionPage } from '@/shared/api/badgerdoc'
 import {
   appendPromptContextLink,
@@ -14,31 +14,56 @@ import {
 interface UseExtractionChatContextParams {
   documentId: string
   extractionPages?: BadgerDocExtractionPage[]
-  activeTag?: string
+}
+
+export const PROMPT_DRAFT_STORAGE_KEY = 'badgerdoc.prompt'
+export const PROMPT_DRAFT_STORAGE_DEBOUNCE_MS = 400
+
+function readStoredPromptDraft() {
+  if (typeof window === 'undefined') {
+    return ''
+  }
+
+  try {
+    const storedPrompt = window.localStorage.getItem(PROMPT_DRAFT_STORAGE_KEY)
+    return typeof storedPrompt === 'string' ? storedPrompt : ''
+  } catch {
+    return ''
+  }
+}
+
+function writeStoredPromptDraft(prompt: string) {
+  if (typeof window === 'undefined') {
+    return
+  }
+
+  try {
+    window.localStorage.setItem(PROMPT_DRAFT_STORAGE_KEY, prompt)
+  } catch {
+    // Keep the editor usable even when localStorage is unavailable.
+  }
 }
 
 export function useExtractionChatContext({
   documentId,
   extractionPages,
-  activeTag,
 }: UseExtractionChatContextParams) {
   const extractionId = extractionPages?.[0]?.extraction_id ?? null
-  const promptKey = `${documentId}:${extractionId ?? 'none'}:${activeTag ?? 'overview'}`
-  const [promptState, setPromptState] = useState({
-    key: promptKey,
-    prompt: '',
-  })
+  const [prompt, setPrompt] = useState(readStoredPromptDraft)
+  const promptRef = useRef(prompt)
+  promptRef.current = prompt
   const promptContextInserterRef = useRef<PromptContextPathInserter | null>(null)
 
-  if (promptState.key !== promptKey) {
-    setPromptState({
-      key: promptKey,
-      prompt: '',
-    })
-  }
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      writeStoredPromptDraft(prompt)
+    }, PROMPT_DRAFT_STORAGE_DEBOUNCE_MS)
 
-  const setPrompt = useCallback((prompt: string) => {
-    setPromptState((prev) => ({ ...prev, prompt }))
+    return () => window.clearTimeout(timeoutId)
+  }, [prompt])
+
+  useEffect(() => {
+    return () => writeStoredPromptDraft(promptRef.current)
   }, [])
 
   const registerPromptContextInserter = useCallback(
@@ -54,10 +79,7 @@ export function useExtractionChatContext({
       return
     }
 
-    setPromptState((prev) => ({
-      ...prev,
-      prompt: appendPromptContextLink(prev.prompt, path),
-    }))
+    setPrompt((prev) => appendPromptContextLink(prev, path))
   }, [])
 
   const addWholeDocument = useCallback(() => {
@@ -87,14 +109,18 @@ export function useExtractionChatContext({
     [appendContextPath, documentId, extractionId]
   )
 
-  const removeBlock = useCallback((blockId: string) => {
-    setPromptState((prev) => ({
-      ...prev,
-      prompt: removePromptContextLinks(prev.prompt, (token) => token.blockId === blockId),
-    }))
+  const removeBlocks = useCallback((blockIds: string[]) => {
+    if (!blockIds.length) return
+
+    const blockIdsSet = new Set(blockIds)
+
+    setPrompt((prev) =>
+      removePromptContextLinks(prev, (token) =>
+        token.blockId ? blockIdsSet.has(token.blockId) : false
+      )
+    )
   }, [])
 
-  const prompt = promptState.prompt
   const summary = useMemo(() => summarizePromptContext(prompt), [prompt])
 
   return {
@@ -108,7 +134,7 @@ export function useExtractionChatContext({
     addWholeDocument,
     togglePage: addPage,
     toggleBlock,
-    removeBlock,
+    removeBlocks,
     setPrompt,
   }
 }

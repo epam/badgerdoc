@@ -74,12 +74,7 @@ const ExtractionEditor = ({
         onWillDeleteNode: handleWillDeleteNode,
       }),
     ],
-    [
-      handleBlockSelectFromEditor,
-      onBlockDelete,
-      onToggleBlockContext,
-      handleWillDeleteNode,
-    ]
+    [handleBlockSelectFromEditor, onBlockDelete, onToggleBlockContext, handleWillDeleteNode]
   )
 
   const editor = useEditor({
