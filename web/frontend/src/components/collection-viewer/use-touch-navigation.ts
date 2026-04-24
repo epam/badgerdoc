@@ -48,6 +48,8 @@ const clampCenter = (
   return new OpenSeadragon.Point(cx, cy)
 }
 
+const SCROLL_SPEED_MULTIPLIER = 2.5
+
 /**
  * Adds touch scroll / gesture navigation to an OpenSeadragon viewer:
  *
@@ -79,17 +81,28 @@ export const useTouchNavigation = (viewer: OpenSeadragon.Viewer | null): void =>
 
       if (shouldZoom) {
         const normalizedDelta = normalizeDelta(wheelEvent.deltaY, wheelEvent.deltaMode)
-        // Exponential curve: ~100 px per tick → ×1.5 / ×0.667 (~50% zoom step per tick)
-        const factor = Math.pow(2, -normalizedDelta / 171)
+        // Adjust for device pixel ratio to normalize sensitivity across different displays.
+        const dpr = window.devicePixelRatio || 1
+        const adjustedDelta = normalizedDelta / dpr
+
+        // Exponential curve: ~100 normalized px per tick → ×2.0 / ×0.5 (~100% zoom step per tick)
+        const factor = Math.pow(2, -adjustedDelta / 100)
+
         // Zoom centred on the cursor position
         const refPoint = viewer.viewport.pointFromPixel(event.position)
-        viewer.viewport.zoomBy(factor, refPoint, true)
+        viewer.viewport.zoomBy(factor, refPoint, false)
       } else {
         const dx = normalizeDelta(wheelEvent.deltaX, wheelEvent.deltaMode)
         const dy = normalizeDelta(wheelEvent.deltaY, wheelEvent.deltaMode)
         if (dx === 0 && dy === 0) return
 
-        const rawDelta = viewer.viewport.deltaPointsFromPixels(new OpenSeadragon.Point(dx, dy))
+        // Adjust for device pixel ratio to normalize sensitivity across different displays.
+        const dpr = window.devicePixelRatio || 1
+        const speedMultiplier = SCROLL_SPEED_MULTIPLIER / dpr
+
+        const rawDelta = viewer.viewport.deltaPointsFromPixels(
+          new OpenSeadragon.Point(dx * speedMultiplier, dy * speedMultiplier)
+        )
         const currentCenter = viewer.viewport.getCenter()
         const proposed = new OpenSeadragon.Point(
           currentCenter.x + rawDelta.x,
@@ -101,7 +114,7 @@ export const useTouchNavigation = (viewer: OpenSeadragon.Viewer | null): void =>
         const viewportBounds = viewer.viewport.getBounds()
         const clamped = clampCenter(proposed, viewportBounds, worldBounds, viewer)
 
-        viewer.viewport.panTo(clamped, true)
+        viewer.viewport.panTo(clamped, false)
       }
     }
 
