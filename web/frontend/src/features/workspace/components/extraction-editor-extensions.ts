@@ -2,6 +2,9 @@ import StarterKit from '@tiptap/starter-kit'
 import Document from '@tiptap/extension-document'
 import Paragraph from '@tiptap/extension-paragraph'
 import { Table, TableCell, TableHeader, TableRow } from '@tiptap/extension-table'
+import BulletList from '@tiptap/extension-bullet-list'
+import OrderedList from '@tiptap/extension-ordered-list'
+import ListItem from '@tiptap/extension-list-item'
 
 const ExtractionDocument = Document.extend({
   content: 'extractionBlock*',
@@ -47,9 +50,38 @@ const TableKitStylingConfig = {
   },
 }
 
+export const ListKitStylingConfig = {
+  bulletList: {
+    HTMLAttributes: {
+      class: 'list-disc ml-6 space-y-1',
+    },
+  },
+
+  orderedList: {
+    HTMLAttributes: {
+      class: 'list-decimal ml-6 space-y-1',
+    },
+  },
+
+  listItem: {
+    HTMLAttributes: {
+      class: 'leading-relaxed',
+    },
+  },
+}
+
 export function createExtractionTableExtensions() {
   return [
-    StarterKit.configure({ document: false, paragraph: false }),
+    StarterKit.configure({
+      document: false,
+      paragraph: false,
+      bulletList: false,
+      orderedList: false,
+      listItem: false,
+    }),
+    BulletList.configure(ListKitStylingConfig.bulletList),
+    OrderedList.configure(ListKitStylingConfig.orderedList),
+    ListItem.configure(ListKitStylingConfig.listItem),
     ExtractionDocument,
     OcrParagraph,
     Table.configure(TableKitStylingConfig.table),
