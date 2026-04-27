@@ -53,6 +53,14 @@ export function useDocumentPages(documentId: string) {
     queryKey: workspaceKeys.pages(documentId),
     queryFn: (): Promise<string[]> => adapter.documents.getPagesById(documentId),
     enabled: !!documentId,
+        //if responce is [], let's refetch after 10s
+    // TODO: remove this heuristic once backend provides document processing status
+    // currently using pages.length === 0 to detect "processing"
+    refetchInterval: (query) => {
+      const data = query.state.data
+      return data?.length === 0 ? 10000 : false
+    },
+
   })
 }
 interface UpdateDocumentMeta {

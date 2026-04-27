@@ -6,6 +6,7 @@ import { useDocumentPages } from '@/shared/api/hooks/use-document-workspace'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useExtractionHighlights } from '@/components/collection-viewer/use-extraction-highlights.ts'
 import { useCurrentPageSync } from '@/components/collection-viewer/use-current-page-sync'
+import { ViewerProcessingState } from '@/components/collection-viewer/viewer-processing-state'
 import { Dispatch, SetStateAction, useCallback, useEffect, useState } from 'react'
 import { cn, extractFilenameFromUrl } from '@/helpers/utils'
 import { badgerDocService } from '@/shared/api/badgerdoc/service'
@@ -47,9 +48,12 @@ export function CollectionViewer({
   onHighlightCreate,
   createdHighlightIds,
 }: CollectionViewerProps) {
-  const { data: pages, isLoading } = useDocumentPages(documentId)
+  const { data: pages, isLoading: isLoading, refetch } = useDocumentPages(documentId)
+  const isProcessing = !isLoading && pages?.length === 0
+  const isReady = !isLoading && (pages?.length ?? 0) > 0
+  const { containerRef, viewer } = useOsdViewer(isReady ? pages : undefined)
+
   const [isDownloading, setIsDownloading] = useState(false)
-  const { containerRef, viewer } = useOsdViewer(pages)
   useExtractionHighlights({
     viewer,
     overlayItems: highlights,
@@ -121,6 +125,14 @@ export function CollectionViewer({
     },
     [viewer, isEditMode]
   )
+
+  if (isProcessing) {
+    return (
+      <section className="flex h-full w-full flex-col">
+        <ViewerProcessingState onRefresh={() => refetch()} />
+      </section>
+    )
+  }
 
   return (
     <section className="flex h-full w-full flex-col">
