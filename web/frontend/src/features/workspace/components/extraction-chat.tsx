@@ -1,28 +1,118 @@
-import { useCallback, useMemo, useState, ChangeEvent, useEffect } from 'react'
-import { ChevronDown, SendHorizonal, Layers, File } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { Check, ChevronDown, File, Layers, SendHorizonal } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/helpers/utils'
-import { toast } from 'sonner'
+import {
+  summarizePromptContext,
+  type PromptContextPathInserterRegistration,
+} from '@/features/workspace/helpers/extraction-chat-context'
+import { extractionPagesKeys } from '@/shared/api/hooks/use-badgerdoc-extraction-pages'
 import {
   useChatWorkflows,
   useTriggerWorkflow,
   useWorkflowStatus,
 } from '@/shared/api/hooks/use-workflows'
-import { WorkflowScope } from '@/shared/api/adapters/types'
-import { useQueryClient } from '@tanstack/react-query'
-import { extractionPagesKeys } from '@/shared/api/hooks/use-badgerdoc-extraction-pages'
 import { Spinner } from '@/components/ui/spinner'
+import { toast } from 'sonner'
+import { PromptContextEditor } from './prompt-context-editor'
+
+function buildWorkflowTriggerPayload({
+  documentId,
+  prompt,
+}: {
+  documentId: string
+  prompt: string
+}) {
+  return {
+    document_id: Number(documentId),
+    llm_params: prompt,
+  } satisfies Record<string, unknown>
+}
+
+function getDocumentContextTooltip(
+  canUseDocumentContext: boolean,
+  isWholeDocumentSelected: boolean
+) {
+  if (!canUseDocumentContext) {
+    return 'Whole document is not available for this workflow'
+  }
+
+  return isWholeDocumentSelected ? 'Add another whole document reference' : 'Add whole document'
+}
+
+function getCurrentPageTooltip({
+  canUsePageContext,
+  isCurrentPageSelected,
+  currentPage,
+}: {
+  canUsePageContext: boolean
+  isCurrentPageSelected: boolean
+  currentPage: number
+}) {
+  if (!canUsePageContext) {
+    return 'Current page context is not available for this workflow'
+  }
+
+  return isCurrentPageSelected ? `Add another Page ${currentPage} reference` : 'Add current page'
+}
+
+function ContextActionButton({
+  tooltip,
+  disabled,
+  variant,
+  onClick,
+  icon,
+  children,
+}: {
+  tooltip: string
+  disabled: boolean
+  variant: 'secondary' | 'outline'
+  onClick: () => void
+  icon: ReactNode
+  children: ReactNode
+}) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span className="inline-flex">
+          <Button
+            type="button"
+            variant={variant}
+            size="xs"
+            onMouseDown={(event) => event.preventDefault()}
+            onClick={onClick}
+            disabled={disabled}
+          >
+            {icon}
+            {children}
+          </Button>
+        </span>
+      </TooltipTrigger>
+      <TooltipContent side="top">{tooltip}</TooltipContent>
+    </Tooltip>
+  )
+}
 
 interface ExtractionChatProps {
   documentId: string
   currentPage: number
+  canAddWholeDocument?: boolean
+  canAddCurrentPage?: boolean
+  prompt: string
+  isWholeDocumentSelected: boolean
+  selectedPages: number[]
+  onPromptChange: (prompt: string) => void
+  registerPromptContextInserter: PromptContextPathInserterRegistration
+  onAddWholeDocument: () => void
+  onAddCurrentPage: () => void
   disabled?: boolean
   isProcessing?: boolean
   setIsRunningInference?: (isProcessing: boolean) => void
@@ -32,6 +122,15 @@ interface ExtractionChatProps {
 export const ExtractionChat = ({
   documentId,
   currentPage,
+  canAddWholeDocument = false,
+  canAddCurrentPage = false,
+  prompt,
+  isWholeDocumentSelected,
+  selectedPages,
+  onPromptChange,
+  registerPromptContextInserter,
+  onAddWholeDocument,
+  onAddCurrentPage,
   disabled,
   isProcessing,
   setIsRunningInference,
@@ -42,132 +141,171 @@ export const ExtractionChat = ({
   const queryClient = useQueryClient()
 
   const [selectedWorkflowId, setSelectedWorkflowId] = useState<number | null>(null)
-  const [currentScope, setCurrentScope] = useState<WorkflowScope | null>(null)
-  const [prompt, setPrompt] = useState<string>('')
   const [workflowToPoll, setWorkflowToPoll] = useState<string | null>(null)
+  const [hasSuccessFeedback, setHasSuccessFeedback] = useState(false)
 
   const selectedWorkflow = useMemo(() => {
     if (!workflows?.length) return null
     if (selectedWorkflowId) {
-      const persisted = workflows.find((w) => w.id === selectedWorkflowId)
+      const persisted = workflows.find((workflow) => workflow.id === selectedWorkflowId)
       if (persisted) return persisted
     }
-    const matchingWorkflow = activeTag ? workflows.find((w) => w.tags?.includes(activeTag)) : null
+
+    const matchingWorkflow = activeTag
+      ? workflows.find((workflow) => workflow.tags?.includes(activeTag))
+      : null
+
     return matchingWorkflow || workflows[0]
   }, [workflows, selectedWorkflowId, activeTag])
 
   const availableScopes = useMemo(() => selectedWorkflow?.extractionScope || [], [selectedWorkflow])
+  const canUseDocumentContext = availableScopes.includes('document')
+  const canUsePageContext = availableScopes.includes('page')
+  const contextSummary = useMemo(() => summarizePromptContext(prompt), [prompt])
+  const hasContext = contextSummary.hasContext
+  const hasPromptText = prompt.trim().length > 0
+  const hasSendContent = hasPromptText || hasContext
+  const isCurrentPageSelected = selectedPages.includes(currentPage)
+  // When no context chips are present the prompt is plain text, which is always valid.
+  const isContextCompatible = useMemo(() => {
+    if (!hasContext) return true
+    if (contextSummary.primaryScope === 'document') {
+      return availableScopes.includes('document')
+    }
+
+    return availableScopes.includes('page')
+  }, [availableScopes, contextSummary.primaryScope, hasContext])
 
   useEffect(() => {
+    // Defer to next frame to avoid setState during React's render phase
+    // when selectedWorkflow is derived from workflows list on first load.
     const frame = requestAnimationFrame(() => {
-      // Sync selectedWorkflowId
       if (selectedWorkflow && selectedWorkflow.id !== selectedWorkflowId) {
         setSelectedWorkflowId(selectedWorkflow.id)
       }
-
-      // Sync currentScope
-      if (currentScope && !availableScopes.includes(currentScope)) {
-        setCurrentScope(availableScopes[0] ?? null)
-      } else if (!currentScope && availableScopes.length > 0) {
-        setCurrentScope(availableScopes[0])
-      }
     })
+
     return () => cancelAnimationFrame(frame)
-  }, [selectedWorkflow, selectedWorkflowId, availableScopes, currentScope])
+  }, [selectedWorkflow, selectedWorkflowId])
 
   const { data: workflowStatus } = useWorkflowStatus(workflowToPoll)
 
   useEffect(() => {
+    if (!hasSuccessFeedback) {
+      return
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setHasSuccessFeedback(false)
+    }, 900)
+
+    return () => window.clearTimeout(timeoutId)
+  }, [hasSuccessFeedback])
+
+  useEffect(() => {
+    // Defer state cleanup and side effects (toast, cache invalidation) to
+    // avoid triggering them synchronously inside the polling render cycle.
     if (workflowStatus?.status === 'Finished') {
       const frame = requestAnimationFrame(() => {
         setWorkflowToPoll(null)
+        onPromptChange('')
+        setHasSuccessFeedback(true)
         setIsRunningInference?.(false)
         toast.success('Extraction updated')
         void queryClient.invalidateQueries({
           queryKey: extractionPagesKeys.documentWithTags(documentId, activeTag),
         })
       })
+
       return () => cancelAnimationFrame(frame)
-    } else if (workflowStatus?.status === 'Failed') {
+    }
+
+    if (workflowStatus?.status === 'Failed') {
       const frame = requestAnimationFrame(() => {
         setWorkflowToPoll(null)
         setIsRunningInference?.(false)
         toast.error('Extraction failed')
       })
+
       return () => cancelAnimationFrame(frame)
     }
-  }, [workflowStatus, setIsRunningInference, queryClient, documentId, activeTag])
-
-  const handlePromptChange = useCallback((e: ChangeEvent<HTMLTextAreaElement>) => {
-    setPrompt(e.target.value)
-  }, [])
+  }, [workflowStatus, onPromptChange, setIsRunningInference, queryClient, documentId, activeTag])
 
   const handleSendMessage = useCallback(async () => {
-    if (!selectedWorkflow || !currentScope) return
+    if (!selectedWorkflow || !hasSendContent || !isContextCompatible) return
 
     setIsRunningInference?.(true)
+
     try {
-      const payload: Record<string, unknown> = {
-        document_id: Number(documentId),
-        prompt: selectedWorkflow.supportPrompts ? prompt : undefined,
-      }
-
-      if (currentScope === 'page') {
-        payload.scope = 'page'
-        payload.page_number = currentPage
-      } else {
-        payload.scope = 'document'
-      }
-
       const result = await triggerWorkflow.mutateAsync({
         id: selectedWorkflow.id,
-        payload,
+        payload: buildWorkflowTriggerPayload({
+          documentId,
+          prompt,
+        }),
       })
 
       setWorkflowToPoll(result.workflow_id)
-      setPrompt('')
-      setIsRunningInference?.(false)
     } catch {
       setIsRunningInference?.(false)
       toast.error('Failed to trigger workflow')
     }
   }, [
     selectedWorkflow,
-    currentScope,
     documentId,
+    hasSendContent,
+    isContextCompatible,
     prompt,
-    currentPage,
-    triggerWorkflow,
     setIsRunningInference,
+    triggerWorkflow,
   ])
 
-  const ScopeIcon = useMemo(() => {
-    if (currentScope === 'page') return File
-    return Layers
-  }, [currentScope])
+  const documentContextTooltip = getDocumentContextTooltip(
+    canUseDocumentContext,
+    isWholeDocumentSelected
+  )
+  const currentPageTooltip = getCurrentPageTooltip({
+    canUsePageContext,
+    isCurrentPageSelected,
+    currentPage,
+  })
+  const isSending = Boolean(isProcessing || triggerWorkflow.isPending || workflowToPoll)
+  const isSendDisabled =
+    disabled ||
+    isSending ||
+    hasSuccessFeedback ||
+    isWorkflowsLoading ||
+    !selectedWorkflow ||
+    !hasSendContent ||
+    !isContextCompatible
 
   return (
-    <div
-      className={cn(
-        'flex flex-col items-center justify-between bg-card focus-within:border-t-2 focus-within:border-blue-500'
-      )}
-    >
-      <Textarea
-        className="max-h-85 min-h-16 w-full max-w-full resize-none overflow-y-auto border-0 bg-transparent px-4 pt-4 pb-2 whitespace-pre-wrap focus-visible:ring-0 focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-60"
-        placeholder="Ask for changes..."
-        disabled={disabled || isProcessing || isWorkflowsLoading}
-        value={prompt}
-        onChange={handlePromptChange}
-      />
-      {!selectedWorkflow?.supportPrompts && (
-        <div className="text-destructive text-sm pt-2 px-2">
-          This model does not support prompts. Your input will be ignored.
+    <div className="shadow-soft-top relative z-10 flex flex-col items-center justify-between border-t border-border bg-card">
+      <div className="flex w-full flex-col gap-2 px-3 pt-3">
+        <div className="shadow-subtle overflow-hidden rounded-2xl border border-border bg-background">
+          <PromptContextEditor
+            placeholder="Ask for changes..."
+            disabled={disabled || isProcessing || isWorkflowsLoading}
+            value={prompt}
+            onChange={onPromptChange}
+            canSubmit={!isSendDisabled}
+            onSubmitShortcut={handleSendMessage}
+            onRegisterContextInserter={registerPromptContextInserter}
+          />
         </div>
-      )}
+        {selectedWorkflow && !selectedWorkflow.supportPrompts && (
+          <div className="px-1 text-xs text-muted-foreground">
+            Input will be ignored for this model
+          </div>
+        )}
+      </div>
       <div
-        className={cn('flex w-full items-center justify-between gap-2 bg-card px-2 py-2', {
-          'pointer-events-none opacity-60': disabled || isWorkflowsLoading,
-        })}
+        className={cn(
+          'mt-3 flex w-full items-center justify-between gap-2 border-t border-border/70 bg-card px-3 py-3',
+          {
+            'pointer-events-none opacity-60': disabled || isWorkflowsLoading,
+          }
+        )}
         aria-disabled={disabled || isWorkflowsLoading}
       >
         <div className="flex w-full items-center justify-between gap-2">
@@ -190,60 +328,55 @@ export const ExtractionChat = ({
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild disabled={disabled || isWorkflowsLoading}>
-              <Button
-                variant={currentScope ? 'secondary' : 'outline'}
-                size="xs"
-                title="Select scope"
+          <div className="flex items-center gap-2">
+            {canAddWholeDocument && (
+              <ContextActionButton
+                tooltip={documentContextTooltip}
+                variant={isWholeDocumentSelected ? 'secondary' : 'outline'}
+                onClick={onAddWholeDocument}
+                disabled={disabled || isProcessing || isWorkflowsLoading || !canUseDocumentContext}
+                icon={<Layers className="mr-1 h-3 w-3" />}
               >
-                {currentScope && <ScopeIcon className="mr-1 h-3 w-3" />}
-                {!currentScope
-                  ? 'Select Scope'
-                  : currentScope === 'page'
-                    ? `Page ${currentPage}`
-                    : 'Whole Document'}
-                <ChevronDown className="h-3 w-3 opacity-50" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="min-w-40">
-              {availableScopes.includes('document') && (
-                <DropdownMenuItem
-                  onClick={() => setCurrentScope('document')}
-                  className="flex items-center gap-2 text-xs"
-                >
-                  <Layers className="h-3 w-3" />
-                  Whole document
-                </DropdownMenuItem>
-              )}
-              {availableScopes.includes('page') && (
-                <DropdownMenuItem
-                  onClick={() => setCurrentScope('page')}
-                  className="flex items-center gap-2 text-xs"
-                >
-                  <File className="h-3 w-3" />
-                  Current Page
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
+                Add whole document
+              </ContextActionButton>
+            )}
 
-          <div className="flex-1"></div>
+            {canAddCurrentPage && (
+              <ContextActionButton
+                tooltip={currentPageTooltip}
+                variant={isCurrentPageSelected ? 'secondary' : 'outline'}
+                onClick={onAddCurrentPage}
+                disabled={disabled || isProcessing || isWorkflowsLoading || !canUsePageContext}
+                icon={<File className="mr-1 h-3 w-3" />}
+              >
+                Add current page
+              </ContextActionButton>
+            )}
+          </div>
+
+          <div className="flex-1" />
 
           <Button
             size="xs"
             type="button"
-            className={cn('size-8 rounded-full', isProcessing ? 'bg-blue-500 text-white' : '')}
-            disabled={
-              disabled ||
-              isWorkflowsLoading ||
-              !selectedWorkflow ||
-              !currentScope ||
-              triggerWorkflow.isPending
-            }
+            className={cn(
+              'size-8 rounded-full transition-all duration-200',
+              hasSuccessFeedback && 'scale-105 bg-emerald-500 text-white ring-4 ring-emerald-100',
+              !hasSuccessFeedback && isSending && 'bg-blue-500 text-white'
+            )}
+            aria-label="Send prompt"
+            disabled={isSendDisabled}
             onClick={handleSendMessage}
           >
-            {triggerWorkflow.isPending ? (
+            {hasSuccessFeedback ? (
+              <span
+                role="status"
+                aria-label="Extraction updated"
+                className="animate-in zoom-in-50 fade-in-0 duration-300"
+              >
+                <Check className="h-4 w-4" />
+              </span>
+            ) : isSending ? (
               <Spinner size="sm" />
             ) : (
               <SendHorizonal className="h-4 w-4" />

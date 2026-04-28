@@ -5,6 +5,8 @@ import { Table, TableCell, TableHeader, TableRow } from '@tiptap/extension-table
 import BulletList from '@tiptap/extension-bullet-list'
 import OrderedList from '@tiptap/extension-ordered-list'
 import ListItem from '@tiptap/extension-list-item'
+import Subscript from '@tiptap/extension-subscript'
+import Superscript from '@tiptap/extension-superscript'
 
 const ExtractionDocument = Document.extend({
   content: 'extractionBlock*',
@@ -88,5 +90,7 @@ export function createExtractionTableExtensions() {
     TableRow.configure(TableKitStylingConfig.tableRow),
     TableHeader.configure(TableKitStylingConfig.tableHeader),
     TableCell.configure(TableKitStylingConfig.tableCell),
+    Subscript,
+    Superscript
   ]
 }

@@ -19,6 +19,7 @@ import { useTasksQueue } from '@/shared/api/hooks/use-tasks'
 import { useExtractionState } from '@/features/workspace/hooks/use-extraction-state'
 import { useExtractionApi } from '@/features/workspace/hooks/use-extraction-api'
 import { useReloadDraftAutosave } from '@/features/workspace/hooks/use-reload-draft-autosave'
+import { useExtractionChatContext } from '@/features/workspace/hooks/use-extraction-chat-context'
 import { WorkspaceLoadingSkeleton } from '@/features/workspace/components/workspace-loading-skeleton.tsx'
 import {
   TaskFiltersSearch,
@@ -109,9 +110,25 @@ export function WorkspacePage() {
     handleBlockBoundingBoxUpdate,
     handleBlockCreate,
     createdBlockIds,
+    deletedBlockIds,
   } = useExtractionState({
     extractionPages,
     activeTag: activeTagName,
+  })
+  const {
+    prompt,
+    isWholeDocumentSelected,
+    selectedPages,
+    selectedBlocks,
+    setPrompt,
+    registerPromptContextInserter,
+    addWholeDocument,
+    togglePage,
+    toggleBlock,
+    removeBlocks,
+  } = useExtractionChatContext({
+    documentId,
+    extractionPages: scopedExtractionPages,
   })
 
   const {
@@ -131,10 +148,13 @@ export function WorkspacePage() {
   const handleAcceptClick = useCallback(async () => {
     if (!pendingPayload?.length) return
 
+    const deletedBlockIdsToPrune = deletedBlockIds
+
     await acceptExtraction(pendingPayload)
     acceptChanges(pendingPayload)
+    removeBlocks(deletedBlockIdsToPrune)
     setIsEditMode(false)
-  }, [acceptChanges, acceptExtraction, pendingPayload])
+  }, [acceptChanges, acceptExtraction, deletedBlockIds, pendingPayload, removeBlocks])
 
   useReloadDraftAutosave({
     documentId,
@@ -149,6 +169,74 @@ export function WorkspacePage() {
     setActiveBlockId(null)
     setIsEditMode(false)
   }, [revertChanges, setActiveBlockId])
+
+  const handleToggleBlockContext = useCallback(
+    (blockId: string, pageNumber: number | null) => {
+      if (pageNumber === null) return
+      toggleBlock({ blockId, pageNumber })
+    },
+    [toggleBlock]
+  )
+
+  const handleAddCurrentPage = useCallback(() => {
+    togglePage(currentPage)
+  }, [togglePage, currentPage])
+
+  const handleBlockDelete = useCallback(
+    (blockId: string, pageNumber: number | null) => {
+      onBlockDelete(blockId, pageNumber)
+    },
+    [onBlockDelete]
+  )
+
+  const chatContext = useMemo(
+    () => ({
+      prompt,
+      isWholeDocumentSelected,
+      selectedPages,
+      selectedBlocks,
+      onPromptChange: setPrompt,
+      registerPromptContextInserter,
+      onAddWholeDocument: addWholeDocument,
+      onAddCurrentPage: handleAddCurrentPage,
+      onToggleBlock: handleToggleBlockContext,
+    }),
+    [
+      prompt,
+      isWholeDocumentSelected,
+      selectedPages,
+      selectedBlocks,
+      setPrompt,
+      registerPromptContextInserter,
+      addWholeDocument,
+      handleAddCurrentPage,
+      handleToggleBlockContext,
+    ]
+  )
+
+  const pageChatContext = useMemo(
+    () => ({
+      canAddCurrentPageToContext: !isOverviewTab,
+      isCurrentPageInContext: selectedPages.includes(currentPage),
+      isCurrentPageContextDisabled: extractionLoading || hasChanges || isApiPending,
+      currentPageContextTooltip:
+        extractionLoading || hasChanges || isApiPending
+          ? 'Prompt context is unavailable while you have unsaved changes.'
+          : selectedPages.includes(currentPage)
+            ? `Add another Page ${currentPage} reference`
+            : undefined,
+      onAddCurrentPageToContext: handleAddCurrentPage,
+    }),
+    [
+      isOverviewTab,
+      selectedPages,
+      currentPage,
+      extractionLoading,
+      hasChanges,
+      isApiPending,
+      handleAddCurrentPage,
+    ]
+  )
 
   const handleTabChange = useCallback(
     (tab: string) => {
@@ -263,13 +351,14 @@ export function WorkspacePage() {
         onSaveExtraction={handleSaveExtraction}
         onRevertChanges={handleRevertClick}
         onAcceptChanges={handleAcceptClick}
-        onBlockDelete={onBlockDelete}
+        onBlockDelete={handleBlockDelete}
         isSaving={isApiPending}
         activeBlockId={activeBlockId}
         onBlockSelect={setActiveBlockId}
         onPageNavigate={setCurrentPage}
         currentPage={currentPage}
         documentId={documentId}
+        chatContext={chatContext}
       />
     )
   }
@@ -337,6 +426,7 @@ export function WorkspacePage() {
               onHighlightUpdate={handleBlockBoundingBoxUpdate}
               onHighlightCreate={handleBlockCreate}
               createdHighlightIds={createdBlockIds}
+              pageChatContext={pageChatContext}
             />
           }
           right={

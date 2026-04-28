@@ -22,7 +22,7 @@ class Outcome(TypedDict):
 async def dots_ocr_activity(
     params: trigger.DocumentTriggerParams,
 ) -> Outcome:
-    document_to_ocr = params.document_to_ocr
+    document_to_ocr = params.original_document
     if not document_to_ocr.file:
         raise ApplicationError(
             f"document_to_ocr with id {document_to_ocr.id} does not have file url"
@@ -34,7 +34,7 @@ async def dots_ocr_activity(
             "Expected page_number to be provided, received None"
         )
 
-    extraction_obj = params.new_extraction
+    extraction_obj = params.target_extraction
     current_tags = extraction_obj.tags or []
 
     if "dots-ocr" not in current_tags:
@@ -43,7 +43,7 @@ async def dots_ocr_activity(
         )
         await extraction.badgerdoc_update_extraction(
             extraction.UpdateExtractionRequest(
-                extraction_id=params.new_extraction.id,
+                extraction_id=params.target_extraction.id,
                 tags=current_tags + ["dots-ocr"],
             )
         )
@@ -80,7 +80,7 @@ async def convert_to_hocr(
             "Expected page_number to be provided, received None"
         )
 
-    document_to_ocr = params.document_to_ocr
+    document_to_ocr = params.original_document
     image_width = (document_to_ocr.metadata or {}).get("width")
     image_height = (document_to_ocr.metadata or {}).get("height")
     if not image_width or not image_height:

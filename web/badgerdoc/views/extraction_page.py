@@ -446,11 +446,6 @@ def get_latest_extraction_pages(
             document=doc
         )
 
-        status_value = request.GET.get(
-            "status", extraction.ExtractionStatus.COMPLETED
-        )
-        extraction_queryset = extraction_queryset.filter(status=status_value)
-
         filterset = ExtractionFilter(request.GET, queryset=extraction_queryset)
         filtered_extractions = filterset.qs
 

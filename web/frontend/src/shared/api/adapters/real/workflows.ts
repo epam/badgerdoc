@@ -27,7 +27,7 @@ export const realWorkflowsAdapter: WorkflowsAdapter = {
 
   trigger: async (workflowId, payload: WorkflowTriggerRequest) => {
     const response = await badgerDocClient.post<WorkflowTriggerResponse>(
-      `/workflow-registry/trigger/${workflowId}/`,
+      `/workflow-registry/manual-trigger/${workflowId}/`,
       payload
     )
     return response.data

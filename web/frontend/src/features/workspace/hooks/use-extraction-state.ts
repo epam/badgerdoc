@@ -421,5 +421,6 @@ export function useExtractionState({ extractionPages, activeTag }: UseExtraction
     discardInvalidBlocks,
     invalidBlockIds,
     createdBlockIds,
+    deletedBlockIds,
   }
 }
