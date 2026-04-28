@@ -113,11 +113,63 @@ describe('extraction chat context helpers', () => {
     ])
   })
 
-  it('accepts document-page paths with or without a trailing slash', () => {
-    const withSlash = parsePromptContextLinks('{{/badgerdoc/document/123/page/1/}}')
-    const withoutSlash = parsePromptContextLinks('{{/badgerdoc/document/123/page/1}}')
-
-    expect(withSlash).toMatchObject([{ kind: 'document-page', pageNumber: 1 }])
-    expect(withoutSlash).toMatchObject([{ kind: 'document-page', pageNumber: 1 }])
-  })
+  it.each([
+    {
+      prompt: '{{/badgerdoc/document/123}}',
+      path: '/badgerdoc/document/123',
+      token: { kind: 'document', documentId: 123 },
+    },
+    {
+      prompt: '{{/badgerdoc/document/123/}}',
+      path: '/badgerdoc/document/123/',
+      token: { kind: 'document', documentId: 123 },
+    },
+    {
+      prompt: '{{/badgerdoc/document/123/page/1}}',
+      path: '/badgerdoc/document/123/page/1',
+      token: { kind: 'document-page', documentId: 123, pageNumber: 1 },
+    },
+    {
+      prompt: '{{/badgerdoc/document/123/page/1/}}',
+      path: '/badgerdoc/document/123/page/1/',
+      token: { kind: 'document-page', documentId: 123, pageNumber: 1 },
+    },
+    {
+      prompt: '{{/badgerdoc/document/123/extraction/456/page/1}}',
+      path: '/badgerdoc/document/123/extraction/456/page/1',
+      token: { kind: 'extraction-page', documentId: 123, extractionId: 456, pageNumber: 1 },
+    },
+    {
+      prompt: '{{/badgerdoc/document/123/extraction/456/page/1/}}',
+      path: '/badgerdoc/document/123/extraction/456/page/1/',
+      token: { kind: 'extraction-page', documentId: 123, extractionId: 456, pageNumber: 1 },
+    },
+    {
+      prompt: "{{/badgerdoc/document/123/extraction/456/page/1/(//div[@id='block_1_1'])}}",
+      path: "/badgerdoc/document/123/extraction/456/page/1/(//div[@id='block_1_1'])",
+      token: {
+        kind: 'block',
+        documentId: 123,
+        extractionId: 456,
+        pageNumber: 1,
+        blockId: 'block_1_1',
+      },
+    },
+    {
+      prompt: "{{/badgerdoc/document/123/extraction/456/page/1/(//div[@id='block_1_1'])/}}",
+      path: "/badgerdoc/document/123/extraction/456/page/1/(//div[@id='block_1_1'])/",
+      token: {
+        kind: 'block',
+        documentId: 123,
+        extractionId: 456,
+        pageNumber: 1,
+        blockId: 'block_1_1',
+      },
+    },
+  ])(
+    'accepts supported context paths with and without a trailing slash: $prompt',
+    ({ prompt, path, token }) => {
+      expect(parsePromptContextLinks(prompt)).toMatchObject([{ raw: prompt, path, ...token }])
+    }
+  )
 })
