@@ -1,4 +1,5 @@
 import os
+from dataclasses import dataclass
 from uuid import uuid4
 
 from django.contrib.auth.models import User
@@ -10,6 +11,12 @@ from badgerdoc.models.base import TimestampedModel
 
 def document_upload_path(_instance, filename):
     return f"documents/{uuid4().hex}/{filename}"
+
+
+@dataclass
+class Page:
+    page_num: int
+    document: "Document"
 
 
 class Document(TimestampedModel):

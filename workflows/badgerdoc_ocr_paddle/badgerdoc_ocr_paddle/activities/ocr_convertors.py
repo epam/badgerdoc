@@ -6,6 +6,7 @@ from temporalio import activity
 
 from badgerdoc_common import trigger
 from badgerdoc_common.hocr import BadgerdocHOCRPageResult
+from badgerdoc_common.trigger import BadgerdocDocumentPage
 
 _BLOCK_RE = re.compile(
     r"<\|ref\|>(.*?)<\|/ref\|>"
@@ -115,6 +116,7 @@ def _blocks_to_hocr(  # pylint: disable=too-many-locals
 @activity.defn
 async def paddle_ocr_results_to_hocr(  # pylint: disable=too-many-locals
     params: trigger.DocumentTriggerParams,
+    page: BadgerdocDocumentPage,
     info: dict,
 ) -> BadgerdocHOCRPageResult:
     # Import storage inside function to avoid startup validation issues
@@ -124,11 +126,7 @@ async def paddle_ocr_results_to_hocr(  # pylint: disable=too-many-locals
 
     page_info = info.get("metadata") or {}
 
-    page_number = params.badgerdoc_trigger_params.get("page_number")
-    if page_number is None:
-        raise ValueError(
-            "page_number is required in badgerdoc_trigger_params for hOCR conversion"
-        )
+    page_number = page.page_num
 
     storage_params = storage.StorageWorkflowParams(
         workflow_package="badgerdoc_ocr_paddle",
@@ -137,7 +135,7 @@ async def paddle_ocr_results_to_hocr(  # pylint: disable=too-many-locals
     )
     middle_json_buffer = BytesIO()
     await storage.badgerdoc_download_perm(
-        middle_json_buffer, storage_params, "middle.json"
+        middle_json_buffer, storage_params, f"page_{page_number}_middle.json"
     )
     middle_json_buffer.seek(0)
     middle_json = json.load(middle_json_buffer)

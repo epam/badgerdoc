@@ -69,7 +69,7 @@
       "document_types": [],
       "temporal_workflow_type": "BadgerdocOCRDotsOCRWorkflow",
       "temporal_queue": "badgerdoc_ocr_dotsocr",
-      "is_active": true,
+      "is_active": false,
       "trigger": "manual",
       "name": "Dots OCR",
       "tags": ["ai-inference", "dots-ocr"],
@@ -95,7 +95,7 @@
       "extraction_scope": ["page"]
     }
   },
-    {
+  {
     "model": "badgerdoc.workflowregistry",
     "pk": 15,
     "fields": {
@@ -111,9 +111,7 @@
       "trigger": "manual",
       "name": "Paddle OCR",
       "tags": ["ai-inference", "paddle-ocr"],
-      "extraction_scope": [
-        "page"
-      ]
+      "extraction_scope": ["page"]
     }
   },
       {

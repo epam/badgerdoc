@@ -1,8 +1,10 @@
 import json
 import logging
 from dataclasses import asdict, dataclass, field
-from typing import Any, BinaryIO, cast
+from io import BytesIO
+from typing import Any, BinaryIO
 
+import aiohttp
 from temporalio import activity
 
 from badgerdoc_common import badgerdoc_http
@@ -41,7 +43,7 @@ class ListDocumentsResponse:
 def _parse_document(document_json: dict[str, Any]) -> BadgerdocDocument:
     return BadgerdocDocument(
         id=document_json.get("id"),
-        name=str(document_json.get("name")),
+        name=document_json.get("name"),
         file=document_json.get("file"),
         extension=(
             str(document_json.get("extension"))
@@ -57,6 +59,23 @@ def _parse_document(document_json: dict[str, Any]) -> BadgerdocDocument:
     )
 
 
+def _document_to_form(document: BadgerdocDocument) -> aiohttp.FormData:
+    payload: dict[str, Any] = {
+        key: value
+        for key, value in asdict(document).items()
+        if value is not None
+    }
+
+    form = aiohttp.FormData()
+    for key, value in payload.items():
+        if isinstance(value, (dict, list)):
+            form.add_field(key, json.dumps(value))
+        elif not isinstance(value, (BytesIO)):
+            form.add_field(key, str(value))
+
+    return form
+
+
 @activity.defn
 async def badgerdoc_create_document(
     document: BadgerdocDocument,
@@ -65,13 +84,9 @@ async def badgerdoc_create_document(
     logger.info("Creating document record: %s", document.name)
 
     try:
-        payload: dict[str, Any] = {
-            key: value
-            for key, value in asdict(document).items()
-            if value is not None
-        }
-        document_data = await badgerdoc_http.badgerdoc_post(
-            "/badgerdoc/document/", payload
+        form = _document_to_form(document)
+        document_data = await badgerdoc_http.badgerdoc_form_post(
+            "/badgerdoc/document/", form
         )
 
         logger.info(
@@ -80,7 +95,7 @@ async def badgerdoc_create_document(
         if not document_data.get("id"):
             raise ValueError("Document creation succeeded but no id returned")
 
-        return BadgerdocDocument(**cast(dict, document_data))
+        return _parse_document(document_data)
     except Exception as e:
         logger.warning(
             "Failed to create document %s: %s", document.name, str(e)
@@ -96,18 +111,18 @@ async def badgerdoc_list_documents(
     page = 1
     has_next = True
 
+    payload: dict[str, str] = {}
+    if filters.tags is not None:
+        payload["tags"] = ",".join(filters.tags)
+
+    if filters.parent_document_id is not None:
+        payload["parent_document_id"] = str(filters.parent_document_id)
+
+    if filters.metadata_field is not None:
+        payload["metadata"] = json.dumps(filters.metadata_field)
+
     while has_next:
-        payload: dict[str, str] = {
-            "page": str(page),
-        }
-        if filters.tags is not None:
-            payload["tags"] = ",".join(filters.tags)
-
-        if filters.parent_document_id is not None:
-            payload["parent_document_id"] = str(filters.parent_document_id)
-
-        if filters.metadata_field is not None:
-            payload["metadata"] = json.dumps(filters.metadata_field)
+        payload["page"] = str(page)
 
         endpoint = "/badgerdoc/documents/"
         try:
@@ -140,12 +155,11 @@ async def badgerdoc_update_document(
 
     try:
         endpoint = f"/badgerdoc/document/{document_id}/"
-        payload: dict[str, Any] = {
-            key: value
-            for key, value in asdict(updates).items()
-            if value is not None
-        }
-        document_data = await badgerdoc_http.badgerdoc_patch(endpoint, payload)
+        form = _document_to_form(updates)
+
+        document_data = await badgerdoc_http.badgerdoc_form_patch(
+            endpoint, form
+        )
 
         logger.info(
             "Document updated successfully: %s", document_data.get("id")
@@ -161,15 +175,13 @@ async def badgerdoc_upload_document(
 ) -> BadgerdocDocument:
     logger.info("Uploading document: %s", document.name)
 
-    filename = f"{document.name}.{document.extension}"
+    filename = f"{str(document.name)[:50]}.{document.extension}"
 
     try:
-        document_data = await badgerdoc_http.badgerdoc_upload(
-            file,
-            filename,
-            metadata=document.metadata,
-            tags=document.tags,
-            parent_document_id=document.parent_document_id,
+        form = _document_to_form(document)
+        form.add_field("file", file, filename=filename)
+        document_data = await badgerdoc_http.badgerdoc_form_post(
+            "/badgerdoc/document/", form
         )
         logger.info(
             "Document uploaded successfully: %s",
@@ -194,14 +206,14 @@ async def badgerdoc_upload_file(
 ) -> BadgerdocDocument:
     logger.info("Uploading document: %s", document.name)
 
-    filename = f"{document.name}.{document.extension}"
+    filename = f"{str(document.name)[:50]}.{document.extension}"
 
     try:
-        document_data = await badgerdoc_http.badgerdoc_update_file(
-            document_id=document.id,
-            file=file,
-            filename=filename,
-            extension=document.extension,
+        form = aiohttp.FormData()
+        form.add_field("file", file, filename=filename)
+        form.add_field("extension", str(document.extension))
+        document_data = await badgerdoc_http.badgerdoc_form_patch(
+            f"/badgerdoc/document/{document.id}/", form
         )
         logger.info(
             "Document uploaded successfully: %s",
@@ -241,6 +253,28 @@ async def badgerdoc_get_document(document_id: int) -> BadgerdocDocument:
     except Exception as e:
         logger.warning("Failed to get document %s: %s", document_id, str(e))
         raise
+
+
+@activity.defn
+async def badgerdoc_get_rendition(
+    document: BadgerdocDocument, page: int
+) -> BadgerdocDocument:
+    logger.info(
+        "Getting rendition for document %s, page %s", document.id, page
+    )
+
+    endpoint = f"/badgerdoc/document/{document.id}/rendition-page/{page}/"
+    document_data = await badgerdoc_http.badgerdoc_get(endpoint)
+    if not isinstance(document_data, dict):
+        raise ValueError(
+            f"Expected response to be a dict, got {type(document_data)} instead"
+        )
+
+    logger.info(
+        "Rendition retrieved successfully: %s", document_data.get("id")
+    )
+
+    return _parse_document(document_data)
 
 
 @activity.defn

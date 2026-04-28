@@ -7,10 +7,13 @@ from temporalio import activity
 
 from badgerdoc_common import badgerdoc_http
 from badgerdoc_common.activities.document import (
+    BadgerdocDocument,
     ListDocumentsRequest,
     badgerdoc_delete_document,
     badgerdoc_get_document,
     badgerdoc_list_documents,
+    badgerdoc_update_document,
+    badgerdoc_upload_document,
 )
 
 logger = logging.getLogger(__name__)
@@ -48,6 +51,7 @@ async def download_and_convert_document(document_id: int) -> PDFConvertResult:
     await clear_existing_renditions(document_id)
 
     document = await badgerdoc_get_document(document_id)
+    metadata = document.metadata or {}
     buffer = BytesIO()
     await badgerdoc_http.badgerdoc_download(buffer, document)
 
@@ -57,6 +61,12 @@ async def download_and_convert_document(document_id: int) -> PDFConvertResult:
     pages_statuses = []
     page_num = 0
     with pdfplumber.open(buffer) as pdf:
+        await badgerdoc_update_document(
+            document_id,
+            BadgerdocDocument(
+                metadata=metadata | {"total_pages": len(pdf.pages)}
+            ),
+        )
         for page_num, page in enumerate(pdf.pages, start=1):
             image = page.to_image(resolution=IMAGE_RESOLUTION_DPI).original
             width, height = image.size
@@ -64,19 +74,25 @@ async def download_and_convert_document(document_id: int) -> PDFConvertResult:
             imbuffer = BytesIO()
             image.save(imbuffer, format="PNG")
             imbuffer.seek(0)
-            new_document = await badgerdoc_http.badgerdoc_upload(
+            new_document = await badgerdoc_upload_document(
+                BadgerdocDocument(
+                    name=filename,
+                    metadata={
+                        "page": page_num,
+                        "width": width,
+                        "height": height,
+                    },
+                    tags=["rendition"],
+                    parent_document_id=document_id,
+                    extension="png",
+                ),
                 imbuffer,
-                filename,
-                metadata={"page": page_num, "width": width, "height": height},
-                tags=["rendition"],
-                parent_document_id=document_id,
-                extension="png",
             )
             imbuffer.truncate(0)
             logger.info(
                 "Image of page %s uploaded successfully: %s",
                 page_num,
-                new_document.get("id"),
+                new_document.id,
             )
             pages_statuses.append(True)
         return PDFConvertResult(

@@ -7,6 +7,7 @@ from typing import Any
 from temporalio import activity
 
 from badgerdoc_common import badgerdoc_http, trigger
+from badgerdoc_common.activities import document
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +22,7 @@ MAX_TOKENS = int(os.environ.get("MAX_TOKENS", 10000))
 @activity.defn
 async def paddle_ocr(
     params: trigger.DocumentTriggerParams,
+    page: trigger.BadgerdocDocumentPage,
 ) -> dict[str, Any]:
     # Import modules inside function to avoid Temporal startup validation issues
     import openai  # pylint: disable=import-outside-toplevel
@@ -29,7 +31,7 @@ async def paddle_ocr(
         storage,
     )
 
-    extraction_obj = params.new_extraction
+    extraction_obj = params.target_extraction
     current_tags = extraction_obj.tags or []
 
     if "paddle-ocr" not in current_tags:
@@ -40,8 +42,10 @@ async def paddle_ocr(
         endpoint = f"/badgerdoc/extraction/{extraction_obj.id}/"
         await badgerdoc_http.badgerdoc_patch(endpoint, {"tags": updated_tags})
 
-    document = params.document_to_ocr
-    image_url = document.file.replace("minio:", "localhost:")
+    rendition_doc = await document.badgerdoc_get_rendition(
+        page.document, page.page_num
+    )
+    image_url = rendition_doc.file.replace("minio:", "localhost:")
     logger.info("Document file downloaded successfully")
     client = openai.OpenAI(
         base_url=f"http://{HOST}:{PORT}/v1", api_key="not-needed"
@@ -78,6 +82,9 @@ async def paddle_ocr(
             json.dumps({"text": response.choices[0].message.content}).encode()
         ),
         storage_params,
-        "middle.json",
+        f"page_{page.page_num}_middle.json",
     )
-    return {"middle_json": middle_json_path, "metadata": document.metadata}
+    return {
+        "middle_json": middle_json_path,
+        "metadata": rendition_doc.metadata,
+    }

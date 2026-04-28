@@ -1,14 +1,19 @@
 import { Plugin, PluginKey } from '@tiptap/pm/state'
-import { Decoration, DecorationSet } from '@tiptap/pm/view'
 
 export const extractionChatScopePluginKey = new PluginKey('extractionBlockChatScope')
 
 interface ChatScopePluginState {
-  blockIdInChatScope: string | null
+  blockIdsInChatScope: string[]
+  pageNumbersInChatScope: number[]
+  isWholeDocumentInChatScope: boolean
+  isInteractionDisabled: boolean
 }
 
 export interface ChatScopePluginMeta {
-  blockId: string | null
+  blockIds: string[]
+  pageNumbers: number[]
+  isWholeDocumentSelected: boolean
+  isInteractionDisabled?: boolean
 }
 
 export function createExtractionChatScopePlugin() {
@@ -18,7 +23,10 @@ export function createExtractionChatScopePlugin() {
     state: {
       init(): ChatScopePluginState {
         return {
-          blockIdInChatScope: null,
+          blockIdsInChatScope: [],
+          pageNumbersInChatScope: [],
+          isWholeDocumentInChatScope: false,
+          isInteractionDisabled: false,
         }
       },
 
@@ -28,34 +36,11 @@ export function createExtractionChatScopePlugin() {
           return value
         }
         return {
-          blockIdInChatScope: meta.blockId ?? null,
+          blockIdsInChatScope: meta.blockIds ?? [],
+          pageNumbersInChatScope: meta.pageNumbers ?? [],
+          isWholeDocumentInChatScope: meta.isWholeDocumentSelected ?? false,
+          isInteractionDisabled: meta.isInteractionDisabled ?? false,
         }
-      },
-    },
-
-    props: {
-      decorations(state) {
-        const pluginState = extractionChatScopePluginKey.getState(state)
-        if (!pluginState || !pluginState.blockIdInChatScope) {
-          return DecorationSet.empty
-        }
-
-        const decorations: Decoration[] = []
-
-        state.doc.descendants((node, pos) => {
-          if (node.type.name === 'extractionBlock') {
-            const blockId = node.attrs.blockId as string
-            if (blockId && blockId === pluginState.blockIdInChatScope) {
-              decorations.push(
-                Decoration.node(pos, pos + node.nodeSize, {
-                  class: 'bg-primary/5',
-                })
-              )
-            }
-          }
-        })
-
-        return DecorationSet.create(state.doc, decorations)
       },
     },
   })

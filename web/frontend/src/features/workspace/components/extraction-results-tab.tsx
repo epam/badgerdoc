@@ -5,6 +5,7 @@ import { BadgerDocExtractionPage } from '@/shared/api/badgerdoc'
 import ExtractionEditor from '@/features/workspace/components/extraction-editor'
 import { ExtractionChat } from '@/features/workspace/components/extraction-chat'
 import { useFormattedExtractionContent } from '@/features/workspace/hooks/use-formatted-extraction-content'
+import type { ExtractionChatContextProps } from '@/features/workspace/helpers/extraction-chat-context'
 
 interface ExtractionResultsTabProps {
   isLoading: boolean
@@ -23,6 +24,7 @@ interface ExtractionResultsTabProps {
   onPageNavigate: Dispatch<SetStateAction<number>>
   currentPage: number
   documentId: string
+  chatContext: ExtractionChatContextProps
 }
 
 function ExtractionEmptyState({ tag }: { tag: string }) {
@@ -52,9 +54,11 @@ export function ExtractionResultsTab({
   onPageNavigate,
   currentPage,
   documentId,
+  chatContext,
 }: ExtractionResultsTabProps) {
   const [isRunningInference, setIsRunningInference] = useState(false)
   const isEmpty = !extractionPages || extractionPages.length === 0
+  const isChatDisabled = isLoading || hasUnsavedChanges || isSaving
 
   const extractionHtmlContent = useFormattedExtractionContent(extractionPages)
 
@@ -89,6 +93,11 @@ export function ExtractionResultsTab({
             onRevertChanges={onRevertChanges}
             onAcceptChanges={onAcceptChanges}
             onBlockDelete={onBlockDelete}
+            selectedContextBlockIds={chatContext.selectedBlocks.map((block) => block.blockId)}
+            selectedContextPages={chatContext.selectedPages}
+            isWholeDocumentSelected={chatContext.isWholeDocumentSelected}
+            onToggleBlockContext={chatContext.onToggleBlock}
+            isContextInteractionDisabled={isChatDisabled}
             activeBlockId={activeBlockId}
             onBlockSelect={handleBlockSelect}
           />
@@ -97,7 +106,16 @@ export function ExtractionResultsTab({
       <ExtractionChat
         documentId={documentId}
         currentPage={currentPage}
-        disabled={isLoading || hasUnsavedChanges || isSaving}
+        canAddWholeDocument
+        canAddCurrentPage
+        prompt={chatContext.prompt}
+        isWholeDocumentSelected={chatContext.isWholeDocumentSelected}
+        selectedPages={chatContext.selectedPages}
+        onPromptChange={chatContext.onPromptChange}
+        registerPromptContextInserter={chatContext.registerPromptContextInserter}
+        onAddWholeDocument={chatContext.onAddWholeDocument}
+        onAddCurrentPage={chatContext.onAddCurrentPage}
+        disabled={isChatDisabled}
         isProcessing={isRunningInference}
         setIsRunningInference={setIsRunningInference}
         activeTag={tag}

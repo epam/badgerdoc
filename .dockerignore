@@ -1,4 +1,5 @@
 .ruff_cache
 .venv
+web/.venv
 __pycache__
 db.sqlite3

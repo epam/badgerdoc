@@ -7,6 +7,7 @@ from badgerdoc.views.document import (
     get_document_dzi,
     get_document_dzi_content,
     get_document_dzi_tile,
+    get_document_rendition_page,
     get_document_renditions,
     list_documents,
 )
@@ -37,6 +38,7 @@ from badgerdoc.views.user import get_current_user_info
 from badgerdoc.views.workflow import (
     get_workflow_registry_by_id,
     workflow_registry_list,
+    workflow_registry_manual_trigger,
     workflow_registry_trigger,
     workflow_status,
 )
@@ -52,6 +54,11 @@ urlpatterns = [
         "document/<int:document_id>/renditions/",
         get_document_renditions,
         name="document-renditions",
+    ),
+    path(
+        "document/<int:document_id>/rendition-page/<int:page>/",
+        get_document_rendition_page,
+        name="document-rendition-page",
     ),
     path(
         "document/<int:document_id>/dzi/",
@@ -116,6 +123,11 @@ urlpatterns = [
         "workflow-registry/trigger/<int:workflow_registry_id>/",
         workflow_registry_trigger,
         name="workflow-registry-trigger",
+    ),
+    path(
+        "workflow-registry/manual-trigger/<int:workflow_registry_id>/",
+        workflow_registry_manual_trigger,
+        name="workflow-registry-manual-trigger",
     ),
     path(
         "workflow-registry/workflow/status/<str:workflow_id>/",
