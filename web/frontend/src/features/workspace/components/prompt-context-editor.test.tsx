@@ -234,4 +234,62 @@ describe('prompt context editor serialization', () => {
       expect(latestValue).toBe('Hello {{/badgerdoc/document/123/page/2}}world')
     })
   })
+
+  it('appends a context chip at the end, ignoring stale cursor, when editor is not focused', async () => {
+    let promptContextInserter: PromptContextPathInserter | null = null
+    let latestValue = 'Hello world'
+
+    function TestEditor() {
+      const [value, setValue] = useState(latestValue)
+
+      return (
+        <>
+          <button type="button">Outside editor</button>
+          <PromptContextEditor
+            value={value}
+            onChange={(nextValue) => {
+              latestValue = nextValue
+              setValue(nextValue)
+            }}
+            onRegisterContextInserter={(inserter) => {
+              promptContextInserter = inserter
+            }}
+          />
+        </>
+      )
+    }
+
+    const { container, getByRole } = render(<TestEditor />)
+
+    await waitFor(() => {
+      expect(container.querySelector('.ProseMirror')).not.toBeNull()
+      expect(promptContextInserter).not.toBeNull()
+    })
+
+    const paragraphTextNode = container.querySelector('.ProseMirror p')?.firstChild
+    expect(paragraphTextNode).not.toBeNull()
+
+    const selection = window.getSelection()
+    const range = document.createRange()
+    range.setStart(paragraphTextNode!, 6)
+    range.collapse(true)
+    selection?.removeAllRanges()
+    selection?.addRange(range)
+
+    const editorElement = container.querySelector('.ProseMirror')!
+    const outsideButton = getByRole('button', { name: 'Outside editor' })
+
+    fireEvent.focus(editorElement)
+    document.dispatchEvent(new Event('selectionchange'))
+    fireEvent.blur(editorElement, { relatedTarget: outsideButton })
+    fireEvent.focus(outsideButton)
+
+    await act(async () => {
+      promptContextInserter!('/badgerdoc/document/123/page/2')
+    })
+
+    await waitFor(() => {
+      expect(latestValue).toBe('Hello world {{/badgerdoc/document/123/page/2}}')
+    })
+  })
 })

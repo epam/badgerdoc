@@ -310,23 +310,35 @@ export function PromptContextEditor({
         return
       }
 
-      const liveCursorPosition = getDomCursorPosition(editor)
       const endSelection = Selection.atEnd(editor.state.doc)
-      const savedCursorPosition =
-        lastSelectionRef.current === null
-          ? null
-          : Math.min(Math.max(lastSelectionRef.current, 1), endSelection.from)
-      const currentSelection =
-        liveCursorPosition === null
-          ? savedCursorPosition === null
-            ? endSelection
-            : TextSelection.create(editor.state.doc, savedCursorPosition)
-          : TextSelection.create(editor.state.doc, liveCursorPosition)
+      const shouldAppendAtEnd = !editor.isFocused
+      const currentSelection = (() => {
+        if (shouldAppendAtEnd) {
+          return endSelection
+        }
+
+        const liveCursorPosition = getDomCursorPosition(editor)
+        const savedCursorPosition =
+          lastSelectionRef.current === null
+            ? null
+            : Math.min(Math.max(lastSelectionRef.current, 1), endSelection.from)
+
+        if (liveCursorPosition !== null) {
+          return TextSelection.create(editor.state.doc, liveCursorPosition)
+        }
+
+        return savedCursorPosition === null
+          ? endSelection
+          : TextSelection.create(editor.state.doc, savedCursorPosition)
+      })()
 
       const tokenNode = editor.state.schema.nodes.promptContextToken.create({ path })
-      const transaction = editor.state.tr
-        .setSelection(currentSelection)
-        .replaceSelectionWith(tokenNode, false)
+      const docText = editor.state.doc.textContent
+      const needsSpace = shouldAppendAtEnd && docText.length > 0 && !/\s$/.test(docText)
+
+      const transaction = editor.state.tr.setSelection(currentSelection)
+      if (needsSpace) transaction.insertText(' ')
+      transaction.replaceSelectionWith(tokenNode, false)
 
       editor.view.dispatch(transaction)
       lastSelectionRef.current = editor.state.selection.from
