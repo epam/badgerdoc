@@ -1,8 +1,10 @@
 import { NodeViewContent, NodeViewWrapper, NodeViewProps } from '@tiptap/react'
-import { MessageCirclePlus, MessageCircleOff, Trash2 } from 'lucide-react'
-import type { MouseEvent } from 'react'
+import type { Transaction } from '@tiptap/pm/state'
+import { MessageCirclePlus, Trash2 } from 'lucide-react'
+import { useEffect, useState, type MouseEvent } from 'react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { extractionChatScopePluginKey } from './extraction-context-plugin'
 import { cn } from '@/helpers/utils'
 
@@ -15,19 +17,60 @@ export function ExtractionBlock({ node, editor, extension, deleteNode }: Extract
   const { blockId, title, type, page, isNew } = node.attrs
   const onBlockSelect = extension.options.onBlockSelect
   const onBlockDelete = extension.options.onBlockDelete
+  const onToggleBlockContext = extension.options.onToggleBlockContext
+  const [chatScopePluginState, setChatScopePluginState] = useState(() =>
+    extractionChatScopePluginKey.getState(editor.state)
+  )
 
-  const chatScopePluginState = extractionChatScopePluginKey.getState(editor.state)
-  const isInChatScope = chatScopePluginState?.blockIdInChatScope === blockId
+  const parsedPage = Number(page)
+  const pageNumber = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : null
+  const isExplicitlyInChatScope = (chatScopePluginState?.blockIdsInChatScope ?? []).includes(
+    blockId
+  )
+  const isPageInChatScope =
+    pageNumber !== null && (chatScopePluginState?.pageNumbersInChatScope ?? []).includes(pageNumber)
+  const isWholeDocumentInChatScope = chatScopePluginState?.isWholeDocumentInChatScope ?? false
+  const isContextInteractionDisabled = chatScopePluginState?.isInteractionDisabled ?? false
+  const blockContextTitle = isContextInteractionDisabled
+    ? 'Prompt context is unavailable while you have unsaved changes.'
+    : isWholeDocumentInChatScope
+      ? 'Whole document is also in context. Add block reference'
+      : isPageInChatScope
+        ? `Page ${pageNumber} is also in context. Add block reference`
+        : isExplicitlyInChatScope
+          ? 'Add another block reference'
+          : 'Add block to context'
+
+  useEffect(() => {
+    const syncChatScopeState = ({ transaction }: { transaction: Transaction }) => {
+      if (transaction.getMeta(extractionChatScopePluginKey) === undefined) {
+        return
+      }
+
+      setChatScopePluginState(extractionChatScopePluginKey.getState(editor.state))
+    }
+
+    editor.on('transaction', syncChatScopeState)
+
+    return () => {
+      editor.off('transaction', syncChatScopeState)
+    }
+  }, [editor])
 
   const handleToggleBlockScope = (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault()
     event.stopPropagation()
 
-    if (isInChatScope) {
-      editor.commands.clearBlockChatScope()
+    if (isContextInteractionDisabled) {
       return
     }
-    editor.commands.setBlockChatScope(blockId)
+
+    onToggleBlockContext?.(blockId, pageNumber)
+  }
+
+  const handleTooltipWrapperClick = (event: MouseEvent<HTMLSpanElement>) => {
+    event.preventDefault()
+    event.stopPropagation()
   }
 
   const handleWrapperMouseDown = (event: MouseEvent<HTMLDivElement>) => {
@@ -51,8 +94,6 @@ export function ExtractionBlock({ node, editor, extension, deleteNode }: Extract
 
   const handleHeaderClick = () => {
     if (!onBlockSelect || !blockId) return
-    const parsedPage = Number(page)
-    const pageNumber = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : null
     onBlockSelect(blockId, pageNumber)
   }
 
@@ -64,14 +105,8 @@ export function ExtractionBlock({ node, editor, extension, deleteNode }: Extract
       return
     }
 
-    if (isInChatScope) {
-      editor.commands.clearBlockChatScope()
-    }
-
     extension.options.onWillDeleteNode?.()
     deleteNode()
-    const parsedPage = Number(page)
-    const pageNumber = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : null
     onBlockDelete?.(blockId, pageNumber)
   }
 
@@ -100,15 +135,29 @@ export function ExtractionBlock({ node, editor, extension, deleteNode }: Extract
           )}
           {type && <span className="text-xs text-muted-foreground capitalize">{type}</span>}
           {page && <span className="text-xs text-muted-foreground">Page {page}</span>}
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={handleToggleBlockScope}
-            className="cursor-pointer size-7"
-            title={isInChatScope ? 'Remove block from chat scope' : 'Add block to chat scope'}
-          >
-            {isInChatScope ? <MessageCircleOff /> : <MessageCirclePlus />}
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span
+                className="inline-flex"
+                data-extraction-interactive="true"
+                onClick={handleTooltipWrapperClick}
+              >
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={handleToggleBlockScope}
+                  className="cursor-pointer size-7"
+                  aria-label={blockContextTitle}
+                  disabled={isContextInteractionDisabled}
+                >
+                  <MessageCirclePlus />
+                </Button>
+              </span>
+            </TooltipTrigger>
+            <TooltipContent side="top" sideOffset={4}>
+              {blockContextTitle}
+            </TooltipContent>
+          </Tooltip>
           <Button
             size="icon-sm"
             variant="ghost"

@@ -8,6 +8,7 @@ from pathlib import Path
 from temporalio import activity
 
 from badgerdoc_common import badgerdoc_http, trigger
+from badgerdoc_common.activities import document
 from badgerdoc_common.hocr import BadgerdocHOCRPageResult
 
 logger = logging.getLogger(__name__)
@@ -24,6 +25,7 @@ class MineruOCRResult:
 @activity.defn
 async def mineru_ocr_activity(
     params: trigger.DocumentTriggerParams,
+    page: trigger.BadgerdocDocumentPage,
 ) -> MineruOCRResult:
     # Import modules inside function to avoid Temporal startup validation issues
     # pylint: disable=import-outside-toplevel
@@ -33,7 +35,7 @@ async def mineru_ocr_activity(
 
     from badgerdoc_common import storage
 
-    extraction_obj = params.new_extraction
+    extraction_obj = params.target_extraction
     current_tags = extraction_obj.tags or []
 
     if "mineru-ocr" not in current_tags:
@@ -44,12 +46,12 @@ async def mineru_ocr_activity(
         endpoint = f"/badgerdoc/extraction/{extraction_obj.id}/"
         await badgerdoc_http.badgerdoc_patch(endpoint, {"tags": updated_tags})
 
-    document_to_ocr = params.document_to_ocr
-
-    document_obj = document_to_ocr
+    document_to_ocr = await document.badgerdoc_get_rendition(
+        page.document, page.page_num
+    )
 
     buffer = BytesIO()
-    await badgerdoc_http.badgerdoc_download(buffer, document_obj)
+    await badgerdoc_http.badgerdoc_download(buffer, document_to_ocr)
     pdf_bytes = buffer.getvalue()
 
     with tempfile.TemporaryDirectory(prefix="mineru_ocr_") as temp_dir:
@@ -135,7 +137,9 @@ async def mineru_ocr_activity(
             with open(content_list_path, "rb") as f:
                 buffer = BytesIO(f.read())
             s3_path = await storage.badgerdoc_store_perm(
-                buffer, storage_params, "content_list.json"
+                buffer,
+                storage_params,
+                f"page_{page.page_num}_content_list.json",
             )
             uploaded_files["content_list"] = s3_path
 
@@ -151,7 +155,7 @@ async def mineru_ocr_activity(
             with open(middle_json_path, "rb") as f:
                 buffer = BytesIO(f.read())
             s3_path = await storage.badgerdoc_store_perm(
-                buffer, storage_params, "middle.json"
+                buffer, storage_params, f"page_{page.page_num}_middle.json"
             )
             uploaded_files["middle_json"] = s3_path
 
@@ -163,15 +167,13 @@ async def mineru_ocr_activity(
 
 @activity.defn
 async def convert_to_hocr(
-    params: trigger.DocumentTriggerParams, paths: MineruOCRResult
+    params: trigger.DocumentTriggerParams,
+    page: trigger.BadgerdocDocumentPage,
+    paths: MineruOCRResult,
 ) -> BadgerdocHOCRPageResult:
     from badgerdoc_common import storage
 
-    page_number = params.badgerdoc_trigger_params.get("page_number")
-    if page_number is None:
-        raise ValueError(
-            "page_number is required in badgerdoc_trigger_params for hOCR conversion"
-        )
+    page_number = page.page_num
 
     workflow_run_id = activity.info().workflow_run_id
 
@@ -183,7 +185,7 @@ async def convert_to_hocr(
 
     middle_json_buffer = BytesIO()
     await storage.badgerdoc_download_perm(
-        middle_json_buffer, storage_params, "middle.json"
+        middle_json_buffer, storage_params, f"page_{page_number}_middle.json"
     )
     middle_json_buffer.seek(0)
     middle_json = json.load(middle_json_buffer)

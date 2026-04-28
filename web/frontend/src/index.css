@@ -309,6 +309,9 @@
   .shadow-soft-lg {
     box-shadow: 0 10px 15px oklch(0 0 0 / 8%), 0 4px 6px oklch(0 0 0 / 4%);
   }
+  .shadow-soft-top {
+    box-shadow: 0 -6px 18px oklch(0.21 0 0 / 10%), 0 -2px 6px oklch(0.21 0 0 / 6%);
+  }
 
   /* Professional focus ring - visible but not harsh */
   .focus-ring {

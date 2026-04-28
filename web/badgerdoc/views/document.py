@@ -435,6 +435,70 @@ def get_document_renditions(request: Request, document_id: int) -> Response:
         )
 
 
+@swagger_auto_schema(
+    method="get",
+    operation_description="Get rendition document for a specific page of a parent document.",
+    operation_summary="Get Document Rendition Page",
+    tags=["Document"],
+    manual_parameters=[
+        openapi.Parameter(
+            "document_id",
+            openapi.IN_PATH,
+            description="ID of the parent document",
+            type=openapi.TYPE_INTEGER,
+            required=True,
+        ),
+        openapi.Parameter(
+            "page",
+            openapi.IN_PATH,
+            description="Page number of the rendition",
+            type=openapi.TYPE_INTEGER,
+            required=True,
+        ),
+    ],
+    responses={
+        200: openapi.Response(
+            description="Rendition document for the requested page",
+            schema=DocumentSerializer(),
+        ),
+        404: "Not Found - Document or rendition page not found",
+        401: "Unauthorized - Authentication required",
+        403: "Forbidden - No permission to view this document",
+    },
+)
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_document_rendition_page(
+    request: Request, document_id: int, page: int
+) -> Response:
+    try:
+        document_ = (
+            get_document_queryset(request.user).filter(id=document_id).first()
+        )
+        if document_ is None:
+            return Response(
+                {"error": f"Document with id {document_id} not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        rendition = _find_rendition_by_page(document_id, page)
+        if rendition is None:
+            return Response(
+                {"error": f"Rendition for page {page} not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        serializer = DocumentSerializer(rendition)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        logger.exception("Failed to get document rendition page")
+        return Response(
+            {"error": f"Failed to get document rendition page: {str(e)}"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+
 def _find_rendition_by_page(document_id: int, page: int):
     """Find rendition document by document_id and page number"""
     renditions = document.Document.objects.filter(
