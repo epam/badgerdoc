@@ -1,9 +1,14 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { describe, expect, it, vi, beforeEach } from 'vitest'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ExtractionChat } from './extraction-chat'
 
-const mutateAsync = vi.fn()
+const { mutateAsync, workflowStatusState } = vi.hoisted(() => ({
+  mutateAsync: vi.fn(),
+  workflowStatusState: {
+    data: null as null | { status: string },
+  },
+}))
 
 vi.mock('@/shared/api/hooks/use-workflows', () => ({
   useChatWorkflows: () => ({
@@ -23,7 +28,7 @@ vi.mock('@/shared/api/hooks/use-workflows', () => ({
     isPending: false,
   }),
   useWorkflowStatus: () => ({
-    data: null,
+    data: workflowStatusState.data,
   }),
 }))
 
@@ -55,7 +60,7 @@ function renderExtractionChat(props: Partial<React.ComponentProps<typeof Extract
     },
   })
 
-  const renderResult = render(
+  const getUi = (nextProps: Partial<React.ComponentProps<typeof ExtractionChat>> = props) => (
     <QueryClientProvider client={queryClient}>
       <ExtractionChat
         documentId="123"
@@ -68,13 +73,17 @@ function renderExtractionChat(props: Partial<React.ComponentProps<typeof Extract
         onAddWholeDocument={vi.fn()}
         onAddCurrentPage={vi.fn()}
         activeTag="summary"
-        {...props}
+        {...nextProps}
       />
     </QueryClientProvider>
   )
+  const renderResult = render(getUi())
 
   return {
     onPromptChange,
+    rerenderExtractionChat: (
+      nextProps: Partial<React.ComponentProps<typeof ExtractionChat>> = props
+    ) => renderResult.rerender(getUi(nextProps)),
     ...renderResult,
   }
 }
@@ -83,6 +92,11 @@ describe('ExtractionChat', () => {
   beforeEach(() => {
     mutateAsync.mockReset()
     mutateAsync.mockResolvedValue({ workflow_id: 'wf-1' })
+    workflowStatusState.data = null
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
   })
 
   it('allows sending a plain prompt without context chips', async () => {
@@ -104,7 +118,7 @@ describe('ExtractionChat', () => {
     })
   })
 
-  it('keeps the prompt draft after a successful send', async () => {
+  it('keeps the prompt draft while the workflow is still running', async () => {
     const { onPromptChange } = renderExtractionChat()
 
     fireEvent.click(screen.getByRole('button', { name: /send/i }))
@@ -116,10 +130,65 @@ describe('ExtractionChat', () => {
     expect(onPromptChange).not.toHaveBeenCalled()
   })
 
+  it('clears the prompt after the workflow finishes', async () => {
+    const { onPromptChange, rerenderExtractionChat } = renderExtractionChat()
+
+    fireEvent.click(screen.getByRole('button', { name: /send/i }))
+
+    await waitFor(() => {
+      expect(mutateAsync).toHaveBeenCalledTimes(1)
+    })
+
+    workflowStatusState.data = { status: 'Finished' }
+    rerenderExtractionChat()
+
+    await waitFor(() => {
+      expect(onPromptChange).toHaveBeenCalledWith('')
+    })
+  })
+
+  it('preserves the prompt when the workflow fails', async () => {
+    const { onPromptChange, rerenderExtractionChat } = renderExtractionChat()
+
+    fireEvent.click(screen.getByRole('button', { name: /send/i }))
+
+    await waitFor(() => {
+      expect(mutateAsync).toHaveBeenCalledTimes(1)
+    })
+
+    workflowStatusState.data = { status: 'Failed' }
+    rerenderExtractionChat()
+
+    await act(async () => {
+      await new Promise((resolve) => requestAnimationFrame(() => resolve(undefined)))
+    })
+
+    expect(onPromptChange).not.toHaveBeenCalledWith('')
+  })
+
   it('shows a loading spinner in the send button while processing', () => {
     renderExtractionChat({ isProcessing: true })
 
     expect(screen.getByRole('button', { name: /send prompt/i })).toBeDisabled()
     expect(screen.getByRole('status', { name: /loading/i })).toBeInTheDocument()
+  })
+
+  it('shows success feedback only after the workflow finishes', async () => {
+    const { rerenderExtractionChat } = renderExtractionChat()
+
+    fireEvent.click(screen.getByRole('button', { name: /send/i }))
+
+    await waitFor(() => {
+      expect(mutateAsync).toHaveBeenCalledTimes(1)
+    })
+
+    expect(screen.queryByRole('status', { name: /extraction updated/i })).not.toBeInTheDocument()
+
+    workflowStatusState.data = { status: 'Finished' }
+    rerenderExtractionChat()
+
+    await waitFor(() => {
+      expect(screen.getByRole('status', { name: /extraction updated/i })).toBeInTheDocument()
+    })
   })
 })

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { ChevronDown, File, Layers, SendHorizonal } from 'lucide-react'
+import { Check, ChevronDown, File, Layers, SendHorizonal } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import {
@@ -142,6 +142,7 @@ export const ExtractionChat = ({
 
   const [selectedWorkflowId, setSelectedWorkflowId] = useState<number | null>(null)
   const [workflowToPoll, setWorkflowToPoll] = useState<string | null>(null)
+  const [hasSuccessFeedback, setHasSuccessFeedback] = useState(false)
 
   const selectedWorkflow = useMemo(() => {
     if (!workflows?.length) return null
@@ -190,11 +191,25 @@ export const ExtractionChat = ({
   const { data: workflowStatus } = useWorkflowStatus(workflowToPoll)
 
   useEffect(() => {
+    if (!hasSuccessFeedback) {
+      return
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setHasSuccessFeedback(false)
+    }, 900)
+
+    return () => window.clearTimeout(timeoutId)
+  }, [hasSuccessFeedback])
+
+  useEffect(() => {
     // Defer state cleanup and side effects (toast, cache invalidation) to
     // avoid triggering them synchronously inside the polling render cycle.
     if (workflowStatus?.status === 'Finished') {
       const frame = requestAnimationFrame(() => {
         setWorkflowToPoll(null)
+        onPromptChange('')
+        setHasSuccessFeedback(true)
         setIsRunningInference?.(false)
         toast.success('Extraction updated')
         void queryClient.invalidateQueries({
@@ -214,7 +229,7 @@ export const ExtractionChat = ({
 
       return () => cancelAnimationFrame(frame)
     }
-  }, [workflowStatus, setIsRunningInference, queryClient, documentId, activeTag])
+  }, [workflowStatus, onPromptChange, setIsRunningInference, queryClient, documentId, activeTag])
 
   const handleSendMessage = useCallback(async () => {
     if (!selectedWorkflow || !hasSendContent || !isContextCompatible) return
@@ -254,10 +269,11 @@ export const ExtractionChat = ({
     isCurrentPageSelected,
     currentPage,
   })
-  const isSending = Boolean(isProcessing || triggerWorkflow.isPending)
+  const isSending = Boolean(isProcessing || triggerWorkflow.isPending || workflowToPoll)
   const isSendDisabled =
     disabled ||
     isSending ||
+    hasSuccessFeedback ||
     isWorkflowsLoading ||
     !selectedWorkflow ||
     !hasSendContent ||
@@ -343,12 +359,28 @@ export const ExtractionChat = ({
           <Button
             size="xs"
             type="button"
-            className={cn('size-8 rounded-full', isProcessing ? 'bg-blue-500 text-white' : '')}
+            className={cn(
+              'size-8 rounded-full transition-all duration-200',
+              hasSuccessFeedback && 'scale-105 bg-emerald-500 text-white ring-4 ring-emerald-100',
+              !hasSuccessFeedback && isSending && 'bg-blue-500 text-white'
+            )}
             aria-label="Send prompt"
             disabled={isSendDisabled}
             onClick={handleSendMessage}
           >
-            {isSending ? <Spinner size="sm" /> : <SendHorizonal className="h-4 w-4" />}
+            {hasSuccessFeedback ? (
+              <span
+                role="status"
+                aria-label="Extraction updated"
+                className="animate-in zoom-in-50 fade-in-0 duration-300"
+              >
+                <Check className="h-4 w-4" />
+              </span>
+            ) : isSending ? (
+              <Spinner size="sm" />
+            ) : (
+              <SendHorizonal className="h-4 w-4" />
+            )}
           </Button>
         </div>
       </div>

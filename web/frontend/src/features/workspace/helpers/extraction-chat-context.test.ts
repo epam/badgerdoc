@@ -14,11 +14,8 @@ import {
 describe('extraction chat context helpers', () => {
   it('builds exact BadgerDoc context paths', () => {
     expect(buildDocumentContextPath(123)).toBe('/badgerdoc/document/123/')
-    expect(buildPageContextPath({ documentId: 123, extractionId: null, pageNumber: 1 })).toBe(
-      '/badgerdoc/document/123/page/1'
-    )
-    expect(buildPageContextPath({ documentId: 123, extractionId: 456, pageNumber: 1 })).toBe(
-      '/badgerdoc/document/123/extraction/456/page/1/'
+    expect(buildPageContextPath({ documentId: 123, pageNumber: 1 })).toBe(
+      '/badgerdoc/document/123/page/1/'
     )
     expect(
       buildBlockContextPath({

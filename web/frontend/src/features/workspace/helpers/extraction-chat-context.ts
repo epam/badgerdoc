@@ -176,18 +176,12 @@ export function buildDocumentContextPath(documentId: string | number) {
 
 export function buildPageContextPath({
   documentId,
-  extractionId,
   pageNumber,
 }: {
   documentId: string | number
-  extractionId: number | null
   pageNumber: number
 }) {
-  if (extractionId !== null) {
-    return `/badgerdoc/document/${documentId}/extraction/${extractionId}/page/${pageNumber}/`
-  }
-
-  return `/badgerdoc/document/${documentId}/page/${pageNumber}`
+  return `/badgerdoc/document/${documentId}/page/${pageNumber}/`
 }
 
 export function buildBlockContextPath({

@@ -51,8 +51,11 @@ export function useExtractionChatContext({
   const extractionId = extractionPages?.[0]?.extraction_id ?? null
   const [prompt, setPrompt] = useState(readStoredPromptDraft)
   const promptRef = useRef(prompt)
-  promptRef.current = prompt
   const promptContextInserterRef = useRef<PromptContextPathInserter | null>(null)
+
+  useEffect(() => {
+    promptRef.current = prompt
+  }, [prompt])
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -88,9 +91,9 @@ export function useExtractionChatContext({
 
   const addPage = useCallback(
     (pageNumber: number) => {
-      appendContextPath(buildPageContextPath({ documentId, extractionId, pageNumber }))
+      appendContextPath(buildPageContextPath({ documentId, pageNumber }))
     },
-    [appendContextPath, documentId, extractionId]
+    [appendContextPath, documentId]
   )
 
   const toggleBlock = useCallback(
