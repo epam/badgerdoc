@@ -2,6 +2,8 @@ import StarterKit from '@tiptap/starter-kit'
 import Document from '@tiptap/extension-document'
 import Paragraph from '@tiptap/extension-paragraph'
 import { Table, TableCell, TableHeader, TableRow } from '@tiptap/extension-table'
+import Subscript from '@tiptap/extension-subscript'
+import Superscript from '@tiptap/extension-superscript'
 
 const ExtractionDocument = Document.extend({
   content: 'extractionBlock*',
@@ -56,5 +58,7 @@ export function createExtractionTableExtensions() {
     TableRow.configure(TableKitStylingConfig.tableRow),
     TableHeader.configure(TableKitStylingConfig.tableHeader),
     TableCell.configure(TableKitStylingConfig.tableCell),
+    Subscript,
+    Superscript
   ]
 }
