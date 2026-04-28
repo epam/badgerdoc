@@ -14,6 +14,7 @@ import { toast } from 'sonner'
 
 interface CollectionViewerProps {
   documentId: string
+  expectedPageCount?: number | null
   currentPage: number
   onPageChange: Dispatch<SetStateAction<number>>
   onHighlightClick: (termId: string) => void
@@ -36,6 +37,7 @@ interface CollectionViewerProps {
 
 export function CollectionViewer({
   documentId,
+  expectedPageCount,
   highlights,
   activeHighlightId,
   onHighlightClick,
@@ -48,9 +50,16 @@ export function CollectionViewer({
   onHighlightCreate,
   createdHighlightIds,
 }: CollectionViewerProps) {
-  const { data: pages, isLoading: isLoading, refetch } = useDocumentPages(documentId)
-  const isProcessing = !isLoading && pages?.length === 0
-  const isReady = !isLoading && (pages?.length ?? 0) > 0
+  const {
+    data: pages,
+    isLoading: isLoading,
+    refetch,
+  } = useDocumentPages(documentId, expectedPageCount)
+  const actualPageCount = pages?.length ?? 0
+  const pagesReadyByMetadata =
+    expectedPageCount != null && expectedPageCount > 0 && actualPageCount >= expectedPageCount
+  const isProcessing = !isLoading && !pagesReadyByMetadata
+  const isReady = !isLoading && pagesReadyByMetadata
   const { containerRef, viewer } = useOsdViewer(isReady ? pages : undefined)
 
   const [isDownloading, setIsDownloading] = useState(false)
@@ -129,7 +138,11 @@ export function CollectionViewer({
   if (isProcessing) {
     return (
       <section className="flex h-full w-full flex-col">
-        <ViewerProcessingState onRefresh={() => refetch()} />
+        <ViewerProcessingState
+          onRefresh={() => refetch()}
+          readyPagesCount={actualPageCount}
+          expectedPagesCount={expectedPageCount}
+        />
       </section>
     )
   }
