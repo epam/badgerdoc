@@ -89,6 +89,8 @@ services:
       - badgerdoc
     networks:
       - badgerdoc-network
+    deploy:
+      replicas: 5
 
   badgerdoc_ocr_deepseek_2:
     build:

@@ -502,6 +502,18 @@ def workflow_registry_trigger(
         )
 
 
+def _serialize_extraction(ext: extraction.Extraction) -> dict[str, Any]:
+    return {
+        "id": ext.id,
+        "document_id": ext.document_id,
+        "created_by": str(ext.created_by),
+        "status": ext.status,
+        "temporal_job_id": ext.temporal_job_id,
+        "comment": ext.comment,
+        "tags": ext.tags or [],
+    }
+
+
 def _serialize_document(doc: document.Document) -> dict[str, Any]:
     return {
         "id": doc.id,
@@ -521,6 +533,7 @@ def _prepare_workflow_request(
     parsed_params: llm_params_parser.BadgerdocParsedParams,
     registry: workflow_registry.WorkflowRegistry,
     original_doc: document.Document,
+    target_extraction: extraction.Extraction,
 ) -> dict[str, Any]:
     return {
         "workflow": {
@@ -581,8 +594,12 @@ def _prepare_workflow_request(
         "linked_extraction_xpaths": (
             [
                 {
-                    "extraction_id": xpath.extraction_page.extraction_id,
-                    "page_number": xpath.extraction_page.page_number,
+                    "extraction_page": {
+                        "id": xpath.extraction_page.id,
+                        "extraction_id": xpath.extraction_page.extraction_id,
+                        "page_number": xpath.extraction_page.page_number,
+                        "content": xpath.extraction_page.content,
+                    },
                     "xpath": xpath.xpath,
                 }
                 for xpath in parsed_params.linked_extraction_xpaths
@@ -590,7 +607,8 @@ def _prepare_workflow_request(
             if parsed_params.linked_extraction_xpaths
             else None
         ),
-        "prompt_text": parsed_params.prompt_text,
+        "llm_params": parsed_params.prompt_text,
+        "target_extraction": _serialize_extraction(target_extraction),
     }
 
 
@@ -645,11 +663,16 @@ def workflow_registry_manual_trigger(
 
         document_id = validated_data.get("document_id")
         original_doc = document.Document.objects.get(id=document_id)
+        target_extraction = extraction.Extraction.objects.create(
+            document=original_doc,
+            created_by=request.user,
+            status=extraction.ExtractionStatus.STARTED,
+        )
 
         parsed_params = llm_params_parser.parse(request.user.id, llm_params)
 
         workflow_input_data = _prepare_workflow_request(
-            parsed_params, registry, original_doc
+            parsed_params, registry, original_doc, target_extraction
         )
 
         workflow_id = start_manual_workflow(registry, workflow_input_data)

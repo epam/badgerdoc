@@ -244,6 +244,28 @@ async def badgerdoc_get_document(document_id: int) -> BadgerdocDocument:
 
 
 @activity.defn
+async def badgerdoc_get_rendition(
+    document: BadgerdocDocument, page: int
+) -> BadgerdocDocument:
+    logger.info(
+        "Getting rendition for document %s, page %s", document.id, page
+    )
+
+    endpoint = f"/badgerdoc/document/{document.id}/rendition-page/{page}/"
+    document_data = await badgerdoc_http.badgerdoc_get(endpoint)
+    if not isinstance(document_data, dict):
+        raise ValueError(
+            f"Expected response to be a dict, got {type(document_data)} instead"
+        )
+
+    logger.info(
+        "Rendition retrieved successfully: %s", document_data.get("id")
+    )
+
+    return _parse_document(document_data)
+
+
+@activity.defn
 async def badgerdoc_delete_document(document_id: int) -> None:
     """Delete a document by id."""
     logger.info("Deleting document: %s", document_id)

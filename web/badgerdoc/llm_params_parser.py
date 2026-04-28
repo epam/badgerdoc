@@ -1,5 +1,6 @@
 import logging
 from dataclasses import dataclass
+from typing import TypeAlias
 
 from django.contrib.auth.models import User
 from lxml import etree
@@ -24,6 +25,14 @@ class BadgerdocParsedParams:
         list[extraction_helpers.BadgerdocExtractionXpath] | None
     )
     prompt_text: str
+
+
+ParsedReferenceKey: TypeAlias = (
+    tuple[int, int | None, int | None, str]
+    | tuple[int, int, int | None]
+    | tuple[int, int]
+    | tuple[int]
+)
 
 
 @dataclass
@@ -153,12 +162,13 @@ def validate_and_normalize_references(
     user: User, references: list[ParsedReference]
 ) -> list[ParsedReference]:
     validated = []
-    seen_keys = set()
+    seen_keys: set[ParsedReferenceKey] = set()
 
     for ref in references:
         try:
             validate_reference(user, ref)
 
+            key: ParsedReferenceKey
             if ref.xpath:
                 key = (
                     ref.document_id,

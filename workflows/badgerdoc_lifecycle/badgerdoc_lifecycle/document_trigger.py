@@ -2,7 +2,7 @@ import asyncio
 import hashlib
 import json
 import logging
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from typing import Literal
 
 from temporalio import workflow
@@ -44,46 +44,14 @@ class DocumentTriggerWorkflow:
     ) -> DocumentTriggerWorkflowResult:
         logger.info("Starting DocumentTriggerWorkflow")
 
-        new_extraction = None
-        try:
-            workflow_ = await self.get_workflow(
-                request_data.get("workflow_registry_id"),
-            )
-            document_ = await self.get_document(
-                request_data.get("document_id")
-            )
-            task_obj = await self.get_task(
-                request_data.get("task_id"), document_
-            )
-            linked_extractions = await self.get_extractions(
-                request_data.get("linked_extraction_ids"), document_, task_obj
-            )
-            linked_extraction_pages = await self.get_extraction_pages(
-                request_data.get("linked_extraction_pages")
-            )
-            linked_extraction_xpaths = await self.get_extraction_xpaths(
-                request_data.get("linked_extraction_xpaths")
-            )
-            target_extraction = await self.create_extraction(
-                document_, task_obj
-            )
-            trigger_params = trigger.DocumentTriggerParams(
-                workflow=workflow_,
-                original_document=document_,
-                original_document_rendition=document_,
-                original_task=task_obj,
-                linked_extractions=linked_extractions,
-                linked_extraction_pages=linked_extraction_pages,
-                linked_extraction_xpaths=linked_extraction_xpaths,
-                target_extraction=target_extraction,
-                llm_params=request_data.get("llm_params"),
-            )
+        target_extraction = request_data.target_extraction
 
+        try:
             workflow_params = workflow_execution.BadgerdocWorkflowParams(
-                workflow_type=workflow_.temporal_workflow_type,
-                task_queue=workflow_.temporal_queue,
-                workflow_id=f"trigger-workflow-{workflow_.id}-document-{document_.id}-{hashlib.md5(json.dumps(request_data, sort_keys=True).encode()).hexdigest()}",  # nosec B324 - MD5 used for non-cryptographic hash for unique workflow ID
-                workflow_input=trigger_params,
+                workflow_type=request_data.workflow.temporal_workflow_type,
+                task_queue=request_data.workflow.temporal_queue,
+                workflow_id=f"trigger-workflow-{request_data.workflow.id}-document-{request_data.original_document.id}-{hashlib.md5(json.dumps(asdict(request_data), sort_keys=True).encode()).hexdigest()}",  # nosec B324 - MD5 used for non-cryptographic hash for unique workflow ID
+                workflow_input=request_data,
                 random_postfix=True,
             )
             child_workflow_id = await workflow_execution.run_child_workflow(
@@ -97,15 +65,17 @@ class DocumentTriggerWorkflow:
                 )
             )
 
-            await self.process_hocr_results(workflow_results, new_extraction)
+            await self.process_hocr_results(
+                workflow_results, target_extraction
+            )
 
-            await self.finish_extraction(new_extraction)
+            await self.finish_extraction(target_extraction)
         except DocumentTriggerError as e:
             logger.exception("Unable to complete DocumentTriggerWorkflow")
             return DocumentTriggerWorkflowResult(state="error", message=str(e))
         finally:
-            if new_extraction:
-                await self.finish_extraction(new_extraction)
+            if target_extraction:
+                await self.finish_extraction(target_extraction)
 
         logger.info("DocumentTriggerWorkflow completed successfully")
         return DocumentTriggerWorkflowResult()

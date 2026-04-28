@@ -269,7 +269,7 @@ class BadgerdocExtractionPage:
     id: int
     extraction_id: int
     page_number: int
-    content: str | None
+    content: str | None = None
 
 
 @dataclass

@@ -7,6 +7,7 @@ from badgerdoc.views.document import (
     get_document_dzi,
     get_document_dzi_content,
     get_document_dzi_tile,
+    get_document_rendition_page,
     get_document_renditions,
     list_documents,
 )
@@ -53,6 +54,11 @@ urlpatterns = [
         "document/<int:document_id>/renditions/",
         get_document_renditions,
         name="document-renditions",
+    ),
+    path(
+        "document/<int:document_id>/rendition-page/<int:page>/",
+        get_document_rendition_page,
+        name="document-rendition-page",
     ),
     path(
         "document/<int:document_id>/dzi/",
