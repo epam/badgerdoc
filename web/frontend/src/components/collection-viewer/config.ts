@@ -41,3 +41,16 @@ export const DEFAULT_OSD_CONFIG: Options = {
   collectionTileMargin: 20,
   collectionLayout: 'vertical',
 }
+
+export const MACOS_OSD_CONFIG: Partial<Options> = {
+  ...DEFAULT_OSD_CONFIG,
+  // Make trackpad pan/zoom feel a bit more responsive without becoming jumpy.
+  minScrollDeltaTime: 0,
+  pixelsPerWheelLine: 40,
+  zoomPerScroll: 1.28,
+  zoomPerSecond: 1.35,
+  gestureSettingsMouse: {
+    dragToPan: true,
+    scrollToZoom: true,
+  },
+}
