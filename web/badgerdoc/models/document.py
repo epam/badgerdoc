@@ -77,7 +77,12 @@ class Document(TimestampedModel):
             child.delete()
 
         if self.file:
-            self.file.delete(save=False)
+            parent_uses_same_file = (
+                self.parent_document_id is not None
+                and self.parent_document.file.name == self.file.name
+            )
+            if not parent_uses_same_file:
+                self.file.delete(save=False)
 
         super().delete(*args, **kwargs)
 

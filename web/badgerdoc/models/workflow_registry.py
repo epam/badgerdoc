@@ -189,6 +189,10 @@ def get_registries(
             entity_tags=[]
         )
         queryset = queryset.filter(q_objects)
+    else:
+        queryset = queryset.filter(
+            models.Q(entity_tags__isnull=True) | models.Q(entity_tags=[])
+        )
 
     if temporal_workflow_type is not None:
         queryset = queryset.filter(

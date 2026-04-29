@@ -331,6 +331,27 @@ def _parse_form_request_data(request: Request) -> dict[str, Any]:
     }
 
 
+def _create_rendition_from_png(document_obj: document.Document) -> None:
+    # Creates a rendition only from PNG uploads. For other file types (PDF, etc.),
+    # renditions are produced by the Convert workflows (see workflows/badgerdoc_convert).
+    if document_obj.parent_document is not None:
+        return
+    if document_obj.tags and "rendition" in document_obj.tags:
+        return
+    ext = (document_obj.extension or "").lower()
+    if ext != "png":
+        return
+    document.Document.objects.create(
+        file=document_obj.file,
+        name=document_obj.name,
+        extension=document_obj.extension,
+        uploaded_by=document_obj.uploaded_by,
+        parent_document=document_obj,
+        tags=["rendition"],
+        metadata={"page": 1},
+    )
+
+
 @swagger_auto_schema(
     method="post",
     operation_description="Create document and optionally upload a file",
@@ -366,6 +387,7 @@ def create_document(request: Request) -> Response:
         )
         serializer.is_valid(raise_exception=True)
         document_obj = serializer.save()
+        _create_rendition_from_png(document_obj)
 
         return Response(
             DocumentSerializer(document_obj).data,
