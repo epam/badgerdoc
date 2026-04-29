@@ -10,7 +10,9 @@ import {
   Maximize2,
   Download,
   MessageCirclePlus,
+  Layers,
 } from 'lucide-react'
+import type { ReactNode } from 'react'
 import {
   NEXT_BTN_ID,
   PREV_BTN_ID,
@@ -19,6 +21,11 @@ import {
 } from '@/components/collection-viewer/config'
 
 export interface PageChatContext {
+  canAddWholeDocumentToContext?: boolean
+  isWholeDocumentInContext?: boolean
+  isWholeDocumentContextDisabled?: boolean
+  wholeDocumentContextTooltip?: string
+  onAddWholeDocumentToContext?: () => void
   canAddCurrentPageToContext?: boolean
   isCurrentPageInContext?: boolean
   isCurrentPageContextDisabled?: boolean
@@ -41,6 +48,42 @@ interface ViewerToolbarProps {
   pageChatContext?: PageChatContext
 }
 
+function ToolbarContextButton({
+  tooltip,
+  disabled,
+  onClick,
+  icon,
+  children,
+}: {
+  tooltip: string
+  disabled: boolean
+  onClick: () => void
+  icon: ReactNode
+  children: ReactNode
+}) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span className="inline-flex">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-8 gap-1.5 px-2 text-xs"
+            onMouseDown={(event) => event.preventDefault()}
+            onClick={onClick}
+            disabled={disabled}
+          >
+            {icon}
+            {children}
+          </Button>
+        </span>
+      </TooltipTrigger>
+      <TooltipContent side="top">{tooltip}</TooltipContent>
+    </Tooltip>
+  )
+}
+
 export function ViewerToolbar({
   totalPages,
   currentPage,
@@ -56,74 +99,91 @@ export function ViewerToolbar({
   pageChatContext,
 }: ViewerToolbarProps) {
   const showPagination = totalPages > 1
+  const canAddWholeDocumentToContext = pageChatContext?.canAddWholeDocumentToContext ?? false
+  const isWholeDocumentInContext = pageChatContext?.isWholeDocumentInContext ?? false
+  const isWholeDocumentContextDisabled = pageChatContext?.isWholeDocumentContextDisabled ?? false
+  const onAddWholeDocumentToContext = pageChatContext?.onAddWholeDocumentToContext
   const canAddCurrentPageToContext = pageChatContext?.canAddCurrentPageToContext ?? false
   const isCurrentPageInContext = pageChatContext?.isCurrentPageInContext ?? false
   const isCurrentPageContextDisabled = pageChatContext?.isCurrentPageContextDisabled ?? false
   const onAddCurrentPageToContext = pageChatContext?.onAddCurrentPageToContext
+  const documentContextTooltip =
+    pageChatContext?.wholeDocumentContextTooltip ??
+    (isWholeDocumentInContext ? 'Add another whole document reference' : 'Add document to context')
   const pageContextTooltip =
     pageChatContext?.currentPageContextTooltip ??
     (isCurrentPageInContext
       ? `Add another Page ${currentPage} reference`
       : `Add Page ${currentPage} to context`)
+  const hasContextActions = Boolean(
+    (canAddWholeDocumentToContext && onAddWholeDocumentToContext) ||
+    (canAddCurrentPageToContext && onAddCurrentPageToContext)
+  )
 
   return (
     <div className="flex items-center justify-between gap-2 px-3 py-2 border-b border-border bg-card">
       <div className="flex items-center gap-1">
         {isLoading && <Skeleton className="h-8 w-40" />}
-        {!isLoading &&
-          (showPagination || (canAddCurrentPageToContext && onAddCurrentPageToContext)) && (
-            <>
-              {showPagination && (
-                <>
-                  <Button
-                    id={PREV_BTN_ID}
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={onPrevClick}
+        {!isLoading && (showPagination || hasContextActions) && (
+          <>
+            {showPagination && (
+              <>
+                <Button
+                  id={PREV_BTN_ID}
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={onPrevClick}
+                >
+                  <ChevronLeft className="h-4 w-4 m-auto" />
+                </Button>
+                <span className="text-sm tabular-nums min-w-20 text-center">
+                  <>
+                    <span className="font-medium">{currentPage}</span>
+                    <span className="text-muted-foreground"> / {totalPages}</span>
+                  </>
+                </span>
+                <Button
+                  id={NEXT_BTN_ID}
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={onNextClick}
+                >
+                  <ChevronRight className="h-4 w-4 m-auto" />
+                </Button>
+              </>
+            )}
+            {hasContextActions && (
+              <div
+                className={
+                  showPagination ? 'ml-2 flex items-center gap-1' : 'flex items-center gap-1'
+                }
+              >
+                {canAddCurrentPageToContext && onAddCurrentPageToContext && (
+                  <ToolbarContextButton
+                    tooltip={pageContextTooltip}
+                    onClick={onAddCurrentPageToContext}
+                    disabled={isCurrentPageContextDisabled}
+                    icon={<MessageCirclePlus className="h-4 w-4" />}
                   >
-                    <ChevronLeft className="h-4 w-4 m-auto" />
-                  </Button>
-                  <span className="text-sm tabular-nums min-w-20 text-center">
-                    <>
-                      <span className="font-medium">{currentPage}</span>
-                      <span className="text-muted-foreground"> / {totalPages}</span>
-                    </>
-                  </span>
-                  <Button
-                    id={NEXT_BTN_ID}
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={onNextClick}
+                    Add page to context
+                  </ToolbarContextButton>
+                )}
+                {canAddWholeDocumentToContext && onAddWholeDocumentToContext && (
+                  <ToolbarContextButton
+                    tooltip={documentContextTooltip}
+                    onClick={onAddWholeDocumentToContext}
+                    disabled={isWholeDocumentContextDisabled}
+                    icon={<Layers className="h-4 w-4" />}
                   >
-                    <ChevronRight className="h-4 w-4 m-auto" />
-                  </Button>
-                </>
-              )}
-              {canAddCurrentPageToContext && onAddCurrentPageToContext && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span className="inline-flex">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="ml-2 h-8 gap-1.5 px-2 text-xs"
-                        onMouseDown={(event) => event.preventDefault()}
-                        onClick={onAddCurrentPageToContext}
-                        disabled={isCurrentPageContextDisabled}
-                      >
-                        <MessageCirclePlus className="h-4 w-4" />
-                        Add page to context
-                      </Button>
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent side="top">{pageContextTooltip}</TooltipContent>
-                </Tooltip>
-              )}
-            </>
-          )}
+                    Add document to context
+                  </ToolbarContextButton>
+                )}
+              </div>
+            )}
+          </>
+        )}
       </div>
       <div className="w-px h-5 bg-border mx-1" />
 

@@ -232,4 +232,40 @@ describe('useExtractionChatContext prompt persistence', () => {
     expect(result.current.prompt).toBe(prompt)
     expect(result.current.selectedBlocks).toEqual([{ blockId: 'block_2_1', pageNumber: 2 }])
   })
+
+  it('uses the registered prompt inserter when adding the whole document', () => {
+    const inserter = vi.fn()
+    const { result } = renderHook(() =>
+      useExtractionChatContext({
+        documentId: '123',
+      })
+    )
+
+    act(() => {
+      result.current.registerPromptContextInserter(inserter)
+      result.current.addWholeDocument()
+    })
+
+    expect(inserter).toHaveBeenCalledWith('/badgerdoc/document/123/')
+    expect(result.current.prompt).toBe('')
+  })
+
+  it('appends the whole document context when no editor inserter is registered', () => {
+    const { result } = renderHook(() =>
+      useExtractionChatContext({
+        documentId: '123',
+      })
+    )
+
+    act(() => {
+      result.current.setPrompt('Summarize')
+    })
+
+    act(() => {
+      result.current.addWholeDocument()
+    })
+
+    expect(result.current.prompt).toBe('Summarize {{/badgerdoc/document/123/}}')
+    expect(result.current.isWholeDocumentSelected).toBe(true)
+  })
 })
