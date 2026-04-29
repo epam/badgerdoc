@@ -59,6 +59,6 @@ export function createExtractionTableExtensions() {
     TableHeader.configure(TableKitStylingConfig.tableHeader),
     TableCell.configure(TableKitStylingConfig.tableCell),
     Subscript,
-    Superscript
+    Superscript,
   ]
 }
