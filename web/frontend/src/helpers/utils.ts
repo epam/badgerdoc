@@ -79,3 +79,14 @@ export function getFileExtensionFromFileName(fileName: string): string {
   if (index === -1) return ''
   return fileName.slice(index + 1).toLowerCase()
 }
+
+export function parsePositiveNumber(value: unknown): number | null {
+  const numericValue =
+    typeof value === 'number' ? value : typeof value === 'string' ? Number(value) : null
+
+  if (numericValue == null || !Number.isFinite(numericValue) || numericValue <= 0) {
+    return null
+  }
+
+  return numericValue
+}

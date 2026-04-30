@@ -26,6 +26,7 @@ import {
   taskFiltersFromSearch,
   taskFiltersToSearch,
 } from '@/helpers/task-filters-search'
+import { parsePositiveNumber } from '@/helpers/utils'
 import { ExtractionResultsTab } from '@/features/workspace/components/extraction-results-tab.tsx'
 
 export function WorkspacePage() {
@@ -333,6 +334,7 @@ export function WorkspacePage() {
     publicationDate: document.publicationDate,
   }
   const viewerHighlights = activeTab === 'overview' ? {} : highlights
+  const expectedPageCount = parsePositiveNumber(document.metadata?.total_pages)
 
   const renderTabContent = () => {
     // Special case: Overview tab (hardcoded)
@@ -412,6 +414,7 @@ export function WorkspacePage() {
           left={
             <CollectionViewer
               documentId={documentId?.toString() || ''}
+              expectedPageCount={expectedPageCount}
               currentPage={currentPage}
               onPageChange={setCurrentPage}
               onHighlightClick={(highlightId) => setActiveBlockId(highlightId)}
