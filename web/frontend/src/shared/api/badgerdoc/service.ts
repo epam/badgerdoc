@@ -60,6 +60,8 @@ export interface GetDocumentsParams {
   tags?: string
   created_at__gte?: string
   created_at__lte?: string
+  /** Filters to documents whose immediate parent is the given document. */
+  parent_document_id?: string | number
   page?: number
   page_size?: number
 }
