@@ -25,6 +25,105 @@ const OcrParagraph = Paragraph.extend({
   },
 })
 
+function parseCellAttrs(node: HTMLElement) {
+  const colspan = Number(node.getAttribute('colspan') || 1)
+  const rowspan = Number(node.getAttribute('rowspan') || 1)
+  const colwidthAttr = node.getAttribute('colwidth')
+  const colwidth =
+    colwidthAttr && /^\d+(,\d+)*$/.test(colwidthAttr)
+      ? colwidthAttr.split(',').map((width) => Number(width))
+      : null
+
+  return {
+    colspan,
+    rowspan,
+    colwidth,
+  }
+}
+
+const OcrTableHeader = TableHeader.extend({
+  parseHTML() {
+    return [
+      {
+        tag: 'th',
+        getAttrs: (node) => {
+          const attrs = parseCellAttrs(node as HTMLElement)
+          if (attrs.colspan === 1 && attrs.rowspan === 1 && attrs.colwidth === null) {
+            return null
+          }
+          return attrs
+        },
+      },
+      {
+        // hOCR table fragments may contain <td> cells in <thead>; treat them as header cells.
+        tag: 'thead td',
+        getAttrs: (node) => {
+          const attrs = parseCellAttrs(node as HTMLElement)
+          if (attrs.colspan === 1 && attrs.rowspan === 1 && attrs.colwidth === null) {
+            return null
+          }
+          return attrs
+        },
+      },
+    ]
+  },
+})
+
+const OcrTableCell = TableCell.extend({
+  parseHTML() {
+    return [
+      {
+        // Keep body cells as regular data cells and avoid stealing thead cells.
+        tag: 'tbody td',
+        getAttrs: (node) => {
+          const attrs = parseCellAttrs(node as HTMLElement)
+          if (attrs.colspan === 1 && attrs.rowspan === 1 && attrs.colwidth === null) {
+            return null
+          }
+          return attrs
+        },
+      },
+      {
+        tag: 'tfoot td',
+        getAttrs: (node) => {
+          const attrs = parseCellAttrs(node as HTMLElement)
+          if (attrs.colspan === 1 && attrs.rowspan === 1 && attrs.colwidth === null) {
+            return null
+          }
+          return attrs
+        },
+      },
+      {
+        // Fallback for tables without explicit tbody.
+        tag: 'table > tr > td',
+        getAttrs: (node) => {
+          const attrs = parseCellAttrs(node as HTMLElement)
+          if (attrs.colspan === 1 && attrs.rowspan === 1 && attrs.colwidth === null) {
+            return null
+          }
+          return attrs
+        },
+      },
+      {
+        tag: 'td',
+        getAttrs: (node) => {
+          const parentTag = (
+            node as HTMLElement
+          ).parentElement?.parentElement?.tagName?.toLowerCase()
+          if (parentTag === 'thead') {
+            return false
+          }
+          const attrs = parseCellAttrs(node as HTMLElement)
+          if (attrs.colspan === 1 && attrs.rowspan === 1 && attrs.colwidth === null) {
+            return null
+          }
+          return attrs
+        },
+      },
+    ]
+  },
+})
+
 const TableKitStylingConfig = {
   table: {
     resizable: false,
@@ -56,9 +155,9 @@ export function createExtractionTableExtensions() {
     OcrParagraph,
     Table.configure(TableKitStylingConfig.table),
     TableRow.configure(TableKitStylingConfig.tableRow),
-    TableHeader.configure(TableKitStylingConfig.tableHeader),
-    TableCell.configure(TableKitStylingConfig.tableCell),
+    OcrTableHeader.configure(TableKitStylingConfig.tableHeader),
+    OcrTableCell.configure(TableKitStylingConfig.tableCell),
     Subscript,
-    Superscript
+    Superscript,
   ]
 }
