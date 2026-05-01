@@ -50,14 +50,32 @@ const ExtractionEditor = ({
   const cursorBlockIdRef = useRef<string | null>(null)
   const editorHasFocusedRef = useRef(false)
   const lastCleanContentRef = useRef(content || '')
+  const onBlockSelectRef = useRef(onBlockSelect)
+  const onBlockDeleteRef = useRef(onBlockDelete)
+  const onToggleBlockContextRef = useRef(onToggleBlockContext)
   const hasChanges = hasUnsavedChanges
+
+  onBlockSelectRef.current = onBlockSelect
+  onBlockDeleteRef.current = onBlockDelete
+  onToggleBlockContextRef.current = onToggleBlockContext
 
   const handleBlockSelectFromEditor = useCallback(
     (blockId: string | null, pageNumber: number | null) => {
       selectionTriggeredInEditorBlockIdRef.current = blockId
-      onBlockSelect(blockId, pageNumber)
+      onBlockSelectRef.current(blockId, pageNumber)
     },
-    [onBlockSelect]
+    []
+  )
+
+  const handleBlockDeleteFromEditor = useCallback((blockId: string, pageNumber: number | null) => {
+    onBlockDeleteRef.current(blockId, pageNumber)
+  }, [])
+
+  const handleToggleBlockContextFromEditor = useCallback(
+    (blockId: string, pageNumber: number | null) => {
+      onToggleBlockContextRef.current(blockId, pageNumber)
+    },
+    []
   )
 
   const handleWillDeleteNode = useCallback(() => {
@@ -69,12 +87,17 @@ const ExtractionEditor = ({
       ...createExtractionTableExtensions(),
       ExtractionBlockExtension.configure({
         onBlockSelect: handleBlockSelectFromEditor,
-        onBlockDelete,
-        onToggleBlockContext,
+        onBlockDelete: handleBlockDeleteFromEditor,
+        onToggleBlockContext: handleToggleBlockContextFromEditor,
         onWillDeleteNode: handleWillDeleteNode,
       }),
     ],
-    [handleBlockSelectFromEditor, onBlockDelete, onToggleBlockContext, handleWillDeleteNode]
+    [
+      handleBlockSelectFromEditor,
+      handleBlockDeleteFromEditor,
+      handleToggleBlockContextFromEditor,
+      handleWillDeleteNode,
+    ]
   )
 
   const editor = useEditor({

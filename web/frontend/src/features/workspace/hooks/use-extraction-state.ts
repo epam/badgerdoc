@@ -61,13 +61,17 @@ function areExtractionPagesEquivalent(
 function applyAcceptedPayloadToExtractionPages({
   pages,
   payload,
+  extractionId,
 }: {
   pages?: BadgerDocExtractionPage[]
   payload: PendingPayload
+  extractionId?: string | number | null
 }) {
   if (!pages || !payload.length) return pages
 
   const acceptedByPage = new Map(payload.map(({ page, hocr }) => [page, hocr]))
+  const acceptedExtractionId =
+    extractionId === undefined || extractionId === null ? null : Number(extractionId)
 
   return pages.map((page) => {
     const acceptedContent = acceptedByPage.get(page.page_number)
@@ -75,6 +79,7 @@ function applyAcceptedPayloadToExtractionPages({
 
     return {
       ...page,
+      ...(acceptedExtractionId !== null ? { extraction_id: acceptedExtractionId } : {}),
       content: acceptedContent,
     }
   })
@@ -370,12 +375,16 @@ export function useExtractionState({ extractionPages, activeTag }: UseExtraction
   }, [activeTag, extractionPages, editedExtractionPages, pendingPages, scopedExtractionPages])
 
   const acceptChanges = useCallback(
-    (acceptedPayload: PendingPayload = pendingPayload) => {
+    (
+      acceptedPayload: PendingPayload = pendingPayload,
+      acceptedExtractionId?: string | number | null
+    ) => {
       if (!hasChanges || !activeTag || !extractionPages) return
       setCommittedExtractionPages(
         applyAcceptedPayloadToExtractionPages({
           pages: scopedExtractionPages,
           payload: acceptedPayload,
+          extractionId: acceptedExtractionId,
         })
       )
       resetEditState()

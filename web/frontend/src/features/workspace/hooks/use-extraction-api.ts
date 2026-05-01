@@ -31,7 +31,7 @@ export function useExtractionApi({ documentId, activeTag }: UseExtractionApiPara
   const saveExtractionPages = useCallback(
     async (payload: Array<{ page: number; hocr: string }>) => {
       if (!payload.length) {
-        return
+        return null
       }
 
       setIsPending(true)
@@ -54,6 +54,8 @@ export function useExtractionApi({ documentId, activeTag }: UseExtractionApiPara
             })
           }
         }
+
+        return extraction
       } finally {
         setIsPending(false)
       }
@@ -64,16 +66,16 @@ export function useExtractionApi({ documentId, activeTag }: UseExtractionApiPara
   const acceptExtraction = useCallback(
     async (payload: Array<{ page: number; hocr: string }>) => {
       if (!payload.length) {
-        return
+        return null
       }
 
       setIsPending(true)
 
       try {
-        await saveExtractionPages(payload)
+        const savedExtraction = await saveExtractionPages(payload)
 
-        const extraction = await ensureExtraction()
-        await apiAdapter.extractions.updateExtraction({
+        const extraction = savedExtraction ?? (await ensureExtraction())
+        const completedExtraction = await apiAdapter.extractions.updateExtraction({
           extractionId: extraction.id,
           status: 'Completed',
         })
@@ -84,6 +86,8 @@ export function useExtractionApi({ documentId, activeTag }: UseExtractionApiPara
         await queryClient.invalidateQueries({
           queryKey: extractionPagesKeys.documentWithTags(documentId, activeTag),
         })
+
+        return completedExtraction
       } finally {
         setIsPending(false)
       }
