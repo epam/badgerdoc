@@ -3,6 +3,7 @@ import { useParams, useNavigate, useSearch, useMatches } from '@tanstack/react-r
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { SplitView } from '@/design-system/patterns/split-view'
 import { DocumentHeader } from '@/components/document-header'
+import { DocumentHierarchyPopover } from '@/components/document-hierarchy-popover'
 import { WorkspaceTabs } from './components/workspace-tabs.tsx'
 import { CollectionViewer } from '@/components/collection-viewer/collection-viewer'
 import { Button } from '@/components/ui/button'
@@ -27,6 +28,7 @@ import {
   taskFiltersToSearch,
 } from '@/helpers/task-filters-search'
 import { ExtractionResultsTab } from '@/features/workspace/components/extraction-results-tab.tsx'
+import type { BadgerDocDocument } from '@/shared/api/badgerdoc/types'
 
 export function WorkspacePage() {
   // Support both /tasks/$taskId and legacy /document/$id routes
@@ -295,6 +297,21 @@ export function WorkspacePage() {
     })
   }, [navigate, queue?.nextId, taskFiltersSearch, activeTab])
 
+  const handleHierarchyDocumentSelect = useCallback(
+    (selectedDocument: BadgerDocDocument) => {
+      if (String(selectedDocument.id) === String(documentId)) {
+        return
+      }
+
+      void navigate({
+        to: '/documents/$id',
+        params: { id: String(selectedDocument.id) },
+        search: activeTab !== 'overview' ? { tag: activeTab } : {},
+      })
+    },
+    [activeTab, documentId, navigate]
+  )
+
   // Show 404 page when task or document is not found
   const isTask404 = taskId && taskError && (taskErrorData as APIError)?.statusCode === 404
   const isDocument404 = documentError && (documentErrorData as APIError)?.statusCode === 404
@@ -320,6 +337,18 @@ export function WorkspacePage() {
     authors: document.authors,
     date: document.publicationDate || document.createdAt.split('T')[0],
   }
+  const documentForHierarchy = {
+    id: document.id,
+    uploaded_by: document.uploadedBy,
+    parent_document_id: document.parentDocumentId ?? null,
+    file: document.pdfUrl,
+    metadata: document.metadata,
+    tags: document.tags,
+    created_at: document.createdAt,
+    updated_at: document.updatedAt,
+    name: document.title,
+    status: document.status,
+  } satisfies BadgerDocDocument
 
   const documentForOverview = {
     id: document.id,
@@ -375,6 +404,12 @@ export function WorkspacePage() {
         backSearch={taskFiltersSearch as Record<string, unknown>}
         backLabel="Back"
         useSmartBack
+        titleActions={
+          <DocumentHierarchyPopover
+            currentDocument={documentForHierarchy}
+            onDocumentSelect={handleHierarchyDocumentSelect}
+          />
+        }
       >
         {currentRoute === 'tasks' && !isLoadingTasks && queue && (
           <>
