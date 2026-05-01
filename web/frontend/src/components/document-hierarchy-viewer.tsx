@@ -1,6 +1,7 @@
 import { AlertCircle, Check, FileText } from 'lucide-react'
 import { cn } from '@/helpers/utils'
 import { getDocumentExtension } from '@/components/document-hierarchy-utils'
+import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Spinner } from '@/components/ui/spinner'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
@@ -30,6 +31,8 @@ interface VisibleHierarchyRow {
   level: number
   isLast: boolean
 }
+
+const MAX_INLINE_TAGS = 2
 
 function getVisibleHierarchyRows(tree: DocumentHierarchyNode[]): VisibleHierarchyRow[] {
   const rootNode = tree[0]
@@ -99,6 +102,25 @@ function DocumentHierarchyConnector({ level, isLast }: { level: number; isLast: 
   )
 }
 
+function getDocumentTagLabel(tag: unknown): string {
+  if (typeof tag === 'string') {
+    return tag.trim()
+  }
+
+  if (tag && typeof tag === 'object') {
+    const tagRecord = tag as Record<string, unknown>
+    const labels = [tagRecord.literal, tagRecord.tag]
+
+    for (const label of labels) {
+      if (typeof label === 'string' && label.trim()) {
+        return label.trim()
+      }
+    }
+  }
+
+  return ''
+}
+
 export function DocumentHierarchyRow({
   node,
   level,
@@ -109,6 +131,11 @@ export function DocumentHierarchyRow({
   const canNavigate = !isCurrent && !!onDocumentSelect
   const extension = getDocumentExtension(node.document, node.title)
   const isPdf = extension === 'PDF'
+  const documentTags = Array.isArray(node.document.tags)
+    ? node.document.tags.map(getDocumentTagLabel).filter(Boolean)
+    : []
+  const visibleTags = documentTags.slice(0, MAX_INLINE_TAGS)
+  const hiddenTags = documentTags.slice(MAX_INLINE_TAGS)
 
   return (
     <div className="relative py-1" role="none">
@@ -142,9 +169,44 @@ export function DocumentHierarchyRow({
             {node.title}
           </TooltipContent>
         </Tooltip>
-        {extension && (
-          <span className="shrink-0 rounded-md bg-muted px-1.5 py-0.5 text-[11px] font-medium leading-none text-muted-foreground">
-            {extension}
+        {(extension || documentTags.length > 0) && (
+          <span className="flex min-w-0 max-w-[60%] shrink-0 items-center gap-1.5 overflow-hidden">
+            {extension && (
+              <span className="inline-flex h-5 shrink-0 items-center rounded-full bg-muted px-1.5 text-[10px] font-semibold leading-none text-muted-foreground ring-1 ring-border/60">
+                {extension}
+              </span>
+            )}
+            {extension && documentTags.length > 0 && (
+              <span aria-hidden="true" className="h-4 w-px shrink-0 bg-border/70" />
+            )}
+            {documentTags.length > 0 && (
+              <span className="flex min-w-0 flex-1 items-center gap-1 overflow-hidden">
+                {visibleTags.map((tag, index) => (
+                  <Badge
+                    key={`${tag}-${index}`}
+                    variant="info"
+                    className="h-5 max-w-24 shrink justify-start overflow-hidden text-ellipsis rounded-full px-1.5 py-0 text-[11px] leading-none"
+                  >
+                    {tag}
+                  </Badge>
+                ))}
+                {hiddenTags.length > 0 && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Badge
+                        variant="info"
+                        className="h-5 rounded-full px-1.5 py-0 text-[11px] leading-none"
+                      >
+                        +{hiddenTags.length}
+                      </Badge>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" align="end" className="max-w-64 break-words">
+                      {hiddenTags.join(', ')}
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+              </span>
+            )}
           </span>
         )}
         {isCurrent && <Check className="ml-1 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />}

@@ -5,11 +5,16 @@ import type { DocumentHierarchyNode } from '@/shared/api/hooks/use-badgerdoc-doc
 import { getDocumentExtension } from './document-hierarchy-utils'
 import { DocumentHierarchyViewer } from './document-hierarchy-viewer'
 
-function createDocument(id: number, title: string): BadgerDocDocument {
+function createDocument(
+  id: number,
+  title: string,
+  options?: Partial<BadgerDocDocument>
+): BadgerDocDocument {
   return {
     id,
     file: `https://example.test/${id}.pdf`,
     metadata: { title },
+    ...options,
   }
 }
 
@@ -103,6 +108,116 @@ describe('DocumentHierarchyViewer', () => {
     expect(rows[1]).toHaveAttribute('aria-level', '2')
     expect(rows[2]).toHaveAttribute('aria-level', '3')
     expect(rows[3]).toHaveAttribute('aria-level', '3')
+  })
+
+  it('renders document tags after the extension badge', () => {
+    const tree = [
+      createNode(2, '7_page_4.png', {
+        isCurrent: true,
+        document: createDocument(2, '7_page_4.png', {
+          tags: ['rendition', 'reviewed'],
+        }),
+      }),
+    ]
+
+    render(<DocumentHierarchyViewer tree={tree} />)
+
+    const row = screen.getByRole('treeitem', { name: /7_page_4\.png/i })
+    expect(row).toHaveTextContent('7_page_4.pngPNGrenditionreviewed')
+    expect(screen.getByText('rendition')).toBeInTheDocument()
+    expect(screen.getByText('reviewed')).toBeInTheDocument()
+    expect(screen.queryByText(/\+\d+/)).not.toBeInTheDocument()
+  })
+
+  it('renders object tag labels without showing empty tag values', () => {
+    const tree = [
+      createNode(2, 'Object tags', {
+        isCurrent: true,
+        document: createDocument(2, 'Object tags', {
+          tags: [
+            { literal: 'Deepseek OCR 2', tag: 'deepseek-ocr-2' },
+            { tag: 'fallback-tag' },
+            { literal: '   ', tag: 'literal-fallback' },
+            { literal: '   ', tag: '   ' },
+            '',
+          ] as unknown as string[],
+        }),
+      }),
+    ]
+
+    render(<DocumentHierarchyViewer tree={tree} />)
+
+    const row = screen.getByRole('treeitem', { name: /object tags/i })
+    expect(row).toHaveTextContent('Object tagsPDFDeepseek OCR 2fallback-tag+1')
+    expect(row).not.toHaveTextContent('[object Object]')
+  })
+
+  it('renders one inline tag without overflow', () => {
+    const tree = [
+      createNode(2, 'Single tag', {
+        isCurrent: true,
+        document: createDocument(2, 'Single tag', {
+          tags: ['rendition'],
+        }),
+      }),
+    ]
+
+    render(<DocumentHierarchyViewer tree={tree} />)
+
+    const row = screen.getByRole('treeitem', { name: /single tag/i })
+    expect(row).toHaveTextContent('Single tagPDFrendition')
+    expect(screen.queryByText(/\+\d+/)).not.toBeInTheDocument()
+  })
+
+  it('renders only two inline tags and a hidden tag count for overflow', () => {
+    const tree = [
+      createNode(2, 'Overflow tags', {
+        isCurrent: true,
+        document: createDocument(2, 'Overflow tags', {
+          tags: ['rendition', 'reviewed', 'archived', 'important', 'needs-export'],
+        }),
+      }),
+    ]
+
+    render(<DocumentHierarchyViewer tree={tree} />)
+
+    const row = screen.getByRole('treeitem', { name: /overflow tags/i })
+    expect(row).toHaveTextContent('Overflow tagsPDFrenditionreviewed+3')
+    expect(screen.getByText('rendition')).toBeInTheDocument()
+    expect(screen.getByText('reviewed')).toBeInTheDocument()
+    expect(screen.getByText('+3')).toBeInTheDocument()
+    expect(row).not.toHaveTextContent('archived')
+    expect(row).not.toHaveTextContent('important')
+    expect(row).not.toHaveTextContent('needs-export')
+  })
+
+  it('does not render tag placeholders for missing, null, or empty tags', () => {
+    const tree = [
+      createNode(2, 'Current document', {
+        isCurrent: true,
+        document: createDocument(2, 'Current document', { tags: null }),
+        children: [
+          createNode(3, 'Empty tags', {
+            isLeaf: true,
+            document: createDocument(3, 'Empty tags', { tags: [] }),
+          }),
+          createNode(4, 'Missing tags', {
+            isLeaf: true,
+            document: createDocument(4, 'Missing tags'),
+          }),
+        ],
+      }),
+    ]
+
+    render(<DocumentHierarchyViewer tree={tree} />)
+
+    expect(screen.getByRole('treeitem', { name: /current document/i })).toHaveTextContent(
+      'Current documentPDF'
+    )
+    expect(screen.getByRole('treeitem', { name: /empty tags/i })).toHaveTextContent('Empty tagsPDF')
+    expect(screen.getByRole('treeitem', { name: /missing tags/i })).toHaveTextContent(
+      'Missing tagsPDF'
+    )
   })
 
   it('calls onDocumentSelect for related documents but not the current document', () => {
