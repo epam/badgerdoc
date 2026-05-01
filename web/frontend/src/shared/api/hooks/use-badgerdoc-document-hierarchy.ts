@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { extractFilenameFromUrl } from '@/helpers/utils'
 import { badgerDocService } from '../badgerdoc/service'
 import type { BadgerDocDocument } from '../badgerdoc/types'
 
@@ -32,19 +33,6 @@ const documentHierarchyKeys = {
     [...documentHierarchyKeys.all, documentId, parentDocumentId ?? null] as const,
 }
 
-function extractFilenameFromUrl(url?: string): string | undefined {
-  if (!url) return undefined
-
-  try {
-    const { pathname } = new URL(url)
-    const filename = pathname.split('/').pop()?.split('?')[0]
-    return filename || undefined
-  } catch {
-    const filename = url.split('/').pop()?.split('?')[0]
-    return filename || undefined
-  }
-}
-
 export function getBadgerDocDocumentTitle(document: BadgerDocDocument): string {
   const metadataTitle = document.metadata?.title
   if (typeof metadataTitle === 'string' && metadataTitle.trim()) {
@@ -55,7 +43,9 @@ export function getBadgerDocDocumentTitle(document: BadgerDocDocument): string {
     return document.name
   }
 
-  return extractFilenameFromUrl(document.file || document.file_url) || `Document ${document.id}`
+  return (
+    extractFilenameFromUrl(document.file || document.file_url || '') || `Document ${document.id}`
+  )
 }
 
 function toHierarchyNode(

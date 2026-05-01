@@ -6,6 +6,7 @@ import { badgerDocService } from '../badgerdoc/service'
 import type { BadgerDocDocument, BadgerDocDocumentsResponse } from '../badgerdoc/types'
 import {
   buildDocumentHierarchyTree,
+  getBadgerDocDocumentTitle,
   useBadgerDocDocumentHierarchy,
 } from './use-badgerdoc-document-hierarchy'
 
@@ -56,6 +57,32 @@ function createWrapper() {
 }
 
 describe('buildDocumentHierarchyTree', () => {
+  it('falls back from metadata title to document name, file name, and document id', () => {
+    expect(getBadgerDocDocumentTitle(createDocument(1, 'Metadata title'))).toBe('Metadata title')
+    expect(
+      getBadgerDocDocumentTitle({
+        ...createDocument(2, ''),
+        name: 'Named document',
+        metadata: {},
+      })
+    ).toBe('Named document')
+    expect(
+      getBadgerDocDocumentTitle({
+        ...createDocument(3, ''),
+        file: 'https://example.test/uploads/source.pdf?token=abc',
+        metadata: {},
+      })
+    ).toBe('source.pdf')
+    expect(
+      getBadgerDocDocumentTitle({
+        ...createDocument(4, ''),
+        file: '',
+        file_url: '',
+        metadata: {},
+      })
+    ).toBe('Document 4')
+  })
+
   it('returns the current document without parent or children', () => {
     const currentDocument = createDocument(2, 'Current document')
 

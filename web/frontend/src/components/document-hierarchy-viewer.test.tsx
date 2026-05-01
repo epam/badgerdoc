@@ -71,6 +71,7 @@ describe('DocumentHierarchyViewer', () => {
       'aria-level',
       '2'
     )
+    expect(within(hierarchy).getByRole('treeitem', { name: /child document/i })).toBeDisabled()
     expect(screen.getByText(/end of related documents/i)).toBeInTheDocument()
   })
 
@@ -121,7 +122,7 @@ describe('DocumentHierarchyViewer', () => {
 
     fireEvent.click(screen.getByRole('treeitem', { name: /parent document/i }))
     fireEvent.click(screen.getByRole('treeitem', { name: /child document/i }))
-    fireEvent.click(screen.getByRole('treeitem', { name: /current document/i }))
+    expect(screen.getByRole('treeitem', { name: /current document/i })).toBeDisabled()
 
     expect(onDocumentSelect).toHaveBeenCalledTimes(2)
     expect(onDocumentSelect.mock.calls[0][0]).toMatchObject({ id: 1 })
@@ -213,7 +214,7 @@ describe('DocumentHierarchyViewer', () => {
     const rows = screen.getAllByRole('treeitem')
     expect(rows).toHaveLength(1)
     expect(rows[0]).toHaveAttribute('aria-current', 'page')
-    expect(rows[0]).not.toBeDisabled()
+    expect(rows[0]).toBeDisabled()
     expect(screen.getByText('Current document')).toHaveClass('truncate')
     expect(screen.getByText('PDF')).toBeInTheDocument()
     expect(screen.queryByText(/no related documents/i)).not.toBeInTheDocument()

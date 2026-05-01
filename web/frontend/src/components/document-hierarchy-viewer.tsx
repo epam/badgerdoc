@@ -117,13 +117,9 @@ export function DocumentHierarchyRow({
         type="button"
         role="treeitem"
         aria-current={isCurrent ? 'page' : undefined}
-        aria-disabled={!canNavigate}
         aria-level={level + 1}
-        onClick={() => {
-          if (canNavigate) {
-            onDocumentSelect(node.document, node)
-          }
-        }}
+        disabled={!canNavigate}
+        onClick={canNavigate ? () => onDocumentSelect(node.document, node) : undefined}
         className={cn(
           'group relative z-10 flex h-9 w-full min-w-0 items-center gap-2 rounded-lg border border-transparent py-1.5 pr-2.5 text-left text-sm outline-none transition-colors',
           'focus-visible:bg-muted focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-1 focus-visible:ring-offset-card',
