@@ -21,6 +21,8 @@ import { useExtractionState } from '@/features/workspace/hooks/use-extraction-st
 import { useExtractionApi } from '@/features/workspace/hooks/use-extraction-api'
 import { useReloadDraftAutosave } from '@/features/workspace/hooks/use-reload-draft-autosave'
 import { useExtractionChatContext } from '@/features/workspace/hooks/use-extraction-chat-context'
+import { useChatWorkflowSelection } from '@/features/workspace/hooks/use-chat-workflow-selection'
+import { useViewerChatContext } from '@/features/workspace/hooks/use-viewer-chat-context'
 import { WorkspaceLoadingSkeleton } from '@/features/workspace/components/workspace-loading-skeleton.tsx'
 import {
   TaskFiltersSearch,
@@ -93,6 +95,7 @@ export function WorkspacePage() {
   const taskStatusName = taskData?.status?.name
 
   const [isEditMode, setIsEditMode] = useState(false)
+  const [isRunningInference, setIsRunningInference] = useState(false)
   const isOverviewTab = activeTab === 'overview'
   const canUseEditingMode = !isOverviewTab
   const {
@@ -131,6 +134,9 @@ export function WorkspacePage() {
   } = useExtractionChatContext({
     documentId,
     extractionPages: scopedExtractionPages,
+  })
+  const workflowSelection = useChatWorkflowSelection({
+    activeTag: activeTagName,
   })
 
   const {
@@ -216,29 +222,17 @@ export function WorkspacePage() {
     ]
   )
 
-  const pageChatContext = useMemo(
-    () => ({
-      canAddCurrentPageToContext: !isOverviewTab,
-      isCurrentPageInContext: selectedPages.includes(currentPage),
-      isCurrentPageContextDisabled: extractionLoading || hasChanges || isApiPending,
-      currentPageContextTooltip:
-        extractionLoading || hasChanges || isApiPending
-          ? 'Prompt context is unavailable while you have unsaved changes.'
-          : selectedPages.includes(currentPage)
-            ? `Add another Page ${currentPage} reference`
-            : undefined,
-      onAddCurrentPageToContext: handleAddCurrentPage,
-    }),
-    [
-      isOverviewTab,
-      selectedPages,
-      currentPage,
-      extractionLoading,
-      hasChanges,
-      isApiPending,
-      handleAddCurrentPage,
-    ]
-  )
+  const pageChatContext = useViewerChatContext({
+    canAddContext: !isOverviewTab,
+    currentPage,
+    selectedPages,
+    isWholeDocumentSelected,
+    isContextInteractionDisabled:
+      extractionLoading || hasChanges || isApiPending || isRunningInference,
+    workflowSelection,
+    onAddWholeDocument: addWholeDocument,
+    onAddCurrentPage: handleAddCurrentPage,
+  })
 
   const handleTabChange = useCallback(
     (tab: string) => {
@@ -388,6 +382,9 @@ export function WorkspacePage() {
         currentPage={currentPage}
         documentId={documentId}
         chatContext={chatContext}
+        workflowSelection={workflowSelection}
+        isRunningInference={isRunningInference}
+        setIsRunningInference={setIsRunningInference}
       />
     )
   }
