@@ -45,11 +45,12 @@ def extract_bbox_from_hocr(
 
 
 def find_existing_chunk(
-    document_id: int, coordinates_str: str
+    document_id: int, page_num: int, coordinates_str: str
 ) -> document.Document | None:
     return document.Document.objects.filter(
         parent_document=document_id,
         tags__contains=["chunk"],
+        metadata__page=page_num,
         metadata__position_in_parent=coordinates_str,
     ).first()
 
@@ -99,6 +100,7 @@ def crop_rendition(
 def create_chunk_document(
     document_obj: document.Document,
     user: User,
+    page_num: int,
     x1: int,
     y1: int,
     x2: int,
@@ -106,16 +108,14 @@ def create_chunk_document(
     png_bytes: bytes,
 ) -> document.Document:
     coordinates_str = f"{x1} {y1} {x2} {y2}"
-    chunk_name = (
-        f"{document_obj.name or document_obj.id}_chunk_{x1}_{y1}_{x2}_{y2}"
-    )
+    chunk_name = f"{document_obj.name or document_obj.id}_chunk_p{page_num}_{x1}_{y1}_{x2}_{y2}"
     chunk_doc = document.Document.objects.create(
         name=chunk_name,
         extension="png",
         uploaded_by=user,
         parent_document=document_obj,
         tags=["chunk"],
-        metadata={"position_in_parent": coordinates_str},
+        metadata={"page": page_num, "position_in_parent": coordinates_str},
     )
     chunk_doc.file.save(
         f"{chunk_name}.png",

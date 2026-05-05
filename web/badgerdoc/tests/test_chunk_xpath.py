@@ -132,27 +132,37 @@ class FindExistingChunkTestCase(TestCase):
         )
         self.chunk = document.Document.objects.create(
             uploaded_by=self.owner,
-            name="parent_doc_chunk_10_20_30_40",
+            name="parent_doc_chunk_p1_10_20_30_40",
             extension="png",
             parent_document=self.parent,
             tags=["chunk"],
-            metadata={"position_in_parent": "10 20 30 40"},
+            metadata={"page": 1, "position_in_parent": "10 20 30 40"},
         )
 
     def tearDown(self):
         self.trigger_workflow_patch.stop()
 
     def test_returns_existing_chunk(self):
-        result = chunk_xpath.find_existing_chunk(self.parent.id, "10 20 30 40")
+        result = chunk_xpath.find_existing_chunk(
+            self.parent.id, 1, "10 20 30 40"
+        )
         self.assertEqual(result, self.chunk)
 
     def test_returns_none_when_not_found(self):
-        result = chunk_xpath.find_existing_chunk(self.parent.id, "99 99 99 99")
+        result = chunk_xpath.find_existing_chunk(
+            self.parent.id, 1, "99 99 99 99"
+        )
         self.assertIsNone(result)
 
     def test_returns_none_for_wrong_document_id(self):
         result = chunk_xpath.find_existing_chunk(
-            self.parent.id + 9999, "10 20 30 40"
+            self.parent.id + 9999, 1, "10 20 30 40"
+        )
+        self.assertIsNone(result)
+
+    def test_returns_none_for_wrong_page(self):
+        result = chunk_xpath.find_existing_chunk(
+            self.parent.id, 2, "10 20 30 40"
         )
         self.assertIsNone(result)
 
@@ -190,35 +200,37 @@ class CreateChunkDocumentTestCase(TestCase):
     def test_creates_document_with_chunk_tag(self):
         png_bytes = self._minimal_png_bytes()
         result = chunk_xpath.create_chunk_document(
-            self.parent_doc, self.owner, 5, 10, 50, 60, png_bytes
+            self.parent_doc, self.owner, 1, 5, 10, 50, 60, png_bytes
         )
         self.assertEqual(result.tags, ["chunk"])
 
     def test_creates_document_with_coordinates_in_metadata(self):
         png_bytes = self._minimal_png_bytes()
         result = chunk_xpath.create_chunk_document(
-            self.parent_doc, self.owner, 5, 10, 50, 60, png_bytes
+            self.parent_doc, self.owner, 1, 5, 10, 50, 60, png_bytes
         )
-        self.assertEqual(result.metadata, {"position_in_parent": "5 10 50 60"})
+        self.assertEqual(
+            result.metadata, {"page": 1, "position_in_parent": "5 10 50 60"}
+        )
 
     def test_creates_document_linked_to_parent(self):
         png_bytes = self._minimal_png_bytes()
         result = chunk_xpath.create_chunk_document(
-            self.parent_doc, self.owner, 5, 10, 50, 60, png_bytes
+            self.parent_doc, self.owner, 1, 5, 10, 50, 60, png_bytes
         )
         self.assertEqual(result.parent_document, self.parent_doc)
 
     def test_creates_document_with_correct_name(self):
         png_bytes = self._minimal_png_bytes()
         result = chunk_xpath.create_chunk_document(
-            self.parent_doc, self.owner, 5, 10, 50, 60, png_bytes
+            self.parent_doc, self.owner, 1, 5, 10, 50, 60, png_bytes
         )
-        self.assertEqual(result.name, "test_doc_chunk_5_10_50_60")
+        self.assertEqual(result.name, "test_doc_chunk_p1_5_10_50_60")
 
     def test_creates_document_with_png_extension(self):
         png_bytes = self._minimal_png_bytes()
         result = chunk_xpath.create_chunk_document(
-            self.parent_doc, self.owner, 5, 10, 50, 60, png_bytes
+            self.parent_doc, self.owner, 1, 5, 10, 50, 60, png_bytes
         )
         self.assertEqual(result.extension, "png")
 

@@ -946,7 +946,7 @@ def get_document_chunk(
         coordinates_str = f"{x1} {y1} {x2} {y2}"
 
         existing_chunk = chunk_xpath.find_existing_chunk(
-            document_id, coordinates_str
+            document_id, page_num, coordinates_str
         )
         if existing_chunk:
             return Response(
@@ -969,17 +969,18 @@ def get_document_chunk(
                 status=status.HTTP_422_UNPROCESSABLE_ENTITY,
             )
         chunk_doc = chunk_xpath.create_chunk_document(
-            document_obj, request.user, x1, y1, x2, y2, png_bytes
+            document_obj, request.user, page_num, x1, y1, x2, y2, png_bytes
         )
 
         return Response(
             DocumentSerializer(chunk_doc).data, status=status.HTTP_200_OK
         )
 
-    except Exception as e:
+    except Exception:
         logger.exception("Failed to get document chunk")
         return Response(
-            {"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            {"detail": "Internal server error"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
 
