@@ -8,7 +8,9 @@ dependencies = [
     "temporalio>=1.18.2",
     "aiohttp>=3.13.2",
     "badgerdoc-common",
-    "openai"
+    "openai",
+    "lxml>=6.0.2",
+    "markdown>=3.10.2"
 ]
 
 [tool.uv.sources]
