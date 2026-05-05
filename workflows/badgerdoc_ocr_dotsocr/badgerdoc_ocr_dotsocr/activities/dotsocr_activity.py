@@ -109,7 +109,7 @@ async def convert_to_hocr(
     )
     logger.info("DotsOCR hOCR result saved to: %s", hocr_path)
 
-    return hocr.BadgerdocHOCRPageResult(h_ocr={page_number: hocr_path})
+    return hocr.BadgerdocHOCRPageResult(h_ocr={str(page_number): hocr_path})
 
 
 async def _load_image(

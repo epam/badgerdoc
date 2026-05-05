@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from typing import TypeAlias
 
 from django.contrib.auth.models import User
+from django.db.models import IntegerField, Value
 from lxml import etree
 
 from badgerdoc.models import (
@@ -16,6 +17,15 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass
+class ValidationWarning:
+    document_id: int
+    extraction_id: int | None
+    page_number: int | None
+    xpath: str | None
+    reason: str
+
+
+@dataclass
 class BadgerdocParsedParams:
     linked_documents: list[document.Document] | None
     linked_document_pages: list[document.Page] | None
@@ -25,6 +35,7 @@ class BadgerdocParsedParams:
         list[extraction_helpers.BadgerdocExtractionXpath] | None
     )
     prompt_text: str
+    validation_warnings: list[ValidationWarning]
 
 
 ParsedReferenceKey: TypeAlias = (
@@ -47,7 +58,9 @@ def parse(user_id: int, llm_params: str) -> BadgerdocParsedParams:
     user = User.objects.get(id=user_id)
 
     references = extract_references(llm_params)
-    validated_refs = validate_and_normalize_references(user, references)
+    validated_refs, warnings = validate_and_normalize_references(
+        user, references
+    )
 
     linked_docs = collect_documents(validated_refs)
     linked_doc_pages = collect_document_pages(validated_refs)
@@ -62,6 +75,7 @@ def parse(user_id: int, llm_params: str) -> BadgerdocParsedParams:
         linked_extraction_pages=linked_ext_pages if linked_ext_pages else None,
         linked_extraction_xpaths=linked_xpaths if linked_xpaths else None,
         prompt_text=llm_params,
+        validation_warnings=warnings,
     )
 
 
@@ -160,8 +174,9 @@ def extract_references(llm_params: str) -> list[ParsedReference]:
 
 def validate_and_normalize_references(
     user: User, references: list[ParsedReference]
-) -> list[ParsedReference]:
+) -> tuple[list[ParsedReference], list[ValidationWarning]]:
     validated = []
+    warnings: list[ValidationWarning] = []
     seen_keys: set[ParsedReferenceKey] = set()
 
     for ref in references:
@@ -196,9 +211,17 @@ def validate_and_normalize_references(
                 ref.xpath,
                 str(e),
             )
-            continue
+            warnings.append(
+                ValidationWarning(
+                    document_id=ref.document_id,
+                    extraction_id=ref.extraction_id,
+                    page_number=ref.page_number,
+                    xpath=ref.xpath,
+                    reason=str(e),
+                )
+            )
 
-    return validated
+    return validated, warnings
 
 
 def validate_reference(user: User, ref: ParsedReference) -> None:
@@ -277,6 +300,25 @@ def validate_document_page_exists(
         raise ValueError(f"Page {page_number} not found in document {doc.id}")
 
 
+def get_element_on_xpath(content: str, xpath: str) -> str | None:
+    if not content:
+        return None
+
+    try:
+        tree = etree.HTML(content)
+        nodes = tree.xpath(xpath)
+        if not nodes:
+            return None
+        node = nodes[0]
+        if hasattr(node, "tag"):
+            node.tail = None
+            return etree.tostring(node, encoding="unicode", method="xml")
+        return str(node)
+    except Exception as e:
+        logger.debug("get_element_on_xpath failed for xpath %r: %s", xpath, e)
+        return None
+
+
 def validate_xpath(
     ext: extraction.Extraction, page_number: int, xpath: str
 ) -> None:
@@ -293,7 +335,7 @@ def validate_xpath(
         raise ValueError(f"Page {page_number} has no content")
 
     try:
-        tree = etree.HTML(page.content.encode("utf-8"))
+        tree = etree.HTML(page.content)
         nodes = tree.xpath(xpath)
         if not nodes:
             raise ValueError(
@@ -400,14 +442,22 @@ def collect_xpaths(
             if key not in seen:
                 seen.add(key)
                 try:
-                    page = extraction_page.ExtractionPage.objects.get(
+                    page = extraction_page.ExtractionPage.objects.annotate(
+                        document_id=Value(
+                            ref.document_id, output_field=IntegerField()
+                        )
+                    ).get(
                         extraction_id=ref.extraction_id,
                         page_number=ref.page_number,
+                    )
+                    element = get_element_on_xpath(
+                        page.content or "", ref.xpath
                     )
                     xpath_refs.append(
                         extraction_helpers.BadgerdocExtractionXpath(
                             extraction_page=page,
                             xpath=ref.xpath,
+                            element_on_xpath=element,
                         )
                     )
                 except extraction_page.ExtractionPage.DoesNotExist:

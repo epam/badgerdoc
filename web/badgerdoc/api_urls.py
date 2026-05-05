@@ -4,6 +4,7 @@ from badgerdoc.views import tag
 from badgerdoc.views.document import (
     DocumentView,
     create_document,
+    get_document_chunk,
     get_document_dzi,
     get_document_dzi_content,
     get_document_dzi_tile,
@@ -45,6 +46,11 @@ from badgerdoc.views.workflow import (
 
 urlpatterns = [
     path("document/", create_document, name="document-upload"),
+    path(
+        "document/<int:document_id>/chunk/page/<int:page_num>/extraction/<int:extraction_id>/xpath/<path:xpath>",
+        get_document_chunk,
+        name="document-chunk",
+    ),
     path(
         "document/<int:document_id>/",
         DocumentView.as_view(),

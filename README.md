@@ -109,6 +109,12 @@ Swagger supports Basic Authentication (use username and password) in Basic Autho
 
 MLX (Apple Silicon Machine Learning Framework) is available on MacOS for running VLM (Vision Language Model) inference locally. This project uses MLX-VLM to run OCR models like DeepSeek-OCR-2 and PaddleOCR-VL.
 
+> **Note:** MinIO runs inside Docker and is referenced by the hostname `minio` in pre-signed URLs returned by the API. When using MLX locally, the host machine must be able to resolve that hostname. Add the following entry to `/etc/hosts`:
+>
+> ```
+> 127.0.0.1 minio
+> ```
+
 ### Installation
 
 Install the MLX dependency group using uv:

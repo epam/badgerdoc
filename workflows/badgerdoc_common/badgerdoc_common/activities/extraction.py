@@ -270,6 +270,7 @@ class BadgerdocExtractionPage:
     extraction_id: int
     page_number: int
     content: str | None = None
+    document_id: int | None = None
 
 
 @dataclass
@@ -371,6 +372,7 @@ async def badgerdoc_list_extraction_pages(
                 extraction_id=item["extraction_id"],
                 page_number=item["page_number"],
                 content=item.get("content"),
+                document_id=item.get("document_id"),
             )
             for item in response_data["results"]
         ]
@@ -406,6 +408,7 @@ async def badgerdoc_get_latest_extraction_page(
             extraction_id=response_data["extraction_id"],
             page_number=response_data["page_number"],
             content=response_data.get("content"),
+            document_id=response_data.get("document_id"),
         )
     except KeyError:
         logger.warning(
@@ -433,6 +436,7 @@ async def badgerdoc_get_extraction_page(
             extraction_id=response_data["extraction_id"],
             page_number=response_data["page_number"],
             content=response_data.get("content"),
+            document_id=response_data.get("document_id"),
         )
     except KeyError as e:
         logger.warning("Missing key in extraction page response: %s", e)
@@ -477,6 +481,7 @@ async def badgerdoc_get_extraction_page_by_extraction_and_page(
             extraction_id=page_data["extraction_id"],
             page_number=page_data["page_number"],
             content=page_data.get("content"),
+            document_id=page_data.get("document_id"),
         )
     except KeyError as e:
         logger.warning("Missing key in extraction page response: %s", e)

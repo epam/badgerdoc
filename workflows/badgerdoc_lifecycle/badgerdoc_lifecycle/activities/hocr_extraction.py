@@ -23,7 +23,10 @@ async def create_extraction_page(
 
     created_pages = []
 
-    for page_number, hocr_path in hocr_result.h_ocr.items():
+    for key, hocr_path in hocr_result.h_ocr.items():
+        # Key is "<page>" for page-level OCR or "<page>_<block_id>" for block OCR
+        page_number = int(key.split("_")[0])
+
         logger.info(
             "Processing page %s with hOCR path: %s", page_number, hocr_path
         )
