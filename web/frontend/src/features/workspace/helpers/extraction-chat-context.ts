@@ -35,14 +35,14 @@ export interface PromptContextSummary {
 }
 
 export const BADGERDOC_CONTEXT_LINK_PATTERN =
-  /(?<!\\)\{\{(\/badgerdoc\/document\/\d+\/(?:page\/\d+\/?|extraction\/\d+\/page\/\d+\/(?:\([^{}]+\))?)?)\}\}/g
+  /(?<!\\)\{\{(\/badgerdoc\/document\/\d+(?:\/?|\/page\/\d+\/?|\/extraction\/\d+\/page\/\d+(?:\/?|\/\([^{}]+\)\/?)))\}\}/g
 
-const DOCUMENT_PATH_PATTERN = /^\/badgerdoc\/document\/(\d+)\/$/
+const DOCUMENT_PATH_PATTERN = /^\/badgerdoc\/document\/(\d+)\/?$/
 const DOCUMENT_PAGE_PATH_PATTERN = /^\/badgerdoc\/document\/(\d+)\/page\/(\d+)\/?$/
 const EXTRACTION_PAGE_PATH_PATTERN =
-  /^\/badgerdoc\/document\/(\d+)\/extraction\/(\d+)\/page\/(\d+)\/$/
+  /^\/badgerdoc\/document\/(\d+)\/extraction\/(\d+)\/page\/(\d+)\/?$/
 const EXTRACTION_BLOCK_PATH_PATTERN =
-  /^\/badgerdoc\/document\/(\d+)\/extraction\/(\d+)\/page\/(\d+)\/\((.+)\)$/
+  /^\/badgerdoc\/document\/(\d+)\/extraction\/(\d+)\/page\/(\d+)\/\((.+)\)\/?$/
 const BLOCK_ID_XPATH_PATTERN = /^\/\/div\[@id='([^']+)'\]$/
 
 function numberFromMatch(value: string) {
