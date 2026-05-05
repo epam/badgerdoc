@@ -132,31 +132,33 @@ async def deepseek_ocr_from_page(
 async def deepseek_ocr_merge_and_store(
     workflow_type: str,
     ocr_results: list[dict],
-) -> str:
-    """Group OCR results by page number and store the merge manifest in MinIO.
+) -> dict[str, str]:
+    """Group OCR results by page number and store one manifest per page in MinIO.
 
     Each entry in ocr_results must contain:
         page_num     — int
         middle_json  — MinIO path to raw OCR output
         metadata     — document metadata dict
 
-    The manifest stored in MinIO has the shape:
-        {"<page_num>": [{"middle_json": ..., "metadata": ...}, ...], ...}
+    Writes one JSON file per page (page_<N>_manifest.json) containing only
+    the infos for that page, so deepseek_ocr_2_results_to_hocr reads a small
+    per-page file instead of the entire merged manifest on every call.
 
-    Returns the MinIO path of the manifest JSON.
+    Returns a dict mapping str(page_num) → per-page manifest path in MinIO.
     """
     from badgerdoc_common import (  # pylint: disable=import-outside-toplevel
         storage,
     )
 
     logger.info(
-        "deepseek_ocr_merge_and_store: merging %d OCR results", len(ocr_results)
+        "deepseek_ocr_merge_and_store: merging %d OCR results",
+        len(ocr_results),
     )
 
-    manifest: dict[str, list[dict]] = {}
+    grouped: dict[str, list[dict]] = {}
     for result in ocr_results:
         page_key = str(result["page_num"])
-        manifest.setdefault(page_key, []).append(
+        grouped.setdefault(page_key, []).append(
             {
                 "middle_json": result["middle_json"],
                 "metadata": result["metadata"],
@@ -168,14 +170,24 @@ async def deepseek_ocr_merge_and_store(
         workflow_name=workflow_type,
         workflow_id=activity.info().workflow_run_id,
     )
-    manifest_path = await storage.badgerdoc_store_perm(
-        BytesIO(json.dumps(manifest).encode()),
-        storage_params,
-        "ocr_merge_manifest.json",
-    )
+
+    page_manifest_paths: dict[str, str] = {}
+    for page_key, infos in grouped.items():
+        manifest_path = await storage.badgerdoc_store_perm(
+            BytesIO(json.dumps(infos).encode()),
+            storage_params,
+            f"page_{page_key}_manifest.json",
+        )
+        page_manifest_paths[page_key] = manifest_path
+        logger.info(
+            "deepseek_ocr_merge_and_store: page %s — %d block(s), stored at %s",
+            page_key,
+            len(infos),
+            manifest_path,
+        )
+
     logger.info(
-        "deepseek_ocr_merge_and_store: manifest covers %d page(s), stored at %s",
-        len(manifest),
-        manifest_path,
+        "deepseek_ocr_merge_and_store: %d page manifest(s) stored",
+        len(page_manifest_paths),
     )
-    return manifest_path
+    return page_manifest_paths

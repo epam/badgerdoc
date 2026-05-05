@@ -42,25 +42,29 @@ class BadgerdocDeepseek2Workflow:
             "BadgerdocDeepseek2Workflow: step 1 — OCR %d page(s)",
             len(ocr_container.pages),
         )
-        page_ocr_results: list[dict] = list(
-            await asyncio.gather(
-                *[
-                    workflow.execute_activity(
-                        deepseek_ocr_from_page,
-                        args=[
-                            extraction_id,
-                            extraction_tags,
-                            workflow_type,
-                            req.badgerdoc_document.page_num,
-                            req.badgerdoc_document.document,
-                        ],
-                        start_to_close_timeout=helpers.BADGERDOC_REST_API_START_TO_CLOSE_TIMEOUT,
-                        retry_policy=helpers.BadgerdocRestAPIRetryPolicy,
-                    )
-                    for req in ocr_container.pages
-                ]
+        page_ocr_results: list[dict] = (
+            list(
+                await asyncio.gather(
+                    *[
+                        workflow.execute_activity(
+                            deepseek_ocr_from_page,
+                            args=[
+                                extraction_id,
+                                extraction_tags,
+                                workflow_type,
+                                req.badgerdoc_document.page_num,
+                                req.badgerdoc_document.document,
+                            ],
+                            start_to_close_timeout=helpers.BADGERDOC_REST_API_START_TO_CLOSE_TIMEOUT,
+                            retry_policy=helpers.BadgerdocRestAPIRetryPolicy,
+                        )
+                        for req in ocr_container.pages
+                    ]
+                )
             )
-        ) if ocr_container.pages else []
+            if ocr_container.pages
+            else []
+        )
 
         # Step 2: OCR all blocks sequentially (continue on individual failure)
         logger.info(
@@ -90,19 +94,19 @@ class BadgerdocDeepseek2Workflow:
                     req.badgerdoc_document.page_num,
                 )
             except Exception:  # pylint: disable=broad-except
-                logger.error(
+                logger.exception(
                     "BadgerdocDeepseek2Workflow: block %d (page %d) failed, skipping",
                     i,
                     req.badgerdoc_document.page_num,
                 )
 
-        # Step 3: Merge all OCR results and store manifest in MinIO
+        # Step 3: Merge all OCR results and store one manifest per page in MinIO
         all_ocr_results = page_ocr_results + block_ocr_results
         logger.info(
             "BadgerdocDeepseek2Workflow: step 3 — merge %d OCR result(s)",
             len(all_ocr_results),
         )
-        manifest_path: str = await workflow.execute_activity(
+        page_manifest_paths: dict[str, str] = await workflow.execute_activity(
             deepseek_ocr_merge_and_store,
             args=[workflow_type, all_ocr_results],
             start_to_close_timeout=helpers.BADGERDOC_REST_API_START_TO_CLOSE_TIMEOUT,
@@ -110,21 +114,22 @@ class BadgerdocDeepseek2Workflow:
         )
 
         # Step 4: Convert each page's OCR to hOCR in parallel
-        unique_page_nums = sorted(set(r["page_num"] for r in all_ocr_results))
         logger.info(
             "BadgerdocDeepseek2Workflow: step 4 — convert %d page(s) to hOCR",
-            len(unique_page_nums),
+            len(page_manifest_paths),
         )
         hocr_results: list[BadgerdocHOCRPageResult] = list(
             await asyncio.gather(
                 *[
                     workflow.execute_activity(
                         deepseek_ocr_2_results_to_hocr,
-                        args=[workflow_type, page_num, manifest_path],
+                        args=[workflow_type, int(page_num), page_manifest_path],
                         start_to_close_timeout=helpers.BADGERDOC_REST_API_START_TO_CLOSE_TIMEOUT,
                         retry_policy=helpers.BadgerdocRestAPIRetryPolicy,
                     )
-                    for page_num in unique_page_nums
+                    for page_num, page_manifest_path in sorted(
+                        page_manifest_paths.items(), key=lambda x: int(x[0])
+                    )
                 ]
             )
         )

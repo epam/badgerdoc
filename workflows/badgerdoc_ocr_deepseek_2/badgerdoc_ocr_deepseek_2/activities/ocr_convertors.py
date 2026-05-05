@@ -38,6 +38,7 @@ _INLINE_HTML_RE = re.compile(r"<(?:sub|sup)[^>]*>", re.IGNORECASE)
 #   escapes everything except those two tags. All other text lines
 #   retain the existing per-word proportional bbox splitting.
 
+
 def _parse_ocr_blocks(text: str) -> list[dict]:
     blocks = []
     for m in _BLOCK_RE.finditer(text):
@@ -166,15 +167,24 @@ def _table_block_to_hocr_lines(
         # Check if the content is already HTML (contains <table tag)
         if "<table" in raw_text.lower():
             # Parse as HTML directly
-            parsed = etree.fromstring(f"<div>{raw_text}</div>", etree.HTMLParser())
+            parsed = etree.fromstring(
+                f"<div>{raw_text}</div>", etree.HTMLParser()
+            )
             table_node = parsed.find(".//table")
         else:
             # Convert from Markdown to HTML
             html_str = md_lib.markdown(raw_text, extensions=["tables"])
-            parsed = etree.fromstring(f"<div>{html_str}</div>", etree.HTMLParser())
+            parsed = etree.fromstring(
+                f"<div>{html_str}</div>", etree.HTMLParser()
+            )
             table_node = parsed.find(".//table")
     except Exception:
-        pass
+        logger.exception(
+            "Failed to convert table block to HTML; falling back to plain text "
+            "(page=%s, bbox=%s)",
+            page_number,
+            block.get("bbox"),
+        )
 
     if table_node is None:
         # fallback: render as plain text
@@ -231,7 +241,12 @@ def _list_block_to_hocr_lines(
         if list_node is None:
             list_node = parsed.find(".//ol")
     except Exception:
-        pass
+        logger.exception(
+            "Failed to convert list block to HTML; falling back to plain text "
+            "(page=%s, bbox=%s)",
+            page_number,
+            block.get("bbox"),
+        )
 
     if list_node is None:
         lines_html: list[str] = []
@@ -327,14 +342,14 @@ def _blocks_to_hocr(
 async def deepseek_ocr_2_results_to_hocr(  # pylint: disable=too-many-locals
     workflow_type: str,
     page_num: int,
-    manifest_path: str,
+    page_manifest_path: str,
 ) -> BadgerdocHOCRPageResult:
     """Convert DeepSeek OCR raw output for one page to hOCR.
 
-    Reads the merge manifest from MinIO (produced by deepseek_ocr_merge_and_store),
-    extracts all info dicts for page_num, and converts them into a single hOCR
-    file. Multiple blocks on the same page are merged into one hOCR file with
-    per-block coordinate remapping via metadata.position_in_parent.
+    Reads the per-page manifest from MinIO (a list of info dicts produced by
+    deepseek_ocr_merge_and_store for this specific page), then converts all
+    blocks into a single hOCR file with per-block coordinate remapping via
+    metadata.position_in_parent.
     """
     # Import storage inside function to avoid startup validation issues
     from badgerdoc_common import (  # pylint: disable=import-outside-toplevel
@@ -344,11 +359,10 @@ async def deepseek_ocr_2_results_to_hocr(  # pylint: disable=too-many-locals
     page_number = page_num
 
     manifest_buffer = BytesIO()
-    await storage.badgerdoc_download(manifest_buffer, manifest_path)
+    await storage.badgerdoc_download(manifest_buffer, page_manifest_path)
     manifest_buffer.seek(0)
-    manifest = json.load(manifest_buffer)
+    infos: list[dict] = json.load(manifest_buffer)
 
-    infos: list[dict] = manifest.get(str(page_number), [])
     logger.info(
         "deepseek_ocr_2_results_to_hocr: page %d — %d block(s) to convert",
         page_number,
