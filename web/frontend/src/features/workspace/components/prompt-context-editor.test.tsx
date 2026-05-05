@@ -13,10 +13,43 @@ import {
 import type { PromptContextPathInserter } from '@/features/workspace/helpers/extraction-chat-context'
 
 describe('prompt context editor serialization', () => {
-  it('turns valid context links into token nodes', () => {
-    const content = createPromptEditorContent(
-      "Summarize {{/badgerdoc/document/123/extraction/456/page/1/(//div[@id='block_1_1'])}}"
-    )
+  it.each([
+    {
+      prompt: 'Summarize {{/badgerdoc/document/123}}',
+      path: '/badgerdoc/document/123',
+    },
+    {
+      prompt: 'Summarize {{/badgerdoc/document/123/}}',
+      path: '/badgerdoc/document/123/',
+    },
+    {
+      prompt: 'Summarize {{/badgerdoc/document/123/page/1}}',
+      path: '/badgerdoc/document/123/page/1',
+    },
+    {
+      prompt: 'Summarize {{/badgerdoc/document/123/page/1/}}',
+      path: '/badgerdoc/document/123/page/1/',
+    },
+    {
+      prompt: 'Summarize {{/badgerdoc/document/123/extraction/456/page/1}}',
+      path: '/badgerdoc/document/123/extraction/456/page/1',
+    },
+    {
+      prompt: 'Summarize {{/badgerdoc/document/123/extraction/456/page/1/}}',
+      path: '/badgerdoc/document/123/extraction/456/page/1/',
+    },
+    {
+      prompt:
+        "Summarize {{/badgerdoc/document/123/extraction/456/page/1/(//div[@id='block_1_1'])}}",
+      path: "/badgerdoc/document/123/extraction/456/page/1/(//div[@id='block_1_1'])",
+    },
+    {
+      prompt:
+        "Summarize {{/badgerdoc/document/123/extraction/456/page/1/(//div[@id='block_1_1'])/}}",
+      path: "/badgerdoc/document/123/extraction/456/page/1/(//div[@id='block_1_1'])/",
+    },
+  ])('turns valid context links into token nodes: $prompt', ({ prompt, path }) => {
+    const content = createPromptEditorContent(prompt)
 
     expect(content).toEqual({
       type: 'doc',
@@ -27,9 +60,7 @@ describe('prompt context editor serialization', () => {
             { type: 'text', text: 'Summarize ' },
             {
               type: 'promptContextToken',
-              attrs: {
-                path: "/badgerdoc/document/123/extraction/456/page/1/(//div[@id='block_1_1'])",
-              },
+              attrs: { path },
             },
           ],
         },
@@ -72,42 +103,53 @@ describe('prompt context editor serialization', () => {
     })
   })
 
-  it('converts typed context links into atom token nodes after closing braces', () => {
-    const prompt = '{{/badgerdoc/document/123/page/1}}'
-    const editor = new Editor({
-      extensions: [
-        StarterKit.configure({
-          heading: false,
-          blockquote: false,
-          codeBlock: false,
-          bulletList: false,
-          orderedList: false,
-          listItem: false,
-          horizontalRule: false,
-        }),
-        PromptContextToken,
-      ],
-      content: createPromptEditorContent(''),
-    })
+  it.each([
+    {
+      prompt: '{{/badgerdoc/document/123/page/1}}',
+      path: '/badgerdoc/document/123/page/1',
+    },
+    {
+      prompt: '{{/badgerdoc/document/123/page/1/}}',
+      path: '/badgerdoc/document/123/page/1/',
+    },
+  ])(
+    'converts typed context links into atom token nodes after closing braces: $prompt',
+    ({ prompt, path }) => {
+      const editor = new Editor({
+        extensions: [
+          StarterKit.configure({
+            heading: false,
+            blockquote: false,
+            codeBlock: false,
+            bulletList: false,
+            orderedList: false,
+            listItem: false,
+            horizontalRule: false,
+          }),
+          PromptContextToken,
+        ],
+        content: createPromptEditorContent(''),
+      })
 
-    editor.commands.insertContent(prompt)
+      editor.commands.insertContent(prompt)
 
-    expect(editor.getJSON()).toMatchObject({
-      content: [
-        {
-          content: [
-            {
-              type: 'promptContextToken',
-              attrs: { path: '/badgerdoc/document/123/page/1' },
-            },
-          ],
-        },
-      ],
-    })
-    expect(serializePromptEditorDoc(editor.state.doc)).toBe(prompt)
+      expect(editor.getJSON()).toMatchObject({
+        content: [
+          {
+            content: [
+              {
+                type: 'promptContextToken',
+                attrs: { path },
+              },
+            ],
+          },
+        ],
+      })
+      expect(serializePromptEditorDoc(editor.state.doc)).toBe(prompt)
 
-    editor.destroy()
-  })
+      editor.destroy()
+    }
+  )
 
   it('submits with Cmd+Enter on macOS when enabled', async () => {
     const originalPlatform = navigator.platform
@@ -183,57 +225,60 @@ describe('prompt context editor serialization', () => {
     }
   })
 
-  it('inserts a context chip at the current cursor position', async () => {
-    let promptContextInserter: PromptContextPathInserter | null = null
-    let latestValue = 'Hello world'
+  it.each(['/badgerdoc/document/123/page/2', '/badgerdoc/document/123/page/2/'])(
+    'inserts a context chip at the current cursor position: %s',
+    async (path) => {
+      let promptContextInserter: PromptContextPathInserter | null = null
+      let latestValue = 'Hello world'
 
-    function TestEditor() {
-      const [value, setValue] = useState(latestValue)
+      function TestEditor() {
+        const [value, setValue] = useState(latestValue)
 
-      return (
-        <PromptContextEditor
-          value={value}
-          onChange={(nextValue) => {
-            latestValue = nextValue
-            setValue(nextValue)
-          }}
-          onRegisterContextInserter={(inserter) => {
-            promptContextInserter = inserter
-          }}
-        />
-      )
-    }
+        return (
+          <PromptContextEditor
+            value={value}
+            onChange={(nextValue) => {
+              latestValue = nextValue
+              setValue(nextValue)
+            }}
+            onRegisterContextInserter={(inserter) => {
+              promptContextInserter = inserter
+            }}
+          />
+        )
+      }
 
-    const { container } = render(<TestEditor />)
+      const { container } = render(<TestEditor />)
 
-    await waitFor(() => {
-      expect(container.querySelector('.ProseMirror')).not.toBeNull()
+      await waitFor(() => {
+        expect(container.querySelector('.ProseMirror')).not.toBeNull()
+        expect(promptContextInserter).not.toBeNull()
+      })
+
+      const paragraphTextNode = container.querySelector('.ProseMirror p')?.firstChild
+      expect(paragraphTextNode).not.toBeNull()
+
+      const selection = window.getSelection()
+      const range = document.createRange()
+      range.setStart(paragraphTextNode!, 6)
+      range.collapse(true)
+      selection?.removeAllRanges()
+      selection?.addRange(range)
+
+      fireEvent.focus(container.querySelector('.ProseMirror')!)
+      document.dispatchEvent(new Event('selectionchange'))
+
       expect(promptContextInserter).not.toBeNull()
-    })
 
-    const paragraphTextNode = container.querySelector('.ProseMirror p')?.firstChild
-    expect(paragraphTextNode).not.toBeNull()
+      await act(async () => {
+        promptContextInserter!(path)
+      })
 
-    const selection = window.getSelection()
-    const range = document.createRange()
-    range.setStart(paragraphTextNode!, 6)
-    range.collapse(true)
-    selection?.removeAllRanges()
-    selection?.addRange(range)
-
-    fireEvent.focus(container.querySelector('.ProseMirror')!)
-    document.dispatchEvent(new Event('selectionchange'))
-
-    expect(promptContextInserter).not.toBeNull()
-
-    await act(async () => {
-      promptContextInserter!('/badgerdoc/document/123/page/2')
-    })
-
-    await waitFor(() => {
-      expect(latestValue).toBe('Hello {{/badgerdoc/document/123/page/2}}world')
-    })
-  })
+      await waitFor(() => {
+        expect(latestValue).toBe(`Hello {{${path}}}world`)
+      })
+    }
+  )
 
   it('appends a context chip at the end, ignoring stale cursor, when editor is not focused', async () => {
     let promptContextInserter: PromptContextPathInserter | null = null

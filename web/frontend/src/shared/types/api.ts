@@ -37,6 +37,7 @@ export interface DocumentMetadata extends Record<string, unknown> {
 
 export interface Document {
   id: string
+  parentDocumentId?: number | null
   title: string
   type: DocumentType
   status: DocumentStatus

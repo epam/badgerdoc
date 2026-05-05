@@ -8,6 +8,79 @@ from badgerdoc.models import document, extraction, extraction_page
 from badgerdoc.tests.settings import mock_db_and_file_storage
 
 
+class GetElementOnXpathTestCase(TestCase):
+
+    SAMPLE_CONTENT = (
+        "<html><body>"
+        "<div id='block_1'><p>Hello <span>world</span></p></div>"
+        "<div id='block_2'>Other</div>"
+        "</body></html>"
+    )
+
+    def test_returns_element_xml_for_matching_xpath(self):
+        result = llm_params_parser.get_element_on_xpath(
+            self.SAMPLE_CONTENT, "//div[@id='block_1']"
+        )
+        self.assertIsNotNone(result)
+        self.assertIn("block_1", result)
+        self.assertIn("Hello", result)
+        self.assertIn("world", result)
+
+    def test_result_is_valid_xml_string(self):
+        result = llm_params_parser.get_element_on_xpath(
+            self.SAMPLE_CONTENT, "//div[@id='block_2']"
+        )
+        self.assertIsNotNone(result)
+        self.assertTrue(result.startswith("<div"))
+        self.assertIn("Other", result)
+
+    def test_returns_none_when_no_match(self):
+        result = llm_params_parser.get_element_on_xpath(
+            self.SAMPLE_CONTENT, "//div[@id='nonexistent']"
+        )
+        self.assertIsNone(result)
+
+    def test_returns_none_for_empty_content(self):
+        result = llm_params_parser.get_element_on_xpath(
+            "", "//div[@id='block_1']"
+        )
+        self.assertIsNone(result)
+
+    def test_returns_none_for_invalid_xpath_syntax(self):
+        result = llm_params_parser.get_element_on_xpath(
+            self.SAMPLE_CONTENT, "//div[@id='block_1'"
+        )
+        self.assertIsNone(result)
+
+    def test_returns_first_match_when_multiple_elements(self):
+        result = llm_params_parser.get_element_on_xpath(
+            self.SAMPLE_CONTENT, "//div"
+        )
+        self.assertIsNotNone(result)
+        self.assertIn("block_1", result)
+
+    def test_returns_text_for_text_axis(self):
+        result = llm_params_parser.get_element_on_xpath(
+            self.SAMPLE_CONTENT, "//div[@id='block_2']/text()"
+        )
+        self.assertIsNotNone(result)
+        self.assertEqual(result, "Other")
+
+    def test_returns_attribute_value_for_attribute_axis(self):
+        result = llm_params_parser.get_element_on_xpath(
+            self.SAMPLE_CONTENT, "//div[@id='block_1']/@id"
+        )
+        self.assertIsNotNone(result)
+        self.assertEqual(result, "block_1")
+
+    def test_returns_nested_element(self):
+        result = llm_params_parser.get_element_on_xpath(
+            self.SAMPLE_CONTENT, "//span"
+        )
+        self.assertIsNotNone(result)
+        self.assertIn("world", result)
+
+
 class ExtractReferencesTestCase(TestCase):
     def test_whole_document(self):
         llm_params = "{{/badgerdoc/document/123/}}"
@@ -319,6 +392,43 @@ class ParseFunctionTestCase(TestCase):
         self.assertEqual(
             result.linked_extraction_xpaths[0].xpath, "//div[@id='block_1']"
         )
+
+    def test_parse_xpath_element_on_xpath_is_populated(self):
+        llm_params = f"{{{{/badgerdoc/document/{self.doc.id}/extraction/{self.extraction.id}/page/1/(//div[@id='block_1'])}}}}"
+
+        result = llm_params_parser.parse(self.owner.id, llm_params)
+
+        self.assertEqual(len(result.linked_extraction_xpaths), 1)
+        xpath_result = result.linked_extraction_xpaths[0]
+        self.assertIsNotNone(xpath_result.element_on_xpath)
+        self.assertIn("block_1", xpath_result.element_on_xpath)
+        self.assertIn("Test", xpath_result.element_on_xpath)
+
+    def test_parse_xpath_element_on_xpath_none_when_no_match(self):
+        self.extraction_page.content = (
+            "<html><body><div id='other'>X</div></body></html>"
+        )
+        self.extraction_page.save()
+
+        llm_params = f"{{{{/badgerdoc/document/{self.doc.id}/extraction/{self.extraction.id}/page/1/(//div[@id='other'])}}}}"
+
+        result = llm_params_parser.parse(self.owner.id, llm_params)
+
+        self.assertEqual(len(result.linked_extraction_xpaths), 1)
+        xpath_result = result.linked_extraction_xpaths[0]
+        self.assertEqual(xpath_result.xpath, "//div[@id='other']")
+        self.assertIsNotNone(xpath_result.element_on_xpath)
+        self.assertIn("other", xpath_result.element_on_xpath)
+
+    def test_parse_xpath_element_on_xpath_none_for_empty_content(self):
+        self.extraction_page.content = ""
+        self.extraction_page.save()
+
+        llm_params = f"{{{{/badgerdoc/document/{self.doc.id}/extraction/{self.extraction.id}/page/1/(//div[@id='block_1'])}}}}"
+
+        result = llm_params_parser.parse(self.owner.id, llm_params)
+
+        self.assertIsNone(result.linked_extraction_xpaths)
 
     def test_parse_document_access_denied(self):
         llm_params = f"{{{{/badgerdoc/document/{self.doc.id}/}}}}"

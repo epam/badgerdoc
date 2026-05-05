@@ -185,7 +185,7 @@ async def paddle_ocr_results_to_hocr(  # pylint: disable=too-many-locals
     hocr_path = await storage.badgerdoc_store_perm(
         hocr_buffer, storage_params, f"page_{page_number}.hocr"
     )
-    return BadgerdocHOCRPageResult(h_ocr={page_number: hocr_path})
+    return BadgerdocHOCRPageResult(h_ocr={str(page_number): hocr_path})
 
 
 def _escape_html(text):
