@@ -92,7 +92,7 @@
       "trigger": "manual",
       "name": "DeepSeek OCR 2",
       "tags": ["ai-inference", "deepseek-ocr-2"],
-      "extraction_scope": ["page"]
+      "extraction_scope": ["page", "document"]
     }
   },
   {

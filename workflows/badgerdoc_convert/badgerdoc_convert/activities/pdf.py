@@ -79,8 +79,7 @@ async def download_and_convert_document(document_id: int) -> PDFConvertResult:
                     name=filename,
                     metadata={
                         "page": page_num,
-                        "width": width,
-                        "height": height,
+                        "size": {"width": width, "height": height},
                     },
                     tags=["rendition"],
                     parent_document_id=document_id,

@@ -4,9 +4,7 @@ from io import BytesIO
 
 from temporalio import activity
 
-from badgerdoc_common import trigger
 from badgerdoc_common.hocr import BadgerdocHOCRPageResult
-from badgerdoc_common.trigger import BadgerdocDocumentPage
 
 _BLOCK_RE = re.compile(
     r"<\|ref\|>(.*?)<\|/ref\|>"
@@ -95,36 +93,34 @@ def _blocks_to_hocr(  # pylint: disable=too-many-locals
 
 @activity.defn
 async def deepseek_ocr_2_results_to_hocr(  # pylint: disable=too-many-locals
-    params: trigger.DocumentTriggerParams,
-    page: BadgerdocDocumentPage,
-    info: dict,
+    workflow_type: str,
+    page_num: int,
+    infos: list[dict],
 ) -> BadgerdocHOCRPageResult:
+    """Convert DeepSeek OCR raw output for one page (one or more blocks) to hOCR.
+
+    Accepts a list of info dicts so multiple blocks on the same page are merged
+    into a single hOCR file keyed by page number. Each info dict contains its
+    own metadata.position_in_parent for per-block coordinate remapping.
+    """
     # Import storage inside function to avoid startup validation issues
     from badgerdoc_common import (  # pylint: disable=import-outside-toplevel
         storage,
     )
 
-    page_info = info.get("metadata") or {}
+    page_number = page_num
 
-    page_number = page.page_num
+    # Use first info's metadata for page-level dimensions
+    first_page_info = (infos[0].get("metadata") or {}) if infos else {}
+    page_width = first_page_info.get("width", 0)
+    page_height = first_page_info.get("height", 0)
+    display_page_num = first_page_info.get("page") or page_number
 
     storage_params = storage.StorageWorkflowParams(
         workflow_package="badgerdoc_ocr_deepseek_2",
-        workflow_name=params.workflow.temporal_workflow_type,
+        workflow_name=workflow_type,
         workflow_id=activity.info().workflow_run_id,
     )
-    middle_json_buffer = BytesIO()
-    await storage.badgerdoc_download_perm(
-        middle_json_buffer, storage_params, f"page_{page_number}_middle.json"
-    )
-    middle_json_buffer.seek(0)
-    middle_json = json.load(middle_json_buffer)
-
-    ocr_text: str = middle_json.get("text", "")
-
-    page_num = page_info.get("page", 0)
-    page_width = page_info.get("width", 0)
-    page_height = page_info.get("height", 0)
 
     hocr_lines = [
         "<!DOCTYPE html>",
@@ -133,25 +129,55 @@ async def deepseek_ocr_2_results_to_hocr(  # pylint: disable=too-many-locals
         "<title></title>",
         '<meta http-equiv="Content-Type" content="text/html;charset=utf-8">',
         "<meta name='ocr-system' content='deepseek-ocr-2'>",
-        "<meta name='ocr-capabilities' content='ocr_page ocr_carea ocr_par ocr_line ocrx_word'>",
+        "<meta name='ocr-capabilities' content='ocr_photo ocr_page ocr_carea ocr_par ocr_line ocrx_word'>",
         "</head>",
         "<body>",
-        f'<div class="ocr_page" id="page_{page_num}" '
-        f'title="bbox 0 0 {page_width} {page_height}; ppageno {page_num}">',
+        f'<div class="ocr_page" id="page_{display_page_num}" '
+        f'title="bbox 0 0 {page_width} {page_height}; ppageno {display_page_num}">',
     ]
 
-    blocks = _parse_ocr_blocks(ocr_text)
-    hocr_lines.extend(_blocks_to_hocr(page_number, blocks))
+    all_blocks: list[dict] = []
+    for info in infos:
+        middle_json_path = info.get("middle_json")
+        if not middle_json_path:
+            raise ValueError(
+                f"'middle_json' key missing from OCR activity result for page {page_number}"
+            )
 
+        middle_json_buffer = BytesIO()
+        await storage.badgerdoc_download(middle_json_buffer, middle_json_path)
+        middle_json_buffer.seek(0)
+        middle_json = json.load(middle_json_buffer)
+
+        ocr_text: str = middle_json.get("text", "")
+        blocks = _parse_ocr_blocks(ocr_text)
+
+        page_info = info.get("metadata") or {}
+        position_in_parent: str | None = page_info.get("position_in_parent")
+        if position_in_parent:
+            cx1, cy1, cx2, cy2 = map(int, position_in_parent.split())
+            cw = cx2 - cx1
+            ch = cy2 - cy1
+            for block in blocks:
+                bx1, by1, bx2, by2 = block["bbox"]
+                block["bbox"] = (
+                    cx1 + round(bx1 * cw / 1000),
+                    cy1 + round(by1 * ch / 1000),
+                    cx1 + round(bx2 * cw / 1000),
+                    cy1 + round(by2 * ch / 1000),
+                )
+
+        all_blocks.extend(blocks)
+
+    hocr_lines.extend(_blocks_to_hocr(page_number, all_blocks))
     hocr_lines.extend(["</div>", "</body>", "</html>"])
 
     hocr_content = "\n".join(hocr_lines)
-
     hocr_buffer = BytesIO(hocr_content.encode("utf-8"))
     hocr_path = await storage.badgerdoc_store_perm(
         hocr_buffer, storage_params, f"page_{page_number}.hocr"
     )
-    return BadgerdocHOCRPageResult(h_ocr={page_number: hocr_path})
+    return BadgerdocHOCRPageResult(h_ocr={str(page_number): hocr_path})
 
 
 def _escape_html(text):

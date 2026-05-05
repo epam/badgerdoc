@@ -66,6 +66,7 @@ disable = [
   "R0917",  # too-many-positional-arguments
   "R1702",  # too-many-nested-blocks
   "W0718",  # broad-exception-caught
+  "C0302",  # too-many-lines
 ]
 ignore = [
   ".venv",

@@ -367,7 +367,7 @@ async def convert_to_hocr(
         hocr_buffer, storage_params, f"page_{page_number}.hocr"
     )
 
-    return BadgerdocHOCRPageResult(h_ocr={page_number: hocr_path})
+    return BadgerdocHOCRPageResult(h_ocr={str(page_number): hocr_path})
 
 
 def _to_normalized(bbox, page_width, page_height):

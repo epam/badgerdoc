@@ -1,7 +1,8 @@
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, call, patch
 
 import pytest
 
+from badgerdoc_common.activities.document import BadgerdocDocument
 from badgerdoc_convert.activities.pdf import download_and_convert_document
 
 
@@ -11,7 +12,8 @@ async def test_download_and_convert_document():
     fake_document = MagicMock()
     fake_document.metadata = {"author": "test"}
 
-    # Mock badgerdoc_get_document
+    fake_uploaded_doc = BadgerdocDocument(id=999, name="fake")
+
     with (
         patch(
             "badgerdoc_convert.activities.pdf.badgerdoc_get_document",
@@ -22,8 +24,8 @@ async def test_download_and_convert_document():
             new=AsyncMock(),
         ) as mock_download,
         patch(
-            "badgerdoc_convert.activities.pdf.badgerdoc_http.badgerdoc_upload",
-            new=AsyncMock(return_value={"id": "img123"}),
+            "badgerdoc_convert.activities.pdf.badgerdoc_upload_document",
+            new=AsyncMock(return_value=fake_uploaded_doc),
         ) as mock_upload,
         patch(
             "badgerdoc_convert.activities.pdf.badgerdoc_list_documents",
@@ -33,13 +35,17 @@ async def test_download_and_convert_document():
             "badgerdoc_convert.activities.pdf.badgerdoc_delete_document",
             new=AsyncMock(),
         ) as mock_delete_doc,
+        patch(
+            "badgerdoc_convert.activities.pdf.badgerdoc_update_document",
+            new=AsyncMock(return_value=fake_document),
+        ),
         patch("pdfplumber.open") as mock_pdf_open,
     ):
-
         mock_pdf = MagicMock()
         mock_page = MagicMock()
         mock_image = MagicMock()
         mock_image.original = MagicMock()
+        mock_image.original.size = (1275, 1650)
 
         def fake_save(buffer, format):
             buffer.write(b"fakeimage")
@@ -56,6 +62,12 @@ async def test_download_and_convert_document():
         mock_download.assert_awaited_once()
         mock_pdf_open.assert_called_once()
         mock_upload.assert_awaited_once()
+
+        uploaded_doc_arg: BadgerdocDocument = mock_upload.call_args[0][0]
+        assert uploaded_doc_arg.metadata == {
+            "page": 1,
+            "size": {"width": 1275, "height": 1650},
+        }
 
         assert result.pages_converted == 1
         assert result.pages_statuses == [True]

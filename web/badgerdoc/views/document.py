@@ -1,6 +1,7 @@
 import json
 import logging
 import urllib.error
+import urllib.parse
 import urllib.request
 from typing import Any
 
@@ -9,6 +10,7 @@ from django.db.models import Q
 from django.http import HttpResponse
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
+from PIL import Image
 from rest_framework import parsers, serializers, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -16,8 +18,8 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from badgerdoc import permissions
-from badgerdoc.models import document
+from badgerdoc import chunk_xpath, permissions
+from badgerdoc.models import document, extraction, extraction_page
 from badgerdoc.views import _pagination
 
 logger = logging.getLogger(__name__)
@@ -341,6 +343,10 @@ def _create_rendition_from_png(document_obj: document.Document) -> None:
     ext = (document_obj.extension or "").lower()
     if ext != "png":
         return
+    with document_obj.file.open("rb") as f:
+        image = Image.open(f)
+        image.load()
+        width, height = image.size
     document.Document.objects.create(
         file=document_obj.file,
         name=document_obj.name,
@@ -348,7 +354,7 @@ def _create_rendition_from_png(document_obj: document.Document) -> None:
         uploaded_by=document_obj.uploaded_by,
         parent_document=document_obj,
         tags=["rendition"],
-        metadata={"page": 1},
+        metadata={"page": 1, "size": {"width": width, "height": height}},
     )
 
 
@@ -842,6 +848,139 @@ def get_document_dzi_tile(
             f"Failed to get tile content: {str(e)}",
             status=500,
             content_type="text/plain",
+        )
+
+
+@swagger_auto_schema(
+    method="get",
+    operation_summary="Get or Create Document Chunk",
+    tags=["Document"],
+    manual_parameters=[
+        openapi.Parameter(
+            "document_id",
+            openapi.IN_PATH,
+            type=openapi.TYPE_INTEGER,
+        ),
+        openapi.Parameter(
+            "page_num",
+            openapi.IN_PATH,
+            type=openapi.TYPE_INTEGER,
+        ),
+        openapi.Parameter(
+            "extraction_id",
+            openapi.IN_PATH,
+            type=openapi.TYPE_INTEGER,
+        ),
+        openapi.Parameter(
+            "xpath",
+            openapi.IN_PATH,
+            type=openapi.TYPE_STRING,
+        ),
+    ],
+    responses={
+        200: openapi.Response(
+            description="Chunk document",
+            schema=DocumentSerializer,
+        ),
+        400: "Bad request",
+        404: "Not found",
+    },
+)
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_document_chunk(
+    request: Request,
+    document_id: int,
+    page_num: int,
+    extraction_id: int,
+    xpath: str,
+) -> Response:
+    try:
+        xpath = urllib.parse.unquote(xpath)
+
+        document_obj = (
+            get_document_queryset(request.user).filter(id=document_id).first()
+        )
+        if not document_obj:
+            return Response(
+                {"detail": "Document not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        try:
+            extraction_obj = extraction.Extraction.objects.get(
+                id=extraction_id
+            )
+        except extraction.Extraction.DoesNotExist:
+            return Response(
+                {"detail": "Extraction not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        if extraction_obj.document_id != document_id:
+            return Response(
+                {"detail": "Extraction does not belong to document"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        try:
+            extraction_page_obj = extraction_page.ExtractionPage.objects.get(
+                extraction_id=extraction_id,
+                page_number=page_num,
+            )
+        except extraction_page.ExtractionPage.DoesNotExist:
+            return Response(
+                {"detail": "Extraction page not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        try:
+            x1, y1, x2, y2 = chunk_xpath.extract_bbox_from_hocr(
+                extraction_page_obj.content, xpath
+            )
+        except ValueError as e:
+            return Response(
+                {"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        coordinates_str = f"{x1} {y1} {x2} {y2}"
+
+        existing_chunk = chunk_xpath.find_existing_chunk(
+            document_id, page_num, coordinates_str
+        )
+        if existing_chunk:
+            return Response(
+                DocumentSerializer(existing_chunk).data,
+                status=status.HTTP_200_OK,
+            )
+
+        rendition = _find_rendition_by_page(document_id, page_num)
+        if not rendition:
+            return Response(
+                {"detail": "Rendition not found for page"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        try:
+            png_bytes = chunk_xpath.crop_rendition(rendition, x1, y1, x2, y2)
+        except chunk_xpath.RenditionMissingSizeError:
+            return Response(
+                {"detail": "rendition created without size"},
+                status=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            )
+        chunk_doc = chunk_xpath.create_chunk_document(
+            document_obj, request.user, page_num, x1, y1, x2, y2, png_bytes
+        )
+
+        return Response(
+            DocumentSerializer(chunk_doc).data, status=status.HTTP_200_OK
+        )
+
+    except Exception:
+        logger.exception("Failed to get document chunk")
+        return Response(
+            {"detail": "Internal server error"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
 
