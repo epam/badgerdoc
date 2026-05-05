@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction, useCallback } from 'react'
+import { Dispatch, SetStateAction, useCallback, useState } from 'react'
 import { FileText } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton.tsx'
 import { BadgerDocExtractionPage } from '@/shared/api/badgerdoc'
@@ -6,7 +6,6 @@ import ExtractionEditor from '@/features/workspace/components/extraction-editor'
 import { ExtractionChat } from '@/features/workspace/components/extraction-chat'
 import { useFormattedExtractionContent } from '@/features/workspace/hooks/use-formatted-extraction-content'
 import type { ExtractionChatContextProps } from '@/features/workspace/helpers/extraction-chat-context'
-import type { ChatWorkflowSelection } from '@/features/workspace/hooks/use-chat-workflow-selection'
 
 interface ExtractionResultsTabProps {
   isLoading: boolean
@@ -26,9 +25,6 @@ interface ExtractionResultsTabProps {
   currentPage: number
   documentId: string
   chatContext: ExtractionChatContextProps
-  workflowSelection: ChatWorkflowSelection
-  isRunningInference: boolean
-  setIsRunningInference: (isProcessing: boolean) => void
 }
 
 function ExtractionEmptyState({ tag }: { tag: string }) {
@@ -59,10 +55,8 @@ export function ExtractionResultsTab({
   currentPage,
   documentId,
   chatContext,
-  workflowSelection,
-  isRunningInference,
-  setIsRunningInference,
 }: ExtractionResultsTabProps) {
+  const [isRunningInference, setIsRunningInference] = useState(false)
   const isEmpty = !extractionPages || extractionPages.length === 0
   const isChatDisabled = isLoading || hasUnsavedChanges || isSaving
 
@@ -125,7 +119,6 @@ export function ExtractionResultsTab({
         isProcessing={isRunningInference}
         setIsRunningInference={setIsRunningInference}
         activeTag={tag}
-        workflowSelection={workflowSelection}
       />
     </div>
   )

@@ -14,13 +14,12 @@ import {
   summarizePromptContext,
   type PromptContextPathInserterRegistration,
 } from '@/features/workspace/helpers/extraction-chat-context'
-import {
-  getCurrentPageTooltip,
-  getDocumentContextTooltip,
-} from '@/features/workspace/helpers/extraction-chat-action-tooltips'
-import type { ChatWorkflowSelection } from '@/features/workspace/hooks/use-chat-workflow-selection'
 import { extractionPagesKeys } from '@/shared/api/hooks/use-badgerdoc-extraction-pages'
-import { useTriggerWorkflow, useWorkflowStatus } from '@/shared/api/hooks/use-workflows'
+import {
+  useChatWorkflows,
+  useTriggerWorkflow,
+  useWorkflowStatus,
+} from '@/shared/api/hooks/use-workflows'
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from 'sonner'
 import { PromptContextEditor } from './prompt-context-editor'
@@ -36,6 +35,33 @@ function buildWorkflowTriggerPayload({
     document_id: Number(documentId),
     llm_params: prompt,
   } satisfies Record<string, unknown>
+}
+
+function getDocumentContextTooltip(
+  canUseDocumentContext: boolean,
+  isWholeDocumentSelected: boolean
+) {
+  if (!canUseDocumentContext) {
+    return 'Whole document is not available for this workflow'
+  }
+
+  return isWholeDocumentSelected ? 'Add another whole document reference' : 'Add whole document'
+}
+
+function getCurrentPageTooltip({
+  canUsePageContext,
+  isCurrentPageSelected,
+  currentPage,
+}: {
+  canUsePageContext: boolean
+  isCurrentPageSelected: boolean
+  currentPage: number
+}) {
+  if (!canUsePageContext) {
+    return 'Current page context is not available for this workflow'
+  }
+
+  return isCurrentPageSelected ? `Add another Page ${currentPage} reference` : 'Add current page'
 }
 
 function ContextActionButton({
@@ -91,7 +117,6 @@ interface ExtractionChatProps {
   isProcessing?: boolean
   setIsRunningInference?: (isProcessing: boolean) => void
   activeTag?: string
-  workflowSelection: ChatWorkflowSelection
 }
 
 export const ExtractionChat = ({
@@ -110,22 +135,32 @@ export const ExtractionChat = ({
   isProcessing,
   setIsRunningInference,
   activeTag,
-  workflowSelection,
 }: ExtractionChatProps) => {
+  const { data: workflows, isLoading: isWorkflowsLoading } = useChatWorkflows()
   const triggerWorkflow = useTriggerWorkflow()
   const queryClient = useQueryClient()
 
+  const [selectedWorkflowId, setSelectedWorkflowId] = useState<number | null>(null)
   const [workflowToPoll, setWorkflowToPoll] = useState<string | null>(null)
   const [hasSuccessFeedback, setHasSuccessFeedback] = useState(false)
-  const {
-    workflows,
-    isWorkflowsLoading,
-    selectedWorkflow,
-    setSelectedWorkflowId,
-    availableScopes,
-    canUseDocumentContext,
-    canUsePageContext,
-  } = workflowSelection
+
+  const selectedWorkflow = useMemo(() => {
+    if (!workflows?.length) return null
+    if (selectedWorkflowId) {
+      const persisted = workflows.find((workflow) => workflow.id === selectedWorkflowId)
+      if (persisted) return persisted
+    }
+
+    const matchingWorkflow = activeTag
+      ? workflows.find((workflow) => workflow.tags?.includes(activeTag))
+      : null
+
+    return matchingWorkflow || workflows[0]
+  }, [workflows, selectedWorkflowId, activeTag])
+
+  const availableScopes = useMemo(() => selectedWorkflow?.extractionScope || [], [selectedWorkflow])
+  const canUseDocumentContext = availableScopes.includes('document')
+  const canUsePageContext = availableScopes.includes('page')
   const contextSummary = useMemo(() => summarizePromptContext(prompt), [prompt])
   const hasContext = contextSummary.hasContext
   const hasPromptText = prompt.trim().length > 0
@@ -140,6 +175,18 @@ export const ExtractionChat = ({
 
     return availableScopes.includes('page')
   }, [availableScopes, contextSummary.primaryScope, hasContext])
+
+  useEffect(() => {
+    // Defer to next frame to avoid setState during React's render phase
+    // when selectedWorkflow is derived from workflows list on first load.
+    const frame = requestAnimationFrame(() => {
+      if (selectedWorkflow && selectedWorkflow.id !== selectedWorkflowId) {
+        setSelectedWorkflowId(selectedWorkflow.id)
+      }
+    })
+
+    return () => cancelAnimationFrame(frame)
+  }, [selectedWorkflow, selectedWorkflowId])
 
   const { data: workflowStatus } = useWorkflowStatus(workflowToPoll)
 

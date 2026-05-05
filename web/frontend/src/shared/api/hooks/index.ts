@@ -1,7 +1,6 @@
 // Existing endpoint-based hooks (to be migrated to adapter pattern)
 export * from './use-upload'
 export * from './use-badgerdoc-documents'
-export * from './use-badgerdoc-document-hierarchy'
 export * from './use-badgerdoc-extraction-pages'
 
 export const extractionPagesKeys = {

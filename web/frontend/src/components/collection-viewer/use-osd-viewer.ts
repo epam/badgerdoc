@@ -11,34 +11,42 @@ export const useOsdViewer = (tileSources?: string[]) => {
     function initViewerForDocument() {
       if (!containerRef.current) return
 
-      let osdViewer: OSDViewer | null = null
+      let cancelled = false
 
-      try {
-        osdViewer = new OpenSeadragon.Viewer({
-          element: containerRef.current,
-          ...DEFAULT_OSD_CONFIG,
-          tileSources,
-        } as Partial<Options>)
-        setViewer(osdViewer)
+      void (async () => {
+        if (viewer) {
+          return
+        }
+        try {
+          const viewer = new OpenSeadragon.Viewer({
+            element: containerRef.current!,
+            ...DEFAULT_OSD_CONFIG,
+            tileSources,
+          } as Partial<Options>)
+          setViewer(viewer)
 
-        osdViewer.addHandler('open', function fitFirstPageToViewport() {
-          const firstItem = osdViewer?.world.getItemAt(0)
-          if (firstItem) {
-            osdViewer?.viewport.fitBounds(firstItem.getBounds())
-          }
-        })
-      } catch (error) {
-        logger.error('Failed to initialize OSD viewer:', error)
-      }
+          if (cancelled) return
+
+          viewer.addHandler('open', function fitFirstPageToViewport() {
+            const firstItem = viewer.world.getItemAt(0)
+            if (firstItem) {
+              viewer.viewport.fitBounds(firstItem.getBounds())
+            }
+          })
+        } catch (error) {
+          logger.error('Failed to initialize OSD viewer:', error)
+        }
+      })()
 
       return () => {
-        if (osdViewer) {
-          osdViewer.destroy()
+        cancelled = true
+        if (viewer) {
+          viewer.destroy()
+          setViewer(null)
         }
-        setViewer((currentViewer) => (currentViewer === osdViewer ? null : currentViewer))
       }
     },
-    [tileSources]
+    [tileSources, viewer]
   )
 
   return {

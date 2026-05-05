@@ -8,7 +8,13 @@ const badgerDocDocumentsKeys = {
   list: (params?: GetDocumentsParams) => [...badgerDocDocumentsKeys.lists(), params] as const,
 }
 
-type UseBadgerDocDocumentsParams = GetDocumentsParams
+interface UseBadgerDocDocumentsParams {
+  tags?: string
+  created_at__gte?: string
+  created_at__lte?: string
+  page?: number
+  page_size?: number
+}
 
 /**
  * Mock duplicate check data for UI testing.

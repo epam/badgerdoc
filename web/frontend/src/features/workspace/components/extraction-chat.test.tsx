@@ -2,7 +2,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ExtractionChat } from './extraction-chat'
-import type { ChatWorkflowSelection } from '@/features/workspace/hooks/use-chat-workflow-selection'
 
 const { mutateAsync, workflowStatusState } = vi.hoisted(() => ({
   mutateAsync: vi.fn(),
@@ -54,30 +53,6 @@ vi.mock('./prompt-context-editor', () => ({
 
 function renderExtractionChat(props: Partial<React.ComponentProps<typeof ExtractionChat>> = {}) {
   const onPromptChange = vi.fn()
-  const workflowSelection = {
-    workflows: [
-      {
-        id: 7,
-        name: 'Test workflow',
-        extractionScope: [],
-        supportPrompts: true,
-        tags: ['summary'],
-      },
-    ],
-    isWorkflowsLoading: false,
-    selectedWorkflowId: 7,
-    setSelectedWorkflowId: vi.fn(),
-    selectedWorkflow: {
-      id: 7,
-      name: 'Test workflow',
-      extractionScope: [],
-      supportPrompts: true,
-      tags: ['summary'],
-    },
-    availableScopes: [],
-    canUseDocumentContext: false,
-    canUsePageContext: false,
-  } satisfies ChatWorkflowSelection
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: { retry: false },
@@ -98,7 +73,6 @@ function renderExtractionChat(props: Partial<React.ComponentProps<typeof Extract
         onAddWholeDocument={vi.fn()}
         onAddCurrentPage={vi.fn()}
         activeTag="summary"
-        workflowSelection={workflowSelection}
         {...nextProps}
       />
     </QueryClientProvider>

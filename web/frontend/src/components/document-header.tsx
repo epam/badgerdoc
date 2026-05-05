@@ -18,7 +18,6 @@ interface DocumentHeaderProps {
   backLabel?: string
   useSmartBack?: boolean
   className?: string
-  titleActions?: ReactNode
   children?: ReactNode
 }
 
@@ -33,7 +32,6 @@ export function DocumentHeader({
   backLabel = 'Back',
   useSmartBack = true,
   className,
-  titleActions,
   children,
 }: DocumentHeaderProps) {
   const statusColors = statusName ? getStatusColor(statusName) : null
@@ -68,20 +66,16 @@ export function DocumentHeader({
                 </Link>
               )}
               <span className="text-border">|</span>
-              {titleActions ? (
-                <h1 className="min-w-0">{titleActions}</h1>
-              ) : (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <h1 className="min-w-0 truncate text-foreground text-sm font-medium cursor-default">
-                      {title}
-                    </h1>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" className="max-w-md">
-                    <p className="text-sm">{title}</p>
-                  </TooltipContent>
-                </Tooltip>
-              )}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <h1 className="truncate text-foreground text-sm font-medium cursor-default">
+                    {title}
+                  </h1>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="max-w-md">
+                  <p className="text-sm">{title}</p>
+                </TooltipContent>
+              </Tooltip>
               <span className="ml-2 shrink-0 text-sm text-muted-foreground hidden lg:inline-flex items-center gap-2">
                 {authors && authors.length > 0 && (
                   <>
