@@ -54,7 +54,7 @@
       "trigger": "manual",
       "name": "Mineru OCR",
       "tags": ["ai-inference", "mineru-ocr"],
-      "extraction_scope": ["page"]
+      "extraction_scope": ["page", "document"]
     }
   },
   {
@@ -111,7 +111,7 @@
       "trigger": "manual",
       "name": "Paddle OCR",
       "tags": ["ai-inference", "paddle-ocr"],
-      "extraction_scope": ["page"]
+      "extraction_scope": ["page", "document"]
     }
   }
 ]

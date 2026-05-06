@@ -123,7 +123,11 @@ class BadgerdocDeepseek2Workflow:
                 *[
                     workflow.execute_activity(
                         deepseek_ocr_2_results_to_hocr,
-                        args=[workflow_type, int(page_num), page_manifest_path],
+                        args=[
+                            workflow_type,
+                            int(page_num),
+                            page_manifest_path,
+                        ],
                         start_to_close_timeout=helpers.BADGERDOC_REST_API_START_TO_CLOSE_TIMEOUT,
                         retry_policy=helpers.BadgerdocRestAPIRetryPolicy,
                     )

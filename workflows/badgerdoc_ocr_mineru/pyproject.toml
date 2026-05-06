@@ -1,18 +1,19 @@
 [project]
 name = "badgerdoc-ocr-mineru"
-version = "0.1.0"
-description = "BadgerDoc OCR MinerU"
+version = "0.2.0"
+description = "BadgerDoc OCR MinerU (MLX backend via mlx_vlm.server)"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "temporalio>=1.18.2",
     "aiohttp>=3.13.2",
     "badgerdoc-common",
-    "mineru[all]>=2.7.6",
+    "mineru-vl-utils>=0.1.0",
+    "tqdm>=4.0.0",
 ]
 
 [tool.uv.sources]
-badgerdoc-common = { path = "../badgerdoc_common" }
+badgerdoc-common = { path = "../badgerdoc_common", editable = true }
 
 [dependency-groups]
 dev = [

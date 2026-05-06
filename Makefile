@@ -39,6 +39,12 @@ build_all:
 	$(MAKE) build_frontend
 	$(MAKE) build_base
 
-start_mlx:
+stop_mlx:
+	-lsof -ti:11434 | xargs kill -9 2>/dev/null || true
+	-lsof -ti:11435 | xargs kill -9 2>/dev/null || true
+	-lsof -ti:11436 | xargs kill -9 2>/dev/null || true
+
+start_mlx: stop_mlx
 	uv run mlx_vlm.server --port 11434 --model mlx-community/DeepSeek-OCR-2-bf16 & \
-	uv run mlx_vlm.server --port 11435 --model mlx-community/PaddleOCR-VL-1.5-bf16
+	uv run mlx_vlm.server --port 11435 --model mlx-community/PaddleOCR-VL-1.5-bf16 & \
+	uv run mlx_vlm.server --port 11436 --model mlx-community/MinerU2.5-2509-1.2B-bf16

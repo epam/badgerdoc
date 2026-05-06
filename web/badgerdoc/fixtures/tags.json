@@ -12,7 +12,7 @@
     "model": "badgerdoc.tag",
     "pk": 2,
     "fields": {
-      "tag": "mineru-ocr",
+      "tag": "mineru-mlx",
       "literal": "Mineru OCR",
       "order": 2
     }
