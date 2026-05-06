@@ -1,5 +1,5 @@
 [project]
-name = "badgerdoc-ocr-dial"
+name = "badgerdoc-ocr-arbitrator"
 version = "0.1.0"
 description = "BadgerDoc OCR Judge"
 readme = "README.md"

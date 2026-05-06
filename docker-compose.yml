@@ -125,9 +125,9 @@ services:
     networks:
       - badgerdoc-network
 
-  badgerdoc_ocr_dial:
+  badgerdoc_ocr_arbitrator:
     build:
-      context: ./workflows/badgerdoc_ocr_dial
+      context: ./workflows/badgerdoc_ocr_arbitrator
     env_file: .env
     depends_on:
       - temporal

@@ -124,13 +124,16 @@
       "event_entity": null,
       "event_type": null,
       "document_types": [],
-      "temporal_workflow_type": "BadgerdocOCRDialWorkflow",
-      "temporal_queue": "badgerdoc_ocr_dial",
+      "temporal_workflow_type": "BadgerdocOCRArbitratorWorkflow",
+      "temporal_queue": "badgerdoc_ocr_arbitrator",
       "is_active": true,
       "trigger": "manual",
+      "name": "OCR Arbitrator",
+      "tags": ["ai-inference", "ocr-arbitrator"],
       "extraction_scope": [
         "page"
-      ]
+      ],
+      "support_prompts": true
     }
   }
 ]

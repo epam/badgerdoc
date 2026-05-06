@@ -8,12 +8,16 @@ from bs4 import BeautifulSoup
 from PIL import Image, ImageOps, UnidentifiedImageError
 from temporalio import activity
 from badgerdoc_common import trigger
+from badgerdoc_common.activities import document
 from badgerdoc_common.activities.extraction import (
     ListExtractionPagesRequest,
+    badgerdoc_get_extraction,
     badgerdoc_list_extraction_pages,
 )
 from badgerdoc_common.badgerdoc_http import badgerdoc_download, badgerdoc_patch
 from badgerdoc_common.hocr import BadgerdocHOCRPageResult
+
+Image.MAX_IMAGE_PIXELS = 933120000
 
 logger = logging.getLogger(__name__)
 
@@ -111,10 +115,8 @@ def compress_image_for_llm_request(
                     out = BytesIO()
                     scaled.save(
                         out,
-                        format="JPEG",
-                        quality=quality,
+                        format="PNG",
                         optimize=True,
-                        progressive=True,
                     )
                     candidate = out.getvalue()
                     if not best_candidate or len(candidate) < len(
@@ -243,6 +245,7 @@ def lines_to_hocr(
 @activity.defn
 async def trial_process(
     params: trigger.DocumentTriggerParams,
+    workflow_results: list[dict[str, int | str]],
 ) -> BadgerdocHOCRPageResult:
     from openai import (
         AsyncAzureOpenAI,  # pylint: disable=import-outside-toplevel
@@ -262,23 +265,42 @@ async def trial_process(
         storage,
     )
 
-    extraction_obj = params.new_extraction
+    extraction_obj = params.target_extraction
     current_tags = extraction_obj.tags or []
 
-    if "dial-ocr" not in current_tags:
+    if "ocr-arbitrator" not in current_tags:
         logger.info(
-            "Adding 'dial-ocr' tag to extraction %s", extraction_obj.id
+            "Adding 'ocr-arbitrator' tag to extraction %s", extraction_obj.id
         )
-        updated_tags = current_tags + ["dial-ocr"]
+        updated_tags = current_tags + ["ocr-arbitrator"]
         endpoint = f"/badgerdoc/extraction/{extraction_obj.id}/"
         await badgerdoc_patch(endpoint, {"tags": updated_tags})
 
-    page_number = int(params.badgerdoc_trigger_params["page_number"])
+    target_page = None
+    if params.linked_document_pages:
+        target_page = params.linked_document_pages[0]
+
+    page_number = target_page.page_num if target_page else 1
+    document_to_ocr = await document.badgerdoc_get_rendition(
+        target_page.document if target_page else params.original_document,
+        page_number,
+    )
 
     ocr_results: dict[str, str] = {}
     ocr_results_with_layout: dict[str, dict[str, str]] = {}
-    for extraction in params.prev_extractions:
-        engine_name = extraction.tags[0]
+    for workflow_result in workflow_results:
+        extraction_id = workflow_result.get("extraction_id")
+        engine_name = workflow_result.get("engine_name")
+        if not isinstance(extraction_id, int) or not isinstance(
+            engine_name, str
+        ):
+            logger.warning(
+                "Skipping invalid workflow result payload: %s",
+                workflow_result,
+            )
+            continue
+
+        extraction = await badgerdoc_get_extraction(extraction_id)
         extraction_page = await badgerdoc_list_extraction_pages(
             ListExtractionPagesRequest(
                 extraction_id=int(extraction.id),
@@ -303,7 +325,7 @@ async def trial_process(
         ocr_results_with_layout[engine_name] = blocks
 
     if not ocr_results:
-        return "No OCR results found for the requested page."
+        return BadgerdocHOCRPageResult(h_ocr={})
 
     openai_client = AsyncAzureOpenAI(
         api_key=os.environ.get("API_KEY"),
@@ -311,12 +333,12 @@ async def trial_process(
         api_version="2024-02-01",
     )
     model = OpenAIChatModel(
-        "claude-sonnet-4-5@20250929",
+        os.environ.get("JUDGE_MODEL"),
         provider=OpenAIProvider(openai_client=openai_client),
     )
 
     storage_params = storage.StorageWorkflowParams(
-        workflow_package="badgerdoc_ocr_dial",
+        workflow_package="badgerdoc_ocr_arbitrator",
         workflow_name=params.workflow.temporal_workflow_type,
         workflow_id=activity.info().workflow_run_id,
     )
@@ -342,14 +364,14 @@ async def trial_process(
     )
     logger.info("Jury evaluation report stored at %s", middle_json_path)
 
-    metadata = params.document_to_ocr.metadata or {}
+    metadata = document_to_ocr.metadata or {}
     page_width: int = metadata.get("width", 1000)
     page_height: int = metadata.get("height", 1000)
 
     # --- Step 2: OCR combination with judge ---
 
     buffer = BytesIO()
-    await badgerdoc_download(buffer, params.document_to_ocr)
+    await badgerdoc_download(buffer, document_to_ocr)
     compressed_bytes, _, _ = compress_image_for_llm_request(buffer.getvalue())
 
     ocr_judge_agent: Agent[None, dict] = Agent(
@@ -369,7 +391,7 @@ async def trial_process(
             f" {evaluation_text}",
             ocr_context,
             _HOCR_EXTRACTION_PROMPT,
-            BinaryContent(data=compressed_bytes, media_type="image/jpeg"),
+            BinaryContent(data=compressed_bytes, media_type="image/png"),
         ]
     )
 
@@ -394,14 +416,13 @@ async def trial_process(
     )
 
 
-
     clerk_result = await ocr_clerk_agent.run(
         [
             f"Evaluated hOCR content:"
             f" {hocr_content}",
             f"Page number: {page_number}",
             _HOCR_SORTING_AND_CLASSIFICATION_PROMPT,
-            BinaryContent(data=compressed_bytes, media_type="image/jpeg"),
+            BinaryContent(data=compressed_bytes, media_type="image/png"),
         ]
     )
 

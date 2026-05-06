@@ -1,8 +1,8 @@
 FROM badgerdoc-workflows-base
 
-RUN mkdir -p /app/badgerdoc_ocr_dial
+RUN mkdir -p /app/badgerdoc_ocr_arbitrator
 
-WORKDIR /app/badgerdoc_ocr_dial
+WORKDIR /app/badgerdoc_ocr_arbitrator
 
 COPY pyproject.toml ./
 COPY . .

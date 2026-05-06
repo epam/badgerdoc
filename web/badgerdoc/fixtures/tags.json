@@ -30,8 +30,8 @@
     "model": "badgerdoc.tag",
     "pk": 5,
     "fields": {
-      "tag": "dial-ocr",
-      "literal": "Dial OCR",
+      "tag": "ocr-arbitrator",
+      "literal": "OCR Arbitrator",
       "order": 5
     } 
    }
