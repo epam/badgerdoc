@@ -11,43 +11,72 @@ from badgerdoc_ocr_deepseek_2.activities.ocr_convertors import (  # noqa: E402
     _safe_inline_html,
 )
 
-
 # ---------------------------------------------------------------------------
 # _classify_block
 # ---------------------------------------------------------------------------
 
 
 def test_classify_block_table_by_ref_type():
-    block = {"type": "table", "bbox": (0, 0, 100, 100), "raw": "anything", "lines": []}
+    block = {
+        "type": "table",
+        "bbox": (0, 0, 100, 100),
+        "raw": "anything",
+        "lines": [],
+    }
     assert _classify_block(block) == "table"
 
 
 def test_classify_block_list_by_ref_type():
     for ref in ("list", "list-item", "List", "LIST-ITEM"):
-        block = {"type": ref, "bbox": (0, 0, 100, 100), "raw": "anything", "lines": []}
+        block = {
+            "type": ref,
+            "bbox": (0, 0, 100, 100),
+            "raw": "anything",
+            "lines": [],
+        }
         assert _classify_block(block) == "list"
 
 
 def test_classify_block_table_by_content_fallback():
     raw = "| Col A | Col B |\n|-------|-------|\n| 1     | 2     |"
-    block = {"type": "text", "bbox": (0, 0, 100, 100), "raw": raw, "lines": [raw]}
+    block = {
+        "type": "text",
+        "bbox": (0, 0, 100, 100),
+        "raw": raw,
+        "lines": [raw],
+    }
     assert _classify_block(block) == "table"
 
 
 def test_classify_block_list_bullet_fallback():
     raw = "* Item one\n* Item two"
-    block = {"type": "paragraph", "bbox": (0, 0, 100, 100), "raw": raw, "lines": [raw]}
+    block = {
+        "type": "paragraph",
+        "bbox": (0, 0, 100, 100),
+        "raw": raw,
+        "lines": [raw],
+    }
     assert _classify_block(block) == "list"
 
 
 def test_classify_block_list_ordered_fallback():
     raw = "1. First\n2. Second"
-    block = {"type": "paragraph", "bbox": (0, 0, 100, 100), "raw": raw, "lines": [raw]}
+    block = {
+        "type": "paragraph",
+        "bbox": (0, 0, 100, 100),
+        "raw": raw,
+        "lines": [raw],
+    }
     assert _classify_block(block) == "list"
 
 
 def test_classify_block_text():
-    block = {"type": "text", "bbox": (0, 0, 100, 100), "raw": "Hello world.", "lines": ["Hello world."]}
+    block = {
+        "type": "text",
+        "bbox": (0, 0, 100, 100),
+        "raw": "Hello world.",
+        "lines": ["Hello world."],
+    }
     assert _classify_block(block) == "text"
 
 
@@ -192,8 +221,7 @@ def test_plain_text_word_splitting_produces_ocrx_word():
 
 def test_parse_ocr_blocks_stores_raw():
     text = (
-        "<|ref|>text<|/ref|><|det|>[[0, 0, 100, 50]]<|/det|>\n"
-        "Hello world\n"
+        "<|ref|>text<|/ref|><|det|>[[0, 0, 100, 50]]<|/det|>\n" "Hello world\n"
     )
     blocks = _parse_ocr_blocks(text)
     assert len(blocks) == 1
