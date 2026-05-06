@@ -53,7 +53,7 @@
       "is_active": true,
       "trigger": "manual",
       "name": "Mineru OCR",
-      "tags": ["ai-inference", "mineru-ocr"],
+      "tags": ["ai-inference", "mineru-mlx"],
       "extraction_scope": ["page", "document"]
     }
   },
