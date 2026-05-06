@@ -233,7 +233,7 @@ def _parse_mineru_blocks(raw_blocks: list[dict]) -> list[dict]:
         x1 = round(bbox_norm[2] * 1000)
         y1 = round(bbox_norm[3] * 1000)
 
-        if btype == "title":
+        if btype in ("title", "header"):
             internal_type = "title"
             lines = [content.strip()] if content.strip() else []
         elif btype == "table":
@@ -283,11 +283,42 @@ def _table_block_to_hocr_lines(
     ]
 
 
+def _title_block_to_hocr_lines(
+    page_number: int,
+    block: dict,
+    carea_id: int,
+    par_id: int,
+    line_id: int,
+) -> list[str]:
+    x0, y0, x1, y1 = block["bbox"]
+    bbox = f"bbox {x0} {y0} {x1} {y1}"
+    heading_html = f"<h1>{_escape_html(block['lines'][0])}</h1>"
+    return [
+        f'<div class="ocr_carea" id="block_{page_number}_{carea_id}" title="{bbox}">',
+        f'<p class="ocr_par" id="par_{page_number}_{par_id}" title="{bbox}">',
+        f'  <span class="ocr_line" id="line_{page_number}_{line_id}" title="{bbox}">',
+        f"    {heading_html}",
+        "  </span>",
+        "</p>",
+        "</div>",
+    ]
+
+
 def _blocks_to_hocr_lines(page_number: int, blocks: list[dict]) -> list[str]:
     lines: list[str] = []
     carea_id = par_id = line_id = word_id = 1
 
     for block in blocks:
+        if block["type"] == "title":
+            chunk = _title_block_to_hocr_lines(
+                page_number, block, carea_id, par_id, line_id
+            )
+            lines.extend(chunk)
+            carea_id += 1
+            par_id += 1
+            line_id += 1
+            continue
+
         if block["type"] in ("fcel_table", "html_table"):
             chunk = _table_block_to_hocr_lines(
                 page_number, block, carea_id, par_id, line_id
@@ -309,9 +340,8 @@ def _blocks_to_hocr_lines(page_number: int, blocks: list[dict]) -> list[str]:
         )
         carea_id += 1
 
-        par_class = "ocr_header" if block["type"] == "title" else "ocr_par"
         lines.append(
-            f'<p class="{par_class}" id="par_{page_number}_{par_id}" title="{bbox_str}">'
+            f'<p class="ocr_par" id="par_{page_number}_{par_id}" title="{bbox_str}">'
         )
         par_id += 1
 
@@ -440,7 +470,7 @@ async def mineru_mlx_results_to_hocr(
         f'<div class="ocr_page" id="page_{display_page_num}" '
         f'title="bbox 0 0 1000 1000; ppageno {display_page_num}">',
     ]
-    hocr_lines.extend(_blocks_to_hocr_lines(page_num, all_blocks))
+    hocr_lines.extend(_blocks_to_hocr_lines(display_page_num, all_blocks))
     hocr_lines.extend(["</div>", "</body>", "</html>"])
 
     hocr_content = "\n".join(hocr_lines)

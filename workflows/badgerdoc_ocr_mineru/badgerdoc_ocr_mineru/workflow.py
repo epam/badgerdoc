@@ -12,6 +12,7 @@ from badgerdoc_ocr_mineru.activities.ocr_convertors import (
 from badgerdoc_ocr_mineru.activities.ocr_requests import (
     mineru_mlx_merge_and_store,
     mineru_mlx_ocr_page,
+    mineru_mlx_tag_extraction,
 )
 
 logger = logging.getLogger(__name__)
@@ -37,9 +38,17 @@ class BadgerdocOCRMinerUWorkflow:
         extraction_tags = params.target_extraction.tags or []
         workflow_type = params.workflow.temporal_workflow_type
 
-        # Step 1: OCR all full pages in parallel
+        # Step 1: Tag the extraction once before any fan-out
+        await workflow.execute_activity(
+            mineru_mlx_tag_extraction,
+            args=[extraction_id, extraction_tags],
+            start_to_close_timeout=helpers.BADGERDOC_REST_API_START_TO_CLOSE_TIMEOUT,
+            retry_policy=helpers.BadgerdocRestAPIRetryPolicy,
+        )
+
+        # Step 2: OCR all full pages in parallel
         logger.info(
-            "BadgerdocOCRMinerUWorkflow: step 1 — OCR %d page(s)",
+            "BadgerdocOCRMinerUWorkflow: step 2 — OCR %d page(s)",
             len(ocr_container.pages),
         )
         page_ocr_results: list[dict] = (
@@ -49,8 +58,6 @@ class BadgerdocOCRMinerUWorkflow:
                         workflow.execute_activity(
                             mineru_mlx_ocr_page,
                             args=[
-                                extraction_id,
-                                extraction_tags,
                                 workflow_type,
                                 req.badgerdoc_document.page_num,
                                 req.badgerdoc_document.document,
@@ -66,19 +73,16 @@ class BadgerdocOCRMinerUWorkflow:
             else []
         )
 
-        # Step 2: OCR all blocks sequentially (continue on individual failure)
+        # Step 3: OCR all blocks in parallel (continue on individual failure)
         logger.info(
-            "BadgerdocOCRMinerUWorkflow: step 2 — OCR %d block(s)",
+            "BadgerdocOCRMinerUWorkflow: step 3 — OCR %d block(s)",
             len(ocr_container.blocks),
         )
-        block_ocr_results: list[dict] = []
-        for i, req in enumerate(ocr_container.blocks):
-            try:
-                result = await workflow.execute_activity(
+        raw_block_results = await asyncio.gather(
+            *[
+                workflow.execute_activity(
                     mineru_mlx_ocr_page,
                     args=[
-                        extraction_id,
-                        extraction_tags,
                         workflow_type,
                         req.badgerdoc_document.page_num,
                         req.badgerdoc_document.document,
@@ -87,23 +91,25 @@ class BadgerdocOCRMinerUWorkflow:
                     start_to_close_timeout=helpers.BADGERDOC_REST_API_START_TO_CLOSE_TIMEOUT,
                     retry_policy=helpers.BadgerdocRestAPIRetryPolicy,
                 )
-                block_ocr_results.append(result)
-                logger.info(
-                    "BadgerdocOCRMinerUWorkflow: block %d (page %d) succeeded",
-                    i,
-                    req.badgerdoc_document.page_num,
-                )
-            except Exception:  # pylint: disable=broad-except
+                for i, req in enumerate(ocr_container.blocks)
+            ],
+            return_exceptions=True,
+        ) if ocr_container.blocks else []
+        block_ocr_results: list[dict] = []
+        for i, result in enumerate(raw_block_results):
+            if isinstance(result, BaseException):
                 logger.exception(
-                    "BadgerdocOCRMinerUWorkflow: block %d (page %d) failed, skipping",
+                    "BadgerdocOCRMinerUWorkflow: block %d failed, skipping: %s",
                     i,
-                    req.badgerdoc_document.page_num,
+                    result,
                 )
+            else:
+                block_ocr_results.append(result)
 
-        # Step 3: Merge all OCR results and store one manifest per page in MinIO
+        # Step 4: Merge all OCR results and store one manifest per page in MinIO
         all_ocr_results = page_ocr_results + block_ocr_results
         logger.info(
-            "BadgerdocOCRMinerUWorkflow: step 3 — merge %d OCR result(s)",
+            "BadgerdocOCRMinerUWorkflow: step 4 — merge %d OCR result(s)",
             len(all_ocr_results),
         )
         page_manifest_paths: dict[str, str] = await workflow.execute_activity(
@@ -113,9 +119,9 @@ class BadgerdocOCRMinerUWorkflow:
             retry_policy=helpers.BadgerdocRestAPIRetryPolicy,
         )
 
-        # Step 4: Convert each page's OCR to hOCR in parallel
+        # Step 5: Convert each page's OCR to hOCR in parallel
         logger.info(
-            "BadgerdocOCRMinerUWorkflow: step 4 — convert %d page(s) to hOCR",
+            "BadgerdocOCRMinerUWorkflow: step 5 — convert %d page(s) to hOCR",
             len(page_manifest_paths),
         )
         hocr_results: list[BadgerdocHOCRPageResult] = list(

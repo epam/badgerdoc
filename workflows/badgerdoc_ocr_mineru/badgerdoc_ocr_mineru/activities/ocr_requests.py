@@ -10,6 +10,20 @@ from badgerdoc_common import badgerdoc_http
 from badgerdoc_common.activities import document
 from badgerdoc_common.activities.document import BadgerdocDocument
 
+
+@activity.defn
+async def mineru_mlx_tag_extraction(
+    extraction_id: int,
+    extraction_tags: list[str],
+) -> None:
+    """Ensure the 'mineru-mlx' tag is present on the extraction. Called once before fan-out."""
+    if "mineru-mlx" not in extraction_tags:
+        logger.info("Adding 'mineru-mlx' tag to extraction %d", extraction_id)
+        await badgerdoc_http.badgerdoc_patch(
+            f"/badgerdoc/extraction/{extraction_id}/",
+            {"tags": extraction_tags + ["mineru-mlx"]},
+        )
+
 logger = logging.getLogger(__name__)
 
 HOST = os.environ.get("HOST_ADDRESS", "localhost")
@@ -21,8 +35,6 @@ MODEL = os.environ.get(
 
 @activity.defn
 async def mineru_mlx_ocr_page(
-    extraction_id: int,
-    extraction_tags: list[str],
     workflow_type: str,
     page_num: int,
     doc: BadgerdocDocument,
@@ -39,7 +51,6 @@ async def mineru_mlx_ocr_page(
         middle_json  — MinIO path to JSON containing extracted blocks
         metadata     — document metadata (width, height, page, position_in_parent)
     """
-    import aiohttp
     from mineru_vl_utils import MinerUClient
     from PIL import Image
 
@@ -50,32 +61,21 @@ async def mineru_mlx_ocr_page(
     if isinstance(doc, dict):
         doc = BadgerdocDocument(**doc)
 
-    if "mineru-mlx" not in extraction_tags:
-        logger.info("Adding 'mineru-mlx' tag to extraction %d", extraction_id)
-        updated_tags = extraction_tags + ["mineru-mlx"]
-        await badgerdoc_http.badgerdoc_patch(
-            f"/badgerdoc/extraction/{extraction_id}/", {"tags": updated_tags}
-        )
-
     if doc.parent_document_id is not None:
         rendition_doc = doc
     else:
         rendition_doc = await document.badgerdoc_get_rendition(doc, page_num)
 
-    image_url = rendition_doc.file
     logger.info(
         "MinerU MLX OCR: starting page %d (block_index=%s), image: %s",
         page_num,
         block_index,
-        image_url,
+        rendition_doc.file,
     )
 
-    async with aiohttp.ClientSession() as session:
-        async with session.get(image_url) as resp:
-            resp.raise_for_status()
-            img_data = await resp.read()
-
-    image = Image.open(BytesIO(img_data))
+    img_buf = BytesIO()
+    await badgerdoc_http.badgerdoc_download(img_buf, rendition_doc)
+    image = Image.open(img_buf)
 
     client = MinerUClient(
         backend="http-client",

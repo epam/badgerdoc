@@ -232,7 +232,6 @@ name = "badgerdoc-ocr-mineru"
 version = "0.2.0"
 source = { editable = "." }
 dependencies = [
-    { name = "aiohttp" },
     { name = "badgerdoc-common" },
     { name = "mineru-vl-utils" },
     { name = "temporalio" },
@@ -247,7 +246,6 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "aiohttp", specifier = ">=3.13.2" },
     { name = "badgerdoc-common", editable = "../badgerdoc_common" },
     { name = "mineru-vl-utils", specifier = ">=0.1.0" },
     { name = "temporalio", specifier = ">=1.18.2" },

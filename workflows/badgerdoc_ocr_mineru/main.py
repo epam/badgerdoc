@@ -14,6 +14,7 @@ from badgerdoc_ocr_mineru.activities.ocr_convertors import (
 from badgerdoc_ocr_mineru.activities.ocr_requests import (
     mineru_mlx_merge_and_store,
     mineru_mlx_ocr_page,
+    mineru_mlx_tag_extraction,
 )
 from badgerdoc_ocr_mineru.workflow import BadgerdocOCRMinerUWorkflow
 
@@ -31,6 +32,7 @@ async def worker() -> None:
             task_queue="badgerdoc_ocr_mineru",
             workflows=[BadgerdocOCRMinerUWorkflow],
             activities=[
+                mineru_mlx_tag_extraction,
                 mineru_mlx_ocr_page,
                 mineru_mlx_merge_and_store,
                 mineru_mlx_results_to_hocr,
