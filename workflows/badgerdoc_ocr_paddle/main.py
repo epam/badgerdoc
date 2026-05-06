@@ -24,6 +24,7 @@ async def worker():
             task_queue="badgerdoc_ocr_paddle",
             workflows=[workflow.BadgerdocOCRPaddleWorkflow],
             activities=[
+                activities.ocr_requests.paddle_ocr_tag_extraction,
                 activities.ocr_requests.paddle_ocr_from_page,
                 activities.ocr_convertors.paddle_ocr_results_to_hocr,
                 badgerdoc_list_documents,

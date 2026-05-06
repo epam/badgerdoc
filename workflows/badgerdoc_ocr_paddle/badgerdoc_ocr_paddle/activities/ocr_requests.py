@@ -21,9 +21,21 @@ MAX_TOKENS = int(os.environ.get("MAX_TOKENS", 10000))
 
 
 @activity.defn
-async def paddle_ocr_from_page(
+async def paddle_ocr_tag_extraction(
     extraction_id: int,
     extraction_tags: list[str],
+) -> None:
+    """Ensure the 'paddle-ocr' tag is present on the extraction. Called once before fan-out."""
+    if "paddle-ocr" not in extraction_tags:
+        logger.info("Adding 'paddle-ocr' tag to extraction %d", extraction_id)
+        await badgerdoc_http.badgerdoc_patch(
+            f"/badgerdoc/extraction/{extraction_id}/",
+            {"tags": extraction_tags + ["paddle-ocr"]},
+        )
+
+
+@activity.defn
+async def paddle_ocr_from_page(
     workflow_type: str,
     page_num: int,
     doc: BadgerdocDocument,
@@ -46,13 +58,6 @@ async def paddle_ocr_from_page(
     from badgerdoc_common import (  # pylint: disable=import-outside-toplevel
         storage,
     )
-
-    if "paddle-ocr" not in extraction_tags:
-        logger.info("Adding 'paddle-ocr' tag to extraction %d", extraction_id)
-        updated_tags = extraction_tags + ["paddle-ocr"]
-        await badgerdoc_http.badgerdoc_patch(
-            f"/badgerdoc/extraction/{extraction_id}/", {"tags": updated_tags}
-        )
 
     if isinstance(doc, dict):
         doc = BadgerdocDocument(**doc)

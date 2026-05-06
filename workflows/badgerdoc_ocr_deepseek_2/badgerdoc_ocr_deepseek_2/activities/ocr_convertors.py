@@ -362,8 +362,9 @@ async def deepseek_ocr_2_results_to_hocr(  # pylint: disable=too-many-locals
     )
 
     first_page_info = (infos[0].get("metadata") or {}) if infos else {}
-    page_width = first_page_info.get("width", 0)
-    page_height = first_page_info.get("height", 0)
+    size = first_page_info.get("size") or {}
+    page_width = size.get("width") or first_page_info.get("width") or 1000
+    page_height = size.get("height") or first_page_info.get("height") or 1000
     display_page_num = first_page_info.get("page") or page_number
 
     storage_params = storage.StorageWorkflowParams(

@@ -12,7 +12,10 @@ from badgerdoc_common.hocr import (
 from badgerdoc_ocr_paddle.activities.ocr_convertors import (
     paddle_ocr_results_to_hocr,
 )
-from badgerdoc_ocr_paddle.activities.ocr_requests import paddle_ocr_from_page
+from badgerdoc_ocr_paddle.activities.ocr_requests import (
+    paddle_ocr_from_page,
+    paddle_ocr_tag_extraction,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +25,22 @@ class PaddleOCR(BadgerdocOCRBase):
     def __init__(self) -> None:
         self._path_to_context: dict[str, tuple[int, dict]] = {}
 
+    async def run(
+        self,
+        params: trigger.DocumentTriggerParams,
+        ocr_container,
+    ) -> list[BadgerdocHOCRPageResult]:
+        await workflow.execute_activity(
+            paddle_ocr_tag_extraction,
+            args=[
+                params.target_extraction.id,
+                params.target_extraction.tags or [],
+            ],
+            start_to_close_timeout=helpers.BADGERDOC_REST_API_START_TO_CLOSE_TIMEOUT,
+            retry_policy=helpers.BadgerdocRestAPIRetryPolicy,
+        )
+        return await super().run(params, ocr_container)
+
     async def ocr_pages(
         self,
         params: trigger.DocumentTriggerParams,
@@ -30,8 +49,6 @@ class PaddleOCR(BadgerdocOCRBase):
         logger.info(
             "PaddleOCR.ocr_pages: starting OCR on %d page(s)", len(pages)
         )
-        extraction_id = params.target_extraction.id
-        extraction_tags = params.target_extraction.tags or []
         workflow_type = params.workflow.temporal_workflow_type
 
         raw_results: list[dict] = (
@@ -41,8 +58,6 @@ class PaddleOCR(BadgerdocOCRBase):
                         workflow.execute_activity(
                             paddle_ocr_from_page,
                             args=[
-                                extraction_id,
-                                extraction_tags,
                                 workflow_type,
                                 req.badgerdoc_document.page_num,
                                 req.badgerdoc_document.document,
@@ -79,8 +94,6 @@ class PaddleOCR(BadgerdocOCRBase):
         logger.info(
             "PaddleOCR.ocr_blocks: starting OCR on %d block(s)", len(blocks)
         )
-        extraction_id = params.target_extraction.id
-        extraction_tags = params.target_extraction.tags or []
         workflow_type = params.workflow.temporal_workflow_type
 
         ocr_results: list[BadgerdocOCRPageResult] = []
@@ -89,8 +102,6 @@ class PaddleOCR(BadgerdocOCRBase):
                 result = await workflow.execute_activity(
                     paddle_ocr_from_page,
                     args=[
-                        extraction_id,
-                        extraction_tags,
                         workflow_type,
                         req.badgerdoc_document.page_num,
                         req.badgerdoc_document.document,
