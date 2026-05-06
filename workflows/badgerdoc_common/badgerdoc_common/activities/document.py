@@ -1,5 +1,6 @@
 import json
 import logging
+import urllib.parse
 from dataclasses import asdict, dataclass, field
 from io import BytesIO
 from typing import Any, BinaryIO
@@ -107,6 +108,8 @@ async def badgerdoc_create_document(
 async def badgerdoc_list_documents(
     filters: ListDocumentsRequest,
 ) -> ListDocumentsResponse:
+    if isinstance(filters, dict):
+        filters = ListDocumentsRequest(**filters)
     all_documents: list[BadgerdocDocument] = []
     page = 1
     has_next = True
@@ -259,6 +262,8 @@ async def badgerdoc_get_document(document_id: int) -> BadgerdocDocument:
 async def badgerdoc_get_rendition(
     document: BadgerdocDocument, page: int
 ) -> BadgerdocDocument:
+    if isinstance(document, dict):
+        document = BadgerdocDocument(**document)
     logger.info(
         "Getting rendition for document %s, page %s", document.id, page
     )
@@ -289,4 +294,55 @@ async def badgerdoc_delete_document(document_id: int) -> None:
         logger.info("Document deleted successfully: %s", document_id)
     except Exception as e:
         logger.warning("Failed to delete document %s: %s", document_id, str(e))
+        raise
+
+
+@dataclass
+class DocumentChunkRequest:
+    document_id: int
+    page_num: int
+    extraction_id: int
+    xpath: str
+
+
+@activity.defn
+async def badgerdoc_get_document_chunk(
+    request: DocumentChunkRequest,
+) -> BadgerdocDocument:
+    if isinstance(request, dict):
+        request = DocumentChunkRequest(**request)
+    logger.info(
+        "Getting document chunk for document %s, page %s, extraction %s",
+        request.document_id,
+        request.page_num,
+        request.extraction_id,
+    )
+
+    encoded_xpath = urllib.parse.quote(request.xpath, safe="")
+    endpoint = (
+        f"/badgerdoc/document/{request.document_id}/chunk"
+        f"/page/{request.page_num}"
+        f"/extraction/{request.extraction_id}"
+        f"/xpath/{encoded_xpath}"
+    )
+
+    try:
+        document_data = await badgerdoc_http.badgerdoc_get(endpoint)
+        if not isinstance(document_data, dict):
+            raise ValueError(
+                f"Expected response to be a dict, got {type(document_data)} instead"
+            )
+
+        logger.info(
+            "Document chunk retrieved successfully: %s",
+            document_data.get("id"),
+        )
+
+        return _parse_document(document_data)
+    except Exception as e:
+        logger.warning(
+            "Failed to get document chunk for document %s: %s",
+            request.document_id,
+            str(e),
+        )
         raise

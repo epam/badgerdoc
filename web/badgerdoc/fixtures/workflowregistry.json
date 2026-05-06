@@ -53,8 +53,8 @@
       "is_active": true,
       "trigger": "manual",
       "name": "Mineru OCR",
-      "tags": ["ai-inference", "mineru-ocr"],
-      "extraction_scope": ["page"]
+      "tags": ["ai-inference", "mineru-mlx"],
+      "extraction_scope": ["page", "document"]
     }
   },
   {
@@ -92,7 +92,7 @@
       "trigger": "manual",
       "name": "DeepSeek OCR 2",
       "tags": ["ai-inference", "deepseek-ocr-2"],
-      "extraction_scope": ["page"]
+      "extraction_scope": ["page", "document"]
     }
   },
   {
@@ -111,7 +111,7 @@
       "trigger": "manual",
       "name": "Paddle OCR",
       "tags": ["ai-inference", "paddle-ocr"],
-      "extraction_scope": ["page"]
+      "extraction_scope": ["page", "document"]
     }
   },
       {

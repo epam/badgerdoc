@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from badgerdoc.models import extraction_page
 
@@ -7,3 +7,4 @@ from badgerdoc.models import extraction_page
 class BadgerdocExtractionXpath:
     extraction_page: extraction_page.ExtractionPage
     xpath: str
+    element_on_xpath: str | None = field(default=None)

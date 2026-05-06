@@ -599,10 +599,11 @@ def _prepare_workflow_request(
                     "extraction_page": {
                         "id": xpath.extraction_page.id,
                         "extraction_id": xpath.extraction_page.extraction_id,
+                        "document_id": xpath.extraction_page.document_id,
                         "page_number": xpath.extraction_page.page_number,
-                        "content": xpath.extraction_page.content,
                     },
                     "xpath": xpath.xpath,
+                    "element_on_xpath": xpath.element_on_xpath,
                 }
                 for xpath in parsed_params.linked_extraction_xpaths
             ]
@@ -679,13 +680,23 @@ def workflow_registry_manual_trigger(
 
         workflow_id = start_manual_workflow(registry, workflow_input_data)
 
-        return Response(
-            {
-                "workflow_id": workflow_id,
-                "workflow_input_data": workflow_input_data,
-            },
-            status=status.HTTP_200_OK,
-        )
+        response_body: dict = {
+            "workflow_id": workflow_id,
+            "workflow_input_data": workflow_input_data,
+        }
+        if parsed_params.validation_warnings:
+            response_body["validation_warnings"] = [
+                {
+                    "document_id": w.document_id,
+                    "extraction_id": w.extraction_id,
+                    "page_number": w.page_number,
+                    "xpath": w.xpath,
+                    "reason": w.reason,
+                }
+                for w in parsed_params.validation_warnings
+            ]
+
+        return Response(response_body, status=status.HTTP_200_OK)
 
     except Exception as e:
         logger.exception(

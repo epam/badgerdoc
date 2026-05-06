@@ -8,6 +8,7 @@ nav:
   - Task Flow: task_flow.md
   - Extraction Tagging: extraction_tagging.md
   - Extraction Formats: extraction_formats.md
+  - Badgerdoc OCR: badgerdoc_ocr.md
 
 plugins:
   - mermaid2

@@ -28,6 +28,36 @@ export interface UseExtractionHighlightsOptions {
   onHighlightCreate: (pageIndex: number, bbox: NormalizedBBox) => void
 }
 
+function isViewerReadyForOverlays(viewer: Viewer | null): viewer is Viewer {
+  if (!viewer) return false
+
+  const maybeDestroyedViewer = viewer as Viewer & {
+    element?: unknown
+    container?: unknown
+    currentOverlays?: unknown
+  }
+
+  return (
+    !!maybeDestroyedViewer.element &&
+    !!maybeDestroyedViewer.container &&
+    Array.isArray(maybeDestroyedViewer.currentOverlays)
+  )
+}
+
+function clearOverlaysIfReady(viewer: Viewer | null) {
+  if (!isViewerReadyForOverlays(viewer)) {
+    return false
+  }
+
+  try {
+    viewer.clearOverlays()
+    return true
+  } catch (error) {
+    logger.error('Failed to clear overlays safely', error)
+    return false
+  }
+}
+
 // Creates a MouseTracker that handles click, move, and resize for an editing overlay.
 // OSD manages pointer capture and cleanup — call tracker.destroy() to tear down.
 function createEditTracker(
@@ -107,9 +137,9 @@ export const useExtractionHighlights = ({
       }
 
       const addOverlayBoxes = () => {
-        if (!viewer || cancelled) return
+        if (!isViewerReadyForOverlays(viewer) || cancelled) return
         destroyTrackers()
-        viewer.clearOverlays()
+        if (!clearOverlaysIfReady(viewer)) return
 
         const pageCount = viewer.world.getItemCount()
         for (let pageIndex = 0; pageIndex < pageCount; pageIndex++) {
@@ -166,11 +196,7 @@ export const useExtractionHighlights = ({
         cancelled = true
         viewer.removeHandler('open', addOverlayBoxes)
         destroyTrackers()
-        try {
-          viewer?.clearOverlays()
-        } catch {
-          logger.error('Failed to clear overlays safely')
-        }
+        clearOverlaysIfReady(viewer)
       }
     },
     [

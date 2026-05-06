@@ -3,6 +3,7 @@ import { useParams, useNavigate, useSearch, useMatches } from '@tanstack/react-r
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { SplitView } from '@/design-system/patterns/split-view'
 import { DocumentHeader } from '@/components/document-header'
+import { DocumentHierarchyPopover } from '@/components/document-hierarchy-popover'
 import { WorkspaceTabs } from './components/workspace-tabs.tsx'
 import { CollectionViewer } from '@/components/collection-viewer/collection-viewer'
 import { Button } from '@/components/ui/button'
@@ -20,6 +21,8 @@ import { useExtractionState } from '@/features/workspace/hooks/use-extraction-st
 import { useExtractionApi } from '@/features/workspace/hooks/use-extraction-api'
 import { useReloadDraftAutosave } from '@/features/workspace/hooks/use-reload-draft-autosave'
 import { useExtractionChatContext } from '@/features/workspace/hooks/use-extraction-chat-context'
+import { useChatWorkflowSelection } from '@/features/workspace/hooks/use-chat-workflow-selection'
+import { useViewerChatContext } from '@/features/workspace/hooks/use-viewer-chat-context'
 import { WorkspaceLoadingSkeleton } from '@/features/workspace/components/workspace-loading-skeleton.tsx'
 import {
   TaskFiltersSearch,
@@ -27,6 +30,7 @@ import {
   taskFiltersToSearch,
 } from '@/helpers/task-filters-search'
 import { ExtractionResultsTab } from '@/features/workspace/components/extraction-results-tab.tsx'
+import type { BadgerDocDocument } from '@/shared/api/badgerdoc/types'
 
 export function WorkspacePage() {
   // Support both /tasks/$taskId and legacy /document/$id routes
@@ -91,6 +95,7 @@ export function WorkspacePage() {
   const taskStatusName = taskData?.status?.name
 
   const [isEditMode, setIsEditMode] = useState(false)
+  const [isRunningInference, setIsRunningInference] = useState(false)
   const isOverviewTab = activeTab === 'overview'
   const canUseEditingMode = !isOverviewTab
   const {
@@ -129,6 +134,9 @@ export function WorkspacePage() {
   } = useExtractionChatContext({
     documentId,
     extractionPages: scopedExtractionPages,
+  })
+  const workflowSelection = useChatWorkflowSelection({
+    activeTag: activeTagName,
   })
 
   const {
@@ -214,29 +222,17 @@ export function WorkspacePage() {
     ]
   )
 
-  const pageChatContext = useMemo(
-    () => ({
-      canAddCurrentPageToContext: !isOverviewTab,
-      isCurrentPageInContext: selectedPages.includes(currentPage),
-      isCurrentPageContextDisabled: extractionLoading || hasChanges || isApiPending,
-      currentPageContextTooltip:
-        extractionLoading || hasChanges || isApiPending
-          ? 'Prompt context is unavailable while you have unsaved changes.'
-          : selectedPages.includes(currentPage)
-            ? `Add another Page ${currentPage} reference`
-            : undefined,
-      onAddCurrentPageToContext: handleAddCurrentPage,
-    }),
-    [
-      isOverviewTab,
-      selectedPages,
-      currentPage,
-      extractionLoading,
-      hasChanges,
-      isApiPending,
-      handleAddCurrentPage,
-    ]
-  )
+  const pageChatContext = useViewerChatContext({
+    canAddContext: !isOverviewTab,
+    currentPage,
+    selectedPages,
+    isWholeDocumentSelected,
+    isContextInteractionDisabled:
+      extractionLoading || hasChanges || isApiPending || isRunningInference,
+    workflowSelection,
+    onAddWholeDocument: addWholeDocument,
+    onAddCurrentPage: handleAddCurrentPage,
+  })
 
   const handleTabChange = useCallback(
     (tab: string) => {
@@ -295,6 +291,21 @@ export function WorkspacePage() {
     })
   }, [navigate, queue?.nextId, taskFiltersSearch, activeTab])
 
+  const handleHierarchyDocumentSelect = useCallback(
+    (selectedDocument: BadgerDocDocument) => {
+      if (String(selectedDocument.id) === String(documentId)) {
+        return
+      }
+
+      void navigate({
+        to: '/documents/$id',
+        params: { id: String(selectedDocument.id) },
+        search: activeTab !== 'overview' ? { tag: activeTab } : {},
+      })
+    },
+    [activeTab, documentId, navigate]
+  )
+
   // Show 404 page when task or document is not found
   const isTask404 = taskId && taskError && (taskErrorData as APIError)?.statusCode === 404
   const isDocument404 = documentError && (documentErrorData as APIError)?.statusCode === 404
@@ -320,6 +331,18 @@ export function WorkspacePage() {
     authors: document.authors,
     date: document.publicationDate || document.createdAt.split('T')[0],
   }
+  const documentForHierarchy = {
+    id: document.id,
+    uploaded_by: document.uploadedBy,
+    parent_document_id: document.parentDocumentId ?? null,
+    file: document.pdfUrl,
+    metadata: document.metadata,
+    tags: document.tags,
+    created_at: document.createdAt,
+    updated_at: document.updatedAt,
+    name: document.title,
+    status: document.status,
+  } satisfies BadgerDocDocument
 
   const documentForOverview = {
     id: document.id,
@@ -359,6 +382,9 @@ export function WorkspacePage() {
         currentPage={currentPage}
         documentId={documentId}
         chatContext={chatContext}
+        workflowSelection={workflowSelection}
+        isRunningInference={isRunningInference}
+        setIsRunningInference={setIsRunningInference}
       />
     )
   }
@@ -375,6 +401,12 @@ export function WorkspacePage() {
         backSearch={taskFiltersSearch as Record<string, unknown>}
         backLabel="Back"
         useSmartBack
+        titleActions={
+          <DocumentHierarchyPopover
+            currentDocument={documentForHierarchy}
+            onDocumentSelect={handleHierarchyDocumentSelect}
+          />
+        }
       >
         {currentRoute === 'tasks' && !isLoadingTasks && queue && (
           <>

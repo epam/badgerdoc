@@ -19,6 +19,7 @@ badgerdoc-common = { path = "../badgerdoc_common" }
 dev = [
     "pytest>=8.4.0",
     "pytest-asyncio>=0.23.0",
+    "pytest-env>=1.6.0",
 ]
 
 [build-system]

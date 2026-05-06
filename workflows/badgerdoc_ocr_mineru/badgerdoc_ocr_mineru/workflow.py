@@ -1,12 +1,11 @@
-import asyncio
 import logging
 
 from temporalio import workflow
-from temporalio.exceptions import ApplicationError
 
-from badgerdoc_common import helpers, trigger
+from badgerdoc_common import trigger
+from badgerdoc_common.badgerdoc_ocr import trigger_params_to_ocr_page
 from badgerdoc_common.hocr import BadgerdocHOCRPageResult
-from badgerdoc_ocr_mineru.activities import mineru_activity
+from badgerdoc_ocr_mineru._ocr import MinerUOCR
 
 logger = logging.getLogger(__name__)
 
@@ -18,46 +17,23 @@ class BadgerdocOCRMinerUWorkflow:
     async def run(
         self, params: trigger.DocumentTriggerParams
     ) -> BadgerdocHOCRPageResult:
-        logger.info("Starting BadgerdocOCRMinerUWorkflow")
-        logger.info("Received params: %s", params)
+        logger.info("BadgerdocOCRMinerUWorkflow: starting")
 
-        if not params.linked_document_pages:
-            raise ApplicationError(
-                "linked_document_pages is required",
-                type="InvalidScopePassed",
-                non_retryable=True,
-            )
-
-        ocr_results = await asyncio.gather(
-            *[
-                workflow.execute_activity(
-                    mineru_activity.mineru_ocr_activity,
-                    args=[params, page],
-                    start_to_close_timeout=helpers.BADGERDOC_REST_API_START_TO_CLOSE_TIMEOUT,
-                    retry_policy=helpers.BadgerdocRestAPIRetryPolicy,
-                )
-                for page in params.linked_document_pages
-            ]
+        ocr_container = await trigger_params_to_ocr_page(params)
+        logger.info(
+            "BadgerdocOCRMinerUWorkflow: OCR container resolved — %d page(s), %d block(s)",
+            len(ocr_container.pages),
+            len(ocr_container.blocks),
         )
 
-        hocr_results = await asyncio.gather(
-            *[
-                workflow.execute_activity(
-                    mineru_activity.convert_to_hocr,
-                    args=[params, page, result],
-                    start_to_close_timeout=helpers.BADGERDOC_REST_API_START_TO_CLOSE_TIMEOUT,
-                    retry_policy=helpers.BadgerdocRestAPIRetryPolicy,
-                )
-                for page, result in zip(
-                    params.linked_document_pages, ocr_results
-                )
-            ]
-        )
+        hocr_results = await MinerUOCR().run(params, ocr_container)
 
-        combined_hocr: dict = {}
+        combined: dict = {}
         for result in hocr_results:
-            combined_hocr.update(result.h_ocr)
+            combined.update(result.h_ocr)
 
-        logger.info("BadgerdocOCRMinerUWorkflow completed")
-
-        return BadgerdocHOCRPageResult(h_ocr=combined_hocr)
+        logger.info(
+            "BadgerdocOCRMinerUWorkflow: completed with %d hOCR entries",
+            len(combined),
+        )
+        return BadgerdocHOCRPageResult(h_ocr=combined)

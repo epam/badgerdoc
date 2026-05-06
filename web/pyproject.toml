@@ -18,6 +18,7 @@ dependencies = [
     "sentry-sdk>=2.50.0",
     "hocr-spec>=0.2.0",
     "lxml>=6.0.2",
+    "pillow>=11.0.0",
 ]
 
 [project.optional-dependencies]

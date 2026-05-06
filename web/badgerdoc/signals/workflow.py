@@ -120,7 +120,7 @@ def get_supported_workflows(
 def get_supported_workflows_by_document(
     params: WorkflowParameters, doc: document.Document
 ) -> list[workflow_registry.WorkflowRegistry]:
-    entity_tags = doc.tags if doc.tags else None
+    entity_tags = doc.tags if doc.tags else []
     return get_supported_workflows(params, doc, entity_tags)
 
 
@@ -129,12 +129,12 @@ def get_supported_workflows_by_extraction(
     doc: document.Document,
     ext: extraction.Extraction,
 ) -> list[workflow_registry.WorkflowRegistry]:
-    entity_tags = ext.tags if ext.tags else None
+    entity_tags = ext.tags if ext.tags else []
     return get_supported_workflows(params, doc, entity_tags)
 
 
 def get_supported_workflows_by_task(
     params: WorkflowParameters, doc: document.Document, tsk: task.Task
 ) -> list[workflow_registry.WorkflowRegistry]:
-    entity_tags = tsk.tags if tsk.tags else None
+    entity_tags = tsk.tags if tsk.tags else []
     return get_supported_workflows(params, doc, entity_tags)

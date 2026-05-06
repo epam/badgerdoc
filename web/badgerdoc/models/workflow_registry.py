@@ -141,9 +141,12 @@ def get_registries(
         document_types: List of document types to match. Returns registries where any of
             these types exist in the registry's document_types array, OR where the
             registry's document_types is None/empty (meaning it accepts any type)
-        entity_tags: List of entity tags to match. Returns registries where any of
-            these tags exist in the registry's entity_tags array, OR where the
-            registry's entity_tags is None/empty (meaning it accepts any tags)
+        entity_tags: List of entity tags to match.
+            - If None: tag filtering is skipped entirely (caller does not care about tags).
+            - If []: entity has no tags; only registries with no entity_tags requirement are returned.
+            - If non-empty: returns registries where any of these tags exist in the
+              registry's entity_tags array, OR where the registry's entity_tags is
+              None/empty (meaning it accepts any tags).
         temporal_workflow_type: Filter by Temporal workflow type/class name
         temporal_queue: Filter by Temporal task queue name
         is_active: Filter by active status (default: True)
@@ -189,6 +192,10 @@ def get_registries(
             entity_tags=[]
         )
         queryset = queryset.filter(q_objects)
+    elif entity_tags is not None:
+        queryset = queryset.filter(
+            models.Q(entity_tags__isnull=True) | models.Q(entity_tags=[])
+        )
 
     if temporal_workflow_type is not None:
         queryset = queryset.filter(
