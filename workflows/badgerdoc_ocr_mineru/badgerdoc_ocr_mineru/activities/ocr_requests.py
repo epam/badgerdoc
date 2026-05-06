@@ -24,6 +24,7 @@ async def mineru_mlx_tag_extraction(
             {"tags": extraction_tags + ["mineru-mlx"]},
         )
 
+
 logger = logging.getLogger(__name__)
 
 HOST = os.environ.get("HOST_ADDRESS", "localhost")
@@ -121,64 +122,3 @@ async def mineru_mlx_ocr_page(
         "middle_json": middle_json_path,
         "metadata": rendition_doc.metadata,
     }
-
-
-@activity.defn
-async def mineru_mlx_merge_and_store(
-    workflow_type: str,
-    ocr_results: list[dict],
-) -> dict[str, str]:
-    """Group OCR results by page number and store one manifest per page in MinIO.
-
-    Each entry in ocr_results must contain:
-        page_num     — int
-        middle_json  — MinIO path to raw OCR output
-        metadata     — document metadata dict
-
-    Returns a dict mapping str(page_num) → per-page manifest path in MinIO.
-    """
-    from badgerdoc_common import (  # pylint: disable=import-outside-toplevel
-        storage,
-    )
-
-    logger.info(
-        "mineru_mlx_merge_and_store: merging %d OCR result(s)",
-        len(ocr_results),
-    )
-
-    grouped: dict[str, list[dict]] = {}
-    for result in ocr_results:
-        page_key = str(result["page_num"])
-        grouped.setdefault(page_key, []).append(
-            {
-                "middle_json": result["middle_json"],
-                "metadata": result["metadata"],
-            }
-        )
-
-    storage_params = storage.StorageWorkflowParams(
-        workflow_package="badgerdoc_ocr_mineru",
-        workflow_name=workflow_type,
-        workflow_id=activity.info().workflow_run_id,
-    )
-
-    page_manifest_paths: dict[str, str] = {}
-    for page_key, infos in grouped.items():
-        manifest_path = await storage.badgerdoc_store_perm(
-            BytesIO(json.dumps(infos).encode()),
-            storage_params,
-            f"page_{page_key}_manifest.json",
-        )
-        page_manifest_paths[page_key] = manifest_path
-        logger.info(
-            "mineru_mlx_merge_and_store: page %s — %d block(s), stored: %s",
-            page_key,
-            len(infos),
-            manifest_path,
-        )
-
-    logger.info(
-        "mineru_mlx_merge_and_store: %d page manifest(s) stored",
-        len(page_manifest_paths),
-    )
-    return page_manifest_paths

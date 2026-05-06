@@ -114,7 +114,6 @@ def _fcel_table_to_html(lines: list[str]) -> str:
     if not row_texts:
         return "<table></table>"
 
-    # Parse each row into (cell_type, content) pairs
     _CELL_TOKEN_RE = re.compile(r"(<fcel>|<lcel>|<ucel>)")
     grid: list[list[dict]] = []
     for row_text in row_texts:
@@ -151,12 +150,10 @@ def _fcel_table_to_html(lines: list[str]) -> str:
     if not grid:
         return "<table></table>"
 
-    # owner[r][c] = (anchor_r, anchor_c) — the top-left cell that owns this position
     owner: list[list[tuple[int, int]]] = [
         [(r, c) for c in range(len(row))] for r, row in enumerate(grid)
     ]
 
-    # Resolve <lcel>: extend colspan of the anchor to the left (left → right pass)
     for r, row in enumerate(grid):
         for c, cell in enumerate(row):
             if cell["type"] == "lcel" and c > 0:
@@ -166,8 +163,6 @@ def _fcel_table_to_html(lines: list[str]) -> str:
                 grid[ar][ac]["colspan"] += 1
                 cell["skip"] = True
 
-    # Resolve <ucel>: extend rowspan of the anchor above (top → bottom pass).
-    # Track rows already claimed per anchor to avoid double-counting in merged regions.
     claimed_rows: dict[tuple[int, int], set[int]] = {}
     for r, row in enumerate(grid):
         for c, cell in enumerate(row):
@@ -185,7 +180,6 @@ def _fcel_table_to_html(lines: list[str]) -> str:
                     claimed_rows[(ar, ac)].add(r)
                     grid[ar][ac]["rowspan"] += 1
 
-    # Render HTML
     html_rows: list[str] = []
     for r, row in enumerate(grid):
         tag = "th" if r == 0 else "td"
@@ -354,7 +348,6 @@ def _blocks_to_hocr_lines(page_number: int, blocks: list[dict]) -> list[str]:
             )
             line_id += 1
 
-            # Each token is a word + its original trailing whitespace
             tokens = re.findall(r"\S+\s*", line_text)
             total_chars = sum(len(t.rstrip()) for t in tokens) or 1
             line_width = x1 - x0
@@ -381,23 +374,20 @@ def _blocks_to_hocr_lines(page_number: int, blocks: list[dict]) -> list[str]:
 async def mineru_mlx_results_to_hocr(
     workflow_type: str,
     page_num: int,
-    page_manifest_path: str,
+    infos: list[dict],
 ) -> BadgerdocHOCRPageResult:
     """Convert MinerU MLX raw output for one page to hOCR.
 
-    Reads the per-page manifest from MinIO (a list of info dicts produced by
-    mineru_mlx_merge_and_store for this specific page), then converts all
-    blocks into a single hOCR file with per-block coordinate remapping via
-    metadata.position_in_parent.
+    Receives a list of info dicts (one per page-crop or block), each containing:
+        middle_json  — MinIO path to JSON containing extracted blocks
+        metadata     — document metadata (width, height, page, position_in_parent)
+
+    Applies per-block coordinate remapping via metadata.position_in_parent,
+    then produces a single hOCR file for the page.
     """
     from badgerdoc_common import (  # pylint: disable=import-outside-toplevel
         storage,
     )
-
-    manifest_buffer = BytesIO()
-    await storage.badgerdoc_download(manifest_buffer, page_manifest_path)
-    manifest_buffer.seek(0)
-    infos: list[dict] = json.load(manifest_buffer)
 
     logger.info(
         "mineru_mlx_results_to_hocr: page %d — %d block(s) to convert",

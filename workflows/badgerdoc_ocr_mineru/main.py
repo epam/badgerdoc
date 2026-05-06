@@ -8,15 +8,7 @@ from badgerdoc_common.activities.document import (
     badgerdoc_get_rendition,
     badgerdoc_list_documents,
 )
-from badgerdoc_ocr_mineru.activities.ocr_convertors import (
-    mineru_mlx_results_to_hocr,
-)
-from badgerdoc_ocr_mineru.activities.ocr_requests import (
-    mineru_mlx_merge_and_store,
-    mineru_mlx_ocr_page,
-    mineru_mlx_tag_extraction,
-)
-from badgerdoc_ocr_mineru.workflow import BadgerdocOCRMinerUWorkflow
+from badgerdoc_ocr_mineru import activities, workflow
 
 helpers.configure_logging()
 
@@ -30,12 +22,11 @@ async def worker() -> None:
         Worker(
             client,
             task_queue="badgerdoc_ocr_mineru",
-            workflows=[BadgerdocOCRMinerUWorkflow],
+            workflows=[workflow.BadgerdocOCRMinerUWorkflow],
             activities=[
-                mineru_mlx_tag_extraction,
-                mineru_mlx_ocr_page,
-                mineru_mlx_merge_and_store,
-                mineru_mlx_results_to_hocr,
+                activities.ocr_requests.mineru_mlx_tag_extraction,
+                activities.ocr_requests.mineru_mlx_ocr_page,
+                activities.ocr_convertors.mineru_mlx_results_to_hocr,
                 badgerdoc_list_documents,
                 badgerdoc_get_rendition,
                 badgerdoc_get_document_chunk,

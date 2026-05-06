@@ -25,7 +25,6 @@ async def worker():
             workflows=[workflow.BadgerdocDeepseek2Workflow],
             activities=[
                 activities.ocr_requests.deepseek_ocr_from_page,
-                activities.ocr_requests.deepseek_ocr_merge_and_store,
                 activities.ocr_convertors.deepseek_ocr_2_results_to_hocr,
                 badgerdoc_list_documents,
                 badgerdoc_get_rendition,

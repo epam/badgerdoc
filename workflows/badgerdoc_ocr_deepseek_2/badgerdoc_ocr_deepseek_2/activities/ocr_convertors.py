@@ -164,15 +164,12 @@ def _table_block_to_hocr_lines(
     table_node = None
     try:
         raw_text = block["raw"]
-        # Check if the content is already HTML (contains <table tag)
         if "<table" in raw_text.lower():
-            # Parse as HTML directly
             parsed = etree.fromstring(
                 f"<div>{raw_text}</div>", etree.HTMLParser()
             )
             table_node = parsed.find(".//table")
         else:
-            # Convert from Markdown to HTML
             html_str = md_lib.markdown(raw_text, extensions=["tables"])
             parsed = etree.fromstring(
                 f"<div>{html_str}</div>", etree.HTMLParser()
@@ -187,7 +184,6 @@ def _table_block_to_hocr_lines(
         )
 
     if table_node is None:
-        # fallback: render as plain text
         lines_html: list[str] = []
         lines_html.append(
             f'<div class="ocr_carea" id="block_{page_number}_{carea_id}" title="{bbox}">'
@@ -342,26 +338,22 @@ def _blocks_to_hocr(
 async def deepseek_ocr_2_results_to_hocr(  # pylint: disable=too-many-locals
     workflow_type: str,
     page_num: int,
-    page_manifest_path: str,
+    infos: list[dict],
 ) -> BadgerdocHOCRPageResult:
     """Convert DeepSeek OCR raw output for one page to hOCR.
 
-    Reads the per-page manifest from MinIO (a list of info dicts produced by
-    deepseek_ocr_merge_and_store for this specific page), then converts all
-    blocks into a single hOCR file with per-block coordinate remapping via
-    metadata.position_in_parent.
+    Receives a list of info dicts (one per page-crop or block), each containing:
+        middle_json  — MinIO path to the raw OCR output JSON
+        metadata     — document metadata (width, height, page, position_in_parent)
+
+    Applies per-block coordinate remapping via metadata.position_in_parent,
+    then produces a single hOCR file for the page.
     """
-    # Import storage inside function to avoid startup validation issues
     from badgerdoc_common import (  # pylint: disable=import-outside-toplevel
         storage,
     )
 
     page_number = page_num
-
-    manifest_buffer = BytesIO()
-    await storage.badgerdoc_download(manifest_buffer, page_manifest_path)
-    manifest_buffer.seek(0)
-    infos: list[dict] = json.load(manifest_buffer)
 
     logger.info(
         "deepseek_ocr_2_results_to_hocr: page %d — %d block(s) to convert",
@@ -369,7 +361,6 @@ async def deepseek_ocr_2_results_to_hocr(  # pylint: disable=too-many-locals
         len(infos),
     )
 
-    # Use first info's metadata for page-level dimensions
     first_page_info = (infos[0].get("metadata") or {}) if infos else {}
     page_width = first_page_info.get("width", 0)
     page_height = first_page_info.get("height", 0)
@@ -435,5 +426,11 @@ async def deepseek_ocr_2_results_to_hocr(  # pylint: disable=too-many-locals
     hocr_buffer = BytesIO(hocr_content.encode("utf-8"))
     hocr_path = await storage.badgerdoc_store_perm(
         hocr_buffer, storage_params, f"page_{page_number}.hocr"
+    )
+    logger.info(
+        "deepseek_ocr_2_results_to_hocr: page %d complete — %d block(s), stored: %s",
+        page_number,
+        len(all_blocks),
+        hocr_path,
     )
     return BadgerdocHOCRPageResult(h_ocr={str(page_number): hocr_path})
