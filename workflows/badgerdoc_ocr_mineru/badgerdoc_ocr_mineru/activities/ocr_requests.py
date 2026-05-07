@@ -27,7 +27,7 @@ async def mineru_mlx_tag_extraction(
 
 logger = logging.getLogger(__name__)
 
-HOST = os.environ.get("HOST_ADDRESS", "localhost")
+HOST = os.environ.get("HOST_ADDRESS_FOR_MLX", "localhost")
 PORT = os.environ.get("MINERU_MLX_PORT", "11436")
 MODEL = os.environ.get(
     "MINERU_MLX_MODEL", "mlx-community/MinerU2.5-2509-1.2B-bf16"

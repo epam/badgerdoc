@@ -39,7 +39,7 @@ class ArbitratorAgent:
         from openai import AsyncAzureOpenAI  # pylint: disable=import-outside-toplevel
 
         openai_client = AsyncAzureOpenAI(
-            api_key=os.environ.get("API_KEY"),
+            api_key=os.environ.get("ARBITRATOR_API_KEY"),
             azure_endpoint="https://ai-proxy.lab.epam.com",
             api_version="2024-02-01",
         )

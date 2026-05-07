@@ -302,7 +302,7 @@ def _blocks_to_hocr(
     blocks: list[dict],
 ) -> list[str]:
     hocr: list[str] = []
-    carea_id = par_id = line_id = 1
+    carea_id = par_id = line_id = word_id = 1
 
     for block in blocks:
         kind = _classify_block(block)

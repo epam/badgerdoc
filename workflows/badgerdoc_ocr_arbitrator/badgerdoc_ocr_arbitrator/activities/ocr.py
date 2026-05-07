@@ -328,7 +328,7 @@ async def trial_process(
         return BadgerdocHOCRPageResult(h_ocr={})
 
     openai_client = AsyncAzureOpenAI(
-        api_key=os.environ.get("API_KEY"),
+        api_key=os.environ.get("ARBITRATOR_API_KEY"),
         azure_endpoint="https://ai-proxy.lab.epam.com",
         api_version="2024-02-01",
     )
