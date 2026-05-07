@@ -13,8 +13,8 @@ from badgerdoc_common.activities.document import BadgerdocDocument
 logger = logging.getLogger(__name__)
 
 
-HOST = os.environ.get("HOST_ADDRESS", "localhost")
-PORT = os.environ.get("PORT", "11434")
+HOST = os.environ.get("HOST_ADDRESS_FOR_MLX", "localhost")
+PORT = os.environ.get("DEEPSEEK_2_PORT", "11434")
 MODEL = os.environ.get("DEEPSEEK_2_MODEL", "mlx-community/DeepSeek-OCR-2-bf16")
 PROMPT = "<|grounding|>Convert the document to markdown."
 MAX_TOKENS = int(os.environ.get("MAX_TOKENS", 10000))

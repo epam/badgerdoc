@@ -113,5 +113,27 @@
       "tags": ["ai-inference", "paddle-ocr"],
       "extraction_scope": ["page", "document"]
     }
+  },
+      {
+    "model": "badgerdoc.workflowregistry",
+    "pk": 16,
+    "fields": {
+      "created_at": "2026-03-26T09:44:09.748Z",
+      "updated_at": "2026-03-26T09:44:09.748Z",
+      "created_by": 1,
+      "event_entity": null,
+      "event_type": null,
+      "document_types": [],
+      "temporal_workflow_type": "BadgerdocOCRArbitratorWorkflow",
+      "temporal_queue": "badgerdoc_ocr_arbitrator",
+      "is_active": true,
+      "trigger": "manual",
+      "name": "OCR Arbitrator",
+      "tags": ["ai-inference", "ocr-arbitrator"],
+      "extraction_scope": [
+        "page"
+      ],
+      "support_prompts": true
+    }
   }
 ]

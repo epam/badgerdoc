@@ -125,6 +125,18 @@ services:
     networks:
       - badgerdoc-network
 
+  badgerdoc_ocr_arbitrator:
+    build:
+      context: ./workflows/badgerdoc_ocr_arbitrator
+    env_file: .env
+    depends_on:
+      - temporal
+      - minio
+      - badgerdoc
+    networks:
+      - badgerdoc-network
+    
+
 volumes:
   db_data:
   minio_data:

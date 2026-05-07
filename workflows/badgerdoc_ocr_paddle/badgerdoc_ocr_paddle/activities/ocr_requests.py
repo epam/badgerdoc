@@ -13,8 +13,8 @@ from badgerdoc_common.activities.document import BadgerdocDocument
 logger = logging.getLogger(__name__)
 
 
-HOST = os.environ.get("HOST_ADDRESS", "localhost")
-PORT = os.environ.get("PORT", "11435")
+HOST = os.environ.get("HOST_ADDRESS_FOR_MLX", "localhost")
+PORT = os.environ.get("PADDLE_MLX_PORT", "11435")
 MODEL = os.environ.get("PADDLE_MODEL", "mlx-community/PaddleOCR-VL-1.5-bf16")
 PROMPT = "Spotting:"
 MAX_TOKENS = int(os.environ.get("MAX_TOKENS", 10000))

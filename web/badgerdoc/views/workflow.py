@@ -244,7 +244,9 @@ class WorkflowEventCommonFields(serializers.Serializer):
 class WorkflowTriggerBaseSerializer(WorkflowEventCommonFields):
     document_id = serializers.IntegerField(required=False)
     task_id = serializers.IntegerField(required=False)
-    extraction_id = serializers.IntegerField(required=False)
+    extraction_ids = serializers.ListField(
+        child=serializers.IntegerField(), required=False
+    )
     page_number = serializers.IntegerField(required=False)
     scope = serializers.CharField(required=False)
 
