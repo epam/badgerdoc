@@ -8,6 +8,8 @@ This page describes how the Badgerdoc OCR subsystem works internally and provide
 
 Badgerdoc OCR converts document rendition images into structured hOCR extraction results that can be reviewed in the workspace UI. Each OCR engine runs as an independent Temporal worker and implements a shared abstract base class (`BadgerdocOCRBase`) defined in `badgerdoc_common`.
 
+![Badgerdoc OCR Pipeline](images/badgerdoc_ocr.png)
+
 ---
 
 ## High-level Architecture
@@ -27,18 +29,16 @@ sequenceDiagram
 
 ## Internal OCR Pipeline
 
-Every OCR worker delegates its logic to a class that extends `BadgerdocOCRBase`.
-`run()` is the orchestration entry point — it calls the five abstract methods in order:
+Every OCR worker calls `trigger_params_to_ocr_page` at the workflow level to resolve inputs into an `OCRPageContainer`, then passes it to `BadgerdocOCRBase.run()`. `run()` is the orchestration entry point — it calls the five abstract methods in order:
 
 ```mermaid
 flowchart TD
-    A([DocumentTriggerParams]) --> B[trigger_params_to_ocr_page]
+    A([DocumentTriggerParams]) --> B[trigger_params_to_ocr_page\ncalled in the workflow]
     B --> C([OCRPageContainer\npages + blocks])
 
     C --> D[ocr_pages\nfull-page renditions]
-    C --> E[ocr_blocks\nsub-page crops]
-
     D --> F([list of BadgerdocOCRPageResult\nengine-specific, page scope])
+    D --> E[ocr_blocks\nsub-page crops]
     E --> G([list of BadgerdocOCRPageResult\nengine-specific, block scope])
 
     G --> H[align_coordinates\nblock-local → page-absolute coords]
@@ -56,12 +56,12 @@ flowchart TD
 
 | Step | Method | Input | Output | Notes |
 |---|---|---|---|---|
-| 1 | `trigger_params_to_ocr_page` | `DocumentTriggerParams` | `OCRPageContainer` | Resolves linked docs, pages, and xpath blocks into concrete image references. Calls `badgerdoc_list_documents`, `badgerdoc_get_rendition`, `badgerdoc_get_document_chunk` as Temporal activities. |
-| 2 | `ocr_pages` | `list[OCRPageRequest]` | `list[BadgerdocOCRPageResult]` | Runs OCR on full-page rendition images. Engine-specific raw output. |
-| 3 | `ocr_blocks` | `list[OCRPageRequest]` | `list[BadgerdocOCRPageResult]` | Runs OCR on sub-page block crops. Must preserve input order and insert empty results for failures. |
-| 4 | `align_coordinates` | `OCRPageRequest` + `BadgerdocOCRPageResult` | `BadgerdocOCRPageResult` | Shifts block-local bounding boxes by the crop origin `(x1, y1)` from `metadata["position_in_parent"]` so coordinates are page-absolute. Called once per block. |
-| 5 | `ocr_merge_blocks` | `pages` + `blocks` (both `list[BadgerdocOCRPageResult]`) | `list[BadgerdocOCRPageResult]` | Folds all block results belonging to the same page into one entry. Returns one result per page. |
-| 6 | `convert_to_hocr` | `list[BadgerdocOCRPageResult]` | `list[BadgerdocHOCRPageResult]` | Converts engine-specific internal output to the normalised hOCR format that Badgerdoc stores as `ExtractionPage` records. |
+| 0 | `trigger_params_to_ocr_page` | `DocumentTriggerParams` | `OCRPageContainer` | Called at the workflow level before `run()`. Resolves linked docs, pages, and xpath blocks into concrete image references. Calls `badgerdoc_list_documents`, `badgerdoc_get_rendition`, `badgerdoc_get_document_chunk` as Temporal activities. |
+| 1 | `ocr_pages` | `list[OCRPageRequest]` | `list[BadgerdocOCRPageResult]` | Runs OCR on full-page rendition images. Engine-specific raw output. |
+| 2 | `ocr_blocks` | `list[OCRPageRequest]` | `list[BadgerdocOCRPageResult]` | Runs OCR on sub-page block crops. Must preserve input order and insert empty results for failures. |
+| 3 | `align_coordinates` | `OCRPageRequest` + `BadgerdocOCRPageResult` | `BadgerdocOCRPageResult` | Shifts block-local bounding boxes by the crop origin `(x1, y1)` from `metadata["position_in_parent"]` so coordinates are page-absolute. Called once per block. |
+| 4 | `ocr_merge_blocks` | `pages` + `blocks` (both `list[BadgerdocOCRPageResult]`) | `list[BadgerdocOCRPageResult]` | Folds all block results belonging to the same page into one entry. Returns one result per page. |
+| 5 | `convert_to_hocr` | `list[BadgerdocOCRPageResult]` | `list[BadgerdocHOCRPageResult]` | Converts engine-specific internal output to the normalised hOCR format that Badgerdoc stores as `ExtractionPage` records. |
 
 ---
 
