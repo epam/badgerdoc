@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  <head>
+    <meta name="ocr-system" content="rednote-hilab-dots-ocr"/>
+    <meta name="ocr-capabilities" content="ocr_page ocr_carea ocr_par ocr_line ocrx_word"/>
+  </head>
+  <body>
+    <div class="ocr_page" id="page_1" title="image 'page_1.png'; bbox 0 0 4375 6198; ppageno 0">
+
+      <div class="ocr_carea" id="block_1_1" title="bbox 83 120 123 125">
+        <p class="ocr_par" id="par_block_1_1" title="bbox 83 120 123 125">
+          <span class="ocr_line" id="line_block_1_1" title="bbox 83 120 123 125">Dry mouth</span>
+        </p>
+      </div>
+
+      <div class="ocr_carea" id="block_1_2" title="bbox 83 127 117 132">
+        <p class="ocr_par" id="par_block_1_2" title="bbox 83 127 117 132">
+          <span class="ocr_line" id="line_block_1_2" title="bbox 83 127 117 132">Dry eyes</span>
+        </p>
+      </div>
+
+      <div class="ocr_carea" id="block_1_3" title="bbox 83 135 121 139">
+        <p class="ocr_par" id="par_block_1_3" title="bbox 83 135 121 139">
+          <span class="ocr_line" id="line_block_1_3" title="bbox 83 135 121 139">Headache</span>
+        </p>
+      </div>
+
+      <div
+        class="ocr_carea conflict conflict-group--block_1_4 conflict-variant conflict-variant--council"
+        id="block_1_4"
+        title="bbox 83 142 183 147"
+      >
+        <p class="ocr_par conflict-content" id="par_block_1_4" title="bbox 83 142 183 147">
+          <span class="ocr_line" id="line_block_1_4" title="bbox 83 142 183 147">
+            Change in your sense of
+            <span class="ocrx_word conflict-target">taste</span>
+          </span>
+        </p>
+        <p class="ocr_par conflict-comment conflict-comment--council" id="comment_block_1_4" title="bbox 83 148 260 160">
+          <span class="ocr_line" id="comment_line_block_1_4" title="bbox 83 148 260 160">
+            Council selected “taste” as the most likely correct extraction.
+          </span>
+        </p>
+      </div>
+
+      <div
+        class="ocr_carea conflict conflict-group--block_1_4 conflict-variant conflict-variant--miner-u"
+        id="block_1_4__miner_u"
+        title="bbox 83 142 183 147"
+      >
+        <p class="ocr_par conflict-content" id="par_block_1_4__miner_u" title="bbox 83 142 183 147">
+          <span class="ocr_line" id="line_block_1_4__miner_u" title="bbox 83 142 183 147">
+            Change in your sense of
+            <span class="ocrx_word conflict-target">smell</span>
+          </span>
+        </p>
+        <p class="ocr_par conflict-comment conflict-comment--miner-u" id="comment_block_1_4__miner_u" title="bbox 83 148 260 160">
+          <span class="ocr_line" id="comment_line_block_1_4__miner_u" title="bbox 83 148 260 160">
+            Miner-U read the final token as “smell” because the last word shape is ambiguous.
+          </span>
+        </p>
+      </div>
+
+      <div
+        class="ocr_carea conflict conflict-group--block_1_4 conflict-variant conflict-variant--gpt-4-vision"
+        id="block_1_4__gpt_4_vision"
+        title="bbox 83 142 183 147"
+      >
+        <p class="ocr_par conflict-content" id="par_block_1_4__gpt_4_vision" title="bbox 83 142 183 147">
+          <span class="ocr_line" id="line_block_1_4__gpt_4_vision" title="bbox 83 142 183 147">
+            Change in your sense of
+            <span class="ocrx_word conflict-target">taste</span>
+          </span>
+        </p>
+        <p class="ocr_par conflict-comment conflict-comment--gpt-4-vision" id="comment_block_1_4__gpt_4_vision" title="bbox 83 148 260 160">
+          <span class="ocr_line" id="comment_line_block_1_4__gpt_4_vision" title="bbox 83 148 260 160">
+            GPT-4 Vision prefers “taste” based on the visible ascender and word length.
+          </span>
+        </p>
+      </div>
+
+      <div
+        class="ocr_carea conflict conflict-group--block_1_4 conflict-variant conflict-variant--deepseek-ocr-2"
+        id="block_1_4__deepseek_ocr_2"
+        title="bbox 83 142 183 147"
+      >
+        <p class="ocr_par conflict-content" id="par_block_1_4__deepseek_ocr_2" title="bbox 83 142 183 147">
+          <span class="ocr_line" id="line_block_1_4__deepseek_ocr_2" title="bbox 83 142 183 147">
+            Change in your sense of
+            <span class="ocrx_word conflict-target">taste</span>
+          </span>
+        </p>
+        <p class="ocr_par conflict-comment conflict-comment--deepseek-ocr-2" id="comment_block_1_4__deepseek_ocr_2" title="bbox 83 148 260 160">
+          <span class="ocr_line" id="comment_line_block_1_4__deepseek_ocr_2" title="bbox 83 148 260 160">
+            DeepSeek OCR 2 also selected “taste”, but with lower confidence than council.
+          </span>
+        </p>
+      </div>
+
+    </div>
+  </body>
+</html>

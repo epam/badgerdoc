@@ -43,6 +43,33 @@ const hocrBlock = `
   </div>
 `
 
+const contentWithConflictBlock = `
+  <div class="ocr_carea" id="block_1_1" data-page="1" title="bbox 0 0 100 100">
+    <p>First block</p>
+  </div>
+  <div class="ocr_carea conflict" id="block_1_2" data-page="1" title="bbox 0 100 100 200">
+    <p>Conflicting block</p>
+  </div>
+`
+
+const contentWithConflictTabs = `
+  <div class="ocr_carea conflict conflict-group--block_1_4 conflict-variant--council" id="block_1_4" data-page="1" title="bbox 0 100 300 220">
+    <p class="ocr_par"><span class="ocr_line">Recorded By/Date:</span></p>
+    <p class="ocr_par"><span class="ocr_line"><span class="conflict-target">13NOV23</span></span></p>
+    <p class="ocr_par conflict-comment"><span class="ocr_line">Consensus reached on 13NOV23.</span></p>
+  </div>
+  <div class="ocr_carea conflict conflict-group--block_1_4 conflict-variant--miner-u" id="block_1_4__miner_u" data-page="1" title="bbox 0 100 300 220">
+    <p class="ocr_par"><span class="ocr_line">Recorded By/Date:</span></p>
+    <p class="ocr_par"><span class="ocr_line"><span class="conflict-target">13N0V23</span></span></p>
+    <p class="ocr_par conflict-comment"><span class="ocr_line">Miner-U suggested 13N0V23.</span></p>
+  </div>
+  <div class="ocr_carea conflict conflict-group--block_1_4 conflict-variant--gpt-4-vision" id="block_1_4__gpt_4_vision" data-page="1" title="bbox 0 100 300 220">
+    <p class="ocr_par"><span class="ocr_line">Recorded By/Date:</span></p>
+    <p class="ocr_par"><span class="ocr_line"><span class="conflict-target">13NOV23</span></span></p>
+    <p class="ocr_par conflict-comment"><span class="ocr_line">GPT-4 Vision confirmed 13NOV23.</span></p>
+  </div>
+`
+
 describe('ExtractionEditor', () => {
   beforeEach(() => {
     vi.stubGlobal('requestAnimationFrame', requestAnimationFrameMock)
@@ -660,5 +687,81 @@ describe('ExtractionEditor', () => {
 
     expect(oldToggleBlockContext).not.toHaveBeenCalled()
     expect(latestToggleBlockContext).toHaveBeenCalledWith('block_1_1', 1)
+  })
+
+  it('highlights extraction blocks marked with the conflict hOCR class', async () => {
+    const { container } = render(
+      <ExtractionEditor
+        content={contentWithConflictBlock}
+        hasUnsavedChanges={false}
+        onBaselineReady={vi.fn()}
+        onContentChange={vi.fn()}
+        onRevertChanges={vi.fn()}
+        onAcceptChanges={vi.fn().mockResolvedValue(undefined)}
+        onBlockDelete={vi.fn()}
+        selectedContextBlockIds={[]}
+        selectedContextPages={[]}
+        isWholeDocumentSelected={false}
+        onToggleBlockContext={vi.fn()}
+        activeBlockId={null}
+        onBlockSelect={vi.fn()}
+      />
+    )
+
+    await waitFor(() => {
+      expect(container.querySelector('[data-block-id="block_1_2"]')).not.toBeNull()
+    })
+
+    const conflictBlock = container.querySelector('[data-block-id="block_1_2"]')
+
+    expect(conflictBlock).toHaveClass('ocr_carea')
+    expect(conflictBlock).toHaveClass('conflict')
+    expect(conflictBlock).toHaveClass('border-l-amber-500')
+    expect(conflictBlock).toHaveClass('bg-amber-50/70')
+  })
+
+  it('renders conflict variants as tabs and switches the visible variant', async () => {
+    const { container, getByRole } = render(
+      <ExtractionEditor
+        content={contentWithConflictTabs}
+        hasUnsavedChanges={false}
+        onBaselineReady={vi.fn()}
+        onContentChange={vi.fn()}
+        onRevertChanges={vi.fn()}
+        onAcceptChanges={vi.fn().mockResolvedValue(undefined)}
+        onBlockDelete={vi.fn()}
+        selectedContextBlockIds={[]}
+        selectedContextPages={[]}
+        isWholeDocumentSelected={false}
+        onToggleBlockContext={vi.fn()}
+        activeBlockId={null}
+        onBlockSelect={vi.fn()}
+      />
+    )
+
+    await waitFor(() => {
+      expect(container.querySelector('[data-block-id="block_1_4"]')).not.toBeNull()
+      expect(container.querySelector('[data-block-id="block_1_4__miner_u"]')).not.toBeNull()
+    })
+
+    const councilBlock = container.querySelector('[data-block-id="block_1_4"]') as HTMLElement
+    const minerBlock = container.querySelector(
+      '[data-block-id="block_1_4__miner_u"]'
+    ) as HTMLElement
+
+    expect(councilBlock).toBeVisible()
+    expect(minerBlock).not.toBeVisible()
+    expect(within(councilBlock).getByText('Consensus reached on 13NOV23.')).toBeInTheDocument()
+    expect(councilBlock.querySelector('.conflict-target')).not.toBeNull()
+
+    fireEvent.click(getByRole('button', { name: 'miner u' }))
+
+    await waitFor(() => {
+      expect(minerBlock).toBeVisible()
+    })
+
+    expect(councilBlock).not.toBeVisible()
+    expect(within(minerBlock).getByText('Miner-U suggested 13N0V23.')).toBeInTheDocument()
+    expect(within(minerBlock).getByText('13N0V23')).toBeInTheDocument()
   })
 })
