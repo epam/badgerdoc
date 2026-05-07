@@ -248,4 +248,61 @@ describe('ExtractionEditor', () => {
     fireEvent.click(contextButton)
     expect(onToggleBlockContext).not.toHaveBeenCalled()
   })
+
+  it('uses the latest block context callback after rerendering an existing editor', async () => {
+    const oldToggleBlockContext = vi.fn()
+    const latestToggleBlockContext = vi.fn()
+
+    const { container, rerender } = render(
+      <ExtractionEditor
+        content={content}
+        hasUnsavedChanges={false}
+        onBaselineReady={vi.fn()}
+        onContentChange={vi.fn()}
+        onRevertChanges={vi.fn()}
+        onAcceptChanges={vi.fn().mockResolvedValue(undefined)}
+        onBlockDelete={vi.fn()}
+        selectedContextBlockIds={[]}
+        selectedContextPages={[]}
+        isWholeDocumentSelected={false}
+        onToggleBlockContext={oldToggleBlockContext}
+        activeBlockId={null}
+        onBlockSelect={vi.fn()}
+      />
+    )
+
+    await waitFor(() => {
+      expect(container.querySelector('[data-block-id="block_1_1"]')).not.toBeNull()
+    })
+
+    rerender(
+      <ExtractionEditor
+        content={content}
+        hasUnsavedChanges={false}
+        onBaselineReady={vi.fn()}
+        onContentChange={vi.fn()}
+        onRevertChanges={vi.fn()}
+        onAcceptChanges={vi.fn().mockResolvedValue(undefined)}
+        onBlockDelete={vi.fn()}
+        selectedContextBlockIds={[]}
+        selectedContextPages={[]}
+        isWholeDocumentSelected={false}
+        onToggleBlockContext={latestToggleBlockContext}
+        activeBlockId={null}
+        onBlockSelect={vi.fn()}
+      />
+    )
+
+    const firstBlock = container.querySelector('[data-block-id="block_1_1"]')
+    expect(firstBlock).not.toBeNull()
+
+    const contextButton = within(firstBlock as HTMLElement).getByRole('button', {
+      name: /add block to context/i,
+    })
+
+    fireEvent.click(contextButton)
+
+    expect(oldToggleBlockContext).not.toHaveBeenCalled()
+    expect(latestToggleBlockContext).toHaveBeenCalledWith('block_1_1', 1)
+  })
 })
