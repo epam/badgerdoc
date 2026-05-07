@@ -52,7 +52,11 @@ async def wait_for_triggered_workflows(
                 response = await badgerdoc_http.badgerdoc_get(
                     f"/badgerdoc/workflow-registry/workflow/status/{wf_id}/"
                 )
-                status = response.get("status", "Not Found") if isinstance(response, dict) else "Not Found"
+                status = (
+                    response.get("status", "Not Found")
+                    if isinstance(response, dict)
+                    else "Not Found"
+                )
             except Exception:
                 logger.exception(
                     "Failed to poll status for workflow %s", wf_id

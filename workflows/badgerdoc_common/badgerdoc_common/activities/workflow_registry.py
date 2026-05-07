@@ -10,7 +10,8 @@ logger = logging.getLogger(__name__)
 
 @activity.defn
 async def badgerdoc_get_workflows(
-    params: dict, request_data: badgerdoc_event.BadgerdocEvent = None, 
+    params: dict,
+    request_data: badgerdoc_event.BadgerdocEvent = None,
 ) -> list[badgerdoc_event.BadgerdocWorkflow]:
 
     logger.info("Executing badgerdoc_get_workflows activity")

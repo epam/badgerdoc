@@ -5,7 +5,7 @@ from temporalio import workflow
 
 from badgerdoc_common import helpers, trigger
 from badgerdoc_common.hocr import BadgerdocHOCRPageResult
-from badgerdoc_ocr_arbitrator.activities import ocr, arbitrator, wait
+from badgerdoc_ocr_arbitrator.activities import arbitrator, ocr, wait
 
 logger = logging.getLogger(__name__)
 

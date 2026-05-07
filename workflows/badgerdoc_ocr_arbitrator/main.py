@@ -3,8 +3,7 @@ import asyncio
 from temporalio.worker import Worker
 
 from badgerdoc_common import helpers, sentry
-from badgerdoc_ocr_arbitrator import workflow
-from badgerdoc_ocr_arbitrator import activities
+from badgerdoc_ocr_arbitrator import activities, workflow
 
 helpers.configure_logging()
 

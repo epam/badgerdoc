@@ -7,6 +7,7 @@ from io import BytesIO
 from bs4 import BeautifulSoup
 from PIL import Image, ImageOps, UnidentifiedImageError
 from temporalio import activity
+
 from badgerdoc_common import trigger
 from badgerdoc_common.activities import document
 from badgerdoc_common.activities.extraction import (
@@ -78,8 +79,10 @@ def compress_image_for_llm_request(
     """
     try:
         with Image.open(BytesIO(image_bytes)) as img:
-            img = ImageOps.exif_transpose(img).convert("RGB")
-            width, height = img.size
+            converted: Image.Image = ImageOps.exif_transpose(img).convert(
+                "RGB"
+            )
+            width, height = converted.size
 
             if (
                 width <= max_side_px
@@ -90,14 +93,14 @@ def compress_image_for_llm_request(
 
             if width > max_side_px or height > max_side_px:
                 scale_to_limit = min(max_side_px / width, max_side_px / height)
-                img = img.resize(
+                converted = converted.resize(
                     (
                         max(1, int(width * scale_to_limit)),
                         max(1, int(height * scale_to_limit)),
                     ),
                     Image.Resampling.LANCZOS,
                 )
-                width, height = img.size
+                width, height = converted.size
 
             scale_steps = [1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4]
             quality_steps = [90, 80, 70, 60, 50, 40, 30]
@@ -105,13 +108,15 @@ def compress_image_for_llm_request(
             best_w, best_h = width, height
 
             for scale in scale_steps:
-                scaled = img
+                scaled = converted
                 sw, sh = width, height
                 if scale < 1.0:
                     sw = max(1, int(width * scale))
                     sh = max(1, int(height * scale))
-                    scaled = img.resize((sw, sh), Image.Resampling.LANCZOS)
-                for quality in quality_steps:
+                    scaled = converted.resize(
+                        (sw, sh), Image.Resampling.LANCZOS
+                    )
+                for _ in quality_steps:
                     out = BytesIO()
                     scaled.save(
                         out,
@@ -247,8 +252,8 @@ async def trial_process(
     params: trigger.DocumentTriggerParams,
     workflow_results: list[dict[str, int | str]],
 ) -> BadgerdocHOCRPageResult:
-    from openai import (
-        AsyncAzureOpenAI,  # pylint: disable=import-outside-toplevel
+    from openai import (  # pylint: disable=import-outside-toplevel
+        AsyncAzureOpenAI,
     )
     from pydantic_ai import (  # pylint: disable=import-outside-toplevel
         Agent,
@@ -395,7 +400,6 @@ async def trial_process(
         ]
     )
 
-
     hocr_body = lines_to_hocr(judge_result.output, page_number)
     hocr_content = hocr_page_to_html(
         hocr_body, page_width, page_height, page_number
@@ -415,17 +419,14 @@ async def trial_process(
         output_type=str,
     )
 
-
     clerk_result = await ocr_clerk_agent.run(
         [
-            f"Evaluated hOCR content:"
-            f" {hocr_content}",
+            f"Evaluated hOCR content:" f" {hocr_content}",
             f"Page number: {page_number}",
             _HOCR_SORTING_AND_CLASSIFICATION_PROMPT,
             BinaryContent(data=compressed_bytes, media_type="image/png"),
         ]
     )
-
 
     hocr_buffer = BytesIO(clerk_result.output.encode("utf-8"))
     hocr_path = await storage.badgerdoc_store_perm(

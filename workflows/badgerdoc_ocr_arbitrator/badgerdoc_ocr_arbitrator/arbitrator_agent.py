@@ -1,14 +1,10 @@
 import logging
 import os
-import re
-from importlib import import_module
 from dataclasses import dataclass
-from typing import Any, Awaitable, Callable
+from importlib import import_module
+from typing import Any, Callable
 
 from pydantic import BaseModel, Field
-
-from badgerdoc_common import badgerdoc_event
-
 
 logger = logging.getLogger(__name__)
 
@@ -33,10 +29,16 @@ class ArbitratorAgent:
     def _build_agent(self, tools: list[Callable]) -> Any:
         logger.debug("Building pydantic_ai arbitrator agent")
         pydantic_ai_module = import_module("pydantic_ai")
-        Agent = pydantic_ai_module.Agent
-        openai_model_cls = import_module("pydantic_ai.models.openai").OpenAIModel
-        openai_provider_cls = import_module("pydantic_ai.providers.openai").OpenAIProvider
-        from openai import AsyncAzureOpenAI  # pylint: disable=import-outside-toplevel
+        Agent = pydantic_ai_module.Agent  # pylint: disable=invalid-name
+        openai_model_cls = import_module(
+            "pydantic_ai.models.openai"
+        ).OpenAIModel
+        openai_provider_cls = import_module(
+            "pydantic_ai.providers.openai"
+        ).OpenAIProvider
+        from openai import (  # pylint: disable=import-outside-toplevel
+            AsyncAzureOpenAI,
+        )
 
         openai_client = AsyncAzureOpenAI(
             api_key=os.environ.get("ARBITRATOR_API_KEY"),
@@ -57,15 +59,10 @@ class ArbitratorAgent:
 
         return agent
 
-
     async def get_target_workflows(
-        self,
-        llm_params: str,
-        mapping_tool: Callable
-    ) -> list[int | None]:
-        logger.info(
-            "Get target workflow ids for prompt=%s", llm_params
-        )
+        self, llm_params: str, mapping_tool: Callable
+    ) -> list[int | None] | None:
+        logger.info("Get target workflow ids for prompt=%s", llm_params)
         try:
             logger.info("Starts LLM-based workflow selection")
             agent = self._build_agent(tools=[mapping_tool])
@@ -82,10 +79,9 @@ class ArbitratorAgent:
                     "LLM selected workflow IDs: %s",
                     sorted(selected_ids),
                 )
-                return selected_ids
+                return list(selected_ids)
             logger.info("LLM selection returned no workflow IDs")
             return []
         except Exception:
-            logger.exception(
-                "LLM workflow selection failed"
-            )
+            logger.exception("LLM workflow selection failed")
+            return None

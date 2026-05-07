@@ -35,7 +35,9 @@ async def test_get_target_workflows_returns_selected_ids():
     agent = ArbitratorAgent()
     mapping_tool = MagicMock()
 
-    with patch.object(agent, "_build_agent", return_value=_make_mock_agent([14, 15])):
+    with patch.object(
+        agent, "_build_agent", return_value=_make_mock_agent([14, 15])
+    ):
         result = await agent.get_target_workflows(
             "Run deepseek and paddle OCR", mapping_tool
         )
@@ -48,7 +50,9 @@ async def test_get_target_workflows_returns_empty_list_when_no_ids():
     agent = ArbitratorAgent()
     mapping_tool = MagicMock()
 
-    with patch.object(agent, "_build_agent", return_value=_make_mock_agent([])):
+    with patch.object(
+        agent, "_build_agent", return_value=_make_mock_agent([])
+    ):
         result = await agent.get_target_workflows(
             "{{/badgerdoc/document/1/page/6/}}", mapping_tool
         )
@@ -65,7 +69,9 @@ async def test_get_target_workflows_returns_none_on_exception():
     mock_agent.run = AsyncMock(side_effect=RuntimeError("LLM unavailable"))
 
     with patch.object(agent, "_build_agent", return_value=mock_agent):
-        result = await agent.get_target_workflows("Run deepseek OCR", mapping_tool)
+        result = await agent.get_target_workflows(
+            "Run deepseek OCR", mapping_tool
+        )
 
     assert result is None
 
