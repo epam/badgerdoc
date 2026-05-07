@@ -8,13 +8,75 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { extractionChatScopePluginKey } from './extraction-context-plugin'
 import { cn } from '@/helpers/utils'
 
+const CONFLICT_GROUP_PREFIX = 'conflict-group--'
+const CONFLICT_VARIANT_PREFIX = 'conflict-variant--'
+
+const conflictVariantStore = new Map<string, string>()
+const conflictVariantListeners = new Set<() => void>()
+
+function notifyConflictVariantListeners() {
+  conflictVariantListeners.forEach((listener) => listener())
+}
+
+function getConflictClasses(value: unknown) {
+  return String(value || '')
+    .split(/\s+/)
+    .filter(Boolean)
+}
+
+function getConflictClassValue(classes: string[], prefix: string) {
+  const match = classes.find((className) => className.startsWith(prefix))
+  return match ? match.slice(prefix.length) : null
+}
+
+function formatVariantLabel(variantName: string) {
+  if (variantName === 'council') {
+    return 'council'
+  }
+
+  return variantName.replace(/[-_]+/g, ' ')
+}
+
+function getConflictGroupVariants(editor: NodeViewProps['editor'], conflictGroup: string) {
+  const variants = new Map<string, { label: string; blockId: string | null }>()
+
+  editor.state.doc.descendants((currentNode) => {
+    if (currentNode.type.name !== 'extractionBlock') {
+      return true
+    }
+
+    const classes = getConflictClasses(currentNode.attrs.htmlClass)
+    const currentGroup = getConflictClassValue(classes, CONFLICT_GROUP_PREFIX)
+    const variant = getConflictClassValue(classes, CONFLICT_VARIANT_PREFIX)
+
+    if (currentGroup !== conflictGroup || !variant) {
+      return true
+    }
+
+    variants.set(variant, {
+      label: formatVariantLabel(variant),
+      blockId: (currentNode.attrs.blockId as string | null) ?? null,
+    })
+
+    return true
+  })
+
+  return Array.from(variants.entries())
+    .map(([value, meta]) => ({ value, ...meta }))
+    .sort((left, right) => {
+      if (left.value === 'council') return -1
+      if (right.value === 'council') return 1
+      return left.label.localeCompare(right.label)
+    })
+}
+
 interface ExtractionBlockProps extends NodeViewProps {
   onBlockSelect?: (blockId: string | null, pageNumber: number | null) => void
   onBlockDelete?: (blockId: string, pageNumber: number | null) => void
 }
 
 export function ExtractionBlock({ node, editor, extension, deleteNode }: ExtractionBlockProps) {
-  const { blockId, title, type, page, isNew } = node.attrs
+  const { blockId, title, type, page, isNew, htmlClass } = node.attrs
   const onBlockSelect = extension.options.onBlockSelect
   const onBlockDelete = extension.options.onBlockDelete
   const onToggleBlockContext = extension.options.onToggleBlockContext
@@ -31,6 +93,20 @@ export function ExtractionBlock({ node, editor, extension, deleteNode }: Extract
     pageNumber !== null && (chatScopePluginState?.pageNumbersInChatScope ?? []).includes(pageNumber)
   const isWholeDocumentInChatScope = chatScopePluginState?.isWholeDocumentInChatScope ?? false
   const isContextInteractionDisabled = chatScopePluginState?.isInteractionDisabled ?? false
+  const htmlClasses = getConflictClasses(htmlClass)
+  const hasConflictClass = htmlClasses.includes('conflict')
+  const conflictGroup = getConflictClassValue(htmlClasses, CONFLICT_GROUP_PREFIX)
+  const conflictVariant = getConflictClassValue(htmlClasses, CONFLICT_VARIANT_PREFIX)
+  const [activeConflictVariant, setActiveConflictVariant] = useState(() => {
+    if (!conflictGroup) {
+      return null
+    }
+
+    return conflictVariantStore.get(conflictGroup) ?? 'council'
+  })
+  const conflictVariants = conflictGroup ? getConflictGroupVariants(editor, conflictGroup) : []
+  const isConflictVariantVisible =
+    !conflictGroup || !conflictVariant || activeConflictVariant === conflictVariant
   const blockContextTitle = isContextInteractionDisabled
     ? 'Prompt context is unavailable while you have unsaved changes.'
     : isWholeDocumentInChatScope
@@ -56,6 +132,26 @@ export function ExtractionBlock({ node, editor, extension, deleteNode }: Extract
       editor.off('transaction', syncChatScopeState)
     }
   }, [editor])
+
+  useEffect(() => {
+    if (!conflictGroup) {
+      return
+    }
+
+    const initialVariant = conflictVariantStore.get(conflictGroup) ?? 'council'
+    conflictVariantStore.set(conflictGroup, initialVariant)
+    setActiveConflictVariant(initialVariant)
+
+    const syncVariant = () => {
+      setActiveConflictVariant(conflictVariantStore.get(conflictGroup) ?? 'council')
+    }
+
+    conflictVariantListeners.add(syncVariant)
+
+    return () => {
+      conflictVariantListeners.delete(syncVariant)
+    }
+  }, [conflictGroup])
 
   const handleToggleBlockScope = (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault()
@@ -110,16 +206,35 @@ export function ExtractionBlock({ node, editor, extension, deleteNode }: Extract
     onBlockDelete?.(blockId, pageNumber)
   }
 
+  const handleConflictTabClick = (variant: string) => (event: MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault()
+    event.stopPropagation()
+
+    if (!conflictGroup) {
+      return
+    }
+
+    conflictVariantStore.set(conflictGroup, variant)
+    notifyConflictVariantListeners()
+  }
+
   return (
     <NodeViewWrapper
       data-block-id={blockId}
       data-block-title={title}
-      className={cn('border-b transition-colors duration-150 ease-out focus-within:bg-primary/5', {
-        'border-l-2 border-l-amber-400 bg-amber-50/40': isNew,
-      })}
+      className={cn(
+        'border-b transition-colors duration-150 ease-out focus-within:bg-primary/5',
+        htmlClasses,
+        {
+          'border-l-2 border-l-amber-400 bg-amber-50/40': isNew,
+          'border-l-2 border-l-amber-500 bg-amber-50/70 ring-1 ring-inset ring-amber-200':
+            hasConflictClass,
+          hidden: !isConflictVariantVisible,
+        }
+      )}
       onMouseDown={handleWrapperMouseDown}
     >
-      {(type || page || isNew) && (
+      {(type || page || isNew || conflictVariants.length > 0) && (
         <div
           className="flex gap-2 p-4 pb-2 items-center [&>span:not(:last-of-type)]:after:content-['·'] [&>span:not(:last-child)]:after:ml-2 cursor-pointer"
           contentEditable={false}
@@ -170,11 +285,41 @@ export function ExtractionBlock({ node, editor, extension, deleteNode }: Extract
         </div>
       )}
 
+      {conflictVariants.length > 0 && (
+        <div className="border-b border-border/80 px-4" contentEditable={false}>
+          <div className="flex flex-wrap gap-2">
+            {conflictVariants.map((variant) => {
+              const isActive = activeConflictVariant === variant.value
+
+              return (
+                <button
+                  key={variant.value}
+                  type="button"
+                  onClick={handleConflictTabClick(variant.value)}
+                  className={cn(
+                    'border-b-2 px-1 py-2 text-sm capitalize transition-colors cursor-pointer',
+                    isActive
+                      ? 'border-foreground text-foreground font-medium'
+                      : 'border-transparent text-muted-foreground hover:text-foreground'
+                  )}
+                >
+                  {variant.label}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
       <NodeViewContent
-        className={cn('px-4 pb-4 min-h-[2.5rem]', {
-          'min-h-[3rem] rounded-md border border-dashed border-amber-300 bg-white mx-4 mb-4 p-2 focus-within:border-amber-500 focus-within:ring-1 focus-within:ring-amber-500/30':
-            isNew,
-        })}
+        className={cn(
+          'px-4 pb-4 pt-4 min-h-[2.5rem] [&_.conflict-target]:rounded-sm [&_.conflict-target]:bg-amber-200/80 [&_.conflict-target]:px-1 [&_.conflict-comment]:mt-4 [&_.conflict-comment]:rounded-2xl [&_.conflict-comment]:border [&_.conflict-comment]:border-slate-200 [&_.conflict-comment]:bg-slate-50 [&_.conflict-comment]:px-4 [&_.conflict-comment]:py-3 [&_.conflict-comment]:text-sm [&_.conflict-comment]:text-slate-600',
+          {
+            'min-h-[3rem] rounded-md border border-dashed border-amber-300 bg-white mx-4 mb-4 p-2 focus-within:border-amber-500 focus-within:ring-1 focus-within:ring-amber-500/30':
+              isNew,
+            'mx-4 mb-4 rounded-md border border-slate-200 bg-white shadow-sm': hasConflictClass,
+          }
+        )}
       />
     </NodeViewWrapper>
   )
