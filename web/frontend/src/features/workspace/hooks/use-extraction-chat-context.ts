@@ -49,6 +49,17 @@ export function useExtractionChatContext({
   extractionPages,
 }: UseExtractionChatContextParams) {
   const extractionId = extractionPages?.[0]?.extraction_id ?? null
+  const extractionIdByPage = useMemo(() => {
+    const ids = new Map<number, number>()
+
+    extractionPages?.forEach((page) => {
+      if (page.extraction_id !== undefined) {
+        ids.set(page.page_number, page.extraction_id)
+      }
+    })
+
+    return ids
+  }, [extractionPages])
   const [prompt, setPrompt] = useState(readStoredPromptDraft)
   const promptRef = useRef(prompt)
   const promptContextInserterRef = useRef<PromptContextPathInserter | null>(null)
@@ -100,7 +111,7 @@ export function useExtractionChatContext({
     (block: ExtractionContextBlock) => {
       const path = buildBlockContextPath({
         documentId,
-        extractionId,
+        extractionId: extractionIdByPage.get(block.pageNumber) ?? extractionId,
         pageNumber: block.pageNumber,
         blockId: block.blockId,
       })
@@ -109,7 +120,7 @@ export function useExtractionChatContext({
 
       appendContextPath(path)
     },
-    [appendContextPath, documentId, extractionId]
+    [appendContextPath, documentId, extractionId, extractionIdByPage]
   )
 
   const removeBlocks = useCallback((blockIds: string[]) => {

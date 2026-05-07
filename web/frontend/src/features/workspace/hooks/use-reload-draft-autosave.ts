@@ -12,7 +12,7 @@ interface UseReloadDraftAutosaveParams {
   activeTagName?: string
   hasChanges: boolean
   pendingPayload: ExtractionDraftPayload
-  onRestoreDraft: (payload: ExtractionDraftPayload) => Promise<void>
+  onRestoreDraft: (payload: ExtractionDraftPayload) => Promise<unknown>
 }
 
 function getDraftStorageKey(documentId: string, activeTagName?: string) {

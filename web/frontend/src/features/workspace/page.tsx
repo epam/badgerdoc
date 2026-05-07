@@ -158,8 +158,8 @@ export function WorkspacePage() {
 
     const deletedBlockIdsToPrune = deletedBlockIds
 
-    await acceptExtraction(pendingPayload)
-    acceptChanges(pendingPayload)
+    const acceptedExtraction = await acceptExtraction(pendingPayload)
+    acceptChanges(pendingPayload, acceptedExtraction?.id ?? null)
     removeBlocks(deletedBlockIdsToPrune)
     setIsEditMode(false)
   }, [acceptChanges, acceptExtraction, deletedBlockIds, pendingPayload, removeBlocks])

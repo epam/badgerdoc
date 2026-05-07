@@ -133,6 +133,28 @@ describe('useExtractionChatContext prompt persistence', () => {
     expect(result.current.selectedBlocks).toEqual([{ blockId: 'block_2_1', pageNumber: 2 }])
   })
 
+  it('uses the extraction id from the referenced block page', () => {
+    const extractionPages = [
+      { page_number: 1, extraction_id: 456 },
+      { page_number: 2, extraction_id: 789 },
+    ] as BadgerDocExtractionPage[]
+
+    const { result } = renderHook(() =>
+      useExtractionChatContext({
+        documentId: '123',
+        extractionPages,
+      })
+    )
+
+    act(() => {
+      result.current.toggleBlock({ blockId: 'block_2_1', pageNumber: 2 })
+    })
+
+    expect(result.current.prompt).toBe(
+      "{{/badgerdoc/document/123/extraction/789/page/2/(//div[@id='block_2_1'])}}"
+    )
+  })
+
   it('falls back to an empty prompt and keeps working when localStorage is unavailable', () => {
     vi.spyOn(window.localStorage, 'getItem').mockImplementation(() => {
       throw new Error('localStorage unavailable')
