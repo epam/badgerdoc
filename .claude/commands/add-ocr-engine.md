@@ -73,7 +73,7 @@ return [BadgerdocOCRPageResult(ocr=merged)]
 ```python
 page_to_infos: dict[int, list[dict]] = {}
 for result in results:
-    for page_num_str, paths in result.ocr.items():
+    for _, paths in result.ocr.items():
         for path in paths:
             page_num, info = self._path_to_context[path]
             page_to_infos.setdefault(page_num, []).append(info)
@@ -196,6 +196,21 @@ Choose the next free port by incrementing from the highest port already used in 
 
 ## Rules
 
+- **Every new OCR engine MUST subclass `BadgerdocOCRBase`** from `badgerdoc_common.badgerdoc_ocr`. Implementing the pipeline inline in `workflow.run()` without subclassing is not allowed. The `workflow.run()` method must only call `trigger_params_to_ocr_page` and then delegate entirely to `EngineOCR().run(params, ocr_container)`. All five abstract methods (`ocr_pages`, `ocr_blocks`, `align_coordinates`, `ocr_merge_blocks`, `convert_to_hocr`) must be implemented with real logic in the subclass.
+- **Extraction tagging must happen exactly once, before any fan-out.** Never tag inside a per-page/per-block activity — doing so causes redundant PATCH requests during fan-out and risks clobbering concurrent tag updates (the PATCH sends the full tags array built from the snapshot passed as an arg). Instead, implement a dedicated `<engine>_tag_extraction(extraction_id, extraction_tags)` activity in `ocr_requests.py` and override `run()` in the `BadgerdocOCRBase` subclass to call it before `super().run()`, mirroring the MinerU/Paddle pattern:
+
+  ```python
+  async def run(self, params, ocr_container):
+      await workflow.execute_activity(
+          engine_tag_extraction,
+          args=[params.target_extraction.id, params.target_extraction.tags or []],
+          start_to_close_timeout=helpers.BADGERDOC_REST_API_START_TO_CLOSE_TIMEOUT,
+          retry_policy=helpers.BadgerdocRestAPIRetryPolicy,
+      )
+      return await super().run(params, ocr_container)
+  ```
+
+  Register this tagging activity in `main.py` alongside the OCR activities. Do **not** pass `extraction_id` or `extraction_tags` to the OCR activity itself — they are only needed by the tagging activity.
 - All pipeline steps **must** emit `logger.info` log lines at the start and completion of each method, including the number of pages/blocks being processed and any notable intermediate outcomes (e.g. pages skipped, blocks failed, coordinates shifted). Upstream infrastructure reads worker logs and surfaces them to the user in the UI, so logs are the primary progress and status signal — treat them as user-facing messages, not internal debug noise.
 - Any environment variables introduced by the new worker (API keys, model endpoints, inference timeouts, MLX server URLs, etc.) **must** be added to `.env_example` at the project root with a placeholder value and a short inline comment explaining what the variable controls. This is the canonical reference for required configuration — do not leave env vars undocumented.
 - All I/O inside the workflow (including calls inside `BadgerdocOCRBase`) **must** go through `workflow.execute_activity()` with `start_to_close_timeout` and `retry_policy` from `badgerdoc_common.helpers`. Never call `@activity.defn` functions directly from workflow code.
