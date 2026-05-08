@@ -9,6 +9,15 @@ interface UseExtractionApiParams {
   activeTag?: string
 }
 
+export const USER_INPUT_EXTRACTION_TAG = 'user-input'
+const DEFAULT_EXTRACTION_TAG = 'deepseek-ocr-2'
+
+export function withUserInputTag(tags: Array<string | undefined | null>) {
+  const uniqueTags = new Set(tags.filter((tag): tag is string => Boolean(tag)))
+  uniqueTags.add(USER_INPUT_EXTRACTION_TAG)
+  return Array.from(uniqueTags)
+}
+
 export function useExtractionApi({ documentId, activeTag }: UseExtractionApiParams) {
   const apiAdapter = getApiAdapter()
   const queryClient = useQueryClient()
@@ -17,12 +26,16 @@ export function useExtractionApi({ documentId, activeTag }: UseExtractionApiPara
 
   const ensureExtraction = useCallback(async () => {
     if (!extractionInProgressRef.current) {
+      const tags = withUserInputTag([activeTag ?? DEFAULT_EXTRACTION_TAG])
       const extraction = await apiAdapter.extractions.createExtraction({
         documentId,
         status: 'Started',
-        tags: [activeTag ?? 'deepseek-ocr-2'],
+        tags,
       })
-      extractionInProgressRef.current = extraction
+      extractionInProgressRef.current = {
+        ...extraction,
+        tags: withUserInputTag(extraction.tags?.length ? extraction.tags : tags),
+      }
     }
 
     return extractionInProgressRef.current
@@ -78,6 +91,7 @@ export function useExtractionApi({ documentId, activeTag }: UseExtractionApiPara
         const completedExtraction = await apiAdapter.extractions.updateExtraction({
           extractionId: extraction.id,
           status: 'Completed',
+          tags: withUserInputTag(extraction.tags),
         })
         extractionInProgressRef.current = null
 
