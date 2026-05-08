@@ -317,7 +317,7 @@ export function useExtractionState({ extractionPages, activeTag }: UseExtraction
   )
 
   const pendingPayload = useMemo(() => {
-    if (!activeTag || !extractionPages?.length) return []
+    if (!activeTag) return []
 
     const changedPages = new Map<number, string>()
 
