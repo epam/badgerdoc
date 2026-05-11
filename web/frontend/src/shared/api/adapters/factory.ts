@@ -3,7 +3,6 @@
  *
  * Central switching point for mock vs real API implementations.
  * Supports per-domain configuration via VITE_MOCK_{DOMAIN} environment variables.
- * Note: VITE_USE_MOCK_FALLBACK is not applied here; switching is driven by per-domain flags.
  */
 
 import type { ApiAdapter } from './types'
@@ -33,6 +32,8 @@ export function getApiAdapter(): ApiAdapter {
       tasks: o.tasks ? mockAdapter.tasks : realAdapter.tasks,
       extractions: o.extractions ? mockAdapter.extractions : realAdapter.extractions,
       tags: o.tags ? mockAdapter.tags : realAdapter.tags,
+      users: o.users ? mockAdapter.users : realAdapter.users,
+      uploads: o.uploads ? mockAdapter.uploads : realAdapter.uploads,
       workflows: o.workflows ? mockAdapter.workflows : realAdapter.workflows,
     }
 
@@ -43,6 +44,9 @@ export function getApiAdapter(): ApiAdapter {
         tasks: o.tasks,
         extractions: o.extractions,
         tags: o.tags,
+        users: o.users,
+        uploads: o.uploads,
+        workflows: o.workflows,
       }
       logger.debug(
         '[API] Adapter configuration:',

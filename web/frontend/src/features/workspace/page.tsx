@@ -31,7 +31,7 @@ import {
 import { ExtractionResultsTab } from '@/features/workspace/components/extraction-results-tab.tsx'
 import { DocumentOverviewPopover } from '@/features/workspace/components/document-overview-popover'
 import { NoExtractionTagsEmptyState } from '@/features/workspace/components/no-extraction-tags-empty-state'
-import type { BadgerDocDocument } from '@/shared/api/badgerdoc/types'
+import type { Document } from '@/shared/types/api'
 
 export function WorkspacePage() {
   // Support both /tasks/$taskId and legacy /document/$id routes
@@ -312,7 +312,7 @@ export function WorkspacePage() {
   }, [navigate, queue?.nextId, taskFiltersSearch, activeTab])
 
   const handleHierarchyDocumentSelect = useCallback(
-    (selectedDocument: BadgerDocDocument) => {
+    (selectedDocument: Document) => {
       if (String(selectedDocument.id) === String(documentId)) {
         return
       }
@@ -351,19 +351,6 @@ export function WorkspacePage() {
     authors: document.authors,
     date: document.publicationDate || document.createdAt.split('T')[0],
   }
-  const documentForHierarchy = {
-    id: document.id,
-    uploaded_by: document.uploadedBy,
-    parent_document_id: document.parentDocumentId ?? null,
-    file: document.pdfUrl,
-    metadata: document.metadata,
-    tags: document.tags,
-    created_at: document.createdAt,
-    updated_at: document.updatedAt,
-    name: document.title,
-    status: document.status,
-  } satisfies BadgerDocDocument
-
   const documentForOverview = {
     id: document.id,
     title: document.title,
@@ -423,7 +410,7 @@ export function WorkspacePage() {
         titleActions={
           <div className="flex min-w-0 items-center gap-2">
             <DocumentHierarchyPopover
-              currentDocument={documentForHierarchy}
+              currentDocument={document}
               onDocumentSelect={handleHierarchyDocumentSelect}
             />
             <DocumentOverviewPopover document={documentForOverview} />

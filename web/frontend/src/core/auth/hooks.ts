@@ -2,8 +2,8 @@ import { useCallback } from 'react'
 import { create } from 'zustand'
 import { authAdapter } from './adapter'
 import type { AuthState } from './types'
+import { getApiAdapter } from '@/shared/api/adapters/factory'
 import type { User } from '@/shared/types'
-import { badgerDocService } from '@/shared/api/badgerdoc'
 
 interface AuthStore extends AuthState {
   setUser: (user: User | null) => void
@@ -20,6 +20,7 @@ const useAuthStore = create<AuthStore>((set) => ({
 
 export function useAuth() {
   const { user, isAuthenticated, isLoading, setUser, setLoading } = useAuthStore()
+  const apiAdapter = getApiAdapter()
 
   const login = useCallback(
     async (credentials?: unknown) => {
@@ -47,12 +48,12 @@ export function useAuth() {
   const getCurrentUserData = useCallback(async () => {
     setLoading(true)
     try {
-      const userData = await badgerDocService.getCurrentUserData()
+      const userData = await apiAdapter.users.getCurrentUserData()
       setUser(userData)
     } finally {
       setLoading(false)
     }
-  }, [setUser, setLoading])
+  }, [apiAdapter.users, setUser, setLoading])
 
   return {
     user,

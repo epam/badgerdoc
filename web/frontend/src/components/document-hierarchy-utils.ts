@@ -1,5 +1,5 @@
 import { getFileExtensionFromFileName } from '@/helpers/utils'
-import type { BadgerDocDocument } from '@/shared/api/badgerdoc/types'
+import type { Document } from '@/shared/types/api'
 
 function extensionFromText(value?: unknown): string {
   if (typeof value !== 'string' || !value.trim()) {
@@ -30,7 +30,7 @@ function normalizeExtension(value?: unknown): string {
   return extension.toUpperCase()
 }
 
-export function getDocumentExtension(document: BadgerDocDocument, visibleTitle?: string): string {
+export function getDocumentExtension(document: Document, visibleTitle?: string): string {
   const metadata = document.metadata ?? {}
   const candidates = [
     visibleTitle,
@@ -38,9 +38,8 @@ export function getDocumentExtension(document: BadgerDocDocument, visibleTitle?:
     metadata.file_name,
     metadata.filename,
     metadata.name,
-    document.name,
-    document.file,
-    document.file_url,
+    document.title,
+    document.pdfUrl,
   ]
 
   for (const candidate of candidates) {
