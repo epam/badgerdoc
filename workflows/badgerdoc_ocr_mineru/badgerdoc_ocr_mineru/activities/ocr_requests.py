@@ -76,7 +76,9 @@ async def mineru_store_result(
         middle_json  — MinIO path to the JSON containing extracted blocks
         metadata     — document metadata passed through unchanged
     """
-    from badgerdoc_common import storage  # pylint: disable=import-outside-toplevel
+    from badgerdoc_common import (  # pylint: disable=import-outside-toplevel
+        storage,
+    )
 
     storage_params = storage.StorageWorkflowParams(
         workflow_package="badgerdoc_ocr_mineru",

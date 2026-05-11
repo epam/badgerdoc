@@ -59,10 +59,12 @@ async def do_mlx_ocr_mineru(
 
     Returns a list of block dicts with keys: type, bbox, content.
     """
-    import aiohttp  # pylint: disable=import-outside-toplevel
     from io import BytesIO  # pylint: disable=import-outside-toplevel
 
-    from mineru_vl_utils import MinerUClient  # pylint: disable=import-outside-toplevel
+    import aiohttp  # pylint: disable=import-outside-toplevel
+    from mineru_vl_utils import (  # pylint: disable=import-outside-toplevel
+        MinerUClient,
+    )
     from PIL import Image  # pylint: disable=import-outside-toplevel
 
     logger.info(

@@ -67,7 +67,13 @@ class MinerUOCR(BadgerdocOCRBase):
         )
         return await workflow.execute_activity(
             mineru_store_result,
-            args=[workflow_type, page_num, blocks, prepare["metadata"], block_index],
+            args=[
+                workflow_type,
+                page_num,
+                blocks,
+                prepare["metadata"],
+                block_index,
+            ],
             start_to_close_timeout=helpers.BADGERDOC_REST_API_START_TO_CLOSE_TIMEOUT,
             retry_policy=helpers.BadgerdocRestAPIRetryPolicy,
         )
@@ -126,12 +132,12 @@ class MinerUOCR(BadgerdocOCRBase):
             await asyncio.gather(
                 *[
                     self._ocr_one(
-                            workflow_type,
-                            req.badgerdoc_document.page_num,
-                            req.badgerdoc_document.document,
-                            i,
-                        )
-                        for i, req in enumerate(blocks)
+                        workflow_type,
+                        req.badgerdoc_document.page_num,
+                        req.badgerdoc_document.document,
+                        i,
+                    )
+                    for i, req in enumerate(blocks)
                 ],
                 return_exceptions=True,
             )
