@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from typing import Any
 
 from temporalio import workflow
 
@@ -13,8 +14,11 @@ from badgerdoc_ocr_mineru.activities.ocr_convertors import (
     mineru_mlx_results_to_hocr,
 )
 from badgerdoc_ocr_mineru.activities.ocr_requests import (
-    mineru_mlx_ocr_page,
+    MODEL,
+    PORT,
     mineru_mlx_tag_extraction,
+    mineru_prepare_page,
+    mineru_store_result,
 )
 
 logger = logging.getLogger(__name__)
@@ -42,6 +46,32 @@ class MinerUOCR(BadgerdocOCRBase):
         )
         return await super().run(params, ocr_container)
 
+    async def _ocr_one(
+        self,
+        workflow_type: str,
+        page_num: int,
+        doc: Any,
+        block_index: int | None = None,
+    ) -> dict:
+        prepare = await workflow.execute_activity(
+            mineru_prepare_page,
+            args=[page_num, doc],
+            start_to_close_timeout=helpers.BADGERDOC_REST_API_START_TO_CLOSE_TIMEOUT,
+            retry_policy=helpers.BadgerdocRestAPIRetryPolicy,
+        )
+        blocks: list[dict] = await workflow.execute_activity(
+            "do_mlx_ocr_mineru",
+            args=[prepare["image_url"], PORT, MODEL],
+            task_queue="badgerdoc_mlx",
+            start_to_close_timeout=helpers.BADGERDOC_REST_API_START_TO_CLOSE_TIMEOUT,
+        )
+        return await workflow.execute_activity(
+            mineru_store_result,
+            args=[workflow_type, page_num, blocks, prepare["metadata"], block_index],
+            start_to_close_timeout=helpers.BADGERDOC_REST_API_START_TO_CLOSE_TIMEOUT,
+            retry_policy=helpers.BadgerdocRestAPIRetryPolicy,
+        )
+
     async def ocr_pages(
         self,
         params: trigger.DocumentTriggerParams,
@@ -56,15 +86,10 @@ class MinerUOCR(BadgerdocOCRBase):
             list(
                 await asyncio.gather(
                     *[
-                        workflow.execute_activity(
-                            mineru_mlx_ocr_page,
-                            args=[
-                                workflow_type,
-                                req.badgerdoc_document.page_num,
-                                req.badgerdoc_document.document,
-                            ],
-                            start_to_close_timeout=helpers.BADGERDOC_REST_API_START_TO_CLOSE_TIMEOUT,
-                            retry_policy=helpers.BadgerdocRestAPIRetryPolicy,
+                        self._ocr_one(
+                            workflow_type,
+                            req.badgerdoc_document.page_num,
+                            req.badgerdoc_document.document,
                         )
                         for req in pages
                     ]
@@ -100,18 +125,13 @@ class MinerUOCR(BadgerdocOCRBase):
         raw_block_results = (
             await asyncio.gather(
                 *[
-                    workflow.execute_activity(
-                        mineru_mlx_ocr_page,
-                        args=[
+                    self._ocr_one(
                             workflow_type,
                             req.badgerdoc_document.page_num,
                             req.badgerdoc_document.document,
                             i,
-                        ],
-                        start_to_close_timeout=helpers.BADGERDOC_REST_API_START_TO_CLOSE_TIMEOUT,
-                        retry_policy=helpers.BadgerdocRestAPIRetryPolicy,
-                    )
-                    for i, req in enumerate(blocks)
+                        )
+                        for i, req in enumerate(blocks)
                 ],
                 return_exceptions=True,
             )
