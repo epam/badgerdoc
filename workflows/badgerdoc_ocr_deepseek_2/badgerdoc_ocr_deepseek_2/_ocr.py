@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from typing import Any
 
 from temporalio import workflow
 
@@ -13,7 +14,12 @@ from badgerdoc_ocr_deepseek_2.activities.ocr_convertors import (
     deepseek_ocr_2_results_to_hocr,
 )
 from badgerdoc_ocr_deepseek_2.activities.ocr_requests import (
-    deepseek_ocr_from_page,
+    MAX_TOKENS,
+    MODEL,
+    PORT,
+    PROMPT,
+    deepseek_prepare_page,
+    deepseek_store_result,
 )
 
 logger = logging.getLogger(__name__)
@@ -23,6 +29,40 @@ class Deepseek2OCR(BadgerdocOCRBase):
 
     def __init__(self) -> None:
         self._path_to_context: dict[str, tuple[int, dict]] = {}
+
+    async def _ocr_one(
+        self,
+        extraction_id: int,
+        extraction_tags: list[str],
+        workflow_type: str,
+        page_num: int,
+        doc: Any,
+        block_index: int | None = None,
+    ) -> dict[str, Any]:
+        prepare = await workflow.execute_activity(
+            deepseek_prepare_page,
+            args=[extraction_id, extraction_tags, page_num, doc],
+            start_to_close_timeout=helpers.BADGERDOC_REST_API_START_TO_CLOSE_TIMEOUT,
+            retry_policy=helpers.BadgerdocRestAPIRetryPolicy,
+        )
+        text: str = await workflow.execute_activity(
+            "do_mlx_ocr",
+            args=[prepare["image_url"], PORT, MODEL, PROMPT, MAX_TOKENS],
+            task_queue="badgerdoc_mlx",
+            start_to_close_timeout=helpers.BADGERDOC_REST_API_START_TO_CLOSE_TIMEOUT,
+        )
+        return await workflow.execute_activity(
+            deepseek_store_result,
+            args=[
+                workflow_type,
+                page_num,
+                text,
+                prepare["metadata"],
+                block_index,
+            ],
+            start_to_close_timeout=helpers.BADGERDOC_REST_API_START_TO_CLOSE_TIMEOUT,
+            retry_policy=helpers.BadgerdocRestAPIRetryPolicy,
+        )
 
     async def ocr_pages(
         self,
@@ -40,17 +80,12 @@ class Deepseek2OCR(BadgerdocOCRBase):
             list(
                 await asyncio.gather(
                     *[
-                        workflow.execute_activity(
-                            deepseek_ocr_from_page,
-                            args=[
-                                extraction_id,
-                                extraction_tags,
-                                workflow_type,
-                                req.badgerdoc_document.page_num,
-                                req.badgerdoc_document.document,
-                            ],
-                            start_to_close_timeout=helpers.BADGERDOC_REST_API_START_TO_CLOSE_TIMEOUT,
-                            retry_policy=helpers.BadgerdocRestAPIRetryPolicy,
+                        self._ocr_one(
+                            extraction_id,
+                            extraction_tags,
+                            workflow_type,
+                            req.badgerdoc_document.page_num,
+                            req.badgerdoc_document.document,
                         )
                         for req in pages
                     ]
@@ -85,41 +120,48 @@ class Deepseek2OCR(BadgerdocOCRBase):
         extraction_tags = params.target_extraction.tags or []
         workflow_type = params.workflow.temporal_workflow_type
 
-        ocr_results: list[BadgerdocOCRPageResult] = []
-        for i, req in enumerate(blocks):
-            try:
-                result = await workflow.execute_activity(
-                    deepseek_ocr_from_page,
-                    args=[
-                        extraction_id,
-                        extraction_tags,
-                        workflow_type,
-                        req.badgerdoc_document.page_num,
-                        req.badgerdoc_document.document,
-                        i,
+        raw_results: list[dict | BaseException] = (
+            list(
+                await asyncio.gather(
+                    *[
+                        self._ocr_one(
+                            extraction_id,
+                            extraction_tags,
+                            workflow_type,
+                            req.badgerdoc_document.page_num,
+                            req.badgerdoc_document.document,
+                            i,
+                        )
+                        for i, req in enumerate(blocks)
                     ],
-                    start_to_close_timeout=helpers.BADGERDOC_REST_API_START_TO_CLOSE_TIMEOUT,
-                    retry_policy=helpers.BadgerdocRestAPIRetryPolicy,
+                    return_exceptions=True,
                 )
-                path = result["middle_json"]
-                self._path_to_context[path] = (result["page_num"], result)
-                ocr_results.append(
-                    BadgerdocOCRPageResult(
-                        ocr={str(result["page_num"]): [path]}
-                    )
-                )
-                logger.info(
-                    "Deepseek2OCR.ocr_blocks: block %d (page %d) succeeded",
-                    i,
-                    req.badgerdoc_document.page_num,
-                )
-            except Exception:  # pylint: disable=broad-except
-                logger.exception(
+            )
+            if blocks
+            else []
+        )
+
+        ocr_results: list[BadgerdocOCRPageResult] = []
+        for i, (req, result) in enumerate(zip(blocks, raw_results)):
+            if isinstance(result, BaseException):
+                logger.error(
                     "Deepseek2OCR.ocr_blocks: block %d (page %d) failed, inserting empty result",
                     i,
                     req.badgerdoc_document.page_num,
+                    exc_info=result,
                 )
                 ocr_results.append(BadgerdocOCRPageResult(ocr={}))
+                continue
+            path = result["middle_json"]
+            self._path_to_context[path] = (result["page_num"], result)
+            ocr_results.append(
+                BadgerdocOCRPageResult(ocr={str(result["page_num"]): [path]})
+            )
+            logger.info(
+                "Deepseek2OCR.ocr_blocks: block %d (page %d) succeeded",
+                i,
+                req.badgerdoc_document.page_num,
+            )
 
         failures = sum(1 for r in ocr_results if not r.ocr)
         logger.info(
@@ -135,8 +177,6 @@ class Deepseek2OCR(BadgerdocOCRBase):
         block: OCRPageRequest,  # pylint: disable=unused-argument
         result: BadgerdocOCRPageResult,
     ) -> BadgerdocOCRPageResult:
-        # Pass-through: coordinate remapping is handled inside deepseek_ocr_2_results_to_hocr
-        # using metadata.position_in_parent for each info dict.
         return result
 
     async def ocr_merge_blocks(

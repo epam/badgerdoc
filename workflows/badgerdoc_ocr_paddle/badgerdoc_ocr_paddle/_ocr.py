@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from typing import Any
 
 from temporalio import workflow
 
@@ -13,8 +14,13 @@ from badgerdoc_ocr_paddle.activities.ocr_convertors import (
     paddle_ocr_results_to_hocr,
 )
 from badgerdoc_ocr_paddle.activities.ocr_requests import (
-    paddle_ocr_from_page,
+    MAX_TOKENS,
+    MODEL,
+    PORT,
+    PROMPT,
     paddle_ocr_tag_extraction,
+    paddle_prepare_page,
+    paddle_store_result,
 )
 
 logger = logging.getLogger(__name__)
@@ -41,6 +47,38 @@ class PaddleOCR(BadgerdocOCRBase):
         )
         return await super().run(params, ocr_container)
 
+    async def _ocr_one(
+        self,
+        workflow_type: str,
+        page_num: int,
+        doc: Any,
+        block_index: int | None = None,
+    ) -> dict:
+        prepare = await workflow.execute_activity(
+            paddle_prepare_page,
+            args=[page_num, doc],
+            start_to_close_timeout=helpers.BADGERDOC_REST_API_START_TO_CLOSE_TIMEOUT,
+            retry_policy=helpers.BadgerdocRestAPIRetryPolicy,
+        )
+        text: str = await workflow.execute_activity(
+            "do_mlx_ocr",
+            args=[prepare["image_url"], PORT, MODEL, PROMPT, MAX_TOKENS],
+            task_queue="badgerdoc_mlx",
+            start_to_close_timeout=helpers.BADGERDOC_REST_API_START_TO_CLOSE_TIMEOUT,
+        )
+        return await workflow.execute_activity(
+            paddle_store_result,
+            args=[
+                workflow_type,
+                page_num,
+                text,
+                prepare["metadata"],
+                block_index,
+            ],
+            start_to_close_timeout=helpers.BADGERDOC_REST_API_START_TO_CLOSE_TIMEOUT,
+            retry_policy=helpers.BadgerdocRestAPIRetryPolicy,
+        )
+
     async def ocr_pages(
         self,
         params: trigger.DocumentTriggerParams,
@@ -55,15 +93,10 @@ class PaddleOCR(BadgerdocOCRBase):
             list(
                 await asyncio.gather(
                     *[
-                        workflow.execute_activity(
-                            paddle_ocr_from_page,
-                            args=[
-                                workflow_type,
-                                req.badgerdoc_document.page_num,
-                                req.badgerdoc_document.document,
-                            ],
-                            start_to_close_timeout=helpers.BADGERDOC_REST_API_START_TO_CLOSE_TIMEOUT,
-                            retry_policy=helpers.BadgerdocRestAPIRetryPolicy,
+                        self._ocr_one(
+                            workflow_type,
+                            req.badgerdoc_document.page_num,
+                            req.badgerdoc_document.document,
                         )
                         for req in pages
                     ]
@@ -96,39 +129,46 @@ class PaddleOCR(BadgerdocOCRBase):
         )
         workflow_type = params.workflow.temporal_workflow_type
 
-        ocr_results: list[BadgerdocOCRPageResult] = []
-        for i, req in enumerate(blocks):
-            try:
-                result = await workflow.execute_activity(
-                    paddle_ocr_from_page,
-                    args=[
-                        workflow_type,
-                        req.badgerdoc_document.page_num,
-                        req.badgerdoc_document.document,
-                        i,
+        raw_results: list[dict | Exception] = (
+            list(
+                await asyncio.gather(
+                    *[
+                        self._ocr_one(
+                            workflow_type,
+                            req.badgerdoc_document.page_num,
+                            req.badgerdoc_document.document,
+                            i,
+                        )
+                        for i, req in enumerate(blocks)
                     ],
-                    start_to_close_timeout=helpers.BADGERDOC_REST_API_START_TO_CLOSE_TIMEOUT,
-                    retry_policy=helpers.BadgerdocRestAPIRetryPolicy,
+                    return_exceptions=True,
                 )
-                path = result["middle_json"]
-                self._path_to_context[path] = (result["page_num"], result)
-                ocr_results.append(
-                    BadgerdocOCRPageResult(
-                        ocr={str(result["page_num"]): [path]}
-                    )
-                )
-                logger.info(
-                    "PaddleOCR.ocr_blocks: block %d (page %d) succeeded",
-                    i,
-                    req.badgerdoc_document.page_num,
-                )
-            except Exception:  # pylint: disable=broad-except
-                logger.exception(
+            )
+            if blocks
+            else []
+        )
+
+        ocr_results: list[BadgerdocOCRPageResult] = []
+        for i, (req, result) in enumerate(zip(blocks, raw_results)):
+            if isinstance(result, Exception):
+                logger.error(
                     "PaddleOCR.ocr_blocks: block %d (page %d) failed, inserting empty result",
                     i,
                     req.badgerdoc_document.page_num,
+                    exc_info=result,
                 )
                 ocr_results.append(BadgerdocOCRPageResult(ocr={}))
+                continue
+            path = result["middle_json"]
+            self._path_to_context[path] = (result["page_num"], result)
+            ocr_results.append(
+                BadgerdocOCRPageResult(ocr={str(result["page_num"]): [path]})
+            )
+            logger.info(
+                "PaddleOCR.ocr_blocks: block %d (page %d) succeeded",
+                i,
+                req.badgerdoc_document.page_num,
+            )
 
         failures = sum(1 for r in ocr_results if not r.ocr)
         logger.info(

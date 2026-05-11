@@ -135,7 +135,17 @@ services:
       - badgerdoc
     networks:
       - badgerdoc-network
-    
+
+  badgerdoc_mlx:
+    build:
+      context: ./workflows/badgerdoc_mlx
+    env_file: .env
+    depends_on:
+      - temporal
+      - minio
+      - badgerdoc
+    networks:
+      - badgerdoc-network
 
 volumes:
   db_data:
