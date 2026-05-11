@@ -1,20 +1,28 @@
-# Add New OCR Engine
+---
+description: Implement and wire a new OCR engine worker into Badgerdoc
+context: fork
+effort: high
+disable-model-invocation: true
+arguments: ocr-tag path-to-ocr-repository
+---
 
-Fully implement and wire a new OCR engine worker for Badgerdoc. This means writing working code for all pipeline methods, not just stubs — research the engine's API, output format, and coordinate system, then implement each `BadgerdocOCRBase` method with real logic.
+# Guidelines
 
-## What to do
+The aim is writing working code for all OCR-related pipeline methods, not just stubs — research the engine's API, output format, and coordinate system, then implement each `BadgerdocOCRBase` method with real working logic.
+
+## Steps to Execute
 
 ### 1. Create the `uv` package
 
 Create the directory tree under `workflows/`:
 
-```
+```tree
 workflows/
-  badgerdoc_ocr_$ARGUMENTS/
-    badgerdoc_ocr_$ARGUMENTS/
+  badgerdoc_ocr_$ocr-tag/
+    badgerdoc_ocr_$ocr-tag/
       __init__.py
       workflow.py
-      $ARGUMENTS_ocr.py
+      $ocr-tag_ocr.py
       activities/
         __init__.py
         ocr_requests.py
@@ -33,7 +41,7 @@ workflows/
 badgerdoc_common = { path = "../badgerdoc_common", editable = true }
 ```
 
-### 2. Implement `BadgerdocOCRBase` in `$ARGUMENTS_ocr.py`
+### 2. Implement `BadgerdocOCRBase` in `$ocr-tag_ocr.py`
 
 Extend `BadgerdocOCRBase` from `badgerdoc_common.badgerdoc_ocr` and implement all five abstract methods with real working logic. Before writing code, research the engine's Python SDK or HTTP API, its raw output format, and how it represents bounding boxes.
 
@@ -129,12 +137,12 @@ Coordinate remapping is **per-info**: each block has its own `metadata.position_
 
 ```python
 @workflow.defn
-class BadgerdocXxxWorkflow:
+class Badgerdoc$ocr-tagWorkflow:
 
     @workflow.run
     async def run(self, params: trigger.DocumentTriggerParams) -> BadgerdocHOCRPageResult:
         ocr_container = await trigger_params_to_ocr_page(params)
-        hocr_results = await XxxOCR().run(params, ocr_container)
+        hocr_results = await $ocr-tagOCR().run(params, ocr_container)
         combined: dict = {}
         for result in hocr_results:
             combined.update(result.h_ocr)
@@ -162,6 +170,7 @@ Copy `workflows/badgerdoc_ocr_deepseek_2/Dockerfile` and replace the package nam
 ### 7. Add service to `docker-compose.yml`
 
 Add a new service block for the worker, setting:
+
 - `build.context` pointing to the new worker directory
 - `TEMPORAL_BADGERDOC_ADDRESS`, `BADGERDOC_TOKEN`, `TEMPORAL_ADDRESS` env vars
 - `depends_on: [temporal, web]`
@@ -171,7 +180,7 @@ Add a new service block for the worker, setting:
 Add a Django fixture (or instruct the user to create a record via admin) with:
 
 | Field | Value |
-|---|---|
+| --- | --- |
 | `name` | Descriptive name |
 | `temporal_workflow_type` | Exact class name from `workflow.py` |
 | `temporal_queue` | Must match `task_queue` in `main.py` |
@@ -187,9 +196,9 @@ If an `mlx-community` model is found, append a new `uv run mlx_vlm.server` line 
 
 ```makefile
 start_mlx:
-	uv run mlx_vlm.server --port 11434 --model mlx-community/DeepSeek-OCR-2-bf16 & \
-	uv run mlx_vlm.server --port 11435 --model mlx-community/PaddleOCR-VL-1.5-bf16 & \
-	uv run mlx_vlm.server --port <next_free_port> --model mlx-community/<model-name>
+ uv run mlx_vlm.server --port 11434 --model mlx-community/DeepSeek-OCR-2-bf16 & \
+ uv run mlx_vlm.server --port 11435 --model mlx-community/PaddleOCR-VL-1.5-bf16 & \
+ uv run mlx_vlm.server --port <next_free_port> --model mlx-community/<model-name>
 ```
 
 Choose the next free port by incrementing from the highest port already used in `start_mlx`. Tell the user which port was assigned so they can configure the worker to point at it.
@@ -230,7 +239,7 @@ Choose the next free port by incrementing from the highest port already used in 
 
 **Two rules that must always hold:**
 
-1. **In `XxxOCR` (the `BadgerdocOCRBase` subclass):** Only pass primitives (`int`, `str`, `list[str]`, `dict`) or flat dataclasses whose fields are all primitives (like `BadgerdocDocument`) as `args` to `workflow.execute_activity`. Extract values from nested objects at the call site:
+1. **In `$ocr-tagOCR` (the `BadgerdocOCRBase` subclass):** Only pass primitives (`int`, `str`, `list[str]`, `dict`) or flat dataclasses whose fields are all primitives (like `BadgerdocDocument`) as `args` to `workflow.execute_activity`. Extract values from nested objects at the call site:
 
    ```python
    # WRONG — DocumentTriggerParams contains nested dataclasses
