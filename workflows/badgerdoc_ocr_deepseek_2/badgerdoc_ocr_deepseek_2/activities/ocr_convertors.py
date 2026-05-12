@@ -19,7 +19,7 @@ _BLOCK_RE = re.compile(
 )
 _HEADING_RE = re.compile(r"^#{1,6}\s*")
 _TABLE_ROW_RE = re.compile(r"^\s*\|.+\|", re.MULTILINE)
-_LIST_BULLET_RE = re.compile(r"^\s*[-*+]\s+", re.MULTILINE)
+_LIST_BULLET_RE = re.compile(r"^\s*[-*+\u2022]\s+", re.MULTILINE)
 _LIST_ORDERED_RE = re.compile(r"^\s*\d+\.\s+", re.MULTILINE)
 _INLINE_HTML_RE = re.compile(r"<(?:sub|sup)[^>]*>", re.IGNORECASE)
 
@@ -76,8 +76,11 @@ def _classify_block(block: dict) -> str:
     raw = block.get("raw", "")
     if _TABLE_ROW_RE.search(raw):
         return "table"
-    if _LIST_BULLET_RE.search(raw) or _LIST_ORDERED_RE.search(raw):
-        return "list"
+    # Check if any line starts with a list marker
+    lines = block.get("lines", [])
+    for line in lines:
+        if _LIST_BULLET_RE.match(line) or _LIST_ORDERED_RE.match(line):
+            return "list"
     return "text"
 
 
@@ -218,65 +221,49 @@ def _table_block_to_hocr_lines(
     return result, line_id + 1, word_id
 
 
+# Update _list_block_to_hocr_lines to render each list item as a separate line
 def _list_block_to_hocr_lines(
-    page_number: int,
-    block: dict,
-    carea_id: int,
-    par_id: int,
-    line_id: int,
-    word_id: int,
+        page_number: int,
+        block: dict,
+        carea_id: int,
+        par_id: int,
+        line_id: int,
+        word_id: int,
 ) -> tuple[list[str], int, int]:
     x0, y0, x1, y1 = block["bbox"]
     bbox = f"bbox {x0} {y0} {x1} {y1}"
 
-    list_node = None
-    try:
-        html_str = md_lib.markdown(block["raw"])
-        parsed = etree.fromstring(f"<div>{html_str}</div>", etree.HTMLParser())
-        list_node = parsed.find(".//ul")
-        if list_node is None:
-            list_node = parsed.find(".//ol")
-    except Exception:
-        logger.exception(
-            "Failed to convert list block to HTML; falling back to plain text "
-            "(page=%s, bbox=%s)",
-            page_number,
-            block.get("bbox"),
-        )
+    lines = block["lines"]
+    hocr: list[str] = []
 
-    if list_node is None:
-        lines_html: list[str] = []
-        lines_html.append(
-            f'<div class="ocr_carea" id="block_{page_number}_{carea_id}" title="{bbox}">'
-        )
-        lines_html.append(
-            f'<p class="ocr_par" id="par_{page_number}_{par_id}" title="{bbox}">'
-        )
-        n = len(block["lines"])
-        lh = (y1 - y0) / n if n else (y1 - y0)
-        for i, line_text in enumerate(block["lines"]):
-            ly0_ = round(y0 + i * lh)
-            ly1_ = round(y0 + (i + 1) * lh)
-            spans, word_id = _text_line_to_hocr_spans(
-                page_number, line_text, x0, ly0_, x1, ly1_, line_id, word_id
-            )
-            lines_html.extend(spans)
-            line_id += 1
-        lines_html.append("</p>")
-        lines_html.append("</div>")
-        return lines_html, line_id, word_id
+    hocr.append(
+        f'<div class="ocr_carea" id="block_{page_number}_{carea_id}" title="{bbox}">'
+    )
+    hocr.append(
+        f'<p class="ocr_par" id="par_{page_number}_{par_id}" title="{bbox}">'
+    )
 
-    list_html = etree.tostring(list_node, encoding="unicode")
-    result = [
-        f'<div class="ocr_carea" id="block_{page_number}_{carea_id}" title="{bbox}">',
-        f'<p class="ocr_par" id="par_{page_number}_{par_id}" title="{bbox}">',
-        f'  <span class="ocr_line" id="line_{page_number}_{line_id}" title="{bbox}">',
-        f"    {list_html}",
-        "  </span>",
-        "</p>",
-        "</div>",
-    ]
-    return result, line_id + 1, word_id
+    n_lines = len(lines)
+    line_height = (y1 - y0) / n_lines if n_lines else (y1 - y0)
+
+    for i, line_text in enumerate(lines):
+        # Remove list markers (-, *, +, •, or numbered)
+        clean_line = _LIST_BULLET_RE.sub("", line_text)
+        clean_line = _LIST_ORDERED_RE.sub("", clean_line).strip()
+
+        ly0 = round(y0 + i * line_height)
+        ly1 = round(y0 + (i + 1) * line_height)
+
+        spans, word_id = _text_line_to_hocr_spans(
+            page_number, clean_line, x0, ly0, x1, ly1, line_id, word_id
+        )
+        hocr.extend(spans)
+        line_id += 1
+
+    hocr.append("</p>")
+    hocr.append("</div>")
+
+    return hocr, line_id, word_id
 
 
 def _blocks_to_hocr(
