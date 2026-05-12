@@ -223,12 +223,12 @@ def _table_block_to_hocr_lines(
 
 # Update _list_block_to_hocr_lines to render each list item as a separate line
 def _list_block_to_hocr_lines(
-        page_number: int,
-        block: dict,
-        carea_id: int,
-        par_id: int,
-        line_id: int,
-        word_id: int,
+    page_number: int,
+    block: dict,
+    carea_id: int,
+    par_id: int,
+    line_id: int,
+    word_id: int,
 ) -> tuple[list[str], int, int]:
     x0, y0, x1, y1 = block["bbox"]
     bbox = f"bbox {x0} {y0} {x1} {y1}"
