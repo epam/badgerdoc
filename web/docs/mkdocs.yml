@@ -2,11 +2,8 @@ site_name: Badgerdoc 2 Documentation
 docs_dir: docs
 nav:
   - Home: index.md
+  - How to Contribute: how_to_contribute.md
   - Renditions and DZI: renditions_and_dzi.md
-  - Workflows:
-      - Workflow Registries: workflow_registries.md
-  - Task Flow: task_flow.md
-  - Extraction Tagging: extraction_tagging.md
   - Extraction Formats: extraction_formats.md
   - Badgerdoc OCR: badgerdoc_ocr.md
 
