@@ -158,8 +158,8 @@ export function WorkspaceTabs({
               isLocked
                 ? 'border-transparent text-muted-foreground/50 cursor-not-allowed'
                 : isActive
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground'
+                  ? 'border-primary text-primary cursor-pointer'
+                  : 'border-transparent text-muted-foreground hover:text-foreground cursor-pointer'
             )}
           >
             <span className={cn(isLocked && 'opacity-50')}>{tab.label}</span>
