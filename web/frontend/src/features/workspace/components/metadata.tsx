@@ -1,4 +1,4 @@
-import { JSX } from 'react'
+import { Fragment, JSX } from 'react'
 import { cn } from '@/helpers/utils.ts'
 import { Badge } from '@/components/ui/badge.tsx'
 
@@ -27,11 +27,8 @@ export function Metadata({ metadata, className }: MetadataProps): JSX.Element {
         const isNestedObject = value && typeof value === 'object' && !Array.isArray(value)
 
         return (
-          <>
-            <span
-              key={`${property}-label`}
-              className="text-sm text-muted-foreground font-medium whitespace-nowrap max-w-[150px] truncate"
-            >
+          <Fragment key={property}>
+            <span className="text-sm text-muted-foreground font-medium whitespace-nowrap max-w-[150px] truncate">
               {property}:
             </span>
             {isNestedObject ? (
@@ -60,7 +57,7 @@ export function Metadata({ metadata, className }: MetadataProps): JSX.Element {
             ) : (
               <p key={`${property}-value`} className="text-sm">{`${value}`}</p>
             )}
-          </>
+          </Fragment>
         )
       })}
     </div>

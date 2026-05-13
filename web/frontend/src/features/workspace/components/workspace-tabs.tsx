@@ -62,21 +62,16 @@ export function WorkspaceTabs({
 }: WorkspaceTabsProps) {
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([])
 
-  // Build tabs from extraction tags + hardcoded overview
+  // Build tabs from extraction tags only.
   const allTabs: TabConfig[] = useMemo(() => {
-    const tabs: TabConfig[] = [{ id: 'overview', label: 'Overview', shortcut: '1', order: 0 }]
-
-    // Add dynamic tabs from extraction tags
-    extractionTags.forEach((tag, index) => {
-      tabs.push({
+    return extractionTags
+      .map((tag, index) => ({
         id: tag.tag,
         label: tag.literal,
         order: tag.order,
-        shortcut: String(index + 2),
-      })
-    })
-
-    return tabs.sort((a, b) => (a.order || 0) - (b.order || 0))
+        shortcut: String(index + 1),
+      }))
+      .sort((a, b) => (a.order || 0) - (b.order || 0))
   }, [extractionTags])
 
   const handleKeyDown = useCallback(
@@ -128,6 +123,10 @@ export function WorkspaceTabs({
         </div>
       </div>
     )
+  }
+
+  if (allTabs.length === 0) {
+    return <div className="h-9 border-b border-border/40 bg-card px-4" />
   }
 
   return (
