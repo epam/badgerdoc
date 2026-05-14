@@ -273,7 +273,9 @@ export function WorkspacePage() {
 
       if (currentRoute in routes) {
         const nextSearch =
-          currentRoute === 'tasks' ? { ...taskFiltersSearch, tag: tab } : { tag: tab }
+          currentRoute === 'tasks'
+            ? { ...taskFiltersSearch, ...(tab ? { tag: tab } : {}) }
+            : { ...(tab ? { tag: tab } : {}) }
 
         void navigate({
           ...routes[currentRoute as keyof typeof routes],

@@ -1,4 +1,10 @@
-import { useState, type ComponentProps, type ComponentPropsWithoutRef, type ReactNode } from 'react'
+import {
+  useState,
+  type ComponentProps,
+  type ComponentPropsWithoutRef,
+  type ReactElement,
+  type ReactNode,
+} from 'react'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { cn } from '@/helpers/utils'
@@ -21,7 +27,7 @@ interface DocumentBarPopoverProps extends Pick<
   open?: boolean
   onOpenChange?: (open: boolean) => void
   title?: ReactNode
-  trigger: (state: { isOpen: boolean }) => ReactNode
+  trigger: (state: { isOpen: boolean }) => ReactElement
 }
 
 interface DocumentBarPopoverButtonProps extends Omit<
