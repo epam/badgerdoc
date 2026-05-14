@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import { ChevronDown, FileText } from 'lucide-react'
+import { DocumentBarPopover, DocumentBarPopoverButton } from '@/components/document-bar-popover'
 import { getDocumentExtension } from '@/components/document-hierarchy-utils'
-import { Button } from '@/components/ui/button'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { cn } from '@/helpers/utils'
 import { DocumentHierarchyViewer } from '@/components/document-hierarchy-viewer'
 import type { BadgerDocDocument } from '@/shared/api/badgerdoc/types'
@@ -36,13 +35,14 @@ export function DocumentHierarchyPopover({
   }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="h-9 max-w-[min(28rem,48vw)] justify-start gap-2 rounded-xl border-border/70 bg-background px-3 text-foreground shadow-sm hover:bg-muted/60"
+    <DocumentBarPopover
+      open={open}
+      onOpenChange={setOpen}
+      contentClassName="max-h-[min(34rem,calc(100vh-8rem))] w-[28rem] overflow-y-auto p-3"
+      trigger={({ isOpen }) => (
+        <DocumentBarPopoverButton
+          isOpen={isOpen}
+          className="max-w-[min(28rem,48vw)]"
           aria-label="Open document hierarchy"
         >
           <FileText
@@ -50,21 +50,17 @@ export function DocumentHierarchyPopover({
           />
           <span className="min-w-0 truncate text-sm font-medium">{title}</span>
           <ChevronDown className="ml-auto h-4 w-4 shrink-0 text-muted-foreground" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent
-        align="start"
-        className="max-h-[min(34rem,calc(100vh-8rem))] w-[28rem] max-w-[calc(100vw-2rem)] overflow-y-auto rounded-xl p-3"
-      >
-        <DocumentHierarchyViewer
-          tree={hierarchy.tree}
-          isLoading={hierarchy.isLoading}
-          isError={hierarchy.isError}
-          errorMessage={hierarchy.errorMessage ?? 'Related documents could not be loaded.'}
-          loadingMessage="Loading hierarchy..."
-          onDocumentSelect={handleDocumentSelect}
-        />
-      </PopoverContent>
-    </Popover>
+        </DocumentBarPopoverButton>
+      )}
+    >
+      <DocumentHierarchyViewer
+        tree={hierarchy.tree}
+        isLoading={hierarchy.isLoading}
+        isError={hierarchy.isError}
+        errorMessage={hierarchy.errorMessage ?? 'Related documents could not be loaded.'}
+        loadingMessage="Loading hierarchy..."
+        onDocumentSelect={handleDocumentSelect}
+      />
+    </DocumentBarPopover>
   )
 }
