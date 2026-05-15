@@ -1,6 +1,11 @@
 import { delay } from 'msw'
 import { ExtractionsAdapter } from '@/shared/api/adapters/types'
-import { createExtractionMock, extractionMock, extractionPageMock } from '@/mocks/data/extractions'
+import {
+  createExtractionMock,
+  extractionMock,
+  extractionPageMock,
+  extractionPageMocksByNumber,
+} from '@/mocks/data/extractions'
 import { BadgerDocExtraction, BadgerDocExtractionPage } from '@/shared/api/badgerdoc'
 
 export const mockExtractionsAdapter: ExtractionsAdapter = {
@@ -19,9 +24,16 @@ export const mockExtractionsAdapter: ExtractionsAdapter = {
     void delay(200)
     return extractionPageMock
   },
-  updateExtractionPage: async (): Promise<BadgerDocExtractionPage> => {
+  updateExtractionPage: async (params): Promise<BadgerDocExtractionPage> => {
     void delay(200)
-    return extractionPageMock
+    return {
+      ...extractionPageMock,
+      page_number: params.pageNumber,
+      content:
+        params.content ||
+        extractionPageMocksByNumber[params.pageNumber] ||
+        extractionPageMock.content,
+    }
   },
   updateExtraction: async (): Promise<BadgerDocExtraction> => {
     void delay(200)
