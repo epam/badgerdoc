@@ -1,6 +1,7 @@
 from django.urls import path
 
 from badgerdoc.views import tag
+from badgerdoc.views.agent_log import AgentLogView
 from badgerdoc.views.document import (
     DocumentView,
     create_document,
@@ -155,5 +156,6 @@ urlpatterns = [
         name="list-next-task-statuses",
     ),
     path("user/me", get_current_user_info, name="get-current-user-info"),
+    path("agent-log/", AgentLogView.as_view(), name="agent-log"),
     path("tags", tag.list_tags, name="list-tags"),
 ]

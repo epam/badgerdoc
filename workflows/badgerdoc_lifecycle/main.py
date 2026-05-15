@@ -9,6 +9,7 @@ from badgerdoc_common.activities import (
     task,
     workflow_registry,
 )
+from badgerdoc_common.activities.agent_log import write_agent_log
 from badgerdoc_lifecycle import (
     document_lifecycle,
     document_trigger,
@@ -38,6 +39,7 @@ async def worker():
                 manual_trigger_example.ManualTriggerExampleWorkflow,
             ],
             activities=[
+                write_agent_log,
                 workflow_registry.badgerdoc_get_workflow_by_id,
                 document.badgerdoc_get_document,
                 document.badgerdoc_list_documents,
