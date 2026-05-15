@@ -13,6 +13,7 @@ from rest_framework.response import Response
 
 from badgerdoc import llm_params_parser, permissions, temporal_client
 from badgerdoc.models import (
+    agent_log,
     document,
     extraction,
     extraction_page,
@@ -154,6 +155,13 @@ def start_manual_workflow(
         task_queue="badgerdoc_lifecycle",
         workflow_id=workflow_id,
         args=[workflow_input_data],
+    )
+
+    agent_log.AgentLog.objects.create(
+        document_id=original_document_id,
+        source=agent_log.AgentLog.Source.DJANGO,
+        level=agent_log.AgentLog.Level.INFO,
+        log={"workflow_params": workflow_input_data},
     )
 
     return workflow_id

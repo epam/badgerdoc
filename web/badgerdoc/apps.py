@@ -10,6 +10,7 @@ class BadgerdocConfig(AppConfig):
         ########################################################################
         # Import admin configurations for Django auto-discovery
         # ########################################################################
+        from badgerdoc.admin.agent_log import AgentLogAdmin  # noqa: F401
         from badgerdoc.admin.document import DocumentAdmin  # noqa: F401
         from badgerdoc.admin.extraction import ExtractionAdmin  # noqa: F401
         from badgerdoc.admin.extraction_document import (  # noqa: F401

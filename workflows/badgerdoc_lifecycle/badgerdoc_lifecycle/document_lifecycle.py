@@ -1,12 +1,9 @@
-import logging
 from dataclasses import dataclass
 
 from temporalio import workflow
 
-from badgerdoc_common import workflow_execution
+from badgerdoc_common import agent_logger, workflow_execution
 from badgerdoc_common.badgerdoc_event import BadgerdocEvent
-
-logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -34,14 +31,19 @@ class BadgerdocLifecycleWorkflow:
         self,
         request_data: BadgerdocEvent,
     ) -> BadgerdocLifecycleDocumentWorkflowResult:
-        logger.info(
+        logger = agent_logger.get_logger(
+            document_id=request_data.document_id,
+            task_id=request_data.task_id,
+        )
+
+        await logger.info(
             "Starting BadgerDoc %s lifecycle workflow",
             request_data.event_entity,
         )
 
         started_workflow_ids = []
         for workflow_data in request_data.supported_workflows:
-            logger.debug(
+            await logger.debug(
                 "Trying to start workflow %s",
                 workflow_data.temporal_workflow_type,
             )
@@ -55,7 +57,7 @@ class BadgerdocLifecycleWorkflow:
                 random_postfix=True,
             )
             workflow_id = await workflow_execution.run_child_workflow(params)
-            logger.debug("Adding workflow to started_workflow_ids")
+            await logger.debug("Adding workflow to started_workflow_ids")
             started_workflow_ids.append(workflow_id)
 
         workflow_results = (
@@ -64,8 +66,8 @@ class BadgerdocLifecycleWorkflow:
             )
         )
 
-        logger.info("All workflows completed: %s", workflow_results)
-        logger.info(
+        await logger.info("All workflows completed: %s", workflow_results)
+        await logger.info(
             "BadgerDoc %s lifecycle workflow completed successfully",
             request_data.event_entity,
         )

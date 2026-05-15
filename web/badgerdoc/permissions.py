@@ -16,3 +16,7 @@ def can_view_other_users_tasks(user) -> bool:
 
 def can_delete_document(user) -> bool:
     return user.is_staff or user.has_perm("badgerdoc.can_delete_document")
+
+
+def can_write_log(user) -> bool:
+    return user.is_staff or user.has_perm("badgerdoc.can_write_log")
