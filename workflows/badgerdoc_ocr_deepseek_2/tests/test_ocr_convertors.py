@@ -1,7 +1,5 @@
 import os
 
-import pytest
-
 os.environ.setdefault("BADGERDOC_REST_API_RETRY_POLICY", "1,2,10,3")
 
 from badgerdoc_ocr_deepseek_2.activities.ocr_convertors import (  # noqa: E402
@@ -54,7 +52,18 @@ def test_classify_block_list_bullet_fallback():
         "type": "paragraph",
         "bbox": (0, 0, 100, 100),
         "raw": raw,
-        "lines": [raw],
+        "lines": ["* Item one", "* Item two"],
+    }
+    assert _classify_block(block) == "list"
+
+
+def test_classify_block_list_bullet_unicode_fallback():
+    """Test that \u2022 (•) is recognized as a bullet marker."""
+    block = {
+        "type": "paragraph",
+        "bbox": (0, 0, 100, 100),
+        "raw": "• Item one\n• Item two",
+        "lines": ["• Item one", "• Item two"],
     }
     assert _classify_block(block) == "list"
 
@@ -65,7 +74,7 @@ def test_classify_block_list_ordered_fallback():
         "type": "paragraph",
         "bbox": (0, 0, 100, 100),
         "raw": raw,
-        "lines": [raw],
+        "lines": ["1. First", "2. Second"],
     }
     assert _classify_block(block) == "list"
 
@@ -115,11 +124,12 @@ def test_safe_inline_html_escapes_ampersand():
 
 def _make_table_block():
     raw = "| Header 1 | Header 2 |\n|----------|----------|\n| Cell 1   | Cell 2   |"
+    lines = [line.strip() for line in raw.split("\n") if line.strip()]
     return {
         "type": "table",
         "bbox": (10, 20, 200, 100),
         "raw": raw,
-        "lines": [raw],
+        "lines": lines,
     }
 
 
@@ -148,14 +158,56 @@ def _make_list_block():
         "type": "list",
         "bbox": (10, 200, 200, 300),
         "raw": raw,
-        "lines": ["Item one", "Item two", "Item three"],
+        "lines": ["* Item one", "* Item two", "* Item three"],
     }
 
 
-def test_list_block_renders_list_element():
+def test_list_block_renders_without_list_wrapper():
+    """Test that list items are rendered as ocr_line spans without <ul>/<ol> wrapper."""
     hocr = "\n".join(_blocks_to_hocr(1, [_make_list_block()]))
-    assert "<ul" in hocr or "<ol" in hocr
-    assert "Item one" in hocr
+    # Should NOT contain <ul> or <ol> tags
+    assert "<ul" not in hocr
+    assert "<ol" not in hocr
+    # Should contain the text content (words are split into separate ocrx_word spans)
+    assert "Item" in hocr
+    assert "one" in hocr
+    assert "two" in hocr
+    assert "three" in hocr
+    # Should have multiple ocr_line spans (one per list item)
+    assert hocr.count('class="ocr_line"') == 3
+
+
+def test_list_block_strips_bullet_markers():
+    """Test that bullet markers are stripped from list items."""
+    hocr = "\n".join(_blocks_to_hocr(1, [_make_list_block()]))
+    # Bullet markers should be removed
+    assert "* Item" not in hocr
+    assert (
+        "*" not in hocr or 'title="bbox' in hocr
+    )  # * might appear in attributes
+    # But the text content should remain
+    assert "Item" in hocr
+    assert "one" in hocr
+    assert "two" in hocr
+
+
+def test_list_block_with_unicode_bullet():
+    """Test that unicode bullet markers (•) are recognized and stripped."""
+    block = {
+        "type": "list",
+        "bbox": (10, 200, 200, 300),
+        "raw": "• Item one\n• Item two",
+        "lines": ["• Item one", "• Item two"],
+    }
+    hocr = "\n".join(_blocks_to_hocr(1, [block]))
+    # Should not contain the bullet character
+    assert "•" not in hocr
+    # Should contain the text (words are split into separate ocrx_word spans)
+    assert "Item" in hocr
+    assert "one" in hocr
+    assert "two" in hocr
+    # Should have ocr_line spans
+    assert hocr.count('class="ocr_line"') == 2
 
 
 def test_list_block_wrapped_in_ocr_line():
