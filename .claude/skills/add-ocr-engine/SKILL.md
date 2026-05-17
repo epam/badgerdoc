@@ -6,262 +6,166 @@ disable-model-invocation: true
 arguments: ocr-tag path-to-ocr-repository
 ---
 
-# Guidelines
+# Add OCR Engine
 
-The aim is writing working code for all OCR-related pipeline methods, not just stubs — research the engine's API, output format, and coordinate system, then implement each `BadgerdocOCRBase` method with real working logic.
+This skill integrates a new OCR engine into the Badgerdoc pipeline. It runs in four phases: **Explore → Gate → Tasks → Implement**. Each phase hands off to the next via a persistent artifact on disk; if context is lost, resume by reading the manifest and calling TaskList.
 
-## Steps to Execute
+---
 
-### 1. Create the `uv` package
+## Phase 1: Exploration
 
-Create the directory tree under `workflows/`:
+Spawn a **single** exploration subagent with the briefing below. Do not split into two parallel subagents — the subagent must reconcile engine API knowledge with codebase hOCR expectations in one pass so the Integration Delta already accounts for format mismatches. See `docs/adr/0001-single-exploration-subagent.md` for the rationale.
 
-```tree
-workflows/
-  badgerdoc_ocr_$ocr-tag/
-    badgerdoc_ocr_$ocr-tag/
-      __init__.py
-      workflow.py
-      $ocr-tag_ocr.py
-      activities/
-        __init__.py
-        ocr_requests.py
-        ocr_convertors.py
-    tests/
-      __init__.py
-    main.py
-    pyproject.toml
-    Dockerfile
+**Before spawning**, substitute all placeholders in the briefing:
+- Replace every `<ocr-tag>` with the actual `ocr-tag` argument value.
+- Replace every `<repo-root>` with the output of `git rev-parse --show-toplevel`.
+- Resolve the `<if>` / `</if>` conditionals: keep only the block that matches whether `path-to-ocr-repository` was provided; remove the other block and the `<if>` tags entirely.
+Pass the fully substituted text to the subagent — never pass the template with placeholders intact.
+
+### Subagent briefing template
+
+```
+You are researching a new OCR engine for integration into Badgerdoc.
+
+## Your two tasks (complete both in one pass)
+
+### Task 1: Engine API research
+<if path-to-ocr-repository was provided>
+Primary source: read the repository at <path-to-ocr-repository>.
+Learn: how to authenticate, how to invoke inference (SDK call or HTTP endpoint),
+what the raw output looks like (JSON shape, bbox format, coordinate space).
+Fall back to web search only for gaps the repo does not answer.
+</if>
+<if no path-to-ocr-repository>
+Search the web for the engine's Python SDK or HTTP API documentation.
+Learn: authentication, invocation, raw output shape, coordinate space.
+</if>
+
+### Task 2: Codebase analysis
+Examine the existing OCR workers in `workflows/badgerdoc_ocr_*/` to understand:
+- The `BadgerdocOCRBase` interface (five abstract methods) in `badgerdoc_common`
+- How an existing worker (e.g. deepseek_2) implements each method
+- What files every worker must contain (package layout, Dockerfile, main.py pattern)
+- How coordinates are normalized to the [0, 1000] hOCR range
+
+## Output
+
+First create the output directory:
+```bash
+mkdir -p <repo-root>/local/ocr-integration/<ocr-tag>
+```
+Then write your findings to `<repo-root>/local/ocr-integration/<ocr-tag>/manifest.md` with exactly
+these four sections:
+
+### Engine API Summary
+Authentication method, invocation pattern, raw output JSON shape, coordinate space.
+
+### Integration Delta
+A checklist of specific files and modules to create or modify, with one line of
+context for each item explaining what it must do. This is the source of truth
+for task creation — be precise.
+
+### Coordinate Mapping
+How engine bboxes map to the [0, 1000] hOCR range. If already normalized, write
+"pass-through". Otherwise describe the formula.
+
+### Open Questions
+Anything you could not resolve with confidence. If none, write "None".
 ```
 
-`pyproject.toml` must declare `badgerdoc_common` as a local editable path dependency:
+After the subagent completes, run this check before proceeding:
 
-```toml
-[tool.uv.sources]
-badgerdoc_common = { path = "../badgerdoc_common", editable = true }
+```bash
+REPO_ROOT=$(git rev-parse --show-toplevel) && \
+test -f "$REPO_ROOT/local/ocr-integration/<ocr-tag>/manifest.md" && echo "MANIFEST OK" || echo "MANIFEST MISSING"
 ```
 
-### 2. Implement `BadgerdocOCRBase` in `$ocr-tag_ocr.py`
+If the output is `MANIFEST MISSING`, do not proceed — instruct the subagent to write the manifest to `$REPO_ROOT/local/ocr-integration/<ocr-tag>/manifest.md` and re-run the check until it passes.
 
-Extend `BadgerdocOCRBase` from `badgerdoc_common.badgerdoc_ocr` and implement all five abstract methods with real working logic. Before writing code, research the engine's Python SDK or HTTP API, its raw output format, and how it represents bounding boxes.
+---
 
-#### `ocr_pages` → `list[BadgerdocOCRPageResult]`
+## Phase 2: Open Question Gate
 
-Call the engine on each full-page rendition image. Extract only primitives from `params` before calling `workflow.execute_activity` (see Temporal serialization rule below). Store each result in a `_path_to_context` dict mapping `middle_json_path → (page_num, info_dict)` so `convert_to_hocr` can look up context for every path.
+Run `git rev-parse --show-toplevel` to get the repo root, then read `<repo-root>/local/ocr-integration/<ocr-tag>/manifest.md` from disk.
 
-```python
-def __init__(self) -> None:
-    self._path_to_context: dict[str, tuple[int, dict]] = {}
+Locate the **Open Questions** section.
+
+- If it contains only "None" or is otherwise empty: proceed immediately to Phase 3 — no user prompt needed.
+- If it contains one or more questions: present each question to the user clearly, numbered, and wait for answers before proceeding. Then update the manifest's Open Questions section with the resolved answers (overwrite the question lines with "Resolved: <answer>").
+
+Do not create any tasks until all open questions are resolved.
+
+---
+
+## Phase 3: Task Creation
+
+Run `git rev-parse --show-toplevel` to get the repo root, then read `<repo-root>/local/ocr-integration/<ocr-tag>/manifest.md` from disk. Use the **Integration Delta** section as the source of tasks — do not use a fixed template.
+
+For each item in the Integration Delta, call `TaskCreate` with:
+- **subject**: what to build (one line, imperative)
+- **description**: the item's context line from the delta plus a "Load before starting:" instruction naming the relevant reference file(s):
+  - For any task involving activity or workflow code: "Load before starting: run `git rev-parse --show-toplevel` and read `<repo-root>/.claude/skills/add-ocr-engine/TEMPORAL-RULES.md`"
+  - For any task involving the convertor activity or `convert_to_hocr`: "Load before starting: run `git rev-parse --show-toplevel` and read `<repo-root>/.claude/skills/add-ocr-engine/HOCR-SPEC.md`"
+  - For scaffolding, Dockerfile, docker-compose, WorkflowRegistry, env vars: no reference file needed
+
+Set `addBlockedBy` relationships so tasks are worked in dependency order (e.g. the convertor task blocks the workflow task; the workflow task blocks `main.py`).
+
+After all tasks are created, run `git rev-parse --show-toplevel` and read `<repo-root>/.claude/skills/add-ocr-engine/INTEGRATION-CHECKLIST.md`. Verify that every checklist item has a corresponding task. Create any missing tasks using the same pattern above. This is a validation pass, not the source of task definitions.
+
+---
+
+## Phase 4: Implementation
+
+Work through tasks in kanban order (lowest unblocked task first). For each task:
+
+1. Call `TaskUpdate` to set the task to `in_progress`.
+2. Read the task description — it is self-contained. Work from it plus the reference file it names. Do not re-read the full manifest or SKILL.md for each task.
+3. **Rule loading triggers** — run `git rev-parse --show-toplevel` once to get `<repo-root>`, then read the named file at the moment you start the relevant task, not before:
+   - Read `<repo-root>/.claude/skills/add-ocr-engine/TEMPORAL-RULES.md` before writing any `@activity.defn` function or any `workflow.execute_activity` call.
+   - Read `<repo-root>/.claude/skills/add-ocr-engine/HOCR-SPEC.md` before implementing the convertor activity or any `convert_to_hocr` method.
+   - `INTEGRATION-CHECKLIST.md` was already loaded during Phase 3 and does not need to be re-read per task.
+4. Complete the task, then call `TaskUpdate` to set it to `completed`.
+5. Move to the next unblocked task.
+
+### Context recovery
+
+If context is lost mid-implementation:
+1. Run `git rev-parse --show-toplevel` and read `<repo-root>/local/ocr-integration/<ocr-tag>/manifest.md` to restore understanding of the integration.
+2. Call `TaskList` to find which tasks are complete, in-progress, and pending.
+3. Resume from the next incomplete task, loading its description and the reference file it names.
+
+### Completion gate
+
+After all tasks are marked `completed`, run the following checks. Every command must print `OK`. If any prints a failure, create and complete the missing task before declaring the integration done.
+
+```bash
+REPO_ROOT=$(git rev-parse --show-toplevel)
+OCR_TAG=<ocr-tag>
+WORKFLOW_CLASS="Badgerdoc$(echo "$OCR_TAG" | sed 's/_\([a-z]\)/\U\1/g; s/^\([a-z]\)/\U\1/')Workflow"
+
+# 1. WorkflowRegistry fixture entry exists
+grep -q "\"temporal_workflow_type\": \"$WORKFLOW_CLASS\"" \
+  "$REPO_ROOT/web/badgerdoc/fixtures/workflowregistry.json" \
+  && echo "FIXTURE OK" || echo "FIXTURE MISSING: $WORKFLOW_CLASS not in workflowregistry.json"
+
+# 2. task_queue in main.py matches temporal_queue in fixture
+QUEUE=$(grep 'task_queue' "$REPO_ROOT/workflows/badgerdoc_ocr_${OCR_TAG}/main.py" \
+  | grep -o '"[^"]*"' | head -1 | tr -d '"')
+grep -q "\"temporal_queue\": \"$QUEUE\"" \
+  "$REPO_ROOT/web/badgerdoc/fixtures/workflowregistry.json" \
+  && echo "QUEUE MATCH OK ($QUEUE)" || echo "QUEUE MISMATCH: $QUEUE not found in fixture"
+
+# 3. Env vars documented
+grep -q "OCR_\|${OCR_TAG^^}" "$REPO_ROOT/.env_example" \
+  && echo "ENV VARS OK" || echo "ENV VARS MISSING: nothing matching ${OCR_TAG^^} in .env_example"
+
+# 4. docker-compose service exists
+grep -q "badgerdoc_ocr_${OCR_TAG}" "$REPO_ROOT/docker-compose.yml" \
+  && echo "COMPOSE OK" || echo "COMPOSE MISSING: no service for badgerdoc_ocr_${OCR_TAG}"
+
+# 5. Tag fixture entry exists (useTags() caches with staleTime: Infinity; fixture ensures fresh setups see the tag)
+TAG_SLUG=$(echo "$OCR_TAG" | tr '_' '-')
+grep -q "\"tag\": \"$TAG_SLUG\"" \
+  "$REPO_ROOT/web/badgerdoc/fixtures/tags.json" \
+  && echo "TAG FIXTURE OK ($TAG_SLUG)" || echo "TAG FIXTURE MISSING: $TAG_SLUG not in tags.json"
 ```
-
-#### `ocr_blocks` → `list[BadgerdocOCRPageResult]`
-
-Same as `ocr_pages` for block crops. Must preserve input order. Insert `BadgerdocOCRPageResult(ocr={})` at the position of any failure. Pass a `block_index` int to the OCR activity so filenames are unique: `page_{N}_block_{I}_middle.json`.
-
-#### `align_coordinates` → `BadgerdocOCRPageResult`
-
-Can be a **pass-through** (`return result`) if coordinate remapping is handled inside `convert_to_hocr`'s convertor activity (which is the recommended pattern — see below).
-
-#### `ocr_merge_blocks` → `list[BadgerdocOCRPageResult]`
-
-Fold block results into page results keyed by page number; one output entry per page:
-
-```python
-merged: dict[str, list[str]] = {}
-for r in pages + blocks:
-    for page_num, paths in r.ocr.items():
-        merged.setdefault(page_num, []).extend(paths)
-return [BadgerdocOCRPageResult(ocr=merged)]
-```
-
-#### `convert_to_hocr` → `list[BadgerdocHOCRPageResult]`
-
-**Group all paths by page number first**, then call the convertor activity **once per page** passing all infos for that page as a list. This ensures multiple blocks on the same page are merged into a single hOCR file keyed by `str(page_num)`.
-
-```python
-page_to_infos: dict[int, list[dict]] = {}
-for result in results:
-    for _, paths in result.ocr.items():
-        for path in paths:
-            page_num, info = self._path_to_context[path]
-            page_to_infos.setdefault(page_num, []).append(info)
-
-for page_num, infos in page_to_infos.items():
-    hocr_result = await workflow.execute_activity(
-        your_results_to_hocr,
-        args=[workflow_type, page_num, infos],
-        ...
-    )
-```
-
-Never produce per-block hOCR keys like `"1_b0"` — the final key must always be `str(page_num)`.
-
-### 3. Design the convertor activity (`ocr_convertors.py`)
-
-The convertor activity signature must accept a **list** of info dicts so it can merge multiple blocks into one page:
-
-```python
-@activity.defn
-async def your_engine_results_to_hocr(
-    workflow_type: str,
-    page_num: int,
-    infos: list[dict],          # one entry per block/page-crop for this page
-) -> BadgerdocHOCRPageResult:
-    all_blocks = []
-    for info in infos:
-        # Download middle_json, parse OCR output into blocks
-        ...
-        # Apply position_in_parent remapping FOR THIS SPECIFIC INFO
-        position_in_parent = (info.get("metadata") or {}).get("position_in_parent")
-        if position_in_parent:
-            cx1, cy1, cx2, cy2 = map(int, position_in_parent.split())
-            cw, ch = cx2 - cx1, cy2 - cy1
-            for block in blocks:
-                bx1, by1, bx2, by2 = block["bbox"]
-                block["bbox"] = (
-                    cx1 + round(bx1 * cw / 1000),
-                    cy1 + round(by1 * ch / 1000),
-                    cx1 + round(bx2 * cw / 1000),
-                    cy1 + round(by2 * ch / 1000),
-                )
-        all_blocks.extend(blocks)
-
-    # Generate one hOCR file with all blocks, upload, return single key
-    hocr_path = await storage.badgerdoc_store_perm(..., f"page_{page_num}.hocr")
-    return BadgerdocHOCRPageResult(h_ocr={str(page_num): hocr_path})
-```
-
-Coordinate remapping is **per-info**: each block has its own `metadata.position_in_parent` describing where it sits on the parent page.
-
-### 4. Create `workflow.py`
-
-```python
-@workflow.defn
-class Badgerdoc$ocr-tagWorkflow:
-
-    @workflow.run
-    async def run(self, params: trigger.DocumentTriggerParams) -> BadgerdocHOCRPageResult:
-        ocr_container = await trigger_params_to_ocr_page(params)
-        hocr_results = await $ocr-tagOCR().run(params, ocr_container)
-        combined: dict = {}
-        for result in hocr_results:
-            combined.update(result.h_ocr)
-        return BadgerdocHOCRPageResult(h_ocr=combined)
-```
-
-### 5. Register activities in `main.py`
-
-Always include the three `badgerdoc_common` document activities alongside the engine's own activities — they are required by `trigger_params_to_ocr_page`:
-
-```python
-from badgerdoc_common.activities.document import (
-    badgerdoc_get_document_chunk,
-    badgerdoc_get_rendition,
-    badgerdoc_list_documents,
-)
-```
-
-Omitting them causes a `NotFoundError` at runtime.
-
-### 6. Copy and adapt `Dockerfile`
-
-Copy `workflows/badgerdoc_ocr_deepseek_2/Dockerfile` and replace the package name.
-
-### 7. Add service to `docker-compose.yml`
-
-Add a new service block for the worker, setting:
-
-- `build.context` pointing to the new worker directory
-- `TEMPORAL_BADGERDOC_ADDRESS`, `BADGERDOC_TOKEN`, `TEMPORAL_ADDRESS` env vars
-- `depends_on: [temporal, web]`
-
-### 8. Create a `WorkflowRegistry` fixture or migration
-
-Add a Django fixture (or instruct the user to create a record via admin) with:
-
-| Field | Value |
-| --- | --- |
-| `name` | Descriptive name |
-| `temporal_workflow_type` | Exact class name from `workflow.py` |
-| `temporal_queue` | Must match `task_queue` in `main.py` |
-| `trigger` | `manual` |
-| `extraction_scope` | `["page"]` or `["page", "block"]` |
-| `is_active` | `true` |
-
-### 9. MLX support (if requested)
-
-**Before doing anything**, check whether the requested OCR engine has a published MLX-compatible model on [https://huggingface.co/mlx-community](https://huggingface.co/mlx-community). Search for the engine name in the repository list. If no `mlx-community/<model>` variant exists, inform the user that MLX is not supported for this engine and skip this step entirely.
-
-If an `mlx-community` model is found, append a new `uv run mlx_vlm.server` line to the `start_mlx` target in `Makefile`:
-
-```makefile
-start_mlx:
- uv run mlx_vlm.server --port 11434 --model mlx-community/DeepSeek-OCR-2-bf16 & \
- uv run mlx_vlm.server --port 11435 --model mlx-community/PaddleOCR-VL-1.5-bf16 & \
- uv run mlx_vlm.server --port <next_free_port> --model mlx-community/<model-name>
-```
-
-Choose the next free port by incrementing from the highest port already used in `start_mlx`. Tell the user which port was assigned so they can configure the worker to point at it.
-
-## Rules
-
-- **Every new OCR engine MUST subclass `BadgerdocOCRBase`** from `badgerdoc_common.badgerdoc_ocr`. Implementing the pipeline inline in `workflow.run()` without subclassing is not allowed. The `workflow.run()` method must only call `trigger_params_to_ocr_page` and then delegate entirely to `EngineOCR().run(params, ocr_container)`. All five abstract methods (`ocr_pages`, `ocr_blocks`, `align_coordinates`, `ocr_merge_blocks`, `convert_to_hocr`) must be implemented with real logic in the subclass.
-- **Extraction tagging must happen exactly once, before any fan-out.** Never tag inside a per-page/per-block activity — doing so causes redundant PATCH requests during fan-out and risks clobbering concurrent tag updates (the PATCH sends the full tags array built from the snapshot passed as an arg). Instead, implement a dedicated `<engine>_tag_extraction(extraction_id, extraction_tags)` activity in `ocr_requests.py` and override `run()` in the `BadgerdocOCRBase` subclass to call it before `super().run()`, mirroring the MinerU/Paddle pattern:
-
-  ```python
-  async def run(self, params, ocr_container):
-      await workflow.execute_activity(
-          engine_tag_extraction,
-          args=[params.target_extraction.id, params.target_extraction.tags or []],
-          start_to_close_timeout=helpers.BADGERDOC_REST_API_START_TO_CLOSE_TIMEOUT,
-          retry_policy=helpers.BadgerdocRestAPIRetryPolicy,
-      )
-      return await super().run(params, ocr_container)
-  ```
-
-  Register this tagging activity in `main.py` alongside the OCR activities. Do **not** pass `extraction_id` or `extraction_tags` to the OCR activity itself — they are only needed by the tagging activity.
-- All pipeline steps **must** emit `logger.info` log lines at the start and completion of each method, including the number of pages/blocks being processed and any notable intermediate outcomes (e.g. pages skipped, blocks failed, coordinates shifted). Upstream infrastructure reads worker logs and surfaces them to the user in the UI, so logs are the primary progress and status signal — treat them as user-facing messages, not internal debug noise.
-- Any environment variables introduced by the new worker (API keys, model endpoints, inference timeouts, MLX server URLs, etc.) **must** be added to `.env_example` at the project root with a placeholder value and a short inline comment explaining what the variable controls. This is the canonical reference for required configuration — do not leave env vars undocumented.
-- All I/O inside the workflow (including calls inside `BadgerdocOCRBase`) **must** go through `workflow.execute_activity()` with `start_to_close_timeout` and `retry_policy` from `badgerdoc_common.helpers`. Never call `@activity.defn` functions directly from workflow code.
-- Use `helpers.BADGERDOC_REST_API_START_TO_CLOSE_TIMEOUT` and `helpers.BadgerdocRestAPIRetryPolicy` for any REST activity calls.
-- `ocr_blocks` must preserve the exact input order. Use `asyncio.gather` for concurrent fetching when possible.
-- The hOCR output produced by `convert_to_hocr` **must** conform to the spec in `web/docs/docs/extraction_formats.md`. Key constraints:
-  - All bounding-box coordinates (`bbox`) must be integers in the range `[0, 1000]`.
-  - Root-level content blocks must use the class `ocr_carea`.
-  - Required capabilities: `ocr_photo`, `ocr_page`, `ocr_carea`, `ocr_par`, `ocr_line`, `ocrx_word`.
-  - Page IDs follow the pattern `page_<page_number>` (1-based).
-  - All other element IDs follow the pattern `<tag_name>_<page_number>_<tag_index>` (e.g. `block_4_5`).
-- See `web/docs/docs/badgerdoc_ocr.md` for the full pipeline description and coordinate alignment details.
-
-## Temporal serialization — critical constraint
-
-**Temporal's default JSON converter does NOT reconstruct Python `@dataclass` instances from activity arguments.** It deserializes JSON objects as plain `dict`, even when the parameter has a dataclass type hint. This applies to ALL dataclass args passed via `workflow.execute_activity(..., args=[...])`.
-
-**Two rules that must always hold:**
-
-1. **In `$ocr-tagOCR` (the `BadgerdocOCRBase` subclass):** Only pass primitives (`int`, `str`, `list[str]`, `dict`) or flat dataclasses whose fields are all primitives (like `BadgerdocDocument`) as `args` to `workflow.execute_activity`. Extract values from nested objects at the call site:
-
-   ```python
-   # WRONG — DocumentTriggerParams contains nested dataclasses
-   args=[params, req.badgerdoc_document]
-
-   # CORRECT — extract primitives before the call
-   args=[params.target_extraction.id, params.target_extraction.tags or [],
-         params.workflow.temporal_workflow_type,
-         req.badgerdoc_document.page_num,
-         req.badgerdoc_document.document]   # BadgerdocDocument is flat → OK
-   ```
-
-2. **In every `@activity.defn` that receives a dataclass argument:** Add a defensive reconstruction guard at the top of the function body:
-
-   ```python
-   @activity.defn
-   async def my_activity(doc: BadgerdocDocument, ...) -> ...:
-       if isinstance(doc, dict):
-           doc = BadgerdocDocument(**doc)
-       ...
-   ```
-
-   Apply the same pattern to every `badgerdoc_common` activity that receives a dataclass (`badgerdoc_get_rendition`, `badgerdoc_list_documents`, `badgerdoc_get_document_chunk`, etc.) — they are already patched in the codebase, but any new activity must follow the same rule.
-
-**Why `DocumentTriggerParams` works at the workflow level but not activity level:** Temporal correctly reconstructs dataclasses from the workflow `run` method's input (top-level workflow argument), so `params: DocumentTriggerParams` in `workflow.run` is always a proper dataclass. The failure is specific to arguments passed through `workflow.execute_activity(..., args=[...])`.
