@@ -1,15 +1,15 @@
 [project]
-name = "badgerdoc-ocr-deepseek-2"
+name = "badgerdoc-mlx"
 version = "0.1.0"
-description = "BadgerDoc OCR utilities"
+description = "BadgerDoc MLX workflow"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "temporalio>=1.18.2",
-    "aiohttp>=3.13.2",
     "badgerdoc-common",
-    "lxml>=6.0.2",
-    "markdown>=3.10.2"
+    "openai",
+    "mineru-vl-utils>=0.1.0",
+    "Pillow",
 ]
 
 [tool.uv.sources]

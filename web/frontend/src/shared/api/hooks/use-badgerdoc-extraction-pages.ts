@@ -29,13 +29,13 @@ export const extractionPagesKeys = {
  * @param tags - Optional tag filter (e.g., 'extraction', 'analysis')
  * @returns React Query result with extraction pages data
  */
-export function useBadgerDocExtractionPages(documentId: string, tags?: string) {
+export function useBadgerDocExtractionPages(documentId: string, tags?: string, enabled = true) {
   return useQuery({
     queryKey: extractionPagesKeys.documentWithTags(documentId, tags),
     queryFn: () => {
       return getApiAdapter().extractions.getLatestExtraction(documentId, tags)
     },
-    enabled: !!documentId,
+    enabled: !!documentId && enabled,
     staleTime: 30_000, // Consider data stale after 30 seconds
     refetchOnWindowFocus: false,
   })

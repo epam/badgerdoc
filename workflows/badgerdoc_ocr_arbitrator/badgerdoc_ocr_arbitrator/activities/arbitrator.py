@@ -49,6 +49,7 @@ async def start_arbitrator(
     )
 
     all_workflows = await get_existing_workflows()
+    logger.info("Got ids: %s", ids)
     logger.info("Mapping: %s", await build_engine_to_id_mapping())
     selected_workflows = [w for w in all_workflows if w.id in ids]
     # to avoide recursion

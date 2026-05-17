@@ -25,7 +25,8 @@ async def worker() -> None:
             workflows=[workflow.BadgerdocOCRMinerUWorkflow],
             activities=[
                 activities.ocr_requests.mineru_mlx_tag_extraction,
-                activities.ocr_requests.mineru_mlx_ocr_page,
+                activities.ocr_requests.mineru_prepare_page,
+                activities.ocr_requests.mineru_store_result,
                 activities.ocr_convertors.mineru_mlx_results_to_hocr,
                 badgerdoc_list_documents,
                 badgerdoc_get_rendition,

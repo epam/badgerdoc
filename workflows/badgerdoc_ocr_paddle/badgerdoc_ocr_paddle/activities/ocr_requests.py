@@ -13,7 +13,6 @@ from badgerdoc_common.activities.document import BadgerdocDocument
 logger = logging.getLogger(__name__)
 
 
-HOST = os.environ.get("HOST_ADDRESS_FOR_MLX", "localhost")
 PORT = os.environ.get("PADDLE_MLX_PORT", "11435")
 MODEL = os.environ.get("PADDLE_MODEL", "mlx-community/PaddleOCR-VL-1.5-bf16")
 PROMPT = "Spotting:"
@@ -35,70 +34,51 @@ async def paddle_ocr_tag_extraction(
 
 
 @activity.defn
-async def paddle_ocr_from_page(
-    workflow_type: str,
+async def paddle_prepare_page(
     page_num: int,
     doc: BadgerdocDocument,
-    block_index: int | None = None,
 ) -> dict[str, Any]:
-    """Run Paddle OCR on a single page or block-crop image.
-
-    Accepts flattened primitives + single-level BadgerdocDocument instead of
-    nested BadgerdocDocumentPage / DocumentTriggerParams — Temporal's default
-    JSON converter reconstructs single-level dataclasses correctly but fails
-    silently on multi-level nesting, returning a plain dict instead.
+    """Resolve the rendition image URL for a page.
 
     Returns a dict with keys:
-        page_num     — the page number (int)
-        middle_json  — MinIO path to the raw OCR output JSON
-        metadata     — document metadata (width, height, page, position_in_parent)
+        image_url — publicly accessible URL of the page image
+        metadata  — document metadata (width, height, page, position_in_parent)
     """
-    import openai  # pylint: disable=import-outside-toplevel
-
-    from badgerdoc_common import (  # pylint: disable=import-outside-toplevel
-        storage,
-    )
-
     if isinstance(doc, dict):
         doc = BadgerdocDocument(**doc)
 
-    # If the document is already a child doc (rendition or block crop), use its
-    # file URL directly — calling get_rendition on a rendition would fail.
     if doc.parent_document_id is not None:
         rendition_doc = doc
     else:
         rendition_doc = await document.badgerdoc_get_rendition(doc, page_num)
 
-    image_url = rendition_doc.file.replace("minio:", "localhost:")
+    image_url = rendition_doc.file
     logger.info(
-        "Running Paddle OCR on page %d (block_index=%s), image: %s",
-        page_num,
-        block_index,
-        image_url,
+        "paddle_prepare_page: page %d resolved to %s", page_num, image_url
     )
-    client = openai.OpenAI(
-        base_url=f"http://{HOST}:{PORT}/v1", api_key="not-needed"
-    )
+    return {
+        "image_url": image_url,
+        "metadata": rendition_doc.metadata,
+    }
 
-    response = client.chat.completions.create(
-        model=MODEL,
-        messages=[
-            {
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": PROMPT},
-                    {
-                        "type": "image_url",
-                        "image_url": {
-                            "url": image_url,
-                            "detail": "high",
-                        },
-                    },
-                ],
-            }
-        ],
-        stream=False,
-        max_tokens=MAX_TOKENS,
+
+@activity.defn
+async def paddle_store_result(
+    workflow_type: str,
+    page_num: int,
+    text: str,
+    metadata: dict[str, Any],
+    block_index: int | None = None,
+) -> dict[str, Any]:
+    """Store raw OCR text to MinIO and return the storage path.
+
+    Returns a dict with keys:
+        page_num     — the page number (int)
+        middle_json  — MinIO path to the raw OCR output JSON
+        metadata     — document metadata passed through unchanged
+    """
+    from badgerdoc_common import (  # pylint: disable=import-outside-toplevel
+        storage,
     )
 
     storage_params = storage.StorageWorkflowParams(
@@ -112,14 +92,12 @@ async def paddle_ocr_from_page(
         else f"page_{page_num}_middle.json"
     )
     middle_json_path = await storage.badgerdoc_store_perm(
-        BytesIO(
-            json.dumps({"text": response.choices[0].message.content}).encode()
-        ),
+        BytesIO(json.dumps({"text": text}).encode()),
         storage_params,
         filename,
     )
     logger.info(
-        "Paddle OCR complete for page %d (block_index=%s), stored: %s",
+        "paddle_store_result: page %d (block_index=%s) stored: %s",
         page_num,
         block_index,
         middle_json_path,
@@ -127,5 +105,5 @@ async def paddle_ocr_from_page(
     return {
         "page_num": page_num,
         "middle_json": middle_json_path,
-        "metadata": rendition_doc.metadata,
+        "metadata": metadata,
     }
