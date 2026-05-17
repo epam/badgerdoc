@@ -141,7 +141,7 @@ After all tasks are marked `completed`, run the following checks. Every command 
 ```bash
 REPO_ROOT=$(git rev-parse --show-toplevel)
 OCR_TAG=<ocr-tag>
-WORKFLOW_CLASS="Badgerdoc$(echo "$OCR_TAG" | sed 's/_\([a-z]\)/\U\1/g; s/^\([a-z]\)/\U\1/')Workflow"
+WORKFLOW_CLASS="Badgerdoc$(python3 -c "print(''.join(w.capitalize() for w in '$OCR_TAG'.split('_')))")Workflow"
 
 # 1. WorkflowRegistry fixture entry exists
 grep -q "\"temporal_workflow_type\": \"$WORKFLOW_CLASS\"" \
@@ -156,8 +156,9 @@ grep -q "\"temporal_queue\": \"$QUEUE\"" \
   && echo "QUEUE MATCH OK ($QUEUE)" || echo "QUEUE MISMATCH: $QUEUE not found in fixture"
 
 # 3. Env vars documented
-grep -q "OCR_\|${OCR_TAG^^}" "$REPO_ROOT/.env_example" \
-  && echo "ENV VARS OK" || echo "ENV VARS MISSING: nothing matching ${OCR_TAG^^} in .env_example"
+OCR_TAG_UPPER=$(echo "$OCR_TAG" | tr '[:lower:]' '[:upper:]')
+grep -q "OCR_\|${OCR_TAG_UPPER}" "$REPO_ROOT/.env_example" \
+  && echo "ENV VARS OK" || echo "ENV VARS MISSING: nothing matching ${OCR_TAG_UPPER} in .env_example"
 
 # 4. docker-compose service exists
 grep -q "badgerdoc_ocr_${OCR_TAG}" "$REPO_ROOT/docker-compose.yml" \
@@ -168,4 +169,15 @@ TAG_SLUG=$(echo "$OCR_TAG" | tr '_' '-')
 grep -q "\"tag\": \"$TAG_SLUG\"" \
   "$REPO_ROOT/web/badgerdoc/fixtures/tags.json" \
   && echo "TAG FIXTURE OK ($TAG_SLUG)" || echo "TAG FIXTURE MISSING: $TAG_SLUG not in tags.json"
+
+# 6 + 7. README.md exists, then package dependencies resolve
+# (uv sync will fail if readme= is declared in pyproject.toml but the file is absent)
+if test -f "$REPO_ROOT/workflows/badgerdoc_ocr_${OCR_TAG}/README.md"; then
+  echo "README OK"
+  (cd "$REPO_ROOT/workflows/badgerdoc_ocr_${OCR_TAG}" && uv sync) \
+    && echo "UV SYNC OK" || echo "UV SYNC FAILED: fix pyproject.toml or add missing deps"
+else
+  echo "README MISSING: create workflows/badgerdoc_ocr_${OCR_TAG}/README.md"
+  echo "UV SYNC SKIPPED: README.md must exist first (pyproject.toml readme= field)"
+fi
 ```
