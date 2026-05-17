@@ -14,7 +14,7 @@ This skill integrates a new OCR engine into the Badgerdoc pipeline. It runs in f
 
 ## Phase 1: Exploration
 
-Spawn a **single** exploration subagent with the briefing below. Do not split into two parallel subagents — the subagent must reconcile engine API knowledge with codebase hOCR expectations in one pass so the Integration Delta already accounts for format mismatches. See `docs/adr/0001-single-exploration-subagent.md` for the rationale.
+Spawn a **single** exploration subagent with the briefing below. Do not split into two parallel subagents — the subagent must reconcile engine API knowledge with codebase hOCR expectations in one pass so the Integration Delta already accounts for format mismatches.
 
 **Before spawning**, substitute all placeholders in the briefing:
 - Replace every `<ocr-tag>` with the actual `ocr-tag` argument value.
