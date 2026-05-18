@@ -29,6 +29,7 @@ interface ExtractionResultsTabProps {
   workflowSelection: ChatWorkflowSelection
   isRunningInference: boolean
   setIsRunningInference: (isProcessing: boolean) => void
+  onTriggerSuccess?: () => void
 }
 
 function ExtractionEmptyState({ tag }: { tag: string }) {
@@ -62,6 +63,7 @@ export function ExtractionResultsTab({
   workflowSelection,
   isRunningInference,
   setIsRunningInference,
+  onTriggerSuccess,
 }: ExtractionResultsTabProps) {
   const isEmpty = !extractionPages || extractionPages.length === 0
   const isChatDisabled = isLoading || hasUnsavedChanges || isSaving
@@ -126,6 +128,7 @@ export function ExtractionResultsTab({
         setIsRunningInference={setIsRunningInference}
         activeTag={tag}
         workflowSelection={workflowSelection}
+        onTriggerSuccess={onTriggerSuccess}
       />
     </div>
   )

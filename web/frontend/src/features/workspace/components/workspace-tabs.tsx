@@ -27,6 +27,8 @@ interface TabConfig {
   order: number
 }
 
+export const AGENT_TAB_ID = 'agent'
+
 function TabStatusIndicator({ status }: { status: TabStatus }) {
   if (status === 'complete') {
     return <Check className="h-3 w-3 text-mint" />
@@ -62,16 +64,24 @@ export function WorkspaceTabs({
 }: WorkspaceTabsProps) {
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([])
 
-  // Build tabs from extraction tags only.
   const allTabs: TabConfig[] = useMemo(() => {
-    return extractionTags
+    const agentTab = {
+      id: AGENT_TAB_ID,
+      label: 'Agent',
+      order: -1,
+      shortcut: '1',
+    }
+
+    const extractionTabs = extractionTags
       .map((tag, index) => ({
         id: tag.tag,
         label: tag.literal,
         order: tag.order,
-        shortcut: String(index + 1),
+        shortcut: String(index + 2),
       }))
       .sort((a, b) => (a.order || 0) - (b.order || 0))
+
+    return [agentTab, ...extractionTabs]
   }, [extractionTags])
 
   const handleKeyDown = useCallback(
@@ -107,27 +117,6 @@ export function WorkspaceTabs({
     },
     [allTabs, onTabChange, currentStatusId, currentStatusName]
   )
-
-  // Show skeleton tabs while loading
-  if (isLoadingTags) {
-    return (
-      <div className="flex items-center border-b border-border/40 bg-card px-4">
-        <div className="flex items-center gap-2 px-4 py-2">
-          <div className="h-4 w-20 animate-pulse rounded bg-muted" />
-        </div>
-        <div className="flex items-center gap-2 px-4 py-2">
-          <div className="h-4 w-24 animate-pulse rounded bg-muted" />
-        </div>
-        <div className="flex items-center gap-2 px-4 py-2">
-          <div className="h-4 w-28 animate-pulse rounded bg-muted" />
-        </div>
-      </div>
-    )
-  }
-
-  if (allTabs.length === 0) {
-    return <div className="h-9 border-b border-border/40 bg-card px-4" />
-  }
 
   return (
     <div
@@ -180,6 +169,16 @@ export function WorkspaceTabs({
 
         return button
       })}
+      {isLoadingTags && (
+        <>
+          <div className="flex items-center gap-2 px-4 py-2">
+            <div className="h-4 w-24 animate-pulse rounded bg-muted" />
+          </div>
+          <div className="flex items-center gap-2 px-4 py-2">
+            <div className="h-4 w-28 animate-pulse rounded bg-muted" />
+          </div>
+        </>
+      )}
     </div>
   )
 }

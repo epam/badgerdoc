@@ -10,7 +10,15 @@
 export { badgerDocService } from './service'
 
 // Types
-export type { BadgerDocExtractionPage, BadgerDocExtraction } from './types'
+export type {
+  AgentLog,
+  AgentLogLevel,
+  AgentLogPayload,
+  AgentLogsResponse,
+  BadgerDocExtractionPage,
+  BadgerDocExtraction,
+  GetAgentLogsParams,
+} from './types'
 
 // Transformers
 export { transformBadgerDocDocument } from './transformers'

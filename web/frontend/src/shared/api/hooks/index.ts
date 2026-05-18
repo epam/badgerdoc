@@ -3,6 +3,7 @@ export * from './use-upload'
 export * from './use-badgerdoc-documents'
 export * from './use-badgerdoc-document-hierarchy'
 export * from './use-badgerdoc-extraction-pages'
+export * from './use-agent-logs'
 
 export const extractionPagesKeys = {
   all: ['badgerdoc-extraction-pages'] as const,

@@ -15,6 +15,8 @@ import {
   BadgerDocExtractionPage,
   BadgerDocExtractionsResponse,
   BadgerDocExtractionPagesResponse,
+  AgentLogsResponse,
+  GetAgentLogsParams,
   BadgerDocUploadResponse,
   Tag,
 } from './types'
@@ -37,6 +39,7 @@ const ENDPOINTS = {
   document: (id: string | number) => `/document/${id}/`,
   documentPages: (id: string | number) => `/document/${id}/dzi/`,
   documentUpload: '/document/',
+  agentLogs: '/agent-log/',
   extractions: '/extractions/',
   tags: '/tags',
   extractionPages: '/extraction-pages/',
@@ -137,6 +140,17 @@ export const badgerDocService = {
 
   async getDocumentPages(documentId: string | number): Promise<string[]> {
     const response = await badgerDocClient.get<string[]>(ENDPOINTS.documentPages(documentId))
+    return response.data
+  },
+
+  async getAgentLogs(params: GetAgentLogsParams): Promise<AgentLogsResponse> {
+    const response = await badgerDocClient.get<AgentLogsResponse>(ENDPOINTS.agentLogs, {
+      params: {
+        document_id: params.documentId,
+        ...(params.after ? { after: params.after } : {}),
+        ...(params.page ? { page: params.page } : {}),
+      },
+    })
     return response.data
   },
 
