@@ -38,6 +38,8 @@ interface ViewerToolbarProps {
   totalPages: number
   onNextClick: () => void
   onPrevClick: () => void
+  onZoomInClick?: () => void
+  onZoomOutClick?: () => void
   onFitToPage: () => void
   isLoading: boolean
   isEditMode: boolean
@@ -89,6 +91,8 @@ export function ViewerToolbar({
   currentPage,
   onNextClick,
   onPrevClick,
+  onZoomInClick,
+  onZoomOutClick,
   onFitToPage,
   isLoading,
   isEditMode,
@@ -191,14 +195,28 @@ export function ViewerToolbar({
         {isLoading ? (
           <Skeleton className="h-8 w-8" />
         ) : (
-          <Button id={ZOOM_OUT_BTN_ID} variant="ghost" size="icon" className="h-8 w-8">
+          <Button
+            id={ZOOM_OUT_BTN_ID}
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={onZoomOutClick}
+            disabled={!onZoomOutClick}
+          >
             <ZoomOut className="h-4 w-4 m-auto" />
           </Button>
         )}
         {isLoading ? (
           <Skeleton className="h-8 w-8" />
         ) : (
-          <Button id={ZOOM_IN_BTN_ID} variant="ghost" size="icon-sm" className="h-8 w-8">
+          <Button
+            id={ZOOM_IN_BTN_ID}
+            variant="ghost"
+            size="icon-sm"
+            className="h-8 w-8"
+            onClick={onZoomInClick}
+            disabled={!onZoomInClick}
+          >
             <ZoomIn className="h-4 w-4 m-auto" />
           </Button>
         )}
