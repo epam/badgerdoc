@@ -79,3 +79,11 @@ export function getFileExtensionFromFileName(fileName: string): string {
   if (index === -1) return ''
   return fileName.slice(index + 1).toLowerCase()
 }
+
+export const isMacOS = () => {
+  if (typeof navigator === 'undefined') {
+    return false
+  }
+
+  return /Mac|iPhone|iPad|iPod/.test(navigator.userAgent)
+}

@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import OpenSeadragon, { Options, Viewer as OSDViewer } from 'openseadragon'
 import { logger } from '@/shared/logger.ts'
-import { DEFAULT_OSD_CONFIG } from '@/components/collection-viewer/config'
+import { DEFAULT_OSD_CONFIG, MACOS_OSD_CONFIG } from '@/components/collection-viewer/config'
+import { isMacOS } from '@/helpers/utils'
 
 export const useOsdViewer = (tileSources?: string[]) => {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -12,11 +13,13 @@ export const useOsdViewer = (tileSources?: string[]) => {
       if (!containerRef.current) return
 
       let osdViewer: OSDViewer | null = null
+      const platformConfig = isMacOS() ? MACOS_OSD_CONFIG : {}
 
       try {
         osdViewer = new OpenSeadragon.Viewer({
           element: containerRef.current,
           ...DEFAULT_OSD_CONFIG,
+          ...platformConfig,
           tileSources,
         } as Partial<Options>)
         setViewer(osdViewer)

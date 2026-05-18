@@ -10,6 +10,7 @@ import { Dispatch, SetStateAction, useCallback, useEffect, useState } from 'reac
 import { cn, extractFilenameFromUrl } from '@/helpers/utils'
 import { badgerDocService } from '@/shared/api/badgerdoc/service'
 import { toast } from 'sonner'
+import { useTouchNavigation } from './use-touch-navigation'
 
 interface CollectionViewerProps {
   documentId: string
@@ -70,6 +71,8 @@ export function CollectionViewer({
   })
 
   const pagination = useViewerNavigation(pages?.length || 0, currentPage, goToPage)
+
+  useTouchNavigation(viewer)
 
   const handleDownloadOriginal = useCallback(async () => {
     if (!documentId || isDownloading) {

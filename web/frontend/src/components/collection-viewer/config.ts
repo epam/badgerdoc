@@ -28,9 +28,29 @@ export const DEFAULT_OSD_CONFIG: Options = {
   homeFillsViewer: false,
   minZoomImageRatio: 1,
   autoResize: true,
+  // Performance on iOS: snap pan/zoom to finger instead of using slow spring physics
+  springStiffness: 15,
+  animationTime: 0.4,
+  gestureSettingsTouch: {
+    flickEnabled: false,
+    pinchToZoom: true,
+  },
   // layout settings
   collectionMode: true,
   collectionRows: 1,
   collectionTileMargin: 20,
   collectionLayout: 'vertical',
+}
+
+export const MACOS_OSD_CONFIG: Partial<Options> = {
+  ...DEFAULT_OSD_CONFIG,
+  // Make trackpad pan/zoom feel a bit more responsive without becoming jumpy.
+  minScrollDeltaTime: 0,
+  pixelsPerWheelLine: 40,
+  zoomPerScroll: 1.28,
+  zoomPerSecond: 1.35,
+  gestureSettingsMouse: {
+    dragToPan: true,
+    scrollToZoom: true,
+  },
 }
