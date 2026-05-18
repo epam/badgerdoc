@@ -17,7 +17,12 @@ import type {
   UpdateTaskRequest,
 } from '@/shared/types/tasks'
 import { BadgerDocExtractionPage } from '@/shared/api/badgerdoc'
-import { BadgerDocExtraction, Tag } from '@/shared/api/badgerdoc/types'
+import {
+  AgentLogsResponse,
+  BadgerDocExtraction,
+  GetAgentLogsParams,
+  Tag,
+} from '@/shared/api/badgerdoc/types'
 
 // =============================================================================
 // Response Types
@@ -162,10 +167,15 @@ export interface WorkflowsAdapter {
   getStatus(workflowId: string): Promise<WorkflowStatusResponse>
 }
 
+export interface AgentLogsAdapter {
+  getAgentLogs(params: GetAgentLogsParams): Promise<AgentLogsResponse>
+}
+
 export interface ApiAdapter {
   documents: DocumentsAdapter
   tasks: TasksAdapter
   extractions: ExtractionsAdapter
   tags: TagsAdapter
   workflows: WorkflowsAdapter
+  agentLogs: AgentLogsAdapter
 }

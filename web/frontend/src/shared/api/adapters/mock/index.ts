@@ -11,6 +11,7 @@ import { mockTasksAdapter } from './tasks'
 import { mockExtractionsAdapter } from './extractions'
 import { mockTagsAdapter } from '@/shared/api/adapters/mock/tags.ts'
 import { mockWorkflowsAdapter } from './workflows'
+import { mockAgentLogsAdapter } from './agent-logs'
 
 export function createMockApiAdapter(): ApiAdapter {
   return {
@@ -19,6 +20,7 @@ export function createMockApiAdapter(): ApiAdapter {
     extractions: mockExtractionsAdapter,
     tags: mockTagsAdapter,
     workflows: mockWorkflowsAdapter,
+    agentLogs: mockAgentLogsAdapter,
   }
 }
 

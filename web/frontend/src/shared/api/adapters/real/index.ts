@@ -11,6 +11,7 @@ import { realTasksAdapter } from './tasks'
 import { realExtractionsAdapter } from './extractions'
 import { realTagsAdapter } from '@/shared/api/adapters/real/tags.ts'
 import { realWorkflowsAdapter } from './workflows'
+import { realAgentLogsAdapter } from './agent-logs'
 
 export function createRealApiAdapter(): ApiAdapter {
   return {
@@ -19,6 +20,7 @@ export function createRealApiAdapter(): ApiAdapter {
     extractions: realExtractionsAdapter,
     tags: realTagsAdapter,
     workflows: realWorkflowsAdapter,
+    agentLogs: realAgentLogsAdapter,
   }
 }
 

@@ -172,6 +172,47 @@ export interface BadgerDocExtractionPagesResponse {
 }
 
 // =============================================================================
+// Agent Log Types
+// =============================================================================
+
+export type AgentLogLevel = 'DEBUG' | 'INFO' | 'WARNING' | 'ERROR' | 'CRITICAL'
+
+export interface AgentLogPayload {
+  message?: string
+  markdown?: string
+  code?: string
+  document?: number | null
+  workflow_params?: unknown
+}
+
+export interface AgentLog {
+  id: number | string
+  document: number
+  task?: number | string | null
+  level: AgentLogLevel
+  source?: string | null
+  log: AgentLogPayload
+  created_at: string
+}
+
+export interface GetAgentLogsParams {
+  documentId: string | number
+  after?: string
+  page?: number
+}
+
+/**
+ * Response from GET /agent-log/
+ * Format: { count, next, previous, results }
+ */
+export interface AgentLogsResponse {
+  count: number
+  next: string | null
+  previous: string | null
+  results: AgentLog[]
+}
+
+// =============================================================================
 // Upload Types
 // =============================================================================
 

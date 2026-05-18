@@ -1,14 +1,11 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ExtractionChat } from './extraction-chat'
 import type { ChatWorkflowSelection } from '@/features/workspace/hooks/use-chat-workflow-selection'
 
-const { mutateAsync, workflowStatusState } = vi.hoisted(() => ({
+const { mutateAsync } = vi.hoisted(() => ({
   mutateAsync: vi.fn(),
-  workflowStatusState: {
-    data: null as null | { status: string },
-  },
 }))
 
 vi.mock('@/shared/api/hooks/use-workflows', () => ({
@@ -27,9 +24,6 @@ vi.mock('@/shared/api/hooks/use-workflows', () => ({
   useTriggerWorkflow: () => ({
     mutateAsync,
     isPending: false,
-  }),
-  useWorkflowStatus: () => ({
-    data: workflowStatusState.data,
   }),
 }))
 
@@ -118,7 +112,6 @@ describe('ExtractionChat', () => {
   beforeEach(() => {
     mutateAsync.mockReset()
     mutateAsync.mockResolvedValue({ workflow_id: 'wf-1' })
-    workflowStatusState.data = null
   })
 
   afterEach(() => {
@@ -144,7 +137,7 @@ describe('ExtractionChat', () => {
     })
   })
 
-  it('keeps the prompt draft while the workflow is still running', async () => {
+  it('clears the prompt after the trigger request succeeds', async () => {
     const { onPromptChange } = renderExtractionChat()
 
     fireEvent.click(screen.getByRole('button', { name: /send/i }))
@@ -153,40 +146,19 @@ describe('ExtractionChat', () => {
       expect(mutateAsync).toHaveBeenCalledTimes(1)
     })
 
-    expect(onPromptChange).not.toHaveBeenCalled()
-  })
-
-  it('clears the prompt after the workflow finishes', async () => {
-    const { onPromptChange, rerenderExtractionChat } = renderExtractionChat()
-
-    fireEvent.click(screen.getByRole('button', { name: /send/i }))
-
-    await waitFor(() => {
-      expect(mutateAsync).toHaveBeenCalledTimes(1)
-    })
-
-    workflowStatusState.data = { status: 'Finished' }
-    rerenderExtractionChat()
-
     await waitFor(() => {
       expect(onPromptChange).toHaveBeenCalledWith('')
     })
   })
 
-  it('preserves the prompt when the workflow fails', async () => {
-    const { onPromptChange, rerenderExtractionChat } = renderExtractionChat()
+  it('preserves the prompt when the trigger request fails', async () => {
+    mutateAsync.mockRejectedValueOnce(new Error('trigger failed'))
+    const { onPromptChange } = renderExtractionChat()
 
     fireEvent.click(screen.getByRole('button', { name: /send/i }))
 
     await waitFor(() => {
       expect(mutateAsync).toHaveBeenCalledTimes(1)
-    })
-
-    workflowStatusState.data = { status: 'Failed' }
-    rerenderExtractionChat()
-
-    await act(async () => {
-      await new Promise((resolve) => requestAnimationFrame(() => resolve(undefined)))
     })
 
     expect(onPromptChange).not.toHaveBeenCalledWith('')
@@ -199,8 +171,8 @@ describe('ExtractionChat', () => {
     expect(screen.getByRole('status', { name: /loading/i })).toBeInTheDocument()
   })
 
-  it('shows success feedback only after the workflow finishes', async () => {
-    const { rerenderExtractionChat } = renderExtractionChat()
+  it('shows success feedback after the trigger request succeeds', async () => {
+    renderExtractionChat()
 
     fireEvent.click(screen.getByRole('button', { name: /send/i }))
 
@@ -208,13 +180,40 @@ describe('ExtractionChat', () => {
       expect(mutateAsync).toHaveBeenCalledTimes(1)
     })
 
-    expect(screen.queryByRole('status', { name: /extraction updated/i })).not.toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByRole('status', { name: /request sent/i })).toBeInTheDocument()
+    })
+  })
 
-    workflowStatusState.data = { status: 'Finished' }
-    rerenderExtractionChat()
+  it('unlocks and notifies the parent after the trigger request succeeds', async () => {
+    const setIsRunningInference = vi.fn()
+    const onTriggerSuccess = vi.fn()
+    renderExtractionChat({ setIsRunningInference, onTriggerSuccess })
+
+    fireEvent.click(screen.getByRole('button', { name: /send/i }))
 
     await waitFor(() => {
-      expect(screen.getByRole('status', { name: /extraction updated/i })).toBeInTheDocument()
+      expect(mutateAsync).toHaveBeenCalledTimes(1)
     })
+
+    expect(setIsRunningInference).toHaveBeenNthCalledWith(1, true)
+    await waitFor(() => {
+      expect(setIsRunningInference).toHaveBeenLastCalledWith(false)
+    })
+    expect(onTriggerSuccess).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not notify the parent when the trigger request fails', async () => {
+    mutateAsync.mockRejectedValueOnce(new Error('trigger failed'))
+    const onTriggerSuccess = vi.fn()
+    renderExtractionChat({ onTriggerSuccess })
+
+    fireEvent.click(screen.getByRole('button', { name: /send/i }))
+
+    await waitFor(() => {
+      expect(mutateAsync).toHaveBeenCalledTimes(1)
+    })
+
+    expect(onTriggerSuccess).not.toHaveBeenCalled()
   })
 })
