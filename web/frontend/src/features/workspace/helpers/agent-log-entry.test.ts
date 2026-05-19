@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { formatLogTime, hasMeaningfulWorkflowParams, safeStringify } from './agent-log-entry'
+import {
+  formatLogTime,
+  hasMeaningfulWorkflowParams,
+  safeStringify,
+  shouldShowSourceDocumentLink,
+} from './agent-log-entry'
 
 describe('agent-log-entry helpers', () => {
   it.each([undefined, null, {}, [], '', '   '])(
@@ -25,5 +30,23 @@ describe('agent-log-entry helpers', () => {
 
   it('returns invalid timestamps unchanged', () => {
     expect(formatLogTime('not-a-date')).toBe('not-a-date')
+  })
+
+  it('does not show a source document link for current-document logs', () => {
+    expect(
+      shouldShowSourceDocumentLink({
+        currentDocumentId: '123',
+        sourceDocumentId: 123,
+      })
+    ).toBe(false)
+  })
+
+  it('shows a source document link for child-document logs', () => {
+    expect(
+      shouldShowSourceDocumentLink({
+        currentDocumentId: '123',
+        sourceDocumentId: 456,
+      })
+    ).toBe(true)
   })
 })

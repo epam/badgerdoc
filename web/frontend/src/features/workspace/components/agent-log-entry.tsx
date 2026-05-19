@@ -10,11 +10,13 @@ import {
   formatLogTime,
   hasMeaningfulWorkflowParams,
   safeStringify,
+  shouldShowSourceDocumentLink,
 } from '@/features/workspace/helpers/agent-log-entry'
 import { AGENT_TAB_ID } from './workspace-tabs'
 
 interface AgentLogEntryProps {
   log: AgentLog
+  currentDocumentId?: number | string
 }
 
 function getLevelVariant(level: AgentLogLevel): ComponentProps<typeof Badge>['variant'] {
@@ -139,6 +141,26 @@ function WorkflowParamsRenderer({ value }: { value: unknown }) {
   )
 }
 
+function SourceDocumentLink({ documentId }: { documentId: number | string }) {
+  const navigate = useNavigate()
+
+  return (
+    <button
+      type="button"
+      className="text-xs font-medium text-primary underline underline-offset-2 hover:text-primary/80 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
+      onClick={() => {
+        void navigate({
+          to: '/documents/$id',
+          params: { id: String(documentId) },
+          search: { tag: AGENT_TAB_ID },
+        })
+      }}
+    >
+      Document #{documentId}
+    </button>
+  )
+}
+
 function DocumentPayloadRenderer({ documentId }: { documentId: number | string }) {
   const navigate = useNavigate()
   const { data: document, isLoading, isError } = useWorkspaceDocument(String(documentId))
@@ -241,7 +263,12 @@ function AgentLogPayloadRenderer({ log }: { log: AgentLog }) {
   )
 }
 
-export function AgentLogEntry({ log }: AgentLogEntryProps) {
+export function AgentLogEntry({ log, currentDocumentId }: AgentLogEntryProps) {
+  const shouldShowSourceDocument = shouldShowSourceDocumentLink({
+    currentDocumentId,
+    sourceDocumentId: log.document,
+  })
+
   return (
     <li className="relative pl-8">
       <span aria-hidden="true" className={getMarkerClassName(log.level)} />
@@ -255,6 +282,7 @@ export function AgentLogEntry({ log }: AgentLogEntryProps) {
           <time className="text-xs text-muted-foreground" dateTime={log.created_at}>
             {formatLogTime(log.created_at)}
           </time>
+          {shouldShowSourceDocument && <SourceDocumentLink documentId={log.document} />}
           {log.level === 'CRITICAL' && (
             <AlertCircle className="h-4 w-4 text-destructive" aria-hidden="true" />
           )}

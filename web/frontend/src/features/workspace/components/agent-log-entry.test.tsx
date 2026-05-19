@@ -141,6 +141,65 @@ describe('AgentLogEntry', () => {
     expect(screen.getByText('Task 42')).toBeInTheDocument()
   })
 
+  it('does not render a source document link for current-document logs', () => {
+    render(
+      <ol>
+        <AgentLogEntry
+          log={createLog({ message: 'Current document log' }, { document: 123 })}
+          currentDocumentId="123"
+        />
+      </ol>
+    )
+
+    expect(screen.getByText('Current document log')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /document #123/i })).not.toBeInTheDocument()
+  })
+
+  it('renders a source document link for child-document logs', () => {
+    render(
+      <ol>
+        <AgentLogEntry
+          log={createLog({ message: 'Child document log' }, { document: 456 })}
+          currentDocumentId="123"
+        />
+      </ol>
+    )
+
+    const sourceDocumentLink = screen.getByRole('button', { name: /document #456/i })
+    expect(sourceDocumentLink).toBeInTheDocument()
+
+    fireEvent.click(sourceDocumentLink)
+
+    expect(mocks.navigate).toHaveBeenCalledWith({
+      to: '/documents/$id',
+      params: { id: '456' },
+      search: { tag: 'agent' },
+    })
+  })
+
+  it('keeps payload document rendering separate from the source document link', () => {
+    mocks.useWorkspaceDocument.mockReturnValue({
+      data: {
+        id: '456',
+        title: 'Payload document',
+      },
+      isLoading: false,
+      isError: false,
+    })
+
+    render(
+      <ol>
+        <AgentLogEntry
+          log={createLog({ document: 456 }, { document: 123 })}
+          currentDocumentId="123"
+        />
+      </ol>
+    )
+
+    expect(screen.queryByRole('button', { name: /document #456/i })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /payload document/i })).toBeInTheDocument()
+  })
+
   it('styles warning and critical levels distinctly', () => {
     render(
       <ol>

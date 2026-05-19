@@ -234,7 +234,7 @@ export function AgentLogsTab({
             )}
             <ol className="relative space-y-3 before:absolute before:bottom-0 before:left-[13px] before:top-0 before:w-px before:bg-border">
               {logs.map((log) => (
-                <AgentLogEntry key={log.id} log={log} />
+                <AgentLogEntry key={log.id} log={log} currentDocumentId={documentId} />
               ))}
             </ol>
           </div>

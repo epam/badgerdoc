@@ -53,3 +53,17 @@ export function hasMeaningfulWorkflowParams(value: unknown) {
 
   return true
 }
+
+export function shouldShowSourceDocumentLink({
+  currentDocumentId,
+  sourceDocumentId,
+}: {
+  currentDocumentId?: number | string | null
+  sourceDocumentId: number | string
+}) {
+  if (currentDocumentId === null || currentDocumentId === undefined) {
+    return false
+  }
+
+  return String(sourceDocumentId) !== String(currentDocumentId)
+}
