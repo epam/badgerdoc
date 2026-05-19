@@ -92,6 +92,45 @@ describe('AgentLogEntry', () => {
     expect(screen.queryByText(/no payload details/i)).not.toBeInTheDocument()
   })
 
+  it.each([
+    ['null', null],
+    ['empty object', {}],
+    ['empty array', []],
+    ['empty string', ''],
+    ['blank string', '   '],
+  ])('hides empty workflow params when value is %s', (_label, workflowParams) => {
+    render(
+      <ol>
+        <AgentLogEntry
+          log={createLog({
+            message: 'Workflow completed',
+            workflow_params: workflowParams,
+          })}
+        />
+      </ol>
+    )
+
+    expect(screen.getByText('Workflow completed')).toBeInTheDocument()
+    expect(screen.queryByText(/workflow params/i)).not.toBeInTheDocument()
+  })
+
+  it.each([
+    ['object', { model: 'test' }, '"model": "test"'],
+    ['array', ['item'], '"item"'],
+    ['false boolean', false, 'false'],
+    ['zero number', 0, '0'],
+    ['non-empty string', 'value', '"value"'],
+  ])('renders meaningful workflow params when value is %s', (_label, workflowParams, expected) => {
+    const { container } = render(
+      <ol>
+        <AgentLogEntry log={createLog({ workflow_params: workflowParams })} />
+      </ol>
+    )
+
+    expect(screen.getByText(/workflow params/i)).toBeInTheDocument()
+    expect(container.querySelector('pre code')).toHaveTextContent(expected)
+  })
+
   it('renders numeric task ids', () => {
     render(
       <ol>

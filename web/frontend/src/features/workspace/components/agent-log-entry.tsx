@@ -6,24 +6,15 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/helpers/utils'
 import { useWorkspaceDocument } from '@/shared/api/hooks/use-document-workspace'
 import type { AgentLog, AgentLogLevel } from '@/shared/api/badgerdoc/types'
+import {
+  formatLogTime,
+  hasMeaningfulWorkflowParams,
+  safeStringify,
+} from '@/features/workspace/helpers/agent-log-entry'
 import { AGENT_TAB_ID } from './workspace-tabs'
 
 interface AgentLogEntryProps {
   log: AgentLog
-}
-
-function formatLogTime(createdAt: string) {
-  const date = new Date(createdAt)
-  if (Number.isNaN(date.getTime())) {
-    return createdAt
-  }
-
-  return new Intl.DateTimeFormat(undefined, {
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(date)
 }
 
 function getLevelVariant(level: AgentLogLevel): ComponentProps<typeof Badge>['variant'] {
@@ -140,28 +131,6 @@ function CodeRenderer({ code }: { code: string }) {
   )
 }
 
-function safeStringify(value: unknown) {
-  const seen = new WeakSet<object>()
-
-  try {
-    return JSON.stringify(
-      value,
-      (_key, nestedValue) => {
-        if (typeof nestedValue === 'object' && nestedValue !== null) {
-          if (seen.has(nestedValue)) {
-            return '[Circular]'
-          }
-          seen.add(nestedValue)
-        }
-        return nestedValue
-      },
-      2
-    )
-  } catch {
-    return String(value)
-  }
-}
-
 function WorkflowParamsRenderer({ value }: { value: unknown }) {
   return (
     <pre className="max-h-72 overflow-auto rounded-md border border-border bg-muted/40 p-3 text-xs">
@@ -234,7 +203,7 @@ function AgentLogPayloadRenderer({ log }: { log: AgentLog }) {
   const hasMarkdown = 'markdown' in payload
   const hasCode = 'code' in payload
   const hasDocument = payload.document !== undefined && payload.document !== null
-  const hasWorkflowParams = payload.workflow_params !== undefined
+  const hasWorkflowParams = hasMeaningfulWorkflowParams(payload.workflow_params)
   const hasPayload = hasMessage || hasMarkdown || hasCode || hasDocument || hasWorkflowParams
 
   if (!hasPayload) {
