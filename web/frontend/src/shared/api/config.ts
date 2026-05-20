@@ -6,7 +6,6 @@
  *
  * Environment Variables:
  * - VITE_API_BASE_URL: Backend API base URL (default: http://localhost:3000/api)
- * - VITE_USE_MOCK_FALLBACK: Set to 'true' to use mock data (default: real API)
  */
 
 export const API_CONFIG = {
@@ -48,9 +47,6 @@ export const API_CONFIG = {
   // ==========================================================================
 
   features: {
-    /** Use mock data when API is not available */
-    useMockFallback: import.meta.env.VITE_USE_MOCK_FALLBACK === 'true',
-
     /** Enable API request logging in console */
     enableLogging: import.meta.env.DEV,
 
@@ -64,6 +60,8 @@ export const API_CONFIG = {
       extractions: import.meta.env.VITE_MOCK_EXTRACTIONS === 'true',
       tasks: import.meta.env.VITE_MOCK_TASKS === 'true',
       tags: import.meta.env.VITE_MOCK_TAGS === 'true',
+      users: import.meta.env.VITE_MOCK_USERS === 'true',
+      uploads: import.meta.env.VITE_MOCK_UPLOADS === 'true',
       workflows: import.meta.env.VITE_MOCK_WORKFLOWS === 'true',
     },
   },

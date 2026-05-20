@@ -1,39 +1,47 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { renderHook, waitFor } from '@testing-library/react'
 import type { ReactNode } from 'react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
-import { badgerDocService } from '../badgerdoc/service'
-import type { BadgerDocDocument, BadgerDocDocumentsResponse } from '../badgerdoc/types'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import type { DocumentsListResponse } from '../adapters/types'
+import { getApiAdapter } from '../adapters/factory'
 import {
   buildDocumentHierarchyTree,
   getBadgerDocDocumentTitle,
   useBadgerDocDocumentHierarchy,
 } from './use-badgerdoc-document-hierarchy'
+import type { Document } from '@/shared/types/api'
 
-vi.mock('../badgerdoc/service', () => ({
-  badgerDocService: {
-    getDocument: vi.fn(),
-    getDocuments: vi.fn(),
-  },
+vi.mock('../adapters/factory', () => ({
+  getApiAdapter: vi.fn(),
 }))
 
-const getDocumentMock = vi.mocked(badgerDocService.getDocument)
-const getDocumentsMock = vi.mocked(badgerDocService.getDocuments)
+const getDocumentMock = vi.fn<() => Promise<Document>>()
+const getDocumentsMock = vi.fn<() => Promise<DocumentsListResponse>>()
+const getApiAdapterMock = vi.mocked(getApiAdapter)
 
 function createDocument(
   id: number,
   title: string,
-  parentDocumentId?: number | null
-): BadgerDocDocument {
+  parentDocumentId?: number | null,
+  pdfUrl: string = `https://example.test/${id}.pdf`
+): Document {
   return {
-    id,
-    parent_document_id: parentDocumentId,
-    file: `https://example.test/${id}.pdf`,
+    id: String(id),
+    parentDocumentId,
+    title,
+    type: 'report',
+    status: 'analysis_ready',
+    pdfUrl,
+    pageCount: 1,
     metadata: { title },
+    authors: [],
+    createdAt: '2024-01-01T00:00:00Z',
+    updatedAt: '2024-01-01T00:00:00Z',
+    tags: [],
   }
 }
 
-function createDocumentsResponse(results: BadgerDocDocument[]): BadgerDocDocumentsResponse {
+function createDocumentsResponse(results: Document[]): DocumentsListResponse {
   return {
     count: results.length,
     next: null,
@@ -57,27 +65,28 @@ function createWrapper() {
 }
 
 describe('buildDocumentHierarchyTree', () => {
-  it('falls back from metadata title to document name, file name, and document id', () => {
+  it('falls back from metadata title to title, file name, and document id', () => {
     expect(getBadgerDocDocumentTitle(createDocument(1, 'Metadata title'))).toBe('Metadata title')
     expect(
       getBadgerDocDocumentTitle({
         ...createDocument(2, ''),
-        name: 'Named document',
+        title: 'Named document',
         metadata: {},
       })
     ).toBe('Named document')
     expect(
       getBadgerDocDocumentTitle({
         ...createDocument(3, ''),
-        file: 'https://example.test/uploads/source.pdf?token=abc',
+        title: '',
+        pdfUrl: 'https://example.test/uploads/source.pdf?token=abc',
         metadata: {},
       })
     ).toBe('source.pdf')
     expect(
       getBadgerDocDocumentTitle({
         ...createDocument(4, ''),
-        file: '',
-        file_url: '',
+        title: '',
+        pdfUrl: '',
         metadata: {},
       })
     ).toBe('Document 4')
@@ -88,7 +97,7 @@ describe('buildDocumentHierarchyTree', () => {
 
     expect(buildDocumentHierarchyTree({ currentDocument })).toEqual([
       expect.objectContaining({
-        id: 2,
+        id: '2',
         title: 'Current document',
         isCurrent: true,
         isLeaf: true,
@@ -108,12 +117,12 @@ describe('buildDocumentHierarchyTree', () => {
 
     expect(tree).toHaveLength(1)
     expect(tree[0]).toMatchObject({
-      id: 2,
+      id: '2',
       isCurrent: true,
       isLeaf: false,
       children: [
         {
-          id: 3,
+          id: '3',
           title: 'Child document',
           isLeaf: true,
         },
@@ -133,11 +142,11 @@ describe('buildDocumentHierarchyTree', () => {
       })
     ).toMatchObject([
       {
-        id: 1,
+        id: '1',
         title: 'Parent document',
         children: [
           {
-            id: 2,
+            id: '2',
             title: 'Current document',
             isCurrent: true,
             isLeaf: true,
@@ -160,12 +169,12 @@ describe('buildDocumentHierarchyTree', () => {
     })
 
     expect(tree).toHaveLength(1)
-    expect(tree[0].id).toBe(1)
+    expect(tree[0].id).toBe('1')
     expect(tree[0].children).toHaveLength(1)
-    expect(tree[0].children?.[0].id).toBe(2)
+    expect(tree[0].children?.[0].id).toBe('2')
     expect(tree[0].children?.[0].children).toHaveLength(1)
     expect(tree[0].children?.[0].children?.[0]).toMatchObject({
-      id: 3,
+      id: '3',
       isLeaf: true,
     })
     expect(tree[0].children?.[0].children?.[0].children).toBeUndefined()
@@ -173,6 +182,15 @@ describe('buildDocumentHierarchyTree', () => {
 })
 
 describe('useBadgerDocDocumentHierarchy', () => {
+  beforeEach(() => {
+    getApiAdapterMock.mockReturnValue({
+      documents: {
+        getById: getDocumentMock,
+        list: getDocumentsMock,
+      },
+    } as unknown as ReturnType<typeof getApiAdapter>)
+  })
+
   afterEach(() => {
     vi.clearAllMocks()
   })
@@ -201,9 +219,9 @@ describe('useBadgerDocDocumentHierarchy', () => {
 
     expect(getDocumentMock).not.toHaveBeenCalled()
     expect(getDocumentsMock).toHaveBeenCalledTimes(1)
-    expect(getDocumentsMock).toHaveBeenCalledWith({ parent_document_id: 2 })
+    expect(getDocumentsMock).toHaveBeenCalledWith({ parent_document_id: '2' })
     expect(result.current.tree[0]).toMatchObject({
-      id: 2,
+      id: '2',
       isCurrent: true,
       isLeaf: true,
       children: [],
@@ -223,14 +241,14 @@ describe('useBadgerDocDocumentHierarchy', () => {
 
     expect(result.current.tree[0].children).toEqual([
       expect.objectContaining({
-        id: 3,
+        id: '3',
         isLeaf: true,
       }),
     ])
     expect(result.current.tree[0].children?.[0].children).toBeUndefined()
   })
 
-  it('fetches the immediate parent when current document has parent_document_id', async () => {
+  it('fetches the immediate parent when current document has parentDocumentId', async () => {
     const parentDocument = createDocument(1, 'Parent document')
     const currentDocument = createDocument(2, 'Current document', 1)
     getDocumentMock.mockResolvedValue(parentDocument)
@@ -243,13 +261,13 @@ describe('useBadgerDocDocumentHierarchy', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
 
     expect(getDocumentMock).toHaveBeenCalledTimes(1)
-    expect(getDocumentMock).toHaveBeenCalledWith(1)
+    expect(getDocumentMock).toHaveBeenCalledWith('1')
     expect(result.current.tree).toMatchObject([
       {
-        id: 1,
+        id: '1',
         children: [
           {
-            id: 2,
+            id: '2',
             isCurrent: true,
             children: [],
           },
@@ -273,15 +291,15 @@ describe('useBadgerDocDocumentHierarchy', () => {
 
     expect(result.current.tree).toMatchObject([
       {
-        id: 1,
+        id: '1',
         children: [
           {
-            id: 2,
+            id: '2',
             isCurrent: true,
             isLeaf: false,
             children: [
               {
-                id: 3,
+                id: '3',
                 isLeaf: true,
               },
             ],
@@ -305,11 +323,11 @@ describe('useBadgerDocDocumentHierarchy', () => {
     await waitFor(() => expect(getDocumentsMock).toHaveBeenCalledTimes(1))
 
     expect(getDocumentMock).toHaveBeenCalledTimes(1)
-    expect(getDocumentMock).toHaveBeenCalledWith(1)
-    expect(getDocumentMock).not.toHaveBeenCalledWith(99)
-    expect(getDocumentsMock).toHaveBeenCalledWith({ parent_document_id: 2 })
-    expect(getDocumentsMock).not.toHaveBeenCalledWith({ parent_document_id: 1 })
-    expect(getDocumentsMock).not.toHaveBeenCalledWith({ parent_document_id: 3 })
+    expect(getDocumentMock).toHaveBeenCalledWith('1')
+    expect(getDocumentMock).not.toHaveBeenCalledWith('99')
+    expect(getDocumentsMock).toHaveBeenCalledWith({ parent_document_id: '2' })
+    expect(getDocumentsMock).not.toHaveBeenCalledWith({ parent_document_id: '1' })
+    expect(getDocumentsMock).not.toHaveBeenCalledWith({ parent_document_id: '3' })
   })
 
   it('keeps current document and direct children visible when the parent fetch fails', async () => {
@@ -330,11 +348,11 @@ describe('useBadgerDocDocumentHierarchy', () => {
     expect(result.current.errorMessage).toBe('Parent document could not be loaded.')
     expect(result.current.tree).toMatchObject([
       {
-        id: 2,
+        id: '2',
         isCurrent: true,
         children: [
           {
-            id: 3,
+            id: '3',
             isLeaf: true,
           },
         ],
@@ -360,10 +378,10 @@ describe('useBadgerDocDocumentHierarchy', () => {
     expect(result.current.errorMessage).toBe('Child documents could not be loaded.')
     expect(result.current.tree).toMatchObject([
       {
-        id: 1,
+        id: '1',
         children: [
           {
-            id: 2,
+            id: '2',
             isCurrent: true,
             children: [],
           },
@@ -389,7 +407,7 @@ describe('useBadgerDocDocumentHierarchy', () => {
     expect(result.current.errorMessage).toBe('Parent and child documents could not be loaded.')
     expect(result.current.tree).toMatchObject([
       {
-        id: 2,
+        id: '2',
         isCurrent: true,
         isLeaf: true,
         children: [],

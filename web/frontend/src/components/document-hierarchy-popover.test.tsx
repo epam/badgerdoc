@@ -1,28 +1,36 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import type { BadgerDocDocument } from '@/shared/api/badgerdoc/types'
 import type { DocumentHierarchyNode } from '@/shared/api/hooks/use-badgerdoc-document-hierarchy'
 import { useBadgerDocDocumentHierarchy } from '@/shared/api/hooks/use-badgerdoc-document-hierarchy'
+import type { Document } from '@/shared/types/api'
 import { DocumentHierarchyPopover } from './document-hierarchy-popover'
 
 vi.mock('@/shared/api/hooks/use-badgerdoc-document-hierarchy', () => ({
-  getBadgerDocDocumentTitle: (document: BadgerDocDocument) =>
+  getBadgerDocDocumentTitle: (document: Document) =>
     String(document.metadata?.title ?? document.id),
   useBadgerDocDocumentHierarchy: vi.fn(),
 }))
 
 const useHierarchyMock = vi.mocked(useBadgerDocDocumentHierarchy)
 
-function createDocument(id: number, title: string): BadgerDocDocument {
+function createDocument(id: number, title: string): Document {
   return {
-    id,
-    file: `https://example.test/${id}.pdf`,
+    id: String(id),
+    title,
+    type: 'report',
+    status: 'analysis_ready',
+    pdfUrl: `https://example.test/${id}.pdf`,
+    pageCount: 1,
     metadata: { title },
+    authors: [],
+    createdAt: '2024-01-01T00:00:00Z',
+    updatedAt: '2024-01-01T00:00:00Z',
+    tags: [],
   }
 }
 
 function createNode(
-  document: BadgerDocDocument,
+  document: Document,
   options?: Partial<DocumentHierarchyNode>
 ): DocumentHierarchyNode {
   return {
@@ -80,7 +88,7 @@ describe('DocumentHierarchyPopover', () => {
     fireEvent.click(screen.getByRole('treeitem', { name: /child document/i }))
 
     expect(onDocumentSelect).toHaveBeenCalledTimes(1)
-    expect(onDocumentSelect.mock.calls[0][0]).toMatchObject({ id: 3 })
+    expect(onDocumentSelect.mock.calls[0][0]).toMatchObject({ id: '3' })
     await waitFor(() =>
       expect(screen.queryByRole('tree', { name: /document hierarchy/i })).not.toBeInTheDocument()
     )

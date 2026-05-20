@@ -4,7 +4,7 @@ import { DocumentBarPopover, DocumentBarPopoverButton } from '@/components/docum
 import { getDocumentExtension } from '@/components/document-hierarchy-utils'
 import { cn } from '@/helpers/utils'
 import { DocumentHierarchyViewer } from '@/components/document-hierarchy-viewer'
-import type { BadgerDocDocument } from '@/shared/api/badgerdoc/types'
+import type { Document } from '@/shared/types/api'
 import {
   type DocumentHierarchyNode,
   getBadgerDocDocumentTitle,
@@ -12,8 +12,8 @@ import {
 } from '@/shared/api/hooks/use-badgerdoc-document-hierarchy'
 
 interface DocumentHierarchyPopoverProps {
-  currentDocument: BadgerDocDocument
-  onDocumentSelect: (document: BadgerDocDocument, node: DocumentHierarchyNode) => void
+  currentDocument: Document
+  onDocumentSelect: (document: Document, node: DocumentHierarchyNode) => void
 }
 
 export function DocumentHierarchyPopover({
@@ -26,7 +26,7 @@ export function DocumentHierarchyPopover({
   const extension = getDocumentExtension(currentDocument, title)
   const isPdf = extension === 'PDF'
 
-  const handleDocumentSelect = (document: BadgerDocDocument, node: DocumentHierarchyNode) => {
+  const handleDocumentSelect = (document: Document, node: DocumentHierarchyNode) => {
     if (String(document.id) !== String(currentDocument.id)) {
       onDocumentSelect(document, node)
     }

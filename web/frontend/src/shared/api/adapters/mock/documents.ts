@@ -20,6 +20,16 @@ export const mockDocumentsAdapter: DocumentsAdapter = {
 
     let filtered = [...documentsStore]
 
+    if (params?.parent_document_id !== undefined) {
+      filtered = filtered.filter(
+        (d) => String(d.parentDocumentId ?? '') === String(params.parent_document_id)
+      )
+    }
+
+    if (params?.tags) {
+      filtered = filtered.filter((d) => d.tags.includes(params.tags as string))
+    }
+
     if (params?.status) {
       filtered = filtered.filter((d) => d.status === params.status)
     }
@@ -46,14 +56,16 @@ export const mockDocumentsAdapter: DocumentsAdapter = {
     }
 
     // Pagination
-    const offset = params?.offset || 0
-    const limit = params?.limit || 20
+    const pageSize = params?.page_size || params?.limit || 20
+    const offset = params?.offset || ((params?.page || 1) - 1) * pageSize
+    const limit = pageSize
     const paginated = filtered.slice(offset, offset + limit)
 
     return {
-      data: paginated,
-      total: filtered.length,
-      hasMore: offset + limit < filtered.length,
+      count: filtered.length,
+      next: offset + limit < filtered.length ? String((params?.page || 1) + 1) : null,
+      previous: (params?.page || 1) > 1 ? String((params?.page || 1) - 1) : null,
+      results: paginated,
     }
   },
 

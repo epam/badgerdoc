@@ -1,19 +1,23 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
-import type { BadgerDocDocument } from '@/shared/api/badgerdoc/types'
 import type { DocumentHierarchyNode } from '@/shared/api/hooks/use-badgerdoc-document-hierarchy'
+import type { Document } from '@/shared/types/api'
 import { getDocumentExtension } from './document-hierarchy-utils'
 import { DocumentHierarchyViewer } from './document-hierarchy-viewer'
 
-function createDocument(
-  id: number,
-  title: string,
-  options?: Partial<BadgerDocDocument>
-): BadgerDocDocument {
+function createDocument(id: number, title: string, options?: Partial<Document>): Document {
   return {
-    id,
-    file: `https://example.test/${id}.pdf`,
+    id: String(id),
+    title,
+    type: 'report',
+    status: 'analysis_ready',
+    pdfUrl: `https://example.test/${id}.pdf`,
+    pageCount: 1,
     metadata: { title },
+    authors: [],
+    createdAt: '2024-01-01T00:00:00Z',
+    updatedAt: '2024-01-01T00:00:00Z',
+    tags: [],
     ...options,
   }
 }
@@ -26,7 +30,7 @@ function createNode(
   const document = createDocument(id, title)
 
   return {
-    id,
+    id: String(id),
     title,
     document,
     ...options,
@@ -38,9 +42,16 @@ describe('DocumentHierarchyViewer', () => {
     expect(
       getDocumentExtension(
         {
-          id: 1,
-          extension: 'pdf',
-          file: 'https://example.test/source.pdf',
+          id: '1',
+          title: 'Untitled',
+          type: 'report',
+          status: 'analysis_ready',
+          pdfUrl: 'https://example.test/source.pdf',
+          pageCount: 1,
+          authors: [],
+          createdAt: '2024-01-01T00:00:00Z',
+          updatedAt: '2024-01-01T00:00:00Z',
+          tags: [],
           metadata: { title: '7_page_2.png' },
         },
         '7_page_2.png'
@@ -49,9 +60,17 @@ describe('DocumentHierarchyViewer', () => {
 
     expect(
       getDocumentExtension({
-        id: 2,
+        id: '2',
+        title: 'Untitled',
         extension: 'docx',
-        file: 'https://example.test/source',
+        type: 'report',
+        status: 'analysis_ready',
+        pdfUrl: 'https://example.test/source',
+        pageCount: 1,
+        authors: [],
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: '2024-01-01T00:00:00Z',
+        tags: [],
         metadata: { title: 'Untitled' },
       })
     ).toBe('DOCX')
@@ -195,7 +214,7 @@ describe('DocumentHierarchyViewer', () => {
     const tree = [
       createNode(2, 'Current document', {
         isCurrent: true,
-        document: createDocument(2, 'Current document', { tags: null }),
+        document: createDocument(2, 'Current document', { tags: null as unknown as string[] }),
         children: [
           createNode(3, 'Empty tags', {
             isLeaf: true,
@@ -240,8 +259,8 @@ describe('DocumentHierarchyViewer', () => {
     expect(screen.getByRole('treeitem', { name: /current document/i })).toBeDisabled()
 
     expect(onDocumentSelect).toHaveBeenCalledTimes(2)
-    expect(onDocumentSelect.mock.calls[0][0]).toMatchObject({ id: 1 })
-    expect(onDocumentSelect.mock.calls[1][0]).toMatchObject({ id: 3 })
+    expect(onDocumentSelect.mock.calls[0][0]).toMatchObject({ id: '1' })
+    expect(onDocumentSelect.mock.calls[1][0]).toMatchObject({ id: '3' })
   })
 
   it('does not render grandchildren even if a child node includes nested children', () => {

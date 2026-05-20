@@ -11,22 +11,9 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useBadgerDocDocuments } from '@/shared/api/hooks/use-badgerdoc-documents'
 import { useDuplicateDecisions } from '@/shared/api/hooks/use-duplicate-check'
-import type { BadgerDocDocument, DuplicateCheckStatus } from '@/shared/api/badgerdoc/types'
+import type { DuplicateCheckStatus } from '@/shared/api/badgerdoc/types'
+import type { Document } from '@/shared/types/api'
 import { useTags } from '@/shared/api/hooks'
-
-/**
- * Extract filename from file URL
- * e.g., http://minio:9000/.../pdf_1.pdf → pdf_1.pdf
- */
-function extractFilename(fileUrl: string): string {
-  try {
-    const url = new URL(fileUrl)
-    const segments = url.pathname.split('/')
-    return segments[segments.length - 1].split('?')[0] || 'document.pdf'
-  } catch {
-    return fileUrl || 'document.pdf'
-  }
-}
 
 /**
  * Format date string to readable format
@@ -44,7 +31,7 @@ function formatDate(dateString?: string): string {
  * Get effective duplicate status considering localStorage decisions
  */
 function getEffectiveDuplicateStatus(
-  doc: BadgerDocDocument,
+  doc: Document,
   storedDecisions: Record<string, { status: DuplicateCheckStatus }> | undefined
 ): { score: number | undefined; status: DuplicateCheckStatus | undefined } {
   const docId = String(doc.id)
@@ -53,15 +40,15 @@ function getEffectiveDuplicateStatus(
   // If there's a stored decision, use that
   if (storedDecision) {
     return {
-      score: doc.duplicate_score,
+      score: doc.duplicateScore,
       status: storedDecision.status,
     }
   }
 
   // Otherwise use the API response
   return {
-    score: doc.duplicate_score,
-    status: doc.duplicate_status,
+    score: doc.duplicateScore,
+    status: doc.duplicateStatus,
   }
 }
 
@@ -110,13 +97,11 @@ function EmptyState() {
 }
 
 interface DocumentRowProps {
-  doc: BadgerDocDocument
+  doc: Document
   onClick: () => void
 }
 
 function DocumentRow({ doc, onClick }: DocumentRowProps) {
-  const filename = extractFilename(doc.file || doc.file_url || '')
-
   return (
     <div
       onClick={onClick}
@@ -126,13 +111,13 @@ function DocumentRow({ doc, onClick }: DocumentRowProps) {
 
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <span className="truncate font-medium text-sm text-foreground">{filename}</span>
+          <span className="truncate font-medium text-sm text-foreground">{doc.title}</span>
         </div>
         <div className="mt-0.5 flex items-center gap-2 text-xs text-muted-foreground">
-          <span>{doc.uploaded_by || 'Unknown'}</span>
+          <span>{doc.uploadedBy || 'Unknown'}</span>
           <span>·</span>
-          <span>{formatDate(doc.created_at)}</span>
-          {doc.tags && doc.tags.length > 0 && (
+          <span>{formatDate(doc.createdAt)}</span>
+          {doc.tags.length > 0 && (
             <>
               <span>·</span>
               <span>
@@ -194,7 +179,7 @@ export function DocumentsListPage() {
     return filtered
   }, [documents, storedDecisions])
 
-  const handleRowClick = (document: BadgerDocDocument) => {
+  const handleRowClick = (document: Document) => {
     void navigate({
       to: '/documents/$id',
       params: { id: String(document.id) },
