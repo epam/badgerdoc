@@ -35,6 +35,9 @@ import { NoExtractionTagsEmptyState } from '@/features/workspace/components/no-e
 import { AgentLogsTab } from '@/features/workspace/components/agent-logs-tab'
 import { agentLogsKeys } from '@/shared/api/hooks/use-agent-logs'
 import type { BadgerDocDocument } from '@/shared/api/badgerdoc/types'
+import type { WorkflowScope } from '@/shared/api/adapters/types'
+
+const AGENT_CONTEXT_SCOPES: WorkflowScope[] = ['document', 'page']
 
 export function WorkspacePage() {
   // Support both /tasks/$taskId and legacy /document/$id routes
@@ -162,6 +165,18 @@ export function WorkspacePage() {
   const workflowSelection = useChatWorkflowSelection({
     activeTag: activeTagName,
   })
+  const chatWorkflowSelection = useMemo(
+    () =>
+      isAgentTab
+        ? {
+            ...workflowSelection,
+            availableScopes: AGENT_CONTEXT_SCOPES,
+            canUseDocumentContext: true,
+            canUsePageContext: true,
+          }
+        : workflowSelection,
+    [isAgentTab, workflowSelection]
+  )
 
   const {
     saveExtractionPages,
@@ -247,13 +262,13 @@ export function WorkspacePage() {
   )
 
   const pageChatContext = useViewerChatContext({
-    canAddContext: Boolean(activeTagName),
+    canAddContext: Boolean(activeTagName) || isAgentTab,
     currentPage,
     selectedPages,
     isWholeDocumentSelected,
     isContextInteractionDisabled:
       extractionResultsLoading || hasChanges || isApiPending || isRunningInference,
-    workflowSelection,
+    workflowSelection: chatWorkflowSelection,
     onAddWholeDocument: addWholeDocument,
     onAddCurrentPage: handleAddCurrentPage,
   })
@@ -395,7 +410,7 @@ export function WorkspacePage() {
           documentId={documentId}
           currentPage={currentPage}
           chatContext={chatContext}
-          workflowSelection={workflowSelection}
+          workflowSelection={chatWorkflowSelection}
           isRunningInference={isRunningInference}
           setIsRunningInference={setIsRunningInference}
           onTriggerSuccess={handleContextualRequestSuccess}
@@ -426,7 +441,7 @@ export function WorkspacePage() {
         currentPage={currentPage}
         documentId={documentId}
         chatContext={chatContext}
-        workflowSelection={workflowSelection}
+        workflowSelection={chatWorkflowSelection}
         isRunningInference={isRunningInference}
         setIsRunningInference={setIsRunningInference}
         onTriggerSuccess={handleContextualRequestSuccess}

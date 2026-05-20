@@ -5,6 +5,9 @@ import { WorkspacePage } from './page'
 const mocks = vi.hoisted(() => ({
   navigate: vi.fn(),
   invalidateQueries: vi.fn(),
+  addWholeDocument: vi.fn(),
+  togglePage: vi.fn(),
+  useViewerChatContext: vi.fn(),
   searchTag: 'summary',
 }))
 
@@ -50,7 +53,40 @@ vi.mock('@/components/document-hierarchy-popover', () => ({
 }))
 
 vi.mock('@/components/collection-viewer/collection-viewer', () => ({
-  CollectionViewer: () => <section>Viewer</section>,
+  CollectionViewer: ({
+    pageChatContext,
+  }: {
+    pageChatContext?: {
+      canAddWholeDocumentToContext?: boolean
+      isWholeDocumentContextDisabled?: boolean
+      onAddWholeDocumentToContext?: () => void
+      canAddCurrentPageToContext?: boolean
+      isCurrentPageContextDisabled?: boolean
+      onAddCurrentPageToContext?: () => void
+    }
+  }) => (
+    <section>
+      Viewer
+      {pageChatContext?.canAddCurrentPageToContext && (
+        <button
+          type="button"
+          disabled={pageChatContext.isCurrentPageContextDisabled}
+          onClick={pageChatContext.onAddCurrentPageToContext}
+        >
+          Add page to context
+        </button>
+      )}
+      {pageChatContext?.canAddWholeDocumentToContext && (
+        <button
+          type="button"
+          disabled={pageChatContext.isWholeDocumentContextDisabled}
+          onClick={pageChatContext.onAddWholeDocumentToContext}
+        >
+          Add document to context
+        </button>
+      )}
+    </section>
+  ),
 }))
 
 vi.mock('@/components/not-found', () => ({
@@ -145,8 +181,8 @@ vi.mock('@/features/workspace/hooks/use-extraction-chat-context', () => ({
     selectedBlocks: [],
     setPrompt: vi.fn(),
     registerPromptContextInserter: vi.fn(),
-    addWholeDocument: vi.fn(),
-    togglePage: vi.fn(),
+    addWholeDocument: mocks.addWholeDocument,
+    togglePage: mocks.togglePage,
     toggleBlock: vi.fn(),
     removeBlocks: vi.fn(),
   }),
@@ -166,7 +202,30 @@ vi.mock('@/features/workspace/hooks/use-chat-workflow-selection', () => ({
 }))
 
 vi.mock('@/features/workspace/hooks/use-viewer-chat-context', () => ({
-  useViewerChatContext: () => ({}),
+  useViewerChatContext: (params: {
+    canAddContext: boolean
+    workflowSelection: {
+      canUseDocumentContext: boolean
+      canUsePageContext: boolean
+      isWorkflowsLoading: boolean
+    }
+    onAddWholeDocument: () => void
+    onAddCurrentPage: () => void
+  }) => {
+    mocks.useViewerChatContext(params)
+
+    return {
+      canAddWholeDocumentToContext: params.canAddContext,
+      isWholeDocumentContextDisabled:
+        params.workflowSelection.isWorkflowsLoading ||
+        !params.workflowSelection.canUseDocumentContext,
+      onAddWholeDocumentToContext: params.onAddWholeDocument,
+      canAddCurrentPageToContext: params.canAddContext,
+      isCurrentPageContextDisabled:
+        params.workflowSelection.isWorkflowsLoading || !params.workflowSelection.canUsePageContext,
+      onAddCurrentPageToContext: params.onAddCurrentPage,
+    }
+  },
 }))
 
 vi.mock('@/features/workspace/components/document-overview-popover', () => ({
@@ -182,9 +241,22 @@ vi.mock('@/features/workspace/components/extraction-results-tab.tsx', () => ({
 }))
 
 vi.mock('@/features/workspace/components/agent-logs-tab', () => ({
-  AgentLogsTab: ({ onTriggerSuccess }: { onTriggerSuccess?: () => void }) => (
+  AgentLogsTab: ({
+    onTriggerSuccess,
+    workflowSelection,
+  }: {
+    onTriggerSuccess?: () => void
+    workflowSelection?: {
+      canUseDocumentContext: boolean
+      canUsePageContext: boolean
+    }
+  }) => (
     <div>
       <div>Agent logs</div>
+      <div>
+        Agent scopes: {workflowSelection?.canUseDocumentContext ? 'document' : 'no-document'}{' '}
+        {workflowSelection?.canUsePageContext ? 'page' : 'no-page'}
+      </div>
       <button type="button" onClick={onTriggerSuccess}>
         Submit from Agent
       </button>
@@ -230,5 +302,33 @@ describe('WorkspacePage Agent submit integration', () => {
     expect(mocks.invalidateQueries).toHaveBeenCalledWith({
       queryKey: ['badgerdoc-agent-logs', '123', { after: undefined, page: 1 }],
     })
+  })
+
+  it('enables document and page context controls on the Agent tab', () => {
+    mocks.searchTag = 'agent'
+
+    render(<WorkspacePage />)
+
+    expect(screen.getByText(/Agent scopes: document page/i)).toBeInTheDocument()
+
+    const addPageButton = screen.getByRole('button', { name: /add page to context/i })
+    const addDocumentButton = screen.getByRole('button', { name: /add document to context/i })
+    expect(addPageButton).toBeEnabled()
+    expect(addDocumentButton).toBeEnabled()
+
+    fireEvent.click(addPageButton)
+    fireEvent.click(addDocumentButton)
+
+    expect(mocks.togglePage).toHaveBeenCalledWith(1)
+    expect(mocks.addWholeDocument).toHaveBeenCalledTimes(1)
+    expect(mocks.useViewerChatContext).toHaveBeenCalledWith(
+      expect.objectContaining({
+        canAddContext: true,
+        workflowSelection: expect.objectContaining({
+          canUseDocumentContext: true,
+          canUsePageContext: true,
+        }),
+      })
+    )
   })
 })
