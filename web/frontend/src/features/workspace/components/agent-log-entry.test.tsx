@@ -128,7 +128,8 @@ describe('AgentLogEntry', () => {
       </ol>
     )
 
-    expect(screen.getByText('User input')).toBeInTheDocument()
+    expect(screen.queryByText('User input')).not.toBeInTheDocument()
+    expect(screen.queryByText('Prompt')).not.toBeInTheDocument()
     expect(screen.queryByText('llm_params')).not.toBeInTheDocument()
     expect(screen.queryByText('Workflow details')).not.toBeInTheDocument()
 
@@ -136,6 +137,9 @@ describe('AgentLogEntry', () => {
     expect(promptBlock.textContent).toBe('First line\n  indented second line')
     expect(promptBlock.tagName).not.toBe('CODE')
     expect(promptBlock.closest('pre')).not.toBeInTheDocument()
+    expect(promptBlock).not.toHaveClass('border')
+    expect(promptBlock).not.toHaveClass('rounded-md')
+    expect(promptBlock).not.toHaveClass('bg-background')
   })
 
   it('renders llm params only once as user input before workflow details', () => {
@@ -156,11 +160,20 @@ describe('AgentLogEntry', () => {
     const labels = Array.from(container.querySelectorAll('.uppercase')).map(
       (node) => node.textContent
     )
-    expect(labels).toEqual(['User input', 'Workflow details'])
+    expect(labels).toEqual(['Workflow details'])
+    expect(screen.queryByText('User input')).not.toBeInTheDocument()
+    expect(screen.queryByText('Prompt')).not.toBeInTheDocument()
     expect(screen.queryByText('llm_params')).not.toBeInTheDocument()
     expect(screen.getByText('Document')).toBeInTheDocument()
     expect(screen.getByText('workflow')).toBeInTheDocument()
     expect(screen.getByText('linked_documents')).toBeInTheDocument()
+
+    const promptBlock = screen.getByText('Document').closest('.whitespace-pre-wrap')
+    const detailsHeading = screen.getByText('Workflow details')
+    expect(promptBlock).not.toHaveClass('border')
+    expect(promptBlock?.compareDocumentPosition(detailsHeading)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING
+    )
   })
 
   it('renders llm params context links as read-only chips while preserving text', () => {

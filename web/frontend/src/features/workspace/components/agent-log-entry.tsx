@@ -196,7 +196,7 @@ function WorkflowPromptRenderer({ value }: { value: unknown }) {
   const text = formatWorkflowParamText(value)
 
   return (
-    <div className="max-h-72 overflow-auto whitespace-pre-wrap break-words rounded-md border border-border bg-background px-3 py-2 text-sm">
+    <div className="max-h-72 overflow-auto whitespace-pre-wrap break-words text-sm">
       {renderPromptTextWithContextChips(text)}
     </div>
   )
@@ -253,11 +253,7 @@ function WorkflowParamsRenderer({ value }: { value: unknown }) {
 
   return (
     <div className="space-y-3">
-      {hasUserInput && (
-        <PayloadSection label="User input">
-          <WorkflowPromptRenderer value={userInput} />
-        </PayloadSection>
-      )}
+      {hasUserInput && <WorkflowPromptRenderer value={userInput} />}
       {detailEntries.length > 0 && (
         <PayloadSection label="Workflow details">
           <div className="space-y-2">
