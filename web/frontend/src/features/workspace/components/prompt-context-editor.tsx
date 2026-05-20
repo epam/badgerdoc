@@ -10,8 +10,7 @@ import { cn } from '@/helpers/utils'
 import {
   findPromptContextLinks,
   formatPromptContextLink,
-  getContextBlockLabel,
-  parsePromptContextPath,
+  getPromptContextTokenLabel,
   type PromptContextPathInserterRegistration,
 } from '@/features/workspace/helpers/extraction-chat-context'
 import { createPromptEditorContent, serializePromptEditorDoc } from './prompt-context-editor-utils'
@@ -67,24 +66,6 @@ function getDomCursorPosition(editor: NonNullable<ReturnType<typeof useEditor>>)
   } catch {
     return null
   }
-}
-
-function getPromptContextTokenLabel(path: string) {
-  const token = parsePromptContextPath(path)
-
-  if (!token) {
-    return 'Context'
-  }
-
-  if (token.kind === 'document') {
-    return 'Document'
-  }
-
-  if (token.kind === 'block' && token.blockId) {
-    return getContextBlockLabel(token.blockId)
-  }
-
-  return token.pageNumber ? `Page ${token.pageNumber}` : 'Page'
 }
 
 function PromptContextTokenView({ node, deleteNode }: NodeViewProps) {

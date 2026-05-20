@@ -47,13 +47,14 @@ describe('AgentLogEntry', () => {
     const labels = Array.from(container.querySelectorAll('.uppercase')).map(
       (node) => node.textContent
     )
-    expect(labels).toEqual(['Message', 'Markdown', 'Code', 'Workflow Params'])
+    expect(labels).toEqual(['Message', 'Markdown', 'Code', 'Workflow details'])
     expect(screen.getByText('Plain message')).toBeInTheDocument()
     expect(screen.getAllByText('Markdown').find((node) => node.tagName === 'STRONG')).toHaveClass(
       'font-semibold'
     )
     expect(screen.getByText(/const ok = true/)).toBeInTheDocument()
-    expect(screen.getByText(/"model": "test"/)).toBeInTheDocument()
+    expect(screen.getByText('model:')).toBeInTheDocument()
+    expect(screen.getByText('test')).toBeInTheDocument()
   })
 
   it('renders markdown without executing raw HTML', () => {
@@ -114,21 +115,192 @@ describe('AgentLogEntry', () => {
     expect(screen.queryByText(/workflow params/i)).not.toBeInTheDocument()
   })
 
-  it.each([
-    ['object', { model: 'test' }, '"model": "test"'],
-    ['array', ['item'], '"item"'],
-    ['false boolean', false, 'false'],
-    ['zero number', 0, '0'],
-    ['non-empty string', 'value', '"value"'],
-  ])('renders meaningful workflow params when value is %s', (_label, workflowParams, expected) => {
-    const { container } = render(
+  it('renders llm params as readable prompt-like text', () => {
+    render(
       <ol>
-        <AgentLogEntry log={createLog({ workflow_params: workflowParams })} />
+        <AgentLogEntry
+          log={createLog({
+            workflow_params: {
+              llm_params: 'First line\n  indented second line',
+            },
+          })}
+        />
       </ol>
     )
 
-    expect(screen.getByText(/workflow params/i)).toBeInTheDocument()
-    expect(container.querySelector('pre code')).toHaveTextContent(expected)
+    expect(screen.getByText('User input')).toBeInTheDocument()
+    expect(screen.queryByText('llm_params')).not.toBeInTheDocument()
+    expect(screen.queryByText('Workflow details')).not.toBeInTheDocument()
+
+    const promptBlock = screen.getByText(/First line/)
+    expect(promptBlock.textContent).toBe('First line\n  indented second line')
+    expect(promptBlock.tagName).not.toBe('CODE')
+    expect(promptBlock.closest('pre')).not.toBeInTheDocument()
+  })
+
+  it('renders llm params only once as user input before workflow details', () => {
+    const { container } = render(
+      <ol>
+        <AgentLogEntry
+          log={createLog({
+            workflow_params: {
+              workflow: { name: 'Mineru OCR', trigger: 'manual' },
+              llm_params: '{{/badgerdoc/document/345/}}',
+              linked_documents: [345],
+            },
+          })}
+        />
+      </ol>
+    )
+
+    const labels = Array.from(container.querySelectorAll('.uppercase')).map(
+      (node) => node.textContent
+    )
+    expect(labels).toEqual(['User input', 'Workflow details'])
+    expect(screen.queryByText('llm_params')).not.toBeInTheDocument()
+    expect(screen.getByText('Document')).toBeInTheDocument()
+    expect(screen.getByText('workflow')).toBeInTheDocument()
+    expect(screen.getByText('linked_documents')).toBeInTheDocument()
+  })
+
+  it('renders llm params context links as read-only chips while preserving text', () => {
+    render(
+      <ol>
+        <AgentLogEntry
+          log={createLog({
+            workflow_params: {
+              llm_params:
+                'Please analyze {{/badgerdoc/document/345/}} and compare it with {{/badgerdoc/document/777/page/2/}}',
+            },
+          })}
+        />
+      </ol>
+    )
+
+    const promptBlock = screen.getByText(/Please analyze/)
+    expect(promptBlock).toHaveTextContent('Please analyze Document and compare it with Page 2')
+    expect(screen.getByText('Document')).toHaveClass('truncate')
+    expect(screen.getByText('Page 2')).toHaveClass('truncate')
+    expect(screen.queryByText(/\{\{\/badgerdoc\/document\/345/)).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /remove/i })).not.toBeInTheDocument()
+  })
+
+  it('preserves line breaks when llm params contain context chips', () => {
+    render(
+      <ol>
+        <AgentLogEntry
+          log={createLog({
+            workflow_params: {
+              llm_params: 'Line one {{/badgerdoc/document/345/}}\nLine two',
+            },
+          })}
+        />
+      </ol>
+    )
+
+    const promptBlock = screen.getByText(/Line one/)
+    expect(promptBlock.textContent).toBe('Line one Document\nLine two')
+  })
+
+  it('leaves escaped llm params context syntax as plain text', () => {
+    render(
+      <ol>
+        <AgentLogEntry
+          log={createLog({
+            workflow_params: {
+              llm_params: String.raw`Keep \{{/badgerdoc/document/345/}} as text`,
+            },
+          })}
+        />
+      </ol>
+    )
+
+    expect(
+      screen.getByText(String.raw`Keep \{{/badgerdoc/document/345/}} as text`)
+    ).toBeInTheDocument()
+    expect(screen.queryByText('Document')).not.toBeInTheDocument()
+  })
+
+  it('renders non-string llm params as prompt-like text', () => {
+    render(
+      <ol>
+        <AgentLogEntry log={createLog({ workflow_params: { llm_params: { prompt: 'Read' } } })} />
+      </ol>
+    )
+
+    const promptBlock = screen.getByText(/"prompt": "Read"/)
+    expect(promptBlock).toHaveClass('whitespace-pre-wrap')
+    expect(promptBlock.closest('pre')).not.toBeInTheDocument()
+  })
+
+  it('renders scalar workflow params as compact rows', () => {
+    render(
+      <ol>
+        <AgentLogEntry
+          log={createLog({
+            workflow_params: {
+              name: 'DeepSeek OCR 2',
+              temperature: 0,
+              enabled: false,
+            },
+          })}
+        />
+      </ol>
+    )
+
+    expect(screen.getByText('Workflow details')).toBeInTheDocument()
+    expect(screen.getByText('name:')).toBeInTheDocument()
+    expect(screen.getByText('DeepSeek OCR 2')).toBeInTheDocument()
+    expect(screen.getByText('temperature:')).toBeInTheDocument()
+    expect(screen.getByText('0')).toBeInTheDocument()
+    expect(screen.getByText('enabled:')).toBeInTheDocument()
+    expect(screen.getByText('false')).toBeInTheDocument()
+    expect(document.querySelector('details')).not.toBeInTheDocument()
+  })
+
+  it('renders complex workflow params as collapsible JSON sections', () => {
+    render(
+      <ol>
+        <AgentLogEntry
+          log={createLog({
+            workflow_params: {
+              options: { retries: 2 },
+              items: ['first'],
+            },
+          })}
+        />
+      </ol>
+    )
+
+    expect(screen.getByText('Workflow details')).toBeInTheDocument()
+    const sections = document.querySelectorAll('details')
+    expect(sections).toHaveLength(2)
+    expect(screen.getByText('options')).toBeInTheDocument()
+    expect(screen.getByText(/"retries": 2/)).toBeInTheDocument()
+    expect(screen.getByText('items')).toBeInTheDocument()
+    expect(screen.getByText(/"first"/)).toBeInTheDocument()
+  })
+
+  it('hides empty nested workflow params', () => {
+    render(
+      <ol>
+        <AgentLogEntry
+          log={createLog({
+            workflow_params: {
+              llm_params: '',
+              options: {},
+              model: 'DeepSeek OCR 2',
+            },
+          })}
+        />
+      </ol>
+    )
+
+    expect(screen.queryByText('llm_params')).not.toBeInTheDocument()
+    expect(screen.queryByText('options')).not.toBeInTheDocument()
+    expect(screen.queryByText('User input')).not.toBeInTheDocument()
+    expect(screen.getByText('model:')).toBeInTheDocument()
+    expect(screen.getByText('DeepSeek OCR 2')).toBeInTheDocument()
   })
 
   it('renders numeric task ids', () => {
@@ -139,6 +311,28 @@ describe('AgentLogEntry', () => {
     )
 
     expect(screen.getByText('Task 42')).toBeInTheDocument()
+  })
+
+  it('renders compact workflow metadata in the log header', () => {
+    render(
+      <ol>
+        <AgentLogEntry
+          log={createLog({
+            workflow_params: {
+              workflow: {
+                name: 'Mineru OCR',
+                trigger: 'manual',
+                id: 7,
+              },
+            },
+          })}
+        />
+      </ol>
+    )
+
+    expect(screen.getByText('Mineru OCR · manual')).toBeInTheDocument()
+    expect(screen.queryByText('id:')).not.toBeInTheDocument()
+    expect(screen.getByText('workflow')).toBeInTheDocument()
   })
 
   it('does not render a source document link for current-document logs', () => {

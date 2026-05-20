@@ -1,13 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import {
   formatLogTime,
+  getWorkflowHeaderLabel,
   hasMeaningfulWorkflowParams,
   safeStringify,
   shouldShowSourceDocumentLink,
 } from './agent-log-entry'
 
 describe('agent-log-entry helpers', () => {
-  it.each([undefined, null, {}, [], '', '   '])(
+  it.each([undefined, null, {}, [], '', '   ', { llm_params: '', options: {} }, [null, {}]])(
     'treats %s as empty workflow params',
     (value) => {
       expect(hasMeaningfulWorkflowParams(value)).toBe(false)
@@ -48,5 +49,32 @@ describe('agent-log-entry helpers', () => {
         sourceDocumentId: 456,
       })
     ).toBe(true)
+  })
+
+  it('returns a compact workflow header label from workflow metadata', () => {
+    expect(
+      getWorkflowHeaderLabel({
+        workflow: {
+          name: 'Mineru OCR',
+          trigger: 'manual',
+          id: 12,
+        },
+      })
+    ).toBe('Mineru OCR · manual')
+  })
+
+  it('omits workflow trigger from the header label when it is missing', () => {
+    expect(
+      getWorkflowHeaderLabel({
+        workflow: {
+          name: 'Mineru OCR',
+        },
+      })
+    ).toBe('Mineru OCR')
+  })
+
+  it('does not return a workflow header label without a workflow name', () => {
+    expect(getWorkflowHeaderLabel({ workflow: { trigger: 'manual' } })).toBeNull()
+    expect(getWorkflowHeaderLabel({ workflow: null })).toBeNull()
   })
 })

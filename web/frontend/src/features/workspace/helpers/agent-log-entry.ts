@@ -34,7 +34,7 @@ export function safeStringify(value: unknown) {
   }
 }
 
-export function hasMeaningfulWorkflowParams(value: unknown) {
+export function hasMeaningfulWorkflowParams(value: unknown, seen = new WeakSet<object>()): boolean {
   if (value === null || value === undefined) {
     return false
   }
@@ -44,11 +44,21 @@ export function hasMeaningfulWorkflowParams(value: unknown) {
   }
 
   if (Array.isArray(value)) {
-    return value.length > 0
+    if (seen.has(value)) {
+      return true
+    }
+    seen.add(value)
+
+    return value.some((item) => hasMeaningfulWorkflowParams(item, seen))
   }
 
   if (typeof value === 'object') {
-    return Object.keys(value).length > 0
+    if (seen.has(value)) {
+      return true
+    }
+    seen.add(value)
+
+    return Object.values(value).some((item) => hasMeaningfulWorkflowParams(item, seen))
   }
 
   return true
@@ -66,4 +76,29 @@ export function shouldShowSourceDocumentLink({
   }
 
   return String(sourceDocumentId) !== String(currentDocumentId)
+}
+
+export function getWorkflowHeaderLabel(workflowParams: unknown) {
+  if (
+    typeof workflowParams !== 'object' ||
+    workflowParams === null ||
+    Array.isArray(workflowParams)
+  ) {
+    return null
+  }
+
+  const workflow = (workflowParams as Record<string, unknown>).workflow
+  if (typeof workflow !== 'object' || workflow === null || Array.isArray(workflow)) {
+    return null
+  }
+
+  const workflowRecord = workflow as Record<string, unknown>
+  const name = typeof workflowRecord.name === 'string' ? workflowRecord.name.trim() : ''
+  const trigger = typeof workflowRecord.trigger === 'string' ? workflowRecord.trigger.trim() : ''
+
+  if (!name) {
+    return null
+  }
+
+  return trigger ? `${name} · ${trigger}` : name
 }

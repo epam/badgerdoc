@@ -3,11 +3,18 @@ import { AlertCircle, ExternalLink, FileText } from 'lucide-react'
 import { useNavigate } from '@tanstack/react-router'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/helpers/utils'
 import { useWorkspaceDocument } from '@/shared/api/hooks/use-document-workspace'
 import type { AgentLog, AgentLogLevel } from '@/shared/api/badgerdoc/types'
 import {
+  findPromptContextLinks,
+  getPromptContextTokenLabel,
+  parsePromptContextPath,
+} from '@/features/workspace/helpers/extraction-chat-context'
+import {
   formatLogTime,
+  getWorkflowHeaderLabel,
   hasMeaningfulWorkflowParams,
   safeStringify,
   shouldShowSourceDocumentLink,
@@ -133,11 +140,134 @@ function CodeRenderer({ code }: { code: string }) {
   )
 }
 
-function WorkflowParamsRenderer({ value }: { value: unknown }) {
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function isScalarValue(value: unknown) {
+  return ['string', 'number', 'boolean'].includes(typeof value)
+}
+
+function formatWorkflowParamText(value: unknown) {
+  return typeof value === 'string' ? value : safeStringify(value)
+}
+
+function ReadOnlyPromptContextChip({ path }: { path: string }) {
   return (
-    <pre className="max-h-72 overflow-auto rounded-md border border-border bg-muted/40 p-3 text-xs">
-      <code>{safeStringify(value)}</code>
-    </pre>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span className="mx-0.5 inline-flex h-6 max-w-full select-none items-center rounded border border-blue-200 bg-blue-50 px-1.5 text-xs font-medium text-blue-700 align-baseline">
+          <span className="truncate">{getPromptContextTokenLabel(path)}</span>
+        </span>
+      </TooltipTrigger>
+      <TooltipContent side="top">{path}</TooltipContent>
+    </Tooltip>
+  )
+}
+
+function renderPromptTextWithContextChips(text: string) {
+  const nodes: ReactNode[] = []
+  let cursor = 0
+
+  findPromptContextLinks(text).forEach(({ raw, path, index }) => {
+    const token = parsePromptContextPath(path)
+
+    if (index > cursor) {
+      nodes.push(text.slice(cursor, index))
+    }
+
+    if (token) {
+      nodes.push(<ReadOnlyPromptContextChip key={`${index}-${path}`} path={path} />)
+    } else {
+      nodes.push(raw)
+    }
+
+    cursor = index + raw.length
+  })
+
+  if (cursor < text.length) {
+    nodes.push(text.slice(cursor))
+  }
+
+  return nodes.length ? nodes : text
+}
+
+function WorkflowPromptRenderer({ value }: { value: unknown }) {
+  const text = formatWorkflowParamText(value)
+
+  return (
+    <div className="max-h-72 overflow-auto whitespace-pre-wrap break-words rounded-md border border-border bg-background px-3 py-2 text-sm">
+      {renderPromptTextWithContextChips(text)}
+    </div>
+  )
+}
+
+function WorkflowScalarRenderer({ label, value }: { label: string; value: unknown }) {
+  return (
+    <div className="flex min-w-0 gap-2 rounded-md border border-border/70 bg-muted/20 px-3 py-2 text-sm">
+      <span className="shrink-0 font-medium text-muted-foreground">{label}:</span>
+      <span className="min-w-0 break-words">{formatWorkflowParamText(value)}</span>
+    </div>
+  )
+}
+
+function WorkflowComplexRenderer({ label, value }: { label: string; value: unknown }) {
+  return (
+    <details className="rounded-md border border-border bg-muted/20">
+      <summary className="cursor-pointer px-3 py-2 text-sm font-medium text-muted-foreground">
+        {label}
+      </summary>
+      <pre className="max-h-72 overflow-auto border-t border-border bg-muted/40 p-3 text-xs">
+        <code>{safeStringify(value)}</code>
+      </pre>
+    </details>
+  )
+}
+
+function WorkflowParamFieldRenderer({ label, value }: { label: string; value: unknown }) {
+  if (isScalarValue(value)) {
+    return <WorkflowScalarRenderer label={label} value={value} />
+  }
+
+  return <WorkflowComplexRenderer label={label} value={value} />
+}
+
+function WorkflowParamsRenderer({ value }: { value: unknown }) {
+  if (!isRecord(value)) {
+    return (
+      <PayloadSection label="Workflow details">
+        <WorkflowScalarRenderer label="value" value={value} />
+      </PayloadSection>
+    )
+  }
+
+  const userInput = value.llm_params
+  const hasUserInput = hasMeaningfulWorkflowParams(userInput)
+  const detailEntries = Object.entries(value).filter(
+    ([key, entryValue]) => key !== 'llm_params' && hasMeaningfulWorkflowParams(entryValue)
+  )
+
+  if (!hasUserInput && detailEntries.length === 0) {
+    return null
+  }
+
+  return (
+    <div className="space-y-3">
+      {hasUserInput && (
+        <PayloadSection label="User input">
+          <WorkflowPromptRenderer value={userInput} />
+        </PayloadSection>
+      )}
+      {detailEntries.length > 0 && (
+        <PayloadSection label="Workflow details">
+          <div className="space-y-2">
+            {detailEntries.map(([key, entryValue]) => (
+              <WorkflowParamFieldRenderer key={key} label={key} value={entryValue} />
+            ))}
+          </div>
+        </PayloadSection>
+      )}
+    </div>
   )
 }
 
@@ -255,15 +385,14 @@ function AgentLogPayloadRenderer({ log }: { log: AgentLog }) {
         </PayloadSection>
       )}
       {hasWorkflowParams && (
-        <PayloadSection label="Workflow Params">
-          <WorkflowParamsRenderer value={payload.workflow_params} />
-        </PayloadSection>
+        <WorkflowParamsRenderer value={payload.workflow_params} />
       )}
     </div>
   )
 }
 
 export function AgentLogEntry({ log, currentDocumentId }: AgentLogEntryProps) {
+  const workflowHeaderLabel = getWorkflowHeaderLabel(log.log.workflow_params)
   const shouldShowSourceDocument = shouldShowSourceDocumentLink({
     currentDocumentId,
     sourceDocumentId: log.document,
@@ -277,6 +406,11 @@ export function AgentLogEntry({ log, currentDocumentId }: AgentLogEntryProps) {
           <Badge variant={getLevelVariant(log.level)}>{log.level}</Badge>
           {log.source && (
             <span className="text-xs font-medium text-muted-foreground">{log.source}</span>
+          )}
+          {workflowHeaderLabel && (
+            <span className="text-xs font-medium text-muted-foreground">
+              {workflowHeaderLabel}
+            </span>
           )}
           {log.task && <span className="text-xs text-muted-foreground">Task {log.task}</span>}
           <time className="text-xs text-muted-foreground" dateTime={log.created_at}>
