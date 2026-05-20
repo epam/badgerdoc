@@ -6,6 +6,7 @@
 
 import type { DocumentsAdapter, DocumentsListParams, DocumentsListResponse } from '../types'
 import type { Document, DocumentStatus } from '@/shared/types/api'
+import type { PageSource } from '../../badgerdoc/types'
 import { mockDocuments } from '@/mocks/data/documents'
 
 // Simulated delay for realistic async behavior
@@ -89,13 +90,18 @@ export const mockDocumentsAdapter: DocumentsAdapter = {
     return doc
   },
 
-  getPagesById: async (_id: string): Promise<string[]> => {
+  getPagesById: async (_id: string): Promise<PageSource[]> => {
     await delay(1200)
     return [
-      `${__STATIC_ASSETS__}/dzi/2/page_1.dzi`,
-      `${__STATIC_ASSETS__}/dzi/2/page_2.dzi`,
-      `${__STATIC_ASSETS__}/dzi/2/page_3.dzi`,
+      { type: 'dzi', url: `${__STATIC_ASSETS__}/dzi/2/page_1.dzi` },
+      { type: 'dzi', url: `${__STATIC_ASSETS__}/dzi/2/page_2.dzi` },
+      { type: 'dzi', url: `${__STATIC_ASSETS__}/dzi/2/page_3.dzi` },
     ]
+  },
+
+  getPngPagesById: async (_id: string): Promise<PageSource[]> => {
+    await delay(200)
+    return []
   },
 
   approve: async (id: string): Promise<Document> => {

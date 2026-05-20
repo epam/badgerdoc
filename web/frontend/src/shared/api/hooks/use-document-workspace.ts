@@ -8,6 +8,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getApiAdapter } from '../adapters/factory'
 import type { Document } from '@/shared/types/api'
+import type { PageSource } from '../badgerdoc/types'
 import { toast } from 'sonner'
 
 // =============================================================================
@@ -51,7 +52,7 @@ export function useDocumentPages(documentId: string) {
 
   return useQuery({
     queryKey: workspaceKeys.pages(documentId),
-    queryFn: (): Promise<string[]> => adapter.documents.getPagesById(documentId),
+    queryFn: (): Promise<PageSource[]> => adapter.documents.getPagesById(documentId),
     enabled: !!documentId,
   })
 }

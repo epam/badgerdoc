@@ -1,15 +1,16 @@
 import { ViewerToolbar, type PageChatContext } from '@/components/collection-viewer/viewer-toolbar'
 import { useViewerNavigation } from '@/components/collection-viewer/use-viewer-navigation'
 import { useOsdViewer } from '@/components/collection-viewer/use-osd-viewer'
-import { OverlayBox } from '@/shared/api/badgerdoc/types'
+import { OverlayBox, PageSource } from '@/shared/api/badgerdoc/types'
 import { useDocumentPages } from '@/shared/api/hooks/use-document-workspace'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useExtractionHighlights } from '@/components/collection-viewer/use-extraction-highlights.ts'
 import { useCurrentPageSync } from '@/components/collection-viewer/use-current-page-sync'
-import { Dispatch, SetStateAction, useCallback, useEffect, useState } from 'react'
+import { Dispatch, SetStateAction, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { getDocumentExtension } from '@/components/document-hierarchy-utils'
 import { cn, extractFilenameFromUrl } from '@/helpers/utils'
 import { getApiAdapter } from '@/shared/api/adapters/factory'
+import { logger } from '@/shared/logger'
 import { toast } from 'sonner'
 import { useTouchNavigation } from './use-touch-navigation'
 
@@ -53,26 +54,66 @@ export function CollectionViewer({
 }: CollectionViewerProps) {
   const { data: pages, isLoading } = useDocumentPages(documentId)
   const [isDownloading, setIsDownloading] = useState(false)
-  const { containerRef, viewer } = useOsdViewer(pages)
+  const adapter = getApiAdapter()
+
+  // Runtime PNG fallback: when /dzi/ returns URLs but OpenSeadragon fails to
+  // actually open the tiled source (broken/missing assets in storage), we
+  // fetch PNG renditions and rebuild the viewer with them. Reset whenever the
+  // document changes.
+  const [runtimeFallbackPages, setRuntimeFallbackPages] = useState<PageSource[] | null>(null)
+  const runtimeFallbackRequestedRef = useRef(false)
+  useEffect(() => {
+    setRuntimeFallbackPages(null)
+    runtimeFallbackRequestedRef.current = false
+  }, [documentId])
+
+  const handleOsdLoadFailed = useCallback(() => {
+    if (runtimeFallbackRequestedRef.current) return
+    runtimeFallbackRequestedRef.current = true
+
+    adapter.documents
+      .getPngPagesById(documentId)
+      .then((sources) => {
+        setRuntimeFallbackPages(sources)
+      })
+      .catch((error) => {
+        logger.error('Failed to fetch PNG renditions for OSD fallback', error)
+        // Stop retrying for this document; the viewer will stay empty rather
+        // than thrash the open-failed event in a loop.
+        setRuntimeFallbackPages([])
+      })
+  }, [adapter.documents, documentId])
+
+  const effectivePages = useMemo(() => runtimeFallbackPages ?? pages, [runtimeFallbackPages, pages])
+
+  const { containerRef, viewer } = useOsdViewer(effectivePages, {
+    onLoadFailed: handleOsdLoadFailed,
+  })
+  // When tiled (DZI) assets are unavailable, the viewer falls back to PNG
+  // rendering via OpenSeadragon's simple image source. In that mode the page
+  // is read-only: no overlays, no edit mode, no area selection.
+  const isPngFallback =
+    (effectivePages?.length ?? 0) > 0 && effectivePages!.every((p) => p.type === 'image')
+  const effectiveCanUseEditMode = canUseEditMode && !isPngFallback
+  const effectiveIsEditMode = isEditMode && !isPngFallback
   useExtractionHighlights({
     viewer,
-    overlayItems: highlights,
-    selectedHighlightId: activeHighlightId,
-    isEditMode,
-    createdHighlightIds,
+    overlayItems: isPngFallback ? {} : highlights,
+    selectedHighlightId: isPngFallback ? null : activeHighlightId,
+    isEditMode: effectiveIsEditMode,
+    createdHighlightIds: isPngFallback ? new Set<string>() : createdHighlightIds,
     onHighlightClick,
     onHighlightUpdate,
     onHighlightCreate,
   })
   const { goToPage } = useCurrentPageSync({
     viewer,
-    pages: pages || [],
+    pages: effectivePages || [],
     currentPage,
     setCurrentPage: onPageChange,
   })
 
-  const pagination = useViewerNavigation(pages?.length || 0, currentPage, goToPage)
-  const adapter = getApiAdapter()
+  const pagination = useViewerNavigation(effectivePages?.length || 0, currentPage, goToPage)
 
   useTouchNavigation(viewer)
 
@@ -124,9 +165,12 @@ export function CollectionViewer({
       if (!viewer) return
       // OSD types don't expose panHorizontal/panVertical on Viewer, but they exist at runtime.
       // Disabling pan keeps scroll-to-zoom and pinch-to-zoom working.
-      Object.assign(viewer, { panHorizontal: !isEditMode, panVertical: !isEditMode })
+      Object.assign(viewer, {
+        panHorizontal: !effectiveIsEditMode,
+        panVertical: !effectiveIsEditMode,
+      })
     },
-    [viewer, isEditMode]
+    [viewer, effectiveIsEditMode]
   )
 
   return (
@@ -138,8 +182,8 @@ export function CollectionViewer({
         onNextClick={pagination.handleNextClick}
         onPrevClick={pagination.handlePrevClick}
         onFitToPage={pagination.handleFitToPage}
-        isEditMode={isEditMode}
-        canUseEditMode={canUseEditMode}
+        isEditMode={effectiveIsEditMode}
+        canUseEditMode={effectiveCanUseEditMode}
         onToggleEditMode={onToggleEditMode}
         onDownloadOriginal={handleDownloadOriginal}
         isDownloading={isDownloading}
@@ -151,7 +195,7 @@ export function CollectionViewer({
         <div
           ref={containerRef}
           className={cn('relative w-full h-full bg-background', {
-            'cursor-crosshair': isEditMode,
+            'cursor-crosshair': effectiveIsEditMode,
           })}
           role="region"
           aria-label="Document viewer"
