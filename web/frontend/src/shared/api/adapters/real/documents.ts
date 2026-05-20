@@ -41,9 +41,7 @@ async function fetchDziPages(id: string): Promise<string[]> {
 }
 
 async function fetchPngRenditionPages(id: string): Promise<PageSource[]> {
-  const response = await badgerDocClient.get<BadgerDocDocument[]>(
-    `/document/${id}/renditions/`
-  )
+  const response = await badgerDocClient.get<BadgerDocDocument[]>(`/document/${id}/renditions/`)
   const renditions = response.data ?? []
   return renditions
     .filter((doc) => Boolean(doc.file))
