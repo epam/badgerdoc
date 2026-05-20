@@ -34,8 +34,8 @@ import { DocumentOverviewPopover } from '@/features/workspace/components/documen
 import { NoExtractionTagsEmptyState } from '@/features/workspace/components/no-extraction-tags-empty-state'
 import { AgentLogsTab } from '@/features/workspace/components/agent-logs-tab'
 import { agentLogsKeys } from '@/shared/api/hooks/use-agent-logs'
-import type { BadgerDocDocument } from '@/shared/api/badgerdoc/types'
 import type { WorkflowScope } from '@/shared/api/adapters/types'
+import type { Document } from '@/shared/types/api'
 
 const AGENT_CONTEXT_SCOPES: WorkflowScope[] = ['document', 'page']
 
@@ -338,7 +338,7 @@ export function WorkspacePage() {
   }, [navigate, queue?.nextId, taskFiltersSearch, activeTab])
 
   const handleHierarchyDocumentSelect = useCallback(
-    (selectedDocument: BadgerDocDocument) => {
+    (selectedDocument: Document) => {
       if (String(selectedDocument.id) === String(documentId)) {
         return
       }
@@ -377,19 +377,6 @@ export function WorkspacePage() {
     authors: document.authors,
     date: document.publicationDate || document.createdAt.split('T')[0],
   }
-  const documentForHierarchy = {
-    id: document.id,
-    uploaded_by: document.uploadedBy,
-    parent_document_id: document.parentDocumentId ?? null,
-    file: document.pdfUrl,
-    metadata: document.metadata,
-    tags: document.tags,
-    created_at: document.createdAt,
-    updated_at: document.updatedAt,
-    name: document.title,
-    status: document.status,
-  } satisfies BadgerDocDocument
-
   const documentForOverview = {
     id: document.id,
     title: document.title,
@@ -464,7 +451,7 @@ export function WorkspacePage() {
         titleActions={
           <div className="flex min-w-0 items-center gap-2">
             <DocumentHierarchyPopover
-              currentDocument={documentForHierarchy}
+              currentDocument={document}
               onDocumentSelect={handleHierarchyDocumentSelect}
             />
             <DocumentOverviewPopover document={documentForOverview} />

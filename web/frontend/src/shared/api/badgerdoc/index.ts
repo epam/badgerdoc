@@ -6,9 +6,6 @@
 
 // Client
 
-// Service
-export { badgerDocService } from './service'
-
 // Types
 export type {
   AgentLog,

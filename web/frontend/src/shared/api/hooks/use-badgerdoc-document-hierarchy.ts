@@ -1,26 +1,26 @@
 import { useQuery } from '@tanstack/react-query'
 import { extractFilenameFromUrl } from '@/helpers/utils'
-import { badgerDocService } from '../badgerdoc/service'
-import type { BadgerDocDocument } from '../badgerdoc/types'
+import { getApiAdapter } from '../adapters/factory'
+import type { Document } from '@/shared/types/api'
 
 export interface DocumentHierarchyNode {
   id: number | string
   title: string
-  document: BadgerDocDocument
+  document: Document
   children?: DocumentHierarchyNode[]
   isCurrent?: boolean
   isLeaf?: boolean
 }
 
 interface BuildDocumentHierarchyTreeParams {
-  currentDocument: BadgerDocDocument
-  parentDocument?: BadgerDocDocument | null
-  childDocuments?: BadgerDocDocument[]
+  currentDocument: Document
+  parentDocument?: Document | null
+  childDocuments?: Document[]
 }
 
 interface DocumentHierarchyData {
-  parentDocument: BadgerDocDocument | null
-  childDocuments: BadgerDocDocument[]
+  parentDocument: Document | null
+  childDocuments: Document[]
   tree: DocumentHierarchyNode[]
   parentError: unknown | null
   childrenError: unknown | null
@@ -33,23 +33,21 @@ const documentHierarchyKeys = {
     [...documentHierarchyKeys.all, documentId, parentDocumentId ?? null] as const,
 }
 
-export function getBadgerDocDocumentTitle(document: BadgerDocDocument): string {
+export function getBadgerDocDocumentTitle(document: Document): string {
   const metadataTitle = document.metadata?.title
   if (typeof metadataTitle === 'string' && metadataTitle.trim()) {
     return metadataTitle
   }
 
-  if (document.name?.trim()) {
-    return document.name
+  if (document.title?.trim()) {
+    return document.title
   }
 
-  return (
-    extractFilenameFromUrl(document.file || document.file_url || '') || `Document ${document.id}`
-  )
+  return extractFilenameFromUrl(document.pdfUrl || '') || `Document ${document.id}`
 }
 
 function toHierarchyNode(
-  document: BadgerDocDocument,
+  document: Document,
   options?: Pick<DocumentHierarchyNode, 'children' | 'isCurrent' | 'isLeaf'>
 ): DocumentHierarchyNode {
   return {
@@ -99,9 +97,10 @@ function getHierarchyErrorMessage(parentError: unknown | null, childrenError: un
   return undefined
 }
 
-export function useBadgerDocDocumentHierarchy(currentDocument?: BadgerDocDocument | null) {
+export function useBadgerDocDocumentHierarchy(currentDocument?: Document | null) {
+  const adapter = getApiAdapter()
   const documentId = currentDocument?.id
-  const parentDocumentId = currentDocument?.parent_document_id
+  const parentDocumentId = currentDocument?.parentDocumentId
   const hasParentDocumentId = parentDocumentId !== undefined && parentDocumentId !== null
 
   const query = useQuery({
@@ -120,9 +119,9 @@ export function useBadgerDocDocumentHierarchy(currentDocument?: BadgerDocDocumen
 
       const [parentResult, childrenResult] = await Promise.allSettled([
         hasParentDocumentId
-          ? badgerDocService.getDocument(parentDocumentId)
+          ? adapter.documents.getById(String(parentDocumentId))
           : Promise.resolve(null),
-        badgerDocService.getDocuments({ parent_document_id: documentId }),
+        adapter.documents.list({ parent_document_id: documentId }),
       ])
 
       const parentDocument = parentResult.status === 'fulfilled' ? parentResult.value : null

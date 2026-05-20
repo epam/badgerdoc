@@ -10,6 +10,8 @@ import { realDocumentsAdapter } from './documents'
 import { realTasksAdapter } from './tasks'
 import { realExtractionsAdapter } from './extractions'
 import { realTagsAdapter } from '@/shared/api/adapters/real/tags.ts'
+import { realUsersAdapter } from './users'
+import { realUploadsAdapter } from './uploads'
 import { realWorkflowsAdapter } from './workflows'
 import { realAgentLogsAdapter } from './agent-logs'
 
@@ -19,6 +21,8 @@ export function createRealApiAdapter(): ApiAdapter {
     tasks: realTasksAdapter,
     extractions: realExtractionsAdapter,
     tags: realTagsAdapter,
+    users: realUsersAdapter,
+    uploads: realUploadsAdapter,
     workflows: realWorkflowsAdapter,
     agentLogs: realAgentLogsAdapter,
   }

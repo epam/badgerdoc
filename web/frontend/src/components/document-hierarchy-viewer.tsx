@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Spinner } from '@/components/ui/spinner'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import type { BadgerDocDocument } from '@/shared/api/badgerdoc/types'
+import type { Document } from '@/shared/types/api'
 import type { DocumentHierarchyNode } from '@/shared/api/hooks/use-badgerdoc-document-hierarchy'
 
 interface DocumentHierarchyViewerProps {
@@ -16,14 +16,14 @@ interface DocumentHierarchyViewerProps {
   loadingMessage?: string
   emptyMessage?: string
   className?: string
-  onDocumentSelect?: (document: BadgerDocDocument, node: DocumentHierarchyNode) => void
+  onDocumentSelect?: (document: Document, node: DocumentHierarchyNode) => void
 }
 
 interface DocumentHierarchyRowProps {
   node: DocumentHierarchyNode
   level: number
   isLast: boolean
-  onDocumentSelect?: (document: BadgerDocDocument, node: DocumentHierarchyNode) => void
+  onDocumentSelect?: (document: Document, node: DocumentHierarchyNode) => void
 }
 
 interface VisibleHierarchyRow {

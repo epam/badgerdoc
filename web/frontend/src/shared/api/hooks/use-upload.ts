@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import type { AxiosProgressEvent } from 'axios'
 import { create } from 'zustand'
-import { badgerDocService } from '../badgerdoc/service'
+import { getApiAdapter } from '../adapters/factory'
 import { BadgerDocUploadResponse } from '../badgerdoc/types'
 import { documentKeys } from './use-documents'
 import {
@@ -85,6 +85,7 @@ interface UploadMutationParams {
 
 export function useUploadDocuments({ onBatchError }: UploadMutationParams = {}) {
   const queryClient = useQueryClient()
+  const apiAdapter = getApiAdapter()
 
   return useMutation({
     mutationFn: async ({
@@ -108,14 +109,14 @@ export function useUploadDocuments({ onBatchError }: UploadMutationParams = {}) 
               }
             : undefined
 
-          const response = await badgerDocService.uploadDocument(
+          const response = await apiAdapter.uploads.uploadDocument(
             file.file,
             tags,
             metadata,
             handleProgress
           )
-          onFileComplete(file.id, response.data)
-          results.push(response.data)
+          onFileComplete(file.id, response)
+          results.push(response)
         } catch (error) {
           onFileError(file.id, (error as Error)?.message || (error as unknown as string))
         }

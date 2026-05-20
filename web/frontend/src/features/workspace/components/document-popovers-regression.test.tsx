@@ -1,8 +1,9 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { DocumentHierarchyPopover } from '@/components/document-hierarchy-popover'
-import type { BadgerDocDocument, Tag } from '@/shared/api/badgerdoc/types'
+import type { Tag } from '@/shared/api/badgerdoc/types'
 import type { DocumentHierarchyNode } from '@/shared/api/hooks/use-badgerdoc-document-hierarchy'
+import type { Document } from '@/shared/types/api'
 import { DocumentOverviewPopover } from './document-overview-popover'
 import type { OverviewDocument } from './document-overview-content'
 import { NoExtractionTagsEmptyState } from './no-extraction-tags-empty-state'
@@ -27,22 +28,28 @@ vi.mock('@/shared/api/hooks', () => ({
 }))
 
 vi.mock('@/shared/api/hooks/use-badgerdoc-document-hierarchy', () => ({
-  getBadgerDocDocumentTitle: (document: BadgerDocDocument) =>
-    String(document.metadata?.title ?? document.id),
+  getBadgerDocDocumentTitle: (document: Document) => String(document.metadata?.title ?? document.id),
   useBadgerDocDocumentHierarchy: mocks.useHierarchy,
 }))
 
-function createDocument(id: number, title: string): BadgerDocDocument {
+function createDocument(id: number, title: string): Document {
   return {
-    id,
-    file: `https://example.test/${id}.pdf`,
+    id: String(id),
+    title,
+    type: 'paper',
+    status: 'pending_analysis',
+    pdfUrl: `https://example.test/${id}.pdf`,
+    pageCount: 1,
     metadata: { title },
     tags: ['ocr'],
+    authors: [],
+    createdAt: '2026-05-13T00:00:00Z',
+    updatedAt: '2026-05-13T00:00:00Z',
   }
 }
 
 function createNode(
-  document: BadgerDocDocument,
+  document: Document,
   options?: Partial<DocumentHierarchyNode>
 ): DocumentHierarchyNode {
   return {
@@ -71,7 +78,7 @@ function createOverviewDocument(): OverviewDocument {
   }
 }
 
-function mockHierarchy(currentDocument: BadgerDocDocument, childDocument: BadgerDocDocument) {
+function mockHierarchy(currentDocument: Document, childDocument: Document) {
   mocks.useHierarchy.mockImplementation(
     (document) =>
       ({
