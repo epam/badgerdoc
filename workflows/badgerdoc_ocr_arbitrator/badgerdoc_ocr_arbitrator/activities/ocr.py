@@ -464,4 +464,4 @@ async def trial_process(
         {"message": "Arbitration trial completed and stored"},
     )
 
-    return BadgerdocHOCRPageResult(h_ocr={page_number: hocr_path})
+    return BadgerdocHOCRPageResult(h_ocr={str(page_number): hocr_path})
