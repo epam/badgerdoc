@@ -12,6 +12,8 @@
 /**
  * Confidence level for AI-generated data
  */
+import type { DuplicateCheckStatus } from '@/shared/api/badgerdoc/types'
+
 export type ConfidenceLevel = 'High' | 'Medium' | 'Low'
 
 // =============================================================================
@@ -37,7 +39,9 @@ export interface DocumentMetadata extends Record<string, unknown> {
 
 export interface Document {
   id: string
+  parentDocumentId?: number | null
   title: string
+  extension?: string
   type: DocumentType
   status: DocumentStatus
   pdfUrl: string
@@ -53,4 +57,7 @@ export interface Document {
   processedAt?: string
   tags: string[]
   uploadedBy?: string
+  duplicateScore?: number
+  duplicateStatus?: DuplicateCheckStatus
+  duplicateOfId?: string | number | null
 }

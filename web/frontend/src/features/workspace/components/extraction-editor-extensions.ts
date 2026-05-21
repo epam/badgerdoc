@@ -2,6 +2,11 @@ import StarterKit from '@tiptap/starter-kit'
 import Document from '@tiptap/extension-document'
 import Paragraph from '@tiptap/extension-paragraph'
 import { Table, TableCell, TableHeader, TableRow } from '@tiptap/extension-table'
+import BulletList from '@tiptap/extension-bullet-list'
+import OrderedList from '@tiptap/extension-ordered-list'
+import ListItem from '@tiptap/extension-list-item'
+import Subscript from '@tiptap/extension-subscript'
+import Superscript from '@tiptap/extension-superscript'
 
 const ExtractionDocument = Document.extend({
   content: 'extractionBlock*',
@@ -20,6 +25,105 @@ const OcrParagraph = Paragraph.extend({
         },
       },
     }
+  },
+})
+
+function parseCellAttrs(node: HTMLElement) {
+  const colspan = Number(node.getAttribute('colspan') || 1)
+  const rowspan = Number(node.getAttribute('rowspan') || 1)
+  const colwidthAttr = node.getAttribute('colwidth')
+  const colwidth =
+    colwidthAttr && /^\d+(,\d+)*$/.test(colwidthAttr)
+      ? colwidthAttr.split(',').map((width) => Number(width))
+      : null
+
+  return {
+    colspan,
+    rowspan,
+    colwidth,
+  }
+}
+
+const OcrTableHeader = TableHeader.extend({
+  parseHTML() {
+    return [
+      {
+        tag: 'th',
+        getAttrs: (node) => {
+          const attrs = parseCellAttrs(node as HTMLElement)
+          if (attrs.colspan === 1 && attrs.rowspan === 1 && attrs.colwidth === null) {
+            return null
+          }
+          return attrs
+        },
+      },
+      {
+        // hOCR table fragments may contain <td> cells in <thead>; treat them as header cells.
+        tag: 'thead td',
+        getAttrs: (node) => {
+          const attrs = parseCellAttrs(node as HTMLElement)
+          if (attrs.colspan === 1 && attrs.rowspan === 1 && attrs.colwidth === null) {
+            return null
+          }
+          return attrs
+        },
+      },
+    ]
+  },
+})
+
+const OcrTableCell = TableCell.extend({
+  parseHTML() {
+    return [
+      {
+        // Keep body cells as regular data cells and avoid stealing thead cells.
+        tag: 'tbody td',
+        getAttrs: (node) => {
+          const attrs = parseCellAttrs(node as HTMLElement)
+          if (attrs.colspan === 1 && attrs.rowspan === 1 && attrs.colwidth === null) {
+            return null
+          }
+          return attrs
+        },
+      },
+      {
+        tag: 'tfoot td',
+        getAttrs: (node) => {
+          const attrs = parseCellAttrs(node as HTMLElement)
+          if (attrs.colspan === 1 && attrs.rowspan === 1 && attrs.colwidth === null) {
+            return null
+          }
+          return attrs
+        },
+      },
+      {
+        // Fallback for tables without explicit tbody.
+        tag: 'table > tr > td',
+        getAttrs: (node) => {
+          const attrs = parseCellAttrs(node as HTMLElement)
+          if (attrs.colspan === 1 && attrs.rowspan === 1 && attrs.colwidth === null) {
+            return null
+          }
+          return attrs
+        },
+      },
+      {
+        tag: 'td',
+        getAttrs: (node) => {
+          const parentTag = (
+            node as HTMLElement
+          ).parentElement?.parentElement?.tagName?.toLowerCase()
+          if (parentTag === 'thead') {
+            return false
+          }
+          const attrs = parseCellAttrs(node as HTMLElement)
+          if (attrs.colspan === 1 && attrs.rowspan === 1 && attrs.colwidth === null) {
+            return null
+          }
+          return attrs
+        },
+      },
+    ]
   },
 })
 
@@ -47,14 +151,45 @@ const TableKitStylingConfig = {
   },
 }
 
+export const ListKitStylingConfig = {
+  bulletList: {
+    HTMLAttributes: {
+      class: 'list-disc ml-6 space-y-1',
+    },
+  },
+
+  orderedList: {
+    HTMLAttributes: {
+      class: 'list-decimal ml-6 space-y-1',
+    },
+  },
+
+  listItem: {
+    HTMLAttributes: {
+      class: 'leading-relaxed',
+    },
+  },
+}
+
 export function createExtractionTableExtensions() {
   return [
-    StarterKit.configure({ document: false, paragraph: false }),
+    StarterKit.configure({
+      document: false,
+      paragraph: false,
+      bulletList: false,
+      orderedList: false,
+      listItem: false,
+    }),
+    BulletList.configure(ListKitStylingConfig.bulletList),
+    OrderedList.configure(ListKitStylingConfig.orderedList),
+    ListItem.configure(ListKitStylingConfig.listItem),
     ExtractionDocument,
     OcrParagraph,
     Table.configure(TableKitStylingConfig.table),
     TableRow.configure(TableKitStylingConfig.tableRow),
-    TableHeader.configure(TableKitStylingConfig.tableHeader),
-    TableCell.configure(TableKitStylingConfig.tableCell),
+    OcrTableHeader.configure(TableKitStylingConfig.tableHeader),
+    OcrTableCell.configure(TableKitStylingConfig.tableCell),
+    Subscript,
+    Superscript,
   ]
 }

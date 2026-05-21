@@ -33,6 +33,7 @@ export const mockDocuments: Document[] = [
   },
   {
     id: '2',
+    parentDocumentId: 1,
     title: 'Novel Composite Material with Enhanced Optical Properties',
     type: 'paper',
     status: 'extraction_ready',
@@ -48,9 +49,13 @@ export const mockDocuments: Document[] = [
     createdAt: '2024-12-06T14:00:00Z',
     updatedAt: '2024-12-06T14:00:00Z',
     tags: ['ocr'],
+    duplicateScore: 85,
+    duplicateStatus: 'pending',
+    duplicateOfId: '1',
   },
   {
     id: '3',
+    parentDocumentId: 2,
     title: 'Thermal Expansion Coefficient Optimization',
     type: 'paper',
     status: 'analysis_ready',
@@ -83,6 +88,9 @@ export const mockDocuments: Document[] = [
     createdAt: '2024-12-06T16:00:00Z',
     updatedAt: '2024-12-06T16:00:00Z',
     tags: ['ocr'],
+    duplicateScore: 72,
+    duplicateStatus: 'pending',
+    duplicateOfId: '3',
   },
   {
     id: '5',
@@ -102,6 +110,29 @@ export const mockDocuments: Document[] = [
     updatedAt: '2024-12-06T12:00:00Z',
     processedAt: '2024-12-06T12:00:00Z',
     tags: [],
+  },
+  {
+    id: '6',
+    title: 'Production Batch Certificate for Peptide Compound DS10123123',
+    type: 'report',
+    status: 'extraction_ready',
+    pdfUrl: '/sample.pdf',
+    pageCount: 3,
+    authors: ['Bachem QA'],
+    publicationDate: '2024-05-24',
+    abstract:
+      'Representative mock certificate of analysis used to exercise extraction and hOCR workflows.',
+    metadata: {
+      title: 'Certificate of Analysis DS10123123',
+      lotNumber: '1921',
+      productNumber: '9881',
+    },
+    createdAt: '2024-12-06T17:00:00Z',
+    updatedAt: '2024-12-06T17:00:00Z',
+    tags: ['deepseek-ocr-2', 'ocr'],
+    duplicateScore: 92,
+    duplicateStatus: 'pending',
+    duplicateOfId: '1',
   },
 ]
 

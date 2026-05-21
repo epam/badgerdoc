@@ -3,7 +3,12 @@ import asyncio
 from temporalio.worker import Worker
 
 from badgerdoc_common import helpers, sentry
-from badgerdoc_ocr_paddle import activities, ocr_processing
+from badgerdoc_common.activities.document import (
+    badgerdoc_get_document_chunk,
+    badgerdoc_get_rendition,
+    badgerdoc_list_documents,
+)
+from badgerdoc_ocr_paddle import activities, workflow
 
 helpers.configure_logging()
 
@@ -17,10 +22,15 @@ async def worker():
         Worker(
             client,
             task_queue="badgerdoc_ocr_paddle",
-            workflows=[ocr_processing.BadgerdocOCRPaddleWorkflow],
+            workflows=[workflow.BadgerdocOCRPaddleWorkflow],
             activities=[
-                activities.ocr_requests.paddle_ocr,
+                activities.ocr_requests.paddle_ocr_tag_extraction,
+                activities.ocr_requests.paddle_prepare_page,
+                activities.ocr_requests.paddle_store_result,
                 activities.ocr_convertors.paddle_ocr_results_to_hocr,
+                badgerdoc_list_documents,
+                badgerdoc_get_rendition,
+                badgerdoc_get_document_chunk,
             ],
             **sentry_config,
         )

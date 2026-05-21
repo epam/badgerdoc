@@ -1,4 +1,4 @@
-import { ViewerToolbar } from '@/components/collection-viewer/viewer-toolbar'
+import { ViewerToolbar, type PageChatContext } from '@/components/collection-viewer/viewer-toolbar'
 import { useViewerNavigation } from '@/components/collection-viewer/use-viewer-navigation'
 import { useOsdViewer } from '@/components/collection-viewer/use-osd-viewer'
 import { OverlayBox } from '@/shared/api/badgerdoc/types'
@@ -7,8 +7,9 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useExtractionHighlights } from '@/components/collection-viewer/use-extraction-highlights.ts'
 import { useCurrentPageSync } from '@/components/collection-viewer/use-current-page-sync'
 import { Dispatch, SetStateAction, useCallback, useEffect, useState } from 'react'
+import { getDocumentExtension } from '@/components/document-hierarchy-utils'
 import { cn, extractFilenameFromUrl } from '@/helpers/utils'
-import { badgerDocService } from '@/shared/api/badgerdoc/service'
+import { getApiAdapter } from '@/shared/api/adapters/factory'
 import { toast } from 'sonner'
 
 interface CollectionViewerProps {
@@ -31,6 +32,7 @@ interface CollectionViewerProps {
     bbox: { x: number; y: number; width: number; height: number }
   ) => void
   createdHighlightIds: Set<string>
+  pageChatContext?: PageChatContext
 }
 
 export function CollectionViewer({
@@ -46,6 +48,7 @@ export function CollectionViewer({
   onHighlightUpdate,
   onHighlightCreate,
   createdHighlightIds,
+  pageChatContext,
 }: CollectionViewerProps) {
   const { data: pages, isLoading } = useDocumentPages(documentId)
   const [isDownloading, setIsDownloading] = useState(false)
@@ -68,6 +71,7 @@ export function CollectionViewer({
   })
 
   const pagination = useViewerNavigation(pages?.length || 0, currentPage, goToPage)
+  const adapter = getApiAdapter()
 
   const handleDownloadOriginal = useCallback(async () => {
     if (!documentId || isDownloading) {
@@ -76,18 +80,18 @@ export function CollectionViewer({
 
     setIsDownloading(true)
     try {
-      const documentData = await badgerDocService.getDocument(documentId)
-      const fileUrl = documentData.file || documentData.file_url
+      const documentData = await adapter.documents.getById(documentId)
+      const fileUrl = documentData.pdfUrl
 
       if (!fileUrl) {
         throw new Error('Missing file URL')
       }
 
-      const baseName = extractFilenameFromUrl(fileUrl) || 'document'
-      const extension = documentData.extension
+      const baseName = documentData.title || extractFilenameFromUrl(fileUrl) || 'document'
+      const extension = getDocumentExtension(documentData, baseName)
       const filename =
         extension && !baseName.toLowerCase().endsWith(`.${extension.toLowerCase()}`)
-          ? `${baseName}.${extension}`
+          ? `${baseName}.${extension.toLowerCase()}`
           : baseName
 
       const response = await fetch(fileUrl)
@@ -110,7 +114,7 @@ export function CollectionViewer({
     } finally {
       setIsDownloading(false)
     }
-  }, [documentId, isDownloading])
+  }, [adapter.documents, documentId, isDownloading])
 
   useEffect(
     function toggleViewerPanForEditMode() {
@@ -136,6 +140,7 @@ export function CollectionViewer({
         onToggleEditMode={onToggleEditMode}
         onDownloadOriginal={handleDownloadOriginal}
         isDownloading={isDownloading}
+        pageChatContext={pageChatContext}
       />
       {isLoading ? (
         <Skeleton className="h-6 w-96" />

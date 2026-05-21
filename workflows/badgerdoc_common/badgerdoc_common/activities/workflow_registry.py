@@ -10,17 +10,12 @@ logger = logging.getLogger(__name__)
 
 @activity.defn
 async def badgerdoc_get_workflows(
-    request_data: badgerdoc_event.BadgerdocEvent,
+    params: dict,
+    request_data: badgerdoc_event.BadgerdocEvent = None,
 ) -> list[badgerdoc_event.BadgerdocWorkflow]:
 
     logger.info("Executing badgerdoc_get_workflows activity")
     workflows = []
-    params = {
-        "event_entity": request_data.event_entity,
-        "event_type": request_data.event_type,
-        "is_active": "true",
-        "trigger": "automatic",
-    }
     endpoint = f"/badgerdoc/workflow-registry/?{urlencode(params)}"
 
     for workflow_data in await badgerdoc_http.badgerdoc_get(endpoint):

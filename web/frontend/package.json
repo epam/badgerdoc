@@ -32,6 +32,8 @@
     "@tailwindcss/vite": "^4.1.17",
     "@tanstack/react-query": "^5.90.11",
     "@tanstack/react-router": "^1.139.14",
+    "@tiptap/extension-subscript": "^3.22.4",
+    "@tiptap/extension-superscript": "^3.22.4",
     "@tiptap/extension-table": "^3.20.0",
     "@tiptap/pm": "^3.20.0",
     "@tiptap/react": "^3.20.0",

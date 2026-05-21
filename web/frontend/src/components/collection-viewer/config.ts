@@ -6,6 +6,7 @@ export const NEXT_BTN_ID = 'viewer-next'
 export const PREV_BTN_ID = 'viewer-prev'
 
 export const DEFAULT_OSD_CONFIG: Options = {
+  showNavigationControl: false,
   // toolbar settings
   zoomInButton: ZOOM_IN_BTN_ID,
   zoomOutButton: ZOOM_OUT_BTN_ID,

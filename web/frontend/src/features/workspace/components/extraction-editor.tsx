@@ -16,6 +16,11 @@ interface ExtractionEditorProps {
   onRevertChanges: () => void
   onAcceptChanges: () => Promise<void>
   onBlockDelete: (blockId: string, pageNumber: number | null) => void
+  selectedContextBlockIds: string[]
+  selectedContextPages: number[]
+  isWholeDocumentSelected: boolean
+  onToggleBlockContext: (blockId: string, pageNumber: number | null) => void
+  isContextInteractionDisabled?: boolean
   activeBlockId: string | null
   onBlockSelect: (blockId: string | null, pageNumber: number | null) => void
 }
@@ -30,6 +35,11 @@ const ExtractionEditor = ({
   onRevertChanges,
   onAcceptChanges,
   onBlockDelete,
+  selectedContextBlockIds,
+  selectedContextPages,
+  isWholeDocumentSelected,
+  onToggleBlockContext,
+  isContextInteractionDisabled = false,
   activeBlockId,
   onBlockSelect,
 }: ExtractionEditorProps) => {
@@ -40,14 +50,32 @@ const ExtractionEditor = ({
   const cursorBlockIdRef = useRef<string | null>(null)
   const editorHasFocusedRef = useRef(false)
   const lastCleanContentRef = useRef(content || '')
+  const onBlockSelectRef = useRef(onBlockSelect)
+  const onBlockDeleteRef = useRef(onBlockDelete)
+  const onToggleBlockContextRef = useRef(onToggleBlockContext)
   const hasChanges = hasUnsavedChanges
+
+  onBlockSelectRef.current = onBlockSelect
+  onBlockDeleteRef.current = onBlockDelete
+  onToggleBlockContextRef.current = onToggleBlockContext
 
   const handleBlockSelectFromEditor = useCallback(
     (blockId: string | null, pageNumber: number | null) => {
       selectionTriggeredInEditorBlockIdRef.current = blockId
-      onBlockSelect(blockId, pageNumber)
+      onBlockSelectRef.current(blockId, pageNumber)
     },
-    [onBlockSelect]
+    []
+  )
+
+  const handleBlockDeleteFromEditor = useCallback((blockId: string, pageNumber: number | null) => {
+    onBlockDeleteRef.current(blockId, pageNumber)
+  }, [])
+
+  const handleToggleBlockContextFromEditor = useCallback(
+    (blockId: string, pageNumber: number | null) => {
+      onToggleBlockContextRef.current(blockId, pageNumber)
+    },
+    []
   )
 
   const handleWillDeleteNode = useCallback(() => {
@@ -59,11 +87,17 @@ const ExtractionEditor = ({
       ...createExtractionTableExtensions(),
       ExtractionBlockExtension.configure({
         onBlockSelect: handleBlockSelectFromEditor,
-        onBlockDelete,
+        onBlockDelete: handleBlockDeleteFromEditor,
+        onToggleBlockContext: handleToggleBlockContextFromEditor,
         onWillDeleteNode: handleWillDeleteNode,
       }),
     ],
-    [handleBlockSelectFromEditor, onBlockDelete, handleWillDeleteNode]
+    [
+      handleBlockSelectFromEditor,
+      handleBlockDeleteFromEditor,
+      handleToggleBlockContextFromEditor,
+      handleWillDeleteNode,
+    ]
   )
 
   const editor = useEditor({
@@ -205,6 +239,26 @@ const ExtractionEditor = ({
   )
 
   useEffect(
+    function syncChatContextBlocks() {
+      if (!editor) return
+
+      editor.commands.setBlockChatScope({
+        blockIds: selectedContextBlockIds,
+        pageNumbers: selectedContextPages,
+        isWholeDocumentSelected,
+        isInteractionDisabled: isContextInteractionDisabled,
+      })
+    },
+    [
+      editor,
+      selectedContextBlockIds,
+      selectedContextPages,
+      isWholeDocumentSelected,
+      isContextInteractionDisabled,
+    ]
+  )
+
+  useEffect(
     function handleSelectedBlockChange() {
       if (!editor) return
 
@@ -271,38 +325,44 @@ const ExtractionEditor = ({
           </div>
         </div>
       )}
+      {hasChanges && (
+        <div className="shadow-subtle z-10 flex shrink-0 items-center justify-between gap-4 border-b border-border bg-muted/30 px-4 py-3">
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-foreground">You have unsaved changes</p>
+            <p className="text-xs text-muted-foreground">Review changes before continuing</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              onMouseDown={() => {
+                isRevertingRef.current = true
+              }}
+              disabled={isSaving && !isRevertingRef.current}
+              size="sm"
+              variant="ghost"
+              onClick={handleRevertChanges}
+              title="Revert changes"
+            >
+              Revert
+            </Button>
+            <Button
+              onMouseDown={() => {
+                isAcceptingRef.current = true
+              }}
+              disabled={isSaving && !isAcceptingRef.current}
+              size="sm"
+              onClick={handleAcceptChanges}
+              title="Accept changes"
+            >
+              Accept
+            </Button>
+          </div>
+        </div>
+      )}
       <div className="min-h-0 flex-1 overflow-hidden bg-card">
         <div className="h-full overflow-auto">
           <EditorContent editor={editor} />
         </div>
       </div>
-      {hasChanges && (
-        <div className="absolute bottom-4 left-1/2 z-50 flex -translate-x-1/2 gap-3">
-          <Button
-            onMouseDown={() => {
-              isRevertingRef.current = true
-            }}
-            disabled={isSaving && !isRevertingRef.current}
-            size="sm"
-            variant="outline"
-            onClick={handleRevertChanges}
-            title="Revert changes"
-          >
-            Revert
-          </Button>
-          <Button
-            onMouseDown={() => {
-              isAcceptingRef.current = true
-            }}
-            disabled={isSaving && !isAcceptingRef.current}
-            size="sm"
-            onClick={handleAcceptChanges}
-            title="Accept changes"
-          >
-            Accept
-          </Button>
-        </div>
-      )}
     </div>
   )
 }

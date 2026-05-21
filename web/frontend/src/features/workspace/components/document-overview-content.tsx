@@ -1,4 +1,4 @@
-import { useState, ReactNode, useCallback, ChangeEvent } from 'react'
+import { useState, ReactNode, useCallback, ChangeEvent, useEffect } from 'react'
 import { ExternalLink, ChevronDown, ChevronUp, Pencil } from 'lucide-react'
 import { ScrollArea } from '@/components/ui/scroll-area.tsx'
 import { Button } from '@/components/ui/button.tsx'
@@ -36,7 +36,7 @@ interface PatentMetadata {
   link?: string
 }
 
-interface OverviewDocument {
+export interface OverviewDocument {
   id: string
   title: string
   type: string
@@ -56,8 +56,9 @@ interface OverviewArticle extends Omit<OverviewDocument, 'metadata'> {
   metadata: ArticleMetadata
 }
 
-interface OverviewTabProps {
+interface DocumentOverviewContentProps {
   document: OverviewDocument
+  onEditingChange?: (isEditing: boolean) => void
 }
 
 function MetadataSection({ label, children }: { label: string; children: ReactNode }) {
@@ -231,12 +232,21 @@ function PatentOverview({ document }: { document: OverviewPatent }) {
   )
 }
 
-export function OverviewTab({ document }: OverviewTabProps) {
+export function DocumentOverviewContent({
+  document,
+  onEditingChange,
+}: DocumentOverviewContentProps) {
   const { mutateAsync, isPending } = useUpdateDocumentMeta()
   const { user } = useAuth()
-  const [editMod, setEditMode] = useState(false)
+  const [editMode, setEditMode] = useState(false)
   const [tags, setTags] = useState(document.tags.toString())
   const [metadata, setMetadata] = useState(JSON.stringify(document.metadata))
+
+  useEffect(() => {
+    onEditingChange?.(editMode)
+
+    return () => onEditingChange?.(false)
+  }, [editMode, onEditingChange])
 
   const handleTagsChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     setTags(e.target.value)
@@ -245,6 +255,12 @@ export function OverviewTab({ document }: OverviewTabProps) {
   const handleMetadataChange = useCallback((e: ChangeEvent<HTMLTextAreaElement>) => {
     setMetadata(e.target.value)
   }, [])
+
+  const handleStartEditing = useCallback(() => {
+    setTags(document.tags.toString())
+    setMetadata(JSON.stringify(document.metadata))
+    setEditMode(true)
+  }, [document.metadata, document.tags])
 
   const handleUpdateDocument = useCallback(async () => {
     const tagList = tags
@@ -275,7 +291,7 @@ export function OverviewTab({ document }: OverviewTabProps) {
             <h2 className="font-semibold">Overview</h2>
           </div>
           {isUserUploadedDoc &&
-            (editMod ? (
+            (editMode ? (
               <div className="flex ml-auto gap-2">
                 <Button
                   onClick={() => {
@@ -294,10 +310,11 @@ export function OverviewTab({ document }: OverviewTabProps) {
               </div>
             ) : (
               <Button
-                onClick={() => setEditMode(true)}
+                onClick={handleStartEditing}
                 variant="outline"
                 size="icon"
                 className="ml-auto"
+                aria-label="Edit document overview"
               >
                 <Pencil />
               </Button>
@@ -314,9 +331,9 @@ export function OverviewTab({ document }: OverviewTabProps) {
               <p className="font-medium">{document.title}</p>
             </MetadataSection>
 
-            {(document.tags.length > 0 || editMod) && (
+            {(document.tags.length > 0 || editMode) && (
               <MetadataSection label="Tags">
-                {editMod ? (
+                {editMode ? (
                   <UploadTagsInput
                     value={tags}
                     onChange={handleTagsChange}
@@ -369,7 +386,7 @@ export function OverviewTab({ document }: OverviewTabProps) {
 
             {document.metadata && (
               <MetadataSection label="Metadata">
-                {editMod ? (
+                {editMode ? (
                   <UploadMetadataInput
                     value={metadata}
                     onChange={handleMetadataChange}

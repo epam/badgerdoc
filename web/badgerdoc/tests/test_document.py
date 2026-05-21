@@ -4,6 +4,7 @@ from unittest.mock import patch
 
 from django.contrib.auth.models import Permission, User
 from django.test import TestCase, override_settings
+from PIL import Image
 from rest_framework import status
 from rest_framework.test import APIClient
 
@@ -46,6 +47,10 @@ class DocumentParentDocumentTestCase(TestCase):
             "badgerdoc.signals.trigger_automatic.workflow.trigger"
         )
         self.mock_trigger_workflow = self.trigger_workflow_patch.start()
+        patch(
+            "badgerdoc.signals.workflow.get_supported_workflows",
+            return_value=["workflow name"],
+        ).start()
 
         workflow_registry.WorkflowRegistry.objects.create(
             created_by=self.owner,
@@ -543,3 +548,59 @@ class DocumentParentDocumentTestCase(TestCase):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertEqual(resp.data["count"], 1)
         self.assertEqual(resp.data["results"][0]["id"], doc_a.id)
+
+    def _make_png_bytes(self, width: int = 80, height: int = 60) -> bytes:
+        img = Image.new("RGB", (width, height), color=(100, 150, 200))
+        buf = BytesIO()
+        img.save(buf, format="PNG")
+        buf.seek(0)
+        return buf.getvalue()
+
+    def test_upload_png_creates_rendition_with_size_metadata(self):
+        self.client.force_authenticate(user=self.owner)
+
+        png_bytes = self._make_png_bytes(width=80, height=60)
+        png_file = BytesIO(png_bytes)
+        png_file.name = "test.png"
+
+        response = self.client.post(
+            "/badgerdoc/document/",
+            {"file": png_file, "extension": "png"},
+            format="multipart",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        doc_id = response.data["id"]
+
+        renditions = document.Document.objects.filter(
+            parent_document_id=doc_id,
+            tags__contains=["rendition"],
+        )
+        self.assertEqual(renditions.count(), 1)
+        rendition = renditions.first()
+        self.assertEqual(rendition.metadata["size"]["width"], 80)
+        self.assertEqual(rendition.metadata["size"]["height"], 60)
+
+    def test_upload_png_rendition_metadata_has_page_1(self):
+        self.client.force_authenticate(user=self.owner)
+
+        png_bytes = self._make_png_bytes()
+        png_file = BytesIO(png_bytes)
+        png_file.name = "test.png"
+
+        response = self.client.post(
+            "/badgerdoc/document/",
+            {"file": png_file, "extension": "png"},
+            format="multipart",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        doc_id = response.data["id"]
+
+        rendition = document.Document.objects.filter(
+            parent_document_id=doc_id,
+            tags__contains=["rendition"],
+        ).first()
+        self.assertIsNotNone(rendition)
+        self.assertEqual(rendition.metadata["page"], 1)
+        self.assertIn("size", rendition.metadata)

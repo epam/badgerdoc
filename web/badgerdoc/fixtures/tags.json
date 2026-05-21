@@ -1,38 +1,38 @@
 [
-  {
+    {
     "model": "badgerdoc.tag",
     "pk": 1,
     "fields": {
-      "tag": "deepseek-ocr-2",
-      "literal": "Deepseek OCR 2",
+      "tag": "ocr-arbitrator",
+      "literal": "OCR Arbitrator",
       "order": 1
-    }
-  },
+    } 
+   },
   {
     "model": "badgerdoc.tag",
     "pk": 2,
     "fields": {
-      "tag": "mineru-ocr",
+      "tag": "mineru-mlx",
       "literal": "Mineru OCR",
       "order": 2
     }
   },
   {
     "model": "badgerdoc.tag",
-    "pk": 3,
-    "fields": {
-      "tag": "dots-ocr",
-      "literal": "Dots OCR",
-      "order": 3
-    }
-  },
-    {
-    "model": "badgerdoc.tag",
     "pk": 4,
     "fields": {
       "tag": "paddle-ocr",
       "literal": "Paddle OCR",
       "order": 4
+    }
+  },
+  {
+    "model": "badgerdoc.tag",
+    "pk": 5,
+    "fields": {
+      "tag": "deepseek-ocr-2",
+      "literal": "Deepseek OCR 2",
+      "order": 5
     }
   }
 ]

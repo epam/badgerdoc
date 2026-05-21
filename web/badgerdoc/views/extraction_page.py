@@ -31,10 +31,10 @@ class ExtractionPageFilter(django_filters.FilterSet):
     extraction_id = django_filters.NumberFilter(field_name="extraction_id")
     page_number = django_filters.NumberFilter(field_name="page_number")
     created_at__gte = django_filters.DateTimeFilter(
-        field_name="created_at", lookup_expr="gte"
+        field_name="extraction__created_at", lookup_expr="gte"
     )
     created_at__lte = django_filters.DateTimeFilter(
-        field_name="created_at", lookup_expr="lte"
+        field_name="extraction__created_at", lookup_expr="lte"
     )
 
     class Meta:
@@ -413,6 +413,22 @@ def list_extraction_pages(request: Request) -> Response:
             type=openapi.TYPE_STRING,
             required=False,
         ),
+        openapi.Parameter(
+            "created_at__gte",
+            openapi.IN_QUERY,
+            description="Filter by extraction creation date greater than or equal (ISO 8601 format)",
+            type=openapi.TYPE_STRING,
+            format=openapi.FORMAT_DATETIME,
+            required=False,
+        ),
+        openapi.Parameter(
+            "created_at__lte",
+            openapi.IN_QUERY,
+            description="Filter by extraction creation date less than or equal (ISO 8601 format)",
+            type=openapi.TYPE_STRING,
+            format=openapi.FORMAT_DATETIME,
+            required=False,
+        ),
     ],
     responses={
         200: openapi.Response(
@@ -445,12 +461,6 @@ def get_latest_extraction_pages(
         extraction_queryset = get_extraction_queryset(request.user).filter(
             document=doc
         )
-
-        status_value = request.GET.get(
-            "status", extraction.ExtractionStatus.COMPLETED
-        )
-        extraction_queryset = extraction_queryset.filter(status=status_value)
-
         filterset = ExtractionFilter(request.GET, queryset=extraction_queryset)
         filtered_extractions = filterset.qs
 
@@ -549,6 +559,22 @@ def get_latest_extraction_pages(
             type=openapi.TYPE_STRING,
             required=False,
         ),
+        openapi.Parameter(
+            "created_at__gte",
+            openapi.IN_QUERY,
+            description="Filter by extraction creation date greater than or equal (ISO 8601 format)",
+            type=openapi.TYPE_STRING,
+            format=openapi.FORMAT_DATETIME,
+            required=False,
+        ),
+        openapi.Parameter(
+            "created_at__lte",
+            openapi.IN_QUERY,
+            description="Filter by extraction creation date less than or equal (ISO 8601 format)",
+            type=openapi.TYPE_STRING,
+            format=openapi.FORMAT_DATETIME,
+            required=False,
+        ),
     ],
     responses={
         200: openapi.Response(
@@ -580,12 +606,6 @@ def get_latest_extraction_page(
         extraction_queryset = get_extraction_queryset(request.user).filter(
             document=doc
         )
-
-        status_value = request.GET.get(
-            "status", extraction.ExtractionStatus.COMPLETED
-        )
-        extraction_queryset = extraction_queryset.filter(status=status_value)
-
         filterset = ExtractionFilter(request.GET, queryset=extraction_queryset)
         filtered_extractions = filterset.qs
 

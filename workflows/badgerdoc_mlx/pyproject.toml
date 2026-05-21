@@ -1,0 +1,26 @@
+[project]
+name = "badgerdoc-mlx"
+version = "0.1.0"
+description = "BadgerDoc MLX workflow"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "temporalio>=1.18.2",
+    "badgerdoc-common",
+    "openai",
+    "mineru-vl-utils>=0.1.0",
+    "Pillow",
+]
+
+[tool.uv.sources]
+badgerdoc-common = { path = "../badgerdoc_common" }
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.0",
+    "pytest-asyncio>=0.23.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

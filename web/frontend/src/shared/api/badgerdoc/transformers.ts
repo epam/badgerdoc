@@ -104,7 +104,9 @@ export function transformBadgerDocDocument(
 
   return {
     id: String(bdDoc.id),
+    parentDocumentId: bdDoc.parent_document_id,
     title,
+    extension: bdDoc.extension,
     type: docType as Document['type'],
     status: (bdDoc.status as Document['status']) || 'pending_review',
     pdfUrl,

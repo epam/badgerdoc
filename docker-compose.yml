@@ -27,7 +27,8 @@ services:
 
   web:
     build:
-      context: ./web
+      context: .
+      dockerfile: ./web/Dockerfile
     env_file: .env
     depends_on:
       - db
@@ -88,6 +89,8 @@ services:
       - badgerdoc
     networks:
       - badgerdoc-network
+    deploy:
+      replicas: 5
 
   badgerdoc_ocr_deepseek_2:
     build:
@@ -121,13 +124,33 @@ services:
       - badgerdoc
     networks:
       - badgerdoc-network
-    
+
+  badgerdoc_ocr_arbitrator:
+    build:
+      context: ./workflows/badgerdoc_ocr_arbitrator
+    env_file: .env
+    depends_on:
+      - temporal
+      - minio
+      - badgerdoc
+    networks:
+      - badgerdoc-network
+
+  badgerdoc_mlx:
+    build:
+      context: ./workflows/badgerdoc_mlx
+    env_file: .env
+    depends_on:
+      - temporal
+      - minio
+      - badgerdoc
+    networks:
+      - badgerdoc-network
 
 volumes:
   db_data:
   minio_data:
   temporal_db_data:
-
 
 networks:
   badgerdoc-network:

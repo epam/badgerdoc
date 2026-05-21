@@ -6,8 +6,10 @@
  */
 
 import type { Document, DocumentStatus } from '@/shared/types/api'
+import type { User } from '@/shared/types'
 
 import type { AIHint } from '@/shared/types'
+import type { AxiosProgressEvent } from 'axios'
 
 import type {
   Task,
@@ -17,7 +19,7 @@ import type {
   UpdateTaskRequest,
 } from '@/shared/types/tasks'
 import { BadgerDocExtractionPage } from '@/shared/api/badgerdoc'
-import { BadgerDocExtraction, Tag } from '@/shared/api/badgerdoc/types'
+import { BadgerDocExtraction, BadgerDocUploadResponse, Tag } from '@/shared/api/badgerdoc/types'
 
 // =============================================================================
 // Response Types
@@ -30,12 +32,19 @@ export interface DocumentsListParams {
   sortBy?: 'newest' | 'oldest'
   limit?: number
   offset?: number
+  tags?: string
+  created_at__gte?: string
+  created_at__lte?: string
+  parent_document_id?: string | number
+  page?: number
+  page_size?: number
 }
 
 export interface DocumentsListResponse {
-  data: Document[]
-  total: number
-  hasMore: boolean
+  count: number
+  next: string | null
+  previous: string | null
+  results: Document[]
 }
 
 export interface CreateExtractionParams {
@@ -59,6 +68,25 @@ export interface CreateExtractionPageParams {
 }
 
 export type WorkflowScope = 'document' | 'page'
+
+export interface Workflow {
+  id: number
+  name: string
+  tags: string[]
+  createdBy: string | null
+  eventEntity: string | null
+  eventType: string | null
+  documentTypes: string[]
+  entityTags: string[]
+  temporalWorkflowType: string
+  temporalQueue: string
+  isActive: boolean
+  trigger: string
+  extractionScope: WorkflowScope[]
+  supportPrompts: boolean
+  createdAt: string
+  updatedAt: string
+}
 
 /**
  * Raw workflow registry response from GET /workflow-registry/
@@ -143,6 +171,19 @@ export interface TagsAdapter {
   getTags(): Promise<Tag[]>
 }
 
+export interface UsersAdapter {
+  getCurrentUserData(): Promise<User>
+}
+
+export interface UploadsAdapter {
+  uploadDocument(
+    file: File,
+    tags: string[],
+    metadata: string,
+    onUploadProgress?: (event: AxiosProgressEvent) => void
+  ): Promise<BadgerDocUploadResponse>
+}
+
 export interface WorkflowsAdapter {
   list(
     params?: Partial<{
@@ -153,9 +194,9 @@ export interface WorkflowsAdapter {
       extraction_scope: string
       tags: string[]
     }>
-  ): Promise<WorkflowRegistryResponse[]>
+  ): Promise<Workflow[]>
 
-  getById(id: number): Promise<WorkflowRegistryResponse>
+  getById(id: number): Promise<Workflow>
 
   trigger(workflowId: number, payload: WorkflowTriggerRequest): Promise<WorkflowTriggerResponse>
 
@@ -167,5 +208,7 @@ export interface ApiAdapter {
   tasks: TasksAdapter
   extractions: ExtractionsAdapter
   tags: TagsAdapter
+  users: UsersAdapter
+  uploads: UploadsAdapter
   workflows: WorkflowsAdapter
 }
