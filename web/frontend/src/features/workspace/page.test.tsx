@@ -1,10 +1,11 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { WorkspacePage } from './page'
 
 const mocks = vi.hoisted(() => ({
   navigate: vi.fn(),
   invalidateQueries: vi.fn(),
+  isFetching: vi.fn(),
   addWholeDocument: vi.fn(),
   togglePage: vi.fn(),
   useViewerChatContext: vi.fn(),
@@ -21,6 +22,7 @@ vi.mock('@tanstack/react-router', () => ({
 vi.mock('@tanstack/react-query', () => ({
   useQueryClient: () => ({
     invalidateQueries: mocks.invalidateQueries,
+    isFetching: mocks.isFetching,
   }),
 }))
 
@@ -95,6 +97,13 @@ vi.mock('@/components/not-found', () => ({
 }))
 
 vi.mock('@/shared/api/hooks', () => ({
+  extractionPagesKeys: {
+    documentWithTags: (documentId: string, tags?: string) => [
+      'badgerdoc-extraction-pages',
+      documentId,
+      tags,
+    ],
+  },
   useWorkspaceDocument: () => ({
     data: {
       id: '123',
@@ -267,7 +276,112 @@ vi.mock('@/features/workspace/components/agent-logs-tab', () => ({
 describe('WorkspacePage Agent submit integration', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mocks.isFetching.mockReturnValue(0)
     mocks.searchTag = 'summary'
+  })
+
+  it('does not refresh extraction data on ordinary extraction tab activation', () => {
+    render(<WorkspacePage />)
+
+    expect(mocks.invalidateQueries).not.toHaveBeenCalledWith({
+      queryKey: ['badgerdoc-extraction-pages', '123', 'summary'],
+      exact: true,
+    })
+  })
+
+  it('refreshes extraction data after Agent submit success when returning to an extraction tab', async () => {
+    mocks.searchTag = 'agent'
+    const { rerender } = render(<WorkspacePage />)
+
+    fireEvent.click(screen.getByRole('button', { name: /submit from agent/i }))
+    mocks.invalidateQueries.mockClear()
+
+    mocks.searchTag = 'summary'
+    rerender(<WorkspacePage />)
+
+    await waitFor(() =>
+      expect(mocks.invalidateQueries).toHaveBeenCalledWith({
+        queryKey: ['badgerdoc-extraction-pages', '123', 'summary'],
+        exact: true,
+      })
+    )
+  })
+
+  it('refreshes the same extraction tab after submit success, leaving, and returning', async () => {
+    const { rerender } = render(<WorkspacePage />)
+
+    fireEvent.click(screen.getByRole('button', { name: /trigger success/i }))
+    mocks.invalidateQueries.mockClear()
+
+    mocks.searchTag = 'agent'
+    rerender(<WorkspacePage />)
+    mocks.invalidateQueries.mockClear()
+
+    mocks.searchTag = 'summary'
+    rerender(<WorkspacePage />)
+
+    await waitFor(() =>
+      expect(mocks.invalidateQueries).toHaveBeenCalledWith({
+        queryKey: ['badgerdoc-extraction-pages', '123', 'summary'],
+        exact: true,
+      })
+    )
+  })
+
+  it('does not duplicate-invalidate the same tab on rerender', () => {
+    const { rerender } = render(<WorkspacePage />)
+
+    rerender(<WorkspacePage />)
+
+    expect(mocks.invalidateQueries).not.toHaveBeenCalledWith({
+      queryKey: ['badgerdoc-extraction-pages', '123', 'summary'],
+      exact: true,
+    })
+  })
+
+  it('does not duplicate-refresh an extraction tab that is already fetching', () => {
+    mocks.isFetching.mockReturnValue(1)
+
+    const { rerender } = render(<WorkspacePage />)
+
+    fireEvent.click(screen.getByRole('button', { name: /trigger success/i }))
+    mocks.invalidateQueries.mockClear()
+
+    mocks.searchTag = 'agent'
+    rerender(<WorkspacePage />)
+    mocks.searchTag = 'summary'
+    rerender(<WorkspacePage />)
+
+    expect(mocks.invalidateQueries).not.toHaveBeenCalledWith({
+      queryKey: ['badgerdoc-extraction-pages', '123', 'summary'],
+      exact: true,
+    })
+  })
+
+  it('refreshes Agent logs when switching back to the Agent tab', async () => {
+    const { rerender } = render(<WorkspacePage />)
+
+    mocks.invalidateQueries.mockClear()
+
+    mocks.searchTag = 'agent'
+    rerender(<WorkspacePage />)
+
+    await waitFor(() =>
+      expect(mocks.invalidateQueries).toHaveBeenCalledWith({
+        queryKey: ['badgerdoc-agent-logs', '123', { after: undefined, page: 1 }],
+      })
+    )
+  })
+
+  it('does not refresh Agent logs on ordinary Agent tab rerender', () => {
+    mocks.searchTag = 'agent'
+    const { rerender } = render(<WorkspacePage />)
+
+    rerender(<WorkspacePage />)
+
+    expect(mocks.invalidateQueries).not.toHaveBeenCalledWith({
+      queryKey: ['badgerdoc-agent-logs', '123', { after: undefined, page: 1 }],
+    })
   })
 
   it('switches to Agent and invalidates the first Agent log page after contextual submit success', () => {

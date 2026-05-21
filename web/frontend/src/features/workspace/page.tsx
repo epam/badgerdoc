@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, useNavigate, useSearch, useMatches } from '@tanstack/react-router'
 import { useQueryClient } from '@tanstack/react-query'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { TaskNotFoundPage, DocumentNotFoundPage } from '@/components/not-found'
 import { APIError } from '@/shared/api/client'
 import {
+  extractionPagesKeys,
   useWorkspaceDocument,
   useTask,
   useBadgerDocExtractionPages,
@@ -107,6 +108,52 @@ export function WorkspacePage() {
     Boolean(activeTagName)
   )
   const extractionResultsLoading = tagsLoading || extractionLoading
+
+  const extractionRefreshPendingRef = useRef(false)
+  const previousActiveTabRef = useRef<string | undefined>(activeTab)
+
+  const refreshAgentTab = useCallback(() => {
+    if (!documentId) return
+
+    void queryClient.invalidateQueries({
+      queryKey: agentLogsKeys.list({ documentId, page: 1 }),
+    })
+  }, [documentId, queryClient])
+
+  const refreshExtractionTabIfNeeded = useCallback(() => {
+    if (!documentId || !activeTagName) return
+    if (!extractionRefreshPendingRef.current) return
+
+    const queryKey = extractionPagesKeys.documentWithTags(documentId, activeTagName)
+    const isExtractionQueryFetching =
+      queryClient.isFetching({
+        queryKey,
+        exact: true,
+      }) > 0
+
+    if (isExtractionQueryFetching) {
+      return
+    }
+
+    extractionRefreshPendingRef.current = false
+    void queryClient.invalidateQueries({
+      queryKey,
+      exact: true,
+    })
+  }, [activeTagName, documentId, queryClient])
+
+  useEffect(() => {
+    const previousActiveTab = previousActiveTabRef.current
+    previousActiveTabRef.current = activeTab
+
+    if (previousActiveTab === activeTab) return
+
+    if (isAgentTab) {
+      refreshAgentTab()
+    } else {
+      refreshExtractionTabIfNeeded()
+    }
+  }, [activeTab, isAgentTab, refreshAgentTab, refreshExtractionTabIfNeeded])
 
   // Fetch document data
   const {
@@ -307,6 +354,7 @@ export function WorkspacePage() {
   )
 
   const handleContextualRequestSuccess = useCallback(() => {
+    extractionRefreshPendingRef.current = true
     handleTabChange(AGENT_TAB_ID)
     void queryClient.invalidateQueries({
       queryKey: agentLogsKeys.list({ documentId, page: 1 }),
