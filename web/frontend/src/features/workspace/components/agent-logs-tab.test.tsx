@@ -32,7 +32,13 @@ vi.mock('@/shared/api/hooks/use-agent-logs', () => ({
 }))
 
 vi.mock('@/features/workspace/components/extraction-chat', () => ({
-  ExtractionChat: ({ prompt, onTriggerSuccess }: { prompt: string; onTriggerSuccess?: () => void }) => (
+  ExtractionChat: ({
+    prompt,
+    onTriggerSuccess,
+  }: {
+    prompt: string
+    onTriggerSuccess?: () => void
+  }) => (
     <div aria-label="Agent prompt">
       <span>{prompt}</span>
       <button type="button" onClick={onTriggerSuccess}>
@@ -186,6 +192,8 @@ describe('AgentLogsTab', () => {
     const items = screen.getAllByRole('listitem')
     expect(items[0]).toHaveTextContent('First log')
     expect(items[1]).toHaveTextContent('Second log')
+    expect(items[0]).not.toHaveClass('agent-log-entry--new')
+    expect(items[1]).not.toHaveClass('agent-log-entry--new')
   })
 
   it('scrolls to the latest logs after the initial page loads', () => {
@@ -249,6 +257,9 @@ describe('AgentLogsTab', () => {
     rerender(<AgentLogsTab {...createAgentLogsTabProps()} />)
 
     expect(timeline.scrollTop).toBe(1200)
+    const items = screen.getAllByRole('listitem')
+    expect(items[0]).not.toHaveClass('agent-log-entry--new')
+    expect(items[1]).toHaveClass('agent-log-entry--new')
   })
 
   it('polls for new logs after the latest known timestamp', async () => {
@@ -284,7 +295,45 @@ describe('AgentLogsTab', () => {
       after: '2026-05-18T10:00:00Z',
     })
     expect(screen.getByText('Second log')).toBeInTheDocument()
-    expect(screen.getAllByRole('listitem')).toHaveLength(2)
+    const items = screen.getAllByRole('listitem')
+    expect(items).toHaveLength(2)
+    expect(items[0]).not.toHaveClass('agent-log-entry--new')
+    expect(items[1]).toHaveClass('agent-log-entry--new')
+  })
+
+  it('clears the new-log animation marker after the reveal window', async () => {
+    vi.useFakeTimers()
+    mocks.useAgentLogs.mockReturnValue({
+      data: {
+        count: 1,
+        next: null,
+        previous: null,
+        results: [createAgentLog(1, '2026-05-18T10:00:00Z', 'First log')],
+      },
+      isLoading: false,
+      isError: false,
+    })
+    mocks.fetchAgentLogs.mockResolvedValue({
+      count: 2,
+      next: null,
+      previous: null,
+      results: [createAgentLog(2, '2026-05-18T10:01:00Z', 'Second log')],
+    })
+
+    renderAgentLogsTab()
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(2500)
+    })
+
+    const newItem = screen.getAllByRole('listitem')[1]
+    expect(newItem).toHaveClass('agent-log-entry--new')
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(700)
+    })
+
+    expect(newItem).not.toHaveClass('agent-log-entry--new')
   })
 
   it('keeps the timeline pinned to the bottom when polling appends logs near the bottom', async () => {
@@ -440,6 +489,9 @@ describe('AgentLogsTab', () => {
     expect(items[0]).toHaveTextContent('First log')
     expect(items[1]).toHaveTextContent('Second log')
     expect(items[2]).toHaveTextContent('Third log')
+    expect(items[0]).not.toHaveClass('agent-log-entry--new')
+    expect(items[1]).not.toHaveClass('agent-log-entry--new')
+    expect(items[2]).not.toHaveClass('agent-log-entry--new')
   })
 
   it('preserves scroll position after older logs are prepended', async () => {

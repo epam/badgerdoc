@@ -9,6 +9,7 @@ import { ExtractionChat } from '@/features/workspace/components/extraction-chat'
 import { AgentLogEntry } from './agent-log-entry'
 
 const AGENT_LOG_POLLING_INTERVAL_MS = 2500
+const AGENT_LOG_APPEAR_ANIMATION_MS = 700
 const OLDER_LOG_SCROLL_THRESHOLD_PX = 64
 const BOTTOM_SCROLL_THRESHOLD_PX = 100
 
@@ -56,6 +57,18 @@ function AgentLogsErrorState() {
   )
 }
 
+function getLogId(log: AgentLog) {
+  return String(log.id)
+}
+
+function getUniqueIncomingLogIds(existingLogs: AgentLog[], incomingLogs: AgentLog[]) {
+  const existingIds = new Set(existingLogs.map(getLogId))
+
+  return incomingLogs
+    .map(getLogId)
+    .filter((logId, index, ids) => !existingIds.has(logId) && ids.indexOf(logId) === index)
+}
+
 export function AgentLogsTab({
   documentId,
   currentPage,
@@ -74,12 +87,24 @@ export function AgentLogsTab({
   const [nextOlderPage, setNextOlderPage] = useState<number | null>(null)
   const [hasMoreOlderLogs, setHasMoreOlderLogs] = useState(false)
   const [isLoadingOlder, setIsLoadingOlder] = useState(false)
+  const [recentlyAddedLogIds, setRecentlyAddedLogIds] = useState<Set<string>>(() => new Set())
   const isPollingRef = useRef(false)
   const isLoadingOlderRef = useRef(false)
   const scrollContainerRef = useRef<HTMLDivElement | null>(null)
   const pendingScrollRestoreRef = useRef<{ scrollHeight: number; scrollTop: number } | null>(null)
   const pendingScrollToBottomRef = useRef(false)
   const latestCreatedAtRef = useRef<string | null>(null)
+  const logsRef = useRef<AgentLog[]>([])
+
+  const markRecentlyAddedLogs = useCallback((logIds: string[]) => {
+    if (logIds.length === 0) return
+
+    setRecentlyAddedLogIds((currentIds) => {
+      const nextIds = new Set(currentIds)
+      logIds.forEach((logId) => nextIds.add(logId))
+      return nextIds
+    })
+  }, [])
 
   const scrollToBottom = useCallback(() => {
     const scrollContainer = scrollContainerRef.current
@@ -99,7 +124,21 @@ export function AgentLogsTab({
   }, [])
 
   useEffect(() => {
+    if (recentlyAddedLogIds.size === 0) return
+
+    const timeoutId = window.setTimeout(() => {
+      setRecentlyAddedLogIds(new Set())
+    }, AGENT_LOG_APPEAR_ANIMATION_MS)
+
+    return () => {
+      window.clearTimeout(timeoutId)
+    }
+  }, [recentlyAddedLogIds])
+
+  useEffect(() => {
     setLogs([])
+    logsRef.current = []
+    setRecentlyAddedLogIds(new Set())
     setHasPollingError(false)
     setNextOlderPage(null)
     setHasMoreOlderLogs(false)
@@ -113,12 +152,17 @@ export function AgentLogsTab({
   useEffect(() => {
     if (!data) return
     pendingScrollToBottomRef.current = true
+    const currentLogs = logsRef.current
+    const newLogIds =
+      currentLogs.length > 0 ? getUniqueIncomingLogIds(currentLogs, data.results) : []
+    markRecentlyAddedLogs(newLogIds)
     setLogs(data.results)
+    logsRef.current = data.results
     latestCreatedAtRef.current = data.results.at(-1)?.created_at ?? null
     setHasPollingError(false)
     setNextOlderPage(data.next ? 2 : null)
     setHasMoreOlderLogs(Boolean(data.next))
-  }, [data])
+  }, [data, markRecentlyAddedLogs])
 
   useLayoutEffect(() => {
     const scrollContainer = scrollContainerRef.current
@@ -155,7 +199,9 @@ export function AgentLogsTab({
 
     try {
       const response = await fetchAgentLogs({ documentId, page: nextOlderPage })
-      setLogs((currentLogs) => mergeAgentLogs(currentLogs, response.results))
+      const nextLogs = mergeAgentLogs(logsRef.current, response.results)
+      setLogs(nextLogs)
+      logsRef.current = nextLogs
       setHasMoreOlderLogs(Boolean(response.next))
       setNextOlderPage(response.next ? nextOlderPage + 1 : null)
     } catch {
@@ -188,9 +234,14 @@ export function AgentLogsTab({
         )
         pendingScrollToBottomRef.current = isNearBottom()
 
-        setLogs((currentLogs) => mergeAgentLogs(currentLogs, response.results))
-        if (response.results.length > 0) {
-          latestCreatedAtRef.current = response.results.at(-1)?.created_at ?? latestCreatedAtRef.current
+        const currentLogs = logsRef.current
+        const newLogIds = getUniqueIncomingLogIds(currentLogs, response.results)
+        const nextLogs = mergeAgentLogs(currentLogs, response.results)
+        markRecentlyAddedLogs(newLogIds)
+        setLogs(nextLogs)
+        logsRef.current = nextLogs
+        if (nextLogs.length > 0) {
+          latestCreatedAtRef.current = nextLogs.at(-1)?.created_at ?? latestCreatedAtRef.current
         }
         setHasPollingError(false)
       } catch {
@@ -207,10 +258,14 @@ export function AgentLogsTab({
     return () => {
       window.clearInterval(intervalId)
     }
-  }, [documentId, isError, isLoading, isNearBottom])
+  }, [documentId, isError, isLoading, isNearBottom, markRecentlyAddedLogs])
 
   return (
-    <div className="flex h-full flex-col overflow-hidden bg-card" role="tabpanel" id="tabpanel-agent">
+    <div
+      className="flex h-full flex-col overflow-hidden bg-card"
+      role="tabpanel"
+      id="tabpanel-agent"
+    >
       <div className="min-h-0 flex-1 overflow-hidden">
         {isLoading && <AgentLogsLoadingState />}
         {!isLoading && isError && <AgentLogsErrorState />}
@@ -234,7 +289,12 @@ export function AgentLogsTab({
             )}
             <ol className="relative space-y-3 before:absolute before:bottom-0 before:left-[13px] before:top-0 before:w-px before:bg-border">
               {logs.map((log) => (
-                <AgentLogEntry key={log.id} log={log} currentDocumentId={documentId} />
+                <AgentLogEntry
+                  key={log.id}
+                  log={log}
+                  currentDocumentId={documentId}
+                  animateOnMount={recentlyAddedLogIds.has(getLogId(log))}
+                />
               ))}
             </ol>
           </div>

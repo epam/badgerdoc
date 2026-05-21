@@ -24,6 +24,7 @@ import { AGENT_TAB_ID } from './workspace-tabs'
 interface AgentLogEntryProps {
   log: AgentLog
   currentDocumentId?: number | string
+  animateOnMount?: boolean
 }
 
 function getLevelVariant(level: AgentLogLevel): ComponentProps<typeof Badge>['variant'] {
@@ -380,14 +381,12 @@ function AgentLogPayloadRenderer({ log }: { log: AgentLog }) {
           <DocumentPayloadRenderer documentId={payload.document as number | string} />
         </PayloadSection>
       )}
-      {hasWorkflowParams && (
-        <WorkflowParamsRenderer value={payload.workflow_params} />
-      )}
+      {hasWorkflowParams && <WorkflowParamsRenderer value={payload.workflow_params} />}
     </div>
   )
 }
 
-export function AgentLogEntry({ log, currentDocumentId }: AgentLogEntryProps) {
+export function AgentLogEntry({ log, currentDocumentId, animateOnMount }: AgentLogEntryProps) {
   const workflowHeaderLabel = getWorkflowHeaderLabel(log.log.workflow_params)
   const shouldShowSourceDocument = shouldShowSourceDocumentLink({
     currentDocumentId,
@@ -395,7 +394,7 @@ export function AgentLogEntry({ log, currentDocumentId }: AgentLogEntryProps) {
   })
 
   return (
-    <li className="relative pl-8">
+    <li className={cn('relative pl-8', animateOnMount && 'agent-log-entry--new')}>
       <span aria-hidden="true" className={getMarkerClassName(log.level)} />
       <article className={getEntryClassName(log.level)}>
         <div className="mb-3 flex min-w-0 flex-wrap items-center gap-2">
@@ -404,9 +403,7 @@ export function AgentLogEntry({ log, currentDocumentId }: AgentLogEntryProps) {
             <span className="text-xs font-medium text-muted-foreground">{log.source}</span>
           )}
           {workflowHeaderLabel && (
-            <span className="text-xs font-medium text-muted-foreground">
-              {workflowHeaderLabel}
-            </span>
+            <span className="text-xs font-medium text-muted-foreground">{workflowHeaderLabel}</span>
           )}
           {log.task && <span className="text-xs text-muted-foreground">Task {log.task}</span>}
           <time className="text-xs text-muted-foreground" dateTime={log.created_at}>
