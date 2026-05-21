@@ -3,7 +3,7 @@ import logging
 from temporalio import activity
 
 from badgerdoc_common import badgerdoc_event, badgerdoc_http, trigger
-from badgerdoc_common.activities import workflow_registry
+from badgerdoc_common.activities import agent_log, workflow_registry
 from badgerdoc_ocr_arbitrator.arbitrator_agent import (
     ArbitratorAgent,
 )
@@ -38,6 +38,16 @@ async def start_arbitrator(
 ) -> list[dict[str, int | str]]:
     logger.info("Starting start_arbitrator activity")
 
+    document_id = params.original_document.id
+    task_id = params.original_task.id if params.original_task else None
+    await agent_log.write_agent_log(
+        document_id,
+        task_id,
+        "INFO",
+        "Temporal",
+        {"message": "Looking for agents"},
+    )
+
     llm_params = params.llm_params or ""
     linked_document_pages = params.linked_document_pages or []
 
@@ -57,6 +67,13 @@ async def start_arbitrator(
 
     if not workflows:
         logger.warning("No workflows selected by arbitrator agent")
+        await agent_log.write_agent_log(
+            document_id,
+            task_id,
+            "WARNING",
+            "Temporal",
+            {"message": "No agents found. Check logs for more information"},
+        )
         return []
 
     document_ids: set[int] = {params.original_document.id}
@@ -67,6 +84,14 @@ async def start_arbitrator(
     )
 
     started_extractions: list[dict[str, int | str]] = []
+
+    await agent_log.write_agent_log(
+        document_id,
+        task_id,
+        "INFO",
+        "Temporal",
+        {"message": f"Found agents: {[w.name for w in workflows]}"},
+    )
 
     for workflow_data in workflows:
         engine_name = next(
@@ -89,6 +114,13 @@ async def start_arbitrator(
 
             response_data = await badgerdoc_http.badgerdoc_post(
                 endpoint, payload
+            )
+            await agent_log.write_agent_log(
+                document_id,
+                task_id,
+                "INFO",
+                "Temporal",
+                {"message": f"Agent started: {workflow_data.name}"},
             )
             started_workflow_id = response_data.get("workflow_id")
             workflow_input_data = response_data.get("workflow_input_data")

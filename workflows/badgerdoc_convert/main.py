@@ -3,7 +3,7 @@ import asyncio
 from temporalio.worker import Worker
 
 from badgerdoc_common import helpers, sentry
-from badgerdoc_common.activities import document
+from badgerdoc_common.activities import agent_log, document
 from badgerdoc_convert import converters
 from badgerdoc_convert.activities import dzi, pdf
 
@@ -25,6 +25,7 @@ async def worker():
                 pdf.download_and_convert_document,
                 dzi.convert_to_dzi,
                 document.badgerdoc_get_document,
+                agent_log.write_agent_log,
             ],
             **sentry_config,
         )
