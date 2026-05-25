@@ -96,12 +96,16 @@ export function CollectionViewer({
     (effectivePages?.length ?? 0) > 0 && effectivePages!.every((p) => p.type === 'image')
   const effectiveCanUseEditMode = canUseEditMode && !isPngFallback
   const effectiveIsEditMode = isEditMode && !isPngFallback
+
+  const emptyOverlays = useMemo<Record<number, OverlayBox[]>>(() => ({}), [])
+  const emptyCreatedIds = useMemo<Set<string>>(() => new Set(), [])
+
   useExtractionHighlights({
     viewer,
-    overlayItems: isPngFallback ? {} : highlights,
+    overlayItems: isPngFallback ? emptyOverlays : highlights,
     selectedHighlightId: isPngFallback ? null : activeHighlightId,
     isEditMode: effectiveIsEditMode,
-    createdHighlightIds: isPngFallback ? new Set<string>() : createdHighlightIds,
+    createdHighlightIds: isPngFallback ? emptyCreatedIds : createdHighlightIds,
     onHighlightClick,
     onHighlightUpdate,
     onHighlightCreate,

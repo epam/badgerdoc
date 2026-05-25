@@ -46,8 +46,19 @@ async function fetchPngRenditionPages(id: string): Promise<PageSource[]> {
   return renditions
     .filter((doc) => Boolean(doc.file))
     .sort((a, b) => {
-      const pageA = (a.metadata?.page as number | undefined) ?? 0
-      const pageB = (b.metadata?.page as number | undefined) ?? 0
+      const pageA = Number(a.metadata?.page)
+      const pageB = Number(b.metadata?.page)
+      const hasValidPageA = Number.isFinite(pageA)
+      const hasValidPageB = Number.isFinite(pageB)
+      if (!hasValidPageA && !hasValidPageB) {
+        return 0
+      }
+      if (!hasValidPageA) {
+        return 1
+      }
+      if (!hasValidPageB) {
+        return -1
+      }
       return pageA - pageB
     })
     .map((doc) => ({ type: 'image', url: doc.file }))
