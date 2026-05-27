@@ -11,6 +11,7 @@ import { getDocumentExtension } from '@/components/document-hierarchy-utils'
 import { cn, extractFilenameFromUrl } from '@/helpers/utils'
 import { getApiAdapter } from '@/shared/api/adapters/factory'
 import { toast } from 'sonner'
+import { useTouchNavigation } from './use-touch-navigation'
 
 interface CollectionViewerProps {
   documentId: string
@@ -72,6 +73,8 @@ export function CollectionViewer({
 
   const pagination = useViewerNavigation(pages?.length || 0, currentPage, goToPage)
   const adapter = getApiAdapter()
+
+  useTouchNavigation(viewer)
 
   const handleDownloadOriginal = useCallback(async () => {
     if (!documentId || isDownloading) {
