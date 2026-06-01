@@ -129,6 +129,7 @@ const ExtractionEditor = ({
       onContentChange(editor.getHTML())
     },
     onDestroy: async () => {
+      if (isRevertingRef.current) return
       await handleAcceptChanges()
     },
     onFocus: () => {
@@ -174,6 +175,15 @@ const ExtractionEditor = ({
       }
     },
     [content, hasUnsavedChanges]
+  )
+
+  useEffect(
+    function clearRevertGuardWhenClean() {
+      if (!hasUnsavedChanges) {
+        isRevertingRef.current = false
+      }
+    },
+    [hasUnsavedChanges]
   )
 
   useEffect(
@@ -291,7 +301,6 @@ const ExtractionEditor = ({
       onBaselineReady(editor.getHTML())
     }
     onRevertChanges()
-    isRevertingRef.current = false
   }, [editor, onBaselineReady, onRevertChanges])
 
   const handleAcceptChanges = useCallback(async () => {
