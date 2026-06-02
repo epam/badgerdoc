@@ -82,6 +82,15 @@ export interface OverlayBox {
   page: number
 }
 
+/**
+ * Source descriptor for a single page in the document viewer.
+ *
+ * `dzi` is the primary tiled-rendering mode (Deep Zoom Image XML + PNG tiles).
+ * `image` is the PNG fallback used when tiled assets are unavailable; the
+ * viewer renders read-only without interactive overlays in this mode.
+ */
+export type PageSource = { type: 'dzi'; url: string } | { type: 'image'; url: string }
+
 // =============================================================================
 // Document Types
 // =============================================================================

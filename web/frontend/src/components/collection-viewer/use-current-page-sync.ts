@@ -1,9 +1,10 @@
 import { useEffect, useRef, useCallback } from 'react'
 import OpenSeadragon from 'openseadragon'
+import type { PageSource } from '@/shared/api/badgerdoc/types'
 
 interface UseCurrentPageSyncParams {
   viewer: OpenSeadragon.Viewer | null
-  pages: string[]
+  pages: PageSource[]
   currentPage: number
   setCurrentPage: (page: number) => void
 }

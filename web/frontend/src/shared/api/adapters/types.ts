@@ -19,7 +19,12 @@ import type {
   UpdateTaskRequest,
 } from '@/shared/types/tasks'
 import { BadgerDocExtractionPage } from '@/shared/api/badgerdoc'
-import { BadgerDocExtraction, BadgerDocUploadResponse, Tag } from '@/shared/api/badgerdoc/types'
+import {
+  BadgerDocExtraction,
+  BadgerDocUploadResponse,
+  PageSource,
+  Tag,
+} from '@/shared/api/badgerdoc/types'
 
 // =============================================================================
 // Response Types
@@ -146,7 +151,12 @@ export interface DocumentsAdapter {
   list(params?: DocumentsListParams): Promise<DocumentsListResponse>
   getById(id: string): Promise<Document>
   updateById(id: string, tags: string[], metadata: string): Promise<Document>
-  getPagesById(id: string): Promise<string[]>
+  getPagesById(id: string): Promise<PageSource[]>
+  /**
+   * Returns PNG image page sources for the document, sourced from `/renditions/`.
+   * Used as an explicit runtime fallback when tiled (DZI) rendering fails.
+   */
+  getPngPagesById(id: string): Promise<PageSource[]>
   approve(id: string): Promise<Document>
   decline(id: string, reason?: string): Promise<Document>
 }

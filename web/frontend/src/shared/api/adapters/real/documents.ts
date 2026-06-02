@@ -8,8 +8,13 @@ import type { DocumentsAdapter, DocumentsListParams, DocumentsListResponse } fro
 import type { Document } from '@/shared/types/api'
 import { apiClient } from '../../client'
 import { badgerDocClient } from '../../badgerdoc/client'
-import type { BadgerDocDocument, BadgerDocDocumentsResponse } from '../../badgerdoc/types'
+import type {
+  BadgerDocDocument,
+  BadgerDocDocumentsResponse,
+  PageSource,
+} from '../../badgerdoc/types'
 import { transformBadgerDocDocument } from '../../badgerdoc'
+import { logger } from '@/shared/logger'
 
 function toDocumentsListResponse(response: BadgerDocDocumentsResponse): DocumentsListResponse {
   return {
@@ -23,6 +28,40 @@ function toDocumentsListResponse(response: BadgerDocDocumentsResponse): Document
 async function getBadgerDocDocument(id: string | number): Promise<BadgerDocDocument> {
   const response = await badgerDocClient.get<BadgerDocDocument>(`/document/${id}/`)
   return response.data
+}
+
+async function fetchDziPages(id: string): Promise<string[]> {
+  try {
+    const response = await badgerDocClient.get<string[]>(`/document/${id}/dzi/`)
+    return response.data ?? []
+  } catch (error) {
+    logger.warn('Failed to fetch DZI page list, will try PNG fallback', error)
+    return []
+  }
+}
+
+async function fetchPngRenditionPages(id: string): Promise<PageSource[]> {
+  const response = await badgerDocClient.get<BadgerDocDocument[]>(`/document/${id}/renditions/`)
+  const renditions = response.data ?? []
+  return renditions
+    .filter((doc) => Boolean(doc.file))
+    .sort((a, b) => {
+      const pageA = Number(a.metadata?.page)
+      const pageB = Number(b.metadata?.page)
+      const hasValidPageA = Number.isFinite(pageA)
+      const hasValidPageB = Number.isFinite(pageB)
+      if (!hasValidPageA && !hasValidPageB) {
+        return 0
+      }
+      if (!hasValidPageA) {
+        return 1
+      }
+      if (!hasValidPageB) {
+        return -1
+      }
+      return pageA - pageB
+    })
+    .map((doc) => ({ type: 'image', url: doc.file }))
 }
 
 export const realDocumentsAdapter: DocumentsAdapter = {
@@ -54,10 +93,20 @@ export const realDocumentsAdapter: DocumentsAdapter = {
     return transformBadgerDocDocument(bdDoc)
   },
 
-  getPagesById: async (id: string): Promise<string[]> => {
-    const response = await badgerDocClient.get<string[]>(`/document/${id}/dzi/`)
-    return response.data
+  /**
+   * Returns viewer page sources. Tiled (DZI) sources are primary; if the API
+   * returns no DZI assets, PNG renditions are returned as a static fallback so
+   * the document is still viewable read-only.
+   */
+  getPagesById: async (id: string): Promise<PageSource[]> => {
+    const dziUrls = await fetchDziPages(id)
+    if (dziUrls.length > 0) {
+      return dziUrls.map((url) => ({ type: 'dzi', url }))
+    }
+    return fetchPngRenditionPages(id)
   },
+
+  getPngPagesById: (id: string): Promise<PageSource[]> => fetchPngRenditionPages(id),
 
   approve: async (id: string): Promise<Document> => {
     const response = await apiClient.post<Document>(`/documents/${id}/approve`)
