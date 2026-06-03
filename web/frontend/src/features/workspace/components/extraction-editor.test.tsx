@@ -178,6 +178,48 @@ describe('ExtractionEditor', () => {
     expect(scrollIntoViewSpy).toHaveBeenCalledWith({ block: 'start', behavior: 'smooth' })
   })
 
+  it('does not auto-accept changes when the editor unmounts during a revert', async () => {
+    const onAcceptChanges = vi.fn().mockResolvedValue(undefined)
+    const onRevertChanges = vi.fn()
+
+    const { container, getByRole, unmount } = render(
+      <ExtractionEditor
+        content={content}
+        hasUnsavedChanges={true}
+        onBaselineReady={vi.fn()}
+        onContentChange={vi.fn()}
+        onRevertChanges={onRevertChanges}
+        onAcceptChanges={onAcceptChanges}
+        onBlockDelete={vi.fn()}
+        selectedContextBlockIds={[]}
+        selectedContextPages={[]}
+        isWholeDocumentSelected={false}
+        onToggleBlockContext={vi.fn()}
+        activeBlockId={null}
+        onBlockSelect={vi.fn()}
+      />
+    )
+
+    await waitFor(() => {
+      expect(container.querySelector('[data-block-id="block_1_1"]')).not.toBeNull()
+    })
+
+    fireEvent.mouseDown(getByRole('button', { name: 'Revert' }))
+    fireEvent.click(getByRole('button', { name: 'Revert' }))
+
+    expect(onRevertChanges).toHaveBeenCalledTimes(1)
+
+    // Reverting on a tab that becomes empty unmounts the editor (onDestroy).
+    // The revert guard must keep onDestroy from re-persisting the discarded block.
+    unmount()
+
+    // onDestroy runs handleAcceptChanges asynchronously, so flush microtasks
+    // before asserting it was suppressed (a negative waitFor would pass at t=0).
+    await new Promise((resolve) => setTimeout(resolve, 50))
+
+    expect(onAcceptChanges).not.toHaveBeenCalled()
+  })
+
   it('disables block context actions when prompt context becomes unavailable', async () => {
     const onToggleBlockContext = vi.fn()
 
