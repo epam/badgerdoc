@@ -24,6 +24,7 @@ import {
   BadgerDocExtraction,
   BadgerDocUploadResponse,
   GetAgentLogsParams,
+  PageSource,
   Tag,
 } from '@/shared/api/badgerdoc/types'
 
@@ -152,7 +153,12 @@ export interface DocumentsAdapter {
   list(params?: DocumentsListParams): Promise<DocumentsListResponse>
   getById(id: string): Promise<Document>
   updateById(id: string, tags: string[], metadata: string): Promise<Document>
-  getPagesById(id: string): Promise<string[]>
+  getPagesById(id: string): Promise<PageSource[]>
+  /**
+   * Returns PNG image page sources for the document, sourced from `/renditions/`.
+   * Used as an explicit runtime fallback when tiled (DZI) rendering fails.
+   */
+  getPngPagesById(id: string): Promise<PageSource[]>
   approve(id: string): Promise<Document>
   decline(id: string, reason?: string): Promise<Document>
 }

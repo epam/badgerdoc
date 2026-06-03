@@ -28,7 +28,8 @@ vi.mock('@/shared/api/hooks', () => ({
 }))
 
 vi.mock('@/shared/api/hooks/use-badgerdoc-document-hierarchy', () => ({
-  getBadgerDocDocumentTitle: (document: Document) => String(document.metadata?.title ?? document.id),
+  getBadgerDocDocumentTitle: (document: Document) =>
+    String(document.metadata?.title ?? document.id),
   useBadgerDocDocumentHierarchy: mocks.useHierarchy,
 }))
 
@@ -36,15 +37,15 @@ function createDocument(id: number, title: string): Document {
   return {
     id: String(id),
     title,
-    type: 'paper',
-    status: 'pending_analysis',
+    type: 'report',
+    status: 'analysis_ready',
     pdfUrl: `https://example.test/${id}.pdf`,
     pageCount: 1,
     metadata: { title },
-    tags: ['ocr'],
     authors: [],
-    createdAt: '2026-05-13T00:00:00Z',
-    updatedAt: '2026-05-13T00:00:00Z',
+    createdAt: '2024-01-01T00:00:00Z',
+    updatedAt: '2024-01-01T00:00:00Z',
+    tags: ['ocr'],
   }
 }
 
