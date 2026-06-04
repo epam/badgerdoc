@@ -63,6 +63,7 @@ export const API_CONFIG = {
       users: import.meta.env.VITE_MOCK_USERS === 'true',
       uploads: import.meta.env.VITE_MOCK_UPLOADS === 'true',
       workflows: import.meta.env.VITE_MOCK_WORKFLOWS === 'true',
+      agentLogs: import.meta.env.VITE_MOCK_AGENT_LOGS === 'true',
     },
   },
 } as const

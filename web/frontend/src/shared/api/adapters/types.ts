@@ -20,8 +20,10 @@ import type {
 } from '@/shared/types/tasks'
 import { BadgerDocExtractionPage } from '@/shared/api/badgerdoc'
 import {
+  AgentLogsResponse,
   BadgerDocExtraction,
   BadgerDocUploadResponse,
+  GetAgentLogsParams,
   PageSource,
   Tag,
 } from '@/shared/api/badgerdoc/types'
@@ -213,6 +215,10 @@ export interface WorkflowsAdapter {
   getStatus(workflowId: string): Promise<WorkflowStatusResponse>
 }
 
+export interface AgentLogsAdapter {
+  getAgentLogs(params: GetAgentLogsParams): Promise<AgentLogsResponse>
+}
+
 export interface ApiAdapter {
   documents: DocumentsAdapter
   tasks: TasksAdapter
@@ -221,4 +227,5 @@ export interface ApiAdapter {
   users: UsersAdapter
   uploads: UploadsAdapter
   workflows: WorkflowsAdapter
+  agentLogs: AgentLogsAdapter
 }

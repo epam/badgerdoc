@@ -141,7 +141,9 @@ class AgentLogView(APIView):
             after_dt = parse_datetime(after)
             if after_dt is None:
                 return Response(
-                    {"error": "Invalid 'after' value. Expected ISO 8601 datetime."},
+                    {
+                        "error": "Invalid 'after' value. Expected ISO 8601 datetime."
+                    },
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             if not timezone.is_aware(after_dt):

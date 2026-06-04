@@ -176,7 +176,7 @@ describe('document bar popover regression checks', () => {
     await waitFor(() => expect(screen.queryByText('Testing Journal')).not.toBeInTheDocument())
   })
 
-  it('keeps Overview out of extraction tabs', () => {
+  it('renders Agent alongside extraction tabs and keeps Overview out', () => {
     const extractionTags: Tag[] = [
       { tag: 'deepseek-ocr-2', literal: 'Deepseek OCR 2', order: 1 },
       { tag: 'mineru-ocr', literal: 'Mineru OCR', order: 2 },
@@ -185,27 +185,34 @@ describe('document bar popover regression checks', () => {
 
     render(
       <WorkspaceTabs
-        activeTab="deepseek-ocr-2"
+        activeTab="agent"
         onTabChange={vi.fn()}
         extractionTags={extractionTags}
       />
     )
 
     expect(screen.queryByRole('tab', { name: /overview/i })).not.toBeInTheDocument()
-    expect(screen.getByRole('tab', { name: /deepseek ocr 2/i })).toHaveAttribute(
+    expect(screen.getByRole('tab', { name: /agent/i })).toHaveAttribute(
       'aria-selected',
       'true'
     )
+    expect(screen.getByRole('tab', { name: /deepseek ocr 2/i })).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: /mineru ocr/i })).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: /paddle ocr/i })).toBeInTheDocument()
   })
 
-  it('renders an explicit empty state when there are no extraction tags', () => {
+  it('keeps Agent available when there are no extraction tags', () => {
     render(
-      <WorkspaceTabs activeTab="" onTabChange={vi.fn()} extractionTags={[]} isLoadingTags={false} />
+      <WorkspaceTabs
+        activeTab="agent"
+        onTabChange={vi.fn()}
+        extractionTags={[]}
+        isLoadingTags={false}
+      />
     )
 
-    expect(screen.queryByRole('tablist')).not.toBeInTheDocument()
+    expect(screen.getByRole('tablist')).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: /agent/i })).toHaveAttribute('aria-selected', 'true')
 
     render(<NoExtractionTagsEmptyState />)
 

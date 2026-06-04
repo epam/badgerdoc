@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Check, ChevronDown, File, Layers, SendHorizonal } from 'lucide-react'
-import { useQueryClient } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -19,8 +18,7 @@ import {
   getDocumentContextTooltip,
 } from '@/features/workspace/helpers/extraction-chat-action-tooltips'
 import type { ChatWorkflowSelection } from '@/features/workspace/hooks/use-chat-workflow-selection'
-import { extractionPagesKeys } from '@/shared/api/hooks/use-badgerdoc-extraction-pages'
-import { useTriggerWorkflow, useWorkflowStatus } from '@/shared/api/hooks/use-workflows'
+import { useTriggerWorkflow } from '@/shared/api/hooks/use-workflows'
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from 'sonner'
 import { PromptContextEditor } from './prompt-context-editor'
@@ -92,6 +90,7 @@ interface ExtractionChatProps {
   setIsRunningInference?: (isProcessing: boolean) => void
   activeTag?: string
   workflowSelection: ChatWorkflowSelection
+  onTriggerSuccess?: () => void
 }
 
 export const ExtractionChat = ({
@@ -109,13 +108,11 @@ export const ExtractionChat = ({
   disabled,
   isProcessing,
   setIsRunningInference,
-  activeTag,
   workflowSelection,
+  onTriggerSuccess,
 }: ExtractionChatProps) => {
   const triggerWorkflow = useTriggerWorkflow()
-  const queryClient = useQueryClient()
 
-  const [workflowToPoll, setWorkflowToPoll] = useState<string | null>(null)
   const [hasSuccessFeedback, setHasSuccessFeedback] = useState(false)
   const {
     workflows,
@@ -141,8 +138,6 @@ export const ExtractionChat = ({
     return availableScopes.includes('page')
   }, [availableScopes, contextSummary.primaryScope, hasContext])
 
-  const { data: workflowStatus } = useWorkflowStatus(workflowToPoll)
-
   useEffect(() => {
     if (!hasSuccessFeedback) {
       return
@@ -155,42 +150,13 @@ export const ExtractionChat = ({
     return () => window.clearTimeout(timeoutId)
   }, [hasSuccessFeedback])
 
-  useEffect(() => {
-    // Defer state cleanup and side effects (toast, cache invalidation) to
-    // avoid triggering them synchronously inside the polling render cycle.
-    if (workflowStatus?.status === 'Finished') {
-      const frame = requestAnimationFrame(() => {
-        setWorkflowToPoll(null)
-        onPromptChange('')
-        setHasSuccessFeedback(true)
-        setIsRunningInference?.(false)
-        toast.success('Extraction updated')
-        void queryClient.invalidateQueries({
-          queryKey: extractionPagesKeys.documentWithTags(documentId, activeTag),
-        })
-      })
-
-      return () => cancelAnimationFrame(frame)
-    }
-
-    if (workflowStatus?.status === 'Failed') {
-      const frame = requestAnimationFrame(() => {
-        setWorkflowToPoll(null)
-        setIsRunningInference?.(false)
-        toast.error('Extraction failed')
-      })
-
-      return () => cancelAnimationFrame(frame)
-    }
-  }, [workflowStatus, onPromptChange, setIsRunningInference, queryClient, documentId, activeTag])
-
   const handleSendMessage = useCallback(async () => {
     if (!selectedWorkflow || !hasSendContent || !isContextCompatible) return
 
     setIsRunningInference?.(true)
 
     try {
-      const result = await triggerWorkflow.mutateAsync({
+      await triggerWorkflow.mutateAsync({
         id: selectedWorkflow.id,
         payload: buildWorkflowTriggerPayload({
           documentId,
@@ -198,7 +164,11 @@ export const ExtractionChat = ({
         }),
       })
 
-      setWorkflowToPoll(result.workflow_id)
+      onPromptChange('')
+      setHasSuccessFeedback(true)
+      setIsRunningInference?.(false)
+      toast.success('Request sent')
+      onTriggerSuccess?.()
     } catch {
       setIsRunningInference?.(false)
       toast.error('Failed to trigger workflow')
@@ -208,6 +178,8 @@ export const ExtractionChat = ({
     documentId,
     hasSendContent,
     isContextCompatible,
+    onPromptChange,
+    onTriggerSuccess,
     prompt,
     setIsRunningInference,
     triggerWorkflow,
@@ -222,7 +194,7 @@ export const ExtractionChat = ({
     isCurrentPageSelected,
     currentPage,
   })
-  const isSending = Boolean(isProcessing || triggerWorkflow.isPending || workflowToPoll)
+  const isSending = Boolean(isProcessing || triggerWorkflow.isPending)
   const isSendDisabled =
     disabled ||
     isSending ||
@@ -324,7 +296,7 @@ export const ExtractionChat = ({
             {hasSuccessFeedback ? (
               <span
                 role="status"
-                aria-label="Extraction updated"
+                aria-label="Request sent"
                 className="animate-in zoom-in-50 fade-in-0 duration-300"
               >
                 <Check className="h-4 w-4" />

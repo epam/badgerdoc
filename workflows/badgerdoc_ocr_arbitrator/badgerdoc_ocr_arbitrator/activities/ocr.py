@@ -9,7 +9,7 @@ from PIL import Image, ImageOps, UnidentifiedImageError
 from temporalio import activity
 
 from badgerdoc_common import trigger
-from badgerdoc_common.activities import document
+from badgerdoc_common.activities import agent_log, document
 from badgerdoc_common.activities.extraction import (
     ListExtractionPagesRequest,
     badgerdoc_get_extraction,
@@ -270,6 +270,9 @@ async def trial_process(
         storage,
     )
 
+    document_id = params.original_document.id
+    task_id = params.original_task.id if params.original_task else None
+
     extraction_obj = params.target_extraction
     current_tags = extraction_obj.tags or []
 
@@ -349,6 +352,13 @@ async def trial_process(
     )
 
     # --- Step 1: Jury evaluation of OCR results ---
+    await agent_log.write_agent_log(
+        document_id,
+        task_id,
+        "INFO",
+        "Temporal",
+        {"message": "Step 1: Jury evaluation of OCR results"},
+    )
     jury_agent: Agent[None, str] = Agent(
         model,
         instructions=_JURY_SYSTEM_PROMPT,
@@ -374,6 +384,13 @@ async def trial_process(
     page_height: int = metadata.get("height", 1000)
 
     # --- Step 2: OCR combination with judge ---
+    await agent_log.write_agent_log(
+        document_id,
+        task_id,
+        "INFO",
+        "Temporal",
+        {"message": "Step 2: OCR combination with judge"},
+    )
 
     buffer = BytesIO()
     await badgerdoc_download(buffer, document_to_ocr)
@@ -412,6 +429,13 @@ async def trial_process(
     hocr_buffer.seek(0)
     hocr_buffer.truncate(0)
     # --- Step 3: Sorting and classification of hOCR content ---
+    await agent_log.write_agent_log(
+        document_id,
+        task_id,
+        "INFO",
+        "Temporal",
+        {"message": "Step 3: Sorting and classification of hOCR content"},
+    )
 
     ocr_clerk_agent: Agent[None, str] = Agent(
         model,
@@ -432,5 +456,12 @@ async def trial_process(
     hocr_path = await storage.badgerdoc_store_perm(
         hocr_buffer, storage_params, f"page_{page_number}.hocr"
     )
+    await agent_log.write_agent_log(
+        document_id,
+        task_id,
+        "INFO",
+        "Temporal",
+        {"message": "Arbitration trial completed and stored"},
+    )
 
-    return BadgerdocHOCRPageResult(h_ocr={page_number: hocr_path})
+    return BadgerdocHOCRPageResult(h_ocr={str(page_number): hocr_path})

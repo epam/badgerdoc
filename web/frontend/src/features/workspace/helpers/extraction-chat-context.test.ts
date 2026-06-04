@@ -6,6 +6,7 @@ import {
   buildPageContextPath,
   findPromptContextLinks,
   formatPromptContextLink,
+  getPromptContextTokenLabel,
   parsePromptContextLinks,
   removePromptContextLinks,
   summarizePromptContext,
@@ -100,6 +101,16 @@ describe('extraction chat context helpers', () => {
 
     expect(findPromptContextLinks(prompt)).toEqual([])
     expect(parsePromptContextLinks(prompt)).toEqual([])
+  })
+
+  it.each([
+    ['/badgerdoc/document/123/', 'Document'],
+    ['/badgerdoc/document/123/page/2/', 'Page 2'],
+    ['/badgerdoc/document/123/extraction/456/page/3/', 'Page 3'],
+    ["/badgerdoc/document/123/extraction/456/page/1/(//div[@id='block_1_2'])", 'Block 1.2'],
+    ['/badgerdoc/unknown/123/', 'Context'],
+  ])('returns a display label for context path %s', (path, label) => {
+    expect(getPromptContextTokenLabel(path)).toBe(label)
   })
 
   it('parses arbitrary block xpath while deriving block ids when available', () => {

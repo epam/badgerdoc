@@ -1,15 +1,17 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, useNavigate, useSearch, useMatches } from '@tanstack/react-router'
+import { useQueryClient } from '@tanstack/react-query'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { SplitView } from '@/design-system/patterns/split-view'
 import { DocumentHeader } from '@/components/document-header'
 import { DocumentHierarchyPopover } from '@/components/document-hierarchy-popover'
-import { WorkspaceTabs } from './components/workspace-tabs.tsx'
+import { AGENT_TAB_ID, WorkspaceTabs } from './components/workspace-tabs.tsx'
 import { CollectionViewer } from '@/components/collection-viewer/collection-viewer'
 import { Button } from '@/components/ui/button'
 import { TaskNotFoundPage, DocumentNotFoundPage } from '@/components/not-found'
 import { APIError } from '@/shared/api/client'
 import {
+  extractionPagesKeys,
   useWorkspaceDocument,
   useTask,
   useBadgerDocExtractionPages,
@@ -31,12 +33,18 @@ import {
 import { ExtractionResultsTab } from '@/features/workspace/components/extraction-results-tab.tsx'
 import { DocumentOverviewPopover } from '@/features/workspace/components/document-overview-popover'
 import { NoExtractionTagsEmptyState } from '@/features/workspace/components/no-extraction-tags-empty-state'
+import { AgentLogsTab } from '@/features/workspace/components/agent-logs-tab'
+import { agentLogsKeys } from '@/shared/api/hooks/use-agent-logs'
+import type { WorkflowScope } from '@/shared/api/adapters/types'
 import type { Document } from '@/shared/types/api'
+
+const AGENT_CONTEXT_SCOPES: WorkflowScope[] = ['document', 'page']
 
 export function WorkspacePage() {
   // Support both /tasks/$taskId and legacy /document/$id routes
   const params = useParams({ strict: false }) as { id?: string; taskId?: string }
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const search = useSearch({ strict: false }) as { tag?: string } & TaskFiltersSearch
   const matches = useMatches()
 
@@ -72,9 +80,9 @@ export function WorkspacePage() {
     () => [...(extractionTags ?? [])].sort((a, b) => (a.order || 0) - (b.order || 0)),
     [extractionTags]
   )
-  const requestedExtractionTag = search.tag === 'overview' ? undefined : search.tag
-  const defaultExtractionTag = orderedExtractionTags[0]?.tag
-  const activeTab = requestedExtractionTag || defaultExtractionTag || ''
+  const requestedTab = search.tag === 'overview' ? undefined : search.tag
+  const activeTab = requestedTab || AGENT_TAB_ID
+  const isAgentTab = activeTab === AGENT_TAB_ID
   const hasExtractionTags = orderedExtractionTags.length > 0
   const taskFilters = useMemo(() => taskFiltersFromSearch(search), [search])
   const taskFiltersSearch = useMemo(() => taskFiltersToSearch(taskFilters), [taskFilters])
@@ -91,8 +99,8 @@ export function WorkspacePage() {
     })
   }, [search, navigate])
 
-  // Use activeTab directly as tag name for API calls (tags have hyphens, not spaces)
-  const activeTagName = activeTab || undefined
+  // Use extraction tab IDs directly as tag names for API calls (tags have hyphens, not spaces).
+  const activeTagName = !isAgentTab && activeTab ? activeTab : undefined
 
   const { data: extractionPages, isLoading: extractionLoading } = useBadgerDocExtractionPages(
     documentId,
@@ -100,6 +108,52 @@ export function WorkspacePage() {
     Boolean(activeTagName)
   )
   const extractionResultsLoading = tagsLoading || extractionLoading
+
+  const extractionRefreshPendingRef = useRef(false)
+  const previousActiveTabRef = useRef<string | undefined>(activeTab)
+
+  const refreshAgentTab = useCallback(() => {
+    if (!documentId) return
+
+    void queryClient.invalidateQueries({
+      queryKey: agentLogsKeys.list({ documentId, page: 1 }),
+    })
+  }, [documentId, queryClient])
+
+  const refreshExtractionTabIfNeeded = useCallback(() => {
+    if (!documentId || !activeTagName) return
+    if (!extractionRefreshPendingRef.current) return
+
+    const queryKey = extractionPagesKeys.documentWithTags(documentId, activeTagName)
+    const isExtractionQueryFetching =
+      queryClient.isFetching({
+        queryKey,
+        exact: true,
+      }) > 0
+
+    if (isExtractionQueryFetching) {
+      return
+    }
+
+    extractionRefreshPendingRef.current = false
+    void queryClient.invalidateQueries({
+      queryKey,
+      exact: true,
+    })
+  }, [activeTagName, documentId, queryClient])
+
+  useEffect(() => {
+    const previousActiveTab = previousActiveTabRef.current
+    previousActiveTabRef.current = activeTab
+
+    if (previousActiveTab === activeTab) return
+
+    if (isAgentTab) {
+      refreshAgentTab()
+    } else {
+      refreshExtractionTabIfNeeded()
+    }
+  }, [activeTab, isAgentTab, refreshAgentTab, refreshExtractionTabIfNeeded])
 
   // Fetch document data
   const {
@@ -158,6 +212,18 @@ export function WorkspacePage() {
   const workflowSelection = useChatWorkflowSelection({
     activeTag: activeTagName,
   })
+  const chatWorkflowSelection = useMemo(
+    () =>
+      isAgentTab
+        ? {
+            ...workflowSelection,
+            availableScopes: AGENT_CONTEXT_SCOPES,
+            canUseDocumentContext: true,
+            canUsePageContext: true,
+          }
+        : workflowSelection,
+    [isAgentTab, workflowSelection]
+  )
 
   const {
     saveExtractionPages,
@@ -243,13 +309,13 @@ export function WorkspacePage() {
   )
 
   const pageChatContext = useViewerChatContext({
-    canAddContext: Boolean(activeTagName),
+    canAddContext: Boolean(activeTagName) || isAgentTab,
     currentPage,
     selectedPages,
     isWholeDocumentSelected,
     isContextInteractionDisabled:
       extractionResultsLoading || hasChanges || isApiPending || isRunningInference,
-    workflowSelection,
+    workflowSelection: chatWorkflowSelection,
     onAddWholeDocument: addWholeDocument,
     onAddCurrentPage: handleAddCurrentPage,
   })
@@ -286,6 +352,14 @@ export function WorkspacePage() {
     },
     [navigate, taskId, currentRoute, documentId, taskFiltersSearch, setActiveBlockId]
   )
+
+  const handleContextualRequestSuccess = useCallback(() => {
+    extractionRefreshPendingRef.current = true
+    handleTabChange(AGENT_TAB_ID)
+    void queryClient.invalidateQueries({
+      queryKey: agentLogsKeys.list({ documentId, page: 1 }),
+    })
+  }, [documentId, handleTabChange, queryClient])
 
   const handlePrevious = useCallback(() => {
     void navigate({
@@ -365,6 +439,20 @@ export function WorkspacePage() {
   const viewerHighlights = highlights
 
   const renderTabContent = () => {
+    if (isAgentTab) {
+      return (
+        <AgentLogsTab
+          documentId={documentId}
+          currentPage={currentPage}
+          chatContext={chatContext}
+          workflowSelection={chatWorkflowSelection}
+          isRunningInference={isRunningInference}
+          setIsRunningInference={setIsRunningInference}
+          onTriggerSuccess={handleContextualRequestSuccess}
+        />
+      )
+    }
+
     if (!tagsLoading && !hasExtractionTags) {
       return <NoExtractionTagsEmptyState />
     }
@@ -388,9 +476,10 @@ export function WorkspacePage() {
         currentPage={currentPage}
         documentId={documentId}
         chatContext={chatContext}
-        workflowSelection={workflowSelection}
+        workflowSelection={chatWorkflowSelection}
         isRunningInference={isRunningInference}
         setIsRunningInference={setIsRunningInference}
+        onTriggerSuccess={handleContextualRequestSuccess}
       />
     )
   }

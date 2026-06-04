@@ -344,6 +344,31 @@
   }
 }
 
+/* Agent timeline entry reveal for live log updates */
+@keyframes agent-log-appear {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.agent-log-entry--new {
+  animation: agent-log-appear 420ms ease-out both;
+  will-change: opacity, transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .agent-log-entry--new {
+    animation: none;
+    transform: none;
+    will-change: auto;
+  }
+}
+
 @theme inline {
   --animate-shimmer: shimmer 1.5s infinite;
 }

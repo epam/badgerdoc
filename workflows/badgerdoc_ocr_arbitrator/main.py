@@ -3,6 +3,7 @@ import asyncio
 from temporalio.worker import Worker
 
 from badgerdoc_common import helpers, sentry
+from badgerdoc_common.activities import agent_log
 from badgerdoc_ocr_arbitrator import activities, workflow
 
 helpers.configure_logging()
@@ -22,6 +23,7 @@ async def worker():
                 activities.arbitrator.start_arbitrator,
                 activities.wait.wait_for_triggered_workflows,
                 activities.ocr.trial_process,
+                agent_log.write_agent_log,
             ],
             **sentry_config,
         )

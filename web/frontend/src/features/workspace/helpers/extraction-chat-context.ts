@@ -236,6 +236,24 @@ export function getContextBlockLabel(blockId: string) {
   return `Block ${match[1]}.${match[2]}`
 }
 
+export function getPromptContextTokenLabel(path: string) {
+  const token = parsePromptContextPath(path)
+
+  if (!token) {
+    return 'Context'
+  }
+
+  if (token.kind === 'document') {
+    return 'Document'
+  }
+
+  if (token.kind === 'block' && token.blockId) {
+    return getContextBlockLabel(token.blockId)
+  }
+
+  return token.pageNumber ? `Page ${token.pageNumber}` : 'Page'
+}
+
 export interface ExtractionChatContextProps {
   prompt: string
   isWholeDocumentSelected: boolean

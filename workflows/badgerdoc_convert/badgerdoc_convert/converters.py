@@ -5,6 +5,7 @@ from typing import Any
 from temporalio import workflow
 from temporalio.common import RetryPolicy
 
+from badgerdoc_common import agent_logger
 from badgerdoc_common.activities import document
 from badgerdoc_common.badgerdoc_event import BadgerdocEvent
 from badgerdoc_convert.activities import dzi, pdf
@@ -53,7 +54,9 @@ class BadgerdocDZIConvertWorkflow:
 
     @workflow.run
     async def run(self, request_data: BadgerdocEvent) -> Any:
-        logger.info("Starting BadgerDoc PNG -> DZI convert")
+        log = agent_logger.get_logger(document_id=request_data.document_id)
+
+        await log.info("Starting BadgerDoc PNG -> DZI convert")
 
         retry_policy = RetryPolicy(
             initial_interval=timedelta(seconds=1),
@@ -96,4 +99,5 @@ class BadgerdocDZIConvertWorkflow:
             ),
             retry_policy=retry_policy,
         )
+        await log.info("BadgerDoc PNG -> DZI convert completed")
         return conversion_result

@@ -35,6 +35,7 @@ export function getApiAdapter(): ApiAdapter {
       users: o.users ? mockAdapter.users : realAdapter.users,
       uploads: o.uploads ? mockAdapter.uploads : realAdapter.uploads,
       workflows: o.workflows ? mockAdapter.workflows : realAdapter.workflows,
+      agentLogs: o.agentLogs ? mockAdapter.agentLogs : realAdapter.agentLogs,
     }
 
     // Log which adapters are using real vs mock
@@ -47,6 +48,7 @@ export function getApiAdapter(): ApiAdapter {
         users: o.users,
         uploads: o.uploads,
         workflows: o.workflows,
+        agentLogs: o.agentLogs,
       }
       logger.debug(
         '[API] Adapter configuration:',
