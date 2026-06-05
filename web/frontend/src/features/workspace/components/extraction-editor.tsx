@@ -221,6 +221,15 @@ const ExtractionEditor = ({
 
       const allEditorBlocksPreserved = [...editorBlockIds].every((id) => incomingBlockIds.has(id))
       const newBlockIds = [...incomingBlockIds].filter((id) => !editorBlockIds.has(id))
+      const userCreatedNewBlockIds = newBlockIds.filter((id) => {
+        const blockEl = incomingDoc.getElementById(id)
+        return blockEl?.getAttribute('data-new') === 'true'
+      })
+      const canIncrementallyInsertNewBlocks =
+        hasUnsavedChanges &&
+        allEditorBlocksPreserved &&
+        newBlockIds.length > 0 &&
+        userCreatedNewBlockIds.length === newBlockIds.length
 
       // Suppress cursor-driven block selection during content mutations so the
       // editor doesn't auto-scroll to the wrong block.
@@ -228,8 +237,10 @@ const ExtractionEditor = ({
       cursorBlockIdRef.current = null
       selectionTriggeredInEditorBlockIdRef.current = null
 
-      if (allEditorBlocksPreserved && newBlockIds.length > 0) {
-        for (const blockId of newBlockIds) {
+      // insertContentAt misparses nested hOCR markup (ocrx_word spans). Only use
+      // it for user-drawn placeholder blocks (data-new) while edits are pending.
+      if (canIncrementallyInsertNewBlocks) {
+        for (const blockId of userCreatedNewBlockIds) {
           const blockEl = incomingDoc.getElementById(blockId)
           if (!blockEl) continue
           editor
@@ -245,7 +256,7 @@ const ExtractionEditor = ({
       editor.commands.setContent(normalizedIncomingContent, { emitUpdate: false })
       onBaselineReady(editor.getHTML())
     },
-    [editor, content, onBaselineReady]
+    [editor, content, hasUnsavedChanges, onBaselineReady]
   )
 
   useEffect(
