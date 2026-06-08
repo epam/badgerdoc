@@ -121,6 +121,24 @@ export function CollectionViewer({
 
   useTouchNavigation(viewer)
 
+  const handleZoomIn = useCallback(() => {
+    if (!viewer) {
+      return
+    }
+
+    viewer.viewport.zoomBy(1.2)
+    viewer.viewport.applyConstraints()
+  }, [viewer])
+
+  const handleZoomOut = useCallback(() => {
+    if (!viewer) {
+      return
+    }
+
+    viewer.viewport.zoomBy(1 / 1.2)
+    viewer.viewport.applyConstraints()
+  }, [viewer])
+
   const handleDownloadOriginal = useCallback(async () => {
     if (!documentId || isDownloading) {
       return
@@ -185,6 +203,8 @@ export function CollectionViewer({
         currentPage={currentPage}
         onNextClick={pagination.handleNextClick}
         onPrevClick={pagination.handlePrevClick}
+        onZoomInClick={handleZoomIn}
+        onZoomOutClick={handleZoomOut}
         onFitToPage={pagination.handleFitToPage}
         isEditMode={effectiveIsEditMode}
         canUseEditMode={effectiveCanUseEditMode}
