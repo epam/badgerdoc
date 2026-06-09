@@ -18,6 +18,31 @@ const content = `
   </div>
 `
 
+const existingBlock = `
+  <div class="ocr_carea" id="block_1_1" data-page="1" title="bbox 0 0 100 100">
+    <p>First block</p>
+  </div>
+`
+
+const userCreatedBlock = `
+  <div class="ocr_carea" id="block_1_2" data-page="1" data-new="true" title="bbox 10 10 50 50">
+    <p>\u200B</p>
+  </div>
+`
+
+const hocrBlock = `
+  <div class="ocr_carea" id="block_1_1" data-page="1" title="bbox 187 9 712 21">
+    <p class="ocr_par" id="par_1_1" lang="eng" title="bbox 187 9 712 21">
+      <span class="ocr_textfloat" id="line_1_1" title="bbox 187 9 712 21">
+        <span class="ocrx_word" id="word_1_1" title="bbox 187 9 289 18">REP-0337001</span>
+        <span class="ocrx_word" id="word_1_2" title="bbox 296 9 329 18">v1.0</span>
+        <span class="ocrx_word" id="word_1_3" title="bbox 347 9 396 18">Status:</span>
+        <span class="ocrx_word" id="word_1_4" title="bbox 402 9 476 21">Approved</span>
+      </span>
+    </p>
+  </div>
+`
+
 describe('ExtractionEditor', () => {
   beforeEach(() => {
     vi.stubGlobal('requestAnimationFrame', requestAnimationFrameMock)
@@ -29,6 +54,295 @@ describe('ExtractionEditor', () => {
     vi.unstubAllGlobals()
     requestAnimationFrameMock.mockClear()
     cancelAnimationFrameMock.mockClear()
+  })
+
+  it('parses OCR words inline on initial mount', async () => {
+    const { container } = render(
+      <ExtractionEditor
+        content={hocrBlock}
+        hasUnsavedChanges={false}
+        onBaselineReady={vi.fn()}
+        onContentChange={vi.fn()}
+        onRevertChanges={vi.fn()}
+        onAcceptChanges={vi.fn().mockResolvedValue(undefined)}
+        onBlockDelete={vi.fn()}
+        selectedContextBlockIds={[]}
+        selectedContextPages={[]}
+        isWholeDocumentSelected={false}
+        onToggleBlockContext={vi.fn()}
+        activeBlockId={null}
+        onBlockSelect={vi.fn()}
+      />
+    )
+
+    await waitFor(() => {
+      expect(container.querySelector('[data-block-id="block_1_1"]')).not.toBeNull()
+    })
+
+    const blockContent = container.querySelector(
+      '[data-block-id="block_1_1"] [data-node-view-content]'
+    )
+    expect(blockContent!.querySelectorAll('p').length).toBe(1)
+    expect(blockContent!.textContent).toContain('REP-0337001 v1.0 Status: Approved')
+  })
+
+  it('does not reset content when hasUnsavedChanges flips without a content prop change', async () => {
+    const { container, rerender } = render(
+      <ExtractionEditor
+        content={existingBlock}
+        hasUnsavedChanges={false}
+        onBaselineReady={vi.fn()}
+        onContentChange={vi.fn()}
+        onRevertChanges={vi.fn()}
+        onAcceptChanges={vi.fn().mockResolvedValue(undefined)}
+        onBlockDelete={vi.fn()}
+        selectedContextBlockIds={[]}
+        selectedContextPages={[]}
+        isWholeDocumentSelected={false}
+        onToggleBlockContext={vi.fn()}
+        activeBlockId={null}
+        onBlockSelect={vi.fn()}
+      />
+    )
+
+    await waitFor(() => {
+      expect(container.querySelector('[data-block-id="block_1_1"]')).not.toBeNull()
+    })
+
+    rerender(
+      <ExtractionEditor
+        content={existingBlock}
+        hasUnsavedChanges={true}
+        onBaselineReady={vi.fn()}
+        onContentChange={vi.fn()}
+        onRevertChanges={vi.fn()}
+        onAcceptChanges={vi.fn().mockResolvedValue(undefined)}
+        onBlockDelete={vi.fn()}
+        selectedContextBlockIds={[]}
+        selectedContextPages={[]}
+        isWholeDocumentSelected={false}
+        onToggleBlockContext={vi.fn()}
+        activeBlockId={null}
+        onBlockSelect={vi.fn()}
+      />
+    )
+
+    const blockContent = container.querySelector(
+      '[data-block-id="block_1_1"] [data-node-view-content]'
+    )
+    expect(blockContent?.textContent).toContain('First block')
+  })
+
+  it('keeps OCR words inline when new blocks arrive without unsaved changes', async () => {
+    // Simulates OCR workflow completion: editor already mounted, no pending edits.
+    const { container, rerender } = render(
+      <ExtractionEditor
+        content=""
+        hasUnsavedChanges={false}
+        onBaselineReady={vi.fn()}
+        onContentChange={vi.fn()}
+        onRevertChanges={vi.fn()}
+        onAcceptChanges={vi.fn().mockResolvedValue(undefined)}
+        onBlockDelete={vi.fn()}
+        selectedContextBlockIds={[]}
+        selectedContextPages={[]}
+        isWholeDocumentSelected={false}
+        onToggleBlockContext={vi.fn()}
+        activeBlockId={null}
+        onBlockSelect={vi.fn()}
+      />
+    )
+
+    rerender(
+      <ExtractionEditor
+        content={hocrBlock}
+        hasUnsavedChanges={false}
+        onBaselineReady={vi.fn()}
+        onContentChange={vi.fn()}
+        onRevertChanges={vi.fn()}
+        onAcceptChanges={vi.fn().mockResolvedValue(undefined)}
+        onBlockDelete={vi.fn()}
+        selectedContextBlockIds={[]}
+        selectedContextPages={[]}
+        isWholeDocumentSelected={false}
+        onToggleBlockContext={vi.fn()}
+        activeBlockId={null}
+        onBlockSelect={vi.fn()}
+      />
+    )
+
+    await waitFor(() => {
+      expect(container.querySelector('[data-block-id="block_1_1"]')).not.toBeNull()
+    })
+
+    const blockContent = container.querySelector(
+      '[data-block-id="block_1_1"] [data-node-view-content]'
+    )
+    expect(blockContent).not.toBeNull()
+    expect(blockContent!.querySelectorAll('p').length).toBe(1)
+    expect(blockContent!.textContent).toContain('REP-0337001 v1.0 Status: Approved')
+  })
+
+  it('keeps OCR words inline when OCR blocks arrive while unsaved changes exist', async () => {
+    // Simulates OCR finishing while the user was editing: must not use insertContentAt.
+    const { container, rerender } = render(
+      <ExtractionEditor
+        content={existingBlock}
+        hasUnsavedChanges={true}
+        onBaselineReady={vi.fn()}
+        onContentChange={vi.fn()}
+        onRevertChanges={vi.fn()}
+        onAcceptChanges={vi.fn().mockResolvedValue(undefined)}
+        onBlockDelete={vi.fn()}
+        selectedContextBlockIds={[]}
+        selectedContextPages={[]}
+        isWholeDocumentSelected={false}
+        onToggleBlockContext={vi.fn()}
+        activeBlockId={null}
+        onBlockSelect={vi.fn()}
+      />
+    )
+
+    await waitFor(() => {
+      expect(container.querySelector('[data-block-id="block_1_1"]')).not.toBeNull()
+    })
+
+    rerender(
+      <ExtractionEditor
+        content={`${existingBlock}${hocrBlock.replace('block_1_1', 'block_1_2')}`}
+        hasUnsavedChanges={true}
+        onBaselineReady={vi.fn()}
+        onContentChange={vi.fn()}
+        onRevertChanges={vi.fn()}
+        onAcceptChanges={vi.fn().mockResolvedValue(undefined)}
+        onBlockDelete={vi.fn()}
+        selectedContextBlockIds={[]}
+        selectedContextPages={[]}
+        isWholeDocumentSelected={false}
+        onToggleBlockContext={vi.fn()}
+        activeBlockId={null}
+        onBlockSelect={vi.fn()}
+      />
+    )
+
+    await waitFor(() => {
+      expect(container.querySelector('[data-block-id="block_1_2"]')).not.toBeNull()
+    })
+
+    const ocrBlockContent = container.querySelector(
+      '[data-block-id="block_1_2"] [data-node-view-content]'
+    )
+    expect(ocrBlockContent).not.toBeNull()
+    expect(ocrBlockContent!.querySelectorAll('p').length).toBe(1)
+    expect(ocrBlockContent!.textContent).toContain('REP-0337001 v1.0 Status: Approved')
+  })
+
+  it('incrementally inserts only user-created blocks while preserving existing blocks', async () => {
+    // Simulates drawing a new region on the PDF while text edits are pending.
+    const onBaselineReady = vi.fn()
+
+    const { container, rerender } = render(
+      <ExtractionEditor
+        content={existingBlock}
+        hasUnsavedChanges={true}
+        onBaselineReady={onBaselineReady}
+        onContentChange={vi.fn()}
+        onRevertChanges={vi.fn()}
+        onAcceptChanges={vi.fn().mockResolvedValue(undefined)}
+        onBlockDelete={vi.fn()}
+        selectedContextBlockIds={[]}
+        selectedContextPages={[]}
+        isWholeDocumentSelected={false}
+        onToggleBlockContext={vi.fn()}
+        activeBlockId={null}
+        onBlockSelect={vi.fn()}
+      />
+    )
+
+    await waitFor(() => {
+      expect(container.querySelector('[data-block-id="block_1_1"]')).not.toBeNull()
+    })
+
+    onBaselineReady.mockClear()
+
+    rerender(
+      <ExtractionEditor
+        content={`${existingBlock}${userCreatedBlock}`}
+        hasUnsavedChanges={true}
+        onBaselineReady={onBaselineReady}
+        onContentChange={vi.fn()}
+        onRevertChanges={vi.fn()}
+        onAcceptChanges={vi.fn().mockResolvedValue(undefined)}
+        onBlockDelete={vi.fn()}
+        selectedContextBlockIds={[]}
+        selectedContextPages={[]}
+        isWholeDocumentSelected={false}
+        onToggleBlockContext={vi.fn()}
+        activeBlockId={null}
+        onBlockSelect={vi.fn()}
+      />
+    )
+
+    await waitFor(() => {
+      expect(container.querySelector('[data-block-id="block_1_2"]')).not.toBeNull()
+    })
+
+    expect(container.querySelectorAll('[data-block-id]').length).toBe(2)
+    expect(
+      container.querySelector('[data-block-id="block_1_1"] [data-node-view-content]')!.textContent
+    ).toContain('First block')
+    expect(
+      container.querySelector('[data-block-id="block_1_2"] [data-node-view-content]')
+    ).not.toBeNull()
+    expect(onBaselineReady).toHaveBeenCalled()
+  })
+
+  it('replaces content when existing blocks are removed from incoming data', async () => {
+    const { container, rerender } = render(
+      <ExtractionEditor
+        content={content}
+        hasUnsavedChanges={false}
+        onBaselineReady={vi.fn()}
+        onContentChange={vi.fn()}
+        onRevertChanges={vi.fn()}
+        onAcceptChanges={vi.fn().mockResolvedValue(undefined)}
+        onBlockDelete={vi.fn()}
+        selectedContextBlockIds={[]}
+        selectedContextPages={[]}
+        isWholeDocumentSelected={false}
+        onToggleBlockContext={vi.fn()}
+        activeBlockId={null}
+        onBlockSelect={vi.fn()}
+      />
+    )
+
+    await waitFor(() => {
+      expect(container.querySelector('[data-block-id="block_2_1"]')).not.toBeNull()
+    })
+
+    rerender(
+      <ExtractionEditor
+        content={existingBlock}
+        hasUnsavedChanges={false}
+        onBaselineReady={vi.fn()}
+        onContentChange={vi.fn()}
+        onRevertChanges={vi.fn()}
+        onAcceptChanges={vi.fn().mockResolvedValue(undefined)}
+        onBlockDelete={vi.fn()}
+        selectedContextBlockIds={[]}
+        selectedContextPages={[]}
+        isWholeDocumentSelected={false}
+        onToggleBlockContext={vi.fn()}
+        activeBlockId={null}
+        onBlockSelect={vi.fn()}
+      />
+    )
+
+    await waitFor(() => {
+      expect(container.querySelector('[data-block-id="block_2_1"]')).toBeNull()
+    })
+
+    expect(container.querySelector('[data-block-id="block_1_1"]')).not.toBeNull()
   })
 
   it('scrolls to an externally selected block after an editor selection of the already-active block', async () => {
