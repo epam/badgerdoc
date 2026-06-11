@@ -153,6 +153,23 @@ export function ExtractionBlock({ node, editor, extension, deleteNode }: Extract
     }
   }, [conflictGroup])
 
+  useEffect(() => {
+    if (!hasConflictClass || !blockId) {
+      return
+    }
+
+    const blockElement = editor.view.dom.querySelector(`[data-block-id="${blockId}"]`)
+    if (!(blockElement instanceof HTMLElement)) {
+      return
+    }
+
+    blockElement
+      .querySelectorAll<HTMLElement>('.conflict-comment, .conflict-comment *')
+      .forEach((element) => {
+        element.setAttribute('contenteditable', 'false')
+      })
+  }, [editor, blockId, hasConflictClass, activeConflictVariant])
+
   const handleToggleBlockScope = (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault()
     event.stopPropagation()

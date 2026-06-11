@@ -1,4 +1,4 @@
-import { fireEvent, render, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, render, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import ExtractionEditor from './extraction-editor'
 
@@ -66,7 +66,7 @@ const contentWithConflictTabs = `
   <div class="ocr_carea conflict conflict-group--block_1_4 conflict-variant--gpt-4-vision" id="block_1_4__gpt_4_vision" data-page="1" title="bbox 0 100 300 220">
     <p class="ocr_par"><span class="ocr_line">Recorded By/Date:</span></p>
     <p class="ocr_par"><span class="ocr_line"><span class="conflict-target">13NOV23</span></span></p>
-    <p class="ocr_par conflict-comment"><span class="ocr_line">GPT-4 Vision confirmed 13NOV23.</span></p>
+    <p class="ocr_par conflict-comment" id="comment_block_1_4__gpt_4_vision"><span class="ocr_line" id="comment_line_block_1_4__gpt_4_vision">GPT-4 Vision confirmed 13NOV23.</span></p>
   </div>
 `
 
@@ -721,7 +721,7 @@ describe('ExtractionEditor', () => {
   })
 
   it('renders conflict variants as tabs and switches the visible variant', async () => {
-    const { container, getByRole } = render(
+    const { container } = render(
       <ExtractionEditor
         content={contentWithConflictTabs}
         hasUnsavedChanges={false}
@@ -749,19 +749,117 @@ describe('ExtractionEditor', () => {
       '[data-block-id="block_1_4__miner_u"]'
     ) as HTMLElement
 
-    expect(councilBlock).toBeVisible()
-    expect(minerBlock).not.toBeVisible()
+    expect(councilBlock).not.toHaveClass('hidden')
+    expect(minerBlock).toHaveClass('hidden')
     expect(within(councilBlock).getByText('Consensus reached on 13NOV23.')).toBeInTheDocument()
     expect(councilBlock.querySelector('.conflict-target')).not.toBeNull()
 
-    fireEvent.click(getByRole('button', { name: 'miner u' }))
+    fireEvent.click(within(councilBlock).getByRole('button', { name: 'miner u' }))
 
     await waitFor(() => {
-      expect(minerBlock).toBeVisible()
+      expect(minerBlock).not.toHaveClass('hidden')
     })
 
-    expect(councilBlock).not.toBeVisible()
+    expect(councilBlock).toHaveClass('hidden')
     expect(within(minerBlock).getByText('Miner-U suggested 13N0V23.')).toBeInTheDocument()
     expect(within(minerBlock).getByText('13N0V23')).toBeInTheDocument()
+  })
+
+  it('marks conflict comment lines as non-editable', async () => {
+    const { container } = render(
+      <ExtractionEditor
+        content={contentWithConflictTabs}
+        hasUnsavedChanges={false}
+        onBaselineReady={vi.fn()}
+        onContentChange={vi.fn()}
+        onRevertChanges={vi.fn()}
+        onAcceptChanges={vi.fn().mockResolvedValue(undefined)}
+        onBlockDelete={vi.fn()}
+        selectedContextBlockIds={[]}
+        selectedContextPages={[]}
+        isWholeDocumentSelected={false}
+        onToggleBlockContext={vi.fn()}
+        activeBlockId={null}
+        onBlockSelect={vi.fn()}
+      />
+    )
+
+    await waitFor(() => {
+      expect(container.querySelector('#comment_line_block_1_4__gpt_4_vision')).not.toBeNull()
+    })
+
+    const commentLine = container.querySelector(
+      '#comment_line_block_1_4__gpt_4_vision'
+    ) as HTMLElement
+
+    expect(commentLine).toHaveAttribute('contenteditable', 'false')
+  })
+
+  it('does not merge a conflict block into the previous block on backspace at block start', async () => {
+    const contentWithPrecedingBlock = `
+      <div class="ocr_carea" id="block_1_1" data-page="1" title="bbox 0 0 100 100">
+        <p>Dry mouth</p>
+      </div>
+      <div class="ocr_carea" id="block_1_2" data-page="1" title="bbox 0 100 100 200">
+        <p>Dry eyes</p>
+      </div>
+      <div class="ocr_carea" id="block_1_3" data-page="1" title="bbox 0 200 100 300">
+        <p>Headache</p>
+      </div>
+    `
+
+    const { container } = render(
+      <ExtractionEditor
+        content={`${contentWithPrecedingBlock}${contentWithConflictTabs}`}
+        hasUnsavedChanges={false}
+        onBaselineReady={vi.fn()}
+        onContentChange={vi.fn()}
+        onRevertChanges={vi.fn()}
+        onAcceptChanges={vi.fn().mockResolvedValue(undefined)}
+        onBlockDelete={vi.fn()}
+        selectedContextBlockIds={[]}
+        selectedContextPages={[]}
+        isWholeDocumentSelected={false}
+        onToggleBlockContext={vi.fn()}
+        activeBlockId={null}
+        onBlockSelect={vi.fn()}
+      />
+    )
+
+    await waitFor(() => {
+      expect(container.querySelector('[data-block-id="block_1_4"]')).not.toBeNull()
+    })
+
+    const editorElement = container.querySelector('.ProseMirror') as HTMLElement
+    const conflictTextNode = container.querySelector(
+      '[data-block-id="block_1_4"] .ocr_par .ocr_line'
+    )?.firstChild
+
+    expect(editorElement).not.toBeNull()
+    expect(conflictTextNode).not.toBeNull()
+
+    const selection = window.getSelection()
+    const range = document.createRange()
+    range.setStart(conflictTextNode as Text, 0)
+    range.collapse(true)
+    selection?.removeAllRanges()
+    selection?.addRange(range)
+
+    fireEvent.focus(editorElement)
+    document.dispatchEvent(new Event('selectionchange'))
+
+    await act(async () => {
+      fireEvent.keyDown(editorElement, { key: 'Backspace', code: 'Backspace' })
+    })
+
+    expect(container.querySelectorAll('[data-block-id="block_1_4"]').length).toBe(1)
+    expect(container.querySelectorAll('[data-block-id="block_1_3"]').length).toBe(1)
+
+    const previousBlockContent = container.querySelector(
+      '[data-block-id="block_1_3"] [data-node-view-content]'
+    )
+
+    expect(previousBlockContent?.textContent).toContain('Headache')
+    expect(previousBlockContent?.textContent).not.toContain('Change in your sense of')
   })
 })
