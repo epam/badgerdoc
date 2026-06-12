@@ -50,6 +50,7 @@ const ExtractionEditor = ({
   const cursorBlockIdRef = useRef<string | null>(null)
   const editorHasFocusedRef = useRef(false)
   const lastCleanContentRef = useRef(content || '')
+  const lastSyncedContentRef = useRef<string | null>(null)
   const onBlockSelectRef = useRef(onBlockSelect)
   const onBlockDeleteRef = useRef(onBlockDelete)
   const onToggleBlockContextRef = useRef(onToggleBlockContext)
@@ -191,7 +192,12 @@ const ExtractionEditor = ({
       if (!editor) return
 
       const normalizedIncomingContent = content || ''
+      if (lastSyncedContentRef.current === normalizedIncomingContent) {
+        return
+      }
+
       if (editor.getHTML() === normalizedIncomingContent) {
+        lastSyncedContentRef.current = normalizedIncomingContent
         return
       }
 
@@ -199,6 +205,7 @@ const ExtractionEditor = ({
       // Skip the full setContent() replacement to avoid destroying all NodeViews.
       if (skipNextContentSyncRef.current) {
         skipNextContentSyncRef.current = false
+        lastSyncedContentRef.current = normalizedIncomingContent
         onBaselineReady(editor.getHTML())
         return
       }
@@ -249,11 +256,13 @@ const ExtractionEditor = ({
             .insertContentAt(editor.state.doc.content.size, blockEl.outerHTML)
             .run()
         }
+        lastSyncedContentRef.current = normalizedIncomingContent
         onBaselineReady(editor.getHTML())
         return
       }
 
       editor.commands.setContent(normalizedIncomingContent, { emitUpdate: false })
+      lastSyncedContentRef.current = normalizedIncomingContent
       onBaselineReady(editor.getHTML())
     },
     [editor, content, hasUnsavedChanges, onBaselineReady]
