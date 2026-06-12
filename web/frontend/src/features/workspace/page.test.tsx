@@ -148,7 +148,7 @@ vi.mock('@/shared/api/hooks/use-tasks', () => ({
   }),
 }))
 
-vi.mock('@/features/workspace/hooks/use-extraction-state', () => ({
+vi.mock('@/features/workspace/hooks/extraction-state', () => ({
   useExtractionState: () => ({
     currentPage: 1,
     setCurrentPage: vi.fn(),
@@ -170,7 +170,7 @@ vi.mock('@/features/workspace/hooks/use-extraction-state', () => ({
   }),
 }))
 
-vi.mock('@/features/workspace/hooks/use-extraction-api', () => ({
+vi.mock('@/features/workspace/hooks/extraction-api', () => ({
   useExtractionApi: () => ({
     saveExtractionPages: vi.fn(),
     acceptExtraction: vi.fn(),
@@ -182,7 +182,7 @@ vi.mock('@/features/workspace/hooks/use-reload-draft-autosave', () => ({
   useReloadDraftAutosave: vi.fn(),
 }))
 
-vi.mock('@/features/workspace/hooks/use-extraction-chat-context', () => ({
+vi.mock('@/features/workspace/hooks/extraction-chat-context', () => ({
   useExtractionChatContext: () => ({
     prompt: '',
     isWholeDocumentSelected: false,
@@ -237,11 +237,11 @@ vi.mock('@/features/workspace/hooks/use-viewer-chat-context', () => ({
   },
 }))
 
-vi.mock('@/features/workspace/components/document-overview-popover', () => ({
+vi.mock('@/features/workspace/components/document-overview', () => ({
   DocumentOverviewPopover: () => <button type="button">Overview</button>,
 }))
 
-vi.mock('@/features/workspace/components/extraction-results-tab.tsx', () => ({
+vi.mock('@/features/workspace/components/extraction-results-tab', () => ({
   ExtractionResultsTab: ({ onTriggerSuccess }: { onTriggerSuccess?: () => void }) => (
     <button type="button" onClick={onTriggerSuccess}>
       Trigger success
@@ -249,7 +249,7 @@ vi.mock('@/features/workspace/components/extraction-results-tab.tsx', () => ({
   ),
 }))
 
-vi.mock('@/features/workspace/components/agent-logs-tab', () => ({
+vi.mock('@/features/workspace/components/agent-logs', () => ({
   AgentLogsTab: ({
     onTriggerSuccess,
     workflowSelection,

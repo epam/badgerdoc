@@ -19,7 +19,7 @@ import {
   safeStringify,
   shouldShowSourceDocumentLink,
 } from '@/features/workspace/helpers/agent-log-entry'
-import { AGENT_TAB_ID } from './workspace-tabs'
+import { AGENT_TAB_ID } from '../workspace-tabs'
 
 interface AgentLogEntryProps {
   log: AgentLog

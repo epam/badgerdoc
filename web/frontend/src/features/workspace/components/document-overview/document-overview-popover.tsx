@@ -4,7 +4,7 @@ import { DocumentBarPopover, DocumentBarPopoverButton } from '@/components/docum
 import {
   DocumentOverviewContent,
   type OverviewDocument,
-} from '@/features/workspace/components/document-overview-content'
+} from '@/features/workspace/components/document-overview'
 
 interface DocumentOverviewPopoverProps {
   document: OverviewDocument

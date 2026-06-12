@@ -3,7 +3,7 @@ import type { PageChatContext } from '@/components/collection-viewer/viewer-tool
 import {
   getCurrentPageTooltip,
   getDocumentContextTooltip,
-} from '@/features/workspace/helpers/extraction-chat-action-tooltips'
+} from '@/features/workspace/helpers/extraction-chat-context'
 import type { ChatWorkflowSelection } from '@/features/workspace/hooks/use-chat-workflow-selection'
 
 interface UseViewerChatContextParams {

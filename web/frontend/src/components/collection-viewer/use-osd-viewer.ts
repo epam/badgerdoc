@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import OpenSeadragon, { Options, Viewer as OSDViewer } from 'openseadragon'
-import { logger } from '@/shared/logger.ts'
+import { logger } from '@/shared/logger'
 import { DEFAULT_OSD_CONFIG, MACOS_OSD_CONFIG } from '@/components/collection-viewer/config'
 import { isMacOS } from '@/helpers/utils'
 import type { PageSource } from '@/shared/api/badgerdoc/types'

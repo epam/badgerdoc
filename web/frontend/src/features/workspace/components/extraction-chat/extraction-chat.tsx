@@ -16,7 +16,7 @@ import {
 import {
   getCurrentPageTooltip,
   getDocumentContextTooltip,
-} from '@/features/workspace/helpers/extraction-chat-action-tooltips'
+} from '@/features/workspace/helpers/extraction-chat-context'
 import type { ChatWorkflowSelection } from '@/features/workspace/hooks/use-chat-workflow-selection'
 import { useTriggerWorkflow } from '@/shared/api/hooks/use-workflows'
 import { Spinner } from '@/components/ui/spinner'

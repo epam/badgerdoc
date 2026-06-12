@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import OpenSeadragon, { Rect, Viewer } from 'openseadragon'
 import { OverlayBox } from '@/shared/api/badgerdoc/types'
-import { logger } from '@/shared/logger.ts'
+import { logger } from '@/shared/logger'
 import {
   type NormalizedBBox,
   type ResizeDirection,

@@ -1,6 +1,6 @@
 import { badgerDocClient } from '../../badgerdoc/client'
-import { TagsAdapter } from '@/shared/api/adapters/types.ts'
-import { Tag } from '@/shared/api/badgerdoc/types.ts'
+import { TagsAdapter } from '@/shared/api/adapters/types'
+import { Tag } from '@/shared/api/badgerdoc/types'
 
 export const realTagsAdapter: TagsAdapter = {
   getTags: async (): Promise<Tag[]> => {

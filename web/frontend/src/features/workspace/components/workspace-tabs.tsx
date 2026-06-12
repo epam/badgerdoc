@@ -1,8 +1,8 @@
 import { useMemo, useRef, useCallback, type KeyboardEvent } from 'react'
 import { Check, Circle } from 'lucide-react'
-import { cn } from '@/helpers/utils.ts'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip.tsx'
-import { Tag } from '@/shared/api/badgerdoc/types.ts'
+import { cn } from '@/helpers/utils'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { Tag } from '@/shared/api/badgerdoc/types'
 
 type TabStatus = 'idle' | 'in_progress' | 'complete' | 'locked'
 

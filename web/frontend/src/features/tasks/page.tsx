@@ -34,7 +34,7 @@ import { cn, getStatusColor, formatTimeAgo } from '@/helpers/utils'
 import { useSavedFilters, type SavedFilter } from '@/shared/hooks/use-saved-filters'
 import { useTablePreferences, type TableColumn } from '@/shared/hooks/use-table-preferences'
 import { useTaskStatuses } from '@/shared/api/hooks'
-import { useFilteredTasks, SearchDocument } from '@/shared/api/hooks/use-tasks.ts'
+import { useFilteredTasks, SearchDocument } from '@/shared/api/hooks/use-tasks'
 import {
   DEFAULT_TASK_FILTERS,
   TaskFilters,
