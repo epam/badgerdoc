@@ -1,4 +1,5 @@
 import StarterKit from '@tiptap/starter-kit'
+import { mergeAttributes, Node } from '@tiptap/core'
 import Document from '@tiptap/extension-document'
 import Paragraph from '@tiptap/extension-paragraph'
 import { Table, TableCell, TableHeader, TableRow } from '@tiptap/extension-table'
@@ -25,6 +26,55 @@ const OcrParagraph = Paragraph.extend({
         },
       },
     }
+  },
+})
+
+const OcrSpan = Node.create({
+  name: 'ocrSpan',
+
+  group: 'inline',
+
+  inline: true,
+
+  content: 'inline*',
+
+  selectable: false,
+
+  addAttributes() {
+    return {
+      htmlClass: {
+        default: null,
+        parseHTML: (element) => element.getAttribute('class'),
+        renderHTML: (attributes) => {
+          if (!attributes.htmlClass) return {}
+          return { class: attributes.htmlClass }
+        },
+      },
+      htmlId: {
+        default: null,
+        parseHTML: (element) => element.getAttribute('id'),
+        renderHTML: (attributes) => {
+          if (!attributes.htmlId) return {}
+          return { id: attributes.htmlId }
+        },
+      },
+      title: {
+        default: null,
+        parseHTML: (element) => element.getAttribute('title'),
+        renderHTML: (attributes) => {
+          if (!attributes.title) return {}
+          return { title: attributes.title }
+        },
+      },
+    }
+  },
+
+  parseHTML() {
+    return [{ tag: 'span' }]
+  },
+
+  renderHTML({ HTMLAttributes }) {
+    return ['span', mergeAttributes(HTMLAttributes), 0]
   },
 })
 
@@ -185,6 +235,7 @@ export function createExtractionTableExtensions() {
     ListItem.configure(ListKitStylingConfig.listItem),
     ExtractionDocument,
     OcrParagraph,
+    OcrSpan,
     Table.configure(TableKitStylingConfig.table),
     TableRow.configure(TableKitStylingConfig.tableRow),
     OcrTableHeader.configure(TableKitStylingConfig.tableHeader),

@@ -158,14 +158,51 @@ export const ExtractionBlockExtension = Node.create<ExtractionBlockOptions>({
   },
 
   addKeyboardShortcuts() {
-    const isSelectionInExtractionBlock = () => {
-      const { $from } = this.editor.state.selection
+    const getSelectionInExtractionBlock = () => {
+      const { selection } = this.editor.state
+      if (!selection.empty) {
+        return null
+      }
+
+      const { $from } = selection
+      let blockDepth: number | null = null
+
       for (let depth = $from.depth; depth > 0; depth--) {
         if ($from.node(depth).type.name === this.name) {
-          return true
+          blockDepth = depth
+          break
         }
       }
-      return false
+
+      if (blockDepth === null) {
+        return null
+      }
+
+      return { $from, blockDepth }
+    }
+
+    const isSelectionInExtractionBlock = () => {
+      return getSelectionInExtractionBlock() !== null
+    }
+
+    const isSelectionAtExtractionBlockStart = () => {
+      const selectionInBlock = getSelectionInExtractionBlock()
+      if (!selectionInBlock) {
+        return false
+      }
+
+      const { $from, blockDepth } = selectionInBlock
+      if ($from.parentOffset !== 0) {
+        return false
+      }
+
+      for (let depth = $from.depth; depth > blockDepth; depth--) {
+        if ($from.index(depth) !== 0) {
+          return false
+        }
+      }
+
+      return true
     }
 
     const splitToParagraphInBlock = () => {
@@ -178,6 +215,14 @@ export const ExtractionBlockExtension = Node.create<ExtractionBlockOptions>({
     }
 
     return {
+      Backspace: () => {
+        const selectionInBlock = getSelectionInExtractionBlock()
+        if (!selectionInBlock || !isSelectionAtExtractionBlockStart()) {
+          return false
+        }
+
+        return true
+      },
       Enter: () => splitToParagraphInBlock(),
       'Shift-Enter': () => {
         return splitToParagraphInBlock()

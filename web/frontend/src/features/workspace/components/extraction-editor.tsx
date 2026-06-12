@@ -108,17 +108,6 @@ const ExtractionEditor = ({
       attributes: {
         class: 'prose prose-sm max-w-none focus:outline-none',
       },
-      editable: function isEditable(state) {
-        const { $from } = state.selection
-        for (let depth = $from.depth; depth > 0; depth--) {
-          const node = $from.node(depth)
-          if (node.type.name === 'customTab') {
-            const modelAttr = node.attrs?.model
-            return modelAttr === 'council'
-          }
-        }
-        return true
-      },
     },
     onCreate: ({ editor }) => {
       onBaselineReady(editor.getHTML())
