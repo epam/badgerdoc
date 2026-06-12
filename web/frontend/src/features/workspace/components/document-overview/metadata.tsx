@@ -1,6 +1,6 @@
 import { Fragment, JSX } from 'react'
-import { cn } from '@/helpers/utils.ts'
-import { Badge } from '@/components/ui/badge.tsx'
+import { cn } from '@/helpers/utils'
+import { Badge } from '@/components/ui/badge'
 
 interface MetadataProps {
   metadata: Record<string, unknown>

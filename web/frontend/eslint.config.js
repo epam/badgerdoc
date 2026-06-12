@@ -24,6 +24,17 @@ export default defineConfig([
       'no-console': 'warn',
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
       'react-refresh/only-export-components': ['error', { allowConstantExport: true }],
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['*.ts', '*.tsx', '**/*.ts', '**/*.tsx'],
+              message: 'Use extensionless imports for TypeScript modules.',
+            },
+          ],
+        },
+      ],
     },
   },
   eslintConfigPrettier,

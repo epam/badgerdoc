@@ -6,7 +6,7 @@ import {
   CreateExtractionParams,
   ExtractionsAdapter,
   UpdateExtractionParams,
-} from '@/shared/api/adapters/types.ts'
+} from '@/shared/api/adapters/types'
 
 export const realExtractionsAdapter: ExtractionsAdapter = {
   getLatestExtraction: async (

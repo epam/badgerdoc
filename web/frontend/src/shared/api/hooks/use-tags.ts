@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { getApiAdapter } from '@/shared/api/adapters/factory.ts'
+import { getApiAdapter } from '@/shared/api/adapters/factory'
 
 const tagsKeys = {
   all: ['badgerdoc-tags'] as const,

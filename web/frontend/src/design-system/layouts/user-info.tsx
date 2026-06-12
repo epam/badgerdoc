@@ -1,4 +1,4 @@
-import { cn } from '@/helpers/utils.ts'
+import { cn } from '@/helpers/utils'
 import { LogIn } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { SidebarTooltip } from '@/design-system/layouts/sidebar-tooltip'

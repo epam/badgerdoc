@@ -1,5 +1,5 @@
-import { TagsAdapter } from '@/shared/api/adapters/types.ts'
-import { Tag } from '@/shared/api/badgerdoc/types.ts'
+import { TagsAdapter } from '@/shared/api/adapters/types'
+import { Tag } from '@/shared/api/badgerdoc/types'
 import { delay } from 'msw'
 
 export const mockTagsAdapter: TagsAdapter = {

@@ -6,8 +6,8 @@ import type { DocumentHierarchyNode } from '@/shared/api/hooks/use-badgerdoc-doc
 import type { Document } from '@/shared/types/api'
 import { DocumentOverviewPopover } from './document-overview-popover'
 import type { OverviewDocument } from './document-overview-content'
-import { NoExtractionTagsEmptyState } from './no-extraction-tags-empty-state'
-import { WorkspaceTabs } from './workspace-tabs'
+import { NoExtractionTagsEmptyState } from '../no-extraction-tags-empty-state'
+import { WorkspaceTabs } from '../workspace-tabs'
 
 const mocks = vi.hoisted(() => ({
   mutateAsync: vi.fn(),
