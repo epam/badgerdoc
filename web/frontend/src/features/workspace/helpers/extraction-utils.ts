@@ -37,14 +37,65 @@ export function splitHtmlByPage(html: string): Map<number, string> {
   const doc = parser.parseFromString(html, 'text/html')
   const pages = new Map<number, string>()
 
-  doc.querySelectorAll('[data-block-id]').forEach((blockEl) => {
-    const page = Number(blockEl.getAttribute('data-page'))
+  const appendBlock = (blockEl: Element, page: number) => {
     if (!page) return
     const existing = pages.get(page) ?? ''
     pages.set(page, existing + blockEl.outerHTML)
+  }
+
+  // Tiptap editor blocks use data-block-id / data-page.
+  doc.querySelectorAll('[data-block-id]').forEach((blockEl) => {
+    appendBlock(blockEl, Number(blockEl.getAttribute('data-page')))
   })
 
+  // Saved extraction blocks use .ocr_carea[id] / data-page instead.
+  if (pages.size === 0) {
+    doc.querySelectorAll('.ocr_carea[id]').forEach((blockEl) => {
+      appendBlock(blockEl, Number(blockEl.getAttribute('data-page')))
+    })
+  }
+
   return pages
+}
+
+/** Canonical block fingerprint for cross-format comparison (editor vs saved hOCR). */
+function normalizePageBlocksForComparison(content?: string): string {
+  const parser = new DOMParser()
+  const doc = parser.parseFromString(content || '', 'text/html')
+  const blocks = [
+    ...doc.querySelectorAll('[data-block-id]'),
+    ...doc.querySelectorAll('.ocr_carea[id]'),
+    ...doc.querySelectorAll('div[id^="block_"]'),
+  ]
+  const seen = new Set<Element>()
+  const normalized: string[] = []
+
+  for (const el of blocks) {
+    if (seen.has(el)) continue
+    seen.add(el)
+
+    const blockId = el.getAttribute('data-block-id') ?? el.getAttribute('id')
+    if (!blockId) continue
+
+    const title = el.getAttribute('data-block-title') ?? el.getAttribute('title') ?? ''
+    normalized.push(`<div id="${blockId}" title="${title}">${el.innerHTML.trim()}</div>`)
+  }
+
+  return normalized.sort().join('')
+}
+
+function normalizeExtractionPageHtml(content?: string) {
+  return normalizePageBlocksForComparison(content)
+}
+
+export function arePageContentsEquivalent(a?: string, b?: string) {
+  return normalizeExtractionPageHtml(a) === normalizeExtractionPageHtml(b)
+}
+
+/** True when Tiptap page HTML matches the saved extraction page (ignores attribute/format differences). */
+export function editorPageContentMatchesSaved(editorPageHtml?: string, savedPageHtml?: string) {
+  if (savedPageHtml === undefined) return false
+  return arePageContentsEquivalent(cleanBlockAttributes(editorPageHtml ?? ''), savedPageHtml)
 }
 
 /** Strip tiptap data-* attributes and restore original hOCR attribute names */

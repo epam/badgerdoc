@@ -5,6 +5,8 @@ import {
   addBlockToExtractionPages,
   appendBlockToPageHtml,
   cleanBlockAttributes,
+  editorPageContentMatchesSaved,
+  formatExtractionContentForEditor,
   getPageTitle,
   removeBlockFromExtractionPages,
   removeBlockFromPageHtml,
@@ -27,6 +29,23 @@ interface UseExtractionStateParams {
 }
 
 type PendingPayload = Array<{ page: number; hocr: string }>
+type PageHtmlMap = Map<number, string>
+
+/**
+ * Tracks in-progress extraction edits for the workspace editor.
+ *
+ * Unsaved changes come from three sources:
+ * - pendingPages: text edits in the Tiptap editor
+ * - editedExtractionPages: structural edits (block create / bbox move)
+ * - deletedBlockIds: original blocks removed in this session
+ *
+ * Two HTML snapshots are used when deciding whether text is dirty:
+ * - savedEditorPages: ground truth from the server (extractionPages)
+ * - baselinePagesRef: last editor snapshot from onBaselineReady; drifts during
+ *   the session and may already include in-progress text before a block create
+ */
+
+// --- Session baseline (editor HTML vs editor HTML) --------------------------------
 
 function normalizePageContent(content?: string) {
   const parser = new DOMParser()
@@ -41,6 +60,12 @@ function arePagesEqual(a?: string, b?: string) {
   return normalizePageContent(a) === normalizePageContent(b)
 }
 
+function sessionPagesMatch(left?: string, right?: string): boolean {
+  return right !== undefined && arePagesEqual(left, right)
+}
+
+// --- hOCR page list helpers -----------------------------------------------------
+
 function areExtractionPagesEquivalent(
   first?: BadgerDocExtractionPage[],
   second?: BadgerDocExtractionPage[]
@@ -51,10 +76,7 @@ function areExtractionPagesEquivalent(
   const secondByPage = new Map(second.map((page) => [page.page_number, page.content]))
 
   return first.every((page) => {
-    return (
-      normalizePageContent(page.content) ===
-      normalizePageContent(secondByPage.get(page.page_number))
-    )
+    return arePagesEqual(page.content, secondByPage.get(page.page_number))
   })
 }
 
@@ -99,13 +121,183 @@ function getBlockIdsFromExtractionPages(pages?: BadgerDocExtractionPage[]) {
   return blockIds
 }
 
+// --- Pending text state (editor vs session baseline / saved extraction) ---------
+
+function collectPagesChangedFromBaseline(
+  currentPages: PageHtmlMap,
+  baseline: PageHtmlMap
+): PageHtmlMap {
+  const changed = new Map<number, string>()
+
+  for (const [page, pageHtml] of currentPages) {
+    if (!arePagesEqual(baseline.get(page), pageHtml)) {
+      changed.set(page, pageHtml)
+    }
+  }
+
+  for (const page of baseline.keys()) {
+    if (!currentPages.has(page)) {
+      changed.set(page, '')
+    }
+  }
+
+  return changed
+}
+
+/** Drop stale pending entries after a revert-to-baseline within the session. */
+function reconcilePendingWithSessionBaseline(
+  pending: PageHtmlMap,
+  baseline: PageHtmlMap | null,
+  currentPages?: PageHtmlMap
+): PageHtmlMap | null {
+  const next = new Map(pending)
+
+  for (const page of [...next.keys()]) {
+    const pendingHtml = next.get(page)!
+    const baselineHtml = baseline?.get(page)
+    const currentHtml = currentPages?.get(page)
+
+    if (currentPages) {
+      if (sessionPagesMatch(currentHtml, baselineHtml)) {
+        next.delete(page)
+        continue
+      }
+
+      if (currentHtml === undefined && !baseline?.has(page)) {
+        next.delete(page)
+        continue
+      }
+    }
+
+    if (sessionPagesMatch(pendingHtml, baselineHtml)) {
+      next.delete(page)
+    }
+  }
+
+  return next.size > 0 ? next : null
+}
+
+function removeCreatedBlockFromBaseline(
+  baseline: PageHtmlMap,
+  pageNumber: number,
+  blockId: string
+): PageHtmlMap {
+  const updated = new Map(baseline)
+  updated.set(pageNumber, removeBlockFromPageHtml(baseline.get(pageNumber) ?? '', blockId))
+  return updated
+}
+
+// --- Saved extraction comparison (editor HTML vs server) ------------------------
+
+function dropPendingPagesMatchingSaved(pending: PageHtmlMap, savedPages: PageHtmlMap): void {
+  for (const page of [...pending.keys()]) {
+    if (editorPageContentMatchesSaved(pending.get(page), savedPages.get(page))) {
+      pending.delete(page)
+    }
+  }
+}
+
+function dropPendingWhereEditorMatchesSaved(
+  pending: PageHtmlMap,
+  currentPages: PageHtmlMap,
+  savedPages: PageHtmlMap
+): void {
+  for (const [page, currentHtml] of currentPages) {
+    if (editorPageContentMatchesSaved(currentHtml, savedPages.get(page))) {
+      pending.delete(page)
+    }
+  }
+}
+
+function alignSessionBaselineToSavedWhereEditorMatches(
+  baseline: PageHtmlMap,
+  currentPages: PageHtmlMap,
+  savedPages: PageHtmlMap
+): PageHtmlMap {
+  const aligned = new Map(baseline)
+
+  for (const [page, currentHtml] of currentPages) {
+    const savedHtml = savedPages.get(page)
+    if (savedHtml !== undefined && editorPageContentMatchesSaved(currentHtml, savedHtml)) {
+      aligned.set(page, savedHtml)
+    }
+  }
+
+  return aligned
+}
+
+function editorMatchesSavedExtraction(currentPages: PageHtmlMap, savedPages: PageHtmlMap) {
+  if (savedPages.size === 0) {
+    return currentPages.size === 0
+  }
+
+  for (const [page, savedHtml] of savedPages) {
+    if (!editorPageContentMatchesSaved(currentPages.get(page), savedHtml)) {
+      return false
+    }
+  }
+
+  for (const page of currentPages.keys()) {
+    if (!savedPages.has(page)) {
+      return false
+    }
+  }
+
+  return true
+}
+
+function mergeAndReconcilePendingPages({
+  prev,
+  changed,
+  baseline,
+  currentPages,
+  savedPages,
+}: {
+  prev: PageHtmlMap | null
+  changed: PageHtmlMap
+  baseline: PageHtmlMap
+  currentPages: PageHtmlMap
+  savedPages: PageHtmlMap
+}): PageHtmlMap | null {
+  const next = new Map(prev ?? [])
+
+  for (const [page, pageHtml] of changed) {
+    next.set(page, pageHtml)
+  }
+
+  const reconciled = reconcilePendingWithSessionBaseline(next, baseline, currentPages)
+  const final = new Map(reconciled ?? [])
+  dropPendingWhereEditorMatchesSaved(final, currentPages, savedPages)
+  return final.size > 0 ? final : null
+}
+
+// --- Structural edit session (create / delete blocks) ---------------------------
+
+function hasNoStructuralEdits(
+  isCreatedBlock: boolean,
+  remainingCreatedBlockIds: Set<string>,
+  deletedBlockIds: string[]
+) {
+  return isCreatedBlock && remainingCreatedBlockIds.size === 0 && deletedBlockIds.length === 0
+}
+
+function hasStructuralEdits(
+  createdBlockIds: Set<string>,
+  deletedBlockIds: string[],
+  originalBlockIds: Set<string>
+) {
+  return (
+    createdBlockIds.size > 0 || deletedBlockIds.some((blockId) => originalBlockIds.has(blockId))
+  )
+}
+
 export function useExtractionState({ extractionPages, activeTag }: UseExtractionStateParams) {
   const [activeBlockId, setActiveBlockId] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
-  const [pendingPages, setPendingPages] = useState<Map<number, string> | null>(null)
+  const [pendingPages, setPendingPages] = useState<PageHtmlMap | null>(null)
   const [deletedBlockIds, setDeletedBlockIds] = useState<string[]>([])
   const [stateTag, setStateTag] = useState(activeTag)
-  const baselinePagesRef = useRef<Map<number, string> | null>(null)
+  const baselinePagesRef = useRef<PageHtmlMap | null>(null)
   const [editedExtractionPages, setEditedExtractionPages] = useState<
     BadgerDocExtractionPage[] | undefined
   >(undefined)
@@ -131,8 +323,11 @@ export function useExtractionState({ extractionPages, activeTag }: UseExtraction
     setDeletedBlockIds([])
   }, [])
 
-  const hasChanges =
-    editedExtractionPages !== undefined || pendingPages !== null || deletedBlockIds.length > 0
+  const savedEditorPages = useMemo(
+    () => splitHtmlByPage(formatExtractionContentForEditor(extractionPages)),
+    [extractionPages]
+  )
+
   const baseExtractionPages = committedExtractionPages ?? extractionPages
   const scopedExtractionPages = editedExtractionPages ?? baseExtractionPages
   const originalBlockIds = useMemo(
@@ -140,8 +335,6 @@ export function useExtractionState({ extractionPages, activeTag }: UseExtraction
     [extractionPages]
   )
 
-  // Keep a ref so callbacks captured by the Tiptap extension (which never
-  // re-applies options) read the current value instead of a stale closure.
   const baseExtractionPagesRef = useRef(baseExtractionPages)
   useEffect(() => {
     baseExtractionPagesRef.current = baseExtractionPages
@@ -203,60 +396,109 @@ export function useExtractionState({ extractionPages, activeTag }: UseExtraction
     baselinePagesRef.current = splitHtmlByPage(html)
   }, [])
 
-  const handleContentChange = useCallback((html: string) => {
-    const currentPages = splitHtmlByPage(html)
-    const baseline = baselinePagesRef.current
+  const handleContentChange = useCallback(
+    (html: string) => {
+      const currentPages = splitHtmlByPage(html)
+      let baseline = baselinePagesRef.current
 
-    if (!baseline) {
-      setPendingPages(currentPages)
-      return
-    }
-
-    const changed = new Map<number, string>()
-
-    for (const [page, pageHtml] of currentPages) {
-      if (baseline.get(page) !== pageHtml) {
-        changed.set(page, pageHtml)
-      }
-    }
-
-    // Detect pages where all blocks were removed
-    for (const page of baseline.keys()) {
-      if (!currentPages.has(page)) {
-        changed.set(page, '')
-      }
-    }
-
-    setPendingPages((prev) => {
-      const next = new Map(prev ?? [])
-
-      for (const [page, html] of changed) {
-        next.set(page, html)
+      if (!baseline) {
+        setPendingPages(currentPages)
+        return
       }
 
-      return next.size > 0 ? next : null
-    })
-  }, [])
+      // Editor fully matches the server — clear text edits unless blocks were
+      // created or original blocks were deleted in this session.
+      if (
+        !hasStructuralEdits(createdBlockIds, deletedBlockIds, originalBlockIds) &&
+        editorMatchesSavedExtraction(currentPages, savedEditorPages)
+      ) {
+        baselinePagesRef.current = new Map(savedEditorPages)
+        setPendingPages(null)
+        return
+      }
 
-  const handleBlockDelete = useCallback((blockId: string, pageNumber: number | null) => {
-    setEditedExtractionPages((prev) => {
-      const base = prev ?? baseExtractionPagesRef.current
-      return removeBlockFromExtractionPages(base, blockId) ?? base
-    })
-    setDeletedBlockIds((prev) => [...prev, blockId])
-    setActiveBlockId((prev) => (prev === blockId ? null : prev))
+      baseline = alignSessionBaselineToSavedWhereEditorMatches(
+        baseline,
+        currentPages,
+        savedEditorPages
+      )
+      baselinePagesRef.current = baseline
 
-    if (pageNumber === null) return
+      const changed = collectPagesChangedFromBaseline(currentPages, baseline)
 
-    setPendingPages((prev) => {
-      const pageHtml = prev?.get(pageNumber)
-      if (pageHtml === undefined) return prev
+      setPendingPages((prev) =>
+        mergeAndReconcilePendingPages({
+          prev,
+          changed,
+          baseline,
+          currentPages,
+          savedPages: savedEditorPages,
+        })
+      )
+    },
+    [createdBlockIds, deletedBlockIds, originalBlockIds, savedEditorPages]
+  )
 
-      const next = new Map(prev)
-      next.set(pageNumber, removeBlockFromPageHtml(pageHtml, blockId))
-      return next
-    })
-  }, [])
+  const handleBlockDelete = useCallback(
+    (blockId: string, pageNumber: number | null) => {
+      const isCreatedBlock = createdBlockIds.has(blockId)
+      const remainingCreatedBlockIds = new Set(createdBlockIds)
+      if (isCreatedBlock) {
+        remainingCreatedBlockIds.delete(blockId)
+      }
+
+      const noStructuralEdits = hasNoStructuralEdits(
+        isCreatedBlock,
+        remainingCreatedBlockIds,
+        deletedBlockIds
+      )
+
+      if (noStructuralEdits) {
+        setEditedExtractionPages(undefined)
+      } else {
+        setEditedExtractionPages((prev) => {
+          const base = prev ?? baseExtractionPagesRef.current
+          const next = removeBlockFromExtractionPages(base, blockId) ?? base
+          return areExtractionPagesEquivalent(next, extractionPages) ? undefined : next
+        })
+      }
+
+      if (isCreatedBlock) {
+        setCreatedBlockIds(remainingCreatedBlockIds)
+      } else {
+        setDeletedBlockIds((prev) => [...prev, blockId])
+      }
+
+      setActiveBlockId((prev) => (prev === blockId ? null : prev))
+
+      if (pageNumber === null) return
+
+      setPendingPages((prev) => {
+        let baseline = baselinePagesRef.current
+
+        if (isCreatedBlock && baseline?.has(pageNumber)) {
+          baseline = removeCreatedBlockFromBaseline(baseline, pageNumber, blockId)
+          baselinePagesRef.current = baseline
+        }
+
+        const next = new Map(prev ?? [])
+
+        if (next.has(pageNumber)) {
+          next.set(pageNumber, removeBlockFromPageHtml(next.get(pageNumber) ?? '', blockId))
+        }
+
+        if (noStructuralEdits) {
+          // Compare against saved extraction only — the session baseline may
+          // already include in-progress text edits from before the block was created.
+          dropPendingPagesMatchingSaved(next, savedEditorPages)
+          return next.size > 0 ? next : null
+        }
+
+        return reconcilePendingWithSessionBaseline(next, baseline)
+      })
+    },
+    [createdBlockIds, deletedBlockIds, extractionPages, savedEditorPages]
+  )
 
   const handleBlockBoundingBoxUpdate = useCallback(
     (blockId: string, pageIndex: number, bbox: BBox) => {
@@ -280,12 +522,12 @@ export function useExtractionState({ extractionPages, activeTag }: UseExtraction
       if (newBlockId) {
         setActiveBlockId(newBlockId)
         setCreatedBlockIds((prev) => new Set(prev).add(newBlockId!))
-        // Keep this defensive cleanup so restored/legacy IDs don't hide a new highlight.
         setDeletedBlockIds((prev) => prev.filter((id) => id !== newBlockId))
 
-        let newBlockHtml: string | null = null
         const updatedPage = result.pages?.[pageIndex]
         const pageNumber = updatedPage?.page_number ?? null
+        let newBlockHtml: string | null = null
+
         if (updatedPage?.content) {
           const parser = new DOMParser()
           const doc = parser.parseFromString(updatedPage.content, 'text/html')
@@ -293,20 +535,12 @@ export function useExtractionState({ extractionPages, activeTag }: UseExtraction
         }
 
         if (pageNumber !== null && newBlockHtml) {
-          const createdPageNumber = pageNumber
-          const createdBlockHtml = newBlockHtml
-          const createdBlockId = newBlockId
-
           setPendingPages((prev) => {
-            if (!prev?.has(createdPageNumber)) return prev
+            if (!prev?.has(pageNumber)) return prev
             const next = new Map(prev)
             next.set(
-              createdPageNumber,
-              appendBlockToPageHtml(
-                prev.get(createdPageNumber) ?? '',
-                createdBlockHtml,
-                createdBlockId
-              )
+              pageNumber,
+              appendBlockToPageHtml(prev.get(pageNumber) ?? '', newBlockHtml, newBlockId)
             )
             return next
           })
@@ -323,11 +557,6 @@ export function useExtractionState({ extractionPages, activeTag }: UseExtraction
 
     if (editedExtractionPages && scopedExtractionPages?.length) {
       const parser = new DOMParser()
-
-      // Normalize original content to body.innerHTML for fair comparison,
-      // since editedExtractionPages content is stored as body.innerHTML by mapExtractionPagesHtml
-      const safePages = editedExtractionPages ?? extractionPages
-
       const originalByPage = new Map<number, string>(
         (extractionPages ?? []).map((p) => {
           const doc = parser.parseFromString(p.content || '', 'text/html')
@@ -335,7 +564,7 @@ export function useExtractionState({ extractionPages, activeTag }: UseExtraction
         })
       )
 
-      for (const page of safePages ?? []) {
+      for (const page of editedExtractionPages) {
         const originalContent = originalByPage.get(page.page_number) ?? ''
         const updatedContent = page.content || ''
         if (arePagesEqual(originalContent, updatedContent)) continue
@@ -348,7 +577,7 @@ export function useExtractionState({ extractionPages, activeTag }: UseExtraction
           toHOCR({
             tag: activeTag,
             page: page.page_number,
-            pageTitle: getPageTitle(safePages, page.page_number),
+            pageTitle: getPageTitle(editedExtractionPages, page.page_number),
             htmlContent: ocrPage?.innerHTML ?? updatedContent,
           })
         )
@@ -357,6 +586,9 @@ export function useExtractionState({ extractionPages, activeTag }: UseExtraction
 
     if (pendingPages) {
       for (const [page, html] of pendingPages) {
+        const savedHtml = savedEditorPages.get(page) ?? ''
+        if (editorPageContentMatchesSaved(html, savedHtml)) continue
+
         changedPages.set(
           page,
           toHOCR({
@@ -372,7 +604,17 @@ export function useExtractionState({ extractionPages, activeTag }: UseExtraction
     return Array.from(changedPages.entries())
       .sort(([a], [b]) => a - b)
       .map(([page, hocr]) => ({ page, hocr }))
-  }, [activeTag, extractionPages, editedExtractionPages, pendingPages, scopedExtractionPages])
+  }, [
+    activeTag,
+    extractionPages,
+    editedExtractionPages,
+    savedEditorPages,
+    pendingPages,
+    scopedExtractionPages,
+  ])
+
+  const hasChanges =
+    pendingPayload.length > 0 || deletedBlockIds.some((blockId) => originalBlockIds.has(blockId))
 
   const acceptChanges = useCallback(
     (
